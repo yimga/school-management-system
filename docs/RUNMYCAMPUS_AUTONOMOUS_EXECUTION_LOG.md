@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice - 11.4 batch 784: Raw SQL SQLite integrity helper — reject bool db_path before PRAGMA connect (2026-04-07)
+
+**A. Scope:** Fail closed on **`bool`** **`db_path`** explicitly (Python **`bool`** subclasses **`int`**), keeping **`run_sqlite_integrity_check()`** safe if numeric path handling is added later.
+
+**B. Implementation:** **`apps/siteconfig/repositories/database_recovery_repository.py`** early **`isinstance(db_path, bool)`** **`None`**. **`apps/siteconfig/tests/test_database_recovery_repository.py`** **`test_bool_path_returns_none_without_connecting`**.
+
+**C. Validation:** **`python manage.py test apps.siteconfig.tests.test_database_recovery_repository --noinput -v 2`** - **14 OK**; **`python scripts/lint_raw_sql_usage.py`** **PASS**; **`python scripts/verify_doc_plan_density_discipline.py` PASS** (after SOT/log).
+
+**D. Docs:** SOT 11.4 batch **784**; this log entry.
+
+**E. Risks / notes:** **`True`**/**`False`** previously fell through to the generic **`else`** **`None`**; behavior unchanged, ordering is defensive.
+
+**F. Follow-ons:** **`785+`** - coordinate the next slice without overlapping active work.
+
 ## Slice - 11.4 batch 783: Raw SQL tenant cache prefix — reject bool and binary buffers in school/schema normalization before current_setting read (2026-04-07)
 
 **A. Scope:** Prevent **`str(True)`** and buffer reprs from becoming accepted **`tenant:`**/**`school:`** cache segments when **`connection.tenant.schema_name`**, **`request.school.id`**, or the RLS GUC read path yields unexpected types.
@@ -12,7 +26,7 @@
 
 **E. Risks / notes:** Normal **`int`** school ids still stringify as before; only **`bool`** and explicit buffer types are rejected at normalization.
 
-**F. Follow-ons:** **`784+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`785+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 782: Raw SQL SQLite integrity helper — reject bytearray and memoryview db_path before PRAGMA connect (2026-04-07)
 
@@ -26,7 +40,7 @@
 
 **E. Risks / notes:** **`bytearray`**/**`memoryview`** previously returned **`None`** via the non-**`Path`**/**`str`** branch; behavior is unchanged but documented and guarded explicitly.
 
-**F. Follow-ons:** **`784+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`785+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 781: Raw SQL audit repository — reject bool and binary buffers for schema/table identifiers before DDL/search_path SQL (2026-04-07)
 
@@ -40,7 +54,7 @@
 
 **E. Risks / notes:** **`drop_audit_trigger()`** shares the same normalizer; behavior matches **`create_audit_trigger()`** without duplicate tests.
 
-**F. Follow-ons:** **`784+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`785+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 780: Raw SQL schools RLS session GUC — reject bool and binary buffers for school_id before SET app.current_school_id (2026-04-07)
 
@@ -54,7 +68,7 @@
 
 **E. Risks / notes:** Call paths that incorrectly passed **`True`**/**`False`** now fail fast with **`ValueError`** on PostgreSQL instead of setting a nonsense GUC string.
 
-**F. Follow-ons:** **`784+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`785+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 779: Raw SQL health and RLS repositories — reject memoryview buffer args before retained SQL (2026-04-07)
 
@@ -68,7 +82,7 @@
 
 **E. Risks / notes:** **`memoryview`** previously failed closed via **`try`**/**`except`** or integer-iteration dead ends; behavior is unchanged for normal **`str`** call paths.
 
-**F. Follow-ons:** **`784+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`785+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 778: Raw SQL health repository — reject bytearray limit/schema_name and schema/table in count_table_rows and get_top_tables_by_size (2026-04-07)
 

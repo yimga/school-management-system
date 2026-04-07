@@ -47,6 +47,15 @@ class TestDatabaseRecoveryRepository(unittest.TestCase):
 
         connect.assert_not_called()
 
+    def test_bool_path_returns_none_without_connecting(self):
+        with patch(
+            "apps.siteconfig.repositories.database_recovery_repository.sqlite3.connect"
+        ) as connect:
+            self.assertIsNone(run_sqlite_integrity_check(True))
+            self.assertIsNone(run_sqlite_integrity_check(False))
+
+        connect.assert_not_called()
+
     def test_overlong_resolved_path_returns_none_without_connecting(self):
         from pathlib import Path as StdPath
 
