@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice - 11.4 batch 777: Raw SQL RLS repository — reject bytearray table_names before get_tenant_rls_status catalog query (2026-04-07)
+
+**A. Scope:** Align **`get_tenant_rls_status()`** with health-repository binary-buffer handling by rejecting **`bytearray`** at the same layer as bare **`str`**/**`bytes`**, instead of relying on the integer-iteration fallback path.
+
+**B. Implementation:** **`apps/schools/repositories/rls_repository.py`** **`isinstance(table_names, (str, bytes, bytearray))`** early return **`{}`**. **`apps/schools/tests/test_rls_repository.py`** adds **`test_get_tenant_rls_status_bytearray_input_returns_empty_without_sql`**.
+
+**C. Validation:** **`python manage.py test apps.schools.tests.test_rls_repository apps.schools.tests.test_verify_tenant_rls_command --noinput -v 2`** - **16 OK**; **`python scripts/lint_raw_sql_usage.py`** **PASS**; **`python scripts/verify_doc_plan_density_discipline.py` PASS** (after SOT/log).
+
+**D. Docs:** SOT 11.4 batch **777**; this log entry.
+
+**E. Risks / notes:** Non-empty **`bytearray`** previously iterated to no valid relnames and returned **`{}`** without SQL; the guard makes that contract explicit and stable if the normalization loop changes.
+
+**F. Follow-ons:** **`778+`** - coordinate the next slice without overlapping active work.
+
 ## Slice - 11.4 batch 776: SiteSettings theme resolver - ignore inactive selected portal theme packs and fall back to active defaults (2026-04-02)
 
 **A. Scope:** Prevent the live portal theme resolver from returning an inactive selected theme pack when a stale pointer exists, aligning it with the stricter admin/role-specific theme resolution behavior.
