@@ -70,6 +70,19 @@ class TestHealthRepository(unittest.TestCase):
 
         cursor.assert_not_called()
 
+    def test_get_global_health_stats_dict_limit_returns_empty_without_sql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.health_repository import (
+                get_global_health_stats,
+            )
+
+            self.assertEqual(get_global_health_stats(limit={"n": 10}), [])
+
+        cursor.assert_not_called()
+
     def test_get_global_health_stats_memoryview_limit_returns_empty_without_sql(self):
         with (
             patch.object(connection, "vendor", "postgresql"),
@@ -414,6 +427,19 @@ class TestHealthRepository(unittest.TestCase):
 
             self.assertEqual(get_top_tables_by_size(limit=True), [])
             self.assertEqual(get_top_tables_by_size(limit=False), [])
+
+        cursor.assert_not_called()
+
+    def test_get_top_tables_by_size_rejects_dict_limit_without_sql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.health_repository import (
+                get_top_tables_by_size,
+            )
+
+            self.assertEqual(get_top_tables_by_size(limit={"n": 10}), [])
 
         cursor.assert_not_called()
 

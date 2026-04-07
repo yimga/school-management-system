@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice - 11.4 batch 794: Raw SQL health repository — reject collections.abc.Mapping for LIMIT on get_top_tables_by_size and get_global_health_stats (2026-04-07)
+
+**A. Scope:** **`limit`** must not be a **`Mapping`** (callers mixing up kwargs vs mistaken dict) on both health entry points that build **`LIMIT %s`**.
+
+**B. Implementation:** **`apps/schools/repositories/health_repository.py`** **`Mapping`** guard before **`bool`**/buffers/**`int()`** in **`get_top_tables_by_size`** and **`get_global_health_stats`**. Docstrings. **`apps/schools/tests/test_health_repository.py`** **`test_get_top_tables_by_size_rejects_dict_limit_without_sql`**, **`test_get_global_health_stats_dict_limit_returns_empty_without_sql`**.
+
+**C. Validation:** **`python manage.py test apps.schools.tests.test_health_repository --noinput -v 2`** - **47 OK**; **`python scripts/lint_raw_sql_usage.py`** **PASS**; **`python scripts/verify_doc_plan_density_discipline.py` PASS** (after SOT/log).
+
+**D. Docs:** SOT 11.4 batch **794**; this log entry.
+
+**E. Risks / notes:** Aligns with RLS **`table_names`** **`Mapping`** rejection pattern; **`int(dict)`** already failed but this is explicit and ordered before **`bool`** ( **`dict`** is not **`bool`**).
+
+**F. Follow-ons:** **`795+`** - coordinate the next slice without overlapping active work.
+
 ## Slice - 11.4 batch 793: Raw SQL health repository — optional get_global_health_stats limit with bool/buffer rejection and cap parity (2026-04-07)
 
 **A. Scope:** **`get_global_health_stats()`** had a fixed **`LIMIT`**; optional **`limit`** allows tests and future callers to tune row count while rejecting **`bool`**/buffers and capping like **`get_top_tables_by_size`**.
@@ -12,7 +26,7 @@
 
 **E. Risks / notes:** Default **`None`** preserves super dashboard behavior (**`get_global_health_stats()`** unchanged).
 
-**F. Follow-ons:** **`794+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`795+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 792: Raw SQL RLS repository — reject non-iterable table_names before get_tenant_rls_status loop (2026-04-07)
 
@@ -26,7 +40,7 @@
 
 **E. Risks / notes:** **`bool`** still handled explicitly before **`iter`**; **`iter(True)`** would also **`TypeError`** if ordering changed.
 
-**F. Follow-ons:** **`794+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`795+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 791: Raw SQL RLS repository — reject bool table_names before get_tenant_rls_status iteration (2026-04-07)
 
@@ -40,7 +54,7 @@
 
 **E. Risks / notes:** **`False`** was already **`{}`** via **`not table_names`**; explicit **`bool`** keeps ordering safe if that branch changes.
 
-**F. Follow-ons:** **`794+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`795+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 790: Raw SQL RLS repository — reject collections.abc.Mapping table_names before get_tenant_rls_status catalog query (2026-04-07)
 
@@ -54,7 +68,7 @@
 
 **E. Risks / notes:** Supersedes batch-789 **`dict`**-only guard; hypothetical **`Mapping`** callers still get **`{}`** without SQL.
 
-**F. Follow-ons:** **`794+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`795+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 789: Raw SQL RLS repository — reject dict table_names before get_tenant_rls_status catalog query (2026-04-07)
 
@@ -68,7 +82,7 @@
 
 **E. Risks / notes:** Hypothetical callers passing **`dict`** to mean “set of tables” now get **`{}`** instead of a keyed lookup; no in-repo callers did that. Batch **790** widened the guard to **`collections.abc.Mapping`**.
 
-**F. Follow-ons:** **`794+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`795+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 788: Raw SQL audit repository — create_audit_trigger table_name normalization doc parity with drop_audit_trigger (2026-04-07)
 
@@ -82,7 +96,7 @@
 
 **E. Risks / notes:** None; aligns reader-facing contract with code paths already covered by **`test_audit_repository`**.
 
-**F. Follow-ons:** **`794+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`795+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 787: Raw SQL health repository — get_top_tables_by_size schema_name via _normalize_unqualified_identifier (2026-04-07)
 
@@ -96,7 +110,7 @@
 
 **E. Risks / notes:** Dotted **`schema_name`** values now fail at **unqualified** check (explicit **`ValueError`**) instead of only the regex; both yield **`[]`** without SQL.
 
-**F. Follow-ons:** **`794+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`795+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 786: Raw SQL health repository — centralize bool and binary-buffer rejection in _normalize_identifier (2026-04-07)
 
@@ -110,7 +124,7 @@
 
 **E. Risks / notes:** **`count_table_rows`** debug log messages for bool/buffer now match the helper text (**must not be a boolean** / **must not be bytes…**); return codes unchanged.
 
-**F. Follow-ons:** **`794+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`795+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 785: Raw SQL audit repository — drop_audit_trigger table_name normalization parity doc and tests (2026-04-07)
 
@@ -124,7 +138,7 @@
 
 **E. Risks / notes:** Behavior unchanged; tests document parity so future refactors cannot drop **`drop_audit_trigger`** guards alone.
 
-**F. Follow-ons:** **`794+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`795+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 784: Raw SQL SQLite integrity helper — reject bool db_path before PRAGMA connect (2026-04-07)
 
@@ -138,7 +152,7 @@
 
 **E. Risks / notes:** **`True`**/**`False`** previously fell through to the generic **`else`** **`None`**; behavior unchanged, ordering is defensive.
 
-**F. Follow-ons:** **`794+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`795+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 783: Raw SQL tenant cache prefix — reject bool and binary buffers in school/schema normalization before current_setting read (2026-04-07)
 

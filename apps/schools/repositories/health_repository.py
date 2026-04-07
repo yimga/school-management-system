@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import re
+from collections.abc import Mapping
 
 from django.db import connection
 from django.db.utils import DatabaseError, OperationalError, ProgrammingError
@@ -56,13 +57,16 @@ def get_top_tables_by_size(
     the shared connection search_path.
     Returns list of dicts: schema_name, table_name, total_pretty, raw_size, row_count (if available).
     No-op on non-PostgreSQL backends (returns []).
-    limit must not be bool or a binary buffer (bool would coerce to 0/1; bytes, bytearray, and memoryview are not limits);
+    limit must not be collections.abc.Mapping, bool, or a binary buffer (mapping/limit confusion;
+    bool would coerce to 0/1; bytes, bytearray, and memoryview are not limits);
     otherwise it is coerced to int, must be positive, and is capped at 500
     (_HEALTH_TOP_TABLES_MAX_LIMIT) before the query runs.
     When schema_name is provided it is normalized with _normalize_unqualified_identifier (bool, buffers,
     blank, and qualified names rejected) and must match the health identifier pattern or the call returns [].
     """
     if connection.vendor != "postgresql":
+        return []
+    if isinstance(limit, Mapping):
         return []
     if isinstance(limit, bool):
         return []
@@ -192,8 +196,8 @@ def get_global_health_stats(limit: int | None = None) -> list[dict]:
     Returns list of dicts: schema_name, pretty_size, raw_size, table_count.
     Result rows are capped at _HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT (500), largest schemas first.
     When limit is None, that cap is used as the SQL LIMIT. When limit is provided, it is coerced
-    with the same rules as get_top_tables_by_size: bool and binary buffers return [] without SQL;
-    int must be positive and is capped at _HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT.
+    with the same rules as get_top_tables_by_size: collections.abc.Mapping, bool, and binary
+    buffers return [] without SQL; int must be positive and is capped at _HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT.
     No-op on non-PostgreSQL backends (returns []).
     """
     if connection.vendor != "postgresql":
@@ -201,6 +205,8 @@ def get_global_health_stats(limit: int | None = None) -> list[dict]:
     if limit is None:
         eff_limit = _HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT
     else:
+        if isinstance(limit, Mapping):
+            return []
         if isinstance(limit, bool):
             return []
         if isinstance(limit, _BINARY_BUFFER_TYPES):
