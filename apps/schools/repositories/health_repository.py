@@ -22,6 +22,9 @@ _HEALTH_TOP_TABLES_MAX_LIMIT = 500
 # Upper bound for schema groups returned by get_global_health_stats (super dashboard); avoids huge GROUP BY result sets.
 _HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT = 500
 
+# Reject buffer types callers might pass instead of str/int (explicit; avoids relying on coercion exceptions).
+_BINARY_BUFFER_TYPES = (bytes, bytearray, memoryview)
+
 
 def _normalize_identifier(value: str, *, field_name: str) -> str:
     normalized = value.strip() if isinstance(value, str) else ""
@@ -46,17 +49,17 @@ def get_top_tables_by_size(
     the shared connection search_path.
     Returns list of dicts: schema_name, table_name, total_pretty, raw_size, row_count (if available).
     No-op on non-PostgreSQL backends (returns []).
-    limit must not be bool or bytes-like (bool would coerce to 0/1; bytes/bytearray are not limits);
+    limit must not be bool or a binary buffer (bool would coerce to 0/1; bytes, bytearray, and memoryview are not limits);
     otherwise it is coerced to int, must be positive, and is capped at 500
     (_HEALTH_TOP_TABLES_MAX_LIMIT) before the query runs.
-    When schema_name is provided it must be a non-bool str (bool and bytes/bytearray are not identifiers;
+    When schema_name is provided it must be a non-bool str (bool and binary buffers are not identifiers;
     callers should not rely on accidental coercion).
     """
     if connection.vendor != "postgresql":
         return []
     if isinstance(limit, bool):
         return []
-    if isinstance(limit, (bytes, bytearray)):
+    if isinstance(limit, _BINARY_BUFFER_TYPES):
         return []
     try:
         limit = int(limit)
@@ -68,7 +71,7 @@ def get_top_tables_by_size(
         limit = _HEALTH_TOP_TABLES_MAX_LIMIT
     if isinstance(schema_name, bool):
         return []
-    if isinstance(schema_name, (bytes, bytearray)):
+    if isinstance(schema_name, _BINARY_BUFFER_TYPES):
         return []
     if schema_name is not None:
         schema_name = schema_name.strip() if isinstance(schema_name, str) else ""
@@ -110,14 +113,14 @@ def check_table_exists(qualified_table: str) -> bool:
     schema and table segments (when present) must each be a PostgreSQL identifier (ASCII letters,
     digits, underscore; max 63 characters) before introspection runs.
     bool values are rejected (they are not table names; avoids relying on ValueError from blank normalization).
-    bytes and bytearray values are rejected (callers must pass str; avoids buffer handling in normalization).
+    Binary buffer values (bytes, bytearray, memoryview) are rejected (callers must pass str).
     no-op on non-PostgreSQL (returns False).
     """
     if connection.vendor != "postgresql":
         return False
     if isinstance(qualified_table, bool):
         return False
-    if isinstance(qualified_table, (bytes, bytearray)):
+    if isinstance(qualified_table, _BINARY_BUFFER_TYPES):
         return False
     try:
         normalized_qualified_table = _normalize_identifier(
@@ -157,14 +160,16 @@ def count_table_rows(schema: str, table: str) -> int:
     Schema and table must each be a single PostgreSQL identifier (ASCII letters, digits,
     underscore; max 63 characters) after strip — otherwise returns -1 without SQL.
     bool values are rejected (they are not identifiers; str(True) would look like a name).
-    bytes and bytearray values are rejected (identifiers must be str; avoids buffer handling).
+    Binary buffer values (bytes, bytearray, memoryview) are rejected (identifiers must be str).
     Returns -1 on error (e.g. permissions, RLS). No-op on non-PostgreSQL (returns 0).
     """
     if connection.vendor != "postgresql":
         return 0
     if isinstance(schema, bool) or isinstance(table, bool):
         return -1
-    if isinstance(schema, (bytes, bytearray)) or isinstance(table, (bytes, bytearray)):
+    if isinstance(schema, _BINARY_BUFFER_TYPES) or isinstance(
+        table, _BINARY_BUFFER_TYPES
+    ):
         return -1
     try:
         schema_norm = _normalize_unqualified_identifier(schema, field_name="schema")

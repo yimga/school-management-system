@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice - 11.4 batch 779: Raw SQL health and RLS repositories — reject memoryview buffer args before retained SQL (2026-04-07)
+
+**A. Scope:** Extend binary-buffer rejection to **`memoryview`** on schools health and RLS raw-SQL helpers so CPython buffer protocol objects cannot reach **`int()`** coercion, identifier normalization, or RLS placeholder expansion.
+
+**B. Implementation:** **`apps/schools/repositories/health_repository.py`** **`_BINARY_BUFFER_TYPES`** and guards on **`get_top_tables_by_size`**, **`check_table_exists`**, **`count_table_rows`**. **`apps/schools/repositories/rls_repository.py`** **`isinstance(..., memoryview)`** on **`table_names`**. Five new tests across **`test_health_repository`** and **`test_rls_repository`**.
+
+**C. Validation:** **`python manage.py test apps.schools.tests.test_health_repository apps.schools.tests.test_rls_repository apps.schools.tests.test_verify_tenant_rls_command --noinput -v 2`** - **59 OK**; **`python scripts/lint_raw_sql_usage.py`** **PASS**; **`python scripts/verify_doc_plan_density_discipline.py` PASS** (after SOT/log).
+
+**D. Docs:** SOT 11.4 batch **779**; this log entry.
+
+**E. Risks / notes:** **`memoryview`** previously failed closed via **`try`**/**`except`** or integer-iteration dead ends; behavior is unchanged for normal **`str`** call paths.
+
+**F. Follow-ons:** **`780+`** - coordinate the next slice without overlapping active work.
+
 ## Slice - 11.4 batch 778: Raw SQL health repository — reject bytearray limit/schema_name and schema/table in count_table_rows and get_top_tables_by_size (2026-04-07)
 
 **A. Scope:** Extend **`bytes`**-only guards on **`get_top_tables_by_size()`** and **`count_table_rows()`** to **`bytearray`**, matching **`check_table_exists()`** and closing the mutable binary-buffer gap on those retained queries.
@@ -12,7 +26,7 @@
 
 **E. Risks / notes:** **`bytearray`** values previously failed normalization or **`int()`** coercion; the guards make behavior explicit and align with other health entry points.
 
-**F. Follow-ons:** **`779+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`780+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 777: Raw SQL RLS repository — reject bytearray table_names before get_tenant_rls_status catalog query (2026-04-07)
 
@@ -26,7 +40,7 @@
 
 **E. Risks / notes:** Non-empty **`bytearray`** previously iterated to no valid relnames and returned **`{}`** without SQL; the guard makes that contract explicit and stable if the normalization loop changes.
 
-**F. Follow-ons:** **`779+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`780+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 776: SiteSettings theme resolver - ignore inactive selected portal theme packs and fall back to active defaults (2026-04-02)
 

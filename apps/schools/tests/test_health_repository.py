@@ -98,6 +98,19 @@ class TestHealthRepository(unittest.TestCase):
 
         table_names.assert_not_called()
 
+    def test_check_table_exists_rejects_memoryview_qualified_table_without_introspection(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection.introspection, "table_names") as table_names,
+        ):
+            from apps.schools.repositories.health_repository import check_table_exists
+
+            self.assertFalse(
+                check_table_exists(memoryview(b"public.schools_school")),
+            )
+
+        table_names.assert_not_called()
+
     def test_check_table_exists_uses_visible_table_names(self):
         with patch.object(connection, "vendor", "postgresql"), patch.object(
             connection, "schema_name", "tenant_a", create=True
@@ -371,6 +384,22 @@ class TestHealthRepository(unittest.TestCase):
 
         cursor.assert_not_called()
 
+    def test_get_top_tables_by_size_rejects_memoryview_limit_without_sql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.health_repository import (
+                get_top_tables_by_size,
+            )
+
+            self.assertEqual(
+                get_top_tables_by_size(limit=memoryview(b"10")),
+                [],
+            )
+
+        cursor.assert_not_called()
+
     def test_get_top_tables_by_size_rejects_bool_schema_name_without_sql(self):
         with (
             patch.object(connection, "vendor", "postgresql"),
@@ -413,6 +442,25 @@ class TestHealthRepository(unittest.TestCase):
             self.assertEqual(
                 get_top_tables_by_size(
                     limit=5, schema_name=bytearray(b"tenant_a"),
+                ),
+                [],
+            )
+
+        cursor.assert_not_called()
+
+    def test_get_top_tables_by_size_rejects_memoryview_schema_name_without_sql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.health_repository import (
+                get_top_tables_by_size,
+            )
+
+            self.assertEqual(
+                get_top_tables_by_size(
+                    limit=5,
+                    schema_name=memoryview(b"tenant_a"),
                 ),
                 [],
             )
@@ -475,6 +523,24 @@ class TestHealthRepository(unittest.TestCase):
             )
             self.assertEqual(
                 count_table_rows("public", bytearray(b"schools_school")),
+                -1,
+            )
+
+        cursor.assert_not_called()
+
+    def test_count_table_rows_rejects_memoryview_schema_or_table_without_sql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.health_repository import count_table_rows
+
+            self.assertEqual(
+                count_table_rows(memoryview(b"public"), "schools_school"),
+                -1,
+            )
+            self.assertEqual(
+                count_table_rows("public", memoryview(b"schools_school")),
                 -1,
             )
 

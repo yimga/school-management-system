@@ -21,7 +21,7 @@ _RLS_STATUS_MAX_TABLE_NAMES = 500
 def get_tenant_rls_status(table_names: list[str]) -> dict[str, bool]:
     """
     Return {relname: relrowsecurity} for the given table names in the public schema.
-    table_names must be an iterable of strings (not a bare str/bytes/bytearray, which would
+    table_names must be an iterable of strings (not a bare str/bytes/bytearray/memoryview, which would
     iterate by character or yield integer code units). Only tables that exist are included. Duplicate relnames are collapsed to
     the first occurrence. At most _RLS_STATUS_MAX_TABLE_NAMES (500) valid identifiers are
     queried (first in iteration order after deduplication). No-op on non-PostgreSQL (returns {}).
@@ -30,7 +30,7 @@ def get_tenant_rls_status(table_names: list[str]) -> dict[str, bool]:
         settings, "USE_DJANGO_TENANTS", False
     ):
         return {}
-    if isinstance(table_names, (str, bytes, bytearray)) or not table_names:
+    if isinstance(table_names, (str, bytes, bytearray, memoryview)) or not table_names:
         return {}
     normalized_table_names: list[str] = []
     seen: set[str] = set()
