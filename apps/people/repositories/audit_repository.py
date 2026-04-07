@@ -187,7 +187,8 @@ def drop_audit_trigger(cursor, table_name: str) -> None:
 
 
 def create_audit_trigger(cursor, table_name: str) -> None:
-    """Create AFTER INSERT OR UPDATE OR DELETE trigger for the given table. Uses quoted identifiers."""
+    """Create AFTER INSERT OR UPDATE OR DELETE trigger for the given table. Uses quoted identifiers.
+    table_name is normalized with _normalize_unqualified_table_name (same rules as drop_audit_trigger)."""
     if connection.vendor != "postgresql":
         return
     table_name = _normalize_unqualified_table_name(table_name)
