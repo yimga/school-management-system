@@ -21,7 +21,6 @@
     "Procfile",
     "push-all.sh",
     "QUICK_START.md",
-    "REBUILD_TRIGGER.txt",
     "render.yaml",
     "requirements.txt",
     "runtime.txt",

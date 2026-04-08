@@ -1,10 +1,10 @@
 # Platform Inventory
 
 - Installed app modules: `42`
-- Python files: `2423`
+- Python files: `2424`
 - HTML templates: `649`
 - Markdown files: `1027`
-- Migration files: `703`
+- Migration files: `704`
 - Management commands: `157` (full list in JSON key `management_commands_list`)
 - `SiteSettings` refs (gross scan): `1483`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `2`
