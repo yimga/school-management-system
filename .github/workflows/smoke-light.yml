@@ -1,8 +1,14 @@
 # Lighter checks when full smoke.yml (pre_deploy_gate) is too slow for manual runs.
 # Static Phase H audit + URL smoke tests; no Playwright, no theme matrix, no long gate.
+#
+# If `test_generate_platform_inventory_check_passes` fails: run locally
+#   python scripts/generate_platform_inventory.py --write && python scripts/generate_platform_inventory.py --check
+# and commit docs/generated/platform_inventory.* and scripts/generated/scoped_gravity_trend.json.
 name: Smoke light
 
 on:
+  pull_request:
+    branches: [main]
   workflow_dispatch: {}
   schedule:
     # 06:00 UTC — disable by removing `schedule` if not wanted
@@ -11,7 +17,8 @@ on:
 jobs:
   smoke-light:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # migrate (x2) + mechanical pytest bundle (~3–5 min) + marketing crawl — leave headroom
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 

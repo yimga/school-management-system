@@ -6,11 +6,11 @@
 - Markdown files: `1027`
 - Migration files: `704`
 - Management commands: `157` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs (gross scan): `1478`
+- `SiteSettings` refs (gross scan): `1482`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `2`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `2`
 - `get_solo()` refs: `195`
-- `except Exception`: `254`
+- `except Exception`: `262`
 - `cursor.execute()` (gross): `354`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `16`
 - `csrf_exempt` (substring, gross): `162`
@@ -18,7 +18,7 @@
 - `AllowAny`: `80`
 - `print()` (gross all `.py`): `915`
 - `print()` (`apps` product paths): `0`; `scripts/`: `821`
-- `gilead` matches (gross corpus): `1068` across `145` files
+- `gilead` matches (gross corpus): `1069` across `145` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -77,18 +77,18 @@ Total: `157` commands. First 25 by app/command:
 
 ## Largest Python Files
 
-- `apps/schools/marketing_page_definitions.py`: `2861` lines / `135837` bytes
-- `apps/schools/marketing_views.py`: `3188` lines / `129242` bytes
-- `apps/api/views_v1.py`: `2847` lines / `121043` bytes
-- `apps/evals/views.py`: `3100` lines / `117985` bytes
-- `apps/accounts/views.py`: `3009` lines / `117686` bytes
-- `apps/finance/models.py`: `2814` lines / `101491` bytes
-- `apps/siteconfig/admin.py`: `2814` lines / `101463` bytes
-- `apps/siteconfig/views.py`: `2500` lines / `95945` bytes
-- `apps/studio_os/views.py`: `2164` lines / `87713` bytes
-- `apps/finance/tasks.py`: `2062` lines / `84455` bytes
-- `apps/siteconfig/models.py`: `2013` lines / `79880` bytes
-- `apps/platform_runtime/tests/test_tenant_settings_lint.py`: `1806` lines / `74679` bytes
+- `apps/schools/marketing_page_definitions.py`: `2861` lines / `132976` bytes
+- `apps/schools/marketing_views.py`: `3188` lines / `126054` bytes
+- `apps/api/views_v1.py`: `2847` lines / `118196` bytes
+- `apps/evals/views.py`: `3100` lines / `114885` bytes
+- `apps/accounts/views.py`: `3009` lines / `114677` bytes
+- `apps/finance/models.py`: `2814` lines / `98677` bytes
+- `apps/siteconfig/admin.py`: `2814` lines / `98674` bytes
+- `apps/siteconfig/views.py`: `2500` lines / `93445` bytes
+- `apps/studio_os/views.py`: `2164` lines / `85549` bytes
+- `apps/finance/tasks.py`: `2062` lines / `82393` bytes
+- `apps/siteconfig/models.py`: `2013` lines / `77867` bytes
+- `apps/platform_runtime/tests/test_tenant_settings_lint.py`: `1806` lines / `72873` bytes
 
 ## Documentation Drift
 

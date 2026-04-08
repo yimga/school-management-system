@@ -3,9 +3,9 @@
     "allow_any": 80,
     "csrf_exempt": 162,
     "cursor_execute": 354,
-    "except_exception": 254,
+    "except_exception": 262,
     "get_solo": 195,
-    "gilead": 1068,
+    "gilead": 1069,
     "gilead_files": 145,
     "html_files": 649,
     "management_commands": 157,
@@ -13,7 +13,7 @@
     "migration_files": 704,
     "print_calls": 915,
     "python_files": 2424,
-    "site_settings": 1478
+    "site_settings": 1482
   },
   "doc_drift": {
     "actual_installed_app_count": 42,
@@ -23,62 +23,62 @@
   },
   "largest_python_files": [
     {
-      "bytes": 135837,
+      "bytes": 132976,
       "lines": 2861,
       "path": "apps/schools/marketing_page_definitions.py"
     },
     {
-      "bytes": 129242,
+      "bytes": 126054,
       "lines": 3188,
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 121043,
+      "bytes": 118196,
       "lines": 2847,
       "path": "apps/api/views_v1.py"
     },
     {
-      "bytes": 117985,
+      "bytes": 114885,
       "lines": 3100,
       "path": "apps/evals/views.py"
     },
     {
-      "bytes": 117686,
+      "bytes": 114677,
       "lines": 3009,
       "path": "apps/accounts/views.py"
     },
     {
-      "bytes": 101491,
+      "bytes": 98677,
       "lines": 2814,
       "path": "apps/finance/models.py"
     },
     {
-      "bytes": 101463,
+      "bytes": 98674,
       "lines": 2814,
       "path": "apps/siteconfig/admin.py"
     },
     {
-      "bytes": 95945,
+      "bytes": 93445,
       "lines": 2500,
       "path": "apps/siteconfig/views.py"
     },
     {
-      "bytes": 87713,
+      "bytes": 85549,
       "lines": 2164,
       "path": "apps/studio_os/views.py"
     },
     {
-      "bytes": 84455,
+      "bytes": 82393,
       "lines": 2062,
       "path": "apps/finance/tasks.py"
     },
     {
-      "bytes": 79880,
+      "bytes": 77867,
       "lines": 2013,
       "path": "apps/siteconfig/models.py"
     },
     {
-      "bytes": 74679,
+      "bytes": 72873,
       "lines": 1806,
       "path": "apps/platform_runtime/tests/test_tenant_settings_lint.py"
     }
