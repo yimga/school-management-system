@@ -63,12 +63,14 @@ class OfflineSyncBatchTestCase(TestCase):
         )
 
         site = get_platform_site_settings_record(create=True)
-        site.enable_offline_mode = True
-        site.save(update_fields=["enable_offline_mode"])
-        flags = site.backend_feature_flags or {}
-        flags["enable_offline_attendance_sync"] = True
-        site.backend_feature_flags = flags
-        site.save(update_fields=["backend_feature_flags"])
+        fs = site.get_feature_control_settings()
+        bff = dict(fs["backend_feature_flags"])
+        bff["enable_offline_attendance_sync"] = True
+        site.apply_feature_control_state(
+            portal_features=dict(fs["portal_features"]),
+            backend_feature_flags=bff,
+            field_updates={"enable_offline_mode": True},
+        )
 
     def test_sync_batch_attendance_creates_record(self):
         """When sync_batch is called with attendance data (as after 'coming back online'),

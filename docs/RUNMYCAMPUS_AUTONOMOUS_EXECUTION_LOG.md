@@ -1,5 +1,33 @@
 # RunMyCampus autonomous execution log
 
+## Slice - §11.4 batch 803: Phase B SiteSettings — API offline tests use `apply_feature_control_state` for `enable_offline_mode` (2026-04-08)
+
+**A. Scope:** Delta sync and offline sync API tests still called `save(update_fields=["enable_offline_mode"])` after `enable_offline_mode` moved to policy payload / feature-control ownership.
+
+**B. Implementation:** `apps/api/tests/test_delta_sync_phase_g.py` (three `setUp` blocks) and `apps/api/tests/test_offline_sync.py` (`OfflineSyncBatchTestCase.setUp`) use `get_feature_control_settings()` plus `apply_feature_control_state` with `field_updates={"enable_offline_mode": True}`; offline sync sets `enable_offline_attendance_sync` on a copied `backend_feature_flags` dict in the same call.
+
+**C. Validation:** `python manage.py test apps.api.tests.test_delta_sync_phase_g apps.api.tests.test_offline_sync --keepdb --noinput -v 1` — **4 OK**; `SKIP_VISUAL_QA=1 SKIP_COLLABORA_PREFLIGHT=1 bash scripts/pre_deploy_gate.sh` — **PASSED**; `python scripts/verify_doc_plan_density_discipline.py` **PASS** (after SOT/log).
+
+**D. Docs:** SOT §11.4 batch **803**; this log entry.
+
+**E. Risks / notes:** Test-only; aligns with `SiteSettings.apply_feature_control_state` and `domain_ownership` for `enable_offline_mode`.
+
+**F. Follow-ons:** **`804+`** — coordinate the next slice without overlapping active work.
+
+## Slice - §11.4 batch 802: Control-plane hub registry drift — `verify_control_plane_hub_registry_drift.py` stderr + `ROOT` parity (2026-03-31)
+
+**A. Scope:** Bring `verify_control_plane_hub_registry_drift.py` in line with verifier hygiene: repo-root defaults and consistent stderr prefixes.
+
+**B. Implementation:** `scripts/verify_control_plane_hub_registry_drift.py` uses `ROOT = Path(__file__).resolve().parent.parent` directly (drops `DEFAULT_ROOT` alias), `parse_args` defaults `--base` to `str(ROOT)`, and error output uses `verify_control_plane_hub_registry_drift: ...` for invalid base and assertion failures. `apps/platform_runtime/tests/test_control_plane_hub_registry_drift_helpers.py` updates the base-default helper test to assert repo root.
+
+**C. Validation:** `python manage.py test apps.platform_runtime.tests.test_control_plane_hub_registry_drift_helpers --noinput` - **5 OK**; `python scripts/verify_control_plane_hub_registry_drift.py` - **OK**; `python scripts/verify_doc_plan_density_discipline.py` **PASS** (after SOT/log).
+
+**D. Docs:** SOT §11.4 batch **802**; this log entry.
+
+**E. Risks / notes:** None; behavior is unchanged aside from default-base and stderr normalization.
+
+**F. Follow-ons:** **`803 closed (Phase B API offline tests)`**, then **`804+`** - coordinate the next slice without overlapping active work.
+
 ## Slice - 11.4 batch 801: Raw SQL SQLite integrity helper — reject collections.abc.Mapping for db_path before PRAGMA connect (2026-04-07)
 
 **A. Scope:** **`run_sqlite_integrity_check`** must not treat a **`dict`** as a path; explicit **`Mapping`** guard before **`Path`**/**`str`** handling.
@@ -12,7 +40,7 @@
 
 **E. Risks / notes:** **`dict`** previously fell through to **`else`** **`None`**; ordering now explicit after **`bool`**.
 
-**F. Follow-ons:** **`802+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`802 closed (control-plane hub drift verifier hygiene)`**, then **`803 closed (Phase B API offline tests)`**, then **`804+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 800: Raw SQL audit repository — reject collections.abc.Mapping for table_name on create/drop_audit_trigger (2026-04-07)
 
@@ -24714,3 +24742,4 @@ s`** needs a URL **`id`** kwarg ? not suitable for **`reverse()`-only curated ma
 **D. Docs:** SOT 11.4 batch **771**; this log entry.
 
 **E. Risks / notes:** This only changes the Theme Studio boolean-field contract for that one toggle. Other toggle semantics stay unchanged.
+

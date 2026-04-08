@@ -58,8 +58,12 @@ class DeltaSyncConflictTestCase(TestCase):
         )
 
         site = get_platform_site_settings_record(create=True)
-        site.enable_offline_mode = True
-        site.save(update_fields=["enable_offline_mode"])
+        fs = site.get_feature_control_settings()
+        site.apply_feature_control_state(
+            portal_features=dict(fs["portal_features"]),
+            backend_feature_flags=dict(fs["backend_feature_flags"]),
+            field_updates={"enable_offline_mode": True},
+        )
 
     def test_conflict_returns_409_and_does_not_overwrite(self):
         """When client sends an older updated_at than server, server returns 409 and does not apply changes."""
@@ -143,8 +147,12 @@ class DeltaSyncSuccessClearQueueTestCase(TestCase):
         self.client_api.force_authenticate(user=self.user)
         self.request_factory = APIRequestFactory()
         site = get_platform_site_settings_record(create=True)
-        site.enable_offline_mode = True
-        site.save(update_fields=["enable_offline_mode"])
+        fs = site.get_feature_control_settings()
+        site.apply_feature_control_state(
+            portal_features=dict(fs["portal_features"]),
+            backend_feature_flags=dict(fs["backend_feature_flags"]),
+            field_updates={"enable_offline_mode": True},
+        )
 
     def test_success_returns_200_and_removed_ids(self):
         """Delta apply succeeds; response includes success_count and removed_ids so client clears queue after 200 OK."""
@@ -218,8 +226,12 @@ class DeltaSyncTenantIsolationTestCase(TestCase):
             date_of_birth="2012-01-01",
         )
         site = get_platform_site_settings_record(create=True)
-        site.enable_offline_mode = True
-        site.save(update_fields=["enable_offline_mode"])
+        fs = site.get_feature_control_settings()
+        site.apply_feature_control_state(
+            portal_features=dict(fs["portal_features"]),
+            backend_feature_flags=dict(fs["backend_feature_flags"]),
+            field_updates={"enable_offline_mode": True},
+        )
 
     def test_conflict_scoped_to_school(self):
         """SyncConflict records are created with school_id; no cross-tenant data."""
