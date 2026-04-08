@@ -10,7 +10,7 @@
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `2`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `2`
 - `get_solo()` refs: `195`
-- `except Exception`: `262`
+- `except Exception`: `254`
 - `cursor.execute()` (gross): `354`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `16`
 - `csrf_exempt` (substring, gross): `162`
@@ -83,7 +83,7 @@ Total: `157` commands. First 25 by app/command:
 - `apps/evals/views.py`: `3100` lines / `114885` bytes
 - `apps/accounts/views.py`: `3009` lines / `114677` bytes
 - `apps/finance/models.py`: `2814` lines / `98677` bytes
-- `apps/siteconfig/admin.py`: `2814` lines / `98674` bytes
+- `apps/siteconfig/admin.py`: `2814` lines / `98649` bytes
 - `apps/siteconfig/views.py`: `2500` lines / `93445` bytes
 - `apps/studio_os/views.py`: `2164` lines / `85549` bytes
 - `apps/finance/tasks.py`: `2062` lines / `82393` bytes

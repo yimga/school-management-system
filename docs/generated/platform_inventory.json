@@ -3,7 +3,7 @@
     "allow_any": 80,
     "csrf_exempt": 162,
     "cursor_execute": 354,
-    "except_exception": 262,
+    "except_exception": 254,
     "get_solo": 195,
     "gilead": 1069,
     "gilead_files": 145,
@@ -53,7 +53,7 @@
       "path": "apps/finance/models.py"
     },
     {
-      "bytes": 98674,
+      "bytes": 98649,
       "lines": 2814,
       "path": "apps/siteconfig/admin.py"
     },
