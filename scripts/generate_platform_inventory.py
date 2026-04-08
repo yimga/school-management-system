@@ -175,7 +175,13 @@ def _iter_files(*suffixes: str):
 
 
 def _safe_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8", errors="replace")
+    # Normalize CRLF -> LF so inventory counts and "largest file bytes" are stable
+    # across platforms and git autocrlf settings.
+    return path.read_text(encoding="utf-8", errors="replace").replace("\r\n", "\n")
+
+
+def _normalized_utf8_len(text: str) -> int:
+    return len(text.encode("utf-8"))
 
 
 def _skip_baseline_substring_scan(path: Path) -> bool:
@@ -403,14 +409,17 @@ def _scoped_gravity_counts() -> dict[str, int]:
 
 
 def _largest_python_files(limit: int = 12) -> list[dict[str, int | str]]:
+    def norm_size(path: Path) -> int:
+        return _normalized_utf8_len(_safe_text(path))
+
     files = sorted(
         _iter_files(".py"),
-        key=lambda path: (-path.stat().st_size, path.relative_to(ROOT).as_posix()),
+        key=lambda path: (-norm_size(path), path.relative_to(ROOT).as_posix()),
     )[:limit]
     return [
         {
             "path": path.relative_to(ROOT).as_posix(),
-            "bytes": path.stat().st_size,
+            "bytes": _normalized_utf8_len(_safe_text(path)),
             "lines": len(_safe_text(path).splitlines()),
         }
         for path in files
