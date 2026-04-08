@@ -1,0 +1,25 @@
+---
+description: RunMyCampus single execution source of truth; do not create overlapping plan files
+globs: docs/**/*.md
+alwaysApply: true
+---
+
+# RunMyCampus plan and docs discipline
+
+- **Single execution source of truth:** `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`. All remediation, roadmap, and platform-hardening work must map back to that file. Completion states: DONE | PARTIAL | NOT DONE | DEPRECATED/REPLACED | BLOCKED.
+- **Do not create** new overlapping strategy docs, parallel remediation plans, or roadmaps that drift from the single source of truth. If adding docs, reference and extend the canonical ledger; do not spawn duplicates.
+- **Supporting audit:** Full audit and Cursor/Codex phases live in `docs/RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md`. Use it for context; execution checklist stays in the single source of truth.
+- **Scoring:** Do not claim 9.5/10 or 11/10 until the scoring gates in §12 of the single source of truth are satisfied. No fake completion language.
+
+---
+description: RunMyCampus single execution source of truth; do not create overlapping plan files
+globs: docs/**/*.md
+alwaysApply: true
+---
+
+# RunMyCampus plan and docs discipline
+
+- **Single execution source of truth:** `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`. All remediation, roadmap, and platform-hardening work must map back to that file. Completion states: DONE | PARTIAL | NOT DONE | DEPRECATED/REPLACED | BLOCKED.
+- **Do not create** new overlapping strategy docs, parallel remediation plans, or roadmaps that drift from the single source of truth. If adding docs, reference and extend the canonical ledger; do not spawn duplicates.
+- **Supporting audit:** Full audit and Cursor/Codex phases live in `docs/RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md`. Use it for context; execution checklist stays in the single source of truth.
+- **Scoring:** Do not claim 9.5/10 or 11/10 until the scoring gates in §12 of the single source of truth are satisfied. No fake completion language.

@@ -1,16 +1,16 @@
 # Platform Inventory
 
 - Installed app modules: `42`
-- Python files: `2420`
+- Python files: `2423`
 - HTML templates: `649`
 - Markdown files: `1027`
 - Migration files: `703`
 - Management commands: `157` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs (gross scan): `1452`
-- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `1`
-- `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `1`
+- `SiteSettings` refs (gross scan): `1483`
+- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `2`
+- `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `2`
 - `get_solo()` refs: `195`
-- `except Exception`: `254`
+- `except Exception`: `262`
 - `cursor.execute()` (gross): `354`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `16`
 - `csrf_exempt` (substring, gross): `162`
@@ -18,7 +18,7 @@
 - `AllowAny`: `80`
 - `print()` (gross all `.py`): `915`
 - `print()` (`apps` product paths): `0`; `scripts/`: `821`
-- `gilead` matches (gross corpus): `1043` across `145` files
+- `gilead` matches (gross corpus): `1073` across `145` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -83,11 +83,11 @@ Total: `157` commands. First 25 by app/command:
 - `apps/evals/views.py`: `3100` lines / `114885` bytes
 - `apps/accounts/views.py`: `3009` lines / `114677` bytes
 - `apps/finance/models.py`: `2814` lines / `98677` bytes
-- `apps/siteconfig/admin.py`: `2814` lines / `98649` bytes
+- `apps/siteconfig/admin.py`: `2814` lines / `98674` bytes
 - `apps/siteconfig/views.py`: `2500` lines / `93445` bytes
 - `apps/studio_os/views.py`: `2164` lines / `85549` bytes
 - `apps/finance/tasks.py`: `2062` lines / `82393` bytes
-- `apps/siteconfig/models.py`: `2013` lines / `77825` bytes
+- `apps/siteconfig/models.py`: `2013` lines / `77867` bytes
 - `apps/platform_runtime/tests/test_tenant_settings_lint.py`: `1806` lines / `72873` bytes
 
 ## Documentation Drift
