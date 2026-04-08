@@ -3,9 +3,9 @@
     "allow_any": 80,
     "csrf_exempt": 162,
     "cursor_execute": 354,
-    "except_exception": 262,
+    "except_exception": 254,
     "get_solo": 195,
-    "gilead": 1073,
+    "gilead": 1068,
     "gilead_files": 145,
     "html_files": 649,
     "management_commands": 157,
@@ -13,7 +13,7 @@
     "migration_files": 704,
     "print_calls": 915,
     "python_files": 2424,
-    "site_settings": 1483
+    "site_settings": 1478
   },
   "doc_drift": {
     "actual_installed_app_count": 42,
@@ -28,57 +28,57 @@
       "path": "apps/schools/marketing_page_definitions.py"
     },
     {
-      "bytes": 126054,
+      "bytes": 129242,
       "lines": 3188,
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 118196,
+      "bytes": 121043,
       "lines": 2847,
       "path": "apps/api/views_v1.py"
     },
     {
-      "bytes": 114885,
+      "bytes": 117985,
       "lines": 3100,
       "path": "apps/evals/views.py"
     },
     {
-      "bytes": 114677,
+      "bytes": 117686,
       "lines": 3009,
       "path": "apps/accounts/views.py"
     },
     {
-      "bytes": 98677,
+      "bytes": 101491,
       "lines": 2814,
       "path": "apps/finance/models.py"
     },
     {
-      "bytes": 98674,
+      "bytes": 101463,
       "lines": 2814,
       "path": "apps/siteconfig/admin.py"
     },
     {
-      "bytes": 93445,
+      "bytes": 95945,
       "lines": 2500,
       "path": "apps/siteconfig/views.py"
     },
     {
-      "bytes": 85549,
+      "bytes": 87713,
       "lines": 2164,
       "path": "apps/studio_os/views.py"
     },
     {
-      "bytes": 82393,
+      "bytes": 84455,
       "lines": 2062,
       "path": "apps/finance/tasks.py"
     },
     {
-      "bytes": 77867,
+      "bytes": 79880,
       "lines": 2013,
       "path": "apps/siteconfig/models.py"
     },
     {
-      "bytes": 72873,
+      "bytes": 74679,
       "lines": 1806,
       "path": "apps/platform_runtime/tests/test_tenant_settings_lint.py"
     }
