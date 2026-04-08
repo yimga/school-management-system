@@ -1,0 +1,9 @@
+* text=auto
+
+# CI/gates compare these artifacts byte-for-byte; enforce LF.
+requirements.txt text eol=lf
+docs/generated/*.md text eol=lf
+docs/generated/*.json text eol=lf
+scripts/generated/*.json text eol=lf
+.cursor/rules/*.mdc text eol=lf
+
