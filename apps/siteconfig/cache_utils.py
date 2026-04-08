@@ -8,6 +8,7 @@ Redis-backed tenant resolution: when cache backend is Redis, tenant resolution
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from typing import Any, Optional
 
 from django.conf import settings
@@ -37,6 +38,8 @@ _CACHE_SEGMENT_BINARY_TYPES = (bytes, bytearray, memoryview)
 def _normalize_tenant_schema_name_cache(value: object) -> str | None:
     """Return a safe tenant schema segment for cache keys, or None if malformed."""
     if isinstance(value, bool):
+        return None
+    if isinstance(value, Mapping):
         return None
     if isinstance(value, _CACHE_SEGMENT_BINARY_TYPES):
         return None
@@ -79,10 +82,12 @@ def _normalize_tenant_cache_base_key(key: object) -> str:
 def _normalize_school_id(value: object) -> str | None:
     """
     Normalize a school id for cache prefixes (request.school or RLS GUC via current_setting).
-    Rejects bool, binary buffers, and pathological shapes so malformed session vars cannot
-    widen cache key structure.
+    Rejects bool, collections.abc.Mapping, binary buffers, and pathological shapes so malformed
+    session vars cannot widen cache key structure.
     """
     if isinstance(value, bool):
+        return None
+    if isinstance(value, Mapping):
         return None
     if isinstance(value, _CACHE_SEGMENT_BINARY_TYPES):
         return None

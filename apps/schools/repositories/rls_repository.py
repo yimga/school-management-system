@@ -25,10 +25,14 @@ def get_tenant_rls_status(table_names: list[str]) -> dict[str, bool]:
     table_names must be a list or other non-mapping iterable of strings (collections.abc.Mapping,
     including dict and types.MappingProxyType, is rejected so accidental mapping objects cannot be
     interpreted as a relname sequence).     Not bool (Python bool is not iterable for this API).
-    Non-iterable table_names (e.g. int) return {} without SQL. Not a bare str/bytes/bytearray/memoryview, which would
-    iterate by character or yield integer code units. Only tables that exist are included. Duplicate relnames are collapsed to
-    the first occurrence. At most _RLS_STATUS_MAX_TABLE_NAMES (500) valid identifiers are
-    queried (first in iteration order after deduplication). No-op on non-PostgreSQL (returns {}).
+    Non-iterable table_names (e.g. int) or values that fail while constructing an iterator
+    return {} without SQL. Not a bare str/bytes/bytearray/memoryview, which would iterate
+    by character or yield integer code units. Only tables that exist are included. Duplicate
+    relnames are collapsed to the first occurrence. At most _RLS_STATUS_MAX_TABLE_NAMES (500)
+    valid identifiers are queried (first in iteration order after deduplication), and
+    iteration stops once that cap is reached. Iterator-consumption failures also return {}
+    without SQL. Result-row normalization failures after the catalog query also return {}.
+    No-op on non-PostgreSQL (returns {}).
     """
     if connection.vendor != "postgresql" or getattr(
         settings, "USE_DJANGO_TENANTS", False
@@ -38,30 +42,33 @@ def get_tenant_rls_status(table_names: list[str]) -> dict[str, bool]:
         return {}
     if isinstance(table_names, bool):
         return {}
-    if isinstance(table_names, (str, bytes, bytearray, memoryview)) or not table_names:
+    if isinstance(table_names, (str, bytes, bytearray, memoryview)):
         return {}
     try:
         name_iter = iter(table_names)
-    except TypeError:
+    except Exception:
         return {}
     normalized_table_names: list[str] = []
     seen: set[str] = set()
-    for name in name_iter:
-        if not isinstance(name, str):
-            continue
-        n = name.strip()
-        if not n or "." in n:
-            continue
-        if not _PG_RLS_TABLE_NAME_RE.fullmatch(n):
-            continue
-        if n in seen:
-            continue
-        seen.add(n)
-        normalized_table_names.append(n)
+    try:
+        for name in name_iter:
+            if not isinstance(name, str):
+                continue
+            n = name.strip()
+            if not n or "." in n:
+                continue
+            if not _PG_RLS_TABLE_NAME_RE.fullmatch(n):
+                continue
+            if n in seen:
+                continue
+            seen.add(n)
+            normalized_table_names.append(n)
+            if len(normalized_table_names) >= _RLS_STATUS_MAX_TABLE_NAMES:
+                break
+    except Exception:
+        return {}
     if not normalized_table_names:
         return {}
-    if len(normalized_table_names) > _RLS_STATUS_MAX_TABLE_NAMES:
-        normalized_table_names = normalized_table_names[:_RLS_STATUS_MAX_TABLE_NAMES]
     placeholders = ",".join(["%s"] * len(normalized_table_names))
     with connection.cursor() as cursor:
         cursor.execute(
@@ -75,4 +82,7 @@ def get_tenant_rls_status(table_names: list[str]) -> dict[str, bool]:
             % placeholders,
             normalized_table_names,
         )
-        return {row[0]: bool(row[1]) for row in cursor.fetchall()}
+        try:
+            return {row[0]: bool(row[1]) for row in cursor.fetchall()}
+        except Exception:
+            return {}

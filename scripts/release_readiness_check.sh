@@ -98,8 +98,13 @@ python -m pytest \
 echo "== 6) Optional: aggregate/scorecard smoke (non-fatal if no metrics) =="
 python manage.py ai_quality_scorecard --days 7 || true
 
-echo "== 7) Collabora blocker reducer (internal preflight) =="
-python scripts/verify_kb_libreoffice_stack.py
+if [[ "${SKIP_COLLABORA_PREFLIGHT:-0}" == "1" ]]; then
+  echo "== 7) Collabora blocker reducer (internal preflight) =="
+  echo "Skipping Collabora/LibreOffice preflight (SKIP_COLLABORA_PREFLIGHT=1)."
+else
+  echo "== 7) Collabora blocker reducer (internal preflight) =="
+  python scripts/verify_kb_libreoffice_stack.py
+fi
 
 if [[ -n "${APP_BASE_URL:-}" && -n "${COLLABORA_BASE_URL:-}" ]]; then
   echo "Running Collabora/WOPI smoke with provided APP_BASE_URL/COLLABORA_BASE_URL..."

@@ -63,7 +63,8 @@ def get_top_tables_by_size(
     (_HEALTH_TOP_TABLES_MAX_LIMIT) before the query runs.
     When schema_name is provided it must not be collections.abc.Mapping; it is normalized with
     _normalize_unqualified_identifier (bool, buffers, blank, and qualified names rejected) and must match
-    the health identifier pattern or the call returns [].
+    the health identifier pattern or the call returns []. Post-query result normalization
+    failures also return [].
     """
     if connection.vendor != "postgresql":
         return []
@@ -75,7 +76,7 @@ def get_top_tables_by_size(
         return []
     try:
         limit = int(limit)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, RuntimeError):
         return []
     if limit <= 0:
         return []
@@ -116,8 +117,11 @@ def get_top_tables_by_size(
             """,
             params,
         )
-        columns = [col[0] for col in cursor.description]
-        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        try:
+            columns = [col[0] for col in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        except (TypeError, ValueError, IndexError, RuntimeError):
+            return []
 
 
 def check_table_exists(qualified_table: str) -> bool:
@@ -128,7 +132,7 @@ def check_table_exists(qualified_table: str) -> bool:
     digits, underscore; max 63 characters) before introspection runs.
     collections.abc.Mapping values return False without introspection (kwarg/payload confusion).
     bool and binary buffer values are rejected via _normalize_identifier (same as schema/table segments in count_table_rows).
-    no-op on non-PostgreSQL (returns False).
+    Introspection result normalization failures also return False. No-op on non-PostgreSQL (returns False).
     """
     if connection.vendor != "postgresql":
         return False
@@ -161,7 +165,10 @@ def check_table_exists(qualified_table: str) -> bool:
             return False
         if not _PG_HEALTH_IDENTIFIER_RE.fullmatch(table_name):
             return False
-        return table_name in set(connection.introspection.table_names())
+        try:
+            return table_name in set(connection.introspection.table_names())
+        except (TypeError, RuntimeError):
+            return False
     except (OperationalError, ProgrammingError, DatabaseError, ValueError):
         return False
 
@@ -191,7 +198,12 @@ def count_table_rows(schema: str, table: str) -> int:
         with connection.cursor() as cursor:
             cursor.execute(f"SELECT COUNT(*) FROM {quoted_schema}.{quoted_table}")
             row = cursor.fetchone()
-            return int(row[0]) if row and row[0] is not None else 0
+            if not row or row[0] is None:
+                return 0
+            try:
+                return int(row[0])
+            except (TypeError, ValueError, RuntimeError):
+                return -1
     except (OperationalError, ProgrammingError, DatabaseError, ValueError) as e:
         logger.debug(
             "health_repository.count_table_rows failed for %s.%s: %s", schema, table, e
@@ -222,7 +234,7 @@ def get_global_health_stats(limit: int | None = None) -> list[dict]:
             return []
         try:
             eff_limit = int(limit)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, RuntimeError):
             return []
         if eff_limit <= 0:
             return []

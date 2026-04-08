@@ -7,8 +7,9 @@ do not duplicate raw SQL (see RUNMYCAMPUS §2.4 raw SQL wrap).
 """
 
 import logging
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from contextlib import contextmanager
+from uuid import UUID
 
 from django.conf import settings
 from django.db import connection
@@ -30,7 +31,20 @@ def _normalize_rls_school_id(school_id) -> str:
         raise ValueError(
             "set_rls_school_id school_id must not be bytes, bytearray, or memoryview."
         )
-    sid = str(school_id).strip() if school_id is not None else ""
+    if isinstance(school_id, Iterable) and not isinstance(school_id, str):
+        raise ValueError(
+            "set_rls_school_id school_id must not be a non-string iterable."
+        )
+    if school_id is None:
+        sid = ""
+    elif isinstance(school_id, str):
+        sid = school_id.strip()
+    elif isinstance(school_id, (int, UUID)):
+        sid = str(school_id)
+    else:
+        raise ValueError(
+            "set_rls_school_id school_id must be a string, integer, or UUID."
+        )
     if not sid or sid.lower() in {"none", "null"}:
         raise ValueError("set_rls_school_id requires a non-blank school_id.")
     if len(sid) > _MAX_RLS_SCHOOL_ID_LEN:
@@ -52,8 +66,8 @@ def set_rls_school_id(school_id):
     """
     Set app.current_school_id for the current DB connection (e.g. in middleware).
     No-op when not PostgreSQL. Does not reset; caller must call reset_rls_school_id later.
-    school_id must not be collections.abc.Mapping, bool, or a binary buffer (bytes/bytearray/memoryview);
-    use str/int/UUID-like values.
+    school_id must not be collections.abc.Mapping, bool, a non-string iterable, or a binary
+    buffer (bytes/bytearray/memoryview); use str/int/UUID-like values.
     """
     if not _should_manage_rls_session_vars():
         return

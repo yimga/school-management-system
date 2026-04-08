@@ -134,6 +134,48 @@ class RlsContextContractTests(unittest.TestCase):
 
         cursor.assert_not_called()
 
+    def test_set_rls_school_id_rejects_non_string_iterables_on_postgresql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            for bad in (["school-1"], ("school-1",), {"school-1"}):
+                with self.assertRaises(ValueError):
+                    set_rls_school_id(bad)
+
+        cursor.assert_not_called()
+
+    def test_set_rls_school_id_accepts_string_on_postgresql(self):
+        fake_cursor = unittest.mock.MagicMock()
+        fake_cm = unittest.mock.MagicMock()
+        fake_cm.__enter__.return_value = fake_cursor
+        fake_cm.__exit__.return_value = False
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor", return_value=fake_cm),
+        ):
+            set_rls_school_id("school-1")
+
+        fake_cursor.execute.assert_called_once_with(
+            "SET app.current_school_id = %s",
+            ["school-1"],
+        )
+
+    def test_set_rls_school_id_rejects_failed_stringification_on_postgresql(self):
+        class _BadStringify:
+            def __str__(self):
+                raise RuntimeError("boom")
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            with self.assertRaises(ValueError):
+                set_rls_school_id(_BadStringify())
+
+        cursor.assert_not_called()
+
     def test_rls_helpers_no_op_when_schema_per_tenant_enabled(self):
         with (
             patch.object(connection, "vendor", "postgresql"),

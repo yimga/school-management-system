@@ -99,6 +99,23 @@ class TestHealthRepository(unittest.TestCase):
 
         cursor.assert_not_called()
 
+    def test_get_global_health_stats_bad_int_limit_returns_empty_without_sql(self):
+        class BadInt:
+            def __int__(self):
+                raise RuntimeError("int failed")
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.health_repository import (
+                get_global_health_stats,
+            )
+
+            self.assertEqual(get_global_health_stats(limit=BadInt()), [])
+
+        cursor.assert_not_called()
+
     def test_get_global_health_stats_custom_limit_passed_to_sql(self):
         fake_cursor = MagicMock()
         fake_cursor.description = [
@@ -203,6 +220,24 @@ class TestHealthRepository(unittest.TestCase):
             self.assertTrue(check_table_exists("public.schools_school"))
             self.assertTrue(check_table_exists("tenant_a.people_studentprofile"))
             self.assertFalse(check_table_exists("other_schema.people_studentprofile"))
+
+    def test_check_table_exists_bad_table_names_iterable_returns_false(self):
+        class BadNames:
+            def __iter__(self):
+                raise RuntimeError("boom")
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "schema_name", "tenant_a", create=True),
+            patch.object(
+                connection.introspection,
+                "table_names",
+                return_value=BadNames(),
+            ),
+        ):
+            from apps.schools.repositories.health_repository import check_table_exists
+
+            self.assertFalse(check_table_exists("public.schools_school"))
 
     def test_check_table_exists_rejects_blank_identifier_without_introspection(self):
         with (
@@ -390,6 +425,35 @@ class TestHealthRepository(unittest.TestCase):
         self.assertNotIn("SET search_path", executed_sql)
         self.assertEqual(params, ["tenant_a", 5])
 
+    def test_get_top_tables_by_size_bad_result_row_returns_empty(self):
+        class BadRow:
+            def __iter__(self):
+                raise RuntimeError("row iteration failed")
+
+        fake_cursor = MagicMock()
+        fake_cursor.description = [
+            ("schema_name",),
+            ("table_name",),
+            ("total_pretty",),
+            ("raw_size",),
+            ("row_count",),
+        ]
+        fake_cursor.fetchall.return_value = [BadRow()]
+        fake_context = MagicMock()
+        fake_context.__enter__.return_value = fake_cursor
+        fake_context.__exit__.return_value = False
+
+        with patch.object(connection, "vendor", "postgresql"), patch.object(
+            connection, "cursor", return_value=fake_context
+        ):
+            from apps.schools.repositories.health_repository import (
+                get_top_tables_by_size,
+            )
+
+            self.assertEqual(get_top_tables_by_size(limit=7, schema_name="tenant_a"), [])
+
+        fake_cursor.execute.assert_called_once()
+
     def test_get_top_tables_by_size_rejects_blank_schema_without_sql(self):
         with (
             patch.object(connection, "vendor", "postgresql"),
@@ -493,6 +557,23 @@ class TestHealthRepository(unittest.TestCase):
                 get_top_tables_by_size(limit=memoryview(b"10")),
                 [],
             )
+
+        cursor.assert_not_called()
+
+    def test_get_top_tables_by_size_bad_int_limit_returns_empty_without_sql(self):
+        class BadInt:
+            def __int__(self):
+                raise RuntimeError("int failed")
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.health_repository import (
+                get_top_tables_by_size,
+            )
+
+            self.assertEqual(get_top_tables_by_size(limit=BadInt()), [])
 
         cursor.assert_not_called()
 
@@ -755,6 +836,26 @@ class TestHealthRepository(unittest.TestCase):
         self.assertIn("COUNT(*)", sql)
         self.assertIn('"public"', sql)
         self.assertIn('"schools_school"', sql)
+
+    def test_count_table_rows_bad_int_result_returns_negative_one(self):
+        class BadInt:
+            def __int__(self):
+                raise RuntimeError("int failed")
+
+        fake_cursor = MagicMock()
+        fake_cursor.fetchone.return_value = (BadInt(),)
+        fake_context = MagicMock()
+        fake_context.__enter__.return_value = fake_cursor
+        fake_context.__exit__.return_value = False
+
+        with patch.object(connection, "vendor", "postgresql"), patch.object(
+            connection, "cursor", return_value=fake_context
+        ), patch.object(connection.ops, "quote_name", side_effect=lambda n: f'"{n}"'):
+            from apps.schools.repositories.health_repository import count_table_rows
+
+            self.assertEqual(count_table_rows("public", "schools_school"), -1)
+
+        fake_cursor.execute.assert_called_once()
 
     def test_health_utils_delegates_to_repository(self):
         """health_utils is thin wrapper; same result as repository on non-PG."""

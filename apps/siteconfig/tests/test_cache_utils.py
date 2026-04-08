@@ -1,4 +1,4 @@
-from types import SimpleNamespace
+from types import MappingProxyType, SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from django.test import override_settings
@@ -99,6 +99,20 @@ class TenantCachePrefixTests(SimpleTestCase):
 
             self.assertIsNone(_current_rls_school_id())
 
+    def test_current_rls_school_id_ignores_mapping_proxy_guc_value(self):
+        """Empty read-only mapping stringifies to '{}', which otherwise passes length/whitespace checks."""
+        fake_cursor = MagicMock()
+        fake_cursor.fetchone.return_value = (MappingProxyType({}),)
+        fake_context = MagicMock()
+        fake_context.__enter__.return_value = fake_cursor
+        fake_context.__exit__.return_value = False
+
+        with patch("apps.siteconfig.cache_utils.connection") as conn:
+            conn.vendor = "postgresql"
+            conn.cursor.return_value = fake_context
+
+            self.assertIsNone(_current_rls_school_id())
+
     def test_get_tenant_cache_prefix_uses_request_school_id_when_present(self):
         request = SimpleNamespace(school=SimpleNamespace(id="school-123"))
 
@@ -146,6 +160,20 @@ class TenantCachePrefixTests(SimpleTestCase):
 
         with patch("apps.siteconfig.cache_utils._current_rls_school_id", return_value=None):
             self.assertEqual(get_tenant_cache_prefix(request), "public")
+
+    def test_get_tenant_cache_prefix_ignores_mapping_request_school_id(self):
+        request = SimpleNamespace(school=SimpleNamespace(id=MappingProxyType({})))
+
+        with patch("apps.siteconfig.cache_utils._current_rls_school_id", return_value=None):
+            self.assertEqual(get_tenant_cache_prefix(request), "public")
+
+    def test_get_tenant_cache_prefix_ignores_dict_tenant_schema_name(self):
+        with patch("apps.siteconfig.cache_utils.connection") as conn:
+            conn.tenant = SimpleNamespace(schema_name={"schema": "tenant_a"})
+            with patch(
+                "apps.siteconfig.cache_utils._current_rls_school_id", return_value=None
+            ):
+                self.assertEqual(get_tenant_cache_prefix(), "public")
 
     def test_get_tenant_cache_prefix_ignores_bool_tenant_schema_name(self):
         with patch("apps.siteconfig.cache_utils.connection") as conn:

@@ -327,6 +327,27 @@ class TestAuditRepository(unittest.TestCase):
 
         cursor.execute.assert_not_called()
 
+    def test_create_audit_trigger_function_rejects_unsized_redact_keys_iterable(self):
+        from apps.people.repositories import audit_repository
+        from apps.people.repositories.audit_repository import create_audit_trigger_function
+
+        class BrokenSizedIterable:
+            def __len__(self):
+                raise RuntimeError("len failed")
+
+            def __iter__(self):
+                return iter(["token"])
+
+        cursor = MagicMock()
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(audit_repository, "REDACT_KEYS", BrokenSizedIterable()),
+        ):
+            with self.assertRaises(ValueError):
+                create_audit_trigger_function(cursor)
+
+        cursor.execute.assert_not_called()
+
     def test_create_audit_trigger_function_rejects_duplicate_redact_keys(self):
         from apps.people.repositories import audit_repository
         from apps.people.repositories.audit_repository import create_audit_trigger_function
@@ -336,6 +357,27 @@ class TestAuditRepository(unittest.TestCase):
         with (
             patch.object(connection, "vendor", "postgresql"),
             patch.object(audit_repository, "REDACT_KEYS", dup_keys),
+        ):
+            with self.assertRaises(ValueError):
+                create_audit_trigger_function(cursor)
+
+        cursor.execute.assert_not_called()
+
+    def test_create_audit_trigger_function_rejects_redact_keys_iteration_failure(self):
+        from apps.people.repositories import audit_repository
+        from apps.people.repositories.audit_repository import create_audit_trigger_function
+
+        class BrokenIterable:
+            def __len__(self):
+                return 1
+
+            def __iter__(self):
+                raise RuntimeError("iter failed")
+
+        cursor = MagicMock()
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(audit_repository, "REDACT_KEYS", BrokenIterable()),
         ):
             with self.assertRaises(ValueError):
                 create_audit_trigger_function(cursor)

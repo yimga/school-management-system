@@ -230,6 +230,111 @@ class TestRlsRepository(unittest.TestCase):
         self.assertEqual(params[0], "t0")
         self.assertEqual(params[-1], f"t{cap - 1}")
 
+    def test_get_tenant_rls_status_stops_iterating_once_cap_is_reached(self):
+        fake_cursor = MagicMock()
+        fake_cursor.fetchall.return_value = []
+        fake_cm = MagicMock()
+        fake_cm.__enter__.return_value = fake_cursor
+        fake_cm.__exit__.return_value = False
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor", return_value=fake_cm),
+        ):
+            from apps.schools.repositories import rls_repository
+            from apps.schools.repositories.rls_repository import get_tenant_rls_status
+
+            cap = rls_repository._RLS_STATUS_MAX_TABLE_NAMES
+
+            def exploding_names():
+                for i in range(cap):
+                    yield f"t{i}"
+                raise AssertionError("iterator advanced past the documented cap")
+
+            get_tenant_rls_status(exploding_names())
+
+        fake_cursor.execute.assert_called_once()
+        params = fake_cursor.execute.call_args[0][1]
+        self.assertEqual(len(params), cap)
+        self.assertEqual(params[-1], f"t{cap - 1}")
+
+    def test_get_tenant_rls_status_does_not_probe_truthiness_before_iteration(self):
+        fake_cursor = MagicMock()
+        fake_cursor.fetchall.return_value = []
+        fake_cm = MagicMock()
+        fake_cm.__enter__.return_value = fake_cursor
+        fake_cm.__exit__.return_value = False
+
+        class _LenGuardIterable:
+            def __iter__(self):
+                yield "people_studentprofile"
+
+            def __len__(self):
+                raise AssertionError("truthiness probe should not run")
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor", return_value=fake_cm),
+        ):
+            from apps.schools.repositories.rls_repository import get_tenant_rls_status
+
+            get_tenant_rls_status(_LenGuardIterable())
+
+        fake_cursor.execute.assert_called_once()
+        params = fake_cursor.execute.call_args[0][1]
+        self.assertEqual(params, ["people_studentprofile"])
+
+    def test_get_tenant_rls_status_iterator_construction_failure_returns_empty(self):
+        class _BadIter:
+            def __iter__(self):
+                raise RuntimeError("boom")
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.rls_repository import get_tenant_rls_status
+
+            self.assertEqual(get_tenant_rls_status(_BadIter()), {})
+
+        cursor.assert_not_called()
+
+    def test_get_tenant_rls_status_iteration_failure_returns_empty(self):
+        def _bad_iter():
+            yield "people_studentprofile"
+            raise RuntimeError("boom")
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.rls_repository import get_tenant_rls_status
+
+            self.assertEqual(get_tenant_rls_status(_bad_iter()), {})
+
+        cursor.assert_not_called()
+
+    def test_get_tenant_rls_status_result_bool_failure_returns_empty(self):
+        class _BadBool:
+            def __bool__(self):
+                raise RuntimeError("boom")
+
+        fake_cursor = MagicMock()
+        fake_cursor.fetchall.return_value = [("people_studentprofile", _BadBool())]
+        fake_cm = MagicMock()
+        fake_cm.__enter__.return_value = fake_cursor
+        fake_cm.__exit__.return_value = False
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor", return_value=fake_cm),
+        ):
+            from apps.schools.repositories.rls_repository import get_tenant_rls_status
+
+            self.assertEqual(get_tenant_rls_status(["people_studentprofile"]), {})
+
+        fake_cursor.execute.assert_called_once()
+
     def test_get_tenant_rls_status_skips_when_schema_per_tenant_enabled(self):
         with (
             patch.object(connection, "vendor", "postgresql"),

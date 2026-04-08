@@ -113,7 +113,7 @@ class DashboardUserPreferenceForm(forms.ModelForm):
         }
 
 
-class SiteSettingsForm(forms.ModelForm):
+class TenantSettingsAdminForm(forms.ModelForm):
     """Phase B: only columns that remain on the tenant settings singleton; compliance_profile stored in RuntimeDefaults."""
 
     compliance_profile = forms.TypedChoiceField(
@@ -323,15 +323,15 @@ class DashboardLayoutAdmin(ModelAdmin):
     }
 
 
-class SiteSettingsAdmin(ModelAdmin):
+class TenantSettingsAdmin(ModelAdmin):
     """
     Main Site Customizer UI.
     Enforces a single settings row and groups options cleanly.
     """
 
     change_form_template = "admin/siteconfig/sitesettings/change_form.html"
-    form = SiteSettingsForm
-    # form assigned below after SiteSettingsForm definition
+    form = TenantSettingsAdminForm
+    # form assigned below after TenantSettingsAdminForm definition
 
     def get_form(self, request, obj=None, **kwargs):
         """Strip readonly / virtual admin fields from modelform_factory field list."""
@@ -1983,7 +1983,7 @@ class TenantAdmissionNumberPolicyAdmin(ModelAdmin):
 
 # Register: both = platform backoffice + tenant config; platform = manager only; tenant = tenant only
 # Platform operators use super:site_settings_list / super:site_settings_edit only (not platform /admin/).
-register_tenant_admin(_TenantSettingsModel, SiteSettingsAdmin)
+register_tenant_admin(_TenantSettingsModel, TenantSettingsAdmin)
 register_tenant_admin(TenantAdmissionNumberPolicy, TenantAdmissionNumberPolicyAdmin)
 register_tenant_admin(UserPreference, UserPreferenceAdmin)
 register_both(ReportTemplate, ReportTemplateAdmin)

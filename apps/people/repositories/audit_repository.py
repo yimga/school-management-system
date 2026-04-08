@@ -42,23 +42,42 @@ REDACT_KEYS = [
 
 
 def _redact_keys_sql_array_literal() -> str:
-    """Build ARRAY[...]::text[] for PL/pgSQL; raises ValueError if any REDACT_KEYS entry is unsafe or duplicated."""
-    if len(REDACT_KEYS) > _MAX_AUDIT_REDACT_KEYS:
+    """Build ARRAY[...]::text[] for PL/pgSQL; raises ValueError if REDACT_KEYS is malformed, unsafe, or duplicated."""
+    try:
+        redact_key_count = len(REDACT_KEYS)
+    except Exception as exc:
+        raise ValueError(
+            "REDACT_KEYS must be a finite sized iterable of snake_case strings."
+        ) from exc
+    if redact_key_count > _MAX_AUDIT_REDACT_KEYS:
         raise ValueError(
             f"REDACT_KEYS must contain at most {_MAX_AUDIT_REDACT_KEYS} entries."
         )
+    try:
+        redact_keys = iter(REDACT_KEYS)
+    except Exception as exc:
+        raise ValueError(
+            "REDACT_KEYS must be a finite sized iterable of snake_case strings."
+        ) from exc
     parts: list[str] = []
     seen_keys: set[str] = set()
-    for k in REDACT_KEYS:
-        if not isinstance(k, str) or not _AUDIT_REDACT_KEY_RE.fullmatch(k):
-            raise ValueError(
-                "REDACT_KEYS entries must be snake_case strings "
-                "(a-z, 0-9, underscore; max 63 characters)."
-            )
-        if k in seen_keys:
-            raise ValueError("REDACT_KEYS must not contain duplicate entries.")
-        seen_keys.add(k)
-        parts.append(repr(k))
+    try:
+        for k in redact_keys:
+            if not isinstance(k, str) or not _AUDIT_REDACT_KEY_RE.fullmatch(k):
+                raise ValueError(
+                    "REDACT_KEYS entries must be snake_case strings "
+                    "(a-z, 0-9, underscore; max 63 characters)."
+                )
+            if k in seen_keys:
+                raise ValueError("REDACT_KEYS must not contain duplicate entries.")
+            seen_keys.add(k)
+            parts.append(repr(k))
+    except ValueError:
+        raise
+    except Exception as exc:
+        raise ValueError(
+            "REDACT_KEYS must be a finite sized iterable of snake_case strings."
+        ) from exc
     return "ARRAY[" + ", ".join(parts) + "]::text[]"
 
 

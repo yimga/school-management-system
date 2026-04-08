@@ -401,8 +401,14 @@ class RuntimeHelperResolutionTests(TestCase):
         invalidate_effective_site_settings_cache()
 
         site.site_name = "Unsaved Brand"
-        site.enable_offline_mode = True
-        site.save(update_fields=["enable_offline_mode"])
+        # enable_offline_mode is payload-owned (policies_rules), not a concrete DB column
+        # after Phase B slimming — use the feature-control write contract.
+        feature_settings = site.get_feature_control_settings()
+        site.apply_feature_control_state(
+            portal_features=dict(feature_settings["portal_features"]),
+            backend_feature_flags=dict(feature_settings["backend_feature_flags"]),
+            field_updates={"enable_offline_mode": True},
+        )
 
         runtime_defaults = RuntimeDefaults.get_singleton()
 
