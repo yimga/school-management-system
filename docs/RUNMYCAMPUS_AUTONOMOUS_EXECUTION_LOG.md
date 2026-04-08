@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice - §11.4 batch 804: Raw SQL + RLS helper hardening bundle — health/rls/audit/schema provisioning + siteconfig cache + runtime contract (2026-04-08)
+
+**A. Scope:** Close the remaining local hardening on **`health_repository`**, **`rls_repository`**, **`rls_context`**, **`audit_repository`**, **`schema_provisioning_repository`**, **`siteconfig`** admin/cache, **`release_readiness_check.sh`**, and **`test_runtime_contract`** partial-save expectations; refresh platform inventory so **`generate_platform_inventory --check`** stays aligned.
+
+**B. Implementation:** See commit **`18c8a246`** ( **`fix(security): tighten raw-SQL and session helper inputs + refresh inventory`** ) — repository guards and expanded tests across **`apps/customers`**, **`apps/people`**, **`apps/schools`**, **`apps/siteconfig`**; **`scripts/release_readiness_check.sh`** alignment; **`docs/generated/platform_inventory.*`**, **`scripts/generated/scoped_gravity_trend.json`** regenerated.
+
+**C. Validation:** **`python manage.py test`** targeted modules (customers/people/schools/siteconfig + one **`RuntimeHelperResolutionTests`** case) **171 OK**; **`python scripts/lint_raw_sql_usage.py`** **PASS**; **`python scripts/generate_platform_inventory.py --write` / `--check`**; **`python scripts/verify_doc_plan_density_discipline.py` PASS** (after SOT/log).
+
+**D. Docs:** SOT §11.4 batch **804**; this log entry; **`.gitignore`** extended for Windows test temp dirs (**`.tmp_test_raw_sql_usage/`**, **`pytest-cache-files-*/`**, **`var/pytest-cache-files-*/`**, **`var/tmp/`**) to avoid **`git status`** permission warnings.
+
+**E. Risks / notes:** **`var/tmp/`** is ignored as ephemeral test scratch; do not store committed assets there.
+
+**F. Follow-ons:** **`805+`** — coordinate the next slice without overlapping active work.
+
 ## Slice - §11.4 batch 803: Phase B SiteSettings — API offline tests use `apply_feature_control_state` for `enable_offline_mode` (2026-04-08)
 
 **A. Scope:** Delta sync and offline sync API tests still called `save(update_fields=["enable_offline_mode"])` after `enable_offline_mode` moved to policy payload / feature-control ownership.
@@ -12,7 +26,7 @@
 
 **E. Risks / notes:** Test-only; aligns with `SiteSettings.apply_feature_control_state` and `domain_ownership` for `enable_offline_mode`.
 
-**F. Follow-ons:** **`804+`** — coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`804 closed (raw SQL bundle)`**, then **`805+`** — coordinate the next slice without overlapping active work.
 
 ## Slice - §11.4 batch 802: Control-plane hub registry drift — `verify_control_plane_hub_registry_drift.py` stderr + `ROOT` parity (2026-03-31)
 
@@ -26,7 +40,7 @@
 
 **E. Risks / notes:** None; behavior is unchanged aside from default-base and stderr normalization.
 
-**F. Follow-ons:** **`803 closed (Phase B API offline tests)`**, then **`804+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`803 closed (Phase B API offline tests)`**, then **`804 closed (raw SQL bundle)`**, then **`805+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 801: Raw SQL SQLite integrity helper — reject collections.abc.Mapping for db_path before PRAGMA connect (2026-04-07)
 
@@ -40,7 +54,7 @@
 
 **E. Risks / notes:** **`dict`** previously fell through to **`else`** **`None`**; ordering now explicit after **`bool`**.
 
-**F. Follow-ons:** **`802 closed (control-plane hub drift verifier hygiene)`**, then **`803 closed (Phase B API offline tests)`**, then **`804+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`802 closed (control-plane hub drift verifier hygiene)`**, then **`803 closed (Phase B API offline tests)`**, then **`804 closed (raw SQL bundle)`**, then **`805+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 800: Raw SQL audit repository — reject collections.abc.Mapping for table_name on create/drop_audit_trigger (2026-04-07)
 

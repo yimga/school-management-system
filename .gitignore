@@ -48,6 +48,12 @@ npm-debug.log*
 .coverage
 htmlcov/
 .pytest_cache/
+# Ephemeral dirs created by tests on Windows — git may warn "Permission denied"
+# when scanning if ACLs block enumeration; ignore so status/clean stay quiet.
+.tmp_test_raw_sql_usage/
+pytest-cache-files-*/
+var/pytest-cache-files-*/
+var/tmp/
 .tmp_test_artifacts/
 .django_test_dbs/
 full_test_run.txt
