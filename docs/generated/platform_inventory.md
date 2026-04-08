@@ -77,18 +77,18 @@ Total: `157` commands. First 25 by app/command:
 
 ## Largest Python Files
 
-- `apps/schools/marketing_page_definitions.py`: `2861` lines / `135837` bytes
-- `apps/schools/marketing_views.py`: `3188` lines / `129242` bytes
-- `apps/api/views_v1.py`: `2847` lines / `121043` bytes
-- `apps/evals/views.py`: `3100` lines / `117985` bytes
-- `apps/accounts/views.py`: `3009` lines / `117686` bytes
-- `apps/finance/models.py`: `2814` lines / `101491` bytes
-- `apps/siteconfig/admin.py`: `2814` lines / `101463` bytes
-- `apps/siteconfig/views.py`: `2500` lines / `95945` bytes
-- `apps/studio_os/views.py`: `2164` lines / `87713` bytes
-- `apps/finance/tasks.py`: `2062` lines / `84455` bytes
-- `apps/siteconfig/models.py`: `2013` lines / `79880` bytes
-- `apps/platform_runtime/tests/test_tenant_settings_lint.py`: `1806` lines / `74679` bytes
+- `apps/schools/marketing_page_definitions.py`: `2861` lines / `132976` bytes
+- `apps/schools/marketing_views.py`: `3188` lines / `126054` bytes
+- `apps/api/views_v1.py`: `2847` lines / `118196` bytes
+- `apps/evals/views.py`: `3100` lines / `114885` bytes
+- `apps/accounts/views.py`: `3009` lines / `114677` bytes
+- `apps/finance/models.py`: `2814` lines / `98677` bytes
+- `apps/siteconfig/admin.py`: `2814` lines / `98649` bytes
+- `apps/siteconfig/views.py`: `2500` lines / `93445` bytes
+- `apps/studio_os/views.py`: `2164` lines / `85549` bytes
+- `apps/finance/tasks.py`: `2062` lines / `82393` bytes
+- `apps/siteconfig/models.py`: `2013` lines / `77867` bytes
+- `apps/platform_runtime/tests/test_tenant_settings_lint.py`: `1806` lines / `72873` bytes
 
 ## Documentation Drift
 
