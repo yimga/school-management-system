@@ -43,6 +43,12 @@ jobs:
       - name: Gilead full-tree classification (no Django DB)
         run: python scripts/verify_gilead_full_tree_classification.py
 
+      - name: Migrate DB (needed by mechanical bundle)
+        env:
+          SECRET_KEY: "ci-smoke-light-not-for-production-use-64chars____________________"
+          ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
+        run: python manage.py migrate --noinput
+
       - name: Phases 3–11 mechanical bundle (consolidated lint module)
         run: python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q
 
