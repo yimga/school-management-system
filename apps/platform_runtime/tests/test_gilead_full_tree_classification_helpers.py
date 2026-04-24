@@ -2,26 +2,18 @@
 
 from __future__ import annotations
 
-import importlib.util
-import sys
-from pathlib import Path
-
 from django.test import SimpleTestCase
+
+from apps.platform_runtime.tests.support.paths import repo_root
+from apps.platform_runtime.tests.support.script_loading import load_repo_script
 
 
 def _load_classifier_module():
-    root = Path(__file__).resolve().parents[3]
-    path = root / "scripts" / "verify_gilead_full_tree_classification.py"
-    spec = importlib.util.spec_from_file_location(
+    return load_repo_script(
+        "scripts/verify_gilead_full_tree_classification.py",
         "verify_gilead_full_tree_classification",
-        path,
+        register_in_sys_modules=True,
     )
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"cannot load {path}")
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = mod
-    spec.loader.exec_module(mod)
-    return mod
 
 
 class GileadFullTreeClassificationHelperTests(SimpleTestCase):
@@ -61,7 +53,7 @@ class GileadFullTreeClassificationHelperTests(SimpleTestCase):
         self.assertEqual(args.base, str(self._mod.DEFAULT_ROOT))
 
     def test_resolve_base_accepts_existing_directory(self):
-        here = Path(__file__).resolve().parents[3]
+        here = repo_root()
         resolved = self._mod._resolve_base(str(here))
         self.assertEqual(resolved, here.resolve())
 

@@ -58,7 +58,7 @@ from .cache import (
     get_cached_runtime_for_request,
     set_cached_runtime_for_request,
 )
-from .tracing import set_runtime_trace_context
+from .tracing import get_runtime_trace_id, set_runtime_trace_context
 from .precedence import merge_feature_flags_by_runtime_precedence
 
 
@@ -866,14 +866,16 @@ def build_tenant_runtime(
     if request is not None:
         set_cached_runtime_for_request(request, tenant_ctx, school, runtime)
 
-    # §6.2 Runtime tracing: observable in logs after deployment (DEBUG or structured logging)
+    # §6.2 / III.5 Runtime tracing: correlate completion with GAP.5 request trace id (DEBUG)
     elapsed_ms = (time.time() - t0) * 1000
+    trace_id = (get_runtime_trace_id(request) or "") if request is not None else ""
     logger.debug(
-        "runtime_resolution_complete school_id=%s surface=%s steps=%s elapsed_ms=%.2f",
+        "runtime_resolution_complete school_id=%s surface=%s steps=%s elapsed_ms=%.2f runtime_trace_id=%s",
         getattr(school, "id", None) if school else None,
         getattr(route, "surface", None) if route else None,
         len(trace),
         elapsed_ms,
+        trace_id or "-",
     )
     return runtime
 

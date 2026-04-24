@@ -9,9 +9,12 @@ class CommunicationCenterTests(TestCase):
     def setUp(self):
         Integration.objects.all().delete()
         site = get_platform_site_settings_record(create=True)
-        site.company_phone = "+1 (222) 333-4444"
-        site.company_email = "support@example.com"
-        site.save()
+        site.apply_feature_control_state(
+            field_updates={
+                "company_phone": "+1 (222) 333-4444",
+                "company_email": "support@example.com",
+            },
+        )
 
     def test_whatsapp_phone_email_links_render(self):
         uid = id(self)
@@ -49,11 +52,14 @@ class CommunicationCenterTests(TestCase):
 
     def test_empty_contacts_returns_no_links(self):
         site = get_platform_site_settings_record(create=True)
-        site.company_phone = ""
-        site.company_email = ""
-        site.whatsapp_support_number = ""
-        setattr(site, "footer_whatsapp_url", "")
-        site.save()
+        site.apply_feature_control_state(
+            field_updates={
+                "company_phone": "",
+                "company_email": "",
+                "whatsapp_support_number": "",
+                "footer_whatsapp_url": "",
+            },
+        )
         Integration.objects.all().delete()
         # Clear site-settings cache so _communication_center sees updated empty values
         from django.core.cache import cache

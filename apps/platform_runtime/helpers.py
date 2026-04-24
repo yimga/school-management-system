@@ -6,6 +6,11 @@ request.tenant_runtime with platform fallback where appropriate.
 Audit: Tenant-facing code must not read tenant behavior directly from that legacy singleton;
 use get_effective_* helpers or request.tenant_runtime. See
 docs/PLATFORM_TRANSITION_AUDIT_REPORT.md and docs/PLATFORM_AUDIT_REMEDIATION_BACKLOG.md.
+
+PATH §6.2 III.4 / III.6: ORM access to the slim row is centralized here
+(``get_platform_site_settings_record`` / ``_TenantSettingsModel``). §11.4 batch **947** locks
+``apps/platform_runtime/`` against ``SiteSettings.get_solo`` / ``.load`` / ``SiteSettings.objects``
+regressions via ``test_batch947_platform_runtime_no_singleton_bypass``.
 """
 
 from __future__ import annotations

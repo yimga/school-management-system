@@ -117,3 +117,149 @@ class AIFeedbackEndpointTests(SimpleTestCase):
         self.assertEqual(
             mock_audit_create.call_args.kwargs["action"], AuditLog.Action.REJECT
         )
+
+    @patch("apps.portal.views_ai_gateway.record_feedback")
+    @patch("apps.portal.views_ai_gateway._check_rate_limit")
+    def test_feedback_400_when_task_type_missing(
+        self,
+        mock_rate_limit,
+        mock_record_feedback,
+    ):
+        mock_rate_limit.return_value = (True, 0)
+        request = self.factory.post(
+            "/api/ai/feedback/",
+            data=json.dumps(
+                {
+                    "tier": "ollama",
+                    "accepted": True,
+                }
+            ),
+            content_type="application/json",
+        )
+        request.user = self.user
+        request.school = SimpleNamespace(id=11)
+
+        raw_view = api_ai_feedback.__wrapped__.__wrapped__.__wrapped__
+        response = raw_view(request)
+
+        self.assertEqual(response.status_code, 400)
+        payload = json.loads(response.content)
+        self.assertFalse(payload["success"])
+        self.assertIn("task_type", payload["error"])
+        mock_record_feedback.assert_not_called()
+
+    @patch("apps.portal.views_ai_gateway.record_feedback")
+    @patch("apps.portal.views_ai_gateway._check_rate_limit")
+    def test_feedback_400_when_tier_missing(
+        self,
+        mock_rate_limit,
+        mock_record_feedback,
+    ):
+        mock_rate_limit.return_value = (True, 0)
+        request = self.factory.post(
+            "/api/ai/feedback/",
+            data=json.dumps(
+                {
+                    "task_type": "setup_recommend",
+                    "accepted": True,
+                }
+            ),
+            content_type="application/json",
+        )
+        request.user = self.user
+        request.school = SimpleNamespace(id=11)
+
+        raw_view = api_ai_feedback.__wrapped__.__wrapped__.__wrapped__
+        response = raw_view(request)
+
+        self.assertEqual(response.status_code, 400)
+        payload = json.loads(response.content)
+        self.assertFalse(payload["success"])
+        self.assertIn("task_type and tier", payload["error"])
+        mock_record_feedback.assert_not_called()
+
+    @patch("apps.portal.views_ai_gateway.record_feedback")
+    @patch("apps.portal.views_ai_gateway._check_rate_limit")
+    def test_feedback_400_when_invalid_json(
+        self,
+        mock_rate_limit,
+        mock_record_feedback,
+    ):
+        mock_rate_limit.return_value = (True, 0)
+        request = self.factory.post(
+            "/api/ai/feedback/",
+            data="{not-json",
+            content_type="application/json",
+        )
+        request.user = self.user
+        request.school = SimpleNamespace(id=11)
+
+        raw_view = api_ai_feedback.__wrapped__.__wrapped__.__wrapped__
+        response = raw_view(request)
+
+        self.assertEqual(response.status_code, 400)
+        payload = json.loads(response.content)
+        self.assertFalse(payload["success"])
+        self.assertIn("Invalid JSON", payload["error"])
+        mock_record_feedback.assert_not_called()
+
+    @patch("apps.portal.views_ai_gateway.record_feedback")
+    @patch("apps.portal.views_ai_gateway._check_rate_limit")
+    def test_feedback_400_when_neither_accepted_nor_manual_correction(
+        self,
+        mock_rate_limit,
+        mock_record_feedback,
+    ):
+        mock_rate_limit.return_value = (True, 0)
+        request = self.factory.post(
+            "/api/ai/feedback/",
+            data=json.dumps(
+                {
+                    "task_type": "setup_recommend",
+                    "tier": "ollama",
+                }
+            ),
+            content_type="application/json",
+        )
+        request.user = self.user
+        request.school = SimpleNamespace(id=11)
+
+        raw_view = api_ai_feedback.__wrapped__.__wrapped__.__wrapped__
+        response = raw_view(request)
+
+        self.assertEqual(response.status_code, 400)
+        payload = json.loads(response.content)
+        self.assertFalse(payload["success"])
+        self.assertIn("accepted", payload["error"])
+        mock_record_feedback.assert_not_called()
+
+    @patch("apps.portal.views_ai_gateway.record_feedback")
+    @patch("apps.portal.views_ai_gateway._check_rate_limit")
+    def test_feedback_429_when_rate_limited(
+        self,
+        mock_rate_limit,
+        mock_record_feedback,
+    ):
+        mock_rate_limit.return_value = (False, 30)
+        request = self.factory.post(
+            "/api/ai/feedback/",
+            data=json.dumps(
+                {
+                    "task_type": "setup_recommend",
+                    "tier": "ollama",
+                    "accepted": True,
+                }
+            ),
+            content_type="application/json",
+        )
+        request.user = self.user
+        request.school = SimpleNamespace(id=11)
+
+        raw_view = api_ai_feedback.__wrapped__.__wrapped__.__wrapped__
+        response = raw_view(request)
+
+        self.assertEqual(response.status_code, 429)
+        payload = json.loads(response.content)
+        self.assertFalse(payload["success"])
+        self.assertEqual(response["Retry-After"], "30")
+        mock_record_feedback.assert_not_called()

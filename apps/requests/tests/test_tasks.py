@@ -42,8 +42,9 @@ class RequestsReminderTaskTests(TestCase):
 
     def test_task_creates_success_execution_log_when_enabled(self):
         settings = get_platform_site_settings_record(create=True)
-        settings.requests_reminder_interval_hours = 24
-        settings.save(update_fields=["requests_reminder_interval_hours"])
+        settings.apply_feature_control_state(
+            field_updates={"requests_reminder_interval_hours": 24},
+        )
 
         result = remind_pending_assignees_task(school_id=str(self.school.id))
 
@@ -58,8 +59,9 @@ class RequestsReminderTaskTests(TestCase):
 
     def test_task_logs_success_with_zero_when_disabled(self):
         settings = get_platform_site_settings_record(create=True)
-        settings.requests_reminder_interval_hours = 0
-        settings.save(update_fields=["requests_reminder_interval_hours"])
+        settings.apply_feature_control_state(
+            field_updates={"requests_reminder_interval_hours": 0},
+        )
 
         result = remind_pending_assignees_task(school_id=str(self.school.id))
 

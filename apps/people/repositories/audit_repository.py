@@ -7,10 +7,16 @@ PostgreSQL only; staff/operational use.
 
 from __future__ import annotations
 
+import logging
 import re
 from collections.abc import Mapping
 
 from django.db import connection
+from django.db.utils import DatabaseError, OperationalError, ProgrammingError
+
+logger = logging.getLogger(__name__)
+
+_AUDIT_REPO_DB_ERRORS = (OperationalError, ProgrammingError, DatabaseError)
 
 # Unquoted PostgreSQL identifier: max 63 chars; tenant schemas match django-tenants slugs.
 _PG_SEARCH_PATH_SCHEMA_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,62}$")
@@ -136,10 +142,12 @@ def set_search_path(cursor, schema_name: str) -> None:
     """Set search_path for the current transaction. No-op on non-PostgreSQL."""
     if connection.vendor != "postgresql":
         return
-    cursor.execute(
-        "SET LOCAL search_path TO %s",
-        [normalize_search_path_schema_name(schema_name)],
-    )
+    sid = normalize_search_path_schema_name(schema_name)
+    try:
+        cursor.execute("SET LOCAL search_path TO %s", [sid])
+    except _AUDIT_REPO_DB_ERRORS:
+        logger.debug("audit_repository: set_search_path failed", exc_info=True)
+        raise
 
 
 def create_audit_trigger_function(cursor) -> None:
@@ -154,7 +162,7 @@ def create_audit_trigger_function(cursor) -> None:
     if connection.vendor != "postgresql":
         return
     redact_keys_sql = _redact_keys_sql_array_literal()
-    cursor.execute(
+    sql = (
         """
         CREATE OR REPLACE FUNCTION audit_trigger_fn()
         RETURNS TRIGGER AS $$
@@ -196,6 +204,13 @@ def create_audit_trigger_function(cursor) -> None:
         $$ LANGUAGE plpgsql;
         """
     )
+    try:
+        cursor.execute(sql)
+    except _AUDIT_REPO_DB_ERRORS:
+        logger.debug(
+            "audit_repository: create_audit_trigger_function failed", exc_info=True
+        )
+        raise
 
 
 def drop_audit_trigger(cursor, table_name: str) -> None:
@@ -207,7 +222,12 @@ def drop_audit_trigger(cursor, table_name: str) -> None:
     trigger_name = _AUDIT_TRIGGER_PREFIX + table_name.replace(".", "_")
     q_trigger = connection.ops.quote_name(trigger_name)
     q_table = connection.ops.quote_name(table_name)
-    cursor.execute("DROP TRIGGER IF EXISTS %s ON %s" % (q_trigger, q_table))
+    stmt = "DROP TRIGGER IF EXISTS %s ON %s" % (q_trigger, q_table)
+    try:
+        cursor.execute(stmt)
+    except _AUDIT_REPO_DB_ERRORS:
+        logger.debug("audit_repository: drop_audit_trigger failed", exc_info=True)
+        raise
 
 
 def create_audit_trigger(cursor, table_name: str) -> None:
@@ -219,14 +239,25 @@ def create_audit_trigger(cursor, table_name: str) -> None:
     trigger_name = _AUDIT_TRIGGER_PREFIX + table_name.replace(".", "_")
     q_trigger = connection.ops.quote_name(trigger_name)
     q_table = connection.ops.quote_name(table_name)
-    cursor.execute(
+    stmt = (
         "CREATE TRIGGER %s AFTER INSERT OR UPDATE OR DELETE ON %s "
         "FOR EACH ROW EXECUTE PROCEDURE audit_trigger_fn()" % (q_trigger, q_table)
     )
+    try:
+        cursor.execute(stmt)
+    except _AUDIT_REPO_DB_ERRORS:
+        logger.debug("audit_repository: create_audit_trigger failed", exc_info=True)
+        raise
 
 
 def revoke_audit_log_mutations(cursor) -> None:
     """Revoke UPDATE and DELETE on audit_log from CURRENT_USER (immutable audit trail)."""
     if connection.vendor != "postgresql":
         return
-    cursor.execute("REVOKE UPDATE, DELETE ON audit_log FROM CURRENT_USER;")
+    try:
+        cursor.execute("REVOKE UPDATE, DELETE ON audit_log FROM CURRENT_USER;")
+    except _AUDIT_REPO_DB_ERRORS:
+        logger.debug(
+            "audit_repository: revoke_audit_log_mutations failed", exc_info=True
+        )
+        raise

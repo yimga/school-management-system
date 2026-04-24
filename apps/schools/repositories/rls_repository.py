@@ -70,19 +70,22 @@ def get_tenant_rls_status(table_names: list[str]) -> dict[str, bool]:
     if not normalized_table_names:
         return {}
     placeholders = ",".join(["%s"] * len(normalized_table_names))
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            SELECT c.relname, c.relrowsecurity
-            FROM pg_class c
-            JOIN pg_namespace n ON n.oid = c.relnamespace
-            WHERE n.nspname = 'public' AND c.relkind = 'r'
-            AND c.relname IN (%s)
-            """
-            % placeholders,
-            normalized_table_names,
-        )
-        try:
-            return {row[0]: bool(row[1]) for row in cursor.fetchall()}
-        except Exception:
-            return {}
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT c.relname, c.relrowsecurity
+                FROM pg_class c
+                JOIN pg_namespace n ON n.oid = c.relnamespace
+                WHERE n.nspname = 'public' AND c.relkind = 'r'
+                AND c.relname IN (%s)
+                """
+                % placeholders,
+                normalized_table_names,
+            )
+            try:
+                return {row[0]: bool(row[1]) for row in cursor.fetchall()}
+            except Exception:
+                return {}
+    except Exception:
+        return {}

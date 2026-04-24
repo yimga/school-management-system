@@ -58,10 +58,7 @@ class DeltaSyncConflictTestCase(TestCase):
         )
 
         site = get_platform_site_settings_record(create=True)
-        fs = site.get_feature_control_settings()
         site.apply_feature_control_state(
-            portal_features=dict(fs["portal_features"]),
-            backend_feature_flags=dict(fs["backend_feature_flags"]),
             field_updates={"enable_offline_mode": True},
         )
 
@@ -147,10 +144,7 @@ class DeltaSyncSuccessClearQueueTestCase(TestCase):
         self.client_api.force_authenticate(user=self.user)
         self.request_factory = APIRequestFactory()
         site = get_platform_site_settings_record(create=True)
-        fs = site.get_feature_control_settings()
         site.apply_feature_control_state(
-            portal_features=dict(fs["portal_features"]),
-            backend_feature_flags=dict(fs["backend_feature_flags"]),
             field_updates={"enable_offline_mode": True},
         )
 
@@ -226,10 +220,7 @@ class DeltaSyncTenantIsolationTestCase(TestCase):
             date_of_birth="2012-01-01",
         )
         site = get_platform_site_settings_record(create=True)
-        fs = site.get_feature_control_settings()
         site.apply_feature_control_state(
-            portal_features=dict(fs["portal_features"]),
-            backend_feature_flags=dict(fs["backend_feature_flags"]),
             field_updates={"enable_offline_mode": True},
         )
 

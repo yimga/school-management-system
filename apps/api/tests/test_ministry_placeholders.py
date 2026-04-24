@@ -15,7 +15,6 @@ from apps.finance.models import (
 )
 from apps.people.models import StudentProfile
 from apps.platform_runtime.helpers import get_platform_site_settings_record
-from apps.siteconfig.models import default_backend_feature_flags
 
 
 class MinistryPlaceholderApiTests(TestCase):
@@ -91,16 +90,14 @@ class MinistryPlaceholderApiTests(TestCase):
         )
 
         site = get_platform_site_settings_record(create=True)
-        flags = {
-            **default_backend_feature_flags(),
-            **(site.backend_feature_flags or {}),
-        }
+        flags = dict(site.get_backend_feature_flags())
         flags["enable_ministry_api_cartescolaire"] = True
         flags["enable_ministry_api_dgi"] = True
         flags["enable_ministry_live_sync"] = True
-        site.backend_feature_flags = flags
-        site.school_code = "GIL"
-        site.save(update_fields=["backend_feature_flags", "school_code"])
+        site.apply_feature_control_state(
+            backend_feature_flags=flags,
+            field_updates={"school_code": "GIL"},
+        )
 
     def test_cartescolaire_placeholder_returns_registry_data(self):
         response = self.client.get("/api/ministry/cartescolaire/")
@@ -139,10 +136,12 @@ class MinistryPlaceholderApiTests(TestCase):
 
     def test_disabled_flag_returns_503(self):
         site = get_platform_site_settings_record(create=True)
-        flags = dict(site.backend_feature_flags or {})
+        flags = dict(site.get_backend_feature_flags())
         flags["enable_ministry_api_dgi"] = False
-        site.backend_feature_flags = flags
-        site.save(update_fields=["backend_feature_flags"])
+        site.apply_feature_control_state(
+            backend_feature_flags=flags,
+            field_updates={},
+        )
 
         response = self.client.get("/api/ministry/dgi/")
         self.assertEqual(response.status_code, 503)

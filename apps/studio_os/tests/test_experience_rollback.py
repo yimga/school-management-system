@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -92,3 +93,34 @@ class StudioExperienceRollbackTests(TestCase):
         site = get_platform_site_settings_record(create=False)
         self.assertEqual(site.primary_color, prior)
         self.assertNotIn("theme_previous_state", self.client.session)
+
+    def test_experience_rollback_falls_back_to_apply_feature_control_state_when_theme_api_missing(
+        self,
+    ):
+        """
+        Phase B compatibility: if apply_theme_experience_state is unavailable, rollback should still
+        persist virtual theme keys through apply_feature_control_state (payload-backed).
+        """
+        site = get_platform_site_settings_record(create=True)
+        prior = "#0d6efd"
+        site.apply_theme_experience_state(field_updates={"primary_color": prior}, save=True)
+        cache.clear()
+
+        self.client.login(username=self.user.username, password="password")
+        session = self.client.session
+        session["theme_previous_state"] = {
+            "values": {"primary_color": prior},
+            "actor": "test",
+            "timestamp": "fixture",
+        }
+        session.save()
+
+        site.apply_theme_experience_state(field_updates={"primary_color": "#1e3a8a"}, save=True)
+
+        with patch("apps.siteconfig.models.SiteSettings.apply_theme_experience_state", None):
+            response = self.client.post(self.rollback_url, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        cache.clear()
+        site = get_platform_site_settings_record(create=False)
+        self.assertEqual(site.primary_color, prior)

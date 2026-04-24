@@ -9,8 +9,9 @@ class SiteSettingsComplianceProfilePointerTests(TestCase):
     def test_property_and_form_initialise_pointer_without_model_relation(self):
         profile = ComplianceProfile.objects.create(name="CM Default", country_code="CM")
         site = get_platform_site_settings_record(create=True)
-        site.compliance_profile = profile
-        site.save()
+        site.apply_feature_control_state(
+            field_updates={"compliance_profile_id": profile.pk},
+        )
 
         site.refresh_from_db()
         self.assertEqual(site.compliance_profile_id, profile.pk)

@@ -35,7 +35,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
     def test_phase_b_snapshot_diff_summary_table_headings_stable(self):
         """Batch 33 #415: HTML summary table thead must stay aligned with operator copy."""
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         url = reverse("super:phase_b_snapshot_diff")
         response = self.client.get(url, HTTP_HOST=self.host)
@@ -56,7 +55,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
     def test_phase_b_snapshot_diff_summary_domain_action_links_match_domain_count(self):
         """Batch 35 #445: summary tbody row cardinality tracks ``PHASE_B_SNAPSHOT_DOMAINS``."""
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         url = reverse("super:phase_b_snapshot_diff")
         response = self.client.get(url, HTTP_HOST=self.host)
@@ -69,7 +67,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
 
     def test_phase_b_snapshot_diff_phase_h_skip_link_targets_main(self):
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         url = reverse("super:phase_b_snapshot_diff")
         response = self.client.get(url, HTTP_HOST=self.host)
@@ -81,7 +78,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
     def test_phase_b_snapshot_diff_renders_operator_phase_b_curated_links(self):
         """Typed operator table ``PlatformOperatorPhaseBLink`` surfaces on diff hub (batch 23 #267)."""
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         PlatformOperatorPhaseBLink.objects.create(
             slug="batch-23-truth",
@@ -99,7 +95,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
     def test_phase_b_export_json_v1_domain_row_key_order_matches_all_rows(self):
         """Drift guard: every ``domains[]`` object uses the same keys as the HTML/JSON contract (batch 23 #265)."""
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         url = reverse("super:phase_b_snapshot_diff")
         jresp = self.client.get(url + "?export=json", HTTP_HOST=self.host)
@@ -127,7 +122,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
 
     def test_phase_b_snapshot_diff_renders_200(self):
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         url = reverse("super:phase_b_snapshot_diff")
         response = self.client.get(url, HTTP_HOST=self.host)
@@ -140,7 +134,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
     def test_phase_b_snapshot_diff_export_action_buttons_present(self):
         """HTML export entry points stay wired when layout changes (batch 24 #280)."""
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         url = reverse("super:phase_b_snapshot_diff")
         response = self.client.get(url, HTTP_HOST=self.host)
@@ -152,7 +145,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
     def test_phase_b_snapshot_diff_summary_table_headers_align_with_json_export_field_order(self):
         """Regression: thead labels match tbody columns and JSON `domains[]` key semantics (SOT batch 7 #65)."""
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         url = reverse("super:phase_b_snapshot_diff")
         response = self.client.get(url, HTTP_HOST=self.host)
@@ -203,7 +195,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
     ):
         """Tbody domain slugs align with ``domains[].domain`` order (batch 14 #140, narrower than thead #65)."""
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         url = reverse("super:phase_b_snapshot_diff")
         response = self.client.get(url, HTTP_HOST=self.host)
@@ -226,7 +217,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
     ):
         """Regression: HTML/JSON row order stays tied to ``PHASE_B_SNAPSHOT_DOMAINS`` (batch 15 #150)."""
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         url = reverse("super:phase_b_snapshot_diff") + "?export=json"
         data = json.loads(
@@ -238,7 +228,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
     def test_phase_b_snapshot_diff_key_detail_html_lists_match_json_detail_export(self):
         """Key-diff card ``<code>`` keys match ``export=json&domain=`` ``key_detail`` (batch 14 #140)."""
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         row = PlatformPhaseBDomainSnapshot.objects.get(pk="documents")
         pl = dict(row.payload or {})
@@ -286,7 +275,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
     def test_phase_b_key_detail_section_headings_stable(self):
         """When UI adds columns elsewhere, key-detail card headings stay aligned with JSON contract (batch 17 #175 / batch 18 #190)."""
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         url = reverse("super:phase_b_snapshot_diff") + "?domain=documents"
         html = self.client.get(url, HTTP_HOST=self.host).content.decode("utf-8")
@@ -299,7 +287,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
 
     def test_phase_b_snapshot_diff_shows_drift_when_snapshot_stale(self):
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         row = PlatformPhaseBDomainSnapshot.objects.get(pk="documents")
         pl = dict(row.payload or {})
@@ -329,7 +316,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
 
     def test_resync_post_materializes_from_live(self):
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         row = PlatformPhaseBDomainSnapshot.objects.get(pk="documents")
         pl = dict(row.payload or {})
@@ -357,7 +343,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
     def test_phase_b_export_json_v2_detail_top_level_key_order_stable(self):
         """Batch 35 #445: v2 detail export keeps a stable top-level key contract."""
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         url = reverse("super:phase_b_snapshot_diff") + "?export=json&domain=documents"
         data = json.loads(
@@ -381,7 +366,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
     def test_phase_b_export_json_v1_top_level_key_order_stable(self):
         """Batch 34 #430: v1 export object key order stays aligned with HTML summary contract."""
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         url = reverse("super:phase_b_snapshot_diff") + "?export=json"
         data = json.loads(self.client.get(url, HTTP_HOST=self.host).content.decode("utf-8"))
@@ -398,7 +382,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
 
     def test_phase_b_snapshot_diff_export_json(self):
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         url = reverse("super:phase_b_snapshot_diff") + "?export=json"
         response = self.client.get(url, HTTP_HOST=self.host)
@@ -426,7 +409,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
 
     def test_phase_b_snapshot_diff_export_json_reflects_drift_count(self):
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         row = PlatformPhaseBDomainSnapshot.objects.get(pk="documents")
         pl = dict(row.payload or {})
@@ -449,7 +431,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
 
     def test_phase_b_snapshot_diff_export_json_detail_domain_v2(self):
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         row = PlatformPhaseBDomainSnapshot.objects.get(pk="documents")
         pl = dict(row.payload or {})
@@ -485,7 +466,6 @@ class SuperPhaseBSnapshotDiffViewTests(TestCase):
     def test_phase_b_export_json_v2_key_detail_top_level_schema_stable(self):
         """``key_detail`` keys stay aligned with ``diff_top_level_payload_keys`` (batch 16 #160)."""
         site = get_platform_site_settings_record(create=True)
-        site.save()
         sync_phase_b_domain_snapshots_from_site(site)
         url = reverse("super:phase_b_snapshot_diff") + "?export=json&domain=documents"
         data = json.loads(

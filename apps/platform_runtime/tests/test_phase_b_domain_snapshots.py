@@ -27,7 +27,7 @@ class PhaseBDomainSnapshotTests(TestCase):
     def test_save_creates_ten_domain_rows(self):
         site = get_platform_site_settings_record(create=True)
         self.assertIsNotNone(site)
-        site.save()
+        # Snapshots sync from SiteSettings.save(); get_or_create already persisted the row.
         self.assertEqual(
             PlatformPhaseBDomainSnapshot.objects.count(), len(PHASE_B_SNAPSHOT_DOMAINS)
         )
@@ -40,8 +40,9 @@ class PhaseBDomainSnapshotTests(TestCase):
     def test_marketplace_snapshot_excludes_integration_secrets(self):
         site = get_platform_site_settings_record(create=True)
         self.assertIsNotNone(site)
-        site.sms_api_key = "secret-do-not-snapshot-sms"
-        site.save()
+        site.apply_feature_control_state(
+            field_updates={"sms_api_key": "secret-do-not-snapshot-sms"}
+        )
         rd = RuntimeDefaults.get_singleton()
         self.assertIsNotNone(rd)
         rd.ai_provider_api_key = "secret-do-not-snapshot-ai"

@@ -2,9 +2,9 @@
 §2.4 Tests for db_liveness. Isolated from test_monitoring to avoid merge conflicts.
 """
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from django.db.utils import OperationalError
 
 from apps.observability.db_liveness import check_db_liveness
@@ -54,3 +54,37 @@ class DbLivenessTests(TestCase):
 
         self.assertEqual(result["status"], "unhealthy")
         self.assertIn("not usable", result["error"])
+
+
+class DbLivenessErrorShapeTests(SimpleTestCase):
+    """Bucket C: stable operator-facing error payloads without requiring a live DB."""
+
+    def test_unhealthy_truncates_error_at_200_chars(self):
+        long_msg = "e" * 400
+        with patch(
+            "apps.observability.db_liveness.connection.ensure_connection",
+            side_effect=OperationalError(long_msg),
+        ):
+            result = check_db_liveness()
+
+        self.assertEqual(result["status"], "unhealthy")
+        self.assertEqual(len(result["error"]), 200)
+        self.assertTrue(result["error"].startswith("e"))
+
+
+class DbLivenessHealthyShapeTests(SimpleTestCase):
+    """Bucket C: stable healthy payload keys when connection APIs succeed (no live DB required)."""
+
+    def test_healthy_includes_response_time_and_query_count(self):
+        mock_conn = MagicMock()
+        mock_conn.is_usable.return_value = True
+        mock_conn.queries = [object(), object()]
+
+        with patch("apps.observability.db_liveness.connection", mock_conn):
+            result = check_db_liveness()
+
+        self.assertEqual(result["status"], "healthy")
+        self.assertIn("response_time_ms", result)
+        self.assertIsInstance(result["response_time_ms"], (int, float))
+        self.assertGreaterEqual(result["response_time_ms"], 0)
+        self.assertEqual(result["connections"], 2)

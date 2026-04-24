@@ -5,24 +5,18 @@ but against Django's migrated test database (CI), not the dev default sqlite fro
 
 from __future__ import annotations
 
-import importlib.util
-from pathlib import Path
-
 from django.test import TestCase
 
 from apps.brand_experience.models import PlatformGlobalBranding
 from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.platform_runtime.tests.support.script_loading import load_repo_script
 
 
 def _load_verify_phase_b_execution_module():
-    root = Path(__file__).resolve().parent.parent.parent.parent
-    path = root / "scripts" / "verify_phase_b_execution.py"
-    spec = importlib.util.spec_from_file_location("verify_phase_b_execution_gate", path)
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"Cannot load {path}")
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
+    return load_repo_script(
+        "scripts/verify_phase_b_execution.py",
+        "verify_phase_b_execution_gate",
+    )
 
 
 class PhaseBExecutionGateTests(TestCase):
@@ -39,7 +33,7 @@ class PhaseBExecutionGateTests(TestCase):
 
         site = get_platform_site_settings_record(create=True)
         self.assertIsNotNone(site)
-        site.save()
+        # Row is persisted by get_or_create; no redundant bare site.save() (slim SiteSettings + batch 842+ optional maps).
         # verify_phase_b_execution.orm_phase_b_execution_errors requires pk=1 when a tenant settings row exists.
         PlatformGlobalBranding.objects.get_or_create(pk=1)
 

@@ -2,7 +2,7 @@
   "version": 1,
   "history": [
     {
-      "recorded_at": "2026-04-08T18:13:57.729831+00:00",
+      "recorded_at": "2026-04-08T18:23:50.847226+00:00",
       "counts": {
         "csrf_exempt_decorator_lines_apps_config_excl_migrations": 37,
         "cursor_execute_apps_config_py_excl_migrations": 16,
@@ -10,6 +10,30 @@
         "print_calls_apps_py_excl_migrations_tests_management": 0,
         "print_calls_scripts_py": 821,
         "site_settings_refs_apps_py_excl_migrations": 2,
+        "site_settings_refs_apps_py_excl_migrations_tests": 2
+      }
+    },
+    {
+      "recorded_at": "2026-04-09T12:04:33.718372+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 37,
+        "cursor_execute_apps_config_py_excl_migrations": 16,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 821,
+        "site_settings_refs_apps_py_excl_migrations": 4,
+        "site_settings_refs_apps_py_excl_migrations_tests": 2
+      }
+    },
+    {
+      "recorded_at": "2026-04-24T10:46:42.149678+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 37,
+        "cursor_execute_apps_config_py_excl_migrations": 16,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 827,
+        "site_settings_refs_apps_py_excl_migrations": 5,
         "site_settings_refs_apps_py_excl_migrations_tests": 2
       }
     }

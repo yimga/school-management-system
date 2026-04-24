@@ -43,6 +43,23 @@ _MIN_EXEC_LOG_CHARS = 10_000
 _MIN_BACKLOG_CHARS = 2000
 _MIN_RULE_CHARS = 400
 
+# Match scripts/repair_runmycampus_sot.py — mega-lines are almost always paste/encoding corruption.
+_MAX_CANONICAL_LINE_CHARS = 50_000
+
+
+def _oversized_line_errors(
+    path: Path, body: str, root: Path, *, max_chars: int
+) -> list[str]:
+    errs: list[str] = []
+    for i, line in enumerate(body.splitlines(), start=1):
+        if len(line) > max_chars:
+            errs.append(
+                f"{path.relative_to(root)} line {i} exceeds {max_chars} characters "
+                f"(len={len(line)}); run scripts/repair_runmycampus_sot.py "
+                f"(or --execution-log for the autonomous log)."
+            )
+    return errs
+
 
 def _resolve_base(base: str) -> Path:
     root = Path(base).resolve()
@@ -97,6 +114,9 @@ def _canonical_artifact_errors(root: Path) -> list[str]:
                 f"{sot.relative_to(root)} missing external backlog pointer "
                 f"(expected substring {_SOT_BACKLOG_SNIPPET!r})"
             )
+        errs.extend(
+            _oversized_line_errors(sot, body, root, max_chars=_MAX_CANONICAL_LINE_CHARS)
+        )
     if exec_log.is_file():
         body = _read_text(exec_log)
         if _LOG_TITLE_SNIPPET not in body:
@@ -108,6 +128,11 @@ def _canonical_artifact_errors(root: Path) -> list[str]:
             errs.append(
                 f"{exec_log.relative_to(root)} too small ({len(body)} chars < {_MIN_EXEC_LOG_CHARS})"
             )
+        errs.extend(
+            _oversized_line_errors(
+                exec_log, body, root, max_chars=_MAX_CANONICAL_LINE_CHARS
+            )
+        )
     if backlog.is_file():
         body = _read_text(backlog)
         if _BACKLOG_TITLE_SNIPPET not in body:

@@ -84,10 +84,13 @@ class PublishTermRBACTestCase(TestCase):
             is_active=True,
         )
         self.site = get_platform_site_settings_record(create=True)
-        self.site.grade_approval_enabled = True
-        self.site.reports_require_approved_grades_before_publish = True
-        self.site.reports_use_approved_grades_only = True
-        self.site.save()
+        self.site.apply_feature_control_state(
+            field_updates={
+                "grade_approval_enabled": True,
+                "reports_require_approved_grades_before_publish": True,
+                "reports_use_approved_grades_only": True,
+            },
+        )
 
     def _create_evaluation(self):
         return Evaluation.objects.create(

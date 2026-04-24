@@ -1,6 +1,7 @@
 from types import MappingProxyType, SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+from django.db import DatabaseError
 from django.test import override_settings
 from django.test import SimpleTestCase
 
@@ -21,6 +22,52 @@ class TenantCachePrefixTests(SimpleTestCase):
 
         conn.cursor.assert_not_called()
 
+    def test_current_rls_school_id_skips_without_sql_on_non_postgres(self):
+        with patch("apps.siteconfig.cache_utils.connection") as conn:
+            conn.vendor = "sqlite"
+
+            self.assertIsNone(_current_rls_school_id())
+
+        conn.cursor.assert_not_called()
+
+    def test_current_rls_school_id_returns_normalized_session_value(self):
+        fake_cursor = MagicMock()
+        fake_cursor.fetchone.return_value = (" school-123 ",)
+        fake_context = MagicMock()
+        fake_context.__enter__.return_value = fake_cursor
+        fake_context.__exit__.return_value = False
+
+        mock_conn = MagicMock()
+        mock_conn.vendor = "postgresql"
+        mock_conn.cursor.return_value = fake_context
+        with (
+            patch("apps.siteconfig.cache_utils.connection", mock_conn),
+            patch(
+                "apps.siteconfig.repositories.rls_session_repository.connection",
+                mock_conn,
+            ),
+        ):
+            self.assertEqual(_current_rls_school_id(), "school-123")
+
+        fake_cursor.execute.assert_called_once_with(
+            "SELECT current_setting('app.current_school_id', true)"
+        )
+
+    def test_current_rls_school_id_database_error_returns_none(self):
+        mock_conn = MagicMock()
+        mock_conn.vendor = "postgresql"
+        mock_conn.cursor.side_effect = DatabaseError("boom")
+        with (
+            patch("apps.siteconfig.cache_utils.connection", mock_conn),
+            patch(
+                "apps.siteconfig.repositories.rls_session_repository.connection",
+                mock_conn,
+            ),
+        ):
+            self.assertIsNone(_current_rls_school_id())
+
+        mock_conn.cursor.assert_called_once_with()
+
     def test_current_rls_school_id_ignores_none_literal_from_session(self):
         fake_cursor = MagicMock()
         fake_cursor.fetchone.return_value = ("None",)
@@ -28,10 +75,16 @@ class TenantCachePrefixTests(SimpleTestCase):
         fake_context.__enter__.return_value = fake_cursor
         fake_context.__exit__.return_value = False
 
-        with patch("apps.siteconfig.cache_utils.connection") as conn:
-            conn.vendor = "postgresql"
-            conn.cursor.return_value = fake_context
-
+        mock_conn = MagicMock()
+        mock_conn.vendor = "postgresql"
+        mock_conn.cursor.return_value = fake_context
+        with (
+            patch("apps.siteconfig.cache_utils.connection", mock_conn),
+            patch(
+                "apps.siteconfig.repositories.rls_session_repository.connection",
+                mock_conn,
+            ),
+        ):
             self.assertIsNone(_current_rls_school_id())
 
     def test_current_rls_school_id_ignores_null_literal_from_session(self):
@@ -41,10 +94,16 @@ class TenantCachePrefixTests(SimpleTestCase):
         fake_context.__enter__.return_value = fake_cursor
         fake_context.__exit__.return_value = False
 
-        with patch("apps.siteconfig.cache_utils.connection") as conn:
-            conn.vendor = "postgresql"
-            conn.cursor.return_value = fake_context
-
+        mock_conn = MagicMock()
+        mock_conn.vendor = "postgresql"
+        mock_conn.cursor.return_value = fake_context
+        with (
+            patch("apps.siteconfig.cache_utils.connection", mock_conn),
+            patch(
+                "apps.siteconfig.repositories.rls_session_repository.connection",
+                mock_conn,
+            ),
+        ):
             self.assertIsNone(_current_rls_school_id())
 
     def test_current_rls_school_id_ignores_oversized_guc_value(self):
@@ -54,10 +113,16 @@ class TenantCachePrefixTests(SimpleTestCase):
         fake_context.__enter__.return_value = fake_cursor
         fake_context.__exit__.return_value = False
 
-        with patch("apps.siteconfig.cache_utils.connection") as conn:
-            conn.vendor = "postgresql"
-            conn.cursor.return_value = fake_context
-
+        mock_conn = MagicMock()
+        mock_conn.vendor = "postgresql"
+        mock_conn.cursor.return_value = fake_context
+        with (
+            patch("apps.siteconfig.cache_utils.connection", mock_conn),
+            patch(
+                "apps.siteconfig.repositories.rls_session_repository.connection",
+                mock_conn,
+            ),
+        ):
             self.assertIsNone(_current_rls_school_id())
 
     def test_current_rls_school_id_ignores_whitespace_inside_guc_value(self):
@@ -67,10 +132,16 @@ class TenantCachePrefixTests(SimpleTestCase):
         fake_context.__enter__.return_value = fake_cursor
         fake_context.__exit__.return_value = False
 
-        with patch("apps.siteconfig.cache_utils.connection") as conn:
-            conn.vendor = "postgresql"
-            conn.cursor.return_value = fake_context
-
+        mock_conn = MagicMock()
+        mock_conn.vendor = "postgresql"
+        mock_conn.cursor.return_value = fake_context
+        with (
+            patch("apps.siteconfig.cache_utils.connection", mock_conn),
+            patch(
+                "apps.siteconfig.repositories.rls_session_repository.connection",
+                mock_conn,
+            ),
+        ):
             self.assertIsNone(_current_rls_school_id())
 
     def test_current_rls_school_id_ignores_bool_guc_value(self):
@@ -80,10 +151,16 @@ class TenantCachePrefixTests(SimpleTestCase):
         fake_context.__enter__.return_value = fake_cursor
         fake_context.__exit__.return_value = False
 
-        with patch("apps.siteconfig.cache_utils.connection") as conn:
-            conn.vendor = "postgresql"
-            conn.cursor.return_value = fake_context
-
+        mock_conn = MagicMock()
+        mock_conn.vendor = "postgresql"
+        mock_conn.cursor.return_value = fake_context
+        with (
+            patch("apps.siteconfig.cache_utils.connection", mock_conn),
+            patch(
+                "apps.siteconfig.repositories.rls_session_repository.connection",
+                mock_conn,
+            ),
+        ):
             self.assertIsNone(_current_rls_school_id())
 
     def test_current_rls_school_id_ignores_binary_buffer_guc_value(self):
@@ -93,10 +170,16 @@ class TenantCachePrefixTests(SimpleTestCase):
         fake_context.__enter__.return_value = fake_cursor
         fake_context.__exit__.return_value = False
 
-        with patch("apps.siteconfig.cache_utils.connection") as conn:
-            conn.vendor = "postgresql"
-            conn.cursor.return_value = fake_context
-
+        mock_conn = MagicMock()
+        mock_conn.vendor = "postgresql"
+        mock_conn.cursor.return_value = fake_context
+        with (
+            patch("apps.siteconfig.cache_utils.connection", mock_conn),
+            patch(
+                "apps.siteconfig.repositories.rls_session_repository.connection",
+                mock_conn,
+            ),
+        ):
             self.assertIsNone(_current_rls_school_id())
 
     def test_current_rls_school_id_ignores_mapping_proxy_guc_value(self):
@@ -107,10 +190,16 @@ class TenantCachePrefixTests(SimpleTestCase):
         fake_context.__enter__.return_value = fake_cursor
         fake_context.__exit__.return_value = False
 
-        with patch("apps.siteconfig.cache_utils.connection") as conn:
-            conn.vendor = "postgresql"
-            conn.cursor.return_value = fake_context
-
+        mock_conn = MagicMock()
+        mock_conn.vendor = "postgresql"
+        mock_conn.cursor.return_value = fake_context
+        with (
+            patch("apps.siteconfig.cache_utils.connection", mock_conn),
+            patch(
+                "apps.siteconfig.repositories.rls_session_repository.connection",
+                mock_conn,
+            ),
+        ):
             self.assertIsNone(_current_rls_school_id())
 
     def test_get_tenant_cache_prefix_uses_request_school_id_when_present(self):

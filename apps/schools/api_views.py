@@ -60,12 +60,17 @@ class SchoolConfigAPI(APIView):
                 headers={"Retry-After": str(retry_after)},
             )
         school = getattr(request, "school", None)
-        # Audit log for abuse monitoring (no PII): host, school_id if resolved
+        user = getattr(request, "user", None)
+        authenticated = bool(
+            user is not None and getattr(user, "is_authenticated", False)
+        )
+        # Audit log for abuse monitoring (no PII): host, school_id if resolved, session vs anonymous
         logger.info(
             "school_config_api_request",
             extra={
                 "host": request.get_host(),
                 "school_id": school.pk if school else None,
+                "authenticated": authenticated,
             },
         )
         if not school:

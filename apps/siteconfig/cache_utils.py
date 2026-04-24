@@ -15,6 +15,10 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import DatabaseError, connection
 
+from apps.siteconfig.repositories.rls_session_repository import (
+    fetch_current_school_id_setting_value,
+)
+
 
 OPTIONAL_CACHE_ERRORS = (
     AttributeError,
@@ -116,11 +120,8 @@ def _current_rls_school_id() -> str | None:
             return None
         if connection.vendor != "postgresql":
             return None
-        # §2.4 raw_sql_replacement_targets: RLS session var only; no ORM equivalent; keep in this module.
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT current_setting('app.current_school_id', true)")
-            row = cursor.fetchone()
-        return _normalize_school_id(row[0] if row else None)
+        raw = fetch_current_school_id_setting_value()
+        return _normalize_school_id(raw)
     except OPTIONAL_CACHE_ERRORS:
         return None
 

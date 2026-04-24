@@ -5,7 +5,7 @@
 | Area | Why it is multi-sprint or external |
 |------|-------------------------------------|
 | **SOC 2 / N16 attestation** | Auditor engagement + certificate on file — not one PR. |
-| **Vendor / certification / ops** | App store releases, Clever/ClassLink native APIs, third-party WCAG cert, 24/7 NOC, prod BI/CWV staffing — [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md). |
+| **Vendor / certification / ops** | App store releases, Clever/ClassLink native APIs, third-party WCAG cert, 24/7 NOC, prod BI/CWV staffing — [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md). **Step-by-step phases:** [Program tracks (end-to-end execution steps)](SOT_REMAINING_ITEMS_BACKLOG.md#program-tracks-end-to-end-execution-steps). |
 | **SiteSettings full DB column split** | Large migration program — external table in backlog. |
 | **DoesNotExist sweep** | Ongoing hardening across hundreds of views; §6 ledger. |
 | **csrf_exempt** | Governed allowlist: `scripts/allowlists/csrf_exempt_allowlist.json`. |

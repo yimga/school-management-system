@@ -17,7 +17,6 @@ from apps.platform_runtime.runtime_defaults_first_class import (
 class RuntimeDefaultsReportDownloadsTests(TestCase):
     def test_sync_from_site_settings_moves_bool_to_column_and_strips_payload(self):
         site = get_platform_site_settings_record(create=True)
-        site.save()
         site.apply_theme_experience_state(
             field_updates={"report_downloads_enabled": False},
             save=True,
@@ -35,7 +34,6 @@ class RuntimeDefaultsReportDownloadsTests(TestCase):
 
     def test_effective_settings_prefers_first_class_column_over_payload(self):
         site = get_platform_site_settings_record(create=True)
-        site.save()
         rd, _ = RuntimeDefaults.sync_from_site_settings(site)
         pl = dict(rd.payload or {})
         pl["report_downloads_enabled"] = True
@@ -49,7 +47,6 @@ class RuntimeDefaultsReportDownloadsTests(TestCase):
         mf = RuntimeDefaults._meta.get_field("report_downloads_enabled")
         rd_form = RuntimeDefaultsBrandForm(instance=RuntimeDefaults())
         site = get_platform_site_settings_record(create=True)
-        site.save()
         tc_form = ThemeColorsForm(instance=site)
         rdf = rd_form.fields["report_downloads_enabled"]
         tcf = tc_form.fields["report_downloads_enabled"]

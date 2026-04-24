@@ -162,6 +162,72 @@ class RlsContextContractTests(unittest.TestCase):
             ["school-1"],
         )
 
+    def test_reset_rls_school_id_executes_reset_on_postgresql(self):
+        fake_cursor = unittest.mock.MagicMock()
+        fake_cm = unittest.mock.MagicMock()
+        fake_cm.__enter__.return_value = fake_cursor
+        fake_cm.__exit__.return_value = False
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor", return_value=fake_cm),
+        ):
+            reset_rls_school_id()
+
+        fake_cursor.execute.assert_called_once_with("RESET app.current_school_id")
+
+    def test_set_rls_bypass_executes_set_on_postgresql(self):
+        fake_cursor = unittest.mock.MagicMock()
+        fake_cm = unittest.mock.MagicMock()
+        fake_cm.__enter__.return_value = fake_cursor
+        fake_cm.__exit__.return_value = False
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor", return_value=fake_cm),
+        ):
+            set_rls_bypass()
+
+        fake_cursor.execute.assert_called_once_with("SET app.rls_bypass = 'on'")
+
+    def test_reset_rls_bypass_executes_reset_on_postgresql(self):
+        fake_cursor = unittest.mock.MagicMock()
+        fake_cm = unittest.mock.MagicMock()
+        fake_cm.__enter__.return_value = fake_cursor
+        fake_cm.__exit__.return_value = False
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor", return_value=fake_cm),
+        ):
+            reset_rls_bypass()
+
+        fake_cursor.execute.assert_called_once_with("RESET app.rls_bypass")
+
+    def test_rls_school_context_manager_sets_then_resets(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch("apps.schools.rls_context.set_rls_school_id") as set_school,
+            patch("apps.schools.rls_context.reset_rls_school_id") as reset_school,
+        ):
+            with rls_school("school-1"):
+                pass
+
+        set_school.assert_called_once_with("school-1")
+        reset_school.assert_called_once_with()
+
+    def test_rls_bypass_context_manager_sets_then_resets(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch("apps.schools.rls_context.set_rls_bypass") as set_bypass,
+            patch("apps.schools.rls_context.reset_rls_bypass") as reset_bypass,
+        ):
+            with rls_bypass():
+                pass
+
+        set_bypass.assert_called_once_with()
+        reset_bypass.assert_called_once_with()
+
     def test_set_rls_school_id_rejects_failed_stringification_on_postgresql(self):
         class _BadStringify:
             def __str__(self):

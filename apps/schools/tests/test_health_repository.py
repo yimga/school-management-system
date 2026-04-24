@@ -141,6 +141,47 @@ class TestHealthRepository(unittest.TestCase):
         _sql, params = fake_cursor.execute.call_args.args
         self.assertEqual(params, [7])
 
+    def test_get_global_health_stats_non_positive_limit_returns_empty_without_sql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.health_repository import (
+                get_global_health_stats,
+            )
+
+            self.assertEqual(get_global_health_stats(limit=0), [])
+            self.assertEqual(get_global_health_stats(limit=-5), [])
+
+        cursor.assert_not_called()
+
+    def test_get_global_health_stats_caps_excessive_limit(self):
+        fake_cursor = MagicMock()
+        fake_cursor.description = [
+            ("schema_name",),
+            ("pretty_size",),
+            ("raw_size",),
+            ("table_count",),
+        ]
+        fake_cursor.fetchall.return_value = []
+        fake_context = MagicMock()
+        fake_context.__enter__.return_value = fake_cursor
+        fake_context.__exit__.return_value = False
+
+        with patch.object(connection, "vendor", "postgresql"), patch.object(
+            connection, "cursor", return_value=fake_context
+        ):
+            from apps.schools.repositories import health_repository
+            from apps.schools.repositories.health_repository import (
+                get_global_health_stats,
+            )
+
+            cap = health_repository._HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT
+            self.assertEqual(get_global_health_stats(limit=999_999), [])
+
+        _sql, params = fake_cursor.execute.call_args.args
+        self.assertEqual(params, [cap])
+
     def test_check_table_exists_non_pg_returns_false(self):
         with patch.object(connection, "vendor", "sqlite"):
             from apps.schools.repositories.health_repository import check_table_exists
@@ -856,6 +897,128 @@ class TestHealthRepository(unittest.TestCase):
             self.assertEqual(count_table_rows("public", "schools_school"), -1)
 
         fake_cursor.execute.assert_called_once()
+
+    def test_count_table_rows_missing_row_returns_zero(self):
+        fake_cursor = MagicMock()
+        fake_cursor.fetchone.return_value = None
+        fake_context = MagicMock()
+        fake_context.__enter__.return_value = fake_cursor
+        fake_context.__exit__.return_value = False
+
+        with patch.object(connection, "vendor", "postgresql"), patch.object(
+            connection, "cursor", return_value=fake_context
+        ), patch.object(connection.ops, "quote_name", side_effect=lambda n: f'"{n}"'):
+            from apps.schools.repositories.health_repository import count_table_rows
+
+            self.assertEqual(count_table_rows("public", "schools_school"), 0)
+
+        fake_cursor.execute.assert_called_once()
+
+    def test_count_table_rows_none_cell_returns_zero(self):
+        fake_cursor = MagicMock()
+        fake_cursor.fetchone.return_value = (None,)
+        fake_context = MagicMock()
+        fake_context.__enter__.return_value = fake_cursor
+        fake_context.__exit__.return_value = False
+
+        with patch.object(connection, "vendor", "postgresql"), patch.object(
+            connection, "cursor", return_value=fake_context
+        ), patch.object(connection.ops, "quote_name", side_effect=lambda n: f'"{n}"'):
+            from apps.schools.repositories.health_repository import count_table_rows
+
+            self.assertEqual(count_table_rows("public", "schools_school"), 0)
+
+        fake_cursor.execute.assert_called_once()
+
+    def test_get_top_tables_by_size_sql_matches_pg_stat_user_tables_contract(self):
+        fake_cursor = MagicMock()
+        fake_cursor.description = [
+            ("schema_name",),
+            ("table_name",),
+            ("total_pretty",),
+            ("raw_size",),
+            ("row_count",),
+        ]
+        fake_cursor.fetchall.return_value = []
+        fake_context = MagicMock()
+        fake_context.__enter__.return_value = fake_cursor
+        fake_context.__exit__.return_value = False
+
+        with patch.object(connection, "vendor", "postgresql"), patch.object(
+            connection, "cursor", return_value=fake_context
+        ):
+            from apps.schools.repositories.health_repository import (
+                get_top_tables_by_size,
+            )
+
+            get_top_tables_by_size(limit=10)
+
+        sql, params = fake_cursor.execute.call_args[0]
+        norm = " ".join(sql.split())
+        self.assertIn("FROM pg_catalog.pg_stat_user_tables", norm)
+        self.assertIn(
+            "WHERE schemaname NOT IN ('pg_catalog', 'information_schema')", norm
+        )
+        self.assertIn("ORDER BY pg_total_relation_size(relid) DESC", norm)
+        self.assertIn("LIMIT %s", norm)
+        self.assertEqual(params, [10])
+
+    def test_get_global_health_stats_sql_matches_pg_class_aggregate_contract(self):
+        fake_cursor = MagicMock()
+        fake_cursor.description = [
+            ("schema_name",),
+            ("pretty_size",),
+            ("raw_size",),
+            ("table_count",),
+        ]
+        fake_cursor.fetchall.return_value = []
+        fake_context = MagicMock()
+        fake_context.__enter__.return_value = fake_cursor
+        fake_context.__exit__.return_value = False
+
+        with patch.object(connection, "vendor", "postgresql"), patch.object(
+            connection, "cursor", return_value=fake_context
+        ):
+            from apps.schools.repositories import health_repository
+            from apps.schools.repositories.health_repository import (
+                get_global_health_stats,
+            )
+
+            cap = health_repository._HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT
+            get_global_health_stats()
+
+        sql, params = fake_cursor.execute.call_args[0]
+        norm = " ".join(sql.split())
+        self.assertIn("FROM pg_class c", norm)
+        self.assertIn("LEFT JOIN pg_namespace n ON n.oid = c.relnamespace", norm)
+        self.assertIn(
+            "WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')", norm
+        )
+        self.assertIn("AND c.relkind = 'r'", norm)
+        self.assertIn("GROUP BY n.nspname", norm)
+        self.assertIn("ORDER BY raw_size DESC", norm)
+        self.assertIn("LIMIT %s", norm)
+        self.assertEqual(params, [cap])
+
+    def test_count_table_rows_sql_matches_parameterless_select_count_contract(self):
+        fake_cursor = MagicMock()
+        fake_cursor.fetchone.return_value = (1,)
+        fake_context = MagicMock()
+        fake_context.__enter__.return_value = fake_cursor
+        fake_context.__exit__.return_value = False
+
+        with patch.object(connection, "vendor", "postgresql"), patch.object(
+            connection, "cursor", return_value=fake_context
+        ), patch.object(connection.ops, "quote_name", side_effect=lambda n: f'"{n}"'):
+            from apps.schools.repositories.health_repository import count_table_rows
+
+            count_table_rows("public", "schools_school")
+
+        sql, = fake_cursor.execute.call_args[0]
+        self.assertEqual(
+            sql.strip(),
+            'SELECT COUNT(*) FROM "public"."schools_school"',
+        )
 
     def test_health_utils_delegates_to_repository(self):
         """health_utils is thin wrapper; same result as repository on non-PG."""

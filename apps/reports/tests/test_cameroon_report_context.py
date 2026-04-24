@@ -14,19 +14,31 @@ from apps.academics.models import (
 )
 from apps.evals.models import Evaluation
 from apps.people.models import StudentProfile, TeacherProfile
-from apps.reports.services import annual_report_context, term_report_context
+from apps.reports.services import (
+    CAMEROON_REPORT_LABELS,
+    annual_report_context,
+    term_report_context,
+)
 from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.schools.models import School
 
 
 class CameroonReportContextTests(TestCase):
     def setUp(self):
+        self.school = School.objects.create(
+            slug="cameroon-report-ctx-test",
+            name="Cameroon Report Context Test",
+            settings={"report_labels": dict(CAMEROON_REPORT_LABELS)},
+        )
         self.year = AcademicYear.objects.create(
+            school=self.school,
             name="2025/2026",
             start_date=date(2025, 9, 1),
             end_date=date(2026, 7, 1),
             is_active=True,
         )
         self.term = Term.objects.create(
+            school=self.school,
             academic_year=self.year,
             name="FIRST",
             start_date=date(2025, 9, 1),
@@ -34,17 +46,23 @@ class CameroonReportContextTests(TestCase):
             position=1,
             is_active=True,
         )
-        department = Department.objects.create(name="Science", code="SCI")
+        department = Department.objects.create(
+            school=self.school, name="Science", code="SCI-CMR-CTX"
+        )
         specialty = Specialty.objects.create(
-            department=department, name="General", code="GEN"
+            school=self.school,
+            department=department,
+            name="General",
+            code="GEN-CMR-CTX",
         )
         self.classroom = Classroom.objects.create(
+            school=self.school,
             academic_year=self.year,
             department=department,
             name="Form 3A",
-            code="F3A",
+            code="F3A-CMR-CTX",
         )
-        self.subject = Subject.objects.create(name="Mathematics")
+        self.subject = Subject.objects.create(school=self.school, name="Mathematics")
         self.subject_assignment = SubjectAssignment.objects.create(
             academic_year=self.year,
             term=self.term,
@@ -56,8 +74,11 @@ class CameroonReportContextTests(TestCase):
         teacher_user = User.objects.create_user(
             username="teacher_ctx", password="pass123", role=User.Role.TEACHER
         )
-        self.teacher = TeacherProfile.objects.create(user=teacher_user)
+        self.teacher = TeacherProfile.objects.create(
+            user=teacher_user, school=self.school
+        )
         self.student_a = StudentProfile.objects.create(
+            school=self.school,
             first_name="Ada",
             last_name="A",
             student_code="CTX001",
@@ -67,6 +88,7 @@ class CameroonReportContextTests(TestCase):
             is_active=True,
         )
         self.student_b = StudentProfile.objects.create(
+            school=self.school,
             first_name="Ben",
             last_name="B",
             student_code="CTX002",
@@ -98,8 +120,9 @@ class CameroonReportContextTests(TestCase):
         )
 
         site = get_platform_site_settings_record(create=True)
-        site.reports_use_approved_grades_only = False
-        site.save(update_fields=["reports_use_approved_grades_only"])
+        site.apply_feature_control_state(
+            field_updates={"reports_use_approved_grades_only": False},
+        )
 
     def test_term_context_exposes_bilingual_labels_and_sequence_cues(self):
         context = term_report_context(self.student_a, self.year, self.term)

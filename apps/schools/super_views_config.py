@@ -267,7 +267,11 @@ def super_site_settings_edit(request, pk):
         site_form = SiteMaintenanceSuperForm(request.POST, instance=site)
         branding_form = PlatformBrandingSuperForm(request.POST, instance=pgb)
         if site_form.is_valid() and branding_form.is_valid():
-            site_form.save()
+            site.apply_feature_control_state(
+                field_updates={
+                    "maintenance_mode": site_form.cleaned_data["maintenance_mode"],
+                },
+            )
             branding_form.save()
             messages.success(request, "Site settings saved.")
             return redirect("super:site_settings_list")

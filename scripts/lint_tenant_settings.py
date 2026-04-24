@@ -3,6 +3,10 @@
 Phase 12 CI: Flag SiteSettings.get_solo() and hardcoded region/currency/grading in tenant-facing code.
 Use request.tenant_runtime or apps.platform_runtime.helpers (get_effective_flags, etc.) instead.
 
+Phase II.3 (``--check-sitesettings-orm-in-tenant-apps``): also flags direct ``SiteSettings`` queryset
+entrypoints (including chained ORM) and partial ``save(update_fields=...)`` on the slim singleton in
+tenant apps; prefer ``get_platform_site_settings_record`` / ``apply_feature_control_state``.
+
 Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 """
 
@@ -100,11 +104,47 @@ SCHOOL_FEATURES_PATTERN = (
     re.compile(r"\bschool\.features\b"),
     "school.features (use request.tenant_runtime or get_effective_*)",
 )
-# Phase 5: direct SiteSettings ORM queries in tenant-facing apps (use platform_runtime.helpers).
+# Phase 5 / II.3: direct SiteSettings ORM / queryset entrypoints in tenant-facing apps
+# (use platform_runtime helpers). Broad ``objects.<name>(`` matches chained querysets
+# (e.g. ``.order_by(...).first()``) and future manager methods, not just ``.get(``/``.filter(``).
 SITESETTINGS_OBJECTS_PATTERN = (
-    re.compile(r"SiteSettings\.objects\.(get|filter|first|all|create|update|get_or_create)\s*\("),
+    re.compile(r"SiteSettings\.objects\.\w+\s*\("),
     "SiteSettings.objects.* (use get_platform_site_settings_record / runtime helpers in tenant code)",
 )
+# Slim SiteSettings in tenant code should not persist with partial ``.save(update_fields=...)``;
+# use ``apply_feature_control_state`` (or the canonical school/siteconfig writers) instead.
+TENANT_SITESETTINGS_UPDATEFIELDS_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    (
+        re.compile(
+            r"(?<!\.)\bsite\.save\s*\([^)]*\bupdate_fields\s*="
+        ),
+        "SiteSettings field save (update_fields) in tenant app (use apply_feature_control_state / platform helpers; avoid partial ORM save on slim singleton)",
+    ),
+    (
+        re.compile(
+            r"\bplatform_site\.save\s*\([^)]*\bupdate_fields\s*="
+        ),
+        "SiteSettings field save (update_fields) in tenant app (use apply_feature_control_state / platform helpers; avoid partial ORM save on slim singleton)",
+    ),
+    (
+        re.compile(
+            r"\bsite_settings\.save\s*\([^)]*\bupdate_fields\s*="
+        ),
+        "SiteSettings field save (update_fields) in tenant app (use apply_feature_control_state / platform helpers; avoid partial ORM save on slim singleton)",
+    ),
+    (
+        re.compile(
+            r"get_platform_site_settings_record\s*\(\s*[^;]*\)\s*\.\s*save\s*\([^)]*\bupdate_fields\s*="
+        ),
+        "SiteSettings field save (update_fields) in tenant app (use apply_feature_control_state / platform helpers; avoid partial ORM save on slim singleton)",
+    ),
+    (
+        re.compile(
+            r"get_effective_site_settings\s*\(\s*[^;]*\)\s*\.\s*save\s*\([^)]*\bupdate_fields\s*="
+        ),
+        "SiteSettings field save (update_fields) in tenant app (use apply_feature_control_state / platform helpers; avoid partial ORM save on slim singleton)",
+    ),
+]
 HARDCODED_PATTERNS = [
     (
         re.compile(r"['\"]CMR['\"]|REGION_CODE\s*=\s*['\"]CMR['\"]"),
@@ -201,7 +241,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap.add_argument(
         "--check-sitesettings-orm-in-tenant-apps",
         action="store_true",
-        help="Flag SiteSettings.objects.* in tenant-facing app trees (Phase 5).",
+        help=(
+            "Flag SiteSettings ORM / queryset use and partial save(update_fields) in tenant app trees "
+            "(Phase 5 / II.3)."
+        ),
     )
     ap.add_argument(
         "--report-allowlisted",
@@ -258,6 +301,9 @@ def main(argv: list[str] | None = None) -> int:
                     hits.append(
                         (path_str, i, line.strip()[:90], SITESETTINGS_OBJECTS_PATTERN[1])
                     )
+                for pat, label in TENANT_SITESETTINGS_UPDATEFIELDS_PATTERNS:
+                    if in_tenant_app and pat.search(line):
+                        hits.append((path_str, i, line.strip()[:90], label))
                 continue
             if (
                 in_tenant_app
@@ -335,7 +381,7 @@ def main(argv: list[str] | None = None) -> int:
         hits = [
             (p, ln, sn, lb)
             for p, ln, sn, lb in hits
-            if "SiteSettings.objects" in lb
+            if "SiteSettings.objects" in lb or "SiteSettings field save" in lb
         ]
 
     if not hits:
@@ -343,7 +389,10 @@ def main(argv: list[str] | None = None) -> int:
         if getattr(args, "check_school_settings_features", False):
             msg = "lint_tenant_settings: No direct school.settings/school.features reads in tenant apps."
         if getattr(args, "check_sitesettings_orm_in_tenant_apps", False):
-            msg = "lint_tenant_settings: No SiteSettings.objects.* in tenant-facing app paths."
+            msg = (
+                "lint_tenant_settings: No disallowed SiteSettings ORM or "
+                "save(update_fields) usage in tenant-facing app paths."
+            )
         print(msg)
         return 0
     print(

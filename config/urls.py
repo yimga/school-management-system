@@ -145,8 +145,11 @@ def admin_siteconfig_customizer_redirect(request):
 
 
 def legacy_workflow_hub_redirect(request):
-    """Step 6 / Optional 12: Legacy workflow hub → Studio OS Automation. When product confirms a different path, add it here or replace this path."""
-    return redirect(reverse("studio_os:automation"))
+    """Step 6 / Optional 12: Legacy workflow hub → Studio OS Automation. Preserves query string (aligned with tenant_urls)."""
+    base = reverse("studio_os:automation")
+    if request.GET:
+        return redirect(f"{base}?{request.GET.urlencode()}")
+    return redirect(base)
 
 
 def legacy_report_library_redirect(request):

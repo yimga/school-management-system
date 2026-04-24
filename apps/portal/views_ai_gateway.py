@@ -1770,10 +1770,10 @@ def api_ai_feedback(request):
             new_values={"feature": feature, **feedback_meta},
         )
         return JsonResponse({"success": True, "meta": feedback_meta})
-    except ValueError as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=400)
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+    except ValueError as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
         log_view_exception(
             request,

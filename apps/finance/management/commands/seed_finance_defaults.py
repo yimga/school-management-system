@@ -5,7 +5,10 @@ from decimal import Decimal
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.platform_runtime.helpers import (
+    get_platform_site_settings_record,
+    invalidate_effective_site_settings_cache,
+)
 
 from ...models import ComplianceProfile, ContributionRule, LedgerAccount, TaxBracket
 
@@ -100,7 +103,10 @@ class Command(BaseCommand):
                 .first()
             )
             if rd is None or not rd.compliance_profile_id:
-                site.compliance_profile = cameroon
+                site.apply_feature_control_state(
+                    field_updates={"compliance_profile_id": cameroon.pk},
+                )
+                invalidate_effective_site_settings_cache()
 
         self.stdout.write(self.style.SUCCESS("Finance defaults seeded."))
 

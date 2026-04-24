@@ -91,10 +91,12 @@ class EnrollmentForecastViewTests(TestCase):
 
     def _enable_forecast(self):
         site = get_platform_site_settings_record(create=True)
-        flags = dict(site.backend_feature_flags or {})
+        flags = dict(site.get_backend_feature_flags())
         flags["enable_enrollment_forecast_api"] = True
-        site.backend_feature_flags = flags
-        site.save(update_fields=["backend_feature_flags", "updated_at"])
+        site.apply_feature_control_state(
+            backend_feature_flags=flags,
+            field_updates={},
+        )
 
     def test_forecast_disabled_returns_404(self):
         url = _tenant_v1_url(self.school.slug, "enrollment-forecast")

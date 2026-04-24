@@ -24,16 +24,18 @@ class SplitLateFeeTaskTests(TestCase):
             name="Split Late Fee", country_code="CM"
         )
         site = get_platform_site_settings_record(create=True)
-        site.compliance_profile_id = self.profile.pk
-        site.backend_feature_flags = {
-            **(site.backend_feature_flags or {}),
+        flags = {
+            **dict(site.get_backend_feature_flags()),
             "finance_split_late_fee_enabled": True,
             "finance_split_late_fee_grace_days": 1,
             "finance_split_late_fee_mode": "percentage",
             "finance_split_late_fee_percent": "2.00",
             "finance_split_late_fee_cap_percent": "20.00",
         }
-        site.save(update_fields=["compliance_profile_id", "backend_feature_flags"])
+        site.apply_feature_control_state(
+            backend_feature_flags=flags,
+            field_updates={"compliance_profile_id": self.profile.pk},
+        )
 
         self.year = AcademicYear.objects.create(
             name="2025/2026",

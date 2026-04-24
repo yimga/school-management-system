@@ -45,8 +45,9 @@ class ReferralRewardTests(TestCase):
 
     def test_referral_reward_defaults_and_mark_paid(self):
         site = get_platform_site_settings_record(create=True)
-        site.referral_bonus_amount = Decimal("150.00")
-        site.save(update_fields=["referral_bonus_amount"])
+        site.apply_feature_control_state(
+            field_updates={"referral_bonus_amount": Decimal("150.00")},
+        )
 
         reward = ReferralReward.objects.create(
             student=self.student,

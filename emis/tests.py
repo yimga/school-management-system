@@ -106,11 +106,14 @@ class EMISExportServiceTests(TestCase):
         )
 
         site = get_platform_site_settings_record(create=True)
-        site.site_name = "Gilead Technical High School"
-        site.school_code = "GIL"
-        site.company_address = "Small Soppo, Buea"
-        site.country = "Cameroon"
-        site.save(update_fields=["site_name", "school_code", "company_address", "country"])
+        site.apply_feature_control_state(
+            field_updates={
+                "site_name": "Gilead Technical High School",
+                "school_code": "GIL",
+                "company_address": "Small Soppo, Buea",
+                "country": "Cameroon",
+            },
+        )
 
     def test_exports_are_schema_safe(self):
         service = EMISExportService("CMR")

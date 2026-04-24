@@ -15,6 +15,13 @@ from django.conf import settings
 from django.db import connection
 from django.db.utils import DatabaseError, OperationalError, ProgrammingError
 
+from apps.schools.repositories.rls_context_repository import (
+    reset_current_school_id,
+    reset_rls_bypass_var,
+    set_current_school_id,
+    set_rls_bypass_on,
+)
+
 logger = logging.getLogger(__name__)
 
 _MAX_RLS_SCHOOL_ID_LEN = 128
@@ -72,8 +79,7 @@ def set_rls_school_id(school_id):
     if not _should_manage_rls_session_vars():
         return
     sid = _normalize_rls_school_id(school_id)
-    with connection.cursor() as cursor:
-        cursor.execute("SET app.current_school_id = %s", [sid])
+    set_current_school_id(sid)
 
 
 def reset_rls_school_id():
@@ -83,24 +89,21 @@ def reset_rls_school_id():
     """
     if not _should_manage_rls_session_vars():
         return
-    with connection.cursor() as cursor:
-        cursor.execute("RESET app.current_school_id")
+    reset_current_school_id()
 
 
 def set_rls_bypass():
     """Set app.rls_bypass for the current DB connection. No-op when not PostgreSQL."""
     if not _should_manage_rls_session_vars():
         return
-    with connection.cursor() as cursor:
-        cursor.execute("SET app.rls_bypass = 'on'")
+    set_rls_bypass_on()
 
 
 def reset_rls_bypass():
     """Reset app.rls_bypass for the current DB connection. No-op when not PostgreSQL."""
     if not _should_manage_rls_session_vars():
         return
-    with connection.cursor() as cursor:
-        cursor.execute("RESET app.rls_bypass")
+    reset_rls_bypass_var()
 
 
 @contextmanager
@@ -138,5 +141,5 @@ def rls_bypass():
     finally:
         try:
             reset_rls_bypass()
-        except (OperationalError, ProgrammingError, DatabaseError):
-            pass
+        except (OperationalError, ProgrammingError, DatabaseError) as e:
+            logger.debug("RLS reset app.rls_bypass: %s", e)

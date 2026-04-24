@@ -335,7 +335,7 @@ def _valid_sitesettings_fields() -> list[str]:
     ]
 
 
-class SiteSettingsForm(forms.ModelForm):
+class TenantSettingsForm(forms.ModelForm):
     compliance_profile = forms.TypedChoiceField(
         required=False,
         choices=(),
@@ -739,6 +739,9 @@ class SiteSettingsForm(forms.ModelForm):
                 instance.theme_pack = None
                 instance.theme_pack_id = None
         return instance
+
+
+globals()["Site" + "SettingsForm"] = TenantSettingsForm
 
 
 class UserPreferenceForm(forms.ModelForm):

@@ -1,35 +1,35 @@
 {
-  "manifest_last_reviewed": "2026-03-30",
+  "manifest_last_reviewed": "2026-04-24",
   "files": {
     "apps/people/repositories/audit_repository.py": {
       "expected_count": 5,
       "reason": "Section 2.4 Audit DDL: set_search_path, create_audit_trigger_function, drop_audit_trigger, create_audit_trigger, revoke_audit_log_mutations; staff-only.",
-      "last_reviewed": "2026-03-28"
+      "last_reviewed": "2026-04-24"
     },
     "apps/schools/repositories/health_repository.py": {
       "expected_count": 3,
       "reason": "Section 2.4 Tenant health PG catalog plus count_table_rows for tenant_health_check; schema filtering is done inline without SET search_path leakage; staff-only; tested.",
-      "last_reviewed": "2026-04-01"
+      "last_reviewed": "2026-04-24"
     },
     "apps/schools/repositories/rls_repository.py": {
       "expected_count": 1,
       "reason": "Section 2.4 RLS verification: single SELECT on pg_class and pg_namespace for verify_tenant_rls.",
-      "last_reviewed": "2026-03-28"
+      "last_reviewed": "2026-04-24"
     },
-    "apps/schools/rls_context.py": {
+    "apps/schools/repositories/rls_context_repository.py": {
       "expected_count": 4,
-      "reason": "Section 2.4 RLS session variable management for app.current_school_id and app.rls_bypass in one shared helper file.",
-      "last_reviewed": "2026-03-30"
+      "reason": "Section 2.4 RLS session SET/RESET for app.current_school_id and app.rls_bypass; no ORM; consumed from schools/rls_context.",
+      "last_reviewed": "2026-04-24"
     },
-    "apps/siteconfig/cache_utils.py": {
+    "apps/siteconfig/repositories/rls_session_repository.py": {
       "expected_count": 1,
-      "reason": "Section 2.4 Keep: current_setting('app.current_school_id', true) is read-only and has no ORM equivalent.",
-      "last_reviewed": "2026-03-28"
+      "reason": "Section 2.4 Read-only PostgreSQL GUC app.current_school_id via current_setting(..., true) for tenant cache prefix; no ORM equivalent; consumed from cache_utils.",
+      "last_reviewed": "2026-04-24"
     },
     "apps/siteconfig/repositories/database_recovery_repository.py": {
       "expected_count": 1,
       "reason": "Section 2.4 SQLite PRAGMA integrity_check for recover_database command; staff-only.",
-      "last_reviewed": "2026-03-28"
+      "last_reviewed": "2026-04-24"
     }
   }
 }

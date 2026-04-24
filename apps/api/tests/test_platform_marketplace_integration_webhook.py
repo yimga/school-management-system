@@ -25,8 +25,7 @@ class PlatformMarketplaceIntegrationWebhookTests(TestCase):
         invalidate_effective_site_settings_cache()
         site = get_platform_site_settings_record(create=True)
         self.assertIsNotNone(site)
-        site.webhook_signing_secret = ""
-        site.save()
+        site.apply_feature_control_state(field_updates={"webhook_signing_secret": ""})
         rd = RuntimeDefaults.get_singleton()
         if rd is not None:
             rd.webhook_signing_secret = None
@@ -46,8 +45,9 @@ class PlatformMarketplaceIntegrationWebhookTests(TestCase):
         invalidate_effective_site_settings_cache()
         site = get_platform_site_settings_record(create=True)
         self.assertIsNotNone(site)
-        site.webhook_signing_secret = "whsec-test-integration-99"
-        site.save()
+        site.apply_feature_control_state(
+            field_updates={"webhook_signing_secret": "whsec-test-integration-99"}
+        )
         invalidate_effective_site_settings_cache()
         raw = json.dumps({"event": "bad"}).encode()
         r = self.client.post(
@@ -67,8 +67,7 @@ class PlatformMarketplaceIntegrationWebhookTests(TestCase):
         site = get_platform_site_settings_record(create=True)
         self.assertIsNotNone(site)
         secret = "whsec-accept-test-aa"
-        site.webhook_signing_secret = secret
-        site.save()
+        site.apply_feature_control_state(field_updates={"webhook_signing_secret": secret})
         invalidate_effective_site_settings_cache()
         raw = json.dumps({"type": "inventory.sync"}).encode()
         sig = "sha256=" + hmac.new(secret.encode("utf-8"), raw, hashlib.sha256).hexdigest()

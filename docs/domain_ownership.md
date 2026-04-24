@@ -52,6 +52,10 @@ Every SiteSettings field is classified into one of:
 
 Legacy paths (deprecated accessors, re-exports) are **deleted per-migration** after replacement is live and verified. See `docs/SITECONFIG_OWNERSHIP_MIGRATION.md` and `docs/SITECONFIG_OWNED_MODELS.md` for model→app targets and migration order.
 
+**PATH [§6.1](PATH_TO_100_PERCENT_EXECUTION_PLAN.md) (siteconfig depth):** **III.2** legacy URL inventory and redirect discipline — `docs/LEGACY_PATH_INVENTORY.md`. **III.3** bounded consoles (Control Studio / Studio OS entry points replacing sprawling siteconfig admin) — `docs/BOUNDED_CONSOLES_INVENTORY.md`.
+
+**§2.4 retained raw SQL (platform hygiene):** Six repository files only — `docs/raw_sql_audit.md` §1, `scripts/allowlists/raw_sql_allowlist.json`, `scripts/lint_raw_sql_usage.py`, `docs/raw_sql_replacement_targets.md`.
+
 ---
 
 ## 5. Next incremental (Step 4 — move ownership)

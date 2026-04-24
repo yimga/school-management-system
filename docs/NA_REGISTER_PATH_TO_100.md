@@ -20,7 +20,7 @@
 | §6.4 | Partial failure handling | DONE — mid-apply exception → atomic rollback + changelog failed; package_engine_ledger. |
 | §6.5 | Complete Launch Studio flow | DONE — launch_studio_checklist all 10 items; staging verification optional. |
 | §6.6 | Absorb real ownership from siteconfig | product 2026-03-12 — N/A; see N/A_BLOCKERS_AND_RESOLUTION.md. |
-| §6.6 | Add previews/compare/rollback | **DONE** — studio_os:experience_compare + studio_os:rollback; SOT §6.6 [x]. |
+| §6.6 | Add previews/compare/rollback | **DONE** — studio_os:experience_compare + studio_os:rollback; SOT §6.6 [x]; **§11.4 batch 949** — PATH §6.6 III.11 inventory + `test_batch949_path_iii11_compare_contract`, `test_batch949_experience_compare_view` (+ `test_experience_rollback`, `packages.tests.test_experience_packs`). |
 | §6.6 | Purge Gilead theme defaults | DONE — 0155; lint_gilead_residue. |
 | §6.12 | Reduce raw SQL; Harden routes; Clarify school vs platform | DONE — raw SQL in repos only; public_endpoint_audit; schools_control_plane_boundary.md. |
 | §6.7 | Blueprint owner; Connect setup/registries; preview/sandbox | DONE (owner+connect); N/A preview/sandbox product. |

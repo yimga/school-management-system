@@ -33,7 +33,9 @@ class SplitBillingFlowTests(TestCase):
     def setUp(self):
         self.profile = ComplianceProfile.objects.create(name="Test", country_code="CM")
         site = get_platform_site_settings_record(create=True)
-        site.compliance_profile = self.profile
+        site.apply_feature_control_state(
+            field_updates={"compliance_profile_id": self.profile.pk},
+        )
 
         self.year = AcademicYear.objects.create(
             name="2025/2026",

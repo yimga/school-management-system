@@ -2,6 +2,8 @@
 
 **Execution and “what’s left”:** one file — **[RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md)**. Start with **At a glance** and **§11.4** (release + depth queue); **§12** = engineering gate checklist.
 
+**End-to-end goal (one merged order):** [PATH_TO_100_PERCENT_EXECUTION_PLAN.md — Single end-to-end goal checklist (merged)](PATH_TO_100_PERCENT_EXECUTION_PLAN.md#single-end-to-end-goal-checklist-merged) — release gates **A** → external blockers **B** → program tracks **C** → repo depth **D**.
+
 **How to start a slice:** [WHATS_NOT_DONE_AND_HOW_TO_START.md](WHATS_NOT_DONE_AND_HOW_TO_START.md) (coordinates with §11.4; not a second status home). **Implement/N/A row detail:** [PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md).
 
 **ZIP / shell:** Phases **1, 3, 5** are **COMPLETE** in SOT **§0** (summary table). Implementation detail: [SHELL_ARCHITECTURE_MATRIX.md](SHELL_ARCHITECTURE_MATRIX.md), [docs/phase_checklists/](phase_checklists/).

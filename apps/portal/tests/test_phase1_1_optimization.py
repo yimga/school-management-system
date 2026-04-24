@@ -63,8 +63,9 @@ class PerformanceOptimizationTest(TransactionTestCase):
 
         # Create site settings
         self.site = get_platform_site_settings_record(create=True)
-        self.site.pass_mark = 12
-        self.site.save()
+        self.site.apply_feature_control_state(
+            field_updates={"pass_mark": 12},
+        )
 
         # Create parent user
         self.parent_user = User.objects.create_user(

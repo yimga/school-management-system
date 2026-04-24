@@ -67,6 +67,21 @@ def _env_truthy(name: str) -> bool:
     return os.getenv(name, "").strip().lower() in ("1", "true", "yes")
 
 
+def _parse_bounded_int_env(
+    name: str, default: int, *, min_v: int, max_v: int
+) -> int:
+    """Parse integer platform env; non-numeric or empty falls back to default (release readiness bucket C)."""
+    raw = (os.getenv(name) or "").strip()
+    if not raw:
+        v = default
+    else:
+        try:
+            v = int(raw)
+        except (TypeError, ValueError):
+            v = default
+    return max(min_v, min(max_v, v))
+
+
 def _ensure_db_connection() -> None:
     from django.db import connection
 
@@ -139,10 +154,18 @@ def automation_failure_trend_signal() -> str:
 
     from apps.automation.models import AutomationExecutionLog
 
-    lookback_hours = int(os.getenv("AUTOMATION_FAILURE_TREND_LOOKBACK_HOURS", "24") or "24")
-    max_failures = int(os.getenv("AUTOMATION_FAILURE_TREND_MAX_FAILURES", "10") or "10")
-    lookback_hours = max(1, min(168, lookback_hours))
-    max_failures = max(0, min(1000, max_failures))
+    lookback_hours = _parse_bounded_int_env(
+        "AUTOMATION_FAILURE_TREND_LOOKBACK_HOURS",
+        24,
+        min_v=1,
+        max_v=168,
+    )
+    max_failures = _parse_bounded_int_env(
+        "AUTOMATION_FAILURE_TREND_MAX_FAILURES",
+        10,
+        min_v=0,
+        max_v=1000,
+    )
     since = timezone.now() - timedelta(hours=lookback_hours)
     recent = AutomationExecutionLog.objects.filter(started_at__gte=since)
     failure_count = recent.filter(status=AutomationExecutionLog.Status.FAILED).count()

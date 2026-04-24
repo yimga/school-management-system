@@ -5,7 +5,7 @@ When using a **shared** cache backend (e.g. Redis) across tenants, every key tha
 ## Helpers
 
 - **apps.siteconfig.cache_utils.get_tenant_cache_prefix(request=None)**  
-  Returns a string like `tenant:<schema_name>` (when `connection.tenant` is set) or `school:<id>` (when `request.school` is set), or `public` when neither is available. Use for building tenant-scoped keys.
+  Returns a string like `tenant:<schema_name>` (when `connection.tenant` is set) or `school:<id>` (when `request.school` is set), or `public` when neither is available. Use for building tenant-scoped keys. The optional PostgreSQL **`current_setting('app.current_school_id', true)`** probe for RLS-aware prefixing is delegated to **`apps.siteconfig.repositories.rls_session_repository`** (one of **six** §2.4 allowlisted repository modules; **`cache_utils`** has no local `cursor.execute`).
 
 - **apps.siteconfig.cache_utils.tenant_cache_key(base_key, request=None)**  
   Returns `{prefix}:{base_key}`. Use in views when you have `request` so RLS mode gets `school:id`.

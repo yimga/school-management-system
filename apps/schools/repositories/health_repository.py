@@ -94,34 +94,38 @@ def get_top_tables_by_size(
         if not _PG_HEALTH_IDENTIFIER_RE.fullmatch(schema_norm):
             return []
         schema_name = schema_norm
-    with connection.cursor() as cursor:
-        params: list[object] = []
-        schema_filter_sql = ""
-        if schema_name:
-            schema_filter_sql = "AND schemaname = %s"
-            params.append(schema_name)
-        params.append(limit)
-        cursor.execute(
-            f"""
-            SELECT
-                schemaname AS schema_name,
-                relname AS table_name,
-                pg_size_pretty(pg_total_relation_size(relid)) AS total_pretty,
-                pg_total_relation_size(relid) AS raw_size,
-                n_live_tup AS row_count
-            FROM pg_catalog.pg_stat_user_tables
-            WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
-              {schema_filter_sql}
-            ORDER BY pg_total_relation_size(relid) DESC
-            LIMIT %s;
-            """,
-            params,
-        )
-        try:
-            columns = [col[0] for col in cursor.description]
-            return [dict(zip(columns, row)) for row in cursor.fetchall()]
-        except (TypeError, ValueError, IndexError, RuntimeError):
-            return []
+    try:
+        with connection.cursor() as cursor:
+            params: list[object] = []
+            schema_filter_sql = ""
+            if schema_name:
+                schema_filter_sql = "AND schemaname = %s"
+                params.append(schema_name)
+            params.append(limit)
+            cursor.execute(
+                f"""
+                SELECT
+                    schemaname AS schema_name,
+                    relname AS table_name,
+                    pg_size_pretty(pg_total_relation_size(relid)) AS total_pretty,
+                    pg_total_relation_size(relid) AS raw_size,
+                    n_live_tup AS row_count
+                FROM pg_catalog.pg_stat_user_tables
+                WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
+                  {schema_filter_sql}
+                ORDER BY pg_total_relation_size(relid) DESC
+                LIMIT %s;
+                """,
+                params,
+            )
+            try:
+                columns = [col[0] for col in cursor.description]
+                return [dict(zip(columns, row)) for row in cursor.fetchall()]
+            except (TypeError, ValueError, IndexError, RuntimeError):
+                return []
+    except (OperationalError, ProgrammingError, DatabaseError) as e:
+        logger.debug("health_repository.get_top_tables_by_size failed: %s", e)
+        return []
 
 
 def check_table_exists(qualified_table: str) -> bool:
@@ -240,23 +244,30 @@ def get_global_health_stats(limit: int | None = None) -> list[dict]:
             return []
         if eff_limit > _HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT:
             eff_limit = _HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            SELECT
-                n.nspname AS schema_name,
-                pg_size_pretty(SUM(pg_total_relation_size(c.oid))) AS pretty_size,
-                COALESCE(SUM(pg_total_relation_size(c.oid)), 0)::bigint AS raw_size,
-                COUNT(c.oid) AS table_count
-            FROM pg_class c
-            LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-            WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
-              AND c.relkind = 'r'
-            GROUP BY n.nspname
-            ORDER BY raw_size DESC
-            LIMIT %s;
-            """,
-            [eff_limit],
-        )
-        columns = [col[0] for col in cursor.description]
-        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    n.nspname AS schema_name,
+                    pg_size_pretty(SUM(pg_total_relation_size(c.oid))) AS pretty_size,
+                    COALESCE(SUM(pg_total_relation_size(c.oid)), 0)::bigint AS raw_size,
+                    COUNT(c.oid) AS table_count
+                FROM pg_class c
+                LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+                WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
+                  AND c.relkind = 'r'
+                GROUP BY n.nspname
+                ORDER BY raw_size DESC
+                LIMIT %s;
+                """,
+                [eff_limit],
+            )
+            try:
+                columns = [col[0] for col in cursor.description]
+                return [dict(zip(columns, row)) for row in cursor.fetchall()]
+            except (TypeError, ValueError, IndexError, RuntimeError):
+                return []
+    except (OperationalError, ProgrammingError, DatabaseError) as e:
+        logger.debug("health_repository.get_global_health_stats failed: %s", e)
+        return []

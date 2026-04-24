@@ -1120,6 +1120,14 @@ def clear_preview(request):
     return redirect(next_url)
 
 
+def legacy_clear_preview_redirect(request):
+    target = reverse("siteconfig:clear_preview")
+    query = request.META.get("QUERY_STRING") or ""
+    if query:
+        target = f"{target}?{query}"
+    return redirect(target)
+
+
 @login_required
 def set_default_dashboard_view(request):
     """Set the user's default dashboard view (Overview, Workflow Center, etc.) and redirect."""
@@ -1813,11 +1821,13 @@ def brand_import_from_url_view(request):
         return redirect(_theme_experience_canonical_url())
     site = get_effective_site_settings(request=request)
     if site and site.pk:
+        field_updates = {}
         if result.get("primary_color"):
-            site.primary_color = result["primary_color"]
+            field_updates["primary_color"] = result["primary_color"]
         if result.get("site_name"):
-            site.site_name = result["site_name"][:120]
-        site.save(update_fields=["primary_color", "site_name"])
+            field_updates["site_name"] = result["site_name"][:120]
+        if field_updates:
+            site.apply_theme_experience_state(field_updates=field_updates, save=True)
         # N17: Suggested theme + metadata apply uses template gallery (impact preview + session gate).
         apply_theme = request.POST.get("apply_theme") in ("1", "true", "on")
         if apply_theme and result.get("suggested_theme_pack_slug"):

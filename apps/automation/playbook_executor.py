@@ -15,6 +15,20 @@ from apps.automation.models import (
     MigrationProfile,
     MigrationRun,
 )
+from apps.automation.playbook_override_reason import normalize_playbook_override_reason
+
+
+def _normalize_tenant_schema_name(raw) -> str:
+    """
+    Normalize the active tenant schema name for audit logs.
+    Must be safe for storage and filtering: string-only, stripped, max 63 chars.
+    """
+    if not isinstance(raw, str):
+        return ""
+    s = raw.strip()
+    if not s:
+        return ""
+    return s[:63]
 
 
 def _record_playbook_execution_log(
@@ -26,8 +40,11 @@ def _record_playbook_execution_log(
     runs: list[MigrationRun],
     status: str,
     message: str | None = None,
-) -> None:
+    extra_execution_summary: dict[str, Any] | None = None,
+) -> AutomationExecutionLog:
     """One AutomationExecutionLog per execute_playbook call (audit; no automatic step retries)."""
+    from django.db import connection
+
     if status == "SUCCESS":
         exec_status = AutomationExecutionLog.Status.SUCCESS
     elif status == "PARTIAL":
@@ -61,9 +78,13 @@ def _record_playbook_execution_log(
             for r in runs
         ],
     }
+    if extra_execution_summary:
+        summary = {**summary, **extra_execution_summary}
+    current_schema = getattr(connection, "schema_name", None)
     log = AutomationExecutionLog.objects.create(
         task_name="automation.playbook.execute",
         school=school if school is not None else None,
+        schema_name=_normalize_tenant_schema_name(current_schema),
         execution_type=(
             AutomationExecutionLog.ExecutionType.DRY_RUN
             if dry_run
@@ -79,6 +100,7 @@ def _record_playbook_execution_log(
         error_message=(message or "")[:2000],
         summary=summary,
     )
+    return log
 
 
 def _safe_float(value: Any, default: float = 0.0) -> float:
@@ -236,10 +258,20 @@ def execute_playbook(
             status="FAILED",
             message=msg,
         )
+        response_preflight = {
+            "preflight_confidence_score": 0,
+            "preflight_min_score": int(
+                _safe_float(os.getenv("MIGRATION_PLAYBOOK_MIN_CONFIDENCE_SCORE", "70"), 70)
+            ),
+            "preflight_signals": {"playbook_slug": playbook.slug, "input_mode": "no_profiles"},
+            "override_applied": False,
+            "override_reason": "",
+        }
         return {
             "runs": [],
             "status": "FAILED",
             "message": msg,
+            **response_preflight,
         }
 
     preflight_score, preflight_signals = _estimate_preflight_confidence(
@@ -247,7 +279,14 @@ def execute_playbook(
     )
     min_score = int(_safe_float(os.getenv("MIGRATION_PLAYBOOK_MIN_CONFIDENCE_SCORE", "70"), 70))
     min_score = max(0, min(100, min_score))
-    normalized_override_reason = (override_reason or "").strip()[:400]
+    normalized_override_reason = normalize_playbook_override_reason(override_reason)
+    response_preflight = {
+        "preflight_confidence_score": preflight_score,
+        "preflight_min_score": min_score,
+        "preflight_signals": preflight_signals,
+        "override_applied": bool(normalized_override_reason),
+        "override_reason": normalized_override_reason,
+    }
     if preflight_score < min_score and not normalized_override_reason:
         msg = (
             "Playbook blocked: preflight confidence below threshold. "
@@ -261,23 +300,17 @@ def execute_playbook(
             runs=[],
             status="FAILED",
             message=msg,
+            extra_execution_summary={
+                **response_preflight,
+                "override_applied": False,
+                "override_reason": "",
+            },
         )
-        log = AutomationExecutionLog.objects.filter(task_name="automation.playbook.execute").latest("started_at")
-        log.execution_summary = {
-            **(log.execution_summary or {}),
-            "preflight_confidence_score": preflight_score,
-            "preflight_min_score": min_score,
-            "preflight_signals": preflight_signals,
-            "override_applied": False,
-            "override_reason": "",
-        }
-        log.save(update_fields=["execution_summary"])
         return {
             "runs": [],
             "status": "FAILED",
             "message": msg,
-            "preflight_confidence_score": preflight_score,
-            "preflight_min_score": min_score,
+            **response_preflight,
         }
 
     runs = []
@@ -300,18 +333,9 @@ def execute_playbook(
         runs=runs,
         status=status,
         message=None,
+        extra_execution_summary=response_preflight,
     )
-    log = AutomationExecutionLog.objects.filter(task_name="automation.playbook.execute").latest("started_at")
-    log.execution_summary = {
-        **(log.execution_summary or {}),
-        "preflight_confidence_score": preflight_score,
-        "preflight_min_score": min_score,
-        "preflight_signals": preflight_signals,
-        "override_applied": bool(normalized_override_reason),
-        "override_reason": normalized_override_reason,
-    }
-    log.save(update_fields=["execution_summary"])
-    return {"runs": runs, "status": status}
+    return {"runs": runs, "status": status, **response_preflight}
 
 
 def _run_one_step(

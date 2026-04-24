@@ -831,8 +831,8 @@ class SiteSettings(models.Model):
     def apply_feature_control_state(
         self,
         *,
-        portal_features: dict[str, object],
-        backend_feature_flags: dict[str, object],
+        portal_features: dict[str, object] | None = None,
+        backend_feature_flags: dict[str, object] | None = None,
         field_updates: dict[str, object],
     ) -> None:
         """
@@ -840,11 +840,19 @@ class SiteSettings(models.Model):
 
         This keeps console write semantics centralized while the legacy
         fields on this model are still being migrated into owner-scoped domains.
+
+        When ``portal_features`` or ``backend_feature_flags`` are omitted, those
+        keys are not written to :class:`~apps.platform_runtime.models.RuntimeDefaults`
+        payload, so existing stored JSON (including non-boolean portal keys) is
+        preserved. Callers that only adjust concrete model fields or a few
+        payload-owned keys should omit the full portal/backend maps unless they
+        intend to replace them.
         """
-        payload_updates: dict[str, object] = {
-            "portal_features": dict(portal_features),
-            "backend_feature_flags": dict(backend_feature_flags),
-        }
+        payload_updates: dict[str, object] = {}
+        if portal_features is not None:
+            payload_updates["portal_features"] = dict(portal_features)
+        if backend_feature_flags is not None:
+            payload_updates["backend_feature_flags"] = dict(backend_feature_flags)
         concrete = {
             f.name
             for f in type(self)._meta.concrete_fields
@@ -858,7 +866,8 @@ class SiteSettings(models.Model):
             else:
                 payload_updates[field_name] = value
 
-        type(self)._persist_runtime_payload_updates(payload_updates)
+        if payload_updates:
+            type(self)._persist_runtime_payload_updates(payload_updates)
         if save_fields and getattr(self, "pk", None):
             self.save(update_fields=list(dict.fromkeys(save_fields + ["updated_at"])))
         elif save_fields and not getattr(self, "pk", None):
@@ -1664,6 +1673,7 @@ class SiteSettings(models.Model):
         Persist Theme Studio changes. Phase B: non-column fields go to RuntimeDefaults.payload.
         """
         allowed_fields = {
+            "site_name",
             "primary_color",
             "accent_color",
             "header_bg_color",

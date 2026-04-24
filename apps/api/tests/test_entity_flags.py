@@ -1,3 +1,5 @@
+import uuid
+
 from django.test import TestCase
 from rest_framework.test import APIClient
 
@@ -9,7 +11,7 @@ class EntityFeatureFlagTests(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.admin = User.objects.create_user(
-            username="admin",
+            username=f"bulk_entity_admin_{uuid.uuid4().hex[:10]}",
             password="pass",
             role=User.Role.ADMIN,
             is_staff=True,
@@ -18,8 +20,14 @@ class EntityFeatureFlagTests(TestCase):
         self.site = get_platform_site_settings_record(create=True)
 
     def test_bulk_commit_respects_flag(self):
-        self.site.backend_feature_flags = {"allow_bulk_commit": False}
-        self.site.save()
+        flags = {
+            **dict(self.site.get_backend_feature_flags()),
+            "allow_bulk_commit": False,
+        }
+        self.site.apply_feature_control_state(
+            backend_feature_flags=flags,
+            field_updates={},
+        )
         resp = self.client.post(
             "/api/entities/students/bulk-commit/", {"rows": []}, format="json"
         )
@@ -27,8 +35,14 @@ class EntityFeatureFlagTests(TestCase):
         self.assertIn("disabled", resp.json().get("error", "").lower())
 
     def test_bulk_preview_row_limit(self):
-        self.site.backend_feature_flags = {"max_bulk_import_rows": 1}
-        self.site.save()
+        flags = {
+            **dict(self.site.get_backend_feature_flags()),
+            "max_bulk_import_rows": 1,
+        }
+        self.site.apply_feature_control_state(
+            backend_feature_flags=flags,
+            field_updates={},
+        )
         csv_body = "first_name,last_name\nA,B\nC,D"
         resp = self.client.post(
             "/api/entities/students/bulk-preview/", {"csv": csv_body}, format="json"

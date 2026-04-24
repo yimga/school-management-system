@@ -2,7 +2,7 @@
 
 **Purpose:** Inventory every `cursor.execute()` usage, excluding migrations, for Section 2.4 of the [embedded remediation plan](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Record purpose, tenant scoping, auth assumptions, and keep or replace decisions.
 
-**Status:** **DONE** - All business-logic wraps are complete. The live allowlist is down to 6 retained repo/helper files, and CI enforces non-growth.
+**Status:** **DONE** - All business-logic wraps are complete. The live allowlist is down to **six** retained repository modules (JSON `files` keys in `raw_sql_allowlist.json`), and CI enforces non-growth.
 
 ---
 
@@ -12,14 +12,14 @@ Source: `scripts/allowlists/raw_sql_allowlist.json`. Lint: `scripts/lint_raw_sql
 
 | File | Expected count | Purpose | Tenant scoping | Decision |
 |------|----------------|---------|----------------|----------|
-| apps/people/repositories/audit_repository.py | 5 | Audit DDL (`search_path`, trigger function, drop/create trigger, revoke) | Per-tenant schema | keep; staff-only repo |
-| apps/schools/repositories/health_repository.py | 4 | Tenant health PG catalog checks plus `count_table_rows()` for `tenant_health_check` | Tenant | keep; staff-only; tested |
+| apps/people/repositories/audit_repository.py | 5 | Audit DDL (`search_path`, trigger function, drop/create trigger, revoke); each `execute` guarded for `OperationalError` / `ProgrammingError` / `DatabaseError` (debug log + re-raise) | Per-tenant schema | keep; staff-only repo; tested |
+| apps/schools/repositories/health_repository.py | 3 | Tenant health PG catalog checks plus `count_table_rows()` for `tenant_health_check` | Tenant | keep; staff-only; tested |
 | apps/schools/repositories/rls_repository.py | 1 | RLS verification against `pg_class` and `pg_namespace` | Tenant | keep |
-| apps/schools/rls_context.py | 4 | SET/RESET `app.current_school_id` and `app.rls_bypass` in the shared helper | Yes | keep; session variable management |
-| apps/siteconfig/cache_utils.py | 1 | `current_setting('app.current_school_id', true)` read-only lookup | Read-only | keep; no ORM equivalent |
-| apps/siteconfig/repositories/database_recovery_repository.py | 1 | SQLite `PRAGMA integrity_check` for `recover_database` | N/A | keep; staff-only |
+| apps/schools/repositories/rls_context_repository.py | 4 | SET/RESET `app.current_school_id` and `app.rls_bypass` | Yes | keep; repository boundary; `rls_context` delegates |
+| apps/siteconfig/repositories/rls_session_repository.py | 1 | `current_setting('app.current_school_id', true)` for tenant cache prefix | Read-only session GUC | keep; repository boundary; no ORM equivalent |
+| apps/siteconfig/repositories/database_recovery_repository.py | 1 | SQLite `PRAGMA integrity_check` for `recover_database`; read-only `file:` URI + connect timeout; `sqlite3`/`OSError` on connect or `execute`/`cursor` → `None` | N/A | keep; staff-only; tested |
 
-**Wrapped or delegated out of the allowlist:** `ensure_tenant_schemas`, `db_health_check`, `synthetic_probe`, `attach_audit_triggers`, `revoke_audit_log_permissions`, `portal/onboarding_verification`, `tenant_health_check`, `verify_tenant_rls`, `onboarding_service`, `apps/tenancy/tasks.py`, and `apps/customers/repositories/schema_provisioning_repository.py` now delegate to the retained files above or to framework primitives and no longer issue local raw SQL.
+**Wrapped or delegated out of the allowlist:** `ensure_tenant_schemas`, `db_health_check`, `synthetic_probe`, `attach_audit_triggers`, `revoke_audit_log_permissions`, `portal/onboarding_verification`, `tenant_health_check`, `verify_tenant_rls`, `onboarding_service`, `apps/tenancy/tasks.py`, `apps/customers/repositories/schema_provisioning_repository.py`, and **`apps/siteconfig/cache_utils`** (RLS GUC read moved to **`rls_session_repository`**) now delegate to the retained files above or to framework primitives and no longer issue local raw SQL.
 
 ---
 

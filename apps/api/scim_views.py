@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import logging
 import secrets
 import time
 from typing import Any
 
+from django.core.cache import cache
 from django.http import HttpRequest, JsonResponse, HttpResponse
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
@@ -121,6 +124,65 @@ def _scim_replay_check(request: HttpRequest) -> JsonResponse | None:
     return None
 
 
+def _scim_nonce_replay_check(
+    request: HttpRequest, *, namespace: str
+) -> JsonResponse | None:
+    """
+    Optional replay protection (PATH Phase II.1 / public_endpoint_audit §6).
+    If X-SCIM-Nonce is present, reject when the same nonce was already used within
+    SCIM_REPLAY_WINDOW_SECONDS. If absent, allow (backward compatible).
+    """
+    raw = (request.headers.get("X-SCIM-Nonce") or "").strip()
+    if not raw:
+        return None
+    digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    ns_digest = hashlib.sha256(namespace.encode("utf-8")).hexdigest()[:16]
+    key = f"scim:nonce:{ns_digest}:{digest}"
+    if not cache.add(key, 1, timeout=SCIM_REPLAY_WINDOW_SECONDS):
+        logger.warning(
+            "SCIM request rejected: duplicate nonce within replay window",
+            extra={"path": request.path},
+        )
+        return _scim_error("Duplicate request (nonce replay)", status=401)
+    return None
+
+
+def _scim_signature_check(request: HttpRequest, *, shared_secret: str) -> JsonResponse | None:
+    """
+    Optional request-body integrity (PATH Phase II.1 / public_endpoint_audit Section 6).
+    If X-SCIM-Signature is present, it must be ``sha256=<hex>`` where *hex* is the
+    HMAC-SHA256 of ``request.body`` using the same shared secret as the bearer token.
+    If absent, allow (backward compatible).
+    """
+    raw = (request.headers.get("X-SCIM-Signature") or "").strip()
+    if not raw:
+        return None
+    prefix = "sha256="
+    if len(raw) < len(prefix) or raw[: len(prefix)].lower() != prefix:
+        return _scim_error(
+            "Invalid X-SCIM-Signature format (expected sha256=<hex>)", status=401
+        )
+    hex_part = raw[len(prefix) :].strip()
+    if len(hex_part) != 64:
+        return _scim_error("Invalid X-SCIM-Signature digest length", status=401)
+    try:
+        expected_sig = bytes.fromhex(hex_part)
+    except ValueError:
+        return _scim_error("Invalid X-SCIM-Signature digest", status=401)
+    computed = hmac.new(
+        shared_secret.encode("utf-8"),
+        request.body,
+        hashlib.sha256,
+    ).digest()
+    if not hmac.compare_digest(computed, expected_sig):
+        logger.warning(
+            "SCIM request rejected: invalid HMAC signature",
+            extra={"path": request.path},
+        )
+        return _scim_error("Invalid X-SCIM-Signature", status=401)
+    return None
+
+
 def _authorize_scim_request(request: HttpRequest):
     replay_err = _scim_replay_check(request)
     if replay_err:
@@ -146,6 +208,12 @@ def _authorize_scim_request(request: HttpRequest):
             extra={"school_slug": getattr(school, "slug", ""), "path": request.path},
         )
         return None, None, _scim_error("Unauthorized", status=403)
+    nonce_err = _scim_nonce_replay_check(request, namespace=expected)
+    if nonce_err:
+        return None, None, nonce_err
+    sig_err = _scim_signature_check(request, shared_secret=expected)
+    if sig_err:
+        return None, None, sig_err
     return school, integration, None
 
 

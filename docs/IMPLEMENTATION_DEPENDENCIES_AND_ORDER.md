@@ -62,13 +62,15 @@
 
 | File | Expected count | Action |
 |------|----------------|--------|
-| apps/schools/middleware.py | 3 | Wrap RLS/school context SQL in e.g. `schools.rls_context` or a small middleware helper module; replace inline execute with function call. |
+| apps/schools/middleware.py | 0 | **Done.** Delegates to `schools.rls_context` (no inline `cursor.execute`). |
 | apps/schools/onboarding_service.py | 1 | Wrap DROP SCHEMA (or tenant teardown) in a function in a repo/service module; call from onboarding_service. |
 | apps/observability/db_liveness.py | 1 | **Done.** `check_db_liveness()`; `monitoring.check_database_health()` uses it. |
 | apps/observability/views.py | 0 | **Done.** healthz + api_health use db_liveness.check_db_liveness(). |
-| apps/schools/rls_context.py | 4 | Keep; session variable management. |
-| apps/siteconfig/cache_utils.py | 1 | Keep; RLS session var. |
+| apps/schools/rls_context.py | 0 | **Done.** Session SQL in **`repositories/rls_context_repository.py`** (allowlisted); `rls_context` is API + guards only. |
+| apps/siteconfig/cache_utils.py | 0 | **Done.** RLS GUC read in **`repositories/rls_session_repository.py`** (allowlisted); `cache_utils` delegates. |
 | Other commands (ensure_tenant_schemas, db_health_check, etc.) | per allowlist | Keep or wrap in command-specific helper. |
+
+**§2.4 allowlist manifest:** `scripts/allowlists/raw_sql_allowlist.json` lists **six** repository paths (see `docs/raw_sql_audit.md` §1). Session delegates (`rls_context`, `cache_utils`) are intentionally absent from the JSON.
 
 **Refactor pattern:** (1) Add function in same app or repo that runs the SQL and returns result; (2) replace `cursor.execute` at call site with that function; (3) add test; (4) update raw_sql_audit.md and allowlist if count changes.
 

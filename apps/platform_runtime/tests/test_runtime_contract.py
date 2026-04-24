@@ -51,20 +51,7 @@ def _persist_runtime_test_state(**payload_updates: object) -> None:
     from apps.platform_runtime.helpers import invalidate_effective_site_settings_cache
 
     site = get_platform_site_settings_record(create=True)
-    concrete_fields = {
-        f.name
-        for f in _TenantSettingsModel._meta.concrete_fields
-        if not getattr(f, "primary_key", False)
-    }
-    update_fields: list[str] = []
-    for key, value in payload_updates.items():
-        if key in concrete_fields:
-            setattr(site, key, value)
-            update_fields.append(key)
-    if update_fields:
-        site.save(update_fields=update_fields)
-
-    _TenantSettingsModel._persist_runtime_payload_updates(payload_updates)
+    site.apply_feature_control_state(field_updates=dict(payload_updates))
     invalidate_effective_site_settings_cache()
 
 
@@ -375,8 +362,7 @@ class RuntimeHelperResolutionTests(TestCase):
             site_name="Auto Synced Brand",
             backend_feature_flags={"enable_api_center": True},
         )
-        site.maintenance_mode = True
-        site.save(update_fields=["maintenance_mode"])
+        site.apply_feature_control_state(field_updates={"maintenance_mode": True})
         site.refresh_from_db()
 
         runtime_defaults = RuntimeDefaults.get_singleton()
@@ -403,10 +389,7 @@ class RuntimeHelperResolutionTests(TestCase):
         site.site_name = "Unsaved Brand"
         # enable_offline_mode is payload-owned (policies_rules), not a concrete DB column
         # after Phase B slimming — use the feature-control write contract.
-        feature_settings = site.get_feature_control_settings()
         site.apply_feature_control_state(
-            portal_features=dict(feature_settings["portal_features"]),
-            backend_feature_flags=dict(feature_settings["backend_feature_flags"]),
             field_updates={"enable_offline_mode": True},
         )
 
@@ -1025,7 +1008,9 @@ class RuntimeHelperResolutionTests(TestCase):
         )
 
         site.site_name = "Unsaved Brand"
-        site.enable_offline_mode = True
+        site.apply_feature_control_state(
+            field_updates={"enable_offline_mode": True},
+        )
 
         runtime_defaults, _created = RuntimeDefaults.sync_from_site_settings(
             site,
@@ -1137,8 +1122,7 @@ class RuntimeHelperResolutionTests(TestCase):
             auto_tag_photos_from_exif=True,
         )
         site.refresh_from_db()
-        site.maintenance_mode = True
-        site.save(update_fields=["maintenance_mode"])
+        site.apply_feature_control_state(field_updates={"maintenance_mode": True})
 
         feature_settings = site.get_feature_control_settings()
 

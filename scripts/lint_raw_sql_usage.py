@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+from datetime import date
 import subprocess
 import sys
 from functools import lru_cache
@@ -20,10 +21,163 @@ ROOT = Path(__file__).resolve().parent.parent
 
 SKIP_DIRS = {".git", ".venv", "node_modules", "__pycache__", "migrations", "tests"}
 
+# Allowlist `files[path]` objects only carry these keys (prevents typos like `expeted_count`).
+ALLOWLIST_ENTRY_KEYS = frozenset({"expected_count", "reason", "last_reviewed"})
+
 
 def _load_allowlist(path: Path) -> dict[str, dict[str, object]]:
     data = json.loads(path.read_text(encoding="utf-8"))
     return data.get("files", {})
+
+
+def _load_allowlist_document(path: Path) -> dict[str, object]:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _is_iso_date(value: object) -> bool:
+    if not isinstance(value, str):
+        return False
+    try:
+        date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
+
+
+def _validate_allowlist_metadata(document: dict[str, object]) -> list[str]:
+    errors: list[str] = []
+    today = date.today()
+
+
+    manifest_last_reviewed = document.get("manifest_last_reviewed")
+    if manifest_last_reviewed is not None and not _is_iso_date(manifest_last_reviewed):
+        errors.append(
+            "Invalid allowlist manifest_last_reviewed (must be YYYY-MM-DD): "
+            f"{manifest_last_reviewed!r}"
+        )
+
+    if manifest_last_reviewed is not None and _is_iso_date(manifest_last_reviewed):
+        if date.fromisoformat(manifest_last_reviewed) > today:
+            errors.append(
+                "Invalid allowlist manifest_last_reviewed (must not be in the future): "
+                f"{manifest_last_reviewed!r}"
+            )
+
+    raw_files = document.get("files", {})
+    if raw_files is None:
+        raw_files = {}
+    if not isinstance(raw_files, dict):
+        errors.append(
+            "Invalid allowlist files (must be an object): "
+            f"{type(raw_files).__name__}"
+        )
+        return errors
+
+    for rel, entry in sorted(raw_files.items()):
+        if not isinstance(entry, dict):
+            continue
+        last_reviewed = entry.get("last_reviewed")
+        if last_reviewed is not None and not _is_iso_date(last_reviewed):
+            errors.append(
+                f"Invalid allowlist last_reviewed for {rel} (must be YYYY-MM-DD): {last_reviewed!r}"
+            )
+
+        if last_reviewed is not None and _is_iso_date(last_reviewed):
+            if date.fromisoformat(last_reviewed) > today:
+                errors.append(
+                    f"Invalid allowlist last_reviewed for {rel} (must not be in the future): {last_reviewed!r}"
+                )
+
+    any_positive = False
+    for _rel, entry in sorted(raw_files.items()):
+        if not isinstance(entry, dict):
+            continue
+        ec = entry.get("expected_count", 0)
+        if isinstance(ec, int) and ec > 0:
+            any_positive = True
+            break
+    if any_positive and manifest_last_reviewed is None:
+        errors.append(
+            "Invalid allowlist: manifest_last_reviewed is required when any file has expected_count > 0"
+        )
+
+    return errors
+
+
+
+def _validate_allowlist_relpaths(relpaths: list[str]) -> list[str]:
+    errors: list[str] = []
+    for rel in relpaths:
+        if not isinstance(rel, str) or not rel:
+            errors.append(f"Invalid allowlist path key: {rel!r}")
+            continue
+        if "\\" in rel:
+            errors.append(f"Invalid allowlist path (must use /): {rel}")
+        if rel.startswith("/") or rel.startswith("\\"):
+            errors.append(f"Invalid allowlist path (must be relative): {rel}")
+        if not rel.endswith(".py"):
+            errors.append(f"Invalid allowlist path (must be a .py file): {rel}")
+        parts = [p for p in rel.split("/") if p not in {"", "."}]
+        if any(p == ".." for p in parts):
+            errors.append(f"Invalid allowlist path (must not contain ..): {rel}")
+        if not rel.startswith(("apps/", "config/")):
+            errors.append(
+                f"Invalid allowlist path (must start with apps/ or config/): {rel}"
+            )
+        if rel.endswith("/") or rel.endswith("\\"):
+            errors.append(f"Invalid allowlist path (must be a file): {rel}")
+    return errors
+
+
+def _validate_allowlist_entries(allowlist: dict[str, dict[str, object]]) -> list[str]:
+    errors: list[str] = []
+    for rel, entry in sorted(allowlist.items()):
+        if entry is None:
+            errors.append(f"Invalid allowlist entry for {rel}: must be an object")
+            continue
+        if not isinstance(entry, dict):
+            errors.append(
+                f"Invalid allowlist entry for {rel}: must be an object, got {type(entry).__name__}"
+            )
+            continue
+        for key in entry:
+            if key not in ALLOWLIST_ENTRY_KEYS:
+                errors.append(
+                    f"Invalid allowlist entry for {rel}: unknown key {key!r} "
+                    f"(allowed: {sorted(ALLOWLIST_ENTRY_KEYS)})"
+                )
+        if "expected_count" not in entry:
+            errors.append(f"Invalid allowlist entry for {rel}: missing expected_count")
+            continue
+        raw_expected = entry.get("expected_count", 0)
+        if raw_expected is None:
+            raw_expected = 0
+        if not isinstance(raw_expected, int):
+            errors.append(
+                f"Invalid expected_count for {rel}: must be int, got {type(raw_expected).__name__}"
+            )
+            continue
+        if raw_expected < 0:
+            errors.append(f"Invalid expected_count for {rel}: must be >= 0")
+            continue
+
+        if raw_expected > 0:
+            reason = entry.get("reason")
+            if not isinstance(reason, str) or not reason.strip():
+                errors.append(
+                    f"Invalid allowlist entry for {rel}: reason is required when expected_count > 0"
+                )
+            if "last_reviewed" not in entry or entry.get("last_reviewed") is None:
+                errors.append(
+                    f"Invalid allowlist entry for {rel}: last_reviewed is required when expected_count > 0"
+                )
+        else:
+            reason = entry.get("reason")
+            if reason is not None and (
+                not isinstance(reason, str) or not reason.strip()
+            ):
+                errors.append(f"Invalid reason for {rel}: must be non-empty string")
+    return errors
 
 
 @lru_cache(maxsize=None)
@@ -217,10 +371,51 @@ def main(argv: list[str] | None = None) -> int:
         print(f"lint_raw_sql_usage: {exc}", file=sys.stderr)
         return 1
     allowlist_path = (base / args.allowlist).resolve()
-    allowlist = _load_allowlist(allowlist_path)
-    counts: dict[str, int] = {}
+    try:
+        allowlist_path.relative_to(base)
+    except ValueError:
+        print(
+            f"lint_raw_sql_usage: allowlist path must be within --base (got {args.allowlist})",
+            file=sys.stderr,
+        )
+        return 1
+    try:
+        document = _load_allowlist_document(allowlist_path)
+        allowlist = document.get("files", {})
+    except FileNotFoundError:
+        print(
+            f"lint_raw_sql_usage: allowlist file not found: {args.allowlist}",
+            file=sys.stderr,
+        )
+        return 1
+    except json.JSONDecodeError as exc:
+        print(
+            f"lint_raw_sql_usage: allowlist JSON invalid at {args.allowlist}: {exc}",
+            file=sys.stderr,
+        )
+        return 1
+    except OSError as exc:
+        print(
+            f"lint_raw_sql_usage: allowlist read failed at {args.allowlist}: {exc}",
+            file=sys.stderr,
+        )
+        return 1
+    allowlist_errors = _validate_allowlist_relpaths(sorted(allowlist))
+    allowlist_errors.extend(_validate_allowlist_metadata(document))
+    allowlist_errors.extend(_validate_allowlist_entries(allowlist))
+    if allowlist_errors:
+        print(
+            "lint_raw_sql_usage: invalid allowlist paths detected:\n",
+            file=sys.stderr,
+        )
+        for msg in allowlist_errors:
+            print(f"  {msg}", file=sys.stderr)
+        return 1
+    candidate_paths = list(_iter_candidate_python_files(base))
+    scanned_relpaths = {p.relative_to(base).as_posix() for p in candidate_paths}
 
-    for path in _iter_candidate_python_files(base):
+    counts: dict[str, int] = {}
+    for path in candidate_paths:
         rel = path.relative_to(base).as_posix()
         text = path.read_text(encoding="utf-8", errors="replace")
         count = _count_execute_calls(text)
@@ -239,10 +434,17 @@ def main(argv: list[str] | None = None) -> int:
                 f"Raw SQL count changed in {rel}: expected {expected_count}, found {count}"
             )
 
-    for rel in sorted(set(allowlist) - set(counts)):
+    for rel in sorted(set(allowlist) - scanned_relpaths):
         expected_count = int(allowlist[rel].get("expected_count", 0))
         if expected_count:
             violations.append(f"Allowlisted raw SQL path missing from scan: {rel}")
+
+    for rel in sorted(set(allowlist) & scanned_relpaths - set(counts)):
+        expected_count = int(allowlist[rel].get("expected_count", 0))
+        if expected_count:
+            violations.append(
+                f"Raw SQL count changed in {rel}: expected {expected_count}, found 0"
+            )
 
     if violations:
         print("lint_raw_sql_usage: violations detected:\n", file=sys.stderr)

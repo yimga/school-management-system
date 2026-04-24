@@ -46,7 +46,7 @@ class SmokeUrlResolutionTests(SimpleTestCase):
 
     def test_siteconfig_clear_preview(self):
         self.assertEqual(
-            reverse("siteconfig:clear_preview"), "/siteconfig/customizer/clear-preview/"
+            reverse("siteconfig:clear_preview"), "/siteconfig/preview/clear/"
         )
 
     def test_siteconfig_feature_control_panel(self):

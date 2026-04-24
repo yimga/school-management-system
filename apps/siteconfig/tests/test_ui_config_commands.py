@@ -57,8 +57,9 @@ class UIConfigCommandTests(TestCase):
     def test_export_ui_config_uses_legacy_compliance_profile_key(self):
         profile = ComplianceProfile.objects.create(name="CM Default", country_code="CM")
         site = _TenantSettingsModel.objects.order_by("pk").first()
-        site.compliance_profile = profile
-        site.save()
+        site.apply_feature_control_state(
+            field_updates={"compliance_profile_id": profile.pk},
+        )
 
         with self.workspace_tempdir() as tmp:
             output = tmp / "ui_export.json"

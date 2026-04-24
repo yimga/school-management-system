@@ -36,8 +36,9 @@ class AidDisbursementLedgerTests(TestCase):
             is_active=True,
         )
         site = get_platform_site_settings_record(create=True)
-        site.compliance_profile_id = self.profile.pk
-        site.save(update_fields=["compliance_profile_id", "updated_at"])
+        site.apply_feature_control_state(
+            field_updates={"compliance_profile_id": self.profile.pk},
+        )
 
         self.student_with_invoice = StudentProfile.objects.create(
             school=self.school,

@@ -1,5 +1,9 @@
+import hashlib
+import hmac
 import json
+import time
 
+from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 
@@ -63,6 +67,142 @@ class ScimViewsTests(TestCase):
     def test_service_provider_config_requires_token(self):
         response = self.client.get(self._url("api:scim-service-provider-config"))
         self.assertEqual(response.status_code, 403)
+
+    def test_scim_rejects_timestamp_outside_replay_window(self):
+        stale_ts = int(time.time()) - 400  # > 5 min default window
+        response = self.client.get(
+            self._url("api:scim-users"),
+            **self._headers(),
+            HTTP_X_SCIM_TIMESTAMP=str(stale_ts),
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("window", response.json()["detail"].lower())
+
+    def test_scim_accepts_timestamp_within_replay_window(self):
+        fresh_ts = int(time.time())
+        response = self.client.get(
+            self._url("api:scim-users"),
+            **self._headers(),
+            HTTP_X_SCIM_TIMESTAMP=str(fresh_ts),
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_scim_rejects_invalid_timestamp_header(self):
+        response = self.client.get(
+            self._url("api:scim-users"),
+            **self._headers(),
+            HTTP_X_SCIM_TIMESTAMP="not-an-int",
+        )
+        self.assertEqual(response.status_code, 401)
+
+    def _hmac_sha256_hex(self, secret: str, body: bytes) -> str:
+        return hmac.new(
+            secret.encode("utf-8"), body, hashlib.sha256
+        ).hexdigest()
+
+    def test_scim_accepts_valid_hmac_signature_on_get(self):
+        body = b""
+        sig = self._hmac_sha256_hex("token-abc", body)
+        response = self.client.get(
+            self._url("api:scim-users"),
+            **self._headers(),
+            HTTP_X_SCIM_SIGNATURE=f"sha256={sig}",
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_scim_rejects_invalid_hmac_signature(self):
+        response = self.client.get(
+            self._url("api:scim-users"),
+            **self._headers(),
+            HTTP_X_SCIM_SIGNATURE="sha256=" + "a" * 64,
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("signature", response.json()["detail"].lower())
+
+    def test_scim_rejects_malformed_signature_prefix(self):
+        response = self.client.get(
+            self._url("api:scim-users"),
+            **self._headers(),
+            HTTP_X_SCIM_SIGNATURE="md5=deadbeef",
+        )
+        self.assertEqual(response.status_code, 401)
+
+    def test_scim_rejects_signature_digest_not_64_hex_chars(self):
+        response = self.client.get(
+            self._url("api:scim-users"),
+            **self._headers(),
+            HTTP_X_SCIM_SIGNATURE="sha256=" + "a" * 63,
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("length", response.json()["detail"].lower())
+
+    def test_scim_accepts_valid_hmac_signature_on_post_body(self):
+        payload = {
+            "schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
+            "userName": "hmac.user",
+            "name": {"givenName": "H", "familyName": "Mac"},
+            "emails": [{"value": "hmac@example.com", "primary": True}],
+            "active": True,
+        }
+        raw = json.dumps(payload).encode("utf-8")
+        sig = self._hmac_sha256_hex("token-abc", raw)
+        response = self.client.post(
+            self._url("api:scim-users"),
+            data=raw,
+            content_type="application/json",
+            **self._headers(),
+            HTTP_X_SCIM_SIGNATURE=f"sha256={sig}",
+        )
+        self.assertEqual(response.status_code, 201, response.content)
+
+    def test_scim_duplicate_nonce_rejected_on_second_request(self):
+        cache.clear()
+        nonce = "unique-nonce-phase-ii-1"
+        headers = {**self._headers(), "HTTP_X_SCIM_NONCE": nonce}
+        payload = {
+            "schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
+            "userName": "nonce.user.one",
+            "name": {"givenName": "N", "familyName": "One"},
+            "emails": [{"value": "n1@example.com", "primary": True}],
+            "active": True,
+        }
+        r1 = self.client.post(
+            self._url("api:scim-users"),
+            data=json.dumps(payload),
+            content_type="application/json",
+            **headers,
+        )
+        self.assertEqual(r1.status_code, 201, r1.content)
+        r2 = self.client.post(
+            self._url("api:scim-users"),
+            data=json.dumps(
+                {
+                    **payload,
+                    "userName": "nonce.user.two",
+                    "emails": [{"value": "n2@example.com", "primary": True}],
+                }
+            ),
+            content_type="application/json",
+            **headers,
+        )
+        self.assertEqual(r2.status_code, 401)
+        self.assertIn("nonce", r2.json()["detail"].lower())
+
+    def test_scim_nonce_not_consumed_when_unauthorized(self):
+        cache.clear()
+        nonce = "nonce-unauth-should-not-burn"
+        bad = self.client.get(
+            self._url("api:scim-users"),
+            **self._headers(token="wrong-token"),
+            HTTP_X_SCIM_NONCE=nonce,
+        )
+        self.assertEqual(bad.status_code, 403)
+        good = self.client.get(
+            self._url("api:scim-users"),
+            **self._headers(),
+            HTTP_X_SCIM_NONCE=nonce,
+        )
+        self.assertEqual(good.status_code, 200)
 
     def test_create_user_via_scim(self):
         payload = {

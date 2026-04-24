@@ -8,27 +8,21 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from apps.platform_runtime.helpers import get_platform_site_settings_record
-from apps.siteconfig.models import default_backend_feature_flags
 
 
 class IntegrationPreflightCommandTests(TestCase):
     def setUp(self):
         site = get_platform_site_settings_record(create=True)
         flags = {
-            **default_backend_feature_flags(),
-            **(site.backend_feature_flags or {}),
+            **dict(site.get_backend_feature_flags()),
+            "enable_ocr_scan_teller": False,
+            "enable_ministry_api_cartescolaire": False,
+            "enable_ministry_api_dgi": False,
+            "enable_ministry_live_sync": False,
         }
-        flags["enable_ocr_scan_teller"] = False
-        flags["enable_ministry_api_cartescolaire"] = False
-        flags["enable_ministry_api_dgi"] = False
-        flags["enable_ministry_live_sync"] = False
-        site.backend_feature_flags = flags
-        site.finance_receipt_verification_method = "pattern"
-        site.save(
-            update_fields=[
-                "backend_feature_flags",
-                "finance_receipt_verification_method",
-            ]
+        site.apply_feature_control_state(
+            backend_feature_flags=flags,
+            field_updates={"finance_receipt_verification_method": "pattern"},
         )
 
     def test_preflight_json_outputs_runtime_status(self):
@@ -44,17 +38,12 @@ class IntegrationPreflightCommandTests(TestCase):
     def test_preflight_fails_when_ocr_feature_enabled_but_runtime_missing(self):
         site = get_platform_site_settings_record(create=True)
         flags = {
-            **default_backend_feature_flags(),
-            **(site.backend_feature_flags or {}),
+            **dict(site.get_backend_feature_flags()),
+            "enable_ocr_scan_teller": True,
         }
-        flags["enable_ocr_scan_teller"] = True
-        site.backend_feature_flags = flags
-        site.finance_receipt_verification_method = "ocr_cloud_google"
-        site.save(
-            update_fields=[
-                "backend_feature_flags",
-                "finance_receipt_verification_method",
-            ]
+        site.apply_feature_control_state(
+            backend_feature_flags=flags,
+            field_updates={"finance_receipt_verification_method": "ocr_cloud_google"},
         )
 
         with self.assertRaises(SystemExit) as exc:

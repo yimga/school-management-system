@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 
 from django.conf import settings
 from django.db import connection
+from django.db.utils import DatabaseError, OperationalError
 
 
 class TestRlsRepository(unittest.TestCase):
@@ -180,6 +181,46 @@ class TestRlsRepository(unittest.TestCase):
         params = fake_cursor.execute.call_args[0][1]
         self.assertEqual(params, ["people_studentprofile"])
 
+    def test_get_tenant_rls_status_sql_matches_pg_catalog_contract(self):
+        """Retained Section 2.4 query shape: pg_class + pg_namespace, public schema, relkind r, IN placeholders."""
+        fake_cursor = MagicMock()
+        fake_cursor.fetchall.return_value = []
+        fake_cm = MagicMock()
+        fake_cm.__enter__.return_value = fake_cursor
+        fake_cm.__exit__.return_value = False
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor", return_value=fake_cm),
+        ):
+            from apps.schools.repositories.rls_repository import get_tenant_rls_status
+
+            get_tenant_rls_status(["people_studentprofile"])
+
+        sql, params = fake_cursor.execute.call_args[0]
+        norm = " ".join(sql.split())
+        self.assertIn("SELECT c.relname, c.relrowsecurity", norm)
+        self.assertIn("FROM pg_class c", norm)
+        self.assertIn("JOIN pg_namespace n ON n.oid = c.relnamespace", norm)
+        self.assertIn("WHERE n.nspname = 'public' AND c.relkind = 'r'", norm)
+        self.assertIn("AND c.relname IN (%s)", norm)
+        self.assertEqual(params, ["people_studentprofile"])
+
+        fake_cursor.reset_mock()
+        fake_cursor.fetchall.return_value = []
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor", return_value=fake_cm),
+        ):
+            from apps.schools.repositories.rls_repository import get_tenant_rls_status
+
+            get_tenant_rls_status(["a", "b"])
+
+        sql2, params2 = fake_cursor.execute.call_args[0]
+        norm2 = " ".join(sql2.split())
+        self.assertIn("AND c.relname IN (%s,%s)", norm2)
+        self.assertEqual(params2, ["a", "b"])
+
     def test_get_tenant_rls_status_dedupes_duplicate_identifiers_before_sql(self):
         fake_cursor = MagicMock()
         fake_cursor.fetchall.return_value = []
@@ -334,6 +375,35 @@ class TestRlsRepository(unittest.TestCase):
             self.assertEqual(get_tenant_rls_status(["people_studentprofile"]), {})
 
         fake_cursor.execute.assert_called_once()
+
+    def test_get_tenant_rls_status_execute_error_returns_empty(self):
+        fake_cursor = MagicMock()
+        fake_cursor.execute.side_effect = DatabaseError("catalog down")
+        fake_cm = MagicMock()
+        fake_cm.__enter__.return_value = fake_cursor
+        fake_cm.__exit__.return_value = False
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor", return_value=fake_cm),
+        ):
+            from apps.schools.repositories.rls_repository import get_tenant_rls_status
+
+            self.assertEqual(get_tenant_rls_status(["people_studentprofile"]), {})
+
+        fake_cursor.execute.assert_called_once()
+
+    def test_get_tenant_rls_status_cursor_context_error_returns_empty(self):
+        def _raise(*_a, **_k):
+            raise OperationalError("no connection")
+
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor", side_effect=_raise),
+        ):
+            from apps.schools.repositories.rls_repository import get_tenant_rls_status
+
+            self.assertEqual(get_tenant_rls_status(["people_studentprofile"]), {})
 
     def test_get_tenant_rls_status_skips_when_schema_per_tenant_enabled(self):
         with (

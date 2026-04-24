@@ -1,6 +1,6 @@
 # Path to 100% — Execution plan (slice-level depth after SOT gates)
 
-**Authority:** Item-level **Actions** (implement / N/A) for depth work; referenced by SOT **§11.2**. The SOT **§6** app ledger is **consolidated [x]** at repo behavioral bar—use this file for **slice-level** steps, N/A justifications, and historical row detail. **Status and "what's left"** live in SOT **§11.4** (and **At a glance**)—do not add parallel “where we stand” sections here.
+**Authority:** Item-level **Actions** (implement / N/A) for depth work; referenced by SOT **§11.2**. The SOT **§6** app ledger is **consolidated [x]** at repo behavioral bar—use this file for **slice-level** steps, N/A justifications, and historical row detail. **Status and "what's left"** live in SOT **§11.4** (and **At a glance**)—do not add parallel “where we stand” sections here. **Start here for one merged path:** [Single end-to-end goal checklist (merged)](#single-end-to-end-goal-checklist-merged).
 
 **Rule:** For each unchecked item, either (1) **Implement** it and then mark `[x]` in the SOT, or (2) document it as **N/A** with owner, date, and justification, and record that in the SOT (e.g. "N/A — see PATH_TO_100_PERCENT_EXECUTION_PLAN.md §…"). No item remains unchecked without one of these actions. N/A is temporary until product unblocks; when unblocked, implement and mark [x]. **Why N/A and how to unblock:** [N/A_BLOCKERS_AND_RESOLUTION.md](N/A_BLOCKERS_AND_RESOLUTION.md).
 
@@ -29,13 +29,103 @@
 
 ---
 
+## Single end-to-end goal checklist (merged)
+
+**This section is the only “join” you need:** it merges **release gates**, **external blockers**, **program tracks**, and **ongoing repo depth** into one ordered path. Authority stays in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) (**SOT**), [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) (**backlog**), and **this file**—**do not** add a fourth parallel plan document.
+
+### What “goal done” means
+
+| Tier | Meaning |
+|------|--------|
+| **1 — Repo + release train** | Every command in **A** passes on the branch you ship; SOT **§11.4** / execution log updated when you fix regressions. |
+| **2 — Customer integrations** | Each row in **B** is either **shipped** (live WOPI/Collabora routing, live Clever district, stores, audit artifact on file) or **explicitly N/A** with **named sponsor + review-by date** recorded in [External program blockers](#external-program-blockers-wopi-app-stores-soc2-or-iso-clever-live). |
+| **3 — Enterprise / ops programs** | Streams in **C** advanced to **exit criteria** where the business requires them (NOC, formal WCAG cert, fiscal Z-report depth, SiteSettings decomposition, prod CWV/BI proof). |
+
+### A. Repository and release gate (repeat every release candidate)
+
+1. **`bash scripts/release_readiness_check.sh`** — exit **0** (§§1–8: grep/flags, docs, `py_compile`, pytest suite, scorecard smoke, Collabora preflight, Clever/ClassLink). Set **`APP_BASE_URL`** and **`COLLABORA_BASE_URL`** when WOPI/Collabora live smoke is in scope (otherwise §7 may stay preflight-only per script).
+2. **`python scripts/lint_raw_sql_usage.py`**
+3. **`python scripts/lint_tenant_settings.py --check-get-solo-only`**
+4. **`python scripts/lint_tenant_settings.py --check-school-settings-features`**
+5. **`python scripts/lint_tenant_settings.py --check-sitesettings-orm-in-tenant-apps`** (run **separate**; do not rely on one combined invocation if the script short-circuits)
+6. **`python scripts/verify_doc_plan_density_discipline.py`**
+7. Optional but recommended: **`bash scripts/pre_deploy_gate.sh`**, **`python scripts/verify_sot_pillar_evidence.py`**, regression bundle in backlog **Internal — CLOSED**.
+
+### B. External blockers (infra, distribution, audit, partner)
+
+Work the **Next concrete action** column in [External program blockers](#external-program-blockers-wopi-app-stores-soc2-or-iso-clever-live) until **Tier 2** is true. Narrative **OPEN** index: [SOT_REMAINING_ITEMS_BACKLOG — External](SOT_REMAINING_ITEMS_BACKLOG.md#external--organizational--open-not-completable-in-this-repo-alone).
+
+### C. Program tracks (parallel; months–quarters)
+
+Execute phases **A → D** per stream in [SOT_REMAINING_ITEMS_BACKLOG — Program tracks](SOT_REMAINING_ITEMS_BACKLOG.md#program-tracks-end-to-end-execution-steps). Owners, dates, and evidence (tickets, wiki, certificates) live **outside** git; the backlog section is the **spec**, not a duplicate plan file.
+
+**Tier 3 + cross-stream discipline:** Use [Agent 2 off-repo execution](#agent-2-off-repo-execution) for PMO ticket stubs and cadence; use backlog [Agent 2 PMO discipline](SOT_REMAINING_ITEMS_BACKLOG.md#agent-2-pmo-discipline-streams-1-5) so every stream has an epic, **named assignee**, and **evidence URL** at phase exit.
+
+### D. Product depth (repo slices)
+
+After **A** is green, burn down **Phase II → V** tables below and SOT **§11.4** forward queue; log slices in [RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md](RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md). **Phase III+** rows are **depth**, not blockers for **Tier 1** if SOT §6 spine is already **[x]** at repo bar.
+
+---
+
+## External program blockers (WOPI, app stores, SOC2 or ISO, Clever live)
+
+**Discipline:** These items are **not** closed by repo-only work. For each, either **attack** with a **named next step** (infra, legal, or vendor), or record **N/A in repo** with **accountable owner role**, **recorded date**, and **deferral / unblock rule**.
+
+**Tier 2** rows = customer integrations, distribution, audit artifacts, and live partner sign-off (**§ merged checklist B**). **Tier 3** rows = long-running **program tracks** (**§ C**) broken out here so every row has the same columns—full phase specs stay in [SOT_REMAINING_ITEMS_BACKLOG.md — Program tracks](SOT_REMAINING_ITEMS_BACKLOG.md#program-tracks-end-to-end-execution-steps).
+
+**Named assignee (off-repo):** In addition to the **Owner (role)** below, each row must have a **named individual** (legal name + contact) in the PMO / ops wiki **before** claiming Tier 2 “shipped” or Tier 3 phase exit. This repo document carries **roles** and **actions** only.
+
+**Do not** spawn parallel strategy or “stock take” markdown—extend **this section**, **SOT [At a glance](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md#at-a-glance)**, and **[SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md)** only.
+
+| Blocker | Tier | Mode | Owner (role) | Recorded | Next concrete action | Milestone / off-repo evidence | Deferral / N/A in repo |
+|---------|------|------|----------------|----------|----------------------|-------------------------------|-------------------------|
+| **Collabora + WOPI** (e.g. `collabora.<domain>`) | **2** | **ATTACK (infra + DNS)** | Platform Eng **lead** + Product **editor/WOPI owner** | 2026-04-24 | **(1)** Cut DNS so **host** resolves to the **Collabora service** (not Django). **(2)** From an **operator** jump host: `curl -fsSI https://…/hosting/discovery` → **HTTP 200**. **(3)** Run WOPI smoke with **`APP_BASE_URL`** + **`COLLABORA_BASE_URL`** set (not preflight-only). **(4)** Operator + tenant sign-off per [execution/COLLABORA_PRODUCTION_ROLLOUT_CHECKLIST.md](execution/COLLABORA_PRODUCTION_ROLLOUT_CHECKLIST.md). | **Done =** discovery **200** logged (hostname, date, operator) + checklist **closure** section signed. **Assignee name:** PMO required. | Org **“no second service”** → named **exec sponsor** + **review-by** date; ship T0–T3 without T4 until policy changes. |
+| **iOS / Android** (App Store / Play) | **2** | **EXTERNAL (distribution)** | Product **PM** + Mobile **release owner** | 2026-04-24 | App **IDs**, signing **certs** / keystores, **CI build** to store format, **privacy & data-safety** copy, **store listing** + **review** submission playbook. | **Done =** app **live** in at least one store **or** explicit **N/A** with sponsor letter + **review-by** date. **Assignee name:** PMO required. | **N/A in repo** until SKU prioritized; track only in PMO + backlog row. |
+| **SOC 2 Type II** or **ISO** (certificate / attestation on file) | **2** | **EXTERNAL (audit)** | Security/Compliance **lead** + Exec **sponsor** | 2026-04-24 | Open [N16_SOC2_ISO_EXECUTION_PROGRAM.md](N16_SOC2_ISO_EXECUTION_PROGRAM.md) **Phase A**: scope, auditor **SOW**, **evidence room** path, control **inventory**. | **Done =** **certificate / attestation letter on file** (scan index only) or **audit end date** booked with named auditor. **Assignee name:** Compliance lead in PMO. | **N/A in repo** as the artifact; repo supplies evidence **pulls** when asked. |
+| **Clever / ClassLink** (production, **live** district) | **2** | **EXTERNAL (partner)** | Partnerships **lead** + Engineering **integrations lead** | 2026-04-24 | **Internal:** keep `bash scripts/release_readiness_check.sh` **§8** + tests green. **Live:** district **agreement**, **prod** app credentials in **secret** store, **prod** endpoint config, **security** review, **district IT** sign-off. | **Done =** at least one **production** district **live** with **named** district signatory + internal **go-live** record (ticket/wiki date). **Assignee name:** Partnerships lead in PMO. | Partner/district steps are **not** closable in a PR; no fake “done” from repo-only gates. |
+| **24/7 NOC** (vendor or internal) | **3** | **PROGRAM (ops)** | Ops **manager** + **Staffing/vendor** owner | 2026-04-24 | Backlog [Program tracks stream 1 — Phase A](SOT_REMAINING_ITEMS_BACKLOG.md#program-tracks-end-to-end-execution-steps): inventory prod **health URLs**, alert sources, map to [RUNBOOKS_INDEX.md](RUNBOOKS_INDEX.md) + [N24_OBSERVABILITY_AND_ONCALL.md](N24_OBSERVABILITY_AND_ONCALL.md). | **Exit A:** single **service catalog** (what is monitored, where alerts go)—**published date** + **owner name** off-repo. | Steady state = phases B–D in backlog; **not** one PR. |
+| **Formal WCAG** certification (third-party audit) | **3** | **PROGRAM (compliance)** | Product **+** Compliance | 2026-04-24 | Backlog [stream 2 — Phase A](SOT_REMAINING_ITEMS_BACKLOG.md#program-tracks-end-to-end-execution-steps): WCAG **version**, **URL scope**, auditor **MSA**/SOW. | **Exit A:** **signed audit scope** + **auditor** named; attestation **target quarter** in PMO. | VPAT/ACR = Phase C; repo holds [ACCESSIBILITY_WCAG.md](ACCESSIBILITY_WCAG.md) summary only. |
+| **Z-reports / multi-register** fiscal depth | **3** | **PROGRAM (product)** | Product **+** Finance | 2026-04-24 | Backlog [stream 3 — Phase A](SOT_REMAINING_ITEMS_BACKLOG.md#program-tracks-end-to-end-execution-steps): **register** model, **Z/X** variants, **export** formats by jurisdiction. | **Exit A:** **signed BRD** + data dictionary stored **off-repo** (date + signatories). | Phases B–D include repo work but **UAT/go-live** sign-off is off-repo. |
+| **Full SiteSettings** row-level **decomposition** | **3** | **PROGRAM (platform)** | Platform engineering **lead** | 2026-04-24 | Backlog [stream 4 — Phase A](SOT_REMAINING_ITEMS_BACKLOG.md#program-tracks-end-to-end-execution-steps): inventory vs [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md); `python scripts/generate_platform_inventory.py --check`. | **Exit A:** **no drift** memo (staging **date**, verifier output **attached** in wiki/ticket). | Per-env **migrate** + verify: **hostname + date** outside git. |
+| **Production CWV** + **BI proof** (staffed ops) | **3** | **PROGRAM (ops/analytics)** | Engineering **+** Analytics **+** Exec **sponsor** | 2026-04-24 | Backlog [Program tracks stream 5 — Phase A](SOT_REMAINING_ITEMS_BACKLOG.md#program-tracks-end-to-end-execution-steps): prod **RUM**/CrUX (or vendor) **dashboard URL** + **viewer** list. | **Exit A:** dashboard **live** on prod traffic + **access** recorded; **30–90d** review **scheduled** with sponsor. | **Signed** leadership review (Phase D) is **not** a git artifact. |
+
+### Agent 2 off-repo execution
+
+**Charter:** Drive Tier **2** and **3** outcomes **outside git** (infra routing, vendors, store pipelines, audit artifacts, district sign-off). This subsection turns the table into **what to open, sequence, and attach** in PMO/wiki. It does **not** add a new master plan; it extends **this section** only.
+
+**PMO / wiki ticket stub — use once per active blocker row:**
+
+| Field | Fill with |
+|-------|-----------|
+| **Blocker / stream** | Name from table (e.g. WOPI, Clever live, “Program 3 Z-reports”) |
+| **Tier** | 2 or 3 |
+| **Role owner** | From **Owner (role)** column |
+| **Named assignee** | Individual name + contact (**required** before claiming “shipped” or phase exit) |
+| **Next action** | One concrete step matching **Next concrete action** or current **Program track** phase step |
+| **Target date** | Committed date or “TBD — set at kickoff” |
+| **Evidence URL** | Where the **Milestone / off-repo evidence** artifact will live (signed PDF, dashboard, ticket closure) |
+| **Vendor / auditor** | If any: Collabora hoster, Apple/Google org, audit firm, Clever/ClassLink CSM |
+
+**Tier 2 — suggested attack pattern (parallel epics, separate tickets):**
+
+1. **Collabora + WOPI** — Infra epic: DNS change request → TLS/firewall review → operator **`curl`** to **`/hosting/discovery`** (attach stdout + timestamp) → secrets: **`APP_BASE_URL`**, **`COLLABORA_BASE_URL`** in production vault → release train runs **`release_readiness_check.sh`** with **live** WOPI smoke when in scope → attach completed [rollout checklist](execution/COLLABORA_PRODUCTION_ROLLOUT_CHECKLIST.md) + **operator + tenant** sign-off names/dates.
+2. **iOS / Android** — Distribution epic: developer org accounts → signing certs/keystores → CI artifact to store binaries → privacy/data-safety text → store submission with **review SLA owner** and **escalation** path.
+3. **SOC 2 / ISO** — Compliance epic: execute [N16_SOC2_ISO_EXECUTION_PROGRAM.md](N16_SOC2_ISO_EXECUTION_PROGRAM.md) Phase A in PMO tasks; evidence **room** ACL; **auditor** named; **kickoff** date on calendar.
+4. **Clever / ClassLink live** — Partner epic: named **district** + vendor CSM → prod **app** approval evidence → **secrets** owner + rotation policy → **go-live** date with **district IT** signatory recorded in wiki/ticket.
+
+**Tier 3 — program cadence:** One **board or epic per stream** ([backlog streams 1–5](SOT_REMAINING_ITEMS_BACKLOG.md#program-tracks-end-to-end-execution-steps)); **monthly** steering with the PATH **Owner (role)** accountable; **Phase A** exit must produce a **dated** artifact in PMO before updating the PATH **Recorded** date on the next governance pass (optional **SOT §11.4** note if the org records doc-only batch updates).
+
+**Related backlog detail:** [SOT_REMAINING_ITEMS_BACKLOG — Program tracks](SOT_REMAINING_ITEMS_BACKLOG.md#program-tracks-end-to-end-execution-steps) (phase tables + [Agent 2 PMO discipline](SOT_REMAINING_ITEMS_BACKLOG.md#agent-2-pmo-discipline-streams-1-5)).
+
+---
+
 ## Phase II — Unblock and high-impact (§2.4, §3.2)
 
 | # | SOT ref | Item | Action |
 |---|---------|------|--------|
-| II.1 | §2.4 | Add stronger signature and replay protection where marked `manual_review_required` | **Implement:** Use `docs/public_endpoint_audit.md`; for each endpoint with `manual_review_required`, add signature verification (e.g. HMAC) and/or replay (nonce/timestamp) per doc; add tests; update ledger. |
-| II.2 | §2.4 | Wrap remaining retained raw SQL in tested repository/service abstractions | **Implement:** Use `docs/raw_sql_audit.md` and allowlist; for each allowlisted usage (middleware, commands), introduce a repository or service function with tests; replace raw `cursor.execute()` with that abstraction; update allowlist. |
-| II.3 | §3.2 | Remove any remaining direct SiteSettings reads in tenant request paths | **Implement:** Run `scripts/lint_tenant_settings --check-get-solo-only`; fix any remaining tenant-path usages to use `get_effective_site_settings(request=request)` or resolver; add to allowlist only if platform/management and documented. |
+| II.1 | §2.4 | Add stronger signature and replay protection where marked `manual_review_required` | **Shipped (SCIM):** optional `X-SCIM-Timestamp`, `X-SCIM-Nonce`, `X-SCIM-Signature` (`sha256=<hex>` HMAC over raw body) — `apps/api/scim_views.py` + `apps/api/tests/test_scim_views.py`; ledger `docs/public_endpoint_audit.md` §6. SOT batches **808–809** (plus edge-case signature tests in **818**). |
+| II.2 | §2.4 | Wrap remaining retained raw SQL in tested repository/service abstractions | **Implement:** Use `docs/raw_sql_audit.md` and allowlist; for each allowlisted usage (middleware, commands), introduce a repository or service function with tests; replace raw `cursor.execute()` with that abstraction; update allowlist. **Doc parity (SOT batch 818):** `health_repository` expected count **3** in `raw_sql_audit.md` matches `scripts/allowlists/raw_sql_allowlist.json`. |
+| II.3 | §3.2 | Remove any remaining direct SiteSettings reads in tenant request paths | **Shipped (2026-04-24, SOT §11.4 batch 945):** run **`python scripts/lint_tenant_settings.py`** **separately** — **`--check-get-solo-only`**, **`--check-school-settings-features`**, **`--check-sitesettings-orm-in-tenant-apps`** (ORM mode **alone**). **All PASS**; **`TenantSettingsLintTests.test_no_get_solo_in_tenant_apps`**, **`...test_no_school_settings_features_in_tenant_apps`**, **`...test_no_sitesettings_orm_in_tenant_apps`** **3 OK** (`test_tenant_settings_lint.py`). **Violations:** route through **`get_effective_site_settings(request=…)`** / resolvers; do not touch `raw_sql_allowlist.json` (Agent 2). **Re-verify:** the three lints + three tests on trains touching `apps/portal` … `apps/studio_os` tenant trees. |
 
 ---
 
@@ -45,19 +135,21 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 
 ### §6.1 siteconfig
 
+**§2.4 raw SQL governance (cross-cutting):** Canonical allowlist + audit: [`docs/raw_sql_audit.md`](raw_sql_audit.md) §1, [`scripts/allowlists/raw_sql_allowlist.json`](../scripts/allowlists/raw_sql_allowlist.json), `python scripts/lint_raw_sql_usage.py`. The JSON manifest enumerates **six** repository modules (`test_raw_sql_allowlist_manifest` + `lint_raw_sql_usage`); delegates such as `rls_context` / `cache_utils` stay off the list — SQL lives in `rls_context_repository` / `rls_session_repository`. Replacement tracker: [`docs/raw_sql_replacement_targets.md`](raw_sql_replacement_targets.md).
+
 | # | Item | Action |
 |---|------|--------|
-| III.1 | Migrate ownership | Implement: Continue SITECONFIG_OWNERSHIP_MIGRATION; move fields to domain owners per `docs/domain_ownership.md` and inventory. |
-| III.2 | Delete legacy behavior paths | Implement or N/A: Per LEGACY_PATH_INVENTORY and product sign-off; remove deprecated views/urls after redirects in place. |
-| III.3 | Replace giant admin pages with bounded consoles | Implement: Replace large siteconfig admin pages with bounded-console UIs (e.g. console_domains_hub pattern); link from Control Studio / Configuration Control Center. |
+| III.1 | Migrate ownership | **[x] Repo behavioral bar (ongoing first-class / §11.4 depth allowed):** [`docs/SITECONFIG_OWNERSHIP_MIGRATION.md`](SITECONFIG_OWNERSHIP_MIGRATION.md) Phase 5 + Phase B; [`docs/domain_ownership.md`](domain_ownership.md) + `apps/siteconfig/domain_ownership.py`; `python scripts/verify_phase_5_siteconfig.py` + `pre_deploy_gate.sh`. *Verify after changes:* `scripts/verify_siteconfig_decomposition_depth.py`, `python scripts/generate_platform_inventory.py --check`. |
+| III.2 | Delete legacy behavior paths | **[x] Per sign-off 2026-03-12:** high-churn surfaceconfig **views** removed; **config-level redirects** for bookmarks. **Evidence:** [`docs/LEGACY_PATH_INVENTORY.md`](LEGACY_PATH_INVENTORY.md); regression: `python scripts/validate_legacy_replacements.py` (bundles `test_phase_05_legacy_redirects`, smoke URL tests). |
+| III.3 | Replace giant admin pages with bounded consoles | **[x] Decomposition “Done” in inventory:** [`docs/BOUNDED_CONSOLES_INVENTORY.md`](BOUNDED_CONSOLES_INVENTORY.md) — Control Studio + Studio OS mode hubs, Configuration Control Center, feature control, outcomes, API Center, etc.; *incremental* product polish remains in §11.4, not an open [ ]. **Verify:** open Control Studio / Studio OS rails; `studio_os:system_config_console` embed path per inventory. |
 
 ### §6.2 platform_runtime
 
 | # | Item | Action |
 |---|------|--------|
-| III.4 | Enforce runtime everywhere | Implement: Audit tenant request paths for any bypass; ensure get_effective_site_settings/resolvers only; tighten lint_tenant_settings if needed. |
+| III.4 | Enforce runtime everywhere | **§11.4 batch 947 (2026-04-24):** `platform_runtime` audit clean; **`test_batch947_platform_runtime_no_singleton_bypass`** + **`lint_sitesettings_orm_singleton`**; resolvers use **`get_effective_site_settings`** (e.g. **`runtime_resolver._step7_branding`**). Full tenant-app sweep stays **outside** `apps/platform_runtime/` (Phase II.3 lints). |
 | III.5 | Add runtime tracing | Implement: Add tracing (e.g. span/context) for resolver resolution in platform_runtime; optional integration with observability app. |
-| III.6 | Eliminate fallback bypasses | Implement: Search for SiteSettings / get_solo in tenant code paths; replace with runtime; document any allowlisted platform-only usage. |
+| III.6 | Eliminate fallback bypasses | **§11.4 batch 947 (2026-04-24):** No **`SiteSettings.get_solo` / `load` / `objects`** in **`platform_runtime`** prod tree except ORM surface in **`helpers.py`** (**`get_platform_site_settings_record`**). Tenant **`apps/*`** bypasses: **`lint_tenant_settings`** + batch **945** contract tests. |
 
 ### §6.3 metadata
 
@@ -82,7 +174,7 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 | # | Item | Action |
 |---|------|--------|
 | III.10 | Absorb real ownership from siteconfig | Implement: Move theme/experience ownership into brand_experience (models, resolvers); siteconfig becomes legacy data source only for those fields. |
-| III.11 | Add previews/compare/rollback | Implement: Ensure compare (experience_compare) and rollback (studio_rollback) cover theme/experience; document. |
+| III.11 | Add previews/compare/rollback | **DONE (SOT §11.4 batch 949):** Studio — `studio_os:experience_compare` + `get_studio_compare_context` (`templates/studio_os/partials/subpages/experience_compare.html`); rollback — POST `studio_os:rollback` with `mode=experience` + `theme_previous_state` (`test_experience_rollback`, `test_batch949_experience_compare_view`). Brand — `brand_experience.compare_experience_packs` / `rollback_experience_pack` (`test_batch949_path_iii11_compare_contract`, `packages.tests.test_experience_packs`). |
 | III.12 | Purge Gilead theme defaults | Implement or N/A: Already done in migration 0155; verify no remaining defaults; if none, mark N/A. |
 
 ### §6.7 runtime_blueprints
@@ -132,7 +224,7 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 | # | Item | Action |
 |---|------|--------|
 | III.30 | Reduce raw SQL | Implement: Per raw_sql_audit; replace with ORM or repository; update allowlist. |
-| III.31 | Harden public/control-plane routes | Implement: Auth, rate limit, audit on public/control-plane routes; align with public_endpoint_audit. |
+| III.31 | Harden public/control-plane routes | **Depth slice (SOT batch 948):** `SchoolConfigAPI` (`GET` **`/api/config/`**, `apps/schools/api_views.py`, AllowAny) — per-IP rate limit unchanged; audit **`school_config_api_request` adds** **`authenticated`** (no PII), **`docs/public_endpoint_audit.md`** §2/§6 updated. **Tests:** `apps/schools/tests/test_school_config_api_hardening.py` (429 + audit). Further public routes: future §11.4 slices. |
 | III.32 | Clarify school vs platform control-plane logic | Implement: Document and enforce boundary (e.g. super vs tenant); split views/perms where mixed. |
 
 ### §6.13 accounts
@@ -349,11 +441,12 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 
 ## How to use this plan
 
-1. **Sync with SOT:** Before starting a phase, read SOT **§11.4** and **At a glance** for the live queue. The streamlined SOT may have **no** per-line `- [ ]` for **§6** (spine **[x]**); use **this file’s phase tables** for **Action** rows and update **§11.4** / autonomous log when you ship a slice.
+1. **Sync with SOT:** Read **[Single end-to-end goal checklist (merged)](#single-end-to-end-goal-checklist-merged)** first, then SOT **§11.4** and **At a glance** for the live queue. The streamlined SOT may have **no** per-line `- [ ]` for **§6** (spine **[x]**); use **this file’s phase tables** for **Action** rows and update **§11.4** / autonomous log when you ship a slice.
 2. **Implement:** Do the work; if the SOT still has a matching `- [ ]`, change it to `- [x]` with a brief note; otherwise record completion in **§11.4** and [RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md](RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md).
 3. **N/A:** If an item is not to be implemented now, record **N/A** with owner, date, and reason in the SOT or [NA_REGISTER_PATH_TO_100.md](NA_REGISTER_PATH_TO_100.md) and pointer to this file §…
 4. **Cross-check:** Use BACKLOG_AND_DEFERRED_CLOSURE.md §1, OPERATING_DISCIPLINE_LAYERS.md, and DECISION_ARCHITECTURE_CHECKLIST.md so no required work is omitted. (NEXT_50 is **historical DONE** — not the primary queue.)
 5. **Update this doc:** When an item is marked N/A, add the owner/date/reason in the table above so **slice-level** N/A detail stays traceable — **program status** remains SOT **§11.4** only.
+6. **End-to-end checklist + external blockers:** Keep **[Single end-to-end goal checklist (merged)](#single-end-to-end-goal-checklist-merged)** and **[External program blockers](#external-program-blockers-wopi-app-stores-soc2-or-iso-clever-live)** aligned with **SOT At a glance** + **SOT_REMAINING_ITEMS_BACKLOG**; do not add a new plan file.
 
 ---
 
@@ -381,3 +474,12 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 | 2026-03-16 | Next 50 logical phases (156–205): NEXT_50_PHASES_156_205.md. E2E/inventory/Phase H manual/staging; policy/Report/Document/Design/Workflows/AI triggers; §8.0/quality/gates; siteconfig/legacy/console; N/A product triggers; governance/release runbook/stock take/§12/RegionConfig/a11y/sync. PHASES_1_TO_205_INDEX.md. |
 | 2026-03-16 | Next 50 logical phases (206–255): NEXT_50_PHASES_206_255.md. §8.0.5–8.0.13; §10.5 operating discipline; §12/gates/lint inventories; domain/legacy/console; BACKLOG/docs_truth/N/A sync; release/gate record; II.1–II.3/§4.5/§7/Phase H/feature/package/schools/Launch/runtime/why-enabled/inventory/E2E. PHASES_1_TO_255_INDEX.md. |
 | 2026-03-16 | Phase 254 E2E ux-visual-qa overflow fix: platform-fluid-everywhere (html/body overflow-x: clip); backend_dashboard (backend-role-home min-width/max-width, 576px single-column + containment); manager-control-plane (cp-hero-grid 1fr at 576px, #cp-main-content overflow-x: auto at 480px). NEXT_50_PHASES_206_255 phase 254 DONE. |
+| 2026-04-24 | **External program blockers** table: WOPI/Collabora routing (ATTACK infra), app stores / SOC2·ISO / Clever live (EXTERNAL or N/A in repo) with owner roles and recorded date; single canonical section—no new parallel plan docs. |
+| 2026-04-24 | **Tier 2 vs Tier 3** in **External program blockers**: split **program tracks** into five rows (NOC, WCAG cert, Z-reports/multi-register, SiteSettings decomposition, prod CWV/BI); add **Milestone / off-repo evidence** column; **named assignee** discipline (PMO/wiki); numbered **next actions** for WOPI (DNS → curl 200 → smoke → checklist). |
+| 2026-04-24 | **Agent 2 off-repo execution:** PMO **ticket stub** table; Tier **2** parallel **attack pattern**; Tier **3** program **cadence**; merged checklist **§ C** links to backlog [Agent 2 PMO discipline](SOT_REMAINING_ITEMS_BACKLOG.md#agent-2-pmo-discipline-streams-1-5); stable heading anchor `#agent-2-off-repo-execution`. |
+| 2026-04-24 | **SOT §11.4 batch 951:** **§B + §C** governance closed as **docs-only** — [External program blockers](#external-program-blockers-wopi-app-stores-soc2-or-iso-clever-live) remains canonical; [SOT_REMAINING_ITEMS_BACKLOG](SOT_REMAINING_ITEMS_BACKLOG.md#external--organizational--open-not-completable-in-this-repo-alone) **OPEN** index (Tier / next step / milestone); [RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG](RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md) wave **951**; **`python scripts/verify_doc_plan_density_discipline.py`** **PASS**. |
+| 2026-04-25 | **SOT §11.4 batch 953:** §6.2 **III.5** — `runtime_resolution_complete` DEBUG line includes **`runtime_trace_id`**; `test_batch953_runtime_resolution_trace_log`. |
+| 2026-04-24 | **Single end-to-end goal checklist (merged):** one ordered path (release gates A → external B → program tracks C → depth D); SOT + backlog point here—no fourth master doc. |
+| 2026-04-24 | **Program tracks** row: NOC, WCAG formal cert, Z-reports/multi-register, SiteSettings row decomposition, prod CWV/BI — pointer to [SOT_REMAINING_ITEMS_BACKLOG.md — Program tracks](SOT_REMAINING_ITEMS_BACKLOG.md#program-tracks-end-to-end-execution-steps). §6.1 §2.4 allowlist sentence: **six** repository paths (JSON truth). |
+| 2026-04-24 | **§6.6 III.11 (batch 949):** PATH table inventories Studio compare/rollback + brand_experience pack compare/rollback; adds `test_batch949_*` modules; SOT §11.4 + autonomous log. |
+| 2026-04-24 | §6.2 **III.4 + III.6:** SOT §11.4 batch **947** — `test_batch947_platform_runtime_no_singleton_bypass`; `platform_runtime` prod tree stays on **`get_effective_site_settings`** / **`helpers.get_platform_site_settings_record`**. |

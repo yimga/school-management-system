@@ -18,10 +18,12 @@ User = get_user_model()
 
 def _site_with_photo_upload_remote(enabled):
     site = get_platform_site_settings_record(create=True)
-    pf = dict(site.portal_features or {})
+    feature_settings = site.get_feature_control_settings()
+    pf = dict(feature_settings["portal_features"])
     pf["photo_upload_remote"] = enabled
-    site.portal_features = pf
-    site.save(update_fields=["portal_features"])
+    site.apply_feature_control_state(
+        field_updates={"portal_features": pf},
+    )
     return site
 
 

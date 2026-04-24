@@ -81,6 +81,23 @@ class TestDatabaseRecoveryRepository(unittest.TestCase):
 
         connect.assert_not_called()
 
+    def test_resolve_failure_returns_none_without_connecting(self):
+        from pathlib import Path as StdPath
+
+        class _ResolveError(StdPath):
+            def resolve(self, *args, **kwargs):
+                raise OSError("boom")
+
+        with patch(
+            "apps.siteconfig.repositories.database_recovery_repository.Path",
+            _ResolveError,
+        ), patch(
+            "apps.siteconfig.repositories.database_recovery_repository.sqlite3.connect"
+        ) as connect:
+            self.assertIsNone(run_sqlite_integrity_check("/tmp/db.sqlite3"))
+
+        connect.assert_not_called()
+
     def test_bytes_path_returns_none_without_connecting(self):
         with patch(
             "apps.siteconfig.repositories.database_recovery_repository.sqlite3.connect"
@@ -166,6 +183,9 @@ class TestDatabaseRecoveryRepository(unittest.TestCase):
                 kwargs,
                 {"uri": True, "timeout": _SQLITE_INTEGRITY_CONNECT_TIMEOUT_SEC},
             )
+            fake_conn.cursor.return_value.execute.assert_called_once_with(
+                "PRAGMA integrity_check;"
+            )
             fake_conn.close.assert_called_once_with()
         finally:
             path.unlink(missing_ok=True)
@@ -189,5 +209,36 @@ class TestDatabaseRecoveryRepository(unittest.TestCase):
             self.assertEqual(len(out), _MAX_SQLITE_INTEGRITY_CHECK_RESULT_LEN)
             self.assertTrue(out.startswith("e"))
             fake_conn.close.assert_called_once_with()
+        finally:
+            path.unlink(missing_ok=True)
+
+    def test_integrity_check_non_string_result_returns_none(self):
+        with tempfile.NamedTemporaryFile(suffix=".sqlite3", delete=False) as f:
+            path = Path(f.name)
+        try:
+            fake_conn = MagicMock()
+            fake_conn.cursor.return_value.execute.return_value.fetchone.return_value = (123,)
+
+            with patch(
+                "apps.siteconfig.repositories.database_recovery_repository.sqlite3.connect",
+                return_value=fake_conn,
+            ):
+                self.assertIsNone(run_sqlite_integrity_check(path))
+
+            fake_conn.close.assert_called_once_with()
+        finally:
+            path.unlink(missing_ok=True)
+
+    def test_sqlite_connect_error_returns_none(self):
+        with tempfile.NamedTemporaryFile(suffix=".sqlite3", delete=False) as f:
+            path = Path(f.name)
+        try:
+            import sqlite3
+
+            with patch(
+                "apps.siteconfig.repositories.database_recovery_repository.sqlite3.connect",
+                side_effect=sqlite3.OperationalError("locked"),
+            ):
+                self.assertIsNone(run_sqlite_integrity_check(path))
         finally:
             path.unlink(missing_ok=True)

@@ -14,16 +14,22 @@ from apps.academics.models import (
 )
 from apps.evals.models import GradeApprovalRequest, TeacherAssignment
 from apps.people.models import TeacherProfile, StudentProfile
-from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.platform_runtime.helpers import (
+    get_platform_site_settings_record,
+    invalidate_effective_site_settings_cache,
+)
 
 
 class GradeApprovalWorkflowTestCase(TestCase):
     def setUp(self):
         self.site_settings = get_platform_site_settings_record(create=True)
-        self.site_settings.grade_approval_enabled = True
-        self.site_settings.grade_approval_roles = ["DEAN"]
-        self.site_settings.grade_post_roles = ["DEAN"]
-        self.site_settings.save()
+        self.site_settings.apply_feature_control_state(
+            field_updates={
+                "grade_approval_enabled": True,
+                "grade_approval_roles": ["DEAN"],
+                "grade_post_roles": ["DEAN"],
+            },
+        )
 
         self.year = AcademicYear.objects.create(
             name="2025/2026",
@@ -137,12 +143,10 @@ class GradeApprovalWorkflowTestCase(TestCase):
 
     def test_non_final_role_cannot_finalize(self):
         # Restrict final roles so dean cannot finalize
-        self.site_settings.grade_post_roles = ["REGISTRAR"]
-        self.site_settings.save()
-        # Clear site-settings cache so the view sees updated grade_post_roles (not stale cached copy)
-        from django.core.cache import cache
-
-        cache.delete("platform_runtime:effective_site_settings:platform")
+        self.site_settings.apply_feature_control_state(
+            field_updates={"grade_post_roles": ["REGISTRAR"]},
+        )
+        invalidate_effective_site_settings_cache()
         request_obj = GradeApprovalRequest.objects.create(
             teacher=self.teacher_profile,
             academic_year=self.year,

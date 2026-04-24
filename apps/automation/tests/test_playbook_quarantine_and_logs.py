@@ -3,6 +3,7 @@
 import uuid
 from unittest.mock import patch
 
+from django.db import connection
 from django.core.management import call_command
 from django.test import TestCase
 
@@ -45,6 +46,86 @@ class MigrationRunQuarantineLinkTests(TestCase):
 
 
 class PlaybookExecutionLogTests(TestCase):
+    def test_execution_log_records_current_connection_schema_name_when_present(self):
+        call_command("seed_migration_profiles")
+        u = uuid.uuid4().hex[:8]
+        playbook = MigrationPlaybook.objects.create(
+            slug=f"schema_name_log_{u}",
+            name="Schema name log",
+            profile_slugs=["students_from_powerschool"],
+        )
+        from apps.automation.playbook_executor import execute_playbook
+
+        with patch.object(connection, "schema_name", "tenant_a", create=True):
+            result = execute_playbook(
+                playbook, school=None, user=None, dry_run=True, steps_payload=None
+            )
+        self.assertEqual(result["status"], "SUCCESS")
+        log = AutomationExecutionLog.objects.filter(
+            task_name="automation.playbook.execute"
+        ).latest("started_at")
+        self.assertEqual(log.schema_name, "tenant_a")
+
+    def test_execution_log_schema_name_ignored_when_non_string(self):
+        call_command("seed_migration_profiles")
+        u = uuid.uuid4().hex[:8]
+        playbook = MigrationPlaybook.objects.create(
+            slug=f"schema_name_non_str_{u}",
+            name="Schema name non-string",
+            profile_slugs=["students_from_powerschool"],
+        )
+        from apps.automation.playbook_executor import execute_playbook
+
+        with patch.object(connection, "schema_name", {"x": "tenant_a"}, create=True):
+            result = execute_playbook(
+                playbook, school=None, user=None, dry_run=True, steps_payload=None
+            )
+        self.assertEqual(result["status"], "SUCCESS")
+        log = AutomationExecutionLog.objects.filter(
+            task_name="automation.playbook.execute"
+        ).latest("started_at")
+        self.assertEqual(log.schema_name, "")
+
+    def test_execution_log_schema_name_ignored_when_whitespace_only(self):
+        call_command("seed_migration_profiles")
+        u = uuid.uuid4().hex[:8]
+        playbook = MigrationPlaybook.objects.create(
+            slug=f"schema_name_ws_{u}",
+            name="Schema name whitespace",
+            profile_slugs=["students_from_powerschool"],
+        )
+        from apps.automation.playbook_executor import execute_playbook
+
+        with patch.object(connection, "schema_name", "   \n\t  ", create=True):
+            result = execute_playbook(
+                playbook, school=None, user=None, dry_run=True, steps_payload=None
+            )
+        self.assertEqual(result["status"], "SUCCESS")
+        log = AutomationExecutionLog.objects.filter(
+            task_name="automation.playbook.execute"
+        ).latest("started_at")
+        self.assertEqual(log.schema_name, "")
+
+    def test_execution_log_schema_name_truncates_oversized(self):
+        call_command("seed_migration_profiles")
+        u = uuid.uuid4().hex[:8]
+        playbook = MigrationPlaybook.objects.create(
+            slug=f"schema_name_long_{u}",
+            name="Schema name long",
+            profile_slugs=["students_from_powerschool"],
+        )
+        from apps.automation.playbook_executor import execute_playbook
+
+        with patch.object(connection, "schema_name", "t" * 200, create=True):
+            result = execute_playbook(
+                playbook, school=None, user=None, dry_run=True, steps_payload=None
+            )
+        self.assertEqual(result["status"], "SUCCESS")
+        log = AutomationExecutionLog.objects.filter(
+            task_name="automation.playbook.execute"
+        ).latest("started_at")
+        self.assertEqual(len(log.schema_name), 63)
+
     def test_empty_playbook_writes_failed_log(self):
         playbook = MigrationPlaybook.objects.create(
             slug="empty_pb",
@@ -57,6 +138,9 @@ class PlaybookExecutionLogTests(TestCase):
             playbook, school=None, user=None, dry_run=True, steps_payload=None
         )
         self.assertEqual(result["status"], "FAILED")
+        self.assertIn("preflight_confidence_score", result)
+        self.assertIn("preflight_signals", result)
+        self.assertFalse(result.get("override_applied"))
         log = AutomationExecutionLog.objects.get(
             task_name="automation.playbook.execute"
         )
@@ -183,6 +267,81 @@ class PlaybookExecutionLogTests(TestCase):
         self.assertFalse(log.execution_summary.get("override_applied"))
         self.assertIn("preflight_confidence_score", log.execution_summary)
 
+    def test_preflight_whitespace_only_override_reason_still_blocks(self):
+        """Override must be non-empty after strip; whitespace is not a valid operator attestation."""
+        call_command("seed_migration_profiles")
+        u = uuid.uuid4().hex[:8]
+        playbook = MigrationPlaybook.objects.create(
+            slug=f"low_conf_ws_override_{u}",
+            name="Low conf whitespace override",
+            profile_slugs=["students_from_powerschool"],
+        )
+        from apps.automation.playbook_executor import execute_playbook
+
+        result = execute_playbook(
+            playbook,
+            school=None,
+            user=None,
+            dry_run=False,
+            steps_payload=[{"rows": [{"first_name": "A"}], "mapping": {}}],
+            override_reason="   \n\t  ",
+        )
+        self.assertEqual(result["status"], "FAILED")
+        self.assertIn("preflight_confidence_score", result)
+        log = AutomationExecutionLog.objects.filter(
+            task_name="automation.playbook.execute"
+        ).latest("started_at")
+        self.assertEqual(log.status, AutomationExecutionLog.Status.FAILED)
+        self.assertFalse(log.execution_summary.get("override_applied"))
+
+    def test_preflight_invisible_only_override_reason_still_blocks(self):
+        call_command("seed_migration_profiles")
+        u = uuid.uuid4().hex[:8]
+        playbook = MigrationPlaybook.objects.create(
+            slug=f"low_conf_invisible_override_{u}",
+            name="Low conf invisible override",
+            profile_slugs=["students_from_powerschool"],
+        )
+        from apps.automation.playbook_executor import execute_playbook
+
+        result = execute_playbook(
+            playbook,
+            school=None,
+            user=None,
+            dry_run=False,
+            steps_payload=[{"rows": [{"first_name": "A"}], "mapping": {}}],
+            override_reason="\u200b\u200c\u200d\ufeff",
+        )
+        self.assertEqual(result["status"], "FAILED")
+        log = AutomationExecutionLog.objects.filter(
+            task_name="automation.playbook.execute"
+        ).latest("started_at")
+        self.assertEqual(log.status, AutomationExecutionLog.Status.FAILED)
+        self.assertFalse(log.execution_summary.get("override_applied"))
+
+    @patch("apps.automation.models.AutomationExecutionLog.objects.filter")
+    def test_execute_playbook_does_not_use_latest_log_lookup(self, mock_filter):
+        # Guard against race-prone "latest started_at" lookups; executor should update
+        # the exact log instance it creates.
+        mock_filter.side_effect = AssertionError("execute_playbook must not call .filter(...).latest(...)")
+        call_command("seed_migration_profiles")
+        u = uuid.uuid4().hex[:8]
+        playbook = MigrationPlaybook.objects.create(
+            slug=f"no_latest_lookup_{u}",
+            name="No latest lookup",
+            profile_slugs=["students_from_powerschool"],
+        )
+        from apps.automation.playbook_executor import execute_playbook
+
+        result = execute_playbook(
+            playbook,
+            school=None,
+            user=None,
+            dry_run=True,
+            steps_payload=None,
+        )
+        self.assertEqual(result["status"], "SUCCESS")
+
     @patch("apps.automation.playbook_executor._run_one_step")
     def test_preflight_override_allows_execution(self, mock_step):
         call_command("seed_migration_profiles")
@@ -251,6 +410,9 @@ class PlaybookExecutionLogTests(TestCase):
             ],
         )
         self.assertEqual(result["status"], "SUCCESS")
+        self.assertIn("preflight_confidence_score", result)
+        self.assertIn("preflight_signals", result)
+        self.assertFalse(result.get("override_applied"))
         log = AutomationExecutionLog.objects.filter(
             task_name="automation.playbook.execute"
         ).latest("started_at")

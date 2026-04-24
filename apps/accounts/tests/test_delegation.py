@@ -21,9 +21,12 @@ from apps.platform_runtime.helpers import get_platform_site_settings_record
 class DelegationHelperTests(TestCase):
     def setUp(self):
         self.site = get_platform_site_settings_record(create=True)
-        self.site.syllabus_approval_roles = ["DEAN", "HOD"]
-        self.site.grade_approval_roles = ["DEAN", "HOD"]
-        self.site.save()
+        self.site.apply_feature_control_state(
+            field_updates={
+                "syllabus_approval_roles": ["DEAN", "HOD"],
+                "grade_approval_roles": ["DEAN", "HOD"],
+            },
+        )
 
         self.dean = User.objects.create_user(
             "dean", "dean@test.com", "pass", role=User.Role.DEAN

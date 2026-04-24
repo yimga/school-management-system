@@ -1987,24 +1987,12 @@ def studio_rollback(request):
                 field_updates=field_updates,
                 save=True,
             )
+        elif callable(getattr(site, "apply_feature_control_state", None)):
+            site.apply_feature_control_state(field_updates=field_updates)
         else:
-            updated_fields: list[str] = []
-            for field_name, previous_value in field_updates.items():
-                id_attr = f"{field_name}_id"
-                if hasattr(site, id_attr):
-                    setattr(site, id_attr, previous_value)
-                    updated_fields.append(field_name)
-                elif hasattr(site, field_name):
-                    setattr(site, field_name, previous_value)
-                    updated_fields.append(field_name)
-            theme_fields = [
-                f for f in updated_fields if isinstance(f, str) and f.strip()
-            ]
-            save_fields = list(dict.fromkeys(theme_fields))
-            if hasattr(site, "updated_at"):
-                save_fields.append("updated_at")
-            if save_fields:
-                site.save(update_fields=save_fields)
+            raise RuntimeError(
+                "Tenant site settings row does not expose a Phase B write contract (apply_theme_experience_state/apply_feature_control_state)."
+            )
 
         theme_fields = sorted(field_updates.keys())
 

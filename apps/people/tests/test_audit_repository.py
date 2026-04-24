@@ -114,6 +114,15 @@ class TestAuditRepository(unittest.TestCase):
 
         cursor.execute.assert_not_called()
 
+    def test_drop_audit_trigger_non_pg_no_op(self):
+        with patch.object(connection, "vendor", "sqlite"):
+            from apps.people.repositories.audit_repository import drop_audit_trigger
+
+            cursor = MagicMock()
+            drop_audit_trigger(cursor, "people_studentprofile")
+
+        cursor.execute.assert_not_called()
+
     def test_drop_audit_trigger_pg_rejects_qualified_table_name(self):
         with patch.object(connection, "vendor", "postgresql"):
             from apps.people.repositories.audit_repository import drop_audit_trigger
@@ -267,6 +276,30 @@ class TestAuditRepository(unittest.TestCase):
 
         cursor.execute.assert_called_once()
 
+    def test_create_audit_trigger_non_pg_no_op(self):
+        with patch.object(connection, "vendor", "sqlite"):
+            from apps.people.repositories.audit_repository import create_audit_trigger
+
+            cursor = MagicMock()
+            create_audit_trigger(cursor, "people_studentprofile")
+
+        cursor.execute.assert_not_called()
+
+    def test_create_audit_trigger_pg_uses_quoted_identifiers(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection.ops, "quote_name", side_effect=lambda n: f'"{n}"'),
+        ):
+            from apps.people.repositories.audit_repository import create_audit_trigger
+
+            cursor = MagicMock()
+            create_audit_trigger(cursor, "people_studentprofile")
+
+        cursor.execute.assert_called_once_with(
+            'CREATE TRIGGER "audit_people_studentprofile" AFTER INSERT OR UPDATE OR DELETE ON "people_studentprofile" '
+            "FOR EACH ROW EXECUTE PROCEDURE audit_trigger_fn()"
+        )
+
     def test_create_audit_trigger_pg_accepts_max_table_name_for_trigger_prefix(self):
         name = "m" * 57
         with patch.object(connection, "vendor", "postgresql"):
@@ -287,6 +320,35 @@ class TestAuditRepository(unittest.TestCase):
             create_audit_trigger_function(cursor)
             cursor.execute.assert_not_called()
 
+    def test_create_audit_trigger_function_uses_redact_keys_sql_array(self):
+        from apps.people.repositories import audit_repository
+        from apps.people.repositories.audit_repository import create_audit_trigger_function
+
+        cursor = MagicMock()
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(audit_repository, "REDACT_KEYS", ["token", "secret"]),
+        ):
+            create_audit_trigger_function(cursor)
+
+        sql = cursor.execute.call_args[0][0]
+        self.assertIn("redact_keys text[] :=", sql)
+        self.assertIn("ARRAY['token', 'secret']::text[]", sql)
+
+    def test_create_audit_trigger_function_embeds_default_redact_keys_snapshot(self):
+        from apps.people.repositories.audit_repository import create_audit_trigger_function
+
+        cursor = MagicMock()
+        with patch.object(connection, "vendor", "postgresql"):
+            create_audit_trigger_function(cursor)
+
+        sql = cursor.execute.call_args[0][0]
+        self.assertIn(
+            "ARRAY['password', 'password_hash', 'secret', 'token', 'api_key', "
+            "'card_last4', 'card_number', 'ssn', 'social_security']::text[]",
+            sql,
+        )
+
     def test_revoke_audit_log_mutations_non_pg_no_op(self):
         with patch.object(connection, "vendor", "sqlite"):
             from apps.people.repositories.audit_repository import (
@@ -296,6 +358,33 @@ class TestAuditRepository(unittest.TestCase):
             cursor = MagicMock()
             revoke_audit_log_mutations(cursor)
             cursor.execute.assert_not_called()
+
+    def test_drop_audit_trigger_pg_uses_quoted_identifiers(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection.ops, "quote_name", side_effect=lambda n: f'"{n}"'),
+        ):
+            from apps.people.repositories.audit_repository import drop_audit_trigger
+
+            cursor = MagicMock()
+            drop_audit_trigger(cursor, "people_studentprofile")
+
+        cursor.execute.assert_called_once_with(
+            'DROP TRIGGER IF EXISTS "audit_people_studentprofile" ON "people_studentprofile"'
+        )
+
+    def test_revoke_audit_log_mutations_pg_executes_revoke_sql(self):
+        with patch.object(connection, "vendor", "postgresql"):
+            from apps.people.repositories.audit_repository import (
+                revoke_audit_log_mutations,
+            )
+
+            cursor = MagicMock()
+            revoke_audit_log_mutations(cursor)
+
+        cursor.execute.assert_called_once_with(
+            "REVOKE UPDATE, DELETE ON audit_log FROM CURRENT_USER;"
+        )
 
     def test_create_audit_trigger_function_rejects_invalid_redact_keys_entry(self):
         from apps.people.repositories import audit_repository

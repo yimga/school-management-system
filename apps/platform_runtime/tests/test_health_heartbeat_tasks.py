@@ -98,3 +98,48 @@ class HealthHeartbeatTaskTests(TestCase):
         )
         self.assertEqual(log.status, AutomationExecutionLog.Status.FAILED)
         self.assertTrue(log.execution_summary.get("breached"))
+
+    @patch.dict(
+        os.environ,
+        {
+            "ENABLE_AUTOMATION_FAILURE_TREND_BEAT": "1",
+            "AUTOMATION_FAILURE_TREND_MAX_FAILURES": "10",
+            "AUTOMATION_FAILURE_TREND_LOOKBACK_HOURS": "24",
+        },
+    )
+    def test_failure_trend_under_threshold_succeeds(self):
+        """When recent failures stay at or below max_failures, signal is SUCCESS (not breached)."""
+        from apps.platform_runtime.tasks import automation_failure_trend_signal
+
+        AutomationExecutionLog.objects.create(
+            task_name="any.task",
+            status=AutomationExecutionLog.Status.FAILED,
+            execution_type=AutomationExecutionLog.ExecutionType.SCHEDULED,
+        )
+        out = automation_failure_trend_signal()
+        self.assertEqual(out, "ok")
+        log = AutomationExecutionLog.objects.get(
+            task_name="platform.automation_failure_trend_signal"
+        )
+        self.assertEqual(log.status, AutomationExecutionLog.Status.SUCCESS)
+        self.assertFalse(log.execution_summary.get("breached"))
+
+    @patch.dict(
+        os.environ,
+        {
+            "ENABLE_AUTOMATION_FAILURE_TREND_BEAT": "1",
+            "AUTOMATION_FAILURE_TREND_MAX_FAILURES": "not-a-number",
+            "AUTOMATION_FAILURE_TREND_LOOKBACK_HOURS": "also-bad",
+        },
+    )
+    def test_failure_trend_invalid_env_integers_use_defaults(self):
+        """Non-numeric operator env must not crash the beat (bucket C)."""
+        from apps.platform_runtime.tasks import automation_failure_trend_signal
+
+        out = automation_failure_trend_signal()
+        self.assertEqual(out, "ok")
+        log = AutomationExecutionLog.objects.get(
+            task_name="platform.automation_failure_trend_signal"
+        )
+        self.assertEqual(log.execution_summary.get("lookback_hours"), 24)
+        self.assertEqual(log.execution_summary.get("max_failures"), 10)

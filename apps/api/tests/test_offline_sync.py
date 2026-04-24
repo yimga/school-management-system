@@ -63,11 +63,9 @@ class OfflineSyncBatchTestCase(TestCase):
         )
 
         site = get_platform_site_settings_record(create=True)
-        fs = site.get_feature_control_settings()
-        bff = dict(fs["backend_feature_flags"])
+        bff = dict(site.get_backend_feature_flags())
         bff["enable_offline_attendance_sync"] = True
         site.apply_feature_control_state(
-            portal_features=dict(fs["portal_features"]),
             backend_feature_flags=bff,
             field_updates={"enable_offline_mode": True},
         )

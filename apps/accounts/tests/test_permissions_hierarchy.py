@@ -9,7 +9,6 @@ from apps.academics.models import AcademicYear, Department, Specialty, Classroom
 from apps.people.models import StudentProfile, StudentGuardian
 from apps.finance.models import ComplianceProfile, Invoice
 from apps.platform_runtime.helpers import get_platform_site_settings_record
-from apps.siteconfig.models import default_backend_feature_flags
 
 
 class RoleHierarchyTests(TestCase):
@@ -103,12 +102,13 @@ class GuardianFinanceOptInTests(TestCase):
     def setUp(self):
         site = get_platform_site_settings_record(create=True)
         flags = {
-            **default_backend_feature_flags(),
-            **(site.backend_feature_flags or {}),
+            **dict(site.get_backend_feature_flags()),
+            "require_guardian_finance_opt_in": True,
         }
-        flags["require_guardian_finance_opt_in"] = True
-        site.backend_feature_flags = flags
-        site.save()
+        site.apply_feature_control_state(
+            backend_feature_flags=flags,
+            field_updates={},
+        )
 
         self.year = AcademicYear.objects.create(
             name="2025/2026",
@@ -166,11 +166,12 @@ class GuardianFinanceOptInTests(TestCase):
 
         site = get_platform_site_settings_record(create=True)
         flags = {
-            **default_backend_feature_flags(),
-            **(site.backend_feature_flags or {}),
+            **dict(site.get_backend_feature_flags()),
+            "require_guardian_finance_opt_in": False,
         }
-        flags["require_guardian_finance_opt_in"] = False
-        site.backend_feature_flags = flags
-        site.save()
+        site.apply_feature_control_state(
+            backend_feature_flags=flags,
+            field_updates={},
+        )
 
         self.assertTrue(can_view_invoice(parent, self.invoice.id))

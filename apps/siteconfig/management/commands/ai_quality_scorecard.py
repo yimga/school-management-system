@@ -30,7 +30,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         from apps.siteconfig.models import AIGatewayMetric
 
-        days = max(1, min(30, int(options.get("days") or 7)))
+        days = max(1, min(30, int(options.get("days", 7))))
         since = date.today() - timedelta(days=days - 1)
         qs = AIGatewayMetric.objects.filter(date__gte=since)
         task_type = (options.get("task_type") or "").strip().lower()
