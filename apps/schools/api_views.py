@@ -38,6 +38,9 @@ class SchoolConfigAPI(APIView):
     Rate-limited per IP to avoid abuse (see ALLOWANY_API_AUDIT.md).
     """
 
+    # §6.12 III.32: public AllowAny surface stays read-only (no state-changing verbs).
+    http_method_names = ["get", "head", "options"]
+
     permission_classes = [AllowAny]
 
     def get(self, request):

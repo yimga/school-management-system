@@ -1,19 +1,90 @@
 from django.test import TestCase
 
 from apps.policies.models import BlueprintPack
+from apps.registries.models import (
+    CalendarSystemRegistry,
+    CountryRegistry,
+    CurrencyRegistry,
+    EducationSystemTypeRegistry,
+    GradeScaleRegistry,
+    InstitutionTypeRegistry,
+    LocaleRegistry,
+    SubdivisionRegistry,
+    TimeZoneRegistry,
+)
 from apps.schools.models import School
+from apps.siteconfig.models_platform_catalog import RegionConfig
 from apps.setup_studio.models import SetupProgress
 from apps.setup_studio.services import get_setup_studio_payload
 
 
 class SetupStudioServiceTests(TestCase):
     def setUp(self):
+        self.region = RegionConfig.objects.create(
+            code="TST",
+            name="Test Region",
+            default_currency="XAF",
+        )
         self.school = School.objects.create(
             name="Setup School",
             slug="setup-school",
             subdomain="setup-school",
             country_code="CM",
+            timezone="UTC",
+            default_region=self.region,
+            school_type="BASE_SCHOOL",
             is_active=True,
+        )
+        self.cm_country, _ = CountryRegistry.objects.get_or_create(
+            code="CM",
+            defaults={"name": "Cameroon", "is_active": True},
+        )
+        self.subdivision, _ = SubdivisionRegistry.objects.get_or_create(
+            country=self.cm_country,
+            code="LT",
+            defaults={"name": "Littoral", "is_active": True},
+        )
+        self.school.subdivision = self.subdivision
+        self.school.save(update_fields=["subdivision"])
+        TimeZoneRegistry.objects.get_or_create(
+            code="UTC",
+            defaults={
+                "name": "Coordinated Universal Time",
+                "is_active": True,
+            },
+        )
+        CurrencyRegistry.objects.get_or_create(
+            code="XAF",
+            defaults={
+                "name": "CFA Franc BEAC",
+                "is_active": True,
+            },
+        )
+        LocaleRegistry.objects.get_or_create(
+            code="en",
+            defaults={
+                "name": "English",
+                "is_active": True,
+            },
+        )
+        CalendarSystemRegistry.objects.get_or_create(
+            code="gregorian",
+            defaults={
+                "name": "Gregorian (civil)",
+                "is_active": True,
+            },
+        )
+        InstitutionTypeRegistry.objects.get_or_create(
+            code="BASE_SCHOOL",
+            defaults={"name": "Base school", "is_active": True},
+        )
+        GradeScaleRegistry.objects.get_or_create(
+            code="0-20",
+            defaults={"name": "0–20 scale", "is_active": True},
+        )
+        EducationSystemTypeRegistry.objects.get_or_create(
+            code="EN",
+            defaults={"name": "English sub-system", "is_active": True},
         )
         BlueprintPack.objects.create(
             slug="cm-launch",
@@ -40,6 +111,7 @@ class SetupStudioServiceTests(TestCase):
         self.assertIn("blueprint_rankings", payload)
         self.assertIn("recommended_starter_stack", payload)
         self.assertIn("migration_path_flow", payload)
+        self.assertIn("registry_alignment", payload)
         self.assertIn("data_path_choices", payload)
         self.assertEqual(len(payload["migration_path_flow"]), 4)
         self.assertEqual(
@@ -67,6 +139,61 @@ class SetupStudioServiceTests(TestCase):
         self.assertEqual(
             role_codes, {"admin", "teacher", "parent", "finance", "student"}
         )
+
+    def test_setup_steps_use_launch_studio_panes_for_preview_and_checklist(self):
+        """Wiring: role preview + launch checklist steps deep-link into Launch Studio panes (PATH III.33/III.9)."""
+        payload = get_setup_studio_payload(self.school)
+        by_key = {s["key"]: s for s in payload["steps"]}
+        self.assertIn("pane=plan", by_key["plan_choice"]["link"])
+        self.assertIn("pane=role_preview", by_key["role_preview"]["link"])
+        self.assertIn("pane=checklist", by_key["launch"]["link"])
+
+    def test_registry_alignment_in_payload(self):
+        """PATH III.20: full registry snapshot + key_rows for Launch/Setup."""
+        payload = get_setup_studio_payload(self.school)
+        self.assertIn("registry_alignment", payload)
+        ra = payload["registry_alignment"]
+        self.assertTrue(ra.get("registry_row_ok"))
+        self.assertEqual(ra.get("country_code"), "CM")
+        self.assertEqual(ra.get("subdivision_code"), "LT")
+        self.assertTrue(ra.get("subdivision_registry_ok"))
+        self.assertEqual(ra.get("iana_timezone"), "UTC")
+        self.assertTrue(ra.get("timezone_registry_ok"))
+        self.assertEqual(ra.get("timezone_registry_name"), "Coordinated Universal Time")
+        self.assertEqual(ra.get("currency_code"), "XAF")
+        self.assertTrue(ra.get("currency_registry_ok"))
+        self.assertEqual(ra.get("currency_registry_name"), "CFA Franc BEAC")
+        self.assertTrue(ra.get("locale_registry_ok"))
+        self.assertEqual(ra.get("locale_code"), "en")
+        self.assertEqual(ra.get("locale_registry_name"), "English")
+        self.assertIn("Currency registry", ra.get("detail", ""))
+        self.assertIn("Timezone registry", ra.get("detail", ""))
+        self.assertIn("Locale registry", ra.get("detail", ""))
+        self.assertTrue(ra.get("calendar_registry_ok"))
+        self.assertEqual(ra.get("calendar_system_code"), "gregorian")
+        self.assertEqual(ra.get("calendar_registry_name"), "Gregorian (civil)")
+        self.assertIn("Calendar system registry", ra.get("detail", ""))
+        self.assertTrue(ra.get("institution_type_registry_ok"))
+        self.assertEqual(ra.get("institution_type_code"), "BASE_SCHOOL")
+        self.assertTrue(ra.get("grade_scale_registry_ok"))
+        self.assertEqual(ra.get("grading_scale_code"), "0-20")
+        self.assertTrue(ra.get("education_system_type_registry_ok"))
+        self.assertEqual(ra.get("education_system_code"), "EN")
+        self.assertIn("Institution type registry", ra.get("detail", ""))
+        self.assertIn("Grading scale registry", ra.get("detail", ""))
+        self.assertIn("Education system type registry", ra.get("detail", ""))
+        self.assertIn("Subdivision registry", ra.get("detail", ""))
+        key_rows = ra.get("key_rows") or []
+        self.assertGreaterEqual(len(key_rows), 9)
+        self.assertEqual(ra.get("mismatch_count"), 0)
+        self.assertIn("url", (ra.get("settings_cta") or {}))
+        lines = ra.get("summary_lines") or []
+        self.assertGreaterEqual(len(lines), 2)
+        self.assertEqual(" ".join(lines).strip(), ra.get("detail", "").strip())
+        for row in key_rows:
+            self.assertIn("label", row)
+            self.assertIn("ok", row)
+            self.assertIn("value", row)
         preview_titles = {item["title"] for item in payload["preview_cards"]}
         self.assertEqual(
             preview_titles,

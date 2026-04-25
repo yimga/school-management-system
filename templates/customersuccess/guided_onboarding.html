@@ -224,6 +224,17 @@
       <p class="setup-studio-subtitle">
         {% trans "Move from setup state to launch readiness with one dominant task, one recommended path, and role-by-role previews before go-live." %}
       </p>
+      {% if launch_studio_url %}
+      <p class="setup-studio-subtitle small mb-0">
+        <a href="{{ launch_studio_url }}" class="text-white text-decoration-underline" target="_parent" rel="noopener">{% trans "Open in Launch Studio (full shell)" %}</a>
+        <span class="text-white-50 mx-1" aria-hidden="true">·</span>
+        <a href="{{ launch_studio_url }}?pane=plan" class="text-white text-decoration-underline" target="_parent" rel="noopener">{% trans "Select plan pane" %}</a>
+        <span class="text-white-50 mx-1" aria-hidden="true">·</span>
+        <a href="{{ launch_studio_url }}?pane=checklist" class="text-white text-decoration-underline" target="_parent" rel="noopener">{% trans "Launch checklist pane" %}</a>
+        <span class="text-white-50 mx-1" aria-hidden="true">·</span>
+        <a href="{{ launch_studio_url }}?pane=role_preview" class="text-white text-decoration-underline" target="_parent" rel="noopener">{% trans "Preview by role pane" %}</a>
+      </p>
+      {% endif %}
       <div class="setup-studio-summary-strip">
         <span class="setup-studio-summary-chip"><i class="bi bi-check2-circle"></i> {{ progress_percent|default:0 }}% {% trans "complete" %}</span>
         <span class="setup-studio-summary-chip"><i class="bi bi-bullseye"></i> {% if current_step %}{{ current_step.label }}{% else %}{% trans "No active step" %}{% endif %}</span>

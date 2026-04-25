@@ -76,6 +76,8 @@ class EntityCatalogEntryAdmin(admin.ModelAdmin):
         "name",
         "owning_app",
         "lifecycle_state",
+        "source_pack_id",
+        "source_pack_version",
         "model_label",
         "is_core",
         "updated_at",

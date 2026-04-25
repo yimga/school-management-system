@@ -1,0 +1,25 @@
+{% load i18n %}
+{# 1024: Core enrollment/finance counts from existing backend stats context. #}
+<section
+  class="card border-0 shadow-sm mb-3 backend-stats-core-strip"
+  data-shell-chrome="backend-stats-core-strip"
+  data-shell-ops-section="core-kpi-counts"
+  aria-label="{% trans 'Core school counts' %}"
+>
+  <div class="card-body py-2 px-3">
+    <div class="d-flex flex-wrap align-items-center gap-4 small">
+      <div class="d-flex align-items-center gap-2" data-shell-kpi="active-students">
+        <span class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.03em;">{% trans "Students" %}</span>
+        <strong class="fs-6" data-kpi-count="students-active">{{ stats.students|default:0 }}</strong>
+      </div>
+      <div class="d-flex align-items-center gap-2" data-shell-kpi="guardians-linked">
+        <span class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.03em;">{% trans "Guardians" %}</span>
+        <strong class="fs-6" data-kpi-count="guardians">{{ stats.guardians|default:0 }}</strong>
+      </div>
+      <div class="d-flex align-items-center gap-2" data-shell-kpi="published-terms">
+        <span class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.03em;">{% trans "Published terms" %}</span>
+        <strong class="fs-6" data-kpi-count="terms-published">{{ stats.published_terms|default:0 }}</strong>
+      </div>
+    </div>
+  </div>
+</section>

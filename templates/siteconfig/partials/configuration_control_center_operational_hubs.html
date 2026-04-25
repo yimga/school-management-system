@@ -1,0 +1,26 @@
+{% load i18n %}
+{% if operational_hubs %}
+<section class="mb-4" aria-labelledby="ccc-hubs-heading" data-ccc-operational-hubs="true">
+  <h2 id="ccc-hubs-heading" class="h6 text-uppercase {% if ccc_outcome_compact %}text-muted{% else %}text-white-50{% endif %} mb-2">{% trans "Operational hubs" %}</h2>
+  <p class="small {% if ccc_outcome_compact %}text-muted{% else %}text-white-50{% endif %} mb-3">{% trans "Workflows, approvals, import/export, documents, reports, RBAC, feature control, and communications." %}</p>
+  <ul class="list-unstyled mb-0{% if not ccc_outcome_compact %} sysconfig-hub-list{% endif %}">
+    {% for hub in operational_hubs %}
+    <li class="mb-2">
+      {% if ccc_outcome_compact %}
+      <a href="{{ hub.url }}" class="d-flex align-items-center gap-2 py-2 px-3 rounded border bg-light text-decoration-none text-dark">
+        <span class="bi {{ hub.icon }} text-primary" aria-hidden="true"></span>
+        <span>{{ hub.label }}</span>
+        <span class="bi bi-chevron-right ms-auto text-muted" aria-hidden="true"></span>
+      </a>
+      {% else %}
+      <a href="{{ hub.url }}" class="d-flex align-items-center gap-2 text-white text-decoration-none py-2 px-3 rounded sysconfig-hub-link">
+        <span class="bi {{ hub.icon }} text-primary" aria-hidden="true"></span>
+        <span>{{ hub.label }}</span>
+        <span class="bi bi-chevron-right ms-auto opacity-75" aria-hidden="true"></span>
+      </a>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}

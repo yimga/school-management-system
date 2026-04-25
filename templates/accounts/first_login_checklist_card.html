@@ -19,7 +19,10 @@
       {% endfor %}
     </ul>
     <p class="card-text small mt-2 mb-0">
-      <a href="{% url 'siteconfig:guided_onboarding' %}" data-tour="setup-studio-link">{% trans "Open Setup Studio" %}</a> {% trans "for the full flow." %}
+      <a href="{% url 'siteconfig:guided_onboarding' %}" data-tour="setup-studio-link">{% trans "Open Setup Studio" %}</a>
+      {% trans "for the full checklist, or use" %}
+      <a href="{% url 'studio_os:launch' %}?pane=overview" data-tour="launch-studio-link">{% trans "Launch Studio" %}</a>
+      {% trans "for readiness, migration, and role previews in one shell." %}
     </p>
   </div>
 </div>

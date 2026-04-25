@@ -6,7 +6,7 @@
 
 - [x] `templates/control_plane_base.html` — manager control plane shell (navbar, pills, sidebar, `cp_content`)
 - [x] `templates/control_plane_skeleton.html` — parent skeleton
-- [x] `templates/portal_base.html` — tenant portal
+- [x] `templates/portal_base.html` — tenant portal (**2026-04-25, batch 968:** inline dashboard-page script treats **`/studio/`** as **`page=studio`** for body **`data-dashboard-page`** / **`dashboard-page-studio`** class)
 - [x] `templates/base.html` — tenant root
 - [x] `templates/admin/base_site.html` — manager Unfold + bridge (per matrix)
 - [x] `templates/studio_os/shell.html` — tenant Studio → `portal_base`

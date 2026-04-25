@@ -2268,6 +2268,7 @@ def backend_dashboard(request):
         "gce_enabled": year and getattr(year, "enable_gce_registration", False)
         if year
         else False,
+        "pending_approvals_count": pending_approvals_count,
         "chart_finance_status_json": chart_finance_status_json,
         "chart_finance_trend_json": chart_finance_trend_json,
         "chart_attendance_donut_json": chart_attendance_donut_json,
@@ -2341,6 +2342,40 @@ def backend_dashboard(request):
                 checklist_items.append(
                     {"label": _("Setup Studio (all steps)"), "url": setup_studio_url}
                 )
+            launch_base = _safe("studio_os:launch") or ""
+            if launch_base and launch_base != "#":
+                checklist_items.append(
+                    {
+                        "label": _("Launch Studio (readiness & checklists)"),
+                        "url": f"{launch_base}?pane=overview",
+                    }
+                )
+                role_upper = (getattr(request.user, "role", "") or "").upper()
+                _op_roles = {
+                    "IT_ADMIN",
+                    "LEADERSHIP",
+                    "ADMIN",
+                    "PRINCIPAL",
+                    "PROPRIETOR",
+                    "SUPERADMIN",
+                }
+                _preview_roles = {"TEACHER", "PARENT", "STUDENT"}
+                if role_upper in _op_roles or getattr(
+                    request.user, "is_superuser", False
+                ):
+                    checklist_items.append(
+                        {
+                            "label": _("Launch Studio: data migration"),
+                            "url": f"{launch_base}?pane=migration",
+                        }
+                    )
+                if role_upper in _preview_roles:
+                    checklist_items.append(
+                        {
+                            "label": _("Launch Studio: preview by role"),
+                            "url": f"{launch_base}?pane=role_preview",
+                        }
+                    )
             context["first_login_checklist_items"] = checklist_items
         else:
             context["first_login_checklist_items"] = [

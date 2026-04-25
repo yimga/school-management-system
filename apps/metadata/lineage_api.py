@@ -63,7 +63,7 @@ def get_unified_lineage(
 
     Returns:
       {
-        "object": { "type", "identifier", ... },
+        "object": { "type", "identifier", ... } — for **entity**, includes **source_pack_id** / **source_pack_version** when an **EntityCatalogEntry** row exists; for **field**, includes the parent entity's pack provenance.
         "downstream": [ { "consumer_type", "consumer_code", "entity_code", "field_name" }, ... ],
         "downstream_summary": { "consumer_count", "consumer_type_counts", "consumers": [...] },
         "packages": [ { "package_id", "version", "blast_radius", ... } ] (when relevant),
@@ -82,13 +82,13 @@ def get_unified_lineage(
         "blast_radius": None,
     }
     try:
+        from apps.metadata.models import EntityCatalogEntry, FieldCatalogEntry
         from apps.metadata.services import (
             build_metadata_blast_radius,
             get_downstream_dependencies,
             get_package_lineage_registry,
             summarize_dependency_consumers,
         )
-        from apps.metadata.models import FieldCatalogEntry
     except _LINEAGE_SOFT_FAILURES:
         return result
 
@@ -100,6 +100,16 @@ def get_unified_lineage(
         if not entity_code:
             return result
         result["object"] = {"type": "entity", "entity_code": entity_code}
+        try:
+            entry = EntityCatalogEntry.objects.filter(code=entity_code).only(
+                "source_pack_id",
+                "source_pack_version",
+            ).first()
+            if entry is not None:
+                result["object"]["source_pack_id"] = entry.source_pack_id or ""
+                result["object"]["source_pack_version"] = entry.source_pack_version or ""
+        except _LINEAGE_SOFT_FAILURES:
+            pass
         deps = get_downstream_dependencies(entity_code=entity_code)
         result["downstream"] = deps[:limit]
         blast = build_metadata_blast_radius(entity_codes=[entity_code])
@@ -155,6 +165,8 @@ def get_unified_lineage(
             "entity_code": entity_code,
             "field_name": field_name,
             "field_id": field.id,
+            "source_pack_id": field.entity.source_pack_id or "",
+            "source_pack_version": field.entity.source_pack_version or "",
         }
         deps = get_downstream_dependencies(field_id=field.id)
         result["downstream"] = deps[:limit]
@@ -209,7 +221,5 @@ def get_unified_lineage(
             ],
         }
         return result
-
-    return result
 
     return result

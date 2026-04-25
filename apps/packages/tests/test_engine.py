@@ -4,6 +4,7 @@ CI enforcement: PackageEngine validate, preview, apply, promote, rollback.
 
 from unittest.mock import patch
 
+from django.db import IntegrityError
 from django.test import TestCase
 
 from apps.metadata.models import MetadataDependency
@@ -84,6 +85,7 @@ class PackageEngineApplyRollbackTests(TestCase):
             actor_id=None,
         )
         self.assertTrue(result["ok"], result)
+        self.assertEqual(result.get("apply_state"), "committed")
         self.assertIn("installed_id", result)
         self.assertIn("rollback_token", result)
         self.assertIn("changelog_id", result)
@@ -118,6 +120,7 @@ class PackageEngineApplyRollbackTests(TestCase):
                 actor_id=None,
             )
         self.assertFalse(result["ok"], result)
+        self.assertEqual(result.get("apply_state"), "rolled_back")
         self.assertEqual(result.get("reconciliation_status"), "failed")
         self.assertTrue(result.get("errors"))
         self.assertIn("simulated mid-apply bug", result["errors"][0])
@@ -128,6 +131,27 @@ class PackageEngineApplyRollbackTests(TestCase):
         self.assertTrue(failed.exists())
         summary = failed.first().impact_summary
         self.assertEqual(summary.get("mid_apply_error_type"), "AttributeError")
+
+    def test_apply_package_integrity_error_atomic_block_leaves_no_installed_row(self):
+        """§6.4: mid-apply DB error rolls back the atomic apply block; no InstalledPackage row."""
+        with patch(
+            "apps.packages.engine.InstalledPackage.objects.create",
+            side_effect=IntegrityError("simulated unique violation"),
+        ):
+            result = apply_package(
+                tenant_id=None,
+                package_id="ci-integrity-apply-pack",
+                version="1.0",
+                payload_sections={"policy": {"entity_codes": ["student"]}},
+                mode="production",
+                actor_id=None,
+            )
+        self.assertFalse(result["ok"], result)
+        self.assertEqual(result.get("apply_state"), "rolled_back")
+        self.assertEqual(result.get("reconciliation_status"), "failed")
+        self.assertFalse(
+            InstalledPackage.objects.filter(package_id="ci-integrity-apply-pack").exists()
+        )
 
     def test_apply_package_rejects_incompatible_scope(self):
         from apps.schools.models import School
@@ -147,6 +171,7 @@ class PackageEngineApplyRollbackTests(TestCase):
             actor_id=None,
         )
         self.assertFalse(result["ok"])
+        self.assertEqual(result.get("apply_state"), "not_attempted")
         self.assertIn("allowed", " ".join(result["errors"]).lower())
 
     def test_apply_package_registers_metadata_dependencies(self):

@@ -42,9 +42,14 @@ class LineageAPITests(TestCase):
         )
 
     def test_entity_lineage_returns_downstream_and_blast_radius(self):
+        self.entity.source_pack_id = "entity_pack_core"
+        self.entity.source_pack_version = "1.2.0"
+        self.entity.save(update_fields=["source_pack_id", "source_pack_version"])
         payload = get_unified_lineage(object_type="entity", code="student")
         self.assertEqual(payload["object"]["type"], "entity")
         self.assertEqual(payload["object"]["entity_code"], "student")
+        self.assertEqual(payload["object"]["source_pack_id"], "entity_pack_core")
+        self.assertEqual(payload["object"]["source_pack_version"], "1.2.0")
         self.assertIn("downstream", payload)
         self.assertIn("blast_radius", payload)
         self.assertIsNotNone(payload["blast_radius"])
@@ -58,6 +63,9 @@ class LineageAPITests(TestCase):
         self.assertIn("template:student-card", codes)
 
     def test_field_lineage_returns_downstream_and_blast_radius(self):
+        self.entity.source_pack_id = "field_test_pack"
+        self.entity.source_pack_version = "2.0.1"
+        self.entity.save(update_fields=["source_pack_id", "source_pack_version"])
         payload = get_unified_lineage(
             object_type="field",
             entity_code="student",
@@ -66,6 +74,8 @@ class LineageAPITests(TestCase):
         self.assertEqual(payload["object"]["type"], "field")
         self.assertEqual(payload["object"]["entity_code"], "student")
         self.assertEqual(payload["object"]["field_name"], "admission_number")
+        self.assertEqual(payload["object"]["source_pack_id"], "field_test_pack")
+        self.assertEqual(payload["object"]["source_pack_version"], "2.0.1")
         self.assertIsNotNone(payload["blast_radius"])
         self.assertEqual(payload["blast_radius"]["consumer_count"], 2)
 
@@ -77,6 +87,7 @@ class LineageAPITests(TestCase):
     def test_unknown_entity_returns_empty_downstream(self):
         payload = get_unified_lineage(object_type="entity", code="nonexistent")
         self.assertEqual(payload["object"].get("entity_code"), "nonexistent")
+        self.assertNotIn("source_pack_id", payload["object"])
         self.assertEqual(payload["downstream"], [])
         self.assertIsNotNone(payload["blast_radius"])
         self.assertEqual(payload["blast_radius"]["consumer_count"], 0)

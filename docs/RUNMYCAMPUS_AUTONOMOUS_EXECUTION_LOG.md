@@ -1,5 +1,383 @@
 # RunMyCampus autonomous execution log
 
+## Wave — §11.4 batches 1028–1032 + bar proof (2026-04-25)
+
+**A. Waves advanced:** **1028–1032** recorded in SOT; queue head **1033+**.
+
+**B. SOT rows:** **1028–1032** **DONE**; **1006**/**1007**/**1009** **PARTIAL**.
+
+**C. Files changed:** **`scripts/wave_shell_test_modules.py`** (**`parse_wave_modules_from_runbook_text`**, **`wave_modules_from_runbook_path`**); **`apps/platform_runtime/tests/test_wave_stanza_contract.py`** (order vs tuple); **`scripts/verify_doc_plan_density_discipline.py`** (runbook order gate); **`apps/siteconfig/tests/test_mutating_routes_expansion.py`** (**`SchoolThemeSettingsPostPolicyTests`**, **`TogglePreviewModePostPolicyTests`**); **`templates/partials/shell_chrome_backend_finance_pulse_strip.html`**; **`templates/partials/shell_chrome_contextual_info_banner.html`**; **`templates/partials/shell_chrome_page_heading_actions_strip.html`**; **`templates/accounts/backend_dashboard.html`**; **`templates/siteconfig/bulk_letters.html`**, **`user_preferences.html`**, **`school_theme_settings.html`**; **`apps/accounts/tests/test_backend_dashboard_shell_render.py`**; **`apps/platform_runtime/tests/test_marketing_shell.py`**; **`scripts/verify_shell_surface_inventory.py`**; **`docs/runbook/SOT_VALIDATION_STANZA.md`**; SOT; this log.
+
+**D. Real product/code changes:** Backend **finance** strip; **siteconfig**/**backend** template wiring; **mutating-route** **Client** tests; stanza **parser** + **stricter** gates.
+
+**E. Support-only:** SOT at-a-glance + forward-queue rows; runbook note; autonomous log; regenerated **`docs/generated/shell_surface_inventory_ledger.*`**.
+
+**F. Validations run:** `DJANGO_TEST_DB_FILE=.django_test_dbs/wave1005.sqlite3 python manage.py test` — **`test_shell_contract`**, **`test_marketing_shell`**, **`test_wave_stanza_contract`**, **`test_ccc_control_center_contract`**, **`test_sync_center_mutating_policy`**, **`test_tag_manager_mutating_policy`**, **`test_impersonation_consent_mutating_policy`**, **`test_clear_preview_mutating_policy`**, **`test_mutating_routes_expansion`**, **`test_backend_dashboard_shell_render`**, **`test_permissions`**, **`test_tenant_marketplace_post_security`**, **`test_control_plane_shell_render`** (**83 OK**, **`--noinput --keepdb`**); **`verify_shell_surface_inventory`**, **`verify_phase2_authenticated_shell_conformance`**, **`verify_design_system_phase2`**, **`verify_doc_plan_density_discipline`**, **`verify_sot_pillar_evidence`** — **PASS/OK**.
+
+**G. Failures fixed:** **`verify_shell_surface_inventory`** surface needles for **`bulk_letters`**/**`user_preferences`** (parent templates only **include** partials — required **include** markers, not **`data-shell-chrome`** literals).
+
+**H. Acceptance evidence:** Green bars above; inventory ledger written.
+
+**I. Legacy removed:** None.
+
+**J. Remaining safe work:** More **1006**/**1007**/**1009** breadth; additional **siteconfig**/**Studio** **POST** policy rows; optional **CCC** **Client** mutating tests when routes permit.
+
+**K. True blocker status:** None.
+
+## Wave — §11.4 batches 1022–1027 + bar proof (2026-04-25)
+
+**A. Waves advanced:** **1022–1027** recorded in SOT; **1028+** queue head unchanged.
+
+**B. SOT rows:** **1022–1027** **DONE**; **1006**/**1007**/**1009** **PARTIAL** (breadth follow-ups).
+
+**C. Files changed (this proof pass):** **`apps/siteconfig/tests/test_mutating_routes_expansion.py`** — **`BulkLettersPostPolicyTests`** school fixture: **`Plan`** with **`included_features=["reports"]`** (aligns with **`FEATURE_GATE_PATH_ANY_OF`** for **`/siteconfig/reports/bulk-letters/`**); **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`** batch **1023** note; this log.
+
+**D. Real product/code changes:** Test fixture only — documents real stack order (**plan entitlement** then **`settings.manage`**).
+
+**E. Support-only:** SOT line + log (no behavior change in **`bulk_letters`** view).
+
+**F. Validations run:** `DJANGO_TEST_DB_FILE=.django_test_dbs/wave1005.sqlite3 python manage.py test` — **`test_shell_contract`**, **`test_marketing_shell`**, **`test_ccc_control_center_contract`**, **`test_sync_center_mutating_policy`**, **`test_tag_manager_mutating_policy`**, **`test_impersonation_consent_mutating_policy`**, **`test_clear_preview_mutating_policy`**, **`test_mutating_routes_expansion`**, **`test_backend_dashboard_shell_render`**, **`test_permissions`**, **`test_tenant_marketplace_post_security`**, **`test_control_plane_shell_render`** (**78 OK**, **`--noinput --keepdb`**); **`test_wave_stanza_contract`** (**1 OK**); **`verify_shell_surface_inventory`**, **`verify_phase2_authenticated_shell_conformance`**, **`verify_design_system_phase2`**, **`verify_doc_plan_density_discipline`**, **`verify_sot_pillar_evidence`** — **PASS/OK**.
+
+**G. Failures fixed:** **`BulkLettersPostPolicyTests.test_bulk_letters_post_not_forbidden_with_settings_manage`** — was **403** from feature gate without **`reports`** on tenant **Plan**; fixed by attaching plan.
+
+**H. Acceptance evidence:** Green bars above; inventory ledger written by **`verify_shell_surface_inventory`**.
+
+**I. Legacy removed:** None.
+
+**J. Remaining safe work:** More **1006**/**1007**/**1009** breadth per SOT; optional inclusion of **`test_wave_stanza_contract`** in operator copy-paste bar (canonical list remains **`SOT_VALIDATION_STANZA.md`** / **`wave_shell_test_modules`**).
+
+**K. True blocker status:** None.
+
+## Wave — §11.4 batches 1017–1021: CP runtime shell + mutating expansion + backend audit snapshot + inventory (2026-04-25)
+
+**A. Product:** `test_control_plane_shell_render` (**`super:workflow_packs_catalog`**, **manager** host); **`test_mutating_routes_expansion`** (**`set_default_dashboard_view`**, **`set_act_as_role`**, **`studio_os:publish`**); **`shell_chrome_backend_ops_audit_snapshot.html`**; **`verify_shell_surface_inventory`** **`super_workflow_packs`** + audit partial; **`test_marketing_shell`** / **`test_backend_dashboard_shell_render`** assertions.
+
+**B. Bar:** `manage.py test` **70 OK** (prior wave modules + **`apps.schools.tests.test_control_plane_shell_render`**); **`DJANGO_TEST_DB_FILE=.django_test_dbs/wave1005.sqlite3`**, **`--noinput --keepdb`**; **`verify_shell_surface_inventory`**, **`verify_phase2_authenticated_shell_conformance`**, **`verify_design_system_phase2`**, **`verify_doc_plan_density_discipline`**, **`verify_sot_pillar_evidence`** — **PASS/OK** (2026-04-25).
+
+**C. Support:** SOT **§11.4** **1017–1021** **DONE**; this log.
+
+**D. Remaining:** **1006**/**1007**/**1009** breadth; optional more **CP** **`Client`** pages; **`django-messages`** chrome only when **`messages`** non-empty (runtime tests use always-on markers).
+
+## Wave — §11.4 batches 1012–1016: breadcrumb split partials + mutating routes expansion + Studio nav/sidebar + backend ops depth + inventory strictness (2026-04-25)
+
+**A. Product:** `shell_chrome_breadcrumb_row_*.html`, `backend_portal_breadcrumb_actions.html` (**`data-shell-chrome="breadcrumb-backend-actions"`**), `test_mutating_routes_expansion` (tenant host alignment), `studio_os/shell*.html` **`data-rmc-nav-family`** / **`studio_os_sidebar_token`**, `shell_chrome_backend_ops_depth_summary.html`, **`verify_shell_surface_inventory`** rows for **CP** breadcrumb surface + **Studio** + **backend_base**; **`test_marketing_shell`** breadcrumb partial assertions + **`test_breadcrumb_actions_block_between_chrome_partials`**.
+
+**B. Bar:** `manage.py test` **63 OK** — **`test_shell_contract`**, **`test_marketing_shell`**, **`test_ccc_control_center_contract`**, **`test_sync_center_mutating_policy`**, **`test_tag_manager_mutating_policy`**, **`test_impersonation_consent_mutating_policy`**, **`test_clear_preview_mutating_policy`**, **`test_mutating_routes_expansion`**, **`test_backend_dashboard_shell_render`**, **`test_permissions`**, **`test_tenant_marketplace_post_security`** (**`DJANGO_TEST_DB_FILE=.django_test_dbs/wave1005.sqlite3`**, **`--noinput --keepdb`**); **`verify_shell_surface_inventory`**, **`verify_phase2_authenticated_shell_conformance`**, **`verify_design_system_phase2`**, **`verify_doc_plan_density_discipline`**, **`verify_sot_pillar_evidence`** — **PASS/OK** (2026-04-25).
+
+**C. Support:** SOT **§11.4** **1012–1016** **DONE**; **1006**/**1007**/**1009** **PARTIAL**; this log.
+
+**D. Remaining:** **1006**/**1007** depth; optional **HTML** **`Client`** smoke on a **control-plane** page to assert rendered **`breadcrumb_actions`** override text (static order test covers template contract).
+
+## Wave — §11.4 batches 1006B–1011: impersonation/clear-preview policy + backend Client shell + operational status partial + inventory + `rmc_shell` portal/CP keys (2026-04-25)
+
+**A. Product:** `test_impersonation_consent_mutating_policy`, `test_clear_preview_mutating_policy`, `test_backend_dashboard_shell_render`, `shell_chrome_backend_operational_status_load.html`, `shell_contract` **`portal_shell_root`**, **`portal_default_document_title`**, **`shell_sidebar_control_plane`**, `portal_base` / `control_plane_base` wiring, **`verify_shell_surface_inventory`** expansion.
+
+**B. Bar:** `manage.py test` **shell + marketing + CCC + siteconfig policy suite (sync, tag, impersonation, clear_preview) + `test_backend_dashboard_shell_render` + marketplace** **`--noinput --keepdb`**; **`DJANGO_TEST_DB_FILE=.django_test_dbs/wave1005.sqlite3`**; **`verify_shell_surface_inventory`**, **`verify_phase2_authenticated_shell_conformance`**, **`verify_design_system_phase2`**, **`verify_doc_plan_density_discipline`**, **`verify_sot_pillar_evidence`**.
+
+**C. Support:** SOT **§11.4** **1006B**, **1007B**, **1009** **PARTIAL**, **1010**, **1011**; this log.
+
+**D. Remaining:** **1006**/**1009** breadth (more **POST** routes; **breadcrumb** partial safe only without breaking **block** inheritance).
+
+## Wave — §11.4 batches 1005–1008: shared chrome + siteconfig POST policy + backend system strip + `control_plane_product_title` (2026-04-25)
+
+**A. Product:** `templates/partials/shell_chrome_backend_system_indicators.html`; `shell_contract` **`control_plane_product_title`**; **`control_plane_base`** navbar/title; **`test_tag_manager_mutating_policy`**; **`test_sync_center_mutating_policy`** (**`SyncConflict`** fixture, **302** assert); **`verify_shell_surface_inventory`** backend + system partial + CP keys.
+
+**B. Bar:** `manage.py test` `test_shell_contract` + `test_marketing_shell` + `test_ccc_control_center_contract` + `test_sync_center_mutating_policy` + `test_tag_manager_mutating_policy` + `test_permissions` + `test_tenant_marketplace_post_security` — **49 OK**; `verify_shell_surface_inventory`, `verify_phase2_authenticated_shell_conformance`, `verify_design_system_phase2`, `verify_doc_plan_density_discipline`, `verify_sot_pillar_evidence` — **PASS/OK** (2026-04-25).
+
+**C. Support:** SOT **§11.4** **1005** **DONE**, **1006** **PARTIAL**, **1007** **PARTIAL**, **1008** **DONE**; this log.
+
+**D. Remaining:** **1006** depth on other **POST** **CCC**/Studio routes as surfaces allow; **1007** live **Client** for backend indicators optional.
+
+## Wave — §11.4 batch 1004: tenant marketplace POST `Client` HTTP security (2026-04-25)
+
+**A. Product:** `apps/marketplace/tests/test_tenant_marketplace_post_security.py` — `TenantMarketplacePostHttpSecurityTests` (tenant host `mkt-httpsec-tnt.runmycampus.com`, `reverse(..., urlconf="config.tenant_urls")`, `raise_request_exception=False`); static urlconf contract class retained.
+
+**B. Bar:** `manage.py test` `test_shell_contract` + `test_marketing_shell` + `test_ccc_control_center_contract` + `test_permissions` + `test_tenant_marketplace_post_security` — **OK**; `verify_shell_surface_inventory`, `verify_phase2_authenticated_shell_conformance`, `verify_design_system_phase2`, `verify_doc_plan_density_discipline`, `verify_sot_pillar_evidence` — **PASS/OK** (2026-04-25).
+
+**C. Support:** SOT **§11.4** **1004** + NOT DONE placeholders **1005–1008**; this log.
+
+**D. Next:** **1005** shared chrome partials; **1006** CCC/Studio mutating policy; **1007** backend ops depth; **1008** `rmc_shell` sweep.
+
+## Wave — §11.4 batches 998–1003: shared shell frame + `rmc_shell` auth/Studio + marketplace permissions + CCC footnote + role/marketplace ops (2026-04-25)
+
+**A. 998:** `shell_portal_layout_wrap_open.html`, `shell_skip_link.html`, `portal_base` + `control_plane_skeleton` refactors. **999:** `shell_contract` **portal/surface/cp/Studio** keys; templates + **verify_phase2** string updates. **1000:** `marketplace/permissions.py`, `test_permissions`. **1001:** `configuration_control_center_staging_publish` operator footnote. **1002:** permissions wired in `views` (1000). **1003:** `data-shell-role-ops`, `data-shell-marketplace-ops` strips.
+
+**B. Bar:** `manage.py test` `test_shell_contract` + `test_marketing_shell` + `test_ccc_control_center_contract` + `test_tenant_marketplace_post_security` + `test_permissions` **`--noinput`**; `verify_shell_surface_inventory`; `verify_phase2_authenticated_shell_conformance`; `verify_design_system_phase2`; `verify_doc_plan_density_discipline`; `verify_sot_pillar_evidence` — **PASS/OK** (2026-04-25).
+
+**C. Support:** SOT **§11.4** **998–1003**; this log.
+
+**D. Remaining:** HTTP **403** E2E for non-admin **marketplace** POST (needs tenant **Client** + **school** fixture); more **shared** **breadcrumb** / **message** frame partials if churn stays low.
+
+## Wave — §11.4 batch 997: `rmc_shell` key assertions + `tenant_urls` marketplace login contract (static) (2026-04-25)
+
+**A. Product:** `test_shell_contract` — full **`rmc_shell`** key surface; `test_tenant_marketplace_post_security` — **`login_required(tenant_*)`** in **`config/tenant_urls.py`**.
+
+**B. Gate / bar:** `manage.py test` **35 OK** (shell + marketing + ccc + marketplace url contract); `verify_*` as **996**.
+
+**C. Note:** Chose **file-based** contract tests to avoid **Windows** `default.sqlite3` file-lock noise on `manage.py test` without **`--noinput`**.
+
+## Wave — §11.4 batch 996: RMC `shell_rmc_registry_html_attrs` partial + shell inventory ledger + `admin/base_site` `rmc_shell` bridge (2026-04-25)
+
+**A. Product:** `templates/partials/shell_rmc_registry_html_attrs.html` (deduped **route/layout/nav/host/main** on **`<html>`** for portal/base/control-plane-skeleton). **`admin/base_site.html`:** `rmc_shell` on **`documentElement`**, **body** shell markers, **`data-rmc-admin-html`**.
+
+**B. Gate:** `scripts/verify_shell_surface_inventory.py` — **13** templates, **`docs/generated/shell_surface_inventory_ledger.{md,json}`**.
+
+**C. Support:** `test_marketing_shell` (portal/skeleton/base/admin assertions), SOT **§11.4** **996**; this log.
+
+**D. Bar:** `manage.py test` `test_shell_contract` + `test_marketing_shell` + `test_ccc_control_center_contract`; `verify_shell_surface_inventory`; `verify_phase2_authenticated_shell_conformance`; `verify_design_system_phase2`; `verify_doc_plan_density_discipline`; `verify_sot_pillar_evidence` — **PASS/OK** (2026-04-25).
+
+**E. Remaining (997+ program):** `rmc_shell` in inline template strings, POST hardening, CCC/Studio/marketplace actions, dashboard ops depth.
+
+## Wave — §11.4 batch 995: `shell_contract` registry + `rmc_shell` processor + `verify_shell_surface_inventory` (2026-04-25)
+
+**A. Product:** `apps/platform_runtime/shell_contract.py` (path/host classification), `context_processors.shell_contract_context`, `settings.TEMPLATES` registration; `portal_base` / `base` / `control_plane_skeleton` **`<html>`** **`data-rmc-route-family`**, **`data-rmc-layout-token`**, **`data-rmc-nav-family`**.
+
+**B. Gate:** `scripts/verify_shell_surface_inventory.py` (canonical template substring checks).
+
+**C. Support:** `apps/platform_runtime/tests/test_shell_contract.py`; SOT **§11.4** **995**; PATH; this log; `test_marketing_shell` extended **portal** assertions.
+
+**D. Bar:** `manage.py test` `test_shell_contract` + `test_marketing_shell` + `test_ccc_control_center_contract`; `verify_shell_surface_inventory`; `verify_phase2`; `verify_design_system_phase2`; `verify_doc`; `verify_sot` — **PASS/OK** (2026-04-25).
+
+**E. Remaining (program, not one pass):** shared partial extraction for chrome, expand inventory allowlist, permission hardening on sensitive POSTs, CCC server actions where models exist, marketing wave last.
+
+## Wave — §11.4 batches 989–994: skeleton + Studio embed + siteconfig runtime hub + role home + admin bridge + marketplace (2026-04-25)
+
+**A. 989:** `control_plane_skeleton.html` — `data-rmc-shell-root`, `data-shell-layout` on `<html>`, `data-rmc-shell-body` on `<body>`.
+
+**B. 990:** `studio_os/partials/shell_main_content.html` — `data-shell-studio-region`, `data-rmc-studio-os-embed`, `data-shell-host` (tenant/cp).
+
+**C. 991 (SiteSettings / Phase B product):** `tenant_runtime_configuration_hub.html` — surface attrs; operator alert + link to **Configuration Control Center**.
+
+**D. 992:** `accounts/backend_dashboard.html` — `data-shell-role-home="backend"` on **#dashboard-layout**.
+
+**E. 993:** `components/admin_nav_bridge.html` — manager **unified** nav shell markers.
+
+**F. 994 (marketplace):** `marketplace/tenant_app_catalog.html` — `data-shell-marketplace`, `data-rmc-market-surface`.
+
+**G. Support:** `test_marketing_shell` **+6** tests (`ShellWaveBatch989PlusContractTests`); **SOT** §11.4 **989–994**; **PATH**; this log.
+
+**H. Bar:** `manage.py test` `test_marketing_shell` + `test_ccc_control_center_contract` — **29 OK**; `verify_phase2_authenticated_shell_conformance`, `verify_design_system_phase2`, `verify_doc_plan_density_discipline`, `verify_sot_pillar_evidence` — **PASS/OK**.
+
+**I. Honest scope note:** Full **8-priority** platform transformation is a **program** of many runs; this wave advances **shell**, **CCC-adjacent siteconfig**, **Studio OS** partial, **dashboards**, **admin bridge**, **marketplace** in one tranche — **995+** remains (security, interop, marketing per priority when prior waves allow).
+
+## Wave — §11.4 batches 986–988: portal / control-plane / Studio / admin shell **data-* family** contract (2026-04-25)
+
+**A. 986 (PATH II):** `portal_base.html` — `data-rmc-shell-root`, `data-rmc-authenticated-shell`, sidebar desktop/offcanvas `data-shell-sidebar` + `data-shell-sidebar-mount`, main `data-shell-main`; `portal_sidebar.html` — `data-shell-nav-family="portal"`.
+
+**B. 987:** `control_plane_base.html` — `data-rmc-authenticated-shell` on `cp-layout`, aside sidebar mount; `control_plane_sidebar.html` — `data-shell-nav-family="control-plane"`.
+
+**C. 988:** `studio_os/shell.html` + `shell_control_plane.html` — `data-shell-layout="studio-os"`, `data-shell-host` tenant vs control-plane; `admin/base_site.html` — `data-shell-layout` on `documentElement` in existing shell script.
+
+**D. Support:** `test_marketing_shell` `ShellSurfaceFamilyContractTests` (5 tests). **SOT** §11.4 **986–988**; **PATH**; this log.
+
+**E. Bar:** `manage.py test` `test_marketing_shell` — **16 OK**; `verify_phase2_authenticated_shell_conformance` — **PASS**; `verify_design_system_phase2` — **PASS**; `verify_doc_plan_density_discipline` — **PASS**; `verify_sot_pillar_evidence` — **OK**.
+
+**F. Next:** **989+** (route-family template audits, deeper duplicate-chrome extractions) — shell/control-plane wave **not** exhausted.
+
+## Wave — §11.4 batches 983–985: CCC source/staging depth + operational hubs DRY + `control_plane_base` shell hooks (2026-04-25)
+
+**A. 983 (PATH II + Control Center product):** `control_outcome_center` — `PUBLISH_STAGING_HINT`, `get_ccc_source_legend_display_labels`, `build_ccc_staging_publish_links_for_request`; `views_console_domains` — `ccc_source_legend`, `ccc_publish_staging_hint`, `ccc_staging_links`; templates — `configuration_control_center_staging_publish.html`, outcomes partial with `<details>` legend + `ccc_outcome_compact` consistency.
+
+**B. 984:** `configuration_control_center_operational_hubs.html`; `console_domains_hub*.html` use shared include (duplicate hub chrome removed from parents).
+
+**C. 985:** `control_plane_base.html` — `data-shell-layout` / `data-shell-main` on control-plane chrome and main.
+
+**D. Support:** `apps/siteconfig/tests/test_ccc_control_center_contract.py`. **SOT** §11.4 **983–985**; **PATH** revision row; this log.
+
+**E. Bar:** `manage.py test` `test_ccc_control_center_contract` + `test_marketing_shell`; `verify_phase2_authenticated_shell_conformance`, `verify_design_system_phase2`, `verify_doc_plan_density_discipline`, `verify_sot_pillar_evidence` — **PASS/OK** (2026-04-25 run).
+
+**F. Next:** SiteSettings Phase B, Studio Control / outputs depth, or **986+** shell (header/sidebar full dedupe = larger tranche).
+
+## Wave — §11.4 batches 980–982: `base.html` `data-surface` + Config Control Center shell + agent contract (2026-04-25)
+
+**A. 980 (PATH II):** `templates/base.html` — `data-surface` on `<html>` (onboarding / marketing / tenant), `LANGUAGE_CODE` lang, i18n load at file top; `static/css/surface-themes.css` — `onboarding` surface block.
+
+**B. 981:** `templates/schools/onboard_wizard.html` — `data-shell-page="onboarding-wizard"`.
+
+**C. 982 (pivot: Configuration Control Center / operator shell):** `console_domains_hub.html`, `console_domains_hub_control_plane.html` — `data-shell-surface="config-control-center"`.
+
+**D. Support:** `apps/platform_runtime/tests/test_marketing_shell.py` — new contract tests. **AGENTS.md** + **`.cursor/rules/runmycampus-autonomous-execution.mdc`** + **`.cursor/rules/agent-implementation-first.mdc`**: no “pass complete” / no “needs new section 11.4 row” as stopping reasons when work remains; dedupe `agent-implementation-first.mdc` duplicate block.
+
+**E. Bar (post-implementation):** `test_marketing_shell` — **11 OK**; `verify_phase2_authenticated_shell_conformance` — **PASS**; `verify_design_system_phase2` — **PASS**; `verify_doc_plan_density_discipline` — **PASS**; `verify_sot_pillar_evidence` — **OK**.
+
+**F. Next:** siteconfig / Control Studio product depth, or **983+** shell; shell inheritance still has optional duplicate-chrome and extended route audits (bounded).
+
+## Wave — §11.4 batch 979: PATH II — `setup-studio` / `onboard` shell (2026-04-25)
+
+**A. Product:** `shell-data-dashboard-page.js` + `dashboard-text-visibility.css` — **onboarding** page token for **`/setup-studio/*`** and **`/onboard/*`**.
+
+**B. Test:** `test_marketing_shell` — **`/setup-studio/`** substring.
+
+**C. Bar:** `verify_design_system_phase2`, `verify_phase2`, `verify_doc` — **PASS**.
+
+## Wave — §11.4 batch 977–978: PATH II shell route breadth + `dashboard-text-visibility` tokens (2026-04-25)
+
+**A. 977:** `static/js/shell-data-dashboard-page.js` — `/api/internal/metadata/`, reports/academics/automation/communication/api-center/org-network/evals; `test_marketing_shell` contract strings.
+
+**B. 978:** `static/css/dashboard-text-visibility.css` — `[data-dashboard-page]` muted contrast for new shell classifiers.
+
+**C. Bar:** `python manage.py test apps.platform_runtime.tests.test_marketing_shell.ShellDataDashboardPageContractTests`; `verify_design_system_phase2`, `verify_phase2_authenticated_shell_conformance`, `verify_doc_plan_density_discipline`, `verify_sot_pillar_evidence` — **PASS/OK**.
+
+**D. SOT §11.4 + PATH revision + phase_02;** shell wave: further breadth needs per-route template audit (next §11.4 or pivot).
+
+## Wave — §11.4 batch 974–976: PATH III.20 registry table + shell `siteconfig`/`metadata`/`marketplace` (2026-04-25)
+
+**A. III.20 (974):** `apps/setup_studio/services.py` — `SubdivisionRegistry` + country consistency; `InstitutionTypeRegistry` (`school_type`); `GradeScaleRegistry` (`grading_scale`); `EducationSystemTypeRegistry` (`sub_system`); `key_rows`, `mismatch_count`, `settings_cta`; gettext labels.
+
+**B. Studio OS (975):** `launch_studio_overview_body.html` — mismatch banner, per-row status icons, CTA, narrative in `<details>` when table present.
+
+**C. Shell (976):** `static/js/shell-data-dashboard-page.js` — `metadata`, `marketplace`, `siteconfig` path families.
+
+**D. Tests:** `apps/setup_studio/tests.py` — `CountryRegistry`, subdivision FK, `BASE_SCHOOL` / `0-20` / `EN` seeds; extended `test_registry_alignment_in_payload`.
+
+**E. Bar:** `DJANGO_TEST_DB_FILE=… python manage.py test apps.setup_studio.tests --noinput --keepdb` — **5 OK**; `verify_phase5`, `verify_phase2`, `verify_design_system_phase2`, `verify_doc`, `verify_sot_pillar`, `verify_path` — **PASS/OK**.
+
+**F. Next:** **SiteSettings / siteconfig Phase B** and additional shell surfaces as SOT head indicates.
+
+## Wave — §11.4 batch 972–973: PATH III.20 `LocaleRegistry` + `CalendarSystemRegistry` on `registry_alignment` (2026-04-25)
+
+**A. Product:** `apps/setup_studio/services.py` — `_operating_locale_hint`, `_locale_registry_candidate_codes`, `LocaleRegistry` join (`locale_code`, `locale_registry_*`); `_operating_calendar_system_code`, `CalendarSystemRegistry` join (`calendar_system_code`, `calendar_registry_*`).
+
+**B. Support:** `apps/setup_studio/tests.py` — seed `LocaleRegistry` **en**, `CalendarSystemRegistry` **gregorian**; `test_registry_alignment_in_payload` asserts new keys and detail lines.
+
+**C. Bar:** `DJANGO_TEST_DB_FILE=… python manage.py test apps.setup_studio.tests --noinput --keepdb -v 1` — **5 OK**; `python scripts/verify_phase5_studio_os_conformance.py` — **PASS**; `python scripts/verify_doc_plan_density_discipline.py` — **PASS** (post-SOT).
+
+**D. SOT/PATH/phase checklist** updated; **AGENTS** + **`.cursor/rules/runmycampus-autonomous-execution.mdc`**: multi-batch continuation rule (no single-batch stop when safe work remains).
+
+**E. Next:** **974+**.
+
+## Wave — §11.4 batch 969: III.20 `TimeZoneRegistry` on `registry_alignment` + shell classifier + siteconfig (2026-04-25)
+
+**A. Setup/Launch (PATH III.20):** `apps/setup_studio/services.py` — `_registry_alignment_snapshot` adds `iana_timezone`, `timezone_registry_name`, `timezone_registry_ok` with `TimeZoneRegistry` lookup; `registry_alignment.detail` includes timezone line. **`apps/setup_studio/tests.py`** — seed `TimeZoneRegistry` (UTC) + school `timezone="UTC"`, assert payload.
+
+**B. Shell wave:** `static/js/shell-data-dashboard-page.js` — shared classifier; `portal_base` / `base` / `control_plane_skeleton` / `admin/base_site.html`; `dashboard-text-visibility.css` for `super` and `django-admin`; `verify_design_system_phase2` **REQUIRED_STATIC**; `test_marketing_shell` contract.
+
+**C. Siteconfig:** `templates/siteconfig/bulk_letters.html` + `report_library.html` extend **`backend_base`**.
+
+**D. Tests:** `test_sidebar_record_context` — remove read-only `is_authenticated` assignment (Django 5.x+).
+
+**E. Bar:** `python manage.py test apps.setup_studio.tests apps.platform_runtime.tests.test_marketing_shell --noinput` (or `--keepdb` + `DJANGO_TEST_DB_FILE` on Windows); `verify_phase2_authenticated_shell_conformance`, `verify_phase5_studio_os_conformance`, `verify_design_system_phase2`, `verify_doc_plan_density_discipline`, `verify_sot_pillar_evidence`.
+
+**F. Next:** **970+**.
+
+## Wave — §11.4 batch 968: PATH III.20 + IV.1 + shell — registry snapshot, plan pane, `portal_base` /studio/ (2026-04-25)
+
+**A. Launch wave:** `registry_alignment` on payload; `plan_choice` → Launch **`?pane=plan`**; overview card; Setup Studio hero **Select plan** link.
+
+**B. Shell wave (pivot):** `portal_base.html` sets **`data-dashboard-page=studio`** for **`/studio/*`** paths (authenticated shell convergence).
+
+**C. Bar:** 16 tests (setup + batch962 + launch rails); `verify_phase2` + `verify_phase5` PASS.
+
+**D. Next:** **969+**.
+
+## Wave — §11.4 batch 967: PATH III.9 / III.33 / §6.5 — Launch setup depth (payload + overview + hero) (2026-04-25)
+
+**A. Scope:** **Launch + Setup** product wave (not one slice) — `get_setup_studio` step CTAs align with **Launch Studio** panes; operators see actionable links in **Launch overview** and **Setup Studio** hero.
+
+**B. Product files:** `apps/setup_studio/services.py`, `templates/studio_os/partials/launch_studio_overview_body.html`, `templates/customersuccess/guided_onboarding.html`.
+
+**C. Support / verification:** `apps/setup_studio/tests.py`, `apps/customersuccess/tests/test_batch962_guided_onboarding_launch_url.py`.
+
+**D. Validators:** `DJANGO_TEST_DB_FILE=… python manage.py test apps.setup_studio.tests apps.customersuccess.tests.test_batch962_guided_onboarding_launch_url apps.studio_os.tests.test_launch_and_automation_rails --noinput --keepdb` — **15 OK**; `python scripts/verify_phase5_studio_os_conformance.py` **PASS**; `verify_doc_plan_density` / `verify_path` / `verify_sot_pillar` after SOT.
+
+**E. Next:** **968+** (e.g. authenticated shell or SiteSettings / next PATH cluster when picked).
+
+## Wave — §11.4 batch 966 (PATH III.39, waves 964–966) — academics syllabus builder + preview critical-path tests (2026-04-25)
+
+**A. Scope:** **PATH** §6.16 **III.39** — contract tests for **syllabus builder** and **syllabus preview** on the assigned-teacher path (and **403** for unassigned users).
+
+**B. Files:** **`apps/academics/tests/test_academics_critical_paths.py`**, **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`**, **`docs/PATH_TO_100_PERCENT_EXECUTION_PLAN.md`**, **`docs/phase_checklists/README.md`**.
+
+**C. Validators:** **`DJANGO_TEST_DB_FILE=.django_test_dbs/academics_964b.sqlite3 python manage.py test apps.academics.tests.test_academics_critical_paths --noinput --keepdb -v 1`** — **7 OK**. **`python scripts/verify_doc_plan_density_discipline.py`**, **`python scripts/verify_path_to_100_plan_discipline.py`**, **`python scripts/verify_sot_pillar_evidence.py`** — **PASS / OK**.
+
+**D. Next:** **`967+`**.
+
+## Wave — §11.4 batch 963 (PATH III.33, waves 961–963) — first-login, guided onboarding, command palette → Launch Studio (2026-04-25)
+
+**A. Scope:** **PATH** §6.13 **III.33** — connect **onboarding and first-run surfaces** to **Launch Studio** with role-appropriate **pane** query params (aligns with **batch 960** rail panes).
+
+**B. Files:** **`apps/accounts/views.py`**, **`templates/accounts/first_login_checklist_card.html`**, **`apps/customersuccess/views_tenant.py`**, **`templates/customersuccess/guided_onboarding.html`**, **`apps/studio_os/services.py`**, tests **`test_batch961_first_login_launch_studio`**, **`test_batch962_guided_onboarding_launch_url`**, **`test_batch963_command_palette_launch_panes`**, **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`**, **`docs/PATH_TO_100_PERCENT_EXECUTION_PLAN.md`**, **`docs/launch_studio_checklist.md`**, **`docs/phase_checklists/phase_05_studio_os.md`**.
+
+**C. Validators:** **`DJANGO_TEST_DB_FILE=.django_test_dbs/iii33_chain.sqlite3 python manage.py test apps.accounts.tests.test_batch961_first_login_launch_studio apps.customersuccess.tests.test_batch962_guided_onboarding_launch_url apps.studio_os.tests.test_batch963_command_palette_launch_panes apps.setup_studio.tests --noinput --keepdb -v 1`** — **8 OK**. **`python scripts/verify_phase5_studio_os_conformance.py`**, **`python scripts/verify_doc_plan_density_discipline.py`**, **`python scripts/verify_path_to_100_plan_discipline.py`**, **`python scripts/verify_sot_pillar_evidence.py`** — **PASS / OK**.
+
+**D. Next:** **`967+`** (superseded by **batch 966** academics wave).
+
+## Wave — §11.4 batch 960: PATH III.9 / §6.5 — Launch Studio migration + preview-by-role (2026-04-25)
+
+**A. Scope:** **PATH** `III.9` / **§6.5** — first-class **Launch Studio** rail entries for **migration path** (embedded tenant migration wizard) and **preview by role** (native pane), closing gap vs **launch_studio_checklist** “choose migration path” + “preview by role” reachability from Studio OS.
+
+**B. Files:** **`apps/studio_os/views.py`** (`launch_left_rail`, `allowed_launch`, `_resolve_launch_iframe_src` mapping), **`apps/studio_os/deep_links.py`**, **`templates/studio_os/partials/launch_mode_canvas.html`**, **`templates/studio_os/partials/launch_studio_role_preview_pane.html`** (new), **`apps/studio_os/tests/test_launch_and_automation_rails.py`**, **`docs/PATH_TO_100_PERCENT_EXECUTION_PLAN.md`**, **`docs/phase_checklists/phase_05_studio_os.md`**.
+
+**C. Validators:** **`DJANGO_TEST_DB_FILE=.django_test_dbs/launch_rails_960.sqlite3 python manage.py test apps.studio_os.tests.test_launch_and_automation_rails --noinput --keepdb -v 2`** — **9 OK**. **`python scripts/verify_phase5_studio_os_conformance.py`** **PASS**. **`python scripts/verify_doc_plan_density_discipline.py`** **PASS** (post-SOT).
+
+**D. Next:** **`961+`**.
+
+## Wave — §11.4 batch 959: Autonomous SOT + gates — `AGENTS.md` + Cursor rule (2026-04-25)
+
+**A. Scope:** Persistent **agent execution contract** (no user slice picker): root **`AGENTS.md`**, **`.cursor/rules/runmycampus-autonomous-execution.mdc`** (`alwaysApply: true`), **`docs/phase_checklists/README.md`** link to **`AGENTS.md`**, SOT **§11.4** row **959** + **At a glance** depth head **960+**.
+
+**B. Rationale:** Encode existing repo enforcement (verify scripts, ledgers, SOT, checklists) as the default Cursor/agent behavior; align with **implementation-first** and **single-SOT** rules.
+
+**C. Validators:** **`python scripts/verify_doc_plan_density_discipline.py`** — **PASS** (post-SOT). **`python scripts/verify_sot_pillar_evidence.py`** — **OK** (post-SOT).
+
+**D. Artifacts:** **`AGENTS.md`**, **`.cursor/rules/runmycampus-autonomous-execution.mdc`**, **`docs/phase_checklists/README.md`**, **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`**.
+
+**E. Next:** **`960+`**.
+
+## Wave — Master program gate sweep: Phase 8/9 security ledger regeneration (2026-04-25)
+
+**A. Scope:** Mechanical health check for the multi-phase gate bundle (`scripts/verify_phases_3_11_gates.py`) after `generate_platform_inventory` / allowlist churn; unblock **Phase 8/9 parity** sub-step.
+
+**B. Failure observed:** `phase8_security_ledger.json is stale` — run `python scripts/build_phase8_security_ledger.py --write`.
+
+**C. Remediation:** Regenerated **`scripts/generated/phase8_security_ledger.json`** via **`build_phase8_security_ledger.py --write`**.
+
+**D. Validation:** **`python scripts/build_phase8_security_ledger.py --check`** — **PASS**. **`python scripts/verify_phases_3_11_gates.py`** — **PASS** (full non-DB bundle, 2026-04-25). Spot checks: **`python scripts/verify_phase1_settings_gravity.py`**, **`python scripts/verify_phase2_authenticated_shell_conformance.py`**, **`python scripts/verify_phase8_dashboard_role_homes_conformance.py`**, **`python scripts/verify_phase9_security_trust_conformance.py`** — **PASS**.
+
+**E. Follow-ons:** Re-run **`build_phase8_security_ledger.py --write`** whenever security allowlists change and parity fails; keep generated JSON committed.
+
+## Wave — §11.4 batch 958: Phase III §6.6 `brand_experience` — III.12 Gilead theme defaults PATH closure (2026-04-24)
+
+**A. Scope:** **PATH §6.6 III.12** — formal **DONE** with **`siteconfig` migration `0155_normalize_gilead_residue_runmycampus`**, existing **[NA_REGISTER_PATH_TO_100.md](NA_REGISTER_PATH_TO_100.md)** row, **`lint_gilead_residue`** / **`test_lint_gilead_residue_passes`**, and a **brand_experience** product-tree guard (no **`gilead`** literal outside **`migrations/`** + **`tests/`**). **PATH §6.2 III.5** row aligned to **batch 953** (**`runtime_trace_id`** on **`runtime_resolution_complete`**).
+
+**B. Implementation:** **`apps/brand_experience/tests/test_batch958_path_iii12_no_gilead_in_brand_product_tree.py`**; **`docs/PATH_TO_100_PERCENT_EXECUTION_PLAN.md`** (**III.5**, **III.12**); **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`** — forward queue **958** + **956** (metadata III.7 ledger) + **Next window** bumps (**`959+`**) on recent rows.
+
+**C. Validation:** **`python manage.py test apps.brand_experience.tests.test_batch958_path_iii12_no_gilead_in_brand_product_tree --noinput -v 2`** — **1 OK**. **`python scripts/verify_doc_plan_density_discipline.py`** — **PASS** (post-SOT/log).
+
+**D. Follow-ons:** **`959+`**.
+
+## Wave — §11.4 batch 956: Phase III §6.3 `metadata` — III.7 EntityCatalogEntry pack provenance (2026-04-25)
+
+**A. Scope:** **`apps/metadata/`** + tests only — first **pack / entity** provenance read path for **PATH §6.3 III.7** (no packages-engine changes; **batch 957** is separate).
+
+**B. Implementation:** **`EntityCatalogEntry.source_pack_id` / `source_pack_version`** (existing migration **0008**); **`get_unified_lineage`** — **`source_pack_id`**, **`source_pack_version`** on **`entity`** and **`field`** `object` payloads; **`EntityCatalogEntryAdmin`** list; **`apps/metadata/tests/test_lineage_api.py`**, **`test_batch956_entity_catalog_pack_provenance.py`**. **PATH** §6.3 **III.7**; SOT **§11.4** batch **956**.
+
+**C. Validation:** **`python manage.py test apps.metadata.tests.test_lineage_api apps.metadata.tests.test_batch956_entity_catalog_pack_provenance --noinput -v 2`** — **10 OK** (2026-04-25; isolated **`DJANGO_TEST_DB_FILE`** if **`.django_test_dbs/default.sqlite3`** is **locked** on Windows). **`python scripts/verify_doc_plan_density_discipline.py`** — **PASS** (post-SOT).
+
+**D. Follow-ons:** **`959+`**.
+
+## Wave — §11.4 batch 957: Phase III §6.4 `packages` — III.8 `apply_state` + atomic mid-apply clarity (2026-04-25)
+
+**A. Scope:** **PATH §6.4 III.8** — package engine **partial-apply / failure handling**: explicit **`apply_state`** on **`apply_package`** return (`not_attempted` / `committed` / `rolled_back`); **§6.4** alignment with existing **`transaction.atomic()`** + separate failed **`PackageChangeLog`**.
+
+**B. Implementation:** **`apps/packages/engine.py`**; **`apps/packages/tests/test_engine.py`** (including **`test_apply_package_integrity_error_atomic_block_leaves_no_installed_row`**); **`docs/package_engine_ledger.md`**; **PATH** §6.4 **III.8**; SOT **§11.4** batch **957**.
+
+**C. Validation:** **`python manage.py test apps.packages.tests.test_engine --noinput -v 2`** — **PASS**. **`python scripts/verify_doc_plan_density_discipline.py`** — **PASS** (post-SOT).
+
+**D. Follow-ons:** **`959+`**.
+
+## Wave — §11.4 batch 955: Phase III §6.12 `schools` — III.32 SchoolConfigAPI GET-only (2026-04-26)
+
+**A. Scope:** **`apps/schools/`** only — PATH **§6.12 III.32** after **948**: **`SchoolConfigAPI`** must not accept **POST/PUT/PATCH/DELETE** on the public AllowAny surface.
+
+**B. Implementation:** **`apps/schools/api_views.py`** — **`http_method_names = ["get", "head", "options"]`**; **`apps/schools/tests/test_batch955_control_plane_boundary.py`**; **`docs/schools_control_plane_boundary.md`** §2.1; **`docs/public_endpoint_audit.md`**; **PATH** §6.12 **III.32**; SOT **§11.4** batch **955**.
+
+**C. Validation:** **`python manage.py test apps.schools.tests.test_batch955_control_plane_boundary apps.schools.tests.test_school_config_api_hardening --noinput -v 2`** — **5 OK**. **`python scripts/verify_doc_plan_density_discipline.py`** — **PASS** (post-SOT/log).
+
+**D. Notes:** No **SiteSettings** edits; no extra lints for this slice.
+
+**E. Follow-ons:** **`959+`** — coordinate.
+
 ## Wave — §11.4 batch 954: PATH §A — Tier 1 release gates (post-merge RC, 2026-04-25)
 
 **A. Scope:** **Agent 1** — **PATH §A** merged checklist **A**; same bar as **batch 952** + full re-run. **Batch 953** in SOT is **Agent 3** depth (§6.2 III.5); Tier 1 record uses **954** to avoid number collision.
@@ -8,7 +386,7 @@
 
 **C. Outcome:** **All PASS**; no in-repo fixes. SOT **§11.4** batch **954**; ledger note: latest **PATH §A** = **954**.
 
-**D. Next path §A re-stamp:** **`955+`** (or on regression fix / contract change).
+**D. Next path §A re-stamp:** **`959+`** (or on regression fix / contract change); see **batch 958** / **957** / **955** waves above.
 
 ## Wave — §11.4 batch 953: Phase III §6.2 `platform_runtime` — III.5 `runtime_trace_id` on completion log (2026-04-25)
 

@@ -113,3 +113,25 @@ class StudioLaunchAndAutomationRailsTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"studio-launch-iframe", response.content.lower())
+
+    def test_launch_migration_pane_uses_iframe(self):
+        """PATH III.9 / §4.5: migration path opens migration wizard in Launch Studio embed."""
+        self.client.force_login(self.user)
+        url = reverse("studio_os:launch") + "?pane=migration"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200, response.content[:500] if response.content else b"")
+        self.assertIn(b"studio-launch-iframe", response.content.lower())
+        self.assertIn(b"migration-wizard", response.content.lower())
+
+    def test_launch_role_preview_pane_is_native(self):
+        """PATH III.9: preview-by-role is native (no launch iframe chrome)."""
+        self.client.force_login(self.user)
+        url = reverse("studio_os:launch") + "?pane=role_preview"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(
+            b"studio-launch-iframe",
+            response.content.lower(),
+            "role preview should be native template, not the launch iframe",
+        )
+        self.assertIn(b"role preview", response.content.lower())

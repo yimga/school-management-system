@@ -1,0 +1,29 @@
+{% load i18n %}
+{# Staging / publish / rollback — shared tenant + control-plane CCC. #}
+{% if ccc_publish_staging_hint or ccc_staging_links %}
+<section class="mb-4" role="region" aria-labelledby="ccc-staging-heading" data-ccc-staging-strip="true">
+  <h2 id="ccc-staging-heading" class="h6 {% if ccc_outcome_compact %}text-uppercase text-muted{% else %}text-uppercase text-white-50{% endif %} mb-2">{% trans "Staging & publish" %}</h2>
+  {% if ccc_publish_staging_hint %}
+  <p class="small {% if ccc_outcome_compact %}text-muted{% else %}text-white-50{% endif %} mb-3 mb-md-2">{{ ccc_publish_staging_hint }}</p>
+  {% endif %}
+  <p class="small {% if ccc_outcome_compact %}text-muted{% else %}text-white-50{% endif %} mb-2" data-ccc-staging-operator-footnote>
+    {% trans "Publish and rollback actions apply only on supported configuration paths. Who changed what is recorded when audit trails are enabled for the domain." %}
+  </p>
+  {% if ccc_staging_links %}
+  <div class="d-flex flex-wrap align-items-center gap-2">
+    {% for item in ccc_staging_links %}
+    <span class="d-inline-flex align-items-center gap-1 flex-wrap">
+      <a href="{{ item.url }}" class="btn btn-sm {% if ccc_outcome_compact %}btn-outline-primary{% else %}btn-outline-light{% endif %}">{{ item.label }}</a>
+      {% if item.stability == 'danger' %}
+      <span class="badge text-bg-danger">{% trans "danger" %}</span>
+      {% elif item.stability == 'beta' %}
+      <span class="badge text-bg-warning text-dark">{% trans "beta" %}</span>
+      {% else %}
+      <span class="badge text-bg-secondary">{% trans "stable" %}</span>
+      {% endif %}
+    </span>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endif %}

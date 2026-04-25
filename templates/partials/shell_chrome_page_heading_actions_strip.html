@@ -1,0 +1,28 @@
+{% load i18n %}
+{# 1031: Page title + optional primary/secondary action buttons (toolbar strip). #}
+<header
+  class="d-flex justify-content-between align-items-center mb-4"
+  data-shell-chrome="page-heading-actions-strip"
+  data-shell-page-heading-variant="{{ page_heading_variant|default:'default' }}"
+>
+  <div>
+    <h1 class="h3 mb-1">{{ page_heading_title }}</h1>
+    {% if page_heading_subtitle %}
+    <p class="text-muted mb-0">{{ page_heading_subtitle }}</p>
+    {% endif %}
+  </div>
+  <div class="d-flex align-items-center gap-2" data-shell-chrome="page-heading-actions-toolbar">
+    {% if page_action_primary_url %}
+    <a class="btn btn-outline-secondary btn-sm" href="{{ page_action_primary_url }}">
+      {% if page_action_primary_icon %}<i class="bi {{ page_action_primary_icon }}"></i>{% endif %}
+      {{ page_action_primary_label }}
+    </a>
+    {% endif %}
+    {% if page_action_secondary_url %}
+    <a class="btn btn-outline-secondary btn-sm" href="{{ page_action_secondary_url }}"{% if page_action_secondary_title %} title="{{ page_action_secondary_title }}"{% endif %}>
+      {% if page_action_secondary_icon %}<i class="bi {{ page_action_secondary_icon }}"></i>{% endif %}
+      {{ page_action_secondary_label }}
+    </a>
+    {% endif %}
+  </div>
+</header>

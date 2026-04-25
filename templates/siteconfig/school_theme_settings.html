@@ -6,10 +6,12 @@
 
 {% block content %}
   <div class="container-fluid py-4">
+    {% trans "This controls Unfold, Jazzmin, or Sneat for this school's admin and backend surfaces. Save, then refresh if styles look stale." as school_theme_banner_body %}
+    {% include "partials/shell_chrome_contextual_info_banner.html" with chrome_banner_title="Admin theme scope" chrome_banner_body=school_theme_banner_body %}
+    {% url 'siteconfig:user_preferences' as school_theme_prefs_url %}
+    {% include "partials/shell_chrome_page_heading_actions_strip.html" with page_heading_title="Admin theme" page_heading_subtitle="Choose the admin/backend theme for this school. Refresh the page after saving." page_heading_variant="school-theme" page_action_primary_url=school_theme_prefs_url page_action_primary_label="Back to preferences" page_action_primary_icon="bi-arrow-left" %}
     <div class="card shadow-sm">
       <div class="card-body">
-        <h1 class="h4 mb-3">Admin theme</h1>
-        <p class="text-muted">Choose the admin/backend theme for this school. Refresh the page after saving.</p>
         <form method="post" action="">
           {% csrf_token %}
           <div class="mb-3">

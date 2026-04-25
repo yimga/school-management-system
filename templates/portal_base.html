@@ -1,6 +1,6 @@
 {% load static i18n accounts_extras control_console %}
 <!doctype html>
-<html lang="{{ LANGUAGE_CODE|default:default_language|default:'en' }}"{% if is_rtl %} dir="rtl"{% endif %} data-surface="tenant">
+<html lang="{{ LANGUAGE_CODE|default:default_language|default:'en' }}"{% if is_rtl %} dir="rtl"{% endif %} data-surface="tenant" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,57 +9,8 @@
     <script>
       (function(){var k="runmycampus-theme-preference";var s=localStorage.getItem(k);s=s||"light";var r=(s==="system")?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):(s==="dark"?"dark":"light");document.documentElement.setAttribute("data-theme",r);document.documentElement.setAttribute("data-bs-theme",r);})();
     </script>
-    <script>
-      (function () {
-        var path = (window.location.pathname || "").toLowerCase();
-        var page = "";
-        if (path.indexOf("/portal/parent") !== -1 || path.indexOf("/parent/dashboard") !== -1) page = "parent";
-        else if (path.indexOf("/portal/teacher") !== -1 || path.indexOf("/teacher/dashboard") !== -1 || path.indexOf("/portal/teacher-dashboard") !== -1 || path.indexOf("/evals/teacher") !== -1) page = "teacher";
-        else if (path.indexOf("/accounts/backend") !== -1 || path.indexOf("/accounts/backend-dashboard") !== -1 || path.indexOf("/backend-dashboard") !== -1 || path.indexOf("/authentication/backend") !== -1) page = "backend";
-        else if (path === "/finance" || path.indexOf("/finance/") === 0) page = "finance";
-        else if (path === "/payroll" || path.indexOf("/payroll/") === 0) page = "payroll";
-        else if (path === "/analytics" || path.indexOf("/analytics/") === 0) page = "analytics";
-        else if (path.indexOf("/compliance/dashboard") !== -1) page = "compliance";
-        else if (path === "/requests" || path.indexOf("/requests/") === 0) page = "requests";
-        else if (path === "/emis" || path.indexOf("/emis/") === 0) page = "emis";
-        else if (path.indexOf("/evals/compliance") !== -1) page = "evals-compliance";
-        else if (path.indexOf("/accounts/rbac-dashboard") !== -1 || path.indexOf("/accounts/rbac/") !== -1 || path.indexOf("/authentication/rbac/") !== -1) page = "rbac";
-        else if (path.indexOf("/siteconfig/theme-colors") !== -1 || path.indexOf("/theme-colors") !== -1) page = "theme-colors";
-        else if (path.indexOf("/portal/support/ticket/") !== -1) page = "support-ticket";
-        else if (path.indexOf("/portal/support/hub") !== -1) page = "support-hub";
-        else if (path === "/portal/support" || path === "/portal/support/") page = "support-request";
-        else if (path.indexOf("/kb/article/") !== -1) page = "kb-article";
-        else if (path.indexOf("/kb/search") !== -1) page = "kb-search";
-        else if (path.indexOf("/kb/category/") !== -1) page = "kb-category";
-        else if (path === "/kb" || path === "/kb/") page = "kb-home";
-        else if (path.indexOf("/kb/") === 0) page = "kb-hub";
-
-        if (!page) return;
-
-        document.documentElement.setAttribute("data-dashboard-page", page);
-
-        var applyBody = function () {
-          if (!document.body) return;
-          if (!document.body.dataset.dashboardPage) {
-            document.body.dataset.dashboardPage = page;
-          }
-          document.body.classList.add("dashboard-page-" + page);
-        };
-
-        applyBody();
-        if (!document.body) {
-          var observer = new MutationObserver(function () {
-            if (document.body) {
-              applyBody();
-              observer.disconnect();
-            }
-          });
-          observer.observe(document.documentElement, { childList: true });
-        }
-        document.addEventListener("DOMContentLoaded", applyBody, { once: true });
-      })();
-    </script>
-    <title>{% block title %}Portal{% endblock %}</title>
+    <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
+    <title>{% block title %}{{ rmc_shell.portal_default_document_title|default:"Portal" }}{% endblock %}</title>
     <link rel="icon" href="{% if SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
     {# Wave 6 web: installable surface + home-screen hint (native store apps = external). #}
     {% if "/portal/" in request.path %}<link rel="manifest" href="{% static 'manifest-portal.json' %}"><meta name="theme-color" content="#2563eb"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">{% endif %}
@@ -150,16 +101,7 @@
 
   <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
-    {% if SITE and SITE.is_preview %}
-    <div class="alert alert-warning text-center m-0 rounded-0 border-0 d-flex flex-wrap align-items-center justify-content-center gap-2 py-2 px-3" role="status">
-      <span class="fw-semibold">{% trans "You're previewing unsaved Site Settings." %}</span>
-      {% if request.user.is_staff %}
-      <a class="btn btn-sm btn-primary" href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Save in Site Settings" %}</a>
-      <a class="btn btn-sm btn-outline-dark" href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Back to Site Settings" %}</a>
-      <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:clear_preview' %}?next={{ request.path }}">{% trans "Discard preview" %}</a>
-      {% endif %}
-    </div>
-    {% endif %}
+    {% include "partials/shell_chrome_site_preview_banner_top.html" %}
     <nav id="portalHeader" class="navbar navbar-expand-lg navbar-dark topbar topbar-sticky statement-header" role="navigation" aria-label="Main navigation">
       <div class="container-fluid px-3" id="preview-header-bar" data-preview-label="{% trans 'Header bar (background & colors)' %}">
         <button class="btn btn-sm btn-outline-light d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#portalSidebar" aria-controls="portalSidebar" aria-label="Open sidebar menu">
@@ -337,10 +279,9 @@
       </div>
     </nav>
 
-    <div class="container-fluid px-3 py-2 portal-layout-wrap">
-      <div class="row g-3 portal-layout-row">
+{% include "partials/shell_portal_layout_wrap_open.html" %}
         <!-- Sidebar (desktop) - Resizable, collapsible to icon strip -->
-        <div class="portal-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block rmc-glass-sidebar-shell" id="portal-sidebar-col" data-collapsible="true">
+        <div class="portal-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block rmc-glass-sidebar-shell" id="portal-sidebar-col" data-collapsible="true" data-shell-sidebar="portal" data-shell-sidebar-mount="desktop">
           <div class="sidebar p-3">
             {% include "partials/portal_sidebar.html" %}
           </div>
@@ -349,7 +290,7 @@
         <div class="portal-resize-handle d-none d-lg-flex" aria-label="Resize sidebar" role="separator" title="Drag to resize sidebar"></div>
 
         <!-- Sidebar (mobile) -->
-        <div class="offcanvas offcanvas-start" tabindex="-1" id="portalSidebar" aria-labelledby="portalSidebarLabel">
+        <div class="offcanvas offcanvas-start" tabindex="-1" id="portalSidebar" aria-labelledby="portalSidebarLabel" data-shell-sidebar="portal" data-shell-sidebar-mount="offcanvas">
           <div class="offcanvas-header">
             <h5 class="offcanvas-title" id="portalSidebarLabel">Menu</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -360,12 +301,14 @@
       </div>
 
       <!-- Content -->
-      <div class="portal-main-col col-lg-9 col-xl-10" id="main-content" role="main" tabindex="-1">
-        <div class="page-wrap" data-page-archetype="{% block page_archetype %}operational-workbench{% endblock %}" data-authenticated-surface="{% if request.public_host_kind == 'manager' %}manager-control-plane{% else %}tenant-portal{% endif %}">
-          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-            <div class="mb-0">{% include "partials/breadcrumbs.html" %}</div>
-            <div class="breadcrumb-actions">{% block breadcrumb_actions %}{% endblock %}</div>
-          </div>
+      <div class="portal-main-col col-lg-9 col-xl-10" id="main-content" role="main" tabindex="-1" data-shell-main="portal">
+        <div class="page-wrap" data-page-archetype="{% block page_archetype %}operational-workbench{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'tenant-portal' }}">
+          {% include "partials/shell_chrome_impersonation_session_strip.html" %}
+          {% include "partials/shell_chrome_breadcrumb_row_open.html" with shell_chrome_breadcrumb_surface=rmc_shell.tenant_portal_breadcrumb_surface %}
+            {% include "partials/breadcrumbs.html" %}
+          {% include "partials/shell_chrome_breadcrumb_row_between_primary_and_actions.html" %}
+            {% block breadcrumb_actions %}{% endblock %}
+          {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
             {% if request.user.is_authenticated and request.resolver_match.namespace|default:'' != 'studio_os' %}
               {% if request.user|tenant_operator_hub_visible %}
                 {% include "partials/tenant_studio_product_strip.html" %}
@@ -377,21 +320,7 @@
             {% if platform_status_strip and platform_status_strip.show %}
               {% include "portal/partials/platform_status_strip.html" %}
             {% endif %}
-            {% if messages %}
-            <div class="mb-3">
-              <!-- Global Announcements Banner -->
-              {% include 'components/announcement_banner.html' %}
-              
-              {% for message in messages %}
-                <div class="alert alert-{{ message.tags|default:'info' }} mb-2">
-                  {{ message }}
-                  {% if message.tags == 'error' %}
-                    <p class="mb-0 mt-2 small"><a class="alert-link" href="{{ help_center_url }}">{% trans "Learn more in the Help centre" %}</a></p>
-                  {% endif %}
-                </div>
-              {% endfor %}
-              </div>
-            {% endif %}
+            {% include "partials/shell_chrome_django_messages.html" with shell_chrome_messages_variant="tenant-portal" shell_chrome_messages_include_announcement=True shell_chrome_messages_error_help=True %}
 
             {% if dashboard_stats_cards %}
               <div class="mb-3">

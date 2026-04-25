@@ -1,0 +1,27 @@
+{% load i18n %}
+{# Shared Django messages + optional announcement (portal). Preserve layout; data-shell-chrome* for contract tests. #}
+{% if messages %}
+<div
+  class="mb-3"
+  data-shell-chrome="django-messages"
+  data-shell-chrome-messages-variant="{% firstof shell_chrome_messages_variant 'default' %}"
+>
+  {% if shell_chrome_messages_include_announcement %}
+    {% include "components/announcement_banner.html" %}
+  {% endif %}
+  {% for message in messages %}
+    <div
+      class="alert alert-{{ message.tags|default:'info' }} mb-2"
+      data-shell-chrome="django-message"
+      data-django-message-tags="{{ message.tags|default:'info' }}"
+    >
+      {{ message }}
+      {% if shell_chrome_messages_error_help and message.tags == 'error' %}
+        <p class="mb-0 mt-2 small">
+          <a class="alert-link" href="{{ help_center_url }}">{% trans "Learn more in the Help centre" %}</a>
+        </p>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}

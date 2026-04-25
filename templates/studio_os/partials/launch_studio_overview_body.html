@@ -14,12 +14,61 @@
     {% endif %}
   </div>
 
+  {% if launch_payload.registry_alignment and (launch_payload.registry_alignment.detail or launch_payload.registry_alignment.key_rows) %}
+  <div class="studio-os__card mb-3">
+    <h3 class="h6 mb-2">{% trans "Registry alignment" %}</h3>
+    {% if launch_payload.registry_alignment.mismatch_count %}
+    <p class="small text-warning mb-2">
+      {% blocktrans with n=launch_payload.registry_alignment.mismatch_count %}{{ n }} field(s) do not line up with the active registries. Fix country/region, school profile, or registry seeding.{% endblocktrans %}
+    </p>
+    {% endif %}
+    {% if launch_payload.registry_alignment.key_rows %}
+    <ul class="list-unstyled small mb-2">
+      {% for row in launch_payload.registry_alignment.key_rows %}
+      <li class="d-flex flex-wrap align-items-baseline justify-content-between gap-2 border-bottom border-secondary border-opacity-25 py-1 mb-0">
+        <span class="text-muted">{{ row.label|default:"" }}</span>
+        <span class="text-break">{{ row.value|default:"" }}</span>
+        {% if row.ok %}<i class="bi bi-check-circle-fill text-success" aria-label="{% trans 'OK' %}"></i>{% else %}<i class="bi bi-exclamation-triangle-fill text-warning" aria-label="{% trans 'Needs attention' %}"></i>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if launch_payload.registry_alignment.settings_cta and launch_payload.registry_alignment.settings_cta.url and launch_payload.registry_alignment.settings_cta.url != "#" %}
+    <p class="small mb-2"><a class="btn btn-sm btn-outline-secondary" href="{{ launch_payload.registry_alignment.settings_cta.url }}">{{ launch_payload.registry_alignment.settings_cta.label|default:"" }}</a></p>
+    {% endif %}
+    {% if not launch_payload.registry_alignment.key_rows and launch_payload.registry_alignment.summary_lines %}
+    <ul class="list-unstyled small text-muted mb-0">
+      {% for line in launch_payload.registry_alignment.summary_lines %}
+      <li class="mb-1">{{ line }}</li>
+      {% endfor %}
+    </ul>
+    {% elif launch_payload.registry_alignment.key_rows and launch_payload.registry_alignment.summary_lines %}
+    <details class="small text-muted">
+      <summary class="text-muted" style="cursor: pointer;">{% trans "Narrative detail" %}</summary>
+      <ul class="list-unstyled mt-1 mb-0">
+        {% for line in launch_payload.registry_alignment.summary_lines %}
+        <li class="mb-1">{{ line }}</li>
+        {% endfor %}
+      </ul>
+    </details>
+    {% else %}
+    <p class="small text-muted mb-0">{{ launch_payload.registry_alignment.detail }}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
   {% if launch_payload.steps %}
   <div class="studio-os__card mb-3">
     <h3 class="h6 mb-2">{% trans "Checklist" %}</h3>
     <ul class="list-unstyled small mb-0">
       {% for step in launch_payload.steps %}
-      <li class="mb-1">{% if step.done %}<i class="bi bi-check-circle-fill text-success me-1"></i>{% else %}<i class="bi bi-circle me-1"></i>{% endif %}{{ step.label|default:step.title|default:"" }}</li>
+      <li class="mb-1">{% if step.done %}<i class="bi bi-check-circle-fill text-success me-1"></i>{% else %}<i class="bi bi-circle me-1"></i>{% endif %}
+        {% if step.link and step.link != "#" %}
+        <a href="{{ step.link }}">{{ step.label|default:step.title|default:"" }}</a>
+        {% else %}
+        {{ step.label|default:step.title|default:"" }}
+        {% endif %}
+      </li>
       {% endfor %}
     </ul>
   </div>
@@ -57,9 +106,19 @@
   {% if launch_payload.migration_path_flow %}
   <div class="studio-os__card mb-0">
     <h3 class="h6 mb-2">{% trans "Migration path" %}</h3>
+    {% if launch_studio_base_url %}
+    <p class="small mb-2">
+      <a class="btn btn-sm btn-primary" href="{{ launch_studio_base_url }}?pane=migration">{% trans "Open migration wizard" %}</a>
+    </p>
+    {% endif %}
     <ul class="list-unstyled small mb-0">
       {% for step in launch_payload.migration_path_flow %}
-      <li class="mb-1">{{ step.label|default:step.key }}{% if step.status %} <span class="text-muted">— {{ step.status }}</span>{% endif %}</li>
+      <li class="mb-2 d-flex flex-wrap align-items-baseline justify-content-between gap-2">
+        <span>{{ step.label|default:step.key }}{% if step.status %} <span class="text-muted">— {{ step.status }}</span>{% endif %}</span>
+        {% if step.cta_url and step.cta_url != "#" %}
+        <a class="btn btn-sm btn-outline-secondary" href="{{ step.cta_url }}">{% if step.cta_label %}{{ step.cta_label }}{% else %}{% trans "Open" %}{% endif %}</a>
+        {% endif %}
+      </li>
       {% endfor %}
     </ul>
   </div>

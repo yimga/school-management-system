@@ -1,0 +1,164 @@
+{
+  "generated_at": "2026-04-25T23:12:07.576303+00:00",
+  "passed": true,
+  "rows": [
+    {
+      "path": "templates/accounts/backend_dashboard.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/admin/base_site.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/backend_base.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/base.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/components/admin_nav_bridge.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/control_plane_base.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/control_plane_skeleton.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/marketplace/tenant_app_catalog.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/backend_portal_breadcrumb_actions.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_backend_finance_pulse_strip.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_backend_operational_status_load.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_backend_ops_audit_snapshot.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_backend_ops_depth_summary.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_backend_ops_strip.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_backend_stats_core_strip.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_backend_system_indicators.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_breadcrumb_row_between_primary_and_actions.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_breadcrumb_row_close.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_breadcrumb_row_open.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_contextual_info_banner.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_django_messages.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_impersonation_session_strip.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_marketplace_tenant_ops_strip.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_page_heading_actions_strip.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_site_preview_banner_top.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_portal_layout_wrap_open.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_rmc_registry_html_attrs.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_skip_link.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/portal_base.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/schools/super_blueprints_catalog.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/schools/super_workflow_packs.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/bulk_letters.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/partials/configuration_control_center_staging_publish.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/school_theme_settings.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/tenant_runtime_configuration_hub.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/user_preferences.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/studio_os/partials/shell_main_content.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/studio_os/shell.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/studio_os/shell_control_plane.html",
+      "summary": "ok"
+    }
+  ],
+  "templates_checked": 39,
+  "verify": "verify_shell_surface_inventory"
+}

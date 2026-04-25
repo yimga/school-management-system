@@ -49,7 +49,6 @@ class SidebarRecordContextTests(TestCase):
             specialty=spec,
         )
         self.user = User.objects.create_user(username="staffctx", password="x")
-        self.user.is_authenticated = True  # type: ignore[attr-defined]
 
     def test_anonymous_returns_none(self):
         req = self.factory.get(f"/authentication/backend/students/{self.student.pk}/")

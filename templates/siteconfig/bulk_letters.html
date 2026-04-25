@@ -1,22 +1,11 @@
-{% extends "base.html" %}
+{% extends "backend_base.html" %}
 
 {% block title %}Bulk Letters · {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block content %}
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h1 class="h3 mb-1">Bulk Letters (ODT)</h1>
-      <p class="text-muted mb-0">Generate one LibreOffice Writer (ODT) letter per student in a classroom. Requires Pandoc.</p>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'studio_os:output' %}">
-        <i class="bi bi-journal-text"></i> Report Library
-      </a>
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'kb:kb_search' %}?q=bulk+letters" title="Search help for bulk letters">
-        <i class="bi bi-question-circle"></i> Help
-      </a>
-    </div>
-  </div>
+  {% url 'studio_os:output' as bulk_letters_report_library_url %}
+  {% url 'kb:kb_search' as bulk_letters_kb_url %}
+  {% include "partials/shell_chrome_page_heading_actions_strip.html" with page_heading_title="Bulk Letters (ODT)" page_heading_subtitle="Generate one LibreOffice Writer (ODT) letter per student in a classroom. Requires Pandoc." page_action_primary_url=bulk_letters_report_library_url page_action_primary_label="Report Library" page_action_primary_icon="bi-journal-text" page_action_secondary_url=bulk_letters_kb_url|add:"?q=bulk+letters" page_action_secondary_label="Help" page_action_secondary_icon="bi-question-circle" page_action_secondary_title="Search help for bulk letters" %}
 
   <div class="card shadow-sm">
     <div class="card-body">

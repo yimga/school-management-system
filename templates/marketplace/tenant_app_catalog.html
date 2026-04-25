@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4 proof-page tenant-app-catalog-wrap" data-page-archetype="catalog">
+<div class="container-fluid py-4 proof-page tenant-app-catalog-wrap" data-page-archetype="catalog" data-shell-marketplace="tenant-app-catalog" data-rmc-market-surface="catalog">
   {% if not school %}
   <div class="proof-panel">
     <h1 class="proof-panel-title">{% trans "App catalog" %}</h1>
@@ -57,6 +57,8 @@
       </div>
     </div>
   </section>
+
+  {% include "partials/shell_chrome_marketplace_tenant_ops_strip.html" %}
 
   <section class="proof-panel">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">

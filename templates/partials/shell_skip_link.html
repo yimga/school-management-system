@@ -1,0 +1,3 @@
+{# Reusable skip link for shell frames (skeleton, Studio, control-plane can pass href/label). #}
+{% load i18n %}
+<a href="{{ skip_href|default:'#main-content' }}" class="{% if skip_link_class %}{{ skip_link_class }}{% else %}visually-hidden-focusable{% endif %}"{% if skip_aria_label %} aria-label="{{ skip_aria_label }}"{% else %} aria-label="{% trans 'Skip to main content' %}"{% endif %}>{% if skip_text %}{{ skip_text }}{% else %}{% trans "Skip to main content" %}{% endif %}</a>

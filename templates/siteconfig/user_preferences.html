@@ -9,17 +9,15 @@
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
   <div class="row justify-content-center">
     <div class="col-lg-8 col-xl-7">
-      <div class="alert alert-info d-flex align-items-start gap-2">
-        <div class="flex-grow-1">
-          <strong>Personalize your portal.</strong>
-          These settings only change what <em>you</em> see (theme, widgets, notifications). Full Site Settings stay locked to Admins.
-        </div>
-        {% if request.user.is_superuser or request.user.role == "ADMIN" or request.user|has_feature_permission:"settings.manage" %}
-          <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:console_domains_hub' %}">
-            {% trans "Config center" %}
-          </a>
-        {% endif %}
-      </div>
+      {% trans "Personalize your portal." as prefs_banner_title %}
+      {% blocktrans trimmed asvar prefs_banner_body %}These settings only change what you see (theme, widgets, notifications). Full Site Settings stay locked to Admins.{% endblocktrans %}
+      {% if request.user.is_superuser or request.user.role == "ADMIN" or request.user|has_feature_permission:"settings.manage" %}
+        {% url 'siteconfig:console_domains_hub' as prefs_banner_action_url %}
+        {% trans "Config center" as prefs_banner_action_label %}
+        {% include "partials/shell_chrome_contextual_info_banner.html" with chrome_banner_title=prefs_banner_title chrome_banner_body=prefs_banner_body chrome_banner_action_url=prefs_banner_action_url chrome_banner_action_label=prefs_banner_action_label %}
+      {% else %}
+        {% include "partials/shell_chrome_contextual_info_banner.html" with chrome_banner_title=prefs_banner_title chrome_banner_body=prefs_banner_body %}
+      {% endif %}
 
       <div class="card shadow-sm">
         <div class="card-header bg-white">

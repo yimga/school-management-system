@@ -17,7 +17,7 @@
 | Staged rollout | Present | Package rollout UI (super:package_rollout); promote to production |
 | Environment promotion | Present | Promote to production flow |
 | Rollback reconciliation | Present | Rollback exists; reconciliation_status=rolled_back; blast radius in result |
-| Partial failure handling | Present | Mid-apply: transaction.atomic() rolls back on error; PackageChangeLog(reconciliation_status=failed) recorded in separate transaction for audit; return ok=False + errors |
+| Partial failure handling | Present | **Batch 957:** `apply_package` return includes **`apply_state`**: `not_attempted` (preview/compat), `committed` (atomic block ok), `rolled_back` (exception in block — no partial InstalledPackage). Mid-apply: `transaction.atomic()`; failed changelog in **separate** transaction; `ok=False` + errors |
 
 ---
 
@@ -29,7 +29,7 @@
 - [ ] Compatibility matrix (plan, region, platform version) for every pack — optional deepening.
 - [x] Sandbox apply: apply with mode=sandbox; promote_package to production (engine + UI).
 - [x] Rollback reconciliation: rollback() deactivates InstalledPackage, sets reconciliation_status=rolled_back, logs PackageChangeLog; blast radius in result.
-- [x] Partial failure handling: mid-apply exception triggers rollback (transaction.atomic); PackageChangeLog with reconciliation_status=failed written in separate transaction; return ok=False, errors; log_exception_with_context. Verify: apply_package with failing step leaves no InstalledPackage row; changelog has failed entry. Allowlist: apps/packages/engine.py 2 broad except (mid-apply catch + changelog-write catch); see broad_except_allowlist.json.
+- [x] Partial failure handling (depth **SOT batch 957**): **`apply_state`** in API return (`committed` / `rolled_back` / `not_attempted`); mid-apply exception triggers rollback (`transaction.atomic`); `PackageChangeLog` `reconciliation_status=failed` in separate transaction; `test_engine` — `test_apply_package_integrity_error_atomic_block_leaves_no_installed_row` + existing mid-apply tests. Allowlist: `apps/packages/engine.py` mid-apply + changelog catches; `broad_except_allowlist.json`.
 
 ---
 

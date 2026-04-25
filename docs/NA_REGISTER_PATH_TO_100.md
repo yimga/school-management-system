@@ -14,7 +14,7 @@
 | §6.1 | Delete legacy behavior paths | DONE — LEGACY_PATH_INVENTORY + SUBTRACTIVE_CLEANUP; `ensure_superadmin` = thin alias to `ensure_superuser` (inventory §2). |
 | §6.1 | Replace giant admin pages with bounded consoles | DONE — Configuration Control Center console (studio_os:system_config_console) + Control rail. |
 | §6.2 | Enforce runtime everywhere | DONE — lint_tenant_settings pass; runtime-only in tenant paths. |
-| §6.2 | Add runtime tracing | DONE — runtime_resolution_complete in runtime_resolver (DEBUG log). |
+| §6.2 | Add runtime tracing | DONE — runtime_resolution_complete + runtime_trace_id in runtime_resolver (DEBUG log; SOT batch 953). |
 | §6.2 | Eliminate fallback bypasses | DONE — no get_solo in tenant apps; allowlist documented. |
 | §6.3 | Add pack provenance | **DONE** — EntityCatalogEntry.source_pack_id, source_pack_version; migration 0008; search API exposes. |
 | §6.4 | Partial failure handling | DONE — mid-apply exception → atomic rollback + changelog failed; package_engine_ledger. |

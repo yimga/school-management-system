@@ -308,23 +308,23 @@ backend-shell dashboard-page-backend
   {% admin_health as health %}
   {% phase8_dashboard_declaration "accounts/backend_dashboard.html" %}
 
+  {# 1012: Same breadcrumb chrome as portal_base; actions DRY via backend_portal_breadcrumb_actions (no nested blocks). #}
+  {% include "partials/shell_chrome_breadcrumb_row_open.html" with shell_chrome_breadcrumb_surface=rmc_shell.tenant_portal_breadcrumb_surface %}
+  {% include "partials/breadcrumbs.html" %}
+  {% include "partials/shell_chrome_breadcrumb_row_between_primary_and_actions.html" %}
+  {% include "partials/backend_portal_breadcrumb_actions.html" %}
+  {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
+
   {# Optional: load status strip via HTMX so initial render does not wait on this data #}
   <div class="backend-dashboard-content" data-decision-engine="surface">
-  <div id="backend-status-fragment" class="backend-status-fragment-placeholder backend-status-fragment--compact"
-       hx-get="{% url 'accounts:backend_dashboard_status_fragment' %}"
-       hx-trigger="load"
-       hx-swap="innerHTML"
-       hx-headers='{"X-Requested-With": "XMLHttpRequest"}'
-       aria-live="polite" aria-atomic="true">
-  </div>
-  <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7Nlx9D84UOpmUlJ2ANZ+4ysAuqpgUdXDk4" crossorigin="anonymous" defer></script>
-  <script>
-    document.addEventListener('htmx:responseError', function(ev) {
-      if (ev.detail && ev.detail.target && ev.detail.target.id === 'backend-status-fragment') {
-        ev.detail.target.innerHTML = '<span class="text-muted small">-</span>';
-      }
-    });
-  </script>
+  {% include "partials/shell_chrome_backend_operational_status_load.html" %}
+
+  {% include "partials/shell_chrome_backend_ops_strip.html" %}
+  {% include "partials/shell_chrome_backend_system_indicators.html" %}
+  {% include "partials/shell_chrome_backend_ops_depth_summary.html" %}
+  {% include "partials/shell_chrome_backend_ops_audit_snapshot.html" %}
+  {% include "partials/shell_chrome_backend_stats_core_strip.html" %}
+  {% include "partials/shell_chrome_backend_finance_pulse_strip.html" %}
 
   {% if first_login_checklist_show %}
   {% include "accounts/first_login_checklist_card.html" %}
@@ -571,7 +571,7 @@ backend-shell dashboard-page-backend
                 </div>
                 {% endif %}
               </div>
-              <div class="backend-role-home-actions" data-tour="quick-actions">
+              <div class="backend-role-home-actions" data-shell-role-ops="backend" data-tour="quick-actions">
                 <button type="button" class="backend-role-home-command js-open-backend-command" aria-label="{% trans 'Open command palette (primary navigation)' %}">
                   <span class="backend-role-home-command-copy">
                     <strong>{% trans "Command center" %}</strong>
@@ -693,6 +693,7 @@ backend-shell dashboard-page-backend
     <div
       id="dashboard-layout"
       class="backend-v2-workbench"
+      data-shell-role-home="backend"
       data-page-archetype="role-home"
       data-save-url="{{ dashboard_layout_url }}"
       data-load-url="{{ dashboard_layout_url }}"

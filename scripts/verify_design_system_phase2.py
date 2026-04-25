@@ -21,6 +21,7 @@ DEFAULT_ROOT = Path(__file__).resolve().parent.parent
 ROOT = DEFAULT_ROOT
 
 REQUIRED_STATIC = [
+    "static/js/shell-data-dashboard-page.js",
     "static/css/design-tokens.css",
     "static/css/design-system-phase2-enforcement.css",
     "static/css/design-system-unified.css",

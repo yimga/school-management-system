@@ -1,10 +1,10 @@
 {% extends "control_plane_skeleton.html" %}
 {% load static i18n %}
 
-{% block title %}{% block cp_title %}RunMyCampus Manager{% endblock %}{% endblock %}
+{% block title %}{% block cp_title %}{{ rmc_shell.control_plane_product_title|default:"RunMyCampus Manager" }}{% endblock %}{% endblock %}
 
 {% block content %}
-<div class="cp-shell-content d-flex flex-column flex-grow-1 min-h-0">
+<div class="cp-shell-content d-flex flex-column flex-grow-1 min-h-0" data-shell-layout="control-plane" data-rmc-layout-token="{{ rmc_shell.layout_token|default:'control-plane' }}">
 <nav class="navbar navbar-expand-lg navbar-dark cp-navbar cp-navbar--surface statement-header flex-shrink-0">
   <div class="container-fluid px-3 d-flex flex-wrap align-items-center gap-2">
     <a class="navbar-brand fw-bold d-flex align-items-center gap-2 text-white statement-logo" href="{% url 'super:dashboard' %}">
@@ -13,7 +13,7 @@
       {% else %}
         <img class="cp-navbar-brand-img" src="{% static 'images/runmycampus-icon.png' %}" alt="" width="32" height="32" decoding="async">
       {% endif %}
-      <span>RunMyCampus Manager</span>
+      <span data-rmc-shell-title="{{ rmc_shell.control_plane_product_title|default:'RunMyCampus Manager' }}">{{ rmc_shell.control_plane_product_title|default:"RunMyCampus Manager" }}</span>
     </a>
     <button class="navbar-toggler border-light d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#cpSidebarOffcanvas" aria-controls="cpSidebarOffcanvas" aria-label="{% trans 'Open menu' %}">
       <span class="navbar-toggler-icon"></span>
@@ -57,32 +57,26 @@
 
 {% include "partials/control_plane_primary_nav.html" %}
 
-<div class="container-fluid px-3 py-2 cp-layout flex-grow-1 min-h-0 d-flex flex-column">
+<div class="container-fluid px-3 py-2 cp-layout flex-grow-1 min-h-0 d-flex flex-column" data-rmc-authenticated-shell="{{ rmc_shell.cp_layout_authenticated_shell|default:'manager-control-plane' }}">
   <div class="row g-3 flex-grow-1 min-h-0">
-    <aside class="cp-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block" id="cp-sidebar-col">
+    <aside class="cp-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block" id="cp-sidebar-col" data-shell-sidebar="{{ rmc_shell.shell_sidebar_control_plane|default:'control-plane' }}" data-shell-sidebar-mount="desktop">
       <div class="cp-sidebar-inner cp-sidebar-inner--surface p-3 rounded">
         {% block control_plane_sidebar %}
           {% include "partials/control_plane_sidebar.html" %}
         {% endblock %}
       </div>
     </aside>
-    <main id="cp-main-content" class="cp-main-col col-lg-9 col-xl-10" role="main" data-page-archetype="{% block cp_page_archetype %}decision-console{% endblock %}" data-authenticated-surface="manager-control-plane">
-      {% if messages %}
-        <div class="mb-3">
-          {% for message in messages %}
-            <div class="alert alert-{{ message.tags|default:'info' }} mb-2">
-              {{ message }}
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
+    <main id="cp-main-content" class="cp-main-col col-lg-9 col-xl-10" role="main" data-shell-main="control-plane" data-page-archetype="{% block cp_page_archetype %}decision-console{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'manager-control-plane' }}">
+      {% include "partials/shell_chrome_django_messages.html" with shell_chrome_messages_variant="control-plane" %}
+      {% include "partials/shell_chrome_impersonation_session_strip.html" %}
       <p class="text-secondary small mb-3" role="note">
         {% trans "Platform Studio and system tools here are operator-facing. For school workflows and live tenant previews, use Open as school (impersonation) from the dashboard." %}
       </p>
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 cp-page-header">
-        <div class="mb-0">{% block breadcrumbs %}{% endblock %}</div>
-        <div class="breadcrumb-actions">{% block breadcrumb_actions %}{% endblock %}</div>
-      </div>
+      {% include "partials/shell_chrome_breadcrumb_row_open.html" with shell_chrome_breadcrumb_surface=rmc_shell.control_plane_breadcrumb_surface shell_chrome_breadcrumb_row_extra_class="cp-page-header" %}
+        {% block breadcrumbs %}{% endblock %}
+      {% include "partials/shell_chrome_breadcrumb_row_between_primary_and_actions.html" %}
+        {% block breadcrumb_actions %}{% endblock %}
+      {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
       {% block cp_content %}{% endblock %}
       {% block cp_sticky_action_bar %}{# Page-level sticky actions (override in child templates) #}{% endblock %}
     </main>

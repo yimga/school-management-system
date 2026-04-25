@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
+from django.utils.translation import gettext
 
 from .models import SetupProgress, SetupStepDefinition
 
@@ -24,7 +25,8 @@ STEP_DEFINITIONS = (
         "label": "Choose plan",
         "description": "Attach the correct plan before enabling premium modules, workflows, and marketplace installs.",
         "step_group": "commercial",
-        "link_name": "accounts:backend_dashboard",
+        "link_name": "studio_os:launch",
+        "link_query": "pane=plan",
         "weight": 15,
         "recommended_choice": "Pick the plan that matches your rollout footprint and approvals model.",
     },
@@ -69,7 +71,8 @@ STEP_DEFINITIONS = (
         "label": "Preview by role",
         "description": "Walk the admin shell, teacher dashboard, parent portal, and school website before launch.",
         "step_group": "preview",
-        "link_name": "accounts:backend_dashboard",
+        "link_name": "studio_os:launch",
+        "link_query": "pane=role_preview",
         "weight": 5,
         "recommended_choice": "Preview one role at a time and fix any trust or clarity gaps immediately.",
     },
@@ -78,7 +81,8 @@ STEP_DEFINITIONS = (
         "label": "Launch checklist",
         "description": "Confirm blockers are cleared, previews are clean, and the platform feels calm enough to launch.",
         "step_group": "launch",
-        "link_name": "siteconfig:guided_onboarding",
+        "link_name": "studio_os:launch",
+        "link_query": "pane=checklist",
         "weight": 10,
         "recommended_choice": "Do not launch until the readiness panel is green and every blocker is resolved.",
     },
@@ -90,6 +94,16 @@ def _safe_reverse(name: str) -> str:
         return reverse(name)
     except (NoReverseMatch, TypeError, ValueError):
         return "#"
+
+
+def _step_link_from_definition(definition: dict[str, Any]) -> str:
+    """Resolve setup step CTA URL, including optional query (e.g. Launch Studio pane)."""
+    url = _safe_reverse(definition["link_name"])
+    q = (definition.get("link_query") or "").strip()
+    if not q or url == "#":
+        return url
+    join = "&" if "?" in url else "?"
+    return f"{url}{join}{q}"
 
 
 def _definition_by_key() -> dict[str, dict[str, Any]]:
@@ -109,6 +123,465 @@ def _ensure_step_definitions() -> None:
                 "is_active": True,
             },
         )
+
+
+def _operating_currency_code(school) -> str:
+    """Resolve ISO 4217 code from RegionConfig or school settings (PATH III.20)."""
+    dr = getattr(school, "default_region", None)
+    if dr is not None:
+        c = str(getattr(dr, "default_currency", "") or "").strip().upper()
+        if len(c) == 3 and c.isalpha():
+            return c
+    st = getattr(school, "settings", None)
+    if isinstance(st, dict):
+        c = str(st.get("default_currency") or "").strip().upper()
+        if len(c) == 3 and c.isalpha():
+            return c
+    return ""
+
+
+def _operating_locale_hint(school) -> str:
+    """BCP 47 / registry hint from RegionConfig or school.settings (PATH III.20)."""
+    st = getattr(school, "settings", None)
+    if isinstance(st, dict):
+        for key in ("default_locale", "locale", "default_language"):
+            v = str(st.get(key) or "").strip()
+            if v:
+                return v
+    dr = getattr(school, "default_region", None)
+    if dr is not None:
+        v = str(getattr(dr, "default_language", "") or "").strip()
+        if v:
+            return v
+    return ""
+
+
+def _locale_registry_candidate_codes(school, hint: str) -> list[str]:
+    """Ordered keys to match LocaleRegistry (e.g. fr -> fr_CM when country is CM)."""
+    seen: set[str] = set()
+    out: list[str] = []
+
+    def add(x: str) -> None:
+        x = (x or "").strip()
+        if not x or x in seen:
+            return
+        seen.add(x)
+        out.append(x)
+
+    h = (hint or "").strip()
+    if not h:
+        return out
+    add(h.replace("-", "_"))
+    base = h.split("_")[0].split("-")[0].strip()
+    cc = str(getattr(school, "country_code", "") or "").strip().upper()[:2]
+    if base and len(cc) == 2:
+        add(f"{base}_{cc}")
+    if base and base not in (h, h.replace("-", "_")):
+        add(base)
+    return out
+
+
+def _operating_calendar_system_code(school) -> str:
+    """Calendar system key from RegionConfig or school.settings (PATH III.20)."""
+    dr = getattr(school, "default_region", None)
+    if dr is not None:
+        c = str(getattr(dr, "calendar_system", "") or "").strip()
+        if c:
+            return c
+    st = getattr(school, "settings", None)
+    if isinstance(st, dict):
+        c = str(st.get("calendar_system") or "").strip()
+        if c:
+            return c
+    return ""
+
+
+def _operating_grading_scale_code(school) -> str:
+    """Grading scale key from RegionConfig or school settings (PATH III.20)."""
+    dr = getattr(school, "default_region", None)
+    if dr is not None:
+        c = str(getattr(dr, "grading_scale", "") or "").strip()
+        if c:
+            return c
+    st = getattr(school, "settings", None)
+    if isinstance(st, dict):
+        c = str(st.get("grading_scale") or st.get("default_grading_scale") or "").strip()
+        if c:
+            return c
+    return ""
+
+
+def _build_registry_key_rows(
+    snap: dict[str, Any],
+) -> tuple[list[dict[str, Any]], int]:
+    """
+    Table-friendly rows for Launch/Setup; mismatch_count = rows with ok is False
+    (PATH III.20).
+    """
+    rows: list[dict[str, Any]] = []
+    bad = 0
+
+    if snap.get("country_code"):
+        ok = bool(snap.get("registry_row_ok"))
+        if not ok:
+            bad += 1
+        rows.append(
+            {
+                "label": gettext("Country"),
+                "value": f"{snap.get('country_registry_name') or '—'} ({snap['country_code']})",
+                "ok": ok,
+            }
+        )
+    if snap.get("subdivision_code"):
+        ok = bool(snap.get("subdivision_registry_ok"))
+        if not ok:
+            bad += 1
+        scode = snap.get("subdivision_code")
+        sname = snap.get("subdivision_name") or "—"
+        rows.append(
+            {
+                "label": gettext("Subdivision"),
+                "value": f"{sname} ({scode})",
+                "ok": ok,
+            }
+        )
+    if snap.get("iana_timezone"):
+        ok = bool(snap.get("timezone_registry_ok"))
+        if not ok:
+            bad += 1
+        rows.append(
+            {
+                "label": gettext("Time zone"),
+                "value": f"{snap.get('timezone_registry_name') or '—'} ({snap['iana_timezone']})",
+                "ok": ok,
+            }
+        )
+    if snap.get("currency_code"):
+        ok = bool(snap.get("currency_registry_ok"))
+        if not ok:
+            bad += 1
+        rows.append(
+            {
+                "label": gettext("Currency"),
+                "value": f"{snap.get('currency_registry_name') or '—'} ({snap['currency_code']})",
+                "ok": ok,
+            }
+        )
+    if snap.get("locale_code"):
+        ok = bool(snap.get("locale_registry_ok"))
+        if not ok:
+            bad += 1
+        rows.append(
+            {
+                "label": gettext("Locale"),
+                "value": f"{snap.get('locale_registry_name') or '—'} ({snap['locale_code']})",
+                "ok": ok,
+            }
+        )
+    if snap.get("calendar_system_code"):
+        ok = bool(snap.get("calendar_registry_ok"))
+        if not ok:
+            bad += 1
+        rows.append(
+            {
+                "label": gettext("Calendar system"),
+                "value": f"{snap.get('calendar_registry_name') or '—'} ({snap['calendar_system_code']})",
+                "ok": ok,
+            }
+        )
+    stc = (snap.get("institution_type_code") or "").strip()
+    if stc:
+        ok = bool(snap.get("institution_type_registry_ok"))
+        if not ok:
+            bad += 1
+        rows.append(
+            {
+                "label": gettext("Institution type"),
+                "value": f"{snap.get('institution_type_registry_name') or '—'} ({stc})",
+                "ok": ok,
+            }
+        )
+    gsc = (snap.get("grading_scale_code") or "").strip()
+    if gsc:
+        ok = bool(snap.get("grade_scale_registry_ok"))
+        if not ok:
+            bad += 1
+        rows.append(
+            {
+                "label": gettext("Grading scale"),
+                "value": f"{snap.get('grade_scale_registry_name') or '—'} ({gsc})",
+                "ok": ok,
+            }
+        )
+    esc = (snap.get("education_system_code") or "").strip()
+    if esc:
+        ok = bool(snap.get("education_system_type_registry_ok"))
+        if not ok:
+            bad += 1
+        rows.append(
+            {
+                "label": gettext("Education system"),
+                "value": f"{snap.get('education_system_type_registry_name') or '—'} ({esc})",
+                "ok": ok,
+            }
+        )
+    return rows, bad
+
+
+def _registry_settings_cta() -> dict[str, str]:
+    """One-click path to school/region context (shared shell)."""
+    try:
+        return {
+            "label": gettext("Open school & region settings"),
+            "url": str(reverse("accounts:backend_dashboard")),
+        }
+    except (NoReverseMatch, TypeError, ValueError, RuntimeError):
+        return {"label": "", "url": "#"}
+
+
+def _registry_alignment_snapshot(school) -> dict[str, Any]:
+    """
+    PATH III.20: core registries (country, subdivision, IANA, currency, locale,
+    calendar) plus institution type, grade scale, education system — operator signal
+    for Setup/Launch with structured key_rows + mismatch_count.
+    """
+    cc = str(getattr(school, "country_code", "") or "").strip().upper()[:2]
+    iana = str(getattr(school, "timezone", "") or "").strip()
+    snap: dict[str, Any] = {
+        "country_code": cc or None,
+        "country_registry_name": None,
+        "registry_row_ok": False,
+        "subdivision_code": None,
+        "subdivision_name": None,
+        "subdivision_registry_ok": None,
+        "iana_timezone": iana or None,
+        "timezone_registry_name": None,
+        "timezone_registry_ok": False,
+        "currency_code": None,
+        "currency_registry_name": None,
+        "currency_registry_ok": False,
+        "locale_code": None,
+        "locale_registry_name": None,
+        "locale_registry_ok": False,
+        "calendar_system_code": None,
+        "calendar_registry_name": None,
+        "calendar_registry_ok": False,
+        "institution_type_code": None,
+        "institution_type_registry_name": None,
+        "institution_type_registry_ok": False,
+        "grading_scale_code": None,
+        "grade_scale_registry_name": None,
+        "grade_scale_registry_ok": False,
+        "education_system_code": None,
+        "education_system_type_registry_name": None,
+        "education_system_type_registry_ok": False,
+        "key_rows": [],
+        "mismatch_count": 0,
+        "settings_cta": _registry_settings_cta(),
+        "summary_lines": [],
+        "detail": "",
+    }
+    parts: list[str] = []
+    if not cc:
+        parts.append("Set institution country to align setup defaults with registry data.")
+    else:
+        try:
+            from apps.registries.models import CountryRegistry
+
+            row = CountryRegistry.objects.filter(code=cc, is_active=True).first()
+            if row:
+                snap["country_registry_name"] = row.name
+                snap["registry_row_ok"] = True
+                parts.append(f"Country registry: {row.name} ({cc}).")
+            else:
+                parts.append(
+                    f"No active CountryRegistry row for {cc}. Verify registry seeding."
+                )
+        except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+            parts.append("Country registry lookup failed (non-fatal).")
+    sub = getattr(school, "subdivision", None)
+    if sub is not None:
+        snap["subdivision_code"] = sub.code
+        snap["subdivision_name"] = sub.name
+        csub = str(getattr(sub, "country_id", "") or "").strip().upper()[:2]
+        sub_active = bool(getattr(sub, "is_active", True))
+        if cc and csub and csub != cc:
+            snap["subdivision_registry_ok"] = False
+            parts.append(
+                f"Subdivision {sub.name} is tied to country {csub}, but the school is set to {cc}. "
+                "Align country and subdivision in school settings."
+            )
+        elif not sub_active:
+            snap["subdivision_registry_ok"] = False
+            parts.append(
+                f"Subdivision {sub.code} is inactive in the registry. "
+                "Choose an active state/province."
+            )
+        else:
+            snap["subdivision_registry_ok"] = True
+            parts.append(
+                f"Subdivision registry: {sub.name} ({sub.code})."
+            )
+    elif cc:
+        parts.append(
+            "State/province (subdivision) is not set — set it in the school profile "
+            "when you need localized policy defaults."
+        )
+    if iana:
+        try:
+            from apps.registries.models import TimeZoneRegistry
+
+            trow = TimeZoneRegistry.objects.filter(code=iana, is_active=True).first()
+            if trow:
+                snap["timezone_registry_name"] = trow.name
+                snap["timezone_registry_ok"] = True
+                parts.append(f"Timezone registry: {trow.name} ({iana}).")
+            else:
+                parts.append(
+                    f"No active TimeZoneRegistry row for {iana}. Verify registry seeding."
+                )
+        except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+            parts.append("Time zone registry lookup failed (non-fatal).")
+    cur = _operating_currency_code(school)
+    if cur:
+        snap["currency_code"] = cur
+        try:
+            from apps.registries.models import CurrencyRegistry
+
+            crow = CurrencyRegistry.objects.filter(code=cur, is_active=True).first()
+            if crow:
+                snap["currency_registry_name"] = crow.name
+                snap["currency_registry_ok"] = True
+                parts.append(f"Currency registry: {crow.name} ({cur}).")
+            else:
+                parts.append(
+                    f"No active CurrencyRegistry row for {cur}. Verify registry seeding."
+                )
+        except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+            parts.append("Currency registry lookup failed (non-fatal).")
+    loc_hint = _operating_locale_hint(school)
+    if not loc_hint:
+        parts.append(
+            "Set default language or locale in region or school settings for LocaleRegistry alignment."
+        )
+    else:
+        snap["locale_code"] = loc_hint
+        try:
+            from apps.registries.models import LocaleRegistry
+
+            row = None
+            matched_code: str | None = None
+            for cand in _locale_registry_candidate_codes(school, loc_hint):
+                row = LocaleRegistry.objects.filter(code=cand, is_active=True).first()
+                if row:
+                    matched_code = cand
+                    break
+            if row and matched_code:
+                snap["locale_code"] = matched_code
+                snap["locale_registry_name"] = row.name
+                snap["locale_registry_ok"] = True
+                parts.append(f"Locale registry: {row.name} ({matched_code}).")
+            else:
+                parts.append(
+                    f"No active LocaleRegistry row for locale candidates from {loc_hint!r}. "
+                    "Verify registry seeding."
+                )
+        except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+            parts.append("Locale registry lookup failed (non-fatal).")
+    csys = _operating_calendar_system_code(school)
+    if csys:
+        snap["calendar_system_code"] = csys
+        try:
+            from apps.registries.models import CalendarSystemRegistry
+
+            csrow = CalendarSystemRegistry.objects.filter(
+                code=csys, is_active=True
+            ).first()
+            if csrow:
+                snap["calendar_registry_name"] = csrow.name
+                snap["calendar_registry_ok"] = True
+                parts.append(
+                    f"Calendar system registry: {csrow.name} ({csys})."
+                )
+            else:
+                parts.append(
+                    f"No active CalendarSystemRegistry row for {csys!r}. "
+                    "Verify registry seeding."
+                )
+        except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+            parts.append("Calendar system registry lookup failed (non-fatal).")
+    stype = str(getattr(school, "school_type", "") or "").strip()
+    if stype:
+        snap["institution_type_code"] = stype
+        try:
+            from apps.registries.models import InstitutionTypeRegistry
+
+            it = InstitutionTypeRegistry.objects.filter(
+                code=stype, is_active=True
+            ).first()
+            if it:
+                snap["institution_type_registry_name"] = it.name
+                snap["institution_type_registry_ok"] = True
+                parts.append(f"Institution type registry: {it.name} ({stype}).")
+            else:
+                parts.append(
+                    f"No active InstitutionTypeRegistry row for {stype!r}. "
+                    "Verify registry seeding."
+                )
+        except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+            parts.append("Institution type registry lookup failed (non-fatal).")
+    gcode = _operating_grading_scale_code(school)
+    if gcode:
+        snap["grading_scale_code"] = gcode
+        try:
+            from apps.registries.models import GradeScaleRegistry
+
+            gsr = GradeScaleRegistry.objects.filter(code=gcode, is_active=True).first()
+            if gsr:
+                snap["grade_scale_registry_name"] = gsr.name
+                snap["grade_scale_registry_ok"] = True
+                parts.append(f"Grading scale registry: {gsr.name} ({gcode}).")
+            else:
+                parts.append(
+                    f"No active GradeScaleRegistry row for {gcode!r}. "
+                    "Verify registry seeding."
+                )
+        except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+            parts.append("Grading scale registry lookup failed (non-fatal).")
+    esys = str(getattr(school, "sub_system", "") or "").strip()
+    if esys:
+        snap["education_system_code"] = esys
+        try:
+            from apps.registries.models import EducationSystemTypeRegistry
+
+            ed = (
+                EducationSystemTypeRegistry.objects.filter(
+                    code=esys, is_active=True
+                ).first()
+                or EducationSystemTypeRegistry.objects.filter(
+                    code=esys.upper(), is_active=True
+                ).first()
+            )
+            if ed:
+                snap["education_system_type_registry_name"] = ed.name
+                snap["education_system_type_registry_ok"] = True
+                parts.append(
+                    f"Education system type registry: {ed.name} ({ed.code})."
+                )
+            else:
+                parts.append(
+                    f"No active EducationSystemTypeRegistry row for {esys!r}. "
+                    "Verify registry seeding."
+                )
+        except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+            parts.append("Education system type registry lookup failed (non-fatal).")
+    snap["summary_lines"] = list(parts)
+    snap["detail"] = " ".join(p for p in parts if p).strip()
+    key_rows, mismatch_count = _build_registry_key_rows(snap)
+    snap["key_rows"] = key_rows
+    snap["mismatch_count"] = mismatch_count
+    snap["settings_cta"] = _registry_settings_cta()
+    return snap
 
 
 def _school_surface_url(school, path: str = "/") -> str:
@@ -362,7 +835,7 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
             "label": definition["label"],
             "description": definition["description"],
             "group": definition["step_group"],
-            "link": _safe_reverse(definition["link_name"]),
+            "link": _step_link_from_definition(definition),
             "recommended_choice": definition["recommended_choice"],
             "evidence": evidence_map[key],
             "status": "done" if done_map[key] else "pending",
@@ -1098,6 +1571,7 @@ def compile_setup_studio(school) -> dict[str, Any]:
         "sector_staff_roles": _sector_staff_roles_panel(
             school
         ),  # Wedge 14–22: suggested roles + bootstrap AccessRole note.
+        "registry_alignment": _registry_alignment_snapshot(school),
     }
 
     with transaction.atomic():

@@ -237,6 +237,12 @@ WHY_ENABLED_SUMMARY = (
     "and rollback in Package rollout and Studio Control."
 )
 
+PUBLISH_STAGING_HINT = (
+    "Staged experience and feature work ships through Studio (Control, staged activation, "
+    "Experience preview). Per-tenant rollback is in Control; fleet-wide change uses operator "
+    "package rollout. Evidence and overrides: Runtime inspector and Feature audit."
+)
+
 # Canonical “why enabled?” vocabulary (task 5) for operator-facing labels
 SOURCE_LABELS: dict[str, str] = {
     "runtime": "Runtime",
@@ -264,6 +270,21 @@ def _format_source_labels(sources: tuple[str, ...]) -> tuple[str, ...]:
         key = raw.strip().lower()
         out.append(SOURCE_LABELS.get(key, raw.strip()))
     return tuple(out)
+
+
+def get_ccc_source_legend_display_labels() -> list[str]:
+    """
+    Human-readable, de-duplicated labels for the Configuration Control Center
+    "source" vocabulary (aligns with outcome link `sources` and operator tracing).
+    """
+    seen: set[str] = set()
+    out: list[str] = []
+    for _k, v in sorted(SOURCE_LABELS.items(), key=lambda kv: (kv[1].lower(), kv[0])):
+        if v in seen:
+            continue
+        seen.add(v)
+        out.append(v)
+    return out
 
 
 def build_outcome_groups_for_request(request) -> list[dict[str, Any]]:
@@ -376,6 +397,46 @@ def _apply_url_suffix(url: str, url_name: str) -> str:
         return url
     q = extra[1:] if extra.startswith("?") else extra
     return f"{url}{'&' if '?' in url else '?'}{q}"
+
+
+# Quick strip: staging / publish / audit adjacent surfaces (same host rules as feature-control strip).
+CCC_STAGING_PUBLISH_SPECS: tuple[tuple[str, LinkTarget, str], ...] = (
+    ("Control Studio", "studio_os:control", "stable"),
+    ("Staged activation", "studio_os:automation_staged_activation", "beta"),
+    ("Rollback (Control)", "studio_os:rollback", "beta"),
+    ("Diff / impact", "studio_os:control_impact", "stable"),
+    ("Feature audit", "siteconfig:feature_control_audit", "stable"),
+    ("Package rollout", "super:package_rollout", "danger"),
+)
+
+
+def build_ccc_staging_publish_links_for_request(request) -> list[dict[str, Any]]:
+    """
+    Resolved CTAs for publish/staging/rollback on the Configuration Control Center.
+    Omits ``super:`` targets on non-manager hosts (mirrors feature-control quick links).
+    """
+    host = getattr(request, "public_host_kind", None)
+    out: list[dict[str, Any]] = []
+    for label, url_ref, stability in CCC_STAGING_PUBLISH_SPECS:
+        super_ref = (
+            url_ref.startswith("super:")
+            if isinstance(url_ref, str)
+            else str(url_ref[0]).startswith("super:")
+        )
+        if host not in (None, "manager") and super_ref:
+            continue
+        if isinstance(url_ref, str):
+            url = _rev(url_ref, request)
+            suffix_key: str = url_ref
+        else:
+            viewname, kw = url_ref
+            url = _rev_with_kwargs(viewname, kw, request)
+            suffix_key = str(viewname)
+        if not url:
+            continue
+        url = _apply_url_suffix(url, suffix_key)
+        out.append({"label": label, "url": url, "stability": stability})
+    return out
 
 
 def build_operator_control_model_for_request(request) -> list[dict[str, Any]]:

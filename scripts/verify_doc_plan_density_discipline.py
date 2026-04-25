@@ -83,6 +83,52 @@ def _canonical_artifact_paths(root: Path) -> tuple[Path, Path, Path, Path, Path]
     )
 
 
+def _wave_stanza_reference_errors(root: Path) -> list[str]:
+    """1022: Runbook + SOT must list the canonical PATH II shell wave test modules."""
+    scripts_dir = str(root / "scripts")
+    if scripts_dir not in sys.path:
+        sys.path.insert(0, scripts_dir)
+    from wave_shell_test_modules import (
+        WAVE_SHELL_TEST_MODULES,
+        wave_modules_from_runbook_path,
+    )
+
+    errs: list[str] = []
+    runbook = root / "docs" / "runbook" / "SOT_VALIDATION_STANZA.md"
+    if not runbook.is_file():
+        errs.append(
+            "Missing docs/runbook/SOT_VALIDATION_STANZA.md "
+            "(canonical wave `manage.py test` stanza)."
+        )
+        return errs
+    body = _read_text(runbook)
+    try:
+        parsed = wave_modules_from_runbook_path(runbook)
+    except OSError:
+        parsed = ()
+    if parsed != WAVE_SHELL_TEST_MODULES:
+        errs.append(
+            f"{runbook.relative_to(root)} bash stanza module list/order must match "
+            f"scripts/wave_shell_test_modules.WAVE_SHELL_TEST_MODULES exactly; "
+            f"parsed={list(parsed)!r} canonical={list(WAVE_SHELL_TEST_MODULES)!r}"
+        )
+    for mod in WAVE_SHELL_TEST_MODULES:
+        if mod not in body:
+            errs.append(
+                f"{runbook.relative_to(root)} missing required module line {mod!r}"
+            )
+    sot = root / "docs" / "RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md"
+    if sot.is_file():
+        sot_body = _read_text(sot)
+        needle = "docs/runbook/SOT_VALIDATION_STANZA.md"
+        if needle not in sot_body:
+            errs.append(
+                f"{sot.relative_to(root)} must reference {needle!r} "
+                "(wave validation stanza runbook)."
+            )
+    return errs
+
+
 def _canonical_artifact_errors(root: Path) -> list[str]:
     """Fail fast when SOT, execution log, backlog, or Cursor rule is truncated or stubbed."""
     sot, exec_log, backlog, rule, _docs = _canonical_artifact_paths(root)
@@ -203,6 +249,7 @@ def main(argv: list[str] | None = None) -> int:
             errors.append(f"Missing required discipline artifact: {path.relative_to(root)}")
 
     errors.extend(_canonical_artifact_errors(root))
+    errors.extend(_wave_stanza_reference_errors(root))
 
     all_docs, root_docs = _matching_doc_paths(root)
     all_count = len(all_docs)

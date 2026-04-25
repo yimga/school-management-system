@@ -47,7 +47,7 @@
 - [x] `static/css/portal-ui-components.css` — consolidated `templates/components/*.html` + `partials/language_switcher.html`
 - [x] `static/css/phase2-static-templates-bundle.css` — static-only template extractions (`scripts/extract_template_styles_phase2.py`)
 - [x] `static/css/badge-verify.css` + `#badge-verify-theme-vars`; `reportcard-style-preview-shell.css` + `#reportcard-preview-theme-vars`
-- [x] `portal_base`, `base`, `admin/base_site`, `control_plane_skeleton`, `marketing/base_marketing` link shared component + phase2 bundles
+- [x] `portal_base`, `base`, `admin/base_site`, `control_plane_skeleton`, `marketing/base_marketing` link shared component + phase2 bundles (**2026-04-25** — **batches 976–978:** `shell-data-dashboard-page.js` classifiers including **`/api/internal/metadata/`**, **`/reports/`**, app prefixes; **`dashboard-text-visibility.css`** for matching **`data-dashboard-page`** tokens)
 - [x] `scripts/report_template_inline_styles.py` — **0 flagged** non-exempt blocks; five **server-theme** templates documented in script (`admin/index.html`, `admin/index_tenant.html`, `admin/admin_dashboard.html`, `accounts/backend_dashboard.html`, `customersuccess/guided_onboarding.html`)
 
 ## Validation

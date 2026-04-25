@@ -52,3 +52,11 @@ body.tenant-surface {
   --surface-bg-subtle: rgba(255, 255, 255, 0.8);
   --surface-bg-muted: rgba(15, 23, 42, 0.04);
 }
+
+/* ========== Onboarding wizards (extends base.html; /setup-studio/, /onboard/*) ========== */
+html[data-surface="onboarding"] {
+  /* Same token plane as tenant; distinct surface for shell classifier + future overrides */
+  --surface-bg-base: var(--portal-bg, #f7fbff);
+  --surface-bg-subtle: rgba(255, 255, 255, 0.8);
+  --surface-bg-muted: rgba(15, 23, 42, 0.04);
+}

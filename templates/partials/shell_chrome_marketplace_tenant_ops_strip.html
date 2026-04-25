@@ -1,0 +1,13 @@
+{% load i18n %}
+{# After-install / activate / scope strip (tenant app catalog). data-shell-marketplace-ops is the contract. #}
+<nav
+  class="d-flex flex-wrap align-items-center gap-2 py-2 mb-2 border-bottom border-light border-opacity-10"
+  data-shell-marketplace-ops="activate-configure"
+  data-shell-chrome="marketplace-ops-strip"
+  aria-label="{% trans 'Install, activate, and scope actions' %}"
+>
+  <span class="small text-white-50 me-1">{% trans "After install" %}:</span>
+  <a href="{% url 'tenant_installed_apps' %}" class="btn btn-sm btn-outline-light">{% trans "Installed &amp; activate" %}</a>
+  <a href="{% url 'tenant_scope_consent' %}" class="btn btn-sm btn-outline-light">{% trans "Scope approvals" %}</a>
+  <span class="small text-white-50 ms-md-auto">{% trans "Sandbox first — activate only when ready." %}</span>
+</nav>

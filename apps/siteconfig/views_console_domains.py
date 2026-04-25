@@ -16,9 +16,12 @@ from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 
 from apps.siteconfig.control_outcome_center import (
+    PUBLISH_STAGING_HINT,
     WHY_ENABLED_SUMMARY,
+    build_ccc_staging_publish_links_for_request,
     build_operator_control_model_for_request,
     build_outcome_groups_for_request,
+    get_ccc_source_legend_display_labels,
 )
 
 logger = logging.getLogger(__name__)
@@ -350,6 +353,9 @@ def console_domains_hub(request: HttpRequest) -> HttpResponse:
         "outcome_groups": build_outcome_groups_for_request(request),
         "why_enabled_summary": WHY_ENABLED_SUMMARY,
         "operator_control_model": build_operator_control_model_for_request(request),
+        "ccc_source_legend": get_ccc_source_legend_display_labels(),
+        "ccc_publish_staging_hint": PUBLISH_STAGING_HINT,
+        "ccc_staging_links": build_ccc_staging_publish_links_for_request(request),
         # Light chrome on tenant portal; dark chrome on manager control plane
         "ccc_outcome_compact": getattr(request, "public_host_kind", None) != "manager",
     }

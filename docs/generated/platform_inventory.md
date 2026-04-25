@@ -1,24 +1,24 @@
 # Platform Inventory
 
 - Installed app modules: `42`
-- Python files: `2424`
+- Python files: `2460`
 - HTML templates: `649`
 - Markdown files: `1027`
 - Migration files: `704`
 - Management commands: `157` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs (gross scan): `1665`
-- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `5`
-- `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `2`
-- `get_solo()` refs: `198`
-- `except Exception`: `262`
-- `cursor.execute()` (gross): `354`
-- `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `16`
+- `SiteSettings` refs (gross scan): `1729`
+- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `27`
+- `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `4`
+- `get_solo()` refs: `200`
+- `except Exception`: `263`
+- `cursor.execute()` (gross): `371`
+- `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `32`
 - `csrf_exempt` (substring, gross): `160`
 - `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `37`
-- `AllowAny`: `80`
-- `print()` (gross all `.py`): `921`
-- `print()` (`apps` product paths): `0`; `scripts/`: `827`
-- `gilead` matches (gross corpus): `1044` across `145` files
+- `AllowAny`: `88`
+- `print()` (gross all `.py`): `923`
+- `print()` (`apps` product paths): `0`; `scripts/`: `829`
+- `gilead` matches (gross corpus): `1070` across `146` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -85,10 +85,10 @@ Total: `157` commands. First 25 by app/command:
 - `apps/finance/models.py`: `2814` lines / `98677` bytes
 - `apps/siteconfig/admin.py`: `2814` lines / `98674` bytes
 - `apps/siteconfig/views.py`: `2510` lines / `93769` bytes
-- `apps/studio_os/views.py`: `2166` lines / `85698` bytes
+- `apps/studio_os/views.py`: `2152` lines / `85056` bytes
 - `apps/finance/tasks.py`: `2062` lines / `82393` bytes
 - `apps/siteconfig/models.py`: `2023` lines / `78499` bytes
-- `apps/platform_runtime/tests/test_tenant_settings_lint.py`: `1806` lines / `72873` bytes
+- `config/settings.py`: `1557` lines / `70465` bytes
 
 ## Documentation Drift
 

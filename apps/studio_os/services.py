@@ -499,6 +499,24 @@ def get_studio_command_palette_entries(request) -> list[dict[str, Any]]:
         keywords="workflow automation approval",
     )
     _add("Launch & setup", "studio_os:launch", keywords="launch setup onboarding")
+    try:
+        launch_base = reverse("studio_os:launch")
+        entries.append(
+            {
+                "label": "Launch Studio: migration & import",
+                "url": f"{launch_base}?pane=migration",
+                "keywords": "migration import wizard data launch studio",
+            }
+        )
+        entries.append(
+            {
+                "label": "Launch Studio: preview by role",
+                "url": f"{launch_base}?pane=role_preview",
+                "keywords": "preview role portal parent teacher launch",
+            }
+        )
+    except NoReverseMatch:
+        pass
     _add(
         "Feature control & capabilities",
         "studio_os:control",

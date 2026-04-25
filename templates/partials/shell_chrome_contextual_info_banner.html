@@ -1,0 +1,22 @@
+{% load i18n %}
+{# 1031: Optional info / status banner with primary copy + optional action (portal + backend). #}
+{% if chrome_banner_title or chrome_banner_body %}
+<div
+  class="alert alert-{{ chrome_banner_level|default:'info' }} d-flex align-items-start gap-2 {% if chrome_banner_mb %}{{ chrome_banner_mb }}{% else %}mb-3{% endif %}"
+  data-shell-chrome="contextual-info-banner"
+  data-shell-banner-level="{{ chrome_banner_level|default:'info' }}"
+  role="status"
+>
+  <div class="flex-grow-1">
+    {% if chrome_banner_title %}
+    <strong>{{ chrome_banner_title }}</strong>
+    {% endif %}
+    {% if chrome_banner_body %}
+    <span class="{% if chrome_banner_title %}d-block mt-1{% endif %}">{{ chrome_banner_body }}</span>
+    {% endif %}
+  </div>
+  {% if chrome_banner_action_url %}
+  <a class="btn btn-sm btn-outline-primary flex-shrink-0" href="{{ chrome_banner_action_url }}">{{ chrome_banner_action_label|default:_("Open") }}</a>
+  {% endif %}
+</div>
+{% endif %}

@@ -148,26 +148,26 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 | # | Item | Action |
 |---|------|--------|
 | III.4 | Enforce runtime everywhere | **§11.4 batch 947 (2026-04-24):** `platform_runtime` audit clean; **`test_batch947_platform_runtime_no_singleton_bypass`** + **`lint_sitesettings_orm_singleton`**; resolvers use **`get_effective_site_settings`** (e.g. **`runtime_resolver._step7_branding`**). Full tenant-app sweep stays **outside** `apps/platform_runtime/` (Phase II.3 lints). |
-| III.5 | Add runtime tracing | Implement: Add tracing (e.g. span/context) for resolver resolution in platform_runtime; optional integration with observability app. |
+| III.5 | Add runtime tracing | **Depth (SOT §11.4 batch 953):** **`runtime_resolution_complete`** DEBUG log includes **`runtime_trace_id`** (`apps/platform_runtime/runtime_resolver.py`; **`test_batch953_runtime_resolution_trace_log.py`**). Broader span/OpenTelemetry integration remains optional. |
 | III.6 | Eliminate fallback bypasses | **§11.4 batch 947 (2026-04-24):** No **`SiteSettings.get_solo` / `load` / `objects`** in **`platform_runtime`** prod tree except ORM surface in **`helpers.py`** (**`get_platform_site_settings_record`**). Tenant **`apps/*`** bypasses: **`lint_tenant_settings`** + batch **945** contract tests. |
 
 ### §6.3 metadata
 
 | # | Item | Action |
 |---|------|--------|
-| III.7 | Add pack provenance | Implement: Add provenance fields (e.g. pack_id, version) to relevant metadata entities; expose in lineage/UI. |
+| III.7 | Add pack provenance | **DONE (SOT §11.4 batch 956, 2026-04-25):** `EntityCatalogEntry.source_pack_id` / `source_pack_version` (migrations **0008**); **read-only** exposure in `get_unified_lineage` (**entity** + **field** `object`); `EntityCatalogEntryAdmin` list columns; `apps/metadata/tests/test_lineage_api.py`, `test_batch956_entity_catalog_pack_provenance.py`. |
 
 ### §6.4 packages
 
 | # | Item | Action |
 |---|------|--------|
-| III.8 | Partial failure handling | Implement: Deepen mid-apply failure handling in engine (e.g. transaction boundaries, partial rollback, status); document in package_engine_ledger. |
+| III.8 | Partial failure handling | **Depth (SOT §11.4 batch 957):** `apply_package` exposes **`apply_state`** (`committed` / `rolled_back` / `not_attempted`); `docs/package_engine_ledger.md`; tests `test_apply_package_integrity_error_atomic_block_leaves_no_installed_row` + `apply_state` assertions. |
 
 ### §6.5 setup_studio
 
 | # | Item | Action |
 |---|------|--------|
-| III.9 | Complete Launch Studio flow | Implement: Close any remaining gaps in launch wizard, health, and checklist flows per launch_studio_checklist.md; optional: N/A with owner/date if product defers. |
+| III.9 | Complete Launch Studio flow | **[x] Depth (2026-04-25, batch 960 + 967 + **968**):** Rail panes + **`get_setup_studio_payload`** step links (incl. **`plan_choice`** → **`?pane=plan`**, **`registry_alignment`**); Launch **overview** checklist + migration + registry card. `verify_phase5_studio_os_conformance` + launch rail tests. Registry/AI depth remains §11.4. |
 
 ### §6.6 brand_experience
 
@@ -175,7 +175,7 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 |---|------|--------|
 | III.10 | Absorb real ownership from siteconfig | Implement: Move theme/experience ownership into brand_experience (models, resolvers); siteconfig becomes legacy data source only for those fields. |
 | III.11 | Add previews/compare/rollback | **DONE (SOT §11.4 batch 949):** Studio — `studio_os:experience_compare` + `get_studio_compare_context` (`templates/studio_os/partials/subpages/experience_compare.html`); rollback — POST `studio_os:rollback` with `mode=experience` + `theme_previous_state` (`test_experience_rollback`, `test_batch949_experience_compare_view`). Brand — `brand_experience.compare_experience_packs` / `rollback_experience_pack` (`test_batch949_path_iii11_compare_contract`, `packages.tests.test_experience_packs`). |
-| III.12 | Purge Gilead theme defaults | Implement or N/A: Already done in migration 0155; verify no remaining defaults; if none, mark N/A. |
+| III.12 | Purge Gilead theme defaults | **DONE (SOT §11.4 batch 958):** **`siteconfig` migration `0155_normalize_gilead_residue_runmycampus`**; **[NA_REGISTER](NA_REGISTER_PATH_TO_100.md)** §6.6 row; **`lint_gilead_residue`** + **`test_tenant_settings_lint.test_lint_gilead_residue_passes`**; **`apps/brand_experience/tests/test_batch958_path_iii12_no_gilead_in_brand_product_tree.py`** (product **`*.py`** under **`apps/brand_experience/`** excluding **`migrations/`** + **`tests/`**). |
 
 ### §6.7 runtime_blueprints
 
@@ -198,7 +198,7 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 
 | # | Item | Action |
 |---|------|--------|
-| III.20 | Make central to setup recommendations, reports, policies, migration, localization | Implement: Use registries in get_setup_studio_payload, report policies, migration, localization; document. |
+| III.20 | Make central to setup recommendations, reports, policies, migration, localization | **Depth (SOT §11.4 batch 968–975, 2026-04-25):** **`get_setup_studio_payload.registry_alignment`** — all direct **School/Region** registries: country, **subdivision FK**, IANA, currency, locale, calendar, **institution type** (**`school_type`**), **grading scale** (**`RegionConfig`/`settings`**), **education system** (**`sub_system`**) + **`key_rows`**, **`mismatch_count`**, Launch **table/mismatch/CTA** UI (**batch 975**). Remaining catalog registries (document/fee/terminology, **M2M** education levels) are **separate** product passes. Ongoing: reports/policies/migration. |
 | III.21 | Improve registry UI and runtime visibility | Implement: Registry list/detail UI; expose in runtime inspector and Control Studio. |
 
 ### §6.10 marketplace
@@ -224,14 +224,14 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 | # | Item | Action |
 |---|------|--------|
 | III.30 | Reduce raw SQL | Implement: Per raw_sql_audit; replace with ORM or repository; update allowlist. |
-| III.31 | Harden public/control-plane routes | **Depth slice (SOT batch 948):** `SchoolConfigAPI` (`GET` **`/api/config/`**, `apps/schools/api_views.py`, AllowAny) — per-IP rate limit unchanged; audit **`school_config_api_request` adds** **`authenticated`** (no PII), **`docs/public_endpoint_audit.md`** §2/§6 updated. **Tests:** `apps/schools/tests/test_school_config_api_hardening.py` (429 + audit). Further public routes: future §11.4 slices. |
-| III.32 | Clarify school vs platform control-plane logic | Implement: Document and enforce boundary (e.g. super vs tenant); split views/perms where mixed. |
+| III.31 | Harden public/control-plane routes | **Depth slice (SOT batch 948):** `SchoolConfigAPI` (`GET` **`/api/config/`**, `apps/schools/api_views.py`, AllowAny) — per-IP rate limit unchanged; audit **`school_config_api_request` adds** **`authenticated`** (no PII), **`docs/public_endpoint_audit.md`** §2/§6 updated. **Tests:** `apps/schools/tests/test_school_config_api_hardening.py` (429 + audit). **Batch 955:** same view **GET/HEAD/OPTIONS** only (`http_method_names`); `test_batch955_control_plane_boundary`. Further public routes: future §11.4 slices. |
+| III.32 | Clarify school vs platform control-plane logic | **Depth (SOT §11.4 batch 955):** [schools_control_plane_boundary.md](schools_control_plane_boundary.md) §2.1 — **`SchoolConfigAPI`** GET-only binding (`http_method_names`); **`test_batch955_control_plane_boundary`** + **`test_school_config_api_hardening`**. Platform super vs tenant table unchanged §1. |
 
 ### §6.13 accounts
 
 | # | Item | Action |
 |---|------|--------|
-| III.33 | Improve onboarding/setup integration | Implement: Connect onboarding flows to setup_studio payload and Launch Studio; role-based onboarding. |
+| III.33 | Improve onboarding/setup integration | **Depth (SOT §11.4 batch 963+968, 2026-04-25):** first-login + palette + step CTAs + **plan** + **checklist** + **role preview** in **`guided_onboarding.html`**; **`registry_alignment`** in Launch overview. Deeper registries: **III.20** / **§11.4**. |
 
 ### §6.14 portal
 
@@ -252,7 +252,7 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 
 | # | Item | Action |
 |---|------|--------|
-| III.39 | Deepen tests | Implement: Add tests for academics critical paths (syllabus, grading, workflows). |
+| III.39 | Deepen tests | **Depth (SOT §11.4 batch 966, waves 964–966, 2026-04-25):** **`apps/academics/tests/test_academics_critical_paths.py`** — syllabus **builder** GET (**200** / **403** by assignment) + **preview** GET (**200** with **`CourseSyllabus`** + teacher assignment) + existing **`get_active_year_and_term`** + hub. Verifier: **`python manage.py test apps.academics.tests.test_academics_critical_paths`**. Grading/workflow tests remain for future **§11.4** slices. |
 | III.40 | Tighten registries/policies/runtime integration | Implement: Academics uses registries (e.g. grading, levels) and runtime for behavior. |
 | III.41 | Improve packageability of academic outputs | Implement: Academic report/output packs; versioning. |
 
@@ -339,7 +339,7 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 
 | # | Item | Action |
 |---|------|--------|
-| IV.1 | select plan (when productized) | **N/A until productized:** When plans are productized, add "Select plan" to Launch Studio rail and payload. Owner: product; date: when plan product ships. Until then: N/A with owner and date in SOT. |
+| IV.1 | select plan (when productized) | **Depth (2026-04-25, batch 968):** Launch rail **`?pane=plan`**, native **`launch_select_plan_body`**, **`plan_choice`** step CTA in **`get_setup_studio_payload`**, **Setup Studio** hero **Select plan pane** link. Full commercial “plan product” depth remains product roadmap when not yet shipped. |
 
 ### §5.1 Theme & Experience
 
@@ -479,6 +479,27 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 | 2026-04-24 | **Agent 2 off-repo execution:** PMO **ticket stub** table; Tier **2** parallel **attack pattern**; Tier **3** program **cadence**; merged checklist **§ C** links to backlog [Agent 2 PMO discipline](SOT_REMAINING_ITEMS_BACKLOG.md#agent-2-pmo-discipline-streams-1-5); stable heading anchor `#agent-2-off-repo-execution`. |
 | 2026-04-24 | **SOT §11.4 batch 951:** **§B + §C** governance closed as **docs-only** — [External program blockers](#external-program-blockers-wopi-app-stores-soc2-or-iso-clever-live) remains canonical; [SOT_REMAINING_ITEMS_BACKLOG](SOT_REMAINING_ITEMS_BACKLOG.md#external--organizational--open-not-completable-in-this-repo-alone) **OPEN** index (Tier / next step / milestone); [RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG](RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md) wave **951**; **`python scripts/verify_doc_plan_density_discipline.py`** **PASS**. |
 | 2026-04-25 | **SOT §11.4 batch 953:** §6.2 **III.5** — `runtime_resolution_complete` DEBUG line includes **`runtime_trace_id`**; `test_batch953_runtime_resolution_trace_log`. |
+| 2026-04-25 | **SOT §11.4 batch 956:** §6.3 **III.7** — `get_unified_lineage` read-only **`source_pack_id` / `source_pack_version`** on entity + field objects; `EntityCatalogEntryAdmin` columns; `test_lineage_api` + `test_batch956_entity_catalog_pack_provenance` (migration **0008**). |
+| 2026-04-25 | **SOT §11.4 batch 963 (PATH III.33, 961–963):** first-login + CS guided onboarding + command palette link into **Launch Studio** (overview, migration, role preview); SOT, launch checklist, phase 5 Studio OS, autonomous log. |
+| 2026-04-25 | **SOT §11.4 batch 966 (PATH III.39, 964–966):** `test_academics_critical_paths` — syllabus **builder** 200/403, **preview** 200; §6.16 table + checklist README. |
+| 2026-04-25 | **SOT §11.4 batch 967 (PATH III.9/III.33):** **`get_setup_studio_payload`** Launch pane links; **`launch_studio_overview_body`** UX; **`guided_onboarding`** hero cross-links; setup_studio + batch962 + launch rail tests; **`verify_phase5_studio_os_conformance`**. |
+| 2026-04-25 | **SOT §11.4 batch 968 (PATH III.20 + IV.1 + shell):** **`registry_alignment`** + **plan** step **`?pane=plan`**; Launch overview registry card; guided onboarding **Select plan** link; **`portal_base`** **`/studio/`** → **`dashboard-page-studio`**; phase2 + phase5 + tests. |
+| 2026-04-25 | **SOT §11.4 batch 969 (PATH III.20 + shell + siteconfig):** **`TimeZoneRegistry`** on **`registry_alignment`**; single **`shell-data-dashboard-page.js`** for tenant/cp/admin bases; **siteconfig** report library + bulk letters → **`backend_base`**; `test_sidebar_record_context` fix. |
+| 2026-04-25 | **SOT §11.4 batch 970–971 (PATH III.20 + Studio OS):** **`CurrencyRegistry`** + **`_operating_currency_code`**; **`summary_lines`**; Launch overview **bulleted** registry lines. |
+| 2026-04-25 | **SOT §11.4 batch 972 (PATH III.20):** **`LocaleRegistry`** on **`registry_alignment`** (**`_operating_locale_hint`**, **`_locale_registry_candidate_codes`**). |
+| 2026-04-25 | **SOT §11.4 batch 973 (PATH III.20):** **`CalendarSystemRegistry`** via **`_operating_calendar_system_code`** (region / **`settings["calendar_system"]`**). |
+| 2026-04-25 | **SOT §11.4 batch 974 (PATH III.20):** subdivision + **institution / grade / education** registries; **`key_rows`**, **`mismatch_count`**, **`settings_cta`**. |
+| 2026-04-25 | **SOT §11.4 batch 975 (PATH III.20 + Studio OS):** Launch overview **key_rows** + **mismatch** + **narrative** **`<details>`** + CTA. |
+| 2026-04-25 | **SOT §11.4 batch 976 (PATH II shell):** **`/siteconfig/`**, **`/metadata/`**, **`/marketplace/`** in **`shell-data-dashboard-page.js`**. |
+| 2026-04-25 | **SOT §11.4 batch 977 (PATH II shell):** **`shell-data-dashboard-page.js`** — **`/api/internal/metadata/`** + **`/reports/`**, **`/academics/`**, **`/automation/`**, **`/communication/`**, **`/api-center/`**, **`/organization/network/`**, **`/evals/`**; **`test_marketing_shell`** strings. |
+| 2026-04-25 | **SOT §11.4 batch 978 (PATH II shell):** **`dashboard-text-visibility.css`** — **`data-dashboard-page`** muted text for new app tokens. |
+| 2026-04-25 | **SOT §11.4 batch 979 (PATH II shell + onboarding):** **`/setup-studio/`**, **`/onboard/`** → **onboarding**; CSS token **onboarding**. |
+| 2026-04-25 | **SOT §11.4 batch 980–982 (PATH II shell + Configuration Control Center):** **`base.html` `data-surface` (onboarding / marketing / tenant) + `onboarding` block in `surface-themes.css`; `onboard_wizard` `data-shell-page="onboarding-wizard"`; **`console_domains_hub*`** `data-shell-surface="config-control-center"`; **`test_marketing_shell`** contracts; **AGENTS** + **`.cursor` rules** — no “pass complete” stop when work remains. |
+| 2026-04-25 | **SOT §11.4 batch 983–985 (CCC depth + shell):** **`control_outcome_center`** staging/publish links + source legend + **`PUBLISH_STAGING_HINT`**; **`views_console_domains`** context; **`configuration_control_center_*`** partials (staging, hubs DRY, outcomes uses **`ccc_outcome_compact`**); **`control_plane_base`** **`data-shell-layout` / `data-shell-main`**; **`test_ccc_control_center_contract`**. |
+| 2026-04-25 | **SOT §11.4 batch 986–988 (PATH II shell/control-plane convergence):** **`portal_base` / `portal_sidebar`** — **`data-rmc-shell-root`**, **`data-rmc-authenticated-shell`**, **`data-shell-sidebar`/`mount`**, **`data-shell-main`**, **`data-shell-nav-family`**. **`control_plane_base` / `control_plane_sidebar`** — authenticated shell + sidebar mount + nav family. **`studio_os` `shell` / `shell_control_plane`** — **`data-shell-layout` + `data-shell-host`**. **`admin/base_site`** — **`data-shell-layout='admin'`** on **`documentElement`**. **`test_marketing_shell` `ShellSurfaceFamilyContractTests`**. |
+| 2026-04-25 | **SOT §11.4 batch 989–994 (multi-wave: shell + CCC/siteconfig + Studio + dashboards + marketplace):** **`control_plane_skeleton`** root/body; **`shell_main_content`** embed; **`tenant_runtime_configuration_hub`** Phase B CTA + surfaces; **`backend_dashboard`** **`data-shell-role-home`**; **`admin_nav_bridge`**; **`tenant_app_catalog`** marketplace markers. **`ShellWaveBatch989PlusContractTests`**. |
+| 2026-04-25 | **SOT §11.4 batch 995 (shell contract registry + gate):** **`shell_contract`**, **`shell_contract_context`**, **`rmc_shell`** on **portal / base / skeleton** **`<html>`**; **`verify_shell_surface_inventory.py`**; **`test_shell_contract`**. |
+| 2026-04-26 | **SOT §11.4 batch 955:** §6.12 **III.32** — `SchoolConfigAPI` **GET-only** (`http_method_names`); `test_batch955_control_plane_boundary`; `schools_control_plane_boundary.md` §2.1. |
 | 2026-04-24 | **Single end-to-end goal checklist (merged):** one ordered path (release gates A → external B → program tracks C → depth D); SOT + backlog point here—no fourth master doc. |
 | 2026-04-24 | **Program tracks** row: NOC, WCAG formal cert, Z-reports/multi-register, SiteSettings row decomposition, prod CWV/BI — pointer to [SOT_REMAINING_ITEMS_BACKLOG.md — Program tracks](SOT_REMAINING_ITEMS_BACKLOG.md#program-tracks-end-to-end-execution-steps). §6.1 §2.4 allowlist sentence: **six** repository paths (JSON truth). |
 | 2026-04-24 | **§6.6 III.11 (batch 949):** PATH table inventories Studio compare/rollback + brand_experience pack compare/rollback; adds `test_batch949_*` modules; SOT §11.4 + autonomous log. |

@@ -134,14 +134,18 @@ def main(argv: list[str] | None = None) -> int:
     admin_base = templates / "admin" / "base.html"
 
     portal_text = _read(portal_base)
-    if 'data-authenticated-surface="{% if request.public_host_kind == \'manager\' %}manager-control-plane{% else %}tenant-portal{% endif %}"' not in portal_text:
-        errors.append("portal_base.html missing manager/tenant authenticated-surface contract.")
+    if "data-authenticated-surface=" not in portal_text or "rmc_shell.authenticated_surface" not in portal_text:
+        errors.append(
+            "portal_base.html missing authenticated-surface contract (rmc_shell.authenticated_surface)."
+        )
     if "data-page-archetype" not in portal_text:
         errors.append("portal_base.html missing data-page-archetype contract.")
 
     cp_text = _read(control_plane_base)
-    if 'data-authenticated-surface="manager-control-plane"' not in cp_text:
-        errors.append("control_plane_base.html missing manager authenticated-surface marker.")
+    if "data-authenticated-surface=" not in cp_text or "rmc_shell.authenticated_surface" not in cp_text:
+        errors.append(
+            "control_plane_base.html missing authenticated-surface marker (rmc_shell.authenticated_surface)."
+        )
     if "{% block cp_page_archetype %}" not in cp_text:
         errors.append("control_plane_base.html missing cp_page_archetype block.")
 

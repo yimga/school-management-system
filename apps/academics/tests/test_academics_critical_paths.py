@@ -12,6 +12,7 @@ from django.urls import reverse
 from apps.academics.models import (
     AcademicYear,
     Classroom,
+    CourseSyllabus,
     Department,
     Specialty,
     Subject,
@@ -157,3 +158,60 @@ class SyllabusHubCriticalPathTests(TestCase):
         # render() returns HttpResponse; test client does not attach template context.
         self.assertContains(response, "Course syllabi")
         self.assertContains(response, "Algebra")
+
+    @override_settings(ROOT_URLCONF="config.urls")
+    def test_syllabus_builder_200_for_assigned_teacher(self):
+        """Syllabus builder GET loads when teacher has an active assignment (III.39)."""
+        profile = TeacherProfile.objects.create(user=self.teacher_user, school=self.school)
+        TeacherAssignment.objects.create(
+            school=self.school,
+            teacher=profile,
+            academic_year=self.year,
+            subject_assignment=self.subject_assignment,
+            is_active=True,
+        )
+        self.client.login(username="teacher_syllabus", password="testpass123")
+        url = reverse(
+            "academics:syllabus_builder",
+            kwargs={"subject_assignment_id": self.subject_assignment.id},
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        # Builder template should surface subject name from assignment (stable across locales).
+        self.assertContains(response, "Algebra", html=False)
+
+    @override_settings(ROOT_URLCONF="config.urls")
+    def test_syllabus_builder_403_when_user_not_assigned(self):
+        """Builder refuses users who are not assigned to the subject (III.39)."""
+        self.client.login(username="other_user", password="testpass123")
+        url = reverse(
+            "academics:syllabus_builder",
+            kwargs={"subject_assignment_id": self.subject_assignment.id},
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+    @override_settings(ROOT_URLCONF="config.urls")
+    def test_syllabus_preview_200_for_assigned_teacher_with_syllabus(self):
+        """Preview requires a CourseSyllabus row; owner teacher gets 200 (III.39)."""
+        profile = TeacherProfile.objects.create(user=self.teacher_user, school=self.school)
+        TeacherAssignment.objects.create(
+            school=self.school,
+            teacher=profile,
+            academic_year=self.year,
+            subject_assignment=self.subject_assignment,
+            is_active=True,
+        )
+        CourseSyllabus.objects.create(
+            subject_assignment=self.subject_assignment,
+            status=CourseSyllabus.Status.DRAFT,
+            created_by=self.teacher_user,
+        )
+        self.client.login(username="teacher_syllabus", password="testpass123")
+        url = reverse(
+            "academics:syllabus_preview",
+            kwargs={"subject_assignment_id": self.subject_assignment.id},
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Algebra", html=False)

@@ -5,6 +5,12 @@ Canonical format: docs/architecture/PACKAGE_FORMAT.md.
 Reconciliation after apply/rollback: reconciliation_status is set on InstalledPackage
 and PackageChangeLog (reconciled, rolled_back, promoted). For lineage visibility,
 call apps.metadata.services.get_package_lineage_registry(package_id=...).
+
+Apply outcome (``apply_package`` return): **apply_state** — ``not_attempted`` (preview/compat
+failed before DB work), ``committed`` (single ``transaction.atomic`` block succeeded),
+``rolled_back`` (failure inside the block; ORM + metadata registration inside the block
+reverted; optional ``PackageChangeLog`` with reconciliation_status=failed may be written
+in a separate atomic block — see **docs/package_engine_ledger.md**).
 """
 
 from __future__ import annotations
@@ -666,6 +672,7 @@ def _apply_package_mid_failure_result(
         "package_id": package_id,
         "version": version,
         "reconciliation_status": "failed",
+        "apply_state": "rolled_back",
     }
 
 
@@ -701,6 +708,7 @@ def apply_package(
             "warnings": preview["warnings"],
             "package_id": package_id,
             "version": version,
+            "apply_state": "not_attempted",
         }
 
     rollback_token = uuid.uuid4().hex[:32]
@@ -802,6 +810,7 @@ def apply_package(
         "changelog_id": log.pk,
         "stage": mode,
         "reconciliation_status": reconciliation_status,
+        "apply_state": "committed",
         "dependencies": preview["dependencies"],
         "compatibility": preview["compatibility"],
         "impacted_artifacts": applied_impact_summary,

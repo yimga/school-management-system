@@ -277,6 +277,7 @@ TEMPLATES = [
                 "apps.siteconfig.context_processors.ai_copilot_settings",  # AI Copilot API key
                 "apps.policies.context_processors.tenant_policy_context",  # tenant_ctx + global_env (Policy Registry)
                 "apps.platform_runtime.context_processors.rum_ingest_context",
+                "apps.platform_runtime.context_processors.shell_contract_context",
             ]
         },
     }

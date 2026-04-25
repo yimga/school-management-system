@@ -26,7 +26,7 @@
 ## 2. Current entry points
 
 - **Setup Studio / onboarding:** apps/setup_studio, apps/portal/views_onboarding.py, schools/signup_views, onboarding_service.
-- **Launch Studio (Studio OS):** studio_os Launch Studio mode — ensure all above items are reachable from one Launch Studio shell or clearly linked.
+- **Launch Studio (Studio OS):** studio_os Launch Studio mode — ensure all above items are reachable from one Launch Studio shell or clearly linked. **2026-04-25 (batch 960):** left rail adds **Migration path** (pane `migration` → tenant **`accounts:migration_wizard`** embed) and **Preview by role** (pane `role_preview` → native list from `get_setup_studio_payload` / `launch_role_previews`). **2026-04-25 (batch 963 / III.33):** **first-login checklist** and **Customer Success guided onboarding** deep-link into Launch Studio (overview, migration vs role preview by role); **Studio OS command palette** lists the same **migration** and **role preview** entry points. **2026-04-25 (batch 967):** **`get_setup_studio_payload`** **Preview by role** / **Launch checklist** steps resolve to Launch Studio **`?pane=role_preview`** / **`?pane=checklist`**; Launch **overview** shows linked checklist + migration CTAs; **guided onboarding** hero links checklist and role-preview panes. **2026-04-25 (batch 968):** **Choose plan** step + hero link → **`?pane=plan`**; **`registry_alignment`** (country vs **CountryRegistry**); **`portal_base`** class **`dashboard-page-studio`** on **`/studio/`** paths.
 
 ---
 

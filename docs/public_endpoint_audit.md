@@ -24,7 +24,7 @@ Source: `scripts/allowlists/csrf_exempt_allowlist.json`. Lint: `scripts/lint_csr
 
 ### Notes
 
-- **SchoolConfigAPI:** Read-only host-resolved JSON; rate limit per IP. **Audit (batch 948):** `authenticated` boolean in `school_config_api_request` extra (no PII); see `apps/schools/tests/test_school_config_api_hardening.py`.
+- **SchoolConfigAPI:** Read-only host-resolved JSON; rate limit per IP. **Audit (batch 948):** `authenticated` boolean in `school_config_api_request` extra (no PII); see `apps/schools/tests/test_school_config_api_hardening.py`. **Batch 955 (III.32):** **`http_method_names`** allow **GET/HEAD/OPTIONS** only — **POST/PUT/PATCH/DELETE** → **405**; `test_batch955_control_plane_boundary`.
 - **SAML:** ACS callback receives POST from IdP without browser CSRF token; validity window is replay protection.
 - **Lead capture:** Public form; rate limiting implemented. **Audit logging:** implemented (logger.info for lead_capture_created and lead_capture_duplicate with school_id, applicant_id, lead_source, ip; no PII).
 - **SCIM:** Bearer token; rate limit implemented. **Audit logging:** implemented (_log_scim_request for every authenticated request: path, method, resource, authenticated; no PII). **Replay / integrity:** optional `X-SCIM-Timestamp` window, optional `X-SCIM-Nonce` deduplication, optional `X-SCIM-Signature` HMAC over raw body (see Section 6 table).
@@ -44,7 +44,7 @@ Source: `scripts/allowlists/allow_any_allowlist.json`. Lint: `scripts/lint_allow
 
 ### Notes
 
-- SchoolConfigAPI: read-only; host-resolved branding and offline capability for SPA/mobile; no secrets.
+- SchoolConfigAPI: read-only; host-resolved branding and offline capability for SPA/mobile; no secrets. **955:** framework-enforced GET-only (see §6 table).
 
 ---
 
@@ -81,7 +81,7 @@ Per-endpoint specification so every row that had Replay/signature or Audit marke
 | **SCIM** (apps/api/scim_views.py) | Bearer token. Optional **X-SCIM-Timestamp** (Unix sec): reject outside 5 min (`_scim_replay_check`). Optional **X-SCIM-Nonce**: reject duplicate nonce within same window via cache (`_scim_nonce_replay_check`). Optional **X-SCIM-Signature** `sha256=<hex>` = HMAC-SHA256(bearer secret, `request.body`) (`_scim_signature_check`, PATH Phase II.1). | **REPLAY + NONCE + OPTIONAL HMAC DONE** | Rate limit + `_log_scim_request`. Tests: `apps/api/tests/test_scim_views.py`. |
 | **Section8 LTI** (section8_views + lti_id_token_verify.py) | LTI 1.3: verify `id_token` with tool JWKS when configured. | **IMPLEMENTED (JWKS path)** | JWKS verify when `lti_tool_jwks_uri` set; 401 on bad sig. OAuth 1.0a body paths unchanged. _lti_rate_limited + _log_lti_request. |
 | **SAML ACS** (apps/accounts/views_saml.py) | Replay: IdP assertion validity window (NotBefore/NotOnOrAfter). No additional HMAC; IdP signs assertion. | **DONE** (replay + audit) | Replay via assertion validity. Audit: logger.info("saml_acs_success", extra=acs_request_id=relay_state, integration_id, authenticated=True) after successful login (no PII). |
-| **SchoolConfigAPI** (apps/schools/api_views.py, AllowAny) | N/A (read-only; host-resolved). | **DONE** (audit) | Audit: logger.info("school_config_api_request", extra=host, school_id if resolved, authenticated) for abuse monitoring (no PII). **Batch 948:** authenticated flag (§6.12 / III.31). |
+| **SchoolConfigAPI** (apps/schools/api_views.py, AllowAny) | N/A (read-only; host-resolved). | **DONE** (audit + verb bind) | Audit: logger.info("school_config_api_request", extra=host, school_id if resolved, authenticated) for abuse monitoring (no PII). **Batch 948:** authenticated flag (§6.12 / III.31). **Batch 955:** **`http_method_names`** GET/HEAD/OPTIONS only (§6.12 / III.32); tests `test_batch955_control_plane_boundary`. |
 | **GraphQL** (config/graphql_view.py) | N/A (mixed client; session/cookie or token). | **N/A** | Rate limit + audit (operation_name, authenticated) implemented. |
 
 **Summary:** Billing/Finance webhooks: **DONE**. LTI launch callback: **JWKS path DONE** (configure `lti_tool_jwks_uri`). SCIM: Bearer + optional timestamp, nonce, and body HMAC. SAML: replay **DONE**. SchoolConfigAPI / GraphQL as above.

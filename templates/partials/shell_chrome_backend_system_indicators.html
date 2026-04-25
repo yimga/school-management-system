@@ -1,0 +1,39 @@
+{% load i18n %}
+{# 1007: compact academic + enrollment context for role-home; uses stats, active_year, active_term from backend_dashboard. #}
+<div
+  class="backend-system-indicators text-body-secondary small mb-2 py-1 px-2 rounded border border-light-subtle bg-body-tertiary bg-opacity-25"
+  data-shell-chrome="backend-system-indicators"
+  data-backend-system-indicators="year-term-enrollment"
+  aria-label="{% trans 'System context' %}"
+>
+  <div class="d-flex flex-wrap align-items-center gap-3">
+    <span data-backend-indicator="active-academic-year">
+      {% if active_year %}
+        <span class="text-muted">{% trans "Year" %}:</span> {{ active_year }}
+      {% else %}
+        <span class="text-muted">{% trans "No active academic year" %}</span>
+      {% endif %}
+    </span>
+    <span data-backend-indicator="active-term">
+      {% if active_term %}
+        <span class="text-muted">{% trans "Term" %}:</span> {{ active_term }}
+      {% else %}
+        <span class="text-muted">{% trans "No active term" %}</span>
+      {% endif %}
+    </span>
+    <span data-backend-indicator="enrollment-students" title="{% trans 'Active students' %}">
+      <span class="text-muted">{% trans "Students" %}:</span>
+      <strong data-ops-count="enrollment-total">{{ stats.students|default:0 }}</strong>
+    </span>
+    <span data-backend-indicator="enrollment-guardians" title="{% trans 'Guardian links' %}">
+      <span class="text-muted">{% trans "Guardians" %}:</span>
+      <strong>{{ stats.guardians|default:0 }}</strong>
+    </span>
+    {% if gce_enabled and certification_stats %}
+    <span data-backend-indicator="gce-candidates" title="{% trans 'GCE / certification' %}">
+      <span class="text-muted">{% trans "GCE candidates" %}:</span>
+      <strong>{{ certification_stats.total_candidates|default:0 }}</strong>
+    </span>
+    {% endif %}
+  </div>
+</div>

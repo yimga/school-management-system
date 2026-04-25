@@ -1,9 +1,10 @@
 {% load static i18n %}
 <!doctype html>
-<html lang="en" data-theme="dark" data-bs-theme="dark" data-surface="control-plane">
+<html lang="en" data-theme="dark" data-bs-theme="dark" data-surface="control-plane" data-rmc-shell-root="control-plane-skeleton" data-shell-layout="control-plane"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
     <title>{% block title %}RunMyCampus Manager{% endblock %}</title>
     <link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
     {% block extrahead %}{% endblock %}
@@ -37,8 +38,8 @@
     <link rel="stylesheet" href="{% static 'css/phase2-static-templates-bundle.css' %}">
     {% block extrastyle %}{% endblock %}
   </head>
-  <body class="control-plane-shell cp-surface"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %}>
-    <a href="#cp-main-content" class="skip-link visually-hidden-focusable" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
+  <body class="control-plane-shell cp-surface" data-rmc-shell-body="control-plane-skeleton"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %}>
+    {% include "partials/shell_skip_link.html" with skip_href="#cp-main-content" skip_link_class="skip-link visually-hidden-focusable" %}
     {% block content %}{% endblock %}
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>

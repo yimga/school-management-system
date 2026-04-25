@@ -157,37 +157,37 @@
       "verdict": "keep_with_hardening"
     }
   },
-  "generated_at": "2026-04-01T20:49:06.100538+00:00",
+  "generated_at": "2026-04-25T10:33:47.939106+00:00",
   "raw_sql": {
     "apps/people/repositories/audit_repository.py": {
       "expected_count": 5,
-      "last_reviewed": "2026-03-28",
+      "last_reviewed": "2026-04-24",
       "reason": "Section 2.4 Audit DDL: set_search_path, create_audit_trigger_function, drop_audit_trigger, create_audit_trigger, revoke_audit_log_mutations; staff-only."
     },
     "apps/schools/repositories/health_repository.py": {
       "expected_count": 3,
-      "last_reviewed": "2026-04-01",
+      "last_reviewed": "2026-04-24",
       "reason": "Section 2.4 Tenant health PG catalog plus count_table_rows for tenant_health_check; schema filtering is done inline without SET search_path leakage; staff-only; tested."
+    },
+    "apps/schools/repositories/rls_context_repository.py": {
+      "expected_count": 4,
+      "last_reviewed": "2026-04-24",
+      "reason": "Section 2.4 RLS session SET/RESET for app.current_school_id and app.rls_bypass; no ORM; consumed from schools/rls_context."
     },
     "apps/schools/repositories/rls_repository.py": {
       "expected_count": 1,
-      "last_reviewed": "2026-03-28",
+      "last_reviewed": "2026-04-24",
       "reason": "Section 2.4 RLS verification: single SELECT on pg_class and pg_namespace for verify_tenant_rls."
-    },
-    "apps/schools/rls_context.py": {
-      "expected_count": 4,
-      "last_reviewed": "2026-03-30",
-      "reason": "Section 2.4 RLS session variable management for app.current_school_id and app.rls_bypass in one shared helper file."
-    },
-    "apps/siteconfig/cache_utils.py": {
-      "expected_count": 1,
-      "last_reviewed": "2026-03-28",
-      "reason": "Section 2.4 Keep: current_setting('app.current_school_id', true) is read-only and has no ORM equivalent."
     },
     "apps/siteconfig/repositories/database_recovery_repository.py": {
       "expected_count": 1,
-      "last_reviewed": "2026-03-28",
+      "last_reviewed": "2026-04-24",
       "reason": "Section 2.4 SQLite PRAGMA integrity_check for recover_database command; staff-only."
+    },
+    "apps/siteconfig/repositories/rls_session_repository.py": {
+      "expected_count": 1,
+      "last_reviewed": "2026-04-24",
+      "reason": "Section 2.4 Read-only PostgreSQL GUC app.current_school_id via current_setting(..., true) for tenant cache prefix; no ORM equivalent; consumed from cache_utils."
     }
   },
   "schema_version": 1,

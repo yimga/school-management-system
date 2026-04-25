@@ -1,0 +1,21 @@
+{# HTMX-loaded backend dashboard status strip; keep ids and headers for shell contracts (1009). #}
+<div
+  id="backend-status-fragment"
+  class="backend-status-fragment-placeholder backend-status-fragment--compact"
+  data-shell-chrome="backend-operational-status-load"
+  hx-get="{% url 'accounts:backend_dashboard_status_fragment' %}"
+  hx-trigger="load"
+  hx-swap="innerHTML"
+  hx-headers='{"X-Requested-With": "XMLHttpRequest"}'
+  aria-live="polite"
+  aria-atomic="true"
+>
+</div>
+<script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7Nlx9D84UOpmUlJ2ANZ+4ysAuqpgUdXDk4" crossorigin="anonymous" defer></script>
+<script>
+  document.addEventListener('htmx:responseError', function(ev) {
+    if (ev.detail && ev.detail.target && ev.detail.target.id === 'backend-status-fragment') {
+      ev.detail.target.innerHTML = '<span class="text-muted small">-</span>';
+    }
+  });
+</script>

@@ -4,22 +4,12 @@
 {% block title %}{% block backend_title %}Backend{% endblock %}{% endblock %}
 
 {% block content %}
-  {% if request.session.impersonation %}
-  <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2 mb-0 rounded-0 border-0 border-bottom" role="alert">
-    <span><strong>{% trans "Viewing as school" %}</strong> — {% trans "You are impersonating this school. Actions are audited." %}</span>
-    <a href="{% url 'accounts:end_impersonation' %}" class="btn btn-sm btn-outline-dark">{% trans "Exit impersonation" %}</a>
-  </div>
-  {% endif %}
-  {{ block.super }}
+{# Impersonation strip: portal_base page-wrap (1025) so all portal/backend children inherit without duplicating blocks. #}
+{{ block.super }}
 {% endblock %}
 
 {% block breadcrumb_actions %}
-{% if request.user.is_superuser %}
-<a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" title="{% trans 'Configuration Control Center – platform settings and domains' %}">
-  <i class="bi bi-gear-wide-connected"></i>
-  <span>{% trans "Config center" %}</span>
-</a>
-{% endif %}
+{% include "partials/backend_portal_breadcrumb_actions.html" %}
 {% endblock %}
 {% block body_extra_class %}backend-shell{% endblock %}
 

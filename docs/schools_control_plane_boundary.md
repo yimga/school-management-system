@@ -19,6 +19,11 @@
 - **Tenant views:** Always run in tenant context (request.school, RLS). No direct SiteSettings.get_solo(); use get_effective_site_settings(request).
 - **Public / AllowAny (schools):** SchoolConfigAPI (api_views) — host-resolved, read-only branding/flags; rate limiting and audit logging in place (public_endpoint_audit §6). No other public schools endpoints without audit.
 
+### 2.1 Enforcement (batch 955 / III.32)
+
+- **`SchoolConfigAPI`** binds **`http_method_names = ["get", "head", "options"]`** so **POST/PUT/PATCH/DELETE** return **405** (mutations belong on authenticated tenant/control-plane routes, not this public read surface).
+- **Tests:** `apps/schools/tests/test_batch955_control_plane_boundary.py` (method allow-list); **`test_school_config_api_hardening`** (batch **948** — throttle + audit).
+
 ---
 
 ## 3. Raw SQL (schools app)
@@ -27,4 +32,4 @@ All raw SQL in `apps/schools` is in repositories or `rls_context` (allowlist: `r
 
 ---
 
-*Source: RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md §6.12; public_endpoint_audit.md; raw_sql_audit.md.*
+*Source: RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md §6.12; public_endpoint_audit.md; raw_sql_audit.md; SOT §11.4 batch 955.*

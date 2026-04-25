@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3 content-max-960" data-page-archetype="decision-console" data-decision-engine="surface" aria-labelledby="ccc-heading" aria-describedby="ccc-desc">
+<div class="container-fluid py-3 content-max-960" data-page-archetype="decision-console" data-decision-engine="surface" data-shell-surface="config-control-center" aria-labelledby="ccc-heading" aria-describedby="ccc-desc">
   {% phase8_dashboard_declaration "siteconfig/console_domains_hub_control_plane.html" %}
   {% operator_console_strip %}
   <h1 id="ccc-heading" class="visually-hidden">{% trans "Configuration Control Center" %}</h1>
@@ -48,23 +48,7 @@
   </div>
   {% endif %}
 
-  {% if operational_hubs %}
-  <section class="mb-4" aria-labelledby="hubs-heading">
-    <h2 id="hubs-heading" class="h6 text-uppercase text-white-50 mb-2">{% trans "Operational hubs" %}</h2>
-    <p class="small text-white-50 mb-3">{% trans "Workflows, approvals, import/export, documents, reports, RBAC, feature control, and communications." %}</p>
-    <ul class="list-unstyled mb-0 sysconfig-hub-list">
-      {% for hub in operational_hubs %}
-      <li class="mb-2">
-        <a href="{{ hub.url }}" class="d-flex align-items-center gap-2 text-white text-decoration-none py-2 px-3 rounded sysconfig-hub-link">
-          <span class="bi {{ hub.icon }} text-primary"></span>
-          <span>{{ hub.label }}</span>
-          <span class="bi bi-chevron-right ms-auto opacity-75"></span>
-        </a>
-      </li>
-      {% endfor %}
-    </ul>
-  </section>
-  {% endif %}
+  {% include "siteconfig/partials/configuration_control_center_operational_hubs.html" %}
 
   <section class="mb-4" aria-labelledby="domains-heading">
     <h2 id="domains-heading" class="h6 text-uppercase text-white-50 mb-2">{% trans "Detailed configuration domains" %}</h2>

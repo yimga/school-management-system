@@ -256,19 +256,53 @@ body.portal-backend-dark .teacher-shell .text-muted {
   color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 
-/* Finance, analytics, payroll, emis, requests (portal_base; body has data-dashboard-page) */
+/* App-wide shells (shell-data-dashboard-page.js): finance, super, siteconfig, reports, … */
 [data-dashboard-page="finance"] .text-muted,
 [data-dashboard-page="analytics"] .text-muted,
 [data-dashboard-page="payroll"] .text-muted,
 [data-dashboard-page="emis"] .text-muted,
-[data-dashboard-page="requests"] .text-muted {
+[data-dashboard-page="requests"] .text-muted,
+[data-dashboard-page="super"] .text-muted,
+[data-dashboard-page="django-admin"] .text-muted,
+[data-dashboard-page="siteconfig"] .text-muted,
+[data-dashboard-page="metadata"] .text-muted,
+[data-dashboard-page="marketplace"] .text-muted,
+[data-dashboard-page="reports"] .text-muted,
+[data-dashboard-page="academics"] .text-muted,
+[data-dashboard-page="automation"] .text-muted,
+[data-dashboard-page="communication"] .text-muted,
+[data-dashboard-page="api-center"] .text-muted,
+[data-dashboard-page="org-network"] .text-muted,
+[data-dashboard-page="evals"] .text-muted,
+[data-dashboard-page="evals-compliance"] .text-muted,
+[data-dashboard-page="theme-colors"] .text-muted,
+[data-dashboard-page="compliance"] .text-muted,
+[data-dashboard-page="rbac"] .text-muted,
+[data-dashboard-page="onboarding"] .text-muted {
   color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
 }
 body.portal-backend-dark [data-dashboard-page="finance"] .text-muted,
 body.portal-backend-dark [data-dashboard-page="analytics"] .text-muted,
 body.portal-backend-dark [data-dashboard-page="payroll"] .text-muted,
 body.portal-backend-dark [data-dashboard-page="emis"] .text-muted,
-body.portal-backend-dark [data-dashboard-page="requests"] .text-muted {
+body.portal-backend-dark [data-dashboard-page="requests"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="super"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="django-admin"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="siteconfig"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="metadata"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="marketplace"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="reports"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="academics"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="automation"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="communication"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="api-center"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="org-network"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="evals"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="evals-compliance"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="theme-colors"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="compliance"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="rbac"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="onboarding"] .text-muted {
   color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 

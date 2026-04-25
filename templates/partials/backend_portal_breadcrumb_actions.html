@@ -1,0 +1,8 @@
+{% load i18n %}
+{# Shared with backend_base breadcrumb_actions and backend_dashboard chrome (1012). #}
+{% if request.user.is_superuser %}
+<a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" data-shell-chrome="breadcrumb-backend-actions" title="{% trans 'Configuration Control Center – platform settings and domains' %}">
+  <i class="bi bi-gear-wide-connected"></i>
+  <span>{% trans "Config center" %}</span>
+</a>
+{% endif %}

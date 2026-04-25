@@ -172,7 +172,7 @@ def _automation_explainer_context(pane: str):
 
 
 def _resolve_launch_iframe_src(request, pane: str) -> str:
-    """Launch Studio: iframe for wizards; overview/plan are native."""
+    """Launch Studio: iframe for wizards; overview/plan/role_preview are native."""
     from apps.studio_os.deep_links import resolve_studio_href, url_is_cross_origin_request
 
     key = (pane or "").strip().lower()
@@ -182,6 +182,7 @@ def _resolve_launch_iframe_src(request, pane: str) -> str:
         "blueprints": ("siteconfig:get_blueprints", True),
         "branding": ("studio_os:experience", True),
         "checklist": ("siteconfig:guided_onboarding", True),
+        "migration": ("accounts:migration_wizard", True),
     }
     if key not in mapping:
         return ""
@@ -1360,6 +1361,16 @@ def studio_shell(request, mode=None):
                 "pane": "branding",
             },
             {
+                "label": _("Migration path"),
+                "url": f"{launch_base}?pane=migration",
+                "pane": "migration",
+            },
+            {
+                "label": _("Preview by role"),
+                "url": f"{launch_base}?pane=role_preview",
+                "pane": "role_preview",
+            },
+            {
                 "label": _("Launch checklist"),
                 "url": f"{launch_base}?pane=checklist",
                 "pane": "checklist",
@@ -1374,6 +1385,8 @@ def studio_shell(request, mode=None):
                 "plan",
                 "blueprints",
                 "branding",
+                "migration",
+                "role_preview",
                 "checklist",
             }
         )

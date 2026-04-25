@@ -1,0 +1,44 @@
+{% load i18n %}
+{# Operational snapshot: uses stats, pending_approvals_count, action_perms from backend_dashboard context. #}
+<section
+  class="card border-0 shadow-sm mb-3 backend-ops-surface"
+  data-shell-chrome="backend-ops-strip"
+  data-backend-ops-surface="pending-alerts-finance-access"
+  aria-label="{% trans 'Operational snapshot' %}"
+>
+  <div class="card-body py-2 px-3">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <span class="small text-uppercase text-muted fw-semibold" style="letter-spacing:0.04em;">{% trans "Operational snapshot" %}</span>
+    </div>
+    <div class="d-flex flex-wrap align-items-stretch gap-2 mt-2">
+      <div class="px-2 py-1 rounded border bg-body-secondary bg-opacity-10" data-backend-ops-pending="guardian-invites" title="{% trans 'Pending guardian invites' %}">
+        <span class="d-block text-muted small">{% trans "Invites" %}</span>
+        <strong class="d-block" data-ops-count="pending-invites">{{ stats.pending_invites|default:0 }}</strong>
+      </div>
+      <div class="px-2 py-1 rounded border bg-body-secondary bg-opacity-10" data-backend-ops-alerts="overdue-invoices" title="{% trans 'Overdue invoices' %}">
+        <span class="d-block text-muted small">{% trans "Overdue" %}</span>
+        <strong class="d-block" data-ops-count="overdue-invoices">{{ stats.overdue_invoices|default:0 }}</strong>
+      </div>
+      <div class="px-2 py-1 rounded border bg-body-secondary bg-opacity-10" data-backend-ops-pending="access-requests" title="{% trans 'Pending access requests' %}">
+        <span class="d-block text-muted small">{% trans "Access" %}</span>
+        <strong class="d-block" data-ops-count="access-requests">{{ pending_approvals_count|default:0 }}</strong>
+      </div>
+      {% if reminder_alerts %}
+      <div class="px-2 py-1 rounded border border-warning border-opacity-50 bg-warning bg-opacity-10" data-backend-ops-alerts="reminders" title="{% trans 'Active payment reminders' %}">
+        <span class="d-block text-muted small">{% trans "Reminders" %}</span>
+        <strong class="d-block" data-ops-count="reminders-on">{{ reminders|length|default:0 }}</strong>
+      </div>
+      {% endif %}
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-2 pt-1 border-top border-light-subtle" data-backend-ops-links="quick">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:dashboard' %}" data-ops-link="finance-console">{% trans "Finance" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'requests:dashboard' %}" data-ops-link="requests-console">{% trans "Requests" %}</a>
+      {% if action_perms and action_perms.admin_panel %}
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'admin:portal_pendingguardianinvite_changelist' %}" data-ops-link="admin-invites">{% trans "Invites (admin)" %}</a>
+      {% endif %}
+      {% if can_manage_settings %}
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:feature_control_panel' %}" data-ops-link="feature-audit">{% trans "Feature audit" %}</a>
+      {% endif %}
+    </div>
+  </div>
+</section>

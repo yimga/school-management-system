@@ -34,6 +34,7 @@ _PATHS: dict[str, str] = {
     "requests:dashboard": "/requests/",
     "portal:staff_contact_request_list": "/portal/staff/contact-requests/",
     "reports:publish_term_results": "/reports/publish/",
+    "accounts:migration_wizard": "/authentication/backend/migration-wizard/",
     "accounts:advancement_donor_list": "/authentication/backend/advancement/donors/",
     "accounts:ops_hub": "/authentication/backend/ops/",
     "accounts:ops_substitutes": "/authentication/backend/ops/substitutes/",

@@ -1,0 +1,31 @@
+{% load i18n %}
+{# 1030: Finance pulse from existing backend_dashboard finance_summary + stats (no new queries). #}
+<section
+  class="card border-0 shadow-sm mb-3 backend-finance-pulse-strip"
+  data-shell-chrome="backend-finance-pulse-strip"
+  data-shell-ops-section="finance-pulse-counts"
+  aria-label="{% trans 'Finance pulse' %}"
+>
+  <div class="card-body py-2 px-3">
+    <div class="d-flex flex-wrap align-items-center gap-4 small">
+      <div class="d-flex align-items-center gap-2" data-shell-kpi="finance-overdue-invoices">
+        <span class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.03em;">{% trans "Overdue invoices" %}</span>
+        <strong class="fs-6" data-kpi-count="finance-overdue">{{ stats.overdue_invoices|default:0 }}</strong>
+      </div>
+      <div class="d-flex align-items-center gap-2" data-shell-kpi="finance-receivables">
+        <span class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.03em;">{% trans "Receivables" %}</span>
+        <strong class="fs-6" data-kpi-amount="receivables">{{ finance_summary.receivables|default:0|floatformat:2 }}</strong>
+      </div>
+      <div class="d-flex align-items-center gap-2" data-shell-kpi="finance-collected">
+        <span class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.03em;">{% trans "Collected" %}</span>
+        <strong class="fs-6" data-kpi-amount="paid-total">{{ finance_summary.paid|default:0|floatformat:2 }}</strong>
+      </div>
+      {% if finance_requests_count %}
+      <div class="d-flex align-items-center gap-2" data-shell-kpi="finance-requests-open">
+        <span class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.03em;">{% trans "Finance requests" %}</span>
+        <a class="badge text-bg-warning text-decoration-none" href="{{ finance_request_link|default:'#' }}" data-kpi-count="finance-requests">{{ finance_requests_count }}</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>

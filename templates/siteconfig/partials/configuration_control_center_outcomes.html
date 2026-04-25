@@ -1,21 +1,36 @@
 {% load i18n %}
 {# Shared by manager (control plane) and tenant portal Configuration Control Center hubs. #}
+{# Use ccc_outcome_compact (not context "compact") for one consistent chrome split. #}
 {% if why_enabled_summary %}
-<section class="mb-4 {% if compact %}py-2{% endif %}" role="region" aria-labelledby="ccc-why-heading">
-  <h2 id="ccc-why-heading" class="h6 {% if compact %}text-uppercase text-muted{% else %}text-white{% endif %} mb-2">{% trans "Why enabled?" %}</h2>
-  <p class="small {% if compact %}text-muted{% else %}text-white-50{% endif %} mb-0">{{ why_enabled_summary }}</p>
+<section class="mb-4 {% if ccc_outcome_compact %}py-2{% endif %}" role="region" aria-labelledby="ccc-why-heading">
+  <h2 id="ccc-why-heading" class="h6 {% if ccc_outcome_compact %}text-uppercase text-muted{% else %}text-uppercase text-white{% endif %} mb-2">{% trans "Why enabled?" %}</h2>
+  <p class="small {% if ccc_outcome_compact %}text-muted{% else %}text-white-50{% endif %} mb-0">{{ why_enabled_summary }}</p>
 </section>
 {% endif %}
+
+{% if ccc_source_legend %}
+<details class="mb-3 {% if ccc_outcome_compact %}border rounded p-3 bg-body-secondary bg-opacity-10{% else %}border border-secondary border-opacity-25 rounded p-3 bg-dark bg-opacity-25{% endif %}">
+  <summary class="small {% if ccc_outcome_compact %}text-body-secondary{% else %}text-white-50{% endif %}" style="cursor: pointer;">{% trans "Source labels (trace why enabled)" %}</summary>
+  <p class="small {% if ccc_outcome_compact %}text-muted{% else %}text-white-50{% endif %} mt-2 mb-2">{% trans "Each outcome link lists sources — these are the platform layers that can explain effective behavior." %}</p>
+  <ul class="list-unstyled small row row-cols-1 row-cols-sm-2 g-1 mb-0">
+    {% for label in ccc_source_legend %}
+    <li class="col">{% if ccc_outcome_compact %}<span class="text-body">{{ label }}</span>{% else %}<span class="text-white-50">{{ label }}</span>{% endif %}</li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}
+
+{% include "siteconfig/partials/configuration_control_center_staging_publish.html" %}
 
 {% include "siteconfig/partials/configuration_control_center_operator_model.html" with compact=ccc_outcome_compact %}
 
 {% if outcome_groups %}
 <section class="mb-4" aria-labelledby="ccc-outcomes-heading">
-  <h2 id="ccc-outcomes-heading" class="h6 {% if compact %}text-uppercase text-muted{% else %}text-uppercase text-white-50{% endif %} mb-3">{% trans "Outcomes" %}</h2>
+  <h2 id="ccc-outcomes-heading" class="h6 {% if ccc_outcome_compact %}text-uppercase text-muted{% else %}text-uppercase text-white-50{% endif %} mb-3">{% trans "Outcomes" %}</h2>
   <div class="row g-3">
     {% for group in outcome_groups %}
     <div class="col-12 col-md-6 col-xl-4">
-      {% if compact %}
+      {% if ccc_outcome_compact %}
       <div class="card h-100 border">
         <div class="card-body py-3">
           <div class="fw-semibold small mb-1">{{ group.title }}</div>

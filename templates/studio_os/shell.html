@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2 px-0 px-md-2" style="max-width: 100%; width: 100%;" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2 px-0 px-md-2" style="max-width: 100%; width: 100%;" data-page-archetype="operational-workbench" data-shell-layout="{{ rmc_shell.layout_token|default:'studio-os' }}" data-shell-host="{{ rmc_shell.shell_data_studio_host|default:'tenant' }}" data-rmc-nav-family="{{ rmc_shell.nav_family }}" data-studio-os-surface="tenant-shell">
   <a href="#studio-canvas" class="visually-hidden-focusable btn btn-sm btn-outline-primary position-absolute top-0 start-0 m-2 px-3 py-2 rounded z-1" style="z-index: 1060;">{% trans "Skip to Studio content" %}</a>
   {# On manager host Studio uses shell_control_plane → control_plane_base (8-pill nav there). Tenant: no PRIMARY nav. #}
   <div class="d-flex align-items-center gap-2 mb-3 flex-wrap" role="toolbar" aria-label="{% trans 'Studio toolbar' %}">
@@ -35,7 +35,7 @@
   {% include "components/ai_guided_assistant_card.html" with api_url=api_studio_ai card_title=_("Studio guided assistant") card_hint=_("Suggests next steps across Studio modes. Apply packages and automations only through existing preview and rollback flows.") studio_mode=current_mode|default:"" field_id="studioOsAiQShell" %}
 
   <div class="studio-os">
-    <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}" role="navigation">
+    <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}" role="navigation" data-shell-sidebar="{{ rmc_shell.studio_os_sidebar_token|default:'studio-rail' }}" data-shell-sidebar-mount="rail">
       <div class="studio-os__home" id="studio-rail-label">{% trans "Work modes" %}</div>
       <a href="{% url 'studio_os:shell' %}" class="{% if not current_mode %}active{% endif %}" {% if not current_mode %}aria-current="page"{% endif %}>{% trans "Overview" %}</a>
       <a href="{% url 'studio_os:experience' %}" class="{% if current_mode == 'experience' %}active{% endif %}" {% if current_mode == 'experience' %}aria-current="page"{% endif %}>{% trans "Experience" %}</a>

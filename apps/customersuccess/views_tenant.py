@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import DatabaseError
 from django.shortcuts import redirect, render
+from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_POST
 
 from apps.setup_studio.services import execute_launch, get_setup_studio_payload
@@ -22,6 +23,14 @@ TENANT_CUSTOMER_SUCCESS_SOFT_FAILURES = (
     ValueError,
 )
 GUIDED_ONBOARDING_SOFT_FAILURES = TENANT_CUSTOMER_SUCCESS_SOFT_FAILURES + (KeyError,)
+
+
+def _launch_studio_shell_url() -> str:
+    """PATH III.33: same-origin link to Studio OS Launch mode (break out of Setup embed)."""
+    try:
+        return reverse("studio_os:launch")
+    except NoReverseMatch:
+        return ""
 
 
 def _guided_onboarding_fallback_context(*, school=None, detail: str) -> dict:
@@ -55,6 +64,7 @@ def _guided_onboarding_fallback_context(*, school=None, detail: str) -> dict:
         "recommended_starter_stack": None,
         "data_path_choices": [],
         "ai_recommended": False,
+        "launch_studio_url": _launch_studio_shell_url(),
     }
 
 
@@ -1018,6 +1028,7 @@ def guided_onboarding_view(request):
                 detail="Setup Studio data is temporarily unavailable.",
             ),
         )
+    context["launch_studio_url"] = _launch_studio_shell_url()
     return render(
         request,
         "customersuccess/guided_onboarding.html",

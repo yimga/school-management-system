@@ -4,9 +4,15 @@
 {% block title %}{% trans "Tenant runtime configuration" %}{% endblock %}
 
 {% block content %}
-<div class="container py-4" style="max-width: 52rem;" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<div class="container py-4" style="max-width: 52rem;" data-page-archetype="operational-workbench" data-decision-engine="surface" data-siteconfig-surface="tenant-runtime-hub" data-phase-b-surface="runtime-snapshot">
   {% phase8_dashboard_declaration "siteconfig/tenant_runtime_configuration_hub.html" %}
   <h1 class="h3 mb-2">{% trans "Tenant runtime configuration" %}</h1>
+  <div class="alert alert-light border shadow-sm mb-3" role="region" aria-label="{% trans 'Where to change settings' %}">
+    <p class="small mb-0">
+      {% trans "This page is a read-only snapshot. For outcome-based configuration, staging, and audit links, use the Configuration Control Center; use Studio Control and Feature audit when changing behavior." %}
+      <a href="{% url 'siteconfig:console_domains_hub' %}" class="alert-link">{% trans "Open Configuration Control Center" %}</a>
+    </p>
+  </div>
   <p class="text-muted mb-4">
     {% blocktrans %}
       Read-only snapshot of <code>get_effective_site_settings</code> for this tenant. Prefer product surfaces below;
