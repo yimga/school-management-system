@@ -13,7 +13,7 @@ from django import forms
 from apps.accounts.models import User
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.academics.models import AcademicYear
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from apps.siteconfig.models import FormDraft
 from .runtime_helpers import get_policy_for_request
 from .forms import TeacherOnboardingForm, StudentOnboardingForm

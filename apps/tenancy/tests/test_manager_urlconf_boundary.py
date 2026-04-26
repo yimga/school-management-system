@@ -1,7 +1,9 @@
 from django.test import TestCase
-from django.urls import resolve
+from django.urls import resolve, set_urlconf
 
 from apps.accounts.models import User
+
+from config.manager_urls import _manager_search_static_catalog
 
 
 class ManagerUrlconfBoundaryTests(TestCase):
@@ -95,6 +97,27 @@ class ManagerUrlconfBoundaryTests(TestCase):
         ):
             with self.subTest(needle=needle):
                 self.assertIn(needle, titles)
+
+    def test_manager_search_empty_q_returns_full_static_catalog(self):
+        """Empty query must not truncate the curated catalog (incl. Workflow simulator)."""
+        self.client.force_login(self.user)
+        r = self.client.get("/api/search/?q=", HTTP_HOST="manager.runmycampus.com")
+        self.assertEqual(r.status_code, 200)
+        got = r.json().get("results", [])
+        # `reverse()` for manager-only names needs the control-plane urlconf, same as the view.
+        set_urlconf("config.manager_urls")
+        try:
+            expected = _manager_search_static_catalog()
+        finally:
+            set_urlconf(None)
+        self.assertEqual(
+            len(got),
+            len(expected),
+            msg="manager_search_api empty-q path must return the full static catalog",
+        )
+        by_title = {x.get("title") for x in got}
+        for item in expected:
+            self.assertIn(item["title"], by_title)
 
     def test_manager_search_api_denies_tenant_staff(self):
         self.client.force_login(self.tenant_staff)

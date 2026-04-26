@@ -520,7 +520,7 @@ class TenantSettingsAdmin(ModelAdmin):
         return super().changeform_view(request, object_id, form_url, extra_context)
 
     def logo_preview(self, obj):
-        from apps.platform_runtime.helpers import get_effective_site_settings
+        from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
         eff = get_effective_site_settings(request=None, school=None)
         logo = getattr(eff, "logo", None) if eff else None
@@ -554,7 +554,7 @@ class TenantSettingsAdmin(ModelAdmin):
         """Read-only summary for the first tab: site name, logo, primary color, key toggles."""
         if not obj or not obj.pk:
             return mark_safe("<p>Save once to see the summary.</p>")
-        from apps.platform_runtime.helpers import get_effective_site_settings
+        from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
         eff = get_effective_site_settings(request=None, school=None) or obj
         theme_settings = (

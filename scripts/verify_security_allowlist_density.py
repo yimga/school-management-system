@@ -26,7 +26,7 @@ MAX_COUNTS: dict[str, tuple[str, int]] = {
     "csrf_exempt_allowlist.json": ("files", 13),
     "allow_any_allowlist.json": ("files", 1),
     "broad_except_allowlist.json": ("allowed_counts", 189),
-    "tracked_root_allowlist.json": ("allowed", 24),
+    "tracked_root_allowlist.json": ("allowed", 25),
 }
 
 _CLASSIFICATION_LINTS: tuple[tuple[str, str], ...] = (

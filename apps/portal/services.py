@@ -30,7 +30,7 @@ from apps.accounts.permissions import _guardian_finance_qs
 from apps.evals.models import TeacherAssignment
 from apps.integrations_marketplace.models import Integration
 from apps.payroll.models import LeaveRequest, PayrollEmployee
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from apps.apicenter.gating import is_integration_allowed
 from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 from apps.siteconfig.integration_registry import resolve_active_integration
@@ -85,6 +85,19 @@ def _cache_prefix_for_school(school=None) -> str:
 
 def _site_settings_for_school(school=None):
     return get_effective_site_settings(school=school)
+
+
+def _pass_mark_as_float(raw, *, default: float = 10.0) -> float:
+    """Coerce ``pass_mark`` (may be blank or non-numeric in slim settings) for UI math."""
+    if raw is None:
+        return default
+    text = str(raw).strip()
+    if not text:
+        return default
+    try:
+        return float(text)
+    except (TypeError, ValueError):
+        return default
 
 
 def teacher_scope(user: User, academic_year=None):
@@ -786,7 +799,11 @@ def _performance_overview(students, year, term, *, school=None):
         avg_scores = [s["average"] for s in summaries]
         top = max(summaries, key=lambda item: item["average"])
         overall_avg = sum(avg_scores) / len(avg_scores)
-        trend = "On track" if overall_avg >= float(pass_mark) else "Needs attention"
+        trend = (
+            "On track"
+            if overall_avg >= _pass_mark_as_float(pass_mark)
+            else "Needs attention"
+        )
 
         ranked = sorted(summaries, key=lambda item: item["average"], reverse=True)
         for idx, item in enumerate(ranked, start=1):
@@ -795,7 +812,7 @@ def _performance_overview(students, year, term, *, school=None):
         result = {
             "average": round(overall_avg, 2),
             "top_student": top,
-            "pass_mark": float(pass_mark),
+            "pass_mark": _pass_mark_as_float(pass_mark),
             "trend": trend,
             "label": "Shows live term averages for linked students.",
             "per_student": ranked,
@@ -817,7 +834,7 @@ def _empty_performance_data(*, school=None) -> dict:
     return {
         "average": None,
         "top_student": None,
-        "pass_mark": float(pass_mark),
+        "pass_mark": _pass_mark_as_float(pass_mark),
         "trend": "Pending results",
         "label": "Results populate as teachers publish marks.",
         "per_student": [],

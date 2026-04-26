@@ -9,10 +9,8 @@ from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
 
 from apps.global_registries.models import EducationSystemProfile, RegionConfig
-from apps.platform_runtime.helpers import (
-    get_effective_site_settings,
-    get_platform_defaults,
-)
+from apps.platform_runtime.helpers import get_platform_defaults
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.policies.policy_registry import get_effective_policy
 

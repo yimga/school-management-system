@@ -120,7 +120,7 @@ _SITE_SETTINGS_CACHE: models.Model | None = None
 _LOCAL_COMPLIANCE_PROFILE_ID_UNSET = object()
 
 
-# DEPRECATED: Prefer apps.platform_runtime.helpers.get_effective_site_settings and bounded-context
+# DEPRECATED: Prefer apps.platform_runtime.site_settings_read_access.get_effective_site_settings
 # services for tenant behavior. Use this row only for platform defaults. Removal target: post Phase 10.
 class SiteSettings(models.Model):
     """Phase B slim singleton: maintenance + timestamps. Branding/theme/report FKs: PlatformGlobalBranding."""

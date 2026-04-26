@@ -1,13 +1,15 @@
 from functools import wraps
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required as _login_required
 from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.views import redirect_to_login
 from django.http import HttpResponseForbidden
 
 # Re-export for views that import from apps.accounts.decorators
 login_required = _login_required
 
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
 
 def _normalize_role(r) -> str:
@@ -46,15 +48,43 @@ def role_required(*roles: str):
     return user_passes_test(check)
 
 
-def permission_required(*codes: str):
-    def check(user):
+def permission_required(
+    *codes: str,
+    raise_exception: bool = False,
+    login_url: str | None = None,
+    redirect_field_name: str = "next",
+):
+    def check(user) -> bool:
         if not user.is_authenticated:
             return False
         if getattr(user, "is_superuser", False):
             return True
         return any(user.has_feature_permission(code) for code in codes)
 
-    return user_passes_test(check)
+    if not raise_exception:
+        return user_passes_test(
+            check,
+            login_url=login_url,
+            redirect_field_name=redirect_field_name,
+        )
+
+    def _decorator(view_func):
+        @wraps(view_func)
+        def _inner(request, *args, **kwargs):
+            u = request.user
+            if not u.is_authenticated:
+                return redirect_to_login(
+                    request,
+                    login_url or settings.LOGIN_URL,
+                    redirect_field_name,
+                )
+            if not check(u):
+                return HttpResponseForbidden("Permission denied")
+            return view_func(request, *args, **kwargs)
+
+        return _inner
+
+    return _decorator
 
 
 def portal_toggle_required(flag_name: str, message: str):

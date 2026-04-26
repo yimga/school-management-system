@@ -29,7 +29,7 @@ from django.urls import reverse
 from django.template.loader import render_to_string
 
 from apps.academics.models import AcademicYear
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
 from .models import (
     FeePlan,

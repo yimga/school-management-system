@@ -66,10 +66,12 @@ from apps.portal.forms import (
 )
 from apps.portal.models import AttendanceJustification
 from apps.platform_runtime.helpers import (
-    get_effective_flags,
-    get_effective_site_settings,
     get_effective_support_contact_settings,
     get_site_display_name,
+)
+from apps.platform_runtime.site_settings_read_access import (
+    get_effective_flags,
+    get_effective_site_settings,
 )
 from apps.platform_runtime.structured_logging import log_view_exception
 from apps.siteconfig.models_support import filter_portal_items

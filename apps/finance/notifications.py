@@ -19,7 +19,7 @@ _skip_new_invoice_notify: contextvars.ContextVar[bool] = contextvars.ContextVar(
 
 from apps.finance.models import Invoice, Payment, Notification
 from apps.people.models import StudentGuardian
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
 logger = logging.getLogger(__name__)
 

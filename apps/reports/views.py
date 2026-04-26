@@ -26,7 +26,7 @@ from apps.reports.models import (
     ReportDocumentHash,
     TermPublishStatus,
 )
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from apps.reports.services import (
     annual_report_context,
     are_terms_published,

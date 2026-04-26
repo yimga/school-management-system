@@ -5,7 +5,7 @@ from django.contrib.admin.sites import AlreadyRegistered
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, IntegrityError
 from config.admin import register_tenant_admin
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
 from unfold.admin import ModelAdmin
 

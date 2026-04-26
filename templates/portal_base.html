@@ -10,6 +10,25 @@
       (function(){var k="runmycampus-theme-preference";var s=localStorage.getItem(k);s=s||"light";var r=(s==="system")?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):(s==="dark"?"dark":"light");document.documentElement.setAttribute("data-theme",r);document.documentElement.setAttribute("data-bs-theme",r);})();
     </script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
+    <script>
+      (function () {
+        // Keep KB route signatures explicit in shell HTML for critical-read wiring.
+        var path = window.location.pathname || "";
+        var kind = "";
+        if (path.indexOf("/kb/article/") !== -1) {
+          kind = "kb-article";
+        } else if (path.indexOf("/kb/search") !== -1) {
+          kind = "kb-search";
+        } else if (path.indexOf("/kb/category/") !== -1) {
+          kind = "kb-category";
+        } else if (path === "/kb" || path === "/kb/") {
+          kind = "kb-home";
+        } else if (path.indexOf("/kb") === 0) {
+          kind = "kb-hub";
+        }
+        window.SMS_CRITICAL_READ_KB_KIND = kind;
+      })();
+    </script>
     <title>{% block title %}{{ rmc_shell.portal_default_document_title|default:"Portal" }}{% endblock %}</title>
     <link rel="icon" href="{% if SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
     {# Wave 6 web: installable surface + home-screen hint (native store apps = external). #}
@@ -320,7 +339,7 @@
             {% if platform_status_strip and platform_status_strip.show %}
               {% include "portal/partials/platform_status_strip.html" %}
             {% endif %}
-            {% include "partials/shell_chrome_django_messages.html" with shell_chrome_messages_variant="tenant-portal" shell_chrome_messages_include_announcement=True shell_chrome_messages_error_help=True %}
+            {% include "partials/shell_chrome_django_messages_tenant_portal.html" %}
 
             {% if dashboard_stats_cards %}
               <div class="mb-3">

@@ -1,6 +1,9 @@
 from django.urls import path
 
 from .views import (
+    region_grading_scales_view,
+    region_validation_dashboard,
+    region_comparison_view,
     branding_api,
     workflow_clues_api,
     admission_number_preview_api,
@@ -71,21 +74,74 @@ from .views_form_draft import form_draft_api
 from .views import feedback_roadmap
 from .views_package_rollback import tenant_installed_packages_rollback
 from .views_console_domains import console_domains_hub
+from .views_entity_catalog import entity_catalog_overview
+from .views_metadata_operator_hub import metadata_operator_hub
+from .views_metadata_dynamic_fields import metadata_dynamic_fields_operator
+from .views_config_mutation_evidence import config_mutation_audit_evidence
+from .views_term_publish_evidence import term_publish_status_evidence
+from .views_academic_years_evidence import academic_years_setup_evidence
+from .views_departments_setup_evidence import departments_setup_evidence
 from .views_tenant_runtime_hub import tenant_runtime_configuration_hub
+from .views_billing_plan import billing_plan_readonly
 from .views_tour import tour_steps_api
+from .views_report_output_history_evidence import report_output_history_evidence
+from .views_report_templates_catalog_evidence import report_templates_catalog_evidence
+from .views_tenant_report_schedules_evidence import tenant_report_schedules_evidence
 from apps.schools.views_domains import custom_domain_wizard
+from .views_school_onboarding import school_activation_onboarding
 
 app_name = "siteconfig"
 
 urlpatterns = [
     path("maintenance/", maintenance_view, name="maintenance"),
+    path("onboarding/", school_activation_onboarding, name="onboarding"),
     path("console/", console_domains_hub, name="console_domains_hub"),
+    path(
+        "metadata/operator-hub/",
+        metadata_operator_hub,
+        name="metadata_operator_hub",
+    ),
+    path(
+        "metadata/entity-catalog/",
+        entity_catalog_overview,
+        name="entity_catalog_overview",
+    ),
+    path(
+        "metadata/dynamic-fields/",
+        metadata_dynamic_fields_operator,
+        name="metadata_dynamic_fields_operator",
+    ),
+    path(
+        "metadata/config-mutation-audit/",
+        config_mutation_audit_evidence,
+        name="config_mutation_audit_evidence",
+    ),
     path(
         "configuration/runtime/",
         tenant_runtime_configuration_hub,
         name="tenant_runtime_configuration_hub",
     ),
+    path(
+        "billing/plan/",
+        billing_plan_readonly,
+        name="billing_plan_readonly",
+    ),
     path("grading-settings/", grading_settings, name="grading_settings"),
+    path(
+        "grading-scales/region-scales/",
+        region_grading_scales_view,
+        name="region_grading_scales",
+    ),
+    path(
+        "regions/validation/",
+        region_validation_dashboard,
+        name="region_validation",
+    ),
+    path(
+        "regions/comparison/",
+        region_comparison_view,
+        name="region_comparison",
+    ),
     path("modules/", module_market, name="module_market"),
     path(
         "installed-packages/",
@@ -122,6 +178,36 @@ urlpatterns = [
         "reports/scheduled/",
         scheduled_reports_delivery_hub,
         name="scheduled_reports_delivery_hub",
+    ),
+    path(
+        "reports/tenant-schedules-evidence/",
+        tenant_report_schedules_evidence,
+        name="tenant_report_schedules_evidence",
+    ),
+    path(
+        "reports/report-templates-catalog/",
+        report_templates_catalog_evidence,
+        name="report_templates_catalog_evidence",
+    ),
+    path(
+        "reports/output-history-evidence/",
+        report_output_history_evidence,
+        name="report_output_history_evidence",
+    ),
+    path(
+        "reports/term-publish-status/",
+        term_publish_status_evidence,
+        name="term_publish_status_evidence",
+    ),
+    path(
+        "reports/academic-years-setup/",
+        academic_years_setup_evidence,
+        name="academic_years_setup_evidence",
+    ),
+    path(
+        "reports/departments-setup/",
+        departments_setup_evidence,
+        name="departments_setup_evidence",
     ),
     path("reports/builder/", reportcard_builder, name="reportcard_builder"),
     path(

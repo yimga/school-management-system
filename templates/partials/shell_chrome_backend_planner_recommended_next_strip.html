@@ -1,0 +1,25 @@
+{# 1049/1050: Backend dashboard — recommended next steps (shared chrome strip; uses existing context). #}
+{% load i18n %}
+<section
+  class="backend-planner-section shell-chrome-backend-planner-recommended"
+  data-shell-chrome="backend-planner-recommended-next"
+  data-shell-ops-section="planner-recommended-next"
+  aria-label="{% trans 'Recommended next steps' %}"
+>
+  <div class="backend-planner-section-head d-flex align-items-center justify-content-between">
+    <span class="small fw-semibold text-muted">{% trans "Recommended next" %}</span>
+    {% if finance_requests_count %}
+    <a class="badge text-bg-warning text-decoration-none" href="{{ finance_request_link }}">{% trans "Finance" %} {{ finance_requests_count }}</a>
+    {% endif %}
+  </div>
+  <div class="backend-planner-list backend-planner-next">
+    {% for step in recommended_next_steps|slice:backend_max_items_slice %}
+    <a href="{{ step.url }}" class="backend-quick-link d-flex align-items-center gap-2 text-decoration-none small">
+      <span>{% if step.icon %}<i class="bi {{ step.icon }} me-1"></i>{% endif %}{{ step.label }}</span>
+      <i class="bi bi-chevron-right ms-auto"></i>
+    </a>
+    {% empty %}
+    <p class="small text-muted mb-1">{% trans "No pending workflow actions." %}</p>
+    {% endfor %}
+  </div>
+</section>

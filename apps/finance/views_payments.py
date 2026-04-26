@@ -37,7 +37,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from apps.academics.models import AcademicYear
-from apps.platform_runtime.helpers import (
+from apps.platform_runtime.site_settings_read_access import (
     get_effective_flags,
     get_effective_site_settings,
 )

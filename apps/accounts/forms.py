@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from .models import AccessRole, Permission, User, UserPreference
 from .delegation import get_allowed_delegate_queryset, SCOPE_CHOICES
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
 
 # User preference form for background logo and opacity

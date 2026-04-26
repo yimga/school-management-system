@@ -4,7 +4,6 @@
 Extracted from super_views.py to reduce file size.
 """
 
-from django.db.models import Q
 from django.shortcuts import render, get_object_or_404
 from django.urls import NoReverseMatch, reverse
 
@@ -254,35 +253,11 @@ def super_registries_overview(request):
 
 def super_metadata_catalog(request):
     """Metadata catalog: entity/field search (metadata app) + platform catalog (schema, experience, runtime, registry)."""
-    entities = []
+    entities: list = []
     try:
-        from apps.metadata.models import (
-            EntityCatalogEntry,
-            ENTITY_CATALOG_LIFECYCLE_ACTIVE,
-            MetadataDependency,
-        )
+        from apps.metadata.services import get_metadata_catalog_entity_rows
 
-        q = request.GET.get("q", "").strip()
-        entity_code = request.GET.get("entity", "").strip()
-        qs = EntityCatalogEntry.objects.prefetch_related(
-            "fields", "fields__dependencies"
-        ).order_by("code")
-        if request.GET.get("lifecycle") != "all":
-            qs = qs.filter(lifecycle_state=ENTITY_CATALOG_LIFECYCLE_ACTIVE)
-        if entity_code:
-            qs = qs.filter(code__icontains=entity_code)
-        if q:
-            qs = qs.filter(
-                Q(code__icontains=q)
-                | Q(name__icontains=q)
-                | Q(description__icontains=q)
-            )
-        entities = list(qs[:200])
-        for ent in entities:
-            ent.field_count = ent.fields.count()
-            ent.sample_deps = MetadataDependency.objects.filter(
-                field__entity=ent
-            ).count()
+        entities, _ = get_metadata_catalog_entity_rows(request.GET, max_entities=200)
     except CONTROL_PLANE_METRIC_FAILURES:
         pass
 

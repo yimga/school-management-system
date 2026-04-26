@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 
 from celery import shared_task
 from apps.automation.models import AutomationExecutionLog
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.schools.celery_tasks import _run_with_tenant_context, get_active_school_ids
 

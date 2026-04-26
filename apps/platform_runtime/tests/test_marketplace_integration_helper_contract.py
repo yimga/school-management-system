@@ -12,6 +12,11 @@ from apps.siteconfig.domain_ownership import EXACT_FIELD_OWNERS
 
 
 class MarketplaceIntegrationHelperContractTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # Persisted singleton required for facade key parity checks (isolated DBs).
+        get_platform_site_settings_record(create=True)
+
     def test_facade_dict_keys_are_classified_marketplace_integrations(self):
         """Every key surfaced by ``get_marketplace_integration_settings`` must map in domain_ownership."""
         site = get_platform_site_settings_record(create=True)
@@ -35,3 +40,10 @@ class MarketplaceIntegrationHelperContractTests(TestCase):
             set(got.keys()),
             set(site.get_marketplace_integration_settings().keys()),
         )
+
+    def test_platform_sitesettings_singleton_create_is_stable(self):
+        """Singleton row used for integration key parity must persist across calls."""
+        a = get_platform_site_settings_record(create=True)
+        b = get_platform_site_settings_record(create=True)
+        self.assertIsNotNone(a.pk)
+        self.assertEqual(a.pk, b.pk)

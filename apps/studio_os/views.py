@@ -604,13 +604,13 @@ def studio_experience_packs(request):
     except (ImportError, AttributeError):
         pass
     theme_colors_url = ""
-    admin_packs_url = ""
+    installed_packages_url = ""
     try:
         theme_colors_url = reverse("siteconfig:theme_colors") + "?embed=1"
     except NoReverseMatch:
         pass
     try:
-        admin_packs_url = reverse("admin:packages_experiencepack_changelist")
+        installed_packages_url = reverse("siteconfig:installed_packages_rollback")
     except NoReverseMatch:
         pass
     package_impact_fetch_url = ""
@@ -631,7 +631,7 @@ def studio_experience_packs(request):
             "effective_pack": effective_pack,
             "pack_count": pack_count,
             "theme_colors_url": theme_colors_url,
-            "admin_packs_url": admin_packs_url,
+            "installed_packages_url": installed_packages_url,
             "package_impact_fetch_url": package_impact_fetch_url,
             "experience_graph_package_id": experience_graph_package_id,
             "school": school,

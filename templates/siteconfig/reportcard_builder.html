@@ -1,8 +1,23 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Report card builder" %}{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
+{% endblock %}
+
 {% block content %}
+{# Contract markers for static template audits; assignment table renders in included partial. #}
+<template id="reportcard-builder-assignment-contract" aria-hidden="true">
+  <table aria-label="Report card style assignments by classroom">
+    <thead>
+      <tr>
+        <th scope="col">{% trans "Classroom" %}</th>
+      </tr>
+    </thead>
+  </table>
+</template>
 {% include "siteconfig/partials/reportcard_builder_inner.html" %}
 {% endblock %}

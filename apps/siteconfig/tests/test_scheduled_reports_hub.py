@@ -49,10 +49,36 @@ class ScheduledReportsHubAdminLinkTests(TestCase):
         finally:
             set_urlconf(None)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"/admin/reports/tenantreportschedule/", response.content)
-        self.assertIn(b"/api/v1/reports/scheduled", response.content)
-        self.assertIn(b'href="/api/v1/reports/scheduled"', response.content)
-        self.assertIn(b"--school-id", response.content)
+        body = response.content
+        self.assertIn(b"/admin/reports/tenantreportschedule/", body)
+        self.assertIn(b"Advanced/Admin", body)
+        self.assertIn(b'data-shell-surface="scheduled-reports-delivery-hub"', body)
+        self.assertIn(b"data-rmc-operator-evidence-summary", body)
+        admin_idx = body.find(b"/admin/reports/tenantreportschedule/")
+        self.assertNotEqual(admin_idx, -1)
+        # 1075+: term publish + academic years evidence before advanced Django admin row.
+        self.assertIn(b"Term publish status", body)
+        tp = body.find(b"Term publish status")
+        self.assertNotEqual(tp, -1)
+        self.assertLess(tp, admin_idx)
+        self.assertIn(b"Academic years (setup)", body)
+        ay = body.find(b"Academic years (setup)")
+        self.assertNotEqual(ay, -1)
+        self.assertLess(ay, admin_idx)
+        self.assertIn(b"Departments (setup)", body)
+        dep = body.find(b"Departments (setup)")
+        self.assertNotEqual(dep, -1)
+        self.assertLess(dep, admin_idx)
+        self.assertIn(b"Config mutation audit", body)
+        cm = body.find(b"Config mutation audit")
+        self.assertNotEqual(cm, -1)
+        self.assertLess(cm, admin_idx)
+        self.assertIn(b"/api/v1/reports/scheduled", body)
+        self.assertIn(b'href="/api/v1/reports/scheduled"', body)
+        self.assertIn(b"--school-id", body)
+        # API + primary hub content (empty state here) before advanced Django admin.
+        self.assertLess(body.find(b"/api/v1/reports/scheduled"), admin_idx)
+        self.assertLess(body.find(b"No schedules for this tenant yet."), admin_idx)
 
     def test_non_staff_with_settings_manage_sees_hub_without_admin_link(self):
         plan = Plan.objects.create(
@@ -183,5 +209,6 @@ class ScheduledReportsHubTranslatableCatalogTests(TestCase):
             'msgid "No schedules for this tenant yet."',
             'msgid "Scheduled report delivery"',
             'msgid "add addresses (active schedule)"',
+            'msgid "Advanced/Admin: open schedules in Django admin (full CRUD)"',
         ):
             self.assertIn(fragment, text, msg=f"missing catalog entry for {fragment!r}")

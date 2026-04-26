@@ -12,7 +12,7 @@ from datetime import datetime
 
 from apps.academics.models import AcademicYear, Term
 from apps.people.models import StudentProfile
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.reports.localization import (
     get_certificate_localizer,

@@ -1,5 +1,231 @@
 # RunMyCampus autonomous execution log
 
+## Wave — §11.4 1087 follow-up: ZIP state audit + backend dashboard token density (2026-04-26)
+
+**A. Phase 0 — actual ZIP:** **SiteSettings** **audit**/**access** **layer** **+** **wrappers** **+** **CP** **surfaces** **listed** **in** **user** **mission** **are** **present** **(scripts** + **templates** + **siteconfig** **URLs**); **verifiers** **green** **on** **clean** **run**.
+
+**B. User mission gaps:** **None** **requiring** **new** **routes** **in** **this** **pass**; **prior** **waves** **1082–1093** **cover** **Student** **360**, **classroom**/**departments**/**academic** **years**, **marketplace** **template** **guard**, **strict** **audit**.
+
+**C. This pass — UI:** **`static/css/backend-dashboard-tokens.css`** **tightens** **`--dash-gap`**, **`--dash-card-pad`**, **related** **tokens** **(1087)** for **a** **denser** **backend** **dashboard**.
+
+**D. Validations:** **Django** **bar** **(user** **list,** **~142** **tests,** **fresh** **`DJANGO_TEST_DB_FILE`**) **OK**; **`database is locked`** **observed** **with** **shared** **`--keepdb`** **on** **Windows** — **workaround:** **new** **DB** **file** **or** **no** **keepdb**; **all** **`verify_*`/`audit_*`** **from** **user** **list** **PASS** **(including** **`verify_design_system_phase2` post-CSS**).
+
+**E. SOT** **1087** **row** **added** **(PARTIAL** **/ density** **only**).
+
+## Wave — §11.4 1088–1093 admin gravity (classroom CP, departments evidence, hub links, strict audit, marketplace template guard) (2026-04-26)
+
+**A. Waves:** **1088|1089|1090|1091|1092** **DONE**; **1093** **(template** **guard** **+** **policy** **notes**)** **DONE**; **1085/1079/1080** **marketplace**/**workflow** **rows** **remain** **PARTIAL.**
+
+**B. Product:** `apps/people/views_backend.py`, `templates/people/backend_classroom_detail.html`; `apps/siteconfig/views_departments_setup_evidence.py`, `departments_setup_evidence.html`, `urls.py`; `views_academic_years_evidence.py`, `academic_years_setup_evidence.html`; `views.py` `scheduled_reports_delivery_hub`, `scheduled_reports_delivery_hub.html`; `scripts/audit_admin_gravity.py`, `verify_shell_surface_inventory.py`; `docs/generated/admin_gravity_audit.*`.
+
+**C. Tests:** `test_backend_teacher_admin_link_order`, `test_departments_setup_evidence`, `test_academic_years_setup_evidence`, `test_scheduled_reports_hub`, `test_audit_admin_and_security_surface`, `test_marketplace_studio_no_template_admin_url_tags`.
+
+**D. Verifiers:** `audit_admin_gravity --strict`, `verify_admin_replacement_roadmap`, `verify_control_plane_replacement_candidates`, `verify_shell_surface_inventory`, `verify_phase2_authenticated_shell_conformance`, `verify_design_system_phase2`, `verify_doc_plan_density_discipline`, `verify_sot_pillar_evidence` — run with full Django test bar.
+
+**E. No true blocker.**
+
+## Wave — §11.4 1082–1087 admin gravity (Student 360 portal-primary, academic years evidence) (2026-04-26)
+
+**A. Waves:** **1082|1083|1084|1086|1087** **DONE**; **1085** **PARTIAL** (no marketplace/studio `admin:` template hits to swap).
+
+**B. Product:** `apps/people/views_backend.py` (`portal_tabbed_360`); `templates/people/backend_student_detail.html`; `apps/student360/views.py` (student variable fixes); `apps/siteconfig/views_academic_years_evidence.py`, `academic_years_setup_evidence.html`, `views.py` (hub link), `scheduled_reports_delivery_hub.html`.
+
+**C. Tests:** `apps/portal/tests/test_one_record.py`, `apps/people/tests/test_backend_teacher_admin_link_order.py`, `apps/siteconfig/tests/test_academic_years_setup_evidence.py`, `test_scheduled_reports_hub`, `test_audit_admin_and_security_surface`.
+
+**D. Verifiers + audit:** `audit_admin_gravity --strict` (new regression key), `verify_shell_surface_inventory`, full user **verify\*** bar — **PASS** (post-fix).
+
+**E. No true blocker.**
+
+**Note:** `apps.accounts.tests.test_delegation` is the real module (**not** `apps.people.tests.test_delegation`).
+
+## Wave — §11.4 1076–1081 admin gravity (stragglers, term publish evidence, strict labels, decorator fix) (2026-04-26)
+
+**A. Waves:** **1076**/**1077**/**1078**/**1081** **DONE**; **1079**/**1080** **PARTIAL** (no new product `admin:` swaps; hygiene gates only).
+
+**B. Product:** `scripts/audit_admin_gravity.py` (`product_admin_stragglers_by_area`, stricter `--strict`); `apps/accounts/decorators.py` (`permission_required` **+** `raise_exception`); `apps/siteconfig/views_term_publish_evidence.py` (valid `order_by`); `templates/schools/super_fleet_governed_changes.html`, `templates/schools/super_platform_operator_hub.html` (Advanced labels); `docs/generated/admin_gravity_audit.*`.
+
+**C. Tests:** `test_term_publish_status_evidence`, `test_backend_teacher_admin_link_order`, `test_scheduled_reports_hub` (term publish strip order), `test_audit_admin_and_security_surface` (stragglers + regression keys).
+
+**D. Verifiers:** `audit_admin_gravity --strict` + `verify_admin_replacement_roadmap` + `verify_control_plane_replacement_candidates` + `verify_shell_surface_inventory` + `verify_phase2_authenticated_shell_conformance` + `verify_design_system_phase2` + `verify_doc_plan_density_discipline` + `verify_sot_pillar_evidence` — **PASS**; **pytest** **bar** (user list + new modules) **PASS**.
+
+**E. No true blocker.**
+
+## Wave — §11.4 1069–1075 admin gravity E2E (config mutation evidence, reports strip, strict regressions) (2026-04-26)
+
+**A. Waves:** **1069**–**1075** per **SOT**; **1072**/**1073**/**1074** **PARTIAL** (honest).
+
+**B. Product:** **`views_config_mutation_evidence`**, **`config_mutation_audit_evidence.html`**, **`urls`**: **`/siteconfig/metadata/config-mutation-audit/`**; **`metadata_operator_hub`** **card**; **`control_outcome_center`** + **`control_plane_nav`**: **`cp_config_mutation_audit_evidence`**; **`views_console_domains`**: **CCC** **audit** → **CP** + **link** **list**; **`scheduled_reports_delivery_hub`** **+** **template** **operator** **strip**; **`audit_admin_gravity`**: **`shipped_category_regression_checks`**, **`_regression_check_entity_catalog_template_order`**.
+
+**C. Tests:** **`test_config_mutation_audit_evidence`**, **`test_metadata_entity_catalog_control_plane`**, **`test_control_plane_nav`**, **`test_control_outcome_center`**, **`test_audit_admin_and_security_surface`**, full **validation** **bar** **108** **tests** **OK**.
+
+**D. Verifiers:** **`audit_admin_gravity` `--strict`**, **`verify_shell_surface_inventory`**, **`verify_*`** **bar** **PASS**; **SOT** **pillar** **OK**.
+
+**E. No true blocker;** full **federated** **publish**/**staging** **evidence** **page** **not** **claimed** ( **1071** is **config** **mutation** **log** **only** ).
+
+## Wave — §11.4 1066 EAV operator + 1062 evidence (scheduled hub, keyboard) (2026-04-26)
+
+**A. Waves advanced:** **1066** **DONE**; **1062** **PARTIAL** (roadmap still partial).
+
+**B. SOT rows:** **1066** **DONE**; **1062** **PARTIAL**; new **1067+** **NOT** **DONE** line for **remaining** **sweep** (SOT support-only).
+
+**C. Product/code / tests / verifiers:** `apps/metadata/services.py` **(`get_metadata_dynamic_field_operator_context`)**, `apps/siteconfig/views_metadata_dynamic_fields.py`, `templates/siteconfig/metadata_dynamic_fields_operator.html`, `apps/siteconfig/tests/test_metadata_dynamic_fields_control_plane.py`, `apps/metadata/tests/test_services.py`, `scripts/verify_admin_replacement_roadmap.py` (**metadata_dynamic_field_operator** row), `scripts/verify_shell_surface_inventory.py` (**template** map), `templates/siteconfig/scheduled_reports_delivery_hub.html`, `templates/components/keyboard_shortcuts.html`, `apps/siteconfig/tests/test_scheduled_reports_hub.py`, `scripts/audit_admin_gravity.py` (**strict** + **`scheduled_reports_delivery_hub`** **classifier**), `locale/en/LC_MESSAGES/django.po`, `docs/generated/admin_gravity_audit.*`, **`admin_control_plane_replacement_candidates.json`**.
+
+**D. Real CP:** **EAV** **operator** **page**; **scheduled** **delivery** **hub** **table** **first**, **Django** **admin** **link** **last** with **Advanced** label; **keyboard** `r` **→** **`/siteconfig/reports/`**.
+
+**E. Admin links demoted / replaced:** **Hub** **admin** **moved** **after** **operator** **content**; **keyboard** **reports** no longer **admin** **reportcard** **for** **non-backend**.
+
+**F. Admin fallbacks preserved:** **Staff** **tenant** **schedule** **changelist**; **EAV** **definition/value** **changelists** **on** **CP** **pages** **(superuser)**.
+
+**G–I. Validations / evidence:** **`audit_admin_gravity --strict`**, **`verify_admin_replacement_roadmap`**, **`verify_control_plane_replacement_candidates`**, **`verify_shell_surface_inventory`**, **`verify_phase2_authenticated_shell_conformance`**, **`verify_design_system_phase2`**, **`verify_doc_plan_density_discipline`**, **`verify_sot_pillar_evidence`**, `manage.py` **test** **modules** in **session** **bar** — **all** **PASS** **(post-fix)**.
+
+**J. Remaining (honest):** **1062** **full** **reports**/**export** **sweep**; **1064** **publish**/**staging** **evidence** **pages**; **marketplace**/**workflow** **template** **hrefs**; **1067+** **product** `admin:` **hunt**; no **exhausted** **claim**.
+
+**K. Blocker:** **None** **(repo-contained)**.
+
+## Wave — §11.4 batches 1059–1066: admin gravity (metadata hub, CP roadmap waves, theme hints) (2026-04-25)
+
+**A. Waves advanced:** **1059**–**1066** ( **1059** **DONE** product; **1060/1062/1064/1066** **PARTIAL**/**NOT** **DONE** as labeled ).
+
+**B. SOT rows:** **1059**–**1066** **forward** **queue** **lines**; **1060/1062/1064** **PARTIAL**; **1066** **honest** **NOT** **DONE** for **dynamic** **field** **operator**.
+
+**C. Product/code:** `apps/siteconfig/views_metadata_operator_hub.py`, `templates/siteconfig/metadata_operator_hub.html`, `apps/siteconfig/urls.py`, `views_entity_catalog.py`, `entity_catalog_overview.html`, `config/manager_urls.py`, `config/tenant_urls.py` (**metadata** **API** **include**), `control_plane_nav.py`, `views_console_domains.py`, `control_outcome_center.py`, `scripts/audit_admin_gravity.py`, `verify_shell_surface_inventory.py`, `test_metadata_entity_catalog_control_plane.py`, `test_control_plane_nav.py`, `test_control_outcome_center.py`, `docs/generated/admin_gravity_audit.*`, `admin_control_plane_replacement_candidates.json`.
+
+**D. Real control-plane changes:** **Staff** **metadata** **&** **lineage** **hub** (**cards**: **entity** **table**, **governance**, **lineage** **graph**, **feature** **control**, **tenant** **runtime**); **superuser** **admin** **advanced** **only**; **CCC** **search** **→** **hub**; **preview** **→** **lineage** **graph** (**audit** **stays** **admin** **where** **no** **CP** **list**).
+
+**E. Product-facing admin links replaced:** **Metadata** **domain** **first** **link** **is** **hub** ( **admin** **rows** **remain** **labeled** **Admin:** ); **outcome** **registry** **adds** **hub** **before** **entity** **overview**.
+
+**F. Admin fallbacks preserved:** **Superuser** **buttons** on **hub** + **entity** **catalog**; **CCC** **audit** **column** **still** **config** **mutation** **changelist**.
+
+**G. Validations:** `manage.py` **test** **bar** ( **87** **tests** **OK** ) + `audit_admin_gravity` **`--strict`** + `verify_admin_replacement_roadmap` + `verify_control_plane_replacement_candidates` + `verify_shell_surface_inventory` + `verify_phase2_authenticated_shell_conformance` + `verify_design_system_phase2` + `verify_doc_plan_density_discipline` + `verify_sot_pillar_evidence` **all** **PASS**.
+
+**H. Failures fixed:** **None** **first** **pass** **post**-**impl**.
+
+**I. Evidence:** **Green** **pytest**; **regenerated** **admin** **JSON/MD**; **SOT** **pillar** **OK**.
+
+**J. Remaining admin gravity ( **by** **roadmap** ):** **`metadata_dynamic_field_operator`** **`planned`**; **reports**/**bulk** **partial**; **full** **template** **admin:** **sweep** **deferred**.
+
+**K. True blocker:** **None** ( **schema**-**level** **dynamic** **field** **surface** **is** **the** **next** **non**-**trivial** **work** ).
+
+## Wave — §11.4 batches 1054–1058: corrective (admin+CP matrix, security governance, import lint, shell gate, dashboard rail) (2026-04-26)
+
+**A. Waves advanced:** **1054**–**1058**; queue head **1060+**.
+
+**B. SOT rows:** **1054**–**1058** in **forward queue** + at-a-glance; **1006/1007/1009** **PARTIAL** (exhausted **not** claimed).
+
+**C. Product/code:** `scripts/audit_admin_gravity.py` (expanded metrics); `scripts/audit_security_surface.py` (classification + allowlist); `scripts/verify_shell_surface_inventory.py` (canonical inline messages gate + region matrix); `apps/siteconfig/views.py` (grading matrix template + `grading_scales` M2M); `apps/siteconfig/urls.py` (`region_grading_scales`); `templates/siteconfig/region_grading_scales_matrix.html`; `apps/schools/control_plane_nav.py`; `apps/accounts/tests/test_backend_dashboard_shell_render.py`; `apps/platform_runtime/tests/test_site_settings_import_surface_lint.py`; `apps/portal/tests/test_wopi_csrf_exempt_token_gate.py`; `apps/siteconfig/tests/test_region_grading_scales_control_plane_route.py`.
+
+**D. Real changes:** **Manager**-host **CP** **surface** for **region** **grading** **scales** (replaces missing **`admin/region_grading_scales.html`** with **CP**-native template); **security** **audit** **tri**-**state**; **WOPI** **403** without **token**; **import** **regression** **test** for **SiteSettings** **read** **path**; **shell** **enforcement** on **base** **templates**; **planner** **card** **widget** **markers**.
+
+**E. Support:** SOT, this log, generated **JSON/MD** **ledgers** from **audits** and **verify_shell**.
+
+**F. Validations:** `manage.py test` **101** (required bar + **import** **lint** + **region** **route** + **WOPI** where included); **all** `verify_*` + **`audit_sitesettings_python_surface`**, **`verify_shell`**, **Phase** **6** **PASS**; **`verify_control_plane_replacement_candidates` PASS**.
+
+**G. Failures fixed:** `region_grading_scales` **URL** (superuser + **CP**), missing **admin** **template** → **CP** **template**; **ORM** `grading_scales` **relation**; **doc** **typo** (1056).
+
+**H. Evidence:** **0** **SiteSettings** **violations**; **green** **pytest**; **script** **bar**.
+
+**I. Legacy removed:** **Dead** **admin/region_grading_scales.html** **reference** (file never existed) replaced by **siteconfig** **matrix** **template**; **removed** **bogus** `gradingscaleconfig_set` in favor of **`grading_scales`**.
+
+**J. Partial waves:** **1006/1007/1009**; **interop**/**marketplace** **deferred** per priority order.
+
+**K. True blocker:** None.
+
+## Wave — §11.4 batches 1048–1053: tag edit policy, backend planner strip, admin + security audits, CP nav (2026-04-26)
+
+**A. Waves advanced:** **1048**–**1053**; queue head **1054+**.
+
+**B. SOT rows:** **1048**–**1053** **DONE**; **1006**/**1007**/**1009** **PARTIAL**.
+
+**C. Product/code files:** `apps/siteconfig/tests/test_tag_manager_mutating_policy.py` (**1048**); `templates/partials/shell_chrome_backend_planner_recommended_next_strip.html`; `templates/accounts/backend_dashboard.html`; `apps/accounts/tests/test_backend_dashboard_shell_render.py`; `scripts/verify_shell_surface_inventory.py`; `apps/platform_runtime/tests/test_marketing_shell.py`; `scripts/audit_admin_gravity.py`; `scripts/audit_security_surface.py`; `scripts/verify_control_plane_replacement_candidates.py`; `apps/schools/control_plane_nav.py`; `apps/schools/tests/test_control_plane_nav.py`; `apps/platform_runtime/tests/test_audit_admin_and_security_surface.py`; `docs/generated/admin_gravity_audit.*`, `security_surface_audit.*`.
+
+**D. Real changes:** **Tag manager** **edit** **POST** **RBAC** tests; **backend** **dashboard** **recommended-next** strip **partial** + **Client** asserts; **shell** inventory needles; **admin**/**security** **repo** **audits** + **JSON**/**md**; **control** **plane** **sidebar** **link** to **tenant** **runtime** **hub** + **verifier**; **primary** **nav** **highlight** path.
+
+**E. Support:** SOT **§11.4** rows, this log, generated **shell** ledgers, generated **audit** JSON/**md**.
+
+**F. Validations:** `manage.py test` **104** **OK** (user bar + `test_control_plane_nav` + `test_audit_admin_and_security_surface`); full **script** bar including **`audit_admin_gravity`**, **`audit_security_surface`**, **`verify_control_plane_replacement_candidates`**, **siteconfig**/**shell**/**doc**/**SOT** pillar **PASS**.
+
+**G. Failures fixed:** None (first-pass green).
+
+**H. Evidence:** Green **pytest** + **audits** exit **0**.
+
+**I. Legacy removed:** None.
+
+**J. Remaining PARTIAL rows:** **1006**, **1007**, **1009**.
+
+**K. True blocker:** None.
+
+## Wave — §11.4 batches 1041–1047: read-import sweep, typed ownership map, mutating **GET** JSON, role-home + **base-bootstrap** test, Phase 6 map gate (2026-04-26)
+
+**A. Waves advanced:** **1041**–**1047**; queue head **1048+**.
+
+**B. SOT rows:** **1041**–**1047** **DONE** (At a glance + forward queue); **1006**/**1007**/**1009** **PARTIAL** (incremental only).
+
+**C. Product/code files:** `apps/platform_runtime/tests/support/runtime_defaults_first_class.py`; `apps/platform_runtime/tests/test_runtime_contract.py`; `apps/platform_runtime/tests/test_phase_b_domain_snapshots.py`; `apps/platform_runtime/tests/test_phase_b_execution_gate.py`; `apps/platform_runtime/tests/test_marketing_shell.py` (**1046**); `apps/platform_runtime/tests/test_site_settings_read_access_import_smoke.py` (**1041**); `apps/platform_runtime/tests/test_sitesettings_typed_ownership_map.py` (if not present from prior: aligned); `apps/platform_runtime/typed_migration_candidates.py`; `scripts/generate_sitesettings_typed_ownership_map.py`; `docs/generated/sitesettings_typed_ownership_map.json`; `scripts/verify_sitesettings_typed_ownership_map.py`; `apps/siteconfig/tests/test_mutating_routes_expansion.py` (**1044**); `apps/accounts/tests/test_backend_dashboard_shell_render.py` (prior **1045**); `apps/siteconfig/models.py` (deprecation comment to access layer); `scripts/verify_cursor_phase6_siteconfig_sitesettings.py` (typed map step).
+
+**D. Real changes:** Converge **`get_effective_site_settings`** / **record** / **invalidate** imports in key **`platform_runtime` tests** to **`site_settings_read_access`**; **1046** asserts **`base-bootstrap`** **django-messages** chain; **1044** adds **GET** **JSON** **feature control export** test; **1042/1043/1047** ownership map + iterator + **Phase 6** verifier.
+
+**E. Support:** SOT, this log, **`docs/generated/sitesettings_python_surface_audit.json`** (from audit), **`shell_surface_inventory_ledger.*`** (unchanged this wave unless regen required).
+
+**F. Validations:** `DJANGO_TEST_DB_FILE=.django_test_dbs/wave1005.sqlite3` **`manage.py test`** — 97 **OK** (listed app modules + typed map + import smoke, **`--noinput --keepdb`**); `audit_sitesettings_python_surface`, `verify_cursor_phase6_siteconfig_sitesettings`, `verify_shell_surface_inventory`, `verify_phase2_authenticated_shell_conformance`, `verify_design_system_phase2`, `verify_doc_plan_density_discipline`, `verify_sot_pillar_evidence` — **PASS/OK** (0 audit violations).
+
+**G. Failures fixed:** None this wave (green on first post-edit bar).
+
+**H. Evidence:** Test + script bar as in **F**.
+
+**I. Legacy removed:** None (comment-only in **`siteconfig/models.py`**, import paths elsewhere).
+
+**J. Remaining PARTIAL rows:** **1006**, **1007**, **1009** (further **mutating**/**dashboard**/**shared chrome** breadth).
+
+**K. True blocker:** None.
+
+## Wave — §11.4 batches 1035–1040: access layer, audit v2, base shell messages, inventory policy, parity (2026-04-26)
+
+**A. Waves advanced:** **1035**–**1040** (Wave 1 + Wave 2 depth); queue head **1041+**.
+
+**B. SOT rows:** **1035**–**1040** **DONE** (At a glance + forward queue).
+
+**C. Product/code files:** `apps/platform_runtime/site_settings_read_access.py`; `scripts/audit_sitesettings_python_surface.py` (schema v2, violations, `per_file`); `docs/generated/sitesettings_python_surface_audit.json`; `templates/partials/shell_chrome_django_messages_base_bootstrap.html`; `templates/base.html`; `scripts/verify_shell_surface_inventory.py` (django-messages direct-include gate); `apps/siteconfig/context_processors.py`, `views.py`, `views_feature_control.py`, `forms.py`; `apps/accounts/context_processors.py`; `apps/platform_runtime/tests/test_sitesettings_python_surface_audit.py`; `test_sitesettings_runtime_read_parity.py`; `test_marketing_shell.py`.
+
+**D. Real changes:** Central **read/persist re-exports**; stricter **audit**; **`base.html`** uses shared **django-messages** chrome; **only wrapper** partials may include the core message partial; **context processors** and key **siteconfig** modules import **`get_effective_site_settings`** via access layer; **parity** tests for **CP** + **portal** + **base** surfaces.
+
+**E. Support:** SOT, PATH, this log, regenerated **`shell_surface_inventory_ledger.*`**.
+
+**F. Validations:** User bar **93** `manage.py test` (listed modules) **OK**; `audit_sitesettings_python_surface`, `verify_cursor_phase6_siteconfig_sitesettings`, `verify_shell_surface_inventory`, `verify_phase2_authenticated_shell_conformance`, `verify_design_system_phase2`, `verify_doc_plan_density_discipline`, `verify_sot_pillar_evidence` **PASS**.
+
+**G. Failures fixed:** `verify_shell` base substring (removed impossible `data-shell` literal on `base.html` source; rely on `base_bootstrap` include path).
+
+**H. Evidence:** All verifiers + pytest green.
+
+**I. Legacy removed:** Inline **messages** **for**-loop in **`base.html`** (replaced by **wrapper** + shared partial).
+
+**J. Remaining:** **1006**/**1007**/**1009**; typed-table / field-ownership **Phase B** depth (Wave 1 **not** exhausted for **full** field migration story).
+
+**K. True blocker:** None.
+
+## Wave — §11.4 batches 1033–1034: SiteSettings surface audit + django-messages shell wrappers (2026-04-25)
+
+**A. Waves advanced:** **1033** (Wave 1 — **SiteSettings** product-Python audit + Phase 6 gate), **1034** (Wave 2 — authenticated **django-messages** wrapper partials). Queue head **1035+**.
+
+**B. SOT rows:** **1033–1034** **DONE** (see **§11.4**).
+
+**C. Files changed:** **`scripts/audit_sitesettings_python_surface.py`**; **`docs/generated/sitesettings_python_surface_audit.json`**; **`scripts/verify_cursor_phase6_siteconfig_sitesettings.py`** (subprocess); **`apps/platform_runtime/tests/test_sitesettings_python_surface_audit.py`**; **`templates/partials/shell_chrome_django_messages_tenant_portal.html`**, **`shell_chrome_django_messages_control_plane.html`**; **`templates/portal_base.html`**, **`templates/control_plane_base.html`**; **`scripts/verify_shell_surface_inventory.py`**; **`apps/platform_runtime/tests/test_marketing_shell.py`**; **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`**, **`docs/PATH_TO_100_PERCENT_EXECUTION_PLAN.md`**, **`docs/phase_checklists/phase_06_siteconfig_sitesettings.md`**; this log.
+
+**D. Real product/code changes:** Granular **apps/** Python surface audit artifact + **CI** allowlist enforcement; **portal** / **control-plane** **django-messages** include depth via shared wrapper partials.
+
+**E. Support-only:** Doc cross-references and checklist rows for Phase 6 + PATH **§A**.
+
+**F. Validations run:** **`python scripts/verify_cursor_phase6_siteconfig_sitesettings.py`**, **`python scripts/verify_shell_surface_inventory.py`**, **`python scripts/verify_doc_plan_density_discipline.py`**; **`manage.py test`** — **`test_sitesettings_python_surface_audit`**, **`ShellSurfaceFamilyContractTests.test_shell_chrome_shared_partials_and_includes`** (**`--noinput`**, **`DJANGO_TEST_DB_FILE=.django_test_dbs/wave1033.sqlite3`**) — **OK**.
+
+**G. Failures fixed:** Script dataclass/aggregation bugs from prior draft (replaced with consistent scan + totals).
+
+**H. Acceptance evidence:** Green bars above; JSON written; Phase 6 bundle includes audit.
+
+**I. Legacy removed:** None (wrappers delegate to existing **`shell_chrome_django_messages.html`**).
+
+**J. Remaining safe work:** More **1006**/**1007**/**1009** breadth; optional **inventory** trend via **`generate_platform_inventory.py`** when touching app code.
+
+**K. True blocker status:** None.
+
 ## Wave — §11.4 batches 1028–1032 + bar proof (2026-04-25)
 
 **A. Waves advanced:** **1028–1032** recorded in SOT; queue head **1033+**.

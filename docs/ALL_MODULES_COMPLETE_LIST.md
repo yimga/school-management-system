@@ -1,13 +1,13 @@
 # Complete List of All Modules - School Management System
 
-**Last Updated**: March 28, 2026  
+**Last Updated**: April 26, 2026  
 **Status**: Legacy narrative doc. The generated source of truth is `docs/generated/platform_inventory.md`.  
-**Total Apps**: 42 Installed App Modules  
+**Total Apps**: 43 Installed App Modules  
 **Total Models**: 100+ database models  
 **Total Views**: 200+ view functions  
 **Total API Endpoints**: 50+ REST endpoints  
 
-**Inventory alignment:** The count **42** matches `scripts/generate_platform_inventory.py` / `config/settings.py` entries of the form `apps.<name>` (project apps only). The third-party app `emis` remains in `INSTALLED_APPS` without the `apps.` prefix and is **not** included in that tally.
+**Inventory alignment:** The count **43** matches `scripts/generate_platform_inventory.py` / `config/settings.py` entries of the form `apps.<name>` (project apps only). The third-party app `emis` remains in `INSTALLED_APPS` without the `apps.` prefix and is **not** included in that tally.
 
 ---
 

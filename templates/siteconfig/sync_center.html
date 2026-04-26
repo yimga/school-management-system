@@ -1,31 +1,53 @@
 {% extends "backend_base.html" %}
-{% load i18n %}
-{% load region_format %}
-
-{% block title %}Sync Center – {{ school.name }}{% endblock %}
-{% block backend_title %}Sync Center{% endblock %}
+{% load i18n static %}
+{% block title %}{% trans "Sync Center" %} – {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Sync Center" %}{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
+{% endblock %}
 
 {% block content %}
-  <div class="container-fluid py-4" data-page-archetype="operational-workbench">
-    {% include "studio_os/components/page_header.html" with title=_("Sync Center") subtitle=_("Conflicts from offline sync. Resolve by keeping server version, client version, or discarding.") action_url=action_url action_text=action_text %}
+  <div class="container-fluid py-3 cp-evidence-page" data-page-archetype="operational-workbench" data-shell-surface="sync-center" data-cp-evidence-surface="sync-center">
+    {% include "studio_os/components/page_header.html" with title=_("Sync Center") subtitle=_("Conflicts from offline sync. Resolve by keeping server version, client version, or discarding.") action_url=action_url|default:None action_text=action_text|default:None %}
+    {% if sync_available %}
+    <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
+      <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+        <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Total" %}</div>
+        <div class="fw-semibold text-body fs-6">{{ sync_stats_total|default:0 }}</div>
+      </div>
+      <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+        <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Pending" %}</div>
+        <div class="fw-semibold text-body fs-6">{{ sync_stats_pending|default:0 }}</div>
+      </div>
+    </div>
+    {% endif %}
+    <div class="d-flex flex-wrap gap-2 mb-3 cp-evidence-related" data-rmc-evidence-related-links="1" aria-label="{% trans 'Related control-plane links' %}">
+      {% if scheduled_hub_url %}
+      <a class="btn btn-sm btn-outline-primary" href="{{ scheduled_hub_url }}">{% trans "Scheduled report delivery" %}</a>
+      {% endif %}
+      {% if console_url %}
+      <a class="btn btn-sm btn-outline-primary" href="{{ console_url }}">{% trans "Configuration control center" %}</a>
+      {% endif %}
+    </div>
     <div class="card shadow-sm">
       <div class="card-body">
         <h2 class="h5 mb-3">{% trans "Sync conflicts" %}</h2>
         <p class="text-muted">{% trans "Conflicts from offline sync. Resolve by keeping server version, client version, or discarding." %}</p>
         {% if not sync_available %}
-          <p class="text-warning">Sync conflict model not available.</p>
+          <p class="text-warning">{% trans "Sync conflict model not available." %}</p>
         {% elif not conflicts %}
-          <p class="text-muted">No pending conflicts.</p>
+          <p class="text-muted">{% trans "No pending conflicts." %}</p>
         {% else %}
           <div class="table-responsive">
             <table class="table table-sm">
               <thead>
                 <tr>
-                  <th>Entity</th>
-                  <th>ID</th>
-                  <th>Status</th>
-                  <th>Created</th>
-                  <th>Actions</th>
+                  <th>{% trans "Entity" %}</th>
+                  <th>{% trans "ID" %}</th>
+                  <th>{% trans "Status" %}</th>
+                  <th>{% trans "Created" %}</th>
+                  <th>{% trans "Actions" %}</th>
                 </tr>
               </thead>
               <tbody>
@@ -37,23 +59,23 @@
                     <td>{{ c.created_at|date:"Y-m-d H:i" }}</td>
                     <td>
                       {% if c.client_data or c.server_data %}
-                        <button type="button" class="btn btn-sm btn-outline-info me-1" data-bs-toggle="collapse" data-bs-target="#sync-payload-{{ c.id }}" aria-expanded="false">Side-by-side</button>
+                        <button type="button" class="btn btn-sm btn-outline-info me-1" data-bs-toggle="collapse" data-bs-target="#sync-payload-{{ c.id }}" aria-expanded="false">{% trans "Side-by-side" %}</button>
                       {% endif %}
                       {% if c.status == "PENDING" %}
                         <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
                           {% csrf_token %}
                           <input type="hidden" name="resolution" value="server">
-                          <button type="submit" class="btn btn-sm btn-outline-primary">Keep server</button>
+                          <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Keep server" %}</button>
                         </form>
                         <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
                           {% csrf_token %}
                           <input type="hidden" name="resolution" value="client">
-                          <button type="submit" class="btn btn-sm btn-outline-secondary">Keep client</button>
+                          <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Keep client" %}</button>
                         </form>
                         <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
                           {% csrf_token %}
                           <input type="hidden" name="resolution" value="discard">
-                          <button type="submit" class="btn btn-sm btn-outline-danger">Discard</button>
+                          <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Discard" %}</button>
                         </form>
                       {% else %}
                         —
@@ -65,11 +87,11 @@
                     <td colspan="5" class="p-0">
                       <div class="row g-0 border-top bg-light small">
                         <div class="col-md-6 p-2 border-end">
-                          <strong>Server version</strong>
+                          <strong>{% trans "Server version" %}</strong>
                           <pre class="mb-0 mt-1 small">{{ c.server_data }}</pre>
                         </div>
                         <div class="col-md-6 p-2">
-                          <strong>Client/offline version</strong>
+                          <strong>{% trans "Client/offline version" %}</strong>
                           <pre class="mb-0 mt-1 small">{{ c.client_data }}</pre>
                         </div>
                       </div>
@@ -81,8 +103,12 @@
             </table>
           </div>
         {% endif %}
-        <a href="{% url 'siteconfig:user_preferences' %}" class="btn btn-outline-secondary mt-2">Back to preferences</a>
       </div>
     </div>
+    {% if user.is_superuser and admin_sync_conflict_url %}
+    <div class="cp-evidence-advanced border-top pt-3 mt-3" data-rmc-evidence-advanced="1">
+      <a class="btn btn-sm btn-outline-secondary" href="{{ admin_sync_conflict_url }}">{% trans "Advanced/Admin: sync conflict rows" %}</a>
+    </div>
+    {% endif %}
   </div>
 {% endblock %}

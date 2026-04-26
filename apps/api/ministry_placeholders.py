@@ -19,7 +19,7 @@ from apps.academics.models import AcademicYear
 from apps.api.rate_limit import throttle_ip_request
 from apps.finance.models import Invoice, Payment
 from apps.people.models import StudentProfile
-from apps.platform_runtime.helpers import (
+from apps.platform_runtime.site_settings_read_access import (
     get_effective_flags,
     get_effective_site_settings,
 )

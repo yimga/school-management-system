@@ -3,6 +3,9 @@
 Fail if required shell / RMC contract substrings are missing from canonical templates.
 
 Extends the allowlist as Studio OS, CCC, control-plane, and admin surfaces converge.
+**1037/1038:** Also fails if any template (outside the django-messages wrapper allowlist) uses a raw
+``include "partials/shell_chrome_django_messages.html"`` — use ``*_tenant_portal``,
+``*_control_plane``, or ``*_base_bootstrap`` partials.
 On success, writes ``docs/generated/shell_surface_inventory_ledger.md`` (mechanical).
 """
 
@@ -38,11 +41,19 @@ TEMPLATE_REQUIRED_SUBSTRINGS: dict[str, tuple[str, ...]] = {
         "partials/shell_chrome_breadcrumb_row_close.html",
         "partials/shell_rmc_registry_html_attrs.html",
         "partials/shell_portal_layout_wrap_open.html",
-        "partials/shell_chrome_django_messages.html",
+        "partials/shell_chrome_django_messages_tenant_portal.html",
         "rmc_shell.authenticated_surface",
     ),
     "templates/partials/shell_chrome_django_messages.html": (
         "data-shell-chrome=\"django-messages\"",
+    ),
+    "templates/partials/shell_chrome_django_messages_tenant_portal.html": (
+        "shell_chrome_django_messages.html",
+        "shell_chrome_messages_variant=\"tenant-portal\"",
+    ),
+    "templates/partials/shell_chrome_django_messages_control_plane.html": (
+        "shell_chrome_django_messages.html",
+        "shell_chrome_messages_variant=\"control-plane\"",
     ),
     "templates/partials/shell_chrome_marketplace_tenant_ops_strip.html": (
         "data-shell-marketplace-ops=",
@@ -96,6 +107,11 @@ TEMPLATE_REQUIRED_SUBSTRINGS: dict[str, tuple[str, ...]] = {
         "data-shell-ops-section=\"finance-pulse-counts\"",
         "data-kpi-count=\"finance-overdue\"",
     ),
+    "templates/partials/shell_chrome_backend_planner_recommended_next_strip.html": (
+        "data-shell-chrome=\"backend-planner-recommended-next\"",
+        "data-shell-ops-section=\"planner-recommended-next\"",
+        "backend-planner-next",
+    ),
     "templates/partials/shell_chrome_contextual_info_banner.html": (
         "data-shell-chrome=\"contextual-info-banner\"",
         "data-shell-banner-level=",
@@ -122,6 +138,12 @@ TEMPLATE_REQUIRED_SUBSTRINGS: dict[str, tuple[str, ...]] = {
     "templates/base.html": (
         "partials/shell_rmc_registry_html_attrs.html",
         "data-surface=",
+        "partials/shell_chrome_django_messages_base_bootstrap.html",
+    ),
+    "templates/partials/shell_chrome_django_messages_base_bootstrap.html": (
+        "shell_chrome_django_messages.html",
+        "shell_chrome_messages_variant=\"base-bootstrap\"",
+        "public_host_kind",
     ),
     "templates/control_plane_skeleton.html": (
         "data-rmc-shell-root",
@@ -141,7 +163,7 @@ TEMPLATE_REQUIRED_SUBSTRINGS: dict[str, tuple[str, ...]] = {
         "partials/shell_chrome_breadcrumb_row_close.html",
         "data-rmc-authenticated-shell",
         "cp_layout_authenticated_shell",
-        "shell_chrome_django_messages",
+        "partials/shell_chrome_django_messages_control_plane.html",
         "partials/shell_chrome_impersonation_session_strip.html",
         "authenticated_surface",
     ),
@@ -171,6 +193,56 @@ TEMPLATE_REQUIRED_SUBSTRINGS: dict[str, tuple[str, ...]] = {
     "templates/siteconfig/tenant_runtime_configuration_hub.html": (
         "data-siteconfig-surface=",
     ),
+    "templates/siteconfig/region_grading_scales_matrix.html": (
+        "data-shell-surface=",
+        "data-page-archetype=",
+        "control_plane_base.html",
+    ),
+    "templates/siteconfig/region_validation_dashboard.html": (
+        "data-shell-surface=",
+        "data-page-archetype=",
+        "control_plane_base.html",
+    ),
+    "templates/siteconfig/region_comparison.html": (
+        "data-shell-surface=",
+        "data-page-archetype=",
+        "control_plane_base.html",
+    ),
+    "templates/siteconfig/entity_catalog_overview.html": (
+        "data-shell-surface=",
+        "data-page-archetype=",
+        "control_plane_base.html",
+    ),
+    "templates/siteconfig/metadata_operator_hub.html": (
+        "data-shell-surface=",
+        "data-page-archetype=",
+        "control_plane_base.html",
+    ),
+    "templates/siteconfig/metadata_dynamic_fields_operator.html": (
+        "data-shell-surface=",
+        "data-page-archetype=",
+        "control_plane_base.html",
+    ),
+    "templates/siteconfig/config_mutation_audit_evidence.html": (
+        "data-shell-surface=",
+        "data-page-archetype=",
+        "control_plane_base.html",
+    ),
+    "templates/siteconfig/scheduled_reports_delivery_hub.html": (
+        "data-shell-surface=",
+    ),
+    "templates/siteconfig/term_publish_status_evidence.html": (
+        "data-shell-surface=",
+        "data-admin-replacement-category=",
+    ),
+    "templates/siteconfig/academic_years_setup_evidence.html": (
+        "data-shell-surface=",
+        "data-admin-replacement-category=",
+    ),
+    "templates/siteconfig/departments_setup_evidence.html": (
+        "data-shell-surface=",
+        "data-admin-replacement-category=",
+    ),
     "templates/marketplace/tenant_app_catalog.html": (
         "data-shell-marketplace=",
         "shell_chrome_marketplace_tenant_ops_strip",
@@ -186,6 +258,14 @@ TEMPLATE_REQUIRED_SUBSTRINGS: dict[str, tuple[str, ...]] = {
         "shell_chrome_backend_ops_audit_snapshot",
         "shell_chrome_backend_stats_core_strip",
         "shell_chrome_backend_finance_pulse_strip",
+        "shell_chrome_backend_planner_recommended_next_strip",
+        "school_onboarding_card.html",
+    ),
+    "templates/accounts/school_onboarding_card.html": (
+        "data-rmc-onboarding=",
+        "data-rmc-onboarding-progress=",
+        "data-rmc-onboarding-steps=",
+        "data-rmc-onboarding-next-action=",
     ),
     "templates/siteconfig/bulk_letters.html": (
         "shell_chrome_page_heading_actions_strip.html",
@@ -227,6 +307,58 @@ TEMPLATE_REQUIRED_SUBSTRINGS: dict[str, tuple[str, ...]] = {
         "data-rmc-shell-root",
     ),
 }
+
+# 1037: only these templates may `include` the core django-messages partial; parents use wrappers.
+DJANGO_MSG_CORE_INCLUDE = 'include "partials/shell_chrome_django_messages.html"'
+
+
+# Wave F: canonical app shells must not inline Django messages loops (use wrapper partials).
+SHELL_TEMPLATES_NO_INLINE_MESSAGES: tuple[str, ...] = (
+    "templates/portal_base.html",
+    "templates/control_plane_base.html",
+    "templates/backend_base.html",
+    "templates/studio_os/shell.html",
+)
+
+INLINE_MSG_FOR_LOOP = "{% for message in messages %}"
+
+
+def _canonical_shell_inline_message_loop_violations() -> list[str]:
+    bad: list[str] = []
+    for rel in SHELL_TEMPLATES_NO_INLINE_MESSAGES:
+        path = REPO / rel
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if INLINE_MSG_FOR_LOOP in text:
+            bad.append(
+                f"{rel}: inline messages loop; use shell_chrome_django_messages_* partials (shared chrome policy)"
+            )
+    return bad
+
+
+def _django_messages_direct_include_violations() -> list[str]:
+    bad: list[str] = []
+    allowed = {
+        "templates/partials/shell_chrome_django_messages_tenant_portal.html",
+        "templates/partials/shell_chrome_django_messages_control_plane.html",
+        "templates/partials/shell_chrome_django_messages_base_bootstrap.html",
+    }
+    for path in (REPO / "templates").rglob("*.html"):
+        if not path.is_file():
+            continue
+        rel = path.relative_to(REPO).as_posix()
+        if rel == "templates/partials/shell_chrome_django_messages.html":
+            continue
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        if DJANGO_MSG_CORE_INCLUDE in text and rel not in allowed:
+            bad.append(
+                f"{rel}: use shell_chrome_django_messages_* wrapper partial, not a raw core include (1037)"
+            )
+    return bad
 
 
 def _write_ledger(passed: bool, rows: list[dict[str, str]]) -> None:
@@ -283,6 +415,11 @@ def main() -> int:
                 "summary": "ok" if not miss else f"missing: {', '.join(miss)}",
             }
         )
+    dmv = _django_messages_direct_include_violations()
+    for b in dmv:
+        bad.append(b)
+    for b in _canonical_shell_inline_message_loop_violations():
+        bad.append(b)
     if bad:
         _write_ledger(False, rows)
         print("verify_shell_surface_inventory: FAIL", file=sys.stderr)

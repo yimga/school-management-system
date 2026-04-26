@@ -21,10 +21,8 @@ from apps.apicenter.gating import is_integration_allowed
 from apps.global_registries.models import RegionConfig
 from apps.integrations_marketplace.models import Integration
 from apps.people.models import StudentProfile, StudentGuardian
-from apps.platform_runtime.helpers import (
-    get_effective_site_settings,
-    get_platform_defaults,
-)
+from apps.platform_runtime.helpers import get_platform_defaults
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
 from .models import (
     ComplianceProfile,

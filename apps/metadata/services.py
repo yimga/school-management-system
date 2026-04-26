@@ -531,3 +531,78 @@ def import_entity_catalog_bundle(
                 else:
                     summary["updated_fields"] += 1
     return summary
+
+
+def get_metadata_catalog_entity_rows(
+    get_params: Any,
+    *,
+    max_entities: int = 200,
+) -> tuple[list[EntityCatalogEntry], str]:
+    """
+    Read-only entity/field rows for control-plane metadata catalog UIs (search + field counts + usage ref counts).
+    ``get_params`` is typically ``request.GET`` (supports ``q``, ``entity``, ``lifecycle``).
+    """
+    from django.db.models import Q
+
+    q = (get_params.get("q") or "").strip() if hasattr(get_params, "get") else ""
+    entity_code = (get_params.get("entity") or "").strip() if hasattr(get_params, "get") else ""
+    lifecycle_all = (
+        (get_params.get("lifecycle") or "") == "all" if hasattr(get_params, "get") else False
+    )
+
+    qs = EntityCatalogEntry.objects.prefetch_related("fields", "fields__dependencies").order_by(
+        "code"
+    )
+    if not lifecycle_all:
+        qs = qs.filter(lifecycle_state=ENTITY_CATALOG_LIFECYCLE_ACTIVE)
+    if entity_code:
+        qs = qs.filter(code__icontains=entity_code)
+    if q:
+        qs = qs.filter(
+            Q(code__icontains=q)
+            | Q(name__icontains=q)
+            | Q(description__icontains=q)
+        )
+    entities: list[EntityCatalogEntry] = list(qs[:max_entities])
+    for ent in entities:
+        ent.field_count = ent.fields.count()
+        ent.sample_deps = MetadataDependency.objects.filter(field__entity=ent).count()
+    query_display = q or entity_code
+    return entities, query_display
+
+
+def get_metadata_dynamic_field_operator_context() -> dict[str, Any]:
+    """
+    Read-only aggregates for the metadata dynamic field operator control-plane page.
+    """
+    from collections import OrderedDict
+    from django.db.models import Count
+
+    definitions = list(
+        DynamicFieldDefinition.objects.select_related("school").order_by(
+            "entity_type", "field_key", "id"
+        )
+    )
+    grouped: "OrderedDict[str, list[DynamicFieldDefinition]]" = OrderedDict()
+    for d in definitions:
+        grouped.setdefault(d.entity_type, []).append(d)
+    value_count_by_type = {
+        r["entity_type"]: r["n"]
+        for r in DynamicFieldValue.objects.values("entity_type").annotate(n=Count("id"))
+    }
+    operator_sections = [
+        {
+            "entity_type": et,
+            "definitions": defs,
+            "value_row_count": value_count_by_type.get(et, 0),
+        }
+        for et, defs in grouped.items()
+    ]
+    return {
+        "grouped_definitions": grouped,
+        "operator_sections": operator_sections,
+        "total_definitions": len(definitions),
+        "active_definitions": sum(1 for d in definitions if d.is_active),
+        "total_values": DynamicFieldValue.objects.count(),
+        "value_count_by_entity_type": value_count_by_type,
+    }

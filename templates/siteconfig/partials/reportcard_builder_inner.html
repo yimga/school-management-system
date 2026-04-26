@@ -1,6 +1,6 @@
 {% load i18n %}
 {# Full builder UI: portal page or Output Studio native (POST → siteconfig:reportcard_builder). #}
-<div class="reportcard-builder-root{% if studio_output_native %} studio-output-native-pane{% endif %}" data-page-archetype="operational-workbench"{% if studio_output_native %} data-studio-output-native="builder"{% endif %}>
+<div class="reportcard-builder-root{% if studio_output_native %} studio-output-native-pane{% endif %}" data-page-archetype="operational-workbench" data-shell-surface="reportcard-builder"{% if studio_output_native %} data-studio-output-native="builder"{% endif %}>
   <div class="card shadow-sm mb-3 ds-card">
     <div class="card-body py-3">
       <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
@@ -31,7 +31,7 @@
     </div>
   </div>
 
-  <div id="builder-status-strip" class="card shadow-sm mb-3 ds-card">
+  <div id="builder-status-strip" class="card shadow-sm mb-3 ds-card" data-rmc-operator-evidence-summary="1">
     <div class="card-body py-2">
       <div class="d-flex flex-wrap align-items-center gap-2 small">
         <span class="badge text-bg-primary">{% trans "Styles" %}: {{ styles|length }}</span>
@@ -41,9 +41,24 @@
         <span class="badge text-bg-info">{% trans "Default annual" %}: {% if site_settings.default_annual_report_style %}{{ site_settings.default_annual_report_style.name }}{% else %}{% trans "Not set" %}{% endif %}</span>
         <span id="builder-live-style-badge" class="badge text-bg-dark">{% trans "Live preview" %}: {% if styles and preview_default_style_slug %}{{ preview_default_style_slug }}{% else %}{% trans "Not loaded" %}{% endif %}</span>
         <span id="builder-draft-state" class="badge text-bg-success">{% trans "Draft status" %}: {% trans "Saved" %}</span>
+        <span class="badge text-bg-secondary" title="{% trans 'Slugs with a registered server export handler' %}">{% trans "Export handlers" %}: {{ export_handler_registry_count|default:0 }}</span>
       </div>
     </div>
   </div>
+
+  {% if scheduled_reports_delivery_hub_url or report_output_history_evidence_url or report_templates_catalog_evidence_url %}
+  <div class="d-flex flex-wrap gap-2 mb-3 cp-evidence-related" data-rmc-evidence-related-links="1" data-rmc-report-bulk-evidence="1072" aria-label="{% trans 'Scheduled delivery and output evidence' %}">
+    {% if scheduled_reports_delivery_hub_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ scheduled_reports_delivery_hub_url }}">{% trans "Scheduled report delivery" %}</a>
+    {% endif %}
+    {% if report_output_history_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ report_output_history_evidence_url }}">{% trans "Report output history" %}</a>
+    {% endif %}
+    {% if report_templates_catalog_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ report_templates_catalog_evidence_url }}">{% trans "Report templates (catalog)" %}</a>
+    {% endif %}
+  </div>
+  {% endif %}
 
   <div class="row g-3">
     <div class="col-xl-5 col-xxl-4">

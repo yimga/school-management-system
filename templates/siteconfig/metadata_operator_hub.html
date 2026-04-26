@@ -1,0 +1,117 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block cp_title %}{% trans "Metadata & lineage" %} — RunMyCampus{% endblock %}
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Home" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Metadata & lineage" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+{% block breadcrumb_actions %}
+<div class="btn-group btn-group-sm">
+  {% if console_url %}
+  <a class="btn btn-outline-light" href="{{ console_url }}">{% trans "Configuration center" %}</a>
+  {% endif %}
+  {% if full_metadata_catalog_url %}
+  <a class="btn btn-outline-light" href="{{ full_metadata_catalog_url }}">{% trans "Full metadata catalog" %}</a>
+  {% endif %}
+  {% if user.is_superuser and admin_entity_catalog_url %}
+  <a class="btn btn-outline-secondary" href="{{ admin_entity_catalog_url }}" title="{% trans 'Django admin: row-level catalog CRUD' %}">{% trans "Advanced: Admin entity rows" %}</a>
+  {% endif %}
+  {% if user.is_superuser and admin_config_audit_url %}
+  <a class="btn btn-outline-secondary" href="{{ admin_config_audit_url }}">{% trans "Advanced: Config audit (admin)" %}</a>
+  {% endif %}
+</div>
+{% endblock %}
+{% block cp_content %}
+<div class="container-fluid py-3" data-page-archetype="operator-hub" data-shell-surface="metadata-lineage-operator-hub">
+  <h1 class="h4 text-white mb-2">{% trans "Metadata & lineage" %}</h1>
+  <p class="text-white-50 small mb-3">
+    {% trans "Read-first operator entry: search governance, open lineage, then use the entity table or full platform catalog. Django admin remains for row CRUD and deep audit when needed." %}
+  </p>
+  <div class="row g-3">
+    <div class="col-md-6 col-lg-4">
+      <div class="card bg-dark border-secondary h-100">
+        <div class="card-body">
+          <h2 class="h6 card-title text-white">{% trans "Entity catalog" %}</h2>
+          <p class="card-text small text-white-50">{% trans "Searchable entity/field table (read-only) aligned with the platform catalog." %}</p>
+          {% if entity_catalog_url %}
+          <a class="btn btn-sm btn-outline-light" href="{{ entity_catalog_url }}">{% trans "Open entity catalog" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card bg-dark border-secondary h-100">
+        <div class="card-body">
+          <h2 class="h6 card-title text-white">{% trans "Dynamic fields (EAV)" %}</h2>
+          <p class="card-text small text-white-50">{% trans "Read-only coverage of per-entity dynamic keys and value row counts. Row CRUD remains in admin." %}</p>
+          {% if metadata_dynamic_fields_url %}
+          <a class="btn btn-sm btn-outline-light" href="{{ metadata_dynamic_fields_url }}">{% trans "Open dynamic fields" %}</a>
+          {% endif %}
+          {% if user.is_superuser and admin_dynamic_definition_url %}
+          <a class="btn btn-sm btn-outline-secondary ms-1" href="{{ admin_dynamic_definition_url }}">{% trans "Advanced: Admin CRUD" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card bg-dark border-secondary h-100">
+        <div class="card-body">
+          <h2 class="h6 card-title text-white">{% trans "Governance search" %}</h2>
+          <p class="card-text small text-white-50">{% trans "Staff search UI over catalog codes and names." %}</p>
+          {% if governance_url %}
+          <a class="btn btn-sm btn-outline-light" href="{{ governance_url }}">{% trans "Open governance" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card bg-dark border-secondary h-100">
+        <div class="card-body">
+          <h2 class="h6 card-title text-white">{% trans "Lineage graph" %}</h2>
+          <p class="card-text small text-white-50">{% trans "Lineage graph explorer (staff)." %}</p>
+          {% if lineage_graph_url %}
+          <a class="btn btn-sm btn-outline-light" href="{{ lineage_graph_url }}">{% trans "Open lineage graph" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card bg-dark border-secondary h-100">
+        <div class="card-body">
+          <h2 class="h6 card-title text-white">{% trans "Config mutation audit" %}</h2>
+          <p class="card-text small text-white-50">{% trans "Read-only recent privileged config changes; admin for row CRUD." %}</p>
+          {% if config_mutation_evidence_url %}
+          <a class="btn btn-sm btn-outline-light" href="{{ config_mutation_evidence_url }}">{% trans "Open audit evidence" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card bg-dark border-secondary h-100">
+        <div class="card-body">
+          <h2 class="h6 card-title text-white">{% trans "Feature control" %}</h2>
+          <p class="card-text small text-white-50">{% trans "Flags and capability toggles (bounded control plane)." %}</p>
+          {% if feature_control_url %}
+          <a class="btn btn-sm btn-outline-light" href="{{ feature_control_url }}">{% trans "Open feature control" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card bg-dark border-secondary h-100">
+        <div class="card-body">
+          <h2 class="h6 card-title text-white">{% trans "Tenant runtime" %}</h2>
+          <p class="card-text small text-white-50">{% trans "Effective runtime and tenant site settings (read-only hub)." %}</p>
+          {% if tenant_runtime_url %}
+          <a class="btn btn-sm btn-outline-light" href="{{ tenant_runtime_url }}">{% trans "Open tenant runtime" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

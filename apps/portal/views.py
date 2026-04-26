@@ -23,10 +23,8 @@ from apps.people.models import (
 )
 from apps.academics.services import get_active_year_and_term
 
-from apps.platform_runtime.helpers import (
-    get_effective_site_settings,
-    get_site_display_name,
-)
+from apps.platform_runtime.helpers import get_site_display_name
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from .models import (
     PortalFeatureItem,
 )

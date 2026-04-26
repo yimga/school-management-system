@@ -1,0 +1,89 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block cp_title %}{% trans "Entity catalog" %} — RunMyCampus{% endblock %}
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Home" %}</a></li>
+    {% if metadata_operator_hub_url %}
+    <li class="breadcrumb-item"><a href="{{ metadata_operator_hub_url }}">{% trans "Metadata & lineage" %}</a></li>
+    {% endif %}
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Entity catalog" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+{% block breadcrumb_actions %}
+<div class="btn-group btn-group-sm">
+  <a class="btn btn-outline-light" href="{{ full_catalog_url }}">{% trans "Full metadata catalog" %}</a>
+  {% if metadata_dynamic_fields_url %}
+  <a class="btn btn-outline-light" href="{{ metadata_dynamic_fields_url }}">{% trans "Dynamic fields (EAV)" %}</a>
+  {% endif %}
+  {% if admin_entity_catalog_url and user.is_superuser %}
+  <a class="btn btn-outline-secondary" href="{{ admin_entity_catalog_url }}" title="{% trans 'Django admin: row-level catalog CRUD' %}">{% trans "Advanced: Admin entity rows" %}</a>
+  {% endif %}
+  {% if admin_config_audit_url and user.is_superuser %}
+  <a class="btn btn-outline-secondary" href="{{ admin_config_audit_url }}">{% trans "Advanced: Config audit (admin)" %}</a>
+  {% endif %}
+</div>
+{% endblock %}
+{% block cp_content %}
+<div class="container-fluid py-3" data-page-archetype="operator-report" data-shell-surface="entity-catalog-overview">
+  <h1 class="h4 text-white mb-2">{% trans "Entity & field catalog" %}</h1>
+  <p class="text-white-50 small mb-3">
+    {% trans "Read-only overview of metadata catalog entries. Editing and deep platform checklist live in the full catalog or admin as appropriate." %}
+  </p>
+  <form method="get" class="mb-3">
+    <div class="input-group input-group-sm">
+      <input type="text" name="q" class="form-control" placeholder="{% trans 'Search entity or field…' %}" value="{{ query }}" aria-label="{% trans 'Search' %}" />
+      <label class="input-group-text bg-dark text-white-50 mb-0"><input type="checkbox" name="lifecycle" value="all" class="form-check-input me-1" {% if lifecycle_all %}checked{% endif %} /> {% trans "Include non-active" %}</label>
+      <button type="submit" class="btn btn-outline-light">{% trans "Search" %}</button>
+    </div>
+  </form>
+  <div class="table-responsive">
+    <table class="table table-sm table-dark table-bordered" aria-label="{% trans 'Entity catalog' %}">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Code" %}</th>
+          <th scope="col">{% trans "Name" %}</th>
+          <th scope="col">{% trans "Lifecycle" %}</th>
+          <th scope="col">{% trans "Owning app" %}</th>
+          <th scope="col" class="text-end">{% trans "Fields" %}</th>
+          <th scope="col" class="text-end">{% trans "Usage refs" %}</th>
+          <th scope="col"><span class="visually-hidden">{% trans "Actions" %}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ent in entities %}
+        <tr>
+          <td><code>{{ ent.code }}</code></td>
+          <td>{{ ent.name }}</td>
+          <td>{{ ent.lifecycle_state }}</td>
+          <td>{{ ent.owning_app|default:"—" }}</td>
+          <td class="text-end">{{ ent.field_count }}</td>
+          <td class="text-end">{{ ent.sample_deps }}</td>
+          <td>
+            <a class="btn btn-sm btn-outline-light" href="{{ full_catalog_url }}?q={{ ent.code|urlencode }}">{% trans "Open in full catalog" %}</a>
+          </td>
+        </tr>
+        {% for f in ent.fields.all|slice:":8" %}
+        <tr class="table-secondary">
+          <td colspan="2" class="ps-4"><code>{{ f.field_name }}</code> — {{ f.label|default:"" }}</td>
+          <td>—</td>
+          <td>{{ f.defined_in_app|default:"—" }}</td>
+          <td class="text-end">—</td>
+          <td class="text-end">{{ f.dependencies.all|length }}</td>
+          <td>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:metadata_catalog_field_impact' entity_code=ent.code field_name=f.field_name %}">{% trans "Impact" %}</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr class="table-secondary"><td colspan="7" class="ps-4 text-muted">{% trans "No fields." %}</td></tr>
+        {% endfor %}
+        {% empty %}
+        <tr><td colspan="7" class="text-muted">{% trans "No entities match. Seed or use full catalog." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

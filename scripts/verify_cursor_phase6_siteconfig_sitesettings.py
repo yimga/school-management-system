@@ -3,7 +3,8 @@
 Cursor Phase 6 — Siteconfig / SiteSettings dismantling — mechanical gate.
 
 Bundles ZIP Phase 5 (includes Phase B migration artifacts) + tenant / Batch3 guardrails
-+ ``lint_sitesettings_orm_singleton`` (``SiteSettings.objects`` only in ``models.py`` + ``helpers.py``):
++ ``lint_sitesettings_orm_singleton`` (``SiteSettings.objects`` only in ``models.py`` + ``helpers.py``)
++ ``audit_sitesettings_python_surface.py`` (product-Python surface JSON + same ORM allowlist):
 
   ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 
@@ -133,8 +134,14 @@ def main(argv: list[str] | None = None) -> int:
     lint_tenant_settings = root / "scripts" / "lint_tenant_settings.py"
     lint_phase_b_batch3 = root / "scripts" / "lint_phase_b_batch3_sitesettings_fk_writes.py"
     lint_singleton = root / "scripts" / "lint_sitesettings_orm_singleton.py"
+    audit_surface = root / "scripts" / "audit_sitesettings_python_surface.py"
+    typed_map = root / "scripts" / "verify_sitesettings_typed_ownership_map.py"
     checks = [
         ([py, str(verify_phase_5), "--base", str(root)], "verify_phase_5_siteconfig"),
+        (
+            [py, str(audit_surface)],
+            "audit_sitesettings_python_surface (ORM allowlist + JSON)",
+        ),
         (
             [
                 py,
@@ -172,6 +179,10 @@ def main(argv: list[str] | None = None) -> int:
         (
             [py, str(lint_singleton), "--base", str(root)],
             "lint_sitesettings_orm_singleton",
+        ),
+        (
+            [py, str(typed_map)],
+            "verify_sitesettings_typed_ownership_map (1042 JSON)",
         ),
     ]
     for cmd, label in checks:

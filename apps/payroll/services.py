@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from apps.finance.models import ComplianceProfile, ContributionRule, TaxBracket
 from apps.people.models import TeacherProfile
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
 from .models import (
     EmploymentContract,

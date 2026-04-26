@@ -223,7 +223,31 @@ OUTCOME_GROUP_SPECS: list[dict[str, Any]] = [
                 "stable",
                 ("registry",),
             ),
-            ("Metadata catalog", "super:metadata_catalog", "stable", ("metadata",)),
+            (
+                "Metadata & lineage hub",
+                "siteconfig:metadata_operator_hub",
+                "stable",
+                ("metadata",),
+            ),
+            (
+                "Entity catalog (overview)",
+                "siteconfig:entity_catalog_overview",
+                "stable",
+                ("metadata",),
+            ),
+            (
+                "Dynamic fields (EAV operator)",
+                "siteconfig:metadata_dynamic_fields_operator",
+                "stable",
+                ("metadata",),
+            ),
+            (
+                "Config mutation audit (evidence)",
+                "siteconfig:config_mutation_audit_evidence",
+                "stable",
+                ("metadata", "policy"),
+            ),
+            ("Metadata catalog (full platform)", "super:metadata_catalog", "stable", ("metadata",)),
         ],
     },
 ]

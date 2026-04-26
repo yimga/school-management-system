@@ -8,7 +8,7 @@ from __future__ import annotations
 from django.test import TestCase
 
 from apps.brand_experience.models import PlatformGlobalBranding
-from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.platform_runtime.site_settings_read_access import get_platform_site_settings_record
 from apps.platform_runtime.tests.support.script_loading import load_repo_script
 
 

@@ -149,6 +149,14 @@ def _primary_nav_is_current(request_path: str, item_id: str) -> bool:
             "/siteconfig/request-custom-requirement/",
             "/siteconfig/maintenance/",
             "/siteconfig/impersonation-consent/",
+            "/siteconfig/configuration/runtime/",
+            "/siteconfig/grading-scales/region-scales/",
+            "/siteconfig/regions/validation/",
+            "/siteconfig/regions/comparison/",
+            "/siteconfig/metadata/entity-catalog/",
+            "/siteconfig/metadata/operator-hub/",
+            "/siteconfig/metadata/dynamic-fields/",
+            "/siteconfig/metadata/config-mutation-audit/",
         ):
             return True
         # Super governance surfaces mirrored in Control Studio outcome registry.
@@ -728,6 +736,30 @@ def build_control_plane_nav(request):
             "icon": "bi-gear-wide-connected",
         },
         {
+            "id": "cp_tenant_runtime_hub",
+            "label": "Tenant runtime & settings",
+            "url_name": "siteconfig:tenant_runtime_configuration_hub",
+            "icon": "bi-diagram-3",
+        },
+        {
+            "id": "cp_region_grading_scales",
+            "label": "Region grading scales matrix",
+            "url_name": "siteconfig:region_grading_scales",
+            "icon": "bi-table",
+        },
+        {
+            "id": "cp_region_validation",
+            "label": "Region validation",
+            "url_name": "siteconfig:region_validation",
+            "icon": "bi-ui-checks-grid",
+        },
+        {
+            "id": "cp_region_comparison",
+            "label": "Region comparison",
+            "url_name": "siteconfig:region_comparison",
+            "icon": "bi-columns-gap",
+        },
+        {
             "id": "cp_theme_experience",
             "label": "Fleet theme & experience defaults",
             "url_name": "siteconfig:theme_colors",
@@ -738,6 +770,30 @@ def build_control_plane_nav(request):
             "label": "Feature control",
             "url_name": "siteconfig:feature_control_panel",
             "icon": "bi-toggle2-on",
+        },
+        {
+            "id": "cp_metadata_operator_hub",
+            "label": "Metadata & lineage hub",
+            "url_name": "siteconfig:metadata_operator_hub",
+            "icon": "bi-share",
+        },
+        {
+            "id": "cp_entity_catalog",
+            "label": "Entity catalog (table)",
+            "url_name": "siteconfig:entity_catalog_overview",
+            "icon": "bi-diagram-3-fill",
+        },
+        {
+            "id": "cp_metadata_dynamic_fields",
+            "label": "Dynamic fields (EAV)",
+            "url_name": "siteconfig:metadata_dynamic_fields_operator",
+            "icon": "bi-input-cursor-text",
+        },
+        {
+            "id": "cp_config_mutation_audit_evidence",
+            "label": "Config mutation audit (evidence)",
+            "url_name": "siteconfig:config_mutation_audit_evidence",
+            "icon": "bi-clipboard-data",
         },
         {
             "id": "cp_platform_backoffice",

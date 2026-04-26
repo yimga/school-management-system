@@ -1,6 +1,7 @@
 {
   "last_reviewed": "2026-04-08",
   "allowed": [
+    "AGENTS.md",
     ".gitattributes",
     ".cursorrules",
     ".env.example",

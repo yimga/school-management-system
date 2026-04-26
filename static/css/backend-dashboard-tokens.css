@@ -9,17 +9,18 @@
  */
 :root {
   /* ---- Spacing (gaps, margins) ---- */
-  --dash-gap: 0.75rem;
+  /* 1087+ blueprint: command-center density (gaps + card padding) */
+  --dash-gap: 0.55rem;
   --dash-gap-xs: 0.2rem;
   --dash-gap-sm: 0.3rem;
   --dash-gap-md: 0.45rem;
-  --dash-gap-lg: 0.55rem;
-  --dash-gap-xl: 0.7rem;
-  --dash-gap-2xl: 0.9rem;
-  --dash-section: 0.75rem;
-  --dash-block-spacing: 0.75rem;
+  --dash-gap-lg: 0.5rem;
+  --dash-gap-xl: 0.65rem;
+  --dash-gap-2xl: 0.8rem;
+  --dash-section: 0.6rem;
+  --dash-block-spacing: 0.55rem;
   /* ---- Padding ---- */
-  --dash-card-pad: 0.95rem 1.1rem;
+  --dash-card-pad: 0.75rem 0.85rem;
   --dash-pad-tight: 0.45rem 0.65rem;
   --dash-pad-chip: 0.36rem 0.72rem;
   --dash-pad-chip-sm: 0.34rem 0.58rem;

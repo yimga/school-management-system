@@ -1,0 +1,94 @@
+/* 1095: Tenant app catalog — compact cards, action hierarchy, CP-first (install/configure before secondary). */
+.tenant-app-catalog-wrap.rmc-mkt-catalog--compact {
+  --rmc-mkt-card-gap: 0.75rem;
+  --rmc-mkt-card-pad: 0.85rem 0.95rem;
+}
+
+.tenant-app-catalog-wrap.rmc-mkt-catalog--compact {
+  padding-top: 1rem !important;
+  padding-bottom: 1.25rem !important;
+}
+
+.tenant-app-catalog-wrap .proof-catalog-grid {
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.rmc-mkt-app-card {
+  padding: var(--rmc-mkt-card-pad) !important;
+  gap: var(--rmc-mkt-card-gap) !important;
+  min-height: 0;
+  border-radius: 1rem;
+}
+
+.rmc-mkt-app-card .proof-app-head h3 {
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.rmc-mkt-lifecycle-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.25rem;
+}
+
+.rmc-mkt-lifecycle-badges .badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.rmc-mkt-app-card .proof-app-screen {
+  min-height: 0;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.75rem;
+}
+
+.rmc-mkt-app-card .proof-app-preview-img img {
+  max-height: 100px !important;
+}
+
+.rmc-mkt-app-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.08));
+}
+
+.rmc-mkt-app-actions .btn-sm {
+  font-size: 0.8125rem;
+}
+
+/* Primary filled before outline (visual hierarchy enforced in template order). */
+.rmc-mkt-app-actions[data-rmc-mkt-action-tier-order="install-flow"] .btn-primary {
+  order: 1;
+}
+.rmc-mkt-app-actions[data-rmc-mkt-action-tier-order="install-flow"] .btn-outline-primary,
+.rmc-mkt-app-actions[data-rmc-mkt-action-tier-order="install-flow"] .btn-outline-secondary {
+  order: 2;
+}
+
+.rmc-mkt-app-actions[data-rmc-mkt-action-tier-order="manage-flow"] .btn-primary {
+  order: 1;
+}
+.rmc-mkt-app-actions[data-rmc-mkt-action-tier-order="manage-flow"] .btn-outline-primary,
+.rmc-mkt-app-actions[data-rmc-mkt-action-tier-order="manage-flow"] .btn-outline-secondary {
+  order: 2;
+}
+
+.rmc-mkt-app-meta-tight {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+.rmc-mkt-app-meta-tight .badge {
+  font-size: 0.68rem;
+  font-weight: 500;
+}

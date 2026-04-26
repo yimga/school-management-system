@@ -1,0 +1,8 @@
+{# layouts/base.html tenant bootstrap: shared django-messages chrome + help link (manager vs KB). #}
+{% load i18n %}
+{% if request.public_host_kind == 'manager' %}
+  {% url 'manager_help' as help_center_url %}
+{% else %}
+  {% url 'kb:kb_home' as help_center_url %}
+{% endif %}
+{% include "partials/shell_chrome_django_messages.html" with shell_chrome_messages_variant="base-bootstrap" shell_chrome_messages_include_announcement=False shell_chrome_messages_error_help=True %}

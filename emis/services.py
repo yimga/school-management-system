@@ -2,7 +2,7 @@ import csv
 import json
 from io import BytesIO, StringIO
 from typing import Any, Dict, List, Optional
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django.utils import timezone
 from django.db.models import Avg, Count, Q
@@ -308,7 +308,12 @@ class EMISExportService:
             evals = evals.filter(term=term)
 
         site = _get_site_for_emis(getattr(self, "_request", None))
-        pass_mark = Decimal(str(getattr(site, "pass_mark", "10.00")))
+        raw_pm = getattr(site, "pass_mark", None) if site is not None else None
+        pm_text = (str(raw_pm).strip() if raw_pm is not None else "") or "10.00"
+        try:
+            pass_mark = Decimal(pm_text)
+        except (InvalidOperation, TypeError, ValueError):
+            pass_mark = Decimal("10.00")
         aggregate = evals.aggregate(avg_score=Avg("final_score"), assessed_students=Count("student", distinct=True))
         pass_count = evals.filter(final_score__gte=pass_mark).values("student_id").distinct().count()
         assessed_students = aggregate["assessed_students"] or 0

@@ -19,7 +19,7 @@ from apps.accounts.utils import get_user_role
 from apps.accounts.decorators import role_required
 from apps.communication.models import Message
 from apps.people.models import StudentProfile
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
 from .models import PortalFeatureItem
 from .views_common import PORTAL_FEATURES_META

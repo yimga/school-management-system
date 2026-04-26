@@ -1,11 +1,20 @@
 # Phase G optional: Sync Center UI – list SyncConflict for school, resolve server/client/discard
 from django.contrib import messages
+from django.db.models import Q, Count
 from django.shortcuts import redirect, render, get_object_or_404
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 
 from apps.accounts.decorators import login_required, permission_required
+
+
+def _safe_sync_reverse(name: str):
+    try:
+        return reverse(name)
+    except NoReverseMatch:
+        return None
 
 
 def _resolve_sync_conflict(conflict, resolution, resolved_by):
@@ -44,10 +53,10 @@ def sync_center(request):
     if not school:
         messages.warning(request, "Select your school to view sync conflicts.")
         return redirect("portal:home")
+    pref_url = reverse("siteconfig:user_preferences")
     try:
         from .models import SyncConflict
     except ImportError:
-        action_url = reverse("accounts:backend_dashboard")
         return render(
             request,
             "siteconfig/sync_center.html",
@@ -55,11 +64,33 @@ def sync_center(request):
                 "school": school,
                 "conflicts": [],
                 "sync_available": False,
-                "action_url": action_url,
-                "action_text": "Back to dashboard",
+                "action_url": pref_url,
+                "action_text": _("Back to preferences"),
+                "sync_stats_total": 0,
+                "sync_stats_pending": 0,
+                "scheduled_hub_url": _safe_sync_reverse(
+                    "siteconfig:scheduled_reports_delivery_hub"
+                ),
+                "console_url": _safe_sync_reverse("siteconfig:console_domains_hub"),
+                "admin_sync_conflict_url": None,
             },
         )
+    stats = (
+        SyncConflict.objects.filter(school=school)
+        .aggregate(
+            total=Count("id"),
+            pending=Count(
+                "id", filter=Q(status=SyncConflict.Status.PENDING)
+            ),
+        )
+    )
     conflicts = SyncConflict.objects.filter(school=school).order_by("-created_at")[:50]
+    admin_sync_url = None
+    if getattr(request.user, "is_superuser", False):
+        try:
+            admin_sync_url = reverse("admin:siteconfig_syncconflict_changelist")
+        except NoReverseMatch:
+            admin_sync_url = None
     return render(
         request,
         "siteconfig/sync_center.html",
@@ -67,6 +98,15 @@ def sync_center(request):
             "school": school,
             "conflicts": conflicts,
             "sync_available": True,
+            "action_url": pref_url,
+            "action_text": _("Back to preferences"),
+            "sync_stats_total": stats.get("total") or 0,
+            "sync_stats_pending": stats.get("pending") or 0,
+            "scheduled_hub_url": _safe_sync_reverse(
+                "siteconfig:scheduled_reports_delivery_hub"
+            ),
+            "console_url": _safe_sync_reverse("siteconfig:console_domains_hub"),
+            "admin_sync_conflict_url": admin_sync_url,
         },
     )
 

@@ -35,7 +35,7 @@ class TenantMiddlewareTests(TestCase):
         return request
 
     def test_sets_school_and_session_for_subdomain_host(self):
-        with patch.dict(
+        with self.settings(MULTI_TENANT_BASE_DOMAIN="example.com"), patch.dict(
             os.environ, {"MULTI_TENANT_BASE_DOMAIN": "example.com"}, clear=False
         ):
             request = self._request("/portal/", "tenant-alpha.example.com")
@@ -46,7 +46,7 @@ class TenantMiddlewareTests(TestCase):
         self.assertEqual(request.session.get("school_id"), str(self.school.id))
 
     def test_clears_stale_session_school_when_no_tenant_resolved(self):
-        with patch.dict(
+        with self.settings(MULTI_TENANT_BASE_DOMAIN="example.com"), patch.dict(
             os.environ, {"MULTI_TENANT_BASE_DOMAIN": "example.com"}, clear=False
         ):
             request = self._request("/public/", "example.com")
@@ -59,7 +59,7 @@ class TenantMiddlewareTests(TestCase):
         self.assertNotIn("school_id", request.session)
 
     def test_rewrites_tenant_path_prefix_and_preserves_school_scope(self):
-        with patch.dict(
+        with self.settings(MULTI_TENANT_BASE_DOMAIN="example.com"), patch.dict(
             os.environ, {"MULTI_TENANT_BASE_DOMAIN": "example.com"}, clear=False
         ):
             request = self._request(
@@ -266,7 +266,9 @@ class LegacyAndReservedHostMiddlewareTests(TestCase):
         self.assertIsNotNone(response)
         self.assertEqual(response.status_code, 200)
 
-    def test_manager_host_blocks_backend_dashboard_path(self):
+    @override_settings(MULTI_TENANT_BASE_DOMAIN="runmycampus.com")
+    def test_manager_host_allows_authentication_backend_path(self):
+        """Manager allowlists /authentication/backend/; ReservedPublic passes through."""
         with patch.dict(
             os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False
         ):
@@ -274,5 +276,4 @@ class LegacyAndReservedHostMiddlewareTests(TestCase):
                 "/authentication/backend/", "manager.runmycampus.com"
             )
             response = self.reserved.process_request(request)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], "/")
+        self.assertIsNone(response)

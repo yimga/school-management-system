@@ -40,6 +40,8 @@ class BackendDashboardShellRenderTests(TestCase):
         resp = self.client.get(path)
         self.assertEqual(resp.status_code, 200, msg=getattr(resp, "content", b"")[:500])
         body = resp.content.decode("utf-8", errors="replace")
+        # 1045: role-home surface marker (PATH II dashboard depth; complements 1007B/1019+ strips)
+        self.assertIn('data-shell-role-home="backend"', body)
         self.assertIn('data-shell-role-ops="backend"', body)
         self.assertIn('data-shell-chrome="backend-system-indicators"', body)
         self.assertIn("data-backend-indicator=", body)
@@ -57,3 +59,9 @@ class BackendDashboardShellRenderTests(TestCase):
         self.assertIn('data-shell-chrome="backend-finance-pulse-strip"', body)
         self.assertIn('data-shell-ops-section="finance-pulse-counts"', body)
         self.assertIn('data-kpi-count="finance-overdue"', body)
+        # 1049: planner recommended-next shared chrome strip (reuses context; no new view logic)
+        self.assertIn('data-shell-chrome="backend-planner-recommended-next"', body)
+        self.assertIn('data-shell-ops-section="planner-recommended-next"', body)
+        # Wave E: planner rail widget markers for product depth / tooling
+        self.assertIn('data-backend-widget-surface="planner-rail"', body)
+        self.assertIn('data-backend-widget-role="operational-rollup"', body)

@@ -25,7 +25,7 @@ from django.utils import timezone
 
 from apps.dashboard.action_registry import get_admin_header_actions
 from apps.finance.models import Notification
-from apps.platform_runtime.helpers import (
+from apps.platform_runtime.site_settings_read_access import (
     get_effective_site_settings,
     get_platform_site_settings_record,
 )

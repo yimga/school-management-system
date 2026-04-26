@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from django.test import TestCase
 
-from apps.platform_runtime.helpers import (
-    apply_payload_dict_to_site_settings_shallow_base,
+from apps.platform_runtime.helpers import apply_payload_dict_to_site_settings_shallow_base
+from apps.platform_runtime.site_settings_read_access import (
     get_effective_site_settings,
     get_platform_site_settings_record,
     invalidate_effective_site_settings_cache,

@@ -103,3 +103,18 @@ class BackendStudentDetailViewTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn(b"Student 360", resp.content)
         self.assertIn(b"Sam", resp.content)
+
+    def test_student_detail_portal_tabbed_360_before_admin_fallback(self):
+        """1083: tabbed portal 360 is primary; Django admin is Advanced fallback."""
+        factory = RequestFactory()
+        request = factory.get(f"/backend/students/{self.student.pk}/")
+        request.user = self.user
+        request.school = self.school
+        body = backend_student_detail(request, self.student.pk).content.decode(
+            "utf-8", errors="replace"
+        )
+        p = body.find("Open tabbed 360")
+        a = body.find("Advanced/Admin: student row")
+        self.assertNotEqual(p, -1, msg="missing tabbed 360 primary link")
+        self.assertNotEqual(a, -1, msg="missing admin fallback link")
+        self.assertLess(p, a)

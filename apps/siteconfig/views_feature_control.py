@@ -26,7 +26,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
 
 from apps.accounts.decorators import permission_required
-from apps.platform_runtime.helpers import (
+from apps.platform_runtime.site_settings_read_access import (
     get_effective_site_settings,
     get_platform_site_settings_record,
 )

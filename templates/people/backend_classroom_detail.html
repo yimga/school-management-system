@@ -22,7 +22,10 @@
         </div>
         <div class="card-footer bg-transparent border-0 d-flex flex-wrap gap-2">
           <a href="{% url 'accounts:backend_student_list' %}?classroom={{ classroom.pk }}" class="btn btn-sm btn-primary">{% trans "View roster" %}</a>
-          <a href="{% url 'admin:academics_classroom_change' classroom.pk %}" class="btn btn-sm btn-outline-secondary">{% trans "Admin" %}</a>
+          {% if academic_years_setup_evidence_url %}
+          <a href="{{ academic_years_setup_evidence_url }}" class="btn btn-sm btn-outline-primary">{% trans "Academic years (setup)" %}</a>
+          {% endif %}
+          <a href="{% url 'admin:academics_classroom_change' classroom.pk %}" class="btn btn-sm btn-outline-secondary">{% trans "Advanced/Admin: classroom row" %}</a>
         </div>
       </div>
     </div>

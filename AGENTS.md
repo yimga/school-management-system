@@ -31,7 +31,7 @@ Derive the next slice from, in order:
 2. SOT §11.4 forward queue head and PATH action rows  
 3. Architecture gravity (singletons, shell fragmentation, public endpoints, raw SQL)  
 4. Operator UX / control plane / Studio OS / dashboards  
-5. Docs truth, Gilead residue, contradictory claims  
+5. Docs truth, legacy naming drift, contradictory claims  
 
 **Mechanical gate pass ≠ full product maturity.** After gates are green, continue with the next highest-value SOT or PATH slice until blocked or the queue has no next implementable row.
 

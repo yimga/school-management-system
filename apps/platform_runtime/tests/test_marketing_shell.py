@@ -140,13 +140,33 @@ class ShellSurfaceFamilyContractTests(unittest.TestCase):
         )
         self.assertIn("backend-operational-status-load", bop)
         self.assertIn("backend-status-fragment", bop)
+        tp = (root / "templates" / "partials" / "shell_chrome_django_messages_tenant_portal.html").read_text(
+            encoding="utf-8", errors="replace"
+        )
+        self.assertIn("shell_chrome_messages_variant", tp)
+        self.assertIn("shell_chrome_messages_include_announcement", tp)
+        cpw = (root / "templates" / "partials" / "shell_chrome_django_messages_control_plane.html").read_text(
+            encoding="utf-8", errors="replace"
+        )
+        self.assertIn("control-plane", cpw)
         pb = (root / "templates" / "portal_base.html").read_text(encoding="utf-8", errors="replace")
+        self.assertIn("shell_chrome_django_messages_tenant_portal", pb)
         self.assertIn("shell_chrome_django_messages", pb)
         self.assertIn("shell_chrome_breadcrumb_row_open.html", pb)
         self.assertIn("shell_chrome_breadcrumb_row_between_primary_and_actions.html", pb)
         self.assertIn("shell_chrome_breadcrumb_row_close.html", pb)
         cp = (root / "templates" / "control_plane_base.html").read_text(encoding="utf-8", errors="replace")
+        self.assertIn("shell_chrome_django_messages_control_plane", cp)
         self.assertIn("shell_chrome_django_messages", cp)
+        base = (root / "templates" / "base.html").read_text(encoding="utf-8", errors="replace")
+        self.assertIn("shell_chrome_django_messages_base_bootstrap", base)
+        bsb = (root / "templates" / "partials" / "shell_chrome_django_messages_base_bootstrap.html").read_text(
+            encoding="utf-8", errors="replace"
+        )
+        # 1046: shared chrome — base layout chains django-messages through the bootstrap wrapper
+        # (variant base-bootstrap) instead of inlining a raw messages loop in base.html.
+        self.assertIn("shell_chrome_django_messages.html", bsb)
+        self.assertIn("base-bootstrap", bsb)
         self.assertIn("shell_chrome_breadcrumb_row_open.html", cp)
         self.assertIn("shell_chrome_breadcrumb_row_between_primary_and_actions.html", cp)
         self.assertIn("shell_chrome_breadcrumb_row_close.html", cp)
@@ -162,6 +182,12 @@ class ShellSurfaceFamilyContractTests(unittest.TestCase):
         self.assertIn("shell_chrome_backend_ops_audit_snapshot", bd)
         self.assertIn("shell_chrome_backend_stats_core_strip", bd)
         self.assertIn("shell_chrome_backend_finance_pulse_strip", bd)
+        self.assertIn("shell_chrome_backend_planner_recommended_next_strip", bd)
+        prn = (
+            root / "templates" / "partials" / "shell_chrome_backend_planner_recommended_next_strip.html"
+        ).read_text(encoding="utf-8", errors="replace")
+        self.assertIn("data-shell-chrome=\"backend-planner-recommended-next\"", prn)
+        self.assertIn("planner-recommended-next", prn)
         kpi = (root / "templates" / "partials" / "shell_chrome_backend_stats_core_strip.html").read_text(
             encoding="utf-8", errors="replace"
         )

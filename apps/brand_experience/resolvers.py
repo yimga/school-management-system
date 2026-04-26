@@ -20,7 +20,7 @@ def get_unified_theme_tokens(school: Any = None, request: Any = None) -> Dict[st
     token/layout contract. Ownership: brand_experience (ThemePack, BrandProfile, etc.).
     """
     try:
-        from apps.platform_runtime.helpers import get_effective_site_settings
+        from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
         site = get_effective_site_settings(request=request, school=school)
         if site is not None and callable(

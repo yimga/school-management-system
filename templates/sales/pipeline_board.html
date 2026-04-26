@@ -1,0 +1,49 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Sales pipeline" %}{% endblock %}
+{% block content %}
+<div class="container py-3" style="max-width: 72rem">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h1 class="h3 mb-0">{% trans "Internal pipeline" %}</h1>
+    <a class="btn btn-sm btn-primary" href="{% url 'sales:lead_create' %}">{% trans "Add lead" %}</a>
+  </div>
+  <p class="text-muted small">{% trans "Founder/operator use only. Not integrated with external CRM. Data lives in the platform database." %}</p>
+  <form method="get" class="row g-2 align-items-end mb-3">
+    <div class="col-auto">
+      <label class="form-label small mb-0" for="q">{% trans "Search" %}</label>
+      <input class="form-control form-control-sm" id="q" name="q" value="{{ query }}" placeholder="{% trans 'School or contact' %}">
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-sm btn-outline-secondary" type="submit">{% trans "Filter" %}</button>
+    </div>
+  </form>
+  <div class="table-responsive border rounded">
+    <table class="table table-sm mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>{% trans "School" %}</th>
+          <th>{% trans "Contact" %}</th>
+          <th>{% trans "Email" %}</th>
+          <th>{% trans "Stage" %}</th>
+          <th>{% trans "Next follow-up" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lead in leads %}
+        <tr>
+          <td><a href="{% url 'sales:lead_detail' lead.pk %}">{{ lead.school_name }}</a></td>
+          <td>{{ lead.contact_name }}</td>
+          <td class="text-break small">{{ lead.email }}</td>
+          <td><span class="badge text-bg-secondary">{{ lead.stage.label }}</span></td>
+          <td class="small text-muted">{% if lead.next_follow_up %}{{ lead.next_follow_up }}{% else %}—{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-muted p-3">{% trans "No leads yet. Add a lead to start." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <h2 class="h6 mt-4">{% trans "Stages" %}</h2>
+  <p class="small text-muted mb-0">{% for s in stages %}<span class="me-2">{{ s.label }} ({{ s.key }})</span>{% empty %}{% trans "—" %}{% endfor %}</p>
+</div>
+{% endblock %}

@@ -24,7 +24,7 @@ from .ohada_reports import build_dsf_report
 
 def _active_profile(request: HttpRequest | None = None):
     """Resolve active compliance profile for reports (shared helper)."""
-    from apps.platform_runtime.helpers import get_effective_site_settings
+    from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
     from .models import ComplianceProfile
 
     site = get_effective_site_settings(request=request)

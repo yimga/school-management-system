@@ -8,7 +8,7 @@ from pathlib import Path
 
 from apps.reports.models import TermPublishStatus, ReportCard
 from apps.finance.models import Invoice, PaymentReminder
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from apps.siteconfig.models import ReportTemplate, ThemePack
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.academics.models import Classroom, Subject

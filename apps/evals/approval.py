@@ -12,7 +12,7 @@ from django.utils import timezone
 from apps.accounts.models import User
 from apps.accounts.utils import get_user_role
 from apps.academics.models import AcademicYear, Term, SubjectAssignment
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from apps.siteconfig.models import (
     default_grade_approval_roles,
     default_grade_post_roles,

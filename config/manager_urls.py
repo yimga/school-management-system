@@ -91,9 +91,9 @@ def manager_search_api(request):
         results = []
         static_catalog = _manager_search_static_catalog()
         if not query_lower:
-            # Empty query: show a broader intent strip (BR-02 / §8.0.4); catalog includes
-            # geography, trust, policy, backlog, fleet, operator hub — not only the first legacy ten.
-            results = static_catalog[:23]
+            # Empty query: show a broader intent strip (BR-02 / §8.0.4); include the full
+            # static catalog so curated tails (e.g. Workflow simulator) are not truncated.
+            results = list(static_catalog)
         else:
             for item in static_catalog:
                 haystack = f"{item['title']} {item['description']} {' '.join(item['meta'])}".lower()
@@ -329,6 +329,13 @@ def _manager_search_static_catalog():
             "meta": ["Runtime", "Phase B", "Control plane"],
         },
         {
+            "title": "Metadata & lineage hub",
+            "description": "Entity catalog, governance search, lineage graph, feature control, and tenant runtime links.",
+            "url": reverse("siteconfig:metadata_operator_hub"),
+            "type": "class",
+            "meta": ["Metadata", "Catalog", "Lineage", "Control plane"],
+        },
+        {
             "title": "Workflow simulator",
             "description": "Simulate workflow resolution for a school and role (control plane).",
             "url": reverse("super:workflow_simulator"),
@@ -353,6 +360,7 @@ urlpatterns = [
         include(("apps.accounts.urls", "accounts"), namespace="accounts"),
     ),
     path("super/", include(("apps.schools.super_urls", "super"), namespace="super")),
+    path("sales/", include(("apps.sales.urls", "sales"), namespace="sales")),
     path("siteconfig/customizer/", legacy_siteconfig_customizer_redirect),
     path("siteconfig/workflow-hub/", legacy_workflow_hub_redirect),
     path("siteconfig/report-library/", legacy_report_library_redirect),
@@ -388,6 +396,10 @@ urlpatterns = [
         name="api_control_plane_preferences",
     ),
     path("api/search/", manager_search_api, name="manager_search_api"),
+    path(
+        "api/internal/metadata/",
+        include(("apps.metadata.urls", "metadata"), namespace="metadata"),
+    ),
     path(
         "api/billing/processors/<str:processor_code>/webhook/",
         billing_api_views.platform_billing_processor_webhook,

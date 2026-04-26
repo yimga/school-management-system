@@ -1,23 +1,23 @@
 {
   "baseline_counts": {
-    "allow_any": 88,
-    "csrf_exempt": 160,
+    "allow_any": 90,
+    "csrf_exempt": 161,
     "cursor_execute": 371,
-    "except_exception": 263,
+    "except_exception": 265,
     "get_solo": 200,
-    "gilead": 1070,
-    "gilead_files": 146,
-    "html_files": 649,
+    "gilead": 1079,
+    "gilead_files": 148,
+    "html_files": 672,
     "management_commands": 157,
-    "markdown_files": 1027,
+    "markdown_files": 1030,
     "migration_files": 704,
-    "print_calls": 923,
-    "python_files": 2460,
-    "site_settings": 1729
+    "print_calls": 926,
+    "python_files": 2482,
+    "site_settings": 1759
   },
   "doc_drift": {
-    "actual_installed_app_count": 42,
-    "documented_app_count": 42,
+    "actual_installed_app_count": 43,
+    "documented_app_count": 43,
     "is_stale": false,
     "legacy_doc": "docs/ALL_MODULES_COMPLETE_LIST.md"
   },
@@ -38,14 +38,24 @@
       "path": "apps/api/views_v1.py"
     },
     {
-      "bytes": 114885,
+      "bytes": 117293,
+      "lines": 3069,
+      "path": "apps/accounts/views.py"
+    },
+    {
+      "bytes": 114903,
       "lines": 3100,
       "path": "apps/evals/views.py"
     },
     {
-      "bytes": 114677,
-      "lines": 3009,
-      "path": "apps/accounts/views.py"
+      "bytes": 99441,
+      "lines": 2646,
+      "path": "apps/siteconfig/views.py"
+    },
+    {
+      "bytes": 98710,
+      "lines": 2814,
+      "path": "apps/siteconfig/admin.py"
     },
     {
       "bytes": 98677,
@@ -53,18 +63,8 @@
       "path": "apps/finance/models.py"
     },
     {
-      "bytes": 98674,
-      "lines": 2814,
-      "path": "apps/siteconfig/admin.py"
-    },
-    {
-      "bytes": 93769,
-      "lines": 2510,
-      "path": "apps/siteconfig/views.py"
-    },
-    {
-      "bytes": 85056,
-      "lines": 2152,
+      "bytes": 85557,
+      "lines": 2165,
       "path": "apps/studio_os/views.py"
     },
     {
@@ -73,13 +73,13 @@
       "path": "apps/finance/tasks.py"
     },
     {
-      "bytes": 78499,
+      "bytes": 78497,
       "lines": 2023,
       "path": "apps/siteconfig/models.py"
     },
     {
-      "bytes": 70465,
-      "lines": 1557,
+      "bytes": 70681,
+      "lines": 1560,
       "path": "config/settings.py"
     }
   ],
@@ -903,7 +903,7 @@
     "cursor_execute_apps_config_py_excl_migrations": 32,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 829,
+    "print_calls_scripts_py": 832,
     "site_settings_refs_apps_py_excl_migrations": 27,
     "site_settings_refs_apps_py_excl_migrations_tests": 4
   },

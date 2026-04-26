@@ -72,10 +72,10 @@ CONSOLE_ACTIONS = {
         "rollback": None,
     },
     "metadata_catalog": {
-        "search": "admin:metadata_entitycatalogentry_changelist",
-        "preview": "admin:metadata_configmutationauditlog_changelist",
-        "diff": "admin:metadata_entitycatalogentry_changelist",
-        "audit": "admin:metadata_configmutationauditlog_changelist",
+        "search": "siteconfig:metadata_dynamic_fields_operator",
+        "preview": "metadata:metadata_lineage_graph",
+        "diff": "siteconfig:entity_catalog_overview",
+        "audit": "siteconfig:config_mutation_audit_evidence",
         "rollback": None,
     },
 }
@@ -130,6 +130,9 @@ CONSOLE_DOMAINS = [
         "outcome": "Region, grading, calendar",
         "links": [
             ("Grading settings", "siteconfig:grading_settings"),
+            ("Region validation", "siteconfig:region_validation"),
+            ("Region comparison", "siteconfig:region_comparison"),
+            ("Region grading matrix", "siteconfig:region_grading_scales"),
         ],
     },
     {
@@ -146,8 +149,14 @@ CONSOLE_DOMAINS = [
         "name": "Metadata catalog",
         "outcome": "Entity/field catalog and lineage",
         "links": [
-            ("Admin: Entity catalog", "admin:metadata_entitycatalogentry_changelist"),
-            ("Admin: Config audit", "admin:metadata_configmutationauditlog_changelist"),
+            ("Metadata & lineage hub", "siteconfig:metadata_operator_hub"),
+            ("Dynamic fields (EAV operator)", "siteconfig:metadata_dynamic_fields_operator"),
+            ("Config mutation audit (evidence)", "siteconfig:config_mutation_audit_evidence"),
+            ("Entity catalog (overview)", "siteconfig:entity_catalog_overview"),
+            ("Full metadata catalog (platform)", "super:metadata_catalog"),
+            ("Admin: entity rows (CRUD)", "admin:metadata_entitycatalogentry_changelist"),
+            ("Admin: config mutation audit", "admin:metadata_configmutationauditlog_changelist"),
+            ("Admin: dynamic field definitions/values (CRUD)", "admin:metadata_dynamicfielddefinition_changelist"),
         ],
     },
 ]

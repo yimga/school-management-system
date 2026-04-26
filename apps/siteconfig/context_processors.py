@@ -15,10 +15,10 @@ from django.utils.translation import gettext as _
 from apps.accounts.models import User
 from apps.finance.models import Notification
 from apps.global_registries.models import RegionConfig
-from apps.platform_runtime.helpers import (
+from apps.platform_runtime.helpers import get_platform_defaults
+from apps.platform_runtime.site_settings_read_access import (
     get_effective_flags,
     get_effective_site_settings,
-    get_platform_defaults,
 )
 from .preview_state import ACT_AS_ROLE_SESSION_KEY
 from .portal_sidebar_items import build_portal_sidebar_items

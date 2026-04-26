@@ -44,7 +44,7 @@ from apps.siteconfig.templatetags.admin_health import admin_section_stats
 from apps.siteconfig.templatetags.admin_kpis import admin_kpis
 from apps.siteconfig.dashboard_views import effective_chart_types
 from apps.accounts.utils import get_dashboard_context
-from apps.platform_runtime.helpers import (
+from apps.platform_runtime.site_settings_read_access import (
     get_effective_flags,
     get_effective_site_settings,
 )
@@ -2423,6 +2423,31 @@ def backend_dashboard(request):
         context["insight_anomalies_api_url"] = reverse("api:api-insight-anomalies")
     except NoReverseMatch:
         context["insight_anomalies_api_url"] = ""
+    # School activation: real-data onboarding + health (platform_runtime)
+    try:
+        from apps.platform_runtime.customer_health import (
+            calculate_school_health,
+            get_school_health_recommendations,
+        )
+        from apps.platform_runtime.onboarding import get_school_onboarding_progress
+
+        _sch = getattr(request, "school", None)
+        if _sch is not None:
+            context["rmc_school_onboarding"] = get_school_onboarding_progress(
+                _sch, user=request.user
+            )
+            context["rmc_school_health"] = calculate_school_health(_sch)
+            context["rmc_school_health_nudges"] = get_school_health_recommendations(
+                _sch, user=request.user, limit=3
+            )
+        else:
+            context["rmc_school_onboarding"] = None
+            context["rmc_school_health"] = None
+            context["rmc_school_health_nudges"] = []
+    except ACCOUNTS_SOFT_FAILURES:
+        context["rmc_school_onboarding"] = None
+        context["rmc_school_health"] = None
+        context["rmc_school_health_nudges"] = []
     return render(request, "accounts/backend_dashboard.html", context)
 
 

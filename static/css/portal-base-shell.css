@@ -869,3 +869,9 @@ body.portal-sidebar-tone-light .sidebar {
   overflow-y: auto;
   overflow-x: hidden;
 }
+
+/* 1097: tighter main content rhythm when page-wrap uses portal-page-wrap--tight */
+.portal-main-col .page-wrap.portal-page-wrap--tight[data-rmc-portal-shell-tuning="1097"] {
+  padding-top: 0.3rem;
+  padding-bottom: 0.65rem;
+}

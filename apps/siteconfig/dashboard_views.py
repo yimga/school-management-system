@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 
 from apps.accounts.utils import get_user_role
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from apps.platform_runtime.structured_logging import (
     log_exception_with_context,
     request_context_for_log,

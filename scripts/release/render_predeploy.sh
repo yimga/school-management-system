@@ -94,7 +94,9 @@ fi
 # Optional Collabora readiness ping during predeploy (non-blocking unless enabled).
 if [[ "${RUN_COLLABORA_READINESS_CHECK:-0}" == "1" ]]; then
   if [[ -n "${COLLABORA_BASE_URL:-}" ]]; then
-    run python scripts/verify_collabora_wopi_smoke.py \n      --app-base "${APP_BASE_URL:-}" \n      --collabora-base "${COLLABORA_BASE_URL}"
+    run "${PYTHON_BIN}" scripts/verify_collabora_wopi_smoke.py \
+      --app-base "${APP_BASE_URL:-}" \
+      --collabora-base "${COLLABORA_BASE_URL}"
   fi
 fi
 

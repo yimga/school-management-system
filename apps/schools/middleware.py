@@ -64,6 +64,7 @@ MANAGER_HOST_ALLOWED_PREFIXES = (
     "/feedback/",
     "/notifications/",
     "/super/",
+    "/sales/",
     "/studio/",
     "/api-center/",
     "/ops/",

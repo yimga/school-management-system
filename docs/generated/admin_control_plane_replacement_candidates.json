@@ -1,0 +1,154 @@
+{
+  "control_plane_replacement_roadmap": [
+    {
+      "cp_url_names": [
+        "siteconfig:region_validation",
+        "siteconfig:region_comparison",
+        "siteconfig:region_grading_scales"
+      ],
+      "existing_shell": "control_plane_base + manager siteconfig URLs",
+      "id": "region_operator_matrices",
+      "operator_value": "high",
+      "priority_rank": 1,
+      "schema_risk": "low",
+      "status": "shipped",
+      "testability": "high",
+      "title": "Region validation, comparison, and grading scale matrices"
+    },
+    {
+      "cp_url_names": [
+        "siteconfig:tenant_runtime_configuration_hub"
+      ],
+      "existing_shell": "siteconfig tenant runtime hub",
+      "id": "tenant_runtime_effective_settings",
+      "operator_value": "high",
+      "priority_rank": 2,
+      "schema_risk": "low",
+      "status": "shipped",
+      "testability": "high",
+      "title": "Tenant runtime & effective site settings hub"
+    },
+    {
+      "cp_url_names": [
+        "siteconfig:feature_control_panel",
+        "siteconfig:feature_control_audit"
+      ],
+      "existing_shell": "siteconfig:feature_control_panel",
+      "id": "feature_control_surface",
+      "operator_value": "high",
+      "priority_rank": 3,
+      "schema_risk": "low",
+      "status": "shipped",
+      "testability": "high",
+      "title": "Feature toggles and control-plane audit (vs raw admin)"
+    },
+    {
+      "cp_url_names": [
+        "siteconfig:metadata_operator_hub",
+        "siteconfig:entity_catalog_overview",
+        "siteconfig:metadata_dynamic_fields_operator",
+        "siteconfig:config_mutation_audit_evidence",
+        "metadata:metadata_governance",
+        "metadata:metadata_lineage_graph",
+        "super:metadata_catalog"
+      ],
+      "existing_shell": "siteconfig:metadata_operator_hub + governance/lineage + entity table + super catalog",
+      "id": "metadata_catalog_operator",
+      "operator_value": "medium",
+      "priority_rank": 4,
+      "schema_risk": "low",
+      "status": "shipped",
+      "testability": "medium",
+      "title": "Metadata & lineage hub + entity catalog (admin remains for CRUD and config audit)"
+    },
+    {
+      "cp_url_names": [
+        "super:marketplace_governance",
+        "super:app_catalog"
+      ],
+      "existing_shell": "super:marketplace_governance, super:app_catalog, siteconfig module/sandbox",
+      "id": "marketplace_operator_governance",
+      "operator_value": "high",
+      "priority_rank": 5,
+      "schema_risk": "low",
+      "status": "shipped",
+      "testability": "high",
+      "title": "Marketplace governance and app catalog (control plane primary)"
+    },
+    {
+      "cp_url_names": [
+        "siteconfig:bulk_letters",
+        "siteconfig:scheduled_reports_delivery_hub",
+        "siteconfig:term_publish_status_evidence",
+        "siteconfig:academic_years_setup_evidence",
+        "siteconfig:departments_setup_evidence",
+        "siteconfig:reportcard_builder",
+        "studio_os:output"
+      ],
+      "existing_shell": "siteconfig bulk/scheduled reports, Studio output",
+      "id": "reports_bulk_export_surfaces",
+      "operator_value": "medium",
+      "priority_rank": 6,
+      "schema_risk": "low",
+      "status": "shipped",
+      "testability": "medium",
+      "title": "Reports, bulk letters, and export (Studio + siteconfig, not admin lists)"
+    },
+    {
+      "cp_url_names": [
+        "super:workflow_packs_catalog",
+        "super:workflow_simulator",
+        "studio_os:automation"
+      ],
+      "existing_shell": "super:workflow_packs_catalog, super:workflow_simulator, studio automation",
+      "id": "workflow_automation_control_plane",
+      "operator_value": "medium",
+      "priority_rank": 7,
+      "schema_risk": "low",
+      "status": "shipped",
+      "testability": "medium",
+      "title": "Workflow packs and automation Studio (operator entry vs model admin)"
+    },
+    {
+      "cp_url_names": [
+        "siteconfig:feature_control_audit",
+        "siteconfig:config_mutation_audit_evidence",
+        "studio_os:rollback"
+      ],
+      "existing_shell": "siteconfig:feature_control_audit, studio rollback, super admin_bridge",
+      "id": "audit_rollback_staging_evidence",
+      "operator_value": "high",
+      "priority_rank": 8,
+      "schema_risk": "low",
+      "status": "shipped",
+      "testability": "medium",
+      "title": "Audit, rollback, staging evidence (feature audit + Control Studio; admin bridge fallback)"
+    },
+    {
+      "cp_url_names": [],
+      "existing_shell": "audit_admin_gravity.py (bridge theme hints + --strict allowlist)",
+      "id": "admin_gravity_artifact_themes",
+      "operator_value": "medium",
+      "priority_rank": 9,
+      "schema_risk": "low",
+      "status": "shipped",
+      "testability": "high",
+      "title": "Admin gravity theme hints in generated JSON (roadmap/strict/CP map)"
+    },
+    {
+      "cp_url_names": [
+        "siteconfig:metadata_dynamic_fields_operator"
+      ],
+      "existing_shell": "siteconfig:metadata_dynamic_fields_operator + optional admin changelists",
+      "id": "metadata_dynamic_field_operator",
+      "operator_value": "medium",
+      "priority_rank": 10,
+      "schema_risk": "low",
+      "status": "shipped",
+      "testability": "high",
+      "title": "Dynamic field EAV operator (read-only triage; admin CRUD for definitions/values)"
+    }
+  ],
+  "generated_at": "2026-04-26T23:29:33.804309+00:00",
+  "schema_version": 1
+}

@@ -28,8 +28,9 @@
           <p class="mb-1 small"><strong>{% trans "Year" %}:</strong> {{ d.profile.academic_year_name|default:"—" }}</p>
           <p class="mb-0 small"><strong>{% trans "Status" %}:</strong> {{ d.profile.status|default:"—" }}</p>
         </div>
-        <div class="card-footer bg-transparent border-top-0 pt-0">
-          <a href="{{ detail_urls.admin_student }}" class="btn btn-sm btn-outline-primary">{% trans "Open in Admin" %}</a>
+        <div class="card-footer bg-transparent border-top-0 pt-0 d-flex flex-wrap gap-2">
+          <a href="{{ detail_urls.portal_tabbed_360 }}" class="btn btn-sm btn-primary">{% trans "Open tabbed 360" %}</a>
+          <a href="{{ detail_urls.admin_student }}" class="btn btn-sm btn-outline-secondary">{% trans "Advanced/Admin: student row" %}</a>
         </div>
       </div>
     </div>

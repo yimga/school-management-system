@@ -1,9 +1,13 @@
 {
-  "generated_at": "2026-04-25T23:12:07.576303+00:00",
+  "generated_at": "2026-04-26T23:29:34.153469+00:00",
   "passed": true,
   "rows": [
     {
       "path": "templates/accounts/backend_dashboard.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/accounts/school_onboarding_card.html",
       "summary": "ok"
     },
     {
@@ -59,6 +63,10 @@
       "summary": "ok"
     },
     {
+      "path": "templates/partials/shell_chrome_backend_planner_recommended_next_strip.html",
+      "summary": "ok"
+    },
+    {
       "path": "templates/partials/shell_chrome_backend_stats_core_strip.html",
       "summary": "ok"
     },
@@ -84,6 +92,18 @@
     },
     {
       "path": "templates/partials/shell_chrome_django_messages.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_django_messages_base_bootstrap.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_django_messages_control_plane.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/partials/shell_chrome_django_messages_tenant_portal.html",
       "summary": "ok"
     },
     {
@@ -127,11 +147,51 @@
       "summary": "ok"
     },
     {
+      "path": "templates/siteconfig/academic_years_setup_evidence.html",
+      "summary": "ok"
+    },
+    {
       "path": "templates/siteconfig/bulk_letters.html",
       "summary": "ok"
     },
     {
+      "path": "templates/siteconfig/config_mutation_audit_evidence.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/departments_setup_evidence.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/entity_catalog_overview.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/metadata_dynamic_fields_operator.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/metadata_operator_hub.html",
+      "summary": "ok"
+    },
+    {
       "path": "templates/siteconfig/partials/configuration_control_center_staging_publish.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/region_comparison.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/region_grading_scales_matrix.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/region_validation_dashboard.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/scheduled_reports_delivery_hub.html",
       "summary": "ok"
     },
     {
@@ -140,6 +200,10 @@
     },
     {
       "path": "templates/siteconfig/tenant_runtime_configuration_hub.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/term_publish_status_evidence.html",
       "summary": "ok"
     },
     {
@@ -159,6 +223,6 @@
       "summary": "ok"
     }
   ],
-  "templates_checked": 39,
+  "templates_checked": 55,
   "verify": "verify_shell_surface_inventory"
 }

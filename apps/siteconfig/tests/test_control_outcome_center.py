@@ -46,6 +46,10 @@ class ControlOutcomeCenterTests(SimpleTestCase):
         self.assertIn("mode=control", rollback["url"])
         # Display sources use canonical labels
         self.assertTrue(all(isinstance(s, str) for x in rp["links"] for s in x["sources"]))
+        rl = next(g for g in groups if g["id"] == "registries_localization")
+        rl_labels = {x["label"] for x in rl["links"]}
+        self.assertIn("Metadata & lineage hub", rl_labels)
+        self.assertIn("Config mutation audit (evidence)", rl_labels)
         pm = next(g for g in groups if g["id"] == "packages_marketplace")
         fleet_bridge = next(
             x for x in pm["links"] if x["label"] == "Fleet governed changes"

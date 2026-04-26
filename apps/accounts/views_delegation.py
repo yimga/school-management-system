@@ -9,7 +9,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
 from django.http import HttpResponseForbidden
 
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from .models import Delegation, DelegationActionLog
 from .forms import DelegationForm
 from .delegation import (

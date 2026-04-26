@@ -1,0 +1,51 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block title %}{{ lead.school_name }}{% endblock %}
+{% block content %}
+<div class="container py-3" style="max-width: 48rem" data-rmc-sales-lead="1">
+  <p class="mb-1"><a href="{% url 'sales:pipeline_board' %}">{% trans "Back to pipeline" %}</a></p>
+  <h1 class="h3">{{ lead.school_name }}</h1>
+  <p class="text-muted small">{% trans "Created" %}: {{ lead.created_at }} — {% trans "Updated" %}: {{ lead.updated_at }}</p>
+  <form method="post" class="mb-3">
+    {% csrf_token %}
+    <input type="hidden" name="save_lead" value="1">
+    <div class="row g-2">
+      <div class="col-md-6">
+        <label class="form-label" for="stage_id">{% trans "Stage" %}</label>
+        <select class="form-select form-select-sm" id="stage_id" name="stage_id">
+          {% for s in stages %}
+          <option value="{{ s.pk }}" {% if s.pk == lead.stage_id %}selected{% endif %}>{{ s.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="next_follow_up">{% trans "Next follow-up" %} (ISO or YYYY-MM-DD)</label>
+        <input class="form-control form-control-sm" name="next_follow_up" id="next_follow_up" value="{% if lead.next_follow_up %}{{ lead.next_follow_up|date:'Y-m-d H:i' }}{% endif %}">
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="notes">{% trans "Summary notes" %}</label>
+        <textarea class="form-control" name="notes" id="notes" rows="2">{{ lead.notes }}</textarea>
+      </div>
+    </div>
+    <button class="btn btn-sm btn-primary mt-2" type="submit">{% trans "Save" %}</button>
+  </form>
+  <h2 class="h6">{% trans "Activity" %}</h2>
+  <ul class="list-group mb-2">
+    {% for a in activities %}
+    <li class="list-group-item small">
+      <div class="text-muted" style="font-size:0.7rem;">{{ a.created_at }}{% if a.created_by %} — {{ a.created_by.get_full_name|default:a.created_by.email }}{% endif %}</div>
+      <div class="text-break">{{ a.body }}</div>
+    </li>
+    {% empty %}
+    <li class="list-group-item text-muted">{% trans "No activity yet." %}</li>
+    {% endfor %}
+  </ul>
+  <form method="post" class="mt-2">
+    {% csrf_token %}
+    <input type="hidden" name="add_activity" value="1">
+    <label class="form-label" for="body">{% trans "Add note" %}</label>
+    <textarea class="form-control" name="body" id="body" rows="3" required></textarea>
+    <button class="btn btn-sm btn-outline-primary mt-2" type="submit">{% trans "Add note" %}</button>
+  </form>
+</div>
+{% endblock %}

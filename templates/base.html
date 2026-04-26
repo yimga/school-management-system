@@ -199,25 +199,7 @@
     {% endif %}
 
     <main id="main-content" class="container py-4" role="main">
-      {% if messages %}
-        <div class="mb-3">
-          {% for message in messages %}
-            <div class="alert alert-{{ message.tags|default:'info' }} mb-2">
-              {{ message }}
-              {% if message.tags == 'error' %}
-                {% if request.public_host_kind == 'manager' %}
-                  {% url 'manager_help' as help_center_url %}
-                {% else %}
-                  {% url 'kb:kb_home' as help_center_url %}
-                {% endif %}
-                {% if help_center_url %}
-                  <p class="mb-0 mt-2 small"><a class="alert-link" href="{{ help_center_url }}">{% trans "Learn more in the Help centre" %}</a></p>
-                {% endif %}
-              {% endif %}
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
+      {% include "partials/shell_chrome_django_messages_base_bootstrap.html" %}
 
       {% include "partials/breadcrumbs.html" %}
 

@@ -104,6 +104,9 @@ PLATFORM_ADMIN_BRIDGE_ORDER: list[str] = [
     "workflow_packs",
     "workflow_pack_assignments",
     "workflow_templates",
+    # apps.sales — platform_admin_site (internal pipeline)
+    "sales_leads",
+    "sales_pipeline_stages",
 ]
 
 # bridge_key (URL slug) → config
@@ -648,6 +651,20 @@ PLATFORM_ADMIN_BRIDGES: dict[str, dict[str, object]] = {
         "label": _("Workflow templates (platform admin)"),
         "description": _("WorkflowTemplate — workflow graph templates"),
         "icon": "bi-share",
+        "show_in_nav": False,
+    },
+    "sales_leads": {
+        "admin_url": "admin:sales_lead_changelist",
+        "label": _("Sales leads (platform admin)"),
+        "description": _("Lead — platform pipeline (internal)"),
+        "icon": "bi-person-lines-fill",
+        "show_in_nav": False,
+    },
+    "sales_pipeline_stages": {
+        "admin_url": "admin:sales_pipelinestage_changelist",
+        "label": _("Pipeline stages (platform admin)"),
+        "description": _("PipelineStage — internal stage catalog"),
+        "icon": "bi-funnel",
         "show_in_nav": False,
     },
 }

@@ -1,0 +1,67 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "School activation" %}{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
+{% endblock %}
+{% block content %}
+<div class="container py-3" style="max-width: 56rem;" data-page-archetype="operator-report" data-shell-surface="school-activation-onboarding" data-rmc-onboarding="school-activation" data-rmc-onboarding-page="1">
+  <h1 class="h3 mb-2">{% trans "School activation checklist" %}</h1>
+  <p class="text-muted small mb-3">{% trans "Items below come from this tenant’s data. Links open real setup or evidence pages—no automated completion without underlying records." %}</p>
+
+  {% if not school %}
+  <div class="alert alert-warning">{% trans "No tenant school on this request. Open the checklist from a school (tenant) host." %}</div>
+  {% else %}
+  <div class="d-flex flex-wrap align-items-end gap-3 mb-3">
+    <div class="border rounded-2 p-2 bg-body-secondary small">
+      <div class="text-uppercase text-muted" style="font-size:0.65rem;">{% trans "Progress" %}</div>
+      <div class="fs-4 fw-semibold" data-rmc-onboarding-progress="{{ onboarding.percent|default:0 }}">{{ onboarding.percent|default:0 }}%</div>
+    </div>
+    {% if health %}
+    <div class="border rounded-2 p-2 bg-body-secondary small">
+      <div class="text-uppercase text-muted" style="font-size:0.65rem;">{% trans "Health" %}</div>
+      <div class="fw-semibold">{{ health.score }} — {{ health.status }}</div>
+    </div>
+    {% endif %}
+    {% if onboarding.next_action and onboarding.next_action.url %}
+    <div class="ms-auto">
+      <a class="btn btn-primary btn-sm" href="{{ onboarding.next_action.url }}" data-rmc-onboarding-next-action="1">{{ onboarding.next_action.label }}</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <ul class="list-group list-group-flush border rounded" data-rmc-onboarding-steps="1">
+    {% for row in onboarding.steps %}
+    <li class="list-group-item d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <div>
+        <span class="fw-medium">{{ row.label }}</span>
+        {% if row.key %}<span class="text-muted small">({{ row.key }})</span>{% endif %}
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        {% if row.done %}
+        <span class="badge text-bg-success">{% trans "Done" %}</span>
+        {% else %}
+        <span class="badge text-bg-warning text-dark">{% trans "Pending" %}</span>
+        {% endif %}
+        {% if row.link %}
+        <a class="btn btn-sm btn-outline-secondary" href="{{ row.link }}">{% trans "Open" %}</a>
+        {% endif %}
+      </div>
+    </li>
+    {% empty %}
+    <li class="list-group-item text-muted">{% trans "No checklist items resolved." %}</li>
+    {% endfor %}
+  </ul>
+
+  {% if health_recommendations %}
+  <h2 class="h6 mt-4">{% trans "Recommended next steps" %}</h2>
+  <ul class="mb-0">
+    {% for n in health_recommendations %}
+    <li><a href="{{ n.url }}">{{ n.label }}</a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

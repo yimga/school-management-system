@@ -35,8 +35,6 @@ class CustomerSuccessServiceHelperTests(SimpleTestCase):
             "StudentProfile", (), {"objects": ExistsManager(True)}
         )
 
-        runtime_module = ModuleType("apps.platform_runtime.helpers")
-
         class SiteSettingsStub:
             grading_scale = "A-F"
             default_grading_scale = None
@@ -44,18 +42,18 @@ class CustomerSuccessServiceHelperTests(SimpleTestCase):
             logo = None
             school_name = ""
 
-        def get_effective_site_settings(*, school):
+        def get_effective_site_settings(*, school=None, request=None):
             return SiteSettingsStub()
-
-        runtime_module.get_effective_site_settings = get_effective_site_settings
 
         fake_modules = {
             "apps.academics.models": academics_module,
             "apps.people.models": people_module,
-            "apps.platform_runtime.helpers": runtime_module,
         }
 
-        with patch.dict(sys.modules, fake_modules, clear=False):
+        with patch.dict(sys.modules, fake_modules, clear=False), patch(
+            "apps.platform_runtime.site_settings_read_access.get_effective_site_settings",
+            get_effective_site_settings,
+        ):
             steps = services.get_guided_onboarding_steps(DummySchool())
 
         self.assertTrue(steps)

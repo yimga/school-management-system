@@ -54,7 +54,7 @@ class UpdateThemeJsonPolicyTests(TestCase):
         self.client = Client(HTTP_HOST=_T_HOST, raise_request_exception=False)
 
     def test_update_theme_forbidden_for_parent_role(self):
-        u = User.objects.create_user(
+        User.objects.create_user(
             username="theme_parent",
             password="x" * 8,
             role=User.Role.PARENT,
@@ -69,7 +69,7 @@ class UpdateThemeJsonPolicyTests(TestCase):
         self.assertEqual(resp.status_code, 403)
 
     def test_update_theme_ok_for_teacher(self):
-        u = User.objects.create_user(
+        User.objects.create_user(
             username="theme_teacher",
             password="x" * 8,
             role=User.Role.TEACHER,
@@ -128,6 +128,21 @@ class FeatureControlEmbedPolicyTests(TestCase):
         resp = self.client.get(path)
         self.assertNotEqual(resp.status_code, 403)
 
+    def test_feature_control_export_get_json_with_permission(self):
+        """1044: export endpoint returns JSON (settings.feature_control)."""
+        u = User.objects.create_user(
+            username="fc_export_ok",
+            password="x" * 8,
+            role=User.Role.ADMIN,
+        )
+        u.feature_permissions.add(self.perm_fc)
+        self.client.login(username="fc_export_ok", password="x" * 8)
+        path = reverse("siteconfig:feature_control_export")
+        resp = self.client.get(path)
+        self.assertEqual(resp.status_code, 200)
+        ct = (resp.get("Content-Type") or "").split(";")[0].strip()
+        self.assertEqual(ct, "application/json")
+
 
 @override_settings(ALLOWED_HOSTS=_ALLOWED)
 class PackageRollbackPolicyTests(TestCase):
@@ -144,7 +159,7 @@ class PackageRollbackPolicyTests(TestCase):
         self.client = Client(HTTP_HOST=_RBK_HOST, raise_request_exception=False)
 
     def test_rollback_get_forbidden_for_teacher(self):
-        u = User.objects.create_user(
+        User.objects.create_user(
             username="rbk_teacher",
             password="x" * 8,
             role=User.Role.TEACHER,
@@ -155,7 +170,7 @@ class PackageRollbackPolicyTests(TestCase):
         self.assertEqual(resp.status_code, 403)
 
     def test_rollback_get_ok_for_admin(self):
-        u = User.objects.create_user(
+        User.objects.create_user(
             username="rbk_admin",
             password="x" * 8,
             role=User.Role.ADMIN,
@@ -184,7 +199,7 @@ class SetDefaultDashboardViewPostPolicyTests(TestCase):
         self.client = Client(HTTP_HOST=_PREF_HOST, raise_request_exception=False)
 
     def test_set_default_dashboard_view_post_ok_for_teacher(self):
-        u = User.objects.create_user(
+        User.objects.create_user(
             username="pref_teacher",
             password="x" * 8,
             role=User.Role.TEACHER,
@@ -213,7 +228,7 @@ class ActAsRolePostPolicyTests(TestCase):
         self.client = Client(HTTP_HOST=_ACT_HOST, raise_request_exception=False)
 
     def test_act_as_post_redirects_non_staff(self):
-        u = User.objects.create_user(
+        User.objects.create_user(
             username="actas_teacher",
             password="x" * 8,
             role=User.Role.TEACHER,
@@ -226,7 +241,7 @@ class ActAsRolePostPolicyTests(TestCase):
         self.assertIn(resp.status_code, (302, 301, 403))
 
     def test_act_as_post_allowed_for_staff(self):
-        u = User.objects.create_user(
+        User.objects.create_user(
             username="actas_staff",
             password="x" * 8,
             role=User.Role.ADMIN,
@@ -256,7 +271,7 @@ class StudioPublishApiPolicyTests(TestCase):
         self.client = Client(HTTP_HOST=_STU_POST_HOST, raise_request_exception=False)
 
     def test_studio_publish_post_forbidden_for_non_staff(self):
-        u = User.objects.create_user(
+        User.objects.create_user(
             username="stu_pub_teacher",
             password="x" * 8,
             role=User.Role.TEACHER,
@@ -268,7 +283,7 @@ class StudioPublishApiPolicyTests(TestCase):
         self.assertEqual(resp.status_code, 403)
 
     def test_studio_publish_post_not_forbidden_for_staff(self):
-        u = User.objects.create_user(
+        User.objects.create_user(
             username="stu_pub_staff",
             password="x" * 8,
             role=User.Role.ADMIN,
@@ -401,7 +416,7 @@ class StudioSaveDraftApiPolicyTests(TestCase):
         self.client = Client(HTTP_HOST=_STU_DRAFT_HOST, raise_request_exception=False)
 
     def test_studio_save_draft_post_forbidden_for_non_staff(self):
-        u = User.objects.create_user(
+        User.objects.create_user(
             username="stu_draft_teacher",
             password="x" * 8,
             role=User.Role.TEACHER,
@@ -413,7 +428,7 @@ class StudioSaveDraftApiPolicyTests(TestCase):
         self.assertEqual(resp.status_code, 403)
 
     def test_studio_save_draft_post_not_forbidden_for_staff(self):
-        u = User.objects.create_user(
+        User.objects.create_user(
             username="stu_draft_staff",
             password="x" * 8,
             role=User.Role.ADMIN,
@@ -494,7 +509,7 @@ class TogglePreviewModePostPolicyTests(TestCase):
         self.client = Client(HTTP_HOST=_PV_HOST, raise_request_exception=False)
 
     def test_toggle_preview_post_redirects_or_forbids_non_staff(self):
-        u = User.objects.create_user(
+        User.objects.create_user(
             username="pv_teacher",
             password="x" * 8,
             role=User.Role.TEACHER,
@@ -506,7 +521,7 @@ class TogglePreviewModePostPolicyTests(TestCase):
         self.assertIn(resp.status_code, (302, 403))
 
     def test_toggle_preview_post_not_forbidden_for_staff(self):
-        u = User.objects.create_user(
+        User.objects.create_user(
             username="pv_staff",
             password="x" * 8,
             role=User.Role.ADMIN,

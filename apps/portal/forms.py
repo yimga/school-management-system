@@ -7,7 +7,7 @@ from django.db.utils import DatabaseError
 from django.utils.translation import gettext_lazy as _
 
 from apps.people.models import StudentGuardian, StudentProfile, TeacherLeaveRequest
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from .models import (
     LessonPlan,
     LessonPlanAttachment,

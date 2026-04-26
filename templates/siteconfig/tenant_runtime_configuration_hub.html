@@ -1,24 +1,60 @@
 {% extends "portal_base.html" %}
-{% load i18n phase8_tags %}
+{% load i18n static phase8_tags %}
 
 {% block title %}{% trans "Tenant runtime configuration" %}{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="container py-4" style="max-width: 52rem;" data-page-archetype="operational-workbench" data-decision-engine="surface" data-siteconfig-surface="tenant-runtime-hub" data-phase-b-surface="runtime-snapshot">
+<div class="container py-3 cp-evidence-page" style="max-width: 52rem;" data-page-archetype="operational-workbench" data-decision-engine="surface" data-siteconfig-surface="tenant-runtime-hub" data-phase-b-surface="runtime-snapshot" data-shell-surface="tenant-runtime-configuration" data-cp-evidence-surface="tenant-runtime-config">
   {% phase8_dashboard_declaration "siteconfig/tenant_runtime_configuration_hub.html" %}
   <h1 class="h3 mb-2">{% trans "Tenant runtime configuration" %}</h1>
+  <p class="text-muted small mb-2">
+    {% trans "Read-only snapshot of effective settings, region, and enabled backend feature flag keys. Product links below; admin remains an escape hatch." %}
+  </p>
+  {% if school %}
+  <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Effective fields" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ summary_effective_n|default:0 }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Region fields" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ summary_region_n|default:0 }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Flags on" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ summary_flags_n|default:0 }}</div>
+    </div>
+  </div>
+  {% endif %}
   <div class="alert alert-light border shadow-sm mb-3" role="region" aria-label="{% trans 'Where to change settings' %}">
     <p class="small mb-0">
       {% trans "This page is a read-only snapshot. For outcome-based configuration, staging, and audit links, use the Configuration Control Center; use Studio Control and Feature audit when changing behavior." %}
       <a href="{% url 'siteconfig:console_domains_hub' %}" class="alert-link">{% trans "Open Configuration Control Center" %}</a>
     </p>
   </div>
-  <p class="text-muted mb-4">
-    {% blocktrans %}
-      Read-only snapshot of <code>get_effective_site_settings</code> for this tenant. Prefer product surfaces below;
-      Django admin is an escape hatch for rare CRUD.
-    {% endblocktrans %}
-  </p>
+  <div class="d-flex flex-wrap gap-2 mb-3 cp-evidence-related" data-rmc-evidence-related-links="1" data-rmc-operator-evidence-related="1" aria-label="{% trans 'Related control-plane links' %}">
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Configuration control center" %}</a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:feature_control_panel' %}">{% trans "Feature control" %}</a>
+    {% if scheduled_hub_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ scheduled_hub_url }}">{% trans "Scheduled report delivery" %}</a>
+    {% endif %}
+    {% if sync_center_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ sync_center_url }}">{% trans "Sync center" %}</a>
+    {% endif %}
+    {% if metadata_operator_hub_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ metadata_operator_hub_url }}">{% trans "Metadata operator hub" %}</a>
+    {% endif %}
+    {% if report_output_history_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ report_output_history_evidence_url }}">{% trans "Report output history" %}</a>
+    {% endif %}
+    {% if billing_plan_readonly_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ billing_plan_readonly_url }}">{% trans "Plan & entitlements" %}</a>
+    {% endif %}
+  </div>
 
   {% if school %}
   <p class="small text-muted mb-3"><strong>{% trans "Tenant" %}</strong>: {{ school.name }}</p>
@@ -83,9 +119,11 @@
   </div>
 
   {% if admin_sitesettings_url %}
-  <p class="small text-muted mb-0">
-    <a href="{{ admin_sitesettings_url }}">{% trans "Open Site Settings in tenant admin (escape hatch)" %}</a>
-  </p>
+  <div class="cp-evidence-advanced border-top pt-3 mt-2" data-rmc-evidence-advanced="1">
+    <p class="small text-muted mb-0">
+      <a class="btn btn-sm btn-outline-secondary" href="{{ admin_sitesettings_url }}">{% trans "Advanced/Admin: Site Settings in tenant admin" %}</a>
+    </p>
+  </div>
   {% endif %}
 </div>
 {% endblock %}

@@ -1,0 +1,32 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Add lead" %}{% endblock %}
+{% block content %}
+<div class="container py-3" style="max-width: 32rem">
+  <h1 class="h3">{% trans "Add lead" %}</h1>
+  {% if error %}
+  <div class="alert alert-warning">{{ error }}</div>
+  {% endif %}
+  <form method="post" class="mt-2">
+    {% csrf_token %}
+    <div class="mb-2">
+      <label class="form-label" for="school_name">{% trans "School name" %} *</label>
+      <input class="form-control" id="school_name" name="school_name" value="{{ school_name|default:'' }}" required>
+    </div>
+    <div class="mb-2">
+      <label class="form-label" for="contact_name">{% trans "Contact name" %}</label>
+      <input class="form-control" id="contact_name" name="contact_name">
+    </div>
+    <div class="mb-2">
+      <label class="form-label" for="email">{% trans "Email" %}</label>
+      <input class="form-control" type="email" id="email" name="email">
+    </div>
+    <div class="mb-2">
+      <label class="form-label" for="phone">{% trans "Phone" %}</label>
+      <input class="form-control" id="phone" name="phone">
+    </div>
+    <button class="btn btn-primary" type="submit">{% trans "Create" %}</button>
+    <a class="btn btn-link" href="{% url 'sales:pipeline_board' %}">{% trans "Cancel" %}</a>
+  </form>
+</div>
+{% endblock %}

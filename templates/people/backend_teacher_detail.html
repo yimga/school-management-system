@@ -19,8 +19,9 @@
           <p class="mb-1 small"><strong>{% trans "Email" %}:</strong> {{ teacher.user.email|default:"—" }}</p>
           <p class="mb-0 small"><strong>{% trans "Department" %}:</strong> {{ teacher.department.name|default:"—" }}</p>
         </div>
-        <div class="card-footer bg-transparent border-0">
-          <a href="{% url 'admin:people_teacherprofile_change' teacher.pk %}" class="btn btn-sm btn-outline-primary">{% trans "Open in Admin" %}</a>
+        <div class="card-footer bg-transparent border-0 d-flex flex-wrap gap-2">
+          <a href="{% url 'accounts:backend_classroom_list' %}" class="btn btn-sm btn-primary">{% trans "Classrooms" %}</a>
+          <a href="{% url 'admin:people_teacherprofile_change' teacher.pk %}" class="btn btn-sm btn-outline-secondary">{% trans "Advanced/Admin: teacher row" %}</a>
         </div>
       </div>
     </div>

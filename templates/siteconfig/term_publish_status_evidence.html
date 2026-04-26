@@ -1,0 +1,76 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Term publish status" %}{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
+{% endblock %}
+{% block content %}
+<div class="container py-3 cp-evidence-page" style="max-width: 56rem;" data-page-archetype="operator-report" data-shell-surface="term-publish-status-evidence" data-cp-evidence-surface="term-publish" data-rmc-operator-evidence-surface="1" data-admin-replacement-category="publish_staging_evidence" data-rmc-report-bulk-evidence="1078">
+  <h1 class="h3 mb-2">{% trans "Term publish status" %}</h1>
+  <p class="text-muted small mb-2">
+    {% trans "Read-only view of report-card term publish flags per academic year, term, and optional class scope. This page is evidence only." %}
+  </p>
+  {% if school %}
+  <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Rows" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ tps_total|default:0 }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Published" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ tps_published|default:0 }}</div>
+    </div>
+  </div>
+  {% endif %}
+  {% if not school %}
+  <p class="text-warning">{% trans "No tenant context — open this page on a school host." %}</p>
+  {% else %}
+  <p class="small text-muted mb-3">{% trans "School" %}: {{ school.name }}</p>
+  {% endif %}
+  <div class="d-flex flex-wrap gap-2 mb-3 cp-evidence-related" data-rmc-evidence-related-links="1" data-rmc-operator-evidence-related="1" aria-label="{% trans 'Related control-plane links' %}">
+    {% if scheduled_reports_hub_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ scheduled_reports_hub_url }}">{% trans "Scheduled report delivery" %}</a>
+    {% endif %}
+    {% if academic_years_setup_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ academic_years_setup_evidence_url }}">{% trans "Academic years (setup)" %}</a>
+    {% endif %}
+    {% if tenant_report_schedules_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ tenant_report_schedules_evidence_url }}">{% trans "Scheduled reports (evidence)" %}</a>
+    {% endif %}
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle" aria-label="{% trans 'Term publish status' %}">
+      <thead>
+        <tr>
+          <th>{% trans "Academic year" %}</th>
+          <th>{% trans "Term" %}</th>
+          <th>{% trans "Class" %}</th>
+          <th>{% trans "Published" %}</th>
+          <th>{% trans "Last published" %}</th>
+          <th>{% trans "By" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>{{ r.academic_year.name|default:"—" }}</td>
+          <td>{{ r.term.label }}</td>
+          <td>{% if r.classroom %}{{ r.classroom.name|default:r.classroom.code }}{% else %}<span class="text-muted">{% trans "Whole school" %}</span>{% endif %}</td>
+          <td>{% if r.is_published %}<span class="badge bg-success">{% trans "Yes" %}</span>{% else %}<span class="badge bg-secondary">{% trans "No" %}</span>{% endif %}</td>
+          <td class="text-nowrap">{% if r.published_at %}{{ r.published_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</td>
+          <td class="small">{% if r.published_by %}{{ r.published_by.get_full_name|default:r.published_by.email|default:r.published_by_id }}{% else %}—{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-muted">{% trans "No term publish status rows for this school yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if user.is_superuser and admin_termpublish_changelist_url %}
+  <div class="cp-evidence-advanced border-top pt-3 mt-3" data-rmc-evidence-advanced="1">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ admin_termpublish_changelist_url }}">{% trans "Advanced: Admin term publish rows" %}</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

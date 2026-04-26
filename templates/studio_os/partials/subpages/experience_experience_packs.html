@@ -19,8 +19,11 @@
     {% if theme_colors_url %}
     <p class="mb-1"><a href="{{ theme_colors_url }}">{% trans "Theme & colors" %}</a> — {% trans "Edit primary, accent, and design tokens used by experience packs." %}</p>
     {% endif %}
-    {% if admin_packs_url %}
-    <p class="mb-0"><a href="{{ admin_packs_url }}">{% trans "Manage experience packs" %}</a> — {% trans "Create and edit experience packs in the admin." %}</p>
+    {% if installed_packages_url %}
+    <p class="mb-1"><a href="{{ installed_packages_url }}">{% trans "Installed packages and rollback" %}</a> — {% trans "Governed tenant installs and rollback from Settings (CP-first)." %}</p>
+    {% endif %}
+    {% if user.is_superuser %}
+    <p class="mb-0 small text-muted">{% trans "Advanced: for full row CRUD, open the ExperiencePack model in the Django admin app list (admin URLs are not embedded in Studio templates)." %}</p>
     {% endif %}
   </div>
 </div>

@@ -1,0 +1,76 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block cp_title %}{% trans "Dynamic fields (EAV)" %} — RunMyCampus{% endblock %}
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Home" %}</a></li>
+    {% if metadata_operator_hub_url %}
+    <li class="breadcrumb-item"><a href="{{ metadata_operator_hub_url }}">{% trans "Metadata & lineage" %}</a></li>
+    {% endif %}
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Dynamic fields" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+{% block breadcrumb_actions %}
+<div class="btn-group btn-group-sm">
+  {% if entity_catalog_url %}
+  <a class="btn btn-outline-light" href="{{ entity_catalog_url }}">{% trans "Entity catalog" %}</a>
+  {% endif %}
+  {% if user.is_superuser and admin_dynamic_definition_url %}
+  <a class="btn btn-outline-secondary" href="{{ admin_dynamic_definition_url }}">{% trans "Advanced: Admin field definitions" %}</a>
+  {% endif %}
+  {% if user.is_superuser and admin_dynamic_value_url %}
+  <a class="btn btn-outline-secondary" href="{{ admin_dynamic_value_url }}">{% trans "Advanced: Admin field values" %}</a>
+  {% endif %}
+</div>
+{% endblock %}
+{% block cp_content %}
+<div class="container-fluid py-3" data-page-archetype="operator-report" data-shell-surface="metadata-dynamic-fields-operator" data-admin-replacement-category="metadata_dynamic_field_operator">
+  <h1 class="h4 text-white mb-2">{% trans "Dynamic field definitions" %}</h1>
+  <p class="text-white-50 small mb-2">
+    {% trans "Read-only list of EAV / dynamic field definitions and aggregate value counts. Create and edit rows in Django admin; prefer this view for triage and coverage." %}
+  </p>
+  <div class="row g-2 text-white-50 small mb-4">
+    <div class="col-auto"><span class="text-white">{% trans "Definitions" %}</span>: {{ total_definitions }}</div>
+    <div class="col-auto"><span class="text-white">{% trans "Active" %}</span>: {{ active_definitions }}</div>
+    <div class="col-auto"><span class="text-white">{% trans "Stored values (rows)" %}</span>: {{ total_values }}</div>
+  </div>
+  {% for section in operator_sections %}
+  <section class="mb-4" data-entity-type="{{ section.entity_type|escape }}">
+    <h2 class="h6 text-uppercase text-white-50 mb-2">{{ section.entity_type }} <span class="badge bg-secondary">{% trans "Value rows" %}: {{ section.value_row_count }}</span></h2>
+    <p class="small text-white-50 mb-0">{% trans "Per-entity value row counts include only keys matching this entity type." %}</p>
+    <div class="table-responsive mt-2">
+      <table class="table table-sm table-dark table-bordered">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Field key" %}</th>
+            <th scope="col">{% trans "Label" %}</th>
+            <th scope="col">{% trans "Type" %}</th>
+            <th scope="col">{% trans "Scope" %}</th>
+            <th scope="col">{% trans "Active" %}</th>
+            <th scope="col">{% trans "Required" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in section.definitions %}
+          <tr>
+            <td><code>{{ d.field_key }}</code></td>
+            <td>{{ d.label|default:"—" }}</td>
+            <td>{{ d.data_type }}</td>
+            <td>{% if d.school %}{{ d.school.name|default:d.school_id }}{% else %}{% trans "Platform-wide" %}{% endif %}</td>
+            <td>{% if d.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
+            <td>{% if d.required %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-muted">{% trans "No definitions in this group." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% empty %}
+  <p class="text-white-50">{% trans "No dynamic field definitions found." %}</p>
+  {% endfor %}
+</div>
+{% endblock %}

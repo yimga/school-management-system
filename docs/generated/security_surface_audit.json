@@ -1,0 +1,3960 @@
+{
+  "by_pattern": {
+    "allow_any": [
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/compliance/management/commands/verify_access_control.py",
+        "line": "385",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1310",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1370",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/schools/api_views.py",
+        "line": "7",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/schools/api_views.py",
+        "line": "41",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/schools/api_views.py",
+        "line": "44",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/schools/tests/test_batch955_control_plane_boundary.py",
+        "line": "4",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/schools/tests/test_school_config_api_hardening.py",
+        "line": "1",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/audit_security_surface.py",
+        "line": "7",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/build_phase8_security_ledger.py",
+        "line": "3",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/generate_platform_inventory.py",
+        "line": "530",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/generate_platform_inventory.py",
+        "line": "558",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/generate_platform_inventory.py",
+        "line": "559",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_allow_any_usage.py",
+        "line": "3",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_allow_any_usage.py",
+        "line": "105",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_allow_any_usage.py",
+        "line": "106",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_allow_any_usage.py",
+        "line": "113",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_allow_any_usage.py",
+        "line": "154",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_allow_any_usage.py",
+        "line": "159",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_allow_any_usage.py",
+        "line": "168",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_allow_any_usage.py",
+        "line": "174",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_allow_any_usage.py",
+        "line": "182",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_security_allowlist_density.py",
+        "line": "2",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_security_allowlist_density.py",
+        "line": "6",
+        "pattern": "allow_any"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_security_allowlist_density.py",
+        "line": "43",
+        "pattern": "allow_any"
+      }
+    ],
+    "csrf_exempt": [
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_saml.py",
+        "line": "187",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/api/oneroster_roster_webhook.py",
+        "line": "27",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/api/oneroster_roster_webhook.py",
+        "line": "80",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/api/scim_views.py",
+        "line": "428",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/api/scim_views.py",
+        "line": "564",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/api/scim_views.py",
+        "line": "705",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/api/scim_views.py",
+        "line": "769",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/billing/api_views.py",
+        "line": "90",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/finance/views_payments.py",
+        "line": "505",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/views_rum.py",
+        "line": "65",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_office.py",
+        "line": "131",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_office.py",
+        "line": "152",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/schools/section8_views.py",
+        "line": "655",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/schools/section8_views.py",
+        "line": "730",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/schools/section8_views.py",
+        "line": "770",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/schools/section8_views.py",
+        "line": "817",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/schools/section8_views.py",
+        "line": "943",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "unsafe",
+        "file": "config/graphql_view.py",
+        "line": "21",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "unsafe",
+        "file": "scripts/audit_security_surface.py",
+        "line": "6",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "unsafe",
+        "file": "scripts/audit_security_surface.py",
+        "line": "31",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "unsafe",
+        "file": "scripts/generate_platform_inventory.py",
+        "line": "82",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "unsafe",
+        "file": "scripts/lint_csrf_exempt_usage.py",
+        "line": "22",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "unsafe",
+        "file": "scripts/report_premium_maturity_signals.py",
+        "line": "21",
+        "pattern": "csrf_exempt"
+      }
+    ],
+    "cursor_execute": [
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "954",
+        "pattern": "cursor_execute"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "unsafe",
+        "file": "scripts/audit_security_surface.py",
+        "line": "8",
+        "pattern": "cursor_execute"
+      }
+    ],
+    "subprocess": [
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/dashboard/tests/test_phase9_security_gates.py",
+        "line": "15",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/finance/receipt_verification.py",
+        "line": "169",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/finance/receipt_verification.py",
+        "line": "171",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/finance/receipt_verification.py",
+        "line": "172",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/finance/receipt_verification.py",
+        "line": "186",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/platform_runtime/backlog_unlock_engine.py",
+        "line": "83",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/platform_runtime/backlog_unlock_engine.py",
+        "line": "90",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/platform_runtime/backlog_unlock_engine.py",
+        "line": "116",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/platform_runtime/backlog_unlock_engine.py",
+        "line": "123",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/platform_runtime/ollama_model_sync.py",
+        "line": "91",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/platform_runtime/ollama_model_sync.py",
+        "line": "100",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_audit_admin_and_security_surface.py",
+        "line": "16",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_audit_admin_and_security_surface.py",
+        "line": "17",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "75",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "99",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "113",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "143",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "172",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "198",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "224",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "251",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "277",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "304",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "331",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "357",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "383",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "409",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "435",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "461",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "486",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "519",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "552",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "590",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "629",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "667",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "705",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "743",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "776",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "803",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "833",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "1007",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "1107",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "1124",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+        "line": "1181",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_phase_b_execution_gate.py",
+        "line": "3",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_public_api_lints.py",
+        "line": "8",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_public_api_lints.py",
+        "line": "13",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_security_allowlists_verify.py",
+        "line": "17",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_sitesettings_python_surface_audit.py",
+        "line": "31",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "26",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "45",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "70",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "95",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "114",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "138",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "157",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "181",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "201",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "221",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "241",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "261",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "281",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "301",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "321",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "341",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "358",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "378",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "398",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "419",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "447",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "492",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "512",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "537",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "557",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "577",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "597",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "617",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "637",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "657",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "677",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "697",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "717",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "737",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "757",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "782",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "807",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "832",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "857",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "882",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "904",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "924",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "946",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "966",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "992",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1014",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1036",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1056",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1078",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1098",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1123",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1146",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1166",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1190",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1210",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1230",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1250",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1275",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1295",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1315",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1335",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1355",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1375",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1395",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1415",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1435",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1455",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1482",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1502",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1522",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1542",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1562",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1582",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1602",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1622",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1642",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1662",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1682",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1713",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1742",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1762",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+        "line": "1796",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/tests/test_wedge_line_registry.py",
+        "line": "32",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/portal/document_conversion.py",
+        "line": "137",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/portal/document_generation.py",
+        "line": "305",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/schools/tests/test_premium_maturity_signals_report.py",
+        "line": "20",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/schools/tests/test_premium_maturity_signals_report.py",
+        "line": "47",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/schools/tests/test_premium_maturity_signals_report.py",
+        "line": "71",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/schools/tests/test_program_phase10_phase11_gates.py",
+        "line": "16",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/schools/tests/test_repo_wide_ecosystem_marketing_audit.py",
+        "line": "16",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/schools/tests/test_ui_wiring_audit_script.py",
+        "line": "16",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/schools/tests/test_validate_wedges_phase.py",
+        "line": "25",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/schools/tests/test_wave4_tenant_scoping.py",
+        "line": "35",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/schools/tests/test_wedge_super_premium_phases.py",
+        "line": "32",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/siteconfig/management/commands/generate_models_diagram.py",
+        "line": "21",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/siteconfig/management/commands/generate_models_diagram.py",
+        "line": "22",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/siteconfig/management/commands/generate_models_diagram.py",
+        "line": "48",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/siteconfig/management/commands/generate_models_diagram.py",
+        "line": "74",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/siteconfig/management/commands/seed_cursor_twelve_phases.py",
+        "line": "367",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/siteconfig/management/commands/sync_regional_models.py",
+        "line": "25",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/siteconfig/management/commands/sync_regional_models.py",
+        "line": "40",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "product",
+        "classification": "needs_review",
+        "file": "apps/siteconfig/management/commands/sync_regional_models.py",
+        "line": "47",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/siteconfig/tests/test_theme_studio.py",
+        "line": "633",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/studio_os/tests/test_phase5_mechanical_gate.py",
+        "line": "13",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/audit_security_surface.py",
+        "line": "9",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/check_no_committed_env.py",
+        "line": "52",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/check_no_hardcoding.py",
+        "line": "72",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/check_no_hardcoding.py",
+        "line": "79",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/check_repo_hygiene.py",
+        "line": "71",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/check_repo_hygiene.py",
+        "line": "78",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/check_root_clutter.py",
+        "line": "71",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/dev/capture_backend_screenshot.py",
+        "line": "73",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/dev/capture_backend_screenshot.py",
+        "line": "76",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/dev/capture_backend_screenshot.py",
+        "line": "77",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/gen_models_png.py",
+        "line": "26",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/gen_models_png.py",
+        "line": "53",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/generate_platform_inventory.py",
+        "line": "119",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/generate_platform_inventory.py",
+        "line": "126",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_allow_any_usage.py",
+        "line": "44",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_allow_any_usage.py",
+        "line": "51",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_bounded_context_imports.py",
+        "line": "73",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_bounded_context_imports.py",
+        "line": "80",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_broad_except.py",
+        "line": "54",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_broad_except.py",
+        "line": "61",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_csrf_exempt_usage.py",
+        "line": "45",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_csrf_exempt_usage.py",
+        "line": "52",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_gilead_residue.py",
+        "line": "38",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_gilead_residue.py",
+        "line": "45",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_mega_files.py",
+        "line": "35",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_mega_files.py",
+        "line": "42",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_no_print_in_apps.py",
+        "line": "37",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_no_print_in_apps.py",
+        "line": "44",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_raw_sql_usage.py",
+        "line": "189",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_raw_sql_usage.py",
+        "line": "196",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_secret_exposure.py",
+        "line": "65",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_secret_exposure.py",
+        "line": "72",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_tenant_cache_prefix.py",
+        "line": "55",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_tenant_cache_prefix.py",
+        "line": "62",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_tenant_settings.py",
+        "line": "189",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/lint_tenant_settings.py",
+        "line": "196",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/refresh_marketplace_seed_targets.py",
+        "line": "48",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/report_premium_maturity_signals.py",
+        "line": "169",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/report_premium_maturity_signals.py",
+        "line": "182",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/reset_local_db.py",
+        "line": "35",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/run_sweep_ab.py",
+        "line": "43",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/run_theme_stress_matrix.py",
+        "line": "19",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/scan_repo_secrets.py",
+        "line": "64",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/scan_repo_secrets.py",
+        "line": "71",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/validate_legacy_replacements.py",
+        "line": "63",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/validate_wedge_super_premium_phases.py",
+        "line": "110",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/validate_wedges_phase.py",
+        "line": "49",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_ai_blueprint_completion.py",
+        "line": "38",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_ai_blueprint_completion.py",
+        "line": "45",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_cursor_phase6_granular.py",
+        "line": "67",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_cursor_phase6_granular.py",
+        "line": "74",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_cursor_phase6_granular.py",
+        "line": "88",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_cursor_phase6_granular.py",
+        "line": "95",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_cursor_phase6_siteconfig_sitesettings.py",
+        "line": "58",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_cursor_phase6_siteconfig_sitesettings.py",
+        "line": "65",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_cursor_phase7_granular.py",
+        "line": "53",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_cursor_phase7_runtime_first.py",
+        "line": "177",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_design_system_phase2.py",
+        "line": "122",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_gilead_full_tree_classification.py",
+        "line": "100",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_gilead_full_tree_classification.py",
+        "line": "107",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_operator_phase10_11_e2e.py",
+        "line": "40",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_phase1_settings_gravity.py",
+        "line": "67",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_phase1_settings_gravity.py",
+        "line": "173",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_phase2_authenticated_shell_conformance.py",
+        "line": "48",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_phase2_authenticated_shell_conformance.py",
+        "line": "55",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_phase_5_siteconfig.py",
+        "line": "511",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_phase_5_siteconfig.py",
+        "line": "518",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_phases_3_11_gates.py",
+        "line": "66",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_repo_wide_ecosystem_marketing_audit.py",
+        "line": "39",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_repo_wide_ecosystem_marketing_audit.py",
+        "line": "46",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_section10_5_layers.py",
+        "line": "27",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_section10_5_layers.py",
+        "line": "34",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_section7_gate.py",
+        "line": "128",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_section7_gate.py",
+        "line": "143",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_security_allowlist_density.py",
+        "line": "70",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_ui_wiring_audit.py",
+        "line": "74",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_ui_wiring_audit.py",
+        "line": "81",
+        "pattern": "subprocess"
+      }
+    ]
+  },
+  "generated_at": "2026-04-26T23:24:49.752676+00:00",
+  "known_csrf_exempt_product_paths": [
+    "apps/accounts/views_saml.py",
+    "apps/api/oneroster_roster_webhook.py",
+    "apps/api/scim_views.py",
+    "apps/billing/api_views.py",
+    "apps/finance/views_payments.py",
+    "apps/platform_runtime/views_rum.py",
+    "apps/portal/views_office.py",
+    "apps/schools/section8_views.py"
+  ],
+  "schema_version": 1,
+  "summary": {
+    "allow_any": 25,
+    "csrf_exempt": 23,
+    "cursor_execute": 2,
+    "subprocess": 230
+  },
+  "summary_by_classification": {
+    "allowed": 155,
+    "needs_review": 118,
+    "unsafe": 7
+  },
+  "totals": {
+    "hits": 280
+  },
+  "unified": [
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/compliance/management/commands/verify_access_control.py",
+      "line": "385",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1310",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1370",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/schools/api_views.py",
+      "line": "7",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/schools/api_views.py",
+      "line": "41",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/schools/api_views.py",
+      "line": "44",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/schools/tests/test_batch955_control_plane_boundary.py",
+      "line": "4",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/schools/tests/test_school_config_api_hardening.py",
+      "line": "1",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/audit_security_surface.py",
+      "line": "7",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/build_phase8_security_ledger.py",
+      "line": "3",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/generate_platform_inventory.py",
+      "line": "530",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/generate_platform_inventory.py",
+      "line": "558",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/generate_platform_inventory.py",
+      "line": "559",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_allow_any_usage.py",
+      "line": "3",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_allow_any_usage.py",
+      "line": "105",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_allow_any_usage.py",
+      "line": "106",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_allow_any_usage.py",
+      "line": "113",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_allow_any_usage.py",
+      "line": "154",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_allow_any_usage.py",
+      "line": "159",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_allow_any_usage.py",
+      "line": "168",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_allow_any_usage.py",
+      "line": "174",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_allow_any_usage.py",
+      "line": "182",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_security_allowlist_density.py",
+      "line": "2",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_security_allowlist_density.py",
+      "line": "6",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_security_allowlist_density.py",
+      "line": "43",
+      "pattern": "allow_any"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_saml.py",
+      "line": "187",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/api/oneroster_roster_webhook.py",
+      "line": "27",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/api/oneroster_roster_webhook.py",
+      "line": "80",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/api/scim_views.py",
+      "line": "428",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/api/scim_views.py",
+      "line": "564",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/api/scim_views.py",
+      "line": "705",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/api/scim_views.py",
+      "line": "769",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/billing/api_views.py",
+      "line": "90",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/finance/views_payments.py",
+      "line": "505",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/views_rum.py",
+      "line": "65",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_office.py",
+      "line": "131",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_office.py",
+      "line": "152",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/schools/section8_views.py",
+      "line": "655",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/schools/section8_views.py",
+      "line": "730",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/schools/section8_views.py",
+      "line": "770",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/schools/section8_views.py",
+      "line": "817",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/schools/section8_views.py",
+      "line": "943",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "unsafe",
+      "file": "config/graphql_view.py",
+      "line": "21",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "unsafe",
+      "file": "scripts/audit_security_surface.py",
+      "line": "6",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "unsafe",
+      "file": "scripts/audit_security_surface.py",
+      "line": "31",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "unsafe",
+      "file": "scripts/generate_platform_inventory.py",
+      "line": "82",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "unsafe",
+      "file": "scripts/lint_csrf_exempt_usage.py",
+      "line": "22",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "unsafe",
+      "file": "scripts/report_premium_maturity_signals.py",
+      "line": "21",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "954",
+      "pattern": "cursor_execute"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "unsafe",
+      "file": "scripts/audit_security_surface.py",
+      "line": "8",
+      "pattern": "cursor_execute"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/dashboard/tests/test_phase9_security_gates.py",
+      "line": "15",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/finance/receipt_verification.py",
+      "line": "169",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/finance/receipt_verification.py",
+      "line": "171",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/finance/receipt_verification.py",
+      "line": "172",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/finance/receipt_verification.py",
+      "line": "186",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/platform_runtime/backlog_unlock_engine.py",
+      "line": "83",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/platform_runtime/backlog_unlock_engine.py",
+      "line": "90",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/platform_runtime/backlog_unlock_engine.py",
+      "line": "116",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/platform_runtime/backlog_unlock_engine.py",
+      "line": "123",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/platform_runtime/ollama_model_sync.py",
+      "line": "91",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/platform_runtime/ollama_model_sync.py",
+      "line": "100",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_audit_admin_and_security_surface.py",
+      "line": "16",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_audit_admin_and_security_surface.py",
+      "line": "17",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "75",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "99",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "113",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "143",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "172",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "198",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "224",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "251",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "277",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "304",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "331",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "357",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "383",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "409",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "435",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "461",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "486",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "519",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "552",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "590",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "629",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "667",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "705",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "743",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "776",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "803",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "833",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "1007",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "1107",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "1124",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "1181",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_phase_b_execution_gate.py",
+      "line": "3",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_public_api_lints.py",
+      "line": "8",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_public_api_lints.py",
+      "line": "13",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_security_allowlists_verify.py",
+      "line": "17",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_sitesettings_python_surface_audit.py",
+      "line": "31",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "26",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "45",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "70",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "95",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "114",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "138",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "157",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "181",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "201",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "221",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "241",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "261",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "281",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "301",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "321",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "341",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "358",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "378",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "398",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "419",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "447",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "492",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "512",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "537",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "557",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "577",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "597",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "617",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "637",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "657",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "677",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "697",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "717",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "737",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "757",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "782",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "807",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "832",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "857",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "882",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "904",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "924",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "946",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "966",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "992",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1014",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1036",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1056",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1078",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1098",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1123",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1146",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1166",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1190",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1210",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1230",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1250",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1275",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1295",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1315",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1335",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1355",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1375",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1395",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1415",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1435",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1455",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1482",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1502",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1522",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1542",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1562",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1582",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1602",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1622",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1642",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1662",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1682",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1713",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1742",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1762",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1796",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/tests/test_wedge_line_registry.py",
+      "line": "32",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/portal/document_conversion.py",
+      "line": "137",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/portal/document_generation.py",
+      "line": "305",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/schools/tests/test_premium_maturity_signals_report.py",
+      "line": "20",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/schools/tests/test_premium_maturity_signals_report.py",
+      "line": "47",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/schools/tests/test_premium_maturity_signals_report.py",
+      "line": "71",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/schools/tests/test_program_phase10_phase11_gates.py",
+      "line": "16",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/schools/tests/test_repo_wide_ecosystem_marketing_audit.py",
+      "line": "16",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/schools/tests/test_ui_wiring_audit_script.py",
+      "line": "16",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/schools/tests/test_validate_wedges_phase.py",
+      "line": "25",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/schools/tests/test_wave4_tenant_scoping.py",
+      "line": "35",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/schools/tests/test_wedge_super_premium_phases.py",
+      "line": "32",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/siteconfig/management/commands/generate_models_diagram.py",
+      "line": "21",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/siteconfig/management/commands/generate_models_diagram.py",
+      "line": "22",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/siteconfig/management/commands/generate_models_diagram.py",
+      "line": "48",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/siteconfig/management/commands/generate_models_diagram.py",
+      "line": "74",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/siteconfig/management/commands/seed_cursor_twelve_phases.py",
+      "line": "367",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/siteconfig/management/commands/sync_regional_models.py",
+      "line": "25",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/siteconfig/management/commands/sync_regional_models.py",
+      "line": "40",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/siteconfig/management/commands/sync_regional_models.py",
+      "line": "47",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/siteconfig/tests/test_theme_studio.py",
+      "line": "633",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/studio_os/tests/test_phase5_mechanical_gate.py",
+      "line": "13",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/audit_security_surface.py",
+      "line": "9",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/check_no_committed_env.py",
+      "line": "52",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/check_no_hardcoding.py",
+      "line": "72",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/check_no_hardcoding.py",
+      "line": "79",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/check_repo_hygiene.py",
+      "line": "71",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/check_repo_hygiene.py",
+      "line": "78",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/check_root_clutter.py",
+      "line": "71",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/dev/capture_backend_screenshot.py",
+      "line": "73",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/dev/capture_backend_screenshot.py",
+      "line": "76",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/dev/capture_backend_screenshot.py",
+      "line": "77",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/gen_models_png.py",
+      "line": "26",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/gen_models_png.py",
+      "line": "53",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/generate_platform_inventory.py",
+      "line": "119",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/generate_platform_inventory.py",
+      "line": "126",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_allow_any_usage.py",
+      "line": "44",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_allow_any_usage.py",
+      "line": "51",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_bounded_context_imports.py",
+      "line": "73",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_bounded_context_imports.py",
+      "line": "80",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_broad_except.py",
+      "line": "54",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_broad_except.py",
+      "line": "61",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_csrf_exempt_usage.py",
+      "line": "45",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_csrf_exempt_usage.py",
+      "line": "52",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_gilead_residue.py",
+      "line": "38",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_gilead_residue.py",
+      "line": "45",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_mega_files.py",
+      "line": "35",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_mega_files.py",
+      "line": "42",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_no_print_in_apps.py",
+      "line": "37",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_no_print_in_apps.py",
+      "line": "44",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_raw_sql_usage.py",
+      "line": "189",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_raw_sql_usage.py",
+      "line": "196",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_secret_exposure.py",
+      "line": "65",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_secret_exposure.py",
+      "line": "72",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_tenant_cache_prefix.py",
+      "line": "55",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_tenant_cache_prefix.py",
+      "line": "62",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_tenant_settings.py",
+      "line": "189",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/lint_tenant_settings.py",
+      "line": "196",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/refresh_marketplace_seed_targets.py",
+      "line": "48",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/report_premium_maturity_signals.py",
+      "line": "169",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/report_premium_maturity_signals.py",
+      "line": "182",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/reset_local_db.py",
+      "line": "35",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/run_sweep_ab.py",
+      "line": "43",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/run_theme_stress_matrix.py",
+      "line": "19",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/scan_repo_secrets.py",
+      "line": "64",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/scan_repo_secrets.py",
+      "line": "71",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/validate_legacy_replacements.py",
+      "line": "63",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/validate_wedge_super_premium_phases.py",
+      "line": "110",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/validate_wedges_phase.py",
+      "line": "49",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_ai_blueprint_completion.py",
+      "line": "38",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_ai_blueprint_completion.py",
+      "line": "45",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_cursor_phase6_granular.py",
+      "line": "67",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_cursor_phase6_granular.py",
+      "line": "74",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_cursor_phase6_granular.py",
+      "line": "88",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_cursor_phase6_granular.py",
+      "line": "95",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_cursor_phase6_siteconfig_sitesettings.py",
+      "line": "58",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_cursor_phase6_siteconfig_sitesettings.py",
+      "line": "65",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_cursor_phase7_granular.py",
+      "line": "53",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_cursor_phase7_runtime_first.py",
+      "line": "177",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_design_system_phase2.py",
+      "line": "122",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_gilead_full_tree_classification.py",
+      "line": "100",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_gilead_full_tree_classification.py",
+      "line": "107",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_operator_phase10_11_e2e.py",
+      "line": "40",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_phase1_settings_gravity.py",
+      "line": "67",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_phase1_settings_gravity.py",
+      "line": "173",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_phase2_authenticated_shell_conformance.py",
+      "line": "48",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_phase2_authenticated_shell_conformance.py",
+      "line": "55",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_phase_5_siteconfig.py",
+      "line": "511",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_phase_5_siteconfig.py",
+      "line": "518",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_phases_3_11_gates.py",
+      "line": "66",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_repo_wide_ecosystem_marketing_audit.py",
+      "line": "39",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_repo_wide_ecosystem_marketing_audit.py",
+      "line": "46",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_section10_5_layers.py",
+      "line": "27",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_section10_5_layers.py",
+      "line": "34",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_section7_gate.py",
+      "line": "128",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_section7_gate.py",
+      "line": "143",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_security_allowlist_density.py",
+      "line": "70",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_ui_wiring_audit.py",
+      "line": "74",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_ui_wiring_audit.py",
+      "line": "81",
+      "pattern": "subprocess"
+    }
+  ]
+}

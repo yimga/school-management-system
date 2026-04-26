@@ -30,7 +30,7 @@ from apps.people.models import TeacherProfile
 from apps.siteconfig.cache_utils import tenant_cache_key
 from apps.finance.models import Notification
 from apps.accounts.utils import get_dashboard_context
-from apps.platform_runtime.helpers import (
+from apps.platform_runtime.site_settings_read_access import (
     get_effective_flags,
     get_effective_site_settings,
 )

@@ -14,7 +14,7 @@ from django.utils.translation import gettext as _
 from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import StudentProfile, TeacherProfile
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.siteconfig.staff_navigation import site_settings_change_url
 

@@ -1,0 +1,58 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block cp_title %}{% trans "Config mutation audit" %} — RunMyCampus{% endblock %}
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Home" %}</a></li>
+    {% if metadata_operator_hub_url %}
+    <li class="breadcrumb-item"><a href="{{ metadata_operator_hub_url }}">{% trans "Metadata & lineage" %}</a></li>
+    {% endif %}
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Config mutation audit" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+{% block breadcrumb_actions %}
+<div class="btn-group btn-group-sm">
+  {% if feature_control_audit_url %}
+  <a class="btn btn-outline-light" href="{{ feature_control_audit_url }}">{% trans "Feature audit" %}</a>
+  {% endif %}
+  {% if user.is_superuser and admin_config_mutation_changelist_url %}
+  <a class="btn btn-outline-secondary" href="{{ admin_config_mutation_changelist_url }}">{% trans "Advanced: Admin audit rows (CRUD)" %}</a>
+  {% endif %}
+</div>
+{% endblock %}
+{% block cp_content %}
+<div class="container-fluid py-3" data-page-archetype="operator-report" data-shell-surface="config-mutation-audit-evidence" data-admin-replacement-category="audit_rollback_staging_evidence">
+  <h1 class="h4 text-white mb-2">{% trans "Config mutation audit (evidence)" %}</h1>
+  <p class="text-white-50 small mb-3">
+    {% trans "Read-only view of the latest config mutation log rows. Use Django admin for row-level changes or deep filters." %}
+  </p>
+  <div class="table-responsive">
+    <table class="table table-sm table-dark table-bordered" aria-label="{% trans 'Config mutation audit' %}">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "When" %}</th>
+          <th scope="col">{% trans "Scope" %}</th>
+          <th scope="col">{% trans "Target" %}</th>
+          <th scope="col">{% trans "Summary" %}</th>
+          <th scope="col">{% trans "Reason" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td class="text-nowrap">{{ r.created_at|date:"Y-m-d H:i" }}</td>
+          <td><span class="badge bg-secondary">{{ r.scope }}</span></td>
+          <td><code>{{ r.target_type }}</code>{% if r.target_id %} <span class="text-white-50">#{{ r.target_id|truncatechars:24 }}</span>{% endif %}</td>
+          <td class="small">{{ r.impact_summary|default:"—"|truncatechars:120 }}</td>
+          <td class="small">{{ r.reason|default:"—"|truncatechars:80 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-muted">{% trans "No config mutation events recorded yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

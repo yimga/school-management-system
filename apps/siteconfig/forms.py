@@ -11,7 +11,7 @@ from django.db.models import Q
 from apps.academics.models import Classroom
 from apps.brand_experience.models import ThemePack
 from apps.brand_experience.platform_global_branding import PlatformGlobalBranding
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from apps.platform_runtime.models import RuntimeDefaults
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.runtime_blueprints.models import ReportCardStyle
@@ -1231,7 +1231,7 @@ class ThemeColorsForm(forms.ModelForm):
         instance = getattr(self, "instance", None)
         if instance is None and request is not None:
             try:
-                from apps.platform_runtime.helpers import get_effective_site_settings
+                from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
                 instance = get_effective_site_settings(request=request)
                 if instance is not None:
@@ -1459,7 +1459,7 @@ class ThemeColorsForm(forms.ModelForm):
         instance = self.instance
         if instance is None:
             try:
-                from apps.platform_runtime.helpers import get_effective_site_settings
+                from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
                 instance = get_effective_site_settings(request=None)
             except _SITECONFIG_FORMS_RESOLVE_ERRORS:

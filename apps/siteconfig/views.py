@@ -15,7 +15,7 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.core.management import CommandError, call_command
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
@@ -31,10 +31,8 @@ from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
 from apps.brand_experience.models import ThemePack
 from apps.people.models import StudentProfile
-from apps.platform_runtime.helpers import (
-    get_effective_site_settings,
-    get_platform_defaults,
-)
+from apps.platform_runtime.helpers import get_platform_defaults
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from apps.platform_runtime.structured_logging import log_view_exception
 from apps.policies.policy_registry import get_effective_policy
 from apps.reports.models import ReportCard
@@ -623,6 +621,29 @@ def build_reportcard_builder_context(
     if workflow_step not in {"style", "assignment", "selection"}:
         workflow_step = "style"
 
+    scheduled_reports_delivery_hub_url = None
+    report_output_history_evidence_url = None
+    try:
+        scheduled_reports_delivery_hub_url = reverse(
+            "siteconfig:scheduled_reports_delivery_hub"
+        )
+    except NoReverseMatch:
+        pass
+    try:
+        report_output_history_evidence_url = reverse(
+            "siteconfig:report_output_history_evidence"
+        )
+    except NoReverseMatch:
+        pass
+    report_templates_catalog_evidence_url = None
+    try:
+        report_templates_catalog_evidence_url = reverse(
+            "siteconfig:report_templates_catalog_evidence"
+        )
+    except NoReverseMatch:
+        pass
+    from apps.siteconfig.models_tooling import REPORT_EXPORT_HANDLERS
+
     return {
         # Effective tenant settings row for builder UI (avoid template name `settings`: confusable with django.conf).
         "site_settings": settings_obj,
@@ -642,6 +663,10 @@ def build_reportcard_builder_context(
         "selection_form": selection_form,
         "workflow_step": workflow_step,
         "studio_output_native": studio_output_native,
+        "scheduled_reports_delivery_hub_url": scheduled_reports_delivery_hub_url,
+        "report_output_history_evidence_url": report_output_history_evidence_url,
+        "report_templates_catalog_evidence_url": report_templates_catalog_evidence_url,
+        "export_handler_registry_count": len(REPORT_EXPORT_HANDLERS),
     }
 
 
@@ -699,13 +724,32 @@ def scheduled_reports_delivery_hub(request):
     """
     school = getattr(request, "school", None)
     schedules = []
+    schedule_summary = {
+        "schedule_total": 0,
+        "active_count": 0,
+        "inactive_count": 0,
+        "distinct_report_keys": 0,
+        "with_last_run": 0,
+        "active_past_due_next": 0,
+    }
     if school:
         from apps.reports.models import TenantReportSchedule
 
-        schedules = list(
-            TenantReportSchedule.objects.filter(school=school).order_by("next_run")[:100]
+        qs = TenantReportSchedule.objects.filter(school=school)
+        now = timezone.now()
+        agg = qs.aggregate(
+            schedule_total=Count("id"),
+            active_count=Count("id", filter=Q(is_active=True)),
+            inactive_count=Count("id", filter=Q(is_active=False)),
+            distinct_report_keys=Count("report_key", distinct=True),
+            with_last_run=Count("id", filter=Q(last_run__isnull=False)),
+            active_past_due_next=Count(
+                "id", filter=Q(is_active=True, next_run__lte=now)
+            ),
         )
-    ctx = {"school": school, "schedules": schedules}
+        schedule_summary = {k: int(v or 0) for k, v in agg.items()}
+        schedules = list(qs.order_by("next_run")[:100])
+    ctx = {"school": school, "schedules": schedules, "schedule_summary": schedule_summary}
     user = getattr(request, "user", None)
     if user is not None and getattr(user, "is_authenticated", False) and getattr(
         user, "is_staff", False
@@ -722,6 +766,60 @@ def scheduled_reports_delivery_hub(request):
         ctx["reports_scheduled_api_list_url"] = reverse("api_v1:reports-scheduled-list")
     except NoReverseMatch:
         ctx["reports_scheduled_api_list_url"] = None
+    try:
+        ctx["operator_bulk_letters_url"] = reverse("siteconfig:bulk_letters")
+    except NoReverseMatch:
+        ctx["operator_bulk_letters_url"] = None
+    try:
+        ctx["operator_reportcard_builder_url"] = reverse("siteconfig:reportcard_builder")
+    except NoReverseMatch:
+        ctx["operator_reportcard_builder_url"] = None
+    try:
+        ctx["operator_studio_output_reports_url"] = reverse("studio_os:output") + "?pane=reports"
+    except NoReverseMatch:
+        ctx["operator_studio_output_reports_url"] = None
+    try:
+        ctx["operator_term_publish_evidence_url"] = reverse(
+            "siteconfig:term_publish_status_evidence"
+        )
+    except NoReverseMatch:
+        ctx["operator_term_publish_evidence_url"] = None
+    try:
+        ctx["operator_academic_years_evidence_url"] = reverse(
+            "siteconfig:academic_years_setup_evidence"
+        )
+    except NoReverseMatch:
+        ctx["operator_academic_years_evidence_url"] = None
+    try:
+        ctx["operator_departments_setup_evidence_url"] = reverse(
+            "siteconfig:departments_setup_evidence"
+        )
+    except NoReverseMatch:
+        ctx["operator_departments_setup_evidence_url"] = None
+    try:
+        ctx["operator_config_mutation_audit_evidence_url"] = reverse(
+            "siteconfig:config_mutation_audit_evidence"
+        )
+    except NoReverseMatch:
+        ctx["operator_config_mutation_audit_evidence_url"] = None
+    try:
+        ctx["operator_tenant_report_schedules_evidence_url"] = reverse(
+            "siteconfig:tenant_report_schedules_evidence"
+        )
+    except NoReverseMatch:
+        ctx["operator_tenant_report_schedules_evidence_url"] = None
+    try:
+        ctx["operator_report_templates_catalog_url"] = reverse(
+            "siteconfig:report_templates_catalog_evidence"
+        )
+    except NoReverseMatch:
+        ctx["operator_report_templates_catalog_url"] = None
+    try:
+        ctx["operator_report_output_history_evidence_url"] = reverse(
+            "siteconfig:report_output_history_evidence"
+        )
+    except NoReverseMatch:
+        ctx["operator_report_output_history_evidence_url"] = None
     return render(
         request,
         "siteconfig/scheduled_reports_delivery_hub.html",
@@ -1212,6 +1310,38 @@ def _get_classrooms_queryset():
 BULK_LETTER_BODY_MAX_LENGTH = 100_000
 
 
+def _bulk_letters_page_context(request, classroom_list, form_data):
+    """Operator markers, related CP links, and read-only summary for bulk letters (1098/1072)."""
+    total_students = sum(item["student_count"] for item in classroom_list)
+    ctx = {
+        "classroom_list": classroom_list,
+        "form_data": form_data,
+        "bulk_letters_operator_summary": {
+            "classrooms": len(classroom_list),
+            "students_total": total_students,
+        },
+    }
+    for key, viewname in (
+        ("scheduled_reports_delivery_hub_url", "siteconfig:scheduled_reports_delivery_hub"),
+        ("report_templates_catalog_evidence_url", "siteconfig:report_templates_catalog_evidence"),
+        ("report_output_history_evidence_url", "siteconfig:report_output_history_evidence"),
+    ):
+        try:
+            ctx[key] = reverse(viewname)
+        except NoReverseMatch:
+            ctx[key] = None
+    ctx["admin_report_template_changelist_url"] = None
+    user = getattr(request, "user", None)
+    if user is not None and getattr(user, "is_superuser", False):
+        try:
+            ctx["admin_report_template_changelist_url"] = reverse(
+                "admin:siteconfig_reporttemplate_changelist"
+            )
+        except NoReverseMatch:
+            ctx["admin_report_template_changelist_url"] = None
+    return ctx
+
+
 def _bulk_letters_form_data(request):
     """Extract form data from POST for re-display on validation errors."""
     letter_body = request.POST.get("letter_body") or ""
@@ -1243,7 +1373,7 @@ def bulk_letters(request):
         return render(
             request,
             "siteconfig/bulk_letters.html",
-            {"classroom_list": classroom_list, "form_data": None},
+            _bulk_letters_page_context(request, classroom_list, None),
         )
     form_data = _bulk_letters_form_data(request)
     classroom_id = form_data["classroom_id"]
@@ -1255,7 +1385,7 @@ def bulk_letters(request):
         return render(
             request,
             "siteconfig/bulk_letters.html",
-            {"classroom_list": classroom_list, "form_data": form_data},
+            _bulk_letters_page_context(request, classroom_list, form_data),
         )
     if len(letter_body) > BULK_LETTER_BODY_MAX_LENGTH:
         messages.warning(
@@ -1265,7 +1395,7 @@ def bulk_letters(request):
         return render(
             request,
             "siteconfig/bulk_letters.html",
-            {"classroom_list": classroom_list, "form_data": form_data},
+            _bulk_letters_page_context(request, classroom_list, form_data),
         )
     classroom = None
     if classroom_id:
@@ -1278,7 +1408,7 @@ def bulk_letters(request):
         return render(
             request,
             "siteconfig/bulk_letters.html",
-            {"classroom_list": classroom_list, "form_data": form_data},
+            _bulk_letters_page_context(request, classroom_list, form_data),
         )
     students = StudentProfile.objects.filter(classroom=classroom).order_by(
         "last_name", "first_name"
@@ -1288,7 +1418,7 @@ def bulk_letters(request):
         return render(
             request,
             "siteconfig/bulk_letters.html",
-            {"classroom_list": classroom_list, "form_data": form_data},
+            _bulk_letters_page_context(request, classroom_list, form_data),
         )
     try:
         from apps.portal.document_generation import html_to_odt
@@ -1299,7 +1429,7 @@ def bulk_letters(request):
         return render(
             request,
             "siteconfig/bulk_letters.html",
-            {"classroom_list": classroom_list, "form_data": form_data},
+            _bulk_letters_page_context(request, classroom_list, form_data),
         )
     if include_pdf:
         try:
@@ -1311,7 +1441,7 @@ def bulk_letters(request):
             return render(
                 request,
                 "siteconfig/bulk_letters.html",
-                {"classroom_list": classroom_list, "form_data": form_data},
+                _bulk_letters_page_context(request, classroom_list, form_data),
             )
     buf = io.BytesIO()
     pdf_skipped = []  # list of "LastName FirstName (reason)" when PDF conversion is skipped
@@ -1339,7 +1469,7 @@ def bulk_letters(request):
                 return render(
                     request,
                     "siteconfig/bulk_letters.html",
-                    {"classroom_list": classroom_list, "form_data": form_data},
+                    _bulk_letters_page_context(request, classroom_list, form_data),
                 )
             safe_name = f"{last_name}_{first_name}_{student_code}".replace(" ", "_")
             zf.writestr(f"letter_{safe_name}.odt", odt_bytes)
@@ -2182,10 +2312,10 @@ def region_validation_dashboard(request):
     Dashboard showing regional configuration status and validation warnings.
     Displays completeness checks for each region.
     """
-    from django.db.models import Count
     import pytz
     from apps.academics.models import AcademicYear
 
+    # Reverse relation name for annotate matches active migrations/ORM (see validate_regions, admin).
     regions = RegionConfig.objects.annotate(
         grading_scales_count=Count("gradingscaleconfig"),
         holidays_count=Count("holidays"),
@@ -2257,7 +2387,9 @@ def region_validation_dashboard(request):
                 severity = "warning"
 
         # Check holiday coverage for current year
-        current_year = AcademicYear.objects.filter(is_current=True).first()
+        current_year = AcademicYear.objects.filter(is_active=True).order_by(
+            "-start_date"
+        ).first()
         if current_year:
             holidays_for_year = HolidayCalendar.objects.filter(
                 region=region, academic_year=current_year
@@ -2296,7 +2428,7 @@ def region_validation_dashboard(request):
         "total_issues": issues_count,
     }
 
-    return render(request, "admin/region_validation_dashboard.html", context)
+    return render(request, "siteconfig/region_validation_dashboard.html", context)
 
 
 @staff_member_required(login_url=settings.LOGIN_URL)
@@ -2322,13 +2454,17 @@ def region_comparison_view(request):
         "Student Portal": ["✓" if r.enable_student_portal else "✗" for r in regions],
     }
 
+    comparison_rows = [
+        {"label": k, "values": v} for k, v in comparison_data.items()
+    ]
+
     context = {
         "regions": regions,
         "comparison_data": comparison_data,
-        "settings_list": comparison_data.keys(),
+        "comparison_rows": comparison_rows,
     }
 
-    return render(request, "admin/region_comparison.html", context)
+    return render(request, "siteconfig/region_comparison.html", context)
 
 
 @staff_member_required(login_url=settings.LOGIN_URL)
@@ -2340,9 +2476,9 @@ def region_grading_scales_view(request):
     scales_by_region = {}
 
     for region in RegionConfig.objects.all():
-        scales_by_region[region] = region.gradingscaleconfig_set.all().order_by(
-            "scale_type"
-        )
+        scales_by_region[region] = GradingScaleConfig.objects.filter(
+            region=region
+        ).order_by("scale_type")
 
     # Prepare comparison matrix
     scale_types = _known_scale_types()
@@ -2352,7 +2488,7 @@ def region_grading_scales_view(request):
         "scale_types": scale_types,
     }
 
-    return render(request, "admin/region_grading_scales.html", context)
+    return render(request, "siteconfig/region_grading_scales_matrix.html", context)
 
 
 @login_required

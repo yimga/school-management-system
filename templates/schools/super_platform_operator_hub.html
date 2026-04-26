@@ -94,7 +94,7 @@
         <div class="cpoh-app-block">
           <div class="cpoh-app-head">
             <p class="cpoh-app-name">{{ app.name }}</p>
-            <a href="{% url 'admin:app_list' app.app_label %}" class="btn btn-sm btn-outline-light">{% trans "App" %}</a>
+            <a href="{% url 'admin:app_list' app.app_label %}" class="btn btn-sm btn-outline-light">{% trans "Advanced: Admin app" %}</a>
           </div>
           <ul class="list-unstyled mb-0 platform-op-hub-models">
             {% for model in app.models %}

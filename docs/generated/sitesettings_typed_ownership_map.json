@@ -1,0 +1,412 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-04-26T11:48:08.682846+00:00",
+  "source_module": "apps/siteconfig/domain_ownership.py",
+  "field_count": 101,
+  "fields": {
+    "accent_color": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "admin_portal_stats_config": {
+      "ownership_domain": "runtime_blueprints",
+      "phase_b_category": "runtime_payload"
+    },
+    "admin_theme_pack": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "admin_use_site_primary": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "admission_number_mode": {
+      "ownership_domain": "runtime_blueprints",
+      "phase_b_category": "runtime_payload"
+    },
+    "admission_number_pattern": {
+      "ownership_domain": "runtime_blueprints",
+      "phase_b_category": "runtime_payload"
+    },
+    "admission_number_strategy": {
+      "ownership_domain": "runtime_blueprints",
+      "phase_b_category": "runtime_payload"
+    },
+    "admission_number_template": {
+      "ownership_domain": "runtime_blueprints",
+      "phase_b_category": "runtime_payload"
+    },
+    "ai_provider_api_key": {
+      "ownership_domain": "marketplace_integrations",
+      "phase_b_category": "typed_migration_target"
+    },
+    "auto_tag_photos_from_exif": {
+      "ownership_domain": "documents",
+      "phase_b_category": "runtime_payload"
+    },
+    "backend_console_theme": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "backend_feature_flags": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "branded_domain": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "cache_rankings_interval_minutes": {
+      "ownership_domain": "safe_platform_default",
+      "phase_b_category": "runtime_payload"
+    },
+    "company_address": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "company_email": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "company_name": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "company_phone": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "company_slug": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "compliance_profile_id": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "country": {
+      "ownership_domain": "global_registries",
+      "phase_b_category": "runtime_payload"
+    },
+    "custom_css": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "danger_color": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "default_annual_report_style": {
+      "ownership_domain": "reports",
+      "phase_b_category": "runtime_payload"
+    },
+    "default_dashboard_view": {
+      "ownership_domain": "runtime_blueprints",
+      "phase_b_category": "runtime_payload"
+    },
+    "default_grading_scale": {
+      "ownership_domain": "global_registries",
+      "phase_b_category": "runtime_payload"
+    },
+    "default_portal_role_dual_role": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "default_refresh_rate": {
+      "ownership_domain": "runtime_blueprints",
+      "phase_b_category": "runtime_payload"
+    },
+    "default_region": {
+      "ownership_domain": "global_registries",
+      "phase_b_category": "runtime_payload"
+    },
+    "default_report_preview_type": {
+      "ownership_domain": "reports",
+      "phase_b_category": "runtime_payload"
+    },
+    "default_sidebar_collapsed": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "default_term_report_style": {
+      "ownership_domain": "reports",
+      "phase_b_category": "runtime_payload"
+    },
+    "default_widgets_per_role": {
+      "ownership_domain": "runtime_blueprints",
+      "phase_b_category": "runtime_payload"
+    },
+    "email_from_address": {
+      "ownership_domain": "marketplace_integrations",
+      "phase_b_category": "typed_migration_target"
+    },
+    "enable_concurrent_mark_uploads": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "enable_offline_mode": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "enable_parent_portal": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "enable_practical_assessment": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "enable_reports_pdf": {
+      "ownership_domain": "reports",
+      "phase_b_category": "runtime_payload"
+    },
+    "enable_teacher_portal": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "enable_whatsapp_parent_portal": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "enable_whatsapp_staff_portal": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "favicon": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "footer_bg_color": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "grade_approval_auto_validate": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "grade_approval_enabled": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "header_bg_color": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "maintenance_mode": {
+      "ownership_domain": "safe_platform_default",
+      "phase_b_category": "slim_physical_row"
+    },
+    "marketplace_partner_client_secret": {
+      "ownership_domain": "marketplace_integrations",
+      "phase_b_category": "typed_migration_target"
+    },
+    "marksheet_ocr_api_key": {
+      "ownership_domain": "marketplace_integrations",
+      "phase_b_category": "typed_migration_target"
+    },
+    "marksheet_ocr_command": {
+      "ownership_domain": "marketplace_integrations",
+      "phase_b_category": "typed_migration_target"
+    },
+    "meta_description": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "ministry": {
+      "ownership_domain": "global_registries",
+      "phase_b_category": "runtime_payload"
+    },
+    "ministry_registration_code": {
+      "ownership_domain": "global_registries",
+      "phase_b_category": "runtime_payload"
+    },
+    "notification_channels": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "notify_parent_welcome_email": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "offline_sync_conflict_resolution": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "parent_theme_pack": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "portal_announcements": {
+      "ownership_domain": "runtime_blueprints",
+      "phase_b_category": "runtime_payload"
+    },
+    "portal_features": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "portal_quick_actions": {
+      "ownership_domain": "runtime_blueprints",
+      "phase_b_category": "runtime_payload"
+    },
+    "portal_recent_grades": {
+      "ownership_domain": "runtime_blueprints",
+      "phase_b_category": "runtime_payload"
+    },
+    "portal_upcoming_assessments": {
+      "ownership_domain": "runtime_blueprints",
+      "phase_b_category": "runtime_payload"
+    },
+    "preview_mode_enabled": {
+      "ownership_domain": "preview_platform",
+      "phase_b_category": "runtime_payload"
+    },
+    "preview_note": {
+      "ownership_domain": "preview_platform",
+      "phase_b_category": "runtime_payload"
+    },
+    "primary_color": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "public_brand_accent_color": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "public_brand_primary_color": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "referral_bonus_amount": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "region": {
+      "ownership_domain": "global_registries",
+      "phase_b_category": "runtime_payload"
+    },
+    "report_downloads_enabled": {
+      "ownership_domain": "reports",
+      "phase_b_category": "runtime_payload"
+    },
+    "reports_require_approved_grades_before_publish": {
+      "ownership_domain": "reports",
+      "phase_b_category": "runtime_payload"
+    },
+    "reports_use_approved_grades_only": {
+      "ownership_domain": "reports",
+      "phase_b_category": "runtime_payload"
+    },
+    "requests_reminder_interval_hours": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "require_mfa_all_staff": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "require_mfa_roles": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "school_code": {
+      "ownership_domain": "runtime_blueprints",
+      "phase_b_category": "runtime_payload"
+    },
+    "site_name": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "skip_theme_publish_guard": {
+      "ownership_domain": "preview_platform",
+      "phase_b_category": "runtime_payload"
+    },
+    "sms_api_key": {
+      "ownership_domain": "marketplace_integrations",
+      "phase_b_category": "typed_migration_target"
+    },
+    "sms_provider": {
+      "ownership_domain": "marketplace_integrations",
+      "phase_b_category": "typed_migration_target"
+    },
+    "sms_sender_id": {
+      "ownership_domain": "marketplace_integrations",
+      "phase_b_category": "typed_migration_target"
+    },
+    "smtp_password": {
+      "ownership_domain": "marketplace_integrations",
+      "phase_b_category": "typed_migration_target"
+    },
+    "social_links": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "success_color": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "tagline": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "teacher_reminder_time_of_day": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "teacher_theme_pack": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "theme_brightness": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "theme_harmony": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "theme_pack": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "top_students_default_limit": {
+      "ownership_domain": "runtime_blueprints",
+      "phase_b_category": "runtime_payload"
+    },
+    "updated_at": {
+      "ownership_domain": "delete",
+      "phase_b_category": "deprecated"
+    },
+    "use_dark_mode": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "use_promotion_rule_for_pass": {
+      "ownership_domain": "policies_rules",
+      "phase_b_category": "runtime_payload"
+    },
+    "use_secondary_font_for_headings": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "warning_color": {
+      "ownership_domain": "brand_experience",
+      "phase_b_category": "typed_migration_target"
+    },
+    "webhook_signing_secret": {
+      "ownership_domain": "marketplace_integrations",
+      "phase_b_category": "typed_migration_target"
+    },
+    "whatsapp_admissions_number": {
+      "ownership_domain": "marketplace_integrations",
+      "phase_b_category": "typed_migration_target"
+    },
+    "whatsapp_api_token": {
+      "ownership_domain": "marketplace_integrations",
+      "phase_b_category": "typed_migration_target"
+    },
+    "whatsapp_support_number": {
+      "ownership_domain": "marketplace_integrations",
+      "phase_b_category": "typed_migration_target"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{% load i18n %}
+{% if rmc_school_onboarding %}
+<div class="card border-0 shadow-sm mb-3" data-rmc-onboarding="school-activation" data-rmc-onboarding-embedded="1">
+  <div class="card-body py-3">
+    <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
+      <div>
+        <div class="text-uppercase text-muted small mb-1">{% trans "School activation" %}</div>
+        <div class="d-flex align-items-baseline gap-2 flex-wrap">
+          <span class="h4 mb-0" data-rmc-onboarding-progress="{{ rmc_school_onboarding.percent }}">{{ rmc_school_onboarding.percent }}%</span>
+          <span class="text-muted small">{% blocktrans with d=rmc_school_onboarding.completed t=rmc_school_onboarding.total %}{{ d }} of {{ t }} items{% endblocktrans %}</span>
+        </div>
+        {% if rmc_school_health %}
+        <div class="small text-muted mt-1">{% trans "Health" %}: <strong>{{ rmc_school_health.score }}</strong> ({{ rmc_school_health.status }})</div>
+        {% endif %}
+      </div>
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:onboarding' %}">{% trans "Full checklist" %}</a>
+    </div>
+    {% if rmc_school_onboarding.next_action and rmc_school_onboarding.next_action.url %}
+    <div class="mt-2">
+      <a class="btn btn-sm btn-primary" data-rmc-onboarding-next-action="1" href="{{ rmc_school_onboarding.next_action.url }}">{{ rmc_school_onboarding.next_action.label }}</a>
+    </div>
+    {% endif %}
+    <ul class="list-unstyled mb-0 mt-3" data-rmc-onboarding-steps="1">
+      {% for row in rmc_school_onboarding.display_steps %}
+      <li class="d-flex align-items-center justify-content-between gap-2 py-1 small{% if not forloop.first %} border-top{% endif %}">
+        <span>{{ row.label }}</span>
+        {% if row.done %}
+        <span class="badge text-bg-success">{% trans "Done" %}</span>
+        {% else %}
+        <span class="badge text-bg-secondary">{% trans "To do" %}</span>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% if rmc_school_health_nudges %}
+    <div class="mt-2 pt-2 border-top small" data-rmc-activation-nudges="1">
+      <div class="text-muted text-uppercase mb-1" style="font-size:0.65rem;">{% trans "Suggested next" %}</div>
+      <ul class="mb-0 ps-3">
+        {% for n in rmc_school_health_nudges %}
+        <li><a href="{{ n.url }}">{{ n.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}

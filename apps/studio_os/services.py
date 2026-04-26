@@ -744,7 +744,7 @@ def get_studio_compare_context(request: Any, mode: str) -> dict[str, Any]:
     if mode != "experience":
         return result
     try:
-        from apps.platform_runtime.helpers import get_effective_site_settings
+        from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
         # After: current saved theme, or session preview if set
         preview = request.session.get("site_preview_settings") or {}

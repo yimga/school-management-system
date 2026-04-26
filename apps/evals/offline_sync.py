@@ -6,7 +6,7 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from apps.evals.models import Evaluation, OfflineMarkEntry
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 from apps.platform_runtime.structured_logging import log_exception_with_context
 
 logger = logging.getLogger(__name__)

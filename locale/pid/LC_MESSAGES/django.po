@@ -13814,3 +13814,965 @@ msgstr ""
 
 msgid "Platform report platform SKU default (platform admin)"
 msgstr ""
+
+msgid "Academic years"
+msgstr ""
+
+msgid "Academic years (read-only)"
+msgstr ""
+
+msgid "Academic years (setup evidence)"
+msgstr ""
+
+msgid "Academic years (setup)"
+msgstr ""
+
+msgid "Access"
+msgstr ""
+
+msgid ""
+"Active ReportTemplate rows available for this tenant’s template family, "
+"aligned with the report download route. This page does not run exports; use "
+"the download route or governed flows to generate files."
+msgstr ""
+
+msgid "Active payment reminders"
+msgstr ""
+
+msgid "Active · due"
+msgstr ""
+
+msgid "Advanced/Admin: Site Settings in tenant admin"
+msgstr ""
+
+msgid "Advanced/Admin: classroom row"
+msgstr ""
+
+msgid "Advanced/Admin: open schedules in Django admin (full CRUD)"
+msgstr ""
+
+msgid "Advanced/Admin: report card rows"
+msgstr ""
+
+msgid "Advanced/Admin: report template rows"
+msgstr ""
+
+msgid "Advanced/Admin: schedule rows"
+msgstr ""
+
+msgid "Advanced/Admin: student row"
+msgstr ""
+
+msgid "Advanced/Admin: sync conflict rows"
+msgstr ""
+
+msgid "Advanced/Admin: teacher row"
+msgstr ""
+
+msgid "Advanced: Admin CRUD"
+msgstr ""
+
+msgid "Advanced: Admin academic year rows"
+msgstr ""
+
+msgid "Advanced: Admin app"
+msgstr ""
+
+msgid "Advanced: Admin audit rows (CRUD)"
+msgstr ""
+
+msgid "Advanced: Admin department rows"
+msgstr ""
+
+msgid "Advanced: Admin entity rows"
+msgstr ""
+
+msgid "Advanced: Admin field definitions"
+msgstr ""
+
+msgid "Advanced: Admin field values"
+msgstr ""
+
+msgid "Advanced: Admin term publish rows"
+msgstr ""
+
+msgid "Advanced: Config audit (admin)"
+msgstr ""
+
+msgid "Advanced: edit in Admin"
+msgstr ""
+
+msgid ""
+"Advanced: for full row CRUD, open the ExperiencePack model in the Django "
+"admin app list (admin URLs are not embedded in Studio templates)."
+msgstr ""
+
+msgid "After install"
+msgstr ""
+
+msgid "Also include PDF for each letter (requires LibreOffice on the server)"
+msgstr ""
+
+msgid "Any"
+msgstr ""
+
+msgid "Audit events"
+msgstr ""
+
+msgid "Bulk Letters"
+msgstr ""
+
+msgid "Calendar system"
+msgstr ""
+
+msgid "Client/offline version"
+msgstr ""
+
+msgid "Collected"
+msgstr ""
+
+msgid ""
+"Completeness and consistency checks per region. Prefer this control-plane "
+"view over ad-hoc admin inspection for operator triage."
+msgstr ""
+
+msgid "Config mutation audit"
+msgstr ""
+
+msgid "Config mutation audit (evidence)"
+msgstr ""
+
+msgid "Configuration center"
+msgstr ""
+
+msgid "Configuration control center"
+msgstr ""
+
+msgid "Core school counts"
+msgstr ""
+
+msgid "Cross-region settings comparison"
+msgstr ""
+
+msgid "Definitions"
+msgstr ""
+
+msgid "Departments"
+msgstr ""
+
+msgid "Departments (read-only)"
+msgstr ""
+
+msgid "Departments (setup evidence)"
+msgstr ""
+
+msgid "Departments (setup)"
+msgstr ""
+
+msgid "Discard"
+msgstr ""
+
+msgid "Display"
+msgstr ""
+
+msgid "Django admin: row-level catalog CRUD"
+msgstr ""
+
+msgid "Due now"
+msgstr ""
+
+msgid "Dynamic field definitions"
+msgstr ""
+
+msgid "Dynamic fields"
+msgstr ""
+
+msgid "Dynamic fields (EAV)"
+msgstr ""
+
+msgid ""
+"Each outcome link lists sources — these are the platform layers that can "
+"explain effective behavior."
+msgstr ""
+
+msgid "Education system"
+msgstr ""
+
+msgid "Effective fields"
+msgstr ""
+
+msgid "Effective runtime and tenant site settings (read-only hub)."
+msgstr ""
+
+msgid "End"
+msgstr ""
+
+msgid "Entity & field catalog"
+msgstr ""
+
+msgid "Entity catalog"
+msgstr ""
+
+msgid ""
+"Evidence-only view of TenantReportSchedule rows for this school. Delivery "
+"runs via send_scheduled_reports / automation; this page does not send mail "
+"or export data."
+msgstr ""
+
+msgid ""
+"Evidence-only view of generated report card output rows, PDF coverage, hash "
+"ledger coverage, and audit events. This page does not generate, export, "
+"publish, or resend reports."
+msgstr ""
+
+msgid "Export handler"
+msgstr ""
+
+msgid "Export path (when handler registered):"
+msgstr ""
+
+msgid "Field key"
+msgstr ""
+
+msgid "Finance pulse"
+msgstr ""
+
+msgid "Finance requests"
+msgstr ""
+
+msgid "Flags and capability toggles (bounded control plane)."
+msgstr ""
+
+msgid "Flags on"
+msgstr ""
+
+msgid "Full delivery hub"
+msgstr ""
+
+msgid "Full metadata catalog"
+msgstr ""
+
+msgid "GCE / certification"
+msgstr ""
+
+msgid "GCE candidates"
+msgstr ""
+
+msgid "Generate zip"
+msgstr ""
+
+msgid "Governance search"
+msgstr ""
+
+msgid "Governed tenant installs and rollback from Settings (CP-first)."
+msgstr ""
+
+msgid "Grading matrix"
+msgstr ""
+
+msgid "Grading scales by region"
+msgstr ""
+
+msgid "Guardians"
+msgstr ""
+
+msgid "Hash ledger"
+msgstr ""
+
+msgid "Holidays (rows)"
+msgstr ""
+
+msgid "Include non-active"
+msgstr ""
+
+msgid "Install, activate, and scope actions"
+msgstr ""
+
+msgid "Installed &amp; activate"
+msgstr ""
+
+msgid "Installed packages and rollback"
+msgstr ""
+
+msgid "Invites"
+msgstr ""
+
+msgid "Invites (admin)"
+msgstr ""
+
+msgid "Keep client"
+msgstr ""
+
+msgid "Keep server"
+msgstr ""
+
+msgid "Last published"
+msgstr ""
+
+msgid "Last run"
+msgstr ""
+
+msgid "Launch Studio (readiness & checklists)"
+msgstr ""
+
+msgid "Launch Studio: data migration"
+msgstr ""
+
+msgid "Launch Studio: preview by role"
+msgstr ""
+
+msgid "Launch checklist pane"
+msgstr ""
+
+msgid "Launch overview"
+msgstr ""
+
+msgid "Letter body (HTML)"
+msgstr ""
+
+msgid "Letter title (optional)"
+msgstr ""
+
+msgid "Lineage graph explorer (staff)."
+msgstr ""
+
+msgid "List/create via API"
+msgstr ""
+
+msgid "Locale"
+msgstr ""
+
+msgid "Locked"
+msgstr ""
+
+msgid "Metadata & lineage"
+msgstr ""
+
+msgid "Metadata operator hub"
+msgstr ""
+
+msgid "Narrative detail"
+msgstr ""
+
+msgid "Needs recipients"
+msgstr ""
+
+msgid "Never"
+msgstr ""
+
+msgid "No academic years for this school yet."
+msgstr ""
+
+msgid "No active academic year"
+msgstr ""
+
+msgid "No active term"
+msgstr ""
+
+msgid "No classrooms found. Add an academic year and classrooms in"
+msgstr ""
+
+msgid "No config mutation events recorded yet."
+msgstr ""
+
+msgid "No definitions in this group."
+msgstr ""
+
+msgid "No departments for this school yet."
+msgstr ""
+
+msgid "No dynamic field definitions found."
+msgstr ""
+
+msgid "No entities match. Seed or use full catalog."
+msgstr ""
+
+msgid "No generated report output rows for this school yet."
+msgstr ""
+
+msgid "No issues flagged by these checks."
+msgstr ""
+
+msgid "No pending conflicts."
+msgstr ""
+
+msgid "No pending workflow actions."
+msgstr ""
+
+msgid "No report templates match this view yet."
+msgstr ""
+
+msgid ""
+"No role preview links yet. Select a school context on this host, or open "
+"Setup / onboarding to finish baseline configuration."
+msgstr ""
+
+msgid "No scales for this region."
+msgstr ""
+
+msgid "No scheduled report rows for this school yet."
+msgstr ""
+
+msgid ""
+"No tenant context — open this page on a school host for family-scoped rows."
+msgstr ""
+
+msgid "No tenant context — open this page on a school host."
+msgstr ""
+
+msgid "No term publish status rows for this school yet."
+msgstr ""
+
+msgid "OK"
+msgstr ""
+
+msgid "Open Configuration Control Center"
+msgstr ""
+
+msgid "Open audit evidence"
+msgstr ""
+
+msgid "Open dynamic fields"
+msgstr ""
+
+msgid ""
+"Open each experience in a new tab to validate tone, layout, and trust before"
+" go-live. When a school context is selected, links are tailored to this "
+"tenant."
+msgstr ""
+
+msgid "Open entity catalog"
+msgstr ""
+
+msgid "Open feature control"
+msgstr ""
+
+msgid "Open governance"
+msgstr ""
+
+msgid "Open in Launch Studio (full shell)"
+msgstr ""
+
+msgid "Open in full catalog"
+msgstr ""
+
+msgid "Open lineage graph"
+msgstr ""
+
+msgid "Open school & region settings"
+msgstr ""
+
+msgid "Open tabbed 360"
+msgstr ""
+
+msgid "Open tenant runtime"
+msgstr ""
+
+msgid "Operational snapshot"
+msgstr ""
+
+msgid "Operational summary"
+msgstr ""
+
+msgid ""
+"Operator view of grading scale configurations. Prefer this control-plane "
+"surface over raw model admin when triaging cross-region standards."
+msgstr ""
+
+msgid "Owning app"
+msgstr ""
+
+msgid "PDF"
+msgstr ""
+
+msgid "PDF files"
+msgstr ""
+
+msgid "Pending approvals"
+msgstr ""
+
+msgid "Pending guardian invites"
+msgstr ""
+
+msgid "Pending invites"
+msgstr ""
+
+msgid ""
+"Per-entity value row counts include only keys matching this entity type."
+msgstr ""
+
+msgid "Personalize your portal."
+msgstr ""
+
+msgid "Platform-wide"
+msgstr ""
+
+msgid "Preferred format"
+msgstr ""
+
+msgid "Preview by role"
+msgstr ""
+
+msgid "Preview by role pane"
+msgstr ""
+
+msgid ""
+"Publish and rollback actions apply only on supported configuration paths. "
+"Who changed what is recorded when audit trails are enabled for the domain."
+msgstr ""
+
+msgid "Published terms"
+msgstr ""
+
+msgid "Queued actions"
+msgstr ""
+
+msgid "Ran before"
+msgstr ""
+
+msgid ""
+"Read-first operator entry: search governance, open lineage, then use the "
+"entity table or full platform catalog. Django admin remains for row CRUD and"
+" deep audit when needed."
+msgstr ""
+
+msgid ""
+"Read-only coverage of per-entity dynamic keys and value row counts. Row CRUD"
+" remains in admin."
+msgstr ""
+
+msgid ""
+"Read-only list of EAV / dynamic field definitions and aggregate value "
+"counts. Create and edit rows in Django admin; prefer this view for triage "
+"and coverage."
+msgstr ""
+
+msgid ""
+"Read-only overview of metadata catalog entries. Editing and deep platform "
+"checklist live in the full catalog or admin as appropriate."
+msgstr ""
+
+msgid "Read-only recent privileged config changes; admin for row CRUD."
+msgstr ""
+
+msgid ""
+"Read-only snapshot of effective settings, region, and enabled backend "
+"feature flag keys. Product links below; admin remains an escape hatch."
+msgstr ""
+
+msgid ""
+"Read-only view of report-card term publish flags per academic year, term, "
+"and optional class scope. This page is evidence only."
+msgstr ""
+
+msgid ""
+"Read-only view of the latest config mutation log rows. Use Django admin for "
+"row-level changes or deep filters."
+msgstr ""
+
+msgid "Receivables"
+msgstr ""
+
+msgid "Recommended next"
+msgstr ""
+
+msgid "Recommended next steps"
+msgstr ""
+
+msgid "Region comparison"
+msgstr ""
+
+msgid "Region configuration validation"
+msgstr ""
+
+msgid "Region fields"
+msgstr ""
+
+msgid "Region grading scales matrix"
+msgstr ""
+
+msgid "Region validation"
+msgstr ""
+
+msgid "Registered"
+msgstr ""
+
+msgid "Registry alignment"
+msgstr ""
+
+msgid "Related control-plane links"
+msgstr ""
+
+msgid "Related evidence"
+msgstr ""
+
+msgid "Related operator tools"
+msgstr ""
+
+msgid "Related region tools"
+msgstr ""
+
+msgid "Reminders"
+msgstr ""
+
+msgid "Report export templates (read-only)"
+msgstr ""
+
+msgid "Report keys"
+msgstr ""
+
+msgid "Report output history"
+msgstr ""
+
+msgid "Report output history (read-only)"
+msgstr ""
+
+msgid "Report templates"
+msgstr ""
+
+msgid "Report templates (catalog evidence)"
+msgstr ""
+
+msgid "Report templates (catalog)"
+msgstr ""
+
+msgid "Requests"
+msgstr ""
+
+msgid "Role experiences"
+msgstr ""
+
+msgid "Sandbox first — activate only when ready."
+msgstr ""
+
+msgid "Scheduled delivery and output evidence"
+msgstr ""
+
+msgid "Scheduled reports"
+msgstr ""
+
+msgid "Scheduled reports (evidence)"
+msgstr ""
+
+msgid "Scope approvals"
+msgstr ""
+
+msgid "Search entity or field…"
+msgstr ""
+
+msgid ""
+"Searchable entity/field table (read-only) aligned with the platform catalog."
+msgstr ""
+
+msgid "Select a classroom"
+msgstr ""
+
+msgid "Select plan pane"
+msgstr ""
+
+msgid "Server version"
+msgstr ""
+
+msgid "Setting"
+msgstr ""
+
+msgid "Severe issues"
+msgstr ""
+
+msgid "Side-by-side"
+msgstr ""
+
+msgid ""
+"Side-by-side view of core regional options. For deep grading detail use the "
+"matrix view."
+msgstr ""
+
+msgid "Simple HTML allowed. Max 100,000 characters."
+msgstr ""
+
+msgid "Source labels (trace why enabled)"
+msgstr ""
+
+msgid "Staff search UI over catalog codes and names."
+msgstr ""
+
+msgid "Staging & publish"
+msgstr ""
+
+msgid "Stored values (rows)"
+msgstr ""
+
+msgid "Students (total)"
+msgstr ""
+
+msgid "Studio · Report library"
+msgstr ""
+
+msgid "Subdivision"
+msgstr ""
+
+msgid "Sync Center"
+msgstr ""
+
+msgid "Sync center"
+msgstr ""
+
+msgid "Sync conflict model not available."
+msgstr ""
+
+msgid "System and queue snapshot"
+msgstr ""
+
+msgid "System context"
+msgstr ""
+
+msgid "Target"
+msgstr ""
+
+msgid ""
+"Tenant academic years with start/end dates and lock flags. Changes belong in"
+" academic setup workflows or Django admin; this page is evidence only."
+msgstr ""
+
+msgid ""
+"Tenant departments and codes. Edits belong in academic setup or Django "
+"admin; this page is evidence only."
+msgstr ""
+
+msgid "Tenant runtime"
+msgstr ""
+
+msgid "Tenant scheduled reports (read-only)"
+msgstr ""
+
+msgid "Term publish status"
+msgstr ""
+
+msgid ""
+"These settings only change what you see (theme, widgets, notifications). "
+"Full Site Settings stay locked to Admins."
+msgstr ""
+
+msgid ""
+"This controls Unfold, Jazzmin, or Sneat for this school's admin and backend "
+"surfaces. Save, then refresh if styles look stale."
+msgstr ""
+
+msgid ""
+"This page is a read-only snapshot. For outcome-based configuration, staging,"
+" and audit links, use the Configuration Control Center; use Studio Control "
+"and Feature audit when changing behavior."
+msgstr ""
+
+msgid "Time zone"
+msgstr ""
+
+msgid "Use placeholders:"
+msgstr ""
+
+msgid ""
+"Used as the document title inside each ODT. If empty, uses Letter - LastName"
+" FirstName."
+msgstr ""
+
+msgid "Value rows"
+msgstr ""
+
+msgid "Where to change settings"
+msgstr ""
+
+msgid "Whole school"
+msgstr ""
+
+msgid "With export handler"
+msgstr ""
+
+msgid "With warnings"
+msgstr ""
+
+msgid "e.g. Term 1 welcome letter"
+msgstr ""
+
+msgid "for readiness, migration, and role previews in one shell."
+msgstr ""
+
+msgid "for the full checklist, or use"
+msgstr ""
+
+msgid "missing"
+msgstr ""
+
+msgid "read-only on this page."
+msgstr ""
+
+msgid "then return here to generate letters."
+msgstr ""
+
+msgid ""
+"{{ n }} field(s) do not line up with the active registries. Fix "
+"country/region, school profile, or registry seeding."
+msgstr ""
+
+msgid "Add-on feature codes"
+msgstr ""
+
+msgid "Advanced/Admin: academic year rows"
+msgstr ""
+
+msgid "Advanced/Admin: department rows"
+msgstr ""
+
+msgid "Advanced/Admin: plan catalog (platform)"
+msgstr ""
+
+msgid "Assigned plan"
+msgstr ""
+
+msgid "Billing model"
+msgstr ""
+
+msgid "Export handlers"
+msgstr ""
+
+msgid "Included feature codes"
+msgstr ""
+
+msgid "No plan is assigned to this tenant in the database."
+msgstr ""
+
+msgid "None listed"
+msgstr ""
+
+msgid ""
+"Operator-first school operating system — live pulse of academics, people, "
+"attendance, and finance."
+msgstr ""
+
+msgid "Plan & entitlements"
+msgstr ""
+
+msgid "Plan staff cap"
+msgstr ""
+
+msgid "Plan student cap"
+msgstr ""
+
+msgid ""
+"Read-only summary of the subscription plan assigned to this tenant and "
+"coarse usage versus plan limits. Billing changes are handled outside this "
+"page; there is no in-app payment or checkout."
+msgstr ""
+
+msgid "Related links"
+msgstr ""
+
+msgid "Slugs with a registered server export handler"
+msgstr ""
+
+msgid "Teacher profiles"
+msgstr ""
+
+msgid ""
+"School operating system: operator outcomes first — not model walls. Trace "
+"runtime, packs, policy, entitlements, and tenant overrides; use Feature "
+"audit and Runtime inspector for evidence."
+msgstr ""
+
+msgid "Activity"
+msgstr ""
+
+msgid "Add lead"
+msgstr ""
+
+msgid "Add note"
+msgstr ""
+
+msgid "Back to pipeline"
+msgstr ""
+
+msgid "Contact name"
+msgstr ""
+
+msgid ""
+"Founder/operator use only. Not integrated with external CRM. Data lives in "
+"the platform database."
+msgstr ""
+
+msgid "Full checklist"
+msgstr ""
+
+msgid "Internal pipeline"
+msgstr ""
+
+msgid ""
+"Items below come from this tenant’s data. Links open real setup or evidence "
+"pages—no automated completion without underlying records."
+msgstr ""
+
+msgid "Next follow-up"
+msgstr ""
+
+msgid "No activity yet."
+msgstr ""
+
+msgid "No checklist items resolved."
+msgstr ""
+
+msgid "No leads yet. Add a lead to start."
+msgstr ""
+
+msgid ""
+"No tenant school on this request. Open the checklist from a school (tenant) "
+"host."
+msgstr ""
+
+msgid "Phone"
+msgstr ""
+
+msgid "Sales pipeline"
+msgstr ""
+
+msgid "School activation"
+msgstr ""
+
+msgid "School activation checklist"
+msgstr ""
+
+msgid "School or contact"
+msgstr ""
+
+msgid "Stages"
+msgstr ""
+
+msgid "Suggested next"
+msgstr ""
+
+msgid "Summary notes"
+msgstr ""
+
+msgid "To do"
+msgstr ""
+
+msgid "{{ d }} of {{ t }} items"
+msgstr ""
+
+msgid "—"
+msgstr ""
+
+msgid "Activate app"
+msgstr ""
+
+msgid "Configure install"
+msgstr ""
+
+msgid "Lead — platform pipeline (internal)"
+msgstr ""
+
+msgid "Pipeline stages (platform admin)"
+msgstr ""
+
+msgid "PipelineStage — internal stage catalog"
+msgstr ""
+
+msgid "Sales leads (platform admin)"
+msgstr ""

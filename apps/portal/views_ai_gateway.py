@@ -1200,7 +1200,7 @@ def api_tenant_maturity(request):
         # §3.2: Use runtime helper instead of direct tenant site settings read (tenant-facing).
         score = 0
         try:
-            from apps.platform_runtime.helpers import get_effective_site_settings
+            from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
             settings_obj = get_effective_site_settings(request=request)
             if settings_obj and getattr(settings_obj, "features", None):

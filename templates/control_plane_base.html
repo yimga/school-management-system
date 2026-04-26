@@ -58,18 +58,18 @@
 {% include "partials/control_plane_primary_nav.html" %}
 
 <div class="container-fluid px-3 py-2 cp-layout flex-grow-1 min-h-0 d-flex flex-column" data-rmc-authenticated-shell="{{ rmc_shell.cp_layout_authenticated_shell|default:'manager-control-plane' }}">
-  <div class="row g-3 flex-grow-1 min-h-0">
+  <div class="row g-2 flex-grow-1 min-h-0">
     <aside class="cp-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block" id="cp-sidebar-col" data-shell-sidebar="{{ rmc_shell.shell_sidebar_control_plane|default:'control-plane' }}" data-shell-sidebar-mount="desktop">
-      <div class="cp-sidebar-inner cp-sidebar-inner--surface p-3 rounded">
+      <div class="cp-sidebar-inner cp-sidebar-inner--surface p-2 rounded">
         {% block control_plane_sidebar %}
           {% include "partials/control_plane_sidebar.html" %}
         {% endblock %}
       </div>
     </aside>
     <main id="cp-main-content" class="cp-main-col col-lg-9 col-xl-10" role="main" data-shell-main="control-plane" data-page-archetype="{% block cp_page_archetype %}decision-console{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'manager-control-plane' }}">
-      {% include "partials/shell_chrome_django_messages.html" with shell_chrome_messages_variant="control-plane" %}
+      {% include "partials/shell_chrome_django_messages_control_plane.html" %}
       {% include "partials/shell_chrome_impersonation_session_strip.html" %}
-      <p class="text-secondary small mb-3" role="note">
+      <p class="text-secondary small mb-2" role="note">
         {% trans "Platform Studio and system tools here are operator-facing. For school workflows and live tenant previews, use Open as school (impersonation) from the dashboard." %}
       </p>
       {% include "partials/shell_chrome_breadcrumb_row_open.html" with shell_chrome_breadcrumb_surface=rmc_shell.control_plane_breadcrumb_surface shell_chrome_breadcrumb_row_extra_class="cp-page-header" %}

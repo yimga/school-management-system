@@ -78,7 +78,7 @@ from apps.portal.models import PortalFeatureItem
 from .services import ews_students_needing_attention
 from apps.communication.models import MessageThread
 from apps.communication.views_announcements import _can_create_department_announcement
-from apps.platform_runtime.helpers import (
+from apps.platform_runtime.site_settings_read_access import (
     get_effective_flags,
     get_effective_site_settings,
 )

@@ -235,6 +235,10 @@ urlpatterns = [
         include(("apps.siteconfig.urls", "siteconfig"), namespace="siteconfig"),
     ),
     path(
+        "api/internal/metadata/",
+        include(("apps.metadata.urls", "metadata"), namespace="metadata"),
+    ),
+    path(
         "settings/installed-apps/",
         login_required(tenant_installed_apps),
         name="tenant_installed_apps",

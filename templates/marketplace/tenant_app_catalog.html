@@ -6,11 +6,12 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'marketing/css/proof-pages.css' %}">
+<link rel="stylesheet" href="{% static 'css/marketplace-tenant-app-catalog.css' %}">
 
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4 proof-page tenant-app-catalog-wrap" data-page-archetype="catalog" data-shell-marketplace="tenant-app-catalog" data-rmc-market-surface="catalog">
+<div class="container-fluid py-4 proof-page tenant-app-catalog-wrap" data-page-archetype="catalog" data-shell-marketplace="tenant-app-catalog" data-rmc-market-surface="catalog" data-rmc-mkt-catalog-surface="1">
   {% if not school %}
   <div class="proof-panel">
     <h1 class="proof-panel-title">{% trans "App catalog" %}</h1>
@@ -71,7 +72,7 @@
 
     <div class="proof-catalog-grid">
       {% for listing in listings %}
-      <article class="proof-app-card" data-phase9-listing-trust>
+      <article class="proof-app-card" data-phase9-listing-trust data-rmc-mkt-app-card="1">
         {% if listing.preview_image_url %}
         <div class="proof-app-preview-img mb-2">
           <img src="{{ listing.preview_image_url }}" alt="{% trans 'App listing preview image' %}" class="img-fluid rounded" style="max-height: 140px; object-fit: cover; width: 100%;" loading="lazy">
@@ -94,7 +95,7 @@
             <h3 class="mb-1">{{ listing.app.name }}</h3>
             <div class="text-muted small">{{ listing.app.slug }} • v{{ listing.app.version }}</div>
           </div>
-          <div class="proof-app-meta proof-trust-badges">
+          <div class="proof-app-meta proof-trust-badges" data-rmc-mkt-lifecycle-badges="1">
             {% if listing.app.kind == 'first_party' %}
             <span class="badge text-bg-primary" title="{% trans 'Built and supported by RunMyCampus' %}"><i class="bi bi-star-fill"></i> {% trans "First-party" %}</span>
             {% endif %}
@@ -108,7 +109,7 @@
             <span class="badge text-bg-info" title="{% trans 'Certification passed' %}"><i class="bi bi-patch-check"></i> {% trans "Certified" %}</span>
             {% endif %}
             {% if listing.app.slug in installed_slugs %}
-            <span class="badge text-bg-success">{% trans "Installed" %}</span>
+            <span class="badge text-bg-success" data-rmc-mkt-lifecycle="installed">{% trans "Installed" %}</span>
             {% endif %}
           </div>
         </div>
@@ -175,11 +176,19 @@
 
         {% if listing.app.slug in installed_slugs %}
         <div class="proof-app-actions">
+          {% if listing.tenant_install_phase == 'sandbox' %}
+          <div class="d-flex flex-wrap gap-2" data-rmc-mkt-action-tier-order="manage-flow">
+            <a href="{% url 'tenant_installed_apps' %}" class="btn btn-primary btn-sm" data-rmc-mkt-primary-action>{% trans "Activate app" %}</a>
+            <a href="{% url 'tenant_installed_apps' %}" class="btn btn-outline-primary btn-sm">{% trans "Configure install" %}</a>
+          </div>
+          {% else %}
           <a href="{% url 'tenant_installed_apps' %}" class="btn btn-outline-secondary btn-sm">{% trans "Manage install" %}</a>
+          {% endif %}
         </div>
         {% else %}
-        <div class="proof-app-actions d-flex flex-wrap gap-2">
-          <button type="button" class="btn btn-primary" data-rmc-open-install-impact data-app-id="{{ listing.app.pk }}">{% trans "Review impact & install" %}</button>
+        <div class="proof-app-actions d-flex flex-wrap gap-2" data-rmc-mkt-action-tier-order="install-flow">
+          <button type="button" class="btn btn-primary" data-rmc-mkt-primary-action data-rmc-open-install-impact data-app-id="{{ listing.app.pk }}">{% trans "Review impact & install" %}</button>
+          <a href="{% url 'tenant_scope_consent' %}" class="btn btn-outline-secondary btn-sm">{% trans "Scope consent" %}</a>
         </div>
         {% endif %}
       </article>

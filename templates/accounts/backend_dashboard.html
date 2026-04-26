@@ -316,7 +316,7 @@ backend-shell dashboard-page-backend
   {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
 
   {# Optional: load status strip via HTMX so initial render does not wait on this data #}
-  <div class="backend-dashboard-content" data-decision-engine="surface">
+  <div class="backend-dashboard-content" data-decision-engine="surface" data-shell-surface="backend-dashboard" data-rmc-blueprint-surface="1101">
   {% include "partials/shell_chrome_backend_operational_status_load.html" %}
 
   {% include "partials/shell_chrome_backend_ops_strip.html" %}
@@ -329,6 +329,7 @@ backend-shell dashboard-page-backend
   {% if first_login_checklist_show %}
   {% include "accounts/first_login_checklist_card.html" %}
   {% endif %}
+  {% include "accounts/school_onboarding_card.html" %}
 
   <div class="backend-v2-shell" data-dashboard-intent="{{ dashboard_intent|default:'operational' }}" data-tour="dashboard-main">
     {% if backend_intent_emphasize_setup %}
@@ -344,7 +345,7 @@ backend-shell dashboard-page-backend
           <div class="backend-v2-overview-head">
             <div>
               <h2>Overview</h2>
-              <p class="backend-v2-overview-sub">Live pulse of academics, people, attendance, and finance</p>
+              <p class="backend-v2-overview-sub">{% trans "Operator-first school operating system — live pulse of academics, people, attendance, and finance." %}</p>
               <nav class="backend-intent-switcher mt-2" aria-label="{% trans 'Dashboard view' %}">
                 {% url 'accounts:backend_dashboard' as base_url %}
                 <a href="{{ base_url }}?intent=executive" class="backend-intent-pill {% if dashboard_intent == 'executive' %}active{% endif %}">{% trans "Executive" %}</a>
@@ -964,7 +965,7 @@ backend-shell dashboard-page-backend
       {% endif %}
 
       {% if backend_module_visibility.planner %}
-      <div class="card mb-3 backend-quick-links-card backend-v2-planner-card backend-v2-rail-card backend-v2-rail-card--planner {% if not upcoming_events and not recommended_next_steps %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-planner">
+      <div class="card mb-3 backend-quick-links-card backend-v2-planner-card backend-v2-rail-card backend-v2-rail-card--planner {% if not upcoming_events and not recommended_next_steps %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-planner" data-backend-widget-surface="planner-rail" data-backend-widget-role="operational-rollup">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="mb-0">Planner</h6>
@@ -989,24 +990,7 @@ backend-shell dashboard-page-backend
                 {% endfor %}
               </div>
             </section>
-            <section class="backend-planner-section">
-              <div class="backend-planner-section-head d-flex align-items-center justify-content-between">
-                <span class="small fw-semibold text-muted">Recommended next</span>
-                {% if finance_requests_count %}
-                <a class="badge text-bg-warning text-decoration-none" href="{{ finance_request_link }}">Finance {{ finance_requests_count }}</a>
-                {% endif %}
-              </div>
-              <div class="backend-planner-list backend-planner-next">
-                {% for step in recommended_next_steps|slice:backend_max_items_slice %}
-                <a href="{{ step.url }}" class="backend-quick-link d-flex align-items-center gap-2 text-decoration-none small">
-                  <span>{% if step.icon %}<i class="bi {{ step.icon }} me-1"></i>{% endif %}{{ step.label }}</span>
-                  <i class="bi bi-chevron-right ms-auto"></i>
-                </a>
-                {% empty %}
-                <p class="small text-muted mb-1">No pending workflow actions.</p>
-                {% endfor %}
-              </div>
-            </section>
+            {% include "partials/shell_chrome_backend_planner_recommended_next_strip.html" %}
             <a href="{% url 'studio_os:workflow_center' %}" class="backend-quick-link d-flex align-items-center gap-2 text-decoration-none small text-muted">
               <span>View all workflow steps</span>
               <i class="bi bi-arrow-right ms-auto"></i>

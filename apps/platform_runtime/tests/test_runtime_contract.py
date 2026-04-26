@@ -14,8 +14,10 @@ from apps.platform_runtime.helpers import (
     get_effective_flags_for_school,
     get_effective_marketplace_integration_settings,
     get_effective_offline_runtime_settings,
-    get_effective_site_settings,
     get_effective_support_contact_settings,
+)
+from apps.platform_runtime.site_settings_read_access import (
+    get_effective_site_settings,
     get_platform_site_settings_record,
     invalidate_effective_site_settings_cache,
 )
@@ -48,7 +50,9 @@ _TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 def _persist_runtime_test_state(**payload_updates: object) -> None:
     """Phase B: behavioral keys persist via tenant site-settings bridge; platform truth syncs to RuntimeDefaults."""
-    from apps.platform_runtime.helpers import invalidate_effective_site_settings_cache
+    from apps.platform_runtime.site_settings_read_access import (
+        invalidate_effective_site_settings_cache,
+    )
 
     site = get_platform_site_settings_record(create=True)
     site.apply_feature_control_state(field_updates=dict(payload_updates))

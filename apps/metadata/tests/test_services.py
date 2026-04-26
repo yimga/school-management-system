@@ -1,3 +1,4 @@
+from django.http import QueryDict
 from django.test import TestCase
 
 from apps.metadata.models import (
@@ -12,6 +13,8 @@ from apps.metadata.models import (
 from apps.metadata.services import (
     build_metadata_blast_radius,
     export_entity_catalog_bundle,
+    get_metadata_catalog_entity_rows,
+    get_metadata_dynamic_field_operator_context,
     get_package_lineage_registry,
     get_downstream_dependencies,
     get_dynamic_field_map,
@@ -76,6 +79,13 @@ class MetadataServicesTests(TestCase):
             self.student.custom_attributes["transportation_zone"], "north-campus"
         )
 
+    def test_get_metadata_dynamic_field_operator_context_aggregates(self) -> None:
+        ctx = get_metadata_dynamic_field_operator_context()
+        self.assertIn("operator_sections", ctx)
+        self.assertIn("total_definitions", ctx)
+        self.assertIn("total_values", ctx)
+        self.assertIsInstance(ctx["operator_sections"], list)
+
 
 class LineageAndCatalogExportTests(TestCase):
     """Tests for lineage-first rule and catalog bundle export (Workstream I)."""
@@ -103,6 +113,15 @@ class LineageAndCatalogExportTests(TestCase):
             consumer_code="principal_home",
             field=self.field,
         )
+
+    def test_get_metadata_catalog_entity_rows_active_only(self):
+        """Shared helper for super + siteconfig catalog UIs."""
+        entries, _q = get_metadata_catalog_entity_rows(QueryDict(), max_entities=200)
+        codes = {e.code for e in entries}
+        self.assertIn("student", codes)
+        for ent in entries:
+            self.assertTrue(hasattr(ent, "field_count"))
+            self.assertTrue(hasattr(ent, "sample_deps"))
 
     def test_get_downstream_dependencies_by_entity_code(self):
         deps = get_downstream_dependencies(entity_code="student")

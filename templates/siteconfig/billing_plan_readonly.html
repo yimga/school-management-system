@@ -1,0 +1,102 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Plan & entitlements" %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-3 cp-evidence-page" style="max-width: 52rem;" data-page-archetype="operator-report" data-shell-surface="billing-plan-readonly">
+  <h1 class="h3 mb-2">{% trans "Plan & entitlements" %}</h1>
+  <p class="text-muted small mb-3">
+    {% trans "Read-only summary of the subscription plan assigned to this tenant and coarse usage versus plan limits. Billing changes are handled outside this page; there is no in-app payment or checkout." %}
+  </p>
+
+  {% if not school %}
+  <p class="text-warning">{% trans "No tenant context — open this page on a school host." %}</p>
+  {% else %}
+  <p class="small text-muted mb-3"><strong>{% trans "Tenant" %}</strong>: {{ school.name }}</p>
+
+  <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Active students" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ student_count }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Teacher profiles" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ teacher_count }}</div>
+    </div>
+    {% if plan and plan.max_students %}
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Plan student cap" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ plan.max_students }}</div>
+    </div>
+    {% endif %}
+    {% if plan and plan.max_staff %}
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Plan staff cap" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ plan.max_staff }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if plan %}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-light fw-semibold">{% trans "Assigned plan" %}</div>
+    <div class="card-body small">
+      <dl class="row mb-0">
+        <dt class="col-sm-4 text-muted">{% trans "Name" %}</dt>
+        <dd class="col-sm-8">{{ plan.name }}</dd>
+        <dt class="col-sm-4 text-muted">{% trans "Slug" %}</dt>
+        <dd class="col-sm-8"><code>{{ plan.slug }}</code></dd>
+        <dt class="col-sm-4 text-muted">{% trans "Billing model" %}</dt>
+        <dd class="col-sm-8">{{ plan.get_billing_model_display }}</dd>
+        <dt class="col-sm-4 text-muted">{% trans "Included feature codes" %}</dt>
+        <dd class="col-sm-8">
+          {% if plan.included_features %}
+          <ul class="mb-0 ps-3">
+            {% for code in plan.included_features %}
+            <li><code>{{ code }}</code></li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <span class="text-muted">{% trans "None listed" %}</span>
+          {% endif %}
+        </dd>
+      </dl>
+    </div>
+  </div>
+  {% else %}
+  <p class="text-muted">{% trans "No plan is assigned to this tenant in the database." %}</p>
+  {% endif %}
+
+  {% if addons %}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-light fw-semibold">{% trans "Add-on feature codes" %}</div>
+    <div class="card-body small">
+      <ul class="mb-0">
+        {% for code in addons %}
+        <li><code>{{ code }}</code></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="d-flex flex-wrap gap-2 mb-2 cp-evidence-related" data-rmc-evidence-related-links="1" aria-label="{% trans 'Related links' %}">
+    {% if console_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ console_url }}">{% trans "Configuration Control Center" %}</a>
+    {% endif %}
+  </div>
+
+  {% if user.is_superuser and plan_catalog_advanced_url %}
+  <div class="cp-evidence-advanced border-top pt-3 mt-2" data-rmc-evidence-advanced="1">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ plan_catalog_advanced_url }}">{% trans "Advanced/Admin: plan catalog (platform)" %}</a>
+  </div>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

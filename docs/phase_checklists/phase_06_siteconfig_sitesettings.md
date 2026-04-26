@@ -4,7 +4,7 @@
 
 **Cursor Phase 6 mandatory audit:** [PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md](../phase_audit/PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md) — **CLOSED** 2026-03-24.
 
-**Mechanical gates:** `python scripts/verify_cursor_phase6_siteconfig_sitesettings.py` (ZIP verify + tenant lints + Batch3 FK lint). **Granular (full Phase 6 proof):** `python scripts/verify_cursor_phase6_granular.py`. **Post-migrate:** `python scripts/verify_phase_b_execution.py`.
+**Mechanical gates:** `python scripts/verify_cursor_phase6_siteconfig_sitesettings.py` (ZIP verify + tenant lints + Batch3 FK lint + **`audit_sitesettings_python_surface.py`** JSON + ORM allowlist). **Granular (full Phase 6 proof):** `python scripts/verify_cursor_phase6_granular.py`. **Post-migrate:** `python scripts/verify_phase_b_execution.py`.
 
 ## Inventory / guardrails
 
@@ -21,6 +21,7 @@
 ## Validation
 
 - [x] `scripts/verify_phase_5_siteconfig.py` — inside Phase 6 bundle
+- [x] `scripts/audit_sitesettings_python_surface.py` — product-Python surface JSON (schema v2, **`per_file`**, **violation** kinds); class-level allowlist: **`siteconfig/models`**, **`platform_runtime/helpers`**; approved reads: **`site_settings_read_access`**
 - [x] `scripts/lint_tenant_settings.py` — get_solo / school.settings / SiteSettings.objects (tenant apps)
 - [x] `scripts/lint_phase_b_batch3_sitesettings_fk_writes.py` — no removed FK writes on SiteSettings
 - [x] `scripts/verify_phase_b_execution.py` — post-migrate / deploy DB (tables + snapshot rows when `SiteSettings` exists)

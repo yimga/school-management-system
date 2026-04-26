@@ -46,7 +46,7 @@ def _resolve_site_settings(school: Any = None, site_settings: Any = None):
         return site_settings
     if school is not None:
         try:
-            from apps.platform_runtime.helpers import get_effective_site_settings
+            from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
             return get_effective_site_settings(school=school)
         except _NOTIFICATION_SETTINGS_RESOLVE_ERRORS:

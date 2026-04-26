@@ -3,6 +3,10 @@
 
 {% block page_archetype %}decision-console{% endblock %}
 {% block title %}Feature Control Panel{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="visually-hidden" data-decision-engine="surface"></div>

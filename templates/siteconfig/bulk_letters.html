@@ -1,26 +1,46 @@
 {% extends "backend_base.html" %}
+{% load static i18n %}
 
-{% block title %}Bulk Letters · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+{% block title %}{% trans "Bulk Letters" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
+{% endblock %}
 
 {% block content %}
   {% url 'studio_os:output' as bulk_letters_report_library_url %}
   {% url 'kb:kb_search' as bulk_letters_kb_url %}
-  {% include "partials/shell_chrome_page_heading_actions_strip.html" with page_heading_title="Bulk Letters (ODT)" page_heading_subtitle="Generate one LibreOffice Writer (ODT) letter per student in a classroom. Requires Pandoc." page_action_primary_url=bulk_letters_report_library_url page_action_primary_label="Report Library" page_action_primary_icon="bi-journal-text" page_action_secondary_url=bulk_letters_kb_url|add:"?q=bulk+letters" page_action_secondary_label="Help" page_action_secondary_icon="bi-question-circle" page_action_secondary_title="Search help for bulk letters" %}
+  <div class="container-fluid py-3 cp-evidence-page" style="max-width: 58rem;" data-page-archetype="operator-report" data-shell-surface="bulk-letters" data-rmc-report-bulk-evidence="1072" data-rmc-operator-evidence-surface="1">
+  {% include "partials/shell_chrome_page_heading_actions_strip.html" with page_heading_title=_('Bulk Letters (ODT)') page_heading_subtitle=_('Generate one LibreOffice Writer (ODT) letter per student in a classroom. Requires Pandoc.') page_action_primary_url=bulk_letters_report_library_url page_action_primary_label=_('Report Library') page_action_primary_icon="bi-journal-text" page_action_secondary_url=bulk_letters_kb_url|add:"?q=bulk+letters" page_action_secondary_label=_('Help') page_action_secondary_icon="bi-question-circle" page_action_secondary_title=_('Search help for bulk letters') %}
+
+  {% if classroom_list %}
+  <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Classrooms" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ bulk_letters_operator_summary.classrooms }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Students (total)" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ bulk_letters_operator_summary.students_total }}</div>
+    </div>
+  </div>
+  {% endif %}
 
   <div class="card shadow-sm">
     <div class="card-body">
       {% if not classroom_list %}
       <div class="alert alert-info mb-0">
-        <i class="bi bi-info-circle"></i> No classrooms found. Add an academic year and classrooms in <a href="{% url 'studio_os:workflow_center' %}">Workflow Center</a>, then return here to generate letters.
+        <i class="bi bi-info-circle"></i> {% trans "No classrooms found. Add an academic year and classrooms in" %} <a href="{% url 'studio_os:workflow_center' %}">{% trans "Workflow Center" %}</a>, {% trans "then return here to generate letters." %}
       </div>
       {% else %}
       <form method="post" action="{% url 'siteconfig:bulk_letters' %}">
         {% csrf_token %}
         <div class="mb-3">
-          <label for="classroom_id" class="form-label">Classroom</label>
+          <label for="classroom_id" class="form-label">{% trans "Classroom" %}</label>
           <div class="d-flex align-items-center gap-2 flex-wrap">
             <select name="classroom_id" id="classroom_id" class="form-select" required style="max-width: 22rem;">
-              <option value="">— Select a classroom —</option>
+              <option value="">— {% trans "Select a classroom" %} —</option>
               {% for item in classroom_list %}
                 <option value="{{ item.room.id }}" data-count="{{ item.student_count }}"
                   {% if form_data and form_data.classroom_id == item.room.id|stringformat:"d" %}selected{% endif %}>
@@ -32,31 +52,50 @@
           </div>
         </div>
         <div class="mb-3">
-          <label for="letter_title" class="form-label">Letter title (optional)</label>
+          <label for="letter_title" class="form-label">{% trans "Letter title (optional)" %}</label>
           <input type="text" name="letter_title" id="letter_title" class="form-control" maxlength="200"
-                 placeholder="e.g. Term 1 welcome letter"
+                 placeholder="{% trans 'e.g. Term 1 welcome letter' %}"
                  value="{% if form_data %}{{ form_data.letter_title }}{% endif %}">
-          <div class="form-text">Used as the document title inside each ODT. If empty, uses "Letter - LastName FirstName".</div>
+          <div class="form-text">{% trans "Used as the document title inside each ODT. If empty, uses Letter - LastName FirstName." %}</div>
         </div>
         <div class="mb-3">
-          <label for="letter_body" class="form-label">Letter body (HTML)</label>
+          <label for="letter_body" class="form-label">{% trans "Letter body (HTML)" %}</label>
           <textarea name="letter_body" id="letter_body" class="form-control font-monospace" rows="14" required maxlength="100000"
                     placeholder="<p>Dear {{ first_name }},</p>&#10;&#10;<p>Your class is {{ classroom }}. Student code: {{ student_code }}.</p>">{% if form_data %}{{ form_data.letter_body_display|safe }}{% endif %}</textarea>
           <div class="form-text d-flex justify-content-between align-items-center">
-            <span>Use placeholders: <code>{% templatetag openvariable %} first_name {% templatetag closevariable %}</code>, <code>{% templatetag openvariable %} last_name {% templatetag closevariable %}</code>, <code>{% templatetag openvariable %} student_code {% templatetag closevariable %}</code>, <code>{% templatetag openvariable %} classroom {% templatetag closevariable %}</code>. Simple HTML allowed. Max 100,000 characters.</span>
+            <span>{% trans "Use placeholders:" %} <code>{% templatetag openvariable %} first_name {% templatetag closevariable %}</code>, <code>{% templatetag openvariable %} last_name {% templatetag closevariable %}</code>, <code>{% templatetag openvariable %} student_code {% templatetag closevariable %}</code>, <code>{% templatetag openvariable %} classroom {% templatetag closevariable %}</code>. {% trans "Simple HTML allowed. Max 100,000 characters." %}</span>
             <span id="letter-body-count" class="text-muted small ms-2">0 / 100,000</span>
           </div>
         </div>
         <div class="mb-3 form-check">
           <input type="checkbox" class="form-check-input" name="include_pdf" id="include_pdf" value="on" {% if form_data and form_data.include_pdf %}checked{% endif %}>
-          <label class="form-check-label" for="include_pdf">Also include PDF for each letter (requires LibreOffice on the server)</label>
+          <label class="form-check-label" for="include_pdf">{% trans "Also include PDF for each letter (requires LibreOffice on the server)" %}</label>
         </div>
         <button type="submit" class="btn btn-primary">
-          <i class="bi bi-download"></i> Generate zip
+          <i class="bi bi-download"></i> {% trans "Generate zip" %}
         </button>
       </form>
       {% endif %}
     </div>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 mt-3 mb-2 cp-evidence-related" data-rmc-evidence-related-links="1" data-rmc-operator-evidence-related="1" aria-label="{% trans 'Related control-plane links' %}">
+    {% if scheduled_reports_delivery_hub_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ scheduled_reports_delivery_hub_url }}">{% trans "Scheduled report delivery" %}</a>
+    {% endif %}
+    {% if report_output_history_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ report_output_history_evidence_url }}">{% trans "Report output history" %}</a>
+    {% endif %}
+    {% if report_templates_catalog_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ report_templates_catalog_evidence_url }}">{% trans "Report templates (catalog)" %}</a>
+    {% endif %}
+  </div>
+
+  {% if user.is_superuser and admin_report_template_changelist_url %}
+  <div class="cp-evidence-advanced border-top pt-3 mt-2" data-rmc-evidence-advanced="1">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ admin_report_template_changelist_url }}">{% trans "Advanced/Admin: report template rows" %}</a>
+  </div>
+  {% endif %}
   </div>
   {% if classroom_list %}
   <script>

@@ -12,7 +12,7 @@ from django.db import DatabaseError, IntegrityError
 from django.http import HttpRequest
 from django.conf import settings
 
-from apps.platform_runtime.helpers import (
+from apps.platform_runtime.site_settings_read_access import (
     get_effective_flags,
     get_effective_site_settings,
 )

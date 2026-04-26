@@ -3,7 +3,7 @@
 from django.test import TestCase
 
 from apps.brand_experience.models import PlatformGlobalBranding, ThemePack
-from apps.platform_runtime.helpers import (
+from apps.platform_runtime.site_settings_read_access import (
     get_effective_site_settings,
     get_platform_site_settings_record,
     invalidate_effective_site_settings_cache,

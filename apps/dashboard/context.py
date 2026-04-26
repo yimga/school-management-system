@@ -16,7 +16,7 @@ from apps.dashboard.decision_surface_context import (
 )
 from apps.dashboard.role_home_engine import select_kpis_for_intent
 from apps.dashboard.services.role_home_service import build_role_home_context
-from apps.platform_runtime.helpers import (
+from apps.platform_runtime.site_settings_read_access import (
     get_effective_flags,
     get_effective_site_settings,
 )

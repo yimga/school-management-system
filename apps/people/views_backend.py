@@ -137,16 +137,16 @@ def backend_student_create(request):
                             try:
                                 from apps.platform_runtime.helpers import (
                                     get_site_display_name,
+                                )
+                                from apps.platform_runtime.site_settings_read_access import (
                                     get_effective_flags,
+                                    get_effective_site_settings,
                                 )
 
                                 notify = get_effective_flags(request).get(
                                     "notify_parent_welcome_email"
                                 )
                                 if notify is None:
-                                    from apps.platform_runtime.helpers import (
-                                        get_effective_site_settings,
-                                    )
 
                                     notify = getattr(
                                         get_effective_site_settings(request=request),
@@ -551,13 +551,20 @@ def backend_student_list(request):
 
 
 def _student_360_link_urls(request, student, record):
-    """Live links for Student 360 (finance, admin, evals)."""
+    """Live links for Student 360 (portal tabbed 360, finance, admin fallback)."""
     links = {
+        "portal_tabbed_360": "#",
         "admin_student": "#",
         "invoices": "#",
         "primary_invoice": "#",
         "messages": "#",
     }
+    try:
+        links["portal_tabbed_360"] = reverse(
+            "portal:student_360_page", args=[student.pk]
+        )
+    except NoReverseMatch:
+        pass
     try:
         links["admin_student"] = reverse(
             "admin:people_studentprofile_change", args=[student.pk]
@@ -666,6 +673,13 @@ def backend_classroom_detail(request, classroom_id):
             classroom_id=classroom_id, school_id=school.id
         ).order_by("last_name", "first_name")[:12]
     )
+    academic_years_setup_evidence_url = ""
+    try:
+        academic_years_setup_evidence_url = reverse(
+            "siteconfig:academic_years_setup_evidence"
+        )
+    except NoReverseMatch:
+        pass
     return render(
         request,
         "people/backend_classroom_detail.html",
@@ -673,6 +687,7 @@ def backend_classroom_detail(request, classroom_id):
             "classroom": classroom,
             "student_count": student_count,
             "sample_students": sample_students,
+            "academic_years_setup_evidence_url": academic_years_setup_evidence_url,
         },
     )
 

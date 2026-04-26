@@ -96,6 +96,12 @@ class ReportCardBuilderViewTests(TestCase):
         self.assertEqual(assigned_qs.count(), 1)
         self.assertEqual(Classroom.objects.count() - assigned_qs.count(), 1)
 
+    def test_builder_includes_template_catalog_and_export_handler_badge(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Report templates (catalog)")
+        self.assertContains(response, "Export handlers")
+
     def test_live_preview_script_tracks_html_and_pdf_urls_separately(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)

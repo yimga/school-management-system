@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from apps.schools.host_routing import public_host_kind
 from apps.schools.tenant_url import build_manager_absolute_url
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
 from .permissions import can_access_module
 from .utils import get_user_role

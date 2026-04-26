@@ -782,7 +782,7 @@ ROLE_WIDGET_DEFAULTS = {
 def default_dashboard_widgets(role: str | None) -> list[str]:
     role_key = (role or "").upper()
     try:
-        from apps.platform_runtime.helpers import get_effective_site_settings
+        from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
 
         site = get_effective_site_settings()
         if site is None:

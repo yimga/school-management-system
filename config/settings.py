@@ -143,6 +143,7 @@ INSTALLED_APPS = [
     "apps.marketplace.apps.MarketplaceConfig",
     "apps.registries.apps.RegistriesConfig",
     "apps.billing",  # Entitlements: can(), limits(), usage() (blueprint A1)
+    "apps.sales.apps.SalesConfig",  # Internal founder pipeline (public schema; manager host)
     "apps.student360",  # Student 360: timeline feed, export pack (blueprint B1)
     "apps.school_events.apps.SchoolEventsConfig",
     "apps.evals",
@@ -381,6 +382,9 @@ if (
 ):
     DATABASES = {"default": DATABASES["default"]}
 
+# Release gate (LOCKED STABLE): full `manage.py test` + verifier bundle + smoke;
+# see docs/deployment/RELEASE_TEST_POLICY.md.
+#
 # Django defaults sqlite test databases to in-memory databases when no explicit
 # TEST NAME is provided. That makes `--keepdb` ineffective across separate
 # manage.py invocations, because each process rebuilds the full test schema.
@@ -1475,6 +1479,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.automation",
         "apps.requests",
         "apps.billing",
+        "apps.sales.apps.SalesConfig",
         "apps.metadata.apps.MetadataConfig",
         "emis",
         "django_celery_results",

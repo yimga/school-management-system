@@ -1,24 +1,24 @@
 # Platform Inventory
 
-- Installed app modules: `42`
-- Python files: `2460`
-- HTML templates: `649`
-- Markdown files: `1027`
+- Installed app modules: `43`
+- Python files: `2482`
+- HTML templates: `672`
+- Markdown files: `1030`
 - Migration files: `704`
 - Management commands: `157` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs (gross scan): `1729`
+- `SiteSettings` refs (gross scan): `1759`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `27`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `4`
 - `get_solo()` refs: `200`
-- `except Exception`: `263`
+- `except Exception`: `265`
 - `cursor.execute()` (gross): `371`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `32`
-- `csrf_exempt` (substring, gross): `160`
+- `csrf_exempt` (substring, gross): `161`
 - `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `37`
-- `AllowAny`: `88`
-- `print()` (gross all `.py`): `923`
-- `print()` (`apps` product paths): `0`; `scripts/`: `829`
-- `gilead` matches (gross corpus): `1070` across `146` files
+- `AllowAny`: `90`
+- `print()` (gross all `.py`): `926`
+- `print()` (`apps` product paths): `0`; `scripts/`: `832`
+- `gilead` matches (gross corpus): `1079` across `148` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -80,19 +80,19 @@ Total: `157` commands. First 25 by app/command:
 - `apps/schools/marketing_page_definitions.py`: `2861` lines / `132976` bytes
 - `apps/schools/marketing_views.py`: `3188` lines / `126054` bytes
 - `apps/api/views_v1.py`: `2847` lines / `118196` bytes
-- `apps/evals/views.py`: `3100` lines / `114885` bytes
-- `apps/accounts/views.py`: `3009` lines / `114677` bytes
+- `apps/accounts/views.py`: `3069` lines / `117293` bytes
+- `apps/evals/views.py`: `3100` lines / `114903` bytes
+- `apps/siteconfig/views.py`: `2646` lines / `99441` bytes
+- `apps/siteconfig/admin.py`: `2814` lines / `98710` bytes
 - `apps/finance/models.py`: `2814` lines / `98677` bytes
-- `apps/siteconfig/admin.py`: `2814` lines / `98674` bytes
-- `apps/siteconfig/views.py`: `2510` lines / `93769` bytes
-- `apps/studio_os/views.py`: `2152` lines / `85056` bytes
+- `apps/studio_os/views.py`: `2165` lines / `85557` bytes
 - `apps/finance/tasks.py`: `2062` lines / `82393` bytes
-- `apps/siteconfig/models.py`: `2023` lines / `78499` bytes
-- `config/settings.py`: `1557` lines / `70465` bytes
+- `apps/siteconfig/models.py`: `2023` lines / `78497` bytes
+- `config/settings.py`: `1560` lines / `70681` bytes
 
 ## Documentation Drift
 
-- Legacy documented app count: `42`
-- Actual installed app count: `42`
+- Legacy documented app count: `43`
+- Actual installed app count: `43`
 - Drift detected: `False`
 
