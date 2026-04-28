@@ -77,6 +77,14 @@ class TenantInstallImpactPreviewTests(TestCase):
         self.assertEqual(data["app"]["slug"], "impact-test-app")
         self.assertTrue(any(s["scope_code"] == "students.read" for s in data["scopes"]))
 
+    def test_build_tenant_install_impact_includes_entitlement_block(self):
+        self.app.manifest = {"required_commercial_tier": "enterprise"}
+        self.app.save(update_fields=["manifest"])
+        data = build_tenant_install_impact(self.school, self.app)
+        ent = data.get("entitlement") or {}
+        self.assertIn("blocked", ent)
+        self.assertTrue(ent.get("blocked"))
+
     def test_blueprint_apply_gate_compares_string_school_id_for_uuid_tenants(self):
         """Regression: School.pk is UUID; session gate must not use int(school.pk)."""
         allowed = {

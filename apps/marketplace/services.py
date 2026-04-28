@@ -149,6 +149,31 @@ def check_app_compatibility(school, app, *, warn_only=False):
                 warnings.append(msg)
             else:
                 errors.append(msg)
+    try:
+        from apps.marketplace.manifest_schema import (
+            entitlement_hints_for_school,
+            normalize_platform_manifest,
+        )
+
+        pub = getattr(getattr(app, "publisher", None), "slug", "") or ""
+        mf = normalize_platform_manifest(
+            app.manifest,
+            app_slug=app.slug,
+            app_name=app.name,
+            version=app.version or "",
+            publisher_slug=pub,
+        )
+        ent = entitlement_hints_for_school(school, mf)
+        if ent.get("blocked"):
+            msg = (
+                ent.get("upgrade_message") or "Plan or marketplace entitlement not met."
+            )
+            if warn_only:
+                warnings.append(msg)
+            else:
+                errors.append(msg)
+    except _MARKETPLACE_COMPAT_ERRORS:
+        pass
     ok = len(errors) == 0
     return ok, warnings, errors
 
@@ -457,6 +482,15 @@ def install_app(
             raise ValueError(f"App incompatible: {'; '.join(errors)}")
     listing = _assert_app_installable(app)
     phase = install_phase if install_phase in ("sandbox", "active") else "active"
+
+    def _merged_install_config(user_cfg, *, prior_config=None):
+        merged = dict(user_cfg or {})
+        old_cv = (prior_config or {}).get("installed_catalog_version")
+        if old_cv and str(old_cv).strip() and str(old_cv) != str(app.version):
+            merged["previous_catalog_version"] = str(old_cv).strip()
+        merged["installed_catalog_version"] = app.version
+        return merged
+
     installation, created = AppInstallation.objects.get_or_create(
         school=school,
         app=app,
@@ -464,14 +498,23 @@ def install_app(
             "status": AppInstallation.Status.ACTIVE,
             "install_phase": phase,
             "installed_by": installed_by,
-            "config": config or {},
+            "config": _merged_install_config(config, prior_config=None),
             "widget_config": app.manifest.get("widgets", {}),
         },
     )
     if not created:
         installation.status = AppInstallation.Status.ACTIVE
         installation.install_phase = phase
-        installation.config = config or installation.config
+        prior_snapshot = dict(installation.config or {})
+        if config is not None:
+            base = dict(installation.config or {})
+            base.update(config)
+            merged_cfg = _merged_install_config(base, prior_config=prior_snapshot)
+        else:
+            merged_cfg = _merged_install_config(
+                installation.config, prior_config=prior_snapshot
+            )
+        installation.config = merged_cfg
         installation.widget_config = app.manifest.get("widgets", {})
         installation.save(
             update_fields=["status", "install_phase", "config", "widget_config"]
@@ -683,7 +726,32 @@ def approve_sensitive_scope(scope_grant, approved_by):
 
 def activate_sandbox_installation(installation, activated_by=None):
     """Move installation from sandbox to active so it appears in runtime."""
-    from apps.marketplace.models import AppInstallation, AppAuditLog
+    from apps.marketplace.manifest_schema import (
+        entitlement_hints_for_school,
+        normalize_platform_manifest,
+    )
+    from apps.marketplace.models import AppAuditLog, AppInstallation
+
+    app = installation.app
+    publisher_slug = ""
+    try:
+        pub = getattr(app, "publisher", None)
+        publisher_slug = getattr(pub, "slug", "") or ""
+    except (AttributeError, TypeError, ValueError):
+        publisher_slug = ""
+    manifest = normalize_platform_manifest(
+        app.manifest,
+        app_slug=app.slug,
+        app_name=app.name,
+        version=app.version or "",
+        publisher_slug=publisher_slug,
+    )
+    hints = entitlement_hints_for_school(installation.school, manifest)
+    if hints.get("blocked"):
+        raise ValueError(
+            hints.get("upgrade_message")
+            or "Cannot activate: plan or module requirements are not met."
+        )
 
     installation.install_phase = AppInstallation.InstallPhase.ACTIVE
     installation.save(update_fields=["install_phase"])
@@ -695,6 +763,34 @@ def activate_sandbox_installation(installation, activated_by=None):
         payload={},
         actor=activated_by,
     )
+    try:
+        from decimal import Decimal
+
+        from apps.marketplace.manifest_schema import PRICING_PAID
+
+        listing = getattr(installation.app, "listing", None)
+        pt = str(manifest.get("pricing_type") or "").strip().lower()
+        raw_base = manifest.get("billing_accrual_amount")
+        if (
+            listing is not None
+            and pt == PRICING_PAID
+            and raw_base is not None
+            and listing.revenue_share_percent is not None
+        ):
+            base = Decimal(str(raw_base))
+            pct = Decimal(str(listing.revenue_share_percent))
+            if base > 0 and pct > 0:
+                gross = (base * pct / Decimal("100")).quantize(Decimal("0.01"))
+                if gross > 0:
+                    schedule_publisher_revenue_share_payout(
+                        listing,
+                        gross_amount=gross,
+                        source_school=installation.school,
+                    )
+    except _MARKETPLACE_SCHEMA_BILLING_ERRORS:
+        pass
+    except (ValueError, TypeError, ArithmeticError):
+        pass
     return installation
 
 

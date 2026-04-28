@@ -1,0 +1,15 @@
+{
+  "gate_failures_after_safe_fixes": [],
+  "gate_failures_before_safe_fixes": [],
+  "generated_at": "2026-04-28T20:51:20.082594+00:00",
+  "informational_runs": {
+    "run_kill_test": 0,
+    "run_northstar_audit": 0
+  },
+  "safe_fixes_applied": [
+    "python scripts/generate_platform_inventory.py --write",
+    "python manage.py sync_i18n_catalog --compile"
+  ],
+  "status": "SELF_HEALED_PASS",
+  "unsafe_ticket_paths": []
+}

@@ -275,7 +275,7 @@ def _get_payment_instructions(invoice: Invoice) -> dict:
             if hasattr(RegionConfig, "is_active"):
                 region = RegionConfig.objects.filter(is_active=True).first()
             else:
-                region = RegionConfig.objects.order_by("id").first()
+                region = RegionConfig.objects.order_by("code").first()
 
         if region:
             # Get bank accounts for this region

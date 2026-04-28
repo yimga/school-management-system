@@ -1,0 +1,43 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Transcript vault" %} · {{ student.first_name }} {{ student.last_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-rmc-transcript-vault="1">
+  <h1 class="h5 mb-3">{% trans "Transcript vault" %}</h1>
+  <p class="small text-muted">{% trans "Artifacts are stored with verification hashes only; no credential is implied without issuer data." %}</p>
+
+  <div class="table-responsive">
+    <table class="table table-sm table-striped">
+      <thead>
+        <tr>
+          <th>{% trans "Type" %}</th>
+          <th>{% trans "Issued" %}</th>
+          <th>{% trans "Verification" %}</th>
+          <th>{% trans "Access" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in vault_items %}
+        <tr>
+          <td>{{ v.artifact_type }}</td>
+          <td>{{ v.issued_at|default:"—" }}</td>
+          <td><code class="small">{% if v.verification_hash %}{{ v.verification_hash|slice:":16" }}…{% else %}—{% endif %}</code></td>
+          <td>{{ v.access_status }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-muted">{% trans "No vault items yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if student360_url or passport_url %}
+  <p class="small mb-0">
+    {% if student360_url %}<a href="{{ student360_url }}">{% trans "Student 360" %}</a>{% endif %}
+    {% if student360_url and passport_url %} · {% endif %}
+    {% if passport_url %}<a href="{{ passport_url }}">{% trans "Student passport" %}</a>{% endif %}
+  </p>
+  {% endif %}
+</div>
+{% endblock %}

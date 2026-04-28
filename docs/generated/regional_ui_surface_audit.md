@@ -1,0 +1,20 @@
+# Regional UI surface audit
+
+**Generated:** 2026-04-28T22:35:51.571835+00:00
+
+## Summary
+
+{
+  "violation": 0,
+  "needs_review": 3,
+  "rtl_ready": 4,
+  "terminology_ready": 0
+}
+
+- `templates/portal_base.html` — **rtl_ready**
+- `templates/control_plane_skeleton.html` — **rtl_ready**
+- `templates/base.html` — **rtl_ready**
+- `templates/accounts/backend_dashboard.html` — **needs_review**
+- `templates/siteconfig/compliance_exports.html` — **needs_review**
+- `templates/marketplace/tenant_app_catalog.html` — **needs_review**
+- `templates/teacher/marks_list.html` — **rtl_ready**

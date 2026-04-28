@@ -302,9 +302,38 @@ class StripeConnectProcessor(BasePlatformBillingProcessor):
             or metadata.get("school")
         )
         school_id = metadata.get("school_id")
+        marketplace_app_id = metadata.get("marketplace_app_id")
+        billing_context = metadata.get("billing_context")
         external_customer_ref = obj.get("customer") or metadata.get("customer")
         external_subscription_ref = obj.get("subscription") or obj.get("id")
         stripe_status = str(obj.get("status") or "").strip().lower()
+
+        if event_type == "checkout.session.completed":
+            billed = _to_decimal_minor_units(obj.get("amount_total"))
+            if billed is None and obj.get("amount_subtotal") is not None:
+                billed = _to_decimal_minor_units(obj.get("amount_subtotal"))
+            return [
+                {
+                    "school_slug": school_slug,
+                    "school_id": school_id,
+                    "marketplace_app_id": marketplace_app_id,
+                    "billing_context": billing_context,
+                    "event_type": event_type,
+                    "account_status": "active",
+                    "subscription_status": "active",
+                    "external_customer_ref": external_customer_ref,
+                    "external_subscription_ref": str(obj.get("subscription") or "") or "",
+                    "processor_source_ref": str(obj.get("id") or ""),
+                    "currency_code": str(obj.get("currency") or "").upper() or None,
+                    "billed_amount": billed,
+                    "current_period_start": _to_datetime_from_unix(
+                        obj.get("created")
+                    ),
+                    "current_period_end": None,
+                    "message": "",
+                    "payload": payload,
+                }
+            ]
 
         subscription_status = stripe_status or "active"
         account_status = "active"
@@ -329,19 +358,24 @@ class StripeConnectProcessor(BasePlatformBillingProcessor):
                 or "Stripe reported a payment failure."
             )
 
+        billed_amt = _to_decimal_minor_units(
+            obj.get("amount_paid") or obj.get("amount_due")
+        )
+
         return [
             {
                 "school_slug": school_slug,
                 "school_id": school_id,
+                "marketplace_app_id": marketplace_app_id,
+                "billing_context": billing_context,
                 "event_type": event_type or "stripe.event",
                 "account_status": account_status,
                 "subscription_status": subscription_status,
                 "external_customer_ref": external_customer_ref,
                 "external_subscription_ref": external_subscription_ref,
+                "processor_source_ref": str(obj.get("id") or ""),
                 "currency_code": str(obj.get("currency") or "").upper() or None,
-                "billed_amount": _to_decimal_minor_units(
-                    obj.get("amount_paid") or obj.get("amount_due")
-                ),
+                "billed_amount": billed_amt,
                 "current_period_start": _to_datetime_from_unix(
                     obj.get("current_period_start")
                     or metadata.get("current_period_start")

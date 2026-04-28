@@ -1,0 +1,1209 @@
+{
+  "generated_at": "2026-04-28T20:29:13.373298+00:00",
+  "hits": [
+    {
+      "classification": "test_safe",
+      "file": "apps/dashboard/tests/test_phase9_security_gates.py",
+      "line": "15",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/finance/receipt_verification.py",
+      "line": "169",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/platform_runtime/backlog_unlock_engine.py",
+      "line": "83",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/platform_runtime/backlog_unlock_engine.py",
+      "line": "116",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/platform_runtime/ollama_model_sync.py",
+      "line": "91",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_audit_admin_and_security_surface.py",
+      "line": "17",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_audit_post_handler_surface_script.py",
+      "line": "18",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_audit_post_surface_script.py",
+      "line": "18",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_closing_slice_demo_mode.py",
+      "line": "53",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "75",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "99",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "113",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "143",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "172",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "198",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "224",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "251",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "277",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "304",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "331",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "357",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "383",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "409",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "435",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "461",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "486",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "519",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "552",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "590",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "629",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "667",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "705",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "743",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "776",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "803",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "833",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "1007",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "1107",
+      "pattern": "subprocess.CompletedProcess"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "1124",
+      "pattern": "subprocess.CompletedProcess"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "1181",
+      "pattern": "subprocess.TimeoutExpired"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_northstar_audit_and_kill_test.py",
+      "line": "17",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_northstar_audit_and_kill_test.py",
+      "line": "31",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_public_api_lints.py",
+      "line": "13",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_security_allowlists_verify.py",
+      "line": "17",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_sitesettings_python_surface_audit.py",
+      "line": "31",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "33",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "52",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "77",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "102",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "121",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "145",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "164",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "188",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "208",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "228",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "248",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "268",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "288",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "308",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "328",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "348",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "365",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "385",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "405",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "426",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "454",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "499",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "519",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "544",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "564",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "584",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "604",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "624",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "644",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "664",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "684",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "704",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "724",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "744",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "764",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "789",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "814",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "839",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "864",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "889",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "911",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "931",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "953",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "973",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "999",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1021",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1043",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1063",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1085",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1105",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1130",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1153",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1173",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1197",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1217",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1237",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1257",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1282",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1302",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1322",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1342",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1362",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1382",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1402",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1422",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1442",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1462",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1489",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1509",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1529",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1549",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1569",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1589",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1609",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1629",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1649",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1669",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1689",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1720",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1749",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1769",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "line": "1803",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_test_module_contract.py",
+      "line": "20",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_wedge_line_registry.py",
+      "line": "32",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/portal/document_conversion.py",
+      "line": "137",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/portal/document_generation.py",
+      "line": "305",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/schools/tests/test_premium_maturity_signals_report.py",
+      "line": "20",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/schools/tests/test_premium_maturity_signals_report.py",
+      "line": "47",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/schools/tests/test_premium_maturity_signals_report.py",
+      "line": "71",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/schools/tests/test_program_phase10_phase11_gates.py",
+      "line": "16",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/schools/tests/test_repo_wide_ecosystem_marketing_audit.py",
+      "line": "16",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/schools/tests/test_ui_wiring_audit_script.py",
+      "line": "16",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/schools/tests/test_validate_wedges_phase.py",
+      "line": "25",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/schools/tests/test_wave4_tenant_scoping.py",
+      "line": "35",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/schools/tests/test_wedge_super_premium_phases.py",
+      "line": "32",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "management_command_safe",
+      "file": "apps/siteconfig/management/commands/generate_models_diagram.py",
+      "line": "48",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "management_command_safe",
+      "file": "apps/siteconfig/management/commands/seed_cursor_twelve_phases.py",
+      "line": "367",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "management_command_safe",
+      "file": "apps/siteconfig/management/commands/sync_regional_models.py",
+      "line": "40",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/siteconfig/tests/test_regional_ui_surface.py",
+      "line": "16",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/siteconfig/tests/test_theme_studio.py",
+      "line": "633",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/studio_os/tests/test_phase5_mechanical_gate.py",
+      "line": "13",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/audit_gilead_references.py",
+      "line": "31",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/audit_post_surface.py",
+      "line": "113",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/check_no_committed_env.py",
+      "line": "52",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/check_no_hardcoding.py",
+      "line": "72",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/check_repo_hygiene.py",
+      "line": "71",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/check_root_clutter.py",
+      "line": "71",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/dev/capture_backend_screenshot.py",
+      "line": "73",
+      "pattern": "subprocess.Popen"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/gen_models_png.py",
+      "line": "26",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/generate_platform_inventory.py",
+      "line": "119",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/lint_allow_any_usage.py",
+      "line": "44",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/lint_bounded_context_imports.py",
+      "line": "73",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/lint_broad_except.py",
+      "line": "54",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/lint_csrf_exempt_usage.py",
+      "line": "45",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/lint_gilead_residue.py",
+      "line": "38",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/lint_mega_files.py",
+      "line": "35",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/lint_no_print_in_apps.py",
+      "line": "37",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/lint_raw_sql_usage.py",
+      "line": "189",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/lint_secret_exposure.py",
+      "line": "65",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/lint_tenant_cache_prefix.py",
+      "line": "55",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/lint_tenant_settings.py",
+      "line": "189",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/northstar_common.py",
+      "line": "73",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/northstar_common.py",
+      "line": "87",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/refresh_marketplace_seed_targets.py",
+      "line": "48",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/report_premium_maturity_signals.py",
+      "line": "169",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/report_premium_maturity_signals.py",
+      "line": "182",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/reset_local_db.py",
+      "line": "35",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/run_kill_test.py",
+      "line": "80",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/run_kill_test.py",
+      "line": "135",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/run_northstar_self_heal.py",
+      "line": "34",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/run_sweep_ab.py",
+      "line": "43",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/run_theme_stress_matrix.py",
+      "line": "19",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/scan_repo_secrets.py",
+      "line": "64",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/validate_legacy_replacements.py",
+      "line": "63",
+      "pattern": "subprocess.call"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/validate_wedge_super_premium_phases.py",
+      "line": "110",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/validate_wedges_phase.py",
+      "line": "49",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_ai_blueprint_completion.py",
+      "line": "38",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_cursor_phase6_granular.py",
+      "line": "67",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_cursor_phase6_granular.py",
+      "line": "88",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_cursor_phase6_siteconfig_sitesettings.py",
+      "line": "58",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_cursor_phase7_granular.py",
+      "line": "53",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_cursor_phase7_runtime_first.py",
+      "line": "177",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_design_system_phase2.py",
+      "line": "255",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_gilead_full_tree_classification.py",
+      "line": "100",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_operator_phase10_11_e2e.py",
+      "line": "40",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_phase1_settings_gravity.py",
+      "line": "67",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_phase1_settings_gravity.py",
+      "line": "173",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_phase2_authenticated_shell_conformance.py",
+      "line": "48",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_phase_5_siteconfig.py",
+      "line": "511",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_phases_3_11_gates.py",
+      "line": "66",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_repo_wide_ecosystem_marketing_audit.py",
+      "line": "39",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_section10_5_layers.py",
+      "line": "27",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_section7_gate.py",
+      "line": "128",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_security_allowlist_density.py",
+      "line": "70",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/verify_ui_wiring_audit.py",
+      "line": "74",
+      "pattern": "subprocess.run"
+    }
+  ],
+  "schema_version": 1,
+  "totals": {
+    "hits": 200
+  }
+}

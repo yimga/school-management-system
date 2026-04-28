@@ -874,11 +874,20 @@ class AttendanceExportView(View):
         school = _get_school_from_request(request)
         if not school:
             return JsonResponse({"error": "Tenant context required"}, status=400)
+        from apps.portal.attendance_exports import user_can_access_student_attendance_export
+        from apps.schools.tenant_access import user_belongs_to_school
+
+        if not user_belongs_to_school(request.user, school):
+            return JsonResponse({"error": "Forbidden"}, status=403)
+        if not user_can_access_student_attendance_export(request.user):
+            return JsonResponse({"error": "Forbidden"}, status=403)
+
         import csv
         from io import StringIO
         from datetime import timedelta
         from django.utils import timezone
         from apps.academics.models import Attendance
+        from apps.schools.tenant_access import safe_queryset_for_school
 
         date_from = (
             request.GET.get("date_from")
@@ -886,8 +895,8 @@ class AttendanceExportView(View):
         )
         date_to = request.GET.get("date_to") or timezone.now().date().isoformat()
         classroom_id = request.GET.get("classroom_id")
-        qs = Attendance.objects.filter(
-            school=school, date__gte=date_from, date__lte=date_to
+        qs = safe_queryset_for_school(Attendance.objects.all(), school).filter(
+            date__gte=date_from, date__lte=date_to
         ).select_related("student", "classroom")
         if classroom_id:
             qs = qs.filter(classroom_id=classroom_id)

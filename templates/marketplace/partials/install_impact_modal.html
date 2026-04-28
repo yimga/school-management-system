@@ -64,6 +64,10 @@
       comp.warnings.forEach(function (w) { html += "<li>" + esc(w) + "</li>"; });
       html += "</ul></div>";
     }
+    var ent = d.entitlement || {};
+    if (ent.blocked) {
+      html += "<div class=\"alert alert-warning\" data-rmc-mkt-plan-gate=\"1\"><strong>{% trans 'Plan / modules' %}:</strong> " + esc(ent.upgrade_message || "") + "</div>";
+    }
     html += "<h4 class=\"h6 mt-3\">{% trans 'Scopes' %}</h4><ul class=\"list-unstyled\">";
     (d.scopes || []).forEach(function (s) {
       html += "<li><code>" + esc(s.scope_code) + "</code>";
@@ -104,7 +108,7 @@
         downstream_package_ids: dg.downstream_package_ids || [],
       });
     }
-    confirmBtn.disabled = !!(comp.errors && comp.errors.length);
+    confirmBtn.disabled = !!(comp.errors && comp.errors.length) || !!ent.blocked;
   }
   function loadImpact(appId, schoolId) {
     bodyEl.innerHTML = "<div class=\"spinner-border spinner-border-sm\"></div>";

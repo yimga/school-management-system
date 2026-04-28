@@ -22,11 +22,25 @@ def _reverse_tenant(name: str) -> str:
             return ""
 
 
-def get_school_onboarding_steps(
+def _load_manual_onboarding_step_keys(school) -> set[str]:
+    if school is None:
+        return set()
+    try:
+        from apps.platform_runtime.models import SchoolOnboardingProgress
+
+        row = SchoolOnboardingProgress.objects.filter(school_id=school.id).first()
+    except (ImportError, OSError, RuntimeError, TypeError, ValueError):
+        return set()
+    if not row or not row.completed_steps:
+        return set()
+    return {str(x) for x in row.completed_steps if x}
+
+
+def _compute_data_driven_onboarding_steps(
     school, user: Optional[Any] = None
 ) -> list[dict[str, Any]]:  # noqa: ARG001
     """
-    Return checklist rows: key, label, done, link (action URL when not done, else empty).
+    Return checklist rows from live tenant data only: key, label, done, link, weight.
     """
     del user  # reserved for future permission-scoped links
     if school is None:
@@ -91,12 +105,14 @@ def get_school_onboarding_steps(
     except Exception as ex:  # noqa: BLE001
         logger.debug("onboarding teachers: %s", ex)
 
-    # 5) Classes (classrooms)
+    # 5) Classes (classrooms) — CP list first (admin gravity)
     try:
         from apps.academics.models import Classroom
 
         has_classes = Classroom.objects.filter(school_id=school.id).exists()
-        c_link = _reverse_tenant("admin:academics_classroom_changelist")
+        c_link = _reverse_tenant("accounts:backend_classroom_list")
+        if not c_link:
+            c_link = _reverse_tenant("admin:academics_classroom_changelist")
         add_row("classes", "Classes (classrooms) set up", has_classes, c_link)
     except Exception as ex:  # noqa: BLE001
         logger.debug("onboarding classes: %s", ex)
@@ -137,7 +153,111 @@ def get_school_onboarding_steps(
     except Exception as ex:  # noqa: BLE001
         logger.debug("onboarding marketplace: %s", ex)
 
+    # 9) Data migration (CSV) — real audit trail when import/dry-run ran
+    try:
+        from apps.automation.models import MigrationRun
+
+        has_migration_activity = MigrationRun.objects.filter(
+            school_id=school.id
+        ).exists()
+        mig_link = _reverse_tenant("accounts:migration_wizard")
+        add_row(
+            "data_migration",
+            "Data import (CSV migration) used or reviewed",
+            has_migration_activity,
+            mig_link,
+        )
+    except Exception as ex:  # noqa: BLE001
+        logger.debug("onboarding data_migration: %s", ex)
+
+    # 10) Guided configuration — setup studio progress or tenant runtime hub
+    try:
+        from apps.setup_studio.models import SetupProgress
+
+        sp = SetupProgress.objects.filter(school_id=school.id).first()
+        setup_done = bool(
+            sp
+            and (
+                int(getattr(sp, "health_score", 0) or 0) >= 15
+                or len(getattr(sp, "completed_keys", None) or []) > 0
+            )
+        )
+        cfg_link = _reverse_tenant("siteconfig:tenant_runtime_configuration_hub")
+        if not cfg_link:
+            cfg_link = _reverse_tenant("siteconfig:console_domains_hub")
+        add_row(
+            "guided_configuration",
+            "Tenant settings & runtime (guided setup)",
+            setup_done,
+            cfg_link,
+        )
+    except Exception as ex:  # noqa: BLE001
+        logger.debug("onboarding guided_configuration: %s", ex)
+
+    # 11) Plan & entitlements (read-only billing summary)
+    try:
+        plan = getattr(school, "plan", None)
+        has_plan = plan is not None
+        plink = _reverse_tenant("siteconfig:billing_plan_readonly")
+        add_row(
+            "plan_entitlements",
+            "Plan & entitlements reviewed",
+            has_plan,
+            plink,
+        )
+    except Exception as ex:  # noqa: BLE001
+        logger.debug("onboarding plan_entitlements: %s", ex)
+
     return steps
+
+
+def get_onboarding_steps(
+    school, user: Optional[Any] = None
+) -> list[dict[str, Any]]:
+    """
+    Checklist rows with data-driven *and* operator-marked completion merged.
+    """
+    base = _compute_data_driven_onboarding_steps(school, user=user)
+    manual = _load_manual_onboarding_step_keys(school)
+    out: list[dict[str, Any]] = []
+    for row in base:
+        r = dict(row)
+        if r.get("key") in manual and not r.get("done"):
+            r["done"] = True
+            r["manually_completed"] = True
+        out.append(r)
+    return out
+
+
+# Backward compatibility / existing imports
+get_school_onboarding_steps = get_onboarding_steps
+
+
+def mark_school_onboarding_step_complete(school, step_key: str) -> dict[str, Any]:
+    """
+    Record an operator acknowledgment for a step key. Idempotent. Persists
+    :class:`SchoolOnboardingProgress` and returns the same structure as
+    :func:`get_school_onboarding_progress`.
+    """
+    from apps.platform_runtime.models import SchoolOnboardingProgress
+
+    if school is None:
+        raise ValueError("school required")
+    valid = {r["key"] for r in _compute_data_driven_onboarding_steps(school, None)}
+    sk = (step_key or "").strip()
+    if sk not in valid:
+        raise ValueError("unknown_onboarding_step")
+    obj, _ = SchoolOnboardingProgress.objects.get_or_create(
+        school_id=school.id,
+        defaults={"completed_steps": [], "progress_percent": 0, "last_step": ""},
+    )
+    current = [str(x) for x in (obj.completed_steps or []) if x]
+    if sk not in current:
+        current.append(sk)
+    obj.completed_steps = current
+    obj.last_step = sk
+    obj.save(update_fields=["completed_steps", "last_step", "updated_at"])
+    return get_school_onboarding_progress(school, user=None)
 
 
 def get_school_onboarding_progress(
@@ -146,7 +266,7 @@ def get_school_onboarding_progress(
     """
     Aggregated progress, next action, and display slice for dashboard card.
     """
-    steps = get_school_onboarding_steps(school, user=user)
+    steps = get_onboarding_steps(school, user=user)
     if not steps:
         return {
             "percent": 0,
@@ -157,6 +277,7 @@ def get_school_onboarding_progress(
             "steps": [],
             "display_steps": [],
             "next_action": None,
+            "persisted_last_step": "",
         }
 
     weight_total = sum(int(s.get("weight") or 1) for s in steps)
@@ -183,7 +304,7 @@ def get_school_onboarding_progress(
     ordered = [s for s in steps if not s.get("done")] + [s for s in steps if s.get("done")]
     display_steps = ordered[:5]
 
-    return {
+    result = {
         "percent": min(100, max(0, percent)),
         "completed": completed,
         "total": total,
@@ -192,4 +313,19 @@ def get_school_onboarding_progress(
         "steps": steps,
         "display_steps": display_steps,
         "next_action": next_action,
+        "persisted_last_step": "",
     }
+    if school is not None:
+        try:
+            from apps.platform_runtime.models import SchoolOnboardingProgress
+
+            rec = SchoolOnboardingProgress.objects.filter(school_id=school.id).first()
+            if rec is not None:
+                result["persisted_last_step"] = (rec.last_step or "").strip()
+                pc = int(result["percent"])
+                if int(rec.progress_percent or 0) != pc:
+                    rec.progress_percent = pc
+                    rec.save(update_fields=["progress_percent", "updated_at"])
+        except (ImportError, OSError, RuntimeError, TypeError, ValueError):
+            pass
+    return result

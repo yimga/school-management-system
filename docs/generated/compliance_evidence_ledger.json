@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "title": "RunMyCampus compliance evidence ledger (paths must exist on disk)",
+  "required_policy_docs": [
+    "docs/compliance/policies/ACCESS_CONTROL_POLICY.md",
+    "docs/compliance/policies/CHANGE_MANAGEMENT_POLICY.md",
+    "docs/compliance/policies/INCIDENT_RESPONSE_POLICY.md",
+    "docs/compliance/policies/BACKUP_AND_RESTORE_POLICY.md",
+    "docs/compliance/policies/DATA_RETENTION_POLICY.md",
+    "docs/compliance/policies/VENDOR_RISK_POLICY.md",
+    "docs/compliance/policies/SECURITY_MONITORING_POLICY.md"
+  ],
+  "framework_docs": [
+    "docs/compliance/SOC2_READINESS_MAP.md",
+    "docs/compliance/CONTROL_MATRIX.md"
+  ],
+  "scaling_docs": [
+    "docs/scaling/CACHE_READINESS.md",
+    "docs/scaling/ASYNC_JOBS_READINESS.md",
+    "docs/scaling/1000_TENANT_SCALE_CHECKLIST.md",
+    "docs/maintenance/REPO_COMPLEXITY_REDUCTION_SCOPE.md"
+  ],
+  "operationalization_docs": [
+    "docs/compliance/ENTERPRISE_READINESS_INDEX.md",
+    "docs/compliance/ENTERPRISE_REVIEW_CHECKLIST.md",
+    "docs/maintenance/VERIFIER_CI_GATE_RECOMMENDATION.md"
+  ],
+  "evidence": [
+    {"id": "sot", "path": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md", "kind": "governance"},
+    {"id": "autonomous_log", "path": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md", "kind": "governance"},
+    {"id": "path_plan", "path": "docs/PATH_TO_100_PERCENT_EXECUTION_PLAN.md", "kind": "governance"},
+    {"id": "deployment_rollback", "path": "docs/deployment/DEPLOYMENT_ROLLBACK.md", "kind": "deployment"},
+    {"id": "admin_gravity_audit", "path": "docs/generated/admin_gravity_audit.json", "kind": "generated_ledger"},
+    {"id": "security_surface_audit", "path": "docs/generated/security_surface_audit.json", "kind": "generated_ledger"},
+    {"id": "sitesettings_surface_audit", "path": "docs/generated/sitesettings_python_surface_audit.json", "kind": "generated_ledger"},
+    {"id": "platform_inventory", "path": "docs/generated/platform_inventory.json", "kind": "generated_ledger"},
+    {"id": "audit_admin_gravity", "path": "scripts/audit_admin_gravity.py", "kind": "verifier_source"},
+    {"id": "audit_security_surface", "path": "scripts/audit_security_surface.py", "kind": "verifier_source"},
+    {"id": "audit_sitesettings_python_surface", "path": "scripts/audit_sitesettings_python_surface.py", "kind": "verifier_source"},
+    {"id": "verify_shell_surface_inventory", "path": "scripts/verify_shell_surface_inventory.py", "kind": "verifier_source"},
+    {"id": "verify_design_system_phase2", "path": "scripts/verify_design_system_phase2.py", "kind": "verifier_source"},
+    {"id": "verify_doc_plan_density_discipline", "path": "scripts/verify_doc_plan_density_discipline.py", "kind": "verifier_source"},
+    {"id": "verify_sot_pillar_evidence", "path": "scripts/verify_sot_pillar_evidence.py", "kind": "verifier_source"},
+    {"id": "verify_compliance_evidence", "path": "scripts/verify_compliance_evidence.py", "kind": "verifier_source"},
+    {"id": "audit_admin_usage_extended", "path": "scripts/audit_admin_usage_extended.py", "kind": "verifier_source"},
+    {"id": "audit_raw_sql_usage", "path": "scripts/audit_raw_sql_usage.py", "kind": "verifier_source"},
+    {"id": "audit_tenant_isolation", "path": "scripts/audit_tenant_isolation.py", "kind": "verifier_source"},
+    {"id": "audit_query_hotspots", "path": "scripts/audit_query_hotspots.py", "kind": "verifier_source"},
+    {"id": "audit_repo_complexity", "path": "scripts/audit_repo_complexity.py", "kind": "verifier_source"},
+    {"id": "audit_subprocess_usage", "path": "scripts/audit_subprocess_usage.py", "kind": "verifier_source"},
+    {"id": "audit_gilead_references", "path": "scripts/audit_gilead_references.py", "kind": "verifier_source"},
+    {"id": "admin_usage_extended_audit", "path": "docs/generated/admin_usage_extended_audit.json", "kind": "generated_ledger"},
+    {"id": "raw_sql_audit", "path": "docs/generated/raw_sql_audit.json", "kind": "generated_ledger"},
+    {"id": "tenant_isolation_audit", "path": "docs/generated/tenant_isolation_audit.json", "kind": "generated_ledger"},
+    {"id": "query_hotspots_audit", "path": "docs/generated/query_hotspots_audit.json", "kind": "generated_ledger"},
+    {"id": "repo_complexity_audit", "path": "docs/generated/repo_complexity_audit.json", "kind": "generated_ledger"},
+    {"id": "subprocess_audit", "path": "docs/generated/subprocess_audit.json", "kind": "generated_ledger"},
+    {"id": "gilead_reference_audit", "path": "docs/generated/gilead_reference_audit.json", "kind": "generated_ledger"}
+  ]
+}

@@ -1,0 +1,15 @@
+/* SLICE 14 — minimal RTL companions for shells (non-destructive). */
+
+[dir="rtl"] .navbar-nav {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .table-responsive {
+  direction: inherit;
+}
+
+[dir="rtl"] .form-check .form-check-input {
+  float: right;
+  margin-right: 0;
+  margin-left: 0.5rem;
+}

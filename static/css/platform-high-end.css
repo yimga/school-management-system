@@ -1,7 +1,6 @@
 /**
  * Platform High-End – One place for premium feel across the entire product.
- * Super ultra high-end by default: entire platform uses luxury tokens, statement headers,
- * 600ms motion, hairline borders, sharp CTAs. No compromise.
+ * Quiet luxury by default: restrained elevation, calm motion, and strict token usage.
  *
  * Applied to: tenant portal, tenant backend, superadmin, marketing, admin, login,
  * every sidebar, every dashboard, every card, every chart and data visualization.
@@ -11,8 +10,8 @@
 
 /* ========== Platform-wide super ultra high-end (default experience) ========== */
 body {
-  color: var(--luxury-text, #1A1A1A);
-  transition: color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out);
+  color: var(--luxury-text, #1a1a1a);
+  transition: color var(--lux-motion-base, 220ms ease);
 }
 html[data-theme="dark"] body,
 html[data-bs-theme="dark"] body,
@@ -30,14 +29,14 @@ main[role="main"] {
 
 /* ========== Premium design tokens (used by all surfaces) ========== */
 :root {
-  --platform-premium-radius: 14px;
-  --platform-premium-radius-sm: 10px;
-  --platform-premium-shadow: 0 12px 28px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.04);
-  --platform-premium-shadow-hover: 0 20px 40px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.06);
-  --platform-premium-shadow-dark: 0 12px 28px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06);
-  --platform-premium-shadow-dark-hover: 0 20px 44px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  --platform-sidebar-radius: 12px;
-  --platform-sidebar-padding: 1rem 1.25rem;
+  --platform-premium-radius: var(--lux-radius-xl, 1rem);
+  --platform-premium-radius-sm: var(--lux-radius-md, 0.5rem);
+  --platform-premium-shadow: var(--lux-shadow-elevated, 0 6px 18px rgba(15, 23, 42, 0.08));
+  --platform-premium-shadow-hover: var(--lux-shadow-floating, 0 14px 30px rgba(15, 23, 42, 0.12));
+  --platform-premium-shadow-dark: var(--lux-shadow-elevated, 0 8px 20px rgba(0, 0, 0, 0.3));
+  --platform-premium-shadow-dark-hover: var(--lux-shadow-floating, 0 18px 36px rgba(0, 0, 0, 0.4));
+  --platform-sidebar-radius: var(--lux-radius-lg, 0.75rem);
+  --platform-sidebar-padding: var(--lux-space-4, 1rem) var(--lux-space-5, 1.25rem);
   --platform-card-radius: var(--platform-premium-radius);
   --platform-chart-radius: var(--platform-premium-radius);
 }
@@ -73,12 +72,12 @@ html[data-theme="dark"] ::selection {
 .portal-sidebar-col .sidebar {
   border-radius: var(--platform-sidebar-radius);
   border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--platform-premium-shadow);
 }
 html[data-bs-theme="dark"] .portal-sidebar-col .sidebar,
 body.portal-backend-dark .portal-sidebar-col .sidebar {
   border-color: rgba(148, 163, 184, 0.2);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--platform-premium-shadow-dark);
 }
 .sidebar-header,
 [data-sidebar-nav="true"] {
@@ -91,23 +90,23 @@ body.portal-backend-dark .portal-sidebar-col .sidebar {
 .sidebar-section-title {
   letter-spacing: 0.08em;
   font-weight: 700;
-  color: var(--portal-text-muted);
+  color: var(--portal-text-muted, var(--luxury-text-muted, #475569));
 }
 .nav-link.nav-pill {
   border-radius: var(--platform-premium-radius-sm);
   padding: 0.6rem 0.875rem !important;
-  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  transition: background var(--lux-motion-fast, 140ms ease), color var(--lux-motion-fast, 140ms ease), box-shadow var(--lux-motion-fast, 140ms ease);
 }
 .nav-link.nav-pill:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--lux-shadow-hairline, 0 0 0 1px rgba(15, 23, 42, 0.08));
 }
 .nav-link.nav-pill.active,
 .nav-link.nav-pill[aria-current="page"] {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--platform-premium-shadow);
 }
 .sidebar-avatar {
   border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--platform-premium-shadow);
 }
 
 /* Control plane sidebar (partials/control_plane_sidebar) – scroll controlled by manager-control-plane.css */
@@ -118,7 +117,7 @@ body.portal-backend-dark .portal-sidebar-col .sidebar {
 .cp-sidebar-nav .nav-link {
   border-radius: var(--platform-premium-radius-sm);
   padding: 0.55rem 0.75rem;
-  transition: background 0.2s ease, color 0.2s ease, padding-left 0.2s ease;
+  transition: background var(--lux-motion-fast, 140ms ease), color var(--lux-motion-fast, 140ms ease), padding-left var(--lux-motion-fast, 140ms ease);
 }
 .cp-sidebar-nav .nav-link:hover {
   background: rgba(212, 175, 55, 0.12);
@@ -216,10 +215,10 @@ body.portal-backend-dark .dashboard-chart-wrapper {
 .cp-overview-card {
   border-radius: var(--platform-premium-radius-sm);
   border: 1px solid rgba(125, 152, 187, 0.2);
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: box-shadow var(--lux-motion-fast, 140ms ease), border-color var(--lux-motion-fast, 140ms ease);
 }
 .cp-overview-card:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--platform-premium-shadow-hover);
   border-color: rgba(212, 175, 55, 0.35);
 }
 
@@ -265,10 +264,10 @@ html[data-bs-theme="dark"] .dashboard-header {
   border-radius: var(--platform-premium-radius-sm);
 }
 .control-plane-shell .btn-primary {
-  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+  box-shadow: var(--platform-premium-shadow);
 }
 .control-plane-shell .btn-primary:hover {
-  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+  box-shadow: var(--platform-premium-shadow-hover);
 }
 .form-control,
 .form-select {
@@ -391,9 +390,9 @@ html[data-bs-theme="dark"] .dashboard-header {
 :root {
   --luxury-section-padding: var(--luxury-section-padding, 3rem);
   --luxury-gap: var(--luxury-gap, 2rem);
-  --luxury-motion-duration: var(--luxury-motion-duration, 600ms);
+  --luxury-motion-duration: var(--lux-motion-base, 220ms);
   --luxury-motion-ease: var(--luxury-motion-ease, ease-out);
-  --luxury-btn-radius: var(--luxury-btn-radius, 2px);
+  --luxury-btn-radius: var(--lux-radius-sm, 0.375rem);
 }
 
 /* CTAs – sharp or 2px radius; hover invert/fill (high-end) */
@@ -414,7 +413,7 @@ html[data-bs-theme="dark"] .dashboard-header {
 .portal-main-col .btn-primary:hover,
 [data-dashboard-page] .btn-primary:hover,
 .btn.btn-primary:hover {
-  box-shadow: 0 4px 14px rgba(10, 10, 10, 0.15);
+  box-shadow: var(--platform-premium-shadow-hover);
 }
 
 /* Secondary/outline: hover invert (dark bg → light text) */
@@ -443,7 +442,7 @@ body.portal-backend-dark .card,
   border-color: var(--luxury-border, rgba(255, 255, 255, 0.1));
 }
 
-/* Motion – 600ms ease-out for surfaces (reveal, not pop) */
+/* Motion – calm transitions for surfaces (reveal, not pop) */
 #main-content .card,
 .portal-main-col .card,
 [data-dashboard-page] .card,
@@ -483,4 +482,16 @@ a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
 [data-dashboard-page] .section-title.text-uppercase,
 .sidebar-section-title {
   letter-spacing: var(--luxury-letter-spacing-caps, 0.1em);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body,
+  .card,
+  .btn,
+  .form-control,
+  .form-select,
+  .alert,
+  .modal-content {
+    transition: none !important;
+  }
 }

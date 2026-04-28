@@ -44,6 +44,11 @@ TEMPLATE_REQUIRED_SUBSTRINGS: dict[str, tuple[str, ...]] = {
         "partials/shell_chrome_django_messages_tenant_portal.html",
         "rmc_shell.authenticated_surface",
     ),
+    "templates/portal/student_attendance_export.html": (
+        "data-rmc-attendance-export=",
+        "data-cp-evidence-surface=",
+        "portal_base.html",
+    ),
     "templates/partials/shell_chrome_django_messages.html": (
         "data-shell-chrome=\"django-messages\"",
     ),
@@ -197,6 +202,19 @@ TEMPLATE_REQUIRED_SUBSTRINGS: dict[str, tuple[str, ...]] = {
         "data-shell-surface=",
         "data-page-archetype=",
         "control_plane_base.html",
+    ),
+    "templates/siteconfig/grading_scale_bands.html": (
+        "data-shell-surface=",
+        "data-cp-evidence-surface=",
+        "data-rmc-grading-scale-bands=",
+        "backend_base.html",
+    ),
+    "templates/siteconfig/curriculum_templates.html": (
+        "data-shell-surface=",
+        "data-cp-evidence-surface=",
+        "data-rmc-curriculum-templates=",
+        "data-rmc-terminology-engine=",
+        "backend_base.html",
     ),
     "templates/siteconfig/region_validation_dashboard.html": (
         "data-shell-surface=",

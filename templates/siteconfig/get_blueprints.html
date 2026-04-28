@@ -17,6 +17,23 @@
         {% endif %}
       {% endif %}
 
+      {% if platform_catalog_preview.rows %}
+        <h3 class="h6 mt-4">{% trans "Platform pack catalog (reference)" %}</h3>
+        {% if not platform_catalog_preview.catalog_ok %}
+        <p class="small text-warning mb-2">{% trans "Catalog validation warnings; confirm with platform operations." %}</p>
+        {% endif %}
+        <p class="text-muted small mb-2">{% trans "Read-only manifests for workflow, dashboard, and theme packs (same registry surfaced in Studio)." %}</p>
+        <ul class="list-group list-group-flush mb-3">
+          {% for row in platform_catalog_preview.rows %}
+          <li class="list-group-item small">
+            <span class="badge bg-light text-dark border me-2">{{ row._catalog_section }}</span>
+            <strong>{{ row.pack_key }}</strong>
+            <span class="text-muted">· {% trans "modules" %}: {{ row.modules|join:", " }}</span>
+            <span class="text-muted">· v{{ row.version }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
       {% if packs %}
         <p class="text-muted small mb-2">Available packs (catalog). To request or change a pack, contact your platform administrator.</p>
         <ul class="list-group list-group-flush">

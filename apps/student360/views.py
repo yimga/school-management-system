@@ -106,6 +106,8 @@ def student_360_page(request, student_id):
     timeline = get_student_timeline_feed(school.id, student_id, limit=50)
     academic = _student_360_academic(student)
     finance = _student_360_finance(student)
+    from apps.portal.views_passport import _staff_may_view_student
+
     return render(
         request,
         "student360/student_360_page.html",
@@ -115,6 +117,7 @@ def student_360_page(request, student_id):
             "timeline": timeline,
             "academic": academic,
             "finance": finance,
+            "show_passport_vault_links": _staff_may_view_student(request, student),
         },
     )
 

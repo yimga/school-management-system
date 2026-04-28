@@ -63,6 +63,7 @@ from .super_views_command_center_views import (
     super_command_center,
     super_command_center_v2,
 )
+from .super_views_founder_dashboard import super_founder_dashboard
 from .super_views_overview_surfaces import (
     super_analytics_overview,
     super_schools_list,
@@ -121,6 +122,7 @@ __all__ = (
     "super_compliance_overview",
     "super_command_center",
     "super_command_center_v2",
+    "super_founder_dashboard",
     "super_config_hub_redirect",
     "super_platform_events",
     "super_policy_diff",

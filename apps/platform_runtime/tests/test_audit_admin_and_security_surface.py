@@ -66,6 +66,9 @@ class AuditScripts1051_1053Tests(unittest.TestCase):
         self.assertEqual(data.get("schema_version"), 1)
         self.assertIn("unified", data)
         self.assertIsInstance(data["unified"], list)
+        self.assertIn("summary_by_governance_tier", data)
+        if data["unified"]:
+            self.assertIn("governance_tier", data["unified"][0])
 
     def test_verify_control_plane_replacement_candidates_passes(self) -> None:
         r1 = self._run("audit_admin_gravity.py", "--strict")

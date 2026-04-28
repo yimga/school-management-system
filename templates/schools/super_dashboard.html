@@ -87,6 +87,36 @@
       {% endfor %}
     </div>
   </section>
+  <section class="cp-panel mb-4" aria-label="Executive pulse">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">Executive pulse</span>
+        <h2 class="cp-panel-title">Score, risk, revenue, and system health at a glance</h2>
+      </div>
+    </div>
+    <div class="cp-health-grid">
+      <article class="cp-health-card cp-health-card-neutral">
+        <span class="cp-health-label">North Star score</span>
+        <strong class="cp-health-value">{{ north_star_formatted }}</strong>
+        <span class="cp-health-meta">{{ revenue_snapshot_month|date:"F Y" }}</span>
+      </article>
+      <article class="cp-health-card cp-health-card-warning">
+        <span class="cp-health-label">Operational risk</span>
+        <strong class="cp-health-value">{{ command_center.tenant_churn_risk_count|default:0 }}</strong>
+        <span class="cp-health-meta">Schools in risk watch</span>
+      </article>
+      <article class="cp-health-card cp-health-card-success">
+        <span class="cp-health-label">Revenue posture</span>
+        <strong class="cp-health-value">{{ north_star_formatted }}</strong>
+        <span class="cp-health-meta">Use month picker below for detail</span>
+      </article>
+      <article class="cp-health-card cp-health-card-neutral">
+        <span class="cp-health-label">System health</span>
+        <strong class="cp-health-value">{{ platform_health.overall_status|default:"unknown"|upper }}</strong>
+        <span class="cp-health-meta">Incidents {{ platform_incidents|length }} · approvals {{ pending_approval_count }}</span>
+      </article>
+    </div>
+  </section>
 
   {{ super_dashboard_section_order|json_script:"cp-section-order-json" }}
   <nav class="cp-section-nav mb-4 d-flex flex-wrap align-items-center gap-2" aria-label="Jump to dashboard section">
@@ -322,13 +352,15 @@
           </div>
         </div>
         {% if health_schema_stats or health_top_tables %}
-        <div class="row g-3 mt-1">
+        <details class="mt-2">
+          <summary class="small text-muted">{% trans "Show deep technical storage metrics" %}</summary>
+          <div class="row g-3 mt-1">
           {% if health_schema_stats %}
           <div class="col-xl-6">
             <div class="cp-table-card">
               <div class="cp-mini-heading">Storage by schema</div>
               <div class="table-responsive">
-                <table class="table table-sm mb-0 cp-table cp-table-compact">
+                <table class="table table-family table-sm mb-0 cp-table cp-table-compact">
                   <thead>
                     <tr><th>Schema</th><th>Size</th><th>Tables</th></tr>
                   </thead>
@@ -351,7 +383,7 @@
             <div class="cp-table-card">
               <div class="cp-mini-heading">Largest tables</div>
               <div class="table-responsive">
-                <table class="table table-sm mb-0 cp-table cp-table-compact">
+                <table class="table table-family table-sm mb-0 cp-table cp-table-compact">
                   <thead>
                     <tr><th>Table</th><th>Size</th><th>Rows</th></tr>
                   </thead>
@@ -369,7 +401,8 @@
             </div>
           </div>
           {% endif %}
-        </div>
+          </div>
+        </details>
         {% endif %}
       </section>
 
@@ -418,7 +451,7 @@
             <div class="cp-table-card">
               <div class="cp-mini-heading">Top active countries</div>
               <div class="table-responsive">
-                <table class="table table-sm mb-0 cp-table">
+                <table class="table table-family table-sm mb-0 cp-table">
                   <thead>
                     <tr><th>Country</th><th>Schools</th><th>Students</th><th>Revenue</th><th>Waived</th></tr>
                   </thead>
@@ -488,7 +521,7 @@
           <div class="cp-toolbar-summary"><span id="cp-visible-school-count">{{ schools|length }}</span> of {{ schools|length }} schools visible</div>
         </div>
         <div class="table-responsive cp-table-wrap">
-          <table class="table table-hover mb-0 cp-table">
+          <table class="table table-family table-hover mb-0 cp-table">
             <thead>
               <tr>
                 <th>School</th>

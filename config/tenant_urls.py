@@ -36,6 +36,7 @@ from apps.marketplace.views import (
     tenant_uninstall_app,
     tenant_scope_consent,
     tenant_approve_scope,
+    tenant_save_installation_config,
     tenant_activate_installation,
 )
 
@@ -234,6 +235,7 @@ urlpatterns = [
         "siteconfig/",
         include(("apps.siteconfig.urls", "siteconfig"), namespace="siteconfig"),
     ),
+    path("marketplace/", include("apps.marketplace.tenant_urls")),
     path(
         "api/internal/metadata/",
         include(("apps.metadata.urls", "metadata"), namespace="metadata"),
@@ -262,6 +264,11 @@ urlpatterns = [
         "settings/uninstall-app/",
         login_required(tenant_uninstall_app),
         name="tenant_uninstall_app",
+    ),
+    path(
+        "settings/save-installation-config/",
+        login_required(tenant_save_installation_config),
+        name="tenant_save_installation_config",
     ),
     path(
         "settings/scope-consent/",

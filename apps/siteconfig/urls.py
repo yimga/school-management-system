@@ -82,18 +82,42 @@ from .views_term_publish_evidence import term_publish_status_evidence
 from .views_academic_years_evidence import academic_years_setup_evidence
 from .views_departments_setup_evidence import departments_setup_evidence
 from .views_tenant_runtime_hub import tenant_runtime_configuration_hub
+from .views_grading_scale_bands import grading_scale_bands_operator_view
+from .views_curriculum_templates import curriculum_templates_operator_view
+from .views_compliance_exports import (
+    compliance_export_download_view,
+    compliance_exports_view,
+)
+from .views_northstar_ai import northstar_ai_draft_api
+from .views_ai_governance import ai_governance
 from .views_billing_plan import billing_plan_readonly
+from .views_billing_stripe import billing_checkout_start, billing_customer_portal
 from .views_tour import tour_steps_api
 from .views_report_output_history_evidence import report_output_history_evidence
 from .views_report_templates_catalog_evidence import report_templates_catalog_evidence
 from .views_tenant_report_schedules_evidence import tenant_report_schedules_evidence
 from apps.schools.views_domains import custom_domain_wizard
-from .views_school_onboarding import school_activation_onboarding
+from .views_school_onboarding import (
+    onboarding_step_detail,
+    onboarding_step_mark_complete,
+    school_activation_onboarding,
+)
+from .views_school_group_hierarchy import school_group_hierarchy
 
 app_name = "siteconfig"
 
 urlpatterns = [
     path("maintenance/", maintenance_view, name="maintenance"),
+    path(
+        "onboarding/step/complete/",
+        onboarding_step_mark_complete,
+        name="onboarding_step_complete",
+    ),
+    path(
+        "onboarding/step/<str:step_key>/",
+        onboarding_step_detail,
+        name="onboarding_step",
+    ),
     path("onboarding/", school_activation_onboarding, name="onboarding"),
     path("console/", console_domains_hub, name="console_domains_hub"),
     path(
@@ -122,11 +146,51 @@ urlpatterns = [
         name="tenant_runtime_configuration_hub",
     ),
     path(
+        "schools/group-hierarchy/",
+        school_group_hierarchy,
+        name="school_group_hierarchy",
+    ),
+    path(
         "billing/plan/",
         billing_plan_readonly,
         name="billing_plan_readonly",
     ),
+    path(
+        "billing/checkout/start/",
+        billing_checkout_start,
+        name="billing_checkout_start",
+    ),
+    path(
+        "billing/portal/",
+        billing_customer_portal,
+        name="billing_customer_portal",
+    ),
+    path(
+        "ai/governance/",
+        ai_governance,
+        name="ai_governance",
+    ),
     path("grading-settings/", grading_settings, name="grading_settings"),
+    path(
+        "grading-scales/bands/",
+        grading_scale_bands_operator_view,
+        name="grading_scale_bands",
+    ),
+    path(
+        "curriculum/templates/",
+        curriculum_templates_operator_view,
+        name="curriculum_templates",
+    ),
+    path(
+        "compliance/exports/",
+        compliance_exports_view,
+        name="compliance_exports",
+    ),
+    path(
+        "compliance/exports/<slug:export_key>/download/",
+        compliance_export_download_view,
+        name="compliance_export_download",
+    ),
     path(
         "grading-scales/region-scales/",
         region_grading_scales_view,
@@ -174,6 +238,11 @@ urlpatterns = [
     path("preferences/theme/", update_theme, name="update_theme"),
     path("reports/download/<slug:slug>/", download_report, name="report_download"),
     path("reports/bulk-letters/", bulk_letters, name="bulk_letters"),
+    path(
+        "reports/northstar-ai/draft/",
+        northstar_ai_draft_api,
+        name="northstar_ai_draft",
+    ),
     path(
         "reports/scheduled/",
         scheduled_reports_delivery_hub,

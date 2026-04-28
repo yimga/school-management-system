@@ -1,0 +1,116 @@
+{% load i18n %}
+<div class="studio-os__card mb-3" data-page-archetype="operational-workbench">
+  <h2 class="h5 mb-2">{% trans "School infrastructure" %}</h2>
+  <p class="small text-muted mb-3">
+    {% trans "Choose a production template to preview workflow, dashboard, and theme packs from the platform catalog. Validation is read-only; applying packs is platform-governed." %}
+  </p>
+  {% if not platform_catalog_valid %}
+  <p class="small text-warning mb-2">{% trans "Pack catalog validation reported warnings; previews may be incomplete." %}</p>
+  {% endif %}
+  {% if current_blueprint_reference %}
+  <p class="small mb-3">
+    <strong>{% trans "Current blueprint (reference)" %}:</strong>
+    {{ current_blueprint_reference.applied_pack_slug }} —
+    v{{ current_blueprint_reference.applied_pack_version|default:"?" }}
+    {% if current_blueprint_reference.policy_snapshot_size %}
+    · {% blocktrans with n=current_blueprint_reference.policy_snapshot_size %}{{ n }} policy snapshot keys{% endblocktrans %}
+    {% endif %}
+  </p>
+  {% endif %}
+
+  <div class="mb-3">
+    <label class="form-label small" for="studio-infra-template">{% trans "Template" %}</label>
+    <select id="studio-infra-template" class="form-select form-select-sm" aria-describedby="studio-infra-help">
+      {% for s in school_template_summaries %}
+      <option value="{{ s.template_key }}">{{ s.display_name }} · {{ s.school_type }} (v{{ s.version }})</option>
+      {% empty %}
+      <option value="">{% trans "No templates registered" %}</option>
+      {% endfor %}
+    </select>
+    <p id="studio-infra-help" class="small text-muted mt-1 mb-0">{% trans "Preview loads resolved packs and a diff against your current blueprint reference." %}</p>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <button type="button" class="btn btn-sm btn-outline-primary" id="studio-infra-preview-btn">{% trans "Preview & validate" %}</button>
+    <span class="small text-muted align-self-center" id="studio-infra-status"></span>
+  </div>
+
+  <div id="studio-infra-result" class="small" hidden>
+    <h3 class="h6 mt-3">{% trans "Preview" %}</h3>
+    <ul class="list-unstyled mb-2" id="studio-infra-summary"></ul>
+    <h3 class="h6">{% trans "Diff / readiness" %}</h3>
+    <table class="table table-sm table-bordered mb-2" id="studio-infra-diff">
+      <thead><tr><th>{% trans "Aspect" %}</th><th>{% trans "Before" %}</th><th>{% trans "After" %}</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="text-muted mb-1" id="studio-infra-rollback-note"></p>
+    <p class="text-muted mb-0" id="studio-infra-apply-note"></p>
+  </div>
+</div>
+<script>
+(function () {
+  var sel = document.getElementById('studio-infra-template');
+  var btn = document.getElementById('studio-infra-preview-btn');
+  var statusEl = document.getElementById('studio-infra-status');
+  var box = document.getElementById('studio-infra-result');
+  var sum = document.getElementById('studio-infra-summary');
+  var diffBody = document.querySelector('#studio-infra-diff tbody');
+  var rbNote = document.getElementById('studio-infra-rollback-note');
+  var apNote = document.getElementById('studio-infra-apply-note');
+  var previewUrl = "{% url 'studio_os:school_infrastructure_preview_api' %}";
+  if (!btn || !sel) return;
+  btn.addEventListener('click', function () {
+    var key = (sel.value || '').trim();
+    if (!key) return;
+    statusEl.textContent = '…';
+    sum.innerHTML = '';
+    diffBody.innerHTML = '';
+    box.hidden = false;
+    fetch(previewUrl + '?template=' + encodeURIComponent(key), { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        statusEl.textContent = data.ok ? 'OK' : 'Review warnings';
+        var wf = (data.resolved_workflow_packs || []).length;
+        var db = (data.resolved_dashboard_packs || []).length;
+        var th = (data.resolved_theme_packs || []).length;
+        var li = document.createElement('li');
+        li.textContent = 'Workflow packs: ' + wf + ' · Dashboard packs: ' + db + ' · Theme packs: ' + th;
+        sum.appendChild(li);
+        if (data.install_preview && data.install_preview.label) {
+          var ip = document.createElement('li');
+          ip.className = 'text-muted';
+          ip.textContent = data.install_preview.label + (data.install_preview.catalog_resolves_cleanly ? '' : ' (see unresolved)');
+          sum.appendChild(ip);
+        }
+        if ((data.unresolved_pack_keys || []).length) {
+          var u = document.createElement('li');
+          u.className = 'text-warning';
+          u.textContent = 'Unresolved: ' + data.unresolved_pack_keys.join(', ');
+          sum.appendChild(u);
+        }
+        if ((data.catalog_warnings || []).length) {
+          data.catalog_warnings.forEach(function (w) {
+            var wli = document.createElement('li');
+            wli.className = 'text-warning';
+            wli.textContent = w;
+            sum.appendChild(wli);
+          });
+        }
+        (data.diff_rows || []).forEach(function (row) {
+          var tr = document.createElement('tr');
+          tr.innerHTML = '<td>' + (row.aspect || '') + '</td><td>' + (row.before || '') + '</td><td>' + (row.after || '') + '</td>';
+          diffBody.appendChild(tr);
+        });
+        rbNote.textContent = data.rollback_supported
+          ? '{% trans "Rollback is flagged as supported for this template (platform-governed)." %}'
+          : '{% trans "Rollback disabled for tenant apply; use platform rollback when available." %}';
+        apNote.textContent = data.tenant_safe_apply
+          ? '{% trans "Tenant apply may be supported for this template in future releases." %}'
+          : '{% trans "One-click tenant apply is not enabled; request changes via your platform administrator." %}';
+      })
+      .catch(function () {
+        statusEl.textContent = 'Error';
+      });
+  });
+})();
+</script>

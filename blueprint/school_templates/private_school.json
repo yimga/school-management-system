@@ -1,0 +1,34 @@
+{
+  "template_key": "private_school",
+  "display_name": "Private school",
+  "description": "Tuition-driven private K–12 with admissions pipeline, parent billing touchpoints, and governance-oriented dashboards.",
+  "school_type": "PRIVATE_K12",
+  "version": "1.0.0",
+  "previous_version_ref": null,
+  "workflow_pack_keys": [
+    "onboarding_academic_year",
+    "admissions_pipeline",
+    "parent_communication",
+    "report_publishing"
+  ],
+  "dashboard_pack_keys": [
+    "admin_command_center",
+    "teacher_workspace",
+    "parent_portal_home",
+    "finance_overview"
+  ],
+  "theme_pack_keys": ["design_tokens_default"],
+  "policies": [
+    "tuition_and_enrollment_alignment",
+    "parent_notification_consent",
+    "staff_role_separation_admissions"
+  ],
+  "required_apps": ["billing", "portal", "people", "admissions"],
+  "capabilities": {
+    "tenant_safe_apply": false,
+    "rollback_supported": false,
+    "preview_diff_supported": true,
+    "validation_supported": true
+  },
+  "notes": "Apply/promote packs through platform administrators; tenant Studio is preview and validation only."
+}

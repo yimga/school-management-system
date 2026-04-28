@@ -1,0 +1,8 @@
+from django.apps import AppConfig
+
+
+class SecurityConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apps.security"
+    label = "rmc_security"
+    verbose_name = "RunMyCampus security (slice 10 test harness)"

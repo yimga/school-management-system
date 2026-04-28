@@ -1,0 +1,825 @@
+{
+  "generated_at": "2026-04-27T11:00:11.609887+00:00",
+  "hits": [
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/accounts/context_processors.py",
+      "line": "782",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/accounts/tests/test_smoke_urls.py",
+      "line": "30",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/accounts/views.py",
+      "line": "299",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/accounts/views.py",
+      "line": "1568",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/accounts/views.py",
+      "line": "2282",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/accounts/views.py",
+      "line": "2285",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/accounts/views_certification.py",
+      "line": "48",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/accounts/views_certification.py",
+      "line": "132",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/accounts/views_workflow.py",
+      "line": "291",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/accounts/views_workflow.py",
+      "line": "292",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/accounts/views_workflow.py",
+      "line": "293",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/accounts/views_workflow.py",
+      "line": "294",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/automation/tests/test_automation_admin_bridge_policy_1100.py",
+      "line": "1",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/automation/tests/test_automation_admin_bridge_policy_1100.py",
+      "line": "27",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/compliance/admin_audit.py",
+      "line": "251",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/compliance/admin_audit.py",
+      "line": "253",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/compliance/admin_audit.py",
+      "line": "255",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/dashboard/admin_context.py",
+      "line": "115",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/dashboard/admin_context.py",
+      "line": "200",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/dashboard/recommendation_service.py",
+      "line": "101",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/dashboard/recommendation_service.py",
+      "line": "115",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/dashboard/services/insight_anomalies.py",
+      "line": "90",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/dashboard/services/insight_anomalies.py",
+      "line": "118",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "admin_module",
+      "file": "apps/finance/admin.py",
+      "line": "366",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "admin_module",
+      "file": "apps/integrations_marketplace/admin.py",
+      "line": "126",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/marketplace/tests/test_marketplace_studio_no_template_admin_url_tags.py",
+      "line": "2",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/marketplace/tests/test_product_admin_bridge_policy_1100.py",
+      "line": "11",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/marketplace/tests/test_product_admin_bridge_policy_1100.py",
+      "line": "28",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "admin_module",
+      "file": "apps/schools/admin.py",
+      "line": "154",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "admin_module",
+      "file": "apps/schools/admin.py",
+      "line": "212",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/schools/super_views_catalog.py",
+      "line": "32",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/schools/super_views_catalog.py",
+      "line": "67",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/schools/super_views_config.py",
+      "line": "78",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/schools/super_views_runtime_ops.py",
+      "line": "81",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/schools/tests/test_playbook_operator_hub.py",
+      "line": "252",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/schools/tests/test_playbook_operator_hub.py",
+      "line": "278",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "admin_module",
+      "file": "apps/siteconfig/admin.py",
+      "line": "538",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "admin_module",
+      "file": "apps/siteconfig/admin.py",
+      "line": "637",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "admin_module",
+      "file": "apps/siteconfig/admin.py",
+      "line": "658",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "admin_module",
+      "file": "apps/siteconfig/admin.py",
+      "line": "714",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "admin_module",
+      "file": "apps/siteconfig/admin.py",
+      "line": "715",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/portal_sidebar_items.py",
+      "line": "854",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/portal_sidebar_items.py",
+      "line": "883",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/portal_sidebar_items.py",
+      "line": "893",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/staff_navigation.py",
+      "line": "32",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/staff_navigation.py",
+      "line": "53",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin.py",
+      "line": "96",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin.py",
+      "line": "105",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin.py",
+      "line": "113",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin.py",
+      "line": "199",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin.py",
+      "line": "207",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin.py",
+      "line": "248",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin.py",
+      "line": "282",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin.py",
+      "line": "328",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin.py",
+      "line": "389",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_dashboard_adaptability.py",
+      "line": "123",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_dashboard_adaptability.py",
+      "line": "144",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_dashboard_adaptability.py",
+      "line": "414",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_dashboard_adaptability.py",
+      "line": "444",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_ui_smoke.py",
+      "line": "107",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_ui_smoke.py",
+      "line": "119",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_ui_smoke.py",
+      "line": "123",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_ui_smoke.py",
+      "line": "134",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_ui_smoke.py",
+      "line": "135",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_ui_smoke.py",
+      "line": "137",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_ui_smoke.py",
+      "line": "198",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_ui_smoke.py",
+      "line": "229",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_ui_smoke.py",
+      "line": "234",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_ui_smoke.py",
+      "line": "263",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_ui_smoke.py",
+      "line": "1303",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_ui_smoke.py",
+      "line": "1323",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_admin_ui_smoke.py",
+      "line": "1510",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_automation_template_admin_url_policy_1100.py",
+      "line": "1",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_staff_navigation.py",
+      "line": "33",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/siteconfig/tests/test_staff_navigation.py",
+      "line": "37",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/views_billing_plan.py",
+      "line": "28",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/views_config_mutation_evidence.py",
+      "line": "43",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/views_console_domains.py",
+      "line": "385",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/views_entity_catalog.py",
+      "line": "38",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/views_entity_catalog.py",
+      "line": "42",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/views_metadata_operator_hub.py",
+      "line": "34",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/views_metadata_operator_hub.py",
+      "line": "38",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/views_metadata_operator_hub.py",
+      "line": "44",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/views_metadata_operator_hub.py",
+      "line": "48",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/views_sync_center.py",
+      "line": "91",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/views_tenant_runtime_hub.py",
+      "line": "65",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "product_python_needs_review",
+      "file": "apps/siteconfig/views_term_publish_evidence.py",
+      "line": "51",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/studio_os/tests/test_cp_bridge_policy_1100.py",
+      "line": "1",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "tests",
+      "file": "apps/studio_os/tests/test_cp_bridge_policy_1100.py",
+      "line": "27",
+      "pattern": "reverse_admin"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/admin_dashboard.html",
+      "line": "171",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/admin_dashboard.html",
+      "line": "236",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/app_index.html",
+      "line": "12",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/app_list.html",
+      "line": "22",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/base.html",
+      "line": "31",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/base.html",
+      "line": "34",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "405",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "410",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "411",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "412",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "420",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "425",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "426",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "427",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "431",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "436",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "440",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "445",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "449",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "454",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "458",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "463",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "467",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "472",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "476",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "481",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "485",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "490",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "494",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index.html",
+      "line": "499",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index_superadmin.html",
+      "line": "39",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index_superadmin.html",
+      "line": "42",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index_tenant.html",
+      "line": "78",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/index_tenant.html",
+      "line": "81",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/schools/school/waive_subscription_form.html",
+      "line": "23",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/schools/school/waive_subscription_form.html",
+      "line": "27",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "django_admin_template",
+      "file": "templates/admin/sidebar_inner.html",
+      "line": "9",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "product_template_needs_review",
+      "file": "templates/partials/shell_chrome_backend_ops_strip.html",
+      "line": "37",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "product_template_needs_review",
+      "file": "templates/partials/tenant_studio_product_strip.html",
+      "line": "13",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "product_template_needs_review",
+      "file": "templates/people/backend_classroom_detail.html",
+      "line": "28",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "product_template_needs_review",
+      "file": "templates/people/backend_teacher_detail.html",
+      "line": "24",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "cp_surface_advanced_fallback",
+      "file": "templates/schools/super_fleet_governed_changes.html",
+      "line": "68",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "cp_surface_advanced_fallback",
+      "file": "templates/schools/super_platform_operator_hub.html",
+      "line": "97",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "product_template_needs_review",
+      "file": "templates/unfold/helpers/navigation.html",
+      "line": "6",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "product_template_needs_review",
+      "file": "templates/unfold/helpers/search.html",
+      "line": "37",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "product_template_needs_review",
+      "file": "templates/unfold/helpers/site_icon.html",
+      "line": "5",
+      "pattern": "django_admin_url_tag"
+    },
+    {
+      "classification": "product_template_needs_review",
+      "file": "templates/unfold/helpers/site_icon.html",
+      "line": "15",
+      "pattern": "django_admin_url_tag"
+    }
+  ],
+  "schema_version": 1,
+  "totals": {
+    "hits": 136
+  }
+}

@@ -65,6 +65,7 @@ EXEMPT_CONTROL_PLANE_TEMPLATES: frozenset[str] = frozenset(
         "schools/super_regions_list.html",
         "schools/super_registries.html",
         "schools/super_runtime_inspector.html",
+        "schools/super_security_surface_dashboard.html",
         "schools/super_schools_list.html",
         "schools/super_site_settings_edit.html",
         "schools/super_site_settings_list.html",
@@ -84,6 +85,8 @@ EXEMPT_CONTROL_PLANE_TEMPLATES: frozenset[str] = frozenset(
         "siteconfig/region_validation_dashboard.html",
         "siteconfig/theme_colors_control_plane.html",
         "studio_os/shell_control_plane.html",
+        # Founder North Star: CP shell + bespoke metric strips (distinct from Phase 7 DE strips).
+        "super/founder_dashboard.html",
     }
 )
 

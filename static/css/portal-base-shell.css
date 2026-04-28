@@ -68,6 +68,38 @@ body {
   border: 1px solid var(--admin-content-border, rgba(148, 163, 184, 0.35));
   z-index: 1050;
 }
+
+.header-search-dropdown--hidden {
+  display: none;
+}
+
+.topbar-icon-badge {
+  font-size: var(--lux-type-size-xs);
+}
+
+.portal-stat-card {
+  border-radius: var(--lux-radius-md);
+  padding: var(--lux-space-3);
+}
+
+.portal-stat-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.portal-stat-card-label {
+  font-size: var(--lux-type-size-xs);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.portal-stat-card-value {
+  padding: var(--lux-space-1) var(--lux-space-2);
+  border-radius: var(--lux-radius-pill);
+  font-size: var(--lux-type-size-xs);
+  font-weight: 700;
+}
 .header-search-dropdown .search-result-item {
   display: block;
   padding: 0.5rem 0.75rem;
@@ -320,6 +352,9 @@ body.backend-shell .page-wrap {
 
 /* Resizable sidebar: CSS variable + flex on desktop */
 :root {
+  --rmc-shell-max-width: 1320px;
+  --rmc-shell-gutter: clamp(0.75rem, 1.2vw, 1.25rem);
+  --rmc-shell-rhythm-y: clamp(0.75rem, 1.5vw, 1.25rem);
   --portal-sidebar-width: 280px;
   --portal-sidebar-min: 200px;
   --portal-sidebar-max: 420px;
@@ -368,6 +403,7 @@ body.backend-shell .page-wrap {
     flex: 1 1 0;
     min-width: 0;
     width: 0;
+  overflow-x: clip;
   }
   .portal-layout-row .offcanvas {
     flex: 0 0 0;
@@ -389,8 +425,16 @@ body.backend-shell .page-wrap {
 .page-wrap {
   border-radius: 20px;
   background: var(--portal-bg);
-  padding: 18px;
+  padding: var(--rmc-shell-rhythm-y);
+  max-width: var(--rmc-shell-max-width);
+  margin-inline: auto;
   border: 1px solid var(--portal-page-wrap-border, rgba(15,23,42,.08));
+}
+
+.rmc-shell-content-grid {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
 }
 
 /* Mobile-First Responsive Portal Design (breakpoints from design-tokens) */

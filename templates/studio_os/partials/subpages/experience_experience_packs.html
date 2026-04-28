@@ -1,4 +1,4 @@
-{% load i18n static %}
+{% load i18n static marketplace_pack_entitlement %}
 <div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <div class="studio-os__card py-3 px-3">
@@ -22,8 +22,73 @@
     {% if installed_packages_url %}
     <p class="mb-1"><a href="{{ installed_packages_url }}">{% trans "Installed packages and rollback" %}</a> — {% trans "Governed tenant installs and rollback from Settings (CP-first)." %}</p>
     {% endif %}
+    {% if launch_infrastructure_url %}
+    <p class="mb-1"><a href="{{ launch_infrastructure_url }}">{% trans "School infrastructure & install preview" %}</a> — {% trans "Launch Studio: preview workflow/dashboard/theme stacks by school template (read-only until platform applies)." %}</p>
+    {% endif %}
     {% if user.is_superuser %}
     <p class="mb-0 small text-muted">{% trans "Advanced: for full row CRUD, open the ExperiencePack model in the Django admin app list (admin URLs are not embedded in Studio templates)." %}</p>
+    {% endif %}
+    <hr class="my-3">
+    <h2 class="h6">{% trans "Platform pack catalog (reference)" %}</h2>
+    <p class="small text-muted mb-2">{% trans "Read-only registry of workflow, dashboard, and theme packs aligned with marketplace governance. Install or apply packs through governed flows — not from this preview." %}</p>
+    {% if platform_pack_catalog_warnings %}
+    <div class="alert alert-warning py-2 small mb-2" role="status">
+      {% trans "Catalog validation warnings:" %} {{ platform_pack_catalog_warnings|join:"; " }}
+    </div>
+    {% endif %}
+    {% if platform_pack_catalog.workflow_packs %}
+    <p class="small mb-1"><strong>{% trans "Workflow packs" %}:</strong></p>
+    <ul class="small mb-2 ps-3">
+      {% for p in platform_pack_catalog.workflow_packs %}
+      <li class="mb-1">
+        <span class="badge text-bg-light text-dark border me-1">{{ p.pack_key }} · v{{ p.version }}</span>
+        {% if p.pricing_type %}<span class="badge text-bg-secondary me-1">{{ p.pricing_type }}{% if p.price_display %} · {{ p.price_display }}{% endif %}</span>{% endif %}
+        {% if p.required_commercial_tier %}<span class="badge text-bg-light border text-muted">{% trans "Min tier" %} {{ p.required_commercial_tier }}</span>{% endif %}
+        {% if school %}
+          {% with entitled=school|pack_row_entitled_filter:p %}
+          {% if not entitled %}<span class="text-muted">— {% trans "Preview/install gated — upgrade plan" %}</span>{% endif %}
+          {% endwith %}
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if platform_pack_catalog.dashboard_packs %}
+    <p class="small mb-1"><strong>{% trans "Dashboard packs" %}:</strong></p>
+    <ul class="small mb-2 ps-3">
+      {% for p in platform_pack_catalog.dashboard_packs %}
+      <li class="mb-1">
+        <span class="badge text-bg-light text-dark border me-1">{{ p.pack_key }} · v{{ p.version }}</span>
+        {% if p.pricing_type %}<span class="badge text-bg-secondary me-1">{{ p.pricing_type }}{% if p.price_display %} · {{ p.price_display }}{% endif %}</span>{% endif %}
+        {% if p.required_commercial_tier %}<span class="badge text-bg-light border text-muted">{% trans "Min tier" %} {{ p.required_commercial_tier }}</span>{% endif %}
+        {% if school %}
+          {% with entitled=school|pack_row_entitled_filter:p %}
+          {% if not entitled %}<span class="text-muted">— {% trans "Preview/install gated — upgrade plan" %}</span>{% endif %}
+          {% endwith %}
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if platform_pack_catalog.theme_packs %}
+    <p class="small mb-1"><strong>{% trans "Theme packs" %}:</strong></p>
+    <ul class="small mb-0 ps-3">
+      {% for p in platform_pack_catalog.theme_packs %}
+      <li class="mb-1">
+        <span class="badge text-bg-light text-dark border me-1">{{ p.pack_key }} · v{{ p.version }}</span>
+        {% if p.pricing_type %}<span class="badge text-bg-secondary me-1">{{ p.pricing_type }}{% if p.price_display %} · {{ p.price_display }}{% endif %}</span>{% endif %}
+        {% if p.required_commercial_tier %}<span class="badge text-bg-light border text-muted">{% trans "Min tier" %} {{ p.required_commercial_tier }}</span>{% endif %}
+        {% if school %}
+          {% with entitled=school|pack_row_entitled_filter:p %}
+          {% if not entitled %}<span class="text-muted">— {% trans "Preview/install gated — upgrade plan" %}</span>{% endif %}
+          {% endwith %}
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if not platform_pack_catalog %}
+    <p class="small text-muted mb-0">{% trans "Catalog unavailable in this environment." %}</p>
     {% endif %}
   </div>
 </div>

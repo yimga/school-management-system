@@ -2440,14 +2440,33 @@ def backend_dashboard(request):
             context["rmc_school_health_nudges"] = get_school_health_recommendations(
                 _sch, user=request.user, limit=3
             )
+            try:
+                from apps.platform_runtime.ai_system_layer import (
+                    generate_onboarding_next_action_insight,
+                    generate_school_health_insight,
+                )
+
+                context["rmc_ai_system_health_insight"] = generate_school_health_insight(
+                    _sch, request.user
+                )
+                context["rmc_ai_system_onboarding_insight"] = (
+                    generate_onboarding_next_action_insight(_sch, request.user)
+                )
+            except ACCOUNTS_SOFT_FAILURES:
+                context["rmc_ai_system_health_insight"] = None
+                context["rmc_ai_system_onboarding_insight"] = None
         else:
             context["rmc_school_onboarding"] = None
             context["rmc_school_health"] = None
             context["rmc_school_health_nudges"] = []
+            context["rmc_ai_system_health_insight"] = None
+            context["rmc_ai_system_onboarding_insight"] = None
     except ACCOUNTS_SOFT_FAILURES:
         context["rmc_school_onboarding"] = None
         context["rmc_school_health"] = None
         context["rmc_school_health_nudges"] = []
+        context["rmc_ai_system_health_insight"] = None
+        context["rmc_ai_system_onboarding_insight"] = None
     return render(request, "accounts/backend_dashboard.html", context)
 
 

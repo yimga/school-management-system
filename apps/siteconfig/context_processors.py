@@ -917,7 +917,7 @@ def region_settings(request):
     )
     if (tenant_locale or {}).get("is_rtl") is True:
         is_rtl = True
-    return {
+    base_ctx = {
         "region": region,
         "region_code": getattr(region, "code", None)
         or get_platform_defaults(use_db=False)["region_code"],
@@ -932,6 +932,18 @@ def region_settings(request):
         "enable_multi_region": getattr(settings, "ENABLE_MULTI_REGION", False),
         "is_rtl": is_rtl,
     }
+    try:
+        from apps.siteconfig.regional_ui import augment_region_shell_context
+
+        base_ctx.update(augment_region_shell_context(base_ctx, request))
+    except OPTIONAL_CONTEXT_ERRORS:
+        base_ctx.setdefault("rmc_locale", effective_language or "en")
+        base_ctx.setdefault("rmc_text_direction", "rtl" if is_rtl else "ltr")
+        base_ctx.setdefault(
+            "rmc_regional_ui",
+            {"locale": base_ctx["rmc_locale"], "direction": base_ctx["rmc_text_direction"]},
+        )
+    return base_ctx
 
 
 def language_context(request):

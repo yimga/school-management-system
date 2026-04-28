@@ -9,13 +9,20 @@ import os
 import shutil
 import subprocess
 import sys
-import unittest
+
+from django.test import SimpleTestCase
 
 from apps.platform_runtime.tests.support.paths import repo_root
 
 
-class TenantSettingsLintTests(unittest.TestCase):
-    """Enforce tenant code uses runtime/helpers instead of tenant settings get_solo() shortcuts."""
+class TenantSettingsLintTests(SimpleTestCase):
+    """Enforce tenant code uses runtime/helpers instead of tenant settings get_solo() shortcuts.
+
+    Subprocess verifiers (e.g. verify_phase_b_execution) consult migrated ORM tables; declare DB so
+    Django creates/applies the test database instead of skipping ``default``.
+    """
+
+    databases = {"default"}
 
     def test_no_get_solo_in_tenant_apps(self):
         """Lint must report zero get_solo() hits in tenant apps (CI blocks new violations)."""

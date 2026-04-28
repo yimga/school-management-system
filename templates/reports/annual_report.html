@@ -1,4 +1,4 @@
-{% load region_format %}
+{% load i18n region_format terminology_tags %}
 <!doctype html>
 <html>
 <head>
@@ -12,7 +12,7 @@
     {% endif %}
     <div>
       <p class="title">{{ SITE.site_name|default:"School" }}</p>
-      <p class="sub">Annual Report Card - {{ year.name|default:"" }}</p>
+      <p class="sub">Annual {% report_label %} - {{ year.name|default:"" }}</p>
       {% if SITE.company_phone or SITE.company_email %}
         <p class="sub">
           {% if SITE.company_phone %}Tel {{ SITE.company_phone }}{% endif %}
@@ -56,11 +56,11 @@
     </div>
   </div>
 
-  <h3 style="margin-top:14px;">Term Summary</h3>
+  <h3 style="margin-top:14px;">{% term_label %} {% trans "summary" %}</h3>
   <table aria-label="Annual report term summary averages and class position">
     <thead>
       <tr>
-        <th scope="col">Term</th>
+        <th scope="col">{% term_label %}</th>
         <th scope="col" class="text-end">Average</th>
         <th scope="col" class="text-end">Class Position</th>
       </tr>

@@ -1,0 +1,125 @@
+{% extends "backend_base.html" %}
+{% load i18n terminology_tags %}
+
+{% block title %}{% trans "Curriculum templates" %} – {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Curriculum templates" %}{% endblock %}
+
+{% block content %}
+  <div
+    class="container-fluid py-4"
+    data-page-archetype="operational-workbench"
+    data-shell-surface="curriculum-templates"
+    data-cp-evidence-surface="curriculum-templates"
+    data-rmc-curriculum-templates="1"
+  >
+    <div class="alert alert-light border mb-3 small" role="region" data-rmc-school-ops-links="1">
+      <a href="{% url 'siteconfig:school_group_hierarchy' %}" class="alert-link">{% trans "School group hierarchy" %}</a>
+      · <a href="{% url 'siteconfig:tenant_runtime_configuration_hub' %}" class="alert-link">{% trans "Tenant runtime hub" %}</a>
+    </div>
+    <div class="alert alert-secondary border mb-3 small" role="region" aria-label="{% trans 'Regional UI status' %}" data-rmc-regional-ui-status="1">
+      <strong>{% trans "Regional UI" %}:</strong>
+      {% trans "Locale" %} <code>{{ rmc_locale|default:'en' }}</code>,
+      {% trans "text direction" %} <code>{{ rmc_text_direction|default:'ltr' }}</code>.
+      {% if terminology_resolution %}
+      · {% trans "Active terminology resolution" %}: {{ terminology_resolution|truncatechars:120 }}
+      {% endif %}
+    </div>
+    <div class="alert alert-warning border mb-3" role="region" aria-label="{% trans 'Preview notice' %}" data-rmc-curriculum-preview-notice="1">
+      <strong>{% trans "Preview only." %}</strong>
+      {% trans "Applying templates requires a future guided setup flow." %}
+    </div>
+
+    <div class="card shadow-sm mb-3 border-primary border-opacity-25" data-rmc-terminology-engine="1">
+      <div class="card-header bg-light fw-semibold">{% trans "Effective terminology for this school" %}</div>
+      <div class="card-body small">
+        <p class="text-muted mb-2">{{ terminology_resolution }}</p>
+        {% if terminology_highlight_francophone %}
+        <p class="mb-2 text-body-secondary" data-rmc-terminology-highlight="francophone-pattern">
+          {% trans "Francophone template maps generic defaults to localized labels (examples)" %}:
+          <strong>Grade</strong> → <strong>{% grade_label %}</strong>;
+          <strong>Term</strong> → <strong>{% term_label %}</strong>
+          (<strong>GPA</strong> → <strong>{% gpa_label %}</strong>;
+          <strong>Report card</strong> → <strong>{% report_label %}</strong>).
+        </p>
+        {% endif %}
+        <dl class="row mb-0">
+          <dt class="col-sm-3">{% trans "Grade" %}</dt>
+          <dd class="col-sm-9">{{ effective_terminology.grade }}</dd>
+          <dt class="col-sm-3">{% trans "GPA" %}</dt>
+          <dd class="col-sm-9">{{ effective_terminology.gpa }}</dd>
+          <dt class="col-sm-3">{% trans "Term" %}</dt>
+          <dd class="col-sm-9">{{ effective_terminology.term }}</dd>
+          <dt class="col-sm-3">{% trans "Report card" %}</dt>
+          <dd class="col-sm-9">{{ effective_terminology.report_card }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <h1 class="h5 mb-2">{% trans "Named curriculum templates" %}</h1>
+        <p class="text-muted small mb-0">
+          {% trans "Reference defaults for grading scale identity, term labels, terminology, report family, and subject seeds. Does not change tenant configuration until an apply flow exists." %}
+        </p>
+      </div>
+    </div>
+
+    {% for t in templates_list %}
+    <div class="card shadow-sm mb-3" id="tpl-{{ t.template_key }}">
+      <div class="card-header bg-light fw-semibold d-flex flex-wrap justify-content-between gap-2 align-items-center">
+        <span>{{ t.label }}</span>
+        <span class="badge text-bg-secondary">{{ t.template_key }}</span>
+      </div>
+      <div class="card-body">
+        <p class="small text-muted mb-2"><strong>{% trans "Region / system" %}:</strong> {{ t.region_or_system }}</p>
+        <dl class="row small mb-0">
+          <dt class="col-sm-3">{% trans "Grading scale key" %}</dt>
+          <dd class="col-sm-9"><code>{{ t.grading_scale_key }}</code></dd>
+          <dt class="col-sm-3">{% trans "Term labels" %}</dt>
+          <dd class="col-sm-9">{{ t.term_labels|join:", " }}</dd>
+          <dt class="col-sm-3">{% trans "Terminology preview" %}</dt>
+          <dd class="col-sm-9">
+            <ul class="mb-0 ps-3">
+              {% for k, v in t.terminology_map.items %}
+              <li><code>{{ k }}</code> → {{ v }}</li>
+              {% endfor %}
+            </ul>
+          </dd>
+          <dt class="col-sm-3">{% trans "Report template family" %}</dt>
+          <dd class="col-sm-9"><code>{{ t.report_template_family }}</code></dd>
+          <dt class="col-sm-3">{% trans "Subject seed count" %}</dt>
+          <dd class="col-sm-9">{{ t.subject_seed|length }}</dd>
+          <dt class="col-sm-3">{% trans "Suitability" %}</dt>
+          <dd class="col-sm-9">{{ t.suitability }}</dd>
+          {% if t.notes %}
+          <dt class="col-sm-3">{% trans "Notes" %}</dt>
+          <dd class="col-sm-9">{{ t.notes }}</dd>
+          {% endif %}
+          {% if t.recommended_scale_bands %}
+          <dt class="col-sm-3">{% trans "Recommended bands (reference)" %}</dt>
+          <dd class="col-sm-9">
+            {% if t.recommended_scale_bands.hint %}{{ t.recommended_scale_bands.hint }}{% else %}—{% endif %}
+          </dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      <a class="btn btn-sm btn-outline-primary" href="{{ grading_scale_bands_url }}">{% trans "Grading scale bands" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ region_grading_scales_url }}">{% trans "Fleet: region grading matrix" %}</a>
+      <a class="btn btn-sm btn-outline-primary" href="{{ grading_settings_url }}">{% trans "Grading & language" %}</a>
+      <a class="btn btn-sm btn-outline-primary" href="{{ console_domains_url }}">{% trans "Configuration control center" %}</a>
+      <a class="btn btn-sm btn-outline-primary" href="{{ runtime_hub_url }}">{% trans "Tenant runtime configuration" %}</a>
+    </div>
+
+    {% if user.is_superuser and admin_education_profiles_url %}
+    <div class="border rounded-2 p-3 bg-body-tertiary small" data-rmc-advanced-admin-fallback="curriculum-templates">
+      <strong>{% trans "Advanced (Django admin) — superuser only" %}</strong>
+      <p class="mb-2">{% trans "Education system profiles (global catalog) after product flows are exhausted." %}</p>
+      <a class="btn btn-sm btn-outline-dark" href="{{ admin_education_profiles_url }}">{% trans "EducationSystemProfile catalog" %}</a>
+    </div>
+    {% endif %}
+  </div>
+{% endblock %}

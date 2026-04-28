@@ -1,23 +1,28 @@
 {% extends "portal_base.html" %}
-{% load tenant_hook %}
+{% load i18n tenant_hook terminology_tags %}
 {% block title %}My Marks{% endblock %}
 
 {% block content %}
-  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <h2 class="mb-0">My Marks</h2>
-    <div class="d-flex flex-wrap gap-2">
-      <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:teacher_dashboard' %}">Dashboard</a>
-      <a class="btn btn-primary btn-sm" href="{% url 'evals:teacher_marks_entry' %}">Enter Marks</a>
-      <a class="btn btn-outline-secondary btn-sm" href="?{{ export_csv_query }}">Export CSV</a>
-      <a class="btn btn-outline-secondary btn-sm" href="?{{ export_pdf_query }}">Export PDF</a>
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 ui-premium-surface" data-rmc-component-audit="1">
+    <div>
+      <h2 class="mb-0">My Marks</h2>
+      <p class="text-muted small mb-0">{% trans "Review, filter, and publish marks with one primary action." %}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <a class="btn btn-primary btn-sm" href="{% url 'evals:teacher_marks_entry' %}">{% trans "Enter Marks" %}</a>
+      <div class="btn-group btn-group-sm" role="group" aria-label="{% trans 'Secondary actions' %}">
+        <a class="btn btn-outline-primary" href="{% url 'evals:teacher_dashboard' %}">{% trans "Dashboard" %}</a>
+        <a class="btn btn-outline-secondary" href="?{{ export_csv_query }}">{% trans "Export CSV" %}</a>
+        <a class="btn btn-outline-secondary" href="?{{ export_pdf_query }}">{% trans "Export PDF" %}</a>
+      </div>
     </div>
   </div>
 
-<form method="get" class="card mb-3">
+<form method="get" class="card card-grammar form-system mb-3" data-rmc-form-grammar="1">
   <div class="card-body">
     <div class="row g-2 align-items-end">
       <div class="col-md-3">
-        <label class="form-label small">Term</label>
+        <label class="form-label small">{% term_label %}</label>
         <select class="form-select" name="term">
           <option value="">All</option>
           {% for t in term_choices %}
@@ -57,33 +62,48 @@
           <input class="form-check-input" type="checkbox" value="1" id="missingOnly" name="missing" {% if request.GET.missing %}checked{% endif %}>
           <label class="form-check-label small" for="missingOnly">Missing only</label>
         </div>
-        <button class="btn btn-primary w-100" type="submit">Filter</button>
+        <button class="btn btn-primary ds-btn w-100" type="submit">Filter</button>
+      </div>
+    </div>
+    <div class="row g-2 align-items-end mt-1">
+      <div class="col-md-4">
+        <label class="form-label small" for="rosettaCompare">{% trans "View" %} {% grade_label %} {% trans "in target system (Rosetta)" %}</label>
+        <select class="form-select" id="rosettaCompare" name="compare">
+          {% for value, label in rosetta_target_choices %}
+            <option value="{{ value }}" {% if selected.compare == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <p class="text-muted small mb-0">Shows a linear conversion of the final mark for the school scale; for official transcripts use published reports.</p>
       </div>
     </div>
   </div>
 </form>
 
-<div class="card">
+<div class="card card-grammar">
   <div class="card-body table-responsive">
-    <table class="table table-sm table-striped align-middle gradebook-table">
+    <table class="table table-sm table-striped align-middle table-family table-sticky-head gradebook-table">
       <thead class="gradebook-thead-sticky">
         <tr>
-          <th>Updated</th>
-          <th>Student</th>
-          <th>Subject</th>
-          <th>Class</th>
-          <th>Specialty</th>
-          <th>Term</th>
-          <th>Sequence 1</th>
-          <th>Sequence 2</th>
-          <th>Exam</th>
-          <th>Mock</th>
-          <th>Practical</th>
-          <th>Remarks</th>
+          <th scope="col">Updated</th>
+          <th scope="col">Student</th>
+          <th scope="col">Subject</th>
+          <th scope="col">Class</th>
+          <th scope="col">Specialty</th>
+          <th scope="col">{% term_label %}</th>
+          <th scope="col">Sequence 1</th>
+          <th scope="col">Sequence 2</th>
+          <th scope="col">Exam</th>
+          <th scope="col">Mock</th>
+          <th scope="col">Practical</th>
+          {% if rosetta_target %}
+          <th scope="col" title="Cross-scale preview">{{ rosetta_column_label|default:rosetta_target }}</th>
+          {% endif %}
+          <th scope="col">Remarks</th>
         </tr>
       </thead>
       <tbody>
-        {% for e in evals %}
+        {% for row in mark_rows %}
+          {% with e=row.evaluation %}
           <tr>
             <td>{{ e.updated_at }}</td>
             <td>{{ e.student.last_name }} {{ e.student.first_name }} ({{ e.student.student_code }})</td>
@@ -96,10 +116,19 @@
             <td>{{ e.exam_score }}</td>
             <td>{{ e.mock_score }}</td>
             <td>{{ e.practical_score }}</td>
+            {% if rosetta_target %}
+            <td class="text-nowrap small">{% if row.rosetta.ok %}{{ row.rosetta.display }}{% else %}—{% endif %}</td>
+            {% endif %}
             <td>{{ e.remarks }}</td>
           </tr>
+          {% endwith %}
         {% empty %}
-          <tr><td colspan="12">No marks entered yet.</td></tr>
+          <tr>
+            <td colspan="{% if rosetta_target %}13{% else %}12{% endif %}" class="text-center py-4">
+              <p class="text-muted mb-2">{% trans "No marks entered yet for the selected filters." %}</p>
+              <a class="btn btn-sm btn-primary" href="{% url 'evals:teacher_marks_entry' %}">{% trans "Enter first marks" %}</a>
+            </td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>

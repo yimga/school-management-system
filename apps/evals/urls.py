@@ -21,6 +21,7 @@ from .views import (
     import_job_monitor_view,
     grade_approval_list,
     grade_approval_detail,
+    rosetta_grade_preview_api,
 )
 
 urlpatterns = [
@@ -65,6 +66,11 @@ urlpatterns = [
     ),
     path(
         "api/grade-import/apply/", grade_import_apply_api, name="grade_import_apply_api"
+    ),
+    path(
+        "api/rosetta/preview/",
+        rosetta_grade_preview_api,
+        name="rosetta_grade_preview_api",
     ),
     path("audit-trail/<int:evaluation_id>/", audit_trail_view, name="audit_trail"),
     path(

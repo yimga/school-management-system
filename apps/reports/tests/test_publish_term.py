@@ -137,6 +137,33 @@ class PublishTermRBACTestCase(TestCase):
         response = self.client.get(reverse("reports:publish_term_results"))
         self.assertEqual(response.status_code, 200)
 
+    def test_empty_classrooms_show_guided_recovery_single_block(self):
+        """No classrooms for selected year: one guided recovery strip with next actions."""
+        year_empty = AcademicYear.objects.create(
+            name="Empty year",
+            start_date=date(2026, 9, 1),
+            end_date=date(2027, 6, 30),
+            is_active=True,
+        )
+        term_empty = Term.objects.create(
+            academic_year=year_empty,
+            name="T-Empty",
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 12, 15),
+            position=1,
+            is_active=True,
+        )
+        self.client.force_login(self.staff)
+        url = reverse("reports:publish_term_results")
+        response = self.client.get(
+            url, {"year": year_empty.id, "term": term_empty.id}
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8", errors="replace")
+        self.assertEqual(body.count('data-rmc-guided-recovery="1"'), 1)
+        self.assertIn("No classrooms for this term", body)
+        self.assertIn("Try again", body)
+
     def test_publish_blocks_when_approval_request_is_missing(self):
         self.client.force_login(self.staff)
         self._create_evaluation()

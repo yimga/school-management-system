@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2 px-0 px-md-2" style="max-width: 100%; width: 100%;" data-page-archetype="operational-workbench" data-shell-layout="{{ rmc_shell.layout_token|default:'studio-os' }}" data-shell-host="{{ rmc_shell.shell_data_studio_host|default:'tenant' }}" data-rmc-nav-family="{{ rmc_shell.nav_family }}" data-studio-os-surface="tenant-shell">
+<div class="container-fluid py-2 px-0 px-md-2 rmc-shell-content-grid" data-page-archetype="operational-workbench" data-shell-layout="{{ rmc_shell.layout_token|default:'studio-os' }}" data-shell-host="{{ rmc_shell.shell_data_studio_host|default:'tenant' }}" data-rmc-nav-family="{{ rmc_shell.nav_family }}" data-studio-os-surface="tenant-shell" data-rmc-shell-content-grid="1">
   <a href="#studio-canvas" class="visually-hidden-focusable btn btn-sm btn-outline-primary position-absolute top-0 start-0 m-2 px-3 py-2 rounded z-1" style="z-index: 1060;">{% trans "Skip to Studio content" %}</a>
   {# On manager host Studio uses shell_control_plane → control_plane_base (8-pill nav there). Tenant: no PRIMARY nav. #}
   <div class="d-flex align-items-center gap-2 mb-3 flex-wrap" role="toolbar" aria-label="{% trans 'Studio toolbar' %}">
@@ -45,10 +45,13 @@
       <a href="{% url 'studio_os:control' %}" class="{% if current_mode == 'control' %}active{% endif %}" {% if current_mode == 'control' %}aria-current="page"{% endif %}>{% trans "Control" %}</a>
     </nav>
 
-    <main class="studio-os__canvas" id="studio-canvas" role="main" tabindex="-1">
+    <main class="studio-os__canvas rmc-shell-main" id="studio-canvas" role="main" tabindex="-1" data-rmc-shell-main="studio-os">
       {% block studio_canvas %}
         {% if not current_mode %}
-          <p class="text-muted mb-3">{% trans "One workspace for experience, automation, outputs, launch, and control. Choose a mode to start." %}</p>
+          <div class="alert alert-light border mb-3" role="status">
+            <strong>{% trans "Start here" %}</strong>
+            <div class="small text-muted">{% trans "One workspace for experience, automation, outputs, launch, and control. Choose a mode to start." %}</div>
+          </div>
           {% if request.public_host_kind == 'manager' %}
           <p class="small text-muted mb-3">{% trans "On the manager host, open a mode below to use Theme & colors, Workflow hub, Report library, Launch checklist, or Feature control. Select a school from the dashboard for embedded preview in the canvas." %}</p>
           {% endif %}
@@ -81,13 +84,22 @@
             {% if legacy_urls.announcement_create %}<div class="col-auto"><a href="{{ legacy_urls.announcement_create }}" class="btn btn-outline-primary btn-sm">{% trans "Announcements" %}</a></div>{% endif %}
           </div>
         {% elif embed_url %}
+          <div class="small text-muted mb-2">{% trans "Loading mode canvas..." %}</div>
           <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Studio mode content' %}"></iframe>
         {% else %}
+          {% url 'studio_os:shell' as studio_shell_home %}
+          <div class="mb-3" data-rmc-studio-mode-recovery="1">
+            {% if legacy_urls.workflow_center %}
+            {% include "components/guided_recovery_state.html" with title=_("Mode surface unavailable") message=_("The embedded canvas could not load. Complete setup in Workflow center, reload, or use the actions below.") retry_url=request.get_full_path fallback_url=legacy_urls.workflow_center fallback_label=_("Workflow center") %}
+            {% else %}
+            {% include "components/guided_recovery_state.html" with title=_("Mode surface unavailable") message=_("The embedded canvas could not load. Return to Studio overview or pick another mode from the rail.") retry_url=request.get_full_path fallback_url=studio_shell_home fallback_label=_("Studio overview") %}
+            {% endif %}
+          </div>
           <div class="studio-os__card">
             {% if request.public_host_kind == 'manager' %}
             <p class="text-muted mb-2">{% trans "On the manager host, open a mode in this tab for the full experience. Embedded preview is available when a school is selected." %}</p>
             {% else %}
-            <p class="text-muted mb-2">{% trans "This mode is loading. If nothing appears, use the links below or in the right rail." %}</p>
+            <p class="text-muted mb-2">{% trans "This mode is unavailable right now. Use the primary action below or try another mode." %}</p>
             {% endif %}
             <div class="d-flex flex-wrap gap-2">
               {% if legacy_urls.theme_colors and current_mode == 'experience' %}<a href="{{ legacy_urls.theme_colors }}" class="btn btn-primary btn-sm">{% trans "Theme & colors" %}</a>{% endif %}

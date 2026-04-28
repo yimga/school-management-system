@@ -88,6 +88,14 @@
   </div>
   {% endif %}
 
+  {% if launch_studio_base_url %}
+  <div class="studio-os__card mb-3">
+    <h3 class="h6 mb-2">{% trans "School infrastructure templates" %}</h3>
+    <p class="small text-muted mb-2">{% trans "Preview AWS-style infrastructure stacks (workflow, dashboard, theme packs) before requesting platform apply." %}</p>
+    <a class="btn btn-sm btn-outline-primary" href="{{ launch_studio_base_url }}?pane=infrastructure">{% trans "Open infrastructure preview" %}</a>
+  </div>
+  {% endif %}
+
   {% if launch_payload.recommended_blueprint and launch_payload.recommended_blueprint.cta_url %}
   <div class="studio-os__card mb-3">
     <h3 class="h6 mb-2">{% trans "Recommended blueprint" %}</h3>

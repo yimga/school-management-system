@@ -1,0 +1,307 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}Founder North Star{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ command_center_url }}">{% trans "Command center" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Founder North Star" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4"
+     data-rmc-founder-dashboard="1"
+     data-rmc-self-heal-status="1">
+  <header class="mb-4">
+    <h1 class="h3 mb-1">{% trans "Founder North Star dashboard" %}</h1>
+    <p class="text-secondary small mb-0">
+      {% trans "Metrics are read from the live database; audit and kill-test results are read from generated JSON under docs/generated/ when those scripts have been run." %}
+    </p>
+  </header>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4" data-rmc-northstar-score="1">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-secondary small text-uppercase">{% trans "North Star audit score" %}</div>
+          <div class="display-6">
+            {% if audit_total is not None %}{{ audit_total }}/75{% else %}
+            <span class="fs-5 text-secondary">{% trans "not available" %} — {% trans "Run" %} <code>python scripts/run_northstar_audit.py</code></span>
+            {% endif %}
+          </div>
+          {% if audit_rating %}<div class="mt-1"><span class="badge bg-dark">{{ audit_rating }}</span></div>{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-secondary small text-uppercase">{% trans "Kill test" %}</div>
+          <div class="fs-4">{% if kill_test.result %}{{ kill_test.result }}{% else %}{% trans "not run" %}{% endif %}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body" data-rmc-self-heal-status="1">
+          <div class="text-secondary small text-uppercase">{% trans "Self-heal" %}</div>
+          <div class="fs-4">{{ self_heal_status }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4" data-rmc-business-value="1">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body py-3">
+          <div class="text-secondary small">{% trans "Activation rate" %}</div>
+          <div class="h4 mb-0">{{ business_value.activation_rate_pct }}%</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body py-3">
+          <div class="text-secondary small">{% trans "Onboarding in progress" %}</div>
+          <div class="h4 mb-0">{{ business_value.onboarding_in_progress }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body py-3">
+          <div class="text-secondary small">{% trans "Paid penetration" %}</div>
+          <div class="h4 mb-0">{{ business_value.paid_penetration_pct }}%</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body py-3">
+          <div class="text-secondary small">{% trans "Revenue share drafts" %}</div>
+          <div class="h4 mb-0">{{ business_value.revenue_share_draft }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% url 'sales:pipeline_board' as sales_pipeline_url %}
+  <section class="mb-4" data-rmc-intelligent-insights="founder" aria-label="{% trans 'Founder decision insights' %}">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+      <h2 class="h5 mb-0">{% trans "Founder decision insights" %}</h2>
+      <a class="btn btn-sm btn-outline-primary" href="{{ sales_pipeline_url }}">{% trans "Open sales pipeline" %}</a>
+    </div>
+    <div class="row g-2">
+      {% if billing_watchlist_count %}
+      <div class="col-md-6 col-xl-4">
+        {% include "components/insight_card.html" with tone="warning" title=_("Billing watchlist needs intervention") explanation=_("Some subscriptions are past due or suspended. Resolve top accounts to protect active-school retention.") action_url=dashboard_url action_label=_("Open control plane dashboard") %}
+      </div>
+      {% endif %}
+      {% if self_heal_status != "PASS" %}
+      <div class="col-md-6 col-xl-4">
+        {% include "components/insight_card.html" with tone="danger" title=_("Self-heal signal requires review") explanation=_("Self-heal is not currently passing. Review ticket paths before they turn into operator-facing incidents.") action_url=command_center_url action_label=_("Open command center") %}
+      </div>
+      {% endif %}
+      {% if business_value.onboarding_in_progress|default:0 > 0 %}
+      <div class="col-md-6 col-xl-4">
+        {% include "components/insight_card.html" with tone="neutral" title=_("Onboarding pipeline is active") explanation=_("Schools are mid-onboarding. Focus next actions on completion so activation converts into retained usage.") action_url=command_center_url action_label=_("Review onboarding queue") %}
+      </div>
+      {% endif %}
+      {% if founder_sales.total_leads|default:0 > 0 and founder_sales.conversion_rate_pct < 20 %}
+      <div class="col-md-6 col-xl-4">
+        {% include "components/insight_card.html" with tone="warning" title=_("Sales conversion can improve") explanation=_("Lead volume exists but close rate is still low. Prioritize follow-up and demo-to-decision transitions this week.") action_url=sales_pipeline_url action_label=_("Work the pipeline now") %}
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="mb-4" data-rmc-founder-sales-dashboard="1">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+      <h2 class="h5 mb-0">{% trans "Sales command center" %}</h2>
+      <a class="btn btn-sm btn-primary" href="{{ sales_pipeline_url }}">{% trans "Open Kanban pipeline" %}</a>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-2 col-6">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Total leads" %}</div><div class="h4 mb-0">{{ founder_sales.total_leads|default:0 }}</div></div></div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Demos scheduled" %}</div><div class="h4 mb-0">{{ founder_sales.demo_scheduled|default:0 }}</div></div></div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Demos completed" %}</div><div class="h4 mb-0">{{ founder_sales.demo_completed|default:0 }}</div></div></div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Decision" %}</div><div class="h4 mb-0">{{ founder_sales.decision|default:0 }}</div></div></div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Closed" %}</div><div class="h4 mb-0">{{ founder_sales.closed|default:0 }}</div></div></div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Conversion" %}</div><div class="h4 mb-0">{{ founder_sales.conversion_rate_pct|default:0 }}%</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm" data-rmc-post-surface-status="1">
+        <div class="card-body py-3">
+          <div class="text-secondary small">{% trans "POST surface (product needs review)" %}</div>
+          <div class="h4 mb-0">{% if post_surface.summary %}{{ post_surface.summary.product_needs_review }}{% else %}—{% endif %}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm" data-rmc-regional-ui-status="1">
+        <div class="card-body py-3">
+          <div class="text-secondary small">{% trans "Regional UI violations" %}</div>
+          <div class="h4 mb-0">{% if regional_ui.summary %}{{ regional_ui.summary.violation }}{% else %}—{% endif %}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body py-3">
+          <div class="text-secondary small">{% trans "Security surface signal" %}</div>
+          <div class="h4 mb-0">{% if security_surface_signal is not None %}{{ security_surface_signal }}{% else %}—{% endif %}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body py-3">
+          <div class="text-secondary small">{% trans "Schools (all)" %}</div>
+          <div class="h4 mb-0">{{ schools_total }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body py-3">
+          <div class="text-secondary small">{% trans "Open / ack incidents" %}</div>
+          <div class="h4 mb-0">{{ platform_incidents_open }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body py-3">
+          <div class="text-secondary small">{% trans "Billing past_due / suspended" %}</div>
+          <div class="h4 mb-0">{% if billing_watchlist_count is not None %}{{ billing_watchlist_count }}{% else %}—{% endif %}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body py-3">
+          <div class="text-secondary small">{% trans "Revenue share (DRAFT)" %}</div>
+          <div class="h4 mb-0">{% if revenue_share_draft_count is not None %}{{ revenue_share_draft_count }}{% else %}—{% endif %}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="mb-4" aria-labelledby="slice-h">
+    <h2 class="h5" id="slice-h">{% trans "North Star slices 15–24 (SOT)" %}</h2>
+    <div class="table-responsive">
+      <table class="table table-family table-sm table-bordered align-middle">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">{% trans "Slice" %}</th>
+            <th scope="col">{% trans "SOT status" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in slice_rows %}
+          <tr>
+            <td>{{ row.n }}</td>
+            <td>
+              {% if row.ok %}
+                <span class="badge text-bg-success">{% trans "DONE" %}</span>
+              {% else %}
+                <span class="badge text-bg-warning text-dark">{{ row.status }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  {% if incident_breakdown %}
+  <section class="mb-4" aria-labelledby="inc-h">
+    <h2 class="h5" id="inc-h">{% trans "Platform incidents (all statuses)" %}</h2>
+    <ul class="list-group list-group-flush">
+      {% for row in incident_breakdown %}
+      <li class="list-group-item d-flex justify-content-between">
+        <span>{{ row.status }}</span>
+        <span class="fw-semibold">{{ row.total }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section class="mb-4" aria-labelledby="obs-h" data-rmc-observability-ledger="1">
+    <h2 class="h5" id="obs-h">{% trans "Observability ledger" %}</h2>
+    <div class="row g-3">
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body py-3">
+            <div class="text-secondary small">{% trans "Platform events" %}</div>
+            <div class="h4 mb-0">{{ recent_platform_events }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body py-3">
+            <div class="text-secondary small">{% trans "AI audit rows" %}</div>
+            <div class="h4 mb-0">{{ recent_ai_audits }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body py-3">
+            <div class="text-secondary small">{% trans "Ledger northstar rating" %}</div>
+            <div class="h6 mb-0">{% if observability_ledger.northstar %}{{ observability_ledger.northstar.rating|default:"not run" }}{% else %}{% trans "missing" %}{% endif %}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body py-3">
+            <div class="text-secondary small">{% trans "Ledger self-heal" %}</div>
+            <div class="h6 mb-0">{% if observability_ledger.self_heal %}{{ observability_ledger.self_heal.status|default:"not run" }}{% else %}{% trans "missing" %}{% endif %}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {% if open_repair_tickets %}
+  <section class="mb-4" aria-labelledby="tix-h">
+    <h2 class="h5" id="tix-h">{% trans "Open self-heal repair tickets" %}</h2>
+    <ul>
+      {% for p in open_repair_tickets %}
+      <li><code>{{ p }}</code></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <p class="small text-secondary">
+    {% trans "Generated audit file" %}: <code>{{ generated_audit_hint }}</code>
+  </p>
+</div>
+{% endblock %}

@@ -1,11 +1,122 @@
 """
-G1–G4: AI config/workflow/migration/support assistants.
+Unified assistant registry for governed, local-first AI entry points.
+
+Maps assistant keys to permissions and prompt/routing hints. UIs resolve ``entry_url_names``
+via Django ``reverse`` when present.
 """
 
 from __future__ import annotations
 
-# Config assistant: suggest settings from region/blueprint (nuance_engine, brand_import).
-# Workflow assistant: suggest next step or template (workflow_resolver, workflow_clues_api).
-# Migration assistant: suggest mapping or playbook (automation app).
-# Support assistant: support_copilot_view, guided_onboarding_view (customersuccess).
-# Entry points: support_copilot, guided_onboarding, AI copilot API.
+from typing import Any
+
+_ASSISTANTS: tuple[dict[str, Any], ...] = (
+    {
+        "assistant_key": "config_copilot",
+        "label": "Configuration copilot",
+        "domain": "siteconfig",
+        "required_permission": "settings.manage",
+        "enabled_by_default": True,
+        "provider_policy": "ollama_first_rules_fallback",
+        "prompt_key": "general_chat",
+        "entry_url_names": ("siteconfig:console_domains_hub",),
+    },
+    {
+        "assistant_key": "workflow_builder_assistant",
+        "label": "Workflow builder assistant",
+        "domain": "automation",
+        "required_permission": "settings.manage",
+        "enabled_by_default": True,
+        "provider_policy": "ollama_first_rules_fallback",
+        "prompt_key": "general_chat",
+        "entry_url_names": ("studio_os:automation",),
+    },
+    {
+        "assistant_key": "report_comment_assistant",
+        "label": "Report comment assistant",
+        "domain": "reports",
+        "required_permission": "settings.manage",
+        "enabled_by_default": True,
+        "provider_policy": "ollama_first_rules_fallback",
+        "prompt_key": "general_chat",
+        "entry_url_names": ("siteconfig:scheduled_reports_delivery_hub",),
+    },
+    {
+        "assistant_key": "northstar_operator_drafts",
+        "label": "North Star AI drafts (scheduled reports hub & bulk letters)",
+        "domain": "reports",
+        "required_permission": "settings.manage",
+        "enabled_by_default": False,
+        "provider_policy": "ollama_first_rules_fallback",
+        "prompt_key": "general_chat",
+        "entry_url_names": (
+            "siteconfig:scheduled_reports_delivery_hub",
+            "siteconfig:bulk_letters",
+        ),
+    },
+    {
+        "assistant_key": "onboarding_assistant",
+        "label": "Onboarding assistant",
+        "domain": "onboarding",
+        "required_permission": "settings.manage",
+        "enabled_by_default": True,
+        "provider_policy": "ollama_first_rules_fallback",
+        "prompt_key": "general_chat",
+        "entry_url_names": ("siteconfig:onboarding",),
+    },
+    {
+        "assistant_key": "support_assistant",
+        "label": "Support assistant",
+        "domain": "support",
+        "required_permission": "settings.manage",
+        "enabled_by_default": True,
+        "provider_policy": "ollama_first_rules_fallback",
+        "prompt_key": "general_chat",
+        "entry_url_names": ("siteconfig:support_copilot",),
+    },
+    {
+        "assistant_key": "data_quality_assistant",
+        "label": "Data quality assistant",
+        "domain": "data_quality",
+        "required_permission": "settings.manage",
+        "enabled_by_default": False,
+        "provider_policy": "ollama_first_rules_fallback",
+        "prompt_key": "general_chat",
+        "entry_url_names": ("siteconfig:metadata_operator_hub",),
+    },
+    {
+        "assistant_key": "trust_compliance_assistant",
+        "label": "Trust & compliance assistant",
+        "domain": "compliance",
+        "required_permission": "settings.manage",
+        "enabled_by_default": False,
+        "provider_policy": "local_only_rules",
+        "prompt_key": "general_chat",
+        "entry_url_names": ("siteconfig:config_mutation_audit_evidence",),
+    },
+    {
+        "assistant_key": "studio_os_assistant",
+        "label": "Studio OS assistant",
+        "domain": "studio_os",
+        "required_permission": "settings.manage",
+        "enabled_by_default": True,
+        "provider_policy": "ollama_first_rules_fallback",
+        "prompt_key": "general_chat",
+        "entry_url_names": ("studio_os:experience",),
+    },
+)
+
+
+def iter_assistants() -> tuple[dict[str, Any], ...]:
+    return _ASSISTANTS
+
+
+def assistant_keys() -> frozenset[str]:
+    return frozenset(a["assistant_key"] for a in _ASSISTANTS)
+
+
+def user_may_use_assistant(user, required_permission: str) -> bool:
+    if not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    return user.has_feature_permission(required_permission)

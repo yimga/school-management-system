@@ -7,6 +7,11 @@
 {% block content %}
   <div class="container-fluid py-4" data-page-archetype="operational-workbench">
     {% include "studio_os/components/page_header.html" with title=_("Grading & language") subtitle=_("School grading and default language. These apply to report cards and evaluations.") action_url=action_url action_text=action_text %}
+    <div class="alert alert-light border small mb-3" role="region" aria-label="{% trans 'Grading scale bands' %}">
+      <a href="{% url 'siteconfig:grading_scale_bands' %}" class="alert-link">{% trans "View grading scale bands (DB)" %}</a>
+      — {% trans "Read-only band table for this school; Rosetta math is unchanged." %}
+      <span class="ms-1">{% trans "See" %} <a href="{% url 'siteconfig:curriculum_templates' %}" class="alert-link">{% trans "curriculum templates (reference)" %}</a>.</span>
+    </div>
     <div class="card shadow-sm">
       <div class="card-body">
         <h2 class="h5 mb-3">{% trans "School grading and default language" %}</h2>

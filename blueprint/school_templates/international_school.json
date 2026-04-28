@@ -1,0 +1,34 @@
+{
+  "template_key": "international_school",
+  "display_name": "International / IB-style school",
+  "description": "Multi-program international school with outcomes-focused workflows, admissions, and cross-border parent communications.",
+  "school_type": "INTERNATIONAL_K12",
+  "version": "1.0.0",
+  "previous_version_ref": null,
+  "workflow_pack_keys": [
+    "onboarding_academic_year",
+    "admissions_pipeline",
+    "parent_communication",
+    "report_publishing"
+  ],
+  "dashboard_pack_keys": [
+    "admin_command_center",
+    "teacher_workspace",
+    "parent_portal_home",
+    "finance_overview"
+  ],
+  "theme_pack_keys": ["design_tokens_default"],
+  "policies": [
+    "multi_language_parent_comms",
+    "program_level_grading_alignment",
+    "visa_and_guardian_contact_optional"
+  ],
+  "required_apps": ["portal", "people", "reports", "crm"],
+  "capabilities": {
+    "tenant_safe_apply": false,
+    "rollback_supported": false,
+    "preview_diff_supported": true,
+    "validation_supported": true
+  },
+  "notes": "Pairs with regional curriculum templates where configured in SiteConfig."
+}

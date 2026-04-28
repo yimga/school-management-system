@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-04-28T22:36:07.977049+00:00",
+  "kill_test": {
+    "critical_count": 2,
+    "present": true,
+    "result": "FAIL"
+  },
+  "northstar": {
+    "present": true,
+    "rating": "DOMINANT",
+    "score": 75
+  },
+  "runtime": {
+    "ai_audits_recent_24h": -1,
+    "platform_events_recent_24h": -1,
+    "platform_incidents_open": -1
+  },
+  "self_heal": {
+    "present": true,
+    "status": "SELF_HEALED_PASS",
+    "ticket_count": 0
+  }
+}

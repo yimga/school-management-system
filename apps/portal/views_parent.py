@@ -1101,6 +1101,17 @@ def parent_dashboard(request: HttpRequest):
         active_child_id = guardian_students_for_switcher[0]["id"]
     policy = get_policy_for_request(request)
     is_rtl = bool(policy.get("rtl", False))
+    parent_simplified = str(request.GET.get("simple") or "").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+    q = request.GET.copy()
+    q.pop("simple", None)
+    parent_full_dashboard_url = request.path
+    if q:
+        parent_full_dashboard_url = f"{request.path}?{q.urlencode()}"
+
     return render(
         request,
         "parent/dashboard.html",
@@ -1151,6 +1162,8 @@ def parent_dashboard(request: HttpRequest):
             "guardian_students_for_switcher": guardian_students_for_switcher,
             "is_rtl": is_rtl,
             "parent_upcoming_events": parent_upcoming_events,
+            "parent_simplified": parent_simplified,
+            "parent_full_dashboard_url": parent_full_dashboard_url,
         },
     )
 

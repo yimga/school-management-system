@@ -4,7 +4,7 @@ Design-system: empty state = action state (Path-to-10). Never dead-end "nothing 
 Usage: {% include 'components/dashboard_empty_state.html' with icon='bi-inbox' title='No items' message='...' action_url='...' action_text='...' %}
 Optional: illustration_url, purpose (short "why this matters"), secondary_action_url, secondary_action_text, demo_url (sample/demo link).
 {% endcomment %}
-<div class="dashboard-empty-state" data-empty-state="action-state">
+<div class="dashboard-empty-state ui-premium-surface" data-empty-state="action-state" data-rmc-component="empty-state">
   {% if illustration_url %}
   <div class="dashboard-empty-illustration mb-3">
     <img src="{{ illustration_url }}" alt="" class="img-fluid" style="max-height: 160px; width: auto;">
@@ -24,12 +24,12 @@ Optional: illustration_url, purpose (short "why this matters"), secondary_action
   {% endif %}
   <div class="dashboard-empty-actions">
     {% if action_url and action_text %}
-    <a href="{{ action_url }}" class="btn btn-primary dashboard-empty-action me-2">
+    <a href="{{ action_url }}" class="btn btn-primary ds-btn dashboard-empty-action me-2">
       <i class="bi bi-plus-circle me-2"></i>{{ action_text }}
     </a>
     {% endif %}
     {% if secondary_action_url and secondary_action_text %}
-    <a href="{{ secondary_action_url }}" class="btn btn-outline-secondary dashboard-empty-action-secondary">
+    <a href="{{ secondary_action_url }}" class="btn btn-outline-secondary ds-btn dashboard-empty-action-secondary">
       {{ secondary_action_text }}
     </a>
     {% endif %}

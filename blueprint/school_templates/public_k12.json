@@ -1,0 +1,34 @@
+{
+  "template_key": "public_k12",
+  "display_name": "Public K–12 district school",
+  "description": "District-aligned public school stack with compliance exports, broad teacher workspace, and operational reporting.",
+  "school_type": "PUBLIC_K12",
+  "version": "1.0.0",
+  "previous_version_ref": null,
+  "workflow_pack_keys": [
+    "onboarding_academic_year",
+    "parent_communication",
+    "report_publishing",
+    "enterprise_governance_studio"
+  ],
+  "dashboard_pack_keys": [
+    "admin_command_center",
+    "teacher_workspace",
+    "parent_portal_home",
+    "compliance_operator"
+  ],
+  "theme_pack_keys": ["design_tokens_default"],
+  "policies": [
+    "public_records_and_transcripts",
+    "equity_and_accessibility_monitoring",
+    "district_reporting_calendar"
+  ],
+  "required_apps": ["reports", "portal", "people", "compliance"],
+  "capabilities": {
+    "tenant_safe_apply": false,
+    "rollback_supported": false,
+    "preview_diff_supported": true,
+    "validation_supported": true
+  },
+  "notes": "Governance-heavy defaults; enterprise tier gates may apply to platform packs."
+}

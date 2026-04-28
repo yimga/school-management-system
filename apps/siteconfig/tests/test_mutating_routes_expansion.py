@@ -6,7 +6,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import Permission as FeaturePermission, User
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 from apps.siteconfig.models import Plan
 
 _T_HOST = "mut-exp.runmycampus.com"
@@ -17,6 +17,7 @@ _ACT_HOST = "actas-exp.runmycampus.com"
 _STU_POST_HOST = "studio-pub-exp.runmycampus.com"
 _STU_DRAFT_HOST = "studio-draft-exp.runmycampus.com"
 _BL_HOST = "bulk-letters-exp.runmycampus.com"
+_NS_AI_HOST = "ns-ai-draft-exp.runmycampus.com"
 _WV_HOST = "waiver-exp.runmycampus.com"
 _TH_HOST = "school-theme-exp.runmycampus.com"
 _PV_HOST = "prev-toggle-exp.runmycampus.com"
@@ -33,6 +34,7 @@ _ALLOWED = [
     _STU_POST_HOST,
     _STU_DRAFT_HOST,
     _BL_HOST,
+    _NS_AI_HOST,
     _WV_HOST,
     _TH_HOST,
     _PV_HOST,
@@ -351,6 +353,74 @@ class BulkLettersPostPolicyTests(TestCase):
         resp = self.client.post(path, data={"letter_body": "", "classroom_id": ""})
         self.assertNotEqual(resp.status_code, 403)
         self.assertEqual(resp.status_code, 200)
+
+
+class NorthstarAiDraftPostPolicyTests(TestCase):
+    """North Star slice 11: POST JSON drafts API requires settings.manage."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.plan_reports = Plan.objects.create(
+            name="NS AI Policy Plan",
+            slug="ns-ai-policy-exp-plan",
+            included_features=["reports"],
+            is_active=True,
+        )
+        cls.school = School.objects.create(
+            name="NS AI Draft School",
+            slug="ns-ai-draft-exp",
+            subdomain="ns-ai-draft-exp",
+            is_active=True,
+            plan=cls.plan_reports,
+        )
+        cls.perm_settings, _ = FeaturePermission.objects.get_or_create(
+            code="settings.manage",
+            defaults={"name": "Manage settings"},
+        )
+
+    def setUp(self):
+        self.client = Client(HTTP_HOST=_NS_AI_HOST, raise_request_exception=False)
+
+    def test_northstar_ai_draft_post_forbidden_without_settings_manage(self):
+        u = User.objects.create_user(
+            username="ns_ai_draft_noperm",
+            password="x" * 8,
+            role=User.Role.TEACHER,
+        )
+        u.feature_permissions.clear()
+        self.client.login(username="ns_ai_draft_noperm", password="x" * 8)
+        path = reverse("siteconfig:northstar_ai_draft", urlconf="config.tenant_urls")
+        resp = self.client.post(
+            path,
+            data=json.dumps({"kind": "next_actions", "context": {}}),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 403)
+
+    def test_northstar_ai_draft_post_ok_with_settings_manage(self):
+        u = User.objects.create_user(
+            username="ns_ai_draft_yes",
+            password="x" * 8,
+            role=User.Role.ADMIN,
+        )
+        u.feature_permissions.add(self.perm_settings)
+        SchoolMembership.objects.create(
+            user=u,
+            school=self.school,
+            role=User.Role.ADMIN,
+            is_primary=True,
+        )
+        self.client.login(username="ns_ai_draft_yes", password="x" * 8)
+        path = reverse("siteconfig:northstar_ai_draft", urlconf="config.tenant_urls")
+        resp = self.client.post(
+            path,
+            data=json.dumps({"kind": "next_actions", "context": {}}),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 200)
+        body = resp.json()
+        self.assertTrue(body.get("ok"))
+        self.assertTrue(body.get("requires_approval"))
 
 
 @override_settings(ALLOWED_HOSTS=_ALLOWED)

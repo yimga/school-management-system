@@ -1,0 +1,71 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Student attendance export" %}{% endblock %}
+{% block content %}
+<div
+  class="container py-3 ui-premium-surface"
+  data-page-archetype="operational-workbench"
+  data-rmc-attendance-export="student-csv"
+  data-cp-evidence-surface="student-attendance-export"
+>
+  <h1 class="h4 mb-2">{% trans "Student attendance (CSV export)" %}</h1>
+  <p class="text-muted small mb-3">
+    {% trans "Download student attendance rows for this school only. Teachers only see classes they are assigned to teach (marks assignments). Admins see the full school for the selected range." %}
+  </p>
+  {% if filter_error %}
+  <div class="alert alert-danger small" role="alert">
+    {{ filter_error }}
+  </div>
+  {% endif %}
+  {% if not classrooms %}
+  <div class="alert alert-warning small" role="status">
+    {% trans "No classes are available for export in your current access scope." %}
+  </div>
+  {% endif %}
+
+  <div class="card card-grammar shadow-sm mb-3">
+    <div class="card-body">
+      <form method="get" action="{{ export_csv_url }}" class="row g-2 align-items-end form-system" data-rmc-form-grammar="1">
+        <div class="col-md-3">
+          <label class="form-label small" for="id_start_date">{% trans "Start date" %}</label>
+          <input type="date" name="start_date" id="id_start_date" class="form-control" value="{{ filters.start_date|date:"Y-m-d" }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small" for="id_end_date">{% trans "End date" %}</label>
+          <input type="date" name="end_date" id="id_end_date" class="form-control" value="{{ filters.end_date|date:"Y-m-d" }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small" for="id_classroom">{% trans "Class" %}</label>
+          <select name="classroom_id" id="id_classroom" class="form-select">
+            <option value="">{% trans "All classes" %}</option>
+            {% for c in classrooms %}
+            <option value="{{ c.id }}" {% if request.GET.classroom_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small" for="id_student">{% trans "Student" %}</label>
+          <select name="student_id" id="id_student" class="form-select">
+            <option value="">{% trans "All students" %}</option>
+            {% for s in students %}
+            <option value="{{ s.id }}" {% if request.GET.student_id == s.id|stringformat:"s" %}selected{% endif %}>{{ s.last_name }}, {{ s.first_name }} ({{ s.student_code }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 d-flex flex-wrap gap-2 mt-2">
+          <button type="submit" class="btn btn-primary ds-btn">{% trans "Export CSV" %}</button>
+          <span class="text-muted small align-self-center">{% trans "Primary action: export rows for the selected date range." %}</span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 small">
+    <a class="btn btn-sm btn-outline-primary ds-btn" href="{{ take_attendance_url }}">{% trans "Take student attendance" %}</a>
+    <a class="btn btn-sm btn-outline-primary ds-btn" href="{{ evals_teacher_dashboard_url }}">{% trans "Teacher dashboard" %}</a>
+    {% if compliance_exports_url %}
+    <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ compliance_exports_url }}">{% trans "Compliance exports" %}</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -73,6 +73,10 @@ def report_templates_catalog_evidence(
         )
     except NoReverseMatch:
         term_publish_status_evidence_url = None
+    try:
+        compliance_exports_url = reverse("siteconfig:compliance_exports")
+    except NoReverseMatch:
+        compliance_exports_url = None
 
     return render(
         request,
@@ -87,5 +91,6 @@ def report_templates_catalog_evidence(
             "scheduled_reports_hub_url": scheduled_reports_hub_url,
             "tenant_report_schedules_evidence_url": tenant_report_schedules_evidence_url,
             "term_publish_status_evidence_url": term_publish_status_evidence_url,
+            "compliance_exports_url": compliance_exports_url,
         },
     )

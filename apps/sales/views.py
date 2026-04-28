@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from django.db.models import Q
+from django.db.models import Count, OuterRef, Q, Subquery
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -15,9 +15,16 @@ from apps.schools.control_plane import require_control_plane_access
 @require_control_plane_access
 def pipeline_board(request: HttpRequest) -> HttpResponse:
     stages = list(PipelineStage.objects.all().order_by("sort_order", "pk"))
-    leads = Lead.objects.select_related("stage", "created_by").order_by(
-        "-updated_at", "-pk"
-    )[:500]
+    latest_activity = Subquery(
+        ActivityLog.objects.filter(lead_id=OuterRef("pk"))
+        .order_by("-created_at")
+        .values("created_at")[:1]
+    )
+    leads = (
+        Lead.objects.select_related("stage", "created_by")
+        .annotate(last_contact_at=latest_activity)
+        .order_by("-updated_at", "-pk")[:500]
+    )
     q = (request.GET.get("q") or "").strip()
     if q:
         leads = (
@@ -27,14 +34,63 @@ def pipeline_board(request: HttpRequest) -> HttpResponse:
                 | Q(email__icontains=q)
             )
             .select_related("stage", "created_by")
+            .annotate(last_contact_at=latest_activity)
             .order_by("-updated_at", "-pk")[:200]
         )
+    stage_buckets = {stage.pk: [] for stage in stages}
+    now = timezone.now()
+    overdue_followups = 0
+    due_today_followups = 0
+    upcoming_window_end = now + timedelta(days=7)
+    upcoming_followups = list(
+        Lead.objects.select_related("stage")
+        .filter(
+            next_follow_up__gt=now,
+            next_follow_up__lte=upcoming_window_end,
+        )
+        .order_by("next_follow_up")[:25]
+    )
+    for lead in leads:
+        bucket = stage_buckets.get(lead.stage_id)
+        if bucket is not None:
+            bucket.append(lead)
+        if lead.next_follow_up:
+            if lead.next_follow_up < now:
+                overdue_followups += 1
+            elif lead.next_follow_up.date() == now.date():
+                due_today_followups += 1
+    stage_stats_rows = (
+        Lead.objects.values("stage__key", "stage__label")
+        .annotate(total=Count("id"))
+        .order_by("stage__key")
+    )
+    stage_stats = {row["stage__key"]: row["total"] for row in stage_stats_rows}
+    total_leads = sum(stage_stats.values())
+    demos_scheduled = stage_stats.get("demo_scheduled", 0) + stage_stats.get("demo", 0)
+    demos_completed = stage_stats.get("demo_done", 0) + stage_stats.get("pilot", 0)
+    decisions = stage_stats.get("decision", 0)
+    closed = stage_stats.get("closed", 0) + stage_stats.get("onboarded", 0)
+    conversion_rate = round((closed / total_leads) * 100, 1) if total_leads else 0.0
+    kanban_columns = [
+        {"stage": stage, "leads": stage_buckets.get(stage.pk, [])} for stage in stages
+    ]
     return render(
         request,
         "sales/pipeline_board.html",
         {
             "stages": stages,
             "leads": leads,
+            "kanban_columns": kanban_columns,
+            "total_leads": total_leads,
+            "demos_scheduled": demos_scheduled,
+            "demos_completed": demos_completed,
+            "decisions": decisions,
+            "closed": closed,
+            "conversion_rate": conversion_rate,
+            "overdue_followups": overdue_followups,
+            "due_today_followups": due_today_followups,
+            "upcoming_followups": upcoming_followups,
+            "now": now,
             "query": q,
         },
     )
@@ -83,6 +139,20 @@ def lead_detail(request: HttpRequest, pk: int) -> HttpResponse:
         return HttpResponseForbidden("login required")
     lead = get_object_or_404(Lead.objects.select_related("stage"), pk=pk)
     if request.method == "POST":
+        quick_followup_days = (request.POST.get("quick_followup_days") or "").strip()
+        if quick_followup_days:
+            try:
+                days = max(1, min(int(quick_followup_days), 30))
+            except (TypeError, ValueError):
+                days = 2
+            lead.next_follow_up = timezone.now() + timedelta(days=days)
+            lead.save(update_fields=["next_follow_up", "updated_at"])
+            ActivityLog.objects.create(
+                lead=lead,
+                body=f"Auto reminder set: follow up in {days} day(s).",
+                created_by=request.user,
+            )
+            return redirect("sales:lead_detail", pk=lead.pk)
         if (request.POST.get("add_activity") or "").strip() == "1":
             body = (request.POST.get("body") or "").strip()
             if body:

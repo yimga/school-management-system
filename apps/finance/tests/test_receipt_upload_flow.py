@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
+import uuid
 from unittest.mock import patch
 from types import SimpleNamespace
 
@@ -18,6 +19,24 @@ from apps.finance.models import (
     PaymentProofUpload,
 )
 from apps.people.models import StudentProfile
+
+
+def _finance_site_namespace(profile: ComplianceProfile) -> SimpleNamespace:
+    return SimpleNamespace(
+        compliance_profile=profile,
+        get_finance_runtime_config=lambda: {
+            "receipt_upload_enabled": True,
+            "receipt_auto_verify_enabled": True,
+            "receipt_max_size_mb": 10,
+            "receipt_allowed_extensions": "png,jpg,jpeg,pdf",
+            "receipt_idempotency_window_minutes": 15,
+        },
+        finance_receipt_upload_enabled=True,
+        finance_receipt_max_size_mb=10,
+        finance_receipt_allowed_extensions="png,jpg,jpeg,pdf",
+        finance_receipt_idempotency_window_minutes=15,
+        finance_receipt_auto_verify_enabled=True,
+    )
 
 
 class ReceiptUploadFlowTests(TestCase):
@@ -83,14 +102,15 @@ class ReceiptUploadFlowTests(TestCase):
         self.assertContains(response, 'value="ORANGE_MOMO"')
 
     @patch("apps.finance.tasks.process_payment_receipt_upload_task.delay")
-    @patch("apps.finance.views_invoicing.ReceiptFraudDetector.detect_fraud")
+    @patch("apps.finance.fraud_detection.ReceiptFraudDetector.detect_fraud")
     def test_upload_receipt_captures_idempotency_and_request_metadata(
         self, mock_detect, mock_delay
     ):
+        file_hash = f"abc123hash-{uuid.uuid4().hex}"
         mock_detect.return_value = {
             "fraud_risk_score": 8,
             "fraud_flags": [],
-            "file_hash": "abc123hash",
+            "file_hash": file_hash,
             "recommendation": "approve",
         }
         receipt = SimpleUploadedFile(
@@ -98,18 +118,29 @@ class ReceiptUploadFlowTests(TestCase):
             b"fake-image-data",
             content_type="image/png",
         )
-        response = self.client.post(
-            reverse("finance:upload_payment_receipt", args=[self.invoice.id]),
-            data={
-                "receipt_file": receipt,
-                "payment_method": PaymentMethodCode.MTN_MOMO,
-                "uploaded_amount": "25000",
-                "transaction_reference": "MTN-REF-1",
-                "idempotency_key": "test-idempo-1",
-            },
-            HTTP_USER_AGENT="TestBrowser/1.0",
-            REMOTE_ADDR="127.0.0.99",
-        )
+        site_ns = _finance_site_namespace(self.profile)
+        with (
+            patch(
+                "apps.finance.views_common.get_effective_site_settings",
+                return_value=site_ns,
+            ),
+            patch(
+                "apps.finance.views_invoicing.get_effective_site_settings",
+                return_value=site_ns,
+            ),
+        ):
+            response = self.client.post(
+                reverse("finance:upload_payment_receipt", args=[self.invoice.id]),
+                data={
+                    "receipt_file": receipt,
+                    "payment_method": PaymentMethodCode.MTN_MOMO,
+                    "uploaded_amount": "25000",
+                    "transaction_reference": "MTN-REF-1",
+                    "idempotency_key": "test-idempo-1",
+                },
+                HTTP_USER_AGENT="TestBrowser/1.0",
+                REMOTE_ADDR="127.0.0.99",
+            )
         self.assertEqual(response.status_code, 302)
         upload = PaymentProofUpload.objects.get(invoice=self.invoice)
         self.assertEqual(upload.idempotency_key, "test-idempo-1")
@@ -118,7 +149,7 @@ class ReceiptUploadFlowTests(TestCase):
         mock_delay.assert_called_once()
 
     @patch("apps.finance.tasks.process_payment_receipt_upload_task.delay")
-    @patch("apps.finance.views_invoicing.ReceiptFraudDetector.detect_fraud")
+    @patch("apps.finance.fraud_detection.ReceiptFraudDetector.detect_fraud")
     @patch("apps.finance.views_invoicing.get_effective_site_settings")
     def test_upload_receipt_uses_owner_scoped_finance_policy(
         self,
@@ -126,19 +157,11 @@ class ReceiptUploadFlowTests(TestCase):
         mock_detect,
         mock_delay,
     ):
-        mock_get_effective_site_settings.return_value = SimpleNamespace(
-            get_finance_runtime_config=lambda: {
-                "receipt_upload_enabled": True,
-                "receipt_auto_verify_enabled": False,
-                "receipt_max_size_mb": 1,
-                "receipt_allowed_extensions": "png",
-                "receipt_idempotency_window_minutes": 15,
-            }
-        )
+        owner_hash = f"owner-policy-hash-{uuid.uuid4().hex}"
         mock_detect.return_value = {
             "fraud_risk_score": 8,
             "fraud_flags": [],
-            "file_hash": "owner-policy-hash",
+            "file_hash": owner_hash,
             "recommendation": "approve",
         }
         receipt = SimpleUploadedFile(
@@ -147,20 +170,40 @@ class ReceiptUploadFlowTests(TestCase):
             content_type="image/png",
         )
 
-        response = self.client.post(
-            reverse("finance:upload_payment_receipt", args=[self.invoice.id]),
-            data={
-                "receipt_file": receipt,
-                "payment_method": PaymentMethodCode.MTN_MOMO,
-                "uploaded_amount": "25000",
-                "transaction_reference": "MTN-OWNER-REF-1",
-                "idempotency_key": "owner-finance-policy-1",
+        site_ns = SimpleNamespace(
+            compliance_profile=self.profile,
+            get_finance_runtime_config=lambda: {
+                "receipt_upload_enabled": True,
+                "receipt_auto_verify_enabled": False,
+                "receipt_max_size_mb": 10,
+                "receipt_allowed_extensions": "png,jpg,jpeg,pdf",
+                "receipt_idempotency_window_minutes": 15,
             },
+            finance_receipt_upload_enabled=True,
+            finance_receipt_max_size_mb=10,
+            finance_receipt_allowed_extensions="png,jpg,jpeg,pdf",
+            finance_receipt_idempotency_window_minutes=15,
+            finance_receipt_auto_verify_enabled=False,
         )
+        mock_get_effective_site_settings.return_value = site_ns
+        with patch(
+            "apps.finance.views_common.get_effective_site_settings",
+            return_value=site_ns,
+        ):
+            response = self.client.post(
+                reverse("finance:upload_payment_receipt", args=[self.invoice.id]),
+                data={
+                    "receipt_file": receipt,
+                    "payment_method": PaymentMethodCode.MTN_MOMO,
+                    "uploaded_amount": "25000",
+                    "transaction_reference": "MTN-OWNER-REF-1",
+                    "idempotency_key": "owner-finance-policy-1",
+                },
+            )
 
         self.assertEqual(response.status_code, 302)
         upload = PaymentProofUpload.objects.get(
-            invoice=self.invoice, file_hash="owner-policy-hash"
+            invoice=self.invoice, file_hash=owner_hash
         )
         self.assertEqual(upload.idempotency_key, "owner-finance-policy-1")
         mock_delay.assert_not_called()

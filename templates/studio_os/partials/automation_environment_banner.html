@@ -1,0 +1,36 @@
+{% load i18n %}
+<div class="studio-os__card mb-3 border-secondary border-opacity-25" role="region" aria-label="{% trans 'Automation environment' %}">
+  <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start">
+    <div>
+      <h3 class="h6 mb-1">{% trans "Staging vs production" %}</h3>
+      <p class="small text-muted mb-0">{{ automation_environment.staging_vs_production_detail }}</p>
+    </div>
+    <div class="text-end small">
+      {% if automation_environment.workflow_simulation_ready %}
+      <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">{% trans "Simulation ready" %}</span>
+      {% else %}
+      <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">{% trans "Simulation limited" %}</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="row g-2 mt-2 small">
+    <div class="col-md-6">
+      <strong>{% trans "Publish readiness" %}:</strong>
+      {% if automation_environment.publish_readiness.ready %}
+      <span class="text-success">{% trans "OK" %}</span>
+      {% else %}
+      <span class="text-warning">{% trans "Review staged packages" %}</span>
+      {% endif %}
+      <span class="text-muted"> — {{ automation_environment.publish_readiness.detail }}</span>
+    </div>
+    <div class="col-md-6">
+      <strong>{% trans "Rollback readiness" %}:</strong>
+      {% if automation_environment.rollback_readiness.available %}
+      <span class="text-success">{% trans "Snapshot available" %}</span>
+      {% else %}
+      <span class="text-muted">{% trans "Disabled" %}</span>
+      {% endif %}
+      <span class="text-muted"> — {{ automation_environment.rollback_readiness.detail }}</span>
+    </div>
+  </div>
+</div>

@@ -1,6 +1,6 @@
 # Shell surface inventory (generated)
 
-**UTC** `2026-04-26T23:29:34.153469+00:00`  
+**UTC** `2026-04-28T23:00:11.925657+00:00`  
 **Status** `PASS`  
 
 | Template | Substrings (required) |
@@ -38,14 +38,17 @@
 | `templates/partials/shell_portal_layout_wrap_open.html` | ok |
 | `templates/partials/shell_rmc_registry_html_attrs.html` | ok |
 | `templates/partials/shell_skip_link.html` | ok |
+| `templates/portal/student_attendance_export.html` | ok |
 | `templates/portal_base.html` | ok |
 | `templates/schools/super_blueprints_catalog.html` | ok |
 | `templates/schools/super_workflow_packs.html` | ok |
 | `templates/siteconfig/academic_years_setup_evidence.html` | ok |
 | `templates/siteconfig/bulk_letters.html` | ok |
 | `templates/siteconfig/config_mutation_audit_evidence.html` | ok |
+| `templates/siteconfig/curriculum_templates.html` | ok |
 | `templates/siteconfig/departments_setup_evidence.html` | ok |
 | `templates/siteconfig/entity_catalog_overview.html` | ok |
+| `templates/siteconfig/grading_scale_bands.html` | ok |
 | `templates/siteconfig/metadata_dynamic_fields_operator.html` | ok |
 | `templates/siteconfig/metadata_operator_hub.html` | ok |
 | `templates/siteconfig/partials/configuration_control_center_staging_publish.html` | ok |

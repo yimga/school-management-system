@@ -1,20 +1,29 @@
+import json
 import logging
 import time
+from types import SimpleNamespace
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Prefetch, Q, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.billing.models import RevenueSharePayout
+from apps.schools.security_enforcer import enforce_tenant_security
+from apps.billing.stripe_checkout import (
+    get_active_stripe_processor_config,
+    stripe_secret_key,
+)
 from apps.schools.control_plane import user_has_control_plane_access
 from apps.marketplace.models import (
     AppInstallation,
+    AppScope,
     MarketplaceApp,
     MarketplaceListing,
     MarketplaceReview,
@@ -24,6 +33,17 @@ from apps.marketplace.models import (
 from apps.marketplace.permissions import tenant_may_manage_marketplace
 from apps.marketplace.ecosystem_links import build_phase9_ecosystem_links
 from apps.marketplace.listing_display import catalog_listing_display
+from apps.marketplace.manifest_schema import (
+    PRICING_ENTERPRISE,
+    PRICING_FREE,
+    PRICING_INCLUDED,
+    PRICING_PAID,
+    classify_scope_access,
+    entitlement_hints_for_school,
+    normalize_platform_manifest,
+    resolve_tenant_catalog_signals,
+)
+from apps.marketplace.pack_registry import load_platform_pack_catalog
 from apps.marketplace.install_impact import build_tenant_install_impact
 from apps.marketplace.services import (
     activate_sandbox_installation,
@@ -36,8 +56,41 @@ from apps.marketplace.services import (
 )
 from apps.platform_runtime.catalog_counts import get_platform_catalog_counts
 from apps.platform_runtime.events import emit_platform_event
+from apps.platform_runtime.observability import record_tenant_surface_view
+from apps.siteconfig.commercial_tiers import plan_display_context
 
 logger = logging.getLogger(__name__)
+
+
+def _tenant_plan_display_context(school) -> dict:
+    """Plan name/slug and coarse tier for catalog gating copy (not billing truth)."""
+    ctx = plan_display_context(school)
+    return {
+        "slug": ctx.get("slug", ""),
+        "name": ctx.get("name", ""),
+        "tier_key": ctx.get("tier_key", "unknown"),
+        "tier_label": ctx.get("tier_label", "—"),
+        "commercial_tier": ctx.get("commercial_tier", ""),
+    }
+
+
+def _listing_proxy_for_installation(inst, listing_by_app_id: dict):
+    """Resolve real listing or a read-only proxy so catalog signals always have app context."""
+    lst = listing_by_app_id.get(inst.app_id)
+    if lst is not None:
+        return lst
+    return SimpleNamespace(
+        app=inst.app,
+        metadata={},
+        compatibility={},
+        certification_status=MarketplaceListing.ReviewStatus.NOT_REQUIRED,
+        security_review_status=MarketplaceListing.ReviewStatus.NOT_REQUIRED,
+        status=MarketplaceListing.Status.APPROVED,
+        publisher=None,
+        kill_switch_active=False,
+        installable=True,
+    )
+
 
 # §2.4 broad-except: preview can raise from policy/DB layer (typed per broad_exception_audit).
 _MARKETPLACE_PREVIEW_FAILURES = (
@@ -698,7 +751,11 @@ def super_activate_sandbox(request):
         install_phase=AppInstallation.InstallPhase.SANDBOX,
         status=AppInstallation.Status.ACTIVE,
     )
-    activate_sandbox_installation(inst, activated_by=request.user)
+    try:
+        activate_sandbox_installation(inst, activated_by=request.user)
+    except ValueError as e:
+        messages.error(request, str(e))
+        return redirect("super:marketplace_sandbox_inspector")
     messages.success(
         request, f"“{inst.app.name}” at “{inst.school.name}” is now active."
     )
@@ -798,8 +855,59 @@ def tenant_installed_apps(request):
             uninstalled_at__isnull=True,
         )
         .select_related("app")
+        .prefetch_related(
+            "scope_grants",
+            "scope_grants__scope",
+            Prefetch(
+                "app__scopes",
+                queryset=AppScope.objects.order_by("scope_code"),
+            ),
+        )
         .order_by("-installed_at")
     )
+    listing_by_app_id = {
+        lst.app_id: lst
+        for lst in MarketplaceListing.objects.filter(
+            app_id__in=[x.app_id for x in installations]
+        ).select_related("app", "publisher")
+    }
+    for inst in installations:
+        lst_like = _listing_proxy_for_installation(inst, listing_by_app_id)
+        inst.catalog_signals = resolve_tenant_catalog_signals(
+            listing=lst_like,
+            school=school,
+            installation=inst,
+            listing_installable=getattr(lst_like, "installable", True),
+        )
+        grants_by_scope = {g.scope_id: g for g in inst.scope_grants.all()}
+        rows = []
+        for sc in inst.app.scopes.all():
+            g = grants_by_scope.get(sc.id)
+            rows.append(
+                {
+                    "code": sc.scope_code,
+                    "description": sc.description or "",
+                    "sensitive": sc.sensitive,
+                    "access_tier": classify_scope_access(
+                        sc.scope_code, sensitive=sc.sensitive
+                    ),
+                    "grant_status": getattr(g, "status", "") if g else "",
+                }
+            )
+        inst.scope_display_rows = rows
+        mu = inst.catalog_signals.get("manifest_ui") or {}
+        keys = mu.get("tenant_editable_config_keys") or []
+        inst.tenant_editable_pairs = [
+            (str(k).strip(), str((inst.config or {}).get(str(k).strip(), "")))
+            for k in keys
+            if str(k).strip()
+        ]
+        try:
+            inst.config_display_json = json.dumps(
+                inst.config or {}, indent=2, sort_keys=True
+            )
+        except (TypeError, ValueError):
+            inst.config_display_json = "{}"
     pending_scope_grants_count = ScopeGrant.objects.filter(
         installation__school=school,
         status=ScopeGrant.GrantStatus.PENDING,
@@ -833,6 +941,13 @@ def tenant_app_catalog(request):
                 "school": None,
                 "installed_slugs": set(),
                 "phase9_links": build_phase9_ecosystem_links(),
+                "plan_context": {
+                    "slug": "",
+                    "name": "",
+                    "tier_key": "unknown",
+                    "tier_label": "—",
+                },
+                "catalog_install_app_id": None,
             },
         )
     listings = (
@@ -855,19 +970,39 @@ def tenant_app_catalog(request):
         .filter(app__is_active=True, status=MarketplaceListing.Status.APPROVED)
         .order_by("app__name")
     )
+    active_installations = list(
+        AppInstallation.objects.filter(
+            school=school,
+            status=AppInstallation.Status.ACTIVE,
+            uninstalled_at__isnull=True,
+        ).select_related("app")
+    )
+    installations_by_app = {i.app_id: i for i in active_installations}
+    installed_slugs = {i.app.slug for i in active_installations}
     installable = []
     for lst in listings:
         if getattr(lst, "kill_switch_active", False):
             continue
         lst.catalog_display = catalog_listing_display(lst)
-        installable.append(lst)
-    installed_slugs = set(
-        AppInstallation.objects.filter(
+        inst = installations_by_app.get(lst.app_id)
+        sig = resolve_tenant_catalog_signals(
+            listing=lst,
             school=school,
-            status=AppInstallation.Status.ACTIVE,
-            uninstalled_at__isnull=True,
-        ).values_list("app__slug", flat=True)
-    )
+            installation=inst,
+            listing_installable=lst.installable,
+        )
+        lst.tenant_install_phase = sig.get("tenant_install_phase") or ""
+        lst.mkt_lifecycle = sig["lifecycle"]
+        lst.mkt_show_update = sig["show_update"]
+        lst.mkt_show_rollback = sig["show_rollback"]
+        lst.mkt_governance_badge = sig["governance_badge"]
+        lst.mkt_manifest_ui = sig["manifest_ui"]
+        lst.mkt_entitlement = sig["entitlement"]
+        lst.mkt_manifest_warnings = sig.get("manifest_warnings") or []
+        lst.mkt_revenue_share_percent = getattr(lst, "revenue_share_percent", None)
+        lst.mkt_listing_pipeline_phase = sig.get("listing_pipeline_phase") or ""
+        lst.mkt_compatibility = sig.get("compatibility") or {}
+        installable.append(lst)
     catalog_stats = {
         "apps": len(installable),
         "installed": len(installed_slugs),
@@ -884,6 +1019,27 @@ def tenant_app_catalog(request):
         ),
     }
     catalog_counts = get_platform_catalog_counts()
+    platform_pack_catalog = {}
+    try:
+        platform_pack_catalog = load_platform_pack_catalog()
+    except (OSError, ValueError, json.JSONDecodeError):
+        logger.debug("tenant_app_catalog: pack catalog load skipped", exc_info=True)
+    plan_context = _tenant_plan_display_context(school)
+    catalog_install_app_id = None
+    raw_install = (request.GET.get("install_app") or "").strip()
+    if raw_install.isdigit():
+        cand = int(raw_install)
+        valid_app_ids = {lst.app_id for lst in installable}
+        if cand in valid_app_ids:
+            catalog_install_app_id = cand
+    record_tenant_surface_view(
+        surface="tenant_app_catalog",
+        request=request,
+        extra={
+            "listings_count": len(installable),
+            "plan_tier": plan_context.get("tier_key"),
+        },
+    )
     return render(
         request,
         "marketplace/tenant_app_catalog.html",
@@ -895,6 +1051,9 @@ def tenant_app_catalog(request):
             "catalog_counts": catalog_counts,
             "install_impact_preview_url": reverse("tenant_install_impact_preview"),
             "phase9_links": build_phase9_ecosystem_links(),
+            "platform_pack_catalog": platform_pack_catalog,
+            "plan_context": plan_context,
+            "catalog_install_app_id": catalog_install_app_id,
         },
     )
 
@@ -934,6 +1093,7 @@ def super_install_impact_preview(request):
 
 @login_required
 @user_passes_test(tenant_may_manage_marketplace)
+@enforce_tenant_security(action="admin", require_school=False)
 @require_POST
 def tenant_install_app(request):
     """Tenant: install app for current school with scope consent (sensitive scopes → pending)."""
@@ -952,6 +1112,20 @@ def tenant_install_app(request):
         )
         return redirect("tenant_app_catalog")
     app = get_object_or_404(MarketplaceApp, pk=app_id, is_active=True)
+    manifest = normalize_platform_manifest(
+        app.manifest,
+        app_slug=app.slug,
+        app_name=app.name,
+        version=app.version,
+        publisher_slug="",
+    )
+    ent = entitlement_hints_for_school(school, manifest)
+    if ent.get("blocked"):
+        messages.error(
+            request,
+            ent.get("upgrade_message") or "Plan or module requirements not met for this app.",
+        )
+        return redirect("tenant_app_catalog")
     try:
         install_app(
             school,
@@ -971,6 +1145,7 @@ def tenant_install_app(request):
 
 @login_required
 @user_passes_test(tenant_may_manage_marketplace)
+@enforce_tenant_security(action="admin", require_school=False)
 @require_POST
 def tenant_uninstall_app(request):
     """Tenant: uninstall app for current school."""
@@ -1003,7 +1178,13 @@ def tenant_scope_consent(request):
         return render(
             request,
             "marketplace/tenant_scope_consent.html",
-            {"pending_grants": [], "school": None},
+            {
+                "pending_grants": [],
+                "pending_grant_rows": [],
+                "granted_grants": [],
+                "granted_grant_rows": [],
+                "school": None,
+            },
         )
     pending_grants = list(
         ScopeGrant.objects.filter(
@@ -1013,11 +1194,44 @@ def tenant_scope_consent(request):
         .select_related("installation", "installation__app", "scope")
         .order_by("installation__app__name", "scope__scope_code")
     )
+    granted_grants = list(
+        ScopeGrant.objects.filter(
+            installation__school=school,
+            status=ScopeGrant.GrantStatus.GRANTED,
+        )
+        .select_related("installation", "installation__app", "scope")
+        .order_by("-granted_at", "installation__app__name", "scope__scope_code")[:200]
+    )
+    grant_rows_pending = []
+    for g in pending_grants:
+        sc = g.scope
+        grant_rows_pending.append(
+            {
+                "grant": g,
+                "access_tier": classify_scope_access(
+                    sc.scope_code, sensitive=getattr(sc, "sensitive", False)
+                ),
+            }
+        )
+    grant_rows_ok = []
+    for g in granted_grants:
+        sc = g.scope
+        grant_rows_ok.append(
+            {
+                "grant": g,
+                "access_tier": classify_scope_access(
+                    sc.scope_code, sensitive=getattr(sc, "sensitive", False)
+                ),
+            }
+        )
     return render(
         request,
         "marketplace/tenant_scope_consent.html",
         {
             "pending_grants": pending_grants,
+            "pending_grant_rows": grant_rows_pending,
+            "granted_grants": granted_grants,
+            "granted_grant_rows": grant_rows_ok,
             "school": school,
         },
     )
@@ -1025,6 +1239,7 @@ def tenant_scope_consent(request):
 
 @login_required
 @user_passes_test(tenant_may_manage_marketplace)
+@enforce_tenant_security(action="admin", require_school=False)
 @require_POST
 def tenant_approve_scope(request):
     """Tenant: approve a pending (sensitive) scope grant."""
@@ -1049,6 +1264,125 @@ def tenant_approve_scope(request):
 
 @login_required
 @user_passes_test(tenant_may_manage_marketplace)
+@enforce_tenant_security(action="admin", require_school=False)
+@require_POST
+def tenant_save_installation_config(request):
+    """
+    Merge tenant-safe config keys listed in manifest ``tenant_editable_config_keys`` only.
+    All other manifest configuration remains read-only in the UI.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        messages.error(request, "No school context.")
+        return redirect("tenant_installed_apps")
+    installation_id = request.POST.get("installation_id")
+    if not installation_id:
+        messages.error(request, "Select an installation.")
+        return redirect("tenant_installed_apps")
+    inst = get_object_or_404(
+        AppInstallation,
+        pk=installation_id,
+        school=school,
+        uninstalled_at__isnull=True,
+        status=AppInstallation.Status.ACTIVE,
+    )
+    manifest = normalize_platform_manifest(
+        inst.app.manifest,
+        app_slug=inst.app.slug,
+        app_name=inst.app.name,
+        version=inst.app.version,
+    )
+    if not manifest.get("configurable", True):
+        messages.error(request, "This app is not configurable.")
+        return redirect("tenant_installed_apps")
+    allowed = manifest.get("tenant_editable_config_keys") or []
+    if not allowed:
+        messages.error(
+            request,
+            "Tenant configuration is read-only for this app (manifest has no editable keys).",
+        )
+        return redirect("tenant_installed_apps")
+    cfg = dict(inst.config or {})
+    for key in allowed:
+        field = f"tenant_cfg_{key}"
+        if field in request.POST:
+            cfg[key] = (request.POST.get(field) or "").strip()
+    inst.config = cfg
+    inst.save(update_fields=["config"])
+    messages.success(
+        request,
+        f"Saved configuration for “{inst.app.name}”.",
+    )
+    return redirect("tenant_installed_apps")
+
+
+@login_required
+@user_passes_test(tenant_may_manage_marketplace)
+@enforce_tenant_security(action="admin", require_school=False)
+@require_GET
+def app_purchase_intent(request, app_id: int):
+    """
+    Route free/included apps to the catalog; paid/enterprise toward billing checkout
+    or plan summary. Never simulates a completed purchase.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        messages.error(request, "No school context.")
+        return redirect("tenant_app_catalog")
+    app = get_object_or_404(MarketplaceApp, pk=app_id, is_active=True)
+    listing_for_gate = getattr(app, "listing", None)
+    if listing_for_gate is not None and getattr(
+        listing_for_gate, "kill_switch_active", False
+    ):
+        messages.info(
+            request,
+            "This marketplace listing is temporarily unavailable.",
+        )
+        return redirect("tenant_app_catalog")
+    pub = getattr(getattr(app, "publisher", None), "slug", "") or ""
+    manifest = normalize_platform_manifest(
+        app.manifest,
+        app_slug=app.slug,
+        app_name=app.name,
+        version=app.version or "",
+        publisher_slug=pub,
+    )
+    pt = str(manifest.get("pricing_type") or "").strip().lower()
+    freeish = pt in (
+        "",
+        "free",
+        "included",
+        str(PRICING_FREE).lower(),
+        str(PRICING_INCLUDED).lower(),
+    )
+    if freeish:
+        base = reverse("tenant_app_catalog")
+        return redirect(f"{base}?focus_app={app.pk}")
+    if pt in (str(PRICING_PAID).lower(), str(PRICING_ENTERPRISE).lower(), "enterprise"):
+        cfg = get_active_stripe_processor_config()
+        sku = str(manifest.get("billing_sku") or "").strip()
+        if cfg and stripe_secret_key(cfg):
+            if not sku:
+                messages.info(
+                    request,
+                    "Paid apps require a billing_sku mapped to Stripe in the platform catalog. "
+                    "Your operator must set the SKU and Stripe price before checkout can start.",
+                )
+                return redirect(reverse("siteconfig:billing_plan_readonly"))
+            q = urlencode({"marketplace_app_id": app.pk})
+            return redirect(f"{reverse('siteconfig:billing_checkout_start')}?{q}")
+        messages.info(
+            request,
+            "Billing checkout is unavailable or your plan is not set. "
+            "Review Plan & entitlements or contact your operator.",
+        )
+        return redirect(reverse("siteconfig:billing_plan_readonly"))
+    return redirect("tenant_app_catalog")
+
+
+@login_required
+@user_passes_test(tenant_may_manage_marketplace)
+@enforce_tenant_security(action="admin", require_school=False)
 @require_POST
 def tenant_activate_installation(request):
     """Tenant: move a sandbox installation to active so it appears in runtime."""
@@ -1067,7 +1401,11 @@ def tenant_activate_installation(request):
         install_phase=AppInstallation.InstallPhase.SANDBOX,
         status=AppInstallation.Status.ACTIVE,
     )
-    activate_sandbox_installation(inst, activated_by=request.user)
+    try:
+        activate_sandbox_installation(inst, activated_by=request.user)
+    except ValueError as e:
+        messages.error(request, str(e))
+        return redirect("tenant_installed_apps")
     messages.success(request, f"“{inst.app.name}” is now active.")
     return redirect("tenant_installed_apps")
 

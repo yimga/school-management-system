@@ -120,6 +120,14 @@ def get_blueprints(request):
     except _OPTIONAL_HUB_ERRORS as e:
         logger.debug("get_blueprints optional manager_blueprints_url: %s", e)
         manager_blueprints_url = None
+    platform_catalog_preview = None
+    try:
+        from apps.studio_os.school_infrastructure import catalog_pack_rows_for_blueprints_page
+
+        platform_catalog_preview = catalog_pack_rows_for_blueprints_page(limit=24)
+    except _OPTIONAL_HUB_ERRORS as e:
+        logger.debug("get_blueprints optional platform_catalog_preview: %s", e)
+        platform_catalog_preview = None
     # §2e row 8 page maturity: page_header + data-page-archetype (CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL §5.1)
     if request.GET.get("embed"):
         try:
@@ -140,6 +148,7 @@ def get_blueprints(request):
             "applied_pack": applied_pack,
             "pack_update_available": pack_update_available,
             "manager_blueprints_url": manager_blueprints_url,
+            "platform_catalog_preview": platform_catalog_preview,
             "page_title": _("Blueprints"),
             "page_subtitle": _(
                 "Policy blueprint packs for %(school)s. Packs are applied by your platform administrator."

@@ -31,7 +31,7 @@ class MiscTableHeaderScopeTests(SimpleTestCase):
     def test_reports_annual_report_term_summary(self):
         text = self._read("templates", "reports", "annual_report.html")
         self.assertIn('aria-label="Annual report term summary averages and class position"', text)
-        self.assertIn('scope="col">Term', text)
+        self.assertIn('scope="col">{% term_label %}', text)
 
     def test_teacher_pay_history_records_table(self):
         text = self._read("templates", "teacher", "pay_history.html")

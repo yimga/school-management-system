@@ -63,6 +63,8 @@ class TenantRuntimeConfigurationHubTests(TestCase):
         self.assertIn(b"Testland", content)
         self.assertIn(b"/siteconfig/console/", content)
         self.assertIn(b"/siteconfig/feature-control/", content)
+        self.assertIn(b"data-rmc-workflow-builder-foundation", content)
+        self.assertIn(b"data-rmc-guided-workflow", content)
 
     def test_anonymous_redirects_or_302(self):
         request = RequestFactory().get("/siteconfig/configuration/runtime/")

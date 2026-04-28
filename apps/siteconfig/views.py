@@ -643,6 +643,15 @@ def build_reportcard_builder_context(
     except NoReverseMatch:
         pass
     from apps.siteconfig.models_tooling import REPORT_EXPORT_HANDLERS
+    from apps.siteconfig.tenant_config import get_report_template_family_for_school
+
+    school = getattr(request, "school", None)
+    rt_qs = ReportTemplate.objects.filter(is_active=True)
+    if school is not None:
+        rtf = (get_report_template_family_for_school(school) or "").strip()
+        if rtf:
+            rt_qs = rt_qs.filter(Q(template_family="") | Q(template_family=rtf))
+    report_templates_catalog_count = rt_qs.count()
 
     return {
         # Effective tenant settings row for builder UI (avoid template name `settings`: confusable with django.conf).
@@ -667,6 +676,7 @@ def build_reportcard_builder_context(
         "report_output_history_evidence_url": report_output_history_evidence_url,
         "report_templates_catalog_evidence_url": report_templates_catalog_evidence_url,
         "export_handler_registry_count": len(REPORT_EXPORT_HANDLERS),
+        "report_templates_catalog_count": report_templates_catalog_count,
     }
 
 
@@ -820,6 +830,14 @@ def scheduled_reports_delivery_hub(request):
         )
     except NoReverseMatch:
         ctx["operator_report_output_history_evidence_url"] = None
+    try:
+        ctx["operator_compliance_exports_url"] = reverse("siteconfig:compliance_exports")
+    except NoReverseMatch:
+        ctx["operator_compliance_exports_url"] = None
+    try:
+        ctx["northstar_ai_draft_url"] = reverse("siteconfig:northstar_ai_draft")
+    except NoReverseMatch:
+        ctx["northstar_ai_draft_url"] = None
     return render(
         request,
         "siteconfig/scheduled_reports_delivery_hub.html",
@@ -1339,6 +1357,10 @@ def _bulk_letters_page_context(request, classroom_list, form_data):
             )
         except NoReverseMatch:
             ctx["admin_report_template_changelist_url"] = None
+    try:
+        ctx["northstar_ai_draft_url"] = reverse("siteconfig:northstar_ai_draft")
+    except NoReverseMatch:
+        ctx["northstar_ai_draft_url"] = None
     return ctx
 
 

@@ -24,15 +24,55 @@
 /* Table family: consistent thead and borders */
 .table-family {
   font-size: var(--type-table);
+  width: 100%;
+  table-layout: auto;
 }
 .table-family thead th {
   font-weight: 600;
   background: var(--surface-bg-muted, #f1f5f9);
   border-bottom: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
-  white-space: nowrap;
+  white-space: normal;
+  vertical-align: middle;
+  letter-spacing: 0.01em;
 }
 .table-family tbody tr:hover {
   background: var(--surface-bg-subtle, rgba(15, 23, 42, 0.03));
+}
+.table-family td {
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.table-family th,
+.table-family td {
+  line-height: 1.35;
+}
+
+/* Premium default table behavior for high-impact screens */
+.ui-premium-surface table:not(.table-family) {
+  width: 100%;
+  table-layout: auto;
+}
+.ui-premium-surface table:not(.table-family) th,
+.ui-premium-surface table:not(.table-family) td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35;
+  vertical-align: middle;
+}
+.ui-premium-surface .table.table-sm th,
+.ui-premium-surface .table.table-sm td {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* Explicit sticky headers only where opted-in */
+.table-family.table-sticky-head thead th,
+.ui-premium-surface .table.table-sticky-head thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-bg-muted, #f1f5f9);
 }
 
 /* Status chips (semantic; replace ad-hoc badge colors where possible) */

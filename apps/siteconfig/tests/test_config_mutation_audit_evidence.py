@@ -31,6 +31,8 @@ class ConfigMutationAuditEvidenceRouteTests(TestCase):
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn("data-shell-surface", body)
         self.assertIn("config-mutation-audit-evidence", body)
+        self.assertIn("data-cp-evidence-surface", body)
+        self.assertIn("config-mutation-audit", body)
 
     def test_non_staff_blocked(self) -> None:
         User = get_user_model()
@@ -61,5 +63,5 @@ class ConfigMutationAuditEvidenceRouteTests(TestCase):
             urlconf="config.manager_urls",
         )
         body = client.get(url).content.decode("utf-8", errors="replace")
-        self.assertIn("Advanced", body)
-        self.assertIn("Admin", body)
+        self.assertIn("Advanced/Admin", body)
+        self.assertIn("data-rmc-evidence-advanced", body)

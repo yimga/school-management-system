@@ -17,7 +17,7 @@ Tabbed interface for student profiles: Academic, Finance, Engagement, Documents 
   </div>
 
   <div class="student-360-tabs">
-    <ul class="nav nav-tabs" role="tablist">
+    <ul class="nav nav-tabs flex-nowrap overflow-auto" role="tablist" aria-label="Student profile sections">
       <li class="nav-item" role="presentation">
         <button type="button" class="nav-link active" id="academicTab" data-bs-toggle="tab" data-bs-target="#academicContent" role="tab">
           <i class="fas fa-book"></i> Academic
@@ -47,21 +47,21 @@ Tabbed interface for student profiles: Academic, Finance, Engagement, Documents 
           <div class="student-360-section">
             <h3>Current Performance</h3>
             <div id="academicPerformance" class="academic-grid">
-              <!-- Performance data will be loaded here -->
+              <p class="text-muted small mb-0">Select a student to view academic performance.</p>
             </div>
           </div>
           
           <div class="student-360-section">
             <h3>Attendance</h3>
             <div id="attendanceInfo" class="attendance-info">
-              <!-- Attendance data will be loaded here -->
+              <p class="text-muted small mb-0">Attendance summary will appear here.</p>
             </div>
           </div>
 
           <div class="student-360-section">
             <h3>Course Enrollment</h3>
             <div id="courseEnrollment" class="course-list">
-              <!-- Courses will be listed here -->
+              <p class="text-muted small mb-0">Current enrollment will appear here.</p>
             </div>
           </div>
         </div>
@@ -73,21 +73,21 @@ Tabbed interface for student profiles: Academic, Finance, Engagement, Documents 
           <div class="student-360-section">
             <h3>Fee Status</h3>
             <div id="feeStatus" class="fee-status">
-              <!-- Fee information will be loaded here -->
+              <p class="text-muted small mb-0">Fee overview will appear here.</p>
             </div>
           </div>
 
           <div class="student-360-section">
             <h3>Payment History</h3>
             <div id="paymentHistory" class="payment-history">
-              <!-- Payment records will be loaded here -->
+              <p class="text-muted small mb-0">Payment history will appear here.</p>
             </div>
           </div>
 
           <div class="student-360-section">
             <h3>Outstanding Balance</h3>
             <div id="outstandingBalance" class="balance-info">
-              <!-- Balance info will be loaded here -->
+              <p class="text-muted small mb-0">Outstanding balance details will appear here.</p>
             </div>
           </div>
         </div>
@@ -187,14 +187,26 @@ class Student360 {
   }
 
   async loadStudentData(studentId) {
+    this.setPanelState('academicPerformance', 'loading', 'Loading academic details...');
+    this.setPanelState('feeStatus', 'loading', 'Loading finance details...');
+    this.setPanelState('participationStats', 'loading', 'Loading engagement details...');
+    this.setPanelState('documentsList', 'loading', 'Loading documents...');
     try {
       const response = await fetch(`/api/students/${studentId}/`);
       if (response.ok) {
         const data = await response.json();
         this.renderStudentData(data);
+      } else {
+        this.setPanelState('academicPerformance', 'error', 'Unable to load student data right now.');
+        this.setPanelState('feeStatus', 'error', 'Finance details are unavailable.');
+        this.setPanelState('participationStats', 'error', 'Engagement details are unavailable.');
+        this.setPanelState('documentsList', 'error', 'Documents are unavailable.');
       }
     } catch (error) {
-      console.error('Error loading student data:', error);
+      this.setPanelState('academicPerformance', 'error', 'Unable to load student data right now.');
+      this.setPanelState('feeStatus', 'error', 'Finance details are unavailable.');
+      this.setPanelState('participationStats', 'error', 'Engagement details are unavailable.');
+      this.setPanelState('documentsList', 'error', 'Documents are unavailable.');
     }
   }
 
@@ -217,20 +229,30 @@ class Student360 {
 
   renderAcademic(data) {
     const perfDiv = document.getElementById('academicPerformance');
-    if (!perfDiv || !data) return;
-    
-    perfDiv.innerHTML = data.subjects ? data.subjects.map(subject => `
+    if (!perfDiv) return;
+
+    const subjects = data && Array.isArray(data.subjects) ? data.subjects : [];
+    if (!subjects.length) {
+      this.setPanelState('academicPerformance', 'empty', 'No academic records are available yet.');
+      return;
+    }
+
+    perfDiv.innerHTML = subjects.map(subject => `
       <div class="subject-card">
         <div class="subject-name">${subject.name}</div>
         <div class="subject-grade">${subject.grade || 'N/A'}</div>
       </div>
-    `).join('') : '<p>No academic data</p>';
+    `).join('');
   }
 
   renderFinance(data) {
     const feeDiv = document.getElementById('feeStatus');
-    if (!feeDiv || !data) return;
-    
+    if (!feeDiv) return;
+    if (!data || typeof data !== 'object') {
+      this.setPanelState('feeStatus', 'empty', 'No finance records are available yet.');
+      return;
+    }
+
     feeDiv.innerHTML = `
       <div class="info-card">
         <span class="info-label">Total Fees</span>
@@ -245,22 +267,72 @@ class Student360 {
         <span class="info-value" style="color: #ff6a88;">${data.outstanding || 'N/A'}</span>
       </div>
     `;
+
+    const paymentHistory = document.getElementById('paymentHistory');
+    const outstandingBalance = document.getElementById('outstandingBalance');
+    if (paymentHistory) {
+      const payments = Array.isArray(data.payments) ? data.payments : [];
+      paymentHistory.innerHTML = payments.length
+        ? payments.map(payment => `<div class="small mb-1">${payment}</div>`).join('')
+        : '<p class="text-muted small mb-0">No payments recorded yet.</p>';
+    }
+    if (outstandingBalance) {
+      outstandingBalance.innerHTML = `<p class="small mb-0">${data.outstanding || 'No outstanding balance.'}</p>`;
+    }
   }
 
   renderEngagement(data) {
-    // Placeholder for engagement data
-    console.log('Engagement data:', data);
+    const box = document.getElementById('participationStats');
+    const activities = document.getElementById('activitiesClubs');
+    const actions = document.getElementById('recentActions');
+    if (!box || !activities || !actions) return;
+    if (!data || typeof data !== 'object') {
+      this.setPanelState('participationStats', 'empty', 'No engagement data yet.');
+      activities.innerHTML = '<p class="text-muted small mb-0">No club or activity records yet.</p>';
+      actions.innerHTML = '<p class="text-muted small mb-0">No recent actions yet.</p>';
+      return;
+    }
+    box.innerHTML = `<p class="small mb-0">${data.summary || 'Engagement summary pending.'}</p>`;
+    activities.innerHTML = Array.isArray(data.activities) && data.activities.length
+      ? data.activities.map(item => `<div class="small mb-1">${item}</div>`).join('')
+      : '<p class="text-muted small mb-0">No club or activity records yet.</p>';
+    actions.innerHTML = Array.isArray(data.recent_actions) && data.recent_actions.length
+      ? data.recent_actions.map(item => `<div class="small mb-1">${item}</div>`).join('')
+      : '<p class="text-muted small mb-0">No recent actions yet.</p>';
   }
 
   renderDocuments(data) {
-    // Placeholder for documents data
-    console.log('Documents data:', data);
+    const docs = document.getElementById('documentsList');
+    const reportCards = document.getElementById('reportCards');
+    const certificates = document.getElementById('certificates');
+    if (!docs || !reportCards || !certificates) return;
+    if (!data || typeof data !== 'object') {
+      this.setPanelState('documentsList', 'empty', 'No documents available yet.');
+      reportCards.innerHTML = '<p class="text-muted small mb-0">No report cards published yet.</p>';
+      certificates.innerHTML = '<p class="text-muted small mb-0">No certificates available yet.</p>';
+      return;
+    }
+    docs.innerHTML = Array.isArray(data.documents) && data.documents.length
+      ? data.documents.map(item => `<div class="small mb-1">${item}</div>`).join('')
+      : '<p class="text-muted small mb-0">No documents available yet.</p>';
+    reportCards.innerHTML = Array.isArray(data.report_cards) && data.report_cards.length
+      ? data.report_cards.map(item => `<div class="small mb-1">${item}</div>`).join('')
+      : '<p class="text-muted small mb-0">No report cards published yet.</p>';
+    certificates.innerHTML = Array.isArray(data.certificates) && data.certificates.length
+      ? data.certificates.map(item => `<div class="small mb-1">${item}</div>`).join('')
+      : '<p class="text-muted small mb-0">No certificates available yet.</p>';
+  }
+
+  setPanelState(id, state, message) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    var tone = state === 'error' ? 'danger' : (state === 'loading' ? 'secondary' : 'muted');
+    el.innerHTML = `<p class="text-${tone} small mb-0">${message}</p>`;
   }
 }
 
 // Initialize when ready
 document.addEventListener('DOMContentLoaded', () => {
   window.student360 = new Student360();
-  console.log('✅ Student 360 Tabs initialized');
 });
 </script>

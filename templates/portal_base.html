@@ -1,6 +1,6 @@
 {% load static i18n accounts_extras control_console %}
 <!doctype html>
-<html lang="{{ LANGUAGE_CODE|default:default_language|default:'en' }}"{% if is_rtl %} dir="rtl"{% endif %} data-surface="tenant" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-regional-ui="1" data-surface="tenant" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -54,6 +54,7 @@
     <link rel="stylesheet" href="{% static 'css/portal-layout-professional.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-premium-content.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css/no-watermark.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/topbar-header-polish.css' %}">
@@ -75,8 +76,8 @@
     <link rel="stylesheet" href="{% static 'css/tooltips.css' %}">
     <link rel="stylesheet" href="{% static 'css/accessibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/north-star-touch-targets.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile-luxury-surfaces.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
-    {% block extrastyle %}{% endblock %}
 
     <link rel="stylesheet" href="{% static 'css/portal-base-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
@@ -108,6 +109,7 @@
       {{ SITE.custom_css|safe }}
     </style>
     {% endif %}
+    {% block extrastyle %}{% endblock %}
 
     <!-- PWA Support -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
@@ -121,7 +123,7 @@
   <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     {% include "partials/shell_chrome_site_preview_banner_top.html" %}
-    <nav id="portalHeader" class="navbar navbar-expand-lg navbar-dark topbar topbar-sticky statement-header" role="navigation" aria-label="Main navigation">
+    <nav id="portalHeader" class="navbar navbar-expand-lg navbar-dark topbar topbar-sticky statement-header" role="navigation" aria-label="Main navigation" data-rmc-shell-header="portal">
       <div class="container-fluid px-3" id="preview-header-bar" data-preview-label="{% trans 'Header bar (background & colors)' %}">
         <button class="btn btn-sm btn-outline-light d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#portalSidebar" aria-controls="portalSidebar" aria-label="Open sidebar menu">
           <i class="bi bi-list" aria-hidden="true"></i>
@@ -229,7 +231,7 @@
                 aria-controls="headerSearchResults"
               />
               <span class="topbar-search-kbd" aria-hidden="true">Ctrl+K</span>
-              <div id="headerSearchResults" class="header-search-dropdown" role="listbox" aria-label="{% trans 'Search results' %}" style="display: none;"></div>
+              <div id="headerSearchResults" class="header-search-dropdown header-search-dropdown--hidden" role="listbox" aria-label="{% trans 'Search results' %}"></div>
             </div>
             {% endif %}
 
@@ -241,7 +243,7 @@
               <a class="btn btn-link text-white p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_messages' %}" title="Messages" aria-label="Open Messages">
                 <i class="bi bi-chat-dots-fill"></i>
                 {% if messages_unread_count %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">{{ messages_unread_count }}</span>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger topbar-icon-badge">{{ messages_unread_count }}</span>
                 {% endif %}
               </a>
               {% endif %}
@@ -249,7 +251,7 @@
               <a class="btn btn-link text-white p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_notifications' %}" title="Notifications" aria-label="View notifications">
                 <i class="bi bi-bell"></i>
                 {% if NOTIFICATIONS_UNREAD_COUNT %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">{{ NOTIFICATIONS_UNREAD_COUNT }}</span>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger topbar-icon-badge">{{ NOTIFICATIONS_UNREAD_COUNT }}</span>
                 {% endif %}
               </a>
               {% endif %}
@@ -320,8 +322,8 @@
       </div>
 
       <!-- Content -->
-      <div class="portal-main-col col-lg-9 col-xl-10" id="main-content" role="main" tabindex="-1" data-shell-main="portal">
-        <div class="page-wrap" data-page-archetype="{% block page_archetype %}operational-workbench{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'tenant-portal' }}">
+      <div class="portal-main-col col-lg-9 col-xl-10 rmc-shell-main" id="main-content" role="main" tabindex="-1" data-shell-main="portal" data-rmc-shell-main="portal">
+        <div class="page-wrap rmc-shell-content-grid" data-page-archetype="{% block page_archetype %}operational-workbench{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'tenant-portal' }}" data-rmc-shell-content-grid="1">
           {% include "partials/shell_chrome_impersonation_session_strip.html" %}
           {% include "partials/shell_chrome_breadcrumb_row_open.html" with shell_chrome_breadcrumb_surface=rmc_shell.tenant_portal_breadcrumb_surface %}
             {% include "partials/breadcrumbs.html" %}
@@ -339,6 +341,12 @@
             {% if platform_status_strip and platform_status_strip.show %}
               {% include "portal/partials/platform_status_strip.html" %}
             {% endif %}
+            {% if runmycampus_demo_sandbox %}
+            <div class="alert alert-info border-info mb-3 py-2 small" role="status" data-rmc-demo-sandbox-banner="1">
+              <strong>{% trans "Demo sandbox" %}</strong> — {% trans "This tenant is flagged as a demonstration environment. Data may be reset; do not use for regulated production records." %}
+            </div>
+            {% include "components/demo_guided_hints.html" %}
+            {% endif %}
             {% include "partials/shell_chrome_django_messages_tenant_portal.html" %}
 
             {% if dashboard_stats_cards %}
@@ -350,10 +358,10 @@
                 <div class="row g-2">
                   {% for stat in dashboard_stats_cards %}
                   <div class="col-6 col-xl-3">
-                    <div style="{{ stat.card_style }} border-radius: 10px; padding: 0.75rem;">
-                      <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <span class="dashboard-stat-label" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">{{ stat.label }}</span>
-                        <span style="{{ stat.badge_style }} padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">{{ stat.value }}</span>
+                    <div class="portal-stat-card" style="{{ stat.card_style }}">
+                      <div class="portal-stat-card-row">
+                        <span class="dashboard-stat-label portal-stat-card-label">{{ stat.label }}</span>
+                        <span class="portal-stat-card-value" style="{{ stat.badge_style }}">{{ stat.value }}</span>
                       </div>
                     </div>
                   </div>
@@ -723,7 +731,7 @@
     <script src="{% static 'js/tooltips.js' %}"></script>
 
     {# Main Footer with Accreditation and Support #}
-    {% include 'components/footer.html' %}
+    <div data-rmc-shell-footer="portal">{% include 'components/footer.html' %}</div>
 
     {% include 'components/rum_beacon.html' %}
 

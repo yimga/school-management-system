@@ -13,33 +13,33 @@
 /* -------------------------------------------------------------------------- */
 
 .ds-surface {
-  background: var(--ds-surface);
-  color: var(--ds-text);
-  border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius-md);
-  box-shadow: var(--ds-shadow-sm);
+  background: var(--lux-surface-base, var(--ds-surface));
+  color: var(--lux-color-ink, var(--ds-text));
+  border: 1px solid var(--lux-color-border, var(--ds-border));
+  border-radius: var(--lux-radius-md, var(--ds-radius-md));
+  box-shadow: var(--lux-shadow-hairline, var(--ds-shadow-sm));
 }
 
 .ds-surface--raised {
-  background: var(--ds-surface-raised);
-  box-shadow: var(--ds-shadow-md);
+  background: var(--lux-surface-elevated, var(--ds-surface-raised));
+  box-shadow: var(--lux-shadow-elevated, var(--ds-shadow-md));
 }
 
 /* Alias / extend Bootstrap card — use with .card */
 .ds-card.card,
 .card.ds-card {
-  background: var(--admin-content-card-bg, var(--ds-surface-raised));
-  color: var(--ds-text);
-  border-color: var(--ds-border);
-  border-radius: var(--platform-card-radius, var(--ds-radius-md));
-  box-shadow: var(--platform-premium-shadow, var(--ds-shadow-md));
-  transition: box-shadow var(--ds-motion-content), transform var(--ds-motion-content);
+  background: var(--admin-content-card-bg, var(--lux-surface-elevated, var(--ds-surface-raised)));
+  color: var(--lux-color-ink, var(--ds-text));
+  border-color: var(--lux-color-border, var(--ds-border));
+  border-radius: var(--lux-radius-lg, var(--platform-card-radius, var(--ds-radius-md)));
+  box-shadow: var(--platform-premium-shadow, var(--lux-shadow-elevated, var(--ds-shadow-md)));
+  transition: box-shadow var(--lux-motion-base, var(--ds-motion-content)), transform var(--lux-motion-base, var(--ds-motion-content));
 }
 
 html[data-theme="dark"] .ds-card.card,
 html[data-bs-theme="dark"] .ds-card.card,
 body.portal-backend-dark .ds-card.card {
-  box-shadow: var(--platform-premium-shadow, var(--ds-shadow-md));
+  box-shadow: var(--platform-premium-shadow, var(--lux-shadow-elevated, var(--ds-shadow-md)));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -47,9 +47,9 @@ body.portal-backend-dark .ds-card.card {
 /* -------------------------------------------------------------------------- */
 
 .ds-table-wrap {
-  border-radius: var(--ds-radius-md);
-  border: 1px solid var(--ds-border);
-  background: var(--ds-surface-raised);
+  border-radius: var(--lux-radius-md, var(--ds-radius-md));
+  border: 1px solid var(--lux-color-border, var(--ds-border));
+  background: var(--lux-surface-elevated, var(--ds-surface-raised));
   overflow: hidden;
 }
 
@@ -64,18 +64,18 @@ body.portal-backend-dark .ds-card.card {
 .ds-form-stack {
   display: flex;
   flex-direction: column;
-  gap: var(--token-space-md);
+  gap: var(--lux-space-4, var(--token-space-md));
 }
 
 .ds-form-stack .form-label {
   font-weight: 600;
-  color: var(--ds-text);
-  margin-bottom: var(--token-space-xs);
+  color: var(--lux-color-ink, var(--ds-text));
+  margin-bottom: var(--lux-space-1, var(--token-space-xs));
 }
 
 .ds-form-stack .form-text,
 .ds-form-stack .text-muted {
-  color: var(--ds-text-muted) !important;
+  color: var(--lux-color-ink-muted, var(--ds-text-muted)) !important;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -85,13 +85,13 @@ body.portal-backend-dark .ds-card.card {
 .ds-drawer-panel,
 .offcanvas.ds-drawer-panel,
 .offcanvas.show.ds-drawer-panel {
-  background: var(--ds-surface-raised);
-  color: var(--ds-text);
-  border-color: var(--ds-border);
+  background: var(--lux-surface-elevated, var(--ds-surface-raised));
+  color: var(--lux-color-ink, var(--ds-text));
+  border-color: var(--lux-color-border, var(--ds-border));
 }
 
 .ds-drawer-panel .offcanvas-header {
-  border-bottom: 1px solid var(--ds-border);
+  border-bottom: 1px solid var(--lux-color-border, var(--ds-border));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -100,25 +100,25 @@ body.portal-backend-dark .ds-card.card {
 
 .ds-empty {
   text-align: center;
-  padding: var(--token-space-xl) var(--token-space-md);
-  color: var(--ds-text-muted);
-  background: var(--ds-surface);
-  border: 1px dashed var(--ds-border);
-  border-radius: var(--ds-radius-lg);
+  padding: var(--lux-space-7, var(--token-space-xl)) var(--lux-space-4, var(--token-space-md));
+  color: var(--lux-color-ink-muted, var(--ds-text-muted));
+  background: var(--lux-surface-base, var(--ds-surface));
+  border: 1px dashed var(--lux-color-border, var(--ds-border));
+  border-radius: var(--lux-radius-lg, var(--ds-radius-lg));
 }
 
 .ds-empty__icon {
   font-size: clamp(2rem, 5vw, 2.75rem);
   opacity: 0.45;
-  margin-bottom: var(--token-space-sm);
-  color: var(--ds-text-muted);
+  margin-bottom: var(--lux-space-2, var(--token-space-sm));
+  color: var(--lux-color-ink-muted, var(--ds-text-muted));
 }
 
 .ds-empty__title {
   font-size: var(--type-section);
   font-weight: 600;
-  color: var(--ds-text);
-  margin-bottom: var(--token-space-xs);
+  color: var(--lux-color-ink, var(--ds-text));
+  margin-bottom: var(--lux-space-1, var(--token-space-xs));
 }
 
 .ds-empty__body {
@@ -129,10 +129,10 @@ body.portal-backend-dark .ds-card.card {
 }
 
 .ds-empty__actions {
-  margin-top: var(--token-space-md);
+  margin-top: var(--lux-space-4, var(--token-space-md));
   display: flex;
   flex-wrap: wrap;
-  gap: var(--token-space-sm);
+  gap: var(--lux-space-2, var(--token-space-sm));
   justify-content: center;
 }
 
@@ -142,7 +142,7 @@ body.portal-backend-dark .ds-card.card {
 
 .ds-alert,
 .alert.ds-alert {
-  border-radius: var(--ds-radius-sm);
+  border-radius: var(--lux-radius-sm, var(--ds-radius-sm));
   border-width: 1px;
   border-style: solid;
 }
@@ -184,23 +184,23 @@ body.portal-backend-dark .ds-card.card {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--token-space-sm);
-  padding: var(--token-space-md) var(--token-space-lg);
-  margin-top: var(--token-space-lg);
-  border-top: 1px solid var(--ds-border);
-  background: var(--ds-surface);
+  gap: var(--lux-space-2, var(--token-space-sm));
+  padding: var(--lux-space-4, var(--token-space-md)) var(--lux-space-6, var(--token-space-lg));
+  margin-top: var(--lux-space-6, var(--token-space-lg));
+  border-top: 1px solid var(--lux-color-border, var(--ds-border));
+  background: var(--lux-surface-base, var(--ds-surface));
 }
 
 .ds-action-bar--sticky {
   position: sticky;
   bottom: 0;
   z-index: var(--z-sticky, 1020);
-  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--lux-shadow-elevated, var(--ds-shadow-md));
 }
 
 html[data-theme="dark"] .ds-action-bar--sticky,
 html[data-bs-theme="dark"] .ds-action-bar--sticky {
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--lux-shadow-floating, var(--ds-shadow-lg));
 }
 
 /* -------------------------------------------------------------------------- */

@@ -39,6 +39,13 @@ class StudioPreviewContextTests(SimpleTestCase):
         out = get_studio_preview_context("  launch  ", request)
         self.assertEqual(out, {})
 
+    def test_preview_context_automation_returns_simulation_hints(self):
+        request = Mock()
+        request.school = None
+        out = get_studio_preview_context("automation", request)
+        self.assertIn("workflow_simulation_hint", out)
+        self.assertIn("staging_vs_production_note", out)
+
     @patch("apps.setup_studio.services.get_setup_studio_payload")
     def test_preview_context_launch_returns_impact_and_warnings_when_school_set(
         self, mock_payload

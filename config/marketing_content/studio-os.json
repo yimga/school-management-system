@@ -1,0 +1,19 @@
+{
+  "label": "Studio OS",
+  "seo_title": "Studio OS | RunMyCampus — Experience, Automation, Output",
+  "seo_description": "Studio OS unifies Experience, Automation, Output, Launch, and Control: workflow packs, dashboard packs, simulation, and governed publishing.",
+  "headline": "Studio OS — the builder surface for your campus.",
+  "subheadline": "Design experiences, automate workflows, ship outputs, and launch with evidence — tenant-safe and control-plane aligned.",
+  "schema_type": "WebPage",
+  "segments": [
+    {"title": "Experience", "body": "Theme, layout, dashboard visuals, and communication packs with preview and rollback."},
+    {"title": "Automation", "body": "Workflow packs, simulation, dependency graphs, and dry-run before production activation."},
+    {"title": "Output", "body": "Report packs, branding inheritance, and policy-aware publishing."},
+    {"title": "Launch", "body": "Checklists, migration path, and role previews before go-live."},
+    {"title": "Control", "body": "Impact analysis, feature audit links, and runtime evidence — not raw admin walls."}
+  ],
+  "extras": {
+    "cta_primary": {"label": "Book a demo", "href": "/book-demo/"},
+    "cta_secondary": {"label": "Product overview", "href": "/product/"}
+  }
+}

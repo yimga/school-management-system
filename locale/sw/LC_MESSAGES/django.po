@@ -14776,3 +14776,1280 @@ msgstr ""
 
 msgid "Sales leads (platform admin)"
 msgstr ""
+
+msgid ""
+"Active report download templates in catalog scope for this school (same "
+"filter as the templates catalog page)"
+msgstr ""
+
+msgid "Advanced/Admin: audit log rows"
+msgstr ""
+
+msgid "Available"
+msgstr ""
+
+msgid "Beta"
+msgstr ""
+
+msgid "Governance: beta rollout"
+msgstr ""
+
+msgid "Governance: certified listing"
+msgstr ""
+
+msgid "Governance: internal / tenant-private"
+msgstr ""
+
+msgid "Governance: verified"
+msgstr ""
+
+msgid "Internal"
+msgstr ""
+
+msgid "Listed certified"
+msgstr ""
+
+msgid "Plan / modules:"
+msgstr ""
+
+msgid "Pricing display — billing integration is operator-configured."
+msgstr ""
+
+msgid "Rollback-friendly"
+msgstr ""
+
+msgid "Update available"
+msgstr ""
+
+msgid "By governance tier"
+msgstr ""
+
+msgid "Catalog unavailable in this environment."
+msgstr ""
+
+msgid "Catalog validation warnings:"
+msgstr ""
+
+msgid "Classification"
+msgstr ""
+
+msgid "Classification summary"
+msgstr ""
+
+msgid "Dashboard packs"
+msgstr ""
+
+msgid "Generated audit JSON not found or unreadable. Run:"
+msgstr ""
+
+msgid "Last activity"
+msgstr ""
+
+msgid "Line"
+msgstr ""
+
+msgid "Needs review / violation (first rows)"
+msgstr ""
+
+msgid "No rows in the review slice (or audit empty)."
+msgstr ""
+
+msgid "Pattern counts"
+msgstr ""
+
+msgid "Platform pack catalog (reference)"
+msgstr ""
+
+msgid "Pricing display — no live billing in this view."
+msgstr ""
+
+msgid ""
+"Read-only registry of workflow, dashboard, and theme packs aligned with "
+"marketplace governance. Install or apply packs through governed flows — not "
+"from this preview."
+msgstr ""
+
+msgid "Security surface"
+msgstr ""
+
+msgid "Security surface audit"
+msgstr ""
+
+msgid ""
+"Summary from docs/generated/security_surface_audit.json — run "
+"scripts/audit_security_surface.py to refresh."
+msgstr ""
+
+msgid ""
+"This dashboard is read-only governance visibility — it does not change "
+"enforcement."
+msgstr ""
+
+msgid "Total hits"
+msgstr ""
+
+msgid "UTC generated"
+msgstr ""
+
+msgid "Workflow packs"
+msgstr ""
+
+msgid "(blocked apps show upgrade hints on each card)."
+msgstr ""
+
+msgid "Activation, import, configuration"
+msgstr ""
+
+msgid "Active (live)"
+msgstr ""
+
+msgid "CSV migration wizard"
+msgstr ""
+
+msgid "Catalog schema"
+msgstr ""
+
+msgid "Catalog version"
+msgstr ""
+
+msgid "Commercial tier (packaging)"
+msgstr ""
+
+msgid "Dashboard packs:"
+msgstr ""
+
+msgid "Declared scopes"
+msgstr ""
+
+msgid "Demo sandbox"
+msgstr ""
+
+msgid "Disabled / blocked"
+msgstr ""
+
+msgid "Disabled until governed publish API is enabled."
+msgstr ""
+
+msgid "Discard sandbox install and remove this app?"
+msgstr ""
+
+msgid "Editable keys are allow-listed in the app manifest only."
+msgstr ""
+
+msgid "Fast workflows"
+msgstr ""
+
+msgid "Full dashboard"
+msgstr ""
+
+msgid "Grant"
+msgstr ""
+
+msgid ""
+"Higher marketplace apps and automation often need {{ next }} or Enterprise. "
+"Billing and contracts are handled with your account team; this page stays "
+"read-only."
+msgstr ""
+
+msgid "Install state, scopes, and tenant config"
+msgstr ""
+
+msgid "Installed catalog version"
+msgstr ""
+
+msgid "Minimum tier"
+msgstr ""
+
+msgid ""
+"Misconfiguration hints: incomplete steps above; use linked evidence pages — "
+"not raw settings dumps."
+msgstr ""
+
+msgid "Next action:"
+msgstr ""
+
+msgid ""
+"No tenant-editable keys declared — configuration stays read-only here (use "
+"governed channels if the app defines keys)."
+msgstr ""
+
+msgid "One tap to common teaching tasks"
+msgstr ""
+
+msgid "Open Plan & entitlements"
+msgstr ""
+
+msgid ""
+"Paid or plan-gated apps show upgrade copy from the manifest; installs still "
+"go to sandbox first."
+msgstr ""
+
+msgid "Plan / modules"
+msgstr ""
+
+msgid "Preview (first entries)"
+msgstr ""
+
+msgid "Publish pipeline not enabled for tenant Studio embed yet."
+msgstr ""
+
+msgid "Publish to tenant"
+msgstr ""
+
+msgid ""
+"Quick links to the essentials. Open the full dashboard for charts and every "
+"widget."
+msgstr ""
+
+msgid ""
+"Read-only registry slice. Simulation stays non-destructive — use Automation "
+"dry-run and Workflow health for execution evidence."
+msgstr ""
+
+msgid "Resolved tier"
+msgstr ""
+
+msgid "Rollback (remove sandbox)"
+msgstr ""
+
+msgid "Save allowed keys"
+msgstr ""
+
+msgid "School setup and data"
+msgstr ""
+
+msgid "Simplified home"
+msgstr ""
+
+msgid "Studio OS · pack & workflow preview"
+msgstr ""
+
+msgid "Studio: workflows & automation"
+msgstr ""
+
+msgid "Tenant configuration (read-only summary)"
+msgstr ""
+
+msgid "Tenant runtime & settings"
+msgstr ""
+
+msgid ""
+"This tenant is flagged as a demonstration environment. Data may be reset; do"
+" not use for regulated production records."
+msgstr ""
+
+msgid "Upgrade path"
+msgstr ""
+
+msgid "Workflow packs:"
+msgstr ""
+
+msgid ""
+"You are on the top commercial tier for in-product gates. Enterprise add-ons "
+"still use feature codes on the plan."
+msgstr ""
+
+msgid "Your plan"
+msgstr ""
+
+msgid ""
+"Your plan maps to a Free / Pro / Enterprise ladder for marketplace gates and"
+" upgrade messaging. Technical feature codes are listed below on the assigned"
+" plan."
+msgstr ""
+
+msgid "Yours"
+msgstr ""
+
+msgid "{{ done }} of {{ total }} steps complete (weighted)."
+msgstr ""
+
+msgid ""
+"Activation is still early — complete academic structure, people, and "
+"communications setup."
+msgstr ""
+
+msgid "CSV import hub"
+msgstr ""
+
+msgid ""
+"Checklist progress is below half — use Next action and links below to close "
+"gaps."
+msgstr ""
+
+msgid ""
+"Classification is heuristic (decorators near handlers), not URLconf "
+"resolution."
+msgstr ""
+
+msgid "Hits"
+msgstr ""
+
+msgid "Misconfiguration / risk signals"
+msgstr ""
+
+msgid "Non-destructive simulation (Automation)"
+msgstr ""
+
+msgid "POST handler signals (decorator scan)"
+msgstr ""
+
+msgid "Publish disabled until governed API is enabled."
+msgstr ""
+
+msgid "Support queue & access visibility"
+msgstr ""
+
+msgid ""
+"Usage depth or reporting cadence looks thin — review schedules, enrollment "
+"depth, and staff coverage."
+msgstr ""
+
+msgid ""
+"operator support posture (impersonation and tickets live in governed tools)."
+msgstr ""
+
+msgid "to generate docs/generated/post_handler_audit.json."
+msgstr ""
+
+msgid "Activation step"
+msgstr ""
+
+msgid "Back to full checklist"
+msgstr ""
+
+msgid "Last recorded step: {{ key }}"
+msgstr ""
+
+msgid "Missing step."
+msgstr ""
+
+msgid "No tenant school on this request."
+msgstr ""
+
+msgid "Not a valid activation step."
+msgstr ""
+
+msgid "Open setup / evidence"
+msgstr ""
+
+msgid "Record done"
+msgstr ""
+
+msgid "Record step complete"
+msgstr ""
+
+msgid "Recorded"
+msgstr ""
+
+msgid "Step marked complete. Progress has been updated."
+msgstr ""
+
+msgid "Step page"
+msgstr ""
+
+msgid ""
+"Use the action link to work in the real tool. Mark done only when the work "
+"is complete (including when completion is not yet detected automatically)."
+msgstr ""
+
+msgid "Billing account status"
+msgstr ""
+
+msgid "Billing cycle"
+msgstr ""
+
+msgid "Checkout / renew (Stripe)"
+msgstr ""
+
+msgid "Current period"
+msgstr ""
+
+msgid "Customer record linked (managed in Stripe)."
+msgstr ""
+
+msgid "Manage billing (Stripe portal)"
+msgstr ""
+
+msgid ""
+"No Stripe customer linked yet — complete checkout or wait for operator "
+"setup."
+msgstr ""
+
+msgid "No Stripe price mapped for the next tier, or Stripe is not configured."
+msgstr ""
+
+msgid "Not synced yet"
+msgstr ""
+
+msgid "Platform billing (processor sync)"
+msgstr ""
+
+msgid "Requires Stripe configuration and a linked customer record."
+msgstr ""
+
+msgid "Stripe is not configured or no price is mapped for this plan."
+msgstr ""
+
+msgid "Stripe linkage"
+msgstr ""
+
+msgid "Subscription status"
+msgstr ""
+
+msgid ""
+"Summary of the subscription plan assigned to this tenant and coarse usage "
+"versus plan limits. When your operator has configured Stripe, you can start "
+"checkout or open the billing portal from here. Otherwise, controls stay "
+"disabled with a clear setup state."
+msgstr ""
+
+msgid "Upgrade toward {{ t }}"
+msgstr ""
+
+msgid "Usage meters (recent periods)"
+msgstr ""
+
+msgid "Billing / purchase path"
+msgstr ""
+
+msgid "Min tier"
+msgstr ""
+
+msgid "Preview/install gated — upgrade plan"
+msgstr ""
+
+msgid "Publisher revenue share (governance)"
+msgstr ""
+
+msgid "Rev share"
+msgstr ""
+
+msgid "Trial"
+msgstr ""
+
+msgid "AI copilot audit feed (API)"
+msgstr ""
+
+msgid "AI disabled — no live provider and no rules fallback"
+msgstr ""
+
+msgid "AI enabled (policy)"
+msgstr ""
+
+msgid "AI governance"
+msgstr ""
+
+msgid ""
+"About {{ cnt }} AI copilot audit event in the last 30 days (counts only; no "
+"prompt text).{% plural %}About {{ cnt }} AI copilot audit events in the last"
+" 30 days (counts only; no prompt text)."
+msgstr ""
+
+msgid "Assistant"
+msgstr ""
+
+msgid "Assistants"
+msgstr ""
+
+msgid "Audit feed route is not available in this URLconf."
+msgstr ""
+
+msgid "Audit visibility"
+msgstr ""
+
+msgid "Block external PII in prompts"
+msgstr ""
+
+msgid "Configured"
+msgstr ""
+
+msgid "Entry"
+msgstr ""
+
+msgid "Exposure"
+msgstr ""
+
+msgid "Live provider available"
+msgstr ""
+
+msgid ""
+"Local-first assistant posture, tenant policy flags, and safe entry points. "
+"Provider endpoints and secrets are never shown here."
+msgstr ""
+
+msgid "No route"
+msgstr ""
+
+msgid "Not available for your permissions"
+msgstr ""
+
+msgid "Not configured"
+msgstr ""
+
+msgid "Not required"
+msgstr ""
+
+msgid "Permission"
+msgstr ""
+
+msgid "Policy (tenant)"
+msgstr ""
+
+msgid "Preference order"
+msgstr ""
+
+msgid "Prompt audit trail"
+msgstr ""
+
+msgid "Provider status (safe)"
+msgstr ""
+
+msgid "Rules fallback"
+msgstr ""
+
+msgid "Admin URL not available on this host."
+msgstr ""
+
+msgid "Advanced (Django admin) — superuser only"
+msgstr ""
+
+msgid "Bands"
+msgstr ""
+
+msgid ""
+"Edit GradingScale and GradingScaleBand rows for this tenant after product "
+"controls are exhausted."
+msgstr ""
+
+msgid "Effective DB grading scale"
+msgstr ""
+
+msgid "Fleet: region grading matrix"
+msgstr ""
+
+msgid "Grade point"
+msgstr ""
+
+msgid "Grading scale bands"
+msgstr ""
+
+msgid "Linked region template"
+msgstr ""
+
+msgid "Locale / Rosetta scale id"
+msgstr ""
+
+msgid "No bands defined for the effective scale."
+msgstr ""
+
+msgid ""
+"No tenant GradingScale row is configured. Set a default scale in Django "
+"admin or keep using locale string scale from grading settings."
+msgstr ""
+
+msgid "Norm max"
+msgstr ""
+
+msgid "Norm min"
+msgstr ""
+
+msgid "Open in Django admin"
+msgstr ""
+
+msgid "Order"
+msgstr ""
+
+msgid ""
+"Per-tenant DB band tables are shown under Configuration → Grading scale "
+"bands on each school subdomain."
+msgstr ""
+
+msgid "Raw max"
+msgstr ""
+
+msgid "Raw min"
+msgstr ""
+
+msgid "Read-only band table for this school; Rosetta math is unchanged."
+msgstr ""
+
+msgid ""
+"Read-only view of tenant-configured bands. Linear Rosetta conversions in"
+msgstr ""
+
+msgid "School region"
+msgstr ""
+
+msgid "View grading scale bands (DB)"
+msgstr ""
+
+msgid "Weight"
+msgstr ""
+
+msgid ""
+"are unchanged; this table is used for labels, grade points, and normalized "
+"band alignment when present."
+msgstr ""
+
+msgid "Applying templates requires a future guided setup flow."
+msgstr ""
+
+msgid ""
+"Education system profiles (global catalog) after product flows are "
+"exhausted."
+msgstr ""
+
+msgid "EducationSystemProfile catalog"
+msgstr ""
+
+msgid "Grading scale key"
+msgstr ""
+
+msgid "Named curriculum templates"
+msgstr ""
+
+msgid "Preview notice"
+msgstr ""
+
+msgid "Preview only."
+msgstr ""
+
+msgid "Recommended bands (reference)"
+msgstr ""
+
+msgid ""
+"Reference defaults for grading scale identity, term labels, terminology, "
+"report family, and subject seeds. Does not change tenant configuration until"
+" an apply flow exists."
+msgstr ""
+
+msgid "Region / system"
+msgstr ""
+
+msgid "Report template family"
+msgstr ""
+
+msgid "See"
+msgstr ""
+
+msgid "Subject seed count"
+msgstr ""
+
+msgid "Suitability"
+msgstr ""
+
+msgid "Term labels"
+msgstr ""
+
+msgid "Terminology preview"
+msgstr ""
+
+msgid "curriculum templates (reference)"
+msgstr ""
+
+msgid "Advanced / Admin (staff tooling)"
+msgstr ""
+
+msgid "Advanced/Admin: reports app index"
+msgstr ""
+
+msgid "Compliance exports"
+msgstr ""
+
+msgid "Download blocked until requirements are met"
+msgstr ""
+
+msgid ""
+"Download-only CSV bundles derived from your tenant data. Nothing here "
+"submits to ministries or regulators — your organization remains responsible "
+"for official filings."
+msgstr ""
+
+msgid "Effective terminology for this school"
+msgstr ""
+
+msgid "Entity catalog (CCC)"
+msgstr ""
+
+msgid "Export key"
+msgstr ""
+
+msgid ""
+"Francophone template maps generic defaults to localized labels (examples)"
+msgstr ""
+
+msgid "GPA"
+msgstr ""
+
+msgid "Grade"
+msgstr ""
+
+msgid "Missing or insufficient data"
+msgstr ""
+
+msgid "No tenant context."
+msgstr ""
+
+msgid "Output format"
+msgstr ""
+
+msgid "Regional compliance exports"
+msgstr ""
+
+msgid "Report card"
+msgstr ""
+
+msgid "in target system (Rosetta)"
+msgstr ""
+
+msgid "summary"
+msgstr ""
+
+msgid "AI draft output"
+msgstr ""
+
+msgid "AI drafts (North Star)"
+msgstr ""
+
+msgid "Aggregated counts (your access scope only)"
+msgstr ""
+
+msgid "All students"
+msgstr ""
+
+msgid "Automated surface signals (static scan)"
+msgstr ""
+
+msgid "Campuses in scope"
+msgstr ""
+
+msgid "Current school"
+msgstr ""
+
+msgid "Descendant campuses"
+msgstr ""
+
+msgid "Direct child campuses"
+msgstr ""
+
+msgid "Django admin — School"
+msgstr ""
+
+msgid ""
+"Download student attendance rows for this school only. Teachers only see "
+"classes they are assigned to teach (marks assignments). Admins see the full "
+"school for the selected range."
+msgstr ""
+
+msgid "Draft ready — review before use."
+msgstr ""
+
+msgid "Draft request failed."
+msgstr ""
+
+msgid "Draft will appear here."
+msgstr ""
+
+msgid "End date"
+msgstr ""
+
+msgid "Export attendance (CSV)"
+msgstr ""
+
+msgid "Generate parent message"
+msgstr ""
+
+msgid "Generate report summary"
+msgstr ""
+
+msgid ""
+"Generates draft text only. Nothing is sent or saved until you approve and "
+"use your normal workflows."
+msgstr ""
+
+msgid "Health status mix"
+msgstr ""
+
+msgid "I reviewed this draft; I will edit before using it in a real workflow."
+msgstr ""
+
+msgid "Insert into letter body"
+msgstr ""
+
+msgid "Network error."
+msgstr ""
+
+msgid "None (root tenant)"
+msgstr ""
+
+msgid ""
+"Open parent tenant via your manager host / impersonation flow if authorized "
+"— not linked here."
+msgstr ""
+
+msgid "POST handler scan hits"
+msgstr ""
+
+msgid ""
+"Read-only view of this tenant’s place in the organization tree. Cross-campus"
+" access is denied by default; only your role and memberships apply."
+msgstr ""
+
+msgid "Report schedules"
+msgstr ""
+
+msgid "Requesting draft…"
+msgstr ""
+
+msgid "Review required before any action"
+msgstr ""
+
+msgid "School activation (CCC)"
+msgstr ""
+
+msgid "School group hierarchy"
+msgstr ""
+
+msgid "School health dashboard"
+msgstr ""
+
+msgid "Staff profiles"
+msgstr ""
+
+msgid "Start date"
+msgstr ""
+
+msgid "Student attendance (CSV export)"
+msgstr ""
+
+msgid "Student attendance export"
+msgstr ""
+
+msgid "Students (active)"
+msgstr ""
+
+msgid "Suggest improvements"
+msgstr ""
+
+msgid "Suggest next actions"
+msgstr ""
+
+msgid "Teacher dashboard"
+msgstr ""
+
+msgid "Tenant runtime hub"
+msgstr ""
+
+msgid "This campus health (SLICE 9)"
+msgstr ""
+
+msgid "Active terminology resolution"
+msgstr ""
+
+msgid ""
+"Artifacts are stored with verification hashes only; no credential is implied"
+" without issuer data."
+msgstr ""
+
+msgid "Direction"
+msgstr ""
+
+msgid "Issued"
+msgstr ""
+
+msgid "No vault items yet."
+msgstr ""
+
+msgid "None."
+msgstr ""
+
+msgid "Passport ID"
+msgstr ""
+
+msgid ""
+"Portable identity record for verified transcript linkage (tenant-scoped)."
+msgstr ""
+
+msgid "Region code"
+msgstr ""
+
+msgid "Region profile"
+msgstr ""
+
+msgid "Regional UI"
+msgstr ""
+
+msgid "Regional UI status"
+msgstr ""
+
+msgid "School memberships"
+msgstr ""
+
+msgid "Shared with school"
+msgstr ""
+
+msgid "Terminology / grading context"
+msgstr ""
+
+msgid "Transcript vault"
+msgstr ""
+
+msgid "consent"
+msgstr ""
+
+msgid "text direction"
+msgstr ""
+
+msgid "Export student attendance (CSV)"
+msgstr ""
+
+msgid "View teacher attendance"
+msgstr ""
+
+msgid "At-risk signals (recent, sample)"
+msgstr ""
+
+msgid "Attendance records in scope"
+msgstr ""
+
+msgid "Billing past_due / suspended"
+msgstr ""
+
+msgid "Campuses"
+msgstr ""
+
+msgid "DONE"
+msgstr ""
+
+msgid "Founder North Star"
+msgstr ""
+
+msgid "Founder North Star dashboard"
+msgstr ""
+
+msgid "Generated audit file"
+msgstr ""
+
+msgid "Group intelligence (your scope only)"
+msgstr ""
+
+msgid "Health mix"
+msgstr ""
+
+msgid "Kill test"
+msgstr ""
+
+msgid ""
+"Metrics are read from the live database; audit and kill-test results are "
+"read from generated JSON under docs/generated/ when those scripts have been "
+"run."
+msgstr ""
+
+msgid "North Star audit score"
+msgstr ""
+
+msgid "North Star slices 15–24 (SOT)"
+msgstr ""
+
+msgid "Open / ack incidents"
+msgstr ""
+
+msgid "Open self-heal repair tickets"
+msgstr ""
+
+msgid "Platform incidents (all statuses)"
+msgstr ""
+
+msgid "Revenue share (DRAFT)"
+msgstr ""
+
+msgid "SOT status"
+msgstr ""
+
+msgid "Schools (all)"
+msgstr ""
+
+msgid "Security surface (platform)"
+msgstr ""
+
+msgid "Self-heal"
+msgstr ""
+
+msgid "Slice"
+msgstr ""
+
+msgid "not run"
+msgstr ""
+
+msgid "Intelligence suggestions (draft)"
+msgstr ""
+
+msgid "Rules-based when AI is disabled; approve before acting."
+msgstr ""
+
+msgid "System intelligence suggestions"
+msgstr ""
+
+msgid "POST surface (product needs review)"
+msgstr ""
+
+msgid "Regional UI violations"
+msgstr ""
+
+msgid "Security surface signal"
+msgstr ""
+
+msgid "not available"
+msgstr ""
+
+msgid "AI audit rows"
+msgstr ""
+
+msgid "Activation rate"
+msgstr ""
+
+msgid "Ledger northstar rating"
+msgstr ""
+
+msgid "Ledger self-heal"
+msgstr ""
+
+msgid "Observability ledger"
+msgstr ""
+
+msgid "Onboarding in progress"
+msgstr ""
+
+msgid "Paid penetration"
+msgstr ""
+
+msgid "Revenue share drafts"
+msgstr ""
+
+msgid "(tap to expand)"
+msgstr ""
+
+msgid "3-5 actions based on live operations data"
+msgstr ""
+
+msgid "Academics: enter marks"
+msgstr ""
+
+msgid "Activate only after team sign-off."
+msgstr ""
+
+msgid ""
+"After payment, billing status syncs here and in your marketplace gates."
+msgstr ""
+
+msgid "Backend dashboard — operational pulse and publish flows."
+msgstr ""
+
+msgid "Clear next actions from attendance, academics, and finance signals"
+msgstr ""
+
+msgid "Command quick actions"
+msgstr ""
+
+msgid "Conversion"
+msgstr ""
+
+msgid "Decision"
+msgstr ""
+
+msgid "Decision insights"
+msgstr ""
+
+msgid "Demo tour — key surfaces"
+msgstr ""
+
+msgid "Demos completed"
+msgstr ""
+
+msgid "Demos scheduled"
+msgstr ""
+
+msgid ""
+"Drag-and-drop is intentionally avoided for clarity; use explicit stage "
+"updates per lead."
+msgstr ""
+
+msgid "Enter Marks"
+msgstr ""
+
+msgid "Enter first marks"
+msgstr ""
+
+msgid "Export PDF"
+msgstr ""
+
+msgid "Finance: requests"
+msgstr ""
+
+msgid "Focused guidance from attendance, marks, and workflow signals"
+msgstr ""
+
+msgid "Follow up in 2 days"
+msgstr ""
+
+msgid "Follow up in 5 days"
+msgstr ""
+
+msgid "Follow up next week"
+msgstr ""
+
+msgid "Follow-up queue"
+msgstr ""
+
+msgid "Founder decision insights"
+msgstr ""
+
+msgid "Insight"
+msgstr ""
+
+msgid "Install in sandbox and verify permissions."
+msgstr ""
+
+msgid ""
+"Install starts in sandbox. Activation remains a separate, deliberate step."
+msgstr ""
+
+msgid "Loading mode canvas..."
+msgstr ""
+
+msgid "Manage notifications"
+msgstr ""
+
+msgid "Marketplace — sandbox install first, then deliberate activation."
+msgstr ""
+
+msgid "More actions"
+msgstr ""
+
+msgid "No classes are available for export in your current access scope."
+msgstr ""
+
+msgid "No follow-up date"
+msgstr ""
+
+msgid "No leads in this stage."
+msgstr ""
+
+msgid "No marks entered yet for the selected filters."
+msgstr ""
+
+msgid "Open Kanban pipeline"
+msgstr ""
+
+msgid "Open lead"
+msgstr ""
+
+msgid "Open sales pipeline"
+msgstr ""
+
+msgid "Operations: attendance"
+msgstr ""
+
+msgid "Parent decision insights"
+msgstr ""
+
+msgid "Parent insights"
+msgstr ""
+
+msgid "Pipeline board"
+msgstr ""
+
+msgid "Primary action: export rows for the selected date range."
+msgstr ""
+
+msgid "Quick reminders"
+msgstr ""
+
+msgid "Recommended flow"
+msgstr ""
+
+msgid "Review current plan and usage limits above."
+msgstr ""
+
+msgid ""
+"Review missing data warnings first, then use Download CSV as the primary "
+"action on each export card."
+msgstr ""
+
+msgid "Review, filter, and publish marks with one primary action."
+msgstr ""
+
+msgid "Risk & reporting"
+msgstr ""
+
+msgid "Sales command center"
+msgstr ""
+
+msgid "Secondary actions"
+msgstr ""
+
+msgid "Seeded demo data:"
+msgstr ""
+
+msgid "Show deep technical storage metrics"
+msgstr ""
+
+msgid "Staff usage"
+msgstr ""
+
+msgid "Staff used"
+msgstr ""
+
+msgid "Start here"
+msgstr ""
+
+msgid "Student usage"
+msgstr ""
+
+msgid "Students used"
+msgstr ""
+
+msgid "Studio — experience packs and workflow without skipping preview."
+msgstr ""
+
+msgid "Teacher / parent portals — attendance, marks, and messaging."
+msgstr ""
+
+msgid "Teacher decision insights"
+msgstr ""
+
+msgid "Teaching insights"
+msgstr ""
+
+msgid "Test app behavior with your data and workflow."
+msgstr ""
+
+msgid ""
+"This mode is unavailable right now. Use the primary action below or try "
+"another mode."
+msgstr ""
+
+msgid "Total leads"
+msgstr ""
+
+msgid "Upcoming follow-ups (next 7 days)"
+msgstr ""
+
+msgid "Usage clarity"
+msgstr ""
+
+msgid "Use checkout or upgrade CTA if your team is nearing a cap."
+msgstr ""
+
+msgid "Use stage updates + next follow-up to keep outreach moving."
+msgstr ""
+
+msgid "What happens next"
+msgstr ""
+
+msgid "due today"
+msgstr ""
+
+msgid "overdue"
+msgstr ""

@@ -4,6 +4,12 @@
  * Tokens: design-tokens.css / design-system-unified (inherited via portal_base / control_plane_skeleton).
  */
 
+:root {
+  --rmc-shell-max-width: 1440px;
+  --rmc-shell-gutter: clamp(0.75rem, 1.2vw, 1.25rem);
+  --rmc-shell-rhythm-y: clamp(0.75rem, 1.5vw, 1.25rem);
+}
+
 /* Phase 1/2: deep-linked Studio subpages (partials/subpages/*) inside shell canvas */
 .studio-os-subpage-canvas {
   max-width: 100%;
@@ -38,6 +44,15 @@ html[data-bs-theme="dark"] .studio-os-subpage-canvas .studio-os__card {
   min-height: calc(100vh - 7.5rem);
   width: 100%;
   max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+.rmc-shell-content-grid {
+  max-width: var(--rmc-shell-max-width);
+  margin-inline: auto;
+  padding-inline: var(--rmc-shell-gutter);
+  padding-block: var(--rmc-shell-rhythm-y);
   min-width: 0;
   overflow-x: clip;
 }
@@ -95,6 +110,7 @@ html[data-bs-theme="dark"] .studio-os-subpage-canvas .studio-os__card {
 .studio-os__canvas {
   grid-area: canvas;
   overflow: auto;
+  overflow-x: clip;
   padding: clamp(1rem, 2.5vw, 1.5rem);
   background: var(--color-base-100, #f1f5f9);
   min-width: 0;
@@ -106,6 +122,7 @@ html[data-bs-theme="dark"] .studio-os-subpage-canvas .studio-os__card {
   background: var(--color-base-0, #fff);
   padding: clamp(0.75rem, 1.5vw, 1rem);
   overflow: auto;
+  overflow-x: clip;
   min-width: 0;
 }
 

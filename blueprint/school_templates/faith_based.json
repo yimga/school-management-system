@@ -1,0 +1,34 @@
+{
+  "template_key": "faith_based",
+  "display_name": "Faith-based school",
+  "description": "Faith-centered independent school with strong parent engagement, admissions, and stewardship-oriented finance visibility.",
+  "school_type": "FAITH_INDEPENDENT",
+  "version": "1.0.0",
+  "previous_version_ref": null,
+  "workflow_pack_keys": [
+    "onboarding_academic_year",
+    "admissions_pipeline",
+    "parent_communication",
+    "report_publishing"
+  ],
+  "dashboard_pack_keys": [
+    "admin_command_center",
+    "teacher_workspace",
+    "parent_portal_home",
+    "finance_overview"
+  ],
+  "theme_pack_keys": ["design_tokens_default"],
+  "policies": [
+    "community_and_family_engagement",
+    "tuition_assistance_privacy",
+    "spiritual_life_program_isolation_optional"
+  ],
+  "required_apps": ["portal", "people", "billing", "admissions"],
+  "capabilities": {
+    "tenant_safe_apply": false,
+    "rollback_supported": false,
+    "preview_diff_supported": true,
+    "validation_supported": true
+  },
+  "notes": "Policy labels are organizational hints; legal/compliance text remains tenant-specific."
+}

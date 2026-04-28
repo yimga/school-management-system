@@ -1,0 +1,123 @@
+{
+  "generated_at": "2026-04-28T22:36:08.239925+00:00",
+  "max_score": 75,
+  "rating": "DOMINANT",
+  "sections": {
+    "ai_readiness": {
+      "rubric": "AI provider + workflow bridge + registry + deterministic safety tests.",
+      "score": 5
+    },
+    "architecture_quality": {
+      "rubric": "audit_admin_gravity.py --strict",
+      "score": 5
+    },
+    "business_value": {
+      "rubric": "Billing model + founder business-value metrics surfaces.",
+      "score": 5
+    },
+    "competitive_edge": {
+      "rubric": "Tied to North Star slice progress (capped) + positioning debt.",
+      "score": 5
+    },
+    "data_integrity": {
+      "rubric": "audit_tenant_isolation.py exit 0 => 5 else 1",
+      "score": 5
+    },
+    "extensibility": {
+      "rubric": "Manifest schema + extension registry + webhook catalog + verifier.",
+      "score": 5
+    },
+    "functional_completeness": {
+      "done_count": 10,
+      "expected": 10,
+      "per_slice": {
+        "15": "DONE",
+        "16": "DONE",
+        "17": "DONE",
+        "18": "DONE",
+        "19": "DONE",
+        "20": "DONE",
+        "21": "DONE",
+        "22": "DONE",
+        "23": "DONE",
+        "24": "DONE"
+      },
+      "rubric": "SOT North Star slice 15\u201324 with status DONE (max 10).",
+      "score": 5
+    },
+    "global_readiness": {
+      "rubric": "verify_compliance_evidence.py + verify_rtl_major_templates.py + audit_regional_ui_surface.py",
+      "score": 5
+    },
+    "observability": {
+      "rubric": "Observability helper + generated observability ledger.",
+      "score": 5
+    },
+    "performance": {
+      "rubric": "audit_raw_sql_usage.py (visibility; 0 exit => 5).",
+      "score": 5
+    },
+    "reliability": {
+      "rubric": "Event regression + reliability helper + retry/idempotency docs.",
+      "score": 5
+    },
+    "security": {
+      "rubric": "audit_security_surface.py exit 0 => 5 else 1",
+      "score": 5
+    },
+    "system_integration": {
+      "rubric": "API v1 manifest + public API doc present.",
+      "score": 5
+    },
+    "test_coverage": {
+      "rubric": "Security regression modules (absolute + base) or weak (2).",
+      "score": 5
+    },
+    "ux_quality": {
+      "rubric": "verify_design_system_phase2.py",
+      "score": 5
+    }
+  },
+  "total_score": 75,
+  "verifiers": {
+    "audit_admin_gravity_strict": {
+      "exit_code": 0
+    },
+    "audit_post_surface": {
+      "exit_code": 0
+    },
+    "audit_raw_sql_usage": {
+      "exit_code": 0
+    },
+    "audit_regional_ui_surface": {
+      "exit_code": 0
+    },
+    "audit_security_surface": {
+      "exit_code": 0
+    },
+    "audit_tenant_isolation": {
+      "exit_code": 0
+    },
+    "generate_observability_ledger": {
+      "exit_code": 0
+    },
+    "verify_compliance_evidence": {
+      "exit_code": 0
+    },
+    "verify_design_system_phase2": {
+      "exit_code": 0
+    },
+    "verify_doc_plan_density_discipline": {
+      "exit_code": 0
+    },
+    "verify_rtl_major_templates": {
+      "exit_code": 0
+    },
+    "verify_sot_pillar_evidence": {
+      "exit_code": 0
+    },
+    "verify_test_module_contract": {
+      "exit_code": 0
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "label": "Security & Trust",
+  "seo_title": "Security & Trust | RunMyCampus",
+  "seo_description": "Tenant isolation, governance audits, impersonation logging, and export controls — visibility-first security for education operations.",
+  "headline": "Security and trust by design.",
+  "subheadline": "Control plane audits, POST governance signals, scope consent, and evidence pages — not security theater.",
+  "schema_type": "WebPage",
+  "segments": [
+    {"title": "Tenant isolation", "body": "School-scoped data paths with operator-run isolation audits and review queues."},
+    {"title": "Governance visibility", "body": "Generated security surface and POST-handler scans for mechanical review — operators stay in the loop."},
+    {"title": "Support access", "body": "Impersonation and support flows are logged and permissioned — no silent elevation."},
+    {"title": "Exports & downloads", "body": "Sensitive exports remain permission-checked; public anonymous report export is not a product path."}
+  ],
+  "extras": {
+    "trust_strip": ["Tenant isolation", "Governance audits", "Scoped marketplace installs", "Evidence-first operations"],
+    "cta_primary": {"label": "Book a demo", "href": "/book-demo/"}
+  }
+}

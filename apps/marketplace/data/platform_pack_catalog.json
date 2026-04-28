@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "description": "Reference registry for workflow and dashboard packs (read-only catalog; installs go through governed flows).",
+  "workflow_packs": [
+    {
+      "pack_key": "onboarding_academic_year",
+      "school_type": "BASE_SCHOOL",
+      "modules": ["siteconfig", "schools"],
+      "workflows": ["academic_year_setup", "term_publish"],
+      "dashboards": ["admin_command_center_strip"],
+      "policies": [],
+      "theme": "",
+      "required_apps": [],
+      "version": "1.0.0"
+    },
+    {
+      "pack_key": "report_publishing",
+      "school_type": "BASE_SCHOOL",
+      "modules": ["reports", "siteconfig"],
+      "workflows": ["scheduled_reports", "report_templates"],
+      "dashboards": ["reports_delivery_hub"],
+      "policies": [],
+      "theme": "",
+      "required_apps": [],
+      "version": "1.0.0"
+    },
+    {
+      "pack_key": "parent_communication",
+      "school_type": "BASE_SCHOOL",
+      "modules": ["portal", "crm"],
+      "workflows": ["bulk_letters", "announcements"],
+      "dashboards": ["communication_strip"],
+      "policies": [],
+      "theme": "",
+      "required_apps": [],
+      "version": "1.0.0"
+    },
+    {
+      "pack_key": "admissions_pipeline",
+      "school_type": "BASE_SCHOOL",
+      "modules": ["admissions", "crm"],
+      "workflows": ["lead_intake", "enrollment"],
+      "dashboards": ["admissions_board"],
+      "policies": [],
+      "theme": "",
+      "required_apps": [],
+      "version": "1.0.0"
+    },
+    {
+      "pack_key": "enterprise_governance_studio",
+      "school_type": "BASE_SCHOOL",
+      "modules": ["compliance", "studio_os", "automation"],
+      "workflows": ["studio_preview", "workflow_simulation", "policy_exports"],
+      "dashboards": ["super_security_surface", "tenant_runtime_hub"],
+      "policies": [],
+      "theme": "",
+      "required_apps": [],
+      "version": "1.0.0",
+      "pricing_type": "enterprise",
+      "price_display": "Enterprise",
+      "required_commercial_tier": "enterprise"
+    }
+  ],
+  "dashboard_packs": [
+    {
+      "pack_key": "admin_command_center",
+      "school_type": "BASE_SCHOOL",
+      "modules": ["platform_runtime", "siteconfig"],
+      "workflows": [],
+      "dashboards": ["backend_dashboard", "control_plane_nav"],
+      "policies": [],
+      "theme": "",
+      "required_apps": [],
+      "version": "1.0.0"
+    },
+    {
+      "pack_key": "teacher_workspace",
+      "school_type": "BASE_SCHOOL",
+      "modules": ["people", "grading"],
+      "workflows": ["grade_entry", "attendance"],
+      "dashboards": ["teacher_backend_shell"],
+      "policies": [],
+      "theme": "",
+      "required_apps": [],
+      "version": "1.0.0"
+    },
+    {
+      "pack_key": "parent_portal_home",
+      "school_type": "BASE_SCHOOL",
+      "modules": ["portal"],
+      "workflows": [],
+      "dashboards": ["student360", "announcements"],
+      "policies": [],
+      "theme": "",
+      "required_apps": [],
+      "version": "1.0.0"
+    },
+    {
+      "pack_key": "finance_overview",
+      "school_type": "BASE_SCHOOL",
+      "modules": ["billing", "finance"],
+      "workflows": ["invoicing"],
+      "dashboards": ["finance_widgets"],
+      "policies": [],
+      "theme": "",
+      "required_apps": [],
+      "version": "1.0.0"
+    },
+    {
+      "pack_key": "compliance_operator",
+      "school_type": "BASE_SCHOOL",
+      "modules": ["compliance", "reports"],
+      "workflows": ["audit_exports"],
+      "dashboards": ["compliance_dashboard"],
+      "policies": [],
+      "theme": "",
+      "required_apps": [],
+      "version": "1.0.0"
+    }
+  ],
+  "theme_packs": [
+    {
+      "pack_key": "design_tokens_default",
+      "school_type": "BASE_SCHOOL",
+      "modules": ["siteconfig"],
+      "workflows": [],
+      "dashboards": [],
+      "policies": [],
+      "theme": "default_tokens",
+      "required_apps": [],
+      "version": "1.0.0"
+    }
+  ]
+}

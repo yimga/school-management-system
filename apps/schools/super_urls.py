@@ -9,6 +9,8 @@ from . import super_views_beyond_reach
 from .control_plane import require_super_access_with_host
 from . import super_views_config
 from . import super_views_config_crud
+from . import super_views_security_surface
+from .super_views_founder_dashboard import super_founder_dashboard
 from .super_views_catalog import (
     super_blueprints_catalog,
     super_dashboard_packs_catalog,
@@ -83,6 +85,11 @@ urlpatterns = [
         "command-center/",
         require_super_access_with_host(super_views.super_command_center_v2),
         name="command_center",
+    ),
+    path(
+        "founder/",
+        require_super_access_with_host(super_founder_dashboard),
+        name="founder_dashboard",
     ),
     path(
         "create/",
@@ -354,6 +361,13 @@ urlpatterns = [
         "billing/",
         require_super_access_with_host(super_views.billing_dashboard),
         name="billing_dashboard",
+    ),
+    path(
+        "security/surface/",
+        require_super_access_with_host(
+            super_views_security_surface.super_security_surface_dashboard
+        ),
+        name="security_surface_dashboard",
     ),
     path(
         "marketplace/",

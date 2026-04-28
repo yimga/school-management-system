@@ -1,6 +1,6 @@
 from config.admin import register_tenant_admin
 
-from unfold.admin import ModelAdmin
+from unfold.admin import ModelAdmin, TabularInline
 from .models import (
     TeacherAssignment,
     Evaluation,
@@ -8,7 +8,21 @@ from .models import (
     EvaluationEvidence,
     GradeAudit,
     OfflineMarkEntry,
+    GradingScale,
+    GradingScaleBand,
 )
+
+
+class GradingScaleBandInline(TabularInline):
+    model = GradingScaleBand
+    extra = 0
+
+
+class GradingScaleAdmin(ModelAdmin):
+    list_display = ("name", "school", "code", "scale_type", "is_default", "is_active")
+    list_filter = ("scale_type", "is_default", "is_active")
+    search_fields = ("name", "code")
+    inlines = (GradingScaleBandInline,)
 
 
 class TeacherAssignmentAdmin(ModelAdmin):
@@ -157,6 +171,7 @@ class OfflineMarkEntryAdmin(ModelAdmin):
 
 
 # Register all models with tenant admin only
+register_tenant_admin(GradingScale, GradingScaleAdmin)
 register_tenant_admin(TeacherAssignment, TeacherAssignmentAdmin)
 register_tenant_admin(Evaluation, EvaluationAdmin)
 register_tenant_admin(AssessmentWeights, AssessmentWeightsAdmin)

@@ -1312,3 +1312,36 @@ class FleetGovernedChange(models.Model):
     def __str__(self) -> str:
         label = (self.title or "").strip() or self.change_type or "change"
         return f"{label} ({self.pk})" if self.pk else label
+
+
+class SchoolOnboardingProgress(models.Model):
+    """
+    Per-tenant operator progress for the school activation checklist.
+
+    ``completed_steps`` stores step keys explicitly marked by an operator (merged with
+    data-driven completion from ``onboarding._compute_data_driven_onboarding_steps``).
+    ``progress_percent`` is kept in sync with the merged weighted completion.
+    """
+
+    school = models.OneToOneField(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="onboarding_progress_record",
+    )
+    completed_steps = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of step keys marked complete (operator acknowledgment).",
+    )
+    progress_percent = models.PositiveSmallIntegerField(default=0)
+    last_step = models.CharField(max_length=64, blank=True, default="")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_schoolonboardingprogress"
+        verbose_name = "School onboarding progress"
+        verbose_name_plural = "School onboarding progress"
+
+    def __str__(self) -> str:
+        return f"Onboarding {self.school_id} {self.progress_percent}%"

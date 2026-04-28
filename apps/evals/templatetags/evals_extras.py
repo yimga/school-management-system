@@ -28,3 +28,13 @@ def evaluation_incomplete(evaluation, required_fields):
         if value is None:
             return True
     return False
+
+
+@register.simple_tag
+def rosetta_view_grade_line(evaluation, to_scale="0-100"):
+    """One-line “view in target system” for report/grade templates (see ``view_grade_in_target_system``)."""
+    from apps.evals.rosetta_stone import format_rosetta_line
+
+    if evaluation is None:
+        return "—"
+    return format_rosetta_line(evaluation, to_scale)

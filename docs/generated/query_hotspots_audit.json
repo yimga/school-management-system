@@ -1,0 +1,269 @@
+{
+  "files": [
+    {
+      "classification": "low",
+      "file": "apps/portal/services.py",
+      "objects_calls": 39,
+      "prefetch_ratio": 0.4615,
+      "select_prefetch_calls": 18
+    },
+    {
+      "classification": "low",
+      "file": "apps/portal/views_teacher.py",
+      "objects_calls": 30,
+      "prefetch_ratio": 0.4,
+      "select_prefetch_calls": 12
+    },
+    {
+      "classification": "medium",
+      "file": "apps/reports/views.py",
+      "objects_calls": 29,
+      "prefetch_ratio": 0.2414,
+      "select_prefetch_calls": 7
+    },
+    {
+      "classification": "medium",
+      "file": "apps/schools/super_views_dashboard_surfaces.py",
+      "objects_calls": 25,
+      "prefetch_ratio": 0.28,
+      "select_prefetch_calls": 7
+    },
+    {
+      "classification": "low",
+      "file": "apps/portal/views_parent.py",
+      "objects_calls": 23,
+      "prefetch_ratio": 0.5217,
+      "select_prefetch_calls": 12
+    },
+    {
+      "classification": "low",
+      "file": "apps/reports/services.py",
+      "objects_calls": 19,
+      "prefetch_ratio": 0.4211,
+      "select_prefetch_calls": 8
+    },
+    {
+      "classification": "medium",
+      "file": "apps/compliance/views_dashboard.py",
+      "objects_calls": 17,
+      "prefetch_ratio": 0.1765,
+      "select_prefetch_calls": 3
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/portal/views_kb.py",
+      "objects_calls": 17,
+      "prefetch_ratio": 0.0588,
+      "select_prefetch_calls": 1
+    },
+    {
+      "classification": "medium",
+      "file": "apps/compliance/views_reporting.py",
+      "objects_calls": 16,
+      "prefetch_ratio": 0.25,
+      "select_prefetch_calls": 4
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/portal/portal_services.py",
+      "objects_calls": 15,
+      "prefetch_ratio": 0.0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/portal/views_onboarding.py",
+      "objects_calls": 11,
+      "prefetch_ratio": 0.0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "medium",
+      "file": "apps/siteconfig/views_dashboard_config.py",
+      "objects_calls": 11,
+      "prefetch_ratio": 0.2727,
+      "select_prefetch_calls": 3
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/portal/views_support.py",
+      "objects_calls": 10,
+      "prefetch_ratio": 0.1,
+      "select_prefetch_calls": 1
+    },
+    {
+      "classification": "medium",
+      "file": "apps/portal/views_documents.py",
+      "objects_calls": 9,
+      "prefetch_ratio": 0.3333,
+      "select_prefetch_calls": 3
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/reports/bi_services.py",
+      "objects_calls": 9,
+      "prefetch_ratio": 0.0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/siteconfig/dashboard_views.py",
+      "objects_calls": 9,
+      "prefetch_ratio": 0.1111,
+      "select_prefetch_calls": 1
+    },
+    {
+      "classification": "low",
+      "file": "apps/portal/views_parent_finance.py",
+      "objects_calls": 7,
+      "prefetch_ratio": 0.4286,
+      "select_prefetch_calls": 3
+    },
+    {
+      "classification": "medium",
+      "file": "apps/finance/views_reports.py",
+      "objects_calls": 6,
+      "prefetch_ratio": 0.1667,
+      "select_prefetch_calls": 1
+    },
+    {
+      "classification": "low",
+      "file": "apps/portal/views.py",
+      "objects_calls": 5,
+      "prefetch_ratio": 0.4,
+      "select_prefetch_calls": 2
+    },
+    {
+      "classification": "low",
+      "file": "apps/portal/views_contact_requests.py",
+      "objects_calls": 5,
+      "prefetch_ratio": 0.6,
+      "select_prefetch_calls": 3
+    },
+    {
+      "classification": "low",
+      "file": "apps/portal/views_student.py",
+      "objects_calls": 5,
+      "prefetch_ratio": 0.6,
+      "select_prefetch_calls": 3
+    },
+    {
+      "classification": "medium",
+      "file": "apps/siteconfig/views_report_output_history_evidence.py",
+      "objects_calls": 4,
+      "prefetch_ratio": 0.25,
+      "select_prefetch_calls": 1
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/portal/views_photo_upload.py",
+      "objects_calls": 3,
+      "prefetch_ratio": 0.0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/portal/views_ai_copilot.py",
+      "objects_calls": 2,
+      "prefetch_ratio": 0.0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/portal/views_ai_gateway.py",
+      "objects_calls": 2,
+      "prefetch_ratio": 0.0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/finance/views_dashboard.py",
+      "objects_calls": 1,
+      "prefetch_ratio": 0.0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/portal/views_office.py",
+      "objects_calls": 1,
+      "prefetch_ratio": 0.0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/schools/super_views_dashboard_helpers.py",
+      "objects_calls": 1,
+      "prefetch_ratio": 0.0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/siteconfig/views_academic_years_evidence.py",
+      "objects_calls": 1,
+      "prefetch_ratio": 0.0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/siteconfig/views_config_mutation_evidence.py",
+      "objects_calls": 1,
+      "prefetch_ratio": 0.0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/siteconfig/views_departments_setup_evidence.py",
+      "objects_calls": 1,
+      "prefetch_ratio": 0.0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/siteconfig/views_report_templates_catalog_evidence.py",
+      "objects_calls": 1,
+      "prefetch_ratio": 0.0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "needs_profiling",
+      "file": "apps/siteconfig/views_tenant_report_schedules_evidence.py",
+      "objects_calls": 1,
+      "prefetch_ratio": 0.0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "low",
+      "file": "apps/siteconfig/views_term_publish_evidence.py",
+      "objects_calls": 1,
+      "prefetch_ratio": 1.0,
+      "select_prefetch_calls": 1
+    },
+    {
+      "classification": "low",
+      "file": "apps/accounts/views_dashboard.py",
+      "objects_calls": 0,
+      "prefetch_ratio": 0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "low",
+      "file": "apps/portal/views_bulk_capture.py",
+      "objects_calls": 0,
+      "prefetch_ratio": 0,
+      "select_prefetch_calls": 0
+    },
+    {
+      "classification": "low",
+      "file": "apps/portal/views_common.py",
+      "objects_calls": 0,
+      "prefetch_ratio": 0,
+      "select_prefetch_calls": 0
+    }
+  ],
+  "generated_at": "2026-04-27T10:59:42.211895+00:00",
+  "schema_version": 1,
+  "totals": {
+    "files_scored": 37
+  },
+  "truncated": false
+}

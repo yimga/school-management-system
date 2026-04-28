@@ -5,6 +5,9 @@ from apps.accounts.views_workflow import (
     workflow_center,
 )
 from .views import (
+    school_infrastructure_apply_api,
+    school_infrastructure_preview_api,
+    school_infrastructure_validate_api,
     studio_ai_cleanup,
     studio_audit_api,
     studio_launch_select_plan,
@@ -156,4 +159,19 @@ urlpatterns = [
     path("control/ai-cleanup/", studio_ai_cleanup, name="ai_cleanup"),
     path("audit/", studio_audit_api, name="audit"),
     path("rollback/", studio_rollback, name="rollback"),
+    path(
+        "api/school-infrastructure/preview/",
+        school_infrastructure_preview_api,
+        name="school_infrastructure_preview_api",
+    ),
+    path(
+        "api/school-infrastructure/validate/",
+        school_infrastructure_validate_api,
+        name="school_infrastructure_validate_api",
+    ),
+    path(
+        "api/school-infrastructure/apply/",
+        school_infrastructure_apply_api,
+        name="school_infrastructure_apply_api",
+    ),
 ]

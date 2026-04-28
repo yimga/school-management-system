@@ -846,6 +846,7 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         "sequence_cues": _sequence_weight_cues(weights, labels),
         "labels": labels,
         "metadata": _school_report_metadata(school),
+        "school": school,
     }
     ctx.update(_region_display_context(school))
     ctx["transcript_track"] = getattr(student, "transcript_track", "") or "ACADEMIC"
@@ -968,6 +969,7 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
     promotion_status = get_promotion_status(student, academic_year, annual_average)
     thresholds = get_promotion_thresholds(student, academic_year) or {}
 
+    school = getattr(student, "school", None)
     ctx = {
         "terms": terms,
         "term_rows": term_rows,
@@ -989,8 +991,9 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         "teacher_remark": _auto_teacher_remark(annual_average),
         "labels": labels,
         "metadata": _school_report_metadata(),
+        "school": school,
     }
-    ctx.update(_region_display_context(getattr(student, "school", None)))
+    ctx.update(_region_display_context(school))
     ctx["transcript_track"] = getattr(student, "transcript_track", "") or "ACADEMIC"
     ctx["dual_transcript"] = (
         getattr(student, "transcript_track", "") or ""

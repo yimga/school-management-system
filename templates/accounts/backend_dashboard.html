@@ -316,7 +316,7 @@ backend-shell dashboard-page-backend
   {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
 
   {# Optional: load status strip via HTMX so initial render does not wait on this data #}
-  <div class="backend-dashboard-content" data-decision-engine="surface" data-shell-surface="backend-dashboard" data-rmc-blueprint-surface="1101">
+  <div class="backend-dashboard-content ui-premium-surface" data-decision-engine="surface" data-shell-surface="backend-dashboard" data-rmc-blueprint-surface="1101" data-rmc-component-audit="1">
   {% include "partials/shell_chrome_backend_operational_status_load.html" %}
 
   {% include "partials/shell_chrome_backend_ops_strip.html" %}
@@ -326,10 +326,51 @@ backend-shell dashboard-page-backend
   {% include "partials/shell_chrome_backend_stats_core_strip.html" %}
   {% include "partials/shell_chrome_backend_finance_pulse_strip.html" %}
 
+  {% url 'studio_os:workflow_center' as backend_workflow_url %}
+  {% url 'reports:publish_term_results' as backend_reports_url %}
+  {% url 'portal:teacher_attendance' as backend_attendance_url %}
+  {% url 'siteconfig:guided_onboarding' as backend_onboarding_url %}
+  {% url 'siteconfig:scheduled_reports_delivery_hub' as backend_controls_url %}
+  <section class="mb-3" data-rmc-intelligent-insights="backend" aria-label="{% trans 'Decision insights' %}">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+      <h2 class="h6 mb-0">{% trans "Decision insights" %}</h2>
+      <span class="small text-muted">{% trans "3-5 actions based on live operations data" %}</span>
+    </div>
+    <div class="row g-2">
+      {% if items_requiring_review|default:0 > 0 %}
+      <div class="col-md-6 col-xl-4">
+        {% include "components/insight_card.html" with tone="warning" title=_("Review pending operations items") explanation=_("You have items waiting for review in the command surface. Clearing these early prevents downstream delays.") action_url=backend_workflow_url action_label=_("Open workflow center") %}
+      </div>
+      {% endif %}
+      {% if at_risk_students|length > 0 %}
+      <div class="col-md-6 col-xl-4">
+        {% include "components/insight_card.html" with tone="danger" title=_("Intervene on at-risk learners") explanation=_("At-risk learners are currently flagged. Prioritize interventions before the next reporting cycle.") action_url=backend_reports_url action_label=_("Open intervention-ready reports") %}
+      </div>
+      {% endif %}
+      {% if attended_today|default:0 == 0 %}
+      <div class="col-md-6 col-xl-4">
+        {% include "components/insight_card.html" with tone="warning" title=_("Attendance not captured yet") explanation=_("No attendance records are shown for today. Capture attendance now to keep academic and parent surfaces accurate.") action_url=backend_attendance_url action_label=_("Mark attendance now") %}
+      </div>
+      {% endif %}
+      {% if first_login_checklist_show %}
+      <div class="col-md-6 col-xl-4">
+        {% include "components/insight_card.html" with tone="neutral" title=_("Finish setup essentials") explanation=_("Core onboarding steps are still open. Completing setup unlocks cleaner workflows and fewer manual fixes.") action_url=backend_onboarding_url action_label=_("Continue onboarding") %}
+      </div>
+      {% endif %}
+      {% if not insight_anomaly_cards %}
+      <div class="col-md-6 col-xl-4">
+        {% include "components/insight_card.html" with tone="success" title=_("System stable - run proactive check") explanation=_("No anomaly cards are currently ranked. Use this window to run a proactive control check and prevent late surprises.") action_url=backend_controls_url action_label=_("Open scheduled controls") %}
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
   {% if first_login_checklist_show %}
   {% include "accounts/first_login_checklist_card.html" %}
   {% endif %}
   {% include "accounts/school_onboarding_card.html" %}
+  {% include "accounts/ai_system_layer_strip.html" %}
+  {% include "partials/backend_command_center_setup_strip.html" %}
 
   <div class="backend-v2-shell" data-dashboard-intent="{{ dashboard_intent|default:'operational' }}" data-tour="dashboard-main">
     {% if backend_intent_emphasize_setup %}
@@ -374,7 +415,7 @@ backend-shell dashboard-page-backend
           <div class="mb-3" data-widget-id="insight-anomalies" aria-label="{% trans 'Actionable insights' %}">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
               <span class="small text-muted text-uppercase fw-semibold" style="letter-spacing:0.04em;">{% trans "Actionable insights" %}</span>
-              <button type="button" class="btn btn-sm btn-outline-secondary" id="insight-anomaly-refresh-btn" data-url="{{ insight_anomalies_api_url }}" data-empty-msg="{% trans 'No ranked anomalies right now.' %}" data-error-msg="{% trans 'Could not refresh insights.' %}">{% trans "Refresh" %}</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary ds-btn" id="insight-anomaly-refresh-btn" data-url="{{ insight_anomalies_api_url }}" data-empty-msg="{% trans 'No ranked anomalies right now.' %}" data-error-msg="{% trans 'Could not refresh insights.' %}">{% trans "Refresh" %}</button>
             </div>
             <div id="insight-anomaly-strip-root" class="insight-anomaly-strip row g-2">
               {% for a in insight_anomaly_cards %}
@@ -468,18 +509,20 @@ backend-shell dashboard-page-backend
                 {% endfor %}
               </div>
               <div id="backendBentoDrillPanel" class="backend-bento-drill-panel d-none">
-                <table class="table table-sm table-hover mb-0">
-                  <thead><tr><th>{% trans "Metric" %}</th><th>{% trans "Value" %}</th><th>{% trans "Context" %}</th></tr></thead>
-                  <tbody>
-                    {% for item in kpi_strip_cards %}
-                    <tr><td>{{ item.label }}</td><td>{{ item.value }}</td><td class="small text-muted">{{ item.meta }}</td></tr>
-                    {% empty %}
-                    {% for metric in overview_cards %}
-                    <tr><td>{{ metric.title }}</td><td>{{ metric.value }}</td><td class="small text-muted">{{ metric.meta }}</td></tr>
-                    {% endfor %}
-                    {% endfor %}
-                  </tbody>
-                </table>
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover mb-0 table-family">
+                    <thead><tr><th>{% trans "Metric" %}</th><th>{% trans "Value" %}</th><th>{% trans "Context" %}</th></tr></thead>
+                    <tbody>
+                      {% for item in kpi_strip_cards %}
+                      <tr><td>{{ item.label }}</td><td>{{ item.value }}</td><td class="small text-muted">{{ item.meta }}</td></tr>
+                      {% empty %}
+                      {% for metric in overview_cards %}
+                      <tr><td>{{ metric.title }}</td><td>{{ metric.value }}</td><td class="small text-muted">{{ metric.meta }}</td></tr>
+                      {% endfor %}
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
@@ -508,8 +551,10 @@ backend-shell dashboard-page-backend
               <h3 class="h6">{% trans "KPI detail" %}</h3>
               <p class="small text-muted">{% trans "Expand for full table" %}</p>
               <div id="backendBentoDrillPanel" class="backend-bento-drill-panel d-none">
-                <table class="table table-sm mb-0"><thead><tr><th>{% trans "Metric" %}</th><th>{% trans "Value" %}</th><th>{% trans "Context" %}</th></tr></thead>
-                <tbody>{% for item in kpi_strip_cards %}<tr><td>{{ item.label }}</td><td>{{ item.value }}</td><td>{{ item.meta }}</td></tr>{% endfor %}</tbody></table>
+                <div class="table-responsive">
+                  <table class="table table-sm mb-0 table-family"><thead><tr><th>{% trans "Metric" %}</th><th>{% trans "Value" %}</th><th>{% trans "Context" %}</th></tr></thead>
+                  <tbody>{% for item in kpi_strip_cards %}<tr><td>{{ item.label }}</td><td>{{ item.value }}</td><td>{{ item.meta }}</td></tr>{% endfor %}</tbody></table>
+                </div>
               </div>
             </div>
           </div>
@@ -573,7 +618,7 @@ backend-shell dashboard-page-backend
                 {% endif %}
               </div>
               <div class="backend-role-home-actions" data-shell-role-ops="backend" data-tour="quick-actions">
-                <button type="button" class="backend-role-home-command js-open-backend-command" aria-label="{% trans 'Open command palette (primary navigation)' %}">
+                <button type="button" class="backend-role-home-command js-open-backend-command ds-btn" aria-label="{% trans 'Open command palette (primary navigation)' %}">
                   <span class="backend-role-home-command-copy">
                     <strong>{% trans "Command center" %}</strong>
                     <span class="backend-role-home-command-hint">{{ role_home.search_hint }} <kbd class="ms-1">Ctrl+K</kbd></span>
@@ -891,7 +936,10 @@ backend-shell dashboard-page-backend
               </div>
               {% endif %}
             </div>
-            <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'portal:teacher_attendance' %}">View teacher attendance</a>
+            <div class="d-flex flex-column gap-1 mt-2">
+              <a class="backend-empty-quick-action d-inline-block" href="{% url 'portal:teacher_attendance' %}">{% trans "View teacher attendance" %}</a>
+              <a class="backend-empty-quick-action d-inline-block" href="{% url 'portal:student_attendance_export' %}" data-rmc-backend-attendance-export="student-csv">{% trans "Export student attendance (CSV)" %}</a>
+            </div>
           </div>
         </article>
         {% endif %}
@@ -909,6 +957,19 @@ backend-shell dashboard-page-backend
 
     {% if backend_show_workspace_rail %}
     <aside class="backend-v2-rail" data-widget-id="backend-command-sidebar">
+      <div class="card mb-3 backend-v2-rail-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">{% trans "Command quick actions" %}</h6>
+          </div>
+          <div class="d-grid gap-2 small">
+            <a class="backend-quick-link" href="{% url 'evals:teacher_marks_entry' %}"><span><i class="bi bi-journal-check me-1"></i>{% trans "Academics: enter marks" %}</span><i class="bi bi-chevron-right small"></i></a>
+            <a class="backend-quick-link" href="{% url 'finance:requests' %}"><span><i class="bi bi-wallet2 me-1"></i>{% trans "Finance: requests" %}</span><i class="bi bi-chevron-right small"></i></a>
+            <a class="backend-quick-link" href="{% url 'portal:teacher_attendance' %}"><span><i class="bi bi-check2-square me-1"></i>{% trans "Operations: attendance" %}</span><i class="bi bi-chevron-right small"></i></a>
+            <a class="backend-quick-link" href="{% url 'siteconfig:scheduled_reports_delivery_hub' %}"><span><i class="bi bi-activity me-1"></i>{% trans "Risk & reporting" %}</span><i class="bi bi-chevron-right small"></i></a>
+          </div>
+        </div>
+      </div>
       {% if backend_module_visibility.ops_watch %}
       <div class="card mb-3 backend-ops-watch-card backend-v2-rail-card backend-v2-rail-card--ops" data-widget-id="backend-ops-watch">
         <div class="card-body">

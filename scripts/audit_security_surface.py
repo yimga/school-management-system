@@ -2,11 +2,17 @@
 """
 1052: Classify security-sensitive API usage (visibility, not auto-remediation).
 
+Each hit also receives ``governance_tier`` for enterprise reporting:
+``safe`` | ``controlled`` | ``needs_review`` | ``violation`` (default script exit remains 0).
+
 Patterns:
 - ``@csrf_exempt`` (and ``csrf_exempt(``)
 - ``AllowAny`` (DRF permission class)
 - ``.cursor.execute(`` (raw SQL)
 - ``subprocess.`` calls
+- **Auth / DRF hints (positive controls, still review in context):** ``@login_required``,
+  ``@staff_member_required``, ``permission_classes`` assignment, ``@require_POST`` / ``@require_http_methods``
+- **Note:** mutating **POST** routes are not fully resolved from static text; use Django URLconf review for write endpoints.
 
 Per hit: file, line, pattern kind, bucket: ``tests`` | ``product`` | ``scripts`` | ``vendor_skip``.
 
@@ -32,6 +38,10 @@ PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("allow_any", re.compile(r"\bAllowAny\b")),
     ("cursor_execute", re.compile(r"\.cursor\.execute\s*\(")),
     ("subprocess", re.compile(r"\bsubprocess\.")),
+    ("login_required", re.compile(r"@login_required\b|login_required\s*\(")),
+    ("staff_member_required", re.compile(r"@staff_member_required\b")),
+    ("permission_classes", re.compile(r"\bpermission_classes\s*=")),
+    ("require_http_methods", re.compile(r"@require_POST\b|@require_http_methods\b")),
 ]
 
 # Webhooks / provider callbacks: CSRF cannot be used; token/HMAC is the real gate.
@@ -69,8 +79,20 @@ def _bucket(rel: str) -> str:
     return "product"
 
 
+_POSITIVE_SECURITY_PATTERNS = frozenset(
+    {
+        "login_required",
+        "staff_member_required",
+        "permission_classes",
+        "require_http_methods",
+    }
+)
+
+
 def _classification(pattern: str, rel: str, bucket: str) -> str:
     if bucket == "tests":
+        return "allowed"
+    if pattern in _POSITIVE_SECURITY_PATTERNS:
         return "allowed"
     if pattern == "csrf_exempt" and rel in KNOWN_CSRF_EXEMPT_PRODUCT_PATHS:
         return "allowed"
@@ -83,6 +105,28 @@ def _classification(pattern: str, rel: str, bucket: str) -> str:
     if pattern == "cursor_execute":
         return "unsafe"
     if pattern == "subprocess":
+        return "needs_review"
+    return "needs_review"
+
+
+def _governance_tier(pattern: str, legacy_cls: str, bucket: str, rel: str) -> str:
+    """
+    Map legacy classification + path to SOC2-style governance buckets.
+    Does not change enforcement defaults elsewhere (informational for ledgers).
+    """
+    if bucket == "tests":
+        return "safe"
+    if legacy_cls == "allowed":
+        return "safe"
+    if pattern == "csrf_exempt" and legacy_cls == "unsafe":
+        return "violation"
+    if pattern == "cursor_execute" and "/migrations/" in rel:
+        return "controlled"
+    if pattern == "subprocess" and rel.startswith("scripts/"):
+        return "controlled"
+    if pattern == "subprocess" and "/management/commands/" in rel:
+        return "controlled"
+    if legacy_cls == "unsafe":
         return "needs_review"
     return "needs_review"
 
@@ -122,6 +166,7 @@ def main() -> int:
                         "pattern": name,
                         "bucket": b,
                         "classification": cls,
+                        "governance_tier": _governance_tier(name, cls, b, rel),
                     }
                     by_kind[name].append(rec)
                     counts[name] += 1
@@ -134,11 +179,16 @@ def main() -> int:
     for r in unified:
         by_class[str(r.get("classification", "needs_review"))] += 1
 
+    by_tier: dict[str, int] = defaultdict(int)
+    for r in unified:
+        by_tier[str(r.get("governance_tier", "needs_review"))] += 1
+
     payload = {
         "schema_version": 1,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "summary": {k: counts[k] for k in sorted(counts.keys())},
         "summary_by_classification": dict(sorted(by_class.items())),
+        "summary_by_governance_tier": dict(sorted(by_tier.items())),
         "totals": {"hits": len(unified)},
         "by_pattern": {k: v for k, v in by_kind.items()},
         "unified": unified,

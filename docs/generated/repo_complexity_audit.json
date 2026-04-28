@@ -1,0 +1,1581 @@
+{
+  "aggregate_hits": {
+    "cursor_execute": 1,
+    "except_exception": 135,
+    "gemini_key": 0,
+    "gilead": 94,
+    "os_system": 0,
+    "print": 1,
+    "subprocess": 154
+  },
+  "generated_at": "2026-04-27T16:11:06.533335+00:00",
+  "schema_version": 1,
+  "summary_counts": {
+    "html_templates": 698,
+    "markdown_docs": 1080,
+    "migration_py_files": 702,
+    "python_files": 2390
+  },
+  "top_files_by_total_hits": [
+    {
+      "file": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 9,
+        "os_system": 0,
+        "print": 1,
+        "subprocess": 82
+      }
+    },
+    {
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "governance_tier": "needs_review",
+      "hits": {
+        "cursor_execute": 1,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 31
+      }
+    },
+    {
+      "file": "apps/platform_runtime/onboarding.py",
+      "governance_tier": "needs_review",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 11,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/management/commands/seed_cursor_twelve_phases.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 9,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0155_normalize_gilead_residue_runmycampus.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 11,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/customers/migrations/0003_ensure_gilead_tenant_domain.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 8,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/platform_runtime/tests/test_lint_gilead_residue_script.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 8,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/interop/clever_classlink_client.py",
+      "governance_tier": "needs_review",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 6,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/platform_runtime/tests/test_gilead_full_tree_classification_helpers.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 6,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/schools/migrations/0012_seed_default_gilead_school.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 6,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/platform_runtime/phase_b_domain_snapshots.py",
+      "governance_tier": "needs_review",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 5,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/schools/migrations/0013_link_default_admin_to_gilead.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 5,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/api/oneroster_views.py",
+      "governance_tier": "needs_review",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 4,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/brand_experience/tests/test_batch958_path_iii12_no_gilead_in_brand_product_tree.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 4,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/dashboard/services/insight_anomalies.py",
+      "governance_tier": "needs_review",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 4,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/finance/migrations/0027_invoice_payment_code.py",
+      "governance_tier": "needs_review",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 4,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/finance/receipt_verification.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 4
+      }
+    },
+    {
+      "file": "apps/platform_runtime/backlog_unlock_engine.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 4
+      }
+    },
+    {
+      "file": "apps/portal/one_record.py",
+      "governance_tier": "needs_review",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 4,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/schools/repositories/rls_repository.py",
+      "governance_tier": "needs_review",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 4,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/management/commands/generate_models_diagram.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 4
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0115_runmycampus_platform_neutral_data.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 4,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/accounts/context_processors.py",
+      "governance_tier": "needs_review",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 3,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/api/learning_institution_api.py",
+      "governance_tier": "needs_review",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 3,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/people/repositories/audit_repository.py",
+      "governance_tier": "needs_review",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 3,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/platform_runtime/celery_task_events.py",
+      "governance_tier": "needs_review",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 3,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/platform_runtime/ollama_model_sync.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 2
+      }
+    },
+    {
+      "file": "apps/schools/super_views_beyond_reach.py",
+      "governance_tier": "needs_review",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 3,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/schools/tests/test_premium_maturity_signals_report.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 3
+      }
+    },
+    {
+      "file": "apps/siteconfig/management/commands/sync_regional_models.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 3
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0011_themepack_defaults.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 3,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/tests/test_seed_cursor_twelve_phases.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 3,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/accounts/federation_sso_health.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/accounts/management/commands/seed_render_users.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/api/tests/test_api_v1_route_contract.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/brand_experience/branding_singleton_sync.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/customers/repositories/schema_provisioning_repository.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/interop/oneroster/webhook_dispatch.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/platform_runtime/apps.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/platform_runtime/customer_health.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/platform_runtime/tests/test_audit_admin_and_security_surface.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 2
+      }
+    },
+    {
+      "file": "apps/platform_runtime/tests/test_public_api_lints.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 2
+      }
+    },
+    {
+      "file": "apps/portal/document_conversion.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/portal/migrations/0006_backfill_sanitized_content.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/portal/support_ai_context.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/schoolops/views_tenant_ops.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/schools/super_views_config.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0004_reporttemplate_themepack_alter_sitesettings_options_and_more.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 2,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0010_reportcardstyle_defaults.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 2,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0031_seed_more_dashboard_widgets.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0032_seed_admin_security_widgets.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0039_report_preview_defaults.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 2,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0078_seed_reportcard_style_catalog.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 2,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0141_globalsupportticket_assigned_to.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/sitesettings_slim_contract.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/tests/test_admin_model_outcomes.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/views_onboarding_coach.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "emis/services.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 2,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/academics/migrations/0033_transfercourseequivalency.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 1,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/accounts/district_interop_helpers.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/accounts/district_interop_native.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/api/br_northstar_views.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/api/insight_anomalies_api.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/api/teacher_hover_api.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/automation/migrations/0010_migrationquarantinerecord.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 1,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/brand_experience/resolvers.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/communication/comms_locale.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/communication/views_groups.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/customers/migrations/0004_world_engine.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 1,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/customersuccess/tests/test_batch962_guided_onboarding_launch_url.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/dashboard/tests/test_phase9_security_gates.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/finance/migrations/0024_alter_payment_options_and_more.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/finance/migrations/0025_remove_payment_finance_pay_status_05a375_idx_and_more.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/finance/migrations/0026_remove_payment_finance_pay_status_05a375_idx_and_more.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/interop/oneroster/adapter.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/marketplace/manifest_schema.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/observability/middleware.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/packages/engine.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/people/migrations/0032_student_passport_and_invites.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 1,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/platform_runtime/events.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/platform_runtime/fleet_signals.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/platform_runtime/learning_institution_runtime.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/platform_runtime/shell_contract.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/platform_runtime/tasks.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/platform_runtime/tests/test_audit_post_handler_surface_script.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/platform_runtime/tests/test_phase_b_execution_gate.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/platform_runtime/tests/test_security_allowlists_verify.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/platform_runtime/tests/test_sitesettings_python_surface_audit.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/platform_runtime/tests/test_wedge_line_registry.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/platform_runtime/views_rum.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/portal/document_generation.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/portal/kb_context.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/schools/host_routing.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/schools/lti_id_token_verify.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/schools/migrations/0014_signup_verification.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 1,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/schools/tests/test_marketing_validation.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/schools/tests/test_program_phase10_phase11_gates.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/schools/tests/test_repo_wide_ecosystem_marketing_audit.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/schools/tests/test_ui_wiring_audit_script.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/schools/tests/test_validate_wedges_phase.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/schools/tests/test_wave4_tenant_scoping.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/schools/tests/test_wedge_super_premium_phases.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/siteconfig/management/commands/export_ui_config.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0001_initial.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 1,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0014_sitesettings_auto_tag_photos_from_exif_and_more.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 1,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0038_report_preview_contacts.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 1,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0140_add_control_plane_pinned_items.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0156_alter_educationsystemprofile_subject_seed_and_more.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 1,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/migrations/0162_phase_b_slim_sitesettings.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/models.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/tests/test_theme_studio.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "apps/siteconfig/views_academic_years_evidence.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/views_departments_setup_evidence.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/views_package_rollback.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/views_tenant_runtime_hub.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/siteconfig/views_term_publish_evidence.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "apps/studio_os/tests/test_phase5_mechanical_gate.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 1
+      }
+    },
+    {
+      "file": "config/celery.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "emis/tests.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 0,
+        "gemini_key": 0,
+        "gilead": 1,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    },
+    {
+      "file": "emis/views.py",
+      "governance_tier": "safe",
+      "hits": {
+        "cursor_execute": 0,
+        "except_exception": 1,
+        "gemini_key": 0,
+        "gilead": 0,
+        "os_system": 0,
+        "print": 0,
+        "subprocess": 0
+      }
+    }
+  ]
+}

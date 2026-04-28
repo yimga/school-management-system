@@ -9,6 +9,7 @@ from apps.billing.models import (
     PlatformBillingProcessorConfig,
     Quote,
     RevenueSharePayout,
+    StripePlanPrice,
     TenantSubscription,
     UsageMeter,
 )
@@ -98,6 +99,20 @@ class BillingProcessorSyncEventAdmin(admin.ModelAdmin):
         "external_subscription_ref",
         "message",
     )
+
+
+@admin.register(StripePlanPrice, site=platform_admin_site)
+class StripePlanPriceAdmin(admin.ModelAdmin):
+    list_display = (
+        "plan_code",
+        "stripe_price_id",
+        "billing_cycle",
+        "currency",
+        "is_active",
+        "updated_at",
+    )
+    list_filter = ("is_active", "billing_cycle", "currency")
+    search_fields = ("plan_code", "stripe_price_id")
 
 
 @admin.register(PlatformBillingProcessorConfig, site=platform_admin_site)

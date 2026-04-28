@@ -117,6 +117,10 @@ EVENT_CATALOG = {
         "description": "Marketplace app installed (sandbox or active)",
         "payload": ["app_slug", "school_id", "install_phase"],
     },
+    "tenant_surface_viewed": {
+        "description": "Structured UI surface view (logging; see apps.platform_runtime.observability)",
+        "payload": ["surface", "school_id", "user_id", "path"],
+    },
     "celery_task_started": {
         "description": "Long-running Celery task entered",
         "payload": ["task_name", "celery_task_id", "school_id"],

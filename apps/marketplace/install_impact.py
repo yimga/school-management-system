@@ -7,6 +7,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from apps.marketplace.manifest_schema import (
+    entitlement_hints_for_school,
+    normalize_platform_manifest,
+)
 from apps.marketplace.services import check_app_compatibility
 
 
@@ -18,7 +22,22 @@ def build_tenant_install_impact(school, app) -> dict[str, Any]:
     )
     from apps.packages.models import InstalledPackage, PackageVersion
 
-    manifest = app.manifest or {}
+    raw_manifest = app.manifest or {}
+    publisher_slug = ""
+    try:
+        pub = getattr(app, "publisher", None)
+        publisher_slug = getattr(pub, "slug", "") or ""
+    except (AttributeError, TypeError, ValueError):
+        publisher_slug = ""
+    manifest_norm = normalize_platform_manifest(
+        raw_manifest,
+        app_slug=app.slug,
+        app_name=app.name,
+        version=app.version or "",
+        publisher_slug=publisher_slug,
+    )
+    entitlement = entitlement_hints_for_school(school, manifest_norm)
+    manifest = raw_manifest
     package_candidates: list[str] = []
     pid = (manifest.get("package_id") or "").strip()
     if pid:
@@ -113,4 +132,5 @@ def build_tenant_install_impact(school, app) -> dict[str, Any]:
             "sandbox": "Uninstall from Installed apps at any time.",
             "activation": "Sandbox installs stay out of live navigation until you activate.",
         },
+        "entitlement": entitlement,
     }

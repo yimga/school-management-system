@@ -1,45 +1,118 @@
 {% extends "backend_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Scope consent" %}{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/marketplace-tenant-app-catalog.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-3">
-  <h4 class="mb-3">{% trans "Scope consent" %}</h4>
+<div class="container-fluid py-3" data-rmc-mkt-scope-consent="1" data-page-archetype="governance-approval">
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-1">{% trans "App permissions & scope approval" %}</h1>
+      <p class="text-muted small mb-0">{% trans "Review OAuth-style scopes declared by marketplace apps. Sensitive scopes require explicit approval before the app can use them at this school." %}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'tenant_installed_apps' %}" class="btn btn-outline-primary btn-sm">{% trans "Installed apps" %}</a>
+      <a href="{% url 'tenant_app_catalog' %}" class="btn btn-outline-secondary btn-sm">{% trans "App catalog" %}</a>
+    </div>
+  </div>
+
   {% if not school %}
   <p class="text-muted">{% trans "No school context." %}</p>
   {% else %}
-  <p class="text-muted small">{% trans "Approve sensitive scopes so installed apps can use them." %}</p>
   {% if messages %}
   <div class="mb-3">
     {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'Dismiss' %}"></button></div>
     {% endfor %}
   </div>
   {% endif %}
-  <div class="card shadow-sm mb-4">
-    <div class="card-body p-0">
-      <ul class="list-group list-group-flush">
-        {% for grant in pending_grants %}
-        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
-          <div>
-            <strong>{{ grant.scope.scope_code }}</strong>
-            <span class="text-muted small">— {{ grant.installation.app.name }} @ this school</span>
-            {% if grant.scope.description %}<p class="small text-muted mb-0 mt-1">{{ grant.scope.description }}</p>{% endif %}
-          </div>
-          <form method="post" action="{% url 'tenant_approve_scope' %}" class="d-inline">
-            {% csrf_token %}
-            <input type="hidden" name="grant_id" value="{{ grant.pk }}">
-            <button type="submit" class="btn btn-primary btn-sm">{% trans "Approve" %}</button>
-          </form>
-        </li>
-        {% empty %}
-        <li class="list-group-item text-muted">{% trans "No pending scope approvals." %}</li>
-        {% endfor %}
-      </ul>
+
+  {% if pending_grant_rows %}
+  <section class="card shadow-sm mb-4 border-warning border-opacity-50">
+    <div class="card-header bg-warning bg-opacity-10 d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <strong><i class="bi bi-hourglass-split me-1" aria-hidden="true"></i>{% trans "Pending approval" %}</strong>
+      <span class="badge text-bg-warning text-dark">{{ pending_grant_rows|length }}</span>
     </div>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">{% trans "Scope" %}</th>
+            <th scope="col">{% trans "Access tier" %}</th>
+            <th scope="col">{% trans "App" %}</th>
+            <th scope="col">{% trans "Notes" %}</th>
+            <th scope="col" class="text-end">{% trans "Action" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in pending_grant_rows %}
+          {% with g=row.grant %}
+          <tr data-rmc-mkt-scope-row="pending">
+            <td><code>{{ g.scope.scope_code }}</code>{% if g.scope.sensitive %} <span class="badge text-bg-warning">{% trans "Sensitive" %}</span>{% endif %}</td>
+            <td><span class="badge text-bg-secondary">{{ row.access_tier }}</span></td>
+            <td>{{ g.installation.app.name }}</td>
+            <td class="small text-muted">{% if g.scope.description %}{{ g.scope.description }}{% else %}—{% endif %}</td>
+            <td class="text-end">
+              <form method="post" action="{% url 'tenant_approve_scope' %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="grant_id" value="{{ g.pk }}">
+                <button type="submit" class="btn btn-primary btn-sm" data-rmc-mkt-approve-scope="1">{% trans "Approve scope" %}</button>
+              </form>
+            </td>
+          </tr>
+          {% endwith %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% else %}
+  <div class="alert alert-success mb-4" role="status" data-rmc-mkt-scope-empty-pending="1">
+    <i class="bi bi-check-circle me-1" aria-hidden="true"></i>{% trans "No pending scope approvals." %}
   </div>
-  <a href="{% url 'tenant_installed_apps' %}" class="btn btn-outline-secondary">{% trans "Back to installed apps" %}</a>
+  {% endif %}
+
+  <section class="card shadow-sm mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <strong><i class="bi bi-shield-check me-1" aria-hidden="true"></i>{% trans "Granted scopes" %}</strong>
+      <span class="badge text-bg-secondary">{{ granted_grant_rows|length }}</span>
+    </div>
+    {% if granted_grant_rows %}
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">{% trans "Scope" %}</th>
+            <th scope="col">{% trans "Access tier" %}</th>
+            <th scope="col">{% trans "App" %}</th>
+            <th scope="col">{% trans "Granted" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in granted_grant_rows %}
+          {% with g=row.grant %}
+          <tr data-rmc-mkt-scope-row="granted">
+            <td><code>{{ g.scope.scope_code }}</code>{% if g.scope.sensitive %} <span class="badge border text-secondary bg-light">{% trans "Sensitive" %}</span>{% endif %}</td>
+            <td><span class="badge text-bg-light text-dark border">{{ row.access_tier }}</span></td>
+            <td>{{ g.installation.app.name }}</td>
+            <td class="small text-muted">{{ g.granted_at|date:"Y-m-d H:i" }}{% if g.granted_by %} · {{ g.granted_by.get_full_name|default:g.granted_by.username }}{% endif %}</td>
+          </tr>
+          {% endwith %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="card-body text-muted small">{% trans "No granted scope records yet (non-sensitive scopes may auto-grant on install)." %}</div>
+    {% endif %}
+  </section>
+
+  <p class="small text-muted mb-0">{% trans "Runtime API enforcement remains in platform policy; this page records tenant consent for declared scopes." %}</p>
   {% endif %}
 </div>
 {% endblock %}

@@ -99,6 +99,7 @@ CONSOLE_DOMAINS = [
         "outcome": "Blueprints, dashboards, workflows",
         "links": [
             ("Effective runtime & tenant settings", "siteconfig:tenant_runtime_configuration_hub"),
+            ("School group hierarchy", "siteconfig:school_group_hierarchy"),
             ("Dashboard hub", "siteconfig:dashboard_hub"),
             ("Automation Studio", "studio_os:automation"),
             ("Output Studio", "studio_os:output"),
@@ -130,6 +131,11 @@ CONSOLE_DOMAINS = [
         "outcome": "Region, grading, calendar",
         "links": [
             ("Grading settings", "siteconfig:grading_settings"),
+            (
+                "Grading scale bands (tenant DB)",
+                "siteconfig:grading_scale_bands",
+            ),
+            ("Curriculum templates (reference)", "siteconfig:curriculum_templates"),
             ("Region validation", "siteconfig:region_validation"),
             ("Region comparison", "siteconfig:region_comparison"),
             ("Region grading matrix", "siteconfig:region_grading_scales"),
@@ -352,6 +358,26 @@ def console_domains_hub(request: HttpRequest) -> HttpResponse:
         if getattr(request, "public_host_kind", None) == "manager"
         else "siteconfig/console_domains_hub.html"
     )
+    school = getattr(request, "school", None)
+    ccc_onboarding = None
+    if school is not None:
+        try:
+            from apps.platform_runtime.onboarding import (
+                get_school_onboarding_progress,
+            )
+
+            ccc_onboarding = get_school_onboarding_progress(
+                school, user=request.user
+            )
+        except (
+            AttributeError,
+            ImportError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
+            ccc_onboarding = None
+
     context = {
         "domains": domains,
         "operational_hubs": operational_hubs,
@@ -367,6 +393,7 @@ def console_domains_hub(request: HttpRequest) -> HttpResponse:
         "ccc_staging_links": build_ccc_staging_publish_links_for_request(request),
         # Light chrome on tenant portal; dark chrome on manager control plane
         "ccc_outcome_compact": getattr(request, "public_host_kind", None) != "manager",
+        "ccc_onboarding": ccc_onboarding,
     }
     if template == "siteconfig/console_domains_hub_control_plane.html":
         try:

@@ -1,0 +1,98 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Grading scale bands" %} – {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Grading scale bands" %}{% endblock %}
+
+{% block content %}
+  <div
+    class="container-fluid py-4"
+    data-page-archetype="operational-workbench"
+    data-shell-surface="grading-scale-bands"
+    data-cp-evidence-surface="grading-scale-bands"
+    data-rmc-grading-scale-bands="1"
+  >
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <h1 class="h5 mb-2">{% trans "Effective DB grading scale" %}</h1>
+        <p class="text-muted small mb-2">
+          {% trans "Read-only view of tenant-configured bands. Linear Rosetta conversions in" %}
+          <code>apps.evals.grading</code> / <code>rosetta_stone</code>
+          {% trans "are unchanged; this table is used for labels, grade points, and normalized band alignment when present." %}
+        </p>
+        {% if effective_scale %}
+        <dl class="row small mb-0">
+          <dt class="col-sm-3">{% trans "Name" %}</dt><dd class="col-sm-9">{{ effective_scale.name }}</dd>
+          <dt class="col-sm-3">{% trans "Code" %}</dt><dd class="col-sm-9">{{ effective_scale.code|default:"—" }}</dd>
+          <dt class="col-sm-3">{% trans "Type" %}</dt><dd class="col-sm-9">{{ effective_scale.get_scale_type_display }}</dd>
+          <dt class="col-sm-3">{% trans "Default" %}</dt><dd class="col-sm-9">{% if effective_scale.is_default %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
+          <dt class="col-sm-3">{% trans "Locale / Rosetta scale id" %}</dt><dd class="col-sm-9"><code>{{ locale_rosetta_scale|default:"—" }}</code></dd>
+          {% if region %}
+          <dt class="col-sm-3">{% trans "School region" %}</dt><dd class="col-sm-9">{{ region.name }} ({{ region.code }})</dd>
+          {% endif %}
+          {% if effective_scale.region %}
+          <dt class="col-sm-3">{% trans "Linked region template" %}</dt><dd class="col-sm-9">{{ effective_scale.region.name }}</dd>
+          {% endif %}
+        </dl>
+        {% else %}
+        <p class="text-muted mb-0">{% trans "No tenant GradingScale row is configured. Set a default scale in Django admin or keep using locale string scale from grading settings." %}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-header bg-light fw-semibold">{% trans "Bands" %}</div>
+      <div class="card-body p-0 table-responsive">
+        <table class="table table-sm table-striped align-middle mb-0" aria-label="{% trans 'Grading scale bands' %}">
+          <thead>
+            <tr>
+              <th>{% trans "Order" %}</th>
+              <th>{% trans "Raw min" %}</th>
+              <th>{% trans "Raw max" %}</th>
+              <th>{% trans "Label" %}</th>
+              <th>{% trans "Weight" %}</th>
+              <th>{% trans "Grade point" %}</th>
+              <th>{% trans "Norm min" %}</th>
+              <th>{% trans "Norm max" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in bands %}
+            <tr>
+              <td>{{ b.sort_order }}</td>
+              <td>{{ b.min_score }}</td>
+              <td>{{ b.max_score }}</td>
+              <td>{{ b.label }}</td>
+              <td>{{ b.band_weight }}</td>
+              <td>{% if b.grade_point is not None %}{{ b.grade_point }}{% else %}—{% endif %}</td>
+              <td>{{ b.normalized_min }}</td>
+              <td>{{ b.normalized_max }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" class="text-muted p-3">{% trans "No bands defined for the effective scale." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      <a class="btn btn-sm btn-outline-primary" href="{{ grading_settings_url }}">{% trans "Grading & language" %}</a>
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Configuration control center" %}</a>
+      <a class="btn btn-sm btn-outline-primary" href="{{ runtime_hub_url }}">{% trans "Tenant runtime configuration" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ cp_region_grading_url }}">{% trans "Fleet: region grading matrix" %}</a>
+    </div>
+
+    {% if user.is_superuser %}
+    <div class="border rounded-2 p-3 bg-body-tertiary small" data-rmc-advanced-admin-fallback="grading-scales">
+      <strong>{% trans "Advanced (Django admin) — superuser only" %}</strong>
+      <p class="mb-2">{% trans "Edit GradingScale and GradingScaleBand rows for this tenant after product controls are exhausted." %}</p>
+      {% if admin_advanced_grading_url %}
+      <a class="btn btn-sm btn-outline-dark" href="{{ admin_advanced_grading_url }}">{% trans "Open in Django admin" %}</a>
+      {% else %}
+      <span class="text-muted">{% trans "Admin URL not available on this host." %}</span>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% load i18n %}
+<div class="alert alert-light border d-flex align-items-start gap-2 mb-0" role="status" data-rmc-guided-recovery="1">
+  <i class="bi bi-compass"></i>
+  <div>
+    <strong class="d-block">{{ title }}</strong>
+    <span class="small text-muted">{{ message }}</span>
+    <div class="mt-2 d-flex flex-wrap gap-2">
+      {% if retry_url %}
+      <a class="btn btn-sm btn-primary ds-btn" href="{{ retry_url }}">{{ retry_label|default:_("Try again") }}</a>
+      {% endif %}
+      {% if fallback_url %}
+      <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ fallback_url }}">{{ fallback_label|default:_("Open fallback") }}</a>
+      {% endif %}
+    </div>
+  </div>
+</div>

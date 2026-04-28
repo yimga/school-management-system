@@ -8,6 +8,9 @@ html[data-surface="control-plane"] {
   --school-accent: #d4af37;
   --platform-navy: var(--color-base-900, #0b0e14);
   --platform-gold: #d4af37;
+  --rmc-shell-max-width: 1440px;
+  --rmc-shell-gutter: clamp(0.75rem, 1.2vw, 1.25rem);
+  --rmc-shell-rhythm-y: clamp(0.75rem, 1.5vw, 1.25rem);
 }
 
 html[data-surface="control-plane"],
@@ -20,4 +23,22 @@ html[data-surface="control-plane"] body main,
 html[data-surface="control-plane"] body [role="main"] {
   max-width: 100%;
   min-width: 0;
+}
+
+html[data-surface="control-plane"] .cp-layout {
+  padding-inline: var(--rmc-shell-gutter);
+  padding-block: var(--rmc-shell-rhythm-y);
+  max-width: var(--rmc-shell-max-width);
+  margin-inline: auto;
+  overflow-x: clip;
+}
+
+html[data-surface="control-plane"] .cp-main-col,
+html[data-surface="control-plane"] .cp-sidebar-col,
+html[data-surface="control-plane"] .cp-shell-content {
+  min-width: 0;
+}
+
+html[data-surface="control-plane"] .cp-main-col {
+  overflow-x: clip;
 }

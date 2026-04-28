@@ -1,6 +1,6 @@
 {% load i18n %}
 {# Full builder UI: portal page or Output Studio native (POST → siteconfig:reportcard_builder). #}
-<div class="reportcard-builder-root{% if studio_output_native %} studio-output-native-pane{% endif %}" data-page-archetype="operational-workbench" data-shell-surface="reportcard-builder"{% if studio_output_native %} data-studio-output-native="builder"{% endif %}>
+<div class="reportcard-builder-root{% if studio_output_native %} studio-output-native-pane{% endif %}" data-page-archetype="operational-workbench" data-shell-surface="reportcard-builder" data-cp-evidence-surface="reportcard-builder"{% if studio_output_native %} data-studio-output-native="builder"{% endif %}>
   <div class="card shadow-sm mb-3 ds-card">
     <div class="card-body py-3">
       <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
@@ -42,6 +42,7 @@
         <span id="builder-live-style-badge" class="badge text-bg-dark">{% trans "Live preview" %}: {% if styles and preview_default_style_slug %}{{ preview_default_style_slug }}{% else %}{% trans "Not loaded" %}{% endif %}</span>
         <span id="builder-draft-state" class="badge text-bg-success">{% trans "Draft status" %}: {% trans "Saved" %}</span>
         <span class="badge text-bg-secondary" title="{% trans 'Slugs with a registered server export handler' %}">{% trans "Export handlers" %}: {{ export_handler_registry_count|default:0 }}</span>
+        <span class="badge text-bg-secondary" title="{% trans 'Active report download templates in catalog scope for this school (same filter as the templates catalog page)' %}">{% trans "Report templates" %}: {{ report_templates_catalog_count|default:0 }}</span>
       </div>
     </div>
   </div>

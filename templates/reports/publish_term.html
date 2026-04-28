@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n terminology_tags %}
+{% url 'studio_os:workflow_center' as publish_term_workflow_url %}
 {% block title %}Publish Results{% endblock %}
 
 {% block content %}
@@ -24,7 +25,7 @@
         </select>
       </div>
       <div class="col-md-4">
-        <label class="form-label small">Term</label>
+        <label class="form-label small">{% term_label %}</label>
         <select class="form-select" name="term">
           {% for t in terms %}
             <option value="{{ t.id }}" {% if t.id == term.id %}selected{% endif %}>{{ t.get_name_display }}</option>
@@ -78,7 +79,9 @@
             </div>
           </div>
         {% empty %}
-          <div class="text-muted">No classrooms found for this academic year. <a href="{% url 'studio_os:workflow_center' %}">Set up year and classrooms</a> in Workflow Center, then return here to publish.</div>
+          <div class="col-12">
+            {% include "components/guided_recovery_state.html" with title=_("No classrooms for this term") message=_("Add classrooms for this academic year, then reload this page.") retry_url=request.get_full_path fallback_url=publish_term_workflow_url fallback_label=_("Open Workflow Center") %}
+          </div>
         {% endfor %}
       </div>
 

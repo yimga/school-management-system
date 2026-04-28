@@ -8,6 +8,7 @@
   border-radius: var(--token-radius-md, 12px);
   box-shadow: var(--shell-elevation-1, 0 2px 8px rgba(15, 23, 42, 0.06));
   border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  overflow: clip;
 }
 
 /* KPI card: single metric + label */
@@ -86,4 +87,26 @@
 .card--settings .list-group-item {
   border-left: 0;
   border-right: 0;
+}
+
+/* Premium defaults for high-impact pages without layout rewrites */
+.ui-premium-surface .card:not(.card-grammar) {
+  border-radius: var(--token-radius-md, 12px);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  box-shadow: var(--shell-elevation-1, 0 2px 8px rgba(15, 23, 42, 0.06));
+}
+.ui-premium-surface .card:not(.card-grammar):hover {
+  box-shadow: var(--shell-elevation-2, 0 4px 16px rgba(15, 23, 42, 0.08));
+}
+
+.ui-premium-surface .badge,
+.card-grammar .badge {
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.ui-premium-surface .alert {
+  border-width: 1px;
+  border-radius: 0.75rem;
 }

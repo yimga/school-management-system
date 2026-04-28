@@ -1,0 +1,60 @@
+{
+  "generated_at": "2026-04-28T22:35:51.571835+00:00",
+  "rows": [
+    {
+      "bucket": "shell",
+      "classification": "rtl_ready",
+      "notes": [],
+      "path": "templates/portal_base.html"
+    },
+    {
+      "bucket": "shell",
+      "classification": "rtl_ready",
+      "notes": [],
+      "path": "templates/control_plane_skeleton.html"
+    },
+    {
+      "bucket": "shell",
+      "classification": "rtl_ready",
+      "notes": [],
+      "path": "templates/base.html"
+    },
+    {
+      "bucket": "high_impact",
+      "classification": "needs_review",
+      "notes": [
+        "physical LTR/RTR class hints: 12 (sample: ['ms-', 'me-', 'me-', 'me-', 'me-'])"
+      ],
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "bucket": "high_impact",
+      "classification": "needs_review",
+      "notes": [
+        "physical LTR/RTR class hints: 1 (sample: ['ps-'])"
+      ],
+      "path": "templates/siteconfig/compliance_exports.html"
+    },
+    {
+      "bucket": "high_impact",
+      "classification": "needs_review",
+      "notes": [
+        "physical LTR/RTR class hints: 8 (sample: ['ps-', 'me-', 'me-', 'me-', 'me-'])"
+      ],
+      "path": "templates/marketplace/tenant_app_catalog.html"
+    },
+    {
+      "bucket": "high_impact",
+      "classification": "rtl_ready",
+      "notes": [],
+      "path": "templates/teacher/marks_list.html"
+    }
+  ],
+  "schema_version": 1,
+  "summary": {
+    "needs_review": 3,
+    "rtl_ready": 4,
+    "terminology_ready": 0,
+    "violation": 0
+  }
+}

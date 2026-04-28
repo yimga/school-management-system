@@ -45,6 +45,10 @@ from .views import (
     preview_communication_test,
 )
 from .views_parent_finance import parent_finance, parent_wallet, parent_feed
+from .views_attendance_export import (
+    student_attendance_export,
+    student_attendance_export_csv,
+)
 from .views_bulk_capture import teacher_bulk_capture_hub
 from .views_onboarding import teacher_onboarding_wizard, student_onboarding_wizard
 from .views_support import (
@@ -77,6 +81,10 @@ from apps.student360.views import (
     transcript_archive,
     transcript_archive_year,
     transcript_freeze,
+)
+from .views_passport import (
+    student_passport_detail,
+    student_transcript_vault,
 )
 
 try:
@@ -206,6 +214,16 @@ urlpatterns = [
         "attendance/student/", take_student_attendance, name="take_student_attendance"
     ),
     path(
+        "attendance/student/export/",
+        student_attendance_export,
+        name="student_attendance_export",
+    ),
+    path(
+        "attendance/student/export/csv/",
+        student_attendance_export_csv,
+        name="student_attendance_export_csv",
+    ),
+    path(
         "attendance/teacher/",
         record_teacher_attendance,
         name="record_teacher_attendance",
@@ -308,6 +326,16 @@ urlpatterns = [
     ),
     # Student 360 (26.1) — full page + export; Section 15.1 immutable transcript + cross-year archive
     path("student/<int:student_id>/360/", student_360_page, name="student_360_page"),
+    path(
+        "student/<int:student_profile_id>/passport/",
+        student_passport_detail,
+        name="student_passport_detail",
+    ),
+    path(
+        "student/<int:student_profile_id>/transcript-vault/",
+        student_transcript_vault,
+        name="student_transcript_vault",
+    ),
     path(
         "student/<int:student_id>/360/export/",
         student_360_export,

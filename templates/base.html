@@ -1,6 +1,6 @@
 {% load i18n %}
 <!doctype html>
-<html lang="{{ LANGUAGE_CODE|default:'en' }}"{% if is_rtl %} dir="rtl"{% endif %}
+<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-regional-ui="1"
       {% if HIGH_CONTRAST_MODE or REDUCED_MOTION %}class="{% if HIGH_CONTRAST_MODE %}pref-high-contrast{% endif %}{% if REDUCED_MOTION %} pref-reduced-motion{% endif %}"{% endif %}
       data-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif PUBLIC_BRAND_MODE %}system{% else %}{{ USER_THEME_PREFERENCE|default:SITE.theme_brightness|default:'system'|lower }}{% endif %}"
       data-admin-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif PUBLIC_BRAND_MODE %}system{% else %}{{ SITE.theme_brightness|default:'system'|lower }}{% endif %}"
@@ -53,6 +53,7 @@
     <link rel="stylesheet" href="{% static 'css/statement-header.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
+    <link rel="stylesheet" href="{% static 'css/root-base-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/toggle-colors.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-tables-forms.css' %}">
@@ -114,7 +115,6 @@
       h1, h2, h3, h4, h5, h6 { font-family: {{ SITE_SECONDARY_FONT }}, var(--school-font), system-ui, sans-serif; }
       {% endif %}
     </style>
-    <link rel="stylesheet" href="{% static 'css/root-base-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase2-static-templates-bundle.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-theme-sync.css' %}">
@@ -138,9 +138,9 @@
       <div class="container d-flex align-items-center base-topbar">
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2 statement-logo" href="{% url 'home' %}">
           {% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}
-            <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="34" height="34" decoding="async" style="object-fit: contain;">
+            <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="34" height="34" decoding="async" class="rmc-brand-logo-fit">
           {% elif SITE_LOGO_URL %}
-            <img src="{{ SITE_LOGO_URL }}" alt="Logo" width="34" height="34" decoding="async" style="object-fit: contain;">
+            <img src="{{ SITE_LOGO_URL }}" alt="Logo" width="34" height="34" decoding="async" class="rmc-brand-logo-fit">
           {% endif %}
           <span>{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% elif SITE %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
         </a>
@@ -198,19 +198,19 @@
       </div>
     {% endif %}
 
-    <main id="main-content" class="container py-4" role="main">
+    <main id="main-content" class="container py-4 rmc-shell-main" role="main" data-rmc-shell-main="base">
       {% include "partials/shell_chrome_django_messages_base_bootstrap.html" %}
 
       {% include "partials/breadcrumbs.html" %}
 
-      <div class="page-wrap">
+      <div class="page-wrap rmc-shell-content-grid" data-rmc-shell-content-grid="1">
         {% block content %}{% endblock %}
       </div>
     </main>
 
     {% block footer %}
     {% if PUBLIC_BRAND_MODE %}
-      <footer class="container text-center text-muted small pt-3 pb-5">
+      <footer class="container text-center text-muted small pt-3 pb-5 rmc-shell-footer" data-rmc-shell-footer="base">
         <p class="mb-1">
           <a href="{% url 'marketing_privacy' %}">{% trans "Privacy Policy" %}</a>
           <span class="mx-2">|</span>
@@ -222,7 +222,7 @@
         <div>{{ PUBLIC_BRAND_DOMAIN }}</div>
       </footer>
     {% elif SITE %}
-      <footer class="container text-center text-muted small pt-3 pb-5">
+      <footer class="container text-center text-muted small pt-3 pb-5 rmc-shell-footer" data-rmc-shell-footer="base">
         <div class="fw-semibold">
           {{ SITE.company_name|default:SITE.site_name }}
         </div>

@@ -1,0 +1,104 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Compliance exports" %}{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
+{% endblock %}
+{% block content %}
+<div class="container py-3 cp-evidence-page" style="max-width: 56rem;"
+     data-page-archetype="operator-report"
+     data-shell-surface="compliance-exports"
+     data-cp-evidence-surface="compliance-exports"
+     data-rmc-compliance-exports="1">
+  <h1 class="h3 mb-2">{% trans "Regional compliance exports" %}</h1>
+  <p class="text-muted small mb-2">
+    {% blocktrans trimmed %}
+      Download-only CSV bundles derived from your tenant data. Nothing here submits to ministries or regulators —
+      your organization remains responsible for official filings.
+    {% endblocktrans %}
+  </p>
+  {% if school %}
+  <p class="small text-muted mb-3"><strong>{% trans "School" %}</strong>: {{ school.name }}</p>
+  {% else %}
+  <p class="text-warning">{% trans "No tenant context." %}</p>
+  {% endif %}
+  <div class="alert alert-light border small mb-3" role="status">
+    <strong>{% trans "Recommended flow" %}:</strong>
+    {% trans "Review missing data warnings first, then use Download CSV as the primary action on each export card." %}
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 mb-4 cp-evidence-related" data-rmc-evidence-related-links="1" aria-label="{% trans 'Related control-plane links' %}">
+    {% if report_templates_catalog_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ report_templates_catalog_url }}">{% trans "Report templates (catalog)" %}</a>
+    {% endif %}
+    {% if report_output_history_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ report_output_history_url }}">{% trans "Report output history" %}</a>
+    {% endif %}
+    {% if academic_years_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ academic_years_evidence_url }}">{% trans "Academic years (setup)" %}</a>
+    {% endif %}
+    {% if departments_setup_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ departments_setup_url }}">{% trans "Departments (setup)" %}</a>
+    {% endif %}
+    {% if scheduled_reports_hub_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ scheduled_reports_hub_url }}">{% trans "Scheduled report delivery" %}</a>
+    {% endif %}
+    {% if student_attendance_export_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ student_attendance_export_url }}" data-rmc-related-attendance-export="1">{% trans "Student attendance (CSV export)" %}</a>
+    {% endif %}
+    {% if entity_catalog_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ entity_catalog_url }}">{% trans "Entity catalog (CCC)" %}</a>
+    {% endif %}
+    {% if metadata_operator_hub_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ metadata_operator_hub_url }}">{% trans "Metadata operator hub" %}</a>
+    {% endif %}
+    {% if runtime_hub_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ runtime_hub_url }}">{% trans "Tenant runtime configuration" %}</a>
+    {% endif %}
+  </div>
+
+  {% for row in families %}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+      <h2 class="h6 card-title">{{ row.label }}</h2>
+      <p class="small text-muted mb-1"><strong>{% trans "Region / system" %}:</strong> {{ row.region_or_system }}</p>
+      <p class="small mb-2">{{ row.description }}</p>
+      <dl class="row small mb-2">
+        <dt class="col-sm-4 text-muted">{% trans "Export key" %}</dt>
+        <dd class="col-sm-8"><code>{{ row.export_key }}</code></dd>
+        <dt class="col-sm-4 text-muted">{% trans "Output format" %}</dt>
+        <dd class="col-sm-8">{{ row.output_format }}</dd>
+        <dt class="col-sm-4 text-muted">{% trans "Permission" %}</dt>
+        <dd class="col-sm-8"><code>{{ row.permission_required }}</code></dd>
+      </dl>
+      {% if row.missing_data %}
+      <div class="alert alert-warning small mb-2" role="status">
+        <strong>{% trans "Missing or insufficient data" %}:</strong>
+        <ul class="mb-0 ps-3">
+          {% for m in row.missing_data %}<li>{{ m }}</li>{% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      {% if row.blocked %}
+      <button type="button" class="btn btn-sm btn-secondary" disabled>{% trans "Download blocked until requirements are met" %}</button>
+      {% else %}
+      <a class="btn btn-sm btn-primary" href="{{ row.download_path }}" data-rmc-compliance-export-download="{{ row.export_key }}">{% trans "Download CSV" %}</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+  {% if not families %}
+  <div class="mb-3">
+    {% include "components/guided_recovery_state.html" with title=_("No export bundles available") message=_("Regional compliance export families are not configured for this context yet. Complete setup, then return here to download CSV bundles.") retry_url=request.get_full_path fallback_url=runtime_hub_url|default:'' fallback_label=_("Open tenant runtime configuration") %}
+  </div>
+  {% endif %}
+
+  {% if user.is_superuser and admin_reports_app_url %}
+  <div class="cp-evidence-advanced border-top pt-3 mt-4" data-rmc-compliance-admin-fallback="1">
+    <p class="small text-muted mb-2">{% trans "Advanced / Admin (staff tooling)" %}</p>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ admin_reports_app_url }}">{% trans "Advanced/Admin: reports app index" %}</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,15 +1,19 @@
 # Security surface audit (generated)
 
-**UTC** `2026-04-26T23:24:49.752676+00:00`  
+**UTC** `2026-04-28T22:37:50.809689+00:00`  
 
 Counts are **visibility only**; review classifications in JSON.
 
 | Pattern | Count |
 | --- | --- |
-| allow_any | 25 |
-| csrf_exempt | 23 |
+| allow_any | 28 |
+| csrf_exempt | 27 |
 | cursor_execute | 2 |
-| subprocess | 230 |
+| login_required | 375 |
+| permission_classes | 33 |
+| require_http_methods | 277 |
+| staff_member_required | 70 |
+| subprocess | 251 |
 
-**Total hits:** 280
+**Total hits:** 1063
 

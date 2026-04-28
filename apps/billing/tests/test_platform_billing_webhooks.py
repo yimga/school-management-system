@@ -10,7 +10,14 @@ from django.utils import timezone
 from apps.billing.models import (
     BillingProcessorSyncEvent,
     PlatformBillingProcessorConfig,
+    PlatformLedgerEntry,
+    RevenueSharePayout,
     TenantSubscription,
+)
+from apps.marketplace.models import (
+    MarketplaceApp,
+    MarketplaceListing,
+    PublisherOrganization,
 )
 from apps.billing.services import ensure_subscription_for_school
 from apps.observability.models import PlatformIncident
@@ -242,3 +249,124 @@ class PlatformBillingWebhookTests(TestCase):
         subscription = TenantSubscription.objects.get(school=self.school)
         self.assertEqual(subscription.status, TenantSubscription.Status.PAST_DUE)
         self.assertEqual(subscription.external_subscription_ref, "sub_stripe_001")
+
+    def test_stripe_webhook_invoice_paid_creates_ledger_when_amount_positive(self):
+        stripe_config = PlatformBillingProcessorConfig.objects.create(
+            code="stripe",
+            display_name="Stripe",
+            webhook_secret="whsec_test_456",
+            signature_header="Stripe-Signature",
+            signature_style=PlatformBillingProcessorConfig.SignatureStyle.STRIPE_V1,
+            is_active=True,
+        )
+        payload = {
+            "type": "invoice.paid",
+            "data": {
+                "object": {
+                    "id": "in_paid_1",
+                    "customer": "cus_stripe_paid",
+                    "subscription": "sub_stripe_paid",
+                    "status": "paid",
+                    "currency": "usd",
+                    "amount_paid": 19900,
+                    "current_period_start": int(
+                        (timezone.now() - timedelta(days=2)).timestamp()
+                    ),
+                    "current_period_end": int(
+                        (timezone.now() + timedelta(days=28)).timestamp()
+                    ),
+                    "metadata": {
+                        "school_slug": self.school.slug,
+                    },
+                }
+            },
+        }
+        raw_body = json.dumps(payload).encode("utf-8")
+        timestamp = int(timezone.now().timestamp())
+        signed_payload = f"{timestamp}.{raw_body.decode('utf-8')}".encode("utf-8")
+        signature = hmac.new(
+            stripe_config.webhook_secret.encode(), signed_payload, hashlib.sha256
+        ).hexdigest()
+
+        response = self.client.post(
+            "/api/billing/processors/stripe/webhook/",
+            data=raw_body,
+            content_type="application/json",
+            HTTP_HOST="manager.runmycampus.com",
+            HTTP_STRIPE_SIGNATURE=f"t={timestamp},v1={signature}",
+        )
+
+        self.assertEqual(response.status_code, 202)
+        self.assertTrue(
+            PlatformLedgerEntry.objects.filter(
+                source="stripe_webhook",
+                reference__contains="stripe:invoice.paid:",
+            ).exists()
+        )
+
+    def test_relay_webhook_checkout_completed_applies_marketplace_addon(self):
+        pub = PublisherOrganization.objects.create(
+            slug="mkt-pub-web",
+            name="Mkt Pub",
+        )
+        app = MarketplaceApp.objects.create(
+            slug="mkt-webhook-app",
+            name="Webhook App",
+            version="1.0.0",
+            manifest={
+                "pricing_type": "paid",
+                "billing_sku": "sku_wh_app",
+                "required_features": ["reports"],
+            },
+            publisher=pub,
+        )
+        MarketplaceListing.objects.create(
+            app=app,
+            publisher=pub,
+            status=MarketplaceListing.Status.APPROVED,
+            revenue_share_percent=Decimal("15.00"),
+            short_description="x",
+        )
+
+        response = self._post(
+            {
+                "school_slug": self.school.slug,
+                "school_id": str(self.school.pk),
+                "event_type": "checkout.session.completed",
+                "marketplace_app_id": str(app.pk),
+                "processor_source_ref": "cs_test_sess_1",
+                "billed_amount": "40.00",
+                "currency_code": "USD",
+                "account_status": "active",
+                "subscription_status": "active",
+                "external_customer_ref": "cus-mkt-1",
+                "external_subscription_ref": "sub-mkt-1",
+            }
+        )
+
+        self.assertEqual(response.status_code, 202)
+        self.school.refresh_from_db()
+        addons = list(self.school.addons or [])
+        self.assertIn("sku_wh_app", addons)
+        self.assertIn("reports", addons)
+        payouts = RevenueSharePayout.objects.filter(
+            source_school=self.school,
+            processor_code="relay",
+        ).order_by("-pk")[:10]
+        payout = None
+        for p in payouts:
+            md = p.metadata if isinstance(p.metadata, dict) else {}
+            if md.get("marketplace_addon_session_ref") == "cs_test_sess_1":
+                payout = p
+                break
+        self.assertIsNotNone(payout)
+        self.assertEqual(payout.status, RevenueSharePayout.Status.DRAFT)
+
+    def test_unknown_processor_webhook_returns_404(self):
+        response = self.client.post(
+            "/api/billing/processors/not-a-processor/webhook/",
+            data=b"{}",
+            content_type="application/json",
+            HTTP_HOST="manager.runmycampus.com",
+        )
+        self.assertEqual(response.status_code, 404)

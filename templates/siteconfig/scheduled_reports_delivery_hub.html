@@ -87,6 +87,10 @@
   <p class="small text-muted mb-3">{% trans "Tenant" %}: {{ school.name }}</p>
   {% endif %}
 
+  {% if northstar_ai_draft_url %}
+  {% include "siteconfig/partials/north_star_ai_assistant_strip.html" with strip_id="scheduled_hub" northstar_ai_draft_url=northstar_ai_draft_url assistant_show_report_summary=True assistant_show_parent_message=True %}
+  {% endif %}
+
   {% if schedules %}
   <div class="table-responsive">
     <table class="table table-sm align-middle" aria-label="{% trans 'Scheduled reports' %}">
@@ -133,6 +137,9 @@
     {% endif %}
     {% if operator_report_templates_catalog_url %}
     <a class="btn btn-sm btn-outline-primary" href="{{ operator_report_templates_catalog_url }}">{% trans "Report templates (catalog)" %}</a>
+    {% endif %}
+    {% if operator_compliance_exports_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ operator_compliance_exports_url }}">{% trans "Compliance exports" %}</a>
     {% endif %}
   </div>
 

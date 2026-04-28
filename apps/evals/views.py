@@ -1,7 +1,7 @@
 import logging
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpRequest, HttpResponseForbidden, HttpResponse
+from django.http import HttpRequest, HttpResponseForbidden, HttpResponse, JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib import messages
 
@@ -43,6 +43,7 @@ from apps.evals.models import (
     Evaluation,
     AssessmentWeights,
 )
+from apps.evals.rosetta_stone import get_supported_scales, view_grade_in_target_system
 from apps.evals.importers import preview_import, apply_import, build_template_headers
 from apps.reports.services import is_term_published
 from apps.reports.weasy import render_pdf_bytes
@@ -1033,6 +1034,15 @@ def teacher_dashboard(request: HttpRequest):
             .order_by("-issued_at")[:10]
         )
 
+    teacher_fast_workflows = [
+        {"label": "Enter marks", "url": reverse("evals:teacher_marks_entry"), "icon": "bi-pencil-square"},
+        {"label": "Attendance", "url": reverse("portal:take_student_attendance"), "icon": "bi-calendar-check"},
+        {"label": "Grade import (CSV)", "url": reverse("evals:grade_import_upload"), "icon": "bi-file-earmark-arrow-up"},
+        {"label": "Messages", "url": teacher_action_links.get("message", ""), "icon": "bi-chat-dots"},
+        {"label": "Timetable", "url": reverse("portal:teacher_timetable"), "icon": "bi-table"},
+    ]
+    teacher_fast_workflows = [w for w in teacher_fast_workflows if w.get("url")]
+
     return render(
         request,
         "teacher/dashboard.html",
@@ -1089,6 +1099,7 @@ def teacher_dashboard(request: HttpRequest):
             "workflow_summary": workflow_summary,
             "org_chain": org_chain,
             "teacher_org_tree": teacher_org_tree,
+            "teacher_fast_workflows": teacher_fast_workflows,
         },
     )
 
@@ -1930,10 +1941,37 @@ def teacher_marks_list(request: HttpRequest):
             )
         return response
 
+    compare_raw = (request.GET.get("compare") or "").strip()
+    rosetta_target = (
+        compare_raw
+        if compare_raw in get_supported_scales()
+        else ""
+    )
+    mark_rows: list[dict[str, Any]] = []
+    for e in evals_list:
+        rosetta = None
+        if rosetta_target:
+            rosetta = view_grade_in_target_system(e, rosetta_target)
+        mark_rows.append({"evaluation": e, "rosetta": rosetta})
+
     export_csv_params = request.GET.copy()
     export_csv_params["export"] = "csv"
     export_pdf_params = request.GET.copy()
     export_pdf_params["export"] = "pdf"
+
+    rosetta_choices: list[tuple[str, str]] = [
+        ("", "—"),
+        ("0-100", "Percentage (0–100)"),
+        ("0-20", "0–20"),
+        ("gpa", "GPA 4.0"),
+        ("0-10", "0–10"),
+        ("a-f", "Letter A–F (4-pt)"),
+    ]
+    rosetta_col_label = ""
+    for k, lab in rosetta_choices:
+        if k == rosetta_target:
+            rosetta_col_label = lab
+            break
 
     return render(
         request,
@@ -1942,6 +1980,10 @@ def teacher_marks_list(request: HttpRequest):
             "year": year,
             "term": term,
             "evals": evals_list,
+            "mark_rows": mark_rows,
+            "rosetta_target": rosetta_target,
+            "rosetta_column_label": rosetta_col_label,
+            "rosetta_target_choices": rosetta_choices,
             "paginator": paginator,
             "page_obj": evals_page,
             "classrooms": list(classrooms),
@@ -1952,11 +1994,43 @@ def teacher_marks_list(request: HttpRequest):
                 "subject": subject_id or "",
                 "term": term_id or "",
                 "missing": "1" if missing_only else "",
+                "compare": rosetta_target,
             },
             "export_csv_query": export_csv_params.urlencode(),
             "export_pdf_query": export_pdf_params.urlencode(),
         },
     )
+
+
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+def rosetta_grade_preview_api(request: HttpRequest):
+    """JSON helper: see one grade in a target system (used by markbook and integrations)."""
+    if request.method != "GET":
+        return JsonResponse({"ok": False, "error": "method_not_allowed"}, status=405)
+    teacher, error = _get_teacher_or_forbid(request)
+    if error:
+        return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+    try:
+        ev_id = int(request.GET.get("evaluation_id") or 0)
+    except (TypeError, ValueError):
+        return JsonResponse(
+            {"ok": False, "error": "invalid evaluation_id"},
+            status=400,
+        )
+    to_scale = (request.GET.get("to_scale") or "0-100").strip()
+    if to_scale not in get_supported_scales():
+        to_scale = "0-100"
+    try:
+        ev = Evaluation.objects.select_related("school", "teacher").get(pk=ev_id)
+    except Evaluation.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "not_found"}, status=404)
+    if ev.teacher_id != teacher.id:
+        return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+    school = getattr(request, "school", None)
+    if school is not None and ev.school_id is not None and ev.school_id != school.id:
+        return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+    return JsonResponse(view_grade_in_target_system(ev, to_scale))
 
 
 @staff_member_required(login_url=settings.LOGIN_URL)

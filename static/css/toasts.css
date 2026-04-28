@@ -18,6 +18,19 @@
   font-size: 0.875rem;
   animation: toast-in 0.25s ease-out;
 }
+.toast-item:focus-visible,
+.toast-close:focus-visible,
+.toast-undo:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--school-primary, #2563eb) 44%, transparent);
+  outline-offset: 2px;
+}
+.toast-item.is-loading {
+  opacity: 0.9;
+  cursor: progress;
+}
+.toast-item.is-error {
+  border-left: 4px solid var(--admin-content-danger, #dc2626);
+}
 .toast-item.success { background: var(--bs-success, #198754); color: #fff; }
 .toast-item.error { background: var(--bs-danger, #dc3545); color: #fff; }
 .toast-item.info { background: var(--bs-info, #0dcaf0); color: #000; }

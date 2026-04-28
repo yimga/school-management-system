@@ -1,6 +1,10 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block cp_title %}{% trans "Config mutation audit" %} — RunMyCampus{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
+{% endblock %}
 {% block breadcrumbs %}
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
@@ -17,19 +21,16 @@
   {% if feature_control_audit_url %}
   <a class="btn btn-outline-light" href="{{ feature_control_audit_url }}">{% trans "Feature audit" %}</a>
   {% endif %}
-  {% if user.is_superuser and admin_config_mutation_changelist_url %}
-  <a class="btn btn-outline-secondary" href="{{ admin_config_mutation_changelist_url }}">{% trans "Advanced: Admin audit rows (CRUD)" %}</a>
-  {% endif %}
 </div>
 {% endblock %}
 {% block cp_content %}
-<div class="container-fluid py-3" data-page-archetype="operator-report" data-shell-surface="config-mutation-audit-evidence" data-admin-replacement-category="audit_rollback_staging_evidence">
+<div class="container-fluid py-3 ui-premium-surface" data-page-archetype="operator-report" data-shell-surface="config-mutation-audit-evidence" data-cp-evidence-surface="config-mutation-audit" data-rmc-operator-evidence-surface="1" data-admin-replacement-category="audit_rollback_staging_evidence" data-rmc-component-audit="1">
   <h1 class="h4 text-white mb-2">{% trans "Config mutation audit (evidence)" %}</h1>
   <p class="text-white-50 small mb-3">
     {% trans "Read-only view of the latest config mutation log rows. Use Django admin for row-level changes or deep filters." %}
   </p>
   <div class="table-responsive">
-    <table class="table table-sm table-dark table-bordered" aria-label="{% trans 'Config mutation audit' %}">
+    <table class="table table-sm table-dark table-bordered table-family table-sticky-head" aria-label="{% trans 'Config mutation audit' %}">
       <thead>
         <tr>
           <th scope="col">{% trans "When" %}</th>
@@ -54,5 +55,10 @@
       </tbody>
     </table>
   </div>
+  {% if user.is_superuser and admin_config_mutation_changelist_url %}
+  <div class="mt-3 pt-3 border-top border-secondary" data-rmc-evidence-advanced="1">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ admin_config_mutation_changelist_url }}">{% trans "Advanced/Admin: audit log rows" %}</a>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

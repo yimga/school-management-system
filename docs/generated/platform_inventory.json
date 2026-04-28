@@ -1,23 +1,23 @@
 {
   "baseline_counts": {
-    "allow_any": 90,
-    "csrf_exempt": 161,
-    "cursor_execute": 371,
-    "except_exception": 265,
-    "get_solo": 200,
-    "gilead": 1079,
-    "gilead_files": 148,
-    "html_files": 672,
-    "management_commands": 157,
-    "markdown_files": 1030,
-    "migration_files": 704,
-    "print_calls": 926,
-    "python_files": 2482,
-    "site_settings": 1759
+    "allow_any": 91,
+    "csrf_exempt": 227,
+    "cursor_execute": 372,
+    "except_exception": 281,
+    "get_solo": 202,
+    "gilead": 1102,
+    "gilead_files": 149,
+    "html_files": 695,
+    "management_commands": 158,
+    "markdown_files": 1064,
+    "migration_files": 706,
+    "print_calls": 966,
+    "python_files": 2547,
+    "site_settings": 1788
   },
   "doc_drift": {
-    "actual_installed_app_count": 43,
-    "documented_app_count": 43,
+    "actual_installed_app_count": 44,
+    "documented_app_count": 44,
     "is_stale": false,
     "legacy_doc": "docs/ALL_MODULES_COMPLETE_LIST.md"
   },
@@ -33,23 +33,23 @@
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 118196,
-      "lines": 2847,
+      "bytes": 118727,
+      "lines": 2856,
       "path": "apps/api/views_v1.py"
     },
     {
-      "bytes": 117293,
-      "lines": 3069,
+      "bytes": 118228,
+      "lines": 3088,
       "path": "apps/accounts/views.py"
     },
     {
-      "bytes": 114903,
-      "lines": 3100,
+      "bytes": 118203,
+      "lines": 3174,
       "path": "apps/evals/views.py"
     },
     {
-      "bytes": 99441,
-      "lines": 2646,
+      "bytes": 100459,
+      "lines": 2668,
       "path": "apps/siteconfig/views.py"
     },
     {
@@ -63,12 +63,12 @@
       "path": "apps/finance/models.py"
     },
     {
-      "bytes": 85557,
-      "lines": 2165,
+      "bytes": 86146,
+      "lines": 2180,
       "path": "apps/studio_os/views.py"
     },
     {
-      "bytes": 82393,
+      "bytes": 82395,
       "lines": 2062,
       "path": "apps/finance/tasks.py"
     },
@@ -78,8 +78,8 @@
       "path": "apps/siteconfig/models.py"
     },
     {
-      "bytes": 70681,
-      "lines": 1560,
+      "bytes": 71617,
+      "lines": 1580,
       "path": "config/settings.py"
     }
   ],
@@ -591,6 +591,11 @@
     },
     {
       "app": "schools",
+      "command": "ensure_demo_environment",
+      "path": "apps/schools/management/commands/ensure_demo_environment.py"
+    },
+    {
+      "app": "schools",
       "command": "migrate_schools_to_tenants",
       "path": "apps/schools/management/commands/migrate_schools_to_tenants.py"
     },
@@ -903,9 +908,9 @@
     "cursor_execute_apps_config_py_excl_migrations": 32,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 832,
-    "site_settings_refs_apps_py_excl_migrations": 27,
-    "site_settings_refs_apps_py_excl_migrations_tests": 4
+    "print_calls_scripts_py": 872,
+    "site_settings_refs_apps_py_excl_migrations": 40,
+    "site_settings_refs_apps_py_excl_migrations_tests": 6
   },
   "site_settings_fields": [
     {

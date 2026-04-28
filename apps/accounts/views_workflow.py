@@ -496,12 +496,40 @@ def workflow_center(request):
         s["step_index"] = i
         s["total_steps"] = total_steps
 
+    studio_pack_catalog_strip = None
+    try:
+        from apps.marketplace.pack_registry import load_platform_pack_catalog
+
+        studio_pack_catalog_strip = load_platform_pack_catalog()
+    except (
+        AttributeError,
+        ImportError,
+        OSError,
+        TypeError,
+        ValueError,
+    ):
+        studio_pack_catalog_strip = None
+
+    studio_simulation_url = ""
+    try:
+        studio_simulation_url = reverse("studio_os:automation_simulation_engine")
+    except ACCOUNTS_SOFT_FAILURES:
+        pass
+    import_hub_url = ""
+    try:
+        import_hub_url = reverse("accounts:import_hub")
+    except ACCOUNTS_SOFT_FAILURES:
+        pass
+
     ctx = {
         "site": site,
         "active_year": year,
         "active_term": term,
         "steps": steps,
         "workflow_progress": progress,
+        "studio_pack_catalog_strip": studio_pack_catalog_strip,
+        "studio_simulation_url": studio_simulation_url,
+        "import_hub_url": import_hub_url,
         "page_title": _("Workflow Center"),
         "page_subtitle": _(
             "Follow the year lifecycle: setup → onboarding → marks → reports → documents. "

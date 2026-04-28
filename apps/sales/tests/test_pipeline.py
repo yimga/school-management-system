@@ -4,8 +4,11 @@ Manager-host CRM: ``ReservedPublicHostAccessMiddleware`` only allows paths in
 listed or requests are redirected to ``/`` before views run — regression tests below.
 """
 
+from datetime import timedelta
+
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.sales.models import ActivityLog, Lead, PipelineStage
 from apps.accounts.models import User
@@ -54,7 +57,7 @@ class SalesPipelineViewTests(TestCase):
     def test_pipeline_stage_seed_is_idempotent(self):
         """Re-running the migration-style seed must not duplicate rows or explode."""
         before = PipelineStage.objects.count()
-        self.assertGreaterEqual(before, 5)
+        self.assertGreaterEqual(before, 6)
         for key, label, so in [
             ("lead", "Lead", 1),
             ("contacted", "Contacted", 2),
@@ -139,3 +142,49 @@ class SalesPipelineViewTests(TestCase):
         self.assertTrue(
             ActivityLog.objects.filter(lead_id=lead.pk, body="Call notes").exists()
         )
+
+    def test_pipeline_board_shows_last_activity_column(self):
+        st = PipelineStage.objects.get(key="lead")
+        lead = Lead.objects.create(
+            school_name="Riverside Academy",
+            contact_name="Jamie",
+            email="jamie@riverside.test",
+            stage=st,
+        )
+        ActivityLog.objects.create(lead=lead, body="Discovery call")
+        url = reverse("sales:pipeline_board", urlconf=_MANAGER)
+        r = self.client.get(url)
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "Last activity", html=False)
+        self.assertContains(r, "Riverside Academy", html=False)
+
+    def test_decision_stage_sorts_before_onboarded(self):
+        decision = PipelineStage.objects.get(key="decision")
+        onboarded = PipelineStage.objects.get(key="onboarded")
+        self.assertLess(decision.sort_order, onboarded.sort_order)
+
+    def test_kanban_columns_partition_all_visible_leads(self):
+        url = reverse("sales:pipeline_board", urlconf=_MANAGER)
+        r = self.client.get(url)
+        self.assertEqual(r.status_code, 200)
+        leads = list(r.context["leads"])
+        cols = r.context["kanban_columns"]
+        in_columns = sum(len(c["leads"]) for c in cols)
+        self.assertEqual(in_columns, len(leads))
+
+    def test_upcoming_followups_digest_lists_scheduled_leads(self):
+        st = PipelineStage.objects.get(key="lead")
+        lead = Lead.objects.create(
+            school_name="Upcoming Charter",
+            contact_name="Sam",
+            email="sam@upcoming.test",
+            stage=st,
+            next_follow_up=timezone.now() + timedelta(days=2),
+        )
+        url = reverse("sales:pipeline_board", urlconf=_MANAGER)
+        r = self.client.get(url)
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "Upcoming follow-ups", html=False)
+        self.assertContains(r, "Upcoming Charter", html=False)
+        ids = [x.pk for x in r.context["upcoming_followups"]]
+        self.assertIn(lead.pk, ids)

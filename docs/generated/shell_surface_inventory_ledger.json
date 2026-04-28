@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-26T23:29:34.153469+00:00",
+  "generated_at": "2026-04-28T23:00:11.925657+00:00",
   "passed": true,
   "rows": [
     {
@@ -135,6 +135,10 @@
       "summary": "ok"
     },
     {
+      "path": "templates/portal/student_attendance_export.html",
+      "summary": "ok"
+    },
+    {
       "path": "templates/portal_base.html",
       "summary": "ok"
     },
@@ -159,11 +163,19 @@
       "summary": "ok"
     },
     {
+      "path": "templates/siteconfig/curriculum_templates.html",
+      "summary": "ok"
+    },
+    {
       "path": "templates/siteconfig/departments_setup_evidence.html",
       "summary": "ok"
     },
     {
       "path": "templates/siteconfig/entity_catalog_overview.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/grading_scale_bands.html",
       "summary": "ok"
     },
     {
@@ -223,6 +235,6 @@
       "summary": "ok"
     }
   ],
-  "templates_checked": 55,
+  "templates_checked": 58,
   "verify": "verify_shell_surface_inventory"
 }

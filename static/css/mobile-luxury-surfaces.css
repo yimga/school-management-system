@@ -1,0 +1,27 @@
+/**
+ * Mobile luxury surfaces — parent / teacher / marketplace / reports priority.
+ * Complements mobile-tables-forms.css and north-star-touch-targets.css.
+ */
+@media (max-width: 991.98px) {
+  body[data-dashboard-page="parent"] .table-responsive,
+  body[data-dashboard-page="teacher"] .table-responsive,
+  .tenant-app-catalog-wrap .table-responsive,
+  .proof-catalog-grid .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  body[data-dashboard-page="parent"] .parent-dashboard-shell .btn-sm,
+  body[data-dashboard-page="teacher"] .tdm-shell .btn-sm,
+  .tenant-app-catalog-wrap .btn {
+    min-height: 44px;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  body[data-dashboard-page="parent"] .parent-glance-grid,
+  body[data-dashboard-page="teacher"] .tdm-overview-grid {
+    gap: var(--lux-space-2, 0.5rem);
+  }
+}

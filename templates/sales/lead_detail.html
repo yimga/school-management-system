@@ -29,6 +29,17 @@
     </div>
     <button class="btn btn-sm btn-primary mt-2" type="submit">{% trans "Save" %}</button>
   </form>
+  <div class="card border-0 shadow-sm mb-3" data-rmc-sales-followup-automation="1">
+    <div class="card-body py-2">
+      <div class="small text-muted mb-2">{% trans "Quick reminders" %}</div>
+      <form method="post" class="d-flex flex-wrap gap-2">
+        {% csrf_token %}
+        <button class="btn btn-sm btn-outline-primary" type="submit" name="quick_followup_days" value="2">{% trans "Follow up in 2 days" %}</button>
+        <button class="btn btn-sm btn-outline-primary" type="submit" name="quick_followup_days" value="5">{% trans "Follow up in 5 days" %}</button>
+        <button class="btn btn-sm btn-outline-secondary" type="submit" name="quick_followup_days" value="7">{% trans "Follow up next week" %}</button>
+      </form>
+    </div>
+  </div>
   <h2 class="h6">{% trans "Activity" %}</h2>
   <ul class="list-group mb-2">
     {% for a in activities %}

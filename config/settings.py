@@ -153,6 +153,7 @@ INSTALLED_APPS = [
     "apps.reports",
     "apps.siteconfig.apps.SiteconfigConfig",
     "apps.schools",
+    "apps.security.apps.SecurityConfig",
     "apps.schoolops.apps.SchoolOpsConfig",
     "apps.analytics",
     "apps.dashboard.apps.DashboardConfig",
@@ -278,7 +279,9 @@ TEMPLATES = [
                 "apps.siteconfig.context_processors.ai_copilot_settings",  # AI Copilot API key
                 "apps.policies.context_processors.tenant_policy_context",  # tenant_ctx + global_env (Policy Registry)
                 "apps.platform_runtime.context_processors.rum_ingest_context",
+                "apps.platform_runtime.context_processors.demo_sandbox_banner",
                 "apps.platform_runtime.context_processors.shell_contract_context",
+                "apps.platform_runtime.context_processors.ai_operating_layer_context",
             ]
         },
     }
@@ -621,6 +624,20 @@ MARKETING_DEMO_TENANT_URL = derive_marketing_demo_tenant_url(
     TENANT_EXAMPLE_SLUG,
     _multi_tenant_base,
 )
+# Tenant UI: show a non-dismissible demo banner on authenticated portal/backend surfaces.
+RUNMYCAMPUS_DEMO_SANDBOX = os.getenv("RUNMYCAMPUS_DEMO_SANDBOX", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+)
+# Enterprise demo mode: same banner + guided hints; also accept RUNMYCAMPUS_DEMO_MODE or DEMO_MODE.
+RUNMYCAMPUS_DEMO_MODE = os.getenv("RUNMYCAMPUS_DEMO_MODE", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+) or os.getenv("DEMO_MODE", "").strip().lower() in ("1", "true", "yes")
+# Unified flag for templates (sandbox OR explicit demo mode).
+RUNMYCAMPUS_DEMO_ENABLED = RUNMYCAMPUS_DEMO_SANDBOX or RUNMYCAMPUS_DEMO_MODE
 MARKETING_ANALYTICS_SCRIPT_URL = (
     os.getenv("MARKETING_ANALYTICS_SCRIPT_URL") or ""
 ).strip() or ""
@@ -1468,6 +1485,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "rest_framework_simplejwt",
         "apps.accounts",
         "apps.schools",
+        "apps.security.apps.SecurityConfig",
         "apps.siteconfig",
         "apps.runtime_blueprints.apps.RuntimeBlueprintsConfig",  # Proxy-owner for DashboardWidget; required by reports
         "apps.global_registries.apps.GlobalRegistriesConfig",  # Proxy-owner for RegionConfig; required by compliance

@@ -1373,3 +1373,7 @@ class TenantAuditLog(models.Model):
         ordering = ["-changed_at"]
         verbose_name = _("Audit log entry")
         verbose_name_plural = _("Audit log")
+
+
+# North Star SLICE 13 — auxiliary passport models (canonical StudentPassport is defined above)
+from .student_passport_models import StudentPassportMembership, TranscriptVaultItem  # noqa: E402,F401

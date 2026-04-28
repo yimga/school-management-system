@@ -104,6 +104,20 @@ def get_studio_preview_context(mode: str, request: Any = None) -> dict[str, Any]
         out["dependency_warnings"] = []
         return out
 
+    if mode_key == "automation":
+        out["workflow_simulation_hint"] = (
+            "Use Workflow center simulations before activating changes; "
+            "review staging vs production package stages in Automation Studio."
+        )
+        out["staging_vs_production_note"] = (
+            "Installed packages may be sandbox or production — promote before treating workflows as live."
+        )
+        out["publish_rollback_readiness_note"] = (
+            "Publish when staged activation checks pass; rollback requires governed APIs or session snapshots."
+        )
+        out["dependency_warnings"] = []
+        return out
+
     if mode_key != "launch":
         return out
     school = getattr(request, "school", None) if request else None
@@ -513,6 +527,13 @@ def get_studio_command_palette_entries(request) -> list[dict[str, Any]]:
                 "label": "Launch Studio: preview by role",
                 "url": f"{launch_base}?pane=role_preview",
                 "keywords": "preview role portal parent teacher launch",
+            }
+        )
+        entries.append(
+            {
+                "label": "Launch Studio: school infrastructure",
+                "url": f"{launch_base}?pane=infrastructure",
+                "keywords": "school infrastructure blueprint template AWS studio launch catalog pack",
             }
         )
     except NoReverseMatch:

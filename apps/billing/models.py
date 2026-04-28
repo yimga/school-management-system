@@ -336,6 +336,48 @@ class RevenueSharePayout(models.Model):
         return f"{self.payee_name} {self.net_amount}"
 
 
+class StripePlanPrice(models.Model):
+    """
+    Maps a tenant ``Plan.slug`` (plan_code) to a Stripe Price id for Checkout.
+    Managed in platform admin — never hardcode price ids in views.
+    """
+
+    class BillingCycle(models.TextChoices):
+        MONTHLY = "MONTHLY", "Monthly"
+        ANNUAL = "ANNUAL", "Annual"
+
+    plan_code = models.SlugField(
+        max_length=80,
+        db_index=True,
+        help_text="Matches siteconfig.Plan.slug",
+    )
+    stripe_price_id = models.CharField(max_length=120)
+    billing_cycle = models.CharField(
+        max_length=12,
+        choices=BillingCycle.choices,
+        default=BillingCycle.MONTHLY,
+    )
+    currency = models.CharField(max_length=3, default="USD")
+    is_active = models.BooleanField(default=True, db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["plan_code", "billing_cycle", "currency"]
+        verbose_name = "Stripe plan price"
+        verbose_name_plural = "Stripe plan prices"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["plan_code", "billing_cycle", "currency"],
+                name="billing_stripeplanprice_plan_cycle_currency_uniq",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.plan_code} → {self.stripe_price_id}"
+
+
 class Quote(models.Model):
     """
     Commercial platform (29.10): quote for plan/contract before subscription.

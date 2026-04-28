@@ -613,6 +613,7 @@ def apply_processor_snapshot(
     happened_at: datetime | None = None,
     payload: dict | None = None,
     message: str = "",
+    processor_source_ref: str = "",
 ):
     with transaction.atomic():
         account, subscription, _ = ensure_subscription_for_school(school)
@@ -707,7 +708,191 @@ def apply_processor_snapshot(
             happened_at=happened_at,
         )
         sync_billing_incident_state(subscription)
+
+        et = str(event_type or "").strip().lower()
+        if billed_amount is not None:
+            try:
+                amt = Decimal(str(billed_amount))
+            except (TypeError, ValueError, ArithmeticError):
+                amt = Decimal("0")
+            if amt > 0 and et in (
+                "invoice.paid",
+                "invoice.payment_succeeded",
+                "checkout.session.completed",
+            ):
+                src_ref = str(processor_source_ref or "").strip()
+                ref = f"{processor_code}:{et}:{src_ref or external_subscription_ref or account.pk}"
+                if not PlatformLedgerEntry.objects.filter(
+                    reference=ref, source="stripe_webhook"
+                ).exists():
+                    record_platform_charge(
+                        school=school,
+                        amount=amt,
+                        description=f"Stripe-compatible payment ({event_type})",
+                        reference=ref,
+                        source="stripe_webhook",
+                        source_ref=src_ref or str(external_subscription_ref or ""),
+                        metadata={"event_type": event_type, "processor": processor_code},
+                    )
+
         return event, account, subscription
+
+
+_MARKETPLACE_PAYMENT_EVENTS = frozenset(
+    {
+        "checkout.session.completed",
+        "invoice.paid",
+        "invoice.payment_succeeded",
+    }
+)
+
+
+def finalize_marketplace_addon_payment(
+    school,
+    snapshot: dict | None,
+    *,
+    processor_code: str,
+):
+    """
+    After a billing webhook succeeds for Stripe Checkout metadata including
+    marketplace_app_id, persist publisher revenue share intent and entitled module SKUs.
+
+    Safe to call repeatedly for the same Stripe session/idempotency markers.
+    """
+    if school is None or not snapshot:
+        return None
+
+    evt = str(snapshot.get("event_type") or "").strip().lower()
+    if evt not in _MARKETPLACE_PAYMENT_EVENTS:
+        return None
+
+    raw_mid = snapshot.get("marketplace_app_id")
+    if raw_mid is None:
+        payload = snapshot.get("payload") if isinstance(snapshot.get("payload"), dict) else {}
+        obj = payload.get("data") if isinstance(payload.get("data"), dict) else {}
+        nested_obj = obj.get("object") if isinstance(obj.get("object"), dict) else {}
+        nested_meta = (
+            nested_obj.get("metadata") if isinstance(nested_obj.get("metadata"), dict) else {}
+        )
+        raw_mid = nested_meta.get("marketplace_app_id")
+
+    session_ref = str(snapshot.get("processor_source_ref") or "").strip()
+
+    try:
+        app_pk = int(raw_mid)
+    except (TypeError, ValueError):
+        return None
+
+    from apps.marketplace.manifest_schema import normalize_platform_manifest
+    from apps.marketplace.models import MarketplaceApp
+
+    try:
+        app = MarketplaceApp.objects.select_related("publisher", "listing").get(
+            pk=app_pk, is_active=True
+        )
+    except MarketplaceApp.DoesNotExist:
+        return None
+
+    listing = getattr(app, "listing", None)
+    pub = getattr(app, "publisher", None)
+
+    publisher_slug = getattr(pub, "slug", "") if pub else ""
+    publisher_name = getattr(pub, "name", "") if pub else ""
+    rev_pct = Decimal("0")
+    if listing is not None:
+        rev_pct = Decimal(str(listing.revenue_share_percent or "0")).quantize(Decimal("0.01"))
+
+    pub_slug_manifest = publisher_slug or ""
+    merged_manifest = normalize_platform_manifest(
+        dict(app.manifest or {}),
+        app_slug=app.slug,
+        app_name=app.name,
+        version=app.version or "",
+        publisher_slug=pub_slug_manifest,
+    )
+    sku_code = str(merged_manifest.get("billing_sku") or "").strip()
+
+    amt_raw = snapshot.get("billed_amount")
+    amt = Decimal("0")
+    try:
+        if amt_raw is not None:
+            amt = Decimal(str(amt_raw)).quantize(Decimal("0.01"))
+    except (ArithmeticError, TypeError, ValueError):
+        amt = Decimal("0")
+
+    entitlement_codes: list[str] = []
+    if sku_code:
+        entitlement_codes.append(sku_code.strip().lower())
+    for rf in merged_manifest.get("required_features") or []:
+        code = str(rf).strip().lower()
+        if code and code not in entitlement_codes:
+            entitlement_codes.append(code)
+
+    addon_changed = False
+    with transaction.atomic():
+        locked = type(school).objects.select_for_update().get(pk=school.pk)
+        merged = [a for a in (list(getattr(locked, "addons", None) or [])) if a]
+        for c in entitlement_codes:
+            if c not in merged:
+                merged.append(c)
+                addon_changed = True
+        if addon_changed:
+            locked.addons = merged
+            locked.save(update_fields=["addons", "updated_at"])
+
+    curr = str(snapshot.get("currency_code") or "").strip().upper()
+    if len(curr) != 3:
+        acct_row = BillingAccount.objects.filter(school_id=school.pk).first()
+        curr = str(getattr(acct_row, "currency_code", None) or "USD").strip().upper()[:3]
+
+    publisher_share_recorded = False
+    if rev_pct > 0 and pub and amt > 0 and session_ref:
+        share = (amt * (rev_pct / Decimal("100"))).quantize(Decimal("0.01"))
+        if share > 0:
+            pcode = str(processor_code).strip()
+            payout_dup = False
+            for rp in RevenueSharePayout.objects.filter(
+                processor_code=pcode,
+                source_school_id=school.pk,
+            ).order_by("-pk")[:80]:
+                meta = rp.metadata if isinstance(rp.metadata, dict) else {}
+                if (
+                    str(meta.get("marketplace_addon_session_ref") or "") == session_ref
+                    and str(meta.get("marketplace_app_id") or "") == str(app.pk)
+                ):
+                    payout_dup = True
+                    break
+            if not payout_dup:
+                pname = publisher_name or publisher_slug or (
+                    getattr(pub, "name", "") if pub else ""
+                )
+                pref = publisher_slug or (str(pub.pk) if pub else "")
+                RevenueSharePayout.objects.create(
+                    source_school=school,
+                    payout_scope=RevenueSharePayout.Scope.APP_PUBLISHER,
+                    status=RevenueSharePayout.Status.DRAFT,
+                    payee_name=str(pname or "Publisher")[:160],
+                    payee_ref=str(pref or "unknown")[:120],
+                    processor_code=pcode[:32],
+                    gross_amount=amt,
+                    fee_amount=Decimal("0.00"),
+                    net_amount=share,
+                    currency_code=curr,
+                    metadata={
+                        "marketplace_addon_session_ref": session_ref,
+                        "marketplace_app_id": str(app.pk),
+                        "revenue_share_percent": str(rev_pct),
+                        "billing_sku": sku_code,
+                        "publisher_slug": publisher_slug,
+                    },
+                )
+                publisher_share_recorded = True
+
+    return {
+        "status": "applied",
+        "addon_codes_updated": entitlement_codes if addon_changed else [],
+        "publisher_share_recorded": publisher_share_recorded,
+    }
 
 
 def run_platform_billing_lifecycle(

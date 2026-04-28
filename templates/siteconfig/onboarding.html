@@ -9,10 +9,29 @@
 <div class="container py-3" style="max-width: 56rem;" data-page-archetype="operator-report" data-shell-surface="school-activation-onboarding" data-rmc-onboarding="school-activation" data-rmc-onboarding-page="1">
   <h1 class="h3 mb-2">{% trans "School activation checklist" %}</h1>
   <p class="text-muted small mb-3">{% trans "Items below come from this tenant’s data. Links open real setup or evidence pages—no automated completion without underlying records." %}</p>
+  {% if onboarding.persisted_last_step %}
+  <p class="small text-muted mb-2" data-rmc-onboarding-last-step="1">{% blocktrans with key=onboarding.persisted_last_step %}Last recorded step: {{ key }}{% endblocktrans %}</p>
+  {% endif %}
 
   {% if not school %}
   <div class="alert alert-warning">{% trans "No tenant school on this request. Open the checklist from a school (tenant) host." %}</div>
   {% else %}
+  {% if misconfiguration_flags %}
+  <div class="alert alert-warning border-warning mb-3" role="alert">
+    <strong>{% trans "Misconfiguration / risk signals" %}:</strong>
+    <ul class="mb-0 mt-2">
+      {% if "setup_needed" in misconfiguration_flags %}
+      <li>{% trans "Activation is still early — complete academic structure, people, and communications setup." %}</li>
+      {% endif %}
+      {% if "at_risk" in misconfiguration_flags %}
+      <li>{% trans "Usage depth or reporting cadence looks thin — review schedules, enrollment depth, and staff coverage." %}</li>
+      {% endif %}
+      {% if "low_progress" in misconfiguration_flags %}
+      <li>{% trans "Checklist progress is below half — use Next action and links below to close gaps." %}</li>
+      {% endif %}
+    </ul>
+  </div>
+  {% endif %}
   <div class="d-flex flex-wrap align-items-end gap-3 mb-3">
     <div class="border rounded-2 p-2 bg-body-secondary small">
       <div class="text-uppercase text-muted" style="font-size:0.65rem;">{% trans "Progress" %}</div>
@@ -31,21 +50,36 @@
     {% endif %}
   </div>
 
-  <ul class="list-group list-group-flush border rounded" data-rmc-onboarding-steps="1">
+  <ul class="list-group list-group-flush border rounded" data-rmc-onboarding-steps="1" data-rmc-onboarding-engine="1">
     {% for row in onboarding.steps %}
     <li class="list-group-item d-flex flex-wrap align-items-center justify-content-between gap-2">
       <div>
         <span class="fw-medium">{{ row.label }}</span>
         {% if row.key %}<span class="text-muted small">({{ row.key }})</span>{% endif %}
+        {% if row.key %}
+        <div class="mt-1">
+          <a class="small" href="{% url 'siteconfig:onboarding_step' step_key=row.key %}">{% trans "Step page" %}</a>
+        </div>
+        {% endif %}
       </div>
-      <div class="d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center flex-wrap gap-2">
         {% if row.done %}
         <span class="badge text-bg-success">{% trans "Done" %}</span>
+        {% if row.manually_completed %}
+        <span class="badge text-bg-info text-dark">{% trans "Recorded" %}</span>
+        {% endif %}
         {% else %}
         <span class="badge text-bg-warning text-dark">{% trans "Pending" %}</span>
         {% endif %}
         {% if row.link %}
         <a class="btn btn-sm btn-outline-secondary" href="{{ row.link }}">{% trans "Open" %}</a>
+        {% endif %}
+        {% if not row.done and row.key %}
+        <form method="post" action="{% url 'siteconfig:onboarding_step_complete' %}" class="d-inline" data-rmc-onboarding-mark="1">
+          {% csrf_token %}
+          <input type="hidden" name="step_key" value="{{ row.key }}">
+          <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Record done" %}</button>
+        </form>
         {% endif %}
       </div>
     </li>

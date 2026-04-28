@@ -1,0 +1,27 @@
+{% load i18n %}
+{% if rmc_ai_system_health_insight or rmc_ai_system_onboarding_insight or rmc_ai_anomaly_nudge %}
+<section class="card border-0 shadow-sm mb-3" data-rmc-ai-system-layer="1" aria-label="{% trans 'System intelligence suggestions' %}">
+  <div class="card-body py-3">
+    <h2 class="h6 mb-2">{% trans "Intelligence suggestions (draft)" %}</h2>
+    <p class="small text-muted mb-2">{% trans "Rules-based when AI is disabled; approve before acting." %}</p>
+    {% if rmc_ai_system_health_insight %}
+    <div class="small mb-2">
+      <div class="fw-semibold">{{ rmc_ai_system_health_insight.title }}</div>
+      <div class="text-body-secondary">{{ rmc_ai_system_health_insight.explanation|truncatewords:40 }}</div>
+    </div>
+    {% endif %}
+    {% if rmc_ai_system_onboarding_insight %}
+    <div class="small">
+      <div class="fw-semibold">{{ rmc_ai_system_onboarding_insight.title }}</div>
+      <div class="text-body-secondary">{{ rmc_ai_system_onboarding_insight.explanation|truncatewords:40 }}</div>
+    </div>
+    {% endif %}
+    {% if rmc_ai_anomaly_nudge %}
+    <div class="small mt-2 pt-2 border-top" data-rmc-ai-anomaly-nudge="1">
+      <div class="fw-semibold">{{ rmc_ai_anomaly_nudge.title }}</div>
+      <div class="text-body-secondary">{{ rmc_ai_anomaly_nudge.explanation|truncatewords:48 }}</div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}

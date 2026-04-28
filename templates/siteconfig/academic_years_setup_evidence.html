@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
 {% endblock %}
 {% block content %}
-<div class="container py-3 cp-evidence-page" style="max-width: 56rem;" data-page-archetype="operator-report" data-shell-surface="academic-years-setup-evidence" data-cp-evidence-surface="academic-years-setup" data-rmc-operator-evidence-surface="1" data-admin-replacement-category="academic_setup_evidence" data-rmc-report-bulk-evidence="1084">
+<div class="container py-3 cp-evidence-page ui-premium-surface" style="max-width: 56rem;" data-page-archetype="operator-report" data-shell-surface="academic-years-setup-evidence" data-cp-evidence-surface="academic-years-setup" data-rmc-operator-evidence-surface="1" data-admin-replacement-category="academic_setup_evidence" data-rmc-report-bulk-evidence="1084" data-rmc-component-audit="1">
   <h1 class="h3 mb-2">{% trans "Academic years (read-only)" %}</h1>
   <p class="text-muted small mb-2">
     {% trans "Tenant academic years with start/end dates and lock flags. Changes belong in academic setup workflows or Django admin; this page is evidence only." %}
@@ -44,7 +44,7 @@
     {% endif %}
   </div>
   <div class="table-responsive">
-    <table class="table table-sm align-middle" aria-label="{% trans 'Academic years' %}">
+    <table class="table table-sm align-middle table-family table-sticky-head" aria-label="{% trans 'Academic years' %}">
       <thead>
         <tr>
           <th>{% trans "Name" %}</th>

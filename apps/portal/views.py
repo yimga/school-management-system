@@ -63,6 +63,10 @@ from .views_parent import (
     _whatsapp_invite_link,  # noqa: F401
     _parent_workflow_link,  # noqa: F401
 )
+from .views_attendance_export import (
+    student_attendance_export,  # noqa: F401
+    student_attendance_export_csv,  # noqa: F401
+)
 from .views_teacher import (
     teacher_feed,  # noqa: F401
     teacher_dashboard_alias,  # noqa: F401

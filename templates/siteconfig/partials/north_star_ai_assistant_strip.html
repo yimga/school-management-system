@@ -1,0 +1,117 @@
+{% load i18n static %}
+<div class="card border-0 shadow-sm mb-3" id="nsr-{{ strip_id }}" data-rmc-ai-assistant="1" data-rmc-northstar-slice="11">
+  {% csrf_token %}
+  <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <strong class="small mb-0">{% trans "AI drafts (North Star)" %}</strong>
+    <span class="badge text-bg-secondary small">{% trans "Review required before any action" %}</span>
+  </div>
+  <div class="card-body small">
+    {% if rmc_ai_governance %}
+    <p class="text-muted mb-2 small" data-rmc-ai-governance-banner="1">
+      {% if rmc_ai_governance.effective_ai_enabled %}
+        {% trans "AI operational layer: enabled for this tenant (drafts still require your review)." %}
+      {% else %}
+        {% trans "AI operational layer: off (enable RUNMYCAMPUS_AI_ENABLED and tenant policy in School settings if allowed)." %}
+      {% endif %}
+      {% if rmc_ai_governance.external_network_effective %}
+        <span class="badge text-bg-warning ms-1">{% trans "External providers" %}</span>
+      {% else %}
+        <span class="badge text-bg-secondary ms-1">{% trans "Local / rules first" %}</span>
+      {% endif %}
+    </p>
+    {% endif %}
+    <p class="text-muted mb-2">{% trans "Generates draft text only. Nothing is sent or saved until you approve and use your normal workflows." %}</p>
+    <div class="d-flex flex-wrap gap-2 mb-2" data-rmc-ai-assistant-actions="1">
+      <button type="button" class="btn btn-sm btn-outline-primary" data-ns-kind="school_insights">{% trans "Suggest improvements" %}</button>
+      <button type="button" class="btn btn-sm btn-outline-primary" data-ns-kind="next_actions">{% trans "Suggest next actions" %}</button>
+      {% if assistant_show_report_summary %}
+      <button type="button" class="btn btn-sm btn-outline-secondary" data-ns-kind="report_summary">{% trans "Generate report summary" %}</button>
+      {% endif %}
+      {% if assistant_show_parent_message %}
+      <button type="button" class="btn btn-sm btn-outline-secondary" data-ns-kind="parent_message">{% trans "Generate parent message" %}</button>
+      {% endif %}
+    </div>
+    <details class="mb-2 small">
+      <summary class="fw-semibold text-body-secondary" style="cursor:pointer;">{% trans "Operational use cases (CCC, reports, policy, workflows, support)" %}</summary>
+      <div class="d-flex flex-wrap gap-2 mt-2" data-rmc-ai-operational-actions="1">
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-ns-kind="config_copilot">{% trans "Configuration copilot" %}</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-ns-kind="report_comment">{% trans "Report comment" %}</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-ns-kind="policy_assistant">{% trans "Policy assistant" %}</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-ns-kind="workflow_builder">{% trans "Workflow builder" %}</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-ns-kind="support_knowledge">{% trans "Support hints" %}</button>
+      </div>
+    </details>
+    <div class="form-check mb-2">
+      <input class="form-check-input" type="checkbox" value="1" id="northstar-ack-{{ strip_id }}">
+      <label class="form-check-label" for="northstar-ack-{{ strip_id }}">{% trans "I reviewed this draft; I will edit before using it in a real workflow." %}</label>
+    </div>
+    <label for="northstar-draft-{{ strip_id }}" class="visually-hidden">{% trans "AI draft output" %}</label>
+    <textarea class="form-control form-control-sm font-monospace" readonly rows="4" id="northstar-draft-{{ strip_id }}" placeholder="{% trans 'Draft will appear here.' %}" data-rmc-ai-draft-out="1" aria-describedby="northstar-ai-status-{{ strip_id }}"></textarea>
+    {% if assistant_letter_body_id %}
+    <button type="button" class="btn btn-sm btn-primary mt-2" id="northstar-insert-{{ strip_id }}" disabled data-target-textarea="{{ assistant_letter_body_id }}">{% trans "Insert into letter body" %}</button>
+    {% endif %}
+    <p class="text-muted mt-2 mb-0 small" id="northstar-ai-status-{{ strip_id }}" role="status"></p>
+  </div>
+  <script>
+  (function() {
+    var stripId = "{{ strip_id|escapejs }}";
+    var apiUrl = "{{ northstar_ai_draft_url|escapejs }}";
+    var root = document.getElementById("nsr-" + stripId);
+    if (!root || !apiUrl) return;
+    var out = document.getElementById("northstar-draft-" + stripId);
+    var st = document.getElementById("northstar-ai-status-" + stripId);
+    var ack = document.getElementById("northstar-ack-" + stripId);
+    var ins = document.getElementById("northstar-insert-" + stripId);
+    function setStatus(msg) { if (st) st.textContent = msg || ""; }
+    function getCsrf() {
+      var m = document.querySelector('#nsr-' + stripId + ' input[name="csrfmiddlewaretoken"]');
+      return m ? m.value : "";
+    }
+    function setInsertEnabled() {
+      if (!ins || !ack) return;
+      ins.disabled = !(ack.checked && out && out.value.trim().length > 0);
+    }
+    if (ack) ack.addEventListener("change", setInsertEnabled);
+    if (out) out.addEventListener("input", setInsertEnabled);
+    root.querySelectorAll("[data-ns-kind]").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        var kind = btn.getAttribute("data-ns-kind");
+        var payload = { kind: kind, context: {} };
+        setStatus("{% filter escapejs %}{% trans 'Requesting draft…' %}{% endfilter %}");
+        if (out) out.value = "";
+        fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCsrf(),
+            "X-Requested-With": "XMLHttpRequest"
+          },
+          body: JSON.stringify(payload),
+          credentials: "same-origin"
+        }).then(function(r) { return r.json().then(function(j) { return { ok: r.ok, body: j }; }); })
+        .then(function(res) {
+          if (!res.ok || !res.body.ok) {
+            setStatus(res.body.error || "{% filter escapejs %}{% trans 'Draft request failed.' %}{% endfilter %}");
+            return;
+          }
+          if (out) out.value = res.body.draft_text || "";
+          setInsertEnabled();
+          setStatus("{% filter escapejs %}{% trans 'Draft ready — review before use.' %}{% endfilter %}");
+        }).catch(function() {
+          setStatus("{% filter escapejs %}{% trans 'Network error.' %}{% endfilter %}");
+        });
+      });
+    });
+    if (ins) {
+      ins.addEventListener("click", function() {
+        var tid = ins.getAttribute("data-target-textarea");
+        var ta = tid ? document.getElementById(tid) : null;
+        if (ta && out) {
+          ta.value = (ta.value ? ta.value + "\n\n" : "") + out.value;
+          ta.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+      });
+    }
+  })();
+  </script>
+</div>

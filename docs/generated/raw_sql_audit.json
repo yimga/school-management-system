@@ -1,0 +1,850 @@
+{
+  "allowlist_path": "scripts/allowlists/raw_sql_allowlist.json",
+  "generated_at": "2026-04-28T22:36:05.816414+00:00",
+  "hits": [
+    {
+      "classification": "migration_safe",
+      "file": "apps/academics/migrations/0003_classroom_academic_year_backfill.py",
+      "line": "9",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/academics/migrations/0004_classroom_academic_year_repair.py",
+      "line": "10",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "line": "30",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "line": "51",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/academics/migrations/0031_incident_school_tenant_scope.py",
+      "line": "34",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/academics/migrations/0031_incident_school_tenant_scope.py",
+      "line": "56",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/academics/migrations/0038_rls_policy_default_deny.py",
+      "line": "38",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/academics/migrations/0038_rls_policy_default_deny.py",
+      "line": "55",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/academics/migrations/0042_materialize_extracted_runtime_models.py",
+      "line": "10",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/academics/migrations/0042_materialize_extracted_runtime_models.py",
+      "line": "67",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/accounts/management/commands/seed_render_users.py",
+      "line": "47",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/accounts/management/commands/seed_render_users.py",
+      "line": "101",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/analytics/migrations/0014_add_ml_model_and_risk_model_version.py",
+      "line": "19",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/automation/migrations/0002_automationapprovalqueue_schema_name_and_more.py",
+      "line": "12",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/automation/migrations/0004_migrationrun_rollback_snapshot_rolled_back.py",
+      "line": "10",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/automation/migrations/0005_migrationrun_legacy_snapshot.py",
+      "line": "9",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/communication/migrations/0009_alertrule_school_announcement_school_and_more.py",
+      "line": "337",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/communication/migrations/0009_alertrule_school_announcement_school_and_more.py",
+      "line": "361",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/communication/migrations/0009_alertrule_school_announcement_school_and_more.py",
+      "line": "385",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/communication/migrations/0014_rls_policy_default_deny.py",
+      "line": "33",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/communication/migrations/0014_rls_policy_default_deny.py",
+      "line": "50",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/compliance/management_commands.py",
+      "line": "112",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/customers/migrations/0003_ensure_gilead_tenant_domain.py",
+      "line": "57",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/customers/migrations/0004_world_engine.py",
+      "line": "10",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/customers/migrations/0004_world_engine.py",
+      "line": "16",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/evals/migrations/0003_alter_assessmentweights_unique_together_and_more.py",
+      "line": "13",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/evals/migrations/0003_alter_assessmentweights_unique_together_and_more.py",
+      "line": "53",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/evals/migrations/0004_ensure_evaluation_component_columns.py",
+      "line": "11",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/evals/migrations/0019_remove_gradeapprovalrequest_deadline_at_and_more.py",
+      "line": "26",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/evals/migrations/0020_remove_gradeapprovalrequest_deadline_at_and_more.py",
+      "line": "23",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/evals/migrations/0021_remove_gradeapprovalrequest_deadline_at_and_more.py",
+      "line": "24",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/evals/migrations/0024_enable_rls_postgresql.py",
+      "line": "18",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/evals/migrations/0024_enable_rls_postgresql.py",
+      "line": "39",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/evals/migrations/0027_rls_policy_default_deny.py",
+      "line": "26",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/evals/migrations/0027_rls_policy_default_deny.py",
+      "line": "44",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/finance/migrations/0024_alter_payment_options_and_more.py",
+      "line": "19",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/finance/migrations/0024_alter_payment_options_and_more.py",
+      "line": "53",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/finance/migrations/0024_alter_payment_options_and_more.py",
+      "line": "86",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/finance/migrations/0025_remove_payment_finance_pay_status_05a375_idx_and_more.py",
+      "line": "17",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/finance/migrations/0026_remove_payment_finance_pay_status_05a375_idx_and_more.py",
+      "line": "18",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/finance/migrations/0027_invoice_payment_code.py",
+      "line": "16",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/finance/migrations/0027_invoice_payment_code.py",
+      "line": "51",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/finance/migrations/0027_invoice_payment_code.py",
+      "line": "77",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/finance/migrations/0028_payment_reminder_multiple_days.py",
+      "line": "9",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/finance/migrations/0038_enable_rls_postgresql.py",
+      "line": "14",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/finance/migrations/0038_enable_rls_postgresql.py",
+      "line": "35",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/finance/migrations/0046_complianceprofile_vat_report_currency_idempotent.py",
+      "line": "23",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/finance/migrations/0047_rls_policy_default_deny.py",
+      "line": "22",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/finance/migrations/0047_rls_policy_default_deny.py",
+      "line": "40",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/people/management/commands/attach_audit_triggers.py",
+      "line": "91",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/people/management/commands/attach_audit_triggers.py",
+      "line": "151",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/people/management/commands/revoke_audit_log_permissions.py",
+      "line": "96",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/people/migrations/0026_enable_rls_postgresql.py",
+      "line": "13",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/people/migrations/0026_enable_rls_postgresql.py",
+      "line": "34",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/people/migrations/0037_audit_triggers_tenant_schema.py",
+      "line": "26",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/people/migrations/0037_audit_triggers_tenant_schema.py",
+      "line": "89",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/people/migrations/0038_rls_policy_default_deny.py",
+      "line": "21",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/people/migrations/0038_rls_policy_default_deny.py",
+      "line": "38",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/people/migrations/0041_fix_audit_trigger_insert_old_values.py",
+      "line": "11",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/people/migrations/0042_fix_audit_trigger_full_row.py",
+      "line": "11",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/people/migrations/0043_fix_audit_trigger_changed_by_id_column.py",
+      "line": "11",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/support/raw_sql_lint_fixtures.py",
+      "line": "38",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "62",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "873",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "876",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "879",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "892",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "905",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "909",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "954",
+      "pattern": "cursor_execute"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "967",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
+      "line": "991",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/portal/migrations/0021_kb_regional_metadata.py",
+      "line": "11",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/portal/migrations/0023_portal_feature_item_school_tenant_upload.py",
+      "line": "14",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/portal/migrations/0024_kbcategory_target_roles.py",
+      "line": "11",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/portal/migrations/0025_kbarticle_target_roles.py",
+      "line": "11",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/portal/tests/test_phase1_1_optimization.py",
+      "line": "317",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/reports/migrations/0009_enable_rls_postgresql.py",
+      "line": "11",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/reports/migrations/0009_enable_rls_postgresql.py",
+      "line": "30",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/reports/migrations/0012_rls_policy_default_deny.py",
+      "line": "22",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/reports/migrations/0012_rls_policy_default_deny.py",
+      "line": "37",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/reports/migrations/0019_tenant_report_schedule_rls_postgresql.py",
+      "line": "21",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/reports/migrations/0019_tenant_report_schedule_rls_postgresql.py",
+      "line": "37",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/requests/migrations/0002_accessrequest_schema_name_accessrequest_school.py",
+      "line": "11",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schoolops/migrations/0002_materialize_tenant_tables.py",
+      "line": "10",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schoolops/migrations/0002_materialize_tenant_tables.py",
+      "line": "67",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/schools/management/commands/check_tenant_runtime.py",
+      "line": "16",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0002_enable_rls_postgresql.py",
+      "line": "11",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0002_enable_rls_postgresql.py",
+      "line": "34",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0015_add_school_wallpaper_url.py",
+      "line": "10",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0016_add_school_compliance_region.py",
+      "line": "10",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0017_add_hierarchy_campus_quota_usage.py",
+      "line": "10",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0018_school_trial_end_date.py",
+      "line": "9",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0020_add_school_theme_pack.py",
+      "line": "11",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0023_world_engine.py",
+      "line": "14",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0024_world_engine_phase2.py",
+      "line": "28",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0025_add_school_type.py",
+      "line": "22",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0026_rls_policy_default_deny.py",
+      "line": "22",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0026_rls_policy_default_deny.py",
+      "line": "37",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0027_school_country_code_school_education_levels_and_more.py",
+      "line": "54",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0028_add_default_workflow_dashboard_slugs.py",
+      "line": "11",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/schools/repositories/health_repository.py",
+      "line": "98",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/schools/repositories/health_repository.py",
+      "line": "202",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/schools/repositories/health_repository.py",
+      "line": "248",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/schools/repositories/rls_context_repository.py",
+      "line": "13",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/schools/repositories/rls_context_repository.py",
+      "line": "19",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/schools/repositories/rls_context_repository.py",
+      "line": "25",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/schools/repositories/rls_context_repository.py",
+      "line": "31",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/schools/repositories/rls_repository.py",
+      "line": "74",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/schools/tests/test_tenant_isolation_rls_mode.py",
+      "line": "42",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0045_remove_sitesettings_preview_banner_text_and_more.py",
+      "line": "17",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0046_remove_sitesettings_preview_banner_text_and_more.py",
+      "line": "15",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0048_remove_sitesettings_preview_banner_text_and_more.py",
+      "line": "16",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0083_enable_rls_postgresql.py",
+      "line": "11",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0083_enable_rls_postgresql.py",
+      "line": "32",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0089_enable_rls_feature_toggle_state.py",
+      "line": "14",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0089_enable_rls_feature_toggle_state.py",
+      "line": "42",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0118_world_engine_phase2.py",
+      "line": "23",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0122_regionalaiconfig_preferred_model_id.py",
+      "line": "9",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0123_enable_pgvector_extension.py",
+      "line": "11",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0125_add_admission_number_strategy_and_template.py",
+      "line": "14",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0129_rls_policy_default_deny.py",
+      "line": "14",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0129_rls_policy_default_deny.py",
+      "line": "42",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0137_add_meta_description.py",
+      "line": "10",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0137_add_meta_description.py",
+      "line": "17",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0137_add_meta_description.py",
+      "line": "29",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0137_add_meta_description.py",
+      "line": "35",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0140_add_control_plane_pinned_items.py",
+      "line": "36",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0140_add_control_plane_pinned_items.py",
+      "line": "41",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0140_add_control_plane_pinned_items.py",
+      "line": "56",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0140_add_control_plane_pinned_items.py",
+      "line": "61",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0141_globalsupportticket_assigned_to.py",
+      "line": "34",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0141_globalsupportticket_assigned_to.py",
+      "line": "41",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0141_globalsupportticket_assigned_to.py",
+      "line": "57",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0141_globalsupportticket_assigned_to.py",
+      "line": "62",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0167_rename_globalsupportticketreply_index.py",
+      "line": "16",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0167_rename_globalsupportticketreply_index.py",
+      "line": "23",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/siteconfig/repositories/database_recovery_repository.py",
+      "line": "69",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/siteconfig/repositories/rls_session_repository.py",
+      "line": "28",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/siteconfig/sitesettings_slim_contract.py",
+      "line": "151",
+      "pattern": "connection_cursor"
+    }
+  ],
+  "schema_version": 1,
+  "totals": {
+    "hits": 140
+  }
+}

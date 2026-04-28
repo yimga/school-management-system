@@ -1,0 +1,34 @@
+{
+  "template_key": "multi_campus_group",
+  "display_name": "Multi-campus group",
+  "description": "Group operator stack: governance studio, finance roll-ups, compliance operators, and coordinated reporting across campuses.",
+  "school_type": "MULTI_CAMPUS_GROUP",
+  "version": "1.0.0",
+  "previous_version_ref": null,
+  "workflow_pack_keys": [
+    "enterprise_governance_studio",
+    "report_publishing",
+    "parent_communication",
+    "onboarding_academic_year"
+  ],
+  "dashboard_pack_keys": [
+    "admin_command_center",
+    "compliance_operator",
+    "finance_overview",
+    "teacher_workspace"
+  ],
+  "theme_pack_keys": ["design_tokens_default"],
+  "policies": [
+    "group_roll_up_security",
+    "campus_isolation_with_group_analytics",
+    "central_policy_bundle_promotion"
+  ],
+  "required_apps": ["compliance", "reports", "finance", "studio_os"],
+  "capabilities": {
+    "tenant_safe_apply": false,
+    "rollback_supported": false,
+    "preview_diff_supported": true,
+    "validation_supported": true
+  },
+  "notes": "Requires enterprise-tier platform packs; activation is platform-led across linked schools."
+}

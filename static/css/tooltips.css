@@ -5,6 +5,7 @@
   cursor: help;
 }
 [data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after,
 .runmycampus-tooltip-trigger:hover .runmycampus-tooltip-bubble,
 .runmycampus-tooltip-trigger[aria-describedby]:focus-within .runmycampus-tooltip-bubble {
   opacity: 1;
@@ -32,6 +33,11 @@
   visibility: hidden;
   transition: opacity 0.2s ease, visibility 0.2s, transform 0.2s;
   pointer-events: none;
+}
+[data-tooltip]:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--school-primary, #2563eb) 40%, transparent);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 .runmycampus-tooltip-bubble {
   position: absolute;

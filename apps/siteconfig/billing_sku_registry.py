@@ -173,6 +173,8 @@ def get_operator_report_platform_bundle_feature_codes() -> frozenset[str]:
 
 def manifest_plan_entitlements_block() -> dict[str, object]:
     """Stable JSON-serializable block for ``/api/v1/manifest.json``."""
+    from apps.siteconfig.commercial_tiers import manifest_commercial_tiers_block
+
     out: dict[str, object] = {
         "br10_reference": "docs/BILLING_SKUS_ENTITLEMENTS.md",
         "registry_module": "apps.siteconfig.billing_sku_registry",
@@ -181,6 +183,7 @@ def manifest_plan_entitlements_block() -> dict[str, object]:
         },
         "all_canonical_codes": sorted(ALL_BR10_CANONICAL_FEATURE_CODES),
         "report_platform_skus": manifest_report_platform_skus_block(),
+        "commercial_packaging": manifest_commercial_tiers_block(),
     }
     slug = get_operator_default_report_platform_bundle_slug()
     if slug:

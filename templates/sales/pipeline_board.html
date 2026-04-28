@@ -2,12 +2,40 @@
 {% load i18n %}
 {% block title %}{% trans "Sales pipeline" %}{% endblock %}
 {% block content %}
-<div class="container py-3" style="max-width: 72rem">
+{% url 'sales:pipeline_board' as sales_pipeline_url %}
+<div class="container py-3" style="max-width: 76rem" data-rmc-sales-command-center="1">
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
     <h1 class="h3 mb-0">{% trans "Internal pipeline" %}</h1>
     <a class="btn btn-sm btn-primary" href="{% url 'sales:lead_create' %}">{% trans "Add lead" %}</a>
   </div>
   <p class="text-muted small">{% trans "Founder/operator use only. Not integrated with external CRM. Data lives in the platform database." %}</p>
+  <div class="row g-2 mb-3" data-rmc-sales-kpis="1">
+    <div class="col-6 col-md-2"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Total leads" %}</div><div class="h5 mb-0">{{ total_leads }}</div></div></div></div>
+    <div class="col-6 col-md-2"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Demos scheduled" %}</div><div class="h5 mb-0">{{ demos_scheduled }}</div></div></div></div>
+    <div class="col-6 col-md-2"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Demos completed" %}</div><div class="h5 mb-0">{{ demos_completed }}</div></div></div></div>
+    <div class="col-6 col-md-2"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Decision" %}</div><div class="h5 mb-0">{{ decisions }}</div></div></div></div>
+    <div class="col-6 col-md-2"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Closed" %}</div><div class="h5 mb-0">{{ closed }}</div></div></div></div>
+    <div class="col-6 col-md-2"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Conversion" %}</div><div class="h5 mb-0">{{ conversion_rate }}%</div></div></div></div>
+  </div>
+  <div class="alert {% if overdue_followups > 0 %}alert-warning{% else %}alert-light{% endif %} small d-flex flex-wrap justify-content-between gap-2" role="status">
+    <span>{% trans "Follow-up queue" %}: <strong>{{ overdue_followups }}</strong> {% trans "overdue" %}, <strong>{{ due_today_followups }}</strong> {% trans "due today" %}</span>
+    <span class="text-muted">{% trans "Use stage updates + next follow-up to keep outreach moving." %}</span>
+  </div>
+  {% if upcoming_followups %}
+  <div class="card border-0 shadow-sm mb-3" data-rmc-sales-upcoming-digest="1">
+    <div class="card-header bg-light py-2"><strong>{% trans "Upcoming follow-ups (next 7 days)" %}</strong></div>
+    <div class="card-body py-2">
+      <ul class="list-unstyled small mb-0">
+        {% for lead in upcoming_followups %}
+        <li class="d-flex flex-wrap justify-content-between gap-2 border-bottom py-1">
+          <a href="{% url 'sales:lead_detail' lead.pk %}">{{ lead.school_name }}</a>
+          <span class="text-muted">{{ lead.next_follow_up }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
   <form method="get" class="row g-2 align-items-end mb-3">
     <div class="col-auto">
       <label class="form-label small mb-0" for="q">{% trans "Search" %}</label>
@@ -17,8 +45,47 @@
       <button class="btn btn-sm btn-outline-secondary" type="submit">{% trans "Filter" %}</button>
     </div>
   </form>
+  <div class="mb-4" data-rmc-sales-kanban="1">
+    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+      <h2 class="h6 mb-0">{% trans "Pipeline board" %}</h2>
+      <span class="small text-muted">{% trans "Drag-and-drop is intentionally avoided for clarity; use explicit stage updates per lead." %}</span>
+    </div>
+    <div class="row g-2">
+      {% for column in kanban_columns %}
+      <div class="col-12 col-md-6 col-xl-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <strong>{{ column.stage.label }}</strong>
+            <span class="badge text-bg-secondary">{{ column.leads|length }}</span>
+          </div>
+          <div class="card-body p-2">
+            {% for lead in column.leads|slice:":5" %}
+            <article class="border rounded p-2 mb-2 bg-body-tertiary">
+              <div class="d-flex align-items-start justify-content-between gap-2">
+                <a class="fw-semibold text-decoration-none" href="{% url 'sales:lead_detail' lead.pk %}">{{ lead.school_name }}</a>
+                {% if lead.next_follow_up and lead.next_follow_up < now %}
+                <span class="badge text-bg-warning">{% trans "Overdue" %}</span>
+                {% endif %}
+              </div>
+              <div class="small text-muted">{{ lead.contact_name|default:"-" }} · {{ lead.email|default:"-" }}</div>
+              <div class="small text-muted mt-1">
+                {% if lead.next_follow_up %}{% trans "Next follow-up" %}: {{ lead.next_follow_up }}{% else %}{% trans "No follow-up date" %}{% endif %}
+              </div>
+              <div class="mt-2">
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'sales:lead_detail' lead.pk %}">{% trans "Open lead" %}</a>
+              </div>
+            </article>
+            {% empty %}
+            <p class="small text-muted mb-0">{% trans "No leads in this stage." %}</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
   <div class="table-responsive border rounded">
-    <table class="table table-sm mb-0">
+    <table class="table table-family table-sm mb-0">
       <thead class="table-light">
         <tr>
           <th>{% trans "School" %}</th>
@@ -26,6 +93,7 @@
           <th>{% trans "Email" %}</th>
           <th>{% trans "Stage" %}</th>
           <th>{% trans "Next follow-up" %}</th>
+          <th>{% trans "Last activity" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -36,13 +104,20 @@
           <td class="text-break small">{{ lead.email }}</td>
           <td><span class="badge text-bg-secondary">{{ lead.stage.label }}</span></td>
           <td class="small text-muted">{% if lead.next_follow_up %}{{ lead.next_follow_up }}{% else %}—{% endif %}</td>
+          <td class="small text-muted">{% if lead.last_contact_at %}{{ lead.last_contact_at }}{% else %}—{% endif %}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="text-muted p-3">{% trans "No leads yet. Add a lead to start." %}</td></tr>
+        <tr><td colspan="6" class="text-muted p-3">{% trans "No leads yet. Add a lead to start." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+  {% if not leads %}
+  <div class="mt-2">
+    {% url 'sales:lead_create' as lead_create_url %}
+    {% include "components/guided_recovery_state.html" with title=_("No leads yet") message=_("Start with one school record, set a follow-up date, and move it through each stage.") retry_url=lead_create_url retry_label=_("Add first lead") fallback_url=sales_pipeline_url fallback_label=_("Refresh board") %}
+  </div>
+  {% endif %}
   <h2 class="h6 mt-4">{% trans "Stages" %}</h2>
   <p class="small text-muted mb-0">{% for s in stages %}<span class="me-2">{{ s.label }} ({{ s.key }})</span>{% empty %}{% trans "—" %}{% endfor %}</p>
 </div>

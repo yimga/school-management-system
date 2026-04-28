@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "description": "Index of production school infrastructure templates. Pack rows resolve against apps/marketplace/data/platform_pack_catalog.json (read-only at runtime).",
+  "pack_catalog_relative_path": "apps/marketplace/data/platform_pack_catalog.json",
+  "school_templates": [
+    "private_school",
+    "public_k12",
+    "international_school",
+    "faith_based",
+    "multi_campus_group"
+  ]
+}

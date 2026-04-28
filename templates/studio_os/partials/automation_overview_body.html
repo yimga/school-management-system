@@ -1,6 +1,12 @@
 {% load i18n %}
 <div class="studio-os__automation-overview" data-page-archetype="operational-workbench">
   <p class="small text-muted mb-3">{% trans "Native overview: pack graph and health. Use the rail for Outcomes, Workflow center (full grid), approvals, and governance tools — iframes load only when you open those panes." %}</p>
+  {% if workflow_center_pane_url or simulation_pane_url %}
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    {% if workflow_center_pane_url %}<a class="btn btn-sm btn-outline-primary" href="{{ workflow_center_pane_url }}">{% trans "Workflow center (edit & simulate)" %}</a>{% endif %}
+    {% if simulation_pane_url %}<a class="btn btn-sm btn-outline-secondary" href="{{ simulation_pane_url }}">{% trans "Simulation engine (preview impact)" %}</a>{% endif %}
+  </div>
+  {% endif %}
   <div class="row g-3">
     <div class="col-lg-6">
       <h2 class="h6 mb-2">{% trans "Pack & template graph" %}</h2>

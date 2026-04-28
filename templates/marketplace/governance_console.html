@@ -156,8 +156,9 @@
               <tr>
                 <th>App</th>
                 <th>Publisher</th>
-                <th>Listing</th>
+                <th>Listing (pipeline)</th>
                 <th>Security</th>
+                <th>Certification</th>
                 <th>Installs</th>
                 <th>Revenue share</th>
                 <th>Kill switch</th>
@@ -165,21 +166,22 @@
             </thead>
             <tbody>
               {% for listing in listings %}
-              <tr>
+              <tr data-rmc-mkt-gov-listing-row="1">
                 <td>
                   <strong>{{ listing.app.name }}</strong>
                   <div class="small text-muted">{{ listing.app.slug }} | {{ listing.app.kind|title }} | v{{ listing.app.version }}</div>
                 </td>
                 <td>{{ listing.publisher.name|default:listing.app.publisher.name|default:"-" }}</td>
-                <td><span class="cp-status-badge cp-status-badge-{{ listing.status }}">{{ listing.status|title }}</span></td>
+                <td data-rmc-mkt-pipeline="{{ listing.status }}"><span class="cp-status-badge cp-status-badge-{{ listing.status }}">{{ listing.get_status_display }}</span></td>
                 <td><span class="cp-status-badge cp-status-badge-{{ listing.security_review_status }}">{{ listing.security_review_status|title }}</span></td>
+                <td><span class="cp-status-badge cp-status-badge-{{ listing.certification_status }}">{{ listing.certification_status|title }}</span></td>
                 <td>{{ listing.installation_count }}</td>
                 <td>{{ listing.revenue_share_percent }}%</td>
                 <td>{% if listing.kill_switch_active %}<span class="cp-status-badge cp-status-badge-danger">Active</span>{% else %}<span class="cp-status-badge cp-status-badge-success">Off</span>{% endif %}</td>
               </tr>
               {% empty %}
               <tr>
-                <td colspan="7" class="p-0">
+                <td colspan="8" class="p-0">
                   <div class="py-3 px-2">
                     {% load i18n %}
                     {% url 'super:marketplace_governance' as gov_url %}

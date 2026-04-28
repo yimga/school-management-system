@@ -1,0 +1,768 @@
+{
+  "debug_surface_hits": {
+    "count": 0,
+    "paths": []
+  },
+  "duplicate_component_systems": {
+    "conflict_count": 0,
+    "selector_index": {
+      ".btn-primary": [],
+      ".card": [
+        "static/css/design-system-unified.css",
+        "static/css/platform-high-end.css"
+      ],
+      ".form-control": [
+        "static/css/design-system-unified.css",
+        "static/css/platform-high-end.css"
+      ],
+      ".table": [
+        "static/css/design-system-unified.css"
+      ]
+    }
+  },
+  "generated_at": "2026-04-28T23:19:31.472988+00:00",
+  "high_impact_templates_total": 153,
+  "inline_styles": {
+    "count": 56,
+    "needs_review_count": 56,
+    "needs_review_paths": [
+      "templates/accounts/backend_dashboard.html",
+      "templates/marketplace/tenant_app_catalog.html",
+      "templates/marketplace/tenant_installed_apps.html",
+      "templates/parent/dashboard.html",
+      "templates/reports/_report_styles.html",
+      "templates/reports/annual_report.html",
+      "templates/reports/annual_report_cameroon.html",
+      "templates/reports/annual_report_cameroon_modern.html",
+      "templates/reports/evaluation_grid.html",
+      "templates/reports/regulatory_export.html",
+      "templates/reports/term_report.html",
+      "templates/reports/term_report_cameroon.html",
+      "templates/reports/term_report_cameroon_modern.html",
+      "templates/sales/pipeline_board.html",
+      "templates/siteconfig/academic_years_setup_evidence.html",
+      "templates/siteconfig/ai_governance.html",
+      "templates/siteconfig/billing_plan_readonly.html",
+      "templates/siteconfig/bulk_letters.html",
+      "templates/siteconfig/compliance_exports.html",
+      "templates/siteconfig/departments_setup_evidence.html",
+      "templates/siteconfig/feature_control_ledger.html",
+      "templates/siteconfig/feature_control_panel_content.html",
+      "templates/siteconfig/installed_packages_rollback.html",
+      "templates/siteconfig/maintenance.html",
+      "templates/siteconfig/module_market.html",
+      "templates/siteconfig/onboarding.html",
+      "templates/siteconfig/onboarding_step.html",
+      "templates/siteconfig/partials/ccc_guided_activation_strip.html",
+      "templates/siteconfig/partials/configuration_control_center_outcomes.html",
+      "templates/siteconfig/partials/mock_reportcard_preview.html",
+      "templates/siteconfig/partials/north_star_ai_assistant_strip.html",
+      "templates/siteconfig/partials/theme_colors_page_body.html",
+      "templates/siteconfig/report_output_history_evidence.html",
+      "templates/siteconfig/report_table_pdf.html",
+      "templates/siteconfig/report_templates_catalog_evidence.html",
+      "templates/siteconfig/reportcard_style_preview.html",
+      "templates/siteconfig/request_custom_requirement.html",
+      "templates/siteconfig/scheduled_reports_delivery_hub.html",
+      "templates/siteconfig/school_group_hierarchy.html",
+      "templates/siteconfig/sync_center.html",
+      "templates/siteconfig/template_gallery.html",
+      "templates/siteconfig/tenant_report_schedules_evidence.html",
+      "templates/siteconfig/tenant_runtime_configuration_hub.html",
+      "templates/siteconfig/term_publish_status_evidence.html",
+      "templates/studio_os/components/card.html",
+      "templates/studio_os/components/loading_empty_states.html",
+      "templates/studio_os/components/page_header.html",
+      "templates/studio_os/modes/experience.html",
+      "templates/studio_os/partials/automation_mode_canvas.html",
+      "templates/studio_os/partials/control_mode_canvas.html",
+      "templates/studio_os/partials/launch_mode_canvas.html",
+      "templates/studio_os/partials/launch_studio_overview_body.html",
+      "templates/studio_os/partials/output_mode_canvas.html",
+      "templates/studio_os/partials/shell_main_content.html",
+      "templates/studio_os/partials/subpages/experience_experience_packs.html",
+      "templates/studio_os/shell.html"
+    ],
+    "violation_count": 0,
+    "violation_paths": []
+  },
+  "missing_ds_btn": {
+    "count": 87,
+    "needs_review_count": 87,
+    "needs_review_paths": [
+      "templates/base.html",
+      "templates/control_plane_base.html",
+      "templates/marketplace/tenant_app_catalog.html",
+      "templates/marketplace/tenant_installed_apps.html",
+      "templates/parent/dashboard.html",
+      "templates/portal_base.html",
+      "templates/reports/promotion_preview.html",
+      "templates/reports/publish_term.html",
+      "templates/reports/regulatory_export.html",
+      "templates/reports/share_link.html",
+      "templates/reports/statistical_return.html",
+      "templates/sales/pipeline_board.html",
+      "templates/schools/super_dashboard.html",
+      "templates/siteconfig/academic_years_setup_evidence.html",
+      "templates/siteconfig/ai_governance.html",
+      "templates/siteconfig/billing_plan_readonly.html",
+      "templates/siteconfig/bulk_letters.html",
+      "templates/siteconfig/compliance_exports.html",
+      "templates/siteconfig/config_mutation_audit_evidence.html",
+      "templates/siteconfig/console_domains_hub.html",
+      "templates/siteconfig/console_domains_hub_control_plane.html",
+      "templates/siteconfig/curriculum_templates.html",
+      "templates/siteconfig/customizer.html",
+      "templates/siteconfig/dashboard_configuration_hub.html",
+      "templates/siteconfig/dashboard_hub.html",
+      "templates/siteconfig/departments_setup_evidence.html",
+      "templates/siteconfig/entity_catalog_overview.html",
+      "templates/siteconfig/feature_control_audit.html",
+      "templates/siteconfig/feature_control_panel_content.html",
+      "templates/siteconfig/get_blueprints.html",
+      "templates/siteconfig/grading_scale_bands.html",
+      "templates/siteconfig/grading_settings.html",
+      "templates/siteconfig/installed_packages_rollback.html",
+      "templates/siteconfig/metadata_dynamic_fields_operator.html",
+      "templates/siteconfig/metadata_operator_hub.html",
+      "templates/siteconfig/module_market.html",
+      "templates/siteconfig/onboarding.html",
+      "templates/siteconfig/onboarding_step.html",
+      "templates/siteconfig/partials/configuration_control_center_operator_model.html",
+      "templates/siteconfig/partials/configuration_control_center_staging_publish.html",
+      "templates/siteconfig/partials/mock_reportcard_preview.html",
+      "templates/siteconfig/partials/north_star_ai_assistant_strip.html",
+      "templates/siteconfig/partials/operator_console_strip.html",
+      "templates/siteconfig/partials/reportcard_builder_inner.html",
+      "templates/siteconfig/partials/theme_colors_content.html",
+      "templates/siteconfig/partials/theme_colors_page_body.html",
+      "templates/siteconfig/region_comparison.html",
+      "templates/siteconfig/region_grading_scales_matrix.html",
+      "templates/siteconfig/region_validation_dashboard.html",
+      "templates/siteconfig/report_library.html",
+      "templates/siteconfig/report_output_history_evidence.html",
+      "templates/siteconfig/report_templates_catalog_evidence.html",
+      "templates/siteconfig/reportcard_style_preview.html",
+      "templates/siteconfig/request_custom_requirement.html",
+      "templates/siteconfig/request_waiver.html",
+      "templates/siteconfig/scheduled_reports_delivery_hub.html",
+      "templates/siteconfig/school_group_hierarchy.html",
+      "templates/siteconfig/school_theme_settings.html",
+      "templates/siteconfig/sync_center.html",
+      "templates/siteconfig/tag_manager.html",
+      "templates/siteconfig/tag_manager_edit.html",
+      "templates/siteconfig/template_gallery.html",
+      "templates/siteconfig/tenant_report_schedules_evidence.html",
+      "templates/siteconfig/tenant_runtime_configuration_hub.html",
+      "templates/siteconfig/term_publish_status_evidence.html",
+      "templates/siteconfig/user_preferences.html",
+      "templates/siteconfig/workflow_flow_gallery.html",
+      "templates/siteconfig/workflow_hub.html",
+      "templates/student360/student_360_page.html",
+      "templates/studio_os/components/action_bar.html",
+      "templates/studio_os/components/loading_empty_states.html",
+      "templates/studio_os/components/page_header.html",
+      "templates/studio_os/modes/experience.html",
+      "templates/studio_os/partials/automation_mode_canvas.html",
+      "templates/studio_os/partials/automation_overview_body.html",
+      "templates/studio_os/partials/control_mode_canvas.html",
+      "templates/studio_os/partials/launch_mode_canvas.html",
+      "templates/studio_os/partials/launch_school_infrastructure_body.html",
+      "templates/studio_os/partials/launch_studio_overview_body.html",
+      "templates/studio_os/partials/launch_studio_role_preview_pane.html",
+      "templates/studio_os/partials/output_dependency_graph_body.html",
+      "templates/studio_os/partials/output_mode_canvas.html",
+      "templates/studio_os/partials/output_reports_library_body.html",
+      "templates/studio_os/partials/shell_main_content.html",
+      "templates/studio_os/shell.html",
+      "templates/super/founder_dashboard.html",
+      "templates/teacher/dashboard.html"
+    ],
+    "violation_count": 0,
+    "violation_paths": []
+  },
+  "missing_table_family": {
+    "count": 25,
+    "needs_review_count": 25,
+    "needs_review_paths": [
+      "templates/reports/annual_report_cameroon.html",
+      "templates/reports/annual_report_cameroon_modern.html",
+      "templates/reports/promotion_preview.html",
+      "templates/reports/statistical_return.html",
+      "templates/reports/term_report_cameroon.html",
+      "templates/reports/term_report_cameroon_modern.html",
+      "templates/siteconfig/ai_governance.html",
+      "templates/siteconfig/dashboard_configuration_hub.html",
+      "templates/siteconfig/entity_catalog_overview.html",
+      "templates/siteconfig/feature_control_audit.html",
+      "templates/siteconfig/feature_control_ledger.html",
+      "templates/siteconfig/grading_scale_bands.html",
+      "templates/siteconfig/installed_packages_rollback.html",
+      "templates/siteconfig/metadata_dynamic_fields_operator.html",
+      "templates/siteconfig/module_market.html",
+      "templates/siteconfig/region_comparison.html",
+      "templates/siteconfig/region_grading_scales_matrix.html",
+      "templates/siteconfig/region_validation_dashboard.html",
+      "templates/siteconfig/report_library.html",
+      "templates/siteconfig/reportcard_style_preview.html",
+      "templates/siteconfig/scheduled_reports_delivery_hub.html",
+      "templates/siteconfig/sync_center.html",
+      "templates/siteconfig/tag_manager.html",
+      "templates/siteconfig/workflow_flow_gallery.html",
+      "templates/studio_os/partials/launch_school_infrastructure_body.html"
+    ],
+    "violation_count": 0,
+    "violation_paths": []
+  },
+  "non_token_literals": {
+    "per_file": {
+      "static/css/card-grammar.css": {
+        "radius": 2,
+        "shadow": 4,
+        "spacing": 3
+      },
+      "static/css/control-plane-ultra.css": {
+        "radius": 11,
+        "shadow": 24,
+        "spacing": 26
+      },
+      "static/css/design-system-phase2-enforcement.css": {
+        "radius": 0,
+        "shadow": 6,
+        "spacing": 0
+      },
+      "static/css/design-system-unified.css": {
+        "radius": 0,
+        "shadow": 2,
+        "spacing": 6
+      },
+      "static/css/design-tokens-luxury.css": {
+        "radius": 0,
+        "shadow": 0,
+        "spacing": 0
+      },
+      "static/css/form-system.css": {
+        "radius": 2,
+        "shadow": 2,
+        "spacing": 2
+      },
+      "static/css/platform-high-end.css": {
+        "radius": 1,
+        "shadow": 20,
+        "spacing": 14
+      },
+      "static/css/portal-premium-shell.css": {
+        "radius": 1,
+        "shadow": 11,
+        "spacing": 0
+      },
+      "static/css/table-system.css": {
+        "radius": 0,
+        "shadow": 1,
+        "spacing": 3
+      }
+    },
+    "totals": {
+      "radius": 17,
+      "shadow": 70,
+      "spacing": 54
+    }
+  },
+  "overflow_risks": {
+    "css_count": 5,
+    "css_paths": [
+      "static/css/control-plane-ultra.css",
+      "static/css/design-system-unified.css",
+      "static/css/design-tokens-luxury.css",
+      "static/css/platform-high-end.css",
+      "static/css/table-system.css"
+    ],
+    "template_count": 0,
+    "template_paths": []
+  },
+  "rtl_status": {
+    "available": true,
+    "needs_review": 3,
+    "violation": 0
+  },
+  "schema_version": 1,
+  "score_out_of_15": 13,
+  "screen_headers_actions": {
+    "action_bar_violations": [
+      "templates/accounts/backend_dashboard.html",
+      "templates/schools/super_dashboard.html",
+      "templates/super/founder_dashboard.html",
+      "templates/marketplace/tenant_app_catalog.html",
+      "templates/marketplace/tenant_installed_apps.html",
+      "templates/teacher/dashboard.html",
+      "templates/teacher/marks_list.html",
+      "templates/parent/dashboard.html",
+      "templates/student360/student_360_page.html",
+      "templates/siteconfig/tenant_runtime_configuration_hub.html",
+      "templates/siteconfig/billing_plan_readonly.html",
+      "templates/reports/annual_report.html",
+      "templates/reports/term_report.html",
+      "templates/sales/pipeline_board.html"
+    ],
+    "header_violations": [
+      "templates/accounts/backend_dashboard.html",
+      "templates/teacher/marks_list.html",
+      "templates/reports/annual_report.html",
+      "templates/reports/term_report.html"
+    ],
+    "missing_action_bars": 14,
+    "missing_headers": 4,
+    "rows": [
+      {
+        "action_bar": false,
+        "exists": true,
+        "header": false,
+        "path": "templates/accounts/backend_dashboard.html"
+      },
+      {
+        "action_bar": false,
+        "exists": true,
+        "header": true,
+        "path": "templates/schools/super_dashboard.html"
+      },
+      {
+        "action_bar": false,
+        "exists": true,
+        "header": true,
+        "path": "templates/super/founder_dashboard.html"
+      },
+      {
+        "action_bar": false,
+        "exists": true,
+        "header": true,
+        "path": "templates/marketplace/tenant_app_catalog.html"
+      },
+      {
+        "action_bar": false,
+        "exists": true,
+        "header": true,
+        "path": "templates/marketplace/tenant_installed_apps.html"
+      },
+      {
+        "action_bar": false,
+        "exists": true,
+        "header": true,
+        "path": "templates/teacher/dashboard.html"
+      },
+      {
+        "action_bar": false,
+        "exists": true,
+        "header": false,
+        "path": "templates/teacher/marks_list.html"
+      },
+      {
+        "action_bar": false,
+        "exists": true,
+        "header": true,
+        "path": "templates/parent/dashboard.html"
+      },
+      {
+        "action_bar": false,
+        "exists": true,
+        "header": true,
+        "path": "templates/student360/student_360_page.html"
+      },
+      {
+        "action_bar": false,
+        "exists": true,
+        "header": true,
+        "path": "templates/siteconfig/tenant_runtime_configuration_hub.html"
+      },
+      {
+        "action_bar": false,
+        "exists": true,
+        "header": true,
+        "path": "templates/siteconfig/billing_plan_readonly.html"
+      },
+      {
+        "action_bar": false,
+        "exists": true,
+        "header": false,
+        "path": "templates/reports/annual_report.html"
+      },
+      {
+        "action_bar": false,
+        "exists": true,
+        "header": false,
+        "path": "templates/reports/term_report.html"
+      },
+      {
+        "action_bar": false,
+        "exists": true,
+        "header": true,
+        "path": "templates/sales/pipeline_board.html"
+      }
+    ]
+  },
+  "shell_consistency": {
+    "failures": 0,
+    "rows": [
+      {
+        "has_enforcement": true,
+        "has_main_region": true,
+        "has_tokens": true,
+        "ok": true,
+        "path": "templates/base.html"
+      },
+      {
+        "has_enforcement": true,
+        "has_main_region": true,
+        "has_tokens": true,
+        "ok": true,
+        "path": "templates/portal_base.html"
+      },
+      {
+        "has_enforcement": true,
+        "has_main_region": true,
+        "has_tokens": true,
+        "ok": true,
+        "path": "templates/control_plane_base.html"
+      },
+      {
+        "has_enforcement": true,
+        "has_main_region": true,
+        "has_tokens": true,
+        "ok": true,
+        "path": "templates/control_plane_skeleton.html"
+      }
+    ]
+  },
+  "tenant_branding_safety": {
+    "has_dark_contrast_contract": true,
+    "unsafe_direct_brand_text_count": 0,
+    "unsafe_direct_brand_text_paths": []
+  },
+  "unwrapped_tables": {
+    "count": 9,
+    "needs_review_count": 9,
+    "needs_review_paths": [
+      "templates/reports/annual_report_cameroon.html",
+      "templates/reports/annual_report_cameroon_modern.html",
+      "templates/reports/term_report_cameroon.html",
+      "templates/reports/term_report_cameroon_modern.html",
+      "templates/siteconfig/dashboard_configuration_hub.html",
+      "templates/siteconfig/feature_control_ledger.html",
+      "templates/siteconfig/reportcard_style_preview.html",
+      "templates/siteconfig/workflow_flow_gallery.html",
+      "templates/studio_os/partials/launch_school_infrastructure_body.html"
+    ],
+    "violation_count": 0,
+    "violation_paths": []
+  },
+  "verdict": "ULTRA-LUXURY",
+  "work_queues": {
+    "duplicate_component_systems": {
+      ".btn-primary": [],
+      ".card": [
+        "static/css/design-system-unified.css",
+        "static/css/platform-high-end.css"
+      ],
+      ".form-control": [
+        "static/css/design-system-unified.css",
+        "static/css/platform-high-end.css"
+      ],
+      ".table": [
+        "static/css/design-system-unified.css"
+      ]
+    },
+    "inline_style_cleanup": {
+      "count": 56,
+      "needs_review_count": 56,
+      "needs_review_paths": [
+        "templates/accounts/backend_dashboard.html",
+        "templates/marketplace/tenant_app_catalog.html",
+        "templates/marketplace/tenant_installed_apps.html",
+        "templates/parent/dashboard.html",
+        "templates/reports/_report_styles.html",
+        "templates/reports/annual_report.html",
+        "templates/reports/annual_report_cameroon.html",
+        "templates/reports/annual_report_cameroon_modern.html",
+        "templates/reports/evaluation_grid.html",
+        "templates/reports/regulatory_export.html",
+        "templates/reports/term_report.html",
+        "templates/reports/term_report_cameroon.html",
+        "templates/reports/term_report_cameroon_modern.html",
+        "templates/sales/pipeline_board.html",
+        "templates/siteconfig/academic_years_setup_evidence.html",
+        "templates/siteconfig/ai_governance.html",
+        "templates/siteconfig/billing_plan_readonly.html",
+        "templates/siteconfig/bulk_letters.html",
+        "templates/siteconfig/compliance_exports.html",
+        "templates/siteconfig/departments_setup_evidence.html",
+        "templates/siteconfig/feature_control_ledger.html",
+        "templates/siteconfig/feature_control_panel_content.html",
+        "templates/siteconfig/installed_packages_rollback.html",
+        "templates/siteconfig/maintenance.html",
+        "templates/siteconfig/module_market.html",
+        "templates/siteconfig/onboarding.html",
+        "templates/siteconfig/onboarding_step.html",
+        "templates/siteconfig/partials/ccc_guided_activation_strip.html",
+        "templates/siteconfig/partials/configuration_control_center_outcomes.html",
+        "templates/siteconfig/partials/mock_reportcard_preview.html",
+        "templates/siteconfig/partials/north_star_ai_assistant_strip.html",
+        "templates/siteconfig/partials/theme_colors_page_body.html",
+        "templates/siteconfig/report_output_history_evidence.html",
+        "templates/siteconfig/report_table_pdf.html",
+        "templates/siteconfig/report_templates_catalog_evidence.html",
+        "templates/siteconfig/reportcard_style_preview.html",
+        "templates/siteconfig/request_custom_requirement.html",
+        "templates/siteconfig/scheduled_reports_delivery_hub.html",
+        "templates/siteconfig/school_group_hierarchy.html",
+        "templates/siteconfig/sync_center.html",
+        "templates/siteconfig/template_gallery.html",
+        "templates/siteconfig/tenant_report_schedules_evidence.html",
+        "templates/siteconfig/tenant_runtime_configuration_hub.html",
+        "templates/siteconfig/term_publish_status_evidence.html",
+        "templates/studio_os/components/card.html",
+        "templates/studio_os/components/loading_empty_states.html",
+        "templates/studio_os/components/page_header.html",
+        "templates/studio_os/modes/experience.html",
+        "templates/studio_os/partials/automation_mode_canvas.html",
+        "templates/studio_os/partials/control_mode_canvas.html",
+        "templates/studio_os/partials/launch_mode_canvas.html",
+        "templates/studio_os/partials/launch_studio_overview_body.html",
+        "templates/studio_os/partials/output_mode_canvas.html",
+        "templates/studio_os/partials/shell_main_content.html",
+        "templates/studio_os/partials/subpages/experience_experience_packs.html",
+        "templates/studio_os/shell.html"
+      ],
+      "violation_count": 0,
+      "violation_paths": []
+    },
+    "non_token_literals": {
+      "per_file": {
+        "static/css/card-grammar.css": {
+          "radius": 2,
+          "shadow": 4,
+          "spacing": 3
+        },
+        "static/css/control-plane-ultra.css": {
+          "radius": 11,
+          "shadow": 24,
+          "spacing": 26
+        },
+        "static/css/design-system-phase2-enforcement.css": {
+          "radius": 0,
+          "shadow": 6,
+          "spacing": 0
+        },
+        "static/css/design-system-unified.css": {
+          "radius": 0,
+          "shadow": 2,
+          "spacing": 6
+        },
+        "static/css/design-tokens-luxury.css": {
+          "radius": 0,
+          "shadow": 0,
+          "spacing": 0
+        },
+        "static/css/form-system.css": {
+          "radius": 2,
+          "shadow": 2,
+          "spacing": 2
+        },
+        "static/css/platform-high-end.css": {
+          "radius": 1,
+          "shadow": 20,
+          "spacing": 14
+        },
+        "static/css/portal-premium-shell.css": {
+          "radius": 1,
+          "shadow": 11,
+          "spacing": 0
+        },
+        "static/css/table-system.css": {
+          "radius": 0,
+          "shadow": 1,
+          "spacing": 3
+        }
+      },
+      "totals": {
+        "radius": 17,
+        "shadow": 70,
+        "spacing": 54
+      }
+    },
+    "overflow_risk_css": {
+      "css_count": 5,
+      "css_paths": [
+        "static/css/control-plane-ultra.css",
+        "static/css/design-system-unified.css",
+        "static/css/design-tokens-luxury.css",
+        "static/css/platform-high-end.css",
+        "static/css/table-system.css"
+      ],
+      "template_count": 0,
+      "template_paths": []
+    },
+    "page_header_action_bar_contract": {
+      "action_bar_violations": [
+        "templates/accounts/backend_dashboard.html",
+        "templates/schools/super_dashboard.html",
+        "templates/super/founder_dashboard.html",
+        "templates/marketplace/tenant_app_catalog.html",
+        "templates/marketplace/tenant_installed_apps.html",
+        "templates/teacher/dashboard.html",
+        "templates/teacher/marks_list.html",
+        "templates/parent/dashboard.html",
+        "templates/student360/student_360_page.html",
+        "templates/siteconfig/tenant_runtime_configuration_hub.html",
+        "templates/siteconfig/billing_plan_readonly.html",
+        "templates/reports/annual_report.html",
+        "templates/reports/term_report.html",
+        "templates/sales/pipeline_board.html"
+      ],
+      "header_violations": [
+        "templates/accounts/backend_dashboard.html",
+        "templates/teacher/marks_list.html",
+        "templates/reports/annual_report.html",
+        "templates/reports/term_report.html"
+      ],
+      "missing_action_bars": 14,
+      "missing_headers": 4,
+      "rows": [
+        {
+          "action_bar": false,
+          "exists": true,
+          "header": false,
+          "path": "templates/accounts/backend_dashboard.html"
+        },
+        {
+          "action_bar": false,
+          "exists": true,
+          "header": true,
+          "path": "templates/schools/super_dashboard.html"
+        },
+        {
+          "action_bar": false,
+          "exists": true,
+          "header": true,
+          "path": "templates/super/founder_dashboard.html"
+        },
+        {
+          "action_bar": false,
+          "exists": true,
+          "header": true,
+          "path": "templates/marketplace/tenant_app_catalog.html"
+        },
+        {
+          "action_bar": false,
+          "exists": true,
+          "header": true,
+          "path": "templates/marketplace/tenant_installed_apps.html"
+        },
+        {
+          "action_bar": false,
+          "exists": true,
+          "header": true,
+          "path": "templates/teacher/dashboard.html"
+        },
+        {
+          "action_bar": false,
+          "exists": true,
+          "header": false,
+          "path": "templates/teacher/marks_list.html"
+        },
+        {
+          "action_bar": false,
+          "exists": true,
+          "header": true,
+          "path": "templates/parent/dashboard.html"
+        },
+        {
+          "action_bar": false,
+          "exists": true,
+          "header": true,
+          "path": "templates/student360/student_360_page.html"
+        },
+        {
+          "action_bar": false,
+          "exists": true,
+          "header": true,
+          "path": "templates/siteconfig/tenant_runtime_configuration_hub.html"
+        },
+        {
+          "action_bar": false,
+          "exists": true,
+          "header": true,
+          "path": "templates/siteconfig/billing_plan_readonly.html"
+        },
+        {
+          "action_bar": false,
+          "exists": true,
+          "header": false,
+          "path": "templates/reports/annual_report.html"
+        },
+        {
+          "action_bar": false,
+          "exists": true,
+          "header": false,
+          "path": "templates/reports/term_report.html"
+        },
+        {
+          "action_bar": false,
+          "exists": true,
+          "header": true,
+          "path": "templates/sales/pipeline_board.html"
+        }
+      ]
+    },
+    "shell_contract": [
+      {
+        "has_enforcement": true,
+        "has_main_region": true,
+        "has_tokens": true,
+        "ok": true,
+        "path": "templates/base.html"
+      },
+      {
+        "has_enforcement": true,
+        "has_main_region": true,
+        "has_tokens": true,
+        "ok": true,
+        "path": "templates/portal_base.html"
+      },
+      {
+        "has_enforcement": true,
+        "has_main_region": true,
+        "has_tokens": true,
+        "ok": true,
+        "path": "templates/control_plane_base.html"
+      },
+      {
+        "has_enforcement": true,
+        "has_main_region": true,
+        "has_tokens": true,
+        "ok": true,
+        "path": "templates/control_plane_skeleton.html"
+      }
+    ],
+    "tenant_theme_safety": {
+      "has_dark_contrast_contract": true,
+      "unsafe_direct_brand_text_count": 0,
+      "unsafe_direct_brand_text_paths": []
+    },
+    "unwrapped_tables": {
+      "count": 9,
+      "needs_review_count": 9,
+      "needs_review_paths": [
+        "templates/reports/annual_report_cameroon.html",
+        "templates/reports/annual_report_cameroon_modern.html",
+        "templates/reports/term_report_cameroon.html",
+        "templates/reports/term_report_cameroon_modern.html",
+        "templates/siteconfig/dashboard_configuration_hub.html",
+        "templates/siteconfig/feature_control_ledger.html",
+        "templates/siteconfig/reportcard_style_preview.html",
+        "templates/siteconfig/workflow_flow_gallery.html",
+        "templates/studio_os/partials/launch_school_infrastructure_body.html"
+      ],
+      "violation_count": 0,
+      "violation_paths": []
+    }
+  }
+}

@@ -7,6 +7,7 @@ from django.urls import reverse
 
 from apps.accounts.models import Permission, User
 from apps.people.models import StudentProfile, TeacherProfile
+from apps.billing.models import PlatformBillingProcessorConfig, StripePlanPrice
 from apps.siteconfig.models import Plan
 from apps.schools.models import School
 
@@ -72,6 +73,8 @@ class BillingPlanReadonlyTests(TestCase):
         self.assertIn("Growth Demo", body)
         self.assertIn("reports", body)
         self.assertIn("500", body)
+        self.assertIn("Commercial tier", body)
+        self.assertIn("Resolved tier", body)
 
     def test_related_before_admin_for_superuser(self) -> None:
         u = User.objects.create_user(
@@ -91,3 +94,32 @@ class BillingPlanReadonlyTests(TestCase):
         self.assertNotEqual(p, -1)
         self.assertNotEqual(a, -1)
         self.assertLess(p, a)
+
+    def test_checkout_button_visible_when_stripe_and_price_configured(self) -> None:
+        PlatformBillingProcessorConfig.objects.create(
+            code="stripe",
+            display_name="Stripe",
+            is_active=True,
+            metadata={"secret_key": "sk_test_placeholder"},
+        )
+        StripePlanPrice.objects.create(
+            plan_code=self.plan.slug,
+            stripe_price_id="price_x",
+            billing_cycle=StripePlanPrice.BillingCycle.MONTHLY,
+            currency="USD",
+            is_active=True,
+        )
+        u = User.objects.create_user(
+            username="bp_checkout",
+            password="x" * 8,
+            role=User.Role.ADMIN,
+            is_staff=True,
+        )
+        u.feature_permissions.add(self.perm_settings)
+        c = Client(HTTP_HOST=_T_HOST)
+        c.login(username="bp_checkout", password="x" * 8)
+        path = reverse("siteconfig:billing_plan_readonly", urlconf="config.tenant_urls")
+        body = c.get(path).content.decode("utf-8", errors="replace")
+        self.assertIn("billing/checkout/start", body)
+        self.assertIn("Checkout / renew", body)
+        self.assertRegex(body, r"<a[^>]+btn-primary[^>]+href=[^>]+checkout/start")

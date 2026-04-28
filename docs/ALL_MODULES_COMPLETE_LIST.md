@@ -2,7 +2,7 @@
 
 **Last Updated**: April 26, 2026  
 **Status**: Legacy narrative doc. The generated source of truth is `docs/generated/platform_inventory.md`.  
-**Total Apps**: 43 Installed App Modules  
+**Total Apps**: 44 Installed App Modules  
 **Total Models**: 100+ database models  
 **Total Views**: 200+ view functions  
 **Total API Endpoints**: 50+ REST endpoints  

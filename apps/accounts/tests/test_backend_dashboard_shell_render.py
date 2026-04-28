@@ -65,3 +65,23 @@ class BackendDashboardShellRenderTests(TestCase):
         # Wave E: planner rail widget markers for product depth / tooling
         self.assertIn('data-backend-widget-surface="planner-rail"', body)
         self.assertIn('data-backend-widget-role="operational-rollup"', body)
+        # Operator command center: activation, CSV migration, runtime, catalog
+        self.assertIn('data-backend-command-center="setup-strip"', body)
+        self.assertIn("data-rmc-operator-setup-strip", body)
+
+    def test_1087_backend_dashboard_includes_token_stylesheet(self):
+        """SOT §11.4 batch 1087 — command-center density token contract is linked."""
+        u = User.objects.create_user(
+            username="bd_1087_tok",
+            password="x" * 8,
+            role=User.Role.ADMIN,
+            is_staff=True,
+        )
+        u.feature_permissions.add(self.perm_settings)
+        self.client.login(username="bd_1087_tok", password="x" * 8)
+        path = reverse("accounts:backend_dashboard", urlconf="config.tenant_urls")
+        resp = self.client.get(path)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", errors="replace")
+        # Single token file for --dash-gap, --dash-card-pad, section spacing (see backend-dashboard-tokens.css)
+        self.assertIn("backend-dashboard-tokens.css", body)

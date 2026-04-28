@@ -88,6 +88,30 @@ def tenant_runtime_configuration_hub(request: HttpRequest) -> HttpResponse:
         billing_plan_readonly_url = reverse("siteconfig:billing_plan_readonly")
     except NoReverseMatch:
         billing_plan_readonly_url = None
+    try:
+        ai_governance_url = reverse("siteconfig:ai_governance")
+    except NoReverseMatch:
+        ai_governance_url = None
+    try:
+        studio_automation_url = reverse("studio_os:automation")
+    except NoReverseMatch:
+        studio_automation_url = None
+    try:
+        onboarding_checklist_url = reverse("siteconfig:onboarding")
+    except NoReverseMatch:
+        onboarding_checklist_url = None
+    try:
+        compliance_exports_url = reverse("siteconfig:compliance_exports")
+    except NoReverseMatch:
+        compliance_exports_url = None
+    try:
+        migration_wizard_url = reverse("accounts:migration_wizard")
+    except NoReverseMatch:
+        migration_wizard_url = None
+    try:
+        school_group_hierarchy_url = reverse("siteconfig:school_group_hierarchy")
+    except NoReverseMatch:
+        school_group_hierarchy_url = None
 
     ctx = {
         "school": school,
@@ -107,6 +131,12 @@ def tenant_runtime_configuration_hub(request: HttpRequest) -> HttpResponse:
         "report_output_history_evidence_url": report_output_history_evidence_url,
         "metadata_operator_hub_url": metadata_operator_hub_url,
         "billing_plan_readonly_url": billing_plan_readonly_url,
+        "ai_governance_url": ai_governance_url,
         "admin_sitesettings_url": admin_sitesettings_url,
+        "studio_automation_url": studio_automation_url,
+        "onboarding_checklist_url": onboarding_checklist_url,
+        "migration_wizard_url": migration_wizard_url,
+        "compliance_exports_url": compliance_exports_url,
+        "school_group_hierarchy_url": school_group_hierarchy_url,
     }
     return render(request, "siteconfig/tenant_runtime_configuration_hub.html", ctx)

@@ -1,0 +1,95 @@
+{
+  "errors": [],
+  "generated_at": "2026-04-28T23:19:30.552999+00:00",
+  "governed_css_files": [
+    "static/css/design-tokens-luxury.css",
+    "static/css/design-system-unified.css",
+    "static/css/platform-high-end.css",
+    "static/css/design-system-phase2-enforcement.css"
+  ],
+  "ok": true,
+  "raw_literal_baseline": {
+    "static/css/design-system-phase2-enforcement.css": {
+      "forbidden_600ms_literals": 0,
+      "raw_radius_literals": 0,
+      "raw_shadow_literals": 0,
+      "raw_spacing_literals": 0
+    },
+    "static/css/design-system-unified.css": {
+      "forbidden_600ms_literals": 0,
+      "raw_radius_literals": 0,
+      "raw_shadow_literals": 2,
+      "raw_spacing_literals": 6
+    },
+    "static/css/design-tokens-luxury.css": {
+      "forbidden_600ms_literals": 1,
+      "raw_radius_literals": 0,
+      "raw_shadow_literals": 0,
+      "raw_spacing_literals": 0
+    },
+    "static/css/platform-high-end.css": {
+      "forbidden_600ms_literals": 1,
+      "raw_radius_literals": 1,
+      "raw_shadow_literals": 1,
+      "raw_spacing_literals": 14
+    }
+  },
+  "raw_literal_current": {
+    "static/css/design-system-phase2-enforcement.css": {
+      "forbidden_600ms_literals": 0,
+      "raw_radius_literals": 0,
+      "raw_shadow_literals": 0,
+      "raw_spacing_literals": 0
+    },
+    "static/css/design-system-unified.css": {
+      "forbidden_600ms_literals": 0,
+      "raw_radius_literals": 0,
+      "raw_shadow_literals": 2,
+      "raw_spacing_literals": 6
+    },
+    "static/css/design-tokens-luxury.css": {
+      "forbidden_600ms_literals": 0,
+      "raw_radius_literals": 0,
+      "raw_shadow_literals": 0,
+      "raw_spacing_literals": 0
+    },
+    "static/css/platform-high-end.css": {
+      "forbidden_600ms_literals": 0,
+      "raw_radius_literals": 1,
+      "raw_shadow_literals": 1,
+      "raw_spacing_literals": 14
+    }
+  },
+  "token_conflicts_found": {
+    "color": [
+      "--color-*",
+      "--luxury-*",
+      "--lux-color-*"
+    ],
+    "motion": [
+      "--transition-* / --motion-*",
+      "--luxury-motion-*",
+      "--lux-motion-*"
+    ],
+    "radius": [
+      "--radius-*",
+      "--platform-premium-radius*",
+      "--luxury-btn-radius / --lux-radius-*"
+    ],
+    "shadow": [
+      "--shadow-*",
+      "--platform-premium-shadow*",
+      "--luxury-shadow-* / --lux-shadow-*"
+    ],
+    "spacing": [
+      "--token-space-* / --spacing-*",
+      "--luxury-gap*",
+      "--lux-space-*"
+    ],
+    "typography": [
+      "--font-size-* / --type-*",
+      "--luxury-font-*",
+      "--lux-type-*"
+    ]
+  }
+}

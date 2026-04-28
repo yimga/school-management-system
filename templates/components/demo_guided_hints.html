@@ -1,0 +1,16 @@
+{% load i18n %}
+<details class="alert alert-light border mb-3" data-rmc-demo-guided-hints="1">
+  <summary class="fw-semibold">
+    {% trans "Demo tour — key surfaces" %}
+    <span class="text-muted small fw-normal ms-1">{% trans "(tap to expand)" %}</span>
+  </summary>
+  <ol class="small text-muted mb-0 mt-2 ps-3">
+    <li>{% trans "Backend dashboard — operational pulse and publish flows." %}</li>
+    <li>{% trans "Teacher / parent portals — attendance, marks, and messaging." %}</li>
+    <li>{% trans "Marketplace — sandbox install first, then deliberate activation." %}</li>
+    <li>{% trans "Studio — experience packs and workflow without skipping preview." %}</li>
+  </ol>
+  <p class="small text-muted mb-0 mt-2">
+    {% trans "Seeded demo data:" %} <code class="small">python manage.py ensure_demo_environment --school-slug …</code>
+  </p>
+</details>

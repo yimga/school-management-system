@@ -40,6 +40,8 @@
       </div>
       {% elif launch_pane == 'role_preview' %}
         {% include "studio_os/partials/launch_studio_role_preview_pane.html" %}
+      {% elif launch_pane == 'infrastructure' %}
+        {% include "studio_os/partials/launch_school_infrastructure_body.html" %}
       {% elif launch_iframe_src %}
       <div class="d-flex flex-wrap align-items-center gap-2 mb-2 studio-os__output-native-fallback" role="region" aria-label="{% trans 'Launch view options' %}">
         <span class="small text-muted mb-0">{% trans "Prefer full window?" %}</span>

@@ -1,0 +1,138 @@
+{
+  "british_igcse": {
+    "template_key": "british_igcse",
+    "label": "British / IGCSE",
+    "region_or_system": "UK and international schools using IGCSE / UK National Curriculum patterns",
+    "grading_scale_key": "0-100",
+    "term_labels": ["Autumn term", "Spring term", "Summer term"],
+    "terminology_map": {
+      "grade": "Mark / grade",
+      "gpa": "Average (where used)",
+      "term": "Term",
+      "report_card": "School report"
+    },
+    "report_template_family": "british",
+    "subject_seed": [
+      {"name": "Mathematics", "category": "GENERAL"},
+      {"name": "English Language", "category": "GENERAL"},
+      {"name": "Combined Science", "category": "GENERAL"},
+      {"name": "History", "category": "GENERAL"},
+      {"name": "Geography", "category": "GENERAL"}
+    ],
+    "recommended_scale_bands": {
+      "reference_only": true,
+      "hint": "Often percentage or A*-G bands; align tenant GradingScale bands with UK school policy."
+    },
+    "notes": "Suited for schools aligning with GCSE/IGCSE staging and UK-style reporting. Operator should confirm exam board specifics.",
+    "suitability": "International programmes in Commonwealth and British-system schools worldwide."
+  },
+  "american_k12": {
+    "template_key": "american_k12",
+    "label": "American K–12",
+    "region_or_system": "United States typical K–12 progression",
+    "grading_scale_key": "gpa",
+    "term_labels": ["Fall semester", "Spring semester"],
+    "terminology_map": {
+      "grade": "Grade",
+      "gpa": "GPA",
+      "term": "Semester",
+      "report_card": "Report card"
+    },
+    "report_template_family": "global",
+    "subject_seed": [
+      {"name": "English Language Arts", "category": "GENERAL"},
+      {"name": "Mathematics", "category": "GENERAL"},
+      {"name": "Science", "category": "GENERAL"},
+      {"name": "Social Studies", "category": "GENERAL"},
+      {"name": "Physical Education", "category": "GENERAL"}
+    ],
+    "recommended_scale_bands": {
+      "reference_only": true,
+      "hint": "GPA 4.0-style bands; map letter grades to grade points per district policy."
+    },
+    "notes": "Term structure varies (trimester/quarter); defaults are a common two-semester pattern.",
+    "suitability": "US-style schools; adjust term count to match state or district calendar."
+  },
+  "waec_wassce": {
+    "template_key": "waec_wassce",
+    "label": "WAEC / WASSCE",
+    "region_or_system": "West African Examinations Council (WAEC) alignment",
+    "grading_scale_key": "0-100",
+    "term_labels": ["First term", "Second term", "Third term"],
+    "terminology_map": {
+      "grade": "Score / grade",
+      "gpa": "Average",
+      "term": "Term",
+      "report_card": "Report card"
+    },
+    "report_template_family": "west_africa",
+    "subject_seed": [
+      {"name": "Mathematics", "category": "GENERAL"},
+      {"name": "English Language", "category": "GENERAL"},
+      {"name": "Integrated Science", "category": "GENERAL"},
+      {"name": "Social Studies", "category": "GENERAL"},
+      {"name": "ICT", "category": "GENERAL"}
+    ],
+    "recommended_scale_bands": {
+      "reference_only": true,
+      "hint": "Percentage bands common; WAEC letter grades map from council standards."
+    },
+    "notes": "Prepares data shapes compatible with WAEC-oriented reporting; official grade scales follow national guidelines.",
+    "suitability": "Nigeria, Ghana, Sierra Leone, Liberia, Gambia, and other WAEC-member contexts."
+  },
+  "francophone_bac": {
+    "template_key": "francophone_bac",
+    "label": "Francophone / Baccalauréat",
+    "region_or_system": "French-speaking systems (Bac, BEPC-style staging)",
+    "grading_scale_key": "0-20",
+    "term_labels": ["Trimestre 1", "Trimestre 2", "Trimestre 3"],
+    "terminology_map": {
+      "grade": "Note",
+      "gpa": "Moyenne",
+      "term": "Trimestre",
+      "report_card": "Bulletin"
+    },
+    "report_template_family": "global",
+    "subject_seed": [
+      {"name": "Mathématiques", "category": "GENERAL"},
+      {"name": "Français", "category": "GENERAL"},
+      {"name": "Anglais", "category": "GENERAL"},
+      {"name": "Sciences physiques", "category": "GENERAL"},
+      {"name": "Histoire-Géographie", "category": "GENERAL"}
+    ],
+    "recommended_scale_bands": {
+      "reference_only": true,
+      "hint": "Numeric 0–20 with mention / admission thresholds per academy rules."
+    },
+    "notes": "Labels reflect Francophone conventions; Bac tracks differ by country—validate with ministry guidance.",
+    "suitability": "Francophone Africa, France, and overseas French programmes."
+  },
+  "cameroon_anglophone_gce": {
+    "template_key": "cameroon_anglophone_gce",
+    "label": "Cameroon Anglophone / GCE",
+    "region_or_system": "Cameroon English subsystem (GCE O/A alignment)",
+    "grading_scale_key": "0-20",
+    "term_labels": ["First term", "Second term", "Third term"],
+    "terminology_map": {
+      "grade": "Mark",
+      "gpa": "Average",
+      "term": "Term",
+      "report_card": "Report card"
+    },
+    "report_template_family": "cameroon",
+    "subject_seed": [
+      {"name": "Mathematics", "category": "GENERAL"},
+      {"name": "English Language", "category": "GENERAL"},
+      {"name": "Biology", "category": "GENERAL"},
+      {"name": "Chemistry", "category": "GENERAL"},
+      {"name": "Physics", "category": "GENERAL"},
+      {"name": "History", "category": "GENERAL"}
+    ],
+    "recommended_scale_bands": {
+      "reference_only": true,
+      "hint": "0–20 continuous assessment + exam split; letter bands A–E often derived from thresholds."
+    },
+    "notes": "Matches common Cameroon Anglophone subject mix; coefficients and sequences follow school scheme.",
+    "suitability": "GCE-oriented schools in Cameroon English-speaking regions."
+  }
+}

@@ -3,6 +3,7 @@ from typing import Optional
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
@@ -165,6 +166,19 @@ class GradingScale(models.Model):
         related_name="grading_scales",
         help_text="Null = global template (e.g. Apply a Template at signup).",
     )
+    code = models.SlugField(
+        max_length=64,
+        blank=True,
+        help_text="Stable key within the tenant (optional). Used by integrations and templates.",
+    )
+    region = models.ForeignKey(
+        "siteconfig.RegionConfig",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="evals_grading_scales",
+        help_text="Optional linkage to a regional template.",
+    )
     name = models.CharField(max_length=80, help_text="e.g. Cameroon 0-20, GPA 4.0")
     scale_type = models.CharField(
         max_length=50, choices=ScaleType.choices, default=ScaleType.NUMERIC_0_20
@@ -178,6 +192,10 @@ class GradingScale(models.Model):
         default=False,
         help_text="When true, use as default for this school when no AssessmentWeights override.",
     )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Inactive scales are ignored when resolving the effective scale.",
+    )
 
     class Meta:
         ordering = ["school_id", "name"]
@@ -186,10 +204,110 @@ class GradingScale(models.Model):
                 fields=["school", "name"],
                 name="evals_gradingscale_school_name_uniq",
             ),
+            models.UniqueConstraint(
+                fields=["school", "code"],
+                condition=~Q(code=""),
+                name="evals_gradingscale_school_code_nonempty_uniq",
+            ),
         ]
 
     def __str__(self):
         return f"{self.name} ({self.get_scale_type_display()})"
+
+
+class GradingScaleBand(models.Model):
+    """
+    Non-overlapping score bands for a tenant grading scale (North Star SLICE 2).
+    Normalized bounds align with Rosetta 0.0–1.0 for cross-system reporting.
+    """
+
+    grading_scale = models.ForeignKey(
+        GradingScale,
+        on_delete=models.CASCADE,
+        related_name="bands",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    min_score = models.DecimalField(max_digits=12, decimal_places=4)
+    max_score = models.DecimalField(max_digits=12, decimal_places=4)
+    label = models.CharField(max_length=120)
+    band_weight = models.PositiveSmallIntegerField(
+        default=100,
+        help_text="Relative weight for aggregates when applicable.",
+    )
+    grade_point = models.DecimalField(
+        max_digits=8,
+        decimal_places=4,
+        null=True,
+        blank=True,
+        help_text="Optional GPA / points value for this band.",
+    )
+    normalized_min = models.DecimalField(
+        max_digits=10,
+        decimal_places=6,
+        help_text="Inclusive lower bound on the 0.0–1.0 Rosetta axis.",
+    )
+    normalized_max = models.DecimalField(
+        max_digits=10,
+        decimal_places=6,
+        help_text="Inclusive upper bound on the 0.0–1.0 Rosetta axis.",
+    )
+
+    class Meta:
+        ordering = ["grading_scale_id", "sort_order", "min_score"]
+
+    def __str__(self):
+        return f"{self.grading_scale}: {self.label}"
+
+    def clean(self):
+        super().clean()
+        mn = self.min_score
+        mx = self.max_score
+        if mn is not None and mx is not None and mn > mx:
+            raise ValidationError({"min_score": "min_score cannot exceed max_score."})
+
+        for fld in ("normalized_min", "normalized_max"):
+            val = getattr(self, fld)
+            if val is not None:
+                if val < 0 or val > 1:
+                    raise ValidationError(
+                        {fld: "Normalized bounds must be between 0 and 1 inclusive."}
+                    )
+
+        if (
+            self.normalized_min is not None
+            and self.normalized_max is not None
+            and self.normalized_min > self.normalized_max
+        ):
+            raise ValidationError(
+                {"normalized_min": "normalized_min cannot exceed normalized_max."}
+            )
+
+        siblings = GradingScaleBand.objects.filter(
+            grading_scale_id=self.grading_scale_id
+        )
+        if self.pk:
+            siblings = siblings.exclude(pk=self.pk)
+        for other in siblings:
+            if self._intervals_overlap(
+                self.min_score,
+                self.max_score,
+                other.min_score,
+                other.max_score,
+            ):
+                raise ValidationError(
+                    "Bands cannot overlap on raw scores within the same grading scale."
+                )
+
+    @staticmethod
+    def _intervals_overlap(a_min, a_max, b_min, b_max):
+        if None in (a_min, a_max, b_min, b_max):
+            return False
+        # True if the intersection has positive width (shared boundary at one point is allowed).
+        return max(a_min, b_min) < min(a_max, b_max)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 class TeacherAssignment(models.Model):

@@ -31,6 +31,51 @@
 <div class="tdm-bg" data-decision-engine="surface">
   {% phase8_dashboard_declaration "teacher/dashboard.html" %}
   <div class="tdm-shell">
+    {% if teacher_fast_workflows %}
+    <section class="card border-0 shadow-sm mb-3 p-3" data-teacher-fast-workflows="1" aria-label="{% trans 'Fast workflows' %}">
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+        <span class="text-uppercase small text-muted">{% trans "Fast workflows" %}</span>
+        <span class="small text-muted">{% trans "One tap to common teaching tasks" %}</span>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        {% for w in teacher_fast_workflows %}
+        <a class="btn btn-sm btn-outline-primary" href="{{ w.url }}"><i class="bi {{ w.icon }} me-1"></i>{{ w.label }}</a>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+    {% url 'evals:teacher_marks_entry' as teacher_marks_entry_url %}
+    {% url 'portal:teacher_workflow' as teacher_workflow_url %}
+    {% url 'academics:teacher_syllabus_hub' as teacher_syllabus_url %}
+    {% url 'portal:teacher_attendance' as teacher_attendance_url %}
+    <section class="mb-3" data-rmc-intelligent-insights="teacher" aria-label="{% trans 'Teacher decision insights' %}">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+        <h2 class="h6 mb-0">{% trans "Teaching insights" %}</h2>
+        <span class="small text-muted">{% trans "Focused guidance from attendance, marks, and workflow signals" %}</span>
+      </div>
+      <div class="row g-2">
+        {% if widget_data.tasks.pending_evaluations|default:0 > 0 %}
+        <div class="col-md-6">
+          {% include "components/insight_card.html" with tone="warning" title=_("Pending mark entries") explanation=_("Some evaluations are still pending. Closing them now keeps report cards and parent communication current.") action_url=teacher_marks_entry_url action_label=_("Enter marks now") %}
+        </div>
+        {% endif %}
+        {% if ews_list|length > 0 %}
+        <div class="col-md-6">
+          {% include "components/insight_card.html" with tone="danger" title=_("At-risk learners need follow-up") explanation=_("Early warning signals flagged students in your classes. Prioritize outreach before performance drops further.") action_url=teacher_workflow_url action_label=_("Open follow-up workflow") %}
+        </div>
+        {% endif %}
+        {% if syllabus_pending_count|default:0 > 0 %}
+        <div class="col-md-6">
+          {% include "components/insight_card.html" with tone="neutral" title=_("Syllabus progress behind plan") explanation=_("Pending syllabus items can cascade into mark-entry pressure. Resolve curriculum items before next deadline.") action_url=teacher_syllabus_url action_label=_("Review syllabus hub") %}
+        </div>
+        {% endif %}
+        {% if pending_leaves|default:0 > 0 %}
+        <div class="col-md-6">
+          {% include "components/insight_card.html" with tone="warning" title=_("Attendance and leave attention") explanation=_("Pending leave actions exist for your profile. Confirm attendance and leave records to avoid payroll mismatches.") action_url=teacher_attendance_url action_label=_("Check attendance records") %}
+        </div>
+        {% endif %}
+      </div>
+    </section>
     <section class="tdm-hero card-glass" data-decision-zone="headline">
       <div class="tdm-hero__text">
         <p class="tdm-eyebrow">{% trans "Teacher Hub" %}</p>

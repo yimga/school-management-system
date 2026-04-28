@@ -26,6 +26,20 @@
             <span class="text-muted small ms-1">({{ i.app.slug }})</span>
             {% if i.app.version %}<span class="badge bg-secondary ms-1">{{ i.app.version }}</span>{% endif %}
             {% if i.install_phase == 'sandbox' %}<span class="badge bg-warning text-dark ms-1">{% trans "Sandbox" %}</span>{% endif %}
+            {% if i.catalog_signals %}
+            {% with sig=i.catalog_signals %}
+            {% if sig.lifecycle == 'installed' %}<span class="badge text-bg-secondary ms-1" data-rmc-mkt-lifecycle="{{ sig.lifecycle }}">{% trans "Sandbox install" %}</span>
+            {% elif sig.lifecycle == 'active' %}<span class="badge text-bg-success ms-1" data-rmc-mkt-lifecycle="{{ sig.lifecycle }}">{% trans "Active" %}</span>
+            {% elif sig.lifecycle == 'disabled' %}<span class="badge text-bg-danger ms-1" data-rmc-mkt-lifecycle="{{ sig.lifecycle }}">{% trans "Disabled" %}</span>
+            {% endif %}
+            {% if sig.governance_badge == 'certified' %}<span class="badge text-bg-primary ms-1"><i class="bi bi-patch-check"></i> {% trans "Certified" %}</span>{% endif %}
+            {% if sig.governance_badge == 'beta' %}<span class="badge text-bg-warning text-dark ms-1">{% trans "Beta" %}</span>{% endif %}
+            {% if sig.governance_badge == 'internal' %}<span class="badge text-bg-dark ms-1">{% trans "Internal" %}</span>{% endif %}
+            {% if sig.show_update %}<span class="badge text-bg-warning text-dark ms-1" data-rmc-mkt-update-available="1"><i class="bi bi-arrow-up-circle"></i> {% trans "Update available" %}</span>{% endif %}
+            {% if sig.show_rollback %}<span class="badge border border-secondary text-secondary bg-light ms-1" data-rmc-mkt-rollback-hint="1"><i class="bi bi-arrow-counterclockwise"></i> {% trans "Rollback-friendly" %}</span>{% endif %}
+            {% if sig.manifest_ui.pricing_type %}<span class="badge text-bg-light text-dark border ms-1" title="{% trans 'Pricing display — no live billing in this view.' %}"><i class="bi bi-tag"></i> {{ sig.manifest_ui.pricing_type }}{% if sig.manifest_ui.price_display %} · {{ sig.manifest_ui.price_display }}{% endif %}</span>{% endif %}
+            {% endwith %}
+            {% endif %}
           </div>
           <div class="d-flex align-items-center gap-1">
             <a href="{% url 'siteconfig:marketplace_sandbox_embed' %}?app_slug={{ i.app.slug }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">{% trans "Open sandbox" %}</a>
@@ -36,12 +50,89 @@
               <button type="submit" class="btn btn-sm btn-success">{% trans "Activate" %}</button>
             </form>
             {% endif %}
-            <form method="post" action="{% url 'tenant_uninstall_app' %}" class="d-inline" onsubmit="return confirm('{% trans "Uninstall this app?" %}');">
+            <form method="post" action="{% url 'tenant_uninstall_app' %}" class="d-inline" onsubmit="return confirm('{% if i.install_phase == 'sandbox' %}{% trans "Discard sandbox install and remove this app?" %}{% else %}{% trans "Uninstall this app?" %}{% endif %}');">
               {% csrf_token %}
               <input type="hidden" name="installation_id" value="{{ i.pk }}">
-              <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Uninstall" %}</button>
+              <button type="submit" class="btn btn-sm btn-outline-danger">{% if i.install_phase == 'sandbox' %}{% trans "Rollback (remove sandbox)" %}{% else %}{% trans "Uninstall" %}{% endif %}</button>
             </form>
           </div>
+            {% if i.catalog_signals.entitlement.blocked %}
+          <div class="w-100 small">
+            <div class="alert alert-warning py-2 mb-0" role="status" data-rmc-mkt-plan-gate="1">
+              {% trans "Plan / modules:" %} {{ i.catalog_signals.entitlement.upgrade_message }}
+              {% if i.catalog_signals.entitlement.required_commercial_tier %}
+              <span class="d-block mt-1 text-muted">{% trans "Minimum tier" %}: <code>{{ i.catalog_signals.entitlement.required_commercial_tier }}</code>
+                {% if i.catalog_signals.entitlement.current_commercial_tier %}· {% trans "Yours" %}: <code>{{ i.catalog_signals.entitlement.current_commercial_tier }}</code>{% endif %}
+              </span>
+              {% endif %}
+              {% if i.catalog_signals.entitlement.missing_features %}<span class="d-block mt-1"><code>{{ i.catalog_signals.entitlement.missing_features|join:", " }}</code></span>{% endif %}
+              {% url 'siteconfig:billing_plan_readonly' as billing_plan_url %}
+              {% if billing_plan_url %}<span class="d-block mt-2"><a href="{{ billing_plan_url }}">{% trans "Open Plan & entitlements" %}</a></span>{% endif %}
+            </div>
+          </div>
+          {% endif %}
+          <details class="w-100 mt-2 small">
+            <summary class="text-primary" style="cursor:pointer;">{% trans "Install state, scopes, and tenant config" %}</summary>
+            <div class="border rounded p-2 mt-2 bg-light">
+              {% if i.catalog_signals.state_machine %}
+              {% with sm=i.catalog_signals.state_machine %}
+              <dl class="row mb-2 small">
+                <dt class="col-sm-4">{% trans "Installed" %}</dt><dd class="col-sm-8">{% if sm.installed %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
+                <dt class="col-sm-4">{% trans "Active (live)" %}</dt><dd class="col-sm-8">{% if sm.active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
+                <dt class="col-sm-4">{% trans "Disabled / blocked" %}</dt><dd class="col-sm-8">{% if sm.disabled %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
+                <dt class="col-sm-4">{% trans "Update available" %}</dt><dd class="col-sm-8">{% if sm.update_available %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
+                <dt class="col-sm-4">{% trans "Rollback-friendly" %}</dt><dd class="col-sm-8">{% if sm.rollback_available %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
+                <dt class="col-sm-4">{% trans "Safe rollback eligible" %}</dt><dd class="col-sm-8">{% if sm.safe_rollback_eligible %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
+                <dt class="col-sm-4">{% trans "Catalog available (not installed)" %}</dt><dd class="col-sm-8">{% if sm.available %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
+                <dt class="col-sm-4">{% trans "Installed catalog version" %}</dt><dd class="col-sm-8"><code>{{ i.catalog_signals.state_machine.installed_catalog_version|default:"—" }}</code></dd>
+                <dt class="col-sm-4">{% trans "Previous catalog version" %}</dt><dd class="col-sm-8"><code>{{ sm.previous_catalog_version|default:"—" }}</code></dd>
+                <dt class="col-sm-4">{% trans "Catalog version" %}</dt><dd class="col-sm-8"><code>{{ sm.catalog_version }}</code></dd>
+                <dt class="col-sm-4">{% trans "Compatibility OK" %}</dt><dd class="col-sm-8">{% if sm.compatibility_ok %}{% trans "Yes" %}{% else %}{% trans "Review" %}{% endif %}</dd>
+              </dl>
+              {% if sm.compatibility_messages %}
+              <ul class="small text-danger mb-2 ps-3" data-rmc-mkt-install-compat-msgs="1">
+                {% for line in sm.compatibility_messages %}<li>{{ line }}</li>{% endfor %}
+              </ul>
+              {% endif %}
+              {% endwith %}
+              {% endif %}
+              {% if i.scope_display_rows %}
+              <p class="fw-semibold mb-1">{% trans "Declared scopes" %}</p>
+              <div class="table-responsive mb-2">
+                <table class="table table-family table-sm table-bordered mb-0">
+                  <thead><tr><th>{% trans "Scope" %}</th><th>{% trans "Tier" %}</th><th>{% trans "Grant" %}</th></tr></thead>
+                  <tbody>
+                    {% for row in i.scope_display_rows %}
+                    <tr>
+                      <td><code>{{ row.code }}</code>{% if row.sensitive %} <span class="badge text-bg-warning">{% trans "Sensitive" %}</span>{% endif %}</td>
+                      <td>{{ row.access_tier }}</td>
+                      <td>{% if row.grant_status %}{{ row.grant_status }}{% else %}—{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              {% endif %}
+              <p class="fw-semibold mb-1">{% trans "Tenant configuration (read-only summary)" %}</p>
+              <pre class="small bg-white border p-2 mb-2" style="max-height:10rem;overflow:auto;">{{ i.config_display_json }}</pre>
+              {% if i.catalog_signals.manifest_ui.configurable and i.tenant_editable_pairs %}
+              <form method="post" action="{% url 'tenant_save_installation_config' %}" class="border-top pt-2">
+                {% csrf_token %}
+                <input type="hidden" name="installation_id" value="{{ i.pk }}">
+                <p class="small text-muted mb-2">{% trans "Editable keys are allow-listed in the app manifest only." %}</p>
+                {% for key, val in i.tenant_editable_pairs %}
+                <div class="mb-2">
+                  <label class="form-label small mb-0" for="tcfg-{{ i.pk }}-{{ key }}"><code>{{ key }}</code></label>
+                  <input class="form-control form-control-sm" id="tcfg-{{ i.pk }}-{{ key }}" name="tenant_cfg_{{ key }}" value="{{ val }}" maxlength="2000">
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-sm btn-primary">{% trans "Save allowed keys" %}</button>
+              </form>
+              {% else %}
+              <p class="small text-muted mb-0">{% trans "No tenant-editable keys declared — configuration stays read-only here (use governed channels if the app defines keys)." %}</p>
+              {% endif %}
+            </div>
+          </details>
         </li>
         {% empty %}
         <li class="list-group-item p-0">

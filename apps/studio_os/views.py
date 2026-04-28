@@ -622,6 +622,35 @@ def studio_experience_packs(request):
             package_impact_fetch_url = "/api/internal/north-star/package-impact/"
     if school and effective_pack:
         experience_graph_package_id = f"exp-pack:{effective_pack.code}"
+    pack_catalog = {}
+    pack_catalog_warnings: list[str] = []
+    try:
+        from apps.marketplace.pack_registry import (
+            load_platform_pack_catalog,
+            validate_platform_pack_catalog,
+        )
+
+        pack_catalog = load_platform_pack_catalog()
+        pack_catalog_warnings = validate_platform_pack_catalog(pack_catalog)
+    except (ImportError, ValueError, OSError, TypeError):
+        try:
+            from apps.studio_os.school_infrastructure import (
+                load_pack_catalog_from_disk,
+                validate_pack_catalog_entries,
+            )
+
+            pack_catalog = load_pack_catalog_from_disk()
+            pack_catalog_warnings = validate_pack_catalog_entries(pack_catalog)
+        except (ImportError, OSError, TypeError, ValueError):
+            pack_catalog = {}
+            pack_catalog_warnings = []
+    launch_infrastructure_url = ""
+    try:
+        launch_infrastructure_url = (
+            reverse("studio_os:launch") + "?pane=infrastructure"
+        )
+    except NoReverseMatch:
+        pass
     return _render_studio_subpage(
         request,
         canvas_partial="studio_os/partials/subpages/experience_experience_packs.html",
@@ -641,6 +670,9 @@ def studio_experience_packs(request):
             ),
             "action_url": reverse("studio_os:experience"),
             "action_text": _("Back to Experience"),
+            "platform_pack_catalog": pack_catalog,
+            "platform_pack_catalog_warnings": pack_catalog_warnings,
+            "launch_infrastructure_url": launch_infrastructure_url,
         },
         current_mode="experience",
     )
@@ -1356,6 +1388,11 @@ def studio_shell(request, mode=None):
                 "pane": "blueprints",
             },
             {
+                "label": _("School infrastructure"),
+                "url": f"{launch_base}?pane=infrastructure",
+                "pane": "infrastructure",
+            },
+            {
                 "label": _("Import branding"),
                 "url": f"{launch_base}?pane=branding",
                 "pane": "branding",
@@ -1384,6 +1421,7 @@ def studio_shell(request, mode=None):
                 "create_school",
                 "plan",
                 "blueprints",
+                "infrastructure",
                 "branding",
                 "migration",
                 "role_preview",
@@ -1393,6 +1431,16 @@ def studio_shell(request, mode=None):
         launch_pane = pane_raw if pane_raw in allowed_launch else "overview"
         context["launch_pane"] = launch_pane
         context["launch_iframe_src"] = _resolve_launch_iframe_src(request, launch_pane)
+        try:
+            from apps.studio_os.school_infrastructure import (
+                get_infrastructure_context_for_shell,
+            )
+
+            context.update(get_infrastructure_context_for_shell(request))
+        except Exception:
+            context["school_template_summaries"] = []
+            context["platform_catalog_valid"] = False
+            context["current_blueprint_reference"] = None
 
     if mode == "automation":
         from apps.studio_os.services import get_automation_workflow_health_summary
@@ -1435,6 +1483,9 @@ def studio_shell(request, mode=None):
         context["automation_health_summary"] = summary
         wf_pane = f"{auto_base}?pane=workflow" if auto_base else ""
         context["automation_workflow_center_pane_url"] = wf_pane
+        context["automation_simulation_pane_url"] = (
+            f"{auto_base}?pane=simulation" if auto_base else ""
+        )
         explainer_panes = frozenset(
             {
                 "conflict",
@@ -1525,6 +1576,14 @@ def studio_shell(request, mode=None):
         context["automation_simulation_summary"] = _(
             "Run simulation from Workflow center to see impact before activating."
         )
+        try:
+            from apps.studio_os.school_infrastructure import (
+                get_automation_studio_environment,
+            )
+
+            context.update(get_automation_studio_environment(request))
+        except Exception:
+            context["automation_environment"] = None
 
     if mode == "output":
         pane_raw = (request.GET.get("pane") or "dependency").strip().lower()
@@ -2163,3 +2222,96 @@ def studio_audit_api(request):
         limit = 20
     audit = get_studio_publish_audit(request, mode, limit=limit)
     return JsonResponse({"audit": audit})
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def school_infrastructure_preview_api(request):
+    """
+    GET ?template=private_school — JSON preview: resolved packs, diff rows, dependency hints.
+    Read-only; no tenant mutation.
+    """
+    if not user_can_access_studio_on_request(request):
+        return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+    school = getattr(request, "school", None)
+    template_key = (request.GET.get("template") or "").strip()
+    if not template_key:
+        return JsonResponse({"ok": False, "error": "template query required"}, status=400)
+    try:
+        from apps.studio_os.school_infrastructure import build_infrastructure_preview
+
+        payload = build_infrastructure_preview(school, template_key)
+        # Avoid sending full policy blobs in JSON API
+        tpl = dict(payload.get("template") or {})
+        tpl.pop("notes", None)
+        out = {k: v for k, v in payload.items() if k != "template"}
+        out["template"] = tpl
+        out["ok"] = payload.get("ok", False)
+        return JsonResponse(out)
+    except FileNotFoundError:
+        return JsonResponse({"ok": False, "error": "unknown template"}, status=404)
+    except Exception as e:
+        log_exception_with_context(
+            "school_infrastructure_preview_api",
+            **request_context_for_log(request),
+            exc_info=True,
+            extra={"error": str(e)},
+        )
+        return JsonResponse({"ok": False, "error": "preview failed"}, status=500)
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+@login_required
+def school_infrastructure_validate_api(request):
+    """
+    Validate template against catalog (GET ?template= or POST template=).
+    Returns errors list when unresolved pack keys or catalog warnings exist.
+    """
+    if not user_can_access_studio_on_request(request):
+        return JsonResponse({"ok": False, "errors": ["forbidden"]}, status=403)
+    school = getattr(request, "school", None)
+    if request.method == "POST":
+        template_key = (request.POST.get("template") or "").strip()
+    else:
+        template_key = (request.GET.get("template") or "").strip()
+    if not template_key:
+        return JsonResponse({"ok": False, "errors": ["template required"]}, status=400)
+    try:
+        from apps.studio_os.school_infrastructure import build_infrastructure_preview
+
+        payload = build_infrastructure_preview(school, template_key)
+        errors: list[str] = []
+        errors.extend(payload.get("catalog_warnings") or [])
+        for u in payload.get("unresolved_pack_keys") or []:
+            errors.append(f"unresolved {u}")
+        return JsonResponse(
+            {
+                "ok": len(errors) == 0 and payload.get("ok"),
+                "errors": errors,
+                "unresolved_pack_keys": payload.get("unresolved_pack_keys") or [],
+            }
+        )
+    except FileNotFoundError:
+        return JsonResponse({"ok": False, "errors": ["unknown template"]}, status=404)
+
+
+@never_cache
+@require_http_methods(["POST"])
+@login_required
+def school_infrastructure_apply_api(request):
+    """
+    Tenant-safe apply is not supported from Studio; platform administrators govern pack promotion.
+    Always returns supported=false (honest contract).
+    """
+    if not user_can_access_studio_on_request(request):
+        return JsonResponse({"ok": False, "supported": False}, status=403)
+    return JsonResponse(
+        {
+            "ok": False,
+            "supported": False,
+            "reason": "School infrastructure apply is platform-governed. Use blueprint requests or your platform administrator.",
+        },
+        status=501,
+    )

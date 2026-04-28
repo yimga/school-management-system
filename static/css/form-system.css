@@ -36,6 +36,75 @@
   color: var(--admin-content-danger, #dc2626);
 }
 
+/* Unified luxury controls (stateful and accessible) */
+.form-system .form-control,
+.form-system .form-select,
+.ui-premium-surface .form-control,
+.ui-premium-surface .form-select {
+  min-height: 2.5rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--ds-border, rgba(15, 23, 42, 0.14));
+  box-shadow: inset 0 1px 1px rgba(15, 23, 42, 0.02);
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+.form-system .form-control:hover,
+.form-system .form-select:hover,
+.ui-premium-surface .form-control:hover,
+.ui-premium-surface .form-select:hover {
+  border-color: color-mix(in srgb, var(--school-primary, #2563eb) 42%, #94a3b8);
+}
+.form-system .form-control:focus,
+.form-system .form-select:focus,
+.ui-premium-surface .form-control:focus,
+.ui-premium-surface .form-select:focus {
+  border-color: var(--school-primary, #2563eb);
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--school-primary, #2563eb) 28%, transparent);
+}
+.form-system .form-control:focus-visible,
+.form-system .form-select:focus-visible,
+.ui-premium-surface .form-control:focus-visible,
+.ui-premium-surface .form-select:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--school-primary, #2563eb) 38%, transparent);
+  outline-offset: 1px;
+}
+.form-system .form-control:disabled,
+.form-system .form-select:disabled,
+.ui-premium-surface .form-control:disabled,
+.ui-premium-surface .form-select:disabled {
+  opacity: 0.72;
+  background: var(--surface-bg-muted, #e2e8f0);
+  cursor: not-allowed;
+}
+
+/* Design-system button semantics */
+.ds-btn,
+.ui-premium-surface .btn {
+  border-radius: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: transform 120ms ease, box-shadow 150ms ease, opacity 120ms ease;
+}
+.ds-btn:hover,
+.ui-premium-surface .btn:hover {
+  transform: translateY(-1px);
+}
+.ds-btn:active,
+.ui-premium-surface .btn:active {
+  transform: translateY(0);
+}
+.ds-btn:focus-visible,
+.ui-premium-surface .btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--school-primary, #2563eb) 44%, transparent);
+  outline-offset: 1px;
+}
+.ds-btn:disabled,
+.ui-premium-surface .btn:disabled,
+.ui-premium-surface .btn.disabled {
+  opacity: 0.6;
+  transform: none;
+  cursor: not-allowed;
+}
+
 /* Dense form row for list filters */
 .form-system--dense .row.g-2 {
   gap: 0.35rem;

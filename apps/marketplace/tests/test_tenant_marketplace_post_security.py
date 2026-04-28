@@ -13,8 +13,8 @@ from pathlib import Path
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from apps.accounts.models import User
-from apps.schools.models import School
+from apps.accounts.models import Permission, User
+from apps.schools.models import School, SchoolMembership
 
 
 # Host that is not "local" so urlconf stays on tenant_urls; subdomain must match School.subdomain.
@@ -36,6 +36,10 @@ class TenantMarketplacePostHttpSecurityTests(TestCase):
             subdomain="mkt-httpsec-tnt",
             is_active=True,
         )
+        cls.perm_manage, _ = Permission.objects.get_or_create(
+            code="settings.manage",
+            defaults={"name": "Manage settings"},
+        )
         cls.teacher = User.objects.create_user(
             username="mkt_httpsec_teacher",
             password="test-harness-1",
@@ -45,6 +49,12 @@ class TenantMarketplacePostHttpSecurityTests(TestCase):
             username="mkt_httpsec_admin",
             password="test-harness-1",
             role=User.Role.ADMIN,
+        )
+        cls.admin.feature_permissions.add(cls.perm_manage)
+        SchoolMembership.objects.get_or_create(
+            user=cls.admin,
+            school=cls.school,
+            defaults={"role": User.Role.ADMIN, "is_primary": True},
         )
 
     def setUp(self):
@@ -63,17 +73,18 @@ class TenantMarketplacePostHttpSecurityTests(TestCase):
             "tenant_uninstall_app",
             "tenant_approve_scope",
             "tenant_activate_installation",
+            "tenant_save_installation_config",
         ):
             with self.subTest(url=url_name):
-                resp = self._post(
-                    url_name,
-                    {
-                        "app_id": "1",
-                        "install_after_impact_preview": "1",
-                        "installation_id": "1",
-                        "grant_id": "1",
-                    },
-                )
+                payload = {
+                    "app_id": "1",
+                    "install_after_impact_preview": "1",
+                    "installation_id": "1",
+                    "grant_id": "1",
+                }
+                if url_name == "tenant_save_installation_config":
+                    payload = {"installation_id": "1"}
+                resp = self._post(url_name, payload)
                 self.assertEqual(resp.status_code, 302, msg=url_name)
                 loc = (resp.get("Location") or "") + (resp.headers.get("location") or "")
                 self.assertTrue(
@@ -89,6 +100,7 @@ class TenantMarketplacePostHttpSecurityTests(TestCase):
             "tenant_uninstall_app": {},
             "tenant_approve_scope": {},
             "tenant_activate_installation": {},
+            "tenant_save_installation_config": {},
         }
         for url_name, data in payloads.items():
             with self.subTest(url=url_name):
@@ -120,6 +132,7 @@ class TenantMarketplacePostHttpSecurityTests(TestCase):
             "tenant_uninstall_app": {},
             "tenant_approve_scope": {},
             "tenant_activate_installation": {},
+            "tenant_save_installation_config": {},
         }
         for url_name, data in cases.items():
             with self.subTest(url=url_name):
@@ -142,6 +155,7 @@ class TenantMarketplaceUrlLoginContractTests(unittest.TestCase):
             "login_required(tenant_uninstall_app",
             "login_required(tenant_approve_scope",
             "login_required(tenant_activate_installation",
+            "login_required(tenant_save_installation_config",
         ):
             with self.subTest(needle=needle):
                 self.assertIn(

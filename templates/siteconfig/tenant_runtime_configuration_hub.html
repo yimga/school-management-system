@@ -28,6 +28,18 @@
       <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Flags on" %}</div>
       <div class="fw-semibold text-body fs-6">{{ summary_flags_n|default:0 }}</div>
     </div>
+    <div class="border rounded-2 px-2 py-2 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 12rem; max-width: 18rem;" role="region" aria-label="{% trans 'Regional UI' %}" data-rmc-regional-ui-status="1">
+      <div class="text-uppercase text-muted mb-1" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Regional UI" %}</div>
+      <div class="fw-semibold text-body">
+        {% trans "Locale" %}: {{ rmc_locale|default:'en' }} · {% trans "Direction" %}: {{ rmc_text_direction|default:'ltr' }}
+      </div>
+      {% if region %}
+      <div class="text-muted mt-1" style="font-size:0.75rem;">{% trans "Region profile" %}: {{ region_name }} · {% trans "Region code" %}: {{ region_code }}</div>
+      {% endif %}
+      {% if grading_scale %}
+      <div class="text-muted mt-1" style="font-size:0.75rem;">{% trans "Terminology / grading context" %}: {{ grading_scale }}</div>
+      {% endif %}
+    </div>
   </div>
   {% endif %}
   <div class="alert alert-light border shadow-sm mb-3" role="region" aria-label="{% trans 'Where to change settings' %}">
@@ -37,10 +49,25 @@
     </p>
   </div>
   <div class="d-flex flex-wrap gap-2 mb-3 cp-evidence-related" data-rmc-evidence-related-links="1" data-rmc-operator-evidence-related="1" aria-label="{% trans 'Related control-plane links' %}">
+    {% if school_group_hierarchy_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ school_group_hierarchy_url }}" data-rmc-school-hierarchy-link="1">{% trans "School group hierarchy" %}</a>
+    {% endif %}
+    {% if onboarding_checklist_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ onboarding_checklist_url }}" data-rmc-guided-workflow="onboarding-checklist">{% trans "School activation checklist" %}</a>
+    {% endif %}
+    {% if migration_wizard_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ migration_wizard_url }}" data-rmc-guided-workflow="csv-migration">{% trans "CSV migration wizard" %}</a>
+    {% endif %}
+    {% if studio_automation_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ studio_automation_url }}" data-rmc-workflow-builder-foundation="studio-automation">{% trans "Studio: workflows & automation" %}</a>
+    {% endif %}
     <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Configuration control center" %}</a>
     <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:feature_control_panel' %}">{% trans "Feature control" %}</a>
     {% if scheduled_hub_url %}
     <a class="btn btn-sm btn-outline-primary" href="{{ scheduled_hub_url }}">{% trans "Scheduled report delivery" %}</a>
+    {% endif %}
+    {% if compliance_exports_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ compliance_exports_url }}">{% trans "Compliance exports" %}</a>
     {% endif %}
     {% if sync_center_url %}
     <a class="btn btn-sm btn-outline-primary" href="{{ sync_center_url }}">{% trans "Sync center" %}</a>
@@ -53,6 +80,11 @@
     {% endif %}
     {% if billing_plan_readonly_url %}
     <a class="btn btn-sm btn-outline-primary" href="{{ billing_plan_readonly_url }}">{% trans "Plan & entitlements" %}</a>
+    {% endif %}
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:grading_scale_bands' %}">{% trans "Grading scale bands" %}</a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:curriculum_templates' %}">{% trans "Curriculum templates" %}</a>
+    {% if ai_governance_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ ai_governance_url }}">{% trans "AI governance" %}</a>
     {% endif %}
   </div>
 

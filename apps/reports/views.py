@@ -962,6 +962,7 @@ def publish_term_results(request: HttpRequest):
         {
             "year": year_obj,
             "term": term_obj,
+            "school": school,
             "years": _scoped_years_queryset(school),
             "terms": Term.objects.filter(academic_year=year_obj).order_by(
                 "start_date", "name"

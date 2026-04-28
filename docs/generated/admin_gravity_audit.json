@@ -137,16 +137,16 @@
       53
     ],
     "apps/siteconfig/views.py": [
-      1338
+      1356
     ],
     "apps/siteconfig/views_billing_plan.py": [
-      28
+      41
     ],
     "apps/siteconfig/views_config_mutation_evidence.py": [
       43
     ],
     "apps/siteconfig/views_console_domains.py": [
-      158
+      164
     ],
     "apps/siteconfig/views_entity_catalog.py": [
       42
@@ -318,7 +318,7 @@
       "title": "Dynamic field EAV operator (read-only triage; admin CRUD for definitions/values)"
     }
   ],
-  "generated_at": "2026-04-26T23:29:33.804309+00:00",
+  "generated_at": "2026-04-28T22:36:03.263940+00:00",
   "marketplace_app_admin_line_hits": {
     "apps/accounts/management/commands/ensure_default_tenant_admin.py": [
       111
@@ -339,8 +339,8 @@
       126
     ],
     "apps/platform_runtime/onboarding.py": [
-      57,
-      99
+      71,
+      115
     ],
     "apps/schools/platform_admin_surface_bridges.py": [
       100,
@@ -396,7 +396,10 @@
       5
     ],
     "apps/siteconfig/views.py": [
-      759
+      769
+    ],
+    "apps/siteconfig/views_compliance_exports.py": [
+      90
     ],
     "apps/siteconfig/views_tenant_report_schedules_evidence.py": [
       57
@@ -421,9 +424,9 @@
     "apps/siteconfig/views_console_domains.py": {
       "classify": "operator_console_mixed_cp_primary_and_admin_advanced",
       "line_numbers": [
-        157,
-        158,
-        159
+        163,
+        164,
+        165
       ]
     },
     "apps/siteconfig/views_entity_catalog.py": {
@@ -456,7 +459,7 @@
       492
     ],
     "apps/siteconfig/views_console_domains.py": [
-      159
+      165
     ],
     "apps/siteconfig/views_metadata_dynamic_fields.py": [
       53,
@@ -568,11 +571,11 @@
       118
     ],
     "apps/evals/views.py": [
-      2708,
-      2972,
-      2996,
-      3000,
-      3032
+      2782,
+      3046,
+      3070,
+      3074,
+      3106
     ],
     "apps/finance/admin.py": [
       366
@@ -681,25 +684,31 @@
       22
     ],
     "apps/siteconfig/views.py": [
-      759,
-      1338
+      769,
+      1356
     ],
     "apps/siteconfig/views_academic_years_evidence.py": [
       44
     ],
     "apps/siteconfig/views_billing_plan.py": [
-      28
+      41
+    ],
+    "apps/siteconfig/views_compliance_exports.py": [
+      90
     ],
     "apps/siteconfig/views_config_mutation_evidence.py": [
       43
     ],
     "apps/siteconfig/views_console_domains.py": [
-      157,
-      158,
-      159,
-      166,
-      168,
-      385
+      163,
+      164,
+      165,
+      172,
+      174,
+      412
+    ],
+    "apps/siteconfig/views_curriculum_templates.py": [
+      58
     ],
     "apps/siteconfig/views_departments_setup_evidence.py": [
       38
@@ -707,6 +716,10 @@
     "apps/siteconfig/views_entity_catalog.py": [
       38,
       42
+    ],
+    "apps/siteconfig/views_grading_scale_bands.py": [
+      60,
+      63
     ],
     "apps/siteconfig/views_metadata_dynamic_fields.py": [
       53,
@@ -723,6 +736,10 @@
     ],
     "apps/siteconfig/views_report_templates_catalog_evidence.py": [
       53
+    ],
+    "apps/siteconfig/views_school_group_hierarchy.py": [
+      43,
+      46
     ],
     "apps/siteconfig/views_sync_center.py": [
       91
@@ -876,11 +893,11 @@
     "apps/evals/views.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        2708,
-        2972,
-        2996,
-        3000,
-        3032
+        2782,
+        3046,
+        3070,
+        3074,
+        3106
       ]
     },
     "apps/finance/admin.py": {
@@ -1058,8 +1075,8 @@
     "apps/siteconfig/views.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        759,
-        1338
+        769,
+        1356
       ]
     },
     "apps/siteconfig/views_academic_years_evidence.py": {
@@ -1071,7 +1088,13 @@
     "apps/siteconfig/views_billing_plan.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        28
+        41
+      ]
+    },
+    "apps/siteconfig/views_compliance_exports.py": {
+      "category": "permission_and_admin_or_bridge",
+      "line_numbers": [
+        90
       ]
     },
     "apps/siteconfig/views_config_mutation_evidence.py": {
@@ -1083,12 +1106,18 @@
     "apps/siteconfig/views_console_domains.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        157,
-        158,
-        159,
-        166,
-        168,
-        385
+        163,
+        164,
+        165,
+        172,
+        174,
+        412
+      ]
+    },
+    "apps/siteconfig/views_curriculum_templates.py": {
+      "category": "permission_and_admin_or_bridge",
+      "line_numbers": [
+        58
       ]
     },
     "apps/siteconfig/views_departments_setup_evidence.py": {
@@ -1102,6 +1131,13 @@
       "line_numbers": [
         38,
         42
+      ]
+    },
+    "apps/siteconfig/views_grading_scale_bands.py": {
+      "category": "permission_and_admin_or_bridge",
+      "line_numbers": [
+        60,
+        63
       ]
     },
     "apps/siteconfig/views_metadata_dynamic_fields.py": {
@@ -1130,6 +1166,13 @@
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
         53
+      ]
+    },
+    "apps/siteconfig/views_school_group_hierarchy.py": {
+      "category": "permission_and_admin_or_bridge",
+      "line_numbers": [
+        43,
+        46
       ]
     },
     "apps/siteconfig/views_sync_center.py": {
@@ -1298,11 +1341,11 @@
     },
     "apps/evals/views.py": {
       "line_numbers": [
-        2708,
-        2972,
-        2996,
-        3000,
-        3032
+        2782,
+        3046,
+        3070,
+        3074,
+        3106
       ],
       "v2": "needs_model_service_support"
     },
@@ -1480,8 +1523,8 @@
     },
     "apps/siteconfig/views.py": {
       "line_numbers": [
-        759,
-        1338
+        769,
+        1356
       ],
       "v2": "needs_model_service_support"
     },
@@ -1493,7 +1536,13 @@
     },
     "apps/siteconfig/views_billing_plan.py": {
       "line_numbers": [
-        28
+        41
+      ],
+      "v2": "needs_model_service_support"
+    },
+    "apps/siteconfig/views_compliance_exports.py": {
+      "line_numbers": [
+        90
       ],
       "v2": "needs_model_service_support"
     },
@@ -1505,14 +1554,20 @@
     },
     "apps/siteconfig/views_console_domains.py": {
       "line_numbers": [
-        157,
-        158,
-        159,
-        166,
-        168,
-        385
+        163,
+        164,
+        165,
+        172,
+        174,
+        412
       ],
       "v2": "replace_now"
+    },
+    "apps/siteconfig/views_curriculum_templates.py": {
+      "line_numbers": [
+        58
+      ],
+      "v2": "needs_model_service_support"
     },
     "apps/siteconfig/views_departments_setup_evidence.py": {
       "line_numbers": [
@@ -1526,6 +1581,13 @@
         42
       ],
       "v2": "replace_now"
+    },
+    "apps/siteconfig/views_grading_scale_bands.py": {
+      "line_numbers": [
+        60,
+        63
+      ],
+      "v2": "needs_model_service_support"
     },
     "apps/siteconfig/views_metadata_dynamic_fields.py": {
       "line_numbers": [
@@ -1552,6 +1614,13 @@
     "apps/siteconfig/views_report_templates_catalog_evidence.py": {
       "line_numbers": [
         53
+      ],
+      "v2": "needs_model_service_support"
+    },
+    "apps/siteconfig/views_school_group_hierarchy.py": {
+      "line_numbers": [
+        43,
+        46
       ],
       "v2": "needs_model_service_support"
     },
@@ -1599,9 +1668,9 @@
       43
     ],
     "apps/siteconfig/views_console_domains.py": [
-      157,
-      158,
-      159
+      163,
+      164,
+      165
     ],
     "apps/siteconfig/views_entity_catalog.py": [
       38,
@@ -1804,8 +1873,8 @@
         },
         {
           "lines": [
-            759,
-            1338
+            769,
+            1356
           ],
           "path": "apps/siteconfig/views.py",
           "v2": "needs_model_service_support"
@@ -1819,9 +1888,16 @@
         },
         {
           "lines": [
-            28
+            41
           ],
           "path": "apps/siteconfig/views_billing_plan.py",
+          "v2": "needs_model_service_support"
+        },
+        {
+          "lines": [
+            90
+          ],
+          "path": "apps/siteconfig/views_compliance_exports.py",
           "v2": "needs_model_service_support"
         },
         {
@@ -1833,15 +1909,22 @@
         },
         {
           "lines": [
-            157,
-            158,
-            159,
-            166,
-            168,
-            385
+            163,
+            164,
+            165,
+            172,
+            174,
+            412
           ],
           "path": "apps/siteconfig/views_console_domains.py",
           "v2": "replace_now"
+        },
+        {
+          "lines": [
+            58
+          ],
+          "path": "apps/siteconfig/views_curriculum_templates.py",
+          "v2": "needs_model_service_support"
         },
         {
           "lines": [
@@ -1860,6 +1943,14 @@
         },
         {
           "lines": [
+            60,
+            63
+          ],
+          "path": "apps/siteconfig/views_grading_scale_bands.py",
+          "v2": "needs_model_service_support"
+        },
+        {
+          "lines": [
             53,
             59
           ],
@@ -1875,6 +1966,14 @@
           ],
           "path": "apps/siteconfig/views_metadata_operator_hub.py",
           "v2": "replace_now"
+        },
+        {
+          "lines": [
+            43,
+            46
+          ],
+          "path": "apps/siteconfig/views_school_group_hierarchy.py",
+          "v2": "needs_model_service_support"
         },
         {
           "lines": [
@@ -1969,11 +2068,11 @@
         },
         {
           "lines": [
-            2708,
-            2972,
-            2996,
-            3000,
-            3032
+            2782,
+            3046,
+            3070,
+            3074,
+            3106
           ],
           "path": "apps/evals/views.py",
           "v2": "needs_model_service_support"
@@ -2366,8 +2465,11 @@
       551
     ],
     "apps/siteconfig/views.py": [
-      759,
-      1338
+      769,
+      1356
+    ],
+    "apps/siteconfig/views_compliance_exports.py": [
+      90
     ],
     "apps/siteconfig/views_report_output_history_evidence.py": [
       46
@@ -2386,21 +2488,22 @@
   "summary": {
     "admin_bridge_hits_by_category": {
       "harmless_django_admin_registration": 4,
-      "permission_and_admin_or_bridge": 29,
+      "permission_and_admin_or_bridge": 33,
       "redirect_or_link_to_admin": 21
     },
     "admin_template_files": 67,
     "admin_url_namespaces_by_app_label_segment": {
       "academics": 22,
       "accounts": 2,
+      "app": 1,
       "auth": 2,
       "automation": 17,
       "billing": 8,
       "brand": 7,
       "compliance": 3,
-      "evals": 5,
+      "evals": 7,
       "finance": 1,
-      "global": 6,
+      "global": 7,
       "index": 17,
       "integrations": 15,
       "login": 1,
@@ -2416,23 +2519,23 @@
       "reports": 4,
       "runtime": 13,
       "sales": 2,
-      "schools": 7,
+      "schools": 8,
       "siteconfig": 42
     },
-    "approx_product_code_lines_with_admin_substring": 464,
+    "approx_product_code_lines_with_admin_substring": 466,
     "approx_register_calls_in_admin_py": 0,
     "apps_with_admin_py": 35,
     "high_registration_app_labels_gte_3": [],
     "next_recommended_candidate_roadmap_id": "",
     "product_admin_bridge_hits_by_theme": {
-      "accounts_security": 7,
-      "marketplace": 3,
-      "metadata": 17,
-      "other": 22,
+      "accounts_security": 6,
+      "marketplace": 4,
+      "metadata": 18,
+      "other": 25,
       "platform_runtime_fleet": 2,
       "reports_compliance": 3
     },
-    "product_files_mentioning_admin_bridge": 54,
+    "product_files_mentioning_admin_bridge": 58,
     "shipped_category_regression_checks": {
       "backend_classroom_academic_years_before_admin": "pass",
       "backend_student_portal_tabbed_before_admin": "pass",
@@ -2612,7 +2715,7 @@
       1795
     ],
     "apps/siteconfig/views.py": [
-      759
+      769
     ],
     "apps/siteconfig/views_tenant_report_schedules_evidence.py": [
       57

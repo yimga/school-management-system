@@ -1,80 +1,143 @@
 /**
- * Ultra high-end design tokens – platform-wide.
- * Rich Black, Gallery White, Platinum; bold typography; generous spacing; 600ms motion.
- * Load after design-tokens.css. Used by statement-header.css and platform-high-end.css.
+ * Final luxury token contract (quiet, restrained, platform-wide).
+ * This file is the canonical contract for spacing/type/radius/shadow/surface/motion.
+ * Legacy variables are kept as aliases to avoid breakage while converging older layers.
  */
 :root {
-  /* Luxury palette – no compromise */
-  --luxury-rich-black: #0A0A0A;
-  --luxury-gallery-white: #FDFDFD;
-  --luxury-platinum: #E5E5E5;
-  --luxury-text: #1A1A1A;
-  --luxury-text-muted: #525252;
-  --luxury-primary: #0A0A0A;
-  --luxury-primary-invert: #FDFDFD;
-  --luxury-accent: #B8860B;
-  --luxury-accent-alt: #0F172A;
-  --luxury-border: rgba(10, 10, 10, 0.08);
-  --luxury-border-strong: rgba(10, 10, 10, 0.14);
+  /* -------------------------------------------------------------------------- */
+  /* Canonical luxury contract                                                   */
+  /* -------------------------------------------------------------------------- */
 
-  /* Statement header – logo as hero */
-  --statement-header-bg: var(--luxury-gallery-white);
-  --statement-header-fg: var(--luxury-rich-black);
+  /* Spacing */
+  --lux-space-1: 0.25rem;
+  --lux-space-2: 0.5rem;
+  --lux-space-3: 0.75rem;
+  --lux-space-4: 1rem;
+  --lux-space-5: 1.25rem;
+  --lux-space-6: 1.5rem;
+  --lux-space-7: 2rem;
+  --lux-space-8: 2.5rem;
+  --lux-space-9: 3rem;
+  --lux-space-10: 4rem;
+  --lux-space-11: 5rem;
+  --lux-space-12: 6rem;
+
+  /* Typography */
+  --lux-type-xs: 0.75rem;
+  --lux-type-sm: 0.875rem;
+  --lux-type-md: 1rem;
+  --lux-type-lg: 1.125rem;
+  --lux-type-xl: 1.375rem;
+  --lux-type-2xl: 1.75rem;
+  --lux-type-3xl: 2.25rem;
+  --lux-type-display: clamp(2.25rem, 4vw, 3.25rem);
+
+  /* Radius */
+  --lux-radius-sm: 0.375rem;
+  --lux-radius-md: 0.5rem;
+  --lux-radius-lg: 0.75rem;
+  --lux-radius-xl: 1rem;
+  --lux-radius-2xl: 1.25rem;
+
+  /* Shadows (quiet luxury: no aggressive bloom) */
+  --lux-shadow-hairline: 0 0 0 1px rgba(15, 23, 42, 0.08);
+  --lux-shadow-elevated: 0 6px 18px rgba(15, 23, 42, 0.08);
+  --lux-shadow-floating: 0 14px 30px rgba(15, 23, 42, 0.12);
+
+  /* Surfaces */
+  --lux-surface-base: #ffffff;
+  --lux-surface-elevated: #f8fafc;
+  --lux-surface-muted: #f1f5f9;
+
+  /* Motion (calm; long durations only for explicit decorative use) */
+  --lux-motion-fast: 140ms ease;
+  --lux-motion-base: 220ms ease;
+  --lux-motion-slow: 360ms ease;
+
+  /* Palette */
+  --lux-color-ink: #0f172a;
+  --lux-color-ink-muted: #475569;
+  --lux-color-border: rgba(15, 23, 42, 0.12);
+  --lux-color-border-strong: rgba(15, 23, 42, 0.2);
+  --lux-color-accent: #0f172a;
+  --lux-color-accent-contrast: #ffffff;
+  --lux-color-highlight: #d4af37;
+
+  /* -------------------------------------------------------------------------- */
+  /* Legacy aliases (compatibility bridge)                                      */
+  /* -------------------------------------------------------------------------- */
+  --luxury-rich-black: var(--lux-color-ink);
+  --luxury-gallery-white: var(--lux-surface-base);
+  --luxury-platinum: #e5e7eb;
+  --luxury-text: var(--lux-color-ink);
+  --luxury-text-muted: var(--lux-color-ink-muted);
+  --luxury-primary: var(--lux-color-accent);
+  --luxury-primary-invert: var(--lux-color-accent-contrast);
+  --luxury-accent: var(--lux-color-highlight);
+  --luxury-accent-alt: var(--lux-color-accent);
+  --luxury-border: var(--lux-color-border);
+  --luxury-border-strong: var(--lux-color-border-strong);
+
+  --luxury-section-padding: var(--lux-space-9);
+  --luxury-gap: var(--lux-space-7);
+  --luxury-gap-sm: var(--lux-space-5);
+  --luxury-card-padding: var(--lux-space-6) var(--lux-space-7);
+  --luxury-font-display: "Inter", system-ui, -apple-system, sans-serif;
+  --luxury-font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --luxury-letter-spacing-caps: 0.08em;
+  --luxury-letter-spacing-tight: -0.02em;
+  --luxury-heading-weight: 700;
+  --luxury-body-weight: 400;
+  --luxury-motion-duration: var(--lux-motion-base);
+  --luxury-motion-ease: ease;
+  --luxury-motion-hover: var(--lux-motion-fast);
+  --luxury-btn-radius: var(--lux-radius-sm);
+  --luxury-btn-padding-x: var(--lux-space-6);
+  --luxury-btn-padding-y: var(--lux-space-3);
+  --luxury-btn-weight: 600;
+  --luxury-surface: var(--lux-surface-base);
+  --luxury-surface-subtle: var(--lux-surface-elevated);
+  --luxury-surface-muted: var(--lux-surface-muted);
+  --luxury-shadow-soft: var(--lux-shadow-elevated);
+  --luxury-shadow-lift: var(--lux-shadow-floating);
+
+  /* Statement header */
+  --statement-header-bg: var(--lux-surface-base);
+  --statement-header-fg: var(--lux-color-ink);
   --statement-header-height: 72px;
   --statement-logo-min-width: 150px;
   --statement-logo-font: "Inter", system-ui, -apple-system, sans-serif;
   --statement-logo-weight: 700;
-  --statement-header-padding-x: 2rem;
-  --statement-header-padding-y: 1.25rem;
-
-  /* Spatial luxury – 2x breathing room */
-  --luxury-section-padding: 3rem;
-  --luxury-gap: 2rem;
-  --luxury-gap-sm: 1.25rem;
-  --luxury-card-padding: 1.75rem 2rem;
-
-  /* Typography – authority */
-  --luxury-font-display: "Inter", system-ui, -apple-system, sans-serif;
-  --luxury-font-body: "Inter", system-ui, -apple-system, sans-serif;
-  --luxury-letter-spacing-caps: 0.1em;
-  --luxury-letter-spacing-tight: -0.02em;
-  --luxury-heading-weight: 700;
-  --luxury-body-weight: 400;
-
-  /* Motion – surface, not pop (600ms ease-out) */
-  --luxury-motion-duration: 600ms;
-  --luxury-motion-ease: ease-out;
-  --luxury-motion-hover: 300ms ease-in-out;
-
-  /* CTAs – sharp or 2px radius; invert on hover */
-  --luxury-btn-radius: 2px;
-  --luxury-btn-padding-x: 1.5rem;
-  --luxury-btn-padding-y: 0.75rem;
-  --luxury-btn-weight: 600;
-
-  /* Surfaces – hairline or tonal shift */
-  --luxury-surface: #FFFFFF;
-  --luxury-surface-subtle: #FAFAFA;
-  --luxury-surface-muted: #F5F5F5;
-  --luxury-shadow-soft: 0 2px 12px rgba(10, 10, 10, 0.06);
-  --luxury-shadow-lift: 0 8px 24px rgba(10, 10, 10, 0.08);
+  --statement-header-padding-x: var(--lux-space-7);
+  --statement-header-padding-y: var(--lux-space-5);
 }
 
-/* Dark / backend dark */
 html[data-theme="dark"],
 html[data-bs-theme="dark"],
 body.portal-backend-dark {
-  --luxury-text: #F5F5F5;
-  --luxury-text-muted: #A3A3A3;
-  --luxury-primary: #FAFAFA;
-  --luxury-primary-invert: #0A0A0A;
-  --luxury-border: rgba(255, 255, 255, 0.1);
-  --luxury-border-strong: rgba(255, 255, 255, 0.18);
-  --luxury-surface: #171717;
-  --luxury-surface-subtle: #1C1C1C;
-  --luxury-surface-muted: #262626;
-  --statement-header-bg: #0A0A0A;
-  --statement-header-fg: #FDFDFD;
-  --luxury-shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.3);
-  --luxury-shadow-lift: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --lux-color-ink: #e2e8f0;
+  --lux-color-ink-muted: #94a3b8;
+  --lux-color-border: rgba(148, 163, 184, 0.28);
+  --lux-color-border-strong: rgba(148, 163, 184, 0.38);
+  --lux-color-accent: #f8fafc;
+  --lux-color-accent-contrast: #0f172a;
+  --lux-surface-base: #0f172a;
+  --lux-surface-elevated: #1e293b;
+  --lux-surface-muted: #334155;
+  --lux-shadow-hairline: 0 0 0 1px rgba(148, 163, 184, 0.2);
+  --lux-shadow-elevated: 0 8px 20px rgba(0, 0, 0, 0.3);
+  --lux-shadow-floating: 0 18px 36px rgba(0, 0, 0, 0.4);
+
+  --statement-header-bg: #0f172a;
+  --statement-header-fg: #f8fafc;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --lux-motion-fast: 0ms;
+    --lux-motion-base: 0ms;
+    --lux-motion-slow: 0ms;
+    --luxury-motion-duration: 0ms;
+    --luxury-motion-hover: 0ms;
+  }
 }
