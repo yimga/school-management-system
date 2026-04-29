@@ -1,19 +1,19 @@
 {
   "baseline_counts": {
     "allow_any": 106,
-    "csrf_exempt": 306,
+    "csrf_exempt": 302,
     "cursor_execute": 380,
     "except_exception": 318,
     "get_solo": 206,
-    "gilead": 15981,
+    "gilead": 16660,
     "gilead_files": 161,
     "html_files": 716,
     "management_commands": 158,
     "markdown_files": 1109,
     "migration_files": 712,
-    "print_calls": 1042,
+    "print_calls": 1023,
     "python_files": 2655,
-    "site_settings": 1886
+    "site_settings": 1885
   },
   "doc_drift": {
     "actual_installed_app_count": 44,

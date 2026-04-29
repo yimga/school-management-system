@@ -8521,7 +8521,7 @@
       }
     ]
   },
-  "generated_at": "2026-04-29T04:11:41.054992+00:00",
+  "generated_at": "2026-04-29T05:16:11.905155+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/oneroster_roster_webhook.py",
