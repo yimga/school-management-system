@@ -14,6 +14,8 @@
 
 **F. Status:** **INTEGRATION CLOSED** — treat remaining rollout risk as **environment/operational** (secrets, Stripe, external webhooks), not mechanical suite gates.
 
+**Follow-up (same integration thread, 2026-04-29):** Committed **`941a3adb`** (integration fixes) + **`a8f47885`** (inventory/audit regen) + **`d54ed9b6`** (reports after **`manage.py test`**, **`run_northstar_self_heal`**, **`run_kill_test`**). Re-ran **`DJANGO_TEST_DB_FILE=.django_test_dbs/integration_agent_full.sqlite3 python manage.py test --noinput`** → **exit 0** (~37.4 min); **`run_northstar_audit`** → **75/75**; self-heal + kill test → **PASS**.
+
 ## Wave — §11.4 batch 1129 closing-system / demo / CRM / mobile UX certification (release-candidate gate) (2026-04-28)
 
 **A. Product / tests harness:** **`apps/marketplace/tests/test_purchase_intent.py`** — **`Permission`** **`settings.manage`** + **`SchoolMembership`** for the logged-in admin so **`enforce_tenant_security(action="admin")`** passes on **`app_purchase_intent`** (matches **`tenant_access`** contract used elsewhere).
