@@ -1,12 +1,12 @@
 # Subprocess audit (generated)
 
-**UTC** `2026-04-28T20:29:13.373298+00:00`
+**UTC** `2026-04-29T01:11:46.873044+00:00`
 
-**Total hits:** 200
+**Total hits:** 201
 
 | Classification | Count |
 | --- | --- |
-| deployment_script_safe | 54 |
+| deployment_script_safe | 55 |
 | management_command_safe | 3 |
 | needs_review | 6 |
 | test_safe | 137 |

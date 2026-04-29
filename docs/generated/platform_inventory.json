@@ -1,19 +1,19 @@
 {
   "baseline_counts": {
-    "allow_any": 91,
-    "csrf_exempt": 227,
-    "cursor_execute": 372,
-    "except_exception": 281,
-    "get_solo": 202,
-    "gilead": 1102,
-    "gilead_files": 149,
-    "html_files": 695,
+    "allow_any": 105,
+    "csrf_exempt": 304,
+    "cursor_execute": 379,
+    "except_exception": 316,
+    "get_solo": 205,
+    "gilead": 8251,
+    "gilead_files": 161,
+    "html_files": 716,
     "management_commands": 158,
-    "markdown_files": 1064,
-    "migration_files": 706,
-    "print_calls": 966,
-    "python_files": 2547,
-    "site_settings": 1788
+    "markdown_files": 1109,
+    "migration_files": 712,
+    "print_calls": 1036,
+    "python_files": 2655,
+    "site_settings": 1874
   },
   "doc_drift": {
     "actual_installed_app_count": 44,
@@ -63,8 +63,8 @@
       "path": "apps/finance/models.py"
     },
     {
-      "bytes": 86146,
-      "lines": 2180,
+      "bytes": 91692,
+      "lines": 2317,
       "path": "apps/studio_os/views.py"
     },
     {
@@ -78,8 +78,8 @@
       "path": "apps/siteconfig/models.py"
     },
     {
-      "bytes": 71617,
-      "lines": 1580,
+      "bytes": 71704,
+      "lines": 1581,
       "path": "config/settings.py"
     }
   ],
@@ -908,9 +908,9 @@
     "cursor_execute_apps_config_py_excl_migrations": 32,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 872,
-    "site_settings_refs_apps_py_excl_migrations": 40,
-    "site_settings_refs_apps_py_excl_migrations_tests": 6
+    "print_calls_scripts_py": 925,
+    "site_settings_refs_apps_py_excl_migrations": 41,
+    "site_settings_refs_apps_py_excl_migrations_tests": 7
   },
   "site_settings_fields": [
     {

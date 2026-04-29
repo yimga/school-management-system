@@ -16053,3 +16053,258 @@ msgstr ""
 
 msgid "overdue"
 msgstr ""
+
+msgid ""
+"AI operational layer: enabled for this tenant (drafts still require your "
+"review)."
+msgstr ""
+
+msgid ""
+"AI operational layer: off (enable RUNMYCAMPUS_AI_ENABLED and tenant policy "
+"in School settings if allowed)."
+msgstr ""
+
+msgid "Access tier"
+msgstr ""
+
+msgid "AllowAny hints (apps)"
+msgstr ""
+
+msgid "App permissions & scope approval"
+msgstr ""
+
+msgid "Approve scope"
+msgstr ""
+
+msgid "Aspect"
+msgstr ""
+
+msgid "Automation environment"
+msgstr ""
+
+msgid "Catalog available (not installed)"
+msgstr ""
+
+msgid "Catalog validation warnings; confirm with platform operations."
+msgstr ""
+
+msgid ""
+"Choose a production template to preview workflow, dashboard, and theme packs"
+" from the platform catalog. Validation is read-only; applying packs is "
+"platform-governed."
+msgstr ""
+
+msgid "Combined POST surface ledger not found. Run:"
+msgstr ""
+
+msgid "Compatibility OK"
+msgstr ""
+
+msgid "Compatibility review:"
+msgstr ""
+
+msgid "Configuration copilot"
+msgstr ""
+
+msgid "Current blueprint (reference)"
+msgstr ""
+
+msgid "Declared constraints may not match this tenant or platform version."
+msgstr ""
+
+msgid "Diff / readiness"
+msgstr ""
+
+msgid "Enterprise"
+msgstr ""
+
+msgid "Export delivery hints (apps)"
+msgstr ""
+
+msgid "External providers"
+msgstr ""
+
+msgid "Free"
+msgstr ""
+
+msgid "Granted"
+msgstr ""
+
+msgid "Included in plan"
+msgstr ""
+
+msgid ""
+"Launch Studio: preview workflow/dashboard/theme stacks by school template "
+"(read-only until platform applies)."
+msgstr ""
+
+msgid "Local / rules first"
+msgstr ""
+
+msgid ""
+"No granted scope records yet (non-sensitive scopes may auto-grant on "
+"install)."
+msgstr ""
+
+msgid "No templates registered"
+msgstr ""
+
+msgid ""
+"One-click tenant apply is not enabled; request changes via your platform "
+"administrator."
+msgstr ""
+
+msgid "Open infrastructure preview"
+msgstr ""
+
+msgid "Operational use cases (CCC, reports, policy, workflows, support)"
+msgstr ""
+
+msgid "POST / mutation ledger (combined)"
+msgstr ""
+
+msgid "POST risk (product needs_review)"
+msgstr ""
+
+msgid "Pack catalog validation reported warnings; previews may be incomplete."
+msgstr ""
+
+msgid "Pending approval"
+msgstr ""
+
+msgid "Policy assistant"
+msgstr ""
+
+msgid "Preview & validate"
+msgstr ""
+
+msgid ""
+"Preview AWS-style infrastructure stacks (workflow, dashboard, theme packs) "
+"before requesting platform apply."
+msgstr ""
+
+msgid ""
+"Preview loads resolved packs and a diff against your current blueprint "
+"reference."
+msgstr ""
+
+msgid "Previous catalog version"
+msgstr ""
+
+msgid ""
+"Pricing label — checkout only starts when billing is configured; no "
+"simulated purchases."
+msgstr ""
+
+msgid "Publish readiness"
+msgstr ""
+
+msgid "Raw SQL (apps, post-surface ledger)"
+msgstr ""
+
+msgid ""
+"Read-only manifests for workflow, dashboard, and theme packs (same registry "
+"surfaced in Studio)."
+msgstr ""
+
+msgid "Regenerate with"
+msgstr ""
+
+msgid "Report comment"
+msgstr ""
+
+msgid ""
+"Review OAuth-style scopes declared by marketplace apps. Sensitive scopes "
+"require explicit approval before the app can use them at this school."
+msgstr ""
+
+msgid "Review staged packages"
+msgstr ""
+
+msgid ""
+"Rollback disabled for tenant apply; use platform rollback when available."
+msgstr ""
+
+msgid ""
+"Rollback is flagged as supported for this template (platform-governed)."
+msgstr ""
+
+msgid "Rollback readiness"
+msgstr ""
+
+msgid ""
+"Runtime API enforcement remains in platform policy; this page records tenant"
+" consent for declared scopes."
+msgstr ""
+
+msgid "Safe rollback eligible"
+msgstr ""
+
+msgid "School infrastructure"
+msgstr ""
+
+msgid "School infrastructure & install preview"
+msgstr ""
+
+msgid "School infrastructure templates"
+msgstr ""
+
+msgid "Simulation engine (preview impact)"
+msgstr ""
+
+msgid "Simulation limited"
+msgstr ""
+
+msgid "Simulation ready"
+msgstr ""
+
+msgid "Snapshot available"
+msgstr ""
+
+msgid "Staging vs production"
+msgstr ""
+
+msgid "Support hints"
+msgstr ""
+
+msgid "Tenant apply may be supported for this template in future releases."
+msgstr ""
+
+msgid "Workflow builder"
+msgstr ""
+
+msgid "Workflow center (edit & simulate)"
+msgstr ""
+
+msgid "also refreshes post_handler_audit via audit_post_handler_surface"
+msgstr ""
+
+msgid "csrf_exempt (apps)"
+msgstr ""
+
+msgid "cursor.execute (apps)"
+msgstr ""
+
+msgid "for the combined ledger."
+msgstr ""
+
+msgid "modules"
+msgstr ""
+
+msgid "subprocess (apps)"
+msgstr ""
+
+msgid "subprocess (apps, post-surface ledger)"
+msgstr ""
+
+msgid "to generate docs/generated/post_handler_audit.json, or"
+msgstr ""
+
+msgid "{{ n }} policy snapshot keys"
+msgstr ""
+
+msgid "Stripe plan prices (platform admin)"
+msgstr ""
+
+msgid "StripePlanPrice — commercial plan/price rows"
+msgstr ""

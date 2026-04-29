@@ -1,24 +1,24 @@
 # Platform Inventory
 
 - Installed app modules: `44`
-- Python files: `2547`
-- HTML templates: `695`
-- Markdown files: `1064`
-- Migration files: `706`
+- Python files: `2655`
+- HTML templates: `716`
+- Markdown files: `1109`
+- Migration files: `712`
 - Management commands: `158` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs (gross scan): `1788`
-- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `40`
-- `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `6`
-- `get_solo()` refs: `202`
-- `except Exception`: `281`
-- `cursor.execute()` (gross): `372`
+- `SiteSettings` refs (gross scan): `1874`
+- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `41`
+- `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `7`
+- `get_solo()` refs: `205`
+- `except Exception`: `316`
+- `cursor.execute()` (gross): `379`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `32`
-- `csrf_exempt` (substring, gross): `227`
+- `csrf_exempt` (substring, gross): `304`
 - `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `37`
-- `AllowAny`: `91`
-- `print()` (gross all `.py`): `966`
-- `print()` (`apps` product paths): `0`; `scripts/`: `872`
-- `gilead` matches (gross corpus): `1102` across `149` files
+- `AllowAny`: `105`
+- `print()` (gross all `.py`): `1036`
+- `print()` (`apps` product paths): `0`; `scripts/`: `925`
+- `gilead` matches (gross corpus): `8251` across `161` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -85,10 +85,10 @@ Total: `158` commands. First 25 by app/command:
 - `apps/siteconfig/views.py`: `2668` lines / `100459` bytes
 - `apps/siteconfig/admin.py`: `2814` lines / `98710` bytes
 - `apps/finance/models.py`: `2814` lines / `98677` bytes
-- `apps/studio_os/views.py`: `2180` lines / `86146` bytes
+- `apps/studio_os/views.py`: `2317` lines / `91692` bytes
 - `apps/finance/tasks.py`: `2062` lines / `82395` bytes
 - `apps/siteconfig/models.py`: `2023` lines / `78497` bytes
-- `config/settings.py`: `1580` lines / `71617` bytes
+- `config/settings.py`: `1581` lines / `71704` bytes
 
 ## Documentation Drift
 

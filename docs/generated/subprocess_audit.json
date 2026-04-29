@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-28T20:29:13.373298+00:00",
+  "generated_at": "2026-04-29T01:11:46.873044+00:00",
   "hits": [
     {
       "classification": "test_safe",
@@ -886,7 +886,13 @@
     {
       "classification": "deployment_script_safe",
       "file": "scripts/audit_post_surface.py",
-      "line": "113",
+      "line": "190",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
+      "file": "scripts/audit_post_surface.py",
+      "line": "217",
       "pattern": "subprocess.run"
     },
     {
@@ -1036,13 +1042,13 @@
     {
       "classification": "deployment_script_safe",
       "file": "scripts/run_kill_test.py",
-      "line": "80",
+      "line": "87",
       "pattern": "subprocess.run"
     },
     {
       "classification": "deployment_script_safe",
       "file": "scripts/run_kill_test.py",
-      "line": "135",
+      "line": "143",
       "pattern": "subprocess.run"
     },
     {
@@ -1204,6 +1210,6 @@
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 200
+    "hits": 201
   }
 }

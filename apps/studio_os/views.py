@@ -1437,7 +1437,7 @@ def studio_shell(request, mode=None):
             )
 
             context.update(get_infrastructure_context_for_shell(request))
-        except Exception:
+        except (ImportError, AttributeError, TypeError, ValueError, OSError, KeyError):
             context["school_template_summaries"] = []
             context["platform_catalog_valid"] = False
             context["current_blueprint_reference"] = None
@@ -1582,7 +1582,7 @@ def studio_shell(request, mode=None):
             )
 
             context.update(get_automation_studio_environment(request))
-        except Exception:
+        except (ImportError, AttributeError, TypeError, ValueError, OSError, KeyError):
             context["automation_environment"] = None
 
     if mode == "output":
@@ -2251,7 +2251,7 @@ def school_infrastructure_preview_api(request):
         return JsonResponse(out)
     except FileNotFoundError:
         return JsonResponse({"ok": False, "error": "unknown template"}, status=404)
-    except Exception as e:
+    except (OSError, ValueError, TypeError, KeyError, RuntimeError) as e:
         log_exception_with_context(
             "school_infrastructure_preview_api",
             **request_context_for_log(request),

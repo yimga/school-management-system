@@ -3,13 +3,27 @@ Integration tests for incident ticket creation.
 """
 
 from unittest.mock import patch
-from django.test import TestCase
+
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.test import TestCase, override_settings
+
+from apps.compliance.alerts import notify_audit_event, send_threat_alert
 from apps.compliance.models_audit import AuditLog
-from apps.compliance.alerts import send_threat_alert, notify_audit_event
 from apps.observability.models import PlatformIncident
 
 User = get_user_model()
+
+_INCIDENT_RESPONSE_FULL = {
+    "ticket_webhook": "https://example.com/create-ticket",
+    "playbook_url": "https://example.com/playbook",
+    "oncall_emails": ["oncall@example.com"],
+}
+_INCIDENT_RESPONSE_NO_ONCALL = {
+    "ticket_webhook": "https://example.com/create-ticket",
+    "playbook_url": "https://example.com/playbook",
+    "oncall_emails": [],
+}
 
 
 class IncidentTicketIntegrationTestCase(TestCase):
@@ -17,29 +31,25 @@ class IncidentTicketIntegrationTestCase(TestCase):
 
     def setUp(self):
         """Create test user."""
+        cache.clear()
         self.user = User.objects.create_user(
             username="testuser", email="test@example.com", password="testpass123"
         )
 
     @patch("apps.compliance.alerts._post_json")
-    @patch("apps.compliance.alerts.settings")
-    def test_threat_alert_creates_ticket(self, mock_settings, mock_post_json):
-        """Test that threat alerts trigger incident ticket creation."""
-        # Mock settings
-        mock_settings.COMPLIANCE_ALERTS = {
+    @override_settings(
+        COMPLIANCE_ALERTS={
             "enabled": True,
             "email_recipients": [],
             "slack_webhook_url": "",
             "generic_webhook_url": "",
             "runbook_url": "https://example.com/runbook",
-        }
-        mock_settings.INCIDENT_RESPONSE = {
-            "ticket_webhook": "https://example.com/create-ticket",
-            "playbook_url": "https://example.com/playbook",
-            "oncall_emails": ["oncall@example.com"],
-        }
-        mock_settings.DEFAULT_FROM_EMAIL = "noreply@example.com"
-
+        },
+        INCIDENT_RESPONSE=_INCIDENT_RESPONSE_FULL,
+        DEFAULT_FROM_EMAIL="noreply@example.com",
+    )
+    def test_threat_alert_creates_ticket(self, mock_post_json):
+        """Test that threat alerts trigger incident ticket creation."""
         # Create threat finding
         finding = {
             "type": "BRUTE_FORCE_USER",
@@ -82,11 +92,8 @@ class IncidentTicketIntegrationTestCase(TestCase):
         self.assertEqual(incident.status, PlatformIncident.Status.OPEN)
 
     @patch("apps.compliance.alerts._post_json")
-    @patch("apps.compliance.alerts.settings")
-    def test_high_severity_audit_creates_ticket(self, mock_settings, mock_post_json):
-        """Test that HIGH/CRITICAL audit events trigger ticket creation."""
-        # Mock settings
-        mock_settings.COMPLIANCE_ALERTS = {
+    @override_settings(
+        COMPLIANCE_ALERTS={
             "enabled": True,
             "severity_threshold": "MEDIUM",
             "escalate_on_actions": [],
@@ -94,14 +101,12 @@ class IncidentTicketIntegrationTestCase(TestCase):
             "slack_webhook_url": "",
             "generic_webhook_url": "",
             "runbook_url": "https://example.com/runbook",
-        }
-        mock_settings.INCIDENT_RESPONSE = {
-            "ticket_webhook": "https://example.com/create-ticket",
-            "playbook_url": "https://example.com/playbook",
-            "oncall_emails": ["oncall@example.com"],
-        }
-        mock_settings.DEFAULT_FROM_EMAIL = "noreply@example.com"
-
+        },
+        INCIDENT_RESPONSE=_INCIDENT_RESPONSE_FULL,
+        DEFAULT_FROM_EMAIL="noreply@example.com",
+    )
+    def test_high_severity_audit_creates_ticket(self, mock_post_json):
+        """Test that HIGH/CRITICAL audit events trigger ticket creation."""
         # Create HIGH severity audit log
         audit_log = AuditLog.objects.create(
             action=AuditLog.Action.DELETE,
@@ -136,11 +141,8 @@ class IncidentTicketIntegrationTestCase(TestCase):
         self.assertEqual(incident.status, PlatformIncident.Status.OPEN)
 
     @patch("apps.compliance.alerts._post_json")
-    @patch("apps.compliance.alerts.settings")
-    def test_medium_severity_no_ticket(self, mock_settings, mock_post_json):
-        """Test that MEDIUM severity audits don't create tickets."""
-        # Mock settings
-        mock_settings.COMPLIANCE_ALERTS = {
+    @override_settings(
+        COMPLIANCE_ALERTS={
             "enabled": True,
             "severity_threshold": "HIGH",
             "escalate_on_actions": [],
@@ -148,14 +150,12 @@ class IncidentTicketIntegrationTestCase(TestCase):
             "slack_webhook_url": "",
             "generic_webhook_url": "",
             "runbook_url": "https://example.com/runbook",
-        }
-        mock_settings.INCIDENT_RESPONSE = {
-            "ticket_webhook": "https://example.com/create-ticket",
-            "playbook_url": "https://example.com/playbook",
-            "oncall_emails": [],
-        }
-        mock_settings.DEFAULT_FROM_EMAIL = "noreply@example.com"
-
+        },
+        INCIDENT_RESPONSE=_INCIDENT_RESPONSE_NO_ONCALL,
+        DEFAULT_FROM_EMAIL="noreply@example.com",
+    )
+    def test_medium_severity_no_ticket(self, mock_post_json):
+        """Test that MEDIUM severity audits don't create tickets."""
         # Create MEDIUM severity audit log
         audit_log = AuditLog.objects.create(
             action=AuditLog.Action.UPDATE,
@@ -184,26 +184,20 @@ class IncidentTicketIntegrationTestCase(TestCase):
         )
 
     @patch("apps.compliance.alerts._post_json")
-    @patch("apps.compliance.alerts.settings")
     @patch("apps.compliance.alerts.log_exception_with_context")
-    def test_ticket_creation_failure_logged(
-        self, mock_log_exc, mock_settings, mock_post_json
-    ):
-        """Test that ticket creation failures are logged."""
-        # Mock settings
-        mock_settings.COMPLIANCE_ALERTS = {
+    @override_settings(
+        COMPLIANCE_ALERTS={
             "enabled": True,
             "email_recipients": [],
             "slack_webhook_url": "",
             "generic_webhook_url": "",
             "runbook_url": "https://example.com/runbook",
-        }
-        mock_settings.INCIDENT_RESPONSE = {
-            "ticket_webhook": "https://example.com/create-ticket",
-            "playbook_url": "https://example.com/playbook",
-            "oncall_emails": [],
-        }
-        mock_settings.DEFAULT_FROM_EMAIL = "noreply@example.com"
+        },
+        INCIDENT_RESPONSE=_INCIDENT_RESPONSE_NO_ONCALL,
+        DEFAULT_FROM_EMAIL="noreply@example.com",
+    )
+    def test_ticket_creation_failure_logged(self, mock_log_exc, mock_post_json):
+        """Test that ticket creation failures are logged."""
 
         def _post_fail_ticket_webhook_only(webhook_url, *_args, **_kwargs):
             if "create-ticket" in str(webhook_url):

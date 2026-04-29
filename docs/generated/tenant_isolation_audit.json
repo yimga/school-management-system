@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-28T22:38:02.688806+00:00",
+  "generated_at": "2026-04-29T02:43:18.290377+00:00",
   "hits": [
     {
       "classification": "tenant_scoped",
@@ -15808,7 +15808,7 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/security/tests/test_tenant_route_leakage.py",
-      "line": "152",
+      "line": "158",
       "preview": "request.school = school"
     },
     {
@@ -18442,13 +18442,13 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/studio_os/school_infrastructure.py",
-      "line": "344",
+      "line": "355",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/studio_os/school_infrastructure.py",
-      "line": "358",
+      "line": "369",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
@@ -18496,13 +18496,19 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/studio_os/tests/test_preview_context.py",
-      "line": "63",
+      "line": "44",
+      "preview": "request.school = None"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/studio_os/tests/test_preview_context.py",
+      "line": "70",
       "preview": "request.school = Mock()"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/studio_os/tests/test_preview_context.py",
-      "line": "76",
+      "line": "83",
       "preview": "request.school = Mock()"
     },
     {
@@ -18514,37 +18520,37 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/studio_os/views.py",
-      "line": "1105",
+      "line": "1122",
       "preview": "\"school\": getattr(request, \"school\", None),"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/studio_os/views.py",
-      "line": "1194",
+      "line": "1211",
       "preview": "and not getattr(request, \"school\", None)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/studio_os/views.py",
-      "line": "1222",
+      "line": "1239",
       "preview": "\"school\": getattr(request, \"school\", None),"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/studio_os/views.py",
-      "line": "1236",
+      "line": "1253",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/studio_os/views.py",
-      "line": "2217",
+      "line": "2237",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/studio_os/views.py",
-      "line": "2254",
+      "line": "2274",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
@@ -18880,7 +18886,7 @@
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 3146
+    "hits": 3147
   },
   "truncated": false
 }

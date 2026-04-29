@@ -59,6 +59,7 @@ PLATFORM_ADMIN_BRIDGE_ORDER: list[str] = [
     # --- Full platform-admin coverage (siteconfig remainder, global_registries, runtime_blueprints, integrations_marketplace) ---
     "ai_embedding_store",
     "billing_waiver_audit_log",
+    "stripe_plan_prices",
     "custom_nuance",
     "pending_nuance",
     "custom_feature_ticket",
@@ -345,6 +346,13 @@ PLATFORM_ADMIN_BRIDGES: dict[str, dict[str, object]] = {
         "label": _("Billing waiver audit log (platform admin)"),
         "description": _("BillingWaiverAuditLog — waiver audit trail"),
         "icon": "bi-clipboard-data",
+        "show_in_nav": False,
+    },
+    "stripe_plan_prices": {
+        "admin_url": "admin:billing_stripeplanprice_changelist",
+        "label": _("Stripe plan prices (platform admin)"),
+        "description": _("StripePlanPrice — commercial plan/price rows"),
+        "icon": "bi-currency-dollar",
         "show_in_nav": False,
     },
     "custom_nuance": {

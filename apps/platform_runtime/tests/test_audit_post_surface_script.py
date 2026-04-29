@@ -26,5 +26,5 @@ class AuditPostSurfaceScriptTests(SimpleTestCase):
         self.assertEqual(proc.returncode, 0, msg=proc.stderr or proc.stdout)
         self.assertTrue(out_path.is_file(), msg="expected post_surface_audit.json")
         data = json.loads(out_path.read_text(encoding="utf-8"))
-        self.assertEqual(data.get("schema_version"), 1)
+        self.assertEqual(data.get("schema_version"), 2)
         self.assertIn("summary", data)

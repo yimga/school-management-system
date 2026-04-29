@@ -636,9 +636,9 @@
       "signal": "export_delivery_hint"
     }
   ],
-  "generated_at": "2026-04-28T22:38:00.649344+00:00",
+  "generated_at": "2026-04-29T02:55:09.287410+00:00",
   "post_handler_audit_embed": {
-    "generated_at": "2026-04-28T22:37:52.611063+00:00",
+    "generated_at": "2026-04-29T02:55:06.243699+00:00",
     "summary_by_bucket": {
       "product": 201,
       "scripts": 4
@@ -1203,14 +1203,14 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/studio_os/views.py",
-      "line": "1963",
+      "line": "1983",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/studio_os/views.py",
-      "line": "2089",
+      "line": "2109",
       "protective_decorator_nearby": false
     },
     {
@@ -1227,7 +1227,7 @@
   },
   "schema_version": 2,
   "security_surface_audit_embed": {
-    "generated_at": "2026-04-28T22:37:50.809689+00:00",
+    "generated_at": "2026-04-29T02:55:04.240287+00:00",
     "summary": {
       "allow_any": 28,
       "csrf_exempt": 27,
