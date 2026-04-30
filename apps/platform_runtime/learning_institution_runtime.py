@@ -354,6 +354,8 @@ def install_wedge_pack_with_marketplace_record(
             "manifest": {"wedge_pack_slug": slug, "catalog_version": CATALOG_VERSION},
             "kind": MarketplaceApp.AppKind.FIRST_PARTY,
             "is_active": True,
+            "pricing_model": MarketplaceApp.PricingModel.FREE,
+            "is_intentionally_free": True,
         },
     )
     install_app(school, app, installed_by=installed_by, skip_compatibility=True)

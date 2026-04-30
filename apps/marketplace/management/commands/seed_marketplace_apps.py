@@ -382,6 +382,9 @@ class Command(BaseCommand):
                     "manifest": manifest,
                     "is_active": True,
                     "publisher": publisher,
+                    # Explicit free catalog: MarketplaceApp.clean requires this when pricing_model is FREE.
+                    "pricing_model": MarketplaceApp.PricingModel.FREE,
+                    "is_intentionally_free": True,
                 },
             )
             if app_created:
