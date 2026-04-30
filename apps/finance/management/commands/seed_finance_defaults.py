@@ -95,7 +95,15 @@ class Command(BaseCommand):
         self._seed_accounts(cameroon)
         self._seed_accounts(generic)
 
-        ensure_canonical_region_payment_profiles()
+        region_seed = ensure_canonical_region_payment_profiles()
+        if region_seed.get("skipped"):
+            self.stdout.write(
+                self.style.WARNING(
+                    "Payment region profiles skipped (finance PaymentRail tables missing). "
+                    "Apply migrations, then re-run: python manage.py seed_finance_defaults "
+                    "or call ensure_canonical_region_payment_profiles()."
+                )
+            )
 
         site = get_platform_site_settings_record(create=True)
         if site is not None:

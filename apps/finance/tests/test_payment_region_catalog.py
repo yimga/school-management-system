@@ -1,5 +1,7 @@
 """Canonical payment orchestration ISO2 catalog vs RegionPaymentProfile parity."""
 
+from unittest.mock import patch
+
 from django.core.management import call_command
 from django.test import TestCase
 
@@ -26,3 +28,12 @@ class PaymentRegionCatalogTests(TestCase):
         ensure_canonical_region_payment_profiles()
         ensure_canonical_region_payment_profiles()
         self.assertEqual(iso2_codes_missing_payment_profiles(), [])
+
+    @patch(
+        "apps.finance.payment_region_catalog._finance_payment_orchestration_tables_ready",
+        return_value=False,
+    )
+    def test_ensure_skips_when_tables_not_migrated(self, _mock):
+        result = ensure_canonical_region_payment_profiles()
+        self.assertTrue(result.get("skipped"))
+        self.assertEqual(result.get("rails_created"), 0)

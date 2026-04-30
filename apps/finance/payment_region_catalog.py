@@ -9,9 +9,24 @@ for additional markets (and extend seed_finance_defaults / rail defaults accordi
 
 from __future__ import annotations
 
-from typing import Final
+from typing import Any, Final
 
+from django.db import connection
 from django.db.models import QuerySet
+
+# finance.0057_offline_global_ops — required before PaymentRail / RegionPaymentProfile exist.
+_PAYMENT_ORCHESTRATION_TABLES: Final[frozenset[str]] = frozenset(
+    {
+        "finance_paymentrail",
+        "finance_regionpaymentprofile",
+    }
+)
+
+
+def _finance_payment_orchestration_tables_ready() -> bool:
+    """True when migrations that create rail/profile tables have been applied."""
+    names = {t.lower() for t in connection.introspection.table_names()}
+    return _PAYMENT_ORCHESTRATION_TABLES <= names
 
 CANONICAL_PAYMENT_ORCHESTRATION_ISO2: Final[frozenset[str]] = frozenset(
     {
@@ -32,12 +47,24 @@ def iso2_codes_missing_payment_profiles(
     return sorted(CANONICAL_PAYMENT_ORCHESTRATION_ISO2 - present)
 
 
-def ensure_canonical_region_payment_profiles() -> dict[str, int]:
+def ensure_canonical_region_payment_profiles() -> dict[str, Any]:
     """
     Idempotent: ensure PaymentRail + RegionPaymentProfile exist for each catalog ISO2.
 
     Called from seed_finance_defaults so fresh environments satisfy catalog parity tests.
+
+    If finance.0057 tables are not present yet (e.g. bootstrap before migrate), returns
+    ``{"skipped": True, ...}`` so seed does not fail — run ``migrate`` then re-run seed
+    or ``ensure_canonical_region_payment_profiles()`` once.
     """
+    if not _finance_payment_orchestration_tables_ready():
+        return {
+            "skipped": True,
+            "reason": "payment_orchestration_tables_missing_run_migrate_finance",
+            "rails_created": 0,
+            "profiles_created": 0,
+        }
+
     from apps.finance.models import PaymentRail, RegionPaymentProfile
 
     profiles_created = 0

@@ -1,5 +1,13 @@
 # RunMyCampus autonomous execution log
 
+## Wave — seed_finance_defaults bootstrap guard (finance 0057 tables before PaymentRail) (2026-04-30)
+
+**A. Issue:** Deploy **`bootstrap_platform_catalog`** could run **`seed_finance_defaults`** before **`finance.0057`** tables exist → **`relation finance_paymentrail does not exist`**.
+
+**B. Fix:** **`ensure_canonical_region_payment_profiles`** skips when **`finance_paymentrail`** / **`finance_regionpaymentprofile`** are missing; **`seed_finance_defaults`** prints a warning to **`migrate`** then re-run seed.
+
+**C. Test:** **`PaymentRegionCatalogTests.test_ensure_skips_when_tables_not_migrated`**.
+
 ## Wave — §11.4 batch 1143 release certification (full suite + verifier stack, 2026-04-30)
 
 **A. Certification:** **2026-04-30** — **RELEASE READY** after certifier triage + fixes.
