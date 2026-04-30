@@ -4,7 +4,7 @@ On install: record install, apply schema patches if any, register widgets, audit
 """
 
 import logging
-from django.db import DatabaseError, IntegrityError, OperationalError
+from django.db import DatabaseError, IntegrityError, OperationalError, transaction
 from django.utils import timezone
 from django.core.management import call_command
 from django.core.management.base import CommandError
@@ -453,6 +453,7 @@ def run_schema_patches_for_installation(installation):
         )
 
 
+@transaction.atomic
 def install_app(
     school,
     app,
@@ -467,6 +468,8 @@ def install_app(
     Install an app for a school. Creates AppInstallation, optionally runs schema patches,
     logs audit, returns installation.
     install_phase: "sandbox" or "active". Compatibility is checked unless skip_compatibility=True.
+
+    Billing/monetization runs in the same atomic block; failures roll back the installation.
     """
     from apps.marketplace.models import AppInstallation, AppAuditLog, MarketplaceApp
 
@@ -480,6 +483,9 @@ def install_app(
         ok, _warnings, errors = check_app_compatibility(school, app, warn_only=False)
         if not ok and errors:
             raise ValueError(f"App incompatible: {'; '.join(errors)}")
+    from apps.marketplace.monetization import assert_paid_install_billing_ready_or_raise
+
+    assert_paid_install_billing_ready_or_raise(school, app)
     listing = _assert_app_installable(app)
     phase = install_phase if install_phase in ("sandbox", "active") else "active"
 
@@ -582,22 +588,12 @@ def install_app(
         )
     except (AttributeError, ImportError, TypeError, ValueError):
         pass
-    # 6.3 / 29.10: Record app install for billing (ledger line; optional add-on pricing later)
-    try:
-        from apps.billing.services import record_app_install_for_billing
+    # 6.3 / 29.10 + marketplace monetization: ledger + add-on subscription + platform fee log (must succeed)
+    from apps.marketplace.monetization import apply_marketplace_install_monetization
 
-        record_app_install_for_billing(school, app, installation)
-    except _MARKETPLACE_SCHEMA_BILLING_ERRORS as e:
-        school_id = getattr(school, "pk", None)
-        log_exception_with_context(
-            "Billing record for app install skipped",
-            school_id=school_id,
-            extra={
-                "app_slug": getattr(app, "slug", None),
-                "installation_id": getattr(installation, "id", None),
-            },
-        )
-        logger.warning("Billing record for app install skipped: %s", e)
+    apply_marketplace_install_monetization(
+        school=school, app=app, installation=installation, listing=listing
+    )
     return installation
 
 
@@ -631,6 +627,12 @@ def uninstall_app(school, app, *, uninstalled_by=None, run_cleanup=True):
         payload=payload,
         actor=uninstalled_by,
     )
+    try:
+        from apps.marketplace.monetization import cancel_marketplace_subscription_for_uninstall
+
+        cancel_marketplace_subscription_for_uninstall(installation)
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
     return installation
 
 

@@ -120,6 +120,8 @@ echo "[pre_deploy_gate] §10.5 operating-discipline layers (doc + code)"
 python scripts/verify_section10_5_layers.py
 echo "[pre_deploy_gate] Phase 2 design system + token enforcement gate"
 python scripts/verify_design_system_phase2.py
+echo "[pre_deploy_gate] Luxury UI surface audit (integration + >= 13/15)"
+python scripts/audit_luxury_ui_surface.py
 echo "[pre_deploy_gate] Marketing nav no overflow"
 python scripts/lint_marketing_nav_no_overflow.py
 

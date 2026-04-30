@@ -6,6 +6,7 @@ Operator-facing product docs live under `docs/`; this folder is for **teams buil
 
 | Document | Purpose |
 | --- | --- |
+| [SANDBOX_QUICKSTART.md](SANDBOX_QUICKSTART.md) | Local demo tenant + SDK pointers (developer provisioning slice) |
 | [MANIFEST.md](MANIFEST.md) | Marketplace app manifest schema, lifecycle, permissions, versioning |
 | [API_USAGE.md](API_USAGE.md) | Authenticated API patterns and manifest discovery |
 | [APP_STRUCTURE.md](APP_STRUCTURE.md) | Repository layout for first-party vs tenant-private apps |

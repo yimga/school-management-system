@@ -17,7 +17,7 @@ from apps.academics.services_year_setup import clone_academic_year
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import RolloverProposal, RolloverProposalItem, User
 from apps.people.models import StudentProfile, StudentResourceReturn
-from apps.platform_runtime.site_settings_read_access import (
+from apps.siteconfig.config_service import (
     get_effective_flags,
     get_effective_site_settings,
 )

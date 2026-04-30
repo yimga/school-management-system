@@ -62,6 +62,7 @@ class TenantCatalogInstallAppDeepLinkTests(TestCase):
             version="1.0.0",
             manifest={"pricing_type": "free"},
             publisher=self.publisher,
+            is_intentionally_free=True,
         )
         bad_app = MarketplaceApp.objects.create(
             slug="dl-bad",
@@ -69,6 +70,7 @@ class TenantCatalogInstallAppDeepLinkTests(TestCase):
             version="1.0.0",
             manifest={"pricing_type": "free"},
             publisher=self.publisher,
+            is_intentionally_free=True,
         )
         MarketplaceListing.objects.create(
             app=good_app,
@@ -107,6 +109,7 @@ class TenantCatalogInstallAppDeepLinkTests(TestCase):
             version="1.0.0",
             manifest={"pricing_type": "free"},
             publisher=self.publisher,
+            is_intentionally_free=True,
         )
         MarketplaceListing.objects.create(
             app=good_app,
@@ -144,6 +147,7 @@ class TenantCatalogInstallAppDeepLinkTests(TestCase):
             version="1.0.0",
             manifest={"pricing_type": "free"},
             publisher=self.publisher,
+            is_intentionally_free=True,
         )
         MarketplaceListing.objects.create(
             app=good_app,

@@ -356,6 +356,12 @@ PHASE8_DECLARATIONS: dict[str, dict[str, str]] = {
         "main_question": "What does the platform singleton think the runtime truth is?",
         "main_action": "Compare payload keys to the incident or rollout you are debugging.",
     },
+    "schools/super_security_hub.html": {
+        "dashboard_type": "fleet_security",
+        "jtbd": "Review enterprise security locks, posture, and audit signals across the fleet.",
+        "main_question": "Which tenants show misconfiguration or elevated risk?",
+        "main_action": "Open the strongest signal first and drive remediation or escalation.",
+    },
     "schools/super_support_dashboard.html": {
         "dashboard_type": "support_ops",
         "jtbd": "Triage cross-tenant support load and escalations.",

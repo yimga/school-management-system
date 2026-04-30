@@ -44,7 +44,7 @@ from apps.siteconfig.templatetags.admin_health import admin_section_stats
 from apps.siteconfig.templatetags.admin_kpis import admin_kpis
 from apps.siteconfig.dashboard_views import effective_chart_types
 from apps.accounts.utils import get_dashboard_context
-from apps.platform_runtime.site_settings_read_access import (
+from apps.siteconfig.config_service import (
     get_effective_flags,
     get_effective_site_settings,
 )
@@ -1596,7 +1596,7 @@ def backend_dashboard(request):
             },
         ],
     }
-    dashboard_context = get_dashboard_context(request.user, "backend")
+    dashboard_context = get_dashboard_context(request.user, "backend", request=request)
     allow_custom_layout = dashboard_context.get("allow_custom_layout", False)
     dashboard_settings = dashboard_context.get("dashboard_settings", {})
     dashboard_layout_url = dashboard_context.get("dashboard_layout_url", "")

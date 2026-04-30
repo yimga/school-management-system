@@ -2,9 +2,12 @@
 <div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <div class="studio-os__card py-3 px-3">
-    <p class="mb-3">{% trans "Build workflows visually with drag-and-drop: add steps, connect conditions, and define triggers. The Workflow hub is where you create and edit flows; a full visual builder can be integrated there when productized." %}</p>
+    <p class="mb-3">{% trans "Build Salesforce-style automation graphs: triggers, conditions, actions, and delays. Drag nodes onto the canvas, connect edges, save, and simulate before publishing." %}</p>
+    {% if visual_workflow_designer_url %}
+    <p class="mb-2"><a class="btn btn-primary btn-sm" href="{{ visual_workflow_designer_url }}">{% trans "Open visual workflow designer" %}</a></p>
+    {% endif %}
     {% if workflow_hub_url %}
-    <p class="mb-0"><a href="{{ workflow_hub_url }}">{% trans "Workflow hub" %}</a> — {% trans "Manage flows and workflow templates." %}</p>
+    <p class="mb-0"><a href="{{ workflow_hub_url }}">{% trans "Workflow hub" %}</a> — {% trans "Classic JSON automation builder and templates." %}</p>
     {% endif %}
   </div>
 </div>

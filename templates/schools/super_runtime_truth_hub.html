@@ -16,11 +16,11 @@
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#runtime-truth-hub-main">{% trans "Skip to runtime truth hub content" %}</a>
 <div id="runtime-truth-hub-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
 {% phase8_dashboard_declaration "schools/super_runtime_truth_hub.html" %}
-  {% include "studio_os/components/page_header.html" with title="Runtime truth hub" subtitle="Read-only view of platform RuntimeDefaults.payload and the slim SiteSettings singleton (Phase B bridge)." action_url=dashboard_url action_text="Back to dashboard" %}
+  {% include "studio_os/components/page_header.html" with title="Runtime truth hub" subtitle="Read-only view of RuntimeDefaults.payload and the slim tenant settings row (platform singleton, Phase B bridge)." action_url=dashboard_url action_text="Back to dashboard" %}
 
   <div class="alert alert-secondary border-0 shadow-sm mb-3" role="note">
     <strong>{% trans "Read-only." %}</strong>
-    {% trans "Behavioral settings live in RuntimeDefaults.payload; SiteSettings holds media, theme/report FKs, and maintenance." %}
+    {% trans "Behavioral settings live in RuntimeDefaults.payload; the slim tenant row holds media, theme/report FKs, and maintenance." %}
   </div>
 
   <div class="row">
@@ -64,7 +64,7 @@
     </div>
     <div class="col-lg-6 mb-3">
       <div class="card shadow-sm border-0 page-family-content-card card-grammar h-100">
-        <div class="card-header bg-dark text-light">{% trans "SiteSettings (slim, pk=1)" %}</div>
+        <div class="card-header bg-dark text-light">{% trans "Tenant settings row (slim, pk=1)" %}</div>
         <div class="card-body">
           {% if site_settings_summary %}
           <ul class="list-unstyled mb-0">
@@ -77,7 +77,7 @@
             <li><strong>admin_theme_pack_id:</strong> {{ site_settings_summary.admin_theme_pack_id|default:"—" }}</li>
           </ul>
           {% else %}
-          <p class="text-secondary mb-0">{% trans "No SiteSettings row (pk=1)." %}</p>
+          <p class="text-secondary mb-0">{% trans "No tenant settings row (pk=1)." %}</p>
           {% endif %}
         </div>
       </div>

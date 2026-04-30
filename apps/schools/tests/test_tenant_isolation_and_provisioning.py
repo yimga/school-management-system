@@ -167,6 +167,9 @@ class ProvisioningJobTests(TestCase):
         provision_school_sync(str(school.id), contact_email="admin@newschool.com")
         school.refresh_from_db()
         self.assertTrue(school.is_active)
+        from apps.schools.activation_gate import school_activation_gate_pending
+
+        self.assertTrue(school_activation_gate_pending(school))
         self.assertEqual(SchoolMembership.objects.filter(school=school).count(), 1)
         self.assertTrue(AcademicYear.objects.filter(school=school).exists())
         self.assertTrue(Term.objects.filter(school=school).exists())
@@ -777,6 +780,46 @@ class SuperProvisioningWizardTests(TestCase):
         self.assertIn("errors", data)
         self.assertTrue(
             any("education_profile_code" in str(err) for err in data.get("errors", []))
+        )
+
+    def test_api_create_school_rejects_unknown_school_template_key(self):
+        self.client.force_login(self.superuser)
+        city = None
+        for query in ("Boston", "New York", "Los Angeles", "Chicago"):
+            cities = GlobalGeoCatalog.search_cities(
+                country_code="USA", query=query, limit=10
+            )
+            if cities:
+                city = cities[0]
+                break
+        self.assertIsNotNone(city)
+
+        payload = {
+            "name": "Blueprint Invalid School",
+            "slug": "blueprint-invalid-school",
+            "subdomain": "blueprint-invalid-school",
+            "contact_email": "bp-invalid@test.com",
+            "country_code": city["country_code"],
+            "city_id": str(city["id"]),
+            "region_code": city["country_code"],
+            "sub_system": "EN",
+            "school_template_key": "definitely_not_a_real_template_key_xyz",
+            "primary_color": "#2d5a27",
+            "accent_color": "#f59e0b",
+        }
+        response = self.client.post(
+            reverse("super:api_create_school"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400, response.content)
+        body = response.json()
+        self.assertIn("errors", body)
+        self.assertTrue(
+            any(
+                "school_template_key" in str(err).lower()
+                for err in body.get("errors", [])
+            )
         )
 
     def test_api_create_school_records_provisioning_events_and_timeline_url(self):

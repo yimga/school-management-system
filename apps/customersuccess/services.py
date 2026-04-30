@@ -307,7 +307,7 @@ def get_guided_onboarding_steps(school):
     except OPTIONAL_ONBOARDING_STEP_FAILURES:
         pass
     try:
-        from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+        from apps.siteconfig.config_service import get_effective_site_settings
 
         site = get_effective_site_settings(school=school)
         has_grading = bool(

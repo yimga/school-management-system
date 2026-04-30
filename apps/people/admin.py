@@ -413,7 +413,7 @@ class StudentProfileAdmin(ModelAdmin):
     create_guardian_invites.short_description = _("Create guardian invites")
 
     def issue_referral_rewards(self, request, queryset):
-        from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+        from apps.siteconfig.config_service import get_effective_site_settings
 
         site = get_effective_site_settings(request=request)
         amount = (

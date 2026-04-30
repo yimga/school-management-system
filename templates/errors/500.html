@@ -1,31 +1,26 @@
 {% extends "base.html" %}
-{% load static i18n %}
+{% load i18n %}
 
-{% block title %}{% trans "Server error" %}{% endblock %}
+{% block title %}{% trans "Service interrupted" %}{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<section class="container py-5" aria-labelledby="error-title">
   <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-      <div class="card shadow-sm border-0">
-        <div class="card-body text-center py-5">
-          <div class="mb-4">
-            <i class="bi bi-exclamation-triangle text-warning" style="font-size: 4rem;" aria-hidden="true"></i>
-          </div>
-          <h1 class="h4 mb-2">{% trans "Something went wrong" %}</h1>
-          <p class="text-muted mb-4">{% trans "Something went wrong on our side. Please try again in a moment. If it keeps happening, contact your school's support or IT." %}</p>
+    <div class="col-lg-7 col-xl-6">
+      <div class="border rounded-3 bg-white shadow-sm p-4 p-md-5">
+        <p class="text-uppercase text-muted small fw-semibold mb-2">500</p>
+        <h1 id="error-title" class="h3 mb-3">{% trans "Service interrupted" %}</h1>
+        <p class="text-muted mb-4">{% trans "The page did not complete successfully. Your session is still safe; retry or return to a stable workspace." %}</p>
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-primary" type="button" onclick="window.location.reload()">{% trans "Retry" %}</button>
           {% if PUBLIC_BRAND_MODE %}
-          <a class="btn btn-primary" href="{% url 'accounts:login' %}">
-            <i class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i>{% trans "Return to login" %}
-          </a>
+            <a class="btn btn-outline-secondary" href="{% url 'public_support_hub' %}">{% trans "Contact support" %}</a>
           {% else %}
-          <a class="btn btn-primary" href="{% url 'accounts:redirect' %}">
-            <i class="bi bi-house me-2" aria-hidden="true"></i>{% trans "Go to Dashboard" %}
-          </a>
+            <a class="btn btn-outline-secondary" href="{% url 'accounts:redirect' %}">{% trans "Go to dashboard" %}</a>
           {% endif %}
         </div>
       </div>
     </div>
   </div>
-</div>
+</section>
 {% endblock %}

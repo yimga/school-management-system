@@ -1,0 +1,82 @@
+[
+  {
+    "test_module": "apps.dashboard.tests.test_phase8_registry_full_coverage",
+    "class": "Phase8RegistryFullCoverageTests",
+    "method": "test_registry_matches_phase7_list",
+    "failure_type": "FAIL",
+    "root_cause": "PHASE8_DECLARATIONS omitted schools/super_security_hub.html while PHASE7_DASHBOARD_TEMPLATES listed it.",
+    "category": "registry drift"
+  },
+  {
+    "test_module": "apps.dashboard.tests.test_phase8_registry_full_coverage",
+    "class": "Phase8RegistryFullCoverageTests",
+    "method": "test_no_default_fallback_for_canonical_paths",
+    "failure_type": "FAIL",
+    "root_cause": "Missing Phase 8 declaration caused templatetag to fall back to _DEFAULT (is_default True).",
+    "category": "registry drift"
+  },
+  {
+    "test_module": "apps.schools.tests.test_platform_admin_bridge_completeness",
+    "class": "PlatformAdminBridgeCompletenessTests",
+    "method": "test_every_platform_admin_model_has_admin_bridge",
+    "failure_type": "FAIL",
+    "root_cause": "platform_admin_site registered compliance.AuditLog and marketplace.AppPermissionScope without PLATFORM_ADMIN_BRIDGES admin_url entries.",
+    "category": "registry drift"
+  },
+  {
+    "test_module": "apps.schools.tests.test_growth_funnel",
+    "class": "EnsureDemoScheduledTaskTests",
+    "method": "test_scheduled_demo_refresh_skips_when_slug_unset",
+    "failure_type": "ERROR",
+    "root_cause": "NameError: os used in patch.dict(os.environ, ...) without importing os.",
+    "category": "stale test expectation"
+  },
+  {
+    "test_module": "apps.schools.tests.test_growth_funnel",
+    "class": "EnsureDemoScheduledTaskTests",
+    "method": "test_scheduled_demo_refresh_calls_command_when_slug_set",
+    "failure_type": "ERROR",
+    "root_cause": "Same missing import os.",
+    "category": "stale test expectation"
+  },
+  {
+    "test_module": "apps.portal.tests.test_ai_gateway_smoke",
+    "class": "AIGatewaySmokeTests",
+    "method": "test_gateway_response_passes_user_id_to_invoke",
+    "failure_type": "ERROR",
+    "root_cause": "_gateway_response calls record_usage_meter_increment → DB filters with request.school SimpleNamespace; UUID FK validation failed.",
+    "category": "stale test expectation"
+  },
+  {
+    "test_module": "apps.portal.tests.test_ai_gateway_smoke",
+    "class": "AIGatewaySmokeTests",
+    "method": "test_gateway_response_uses_school_pk_when_id_attribute_is_missing",
+    "failure_type": "ERROR",
+    "root_cause": "Same monetization path hitting ORM with non-model school stub.",
+    "category": "stale test expectation"
+  },
+  {
+    "test_module": "apps.marketplace.tests.test_purchase_intent",
+    "class": "AppPurchaseIntentTests",
+    "method": "test_paid_app_redirects_to_checkout_when_stripe_ready",
+    "failure_type": "ERROR",
+    "root_cause": "MarketplaceApp defaulted to pricing_model=FREE; save/full_clean requires is_intentionally_free or non-free pricing.",
+    "category": "product bug"
+  },
+  {
+    "test_module": "apps.marketplace.tests.test_purchase_intent",
+    "class": "AppPurchaseIntentTests",
+    "method": "test_paid_app_falls_back_to_plan_when_stripe_missing",
+    "failure_type": "ERROR",
+    "root_cause": "Same FREE default vs monetization validation.",
+    "category": "product bug"
+  },
+  {
+    "test_module": "apps.billing.tests.test_platform_billing_webhooks",
+    "class": "PlatformBillingWebhookTests",
+    "method": "test_relay_webhook_checkout_completed_applies_marketplace_addon",
+    "failure_type": "ERROR",
+    "root_cause": "Paid manifest but DB pricing_model remained FREE.",
+    "category": "product bug"
+  }
+]

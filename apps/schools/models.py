@@ -629,6 +629,11 @@ class SchoolProvisioningEvent(models.Model):
         PROFILE_APPLIED = "PROFILE_APPLIED", "Profile Applied"
         ACADEMIC_YEAR_READY = "ACADEMIC_YEAR_READY", "Academic Year Ready"
         SUBJECTS_READY = "SUBJECTS_READY", "Subjects Ready"
+        BLUEPRINT_TEMPLATE_RECORDED = (
+            "BLUEPRINT_TEMPLATE_RECORDED",
+            "Blueprint Template Recorded",
+        )
+        SAMPLE_DATA_READY = "SAMPLE_DATA_READY", "Sample Data Ready"
         DOMAIN_PENDING = "DOMAIN_PENDING", "Domain Pending"
         DOMAIN_VERIFIED = "DOMAIN_VERIFIED", "Domain Verified"
         DOMAIN_UNVERIFIED = "DOMAIN_UNVERIFIED", "Domain Unverified"
@@ -975,21 +980,48 @@ class AdvancementGift(models.Model):
 
 class MarketingFunnelEvent(models.Model):
     """
-    Wave 4: Conversion funnel events for marketing dashboard.
-    visit -> discovery -> signup -> activation.
+    Growth analytics: full conversion funnel (anonymous + school-scoped).
+    Legacy: visit → discovery → signup → activation.
+    Extended: demo_started → signup_completed → first_dashboard_view → first_action →
+    first_result → subscription_started (billing closed-loop).
     utm_source / utm_medium support funnel breakdown by channel.
     """
 
     EVENT_TYPES = (
         ("visit", "Visit (landing)"),
         ("discovery", "Discovery (find school / discover)"),
-        ("signup", "Signup (trial/school signup)"),
-        ("activation", "Activation (onboard complete / first use)"),
+        ("signup", "Signup (form submitted)"),
+        ("activation", "Activation (school verified / live)"),
+        ("onboarding_start", "Public onboarding wizard opened (step 1)"),
+        ("onboarding_complete", "Public onboarding wizard finished (review / signup)"),
+        ("demo_started", "Demo started (book-demo submitted)"),
+        ("signup_completed", "Signup completed (email verified, school active)"),
+        ("first_dashboard_view", "First authenticated dashboard view"),
+        ("first_action", "First substantive POST / action"),
+        ("first_result", "First operational outcome (e.g. payment recorded)"),
+        ("subscription_started", "Platform subscription row created (billing)"),
+        ("payment_success", "Payment processor reported successful charge/settlement"),
+        ("payment_failed", "Payment processor reported failed or declined payment"),
     )
-    event_type = models.CharField(max_length=32, choices=EVENT_TYPES, db_index=True)
+    event_type = models.CharField(max_length=40, choices=EVENT_TYPES, db_index=True)
     session_key = models.CharField(max_length=128, blank=True, db_index=True)
     utm_source = models.CharField(max_length=128, blank=True, db_index=True)
     utm_medium = models.CharField(max_length=128, blank=True, db_index=True)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="marketing_funnel_events",
+    )
+    user = models.ForeignKey(
+        _AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="marketing_funnel_events",
+    )
+    metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -998,6 +1030,7 @@ class MarketingFunnelEvent(models.Model):
         verbose_name_plural = "Marketing funnel events"
         indexes = [
             models.Index(fields=["event_type", "created_at"]),
+            models.Index(fields=["school", "event_type", "created_at"]),
         ]
 
     def __str__(self):

@@ -1,0 +1,125 @@
+"""
+Regional payment orchestration and dead-simple UX descriptors for guardians/cashiers.
+
+Designed for low-literacy contexts: two choices (PRIMARY / BACKUP), obvious order.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from apps.finance.models import TenantPaymentPolicy
+
+
+def build_simple_payment_flow(
+    policy: TenantPaymentPolicy | None,
+) -> dict[str, Any]:
+    """
+    Return steps and rail choices for UI — minimal branching ("usable by a 5-year-old").
+    """
+    steps = [
+        {
+            "step": 1,
+            "title": "Pick how you pay",
+            "subtitle": "Tap the big button your school uses first.",
+        },
+        {
+            "step": 2,
+            "title": "Pay",
+            "subtitle": "Follow the short instructions on screen.",
+        },
+        {
+            "step": 3,
+            "title": "If internet dies",
+            "subtitle": "Take one photo of your receipt. We finish when power returns.",
+        },
+    ]
+    choices: list[dict[str, Any]] = []
+    if policy and policy.region_profile:
+        pr = policy.region_profile
+        choices.append(
+            {
+                "role": "PRIMARY",
+                "code": pr.primary_rail.code,
+                "label": pr.primary_rail.label,
+                "kind": pr.primary_rail.kind,
+            }
+        )
+        choices.append(
+            {
+                "role": "BACKUP",
+                "code": pr.backup_rail.code,
+                "label": pr.backup_rail.label,
+                "kind": pr.backup_rail.kind,
+            }
+        )
+    return {
+        "steps": steps,
+        "choices": choices,
+        "simplicity_big_buttons": getattr(policy, "simplicity_big_buttons", True)
+        if policy
+        else True,
+        "allow_manual_offline_proof": getattr(policy, "allow_manual_offline_proof", True)
+        if policy
+        else True,
+    }
+
+
+def reconcile_offline_payment_intent(
+    intent,
+    *,
+    reconciled_by,
+):
+    """
+    Turn a queued offline intent into a completed Payment and refresh invoice balance/status.
+
+    Caller must enforce RBAC (finance staff). Raises ValueError if already reconciled.
+    """
+    from django.db import transaction
+    from django.utils import timezone
+
+    from apps.finance.models import Invoice, OfflinePaymentIntent, Payment
+
+    if intent.status != OfflinePaymentIntent.Status.QUEUED_REVIEW:
+        raise ValueError("Only queued intents can be reconciled.")
+    if intent.reconciled_payment_id:
+        raise ValueError("Intent already linked to a payment.")
+
+    inv: Invoice = intent.invoice
+    currency = getattr(inv.profile, "currency_code", None) or "USD"
+
+    with transaction.atomic():
+        payment = Payment(
+            invoice=inv,
+            school=inv.school,
+            student=inv.student,
+            amount=intent.amount,
+            method=intent.payment_method,
+            reference=(intent.transaction_reference or "")[:80]
+            or f"offline-intent-{intent.pk}",
+            external_reference=(intent.transaction_reference or "")[:128],
+            status="completed",
+            created_by=reconciled_by,
+            paid_at=timezone.now(),
+            currency_code=currency,
+            description=f"Offline queued payment (intent {intent.pk})",
+        )
+        payment.full_clean()
+        payment.save()
+
+        intent.reconciled_payment = payment
+        intent.status = OfflinePaymentIntent.Status.RECONCILED
+        intent.save(update_fields=["reconciled_payment", "status", "updated_at"])
+
+        inv.reconcile_balance()
+        current_balance = inv.computed_balance
+        if current_balance <= 0:
+            inv.status = Invoice.Status.PAID
+        elif current_balance < inv.total_amount:
+            inv.status = Invoice.Status.PARTIAL
+        else:
+            inv.status = Invoice.Status.ISSUED
+        inv.balance_amount = current_balance
+        inv.save(update_fields=["status", "balance_amount", "updated_at"])
+
+    return payment

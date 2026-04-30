@@ -46,7 +46,7 @@ class CheckComplianceCommand(BaseCommand):
         if open_incidents:
             self.stdout.write(self.style.WARNING(f"⚠ Open Incidents: {open_incidents}"))
         else:
-            self.stdout.write(f"✓ Open Incidents: 0")
+            self.stdout.write("✓ Open Incidents: 0")
 
         # Failed logins
         failed_logins = AccessLog.objects.filter(

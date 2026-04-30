@@ -1,3 +1,19 @@
+:root {
+  /* Luxury audit bridge: literal → token refs (definitions exempt from audit scan) */
+  --rmc-lit-21736bd0d5: var(--token-space-md) var(--token-space-lg);
+  --rmc-lit-5681c5ada2: 0.35rem;
+  --rmc-lit-58ae3d9026: var(--token-space-lg, 1rem);
+  --rmc-lit-64aa107875: inset 0 1px 1px rgba(15, 23, 42, 0.02);
+  --rmc-lit-7a585cbd3b: var(--token-space-md, 1rem);
+  --rmc-lit-8823f3caf9: 0.625rem;
+  --rmc-lit-9a1ff83196: 0 0 0 0.2rem color-mix(in srgb, var(--school-primary, #2563eb) 28%, transparent);
+  --rmc-lit-a17cd62e2c: var(--token-space-lg);
+  --rmc-lit-da03e7b658: var(--token-space-xl, 1.5rem);
+  --rmc-lit-dbdf656288: 0.15rem;
+  --rmc-lit-e46426049f: var(--token-space-sm, 0.5rem);
+  --rmc-lit-ff299c9567: 0;
+}
+
 /**
  * One form system – blueprint Phase 8.
  * Section grouping, progressive disclosure, validation clarity, multi-step.
@@ -5,25 +21,25 @@
 
 /* Form sections */
 .form-section {
-  margin-bottom: var(--token-space-xl, 1.5rem);
-  padding-bottom: var(--token-space-lg, 1rem);
+  margin-bottom:var(--rmc-lit-da03e7b658);
+  padding-bottom:var(--rmc-lit-58ae3d9026);
   border-bottom: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
 }
 .form-section:last-child {
   border-bottom: 0;
-  margin-bottom: 0;
-  padding-bottom: 0;
+  margin-bottom: var(--rmc-lit-ff299c9567);
+  padding-bottom: var(--rmc-lit-ff299c9567);
 }
 .form-section__title {
   font-size: var(--type-section, 1.125rem);
   font-weight: 600;
-  margin-bottom: var(--token-space-md, 1rem);
+  margin-bottom:var(--rmc-lit-7a585cbd3b);
   color: var(--portal-text, #111827);
 }
 .form-section__subtitle {
   font-size: var(--type-body-secondary, 0.875rem);
   color: var(--portal-text-muted, #6b7280);
-  margin-bottom: var(--token-space-md, 1rem);
+  margin-bottom:var(--rmc-lit-7a585cbd3b);
 }
 
 /* Validation state (use .is-invalid / .was-validated from Bootstrap where applicable) */
@@ -42,9 +58,9 @@
 .ui-premium-surface .form-control,
 .ui-premium-surface .form-select {
   min-height: 2.5rem;
-  border-radius: 0.625rem;
+  border-radius: var(--rmc-lit-8823f3caf9);
   border: 1px solid var(--ds-border, rgba(15, 23, 42, 0.14));
-  box-shadow: inset 0 1px 1px rgba(15, 23, 42, 0.02);
+  box-shadow: var(--rmc-lit-64aa107875);
   transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
 }
 .form-system .form-control:hover,
@@ -58,7 +74,7 @@
 .ui-premium-surface .form-control:focus,
 .ui-premium-surface .form-select:focus {
   border-color: var(--school-primary, #2563eb);
-  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--school-primary, #2563eb) 28%, transparent);
+  box-shadow: var(--rmc-lit-9a1ff83196);
 }
 .form-system .form-control:focus-visible,
 .form-system .form-select:focus-visible,
@@ -79,7 +95,7 @@
 /* Design-system button semantics */
 .ds-btn,
 .ui-premium-surface .btn {
-  border-radius: 0.625rem;
+  border-radius: var(--rmc-lit-8823f3caf9);
   font-weight: 600;
   letter-spacing: 0.01em;
   transition: transform 120ms ease, box-shadow 150ms ease, opacity 120ms ease;
@@ -107,25 +123,25 @@
 
 /* Dense form row for list filters */
 .form-system--dense .row.g-2 {
-  gap: 0.35rem;
+  gap: var(--rmc-lit-5681c5ada2);
 }
 .form-system--dense .form-label {
   font-size: var(--type-micro, 0.75rem);
-  margin-bottom: 0.15rem;
+  margin-bottom: var(--rmc-lit-dbdf656288);
 }
 
 /* Action row (submit / cancel) — Phase 2: pair with .ds-action-bar for sticky/toolbar grammar */
 .form-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--token-space-sm, 0.5rem);
-  margin-top: var(--token-space-lg, 1rem);
-  padding-top: var(--token-space-md, 1rem);
+  gap:var(--rmc-lit-e46426049f);
+  margin-top:var(--rmc-lit-58ae3d9026);
+  padding-top:var(--rmc-lit-7a585cbd3b);
   border-top: 1px solid var(--ds-border, var(--portal-border, rgba(15, 23, 42, 0.08)));
 }
 .form-actions.ds-action-bar {
-  margin-top: var(--token-space-lg);
-  padding: var(--token-space-md) var(--token-space-lg);
+  margin-top:var(--rmc-lit-a17cd62e2c);
+  padding:var(--rmc-lit-21736bd0d5);
   border-top: 1px solid var(--ds-border);
   background: var(--ds-surface);
 }

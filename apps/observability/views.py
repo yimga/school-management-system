@@ -24,7 +24,7 @@ from django.db.models import Count, Q, Sum, Avg
 from django.core.exceptions import ValidationError
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from django.core.cache import cache
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 
 logger = logging.getLogger(__name__)
 

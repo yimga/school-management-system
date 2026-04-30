@@ -257,6 +257,18 @@ def api_create_school(request):
         errors.append("education_system_type_codes contains unknown values")
     if subdivision_id not in (None, "") and resolved_subdivision is None:
         errors.append("subdivision_id is invalid")
+
+    school_template_key = (data.get("school_template_key") or "").strip()
+    seed_demo_personas = bool(data.get("seed_demo_personas"))
+    if school_template_key:
+        try:
+            from apps.studio_os.school_infrastructure import list_school_template_keys
+
+            if school_template_key not in list_school_template_keys():
+                errors.append("school_template_key is not a known blueprint template")
+        except (ImportError, OSError, ValueError, TypeError):
+            errors.append("school_template_key validation unavailable")
+
     if errors:
         return JsonResponse({"errors": errors}, status=400)
     location_payload = {
@@ -298,6 +310,8 @@ def api_create_school(request):
             "education_system_type_codes": [row.code for row in selected_system_types],
             "province_id": province_id,
             "subdivision_id": resolved_subdivision.id if resolved_subdivision else None,
+            "school_template_key": school_template_key,
+            "seed_demo_personas_requested": seed_demo_personas,
         },
         "education_profile_code": (
             explicit_profile.code if explicit_profile else education_profile_code or ""
@@ -335,10 +349,7 @@ def api_create_school(request):
         accent_color=accent_color,
         custom_domain=custom_domain or "",
         is_active=False,
-        is_approved=not (
-            os.getenv("ENABLE_SCHOOL_APPROVAL_WORKFLOW", "").strip().lower()
-            in ("1", "true", "yes")
-        ),
+        is_approved=os.getenv("ENABLE_SCHOOL_APPROVAL_WORKFLOW", "").strip().lower() not in ("1", "true", "yes"),
         settings={},
         primary_sector=primary_sector,
     )
@@ -426,7 +437,11 @@ def api_create_school(request):
 
     from apps.schools.tasks import dispatch_provision_school
 
-    dispatch = dispatch_provision_school(str(school.id), contact_email=contact_email)
+    dispatch = dispatch_provision_school(
+        str(school.id),
+        contact_email=contact_email,
+        seed_demo_personas=seed_demo_personas,
+    )
     job_id = dispatch.get("job_id")
     payload = {"job_id": job_id or ""}
     if dispatch.get("fallback") and dispatch.get("reason"):

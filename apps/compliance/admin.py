@@ -101,3 +101,6 @@ class ConsentRecordAdmin(admin.ModelAdmin):
 
 register_tenant_admin(ConsentRequest, ConsentRequestAdmin)
 register_tenant_admin(ConsentRecord, ConsentRecordAdmin)
+
+# Registers AuditLog (platform + tenant via admin_audit), AccessLog, UserActivitySession, etc.
+from . import admin_audit  # noqa: F401

@@ -1,0 +1,37 @@
+{% load i18n %}
+{# Server counts + client local outbox (see static/js/offline-queue-client.js). Sticky for visibility. #}
+<div id="rmc-offline-sync-bar"
+     class="rmc-offline-sync-bar alert alert-secondary border-0 py-2 px-3 mb-3 shadow-sm sticky-top"
+     style="z-index: 1020;"
+     role="status"
+     aria-live="polite"
+     data-rmc-offline-sync-bar="1"
+     data-server-pending="{{ rmc_offline_sync_state.pending|default:0 }}"
+     data-server-failed="{{ rmc_offline_sync_state.failed|default:0 }}"
+     data-server-conflicts="{{ rmc_offline_sync_state.conflicts|default:0 }}">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <div class="small flex-grow-1" style="min-width: 12rem;">
+      <strong class="text-uppercase me-2">{% trans "Offline sync" %}</strong>
+      <span data-rmc-offline-label>{% trans "Checking…" %}</span>
+    </div>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <span class="badge rounded-pill bg-dark text-white d-none" data-rmc-queue-total title="{% trans 'Queued items (local + server)' %}">0</span>
+      <span class="badge rounded-pill bg-dark-subtle text-body d-none" data-rmc-local-badge>0 {% trans "local" %}</span>
+      {% if OFFLINE_SYNC_QUEUE_URL %}
+      <a href="{{ OFFLINE_SYNC_QUEUE_URL }}" class="btn btn-sm btn-outline-secondary">{% trans "Queue" %}</a>
+      {% endif %}
+      {% if OFFLINE_CONFLICTS_URL %}
+      <a href="{{ OFFLINE_CONFLICTS_URL }}" class="btn btn-sm btn-outline-warning d-none" data-rmc-conflicts-link>{% trans "Conflicts" %}</a>
+      {% endif %}
+      <button type="button" class="btn btn-sm btn-outline-dark d-none" data-rmc-offline-retry>
+        {% trans "Retry sync" %}
+      </button>
+    </div>
+  </div>
+  {% if rmc_offline_sync_state and rmc_offline_sync_state.conflicts %}
+  <div class="mt-2 small border-top pt-2" data-rmc-conflict-panel>
+    <strong>{% trans "Resolve conflicts" %}</strong>
+    <span class="text-muted">{% trans "Open Conflicts and choose keep mine, use latest, or review manually." %}</span>
+  </div>
+  {% endif %}
+</div>

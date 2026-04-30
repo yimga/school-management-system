@@ -6,6 +6,8 @@ are applied correctly when replayed.
 """
 
 import uuid
+from decimal import Decimal
+
 from django.test import TestCase
 from django.urls import reverse
 from django.urls.exceptions import NoReverseMatch
@@ -22,6 +24,12 @@ from apps.academics.models import (
 from apps.api.mobile_api import MobileDevice
 from apps.people.models import StudentProfile
 from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.finance.models import (
+    ComplianceProfile,
+    Invoice,
+    OfflinePaymentIntent,
+    PaymentMethodCode,
+)
 
 
 class OfflineSyncBatchTestCase(TestCase):
@@ -108,3 +116,88 @@ class OfflineSyncBatchTestCase(TestCase):
         self.assertIsNotNone(att, "Attendance record should exist after sync_batch")
         self.assertEqual(att.status, Attendance.Status.PRESENT)
         self.assertEqual(att.remarks, "Synced after offline")
+
+
+class OfflinePaymentSyncBatchTests(TestCase):
+    """sync_batch accepts queued offline payment payloads (edge / no gateway)."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="pay_sync_user",
+            password="testpass123",
+            is_staff=True,
+        )
+        self.client_api = APIClient()
+        self.client_api.force_authenticate(user=self.user)
+
+        year = AcademicYear.objects.create(
+            name="2024-2025",
+            starts_on="2024-01-01",
+            ends_on="2024-12-31",
+        )
+        self.profile = ComplianceProfile.objects.create(
+            name="CM Test",
+            country_code="CM",
+            currency_code="XAF",
+            currency_symbol="FCFA",
+        )
+        self.student = StudentProfile.objects.create(
+            first_name="Pay",
+            last_name="Student",
+            date_of_birth="2012-05-01",
+        )
+        self.invoice = Invoice.objects.create(
+            profile=self.profile,
+            academic_year=year,
+            invoice_type=Invoice.InvoiceType.AR,
+            status=Invoice.Status.ISSUED,
+            student=self.student,
+            total_amount=Decimal("100.00"),
+            balance_amount=Decimal("100.00"),
+            issued_date="2024-06-01",
+        )
+        self.device = MobileDevice.objects.create(
+            user=self.user,
+            device_id=uuid.uuid4(),
+            device_name="Pay Device",
+            platform="WEB",
+            app_version="1.0",
+        )
+        site = get_platform_site_settings_record(create=True)
+        bff = dict(site.get_backend_feature_flags())
+        bff["enable_offline_attendance_sync"] = True
+        bff["enable_offline_payment_sync"] = True
+        site.apply_feature_control_state(
+            backend_feature_flags=bff,
+            field_updates={"enable_offline_mode": True},
+        )
+
+    def test_sync_batch_offline_payment_creates_intent(self):
+        try:
+            url = reverse("api:offline-sync-sync-batch")
+        except NoReverseMatch:
+            url = "/api/sync/sync_batch/"
+        payload = {
+            "device_id": str(self.device.device_id),
+            "changes": [
+                {
+                    "entity_type": "offline_payment",
+                    "entity_id": 0,
+                    "action": "CREATE",
+                    "data": {
+                        "invoice_id": self.invoice.id,
+                        "amount": "50.00",
+                        "payment_method": PaymentMethodCode.CASH,
+                        "client_offline_id": "pay-offline-1",
+                        "notes": "Cash collected during outage",
+                    },
+                    "client_timestamp": timezone.now().isoformat(),
+                },
+            ],
+        }
+        response = self.client_api.post(url, payload, format="json")
+        self.assertEqual(response.status_code, 200, getattr(response, "data", None))
+        self.assertEqual(response.data.get("synced"), 1)
+        intent = OfflinePaymentIntent.objects.get(invoice=self.invoice)
+        self.assertEqual(intent.amount, Decimal("50.00"))
+        self.assertEqual(intent.payment_method, PaymentMethodCode.CASH)

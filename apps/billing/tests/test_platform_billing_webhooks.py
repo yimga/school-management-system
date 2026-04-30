@@ -319,6 +319,7 @@ class PlatformBillingWebhookTests(TestCase):
                 "required_features": ["reports"],
             },
             publisher=pub,
+            pricing_model=MarketplaceApp.PricingModel.SUBSCRIPTION,
         )
         MarketplaceListing.objects.create(
             app=app,

@@ -9,6 +9,7 @@ from django.urls import reverse
 
 from apps.accounts.models import User
 from apps.platform_runtime.models import PlatformOperatorSuperSchoolsListLink
+from apps.schools.models import School
 
 
 @override_settings(ALLOWED_HOSTS=["*"])
@@ -57,3 +58,29 @@ class SuperSchoolsListHttpTests(TestCase):
         body = response.content.decode("utf-8")
         self.assertIn("Open tenant health", body)
         self.assertIn('href="/super/tenant-health/"', body)
+
+    def test_schools_list_frozen_only_filter(self):
+        School.objects.create(
+            name="Frozen School",
+            slug="frozen-school",
+            subdomain="frozen",
+            country_code="CM",
+            is_active=True,
+            is_frozen=True,
+            frozen_reason="STORAGE",
+        )
+        School.objects.create(
+            name="Warm School",
+            slug="warm-school",
+            subdomain="warm",
+            country_code="CM",
+            is_active=True,
+            is_frozen=False,
+        )
+        url = reverse("super:schools_list")
+        response = self.client.get(f"{url}?frozen=1", HTTP_HOST=self.host)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8")
+        # Assert on slugs in the table (name strings can appear elsewhere in HTML)
+        self.assertIn("<code>frozen-school</code>", body)
+        self.assertNotIn("<code>warm-school</code>", body)

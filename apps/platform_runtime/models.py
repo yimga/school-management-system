@@ -1238,6 +1238,94 @@ class PlatformEventLog(models.Model):
         ordering = ["-created_at"]
 
 
+class PlatformEvent(PlatformEventLog):
+    """
+    Proxy model for pub/sub and replay APIs (:mod:`apps.platform_runtime.event_bus`).
+    Persists to the same table as :class:`PlatformEventLog`.
+    """
+
+    class Meta:
+        app_label = "platform_runtime"
+        proxy = True
+        verbose_name = "Platform event"
+        verbose_name_plural = "Platform events"
+
+
+class EventWebhookSubscription(models.Model):
+    """
+    Tenant/integration webhook endpoint subscribed to platform events (POST JSON delivery).
+    """
+
+    name = models.CharField(max_length=120, blank=True)
+    tenant_id = models.CharField(max_length=64, blank=True, db_index=True)
+    school_id = models.CharField(max_length=40, blank=True, db_index=True)
+    target_url = models.URLField(max_length=2048)
+    secret = models.CharField(
+        max_length=256,
+        blank=True,
+        help_text="Shared secret for X-RMC-Signature (HMAC-SHA256 hex of raw body).",
+    )
+    event_types = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of event_type strings to deliver; empty means all types.",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_eventwebhooksubscription"
+        verbose_name = "Event webhook subscription"
+        verbose_name_plural = "Event webhook subscriptions"
+
+
+class EventWebhookDelivery(models.Model):
+    """Outbound webhook attempt / retry / dead-letter state tied to a logged platform event."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        DELIVERING = "delivering", "Delivering"
+        DELIVERED = "delivered", "Delivered"
+        FAILED = "failed", "Failed"
+        DEAD_LETTER = "dead_letter", "Dead letter"
+
+    subscription = models.ForeignKey(
+        EventWebhookSubscription,
+        on_delete=models.CASCADE,
+        related_name="deliveries",
+    )
+    platform_event = models.ForeignKey(
+        PlatformEventLog,
+        on_delete=models.CASCADE,
+        related_name="webhook_deliveries",
+    )
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+    )
+    attempt_count = models.PositiveSmallIntegerField(default=0)
+    last_http_status = models.PositiveSmallIntegerField(null=True, blank=True)
+    last_error = models.TextField(blank=True)
+    next_retry_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_eventwebhookdelivery"
+        verbose_name = "Event webhook delivery"
+        verbose_name_plural = "Event webhook deliveries"
+        indexes = [
+            models.Index(fields=["status", "next_retry_at"]),
+            models.Index(fields=["platform_event", "subscription"]),
+        ]
+        ordering = ["-created_at"]
+
+
 class FleetGovernedChange(models.Model):
     """
     WHATS_LEFT §2.1 — auditable fleet change record (thin slice).
@@ -1345,3 +1433,147 @@ class SchoolOnboardingProgress(models.Model):
 
     def __str__(self) -> str:
         return f"Onboarding {self.school_id} {self.progress_percent}%"
+
+
+class OfflineAction(models.Model):
+    """
+    Server-stored queue for work captured while offline (attendance, grading, payment proof).
+    Status reflects processing; conflicts require an explicit user choice (no silent merge).
+    """
+
+    class Status(models.TextChoices):
+        QUEUED = "queued", "Queued"
+        SYNCING = "syncing", "Syncing"
+        SYNCED = "synced", "Synced"
+        FAILED = "failed", "Failed"
+        CONFLICT = "conflict", "Conflict"
+
+    class ActionType(models.TextChoices):
+        ATTENDANCE = "attendance", "Attendance"
+        GRADING = "grading", "Grading"
+        PAYMENT_RECEIPT = "payment_receipt", "Payment / receipt capture"
+        NOTES_REPORT = "notes_report", "Notes / report capture"
+
+    class Resolution(models.TextChoices):
+        KEEP_MINE = "keep_mine", "Keep mine"
+        USE_LATEST = "use_latest", "Use latest (server)"
+        REVIEW_MANUAL = "review_manual", "Review manually"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="offline_actions",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="offline_actions",
+    )
+    action_type = models.CharField(
+        max_length=32,
+        choices=ActionType.choices,
+        db_index=True,
+    )
+    payload = models.JSONField(default=dict, blank=True)
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.QUEUED,
+        db_index=True,
+    )
+    retry_count = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_attempt_at = models.DateTimeField(null=True, blank=True)
+    conflict_reason = models.TextField(blank=True, default="")
+    conflict_details = models.JSONField(default=dict, blank=True)
+    sync_metadata = models.JSONField(default=dict, blank=True)
+    resolution_choice = models.CharField(
+        max_length=24,
+        choices=Resolution.choices,
+        blank=True,
+        default="",
+    )
+    idempotency_key = models.CharField(max_length=128, blank=True, default="")
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_offlineaction"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["school", "status"]),
+            models.Index(fields=["school", "user", "status"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"OfflineAction {self.pk} {self.action_type} ({self.status})"
+
+
+class ClickTrackEvent(models.Model):
+    """
+    Deliberate UI activation and task-boundary events for click-to-complete analytics.
+
+    ``kind`` distinguishes pointer activations (click) from explicit task lifecycle beacons
+    (task_start / task_complete) so medians are computed only on completed sessions.
+    """
+
+    class Kind(models.TextChoices):
+        CLICK = "click", "Click"
+        TASK_START = "task_start", "Task start"
+        TASK_COMPLETE = "task_complete", "Task complete"
+
+    class Phase(models.TextChoices):
+        BASELINE = "baseline", "Baseline"
+        CURRENT = "current", "Current"
+
+    kind = models.CharField(
+        max_length=24,
+        choices=Kind.choices,
+        db_index=True,
+    )
+    task_code = models.CharField(max_length=64, db_index=True)
+    task_step = models.CharField(max_length=128, blank=True, default="")
+    action_code = models.CharField(max_length=128, blank=True, default="")
+    session_run_id = models.CharField(max_length=36, db_index=True)
+    phase = models.CharField(
+        max_length=16,
+        choices=Phase.choices,
+        db_index=True,
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="click_track_events",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="click_track_events",
+    )
+    path = models.CharField(max_length=512, blank=True, default="")
+    screen_token = models.CharField(
+        max_length=128,
+        blank=True,
+        default="",
+        help_text="Optional modal, drawer, or panel identifier for screen-boundary analytics.",
+    )
+    extra = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_clicktrackevent"
+        verbose_name = "Click track event"
+        verbose_name_plural = "Click track events"
+        indexes = [
+            models.Index(
+                fields=["school", "task_code", "phase", "session_run_id", "kind"]
+            ),
+            models.Index(fields=["school", "created_at"]),
+        ]
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.kind} {self.task_code} @{self.session_run_id[:8]}"

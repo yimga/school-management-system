@@ -10,6 +10,8 @@ from apps.platform_runtime.helpers import (
     invalidate_effective_site_settings_cache,
 )
 
+from apps.finance.payment_region_catalog import ensure_canonical_region_payment_profiles
+
 from ...models import ComplianceProfile, ContributionRule, LedgerAccount, TaxBracket
 
 
@@ -92,6 +94,8 @@ class Command(BaseCommand):
         self._seed_contributions(cameroon)
         self._seed_accounts(cameroon)
         self._seed_accounts(generic)
+
+        ensure_canonical_region_payment_profiles()
 
         site = get_platform_site_settings_record(create=True)
         if site is not None:

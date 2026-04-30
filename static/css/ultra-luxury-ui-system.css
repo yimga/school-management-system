@@ -1,0 +1,265 @@
+/**
+ * Ultra luxury UI system — calm surfaces, precise rhythm, 150–250ms motion.
+ * Scoped to tenant portal + control plane (not global marketing base.html).
+ * Loads after design-tokens-luxury + table/form/card systems.
+ */
+
+:root {
+  --rmc-ul-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --rmc-ul-t-fast: 160ms;
+  --rmc-ul-t-base: 220ms;
+  --rmc-ul-measure: 65ch;
+  --rmc-ul-measure-wide: 72ch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --rmc-ul-t-fast: 0.01ms;
+    --rmc-ul-t-base: 0.01ms;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Phase 1 — Layout integrity: no surprise clipping / overflow jumps           */
+/* -------------------------------------------------------------------------- */
+
+body.control-plane-shell .cp-main-col,
+body.control-plane-shell #cp-main-content,
+body.portal-body-with-layout main[role="main"] {
+  min-width: 0;
+}
+
+body.control-plane-shell .container-fluid,
+body.portal-body-with-layout .container,
+body.portal-body-with-layout .container-lg {
+  overflow-x: clip;
+}
+
+body.control-plane-shell .table-responsive,
+body.portal-body-with-layout .table-responsive {
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--lux-radius-md, 0.5rem);
+}
+
+body.control-plane-shell .row,
+body.portal-body-with-layout .row {
+  --bs-gutter-x: var(--lux-space-5, 1.25rem);
+  --bs-gutter-y: var(--lux-space-5, 1.25rem);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Phase 2 — Typography: scale, measure, weight                               */
+/* -------------------------------------------------------------------------- */
+
+body.control-plane-shell,
+body.portal-body-with-layout {
+  font-feature-settings: "kern" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+}
+
+body.control-plane-shell #cp-main-content > p.text-secondary.small[role="note"],
+body.control-plane-shell [data-rmc-founder-dashboard] header p,
+body.control-plane-shell .proof-hero-copy,
+body.control-plane-shell .proof-panel-copy,
+body.portal-body-with-layout .parent-dashboard header p,
+body.portal-body-with-layout .tdm-shell .text-muted.small {
+  max-width: var(--rmc-ul-measure);
+  line-height: 1.55;
+}
+
+body.control-plane-shell h1,
+body.control-plane-shell .h1,
+body.portal-body-with-layout h1 {
+  font-weight: var(--luxury-heading-weight, 700);
+  letter-spacing: var(--luxury-letter-spacing-tight, -0.02em);
+  line-height: 1.2;
+}
+
+body.control-plane-shell h2,
+body.control-plane-shell .h2,
+body.portal-body-with-layout h2 {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+body.control-plane-shell .text-uppercase.small,
+body.portal-body-with-layout .text-uppercase.small {
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  font-size: var(--lux-type-xs, 0.75rem);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Phase 3 — Components: buttons, cards, tables, forms                        */
+/* -------------------------------------------------------------------------- */
+
+body.control-plane-shell .btn:not(.btn-link),
+body.portal-body-with-layout .btn:not(.btn-link) {
+  border-radius: var(--lux-radius-md, 0.5rem);
+  font-weight: var(--luxury-btn-weight, 600);
+  padding-left: var(--lux-space-5, 1.25rem);
+  padding-right: var(--lux-space-5, 1.25rem);
+  transition:
+    background-color var(--rmc-ul-t-fast) var(--rmc-ul-ease),
+    border-color var(--rmc-ul-t-fast) var(--rmc-ul-ease),
+    color var(--rmc-ul-t-fast) var(--rmc-ul-ease),
+    box-shadow var(--rmc-ul-t-fast) var(--rmc-ul-ease),
+    opacity var(--rmc-ul-t-fast) var(--rmc-ul-ease);
+}
+
+body.control-plane-shell .btn-sm,
+body.portal-body-with-layout .btn-sm {
+  padding-left: var(--lux-space-4, 1rem);
+  padding-right: var(--lux-space-4, 1rem);
+}
+
+body.control-plane-shell .btn-outline-primary,
+body.control-plane-shell .btn-outline-light,
+body.portal-body-with-layout .btn-outline-primary,
+body.portal-body-with-layout .btn-outline-secondary {
+  border-width: 1px;
+}
+
+body.control-plane-shell .card:not(.border-danger):not(.border-warning),
+body.portal-body-with-layout .card:not(.border-danger):not(.border-warning) {
+  border-radius: var(--lux-radius-lg, 0.75rem);
+  border: 1px solid var(--lux-color-border, rgba(15, 23, 42, 0.12));
+  box-shadow: var(--lux-shadow-hairline, 0 0 0 1px rgba(15, 23, 42, 0.08)),
+    var(--lux-shadow-elevated, 0 6px 18px rgba(15, 23, 42, 0.06));
+  overflow: clip;
+  transition: box-shadow var(--rmc-ul-t-base) var(--rmc-ul-ease),
+    border-color var(--rmc-ul-t-base) var(--rmc-ul-ease);
+}
+
+body.control-plane-shell .card.border-0.shadow-sm,
+body.portal-body-with-layout .card.border-0.shadow-sm {
+  border: 1px solid var(--lux-color-border, rgba(15, 23, 42, 0.12)) !important;
+}
+
+body.control-plane-shell .card .card-body {
+  padding: var(--lux-space-6, 1.5rem) var(--lux-space-7, 2rem);
+}
+
+body.control-plane-shell .card .card-body.py-3 {
+  padding-top: var(--lux-space-5, 1.25rem) !important;
+  padding-bottom: var(--lux-space-5, 1.25rem) !important;
+}
+
+body.control-plane-shell .table:not(.table-borderless),
+body.portal-body-with-layout .table:not(.table-borderless) {
+  margin-bottom: 0;
+}
+
+body.control-plane-shell .table thead th,
+body.portal-body-with-layout .table thead th {
+  font-weight: 600;
+  font-size: var(--lux-type-sm, 0.875rem);
+  padding-top: var(--lux-space-4, 1rem);
+  padding-bottom: var(--lux-space-4, 1rem);
+  border-bottom-width: 1px;
+}
+
+body.control-plane-shell .table tbody td,
+body.portal-body-with-layout .table tbody td {
+  padding-top: var(--lux-space-4, 1rem);
+  padding-bottom: var(--lux-space-4, 1rem);
+  vertical-align: middle;
+}
+
+body.control-plane-shell .form-control,
+body.control-plane-shell .form-select,
+body.portal-body-with-layout .form-control,
+body.portal-body-with-layout .form-select {
+  border-radius: var(--lux-radius-md, 0.5rem);
+  padding: var(--lux-space-3, 0.75rem) var(--lux-space-4, 1rem);
+  transition: border-color var(--rmc-ul-t-fast) var(--rmc-ul-ease),
+    box-shadow var(--rmc-ul-t-fast) var(--rmc-ul-ease),
+    background-color var(--rmc-ul-t-fast) var(--rmc-ul-ease);
+}
+
+body.control-plane-shell .form-control:focus,
+body.control-plane-shell .form-select:focus,
+body.portal-body-with-layout .form-control:focus,
+body.portal-body-with-layout .form-select:focus {
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Phase 4 — Motion: hover refinement, no layout thrash                        */
+/* -------------------------------------------------------------------------- */
+
+body.control-plane-shell a.nav-link,
+body.portal-body-with-layout a.nav-link {
+  transition: color var(--rmc-ul-t-fast) var(--rmc-ul-ease),
+    background-color var(--rmc-ul-t-fast) var(--rmc-ul-ease);
+}
+
+body.control-plane-shell .dropdown-item,
+body.portal-body-with-layout .dropdown-item {
+  transition: background-color var(--rmc-ul-t-fast) var(--rmc-ul-ease),
+    color var(--rmc-ul-t-fast) var(--rmc-ul-ease);
+}
+
+body.control-plane-shell .breadcrumb-item a,
+body.portal-body-with-layout .breadcrumb-item a {
+  text-decoration: none;
+  transition: opacity var(--rmc-ul-t-fast) var(--rmc-ul-ease);
+}
+body.control-plane-shell .breadcrumb-item a:hover,
+body.portal-body-with-layout .breadcrumb-item a:hover {
+  opacity: 0.85;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Phase 5 — Screen anchors                                                     */
+/* -------------------------------------------------------------------------- */
+
+[data-rmc-founder-dashboard] section > .d-flex.align-items-center.justify-content-between {
+  margin-bottom: var(--lux-space-4, 1rem);
+  gap: var(--lux-space-4, 1rem);
+}
+
+[data-rmc-founder-dashboard] .card .display-6 {
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+body.dashboard-page-teacher .tdm-shell {
+  max-width: 100%;
+}
+
+body.dashboard-page-teacher .tdm-bg {
+  padding-bottom: var(--lux-space-9, 3rem);
+}
+
+body.dashboard-page-parent .parent-dashboard .container-lg {
+  max-width: 1200px;
+}
+
+body.dashboard-page-parent .parent-dashboard h1 {
+  margin-bottom: var(--lux-space-4, 1rem);
+}
+
+body.control-plane-shell .proof-page .proof-app-card,
+body.control-plane-shell .proof-page .proof-strip-card {
+  transition: transform var(--rmc-ul-t-base) var(--rmc-ul-ease),
+    box-shadow var(--rmc-ul-t-base) var(--rmc-ul-ease),
+    border-color var(--rmc-ul-t-base) var(--rmc-ul-ease);
+}
+
+body.control-plane-shell .proof-page .proof-app-card:hover {
+  transform: none;
+  box-shadow: var(--lux-shadow-floating, 0 14px 30px rgba(15, 23, 42, 0.12));
+}
+
+body.backend-shell.dashboard-page-backend .container-fluid,
+body.backend-shell.dashboard-page-backend .container-lg {
+  padding-left: var(--lux-space-6, 1.5rem);
+  padding-right: var(--lux-space-6, 1.5rem);
+}
+
+/* Control plane main: consistent section rhythm */
+body.control-plane-shell .cp-layout {
+  padding-bottom: var(--lux-space-8, 2.5rem);
+}

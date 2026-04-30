@@ -15,6 +15,30 @@ from django.test import SimpleTestCase
 from apps.platform_runtime.tests.support.paths import repo_root
 
 
+class LuxuryUiGateTests(SimpleTestCase):
+    """Template/CSS subprocess audit only — no Django DB required."""
+
+    def test_audit_luxury_ui_surface_passes(self):
+        """Luxury UI integration audit + >= 13/15 gate (pre-deploy parity with verify_phases)."""
+        root = repo_root()
+        script = root / "scripts" / "audit_luxury_ui_surface.py"
+        if not script.is_file():
+            self.skipTest("scripts/audit_luxury_ui_surface.py not found")
+        result = subprocess.run(
+            [sys.executable, str(script)],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            "audit_luxury_ui_surface failed.\n"
+            f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}",
+        )
+
+
 class TenantSettingsLintTests(SimpleTestCase):
     """Enforce tenant code uses runtime/helpers instead of tenant settings get_solo() shortcuts.
 

@@ -5,6 +5,7 @@ from .models import (
     MarketplaceApp,
     MarketplaceListing,
     MarketplaceReview,
+    AppPermissionScope,
     AppScope,
     AppInstallation,
     ScopeGrant,
@@ -28,6 +29,12 @@ class PublisherOrganizationAdmin(admin.ModelAdmin):
     search_fields = ("name", "legal_name", "slug", "payout_ref")
 
 
+@admin.register(AppPermissionScope, site=platform_admin_site)
+class AppPermissionScopeAdmin(admin.ModelAdmin):
+    list_display = ("code", "domain", "access", "description")
+    search_fields = ("code", "domain", "description")
+
+
 @admin.register(MarketplaceApp, site=platform_admin_site)
 class MarketplaceAppAdmin(admin.ModelAdmin):
     list_display = (
@@ -35,12 +42,20 @@ class MarketplaceAppAdmin(admin.ModelAdmin):
         "name",
         "publisher",
         "kind",
+        "pricing_model",
+        "is_intentionally_free",
+        "price",
+        "billing_interval",
         "version",
         "is_active",
         "updated_at",
     )
-    list_filter = ("kind", "is_active")
+    list_filter = ("kind", "is_active", "pricing_model", "billing_interval", "is_intentionally_free")
     search_fields = ("slug", "name", "publisher__name")
+
+    def save_model(self, request, obj, form, change):
+        obj.full_clean()
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(MarketplaceListing, site=platform_admin_site)

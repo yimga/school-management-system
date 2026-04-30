@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
 
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 from apps.siteconfig.models import (
     default_grade_approval_roles,
     default_syllabus_approval_roles,

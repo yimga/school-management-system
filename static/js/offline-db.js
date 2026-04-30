@@ -7,7 +7,7 @@
   'use strict';
 
   var DB_NAME = 'sms-offline-mirror';
-  var DB_VERSION = 2;
+  var DB_VERSION = 3;
   var db = null;
 
   function getDexie() {
@@ -34,6 +34,7 @@
         evaluations: 'id, student_id, subject_assignment_id, updated_at',
         classrooms: 'id, school_id, updated_at',
         ocr_corrections: 'original, corrected, updated_at',
+        outbox: 'id, ts, action_type, synced',
       });
       return db.open().then(function () { return db; });
     } catch (err) {
@@ -114,6 +115,7 @@
         database.evaluations.clear(),
         database.classrooms.clear(),
         database.ocr_corrections.clear(),
+        database.outbox.clear(),
       ]);
     });
   }
@@ -209,6 +211,36 @@
     },
   };
 
+  function outboxEnqueue(row) {
+    return open().then(function (database) {
+      if (!database || !database.outbox) return Promise.resolve(null);
+      var r = Object.assign({ synced: 0, ts: Date.now() }, row);
+      if (!r.id) r.id = 'ob-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+      return database.outbox.put(r).then(function () { return r; });
+    });
+  }
+
+  function outboxPending() {
+    return open().then(function (database) {
+      if (!database || !database.outbox) return [];
+      return database.outbox.where('synced').equals(0).toArray();
+    });
+  }
+
+  function outboxMarkSynced(id) {
+    return open().then(function (database) {
+      if (!database || !database.outbox) return;
+      return database.outbox.update(id, { synced: 1 });
+    });
+  }
+
+  function outboxDelete(id) {
+    return open().then(function (database) {
+      if (!database || !database.outbox) return;
+      return database.outbox.delete(id);
+    });
+  }
+
   global.SMSOfflineDB = {
     isAvailable: isAvailable,
     open: open,
@@ -222,5 +254,9 @@
     addOcrCorrection: addOcrCorrection,
     getOcrCorrection: getOcrCorrection,
     normalizers: normalizers,
+    outboxEnqueue: outboxEnqueue,
+    outboxPending: outboxPending,
+    outboxMarkSynced: outboxMarkSynced,
+    outboxDelete: outboxDelete,
   };
 })(typeof window !== 'undefined' ? window : this);

@@ -24,6 +24,17 @@ from apps.portal.views_ai_copilot import (
     ai_copilot_audit_feed,
 )
 from config.admin import tenant_admin_site
+from apps.schools.activation_views import activation_first_action
+from apps.schools.demo_conversion_views import (
+    demo_flow_attendance,
+    demo_flow_attendance_complete,
+    demo_flow_complete,
+    demo_flow_index,
+    demo_flow_marks,
+    demo_flow_marks_complete,
+    demo_flow_report,
+    demo_flow_report_complete,
+)
 from apps.schools.section8_views import frozen_account
 from apps.schools.parent_tenant_views import parent_tenant_dashboard
 from apps.schools.views_domains import api_domains_list_or_create, api_domains_verify
@@ -38,6 +49,10 @@ from apps.marketplace.views import (
     tenant_approve_scope,
     tenant_save_installation_config,
     tenant_activate_installation,
+)
+from apps.platform_runtime.views_click_tracking import (
+    click_measurement_dashboard,
+    record_click_event,
 )
 
 
@@ -165,6 +180,31 @@ handler500 = server_error
 
 urlpatterns = [
     path("", home, name="home"),
+    path(
+        "activation/first-action/",
+        activation_first_action,
+        name="activation_first_action",
+    ),
+    path("demo/flow/", demo_flow_index, name="demo_flow_index"),
+    path("demo/flow/attendance/", demo_flow_attendance, name="demo_flow_attendance"),
+    path(
+        "demo/flow/attendance/complete/",
+        demo_flow_attendance_complete,
+        name="demo_flow_attendance_complete",
+    ),
+    path("demo/flow/marks/", demo_flow_marks, name="demo_flow_marks"),
+    path(
+        "demo/flow/marks/complete/",
+        demo_flow_marks_complete,
+        name="demo_flow_marks_complete",
+    ),
+    path("demo/flow/report/", demo_flow_report, name="demo_flow_report"),
+    path(
+        "demo/flow/report/complete/",
+        demo_flow_report_complete,
+        name="demo_flow_report_complete",
+    ),
+    path("demo/flow/complete/", demo_flow_complete, name="demo_flow_complete"),
     path("favicon.ico", favicon_redirect),
     # Before path("admin/", …) so legacy customizer hits Studio OS (Phase 5).
     path("admin/siteconfig/customizer/", admin_siteconfig_customizer_redirect),
@@ -239,6 +279,16 @@ urlpatterns = [
     path(
         "api/internal/metadata/",
         include(("apps.metadata.urls", "metadata"), namespace="metadata"),
+    ),
+    path(
+        "api/internal/click-tracking/",
+        record_click_event,
+        name="record_click_event",
+    ),
+    path(
+        "internal/click-measurement/",
+        click_measurement_dashboard,
+        name="click_measurement_dashboard",
     ),
     path(
         "settings/installed-apps/",

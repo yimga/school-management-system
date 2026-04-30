@@ -9,7 +9,7 @@ from django.http import HttpResponseForbidden
 # Re-export for views that import from apps.accounts.decorators
 login_required = _login_required
 
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 
 
 def _normalize_role(r) -> str:

@@ -126,7 +126,10 @@ class Phase10ErrorPagesVerificationTests(TestCase):
         response = permission_denied(request, None)
         self.assertEqual(response.status_code, 403)
         content = response.content.decode("utf-8", errors="replace")
-        self.assertIn("Access denied", content)
+        self.assertTrue(
+            "Access denied" in content or "Access needs approval" in content,
+            msg="Tenant 403 must surface a clear denial headline (standard shell)",
+        )
 
 
 class Phase10UrlConfVerificationTests(TestCase):

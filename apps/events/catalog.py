@@ -15,6 +15,13 @@ EVENT_CATALOG = {
         "retry_policy": "default",
         "schema_version": "1.0",
     },
+    "student.updated": {
+        "payload_required_keys": ("student_id", "school_id"),
+        "payload_optional_keys": (),
+        "description": "Student profile updated",
+        "retry_policy": "default",
+        "schema_version": "1.0",
+    },
     "applicant.admitted": {
         "payload_required_keys": ("applicant_id", "school_id"),
         "payload_optional_keys": ("student_id", "admission_number"),

@@ -104,3 +104,63 @@ def best_effort_audit_export_download(
         )
     except Exception:
         return
+
+
+def finalize_tenant_export_http_response(
+    request: HttpRequest,
+    response,
+    *,
+    export_key: str,
+    school=None,
+    academic_year_id: int | None = None,
+    app_label: str = "exports",
+) -> None:
+    """
+    Attach HMAC-signed integrity headers (see ``apps.reports.export_integrity``) and persist
+    the same digest/signature on the compliance ``EXPORT`` audit row. Call from views after
+    the response body is final (``response.content`` available).
+    """
+    school = school if school is not None else getattr(request, "school", None)
+    try:
+        body = response.content
+    except Exception:
+        return
+    if not body:
+        return
+    try:
+        from django.conf import settings
+
+        from apps.reports.export_integrity import (
+            attach_export_integrity_headers,
+            sign_export_content,
+        )
+
+        secret = getattr(settings, "SECRET_KEY", "") or ""
+        sid = str(getattr(school, "pk", "") or "")
+        attach_export_integrity_headers(
+            response,
+            content=body,
+            export_key=export_key,
+            school_id=sid,
+            secret=secret,
+        )
+        sha, sig, ver = sign_export_content(
+            body,
+            export_key=export_key,
+            school_id=sid,
+            secret=secret,
+        )
+        best_effort_audit_export_download(
+            request,
+            export_key=export_key,
+            school=school,
+            academic_year_id=academic_year_id,
+            app_label=app_label,
+            extra={
+                "content_sha256": sha,
+                "signature": f"{ver}={sig}",
+                "integrity_algorithm": "HMAC-SHA256",
+            },
+        )
+    except Exception:
+        return

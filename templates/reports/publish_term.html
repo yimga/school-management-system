@@ -4,7 +4,7 @@
 {% block title %}Publish Results{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-task="report_generation" data-task-step="report:page">
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
   <div>
     <h2 class="mb-1">Publish Term Results</h2>
@@ -33,7 +33,7 @@
         </select>
       </div>
       <div class="col-md-4 d-grid">
-        <button type="submit" class="btn btn-outline-primary">Load</button>
+        <button type="submit" class="btn btn-outline-primary" data-action="report-load-term" data-task-step="report:load-context">Load</button>
       </div>
     </form>
   </div>
@@ -55,7 +55,7 @@
 
 <div class="card">
   <div class="card-body">
-    <form method="post">
+    <form method="post" id="rmc-publish-term-form">
       {% csrf_token %}
       <input type="hidden" name="year" value="{{ year.id }}">
       <input type="hidden" name="term" value="{{ term.id }}">
@@ -86,10 +86,22 @@
       </div>
 
       <div class="d-flex gap-2 mt-3">
-        <button class="btn btn-primary btn-sm" type="submit">Save Publish Status</button>
+        <button class="btn btn-primary btn-sm" type="submit" data-action="report-publish-commit" data-task-step="report:publish-save">Save Publish Status</button>
       </div>
     </form>
   </div>
 </div>
 </div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!window.rmcClickTaskBoundary) return;
+    window.rmcClickTaskBoundary('task_start', 'report_generation');
+    var pf = document.getElementById('rmc-publish-term-form');
+    if (pf) {
+      pf.addEventListener('submit', function () {
+        window.rmcClickTaskBoundary('task_complete', 'report_generation');
+      });
+    }
+  });
+</script>
 {% endblock %}

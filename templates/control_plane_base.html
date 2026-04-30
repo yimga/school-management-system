@@ -77,6 +77,11 @@
       {% include "partials/shell_chrome_breadcrumb_row_between_primary_and_actions.html" %}
         {% block breadcrumb_actions %}{% endblock %}
       {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
+      {% if request.user.is_authenticated %}
+      {% block rmc_zero_click_strip %}
+      {% include "partials/rmc_zero_click_command_strip.html" with triage_anchor="#cp-main-content" %}
+      {% endblock %}
+      {% endif %}
       {% block cp_content %}{% endblock %}
       {% block cp_sticky_action_bar %}{# Page-level sticky actions (override in child templates) #}{% endblock %}
     </main>

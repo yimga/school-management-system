@@ -26,7 +26,7 @@ from apps.reports.models import (
     ReportDocumentHash,
     TermPublishStatus,
 )
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 from apps.reports.services import (
     annual_report_context,
     are_terms_published,
@@ -936,6 +936,24 @@ def publish_term_results(request: HttpRequest):
                                     "term_id": getattr(term_obj, "id", None),
                                 },
                             )
+            if school and publish_intent:
+                try:
+                    from apps.siteconfig.workflow_triggers import (
+                        dispatch_domain_triggers_safe,
+                    )
+
+                    dispatch_domain_triggers_safe(
+                        school,
+                        "report_published",
+                        {
+                            "academic_year_id": year_obj.pk,
+                            "term_id": term_obj.pk,
+                            "publish_school": publish_school,
+                            "classroom_ids": list(selected_classrooms),
+                        },
+                    )
+                except ImportError:
+                    pass
             messages.success(request, "Publish status updated.")
             return redirect(f"{request.path}?year={year_obj.id}&term={term_obj.id}")
 

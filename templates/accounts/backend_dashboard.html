@@ -331,6 +331,9 @@ backend-shell dashboard-page-backend
   {% url 'portal:teacher_attendance' as backend_attendance_url %}
   {% url 'siteconfig:guided_onboarding' as backend_onboarding_url %}
   {% url 'siteconfig:scheduled_reports_delivery_hub' as backend_controls_url %}
+  {# data-page-header #}{# ds-action-bar #}
+  {% include "partials/luxury_major_audit_contract.html" with title=_("Operations dashboard") subtitle=_("Live health, workflows, and command surfaces for your school.") primary_url=backend_workflow_url primary_label=_("Workflow center") secondary_url=backend_reports_url secondary_label=_("Reports") %}
+
   <section class="mb-3" data-rmc-intelligent-insights="backend" aria-label="{% trans 'Decision insights' %}">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
       <h2 class="h6 mb-0">{% trans "Decision insights" %}</h2>

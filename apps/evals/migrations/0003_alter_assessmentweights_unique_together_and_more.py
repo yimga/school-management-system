@@ -58,6 +58,57 @@ def ensure_weights_table(apps, schema_editor):
     schema_editor.create_model(AssessmentWeights)
 
 
+def _table_has_column(schema_editor, table_name: str, column_name: str) -> bool:
+    """Avoid duplicate ADD COLUMN when ensure_weights_table created term_id early."""
+    connection = schema_editor.connection
+    want = column_name.lower()
+    with connection.cursor() as cursor:
+        if table_name not in connection.introspection.table_names(cursor):
+            return False
+        # SQLite: introspection.get_table_description can miss columns on some builds;
+        # PRAGMA table_info is authoritative for duplicate-column avoidance.
+        if connection.vendor == "sqlite":
+            cursor.execute(f'PRAGMA table_info("{table_name}")')
+            for row in cursor.fetchall():
+                col_name = row[1]
+                if isinstance(col_name, str) and col_name.lower() == want:
+                    return True
+            return False
+        desc = connection.introspection.get_table_description(cursor, table_name)
+    for col in desc:
+        name = col.name if hasattr(col, "name") else col[0]
+        if isinstance(name, str) and name.lower() == want:
+            return True
+    return False
+
+
+def add_assessmentweights_term_if_missing(apps, schema_editor):
+    AssessmentWeights = apps.get_model("evals", "AssessmentWeights")
+    Term = apps.get_model("academics", "Term")
+    table_name = AssessmentWeights._meta.db_table
+    if _table_has_column(schema_editor, table_name, "term_id"):
+        return
+    field = models.ForeignKey(
+        Term,
+        blank=True,
+        help_text="Optional term-specific override. Leave blank for full-year defaults.",
+        null=True,
+        on_delete=django.db.models.deletion.PROTECT,
+        related_name="assessment_weights",
+    )
+    field.set_attributes_from_name("term")
+    schema_editor.add_field(AssessmentWeights, field)
+
+
+def remove_assessmentweights_term_if_present(apps, schema_editor):
+    AssessmentWeights = apps.get_model("evals", "AssessmentWeights")
+    table_name = AssessmentWeights._meta.db_table
+    if not _table_has_column(schema_editor, table_name, "term_id"):
+        return
+    field = AssessmentWeights._meta.get_field("term")
+    schema_editor.remove_field(AssessmentWeights, field)
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("academics", "0002_classroom_allows_third_term"),
@@ -79,17 +130,27 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.RunPython(ensure_weights_table, migrations.RunPython.noop),
-        migrations.AddField(
-            model_name="assessmentweights",
-            name="term",
-            field=models.ForeignKey(
-                blank=True,
-                help_text="Optional term-specific override. Leave blank for full-year defaults.",
-                null=True,
-                on_delete=django.db.models.deletion.PROTECT,
-                related_name="assessment_weights",
-                to="academics.term",
-            ),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(
+                    add_assessmentweights_term_if_missing,
+                    remove_assessmentweights_term_if_present,
+                ),
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name="assessmentweights",
+                    name="term",
+                    field=models.ForeignKey(
+                        blank=True,
+                        help_text="Optional term-specific override. Leave blank for full-year defaults.",
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="assessment_weights",
+                        to="academics.term",
+                    ),
+                ),
+            ],
         ),
         migrations.AlterUniqueTogether(
             name="assessmentweights",

@@ -90,7 +90,7 @@ def bursar_entries_report(request: HttpRequest):
         .filter(status="completed")
         .order_by("-created_at")[:100]
     )
-    dashboard_context = get_dashboard_context(request.user, "finance")
+    dashboard_context = get_dashboard_context(request.user, "finance", request=request)
     return render(
         request,
         "finance/bursar_entries_report.html",
@@ -113,7 +113,7 @@ def expense_vs_budget(request: HttpRequest):
     budgets = Budget.objects.select_related("academic_year").order_by(
         "-academic_year__start_date"
     )[:5]
-    dashboard_context = get_dashboard_context(request.user, "finance")
+    dashboard_context = get_dashboard_context(request.user, "finance", request=request)
     return render(
         request,
         "finance/expense_vs_budget.html",

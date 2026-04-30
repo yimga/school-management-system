@@ -446,19 +446,24 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
             "name": "Observability",
             "section": "Maintenance & Repair",
         },
+        "accounts": {
+            "order": 5,
+            "name": "Accounts & users",
+            "section": "Access & Permissions",
+        },
     }
 
     def is_platform_site(self) -> bool:
         return True
 
     def has_permission(self, request):
-        # Super (Control Plane) access does not imply platform admin raw edit; both require explicit checks.
-        return bool(
-            self._is_platform_host(request)
-            and request.user.is_active
-            and request.user.is_staff
-            and request.user.is_superuser
-        )
+        # Align with control plane: platform operators (superuser or role SUPERADMIN) may use
+        # manager /admin/ backoffice (e.g. edit Users). Tenant staff without CP access stay out.
+        if not self._is_platform_host(request) or not getattr(request.user, "is_active", False):
+            return False
+        from apps.schools.control_plane import user_has_control_plane_access
+
+        return bool(user_has_control_plane_access(request.user))
 
     def get_app_list(self, request, app_label=None):
         """AdminOpsShell: group and order apps by platform IA (Platform Configuration, Catalog Records, etc.)."""

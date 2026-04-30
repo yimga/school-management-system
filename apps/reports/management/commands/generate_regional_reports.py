@@ -12,7 +12,7 @@ from datetime import datetime
 
 from apps.academics.models import AcademicYear, Term
 from apps.people.models import StudentProfile
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.reports.localization import (
     get_certificate_localizer,
@@ -110,7 +110,7 @@ class Command(BaseCommand):
                 )
                 return
 
-        self.stdout.write(self.style.SUCCESS(f"\n[*] Regional Report Generator"))
+        self.stdout.write(self.style.SUCCESS("\n[*] Regional Report Generator"))
         self.stdout.write("=" * 60)
         self.stdout.write(f"Language: {language}")
         if region:
@@ -310,7 +310,7 @@ class Command(BaseCommand):
             email.content_subtype = "html"
             email.send()
 
-            self.stdout.write(self.style.SUCCESS(f"  [+] Email sent to guardians"))
+            self.stdout.write(self.style.SUCCESS("  [+] Email sent to guardians"))
 
         except _REGIONAL_REPORT_EMAIL_ERRORS as e:
             log_exception_with_context(

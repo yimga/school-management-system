@@ -9,6 +9,7 @@ from . import super_views_beyond_reach
 from .control_plane import require_super_access_with_host
 from . import super_views_config
 from . import super_views_config_crud
+from . import super_views_enterprise_security
 from . import super_views_security_surface
 from .super_views_founder_dashboard import super_founder_dashboard
 from .super_views_catalog import (
@@ -368,6 +369,13 @@ urlpatterns = [
             super_views_security_surface.super_security_surface_dashboard
         ),
         name="security_surface_dashboard",
+    ),
+    path(
+        "security/",
+        require_super_access_with_host(
+            super_views_enterprise_security.super_security_hub
+        ),
+        name="security_hub",
     ),
     path(
         "marketplace/",

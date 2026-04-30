@@ -52,6 +52,40 @@ class DecisionSurfaceContextTests(SimpleTestCase):
         self.assertTrue(d["next_actions"])
         self.assertTrue(d["activity"])
 
+    def test_empty_next_actions_strict_fallback(self):
+        """Strict single-action surfaces always expose one next step (destinations or copy)."""
+        d = build_backend_dashboard_phase7_de(
+            role_home={
+                "eyebrow": "X",
+                "main_action": "Use workflow links",
+            },
+            kpi_strip_cards=[],
+            dashboard_priority_queue=[],
+            dashboard_next_best_actions=[],
+            role_home_primary_action=None,
+            role_home_supporting_actions=[],
+            dashboard_recent_activity=[],
+            max_next_actions=1,
+            role_home_destinations=[{"label": "Workflow", "url": "/w/", "id": "wf"}],
+        )
+        self.assertEqual(len(d["next_actions"]), 1)
+        self.assertEqual(d["next_actions"][0]["label"], "Workflow")
+        self.assertEqual(d["next_actions"][0]["url"], "/w/")
+
+    def test_empty_next_actions_main_action_fallback(self):
+        d = build_backend_dashboard_phase7_de(
+            role_home={"eyebrow": "X", "main_action": "Ship work"},
+            kpi_strip_cards=[],
+            dashboard_priority_queue=[],
+            dashboard_next_best_actions=[],
+            role_home_primary_action=None,
+            role_home_supporting_actions=[],
+            dashboard_recent_activity=[],
+            max_next_actions=1,
+            role_home_destinations=[],
+        )
+        self.assertEqual(d["next_actions"][0]["label"], "Ship work")
+
     def test_build_role_home_declaration_defaults(self):
         decl = build_role_home_declaration({})
         self.assertEqual(decl["dashboard_type"], "operational")

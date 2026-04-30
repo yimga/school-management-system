@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-04-29",
+  "sources": [
+    ".django_test_dbs/failfast_round3.log",
+    ".django_test_dbs/failfast_round4.log",
+    ".django_test_dbs/failfast_round5.log",
+    ".django_test_dbs/failfast_round7.log",
+    ".django_test_dbs/failfast_round8.log",
+    ".django_test_dbs/failfast_round9.log",
+    ".django_test_dbs/failfast_round10.log",
+    ".django_test_dbs/failfast_round11.log",
+    ".django_test_dbs/full_suite_final.log",
+    ".django_test_dbs/failfast_capture.txt"
+  ],
+  "failfast_summary": {
+    "command": "DJANGO_TEST_DB_FILE=.django_test_dbs/triage_failfast3.sqlite3 RMC_RELIABLE_TEST_RUNNER=1 python manage.py test --noinput --verbosity 2 --failfast",
+    "log_path": ".django_test_dbs/failfast_round3.log",
+    "stopped_after_tests_run": 1056,
+    "elapsed_seconds_approx": 599,
+    "first_exit_condition": "FAILED (failures=1)"
+  },
+  "failures": [
+    {
+      "id": "triage-002",
+      "module": "apps.schools.tests.test_marketing_validation",
+      "class": "MarketingFullUrlInventoryTests",
+      "method": "test_all_inventory_marketing_urls_acceptable_status",
+      "subtest": "marketing_book_demo_submit /book-demo/submit/",
+      "error_type": "AssertionError",
+      "message": "GET /book-demo/submit/ -> 405, expected one of [200]",
+      "category": "stale test expectation / inventory contract",
+      "cause": "submit_demo_request is decorated with @require_POST; GET correctly returns 405. iter_marketing_smoke_targets treated all marketing_* URLs as GET-200-only.",
+      "fix": "In apps/schools/marketing_url_inventory.py, allow ok_statuses {200, 405} for marketing_book_demo_submit.",
+      "status": "fixed_in_tree"
+    },
+    {
+      "id": "triage-003",
+      "module": "apps.schools.tests.test_phase10_control_plane_verification",
+      "class": "Phase10ErrorPagesVerificationTests",
+      "method": "test_tenant_403_uses_standard_template",
+      "error_type": "AssertionError",
+      "message": "'Access denied' not found in response body",
+      "category": "stale test expectation",
+      "cause": "Tenant 403 template uses headline 'Access needs approval' (design-system copy); test still expected literal 'Access denied'.",
+      "fix": "Assert either legacy or current denial headline so the check tracks UX copy without dropping the requirement.",
+      "status": "fixed_in_tree"
+    },
+    {
+      "id": "triage-004",
+      "module": "apps.schools.tests.test_platform_admin_bridge_completeness",
+      "class": "PlatformAdminBridgeCompletenessTests",
+      "method": "test_every_platform_admin_model_has_admin_bridge",
+      "error_type": "AssertionError",
+      "message": "Four apicenter_* changelists missing from PLATFORM_ADMIN_BRIDGES",
+      "category": "generated artifact drift / registry completeness",
+      "cause": "New API Center models registered on platform_admin_site without matching super:admin_bridge registry rows.",
+      "fix": "Added four PLATFORM_ADMIN_BRIDGES (+ ORDER keys) in apps/schools/super_admin_bridge_registry.py.",
+      "status": "fixed_in_tree"
+    },
+    {
+      "id": "triage-005",
+      "module": "apps.platform_runtime.tests.test_tenant_settings_lint",
+      "class": "TenantSettingsLintTests",
+      "method": "test_generate_platform_inventory_check_passes",
+      "subtest": null,
+      "error_type": "AssertionError",
+      "message": "1 != 0 : generate_platform_inventory --check failed (run --write locally if inventory drift).",
+      "category": "generated artifact drift",
+      "cause": "Committed platform inventory JSON/MD and scoped_gravity_trend.json were stale vs tree.",
+      "fix": "Ran python scripts/generate_platform_inventory.py --write (docs/generated/platform_inventory.*, scripts/generated/scoped_gravity_trend.json).",
+      "status": "fixed_in_tree"
+    },
+    {
+      "id": "triage-006",
+      "module": "apps.dashboard.tests.test_phase9_security_gates",
+      "class": "Phase9SecurityGatesTests",
+      "method": "test_allow_any_allowlist_lint",
+      "subtest": null,
+      "error_type": "AssertionError",
+      "message": "scripts/lint_allow_any_usage.py failed (exit 1); underlying IndentationError in apps/accounts/views.py",
+      "category": "lint/governance drift (surfaced as parse failure)",
+      "cause": "Stray extra indent before dashboard_context assignment after hero dict; Python parse failed during lint AST walk.",
+      "fix": "Dedent dashboard_context = get_dashboard_context(...) to match surrounding view body in apps/accounts/views.py.",
+      "status": "fixed_in_tree"
+    },
+    {
+      "id": "triage-007",
+      "module": "apps.platform_runtime.tests.test_action_engine",
+      "class": "ActionEngineTests",
+      "method": "test_request_provides_school_when_omitted",
+      "subtest": null,
+      "error_type": "NameError",
+      "message": "name 'school' is not defined (nested class body: school = school)",
+      "category": "stale test expectation / Python scoping",
+      "cause": "Class body treats `school` as a local name for the whole block; RHS of `school = school` is undefined on Python 3.14.",
+      "fix": "Avoid class-body self-ref: `sch = school`, `usr = user`, then `class Req: school = sch; user = usr`.",
+      "status": "fixed_in_tree"
+    },
+    {
+      "id": "triage-008",
+      "module": "apps.platform_runtime.tests.test_tenant_settings_lint",
+      "class": "TenantSettingsLintTests",
+      "method": "test_generate_platform_inventory_check_passes",
+      "subtest": null,
+      "error_type": "AssertionError",
+      "message": "generate_platform_inventory --check failed after subsequent code edits (same gate as triage-005).",
+      "category": "generated artifact drift",
+      "cause": "Inventory not regenerated after views/tests changes in the same triage wave.",
+      "fix": "Re-ran python scripts/generate_platform_inventory.py --write.",
+      "status": "fixed_in_tree"
+    }
+  ],
+  "prior": {
+    "triage-001": "PaymentMethodCode import + recalculate_invoice line-query fixes (see earlier triage)."
+  }
+}

@@ -1,11 +1,15 @@
-{% load region_format terminology_tags %}
+{% load i18n region_format terminology_tags %}
 <!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
   {% include "reports/_report_styles.html" %}
 </head>
-<body data-page-archetype="record-detail">
+<body data-page-archetype="record-detail" data-rmc-zero-click-exempt="print-document">
+  <h1 class="visually-hidden">{% trans "Term report" %}</h1>
+  <nav class="ds-action-bar d-print-none mb-2" aria-label="{% trans 'Report actions' %}">
+    <button type="button" class="btn btn-sm btn-primary ds-btn" onclick="window.print()">{% trans "Print or save as PDF" %}</button>
+  </nav>
   <div class="letterhead">
     {% if SITE_LOGO_URL %}
       <img src="{{ SITE_LOGO_URL }}" alt="Logo" width="80" height="80" decoding="async" style="max-height: 80px; width: auto; object-fit: contain;" />

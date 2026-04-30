@@ -13,11 +13,6 @@ from apps.platform_runtime.precedence import (
     normalize_scope,
     precedence_rank,
 )
-from apps.platform_runtime.registry_snapshots import (
-    build_blueprint_lifecycle_snapshot,
-    build_entitlement_registry_snapshot,
-    build_marketplace_install_snapshot,
-)
 
 
 class RegistrySnapshotTests(SimpleTestCase):

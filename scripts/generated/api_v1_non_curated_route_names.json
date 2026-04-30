@@ -1,8 +1,8 @@
 {
   "version": 1,
   "source": "apps.api.api_v1_manifest.MANIFEST_CURATED_API_V1_URL_NAMES",
-  "curated_url_name_count": 36,
-  "snapshot_name_count": 54,
+  "curated_url_name_count": 38,
+  "snapshot_name_count": 56,
   "non_curated": [
     "billing-quote-accept",
     "finance-disputes-create",

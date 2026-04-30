@@ -8,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import DatabaseError, IntegrityError, OperationalError
 from django.utils import timezone
 
+from apps.events.bus import dispatch_internal_subscribers
 from apps.events.webhooks import (
     dispatch_due_webhooks,
     mark_event_processed,
@@ -47,6 +48,7 @@ def process_outbox_batch(batch_size: int = 100):
             event.status = DomainEvent.Status.PROCESSING
             event.save(update_fields=["status"])
             queue_deliveries_for_event(event, scheduled_for=timezone.now())
+            dispatch_internal_subscribers(event)
             mark_event_processed(event)
             processed += 1
         except _EVENT_OUTBOX_PROCESS_ERRORS as exc:

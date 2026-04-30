@@ -932,14 +932,35 @@ def _automation_explainer_view(
 @require_http_methods(["GET"])
 @login_required
 def studio_automation_visual_builder(request):
-    """§4.3 Automation Studio optional: Visual builder. Explains drag-and-drop workflow building; links to Workflow hub."""
-    return _automation_explainer_view(
+    """§4.3 Automation Studio optional: Visual builder. Links to relational workflow designer + Workflow hub."""
+    if not user_can_access_studio_on_request(request):
+        return redirect(reverse("accounts:backend_dashboard"))
+    workflow_hub_url = ""
+    try:
+        workflow_hub_url = reverse("studio_os:automation") + "?pane=workflow"
+    except NoReverseMatch:
+        pass
+    visual_workflow_designer_url = ""
+    try:
+        visual_workflow_designer_url = reverse("automation:visual_workflow_designer")
+    except NoReverseMatch:
+        pass
+    return _render_studio_subpage(
         request,
-        "studio_os/partials/subpages/automation_visual_builder.html",
-        _("Visual builder"),
-        _(
-            "Build workflows visually with drag-and-drop; connect steps and conditions. Manage flows from the Workflow hub."
-        ),
+        canvas_partial="studio_os/partials/subpages/automation_visual_builder.html",
+        embed_title=f"{_('Visual builder')} · {str(_('Automation'))}",
+        shell_title=f"{_('Visual builder')} · {str(_('Automation'))}",
+        page_context={
+            "workflow_hub_url": workflow_hub_url,
+            "visual_workflow_designer_url": visual_workflow_designer_url,
+            "page_title": _("Visual builder"),
+            "page_subtitle": _(
+                "Build workflows visually with drag-and-drop; connect steps and conditions. Open the visual designer or manage flows from the Workflow hub."
+            ),
+            "action_url": reverse("studio_os:automation"),
+            "action_text": _("Back to Automation"),
+        },
+        current_mode="automation",
     )
 
 

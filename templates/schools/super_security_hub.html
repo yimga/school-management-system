@@ -1,0 +1,226 @@
+{% extends "control_plane_base.html" %}
+{% load i18n phase8_tags %}
+
+{% block cp_title %}{% trans "Security & audit" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Security" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div id="super-security-hub-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface" data-rmc-super-security-hub="1">
+  {% phase8_dashboard_declaration "schools/super_security_hub.html" %}
+  <h1 class="h4 mb-3">{% trans "Security & enterprise audit" %}</h1>
+  <p class="text-secondary small mb-4">
+    {% trans "Live signals: security events, compliance export/permission trail, active sessions. Static governance scan:" %}
+    <a href="{{ security_surface_url }}">{% trans "Security surface audit" %}</a>
+    · <a href="{{ support_dashboard_url }}">{% trans "Support" %}</a>
+    {% if admin_security_audit_url %}
+    · <a href="{{ admin_security_audit_url }}">{% trans "Security audit log (admin)" %}</a>
+    {% endif %}
+    {% if admin_auditlog_url %}
+    · <a href="{{ admin_auditlog_url }}">{% trans "Compliance audit log (admin)" %}</a>
+    {% endif %}
+  </p>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-3">
+      <div class="card border-warning h-100 shadow-sm">
+        <div class="card-header">{% trans "Anomalies (7 days)" %}</div>
+        <div class="card-body small">
+          <p class="mb-1"><strong>{{ suspicious_count_7d }}</strong> {% trans "suspicious security events" %}</p>
+          <p class="mb-0 text-secondary">{% trans "Impossible travel" %}: <strong>{{ impossible_travel_7d }}</strong></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-secondary h-100 shadow-sm">
+        <div class="card-header">{% trans "Security surface (static)" %}</div>
+        <div class="card-body small">
+          <p class="mb-2">{% trans "Generated JSON scan: CSRF, auth hints, raw SQL, exports." %}</p>
+          <a class="btn btn-sm btn-outline-primary" href="{{ security_surface_url }}">{% trans "Open" %}</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-secondary h-100 shadow-sm">
+        <div class="card-header">{% trans "Session visibility" %}</div>
+        <div class="card-body small">
+          <p class="mb-1"><strong>{{ session_total_hint }}</strong> {% trans "non-expired Django sessions (sample below)." %}</p>
+          {% if enterprise_super_http_audit %}
+          <p class="text-success mb-0">{% trans "HTTP mutation audit for /super/ is ON (ENTERPRISE_SUPER_HTTP_AUDIT)." %}</p>
+          {% else %}
+          <p class="text-muted mb-0">{% trans "Optional: set ENTERPRISE_SUPER_HTTP_AUDIT=1 to log mutating /super/ requests to the compliance audit log." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-secondary h-100 shadow-sm">
+        <div class="card-header">{% trans "Data trust" %}</div>
+        <div class="card-body small">
+          <p class="mb-0">{% trans "Regional compliance CSV downloads include X-Export-Content-SHA256 and X-Export-Signature (HMAC-SHA256) for offline verification." %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <details class="de-secondary-collapsible mb-3" open>
+    <summary class="small fw-semibold text-secondary mb-2">{% trans "Detailed logs and sessions (tables)" %}</summary>
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-header">{% trans "Security events (recent)" %}</div>
+        <div class="card-body p-0 table-responsive" style="max-height: 22rem; overflow-y: auto;">
+          <table class="table table-sm table-dark table-hover mb-0 small">
+            <thead><tr><th>{% trans "When" %}</th><th>{% trans "Type" %}</th><th>{% trans "User" %}</th><th>{% trans "Flag" %}</th></tr></thead>
+            <tbody>
+              {% for e in security_events %}
+              <tr class="{% if e.is_suspicious %}table-warning{% endif %}">
+                <td class="text-nowrap">{{ e.created_at|date:"Y-m-d H:i" }}</td>
+                <td>{{ e.get_event_type_display|default:e.event_type }}</td>
+                <td>{% if e.user %}{{ e.user.get_username }}{% else %}—{% endif %}</td>
+                <td>{% if e.is_suspicious %}⚠{% else %}—{% endif %}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-secondary px-3 py-2">{% trans "No rows yet." %}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-warning">
+        <div class="card-header">{% trans "Suspicious / flagged (7 days)" %}</div>
+        <div class="card-body p-0 table-responsive" style="max-height: 22rem; overflow-y: auto;">
+          <table class="table table-sm table-dark table-hover mb-0 small">
+            <thead><tr><th>{% trans "When" %}</th><th>{% trans "Type" %}</th><th>{% trans "User" %}</th></tr></thead>
+            <tbody>
+              {% for e in suspicious_security_events %}
+              <tr>
+                <td class="text-nowrap">{{ e.created_at|date:"Y-m-d H:i" }}</td>
+                <td>{{ e.get_event_type_display|default:e.event_type }}</td>
+                <td>{% if e.user %}{{ e.user.get_username }}{% else %}—{% endif %}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-secondary px-3 py-2">{% trans "None in window." %}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-header">{% trans "Permission changes (compliance log)" %}</div>
+        <div class="card-body p-0 table-responsive" style="max-height: 22rem; overflow-y: auto;">
+          <table class="table table-sm table-dark table-hover mb-0 small">
+            <thead><tr><th>{% trans "When" %}</th><th>{% trans "Action" %}</th><th>{% trans "Object" %}</th></tr></thead>
+            <tbody>
+              {% for e in perm_events %}
+              <tr>
+                <td class="text-nowrap">{{ e.timestamp|date:"Y-m-d H:i" }}</td>
+                <td>{{ e.get_action_display|default:e.action }}</td>
+                <td class="text-truncate" style="max-width: 8rem;" title="{{ e.object_repr }}">{{ e.object_repr|default:"—" }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-secondary px-3 py-2">{% trans "No rows yet." %}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-header">{% trans "Access denied (compliance log)" %}</div>
+        <div class="card-body p-0 table-responsive" style="max-height: 22rem; overflow-y: auto;">
+          <table class="table table-sm table-dark table-hover mb-0 small">
+            <thead><tr><th>{% trans "When" %}</th><th>{% trans "Object" %}</th><th>{% trans "User" %}</th></tr></thead>
+            <tbody>
+              {% for e in access_denied_events %}
+              <tr>
+                <td class="text-nowrap">{{ e.timestamp|date:"Y-m-d H:i" }}</td>
+                <td class="text-truncate" style="max-width: 8rem;" title="{{ e.object_repr }}">{{ e.object_repr|default:"—" }}</td>
+                <td>{% if e.user %}{{ e.user.get_username }}{% else %}—{% endif %}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-secondary px-3 py-2">{% trans "No rows yet." %}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-header">{% trans "Approvals (workflow)" %}</div>
+        <div class="card-body p-0 table-responsive" style="max-height: 22rem; overflow-y: auto;">
+          <table class="table table-sm table-dark table-hover mb-0 small">
+            <thead><tr><th>{% trans "When" %}</th><th>{% trans "Object" %}</th><th>{% trans "Actor" %}</th></tr></thead>
+            <tbody>
+              {% for e in approval_events %}
+              <tr>
+                <td class="text-nowrap">{{ e.timestamp|date:"Y-m-d H:i" }}</td>
+                <td class="text-truncate" style="max-width: 8rem;" title="{{ e.object_repr }}">{{ e.object_repr|default:"—" }}</td>
+                <td>{% if e.user %}{{ e.user.get_username }}{% else %}—{% endif %}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-secondary px-3 py-2">{% trans "No rows yet." %}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-header">{% trans "Export history (compliance log)" %}</div>
+        <div class="card-body p-0 table-responsive" style="max-height: 22rem; overflow-y: auto;">
+          <table class="table table-sm table-dark table-hover mb-0 small">
+            <thead><tr><th>{% trans "When" %}</th><th>{% trans "Export" %}</th><th>{% trans "User" %}</th></tr></thead>
+            <tbody>
+              {% for e in export_events %}
+              <tr>
+                <td class="text-nowrap">{{ e.timestamp|date:"Y-m-d H:i" }}</td>
+                <td class="text-truncate" style="max-width: 6rem;" title="{{ e.object_repr }}">{{ e.object_repr|default:"—" }}</td>
+                <td>{% if e.user %}{{ e.user.get_username }}{% else %}—{% endif %}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-secondary px-3 py-2">{% trans "No rows yet." %}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mt-3">
+    <div class="card-header">{% trans "Active sessions (sample)" %}</div>
+    <div class="card-body p-0 table-responsive" style="max-height: 16rem; overflow-y: auto;">
+      <table class="table table-sm table-dark mb-0 small">
+        <thead><tr><th>{% trans "Session" %}</th><th>{% trans "Expires" %}</th><th>{% trans "User" %}</th></tr></thead>
+        <tbody>
+          {% for s in session_rows %}
+          <tr>
+            <td><code>{{ s.session_key_prefix }}</code></td>
+            <td>{{ s.expire_date|date:"Y-m-d H:i" }}</td>
+            <td>{{ s.user_label }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-secondary px-3 py-2">{% trans "No sessions." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  </details>
+</div>
+{% endblock %}

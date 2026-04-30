@@ -136,6 +136,10 @@ class OfflineSyncQueue(models.Model):
     conflict_data = models.JSONField(null=True, blank=True)
     error_message = models.TextField(blank=True)
     synced_at = models.DateTimeField(null=True, blank=True)
+    retry_count = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Incremented when the client retries a failed sync_batch row.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -652,6 +656,122 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
         )
         return {"status": sync_item.status, "attendance_id": attendance.id}
 
+    def _process_offline_payment_sync(self, sync_item, user):
+        """Persist queued offline payment / receipt metadata for later reconciliation."""
+        from decimal import Decimal, InvalidOperation
+
+        from apps.platform_runtime.helpers import get_effective_offline_runtime_settings
+        from apps.finance.models import (
+            Invoice,
+            OfflinePaymentIntent,
+            PaymentMethodCode,
+        )
+
+        offline_settings = get_effective_offline_runtime_settings(request=self.request)
+        flags = offline_settings.get("backend_feature_flags") or {}
+        if not bool(flags.get("enable_offline_payment_sync", True)):
+            sync_item.status = "FAILED"
+            sync_item.error_message = (
+                "Offline payment sync is disabled in Feature Control."
+            )
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        payload = sync_item.data or {}
+        invoice_id = payload.get("invoice_id")
+        amount_raw = payload.get("amount")
+        payment_method = (payload.get("payment_method") or "OTHER").upper()
+        client_offline_id = (
+            payload.get("client_offline_id") or payload.get("idempotency_key") or ""
+        )
+        client_offline_id = str(client_offline_id)[:64]
+
+        if not invoice_id or amount_raw is None:
+            sync_item.status = "FAILED"
+            sync_item.error_message = (
+                "Missing required fields: invoice_id, amount."
+            )
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        valid_methods = {c[0] for c in PaymentMethodCode.choices}
+        if payment_method not in valid_methods:
+            sync_item.status = "FAILED"
+            sync_item.error_message = f"Invalid payment_method: {payment_method}."
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        try:
+            amount = Decimal(str(amount_raw))
+        except (InvalidOperation, TypeError, ValueError):
+            sync_item.status = "FAILED"
+            sync_item.error_message = "Invalid amount."
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        try:
+            inv = Invoice.objects.get(pk=invoice_id)
+        except Invoice.DoesNotExist:
+            sync_item.status = "FAILED"
+            sync_item.error_message = f"Invoice {invoice_id} not found."
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        school = getattr(self.request, "school", None)
+        if school and inv.school_id and inv.school_id != school.id:
+            sync_item.status = "FAILED"
+            sync_item.error_message = "Invoice does not belong to the active school."
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        if client_offline_id:
+            existing = OfflinePaymentIntent.objects.filter(
+                invoice_id=invoice_id,
+                client_offline_id=client_offline_id,
+            ).first()
+            if existing:
+                sync_item.status = "COMPLETED"
+                sync_item.error_message = ""
+                sync_item.conflict_data = {
+                    "offline_payment_intent_id": existing.id,
+                    "deduplicated": True,
+                }
+                sync_item.synced_at = timezone.now()
+                sync_item.save(
+                    update_fields=[
+                        "status",
+                        "error_message",
+                        "conflict_data",
+                        "synced_at",
+                    ]
+                )
+                return {"status": sync_item.status, "intent_id": existing.id}
+
+        intent = OfflinePaymentIntent.objects.create(
+            invoice_id=invoice_id,
+            recorded_by=user,
+            amount=amount,
+            payment_method=payment_method,
+            transaction_reference=str(payload.get("transaction_reference", ""))[:100],
+            notes=str(payload.get("notes", ""))[:4000],
+            client_offline_id=client_offline_id,
+            source_sync_queue_id=sync_item.id,
+        )
+        sync_item.status = "COMPLETED"
+        sync_item.error_message = ""
+        sync_item.conflict_data = {"offline_payment_intent_id": intent.id}
+        sync_item.synced_at = timezone.now()
+        sync_item.save(
+            update_fields=["status", "error_message", "conflict_data", "synced_at"]
+        )
+        return {"status": sync_item.status, "intent_id": intent.id}
+
     def perform_create(self, serializer):
         """Queue offline changes for sync"""
         device_id = self.request.data.get("device_id")
@@ -776,6 +896,12 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
                     }
                 else:
                     result = self._process_attendance_sync(sync_item, request.user)
+            elif entity_type in (
+                "offline_payment",
+                "payment_queue",
+                "queued_payment",
+            ) and action in ("CREATE", "UPDATE"):
+                result = self._process_offline_payment_sync(sync_item, request.user)
             else:
                 sync_item.status = "FAILED"
                 sync_item.error_message = (
@@ -811,6 +937,21 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
                 "results": results,
             }
         )
+
+    @action(detail=False, methods=["get"], url_path="sync_state")
+    def sync_state(self, request):
+        """Aggregate queue counts for offline UI (visible sync state)."""
+        from apps.sync_engine import services
+
+        return Response(services.get_visible_sync_state(request.user.id))
+
+    @action(detail=False, methods=["post"], url_path="retry_failed")
+    def retry_failed(self, request):
+        """Reset FAILED rows so the client can replay sync_batch."""
+        from apps.sync_engine import services
+
+        max_retries = int(request.data.get("max_retries", 5))
+        return Response(services.retry_failed_sync_items(request.user.id, max_retries=max_retries))
 
     @action(detail=True, methods=["post"])
     def resolve_conflict(self, request, pk=None):

@@ -133,6 +133,48 @@
     </div>
   </div>
 
+  {% if simple_payment_flow.choices %}
+  <div class="card mb-3 border-primary">
+    <div class="card-body">
+      <h5 class="mb-2">How to pay</h5>
+      <ol class="mb-3 ps-3 small">
+        {% for s in simple_payment_flow.steps %}
+        <li class="mb-1"><strong>{{ s.title }}</strong> — {{ s.subtitle }}</li>
+        {% endfor %}
+      </ol>
+      <div class="d-flex flex-wrap gap-2">
+        {% for c in simple_payment_flow.choices %}
+        <div class="flex-fill" style="min-width: 140px;">
+          <div class="small text-muted mb-1">{{ c.role }}</div>
+          <div class="p-3 rounded border bg-light text-center fw-semibold">{{ c.label }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% if simple_payment_flow.allow_manual_offline_proof %}
+      <p class="small text-muted mt-3 mb-0">No signal? Scroll to <strong>Upload Payment Receipt</strong> — one photo is enough; we finish when you are back online.</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if offline_payment_intents %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="mb-2">Queued from offline</h5>
+      <p class="small text-muted mb-2">Recorded when the network or power was unstable. Staff reconciles these against cash or bank.</p>
+      <ul class="list-unstyled mb-0">
+        {% for o in offline_payment_intents %}
+        <li class="mb-2 pb-2 {% if not forloop.last %}border-bottom{% endif %}">
+          <strong>{{ o.amount|format_currency }}</strong> — {{ o.get_payment_method_display }}
+          <span class="badge {% if o.status == 'RECONCILED' %}bg-success{% elif o.status == 'QUEUED_REVIEW' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ o.get_status_display }}</span>
+          {% if o.transaction_reference %}<span class="small text-muted d-block">Ref: {{ o.transaction_reference }}</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
   {% if reminder %}
     <div class="card mb-3">
       <div class="card-body">

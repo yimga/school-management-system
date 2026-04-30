@@ -300,6 +300,70 @@ def index_ai_knowledge_beat() -> str:
     return (out.getvalue() + err.getvalue())[-4000:]
 
 
+@shared_task(
+    bind=True,
+    autoretry_for=(
+        OSError,
+        ConnectionError,
+        TimeoutError,
+    ),
+    retry_kwargs={"max_retries": 3, "countdown": 20},
+    name="siteconfig.execute_school_workflow_async",
+)
+def execute_school_workflow_async(
+    self,
+    school_workflow_id: int,
+    context: dict | None = None,
+    user_id: int | None = None,
+):
+    """
+    Queue execution for heavy workflows (same semantics as synchronous run_school_workflow).
+    Celery retries up to 3 times on transient OS/connection errors (broker/network).
+    Action-level failures are recorded on SchoolWorkflowExecutionLog; use a new run to retry logic.
+    """
+    from django.contrib.auth import get_user_model
+    from django.db import DatabaseError, OperationalError
+
+    from apps.siteconfig.models_workflow import SchoolAutomationWorkflow
+    from apps.siteconfig.workflow_engine import run_school_workflow
+
+    wf = (
+        SchoolAutomationWorkflow.objects.select_related("school")
+        .filter(pk=school_workflow_id)
+        .first()
+    )
+    if not wf:
+        return {"ok": False, "error": "workflow_not_found"}
+    User = get_user_model()
+    user = User.objects.filter(pk=user_id).first() if user_id else None
+    ctx = context if isinstance(context, dict) else {}
+    try:
+        return run_school_workflow(wf, ctx, user=user)
+    except (DatabaseError, OperationalError) as exc:
+        raise self.retry(exc=exc) from exc
+
+
+@shared_task(name="siteconfig.retry_school_workflow_execution_async")
+def retry_school_workflow_execution_async(
+    execution_log_id: int,
+    context_override: dict | None = None,
+    user_id: int | None = None,
+):
+    """Retry failed actions on an execution log (async path)."""
+    from django.contrib.auth import get_user_model
+
+    from apps.siteconfig.workflow_engine import retry_failed_actions_from_log
+
+    User = get_user_model()
+    user = User.objects.filter(pk=user_id).first() if user_id else None
+    ctx = context_override if isinstance(context_override, dict) else {}
+    return retry_failed_actions_from_log(
+        int(execution_log_id),
+        user=user,
+        context_override=ctx,
+    )
+
+
 @shared_task(name="siteconfig.ai_quality_scorecard_beat")
 def ai_quality_scorecard_beat() -> str:
     """

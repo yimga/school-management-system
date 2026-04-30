@@ -30,7 +30,7 @@ from apps.people.models import TeacherProfile
 from apps.siteconfig.cache_utils import tenant_cache_key
 from apps.finance.models import Notification
 from apps.accounts.utils import get_dashboard_context
-from apps.platform_runtime.site_settings_read_access import (
+from apps.siteconfig.config_service import (
     get_effective_flags,
     get_effective_site_settings,
 )
@@ -212,7 +212,7 @@ def dashboard(request: HttpRequest):
         use_promotion_rule=use_promotion_rule,
     )
 
-    dashboard_context = get_dashboard_context(request.user, "analytics")
+    dashboard_context = get_dashboard_context(request.user, "analytics", request=request)
     dashboard_settings = dashboard_context.get("dashboard_settings", {})
     allow_custom_layout = dashboard_context.get("allow_custom_layout", False)
     dashboard_layout_url = dashboard_context.get("dashboard_layout_url", "")
@@ -639,7 +639,7 @@ def strategic_report(request: HttpRequest):
         teacher_qs = teacher_qs.filter(school=school)
     total_students = student_qs.count()
     total_teachers = teacher_qs.count()
-    dashboard_context = get_dashboard_context(request.user, "analytics")
+    dashboard_context = get_dashboard_context(request.user, "analytics", request=request)
     context = {
         "total_students": total_students,
         "total_teachers": total_teachers,

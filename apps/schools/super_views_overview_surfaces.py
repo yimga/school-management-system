@@ -43,6 +43,11 @@ def super_schools_list(request):
             | Q(slug__icontains=search)
             | Q(subdomain__icontains=search)
         )
+    frozen_raw = request.GET.get("frozen")
+    frozen_filter = False
+    if frozen_raw is not None and str(frozen_raw).strip().lower() in ("1", "true", "yes"):
+        qs = qs.filter(is_frozen=True)
+        frozen_filter = True
     # Sector cohort counts (for segment-by-sector links)
     sector_counts = dict(
         School.objects.filter(primary_sector__in=WEDGE_14_22_SECTOR_CODES)
@@ -77,6 +82,7 @@ def super_schools_list(request):
             "primary_sector_filter": primary_sector,
             "sector_choices": sector_choices,
             "search_query": search,
+            "frozen_filter": frozen_filter,
             "operator_super_schools_list_links": operator_super_schools_list_links,
         },
     )

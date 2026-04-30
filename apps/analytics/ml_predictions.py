@@ -399,10 +399,10 @@ class ChurnRiskPredictor:
                     student=student_profile, date__gte=thirty_days_ago
                 )
             else:
-                # No StudentProfile -> can't query attendance by student; default
-                attendance_logs = []
+                # No StudentProfile — use empty QS so we never branch on list.count vs QS.filter
+                attendance_logs = AttendanceLog.objects.none()
 
-            if hasattr(attendance_logs, "count"):
+            if hasattr(attendance_logs, "filter"):
                 present_count = attendance_logs.filter(status="present").count()
                 total_logs = attendance_logs.count()
                 attendance_rate = (

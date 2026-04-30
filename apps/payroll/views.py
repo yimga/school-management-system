@@ -106,7 +106,7 @@ def dashboard(request: HttpRequest):
     from apps.accounts.utils import get_dashboard_context
     from django.urls import reverse
 
-    dashboard_context = get_dashboard_context(request.user, "payroll")
+    dashboard_context = get_dashboard_context(request.user, "payroll", request=request)
     dashboard_settings = dashboard_context.get("dashboard_settings", {})
     allow_custom_layout = dashboard_context.get("allow_custom_layout", False)
     dashboard_layout_url = dashboard_context.get("dashboard_layout_url", "")

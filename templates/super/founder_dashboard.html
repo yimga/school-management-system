@@ -1,5 +1,10 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n static %}
+
+{% block extrahead %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
+{% endblock %}
 
 {% block cp_title %}Founder North Star{% endblock %}
 
@@ -14,14 +19,20 @@
 {% endblock %}
 
 {% block cp_content %}
+{% url 'sales:pipeline_board' as sales_pipeline_url %}
 <div class="container-fluid py-4"
      data-rmc-founder-dashboard="1"
      data-rmc-self-heal-status="1">
+  {% include "components/next_action_strip.html" %}
   <header class="mb-4">
     <h1 class="h3 mb-1">{% trans "Founder North Star dashboard" %}</h1>
     <p class="text-secondary small mb-0">
       {% trans "Metrics are read from the live database; audit and kill-test results are read from generated JSON under docs/generated/ when those scripts have been run." %}
     </p>
+    <nav class="ds-action-bar d-flex flex-wrap align-items-center gap-2 mt-3" role="toolbar" aria-label="{% trans 'Primary actions' %}">
+      <a class="btn btn-sm btn-primary ds-btn" href="{{ sales_pipeline_url }}">{% trans "Sales pipeline" %}</a>
+      <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ command_center_url|default:'#' }}">{% trans "Command center" %}</a>
+    </nav>
   </header>
 
   <div class="row g-3 mb-4">
@@ -91,7 +102,6 @@
     </div>
   </div>
 
-  {% url 'sales:pipeline_board' as sales_pipeline_url %}
   <section class="mb-4" data-rmc-intelligent-insights="founder" aria-label="{% trans 'Founder decision insights' %}">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
       <h2 class="h5 mb-0">{% trans "Founder decision insights" %}</h2>
@@ -118,6 +128,47 @@
         {% include "components/insight_card.html" with tone="warning" title=_("Sales conversion can improve") explanation=_("Lead volume exists but close rate is still low. Prioritize follow-up and demo-to-decision transitions this week.") action_url=sales_pipeline_url action_label=_("Work the pipeline now") %}
       </div>
       {% endif %}
+    </div>
+  </section>
+
+  <section class="mb-4" data-rmc-marketplace-monetization="1" aria-label="{% trans 'Marketplace monetization' %}">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+      <h2 class="h5 mb-0">{% trans "Marketplace & monetization" %}</h2>
+      <span class="badge {% if marketplace_metrics.monetization_verdict == 'REVENUE_READY' %}bg-success{% else %}bg-secondary{% endif %}">
+        {{ marketplace_metrics.monetization_verdict|default:"NOT_READY" }}
+      </span>
+    </div>
+    <p class="small text-secondary mb-3">
+      {% trans "MRR combines core TenantSubscription rows with tenant marketplace app adds (monthly-equivalent). Fees are summed PlatformMarketplaceEarning rows (platform cut). Usage rolls up UsageMeter quantities." %}
+    </p>
+    <div class="row g-3">
+      <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "MRR (combined est.)" %}</div><div class="h4 mb-0">{{ marketplace_metrics.mrr_combined|default:"0.00" }}</div></div></div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "MRR — platform core" %}</div><div class="h4 mb-0">{{ marketplace_metrics.mrr_platform_core|default:"0.00" }}</div></div></div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "MRR — marketplace apps" %}</div><div class="h4 mb-0">{{ marketplace_metrics.mrr_marketplace_apps|default:"0.00" }}</div></div></div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "App revenue (30d gross)" %}</div><div class="h4 mb-0">{{ marketplace_metrics.marketplace_gross_30d|default:"0.00" }}</div></div></div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Platform fees (30d)" %}</div><div class="h4 mb-0">{{ marketplace_metrics.marketplace_platform_fees_30d|default:"0.00" }}</div></div></div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Usage meter units (30d)" %}</div><div class="h4 mb-0">{{ marketplace_metrics.usage_meter_units_30d|default:0 }}</div></div></div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Churn — marketplace subs" %}</div><div class="h4 mb-0">{{ marketplace_metrics.churn_marketplace_subs_30d|default:0 }}</div></div></div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Churn — platform subs" %}</div><div class="h4 mb-0">{{ marketplace_metrics.churn_platform_subs_30d|default:0 }}</div></div></div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Catalog priced apps %" %}</div><div class="h4 mb-0">{{ marketplace_metrics.catalog_priced_app_ratio_pct|default:0 }}%</div></div></div>
+      </div>
     </div>
   </section>
 

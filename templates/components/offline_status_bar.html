@@ -10,6 +10,12 @@
   <span id="sms-offline-status-last-synced" class="d-none text-white-50" style="font-size: 0.85em;" title="Last successful sync"></span>
   <span id="sms-offline-status-spinner" class="spinner-border spinner-border-sm d-none text-white" role="img" aria-label="Syncing"></span>
   <button type="button" id="sms-offline-sync-now-btn" class="btn btn-link btn-sm p-0 ms-1 text-white text-decoration-underline" style="font-size: inherit;" aria-label="Sync queued data now">Sync now</button>
+  {% if OFFLINE_SYNC_QUEUE_URL %}
+  <a href="{{ OFFLINE_SYNC_QUEUE_URL }}" class="btn btn-link btn-sm p-0 ms-1 text-white text-decoration-underline d-none d-md-inline" style="font-size: inherit;">Queue</a>
+  {% endif %}
+  {% if OFFLINE_CONFLICTS_URL %}
+  <a href="{{ OFFLINE_CONFLICTS_URL }}" class="btn btn-link btn-sm p-0 ms-1 text-warning text-decoration-underline d-none d-md-inline" style="font-size: inherit;">Conflicts</a>
+  {% endif %}
   <button type="button" id="sms-offline-conflicts-btn" class="d-none btn btn-link btn-sm p-0 text-warning text-decoration-underline" style="font-size: inherit;" aria-label="View sync conflicts">Resolve conflicts</button>
 </div>
 <!-- Modal: list of sync conflicts (409 / client errors) for user to resolve manually -->

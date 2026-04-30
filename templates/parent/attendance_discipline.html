@@ -5,6 +5,13 @@
 
 {% block content %}
   <div data-page-archetype="record-detail">
+  <header class="mb-3" data-page-header="1">
+    <h1 class="h4 mb-1">{% trans "Attendance & discipline" %}</h1>
+    <p class="text-muted small mb-2">{% trans "Review records and submit justifications when needed." %}</p>
+    <nav class="ds-action-bar d-flex flex-wrap gap-2" role="toolbar" aria-label="{% trans 'Primary actions' %}">
+      <a class="btn btn-sm btn-outline-primary ds-btn" href="{% url 'portal:parent_dashboard' %}">{% trans "Parent dashboard" %}</a>
+    </nav>
+  </header>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
   <div class="card mb-4">
@@ -14,7 +21,7 @@
     <div class="card-body">
       {% if absences %}
         <div class="table-responsive">
-          <table class="table table-sm">
+          <table class="table table-sm table-family">
             <thead><tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans "Student" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Remarks" %}</th></tr></thead>
             <tbody>
               {% for a in absences %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Demo — Take attendance" %}{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width: 640px;">
+  <p class="text-muted small mb-2">{% trans "Step 1 of 4" %}</p>
+  <h1 class="h4 mb-3">{% trans "Take attendance" %}</h1>
+  <p class="text-muted">{% blocktrans with name=school_name %}Record a quick attendance moment for <strong>{{ name }}</strong> to move forward. This is a guided demo path only.{% endblocktrans %}</p>
+  <form method="post" action="{% url 'demo_flow_attendance_complete' %}" class="mt-4">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">{% trans "I took attendance" %}</button>
+  </form>
+</div>
+{% endblock %}

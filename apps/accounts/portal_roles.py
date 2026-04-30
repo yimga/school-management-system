@@ -8,7 +8,7 @@ drive access control and UI visibility.
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 from django.contrib.auth import get_user_model
 
 User = get_user_model()

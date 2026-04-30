@@ -360,7 +360,7 @@ def global_login_discovery(request):
             school_url = f"{scheme}://{school.subdomain}.{base}"
             return redirect(school_url)
         try:
-            return redirect(reverse("accounts:login") + f"?next=/portal/")
+            return redirect(reverse("accounts:login") + "?next=/portal/")
         except NoReverseMatch:
             return redirect("accounts:login")
     _discovery_rate_limit_incr(request)

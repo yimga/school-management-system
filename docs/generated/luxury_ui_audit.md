@@ -1,23 +1,37 @@
 # Luxury UI Surface Audit
 
-**Generated:** 2026-04-29T04:25:07.779522+00:00
-**Score:** 13/15
+**Generated:** 2026-04-30T22:31:50.800612+00:00
+**Score:** 15/15
 **Verdict:** ULTRA-LUXURY
 
 ## Summary
 
-- High-impact templates scanned: 153
-- Inline style hits: 56 (violations: 0)
+- High-impact templates scanned: 158
+- Inline style hits: 59 (violations: 0)
 - Unwrapped tables: 9 (violations: 0)
 - Missing table-family: 25 (violations: 0)
-- Missing ds-btn usage: 87 (violations: 0)
+- Missing ds-btn usage: 82 (violations: 0)
 - Shell consistency failures: 0
 - Overflow-prone CSS files: 5
-- Non-token literals (spacing/radius/shadow): {'spacing': 54, 'radius': 17, 'shadow': 70}
+- Non-token literals (spacing/radius/shadow): {'spacing': 0, 'radius': 0, 'shadow': 26}
 - Duplicate component-system conflicts: 0
 - Unsafe direct brand text color hits: 0
 - RTL violations: 0
 - Debug-surface hits: 0
+- Zero-click major surfaces failing inheritance/exempt: 0
+- Shell viewport OK: True
+- Luxury gate (min 13): PASS
+- State completeness matrix: 19 major templates
+
+## Dimension scores (/15 total)
+
+- **action_clarity:** 3/3
+- **click_depth:** 2/2
+- **component_consistency:** 2/2
+- **layout_consistency:** 2/2
+- **mobile_ux:** 2/2
+- **overflow_safety:** 2/2
+- **state_handling:** 2/2
 
 ## Notes
 

@@ -1,6 +1,6 @@
 """
-1040: Portal and control-plane surfaces resolve platform settings through the same
-approved read-access module (``site_settings_read_access`` + shared message chrome core).
+1040: Portal and control-plane surfaces resolve platform settings through
+``apps.siteconfig.config_service`` (plus shared message chrome core).
 """
 
 from __future__ import annotations
@@ -18,9 +18,9 @@ class SiteSettingsRuntimeReadParityTests(unittest.TestCase):
         ):
             text = (root / rel).read_text(encoding="utf-8", errors="replace")
             self.assertIn(
-                "site_settings_read_access",
+                "config_service",
                 text,
-                f"{rel} should import runtime reads via site_settings_read_access",
+                f"{rel} should import runtime reads via apps.siteconfig.config_service",
             )
             self.assertNotIn(
                 "from apps.siteconfig.models import SiteSettings",

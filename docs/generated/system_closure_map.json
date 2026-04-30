@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "program_gap_registry_version": 2,
+  "generated_at": "2026-04-30",
+  "source": [
+    "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
+    "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md"
+  ],
+  "summary": {
+    "note": "systems[] lists program-scale gaps (missing_pieces). sot_partial_forward_queue_batches is derived from SOT \u00a711.4 lines whose status token is PARTIAL, NOT DONE, or BLOCKED \u2014 regenerate with this script.",
+    "regeneration_command": "python scripts/generate_system_closure_map.py --write",
+    "sot_discipline": [
+      "Edit docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md \u00a711.4 first when changing batch status.",
+      "Run: python scripts/generate_system_closure_map.py --write whenever PARTIAL, NOT DONE, or BLOCKED \u00a711.4 rows are added, removed, or retitled so sot_partial_forward_queue_batches stays aligned.",
+      "systems[].missing_pieces and gap_status change only when a slice ships or honest scope changes \u2014 pair with a \u00a711.4 DONE row + tests/verifiers where applicable.",
+      "Program gaps remain open until explicitly closed; do not claim closure from ledger edits alone."
+    ]
+  },
+  "systems": [
+    {
+      "id": "developer_platform",
+      "name": "Developer platform (API, OAuth, SDKs, webhooks, portal, publishing, sandbox)",
+      "gap_status": "mixed",
+      "sot_status": "MIXED",
+      "evidence": "Slice 17 DONE in SOT; Python SDK sdk/runmycampus/; apicenter OAuth; events webhooks with retry",
+      "missing_pieces": [
+        "Automated E2E bar: register app, OAuth token, tenant install, webhook receive (single CI flow)"
+      ],
+      "next_batch_hint": "Ship a dedicated \u00a711.4 batch when adding the CI E2E chain; track tests under required_tests.",
+      "shipped_in_closure_pass": [
+        "sdk/js/runmycampus-client.mjs",
+        "sdk/js/package.json",
+        "docs/developer/SANDBOX_QUICKSTART.md"
+      ],
+      "required_tests": [
+        "apps.api.tests.* v1",
+        "apps.apicenter.tests / OAuth",
+        "apps.events.tests test_event_bus_integration WebhookRetryDeadLetterTests"
+      ],
+      "required_verifiers": [
+        "verify_test_module_contract",
+        "audit_route_surface ( API routes )"
+      ]
+    },
+    {
+      "id": "workflow_engine",
+      "name": "Workflow / automation engine",
+      "gap_status": "open",
+      "sot_status": "DONE ( core ) + depth PARTIAL in Studio visual subpage",
+      "evidence": "execute_playbook, dry_run, AutomationExecutionLog; school_automation_builder",
+      "missing_pieces": [
+        "Studio automation_visual_builder.html: finish productization beyond partial Studio notes",
+        "Broader trigger coverage beyond shipped playbooks"
+      ],
+      "next_batch_hint": "\u00a711.4 batch scoped to Studio automation builder and/or playbook triggers + automation tests.",
+      "required_tests": [
+        "apps.automation.tests.test_workflow_playbook_simulation",
+        "apps.automation.tests.test_playbook_quarantine_and_logs"
+      ],
+      "required_verifiers": []
+    },
+    {
+      "id": "event_system",
+      "name": "Platform event bus + webhooks + replay",
+      "gap_status": "open",
+      "sot_status": "DONE ( core )",
+      "evidence": "emit_platform_event; apps/events webhooks + retry + dead letter tests",
+      "missing_pieces": [
+        "Unified replay UX for all subscription types (verify per integration path)"
+      ],
+      "next_batch_hint": "\u00a711.4 batch for operator replay surface + events tests per subscription type.",
+      "required_tests": [
+        "apps.events.tests.test_event_bus_integration",
+        "apps.platform_runtime.tests.test_platform_event_log"
+      ],
+      "required_verifiers": []
+    },
+    {
+      "id": "data_platform",
+      "name": "Reports, metrics, exports, analytics",
+      "gap_status": "open",
+      "sot_status": "PARTIAL vs arbitrary-query warehouse bar",
+      "evidence": "compliance_exports, scheduled reports, CSV/API attendance export",
+      "missing_pieces": [
+        "Ad-hoc SQL/query builder for operators (not only registry exports)",
+        "Event analytics product surface as specified in mission"
+      ],
+      "next_batch_hint": "Split: one \u00a711.4 batch for governed query/adhoc scope; another for analytics surface \u2014 registry exports remain baseline.",
+      "required_tests": [
+        "apps.siteconfig.tests.test_compliance_exports",
+        "apps.portal.tests.test_student_attendance_export"
+      ],
+      "required_verifiers": []
+    },
+    {
+      "id": "tenant_lifecycle",
+      "name": "Tenant lifecycle + onboarding + health + retention",
+      "gap_status": "open",
+      "sot_status": "PARTIAL",
+      "evidence": "SchoolOnboardingProgress; customer_health; batch 1103 SOT DONE (2026-04-29 test bar)",
+      "missing_pieces": [
+        "Retention automation triggers as named product surfaces beyond hooks"
+      ],
+      "next_batch_hint": "\u00a711.4 batch for retention surfaces + onboarding/test bars listed in required_tests.",
+      "required_tests": [
+        "DJANGO_TEST_DB_FILE=.django_test_dbs/onboarding_engine_core.sqlite3 python manage.py test apps.platform_runtime.tests.test_onboarding --noinput"
+      ],
+      "required_verifiers": [
+        "verify_shell_surface_inventory ( onboarding templates )"
+      ]
+    },
+    {
+      "id": "offline_first",
+      "name": "Offline attendance, grading, payments, sync queue UI, conflict UI",
+      "gap_status": "open",
+      "sot_status": "PARTIAL",
+      "evidence": "mobile_api offline sync; OfflineMarkEntry; evals offline signals; finance offline_payment_intent + invoice_detail queue",
+      "missing_pieces": [
+        "Dedicated operator sync-queue dashboard for all offline domains",
+        "Full conflict-resolution UI for all offline paths"
+      ],
+      "next_batch_hint": "\u00a711.4 batch per domain (sync dashboard slice first, then conflict UI) \u2014 pair with mobile/offline tests.",
+      "required_tests": [
+        "apps.finance.tests.test_payment_orchestration",
+        "apps.evals (offline/sync tests if present)",
+        "mobile API offline sync tests"
+      ],
+      "required_verifiers": []
+    },
+    {
+      "id": "global_payments",
+      "name": "Per-region primary + backup + manual fallback + reconciliation",
+      "gap_status": "mixed",
+      "sot_status": "PARTIAL",
+      "evidence": "payment_region_catalog.CANONICAL_PAYMENT_ORCHESTRATION_ISO2 + seed_finance_defaults ensures profiles; Stripe paths; receipt upload flows; RegionPaymentFallbackMatrixTests",
+      "missing_pieces": [],
+      "next_batch_hint": "New markets: add ISO2 to apps/finance/payment_region_catalog.py and rail defaults in ensure_canonical_region_payment_profiles (beyond CM).",
+      "required_tests": [
+        "apps.finance.tests.test_payment_region_catalog",
+        "apps.finance.tests.test_receipt_upload_flow",
+        "apps.siteconfig.tests.test_billing_stripe_tenant",
+        "apps.billing.tests.test_platform_billing_webhooks"
+      ],
+      "required_verifiers": []
+    }
+  ],
+  "sot_partial_forward_queue_batches": [],
+  "generator": "scripts/generate_system_closure_map.py"
+}

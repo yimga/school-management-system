@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
@@ -11,7 +12,11 @@ from django.shortcuts import redirect, render
 from django.urls import NoReverseMatch, reverse
 
 from apps.accounts.decorators import permission_required
+
+from apps.accounts.security_audit import log_security_event
+from apps.accounts.models import SecurityAuditLog
 from apps.reports import compliance_exports as cx
+from apps.reports.export_integrity import attach_export_integrity_headers
 from apps.schools.security_enforcer import enforce_tenant_security
 
 
@@ -143,11 +148,37 @@ def compliance_export_download_view(
         request, export_key, result.get("academic_year_id")
     )
 
+    body = result["content"]
+    if isinstance(body, str):
+        body_bytes = body.encode("utf-8")
+    else:
+        body_bytes = body
+
+    try:
+        log_security_event(
+            request.user,
+            SecurityAuditLog.EventType.DATA_EXPORT,
+            request=request,
+            school=school,
+            initiator="self",
+        )
+    except Exception:
+        pass
+
     resp = HttpResponse(
-        result["content"],
+        body_bytes,
         content_type=result.get("content_type", "text/csv; charset=utf-8"),
     )
     filename = result.get("filename") or "export.csv"
     resp["Content-Disposition"] = f'attachment; filename="{filename}"'
     resp["Cache-Control"] = "no-store"
+    secret = getattr(settings, "SECRET_KEY", "") or ""
+    if secret:
+        attach_export_integrity_headers(
+            resp,
+            content=body_bytes,
+            export_key=export_key,
+            school_id=str(getattr(school, "pk", "")),
+            secret=secret,
+        )
     return resp

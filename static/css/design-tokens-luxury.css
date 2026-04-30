@@ -49,8 +49,8 @@
   --lux-surface-elevated: #f8fafc;
   --lux-surface-muted: #f1f5f9;
 
-  /* Motion (calm; long durations only for explicit decorative use) */
-  --lux-motion-fast: 140ms ease;
+  /* Motion (calm; long durations only for explicit decorative use; keep 150–250ms band) */
+  --lux-motion-fast: 160ms ease;
   --lux-motion-base: 220ms ease;
   --lux-motion-slow: 360ms ease;
 

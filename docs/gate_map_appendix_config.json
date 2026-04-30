@@ -339,6 +339,17 @@
       ]
     },
     {
+      "verifier": "scripts/audit_luxury_ui_surface.py",
+      "purpose": "Luxury UI surface: major templates, seven UX dimensions, score >= 13/15, severe integration",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps.platform_runtime.tests.test_tenant_settings_lint.LuxuryUiGateTests",
+        "scripts/run_northstar_audit.py",
+        "scripts/run_northstar_self_heal.py"
+      ]
+    },
+    {
       "verifier": "scripts/lint_marketing_nav_no_overflow.py",
       "purpose": "Marketing navbar primary items and overflow handling (§8 / Phase 11)",
       "entry_points": [

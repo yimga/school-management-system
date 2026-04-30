@@ -69,7 +69,7 @@ from apps.platform_runtime.helpers import (
     get_effective_support_contact_settings,
     get_site_display_name,
 )
-from apps.platform_runtime.site_settings_read_access import (
+from apps.siteconfig.config_service import (
     get_effective_flags,
     get_effective_site_settings,
 )
@@ -1036,7 +1036,7 @@ def parent_dashboard(request: HttpRequest):
                 extra={"widget": "signature_stats"},
             )
         signature_stats = {"pending": 0, "signed": 0}
-    dashboard_context = get_dashboard_context(request.user, "parent")
+    dashboard_context = get_dashboard_context(request.user, "parent", request=request)
     available_sidebar_items = [
         {
             "id": "parent-home",

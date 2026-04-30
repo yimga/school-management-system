@@ -51,6 +51,16 @@ from .views_workflow_api import (
     workflow_preview_api,
     dashboard_registry_api,
 )
+from .views_school_automation import (
+    school_automation_builder,
+    school_automation_execution_logs_api,
+    school_automation_list_api,
+    school_automation_publish_api,
+    school_automation_retry_api,
+    school_automation_run_api,
+    school_automation_save_api,
+    school_automation_simulate_api,
+)
 from apps.marketplace.views import sandbox_embed as marketplace_sandbox_embed
 from apps.customersuccess.views_tenant import (
     execute_launch_view,
@@ -82,6 +92,7 @@ from .views_term_publish_evidence import term_publish_status_evidence
 from .views_academic_years_evidence import academic_years_setup_evidence
 from .views_departments_setup_evidence import departments_setup_evidence
 from .views_tenant_runtime_hub import tenant_runtime_configuration_hub
+from .views_guided_configuration import guided_configuration_workflows
 from .views_grading_scale_bands import grading_scale_bands_operator_view
 from .views_curriculum_templates import curriculum_templates_operator_view
 from .views_compliance_exports import (
@@ -144,6 +155,11 @@ urlpatterns = [
         "configuration/runtime/",
         tenant_runtime_configuration_hub,
         name="tenant_runtime_configuration_hub",
+    ),
+    path(
+        "configuration/guided/",
+        guided_configuration_workflows,
+        name="guided_configuration_workflows",
     ),
     path(
         "schools/group-hierarchy/",
@@ -354,6 +370,46 @@ urlpatterns = [
     path("api/workflow/list/", workflow_list_api, name="workflow_list_api"),
     path("api/workflow/run/", workflow_run_api, name="workflow_run_api"),
     path("api/workflow/preview/", workflow_preview_api, name="workflow_preview_api"),
+    path(
+        "automation/builder/",
+        school_automation_builder,
+        name="school_automation_builder",
+    ),
+    path(
+        "api/school-automation/list/",
+        school_automation_list_api,
+        name="school_automation_list_api",
+    ),
+    path(
+        "api/school-automation/save/",
+        school_automation_save_api,
+        name="school_automation_save_api",
+    ),
+    path(
+        "api/school-automation/publish/",
+        school_automation_publish_api,
+        name="school_automation_publish_api",
+    ),
+    path(
+        "api/school-automation/simulate/",
+        school_automation_simulate_api,
+        name="school_automation_simulate_api",
+    ),
+    path(
+        "api/school-automation/run/",
+        school_automation_run_api,
+        name="school_automation_run_api",
+    ),
+    path(
+        "api/school-automation/execution-logs/",
+        school_automation_execution_logs_api,
+        name="school_automation_execution_logs_api",
+    ),
+    path(
+        "api/school-automation/retry/",
+        school_automation_retry_api,
+        name="school_automation_retry_api",
+    ),
     path(
         "api/dashboard-registry/", dashboard_registry_api, name="dashboard_registry_api"
     ),

@@ -176,6 +176,7 @@ class TenantCatalogSignalsTests(TestCase):
                 "rollout_status": ROLLOUT_BETA,
             },
             publisher=cls.publisher,
+            is_intentionally_free=True,
         )
         cls.listing = MarketplaceListing.objects.create(
             app=cls.app,
@@ -303,6 +304,7 @@ class TenantCatalogSignalsTests(TestCase):
             version="1.0.0",
             manifest={"required_commercial_tier": "enterprise"},
             publisher=self.publisher,
+            is_intentionally_free=True,
         )
         try:
             inst = install_app(school, app, skip_compatibility=True)
@@ -381,6 +383,7 @@ class InstallVersionStampTests(TestCase):
             version="1.0.0",
             manifest={},
             publisher=cls.publisher,
+            is_intentionally_free=True,
         )
         MarketplaceListing.objects.create(
             app=cls.app,
@@ -426,6 +429,7 @@ class PlatformCompatSignalsTests(TestCase):
             version="1.0.0",
             manifest={"min_platform_version": "0.0.1"},
             publisher=publisher,
+            is_intentionally_free=True,
         )
         listing = MarketplaceListing.objects.create(
             app=app,

@@ -10,7 +10,7 @@ from apps.policies.models import CountryProfile
 
 User = get_user_model()
 
-# auth.User is not registered on platform_admin_site; use a platform-admin model.
+# auth.User is registered on both admin sites; tests use CountryProfile for add redirect.
 _ADD = "admin:policies_countryprofile_add"
 _LIST = "admin:policies_countryprofile_changelist"
 

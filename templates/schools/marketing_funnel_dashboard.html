@@ -9,7 +9,84 @@
 <div class="container py-4" data-decision-engine="surface">
   {% phase8_dashboard_declaration "schools/marketing_funnel_dashboard.html" %}
   <h1 class="mb-4">{% trans "Conversion funnel" %}</h1>
-  <p class="text-muted">{% trans "Visit → Discovery → Signup → Activation. Staff only." %}</p>
+  <p class="text-muted">{% trans "Closed-loop events + billing truth. Staff only. Low traffic periods show “insufficient volume” — never read as product failure." %}</p>
+
+  {% if growth %}
+  <section class="mb-4" aria-label="{% trans 'Growth analytics' %}">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+      <h2 class="h5 mb-0">{% trans "Growth readiness" %}</h2>
+      <span class="badge {% if growth.verdict == 'READY' %}bg-success{% else %}bg-secondary{% endif %}">{{ growth.verdict }}</span>
+    </div>
+    <p class="small text-muted">{{ growth.funnel_completeness_note }}</p>
+    <div class="row g-3 mb-3">
+      <div class="col-md-3">
+        <div class="card"><div class="card-body">
+          <div class="text-muted small">{% trans "Conversion (visit→subscription started, 30d)" %}</div>
+          <div class="fs-5 fw-semibold">{% if growth.conversion_visit_to_subscription_pct is not None %}{{ growth.conversion_visit_to_subscription_pct }}%{% else %}—{% endif %}</div>
+        </div></div>
+      </div>
+      <div class="col-md-3">
+        <div class="card"><div class="card-body">
+          <div class="text-muted small">{% trans "Activation rate (live DB)" %}</div>
+          <div class="fs-5 fw-semibold">{% if growth.activation_rate_pct_live_db is not None %}{{ growth.activation_rate_pct_live_db }}%{% else %}—{% endif %}</div>
+        </div></div>
+      </div>
+      <div class="col-md-3">
+        <div class="card"><div class="card-body">
+          <div class="text-muted small">{% trans "Median time to value (min)" %}</div>
+          <div class="fs-5 fw-semibold">{% if growth.time_to_value_median_minutes is not None %}{{ growth.time_to_value_median_minutes }}{% else %}—{% endif %} <span class="small text-muted">(n={{ growth.time_to_value_sample_size }})</span></div>
+        </div></div>
+      </div>
+      <div class="col-md-3">
+        <div class="card"><div class="card-body">
+          <div class="text-muted small">{% trans "Paying schools (active subscription with billed amount, billing app)" %}</div>
+          <div class="fs-5 fw-semibold">{{ growth.paying_schools_billed_gt_zero|default:"—" }}</div>
+        </div></div>
+      </div>
+    </div>
+    <h3 class="h6">{% trans "Why users may not be paying (factual)" %}</h3>
+    <ul class="small">
+      <li>{% trans "Verified signups (30d events)" %}: {{ growth.why_not_paying_hints.signup_completed_events_period|default:0 }} — {% trans "subscription funnel events" %}: {{ growth.why_not_paying_hints.subscription_started_events_period|default:0 }}</li>
+      <li>{% trans "First dashboard views (30d)" %}: {{ growth.why_not_paying_hints.first_dashboard_view_period|default:0 }}</li>
+      <li>{% trans "Gap (verified → subscription events)" %}: {{ growth.why_not_paying_hints.gap_verified_to_subscription_events|default:"—" }}</li>
+    </ul>
+    {% if growth.insufficient_volume_for_claims %}
+    <div class="alert alert-warning py-2 small mb-0">{% trans "Insufficient visit volume in the last 30 days for stable conversion benchmarks." %}</div>
+    {% endif %}
+  </section>
+
+  <section class="mb-4">
+    <h2 class="h5 mb-3">{% trans "Stage counts (last 30 days)" %}</h2>
+    <div class="table-responsive">
+      <table class="table table-sm table-bordered">
+        <thead><tr><th>{% trans "Stage" %}</th><th>{% trans "Count" %}</th></tr></thead>
+        <tbody>
+          {% for k, v in growth.counts_period.items %}
+          <tr><td><code>{{ k }}</code></td><td>{{ v }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="mb-4">
+    <h2 class="h5 mb-3">{% trans "Drop-offs (forward rate, 30d)" %}</h2>
+    <div class="table-responsive">
+      <table class="table table-sm">
+        <thead><tr><th>{% trans "From" %}</th><th>{% trans "To" %}</th><th>{% trans "Forward %" %}</th></tr></thead>
+        <tbody>
+          {% for row in growth.dropoffs %}
+          <tr>
+            <td><code>{{ row.from_stage }}</code></td>
+            <td><code>{{ row.to_stage }}</code></td>
+            <td>{% if row.forward_rate_pct is not None %}{{ row.forward_rate_pct }}%{% else %}—{% endif %} <span class="text-muted small">({{ row.from_count }}→{{ row.to_count }})</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
 
   <section class="mb-4">
     <h2 class="h5 mb-3">{% trans "All time" %}</h2>
@@ -83,8 +160,12 @@
             <th>{% trans "utm_medium" %}</th>
             <th>{% trans "Visit" %}</th>
             <th>{% trans "Discovery" %}</th>
+            <th>{% trans "Demo" %}</th>
             <th>{% trans "Signup" %}</th>
+            <th>{% trans "Verified" %}</th>
             <th>{% trans "Activation" %}</th>
+            <th>{% trans "1st dash" %}</th>
+            <th>{% trans "Sub" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -94,8 +175,12 @@
             <td>{{ row.utm_medium|default:"—" }}</td>
             <td>{{ row.visit }}</td>
             <td>{{ row.discovery }}</td>
+            <td>{{ row.demo_started|default:0 }}</td>
             <td>{{ row.signup }}</td>
+            <td>{{ row.signup_completed|default:0 }}</td>
             <td>{{ row.activation }}</td>
+            <td>{{ row.first_dashboard_view|default:0 }}</td>
+            <td>{{ row.subscription_started|default:0 }}</td>
           </tr>
           {% endfor %}
         </tbody>

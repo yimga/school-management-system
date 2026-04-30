@@ -7,6 +7,7 @@ W1-2: POST /api/trial/ or /start-trial — self-service trial (minimal name, ema
 
 from datetime import timedelta
 import json
+import uuid
 
 from django.conf import settings
 from django.contrib import messages
@@ -20,6 +21,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from django.views.decorators.cache import never_cache
 
 from apps.platform_runtime.helpers import get_platform_defaults
+from apps.schools.marketing_settings_helpers import derive_marketing_demo_tenant_url
 from apps.schools.models import School, SignupVerification
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
@@ -35,13 +37,30 @@ except ImportError:
 
 
 def _slug_from_name(name: str) -> str:
-    """Generate a URL-safe slug from school name."""
+    """Generate a URL-safe slug from the school name."""
     import re
 
     s = (name or "").strip().lower()
     s = re.sub(r"[^a-z0-9]+", "-", s)
     s = s.strip("-")
     return s[:120] or "school"
+
+
+def _resolved_marketing_demo_tenant_url() -> str:
+    """
+    URL for 'Return to demo' on signup when ref=demo.
+    Uses settings (explicit or TENANT_EXAMPLE_SLUG + base), then the common
+    ensure_demo_environment default slug ``demo-school`` when a tenant base domain exists.
+    """
+    direct = (getattr(settings, "MARKETING_DEMO_TENANT_URL", "") or "").strip()
+    if direct:
+        return direct
+    base = (getattr(settings, "MULTI_TENANT_BASE_DOMAIN", "") or "").strip().lower()
+    slug = getattr(settings, "TENANT_EXAMPLE_SLUG", None)
+    url = derive_marketing_demo_tenant_url("", slug, base)
+    if url:
+        return url
+    return derive_marketing_demo_tenant_url("", "demo-school", base)
 
 
 @require_http_methods(["GET", "POST"])
@@ -53,9 +72,17 @@ def signup_school(request: HttpRequest):
     """
     if request.method == "GET":
         cc = (request.GET.get("country_code") or "").strip()[:2].upper()
+        if not cc:
+            cc = (request.session.get("onboarding_country_code") or "").strip()[:2].upper()
         tp = (request.GET.get("term_preset") or "").strip()[:8].upper()
         if tp not in ("", "UK"):
             tp = ""
+        name = (request.GET.get("name") or request.GET.get("school_name") or "").strip()[
+            :200
+        ]
+        email = (request.GET.get("email") or "").strip()[:254]
+        slug = (request.GET.get("slug") or "").strip()[:120]
+        ref = (request.GET.get("ref") or "").strip()[:32]
         return render(
             request,
             "schools/signup_school.html",
@@ -64,6 +91,14 @@ def signup_school(request: HttpRequest):
                 "term_preset": tp,
                 "signup_region_hint": (request.GET.get("region") or "").strip()[:64],
                 "curriculum_hint": (request.GET.get("curriculum") or "").strip()[:128],
+                "onboarding_prefill_hint": bool(
+                    request.session.get("onboarding_correlation_id")
+                ),
+                "name": name,
+                "email": email,
+                "slug": slug,
+                "signup_ref": ref,
+                "marketing_demo_tenant_url": _resolved_marketing_demo_tenant_url(),
             },
         )
 
@@ -74,6 +109,7 @@ def signup_school(request: HttpRequest):
     term_preset = (
         request.POST.get("term_preset") or ""
     ).strip()  # e.g. "UK" for British terms at signup
+    signup_ref = (request.POST.get("signup_ref") or "").strip()[:32]
 
     errors = []
     if not name:
@@ -102,6 +138,8 @@ def signup_school(request: HttpRequest):
                 "email": email,
                 "country_code": country_code,
                 "term_preset": term_preset,
+                "signup_ref": signup_ref,
+                "marketing_demo_tenant_url": _resolved_marketing_demo_tenant_url(),
             },
         )
 
@@ -123,6 +161,8 @@ def signup_school(request: HttpRequest):
                 "email": email,
                 "country_code": country_code,
                 "term_preset": term_preset,
+                "signup_ref": signup_ref,
+                "marketing_demo_tenant_url": _resolved_marketing_demo_tenant_url(),
             },
         )
 
@@ -136,6 +176,26 @@ def signup_school(request: HttpRequest):
     school_settings = {}
     if term_preset and term_preset.upper() in ("UK", "GB"):
         school_settings["term_preset"] = "UK"
+    ob_cid = (request.session.get("onboarding_correlation_id") or "").strip()
+    if ob_cid or request.session.get("onboarding_plan_slug"):
+        rmc_ob = {
+            "correlation_id": ob_cid or None,
+            "plan_slug": (request.session.get("onboarding_plan_slug") or "").strip()
+            or None,
+            "template_slug": (request.session.get("onboarding_template_slug") or "").strip()
+            or None,
+            "school_flavor": (request.session.get("onboarding_school_flavor") or "").strip()
+            or None,
+            "trial": bool(request.session.get("onboarding_trial", False)),
+            "first_value_action_required": True,
+        }
+        if request.session.get("onboarding_import_site_name"):
+            rmc_ob["brand_import"] = {
+                "site_name": request.session.get("onboarding_import_site_name"),
+                "primary_color": request.session.get("onboarding_import_primary_color"),
+                "logo_url": request.session.get("onboarding_import_logo_url"),
+            }
+        school_settings["rmc_public_onboarding"] = rmc_ob
     country_defaults = GlobalGeoCatalog.country_defaults(country_code)
     school = School.objects.create(
         name=name,
@@ -164,6 +224,23 @@ def signup_school(request: HttpRequest):
         record_marketing_funnel_event("signup", request)
     except (ImportError, AttributeError, TypeError, ValueError):
         pass
+
+    for key in (
+        "onboarding_correlation_id",
+        "onboarding_country_code",
+        "onboarding_school_flavor",
+        "onboarding_plan_slug",
+        "onboarding_trial",
+        "onboarding_template_slug",
+        "onboarding_import_primary_color",
+        "onboarding_import_logo_url",
+        "onboarding_import_site_name",
+        "onboarding_step",
+        "_onboarding_start_logged",
+        "_onboarding_complete_logged",
+    ):
+        request.session.pop(key, None)
+    request.session.modified = True
 
     base = request.build_absolute_uri("/").rstrip("/")
     verify_url = f"{base}/verify-signup/?token={verification.token}"
@@ -224,22 +301,127 @@ def _get_templates_for_onboarding():
         return []
 
 
+def _ensure_onboarding_correlation(session) -> str:
+    cid = session.get("onboarding_correlation_id")
+    if not cid:
+        cid = str(uuid.uuid4())
+        session["onboarding_correlation_id"] = cid
+        session.modified = True
+    return str(cid)
+
+
+def _default_plan_slug(plans, _country_code: str) -> str | None:
+    # _country_code reserved for future regional catalog rules (PPP / locale).
+    if not plans:
+        return None
+    best_slug = None
+    best_rank = None
+    for p in plans:
+        slug = (getattr(p, "slug", None) or "").strip()
+        if not slug:
+            continue
+        sl = slug.lower()
+        name = (getattr(p, "name", None) or "").lower()
+        price = getattr(p, "base_price", None)
+        try:
+            rank = float(price) if price is not None else 1_000_000.0
+        except (TypeError, ValueError):
+            rank = 1_000_000.0
+        for token in ("trial", "starter", "basic", "standard", "essential"):
+            if token in sl or token in name:
+                rank -= 500.0
+                break
+        if best_rank is None or rank < best_rank:
+            best_rank = rank
+            best_slug = slug
+    return best_slug
+
+
+def _default_template_slug(templates) -> str | None:
+    if not templates:
+        return None
+    for t in templates:
+        if getattr(t, "is_default", False):
+            return getattr(t, "slug", None) or None
+    return getattr(templates[0], "slug", None) or None
+
+
+def _apply_onboarding_region_defaults(session, plans, templates, country_code: str) -> None:
+    if not session.get("onboarding_plan_slug"):
+        ps = _default_plan_slug(plans, country_code)
+        if ps:
+            session["onboarding_plan_slug"] = ps
+    if not session.get("onboarding_template_slug"):
+        ts = _default_template_slug(templates)
+        if ts:
+            session["onboarding_template_slug"] = ts
+
+
+def _maybe_emit_onboarding_start(request, session) -> None:
+    if session.get("_onboarding_start_logged"):
+        return
+    try:
+        from apps.schools.funnel_events import record_marketing_funnel_event
+
+        record_marketing_funnel_event(
+            "onboarding_start",
+            request,
+            metadata={
+                "correlation_id": session.get("onboarding_correlation_id"),
+                "source": "public_onboard_wizard",
+            },
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+    session["_onboarding_start_logged"] = True
+    session.modified = True
+
+
+def _maybe_emit_onboarding_complete(request, session) -> None:
+    if session.get("_onboarding_complete_logged"):
+        return
+    try:
+        from apps.schools.funnel_events import record_marketing_funnel_event
+
+        record_marketing_funnel_event(
+            "onboarding_complete",
+            request,
+            metadata={
+                "correlation_id": session.get("onboarding_correlation_id"),
+                "country": session.get("onboarding_country_code"),
+                "plan_slug": session.get("onboarding_plan_slug"),
+                "template_slug": session.get("onboarding_template_slug"),
+                "trial": bool(session.get("onboarding_trial", False)),
+            },
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+    session["_onboarding_complete_logged"] = True
+    session.modified = True
+
+
 @require_http_methods(["GET", "POST"])
 def onboarding_wizard(request: HttpRequest):
     """
-    Public onboarding at /onboard/. Multi-step guided flow: (1) Welcome+region, (2) Plan, (3) Branding+template, (4) Done.
-    Session holds: onboarding_step, country_code, school_flavor, plan_slug, template_slug.
+    Public onboarding at /onboard/. Three steps: (1) Region + school type,
+    (2) Plan + look (templates, trial, optional brand import),
+    (3) Review → signup. Session carries prefs into signup_school (rmc_public_onboarding).
     """
     session = request.session
-    step = (
+    _ensure_onboarding_correlation(session)
+
+    step_raw = (
         request.GET.get("step")
         or request.POST.get("step")
         or str(session.get("onboarding_step", 1))
     )
     try:
-        step = max(1, min(4, int(step)))
+        step = max(1, min(3, int(step_raw)))
     except (TypeError, ValueError):
         step = 1
+
+    plans = _get_plans_for_onboarding()
+    templates = _get_templates_for_onboarding()
 
     if request.method == "POST":
         if step == 1:
@@ -249,22 +431,16 @@ def onboarding_wizard(request: HttpRequest):
             session["onboarding_school_flavor"] = (
                 request.POST.get("school_flavor") or "general"
             ).strip()
+            _apply_onboarding_region_defaults(
+                session,
+                plans,
+                templates,
+                session.get("onboarding_country_code") or "",
+            )
             session["onboarding_step"] = 2
             session.modified = True
             return redirect(reverse("onboard_wizard") + "?step=2")
         if step == 2:
-            session["onboarding_plan_slug"] = (
-                request.POST.get("plan_slug") or ""
-            ).strip() or None
-            session["onboarding_trial"] = request.POST.get("trial") in (
-                "1",
-                "true",
-                "on",
-            )
-            session["onboarding_step"] = 3
-            session.modified = True
-            return redirect(reverse("onboard_wizard") + "?step=3")
-        if step == 3:
             if request.POST.get("brand_import") == "1":
                 url = (request.POST.get("import_url") or "").strip()
                 if url and request.POST.get("consent") in ("1", "true", "on"):
@@ -278,22 +454,33 @@ def onboarding_wizard(request: HttpRequest):
                         session["onboarding_import_logo_url"] = result.get("logo_url")
                         session["onboarding_import_site_name"] = result.get("site_name")
                         session.modified = True
-                return redirect(reverse("onboard_wizard") + "?step=3")
+                return redirect(reverse("onboard_wizard") + "?step=2")
+            session["onboarding_plan_slug"] = (
+                request.POST.get("plan_slug") or ""
+            ).strip() or None
+            session["onboarding_trial"] = request.POST.get("trial") in (
+                "1",
+                "true",
+                "on",
+            )
             session["onboarding_template_slug"] = (
                 request.POST.get("template_slug") or ""
             ).strip() or None
-            session["onboarding_step"] = 4
+            session["onboarding_step"] = 3
             session.modified = True
-            return redirect(reverse("onboard_wizard") + "?step=4")
-        if step == 4:
-            session.pop("onboarding_step", None)
-            session.pop("onboarding_country_code", None)
-            session.pop("onboarding_school_flavor", None)
-            session.pop("onboarding_plan_slug", None)
-            session.pop("onboarding_trial", None)
-            session.pop("onboarding_template_slug", None)
-            session.modified = True
-            return redirect(reverse("signup_school"))
+            return redirect(reverse("onboard_wizard") + "?step=3")
+
+    if session.get("onboarding_country_code"):
+        _apply_onboarding_region_defaults(
+            session,
+            plans,
+            templates,
+            session.get("onboarding_country_code") or "",
+        )
+
+    _maybe_emit_onboarding_start(request, session)
+    if step == 3 and session.get("onboarding_country_code"):
+        _maybe_emit_onboarding_complete(request, session)
 
     countries = GlobalGeoCatalog.list_countries()
     default_country = (
@@ -301,8 +488,11 @@ def onboarding_wizard(request: HttpRequest):
         or session.get("onboarding_country_code")
         or "USA"
     )
-    plans = _get_plans_for_onboarding()
-    templates = _get_templates_for_onboarding()
+
+    signup_url = reverse("signup_school")
+    cid = session.get("onboarding_correlation_id")
+    if cid:
+        signup_url += f"?ob={str(cid)[:12]}"
 
     return render(
         request,
@@ -310,7 +500,7 @@ def onboarding_wizard(request: HttpRequest):
         {
             "step": step,
             "trial_endpoint": reverse("api_trial_school"),
-            "signup_url": reverse("signup_school"),
+            "signup_url": signup_url,
             "countries": countries[:120],
             "default_country_code": default_country,
             "plans": plans,
@@ -328,6 +518,7 @@ def onboarding_wizard(request: HttpRequest):
             ),
             "onboarding_import_logo_url": session.get("onboarding_import_logo_url"),
             "onboarding_import_site_name": session.get("onboarding_import_site_name"),
+            "onboarding_correlation_id": session.get("onboarding_correlation_id"),
         },
     )
 
@@ -383,9 +574,13 @@ def verify_signup(request: HttpRequest):
     verification.verified_at = timezone.now()
     verification.save(update_fields=["verified_at"])
     try:
-        from apps.schools.funnel_events import record_marketing_funnel_event
+        from apps.schools.funnel_events import (
+            record_marketing_funnel_event,
+            record_school_funnel_once,
+        )
 
-        record_marketing_funnel_event("activation", request)
+        record_school_funnel_once("signup_completed", school, request)
+        record_marketing_funnel_event("activation", request, school=school)
     except (ImportError, AttributeError, TypeError, ValueError):
         pass
 

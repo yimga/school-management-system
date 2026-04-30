@@ -39,6 +39,7 @@ class TenantInstallImpactPreviewTests(TestCase):
             name="Impact Test App",
             version="1.0",
             kind=MarketplaceApp.AppKind.FIRST_PARTY,
+            is_intentionally_free=True,
         )
         AppScope.objects.create(
             app=self.app,

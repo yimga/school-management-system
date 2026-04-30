@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Demo — Generate report" %}{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width: 640px;">
+  <p class="text-muted small mb-2">{% trans "Step 3 of 4" %}</p>
+  <h1 class="h4 mb-3">{% trans "Generate a report" %}</h1>
+  <p class="text-muted">{% trans "Finish this step to unlock your outcome moment." %}</p>
+  <form method="post" action="{% url 'demo_flow_report_complete' %}" class="mt-4">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">{% trans "Report generated (demo)" %}</button>
+  </form>
+</div>
+{% endblock %}

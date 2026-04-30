@@ -7,10 +7,12 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+<link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
 {% endblock %}
 
 {% block cp_content %}
 <div class="container-fluid py-4 control-plane-shell" data-page-archetype="catalog">
+  {% include "components/next_action_strip.html" %}
   <section class="cp-hero cp-hero-compact mb-4">
     <div class="cp-hero-grid">
       <div>

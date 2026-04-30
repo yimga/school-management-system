@@ -71,6 +71,7 @@ class AppPurchaseIntentTests(TestCase):
             version="1.0.0",
             manifest={"pricing_type": "free"},
             publisher=self.publisher,
+            is_intentionally_free=True,
         )
         MarketplaceListing.objects.create(
             app=app,
@@ -114,6 +115,7 @@ class AppPurchaseIntentTests(TestCase):
                 "billing_sku": "addon_paid_app",
             },
             publisher=self.publisher,
+            pricing_model=MarketplaceApp.PricingModel.SUBSCRIPTION,
         )
         MarketplaceListing.objects.create(
             app=app,
@@ -141,6 +143,7 @@ class AppPurchaseIntentTests(TestCase):
             version="1.0.0",
             manifest={"pricing_type": "paid", "billing_sku": "addon_x"},
             publisher=self.publisher,
+            pricing_model=MarketplaceApp.PricingModel.SUBSCRIPTION,
         )
         MarketplaceListing.objects.create(
             app=app,

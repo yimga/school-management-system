@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from apps.people.models import StudentGuardian
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 from apps.siteconfig.models import default_backend_feature_flags
 
 

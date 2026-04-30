@@ -157,6 +157,28 @@ def switch_to_tenant(request):
         )
     except CONTROL_PLANE_AUDIT_FAILURES:
         pass
+    if peer_user:
+        try:
+            AuditLog.objects.create(
+                action=AuditLog.Action.APPROVE,
+                user=peer_user,
+                ip_address=_get_client_ip(request),
+                user_agent=(request.META.get("HTTP_USER_AGENT") or "")[:500],
+                model_name="ImpersonationSession",
+                object_id=str(school.id),
+                object_repr=school.name or str(school.id),
+                app_label="schools",
+                sensitivity=AuditLog.Sensitivity.CRITICAL,
+                new_values={
+                    "peer_approval": True,
+                    "initiator_id": request.user.pk,
+                    "school_id": str(school.id),
+                    "read_only": read_only,
+                },
+                reason="Dual-control impersonation peer recorded (four-eyes)",
+            )
+        except Exception:
+            pass
     entry_path = "/authentication/impersonate/"
     next_url = request.POST.get("next", "/").strip() or "/"
     url = build_tenant_backend_url(request, school, path=entry_path)

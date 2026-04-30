@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""Luxury UI integration audit (high-impact + governed surfaces)."""
+"""
+Luxury UI integration audit (high-impact + governed surfaces).
+
+Scores 15 points across seven dimensions: layout consistency, component consistency,
+overflow safety, click depth, mobile UX, action clarity, state handling.
+
+Exit codes: 0 = success (severe integration checks pass and score >= 13 unless overridden).
+1 = severe violations (shell / inline / unwrapped tables / missing table-family on violated majors).
+2 = luxury score gate failed (use --allow-below-luxury-gate to override).
+
+Writes docs/generated/luxury_ui_audit.json and luxury_ui_audit.md.
+"""
 
 from __future__ import annotations
 
@@ -27,15 +38,20 @@ SHELL_TEMPLATES = [
 MAJOR_SCREENS = [
     "templates/accounts/backend_dashboard.html",
     "templates/schools/super_dashboard.html",
+    "templates/schools/billing_dashboard.html",
     "templates/super/founder_dashboard.html",
     "templates/marketplace/tenant_app_catalog.html",
     "templates/marketplace/tenant_installed_apps.html",
     "templates/teacher/dashboard.html",
     "templates/teacher/marks_list.html",
+    "templates/teacher/attendance.html",
     "templates/parent/dashboard.html",
+    "templates/parent/attendance_discipline.html",
     "templates/student360/student_360_page.html",
     "templates/siteconfig/tenant_runtime_configuration_hub.html",
     "templates/siteconfig/billing_plan_readonly.html",
+    "templates/siteconfig/console_domains_hub.html",
+    "templates/studio_os/shell.html",
     "templates/reports/annual_report.html",
     "templates/reports/term_report.html",
     "templates/sales/pipeline_board.html",
@@ -94,6 +110,47 @@ HIGH_IMPACT_PATTERNS = (
     "templates/siteconfig/**/*.html",
     "templates/reports/**/*.html",
 )
+
+EXTENDS_RE = re.compile(r"\{%\s*extends\s+[\"']([^\"']+)[\"']\s*%\}")
+
+DIMENSION_MAX = {
+    "layout_consistency": 2,
+    "component_consistency": 2,
+    "overflow_safety": 2,
+    "click_depth": 2,
+    "mobile_ux": 2,
+    "action_clarity": 3,
+    "state_handling": 2,
+}
+
+STATE_HINT_PATTERN = re.compile(
+    r"(loading_empty_states\.html|studio-os-loading|studio-os-empty|role=\"alert\"|"
+    r"aria-busy|empty-state|permission\s+denied|offline|data-offline|retry|403\s|forbidden|"
+    r"try again|access denied|connection)",
+    re.IGNORECASE,
+)
+
+# Phase 5 state matrix (informational; not part of numeric score)
+_STATE_MATRIX_PATTERNS: dict[str, re.Pattern[str]] = {
+    "loading": re.compile(
+        r"(loading_empty_states|aria-busy|skeleton|spinner|studio-os-loading|data-loading)",
+        re.IGNORECASE,
+    ),
+    "empty": re.compile(
+        r"(empty-state|studio-os-empty|no data yet|no items|list is empty)",
+        re.IGNORECASE,
+    ),
+    "error": re.compile(
+        r'(role="alert"|alert-danger|class="alert alert-danger"|error-state|has-error)',
+        re.IGNORECASE,
+    ),
+    "permission_denied": re.compile(
+        r"(permission denied|access denied|403|forbidden|not allowed to)",
+        re.IGNORECASE,
+    ),
+    "offline": re.compile(r"(data-offline|offline|connection lost|navigator\.onLine)", re.IGNORECASE),
+    "retry": re.compile(r"(retry|try again|reload this page|tap to retry)", re.IGNORECASE),
+}
 
 
 def _read(rel: str) -> str:
@@ -402,6 +459,199 @@ def _debug_surface_hits() -> dict[str, object]:
     return {"count": len(hits), "paths": sorted(hits)}
 
 
+def _zero_click_resolved(rel: str, depth: int = 0, seen: set[str] | None = None) -> bool:
+    """True if template inherits the shared strip, embeds it, or is explicitly exempt (e.g. print)."""
+    if depth > 14:
+        return False
+    if seen is None:
+        seen = set()
+    if rel in seen:
+        return False
+    seen.add(rel)
+    text = _read(rel)
+    if not text:
+        return False
+    if "data-rmc-zero-click-exempt" in text or "rmc-zero-click-exempt" in text:
+        return True
+    if "rmc_zero_click_command_strip" in text or "data-rmc-zero-click" in text:
+        return True
+    m = EXTENDS_RE.search(text)
+    if not m:
+        return False
+    parent = f"templates/{m.group(1)}"
+    return _zero_click_resolved(parent, depth + 1, seen)
+
+
+def _zero_click_major_surfaces() -> dict[str, object]:
+    rows: list[dict[str, object]] = []
+    failures = 0
+    for rel in MAJOR_SCREENS:
+        ok = _zero_click_resolved(rel)
+        if not ok:
+            failures += 1
+        rows.append({"path": rel, "zero_click_resolved": ok})
+    return {"failure_count": failures, "rows": rows}
+
+
+def _viewport_in_template_chain(rel: str, depth: int = 0, seen: set[str] | None = None) -> bool:
+    """Shell children (e.g. control_plane_base) may inherit viewport from skeleton head."""
+    if depth > 14:
+        return False
+    if seen is None:
+        seen = set()
+    if rel in seen:
+        return False
+    seen.add(rel)
+    text = _read(rel)
+    if not text:
+        return False
+    if 'name="viewport"' in text or "name='viewport'" in text:
+        return True
+    m = EXTENDS_RE.search(text)
+    if not m:
+        return False
+    parent = f"templates/{m.group(1)}"
+    return _viewport_in_template_chain(parent, depth + 1, seen)
+
+
+def _shell_viewport_scan() -> dict[str, object]:
+    missing: list[str] = []
+    for rel in SHELL_TEMPLATES:
+        if not _viewport_in_template_chain(rel):
+            missing.append(rel)
+    return {"missing_viewport_paths": sorted(missing), "ok": len(missing) == 0}
+
+
+def _state_handling_major_screens() -> dict[str, object]:
+    """Surface-level hints for loading / empty / error / retry — informational."""
+    rows: list[dict[str, object]] = []
+    weak = 0
+    for rel in MAJOR_SCREENS:
+        text = _read(rel)
+        hit = bool(text and STATE_HINT_PATTERN.search(text))
+        if not hit and text and ("data-rmc-zero-click-exempt" in text or "print-document" in text):
+            hit = True
+        if not hit:
+            weak += 1
+        rows.append({"path": rel, "state_hints_detected": hit})
+    return {"rows": rows, "major_without_state_hints": weak}
+
+
+def _state_completeness_matrix() -> dict[str, object]:
+    """Per-major hints for loading / empty / error / permission / offline / retry (Phase 5 ledger)."""
+    keys = tuple(_STATE_MATRIX_PATTERNS.keys())
+    rows: list[dict[str, object]] = []
+    for rel in MAJOR_SCREENS:
+        text = _read(rel)
+        hits = {k: bool(text and _STATE_MATRIX_PATTERNS[k].search(text)) for k in keys}
+        resolved = _zero_click_resolved(rel)
+        exempt_print = bool(text and ("data-rmc-zero-click-exempt" in text or "print-document" in text))
+        rows.append(
+            {
+                "path": rel,
+                "zero_click_shell_or_exempt": resolved or exempt_print,
+                **hits,
+            }
+        )
+    coverage = {k: sum(1 for r in rows if r.get(k)) for k in keys}
+    return {"keys": list(keys), "rows": rows, "major_screen_count": len(MAJOR_SCREENS), "coverage_counts": coverage}
+
+
+def _penalty_dimension_keys(payload: dict[str, object]) -> list[str]:
+    """Mirrors `_compute_score` deductions as dimension labels (length equals 15 - score)."""
+    out: list[str] = []
+    inline_viol = int(payload["inline_styles"]["violation_count"])  # type: ignore[index]
+    for _ in range(min(3, inline_viol)):
+        out.append("component_consistency")
+    unwrapped_viol = int(payload["unwrapped_tables"]["violation_count"])  # type: ignore[index]
+    for _ in range(min(2, unwrapped_viol)):
+        out.append("overflow_safety")
+    shell_fail = int(payload["shell_consistency"]["failures"])  # type: ignore[index]
+    for _ in range(min(2, shell_fail)):
+        out.append("layout_consistency")
+    missing_headers = int(payload["screen_headers_actions"]["missing_headers"])  # type: ignore[index]
+    missing_actions = int(payload["screen_headers_actions"]["missing_action_bars"])  # type: ignore[index]
+    if (missing_headers + missing_actions) > 4:
+        out.append("action_clarity")
+    if int(payload["overflow_risks"]["template_count"]) > 0:  # type: ignore[index]
+        out.append("overflow_safety")
+    t = payload["non_token_literals"]["totals"]  # type: ignore[index]
+    raw_total = int(t["spacing"]) + int(t["radius"]) + int(t["shadow"])
+    if raw_total > 35:
+        out.append("layout_consistency")
+    if int(payload["duplicate_component_systems"]["conflict_count"]) > 0:  # type: ignore[index]
+        out.append("component_consistency")
+    if int(payload["tenant_branding_safety"]["unsafe_direct_brand_text_count"]) > 0:  # type: ignore[index]
+        out.append("mobile_ux")
+    rtl_violation = int((payload["rtl_status"]["violation"] or 0))  # type: ignore[index]
+    if rtl_violation > 0:
+        out.append("mobile_ux")
+    if int(payload["debug_surface_hits"]["count"]) > 0:  # type: ignore[index]
+        out.append("state_handling")
+    return out
+
+
+def _apply_dimension_penalties(penalties: list[str]) -> dict[str, int]:
+    dims = {k: DIMENSION_MAX[k] for k in DIMENSION_MAX}
+    spill_order = [
+        "action_clarity",
+        "layout_consistency",
+        "component_consistency",
+        "overflow_safety",
+        "click_depth",
+        "mobile_ux",
+        "state_handling",
+    ]
+    for p in penalties:
+        key = p if p in dims else "layout_consistency"
+        if dims[key] > 0:
+            dims[key] -= 1
+            continue
+        for s in spill_order:
+            if dims[s] > 0:
+                dims[s] -= 1
+                break
+    return dims
+
+
+def _dimension_breakdown(payload: dict[str, object], legacy_score: int) -> dict[str, object]:
+    penalties = _penalty_dimension_keys(payload)
+    dims = _apply_dimension_penalties(penalties)
+    zc = payload.get("zero_click_contract") if isinstance(payload.get("zero_click_contract"), dict) else {}
+    fail_count = int(zc.get("failure_count", 0))  # type: ignore[arg-type]
+    if fail_count > 0:
+        take = min(fail_count, dims["click_depth"])
+        dims["click_depth"] -= take
+        give_back = take
+        for g in ("action_clarity", "mobile_ux", "state_handling", "layout_consistency"):
+            if give_back <= 0:
+                break
+            room = DIMENSION_MAX[g] - dims[g]
+            add = min(room, give_back)
+            dims[g] += add
+            give_back -= add
+
+    total = sum(dims.values())
+    if total != legacy_score:
+        drift = legacy_score - total
+        order = ["action_clarity", "click_depth", "layout_consistency", "state_handling"]
+        i = 0
+        while drift != 0 and i < 100:
+            k = order[i % len(order)]
+            if drift > 0 and dims[k] < DIMENSION_MAX[k]:
+                dims[k] += 1
+                drift -= 1
+            elif drift < 0 and dims[k] > 0:
+                dims[k] -= 1
+                drift += 1
+            i += 1
+
+    return {
+        k: {"score": dims[k], "max": DIMENSION_MAX[k]}
+        for k in DIMENSION_MAX
+    }
+
+
 def _compute_score(payload: dict[str, object]) -> int:
     score = 15
     inline_viol = int(payload["inline_styles"]["violation_count"])  # type: ignore[index]
@@ -440,11 +690,16 @@ def _verdict(score: int) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.parse_args(argv)
+    ap.add_argument(
+        "--allow-below-luxury-gate",
+        action="store_true",
+        help="Do not exit non-zero when score < 13 (default: enforce Phase 7 gate).",
+    )
+    args = ap.parse_args(argv)
 
     high_impact_templates = _high_impact_templates()
     payload: dict[str, object] = {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "high_impact_templates_total": len(high_impact_templates),
         "inline_styles": _scan_inline_styles(high_impact_templates),
@@ -459,11 +714,21 @@ def main(argv: list[str] | None = None) -> int:
         "tenant_branding_safety": _tenant_branding_safety(),
         "rtl_status": _regional_rtl_status(),
         "debug_surface_hits": _debug_surface_hits(),
+        "zero_click_contract": _zero_click_major_surfaces(),
+        "mobile_viewport_contract": _shell_viewport_scan(),
+        "state_handling_major_screens": _state_handling_major_screens(),
+        "state_completeness_matrix": _state_completeness_matrix(),
     }
     score = _compute_score(payload)
     verdict = _verdict(score)
     payload["score_out_of_15"] = score
     payload["verdict"] = verdict
+    payload["luxury_gate_min_score"] = 13
+    payload["luxury_gate_passed"] = score >= 13
+    payload["dimension_scores"] = _dimension_breakdown(payload, score)
+    pcount = len(_penalty_dimension_keys(payload))
+    if pcount != 15 - score:
+        payload["dimension_score_drift_note"] = f"penalty_count {pcount} != 15 - score {15 - score}"
 
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -489,16 +754,31 @@ def main(argv: list[str] | None = None) -> int:
         f"- Unsafe direct brand text color hits: {payload['tenant_branding_safety']['unsafe_direct_brand_text_count']}",
         f"- RTL violations: {payload['rtl_status']['violation']}",
         f"- Debug-surface hits: {payload['debug_surface_hits']['count']}",
+        f"- Zero-click major surfaces failing inheritance/exempt: {payload['zero_click_contract']['failure_count']}",
+        f"- Shell viewport OK: {payload['mobile_viewport_contract']['ok']}",
+        f"- Luxury gate (min 13): {'PASS' if payload.get('luxury_gate_passed') else 'FAIL'}",
+        f"- State completeness matrix: {payload['state_completeness_matrix']['major_screen_count']} major templates",
         "",
-        "## Notes",
-        "",
-        "- This is a static audit focused on integration risk signals.",
-        "- It is intended to complement verifier/test gates, not replace runtime visual QA.",
+        "## Dimension scores (/15 total)",
         "",
     ]
+    ds = payload.get("dimension_scores") if isinstance(payload.get("dimension_scores"), dict) else {}
+    for dk in sorted(ds.keys()):
+        row = ds[dk]
+        if isinstance(row, dict):
+            md.append(f"- **{dk}:** {row.get('score')}/{row.get('max')}")
+    md.extend(
+        [
+            "",
+            "## Notes",
+            "",
+            "- This is a static audit focused on integration risk signals.",
+            "- It is intended to complement verifier/test gates, not replace runtime visual QA.",
+            "",
+        ]
+    )
     OUT_MD.write_text("\n".join(md), encoding="utf-8")
 
-    print(f"audit_luxury_ui_surface: OK -> {OUT_JSON}")
     work_queues = {
         "shell_contract": payload["shell_consistency"]["rows"],
         "duplicate_component_systems": payload["duplicate_component_systems"]["selector_index"],
@@ -512,6 +792,7 @@ def main(argv: list[str] | None = None) -> int:
     payload["work_queues"] = work_queues
     OUT_JSON.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
+    gate_ok = bool(payload.get("luxury_gate_passed"))
     severe = bool(
         int(payload["shell_consistency"]["failures"]) > 0
         or int(payload["inline_styles"]["violation_count"]) > 0
@@ -521,6 +802,15 @@ def main(argv: list[str] | None = None) -> int:
     if severe:
         print("FAIL: severe integration violations detected.", file=sys.stderr)
         return 1
+    if not gate_ok and not args.allow_below_luxury_gate:
+        print(
+            f"FAIL: luxury gate — score {score}/15 < {payload['luxury_gate_min_score']} (use --allow-below-luxury-gate to override).",
+            file=sys.stderr,
+        )
+        return 2
+    print(
+        f"audit_luxury_ui_surface: OK -> {OUT_JSON} | score={score}/15 verdict={verdict} gate={'PASS' if gate_ok else 'FAIL'}",
+    )
     return 0
 
 

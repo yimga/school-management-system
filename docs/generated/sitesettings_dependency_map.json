@@ -1,0 +1,3125 @@
+{
+  "canonical_read_facade": "apps/siteconfig/config_service.py",
+  "files_with_hits": 169,
+  "generated_at": "2026-04-29T11:57:43.444501+00:00",
+  "hits_by_file": {
+    "apps/accounts/context_processors.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 14,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 497,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/accounts/decorators.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 12,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 94,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/accounts/delegation.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 13,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 64,
+        "snippet": "site = get_effective_site_settings(school=school)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 209,
+        "snippet": "site = get_effective_site_settings(school=school)"
+      }
+    ],
+    "apps/accounts/forms.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 8,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 318,
+        "snippet": "site = get_effective_site_settings(school=school)"
+      }
+    ],
+    "apps/accounts/middleware.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 14,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 637,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/accounts/portal_roles.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 11,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 103,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/accounts/tasks.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 11,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 40,
+        "snippet": "site = get_effective_site_settings(school=_school_for_user(d.delegator))"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 276,
+        "snippet": "site = get_effective_site_settings(school=getattr(proposal, \"school\", None))"
+      }
+    ],
+    "apps/accounts/tests/test_delegation.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 23,
+        "snippet": "self.site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/accounts/tests/test_permissions_hierarchy.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 103,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 167,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/accounts/views.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 47,
+        "snippet": "from apps.siteconfig.config_service import ("
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 282,
+        "snippet": "get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 284,
+        "snippet": "else get_effective_site_settings()"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 809,
+        "snippet": "_site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 844,
+        "snippet": "_site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1327,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 2512,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 2547,
+        "snippet": "_site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 2828,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/accounts/views_delegation.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 12,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 70,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/accounts/views_rollover.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 20,
+        "snippet": "from apps.siteconfig.config_service import ("
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 354,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/accounts/views_workflow.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 17,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 214,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 276,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 559,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/analytics/views.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 33,
+        "snippet": "from apps.siteconfig.config_service import ("
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 86,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/api/ministry_placeholders.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 22,
+        "snippet": "from apps.siteconfig.config_service import ("
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 157,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/api/oneroster_roster_webhook.py": [
+      {
+        "kind": "get_effective_site_settings",
+        "line": 85,
+        "snippet": "Secret: ``get_effective_site_settings(...).webhook_signing_secret`` (platform RuntimeDefaults)."
+      },
+      {
+        "kind": "chained_effective_attribute_read",
+        "line": 85,
+        "snippet": "Secret: ``get_effective_site_settings(...).webhook_signing_secret`` (platform RuntimeDefaults)."
+      },
+      {
+        "kind": "config_service_facade",
+        "line": 90,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 93,
+        "snippet": "eff = get_effective_site_settings(request=None, school=None)"
+      }
+    ],
+    "apps/api/tests/test_delta_sync_phase_g.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 60,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 146,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 222,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/api/tests/test_entity_flags.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 20,
+        "snippet": "self.site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/api/tests/test_ministry_placeholders.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 92,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 138,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/api/tests/test_offline_sync.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 73,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 166,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/api/tests/test_platform_marketplace_integration_webhook.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 26,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 46,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 67,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/api/tests/test_views_v1_compliance_forecast_risk.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 93,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/api/user_preferences_api.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 11,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 40,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/automation/helpers.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 9,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 18,
+        "snippet": "site = get_effective_site_settings(school=school)"
+      }
+    ],
+    "apps/brand_experience/migrations/0002_platform_global_branding.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 8,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "get_model_SiteSettings",
+        "line": 8,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 10,
+        "snippet": "site = SiteSettings.objects.order_by(\"pk\").first()"
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 10,
+        "snippet": "site = SiteSettings.objects.order_by(\"pk\").first()"
+      }
+    ],
+    "apps/brand_experience/platform_global_branding.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 156,
+        "snippet": "site = get_platform_site_settings_record(create=False)"
+      }
+    ],
+    "apps/brand_experience/resolvers.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 23,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 25,
+        "snippet": "site = get_effective_site_settings(request=request, school=school)"
+      }
+    ],
+    "apps/brand_experience/tests/test_platform_global_branding.py": [
+      {
+        "kind": "site_settings_read_access",
+        "line": 6,
+        "snippet": "from apps.platform_runtime.site_settings_read_access import ("
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 15,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 30,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 51,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 58,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/communication/notification_service.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 49,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 51,
+        "snippet": "return get_effective_site_settings(school=school)"
+      }
+    ],
+    "apps/customersuccess/services.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 310,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 312,
+        "snippet": "site = get_effective_site_settings(school=school)"
+      }
+    ],
+    "apps/customersuccess/tests/test_service_helpers.py": [
+      {
+        "kind": "get_effective_site_settings",
+        "line": 45,
+        "snippet": "def get_effective_site_settings(*, school=None, request=None):"
+      },
+      {
+        "kind": "config_service_facade",
+        "line": 54,
+        "snippet": "\"apps.siteconfig.config_service.get_effective_site_settings\","
+      }
+    ],
+    "apps/dashboard/admin_context.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 28,
+        "snippet": "from apps.siteconfig.config_service import ("
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 784,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 786,
+        "snippet": "persisted = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/dashboard/context.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 19,
+        "snippet": "from apps.siteconfig.config_service import ("
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 341,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/evals/approval.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 15,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 70,
+        "snippet": "site = get_effective_site_settings(school=school)"
+      }
+    ],
+    "apps/evals/offline_sync.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 9,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 45,
+        "snippet": "site = get_effective_site_settings("
+      }
+    ],
+    "apps/evals/tests/test_grade_approval_workflow.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 25,
+        "snippet": "self.site_settings = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/evals/views.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 82,
+        "snippet": "from apps.siteconfig.config_service import ("
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1384,
+        "snippet": "site_settings = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1386,
+        "snippet": "site_settings = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/finance/admin.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 8,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 153,
+        "snippet": "site = get_effective_site_settings(school=school)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 706,
+        "snippet": "site = get_effective_site_settings(school=school)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 761,
+        "snippet": "site = get_effective_site_settings(school=school)"
+      }
+    ],
+    "apps/finance/management/commands/integration_preflight.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 9,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 24,
+        "snippet": "site = get_effective_site_settings()"
+      }
+    ],
+    "apps/finance/management/commands/report_finance_opt_in_gaps.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 4,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 12,
+        "snippet": "site = get_effective_site_settings()"
+      }
+    ],
+    "apps/finance/management/commands/seed_finance_defaults.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 96,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/finance/migrations/0028_payment_reminder_multiple_days.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 31,
+        "snippet": "help_text=\"List of days before due date to send reminders, e.g., [7, 3, 1]. Falls back to SiteSettings default if empty.\","
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 93,
+        "snippet": "help_text=\"Channels to use: ['email'], ['whatsapp'], ['email', 'sms'], etc. Falls back to SiteSettings default if empty.\","
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 111,
+        "snippet": "help_text=\"List of days before due date to send reminders, e.g., [7, 3, 1]. Falls back to SiteSettings default if empty.\","
+      }
+    ],
+    "apps/finance/notifications.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 22,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 62,
+        "snippet": "site = get_effective_site_settings("
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 138,
+        "snippet": "site = get_effective_site_settings("
+      }
+    ],
+    "apps/finance/services.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 25,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 70,
+        "snippet": "return get_effective_site_settings(school=school)"
+      }
+    ],
+    "apps/finance/tests/test_access_requests.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 20,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/finance/tests/test_aid_services.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 38,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/finance/tests/test_integration_preflight.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 15,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 39,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/finance/tests/test_referral_reward.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 47,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/finance/tests/test_split_allocation.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 19,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/finance/tests/test_split_billing.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 35,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/finance/tests/test_split_late_fees.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 26,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/finance/views_access.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 25,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 106,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 273,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 355,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/finance/views_common.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 15,
+        "snippet": "from apps.siteconfig.config_service import ("
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 37,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 71,
+        "snippet": "current_site = site or get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/finance/views_invoicing.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 32,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 178,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 327,
+        "snippet": "get_effective_site_settings(request=request),"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 555,
+        "snippet": "site_settings = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/finance/views_payments.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 40,
+        "snippet": "from apps.siteconfig.config_service import ("
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 137,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 407,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/finance/views_reports.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 27,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 30,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/metadata/migrations/0004_add_glossary_and_config_audit.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 33,
+        "snippet": "help_text=\"Config type (e.g. SiteSettings, RegionConfig, blueprint, policy_bundle).\","
+      }
+    ],
+    "apps/observability/views.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 27,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 84,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/packages/tests/test_experience_packs.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 54,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/payroll/services.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 11,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 81,
+        "snippet": "site = get_effective_site_settings(school=school)"
+      }
+    ],
+    "apps/people/admin.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 416,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 418,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/people/migrations/0005_studentprofile_admission_fields.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 11,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "get_model_SiteSettings",
+        "line": 11,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 13,
+        "snippet": "settings_obj, _ = SiteSettings.objects.get_or_create("
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 13,
+        "snippet": "settings_obj, _ = SiteSettings.objects.get_or_create("
+      }
+    ],
+    "apps/people/views_backend.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 141,
+        "snippet": "from apps.siteconfig.config_service import ("
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 152,
+        "snippet": "get_effective_site_settings(request=request),"
+      }
+    ],
+    "apps/platform_runtime/ai_providers.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 180,
+        "snippet": "del site_settings  # reserved for SiteSettings-driven toggles (extend without breaking callers)"
+      }
+    ],
+    "apps/platform_runtime/helpers.py": [
+      {
+        "kind": "site_settings_read_access",
+        "line": 12,
+        "snippet": "call sites: :mod:`apps.platform_runtime.site_settings_read_access` (\u00a711.4 **1035+**). \u00a711.4 batch **947** locks"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 13,
+        "snippet": "``apps/platform_runtime/`` against ``SiteSettings.get_solo`` / ``.load`` / ``SiteSettings.objects``"
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 13,
+        "snippet": "``apps/platform_runtime/`` against ``SiteSettings.get_solo`` / ``.load`` / ``SiteSettings.objects``"
+      },
+      {
+        "kind": "SiteSettings_get_solo",
+        "line": 13,
+        "snippet": "``apps/platform_runtime/`` against ``SiteSettings.get_solo`` / ``.load`` / ``SiteSettings.objects``"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 224,
+        "snippet": "site = get_effective_site_settings(request=None, school=None)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 278,
+        "snippet": "site = get_effective_site_settings(request=request, school=school)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 318,
+        "snippet": "site = get_effective_site_settings(request=request, school=school)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 361,
+        "snippet": "site = get_effective_site_settings(request=request, school=school)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 370,
+        "snippet": "def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 465,
+        "snippet": "def get_platform_site_settings_record(*, create: bool = False) -> Any:"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 638,
+        "snippet": "legacy_site = get_platform_site_settings_record(create=False)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 750,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/platform_runtime/management/commands/backfill_runtime_defaults.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 43,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/platform_runtime/migrations/0003_backfill_runtimedefaults_from_sitesettings.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 26,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "get_model_SiteSettings",
+        "line": 26,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 29,
+        "snippet": "site = SiteSettings.objects.order_by(\"pk\").first()"
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 29,
+        "snippet": "site = SiteSettings.objects.order_by(\"pk\").first()"
+      }
+    ],
+    "apps/platform_runtime/migrations/0004_runtimedefaults_cache_rankings_interval.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 18,
+        "snippet": "help_text=\"Owned by platform_runtime (Step 4). When set, get_effective_site_settings uses this instead of SiteSettings.\","
+      }
+    ],
+    "apps/platform_runtime/migrations/0005_alter_runtimedefaults_cache_rankings_interval_minutes.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 17,
+        "snippet": "help_text=\"Owned by platform_runtime. When set, resolver uses this instead of SiteSettings.\","
+      }
+    ],
+    "apps/platform_runtime/migrations/0007_platform_phase_b_domain_snapshots.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 9,
+        "snippet": "from apps.siteconfig.models import SiteSettings"
+      },
+      {
+        "kind": "import_SiteSettings_models",
+        "line": 9,
+        "snippet": "from apps.siteconfig.models import SiteSettings"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 16,
+        "snippet": "site = SiteSettings.objects.order_by(\"pk\").first()"
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 16,
+        "snippet": "site = SiteSettings.objects.order_by(\"pk\").first()"
+      }
+    ],
+    "apps/platform_runtime/migrations/0009_runtimedefaults_preview_integration_columns.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 110,
+        "snippet": "field=models.PositiveIntegerField(blank=True, help_text='When set, resolver uses this instead of payload/SiteSettings.', null=True),"
+      }
+    ],
+    "apps/platform_runtime/models.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 579,
+        "snippet": "Callers must pass site_settings (e.g. get_platform_site_settings_record() in commands, self on save)."
+      }
+    ],
+    "apps/platform_runtime/runtime_resolver.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 365,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 368,
+        "snippet": "site = get_effective_site_settings(school=school)"
+      }
+    ],
+    "apps/platform_runtime/site_settings_read_access.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 3,
+        "snippet": ":mod:`apps.siteconfig.config_service` as the single configuration fa\u00e7ade."
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 5,
+        "snippet": "**Do not** import ``SiteSettings`` from ``apps.siteconfig.models`` in product code outside"
+      }
+    ],
+    "apps/platform_runtime/tests/support/runtime_defaults_first_class.py": [
+      {
+        "kind": "site_settings_read_access",
+        "line": 7,
+        "snippet": "from apps.platform_runtime.site_settings_read_access import ("
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 24,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 41,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 52,
+        "snippet": "eff = get_effective_site_settings(request=None, school=None)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 64,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/platform_runtime/tests/test_batch947_platform_runtime_no_singleton_bypass.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 3,
+        "snippet": "SiteSettings singleton bypasses (get_solo / load / direct SiteSettings.objects)."
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 3,
+        "snippet": "SiteSettings singleton bypasses (get_solo / load / direct SiteSettings.objects)."
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 19,
+        "snippet": "_GET_SOLO_RE = re.compile(r\"SiteSettings\\.get_solo\\s*\\(\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 20,
+        "snippet": "_LOAD_RE = re.compile(r\"SiteSettings\\.load\\s*\\(\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 21,
+        "snippet": "_OBJECTS_RE = re.compile(r\"SiteSettings\\.objects\\.\\w+\\s*\\(\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 68,
+        "snippet": "\"get_platform_site_settings_record, not SiteSettings singleton shortcuts:\\n\""
+      }
+    ],
+    "apps/platform_runtime/tests/test_lint_sitesettings_orm_singleton_script.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 26,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\\nx = SiteSettings.objects.filter(pk=1)\\n\","
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 26,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\\nx = SiteSettings.objects.filter(pk=1)\\n\","
+      },
+      {
+        "kind": "import_SiteSettings_models",
+        "line": 26,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\\nx = SiteSettings.objects.filter(pk=1)\\n\","
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 31,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\\nx = SiteSettings.objects.get(pk=1)\\n\","
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 31,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\\nx = SiteSettings.objects.get(pk=1)\\n\","
+      },
+      {
+        "kind": "import_SiteSettings_models",
+        "line": 31,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\\nx = SiteSettings.objects.get(pk=1)\\n\","
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 43,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\\nSiteSettings.objects.all()\\n\","
+      },
+      {
+        "kind": "import_SiteSettings_models",
+        "line": 43,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\\nSiteSettings.objects.all()\\n\","
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 55,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\\nSiteSettings.objects.all()\\n\","
+      },
+      {
+        "kind": "import_SiteSettings_models",
+        "line": 55,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\\nSiteSettings.objects.all()\\n\","
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 60,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\\nSiteSettings.objects.all()\\n\","
+      },
+      {
+        "kind": "import_SiteSettings_models",
+        "line": 60,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\\nSiteSettings.objects.all()\\n\","
+      }
+    ],
+    "apps/platform_runtime/tests/test_lint_tenant_settings_script.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 33,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\","
+      },
+      {
+        "kind": "import_SiteSettings_models",
+        "line": 33,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\","
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 36,
+        "snippet": "\"    return SiteSettings.get_solo()\","
+      },
+      {
+        "kind": "SiteSettings_get_solo",
+        "line": 36,
+        "snippet": "\"    return SiteSettings.get_solo()\","
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 56,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\","
+      },
+      {
+        "kind": "import_SiteSettings_models",
+        "line": 56,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\","
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 59,
+        "snippet": "\"    return SiteSettings.objects.filter(pk=1).first()\","
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 59,
+        "snippet": "\"    return SiteSettings.objects.filter(pk=1).first()\","
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 82,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\","
+      },
+      {
+        "kind": "import_SiteSettings_models",
+        "line": 82,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\","
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 85,
+        "snippet": "'    return SiteSettings.objects.order_by(\"pk\").first()',"
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 85,
+        "snippet": "'    return SiteSettings.objects.order_by(\"pk\").first()',"
+      }
+    ],
+    "apps/platform_runtime/tests/test_marketplace_integration_helper_contract.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 18,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 22,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 37,
+        "snippet": "site = get_platform_site_settings_record(create=False)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 46,
+        "snippet": "a = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 47,
+        "snippet": "b = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/platform_runtime/tests/test_phase_b_domain_snapshots.py": [
+      {
+        "kind": "site_settings_read_access",
+        "line": 8,
+        "snippet": "from apps.platform_runtime.site_settings_read_access import ("
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 28,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 41,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 76,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 111,
+        "snippet": "eff = get_effective_site_settings(request=None, school=None)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 115,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 136,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/platform_runtime/tests/test_phase_b_execution_gate.py": [
+      {
+        "kind": "site_settings_read_access",
+        "line": 11,
+        "snippet": "from apps.platform_runtime.site_settings_read_access import get_platform_site_settings_record"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 34,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/platform_runtime/tests/test_runtime_contract.py": [
+      {
+        "kind": "site_settings_read_access",
+        "line": 19,
+        "snippet": "from apps.platform_runtime.site_settings_read_access import ("
+      },
+      {
+        "kind": "site_settings_read_access",
+        "line": 53,
+        "snippet": "from apps.platform_runtime.site_settings_read_access import ("
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 57,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 260,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 281,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 302,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 324,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 363,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 382,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 416,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 432,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 446,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 454,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 467,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 478,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 491,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 500,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 513,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 520,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 533,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 540,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 561,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 574,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 589,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 601,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 626,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 649,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 674,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 692,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 711,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 733,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 752,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 765,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 784,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 796,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 815,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 825,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 844,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 854,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 883,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 906,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 925,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 935,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 958,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 980,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1004,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1030,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1049,
+        "snippet": "resolved = get_effective_site_settings()"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1056,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1074,
+        "snippet": "resolved = get_effective_site_settings(school=school)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1082,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1105,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1117,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1144,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1159,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1179,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1201,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1252,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1282,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1314,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1338,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1366,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1416,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1428,
+        "snippet": "site = get_platform_site_settings_record(create=False)"
+      }
+    ],
+    "apps/platform_runtime/tests/test_runtime_defaults_report_downloads.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 19,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 36,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 43,
+        "snippet": "eff = get_effective_site_settings(request=None, school=None)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 49,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/platform_runtime/tests/test_site_settings_import_surface_lint.py": [
+      {
+        "kind": "get_effective_site_settings",
+        "line": 15,
+        "snippet": "r\"(?:^|\\s|,)get_effective_site_settings(?:\\s|,|$)\","
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 44,
+        "snippet": "\"Import SiteSettings readers via apps.siteconfig.config_service\","
+      },
+      {
+        "kind": "config_service_facade",
+        "line": 44,
+        "snippet": "\"Import SiteSettings readers via apps.siteconfig.config_service\","
+      }
+    ],
+    "apps/platform_runtime/tests/test_site_settings_read_access_import_smoke.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 24,
+        "snippet": "f\"{modname} should import runtime reads via apps.siteconfig.config_service (1041)\","
+      }
+    ],
+    "apps/platform_runtime/tests/test_sitesettings_python_surface_audit.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 63,
+        "snippet": "text = \"from apps.siteconfig.models import SiteSettings\\n\""
+      },
+      {
+        "kind": "import_SiteSettings_models",
+        "line": 63,
+        "snippet": "text = \"from apps.siteconfig.models import SiteSettings\\n\""
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 70,
+        "snippet": "text = \"from apps.siteconfig.models import SiteSettings\\n\""
+      },
+      {
+        "kind": "import_SiteSettings_models",
+        "line": 70,
+        "snippet": "text = \"from apps.siteconfig.models import SiteSettings\\n\""
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 74,
+        "snippet": "self.assertIn(\"import SiteSettings from apps.siteconfig.models\", kinds)"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 78,
+        "snippet": "text = \"def x():\\n    SiteSettings = apps.get_model('siteconfig', 'SiteSettings')\\n\""
+      },
+      {
+        "kind": "get_model_SiteSettings",
+        "line": 78,
+        "snippet": "text = \"def x():\\n    SiteSettings = apps.get_model('siteconfig', 'SiteSettings')\\n\""
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 82,
+        "snippet": "self.assertIn(\"get_model('siteconfig','SiteSettings')\", kinds)"
+      },
+      {
+        "kind": "get_model_SiteSettings",
+        "line": 82,
+        "snippet": "self.assertIn(\"get_model('siteconfig','SiteSettings')\", kinds)"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 86,
+        "snippet": "m = mod.scan_file_text(\"SiteSettings.objects.get(pk=1)\\n\")"
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 86,
+        "snippet": "m = mod.scan_file_text(\"SiteSettings.objects.get(pk=1)\\n\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 88,
+        "snippet": "self.assertTrue(any(x[\"kind\"] == \"SiteSettings.objects\" for x in v))"
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 88,
+        "snippet": "self.assertTrue(any(x[\"kind\"] == \"SiteSettings.objects\" for x in v))"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 93,
+        "snippet": "m = mod.scan_file_text(\"from apps.siteconfig.models import SiteSettings\\n\")"
+      },
+      {
+        "kind": "import_SiteSettings_models",
+        "line": 93,
+        "snippet": "m = mod.scan_file_text(\"from apps.siteconfig.models import SiteSettings\\n\")"
+      }
+    ],
+    "apps/platform_runtime/tests/test_sitesettings_runtime_read_parity.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 3,
+        "snippet": "``apps.siteconfig.config_service`` (plus shared message chrome core)."
+      },
+      {
+        "kind": "config_service_facade",
+        "line": 23,
+        "snippet": "f\"{rel} should import runtime reads via apps.siteconfig.config_service\","
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 26,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\","
+      },
+      {
+        "kind": "import_SiteSettings_models",
+        "line": 26,
+        "snippet": "\"from apps.siteconfig.models import SiteSettings\","
+      }
+    ],
+    "apps/policies/resolver.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 13,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 44,
+        "snippet": "site = get_effective_site_settings(school=school)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 49,
+        "snippet": "site = get_platform_site_settings_record(create=False)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 624,
+        "snippet": "site = get_effective_site_settings(school=school)"
+      }
+    ],
+    "apps/portal/forms.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 10,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 152,
+        "snippet": "site = get_effective_site_settings(school=school)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 729,
+        "snippet": "site = get_effective_site_settings(school=getattr(self, \"school\", None))"
+      }
+    ],
+    "apps/portal/services.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 33,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 87,
+        "snippet": "return get_effective_site_settings(school=school)"
+      }
+    ],
+    "apps/portal/tests/test_communication_center.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 11,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 54,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/portal/tests/test_phase1_1_optimization.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 65,
+        "snippet": "self.site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/portal/tests/test_photo_upload.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 20,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/portal/tests/test_seating_chart_flag.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 25,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/portal/views.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 27,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 307,
+        "snippet": "\"site\": get_effective_site_settings(request=request),"
+      }
+    ],
+    "apps/portal/views_ai_gateway.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 1203,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1205,
+        "snippet": "settings_obj = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/portal/views_onboarding.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 16,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 43,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 178,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/portal/views_parent.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 72,
+        "snippet": "from apps.siteconfig.config_service import ("
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 377,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 424,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 888,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1213,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1271,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/portal/views_student.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 22,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 45,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 152,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/reports/management/commands/generate_regional_reports.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 15,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 258,
+        "snippet": "site = get_effective_site_settings()"
+      }
+    ],
+    "apps/reports/services.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 13,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 50,
+        "snippet": "return get_effective_site_settings(school=school)"
+      }
+    ],
+    "apps/reports/tests/test_cameroon_report_context.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 122,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/reports/tests/test_publish_term.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 86,
+        "snippet": "self.site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/reports/views.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 29,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 51,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 641,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 658,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 781,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/requests/tasks.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 15,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 41,
+        "snippet": "site = get_effective_site_settings(school=getattr(req, \"school\", None))"
+      }
+    ],
+    "apps/requests/tests/test_tasks.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 44,
+        "snippet": "settings = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 61,
+        "snippet": "settings = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/schools/super_views_config.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 212,
+        "snippet": "site = get_platform_site_settings_record(create=False)"
+      }
+    ],
+    "apps/schools/super_views_phase_b.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 96,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/schools/super_views_runtime_ops.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 214,
+        "snippet": "ss = get_platform_site_settings_record(create=False)"
+      }
+    ],
+    "apps/schools/tests/test_super_phase_b_snapshot_diff.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 37,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 57,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 69,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 80,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 97,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 124,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 136,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 147,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 197,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 219,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 230,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 277,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 289,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 318,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 345,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 368,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 384,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 411,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 433,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 468,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/schools/tests/test_super_site_settings_phase_b_writes.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 27,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/schools/tests/test_tenant_isolation_and_provisioning.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 422,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/schools/welcome_email.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 52,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 55,
+        "snippet": "school=school, site=get_effective_site_settings(school=school)"
+      }
+    ],
+    "apps/siteconfig/admin.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 375,
+        "snippet": "get_platform_site_settings_record(create=False) is None"
+      },
+      {
+        "kind": "config_service_facade",
+        "line": 523,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 525,
+        "snippet": "eff = get_effective_site_settings(request=None, school=None)"
+      },
+      {
+        "kind": "config_service_facade",
+        "line": 557,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 559,
+        "snippet": "eff = get_effective_site_settings(request=None, school=None) or obj"
+      }
+    ],
+    "apps/siteconfig/config_service.py": [
+      {
+        "kind": "get_effective_site_settings",
+        "line": 114,
+        "snippet": "def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 125,
+        "snippet": "def get_platform_site_settings_record(*, create: bool = False) -> Any:"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 235,
+        "snippet": "return get_effective_site_settings(request=request, school=school)"
+      }
+    ],
+    "apps/siteconfig/context_processors.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 19,
+        "snippet": "from apps.siteconfig.config_service import ("
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 252,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/siteconfig/dashboard_views.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 16,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 73,
+        "snippet": "site = get_effective_site_settings(request=request, school=school)"
+      }
+    ],
+    "apps/siteconfig/forms.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 14,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 848,
+        "snippet": "site = get_effective_site_settings(school=_school_for_user(self.user))"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 897,
+        "snippet": "site = get_effective_site_settings("
+      },
+      {
+        "kind": "config_service_facade",
+        "line": 1234,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1236,
+        "snippet": "instance = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "config_service_facade",
+        "line": 1462,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1464,
+        "snippet": "instance = get_effective_site_settings(request=None)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1467,
+        "snippet": "\"ThemeColorsForm save: get_effective_site_settings(request=None) failed\","
+      }
+    ],
+    "apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 1480,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/siteconfig/management/commands/seed_preview_fixtures.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 25,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/siteconfig/middleware/maintenance_mode.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 5,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 45,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 83,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/siteconfig/migrations/0001_initial.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 45,
+        "snippet": "name=\"SiteSettings\","
+      }
+    ],
+    "apps/siteconfig/migrations/0003_sitesettings_compliance_profile.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 12,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "get_model_SiteSettings",
+        "line": 12,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 22,
+        "snippet": "schema_editor.add_field(SiteSettings, field)"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 28,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "get_model_SiteSettings",
+        "line": 28,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 29,
+        "snippet": "field = SiteSettings._meta.get_field(\"compliance_profile\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 30,
+        "snippet": "schema_editor.remove_field(SiteSettings, field)"
+      }
+    ],
+    "apps/siteconfig/migrations/0011_themepack_defaults.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 6,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "get_model_SiteSettings",
+        "line": 6,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 62,
+        "snippet": "site_settings, _ = SiteSettings.objects.get_or_create(pk=1)"
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 62,
+        "snippet": "site_settings, _ = SiteSettings.objects.get_or_create(pk=1)"
+      }
+    ],
+    "apps/siteconfig/migrations/0039_report_preview_defaults.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 5,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "get_model_SiteSettings",
+        "line": 5,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 14,
+        "snippet": "for settings_obj in SiteSettings.objects.all():"
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 14,
+        "snippet": "for settings_obj in SiteSettings.objects.all():"
+      }
+    ],
+    "apps/siteconfig/migrations/0051_theme_phases_a_d.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 163,
+        "snippet": "help_text=\"When True, admin sidebar active/accent uses SiteSettings.primary_color.\","
+      }
+    ],
+    "apps/siteconfig/migrations/0076_normalize_themepack_defaults_and_constraint.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 7,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "get_model_SiteSettings",
+        "line": 7,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 9,
+        "snippet": "site = SiteSettings.objects.order_by(\"id\").first()"
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 9,
+        "snippet": "site = SiteSettings.objects.order_by(\"id\").first()"
+      }
+    ],
+    "apps/siteconfig/migrations/0115_runmycampus_platform_neutral_data.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 8,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "get_model_SiteSettings",
+        "line": 8,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 9,
+        "snippet": "for obj in SiteSettings.objects.all():"
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 9,
+        "snippet": "for obj in SiteSettings.objects.all():"
+      }
+    ],
+    "apps/siteconfig/migrations/0125_add_admission_number_strategy_and_template.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 10,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "get_model_SiteSettings",
+        "line": 10,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 11,
+        "snippet": "table = SiteSettings._meta.db_table"
+      }
+    ],
+    "apps/siteconfig/migrations/0155_normalize_gilead_residue_runmycampus.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 9,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "get_model_SiteSettings",
+        "line": 9,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 24,
+        "snippet": "for obj in SiteSettings.objects.all():"
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 24,
+        "snippet": "for obj in SiteSettings.objects.all():"
+      }
+    ],
+    "apps/siteconfig/migrations/0162_phase_b_slim_sitesettings.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 11,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "get_model_SiteSettings",
+        "line": 11,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 13,
+        "snippet": "site = SiteSettings.objects.order_by(\"pk\").first()"
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 13,
+        "snippet": "site = SiteSettings.objects.order_by(\"pk\").first()"
+      }
+    ],
+    "apps/siteconfig/migrations/0163_phase_b_batch3_drop_sitesettings_branding_columns.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 7,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "get_model_SiteSettings",
+        "line": 7,
+        "snippet": "SiteSettings = apps.get_model(\"siteconfig\", \"SiteSettings\")"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 11,
+        "snippet": "site = SiteSettings.objects.order_by(\"pk\").first()"
+      },
+      {
+        "kind": "SiteSettings_objects",
+        "line": 11,
+        "snippet": "site = SiteSettings.objects.order_by(\"pk\").first()"
+      }
+    ],
+    "apps/siteconfig/models.py": [
+      {
+        "kind": "SiteSettings_word",
+        "line": 125,
+        "snippet": "class SiteSettings(models.Model):"
+      }
+    ],
+    "apps/siteconfig/models_support.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 786,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 788,
+        "snippet": "site = get_effective_site_settings()"
+      }
+    ],
+    "apps/siteconfig/models_tooling.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 604,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 606,
+        "snippet": "site = get_effective_site_settings(school=getattr(student, \"school\", None))"
+      }
+    ],
+    "apps/siteconfig/templatetags/admin_health.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 11,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 84,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 122,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/siteconfig/tests/test_admin_dashboard_adaptability.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 264,
+        "snippet": "self.site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/siteconfig/tests/test_admin_ui_smoke.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 93,
+        "snippet": "self.site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/siteconfig/tests/test_admission_config.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 21,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 45,
+        "snippet": "get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/siteconfig/tests/test_backend_context.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 21,
+        "snippet": "self.site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 83,
+        "snippet": "self.site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/siteconfig/tests/test_brand_import_view.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 14,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 38,
+        "snippet": "self.site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/siteconfig/tests/test_brand_profile_resolver.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 12,
+        "snippet": "self.site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/siteconfig/tests/test_config_service_smoke.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 8,
+        "snippet": "from apps.siteconfig.config_service import ("
+      }
+    ],
+    "apps/siteconfig/tests/test_feature_control.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 107,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 141,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 177,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 228,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/siteconfig/tests/test_reportcard_builder.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 69,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/siteconfig/tests/test_seed_preview_fixtures_command.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 13,
+        "snippet": "site = get_platform_site_settings_record(create=False)"
+      }
+    ],
+    "apps/siteconfig/tests/test_site_settings_compliance_profile_pointer.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 11,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/siteconfig/tests/test_theme_studio.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 53,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 125,
+        "snippet": "form = ThemeColorsForm(instance=get_platform_site_settings_record(create=True))"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 183,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 205,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 232,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 324,
+        "snippet": "self.site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 456,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 517,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "apps/siteconfig/views.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 35,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 554,
+        "snippet": "settings_obj = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 921,
+        "snippet": "site = get_effective_site_settings(school=getattr(student, \"school\", None))"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1023,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1565,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1782,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1882,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 1974,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 2022,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 2525,
+        "snippet": "school=school, site=get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/siteconfig/views_feature_control.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 29,
+        "snippet": "from apps.siteconfig.config_service import ("
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 59,
+        "snippet": "persisted = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 62,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 70,
+        "snippet": "persisted = get_platform_site_settings_record(create=False)"
+      }
+    ],
+    "apps/siteconfig/views_guided_configuration.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 14,
+        "snippet": "from apps.siteconfig.config_service import build_guided_configuration_cards"
+      }
+    ],
+    "apps/siteconfig/views_tenant_runtime_hub.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 17,
+        "snippet": "from apps.siteconfig.config_service import ("
+      }
+    ],
+    "apps/studio_os/services.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 768,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 772,
+        "snippet": "site = get_effective_site_settings(request=request)"
+      }
+    ],
+    "apps/studio_os/tests/test_experience_rollback.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 38,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 68,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 93,
+        "snippet": "site = get_platform_site_settings_record(create=False)"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 104,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      },
+      {
+        "kind": "SiteSettings_word",
+        "line": 120,
+        "snippet": "with patch(\"apps.siteconfig.models.SiteSettings.apply_theme_experience_state\", None):"
+      },
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 125,
+        "snippet": "site = get_platform_site_settings_record(create=False)"
+      }
+    ],
+    "apps/studio_os/views.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 2025,
+        "snippet": "site = get_platform_site_settings_record(create=False)"
+      }
+    ],
+    "emis/services.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 19,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 20,
+        "snippet": "return get_effective_site_settings(request=request, school=school)"
+      }
+    ],
+    "emis/tests.py": [
+      {
+        "kind": "get_platform_site_settings_record",
+        "line": 108,
+        "snippet": "site = get_platform_site_settings_record(create=True)"
+      }
+    ],
+    "emis/views.py": [
+      {
+        "kind": "config_service_facade",
+        "line": 19,
+        "snippet": "from apps.siteconfig.config_service import get_effective_site_settings"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 29,
+        "snippet": "site = get_effective_site_settings(request)"
+      },
+      {
+        "kind": "get_effective_site_settings",
+        "line": 147,
+        "snippet": "site = get_effective_site_settings(request)"
+      }
+    ],
+    "templates/admin/components/admin_dashboard_palette_selector.html": [
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 33,
+        "snippet": "{% if site_settings.theme_pack %}{{ site_settings.theme_pack.name }}{% else %}{% trans \"None selected\" %}{% endif %}"
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 37,
+        "snippet": "{% if site_settings.admin_theme_pack %}{{ site_settings.admin_theme_pack.name }}{% else %}{% trans \"None selected\" %}{% endif %}"
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 54,
+        "snippet": "data-site-active=\"{% if site_settings.theme_pack_id == pack.pk %}1{% else %}0{% endif %}\""
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 55,
+        "snippet": "data-admin-active=\"{% if site_settings.admin_theme_pack_id == pack.pk %}1{% else %}0{% endif %}\""
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 75,
+        "snippet": "<span class=\"badge text-bg-primary-subtle theme-pack-pill theme-pack-pill-site {% if site_settings.theme_pack_id != pack.pk %}d-none{% endif %}\" data-role=\"site-active\">{% trans \"Site active\" %}</span>"
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 76,
+        "snippet": "<span class=\"badge text-bg-success-subtle theme-pack-pill theme-pack-pill-admin {% if site_settings.admin_theme_pack_id != pack.pk %}d-none{% endif %}\" data-role=\"admin-active\">{% trans \"Admin active\" %}</span>"
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 91,
+        "snippet": "data-site-active=\"{% if site_settings.theme_pack_id == pack.pk %}1{% else %}0{% endif %}\""
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 92,
+        "snippet": "data-admin-active=\"{% if site_settings.admin_theme_pack_id == pack.pk %}1{% else %}0{% endif %}\""
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 111,
+        "snippet": "<span class=\"badge text-bg-primary-subtle theme-pack-pill theme-pack-pill-site {% if site_settings.theme_pack_id != pack.pk %}d-none{% endif %}\" data-role=\"site-active\">{% trans \"Site active\" %}</span>"
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 112,
+        "snippet": "<span class=\"badge text-bg-success-subtle theme-pack-pill theme-pack-pill-admin {% if site_settings.admin_theme_pack_id != pack.pk %}d-none{% endif %}\" data-role=\"admin-active\">{% trans \"Admin active\" %}</span>"
+      }
+    ],
+    "templates/admin/sidebar_inner.html": [
+      {
+        "kind": "template_SiteSettings_comment",
+        "line": 4,
+        "snippet": "Logo: SITE_ADMIN_LOGO_URL (ThemePack) or SITE_LOGO_URL (SiteSettings) or static fallback."
+      }
+    ],
+    "templates/admin/siteconfig/app_index.html": [
+      {
+        "kind": "template_SiteSettings_comment",
+        "line": 13,
+        "snippet": "<strong>SiteSettings</strong> is not on platform admin (tenant schools use tenant <code>/admin/</code>)."
+      }
+    ],
+    "templates/admin/siteconfig/sitesettings/change_form.html": [
+      {
+        "kind": "template_SiteSettings_comment",
+        "line": 7,
+        "snippet": "{# P3: SiteSettings is tenant_admin-only; `super:` URLs are not in tenant urlconf \u2014 link siteconfig + Studio surfaces that resolve on school hosts. #}"
+      }
+    ],
+    "templates/partials/portal_sidebar.html": [
+      {
+        "kind": "template_SiteSettings_comment",
+        "line": 56,
+        "snippet": "{% comment %}Config-driven order from SiteSettings.portal_sidebar_order via PORTAL_SIDEBAR_ITEMS{% endcomment %}"
+      }
+    ],
+    "templates/schools/super_phase_b_snapshot_diff.html": [
+      {
+        "kind": "template_SiteSettings_comment",
+        "line": 20,
+        "snippet": "{% include \"studio_os/components/page_header.html\" with title=_(\"Phase B snapshot diff\") subtitle=_(\"Live SiteSettings ownership slice vs materialized snapshots: whole-row checksum, per-key fingerprints, unified diff.\") action_url=dashbo..."
+      },
+      {
+        "kind": "template_SiteSettings_comment",
+        "line": 27,
+        "snippet": "<button type=\"submit\" class=\"btn btn-sm btn-primary\">{% trans \"Re-materialize all snapshots from live SiteSettings\" %}</button>"
+      },
+      {
+        "kind": "template_SiteSettings_comment",
+        "line": 34,
+        "snippet": "{% trans \"If drift appears after SiteSettings.save, use the button above or open\" %}"
+      }
+    ],
+    "templates/schools/super_site_settings_edit.html": [
+      {
+        "kind": "template_SiteSettings_comment",
+        "line": 26,
+        "snippet": "{% trans \"Maintenance on SiteSettings; theme packs and default report styles on Platform global branding. Site name, colors, and flags live in Runtime Defaults and Feature Control.\" %}"
+      }
+    ],
+    "templates/siteconfig/partials/reportcard_builder_inner.html": [
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 40,
+        "snippet": "<span class=\"badge text-bg-info\">{% trans \"Default term\" %}: {% if site_settings.default_term_report_style %}{{ site_settings.default_term_report_style.name }}{% else %}{% trans \"Not set\" %}{% endif %}</span>"
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 41,
+        "snippet": "<span class=\"badge text-bg-info\">{% trans \"Default annual\" %}: {% if site_settings.default_annual_report_style %}{{ site_settings.default_annual_report_style.name }}{% else %}{% trans \"Not set\" %}{% endif %}</span>"
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 88,
+        "snippet": "<article class=\"border rounded-3 p-3 js-style-card {% if site_settings.default_term_report_style_id == style.id or site_settings.default_annual_report_style_id == style.id %}border-primary-subtle{% endif %}\""
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 104,
+        "snippet": "{% if site_settings.default_term_report_style_id == style.id %}"
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 107,
+        "snippet": "{% if site_settings.default_annual_report_style_id == style.id %}"
+      }
+    ],
+    "templates/siteconfig/partials/theme_colors_content.html": [
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 2,
+        "snippet": "{# Theme & Experience content for Studio OS or standalone theme_colors page. Expects: form, site_settings, preview_mode_active, theme_contrast_report, theme_recent_change_meta, theme_publish_guarded_count, admin_theme_packs, admin_theme_..."
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 11,
+        "snippet": "<span class=\"small text-muted\">{% trans \"Site pack:\" %} {% if site_settings.theme_pack %}{{ site_settings.theme_pack.name }}{% else %}{% trans \"None\" %}{% endif %} | {% trans \"Admin pack:\" %} {% if site_settings.admin_theme_pack %}{{ sit..."
+      }
+    ],
+    "templates/siteconfig/partials/theme_colors_page_body.html": [
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 58,
+        "snippet": "{% if site_settings.theme_pack %}{{ site_settings.theme_pack.name }}{% else %}{% trans \"None selected\" %}{% endif %}"
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 64,
+        "snippet": "{% if site_settings.admin_theme_pack %}{{ site_settings.admin_theme_pack.name }}{% else %}{% trans \"None selected\" %}{% endif %}"
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 70,
+        "snippet": "class=\"small mt-1 {% if site_settings.theme_pack_id and site_settings.theme_pack_id == site_settings.admin_theme_pack_id %}text-success{% else %}text-warning{% endif %}\""
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 74,
+        "snippet": "{% if site_settings.theme_pack_id and site_settings.theme_pack_id == site_settings.admin_theme_pack_id %}"
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 81,
+        "snippet": "{% trans \"Last saved:\" %} {{ site_settings.updated_at|date:\"Y-m-d H:i\" }} -"
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 118,
+        "snippet": "<li>{% trans \"Portal & login (everyone):\" %} <strong id=\"theme-who-portal\">{% if site_settings.theme_pack %}{{ site_settings.theme_pack.name }}{% else %}{% trans \"None selected\" %}{% endif %}</strong></li>"
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 119,
+        "snippet": "<li>{% trans \"Admin & backend (staff):\" %} <strong id=\"theme-who-admin\">{% if site_settings.admin_theme_pack %}{{ site_settings.admin_theme_pack.name }}{% else %}{% trans \"None selected\" %}{% endif %}</strong></li>"
+      },
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 166,
+        "snippet": "{% if not site_settings.theme_pack_id or not site_settings.admin_theme_pack_id or site_settings.theme_pack_id != site_settings.admin_theme_pack_id %}"
+      }
+    ],
+    "templates/studio_os/partials/output_reportcard_builder_wrapper.html": [
+      {
+        "kind": "template_site_settings_identifier",
+        "line": 2,
+        "snippet": "{% with site_settings=output_reportcard_builder.site_settings|default:output_reportcard_builder.settings styles=output_reportcard_builder.styles assignments=output_reportcard_builder.assignments preview_students=output_reportcard_builder..."
+      }
+    ]
+  },
+  "scan_roots": [
+    "apps",
+    "templates",
+    "services",
+    "tests",
+    "emis"
+  ],
+  "schema_version": 1,
+  "summary_counts_by_kind": {
+    "SiteSettings_get_solo": 2,
+    "SiteSettings_objects": 19,
+    "SiteSettings_word": 69,
+    "chained_effective_attribute_read": 1,
+    "config_service_facade": 77,
+    "get_effective_site_settings": 147,
+    "get_model_SiteSettings": 15,
+    "get_platform_site_settings_record": 167,
+    "import_SiteSettings_models": 13,
+    "site_settings_read_access": 7,
+    "template_SiteSettings_comment": 8,
+    "template_site_settings_identifier": 26
+  },
+  "synonyms_documented": {
+    "get_sitesettings": "No symbol get_sitesettings() in tree; use get_effective_site_settings / get_platform_site_settings_record."
+  }
+}

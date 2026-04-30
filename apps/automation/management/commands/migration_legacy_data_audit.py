@@ -38,7 +38,7 @@ class Command(BaseCommand):
         if not failed:
             self.stdout.write("  (none)")
         self.stdout.write("")
-        self.stdout.write(self.style.WARNING(f"PARTIAL/SUCCESS with error_count>0:"))
+        self.stdout.write(self.style.WARNING("PARTIAL/SUCCESS with error_count>0:"))
         for r in errs:
             self.stdout.write(
                 f"  id={r.id} school={r.school_id} type={r.migration_type} "

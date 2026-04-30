@@ -206,3 +206,137 @@ class WorkflowRunLog(models.Model):
 
     def __str__(self):
         return f"Run {self.id} — {self.tenant_workflow} @ {self.created_at}"
+
+
+class SchoolAutomationWorkflow(models.Model):
+    """
+    School-authored no-code automation (visual builder). Lives in public schema with school FK.
+    Distinct from TenantWorkflow + WorkflowTemplate (platform catalog).
+    """
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        PUBLISHED = "published", "Published"
+        ARCHIVED = "archived", "Archived"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="school_automation_workflows",
+    )
+    name = models.CharField(max_length=160)
+    trigger = models.CharField(
+        max_length=80,
+        db_index=True,
+        help_text="Domain trigger e.g. student_updated, payment_received.",
+    )
+    trigger_config = models.JSONField(default=dict, blank=True)
+    conditions = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Conditions: [{"field": "...", "op": "eq", "value": ...}].',
+    )
+    actions = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Actions: [{"type": "notify", "params": {...}}].',
+    )
+    graph = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Visual builder graph: nodes/edges for drag-drop UI.",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.DRAFT,
+        db_index=True,
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="When false, engine skips this workflow even if published.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "School automation workflow"
+        verbose_name_plural = "School automation workflows"
+        ordering = ["school", "name"]
+        indexes = [
+            models.Index(fields=["school", "trigger", "status"]),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.trigger}) — {self.school_id}"
+
+
+class SchoolWorkflowExecutionLog(models.Model):
+    """Per-run audit for SchoolAutomationWorkflow (async-capable, retries)."""
+
+    class RunStatus(models.TextChoices):
+        PENDING = "pending", "Pending"
+        SUCCESS = "success", "Success"
+        FAILED = "failed", "Failed"
+        SKIPPED = "skipped", "Skipped"
+
+    workflow = models.ForeignKey(
+        SchoolAutomationWorkflow,
+        on_delete=models.CASCADE,
+        related_name="execution_logs",
+    )
+    conditions_passed = models.BooleanField(default=False)
+    actions_run = models.JSONField(default=list)
+    context_keys = models.JSONField(default=list)
+    run_status = models.CharField(
+        max_length=16,
+        choices=RunStatus.choices,
+        default=RunStatus.SUCCESS,
+    )
+    retry_count = models.PositiveSmallIntegerField(default=0)
+    error_message = models.TextField(blank=True)
+    celery_task_id = models.CharField(max_length=64, blank=True)
+    context_snapshot = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Sanitized trigger context for action retries (no secrets).",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "School workflow execution log"
+        verbose_name_plural = "School workflow execution logs"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"SchoolWorkflowRun {self.id} wf={self.workflow_id} @ {self.created_at}"
+
+
+class SchoolWorkflowCreatedRecord(models.Model):
+    """
+    Records created by workflow \"create_record\" actions (safe automation audit trail).
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="workflow_created_records",
+    )
+    workflow = models.ForeignKey(
+        SchoolAutomationWorkflow,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_records",
+    )
+    record_type = models.CharField(max_length=80, blank=True)
+    payload = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "School workflow created record"
+        verbose_name_plural = "School workflow created records"
+
+    def __str__(self):
+        return f"CreatedRecord {self.id} {self.record_type}"

@@ -14,7 +14,7 @@ from django.urls import NoReverseMatch, get_resolver, reverse
 
 @dataclass(frozen=True)
 class MarketingUrlSmokeTarget:
-    """One GET target for smoke/full checks."""
+    """One smoke target (usually GET). POST-only routes may legitimately return 405 on GET."""
 
     name: str
     path: str
@@ -22,6 +22,12 @@ class MarketingUrlSmokeTarget:
 
     def accepts(self, status_code: int) -> bool:
         return status_code in self.ok_statuses
+
+
+# ``marketing_book_demo_submit`` is ``@require_POST``; GET must return 405, not 200.
+_POST_ONLY_MARKETING_NAMES = frozenset({"marketing_book_demo_submit"})
+_GET_OK_DEFAULT = frozenset({200})
+_GET_OK_POST_ONLY = frozenset({200, 405})
 
 
 # Slug must exist after ``seed_marketing_cms`` (or equivalent) for 200.
@@ -100,9 +106,12 @@ def iter_marketing_smoke_targets() -> list[MarketingUrlSmokeTarget]:
                 path = reverse(name)
         except NoReverseMatch:
             continue
-        targets.append(
-            MarketingUrlSmokeTarget(name=name, path=path, ok_statuses=frozenset({200}))
+        ok = (
+            _GET_OK_POST_ONLY
+            if name in _POST_ONLY_MARKETING_NAMES
+            else _GET_OK_DEFAULT
         )
+        targets.append(MarketingUrlSmokeTarget(name=name, path=path, ok_statuses=ok))
     return targets
 
 

@@ -7,4 +7,4 @@ class EvalsConfig(AppConfig):
     verbose_name = "📊 Evaluations & Grading"
 
     def ready(self):
-        pass  # Register signal handlers
+        import apps.evals.signals  # noqa: F401

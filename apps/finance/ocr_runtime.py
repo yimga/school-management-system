@@ -144,6 +144,6 @@ def get_ocr_runtime_status(
         "ready": False,
         "message": f"Unsupported OCR method: {method}",
         "missing": [
-            f"Use one of: pattern, ocr_tesseract, ocr_cloud_google, ocr_cloud_aws."
+            "Use one of: pattern, ocr_tesseract, ocr_cloud_google, ocr_cloud_aws."
         ],
     }

@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 from apps.runtime_blueprints.models import DashboardUserPreference
 from apps.siteconfig.portal_sidebar_items import build_portal_sidebar_items
 

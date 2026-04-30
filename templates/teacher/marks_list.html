@@ -5,11 +5,11 @@
 {% block content %}
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 ui-premium-surface" data-rmc-component-audit="1">
     <div>
-      <h2 class="mb-0">My Marks</h2>
+      <h1 class="h2 mb-0">{% trans "My marks" %}</h1>
       <p class="text-muted small mb-0">{% trans "Review, filter, and publish marks with one primary action." %}</p>
     </div>
-    <div class="d-flex flex-wrap gap-2 align-items-center">
-      <a class="btn btn-primary btn-sm" href="{% url 'evals:teacher_marks_entry' %}">{% trans "Enter Marks" %}</a>
+    <div class="ds-action-bar d-flex flex-wrap gap-2 align-items-center">
+      <a class="btn btn-primary btn-sm ds-btn" href="{% url 'evals:teacher_marks_entry' %}">{% trans "Enter Marks" %}</a>
       <div class="btn-group btn-group-sm" role="group" aria-label="{% trans 'Secondary actions' %}">
         <a class="btn btn-outline-primary" href="{% url 'evals:teacher_dashboard' %}">{% trans "Dashboard" %}</a>
         <a class="btn btn-outline-secondary" href="?{{ export_csv_query }}">{% trans "Export CSV" %}</a>

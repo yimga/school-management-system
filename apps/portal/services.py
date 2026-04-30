@@ -30,7 +30,7 @@ from apps.accounts.permissions import _guardian_finance_qs
 from apps.evals.models import TeacherAssignment
 from apps.integrations_marketplace.models import Integration
 from apps.payroll.models import LeaveRequest, PayrollEmployee
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 from apps.apicenter.gating import is_integration_allowed
 from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 from apps.siteconfig.integration_registry import resolve_active_integration

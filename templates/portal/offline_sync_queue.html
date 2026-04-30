@@ -1,0 +1,77 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Offline sync queue" %} — {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="h4 mb-3">{% trans "Offline sync queue" %}</h1>
+  <p class="text-body-secondary small mb-4">
+    {% trans "Items you captured while offline are applied here when you process the queue. Conflicts require an explicit choice — nothing is overwritten silently." %}
+  </p>
+
+  <div class="d-flex flex-wrap gap-2 mb-4 align-items-center">
+    <form method="post" class="d-inline">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="process_queue">
+      <button type="submit" class="btn btn-primary btn-sm">
+        {% trans "Process queue now" %}
+      </button>
+    </form>
+    <form method="post" class="d-inline">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="retry_failed">
+      <button type="submit" class="btn btn-outline-secondary btn-sm" {% if failed_count == 0 %}disabled{% endif %}>
+        {% trans "Retry failed" %} ({{ failed_count }})
+      </button>
+    </form>
+    {% if OFFLINE_CONFLICTS_URL and conflict_count %}
+    <a class="btn btn-warning btn-sm" href="{{ OFFLINE_CONFLICTS_URL }}">
+      {% trans "Resolve conflicts" %} ({{ conflict_count }})
+    </a>
+    {% endif %}
+    <span class="small text-body-secondary ms-auto">
+      {% trans "Pending" %}: {{ pending_count }}
+    </span>
+  </div>
+
+  <div class="table-responsive rounded border border-secondary-subtle">
+    <table class="table table-sm table-striped mb-0 align-middle">
+      <thead>
+        <tr>
+          <th>{% trans "When" %}</th>
+          <th>{% trans "Type" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Retries" %}</th>
+          <th>{% trans "Detail" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in offline_actions %}
+        <tr>
+          <td class="text-nowrap small">{{ row.created_at }}</td>
+          <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
+          <td>
+            <span class="badge {% if row.status == 'synced' %}bg-success{% elif row.status == 'failed' %}bg-danger{% elif row.status == 'conflict' %}bg-warning text-dark{% elif row.status == 'queued' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+              {{ row.get_status_display }}
+            </span>
+          </td>
+          <td>{{ row.retry_count }}</td>
+          <td class="small text-break">
+            {% if row.status == 'conflict' and row.conflict_reason %}
+              {{ row.conflict_reason|truncatechars:120 }}
+            {% elif row.status == 'failed' and row.conflict_reason %}
+              {{ row.conflict_reason|truncatechars:120 }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-body-secondary py-4 text-center">{% trans "No server-side queue entries yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

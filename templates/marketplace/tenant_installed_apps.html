@@ -4,7 +4,8 @@
 {% block title %}{% trans "Installed apps" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3" data-page-archetype="operational-workbench">
+{# ds-action-bar #}{# data-page-header via studio_os/components/page_header.html #}
+<div class="container-fluid py-3" data-page-archetype="operational-workbench" data-task="marketplace_install" data-task-step="marketplace:installed-list">
   {% trans "Back to app catalog" as back_action %}
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
   {% if not school %}
@@ -47,7 +48,7 @@
             <form method="post" action="{% url 'tenant_activate_installation' %}" class="d-inline">
               {% csrf_token %}
               <input type="hidden" name="installation_id" value="{{ i.pk }}">
-              <button type="submit" class="btn btn-sm btn-success">{% trans "Activate" %}</button>
+              <button type="submit" class="btn btn-sm btn-success" data-action="marketplace-activate" data-task-step="install:activate">{% trans "Activate" %}</button>
             </form>
             {% endif %}
             <form method="post" action="{% url 'tenant_uninstall_app' %}" class="d-inline" onsubmit="return confirm('{% if i.install_phase == 'sandbox' %}{% trans "Discard sandbox install and remove this app?" %}{% else %}{% trans "Uninstall this app?" %}{% endif %}');">
@@ -147,6 +148,20 @@
   </div>
   <a href="{% url 'tenant_app_catalog' %}" class="btn btn-outline-primary">{% trans "Browse app catalog" %}</a>
   <a href="{% url 'tenant_scope_consent' %}" class="btn btn-outline-secondary">{% trans "Scope consent" %}</a>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (!window.rmcClickTaskBoundary) return;
+      window.rmcClickTaskBoundary('task_start', 'marketplace_install');
+      var root = document.querySelector('[data-task="marketplace_install"]');
+      if (!root) return;
+      root.addEventListener('submit', function (ev) {
+        var form = ev.target;
+        if (!form || !form.getAttribute || !form.getAttribute('action')) return;
+        if (form.getAttribute('action').indexOf('activate') === -1) return;
+        window.rmcClickTaskBoundary('task_complete', 'marketplace_install');
+      }, true);
+    });
+  </script>
   {% endif %}
 </div>
 {% endblock %}

@@ -57,6 +57,7 @@ class MarketplaceGovernanceTests(TestCase):
             version="1.0.0",
             manifest={"widgets": {"attendance-overview": {"placement": "dashboard"}}},
             is_active=True,
+            is_intentionally_free=True,
         )
 
     def tearDown(self):

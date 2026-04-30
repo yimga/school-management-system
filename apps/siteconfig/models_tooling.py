@@ -601,7 +601,7 @@ def get_report_card_style_for_student(
     if assignment and assignment.style and assignment.style.is_active:
         return assignment.style
 
-    from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+    from apps.siteconfig.config_service import get_effective_site_settings
 
     site = get_effective_site_settings(school=getattr(student, "school", None))
     style = site.resolve_default_report_style(report_type) if site else None

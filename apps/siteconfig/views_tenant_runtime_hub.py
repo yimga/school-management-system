@@ -14,13 +14,10 @@ from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.decorators import permission_required
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
-
-_SAFE_EFFECTIVE_ATTRS = (
-    "site_name",
-    "school_code",
-    "tagline",
-    "maintenance_mode",
+from apps.siteconfig.config_service import (
+    BaseDomainConfig,
+    GuidedConfigurationWorkflow,
+    get_modular_configuration_bundle,
 )
 
 
@@ -30,21 +27,43 @@ def _truthy_feature_keys(flags: Any) -> list[str]:
     return sorted(k for k, v in flags.items() if v is True)
 
 
+def _workflow_url(workflow: GuidedConfigurationWorkflow) -> str:
+    if not workflow.safe_fix_url_name:
+        return ""
+    try:
+        return reverse(workflow.safe_fix_url_name)
+    except NoReverseMatch:
+        return ""
+
+
+def _domain_workflow_row(config: BaseDomainConfig) -> dict[str, Any]:
+    workflow = config.workflow
+    return {
+        "key": config.key,
+        "label": config.label,
+        "current_state": workflow.current_state,
+        "missing_setup": list(workflow.missing_setup),
+        "recommended_next_step": workflow.recommended_next_step,
+        "safe_fix_label": workflow.safe_fix_label,
+        "safe_fix_url": _workflow_url(workflow),
+        "value_count": len(config.values),
+    }
+
+
 @login_required
 @permission_required("settings.manage")
 @require_http_methods(["GET"])
 def tenant_runtime_configuration_hub(request: HttpRequest) -> HttpResponse:
     school = getattr(request, "school", None)
-    site = get_effective_site_settings(request=request)
-
-    effective_rows: list[tuple[str, Any]] = []
-    if site is not None:
-        for attr in _SAFE_EFFECTIVE_ATTRS:
-            try:
-                val = getattr(site, attr)
-            except Exception:
-                val = None
-            effective_rows.append((attr, val))
+    config_bundle = get_modular_configuration_bundle(request=request, school=school)
+    tenant_runtime_values = config_bundle.tenant_runtime.values
+    effective_rows: list[tuple[str, Any]] = [
+        (key, tenant_runtime_values.get(key))
+        for key in ("site_name", "school_code", "tagline", "maintenance_mode")
+    ]
+    guided_workflows = [
+        _domain_workflow_row(config) for config in config_bundle.configs
+    ]
 
     region_rows: list[tuple[str, Any]] = []
     region = getattr(school, "default_region", None) if school else None
@@ -55,9 +74,9 @@ def tenant_runtime_configuration_hub(request: HttpRequest) -> HttpResponse:
             ("currency", getattr(region, "default_currency", None)),
         ]
 
-    flags_on: list[str] = []
-    if site is not None:
-        flags_on = _truthy_feature_keys(getattr(site, "backend_feature_flags", None))
+    flags_on = _truthy_feature_keys(
+        tenant_runtime_values.get("backend_feature_flags")
+    )
 
     admin_sitesettings_url = None
     if getattr(request.user, "is_staff", False):
@@ -112,6 +131,10 @@ def tenant_runtime_configuration_hub(request: HttpRequest) -> HttpResponse:
         school_group_hierarchy_url = reverse("siteconfig:school_group_hierarchy")
     except NoReverseMatch:
         school_group_hierarchy_url = None
+    try:
+        guided_configuration_url = reverse("siteconfig:guided_configuration_workflows")
+    except NoReverseMatch:
+        guided_configuration_url = None
 
     ctx = {
         "school": school,
@@ -121,6 +144,11 @@ def tenant_runtime_configuration_hub(request: HttpRequest) -> HttpResponse:
         "summary_effective_n": len(effective_rows),
         "summary_region_n": len(region_rows),
         "summary_flags_n": len(flags_on),
+        "summary_config_n": len(guided_workflows),
+        "summary_missing_n": sum(
+            len(row["missing_setup"]) for row in guided_workflows
+        ),
+        "guided_workflows": guided_workflows,
         "console_url": reverse("siteconfig:console_domains_hub"),
         "feature_control_url": reverse("siteconfig:feature_control_panel"),
         "theme_colors_url": reverse("siteconfig:theme_colors"),
@@ -138,5 +166,6 @@ def tenant_runtime_configuration_hub(request: HttpRequest) -> HttpResponse:
         "migration_wizard_url": migration_wizard_url,
         "compliance_exports_url": compliance_exports_url,
         "school_group_hierarchy_url": school_group_hierarchy_url,
+        "guided_configuration_url": guided_configuration_url,
     }
     return render(request, "siteconfig/tenant_runtime_configuration_hub.html", ctx)

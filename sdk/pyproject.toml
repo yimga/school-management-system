@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "runmycampus"
-version = "0.1.0"
-description = "Minimal RunMyCampus API client (SDK stub)"
+version = "0.2.0"
+description = "RunMyCampus API client: Bearer auth, retries, webhook signature helpers"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["requests>=2.28"]

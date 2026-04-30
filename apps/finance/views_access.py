@@ -22,7 +22,7 @@ from django.core.mail import send_mail
 
 from apps.evals.notifications import NotificationService
 from apps.communication.models import Message
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 
 from .models import Invoice, Notification
 from .views_common import (

@@ -14,9 +14,9 @@ from .models import EMISExport, EMISFieldMapping
 
 
 def _get_site_for_emis(request=None, school=None):
-    """Resolve SiteSettings for EMIS via runtime helper (no get_solo)."""
+    """Resolve effective tenant platform settings for EMIS via config_service (no get_solo)."""
     try:
-        from apps.platform_runtime.helpers import get_effective_site_settings
+        from apps.siteconfig.config_service import get_effective_site_settings
         return get_effective_site_settings(request=request, school=school)
     except Exception:
         return None

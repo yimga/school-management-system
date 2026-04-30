@@ -51,7 +51,7 @@ class CustomerSuccessServiceHelperTests(SimpleTestCase):
         }
 
         with patch.dict(sys.modules, fake_modules, clear=False), patch(
-            "apps.platform_runtime.site_settings_read_access.get_effective_site_settings",
+            "apps.siteconfig.config_service.get_effective_site_settings",
             get_effective_site_settings,
         ):
             steps = services.get_guided_onboarding_steps(DummySchool())

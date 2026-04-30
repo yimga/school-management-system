@@ -3,6 +3,8 @@ Marketplace MVP: installable apps, scopes, widget registry, audit (RunMyCampus b
 Control-plane models (shared schema); install pipeline records install + registers widgets/scopes.
 """
 
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -69,16 +71,75 @@ class MarketplaceApp(models.Model):
         related_name="apps",
     )
     slug = models.SlugField(max_length=80, unique=True)
+    app_key = models.CharField(
+        max_length=80,
+        unique=True,
+        db_index=True,
+        help_text="Stable developer-platform app id (defaults to slug).",
+    )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     kind = models.CharField(
         max_length=20, choices=AppKind.choices, default=AppKind.FIRST_PARTY
     )
     version = models.CharField(max_length=32)
+    required_apps = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="app_key values that must be installed first (dependencies).",
+    )
+    webhook_subscriptions = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Declared webhook topics / filters for governance and delivery.",
+    )
+    install_hooks = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="HTTPS URLs or internal hook keys invoked after install.",
+    )
+    uninstall_hooks = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="HTTPS URLs or internal hook keys invoked on uninstall.",
+    )
     # Manifest: required scopes, widget definitions, optional migration_ref / webhook subscriptions
     manifest = models.JSONField(
         default=dict,
         help_text="scopes, widgets, events_consumed, events_emitted, migration_ref",
+    )
+    class PricingModel(models.TextChoices):
+        FREE = "free", "Free"
+        SUBSCRIPTION = "subscription", "Subscription"
+        USAGE = "usage", "Usage"
+
+    class BillingInterval(models.TextChoices):
+        NONE = "none", "Not applicable"
+        MONTHLY = "monthly", "Monthly"
+        ANNUAL = "annual", "Annual"
+
+    # Commercial catalog hooks (monetization architecture)
+    pricing_model = models.CharField(
+        max_length=20,
+        choices=PricingModel.choices,
+        default=PricingModel.FREE,
+        db_index=True,
+    )
+    is_intentionally_free = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="When pricing is Free, check this to confirm a deliberate $0 catalog offer (not a missing price).",
+    )
+    price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="List price in the tenant billing account currency (subscription or usage floor).",
+    )
+    billing_interval = models.CharField(
+        max_length=16,
+        choices=BillingInterval.choices,
+        default=BillingInterval.NONE,
     )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -92,6 +153,60 @@ class MarketplaceApp(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.slug})"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        super().clean()
+        if self.pricing_model == self.PricingModel.FREE and not self.is_intentionally_free:
+            raise ValidationError(
+                {
+                    "is_intentionally_free": "Confirm this is an intentional free listing, or set a paid pricing model."
+                }
+            )
+
+    def save(self, *args, **kwargs):
+        if not self.app_key:
+            self.app_key = self.slug
+        if not kwargs.get("raw", False) and (
+            self.pricing_model == self.PricingModel.FREE and not self.is_intentionally_free
+        ):
+            self.full_clean()
+        super().save(*args, **kwargs)
+
+
+class AppPermissionScope(models.Model):
+    """
+    Platform catalog entry for a permission string (maps to AppScope.scope_code and OAuth scopes).
+    """
+
+    class Access(models.TextChoices):
+        READ = "read", "Read"
+        WRITE = "write", "Write"
+        ADMIN = "admin", "Admin"
+
+    code = models.CharField(max_length=80, unique=True, db_index=True)
+    domain = models.CharField(
+        max_length=64,
+        blank=True,
+        help_text="Logical domain, e.g. students, finance, marketplace.",
+    )
+    access = models.CharField(
+        max_length=8,
+        choices=Access.choices,
+        default=Access.READ,
+    )
+    description = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "App permission scope"
+        verbose_name_plural = "App permission scopes"
+        ordering = ["domain", "code"]
+
+    def __str__(self):
+        return self.code
 
 
 class MarketplaceListing(models.Model):
@@ -283,6 +398,14 @@ class AppScope(models.Model):
     app = models.ForeignKey(
         MarketplaceApp, on_delete=models.CASCADE, related_name="scopes"
     )
+    permission_scope = models.ForeignKey(
+        AppPermissionScope,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="app_scope_links",
+        help_text="Optional link to the canonical platform scope definition.",
+    )
     scope_code = models.CharField(max_length=80)
     description = models.CharField(max_length=255, blank=True)
     sensitive = models.BooleanField(
@@ -350,6 +473,11 @@ class AppInstallation(models.Model):
     config = models.JSONField(default=dict, help_text="Tenant-specific app config")
     # Resolved widget list for this tenant (from app.manifest + overrides)
     widget_config = models.JSONField(default=dict, blank=True)
+    installed_version = models.CharField(
+        max_length=32,
+        blank=True,
+        help_text="Semver of the app payload active for this tenant (upgrade / rollback).",
+    )
 
     class Meta:
         app_label = "marketplace"
@@ -464,6 +592,128 @@ class AppBillingLedger(models.Model):
 
     def __str__(self):
         return f"{self.app.slug} {self.kind} {self.amount} {self.currency}"
+
+
+class TenantMarketplaceSubscription(models.Model):
+    """
+    Billable subscription row for a tenant app installation (add-on to core platform billing).
+    """
+
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Active"
+        PAST_DUE = "past_due", "Past due"
+        CANCELED = "canceled", "Canceled"
+
+    installation = models.OneToOneField(
+        AppInstallation,
+        on_delete=models.CASCADE,
+        related_name="marketplace_subscription",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="marketplace_app_subscriptions",
+    )
+    app = models.ForeignKey(
+        MarketplaceApp,
+        on_delete=models.PROTECT,
+        related_name="tenant_subscriptions",
+    )
+    billing_account = models.ForeignKey(
+        "billing.BillingAccount",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="marketplace_app_subscriptions",
+    )
+    pricing_model = models.CharField(max_length=20, db_index=True)
+    unit_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    billing_interval = models.CharField(max_length=16, default="none")
+    currency_code = models.CharField(max_length=3, default="USD")
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.ACTIVE,
+        db_index=True,
+    )
+    current_period_start = models.DateTimeField(null=True, blank=True)
+    current_period_end = models.DateTimeField(null=True, blank=True)
+    canceled_at = models.DateTimeField(null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "Tenant marketplace subscription"
+        verbose_name_plural = "Tenant marketplace subscriptions"
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        return f"{self.school_id} {self.app.slug} ({self.status})"
+
+
+class PlatformMarketplaceEarning(models.Model):
+    """Logged revenue split for marketplace charges (platform fee vs publisher pool)."""
+
+    class Source(models.TextChoices):
+        INSTALL = "install", "Install / activation"
+        USAGE = "usage", "Usage billing"
+        PAYMENT = "payment", "Payment processor settlement"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="marketplace_platform_earnings",
+    )
+    app = models.ForeignKey(
+        MarketplaceApp,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="platform_earnings",
+    )
+    installation = models.ForeignKey(
+        AppInstallation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="platform_earnings",
+    )
+    listing = models.ForeignKey(
+        MarketplaceListing,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="platform_earnings",
+    )
+    source = models.CharField(max_length=16, choices=Source.choices, default=Source.INSTALL)
+    gross_amount = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0.00"))
+    platform_fee_amount = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0.00"))
+    publisher_pool_amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Gross minus platform fee (remainder before publisher revenue-share).",
+    )
+    publisher_share_amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Amount accruing to the listing publisher per revenue_share_percent.",
+    )
+    currency_code = models.CharField(max_length=3, default="USD")
+    recorded_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "Platform marketplace earning"
+        verbose_name_plural = "Platform marketplace earnings"
+        ordering = ["-recorded_at"]
+
+    def __str__(self):
+        return f"{self.gross_amount} {self.currency_code} ({self.source})"
 
 
 class AppAuditLog(models.Model):

@@ -29,7 +29,7 @@ from django.urls import reverse
 from django.template.loader import render_to_string
 
 from apps.academics.models import AcademicYear
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 
 from .models import (
     FeePlan,
@@ -483,6 +483,24 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
         .order_by("-created_at")
     )
 
+    from apps.finance.models import OfflinePaymentIntent, TenantPaymentPolicy
+    from apps.finance.payment_orchestration import build_simple_payment_flow
+
+    tenant_payment_policy = None
+    simple_payment_flow = build_simple_payment_flow(None)
+    if getattr(invoice, "school_id", None):
+        tenant_payment_policy = TenantPaymentPolicy.objects.filter(
+            school_id=invoice.school_id
+        ).first()
+        if tenant_payment_policy:
+            simple_payment_flow = build_simple_payment_flow(tenant_payment_policy)
+
+    offline_payment_intents = (
+        OfflinePaymentIntent.objects.filter(invoice=invoice)
+        .select_related("recorded_by", "reconciled_payment")
+        .order_by("-created_at")[:25]
+    )
+
     return render(
         request,
         "finance/invoice_detail.html",
@@ -491,6 +509,9 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
             "payment_link": payment_link,
             "reminder": reminder,
             "payment_proof_uploads": payment_proof_uploads,
+            "tenant_payment_policy": tenant_payment_policy,
+            "simple_payment_flow": simple_payment_flow,
+            "offline_payment_intents": offline_payment_intents,
             "finance_access_required": access_state["require_opt_in"],
             "finance_access_granted": access_state["finance_count"] > 0,
             "finance_access_summary": finance_summary,

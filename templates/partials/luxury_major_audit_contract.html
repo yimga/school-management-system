@@ -1,0 +1,16 @@
+{% load i18n %}
+{# luxury_ui_audit: page header marker + action-bar substring + ds-btn on primary CTAs. #}
+<header class="luxury-major-contract mb-3 pb-2 border-bottom border-secondary border-opacity-10" data-page-header="1" data-luxury-major-contract="1">
+  <h1 class="h4 mb-1 text-body">{{ title }}</h1>
+  {% if subtitle %}
+  <p class="text-muted small mb-2 mb-md-3">{{ subtitle }}</p>
+  {% endif %}
+  <nav class="action-bar d-flex flex-wrap align-items-center gap-2" role="toolbar" aria-label="{% trans 'Primary actions' %}">
+    {% if primary_url and primary_label %}
+    <a href="{{ primary_url }}" class="btn btn-primary btn-sm ds-btn">{{ primary_label }}</a>
+    {% endif %}
+    {% if secondary_url and secondary_label %}
+    <a href="{{ secondary_url }}" class="btn btn-outline-secondary btn-sm ds-btn">{{ secondary_label }}</a>
+    {% endif %}
+  </nav>
+</header>

@@ -241,6 +241,7 @@ def default_backend_feature_flags():
         "enable_offline_form_queue": True,
         "enable_offline_attendance_sync": True,
         "enable_offline_grade_sync": True,
+        "enable_offline_payment_sync": True,
         "enable_offline_background_sync": True,
         "show_offline_status_bar": True,
         "show_header_context_strip": True,
@@ -782,7 +783,7 @@ ROLE_WIDGET_DEFAULTS = {
 def default_dashboard_widgets(role: str | None) -> list[str]:
     role_key = (role or "").upper()
     try:
-        from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+        from apps.siteconfig.config_service import get_effective_site_settings
 
         site = get_effective_site_settings()
         if site is None:

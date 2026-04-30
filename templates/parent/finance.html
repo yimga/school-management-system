@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-  <div class="report-card-print-wrapper" data-page-archetype="record-detail">
+  <div class="report-card-print-wrapper" data-page-archetype="record-detail" data-task="parent_payment" data-task-step="finance:page">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 no-print">
     {% include "components/pin_to_quick_access.html" with sidebar_item_id="finance" %}
     <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print();" aria-label="{% trans 'Print fee statement' %}"><i class="bi bi-printer me-1"></i>{% trans "Print" %}</button>
@@ -183,7 +183,7 @@
                 </td>
                 <td class="text-end" data-label="{% trans 'Action' %}">
                   {% if link %}
-                    <a class="btn btn-primary btn-sm" href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{% trans "Pay now" %}</a>
+                    <a class="btn btn-primary btn-sm" href="{{ link.url }}" target="_blank" rel="noopener noreferrer" data-rmc-parent-pay="1" data-action="parent-pay-launch" data-task-step="payment:checkout">{% trans "Pay now" %}</a>
                   {% else %}
                     <span class="text-muted small">{% trans "No link" %}</span>
                   {% endif %}
@@ -230,4 +230,21 @@
     </div>
   </div>
   </div>
+{% if finance_access_granted %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!window.rmcClickTaskBoundary) return;
+    window.rmcClickTaskBoundary('task_start', 'parent_payment');
+    var root = document.querySelector('.report-card-print-wrapper[data-task="parent_payment"]');
+    if (root) {
+      root.addEventListener('click', function (ev) {
+        var a = ev.target.closest && ev.target.closest('a[data-rmc-parent-pay="1"]');
+        if (a) {
+          window.rmcClickTaskBoundary('task_complete', 'parent_payment');
+        }
+      }, true);
+    }
+  });
+</script>
+{% endif %}
 {% endblock %}

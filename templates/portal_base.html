@@ -42,6 +42,7 @@
     <link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
     <link rel="stylesheet" href="{% static 'css/statement-header.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
+    <link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
     <link rel="stylesheet" href="{% static 'css/toggle-colors.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-tables-forms.css' %}">
@@ -78,6 +79,7 @@
     <link rel="stylesheet" href="{% static 'css/north-star-touch-targets.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-luxury-surfaces.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ultra-luxury-ui-system.css' %}">
 
     <link rel="stylesheet" href="{% static 'css/portal-base-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
@@ -120,7 +122,7 @@
     <link rel="apple-touch-icon" href="{% static 'images/icon-192.png' %}">
   </head>
 
-  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
+  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     {% include "partials/shell_chrome_site_preview_banner_top.html" %}
     <nav id="portalHeader" class="navbar navbar-expand-lg navbar-dark topbar topbar-sticky statement-header" role="navigation" aria-label="Main navigation" data-rmc-shell-header="portal">
@@ -349,6 +351,16 @@
             {% endif %}
             {% include "partials/shell_chrome_django_messages_tenant_portal.html" %}
 
+            {% if request.user.is_authenticated %}
+            {% block rmc_zero_click_strip %}
+            {% include "partials/rmc_zero_click_command_strip.html" with triage_anchor="#main-content" %}
+            {% endblock %}
+            {% endif %}
+
+            {% if request.user.is_authenticated %}
+            {% include "components/offline_sync_status_bar.html" %}
+            {% endif %}
+
             {% if dashboard_stats_cards %}
               <div class="mb-3">
                 <div class="section-title">
@@ -369,6 +381,13 @@
                 </div>
               </div>
             {% endif %}
+
+            {# Controlled platform: one next-action strip for every authenticated portal page (override block to hide). #}
+            {% block shell_next_action_strip %}
+            {% if request.user.is_authenticated %}
+            {% include "components/next_action_strip.html" %}
+            {% endif %}
+            {% endblock %}
 
             {% block content %}{% endblock %}
           </div>
@@ -650,6 +669,10 @@
         reduceActivityLowPower: {% if SITE.backend_feature_flags.reduce_activity_low_power %}true{% else %}false{% endif %},
         entitySyncEnabled: {% if SITE.backend_feature_flags.offline_entity_sync == False %}false{% else %}true{% endif %},
         requestsSyncEnabled: {% if SITE.backend_feature_flags.offline_requests_sync == False %}false{% else %}true{% endif %},
+        apiSyncEnabled: true,
+        paymentSyncEnabled: {{ SITE.backend_feature_flags.enable_offline_payment_sync|default:"1"|yesno:"true,false" }},
+        offlineEnqueueUrl: {% if OFFLINE_API_ENQUEUE_URL %}'{{ OFFLINE_API_ENQUEUE_URL|escapejs }}'{% else %}null{% endif %},
+        offlineProcessUrl: {% if OFFLINE_API_PROCESS_URL %}'{{ OFFLINE_API_PROCESS_URL|escapejs }}'{% else %}null{% endif %},
         deltaEndpointUrl: '',
         hubBaseUrl: '{{ SITE.backend_feature_flags.hub_base_url|default:"" }}',
         prefetchAtHour: {% if SITE.backend_feature_flags.prefetch_at_hour != None %}{{ SITE.backend_feature_flags.prefetch_at_hour }}{% else %}null{% endif %},
@@ -667,6 +690,16 @@
     <script src="{% static 'js/auto-pilot.js' %}"></script>
     {% endif %}
     <script src="{% static 'js/critical-read-degraded.js' %}"></script>
+    {% if request.user.is_authenticated %}
+    {% if click_tracking_ingest_url %}
+    <script>
+      window.__RMC_CLICK_INGEST = "{{ click_tracking_ingest_url|escapejs }}";
+      window.__RMC_CLICK_PHASE = "{{ click_measurement_phase|default:'current'|escapejs }}";
+    </script>
+    {% endif %}
+    <script src="{% static 'js/platform_behavior_track.js' %}"></script>
+    <script src="{% static 'js/offline-queue-client.js' %}"></script>
+    {% endif %}
     <!-- PWA Service Worker Registration (full offline bar when enabled; parent portal shell when PWA + parent path) -->
     <script>
       (function() {

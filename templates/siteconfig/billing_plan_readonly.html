@@ -193,13 +193,13 @@
   </div>
   {% endif %}
 
-  <div class="d-flex flex-wrap gap-2 mb-2 cp-evidence-related" data-rmc-evidence-related-links="1" aria-label="{% trans 'Related links' %}">
+  <div class="ds-action-bar d-flex flex-wrap gap-2 mb-2 cp-evidence-related" data-rmc-evidence-related-links="1" aria-label="{% trans 'Related links' %}">
     {% if console_url %}
-    <a class="btn btn-sm btn-outline-primary" href="{{ console_url }}">{% trans "Configuration Control Center" %}</a>
+    <a class="btn btn-sm btn-outline-primary ds-btn" href="{{ console_url }}">{% trans "Configuration Control Center" %}</a>
     {% endif %}
     {% if school and checkout_start_url %}
     {% if stripe_processor_configured and plan and has_stripe_price_for_current_plan %}
-    <a class="btn btn-sm btn-primary" href="{{ checkout_start_url }}?plan_code={{ plan.slug|urlencode }}&billing_cycle={% if platform_subscription %}{{ platform_subscription.billing_cycle|urlencode }}{% else %}MONTHLY{% endif %}">{% trans "Checkout / renew (Stripe)" %}</a>
+    <a class="btn btn-sm btn-primary ds-btn" href="{{ checkout_start_url }}?plan_code={{ plan.slug|urlencode }}&billing_cycle={% if platform_subscription %}{{ platform_subscription.billing_cycle|urlencode }}{% else %}MONTHLY{% endif %}">{% trans "Checkout / renew (Stripe)" %}</a>
     {% else %}
     <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="{% trans 'Stripe is not configured or no price is mapped for this plan.' %}">
       <button type="button" class="btn btn-sm btn-primary" disabled>{% trans "Checkout / renew (Stripe)" %}</button>

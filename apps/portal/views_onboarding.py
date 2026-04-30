@@ -6,14 +6,13 @@ Separated for better organization
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
-from django.contrib import messages
 from django.http import HttpRequest
 from django import forms
 
 from apps.accounts.models import User
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.academics.models import AcademicYear
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 from apps.siteconfig.models import FormDraft
 from .runtime_helpers import get_policy_for_request
 from .forms import TeacherOnboardingForm, StudentOnboardingForm

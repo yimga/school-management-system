@@ -51,12 +51,14 @@ class BlueprintPackAdmin(admin.ModelAdmin):
         "slug",
         "name",
         "category",
+        "list_price",
+        "is_premium_commercial",
         "country_code",
         "version",
         "is_active",
         "updated_at",
     )
-    list_filter = ("is_active", "category")
+    list_filter = ("is_active", "category", "is_premium_commercial")
     search_fields = ("slug", "name", "description", "category")
     prepopulated_fields = {"slug": ("name",)}
     actions = ["update_bundle_for_schools_needing_update"]

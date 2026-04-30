@@ -11,7 +11,7 @@ from django.db import DatabaseError, connection, models, transaction
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.utils import timezone
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 
 logger = logging.getLogger(__name__)
 

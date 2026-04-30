@@ -206,6 +206,10 @@ def main(argv: list[str] | None = None) -> int:
         "ZIP Phase 2: design-system CSS/bases + forbidden inline style + Sec 10.5 layer script",
     )
     run(
+        [py, _script_path("audit_luxury_ui_surface.py")],
+        "Luxury UI surface: high-impact templates + score gate (>= 13/15) + severe integration",
+    )
+    run(
         [py, _script_path("lint_marketing_nav_no_overflow.py"), *base_args],
         "Marketing header: primary nav count / overflow handling (pre-deploy parity)",
     )

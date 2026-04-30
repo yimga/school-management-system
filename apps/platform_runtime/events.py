@@ -9,7 +9,10 @@ from __future__ import annotations
 import json
 import logging
 from decimal import Decimal
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
+
+if TYPE_CHECKING:
+    from apps.platform_runtime.models import PlatformEventLog
 from uuid import UUID
 
 logger = logging.getLogger(__name__)
@@ -186,6 +189,10 @@ EVENT_CATALOG = {
         "description": "Submitter submitted CSAT (1–5) after resolution",
         "payload": ["ticket_id", "school_id", "actor_id", "score"],
     },
+    "bus.test_ping": {
+        "description": "Synthetic event for event-bus unit tests",
+        "payload": ["msg"],
+    },
 }
 
 
@@ -207,20 +214,23 @@ def _json_safe_payload(obj: Any) -> Any:
         return str(obj)
 
 
-def emit_platform_event(
+def persist_platform_event(
     event_type: str,
     payload: Dict[str, Any],
     tenant_id: Optional[str] = None,
     school_id: Optional[int] = None,
     idempotency_key: Optional[str] = None,
-) -> None:
+    *,
+    require_catalog: bool = True,
+) -> Optional["PlatformEventLog"]:
     """
-    Emit a platform event. Phase 1: log and catalog check; Phase 2: write to event store
-    and fan-out to workflows/webhooks. All events must be in EVENT_CATALOG.
+    Append one platform event to the log (``PlatformEventLog`` / :class:`PlatformEvent`).
+
+    When ``require_catalog`` is True, unknown ``event_type`` values are rejected.
     """
-    if event_type not in EVENT_CATALOG:
-        logger.warning("emit_platform_event: unknown event_type=%s", event_type)
-        return
+    if require_catalog and event_type not in EVENT_CATALOG:
+        logger.warning("persist_platform_event: unknown event_type=%s", event_type)
+        return None
     payload = dict(payload)
     if tenant_id is not None:
         payload["_tenant_id"] = tenant_id
@@ -240,7 +250,7 @@ def emit_platform_event(
         from apps.platform_runtime.models import PlatformEventLog
 
         clean = {k: v for k, v in payload.items() if not str(k).startswith("_")}
-        PlatformEventLog.objects.create(
+        return PlatformEventLog.objects.create(
             event_type=event_type[:64],
             payload=_json_safe_payload(clean),
             tenant_id=(str(tenant_id) if tenant_id is not None else "")[:64],
@@ -249,6 +259,27 @@ def emit_platform_event(
         )
     except Exception:
         logger.debug("PlatformEventLog persist skipped", exc_info=True)
+        return None
+
+
+def emit_platform_event(
+    event_type: str,
+    payload: Dict[str, Any],
+    tenant_id: Optional[str] = None,
+    school_id: Optional[int] = None,
+    idempotency_key: Optional[str] = None,
+) -> Optional["PlatformEventLog"]:
+    """
+    Log-only emit (no pub/sub). For full fan-out use :func:`apps.platform_runtime.event_bus.publish_event`.
+    """
+    return persist_platform_event(
+        event_type,
+        payload,
+        tenant_id=tenant_id,
+        school_id=school_id,
+        idempotency_key=idempotency_key,
+        require_catalog=True,
+    )
 
 
 def get_event_catalog() -> Dict[str, Dict[str, Any]]:

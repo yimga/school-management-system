@@ -64,6 +64,7 @@ PHASE7_DASHBOARD_TEMPLATES: tuple[str, ...] = (
     "schools/super_pulse.html",
     "schools/super_usage.html",
     "schools/super_runtime_truth_hub.html",
+    "schools/super_security_hub.html",
     "schools/super_support_dashboard.html",
     "schools/super_support_csat_dashboard.html",
     "schools/super_support_ticket_detail.html",

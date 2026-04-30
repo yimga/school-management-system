@@ -121,6 +121,31 @@ def emit_student_created_event(sender, instance, created, **kwargs):
         logger.debug("emit_platform_event student_created skipped: %s", e)
 
 
+@receiver(post_save, sender=StudentProfile)
+def emit_student_updated_event(sender, instance, created, **kwargs):
+    if created:
+        return
+    school_id = getattr(instance, "school_id", None)
+    try:
+        from apps.events.services import emit_event
+
+        emit_event(
+            "student.updated",
+            {
+                "student_id": str(instance.id),
+                "school_id": str(school_id) if school_id else None,
+            },
+            school_id=school_id,
+        )
+    except _SIGNAL_EMIT_ERRORS as e:
+        log_exception_with_context(
+            "emit student.updated skipped",
+            school_id=school_id,
+            extra={"student_id": instance.id},
+        )
+        logger.debug("emit student.updated skipped: %s", e)
+
+
 @receiver(post_save, sender=StudentGuardian)
 def sync_student_parent_phone_from_guardian(sender, instance, **kwargs):
     """
@@ -283,6 +308,28 @@ def roster_webhook_on_student_save(sender, instance, created, **kwargs):
         )
     except (ImportError, AttributeError, TypeError, ValueError) as e:
         logger.debug("roster_webhook student: %s", e)
+
+
+@receiver(post_save, sender=StudentProfile)
+def dispatch_student_automation_workflows(sender, instance, created, **kwargs):
+    """School no-code automations: student_updated trigger (non-blocking)."""
+    school = getattr(instance, "school", None)
+    if not school:
+        return
+    try:
+        from apps.siteconfig.workflow_triggers import dispatch_domain_triggers_safe
+
+        dispatch_domain_triggers_safe(
+            school,
+            "student_updated",
+            {
+                "student_id": instance.pk,
+                "created": created,
+                "student_code": getattr(instance, "student_code", "") or "",
+            },
+        )
+    except ImportError:
+        pass
 
 
 @receiver(post_save, sender=TeacherProfile)

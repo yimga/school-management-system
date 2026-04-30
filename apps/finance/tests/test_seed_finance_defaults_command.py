@@ -3,7 +3,7 @@
 from django.core.management import call_command
 from django.test import TestCase
 
-from apps.finance.models import ComplianceProfile
+from apps.finance.models import ComplianceProfile, RegionPaymentProfile
 from apps.platform_runtime.models import RuntimeDefaults
 
 
@@ -32,3 +32,9 @@ class SeedFinanceDefaultsCommandTests(TestCase):
 
         rd.refresh_from_db()
         self.assertEqual(rd.compliance_profile_id, existing.pk)
+
+    def test_creates_region_payment_profile_for_catalog_cm(self):
+        call_command("seed_finance_defaults")
+        rp = RegionPaymentProfile.objects.get(country_code="CM")
+        self.assertIsNotNone(rp.primary_rail_id)
+        self.assertIsNotNone(rp.backup_rail_id)

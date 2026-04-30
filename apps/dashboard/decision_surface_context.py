@@ -19,6 +19,8 @@ def build_backend_dashboard_phase7_de(
     role_home_primary_action: Optional[Dict[str, Any]],
     role_home_supporting_actions: List[Dict[str, Any]],
     dashboard_recent_activity: List[Dict[str, Any]],
+    max_next_actions: int = 4,
+    role_home_destinations: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """
     Context keys match templates/components/decision_engine_surface.html:
@@ -58,6 +60,7 @@ def build_backend_dashboard_phase7_de(
         )
 
     next_actions: List[Dict[str, Any]] = []
+    _cap = min(4, max(1, int(max_next_actions or 4)))
     if role_home_primary_action and isinstance(role_home_primary_action, dict):
         u = str(role_home_primary_action.get("url", "") or "").strip() or "#"
         next_actions.append(
@@ -67,6 +70,8 @@ def build_backend_dashboard_phase7_de(
             }
         )
     for step in dashboard_next_best_actions or []:
+        if len(next_actions) >= _cap:
+            break
         if not isinstance(step, dict):
             continue
         lab = str(step.get("label", "") or "").strip()
@@ -76,9 +81,11 @@ def build_backend_dashboard_phase7_de(
         if any(a.get("label") == lab and a.get("url") == u for a in next_actions):
             continue
         next_actions.append({"label": lab, "url": u})
-        if len(next_actions) >= 4:
+        if len(next_actions) >= _cap:
             break
     for cta in role_home_supporting_actions or []:
+        if len(next_actions) >= _cap:
+            break
         if not isinstance(cta, dict):
             continue
         lab = str(cta.get("label", "") or "").strip()
@@ -88,8 +95,21 @@ def build_backend_dashboard_phase7_de(
         if any(a.get("label") == lab for a in next_actions):
             continue
         next_actions.append({"label": lab, "url": u})
-        if len(next_actions) >= 4:
+        if len(next_actions) >= _cap:
             break
+
+    if not next_actions:
+        for item in role_home_destinations or []:
+            if not isinstance(item, dict):
+                continue
+            lab = str(item.get("label", "") or "").strip()
+            u = str(item.get("url", "") or "").strip() or "#"
+            if lab:
+                next_actions.append({"label": lab, "url": u})
+                break
+    if not next_actions:
+        mj = str(role_home.get("main_action", "") or "").strip() or "Continue"
+        next_actions.append({"label": mj[:160], "url": "#"})
 
     activity: List[Dict[str, Any]] = []
     for row in dashboard_recent_activity or []:
@@ -116,7 +136,7 @@ def build_backend_dashboard_phase7_de(
         "headline_meta": hl_meta,
         "metrics": metrics,
         "urgent_queue": urgent,
-        "next_actions": next_actions[:4],
+        "next_actions": next_actions[:_cap],
         "activity": activity[:6],
     }
 

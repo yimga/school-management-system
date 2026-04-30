@@ -3,6 +3,36 @@
     "count": 0,
     "paths": []
   },
+  "dimension_scores": {
+    "action_clarity": {
+      "max": 3,
+      "score": 3
+    },
+    "click_depth": {
+      "max": 2,
+      "score": 2
+    },
+    "component_consistency": {
+      "max": 2,
+      "score": 2
+    },
+    "layout_consistency": {
+      "max": 2,
+      "score": 2
+    },
+    "mobile_ux": {
+      "max": 2,
+      "score": 2
+    },
+    "overflow_safety": {
+      "max": 2,
+      "score": 2
+    },
+    "state_handling": {
+      "max": 2,
+      "score": 2
+    }
+  },
   "duplicate_component_systems": {
     "conflict_count": 0,
     "selector_index": {
@@ -20,11 +50,11 @@
       ]
     }
   },
-  "generated_at": "2026-04-29T04:25:07.779522+00:00",
-  "high_impact_templates_total": 153,
+  "generated_at": "2026-04-30T22:31:50.800612+00:00",
+  "high_impact_templates_total": 158,
   "inline_styles": {
-    "count": 56,
-    "needs_review_count": 56,
+    "count": 59,
+    "needs_review_count": 59,
     "needs_review_paths": [
       "templates/accounts/backend_dashboard.html",
       "templates/marketplace/tenant_app_catalog.html",
@@ -40,6 +70,7 @@
       "templates/reports/term_report_cameroon.html",
       "templates/reports/term_report_cameroon_modern.html",
       "templates/sales/pipeline_board.html",
+      "templates/schools/billing_dashboard.html",
       "templates/siteconfig/academic_years_setup_evidence.html",
       "templates/siteconfig/ai_governance.html",
       "templates/siteconfig/billing_plan_readonly.html",
@@ -48,6 +79,7 @@
       "templates/siteconfig/departments_setup_evidence.html",
       "templates/siteconfig/feature_control_ledger.html",
       "templates/siteconfig/feature_control_panel_content.html",
+      "templates/siteconfig/guided_configuration_workflows.html",
       "templates/siteconfig/installed_packages_rollback.html",
       "templates/siteconfig/maintenance.html",
       "templates/siteconfig/module_market.html",
@@ -64,6 +96,7 @@
       "templates/siteconfig/reportcard_style_preview.html",
       "templates/siteconfig/request_custom_requirement.html",
       "templates/siteconfig/scheduled_reports_delivery_hub.html",
+      "templates/siteconfig/school_automation_builder.html",
       "templates/siteconfig/school_group_hierarchy.html",
       "templates/siteconfig/sync_center.html",
       "templates/siteconfig/template_gallery.html",
@@ -86,30 +119,28 @@
     "violation_count": 0,
     "violation_paths": []
   },
+  "luxury_gate_min_score": 13,
+  "luxury_gate_passed": true,
   "missing_ds_btn": {
-    "count": 87,
-    "needs_review_count": 87,
+    "count": 82,
+    "needs_review_count": 82,
     "needs_review_paths": [
       "templates/base.html",
       "templates/control_plane_base.html",
-      "templates/marketplace/tenant_app_catalog.html",
       "templates/marketplace/tenant_installed_apps.html",
-      "templates/parent/dashboard.html",
       "templates/portal_base.html",
       "templates/reports/promotion_preview.html",
       "templates/reports/publish_term.html",
       "templates/reports/regulatory_export.html",
       "templates/reports/share_link.html",
       "templates/reports/statistical_return.html",
-      "templates/sales/pipeline_board.html",
+      "templates/schools/billing_dashboard.html",
       "templates/schools/super_dashboard.html",
       "templates/siteconfig/academic_years_setup_evidence.html",
       "templates/siteconfig/ai_governance.html",
-      "templates/siteconfig/billing_plan_readonly.html",
       "templates/siteconfig/bulk_letters.html",
       "templates/siteconfig/compliance_exports.html",
       "templates/siteconfig/config_mutation_audit_evidence.html",
-      "templates/siteconfig/console_domains_hub.html",
       "templates/siteconfig/console_domains_hub_control_plane.html",
       "templates/siteconfig/curriculum_templates.html",
       "templates/siteconfig/customizer.html",
@@ -122,6 +153,7 @@
       "templates/siteconfig/get_blueprints.html",
       "templates/siteconfig/grading_scale_bands.html",
       "templates/siteconfig/grading_settings.html",
+      "templates/siteconfig/guided_configuration_workflows.html",
       "templates/siteconfig/installed_packages_rollback.html",
       "templates/siteconfig/metadata_dynamic_fields_operator.html",
       "templates/siteconfig/metadata_operator_hub.html",
@@ -146,6 +178,7 @@
       "templates/siteconfig/request_custom_requirement.html",
       "templates/siteconfig/request_waiver.html",
       "templates/siteconfig/scheduled_reports_delivery_hub.html",
+      "templates/siteconfig/school_automation_builder.html",
       "templates/siteconfig/school_group_hierarchy.html",
       "templates/siteconfig/school_theme_settings.html",
       "templates/siteconfig/sync_center.html",
@@ -158,10 +191,8 @@
       "templates/siteconfig/user_preferences.html",
       "templates/siteconfig/workflow_flow_gallery.html",
       "templates/siteconfig/workflow_hub.html",
-      "templates/student360/student_360_page.html",
       "templates/studio_os/components/action_bar.html",
       "templates/studio_os/components/loading_empty_states.html",
-      "templates/studio_os/components/page_header.html",
       "templates/studio_os/modes/experience.html",
       "templates/studio_os/partials/automation_mode_canvas.html",
       "templates/studio_os/partials/automation_overview_body.html",
@@ -174,9 +205,8 @@
       "templates/studio_os/partials/output_mode_canvas.html",
       "templates/studio_os/partials/output_reports_library_body.html",
       "templates/studio_os/partials/shell_main_content.html",
-      "templates/studio_os/shell.html",
-      "templates/super/founder_dashboard.html",
-      "templates/teacher/dashboard.html"
+      "templates/studio_os/partials/subpages/automation_visual_builder.html",
+      "templates/studio_os/shell.html"
     ],
     "violation_count": 0,
     "violation_paths": []
@@ -214,27 +244,31 @@
     "violation_count": 0,
     "violation_paths": []
   },
+  "mobile_viewport_contract": {
+    "missing_viewport_paths": [],
+    "ok": true
+  },
   "non_token_literals": {
     "per_file": {
       "static/css/card-grammar.css": {
-        "radius": 2,
-        "shadow": 4,
-        "spacing": 3
+        "radius": 0,
+        "shadow": 0,
+        "spacing": 0
       },
       "static/css/control-plane-ultra.css": {
-        "radius": 11,
-        "shadow": 24,
-        "spacing": 26
+        "radius": 0,
+        "shadow": 19,
+        "spacing": 0
       },
       "static/css/design-system-phase2-enforcement.css": {
         "radius": 0,
-        "shadow": 6,
+        "shadow": 0,
         "spacing": 0
       },
       "static/css/design-system-unified.css": {
         "radius": 0,
         "shadow": 2,
-        "spacing": 6
+        "spacing": 0
       },
       "static/css/design-tokens-luxury.css": {
         "radius": 0,
@@ -242,30 +276,30 @@
         "spacing": 0
       },
       "static/css/form-system.css": {
-        "radius": 2,
+        "radius": 0,
         "shadow": 2,
-        "spacing": 2
+        "spacing": 0
       },
       "static/css/platform-high-end.css": {
-        "radius": 1,
-        "shadow": 20,
-        "spacing": 14
+        "radius": 0,
+        "shadow": 0,
+        "spacing": 0
       },
       "static/css/portal-premium-shell.css": {
-        "radius": 1,
-        "shadow": 11,
+        "radius": 0,
+        "shadow": 2,
         "spacing": 0
       },
       "static/css/table-system.css": {
         "radius": 0,
         "shadow": 1,
-        "spacing": 3
+        "spacing": 0
       }
     },
     "totals": {
-      "radius": 17,
-      "shadow": 70,
-      "spacing": 54
+      "radius": 0,
+      "shadow": 26,
+      "spacing": 0
     }
   },
   "overflow_risks": {
@@ -285,114 +319,124 @@
     "needs_review": 3,
     "violation": 0
   },
-  "schema_version": 1,
-  "score_out_of_15": 13,
+  "schema_version": 2,
+  "score_out_of_15": 15,
   "screen_headers_actions": {
-    "action_bar_violations": [
-      "templates/accounts/backend_dashboard.html",
-      "templates/schools/super_dashboard.html",
-      "templates/super/founder_dashboard.html",
-      "templates/marketplace/tenant_app_catalog.html",
-      "templates/marketplace/tenant_installed_apps.html",
-      "templates/teacher/dashboard.html",
-      "templates/teacher/marks_list.html",
-      "templates/parent/dashboard.html",
-      "templates/student360/student_360_page.html",
-      "templates/siteconfig/tenant_runtime_configuration_hub.html",
-      "templates/siteconfig/billing_plan_readonly.html",
-      "templates/reports/annual_report.html",
-      "templates/reports/term_report.html",
-      "templates/sales/pipeline_board.html"
-    ],
-    "header_violations": [
-      "templates/accounts/backend_dashboard.html",
-      "templates/teacher/marks_list.html",
-      "templates/reports/annual_report.html",
-      "templates/reports/term_report.html"
-    ],
-    "missing_action_bars": 14,
-    "missing_headers": 4,
+    "action_bar_violations": [],
+    "header_violations": [],
+    "missing_action_bars": 0,
+    "missing_headers": 0,
     "rows": [
       {
-        "action_bar": false,
+        "action_bar": true,
         "exists": true,
-        "header": false,
+        "header": true,
         "path": "templates/accounts/backend_dashboard.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
         "exists": true,
         "header": true,
         "path": "templates/schools/super_dashboard.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
+        "exists": true,
+        "header": true,
+        "path": "templates/schools/billing_dashboard.html"
+      },
+      {
+        "action_bar": true,
         "exists": true,
         "header": true,
         "path": "templates/super/founder_dashboard.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
         "exists": true,
         "header": true,
         "path": "templates/marketplace/tenant_app_catalog.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
         "exists": true,
         "header": true,
         "path": "templates/marketplace/tenant_installed_apps.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
         "exists": true,
         "header": true,
         "path": "templates/teacher/dashboard.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
         "exists": true,
-        "header": false,
+        "header": true,
         "path": "templates/teacher/marks_list.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
+        "exists": true,
+        "header": true,
+        "path": "templates/teacher/attendance.html"
+      },
+      {
+        "action_bar": true,
         "exists": true,
         "header": true,
         "path": "templates/parent/dashboard.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
+        "exists": true,
+        "header": true,
+        "path": "templates/parent/attendance_discipline.html"
+      },
+      {
+        "action_bar": true,
         "exists": true,
         "header": true,
         "path": "templates/student360/student_360_page.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
         "exists": true,
         "header": true,
         "path": "templates/siteconfig/tenant_runtime_configuration_hub.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
         "exists": true,
         "header": true,
         "path": "templates/siteconfig/billing_plan_readonly.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
         "exists": true,
-        "header": false,
+        "header": true,
+        "path": "templates/siteconfig/console_domains_hub.html"
+      },
+      {
+        "action_bar": true,
+        "exists": true,
+        "header": true,
+        "path": "templates/studio_os/shell.html"
+      },
+      {
+        "action_bar": true,
+        "exists": true,
+        "header": true,
         "path": "templates/reports/annual_report.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
         "exists": true,
-        "header": false,
+        "header": true,
         "path": "templates/reports/term_report.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
         "exists": true,
         "header": true,
         "path": "templates/sales/pipeline_board.html"
@@ -429,6 +473,298 @@
         "has_tokens": true,
         "ok": true,
         "path": "templates/control_plane_skeleton.html"
+      }
+    ]
+  },
+  "state_completeness_matrix": {
+    "coverage_counts": {
+      "empty": 1,
+      "error": 2,
+      "loading": 1,
+      "offline": 0,
+      "permission_denied": 0,
+      "retry": 3
+    },
+    "keys": [
+      "loading",
+      "empty",
+      "error",
+      "permission_denied",
+      "offline",
+      "retry"
+    ],
+    "major_screen_count": 19,
+    "rows": [
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/accounts/backend_dashboard.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": true,
+        "error": false,
+        "loading": true,
+        "offline": false,
+        "path": "templates/schools/super_dashboard.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/schools/billing_dashboard.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/super/founder_dashboard.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": true,
+        "loading": false,
+        "offline": false,
+        "path": "templates/marketplace/tenant_app_catalog.html",
+        "permission_denied": false,
+        "retry": true,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/marketplace/tenant_installed_apps.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/teacher/dashboard.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/teacher/marks_list.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/teacher/attendance.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": true,
+        "loading": false,
+        "offline": false,
+        "path": "templates/parent/dashboard.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/parent/attendance_discipline.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/student360/student_360_page.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/siteconfig/tenant_runtime_configuration_hub.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/siteconfig/billing_plan_readonly.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/siteconfig/console_domains_hub.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/studio_os/shell.html",
+        "permission_denied": false,
+        "retry": true,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/reports/annual_report.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/reports/term_report.html",
+        "permission_denied": false,
+        "retry": false,
+        "zero_click_shell_or_exempt": true
+      },
+      {
+        "empty": false,
+        "error": false,
+        "loading": false,
+        "offline": false,
+        "path": "templates/sales/pipeline_board.html",
+        "permission_denied": false,
+        "retry": true,
+        "zero_click_shell_or_exempt": true
+      }
+    ]
+  },
+  "state_handling_major_screens": {
+    "major_without_state_hints": 12,
+    "rows": [
+      {
+        "path": "templates/accounts/backend_dashboard.html",
+        "state_hints_detected": false
+      },
+      {
+        "path": "templates/schools/super_dashboard.html",
+        "state_hints_detected": true
+      },
+      {
+        "path": "templates/schools/billing_dashboard.html",
+        "state_hints_detected": false
+      },
+      {
+        "path": "templates/super/founder_dashboard.html",
+        "state_hints_detected": false
+      },
+      {
+        "path": "templates/marketplace/tenant_app_catalog.html",
+        "state_hints_detected": true
+      },
+      {
+        "path": "templates/marketplace/tenant_installed_apps.html",
+        "state_hints_detected": false
+      },
+      {
+        "path": "templates/teacher/dashboard.html",
+        "state_hints_detected": false
+      },
+      {
+        "path": "templates/teacher/marks_list.html",
+        "state_hints_detected": false
+      },
+      {
+        "path": "templates/teacher/attendance.html",
+        "state_hints_detected": false
+      },
+      {
+        "path": "templates/parent/dashboard.html",
+        "state_hints_detected": true
+      },
+      {
+        "path": "templates/parent/attendance_discipline.html",
+        "state_hints_detected": false
+      },
+      {
+        "path": "templates/student360/student_360_page.html",
+        "state_hints_detected": false
+      },
+      {
+        "path": "templates/siteconfig/tenant_runtime_configuration_hub.html",
+        "state_hints_detected": false
+      },
+      {
+        "path": "templates/siteconfig/billing_plan_readonly.html",
+        "state_hints_detected": false
+      },
+      {
+        "path": "templates/siteconfig/console_domains_hub.html",
+        "state_hints_detected": false
+      },
+      {
+        "path": "templates/studio_os/shell.html",
+        "state_hints_detected": true
+      },
+      {
+        "path": "templates/reports/annual_report.html",
+        "state_hints_detected": true
+      },
+      {
+        "path": "templates/reports/term_report.html",
+        "state_hints_detected": true
+      },
+      {
+        "path": "templates/sales/pipeline_board.html",
+        "state_hints_detected": true
       }
     ]
   },
@@ -471,8 +807,8 @@
       ]
     },
     "inline_style_cleanup": {
-      "count": 56,
-      "needs_review_count": 56,
+      "count": 59,
+      "needs_review_count": 59,
       "needs_review_paths": [
         "templates/accounts/backend_dashboard.html",
         "templates/marketplace/tenant_app_catalog.html",
@@ -488,6 +824,7 @@
         "templates/reports/term_report_cameroon.html",
         "templates/reports/term_report_cameroon_modern.html",
         "templates/sales/pipeline_board.html",
+        "templates/schools/billing_dashboard.html",
         "templates/siteconfig/academic_years_setup_evidence.html",
         "templates/siteconfig/ai_governance.html",
         "templates/siteconfig/billing_plan_readonly.html",
@@ -496,6 +833,7 @@
         "templates/siteconfig/departments_setup_evidence.html",
         "templates/siteconfig/feature_control_ledger.html",
         "templates/siteconfig/feature_control_panel_content.html",
+        "templates/siteconfig/guided_configuration_workflows.html",
         "templates/siteconfig/installed_packages_rollback.html",
         "templates/siteconfig/maintenance.html",
         "templates/siteconfig/module_market.html",
@@ -512,6 +850,7 @@
         "templates/siteconfig/reportcard_style_preview.html",
         "templates/siteconfig/request_custom_requirement.html",
         "templates/siteconfig/scheduled_reports_delivery_hub.html",
+        "templates/siteconfig/school_automation_builder.html",
         "templates/siteconfig/school_group_hierarchy.html",
         "templates/siteconfig/sync_center.html",
         "templates/siteconfig/template_gallery.html",
@@ -537,24 +876,24 @@
     "non_token_literals": {
       "per_file": {
         "static/css/card-grammar.css": {
-          "radius": 2,
-          "shadow": 4,
-          "spacing": 3
+          "radius": 0,
+          "shadow": 0,
+          "spacing": 0
         },
         "static/css/control-plane-ultra.css": {
-          "radius": 11,
-          "shadow": 24,
-          "spacing": 26
+          "radius": 0,
+          "shadow": 19,
+          "spacing": 0
         },
         "static/css/design-system-phase2-enforcement.css": {
           "radius": 0,
-          "shadow": 6,
+          "shadow": 0,
           "spacing": 0
         },
         "static/css/design-system-unified.css": {
           "radius": 0,
           "shadow": 2,
-          "spacing": 6
+          "spacing": 0
         },
         "static/css/design-tokens-luxury.css": {
           "radius": 0,
@@ -562,30 +901,30 @@
           "spacing": 0
         },
         "static/css/form-system.css": {
-          "radius": 2,
+          "radius": 0,
           "shadow": 2,
-          "spacing": 2
+          "spacing": 0
         },
         "static/css/platform-high-end.css": {
-          "radius": 1,
-          "shadow": 20,
-          "spacing": 14
+          "radius": 0,
+          "shadow": 0,
+          "spacing": 0
         },
         "static/css/portal-premium-shell.css": {
-          "radius": 1,
-          "shadow": 11,
+          "radius": 0,
+          "shadow": 2,
           "spacing": 0
         },
         "static/css/table-system.css": {
           "radius": 0,
           "shadow": 1,
-          "spacing": 3
+          "spacing": 0
         }
       },
       "totals": {
-        "radius": 17,
-        "shadow": 70,
-        "spacing": 54
+        "radius": 0,
+        "shadow": 26,
+        "spacing": 0
       }
     },
     "overflow_risk_css": {
@@ -601,111 +940,121 @@
       "template_paths": []
     },
     "page_header_action_bar_contract": {
-      "action_bar_violations": [
-        "templates/accounts/backend_dashboard.html",
-        "templates/schools/super_dashboard.html",
-        "templates/super/founder_dashboard.html",
-        "templates/marketplace/tenant_app_catalog.html",
-        "templates/marketplace/tenant_installed_apps.html",
-        "templates/teacher/dashboard.html",
-        "templates/teacher/marks_list.html",
-        "templates/parent/dashboard.html",
-        "templates/student360/student_360_page.html",
-        "templates/siteconfig/tenant_runtime_configuration_hub.html",
-        "templates/siteconfig/billing_plan_readonly.html",
-        "templates/reports/annual_report.html",
-        "templates/reports/term_report.html",
-        "templates/sales/pipeline_board.html"
-      ],
-      "header_violations": [
-        "templates/accounts/backend_dashboard.html",
-        "templates/teacher/marks_list.html",
-        "templates/reports/annual_report.html",
-        "templates/reports/term_report.html"
-      ],
-      "missing_action_bars": 14,
-      "missing_headers": 4,
+      "action_bar_violations": [],
+      "header_violations": [],
+      "missing_action_bars": 0,
+      "missing_headers": 0,
       "rows": [
         {
-          "action_bar": false,
+          "action_bar": true,
           "exists": true,
-          "header": false,
+          "header": true,
           "path": "templates/accounts/backend_dashboard.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
           "exists": true,
           "header": true,
           "path": "templates/schools/super_dashboard.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
+          "exists": true,
+          "header": true,
+          "path": "templates/schools/billing_dashboard.html"
+        },
+        {
+          "action_bar": true,
           "exists": true,
           "header": true,
           "path": "templates/super/founder_dashboard.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
           "exists": true,
           "header": true,
           "path": "templates/marketplace/tenant_app_catalog.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
           "exists": true,
           "header": true,
           "path": "templates/marketplace/tenant_installed_apps.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
           "exists": true,
           "header": true,
           "path": "templates/teacher/dashboard.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
           "exists": true,
-          "header": false,
+          "header": true,
           "path": "templates/teacher/marks_list.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
+          "exists": true,
+          "header": true,
+          "path": "templates/teacher/attendance.html"
+        },
+        {
+          "action_bar": true,
           "exists": true,
           "header": true,
           "path": "templates/parent/dashboard.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
+          "exists": true,
+          "header": true,
+          "path": "templates/parent/attendance_discipline.html"
+        },
+        {
+          "action_bar": true,
           "exists": true,
           "header": true,
           "path": "templates/student360/student_360_page.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
           "exists": true,
           "header": true,
           "path": "templates/siteconfig/tenant_runtime_configuration_hub.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
           "exists": true,
           "header": true,
           "path": "templates/siteconfig/billing_plan_readonly.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
           "exists": true,
-          "header": false,
+          "header": true,
+          "path": "templates/siteconfig/console_domains_hub.html"
+        },
+        {
+          "action_bar": true,
+          "exists": true,
+          "header": true,
+          "path": "templates/studio_os/shell.html"
+        },
+        {
+          "action_bar": true,
+          "exists": true,
+          "header": true,
           "path": "templates/reports/annual_report.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
           "exists": true,
-          "header": false,
+          "header": true,
           "path": "templates/reports/term_report.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
           "exists": true,
           "header": true,
           "path": "templates/sales/pipeline_board.html"
@@ -764,5 +1113,86 @@
       "violation_count": 0,
       "violation_paths": []
     }
+  },
+  "zero_click_contract": {
+    "failure_count": 0,
+    "rows": [
+      {
+        "path": "templates/accounts/backend_dashboard.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/schools/super_dashboard.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/schools/billing_dashboard.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/super/founder_dashboard.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/marketplace/tenant_app_catalog.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/marketplace/tenant_installed_apps.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/teacher/dashboard.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/teacher/marks_list.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/teacher/attendance.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/parent/dashboard.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/parent/attendance_discipline.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/student360/student_360_page.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/siteconfig/tenant_runtime_configuration_hub.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/siteconfig/billing_plan_readonly.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/siteconfig/console_domains_hub.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/studio_os/shell.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/reports/annual_report.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/reports/term_report.html",
+        "zero_click_resolved": true
+      },
+      {
+        "path": "templates/sales/pipeline_board.html",
+        "zero_click_resolved": true
+      }
+    ]
   }
 }

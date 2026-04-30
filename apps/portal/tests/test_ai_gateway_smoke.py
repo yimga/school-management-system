@@ -24,12 +24,14 @@ class AIGatewaySmokeTests(SimpleTestCase):
             role="ADMIN",
         )
 
+    @patch("apps.marketplace.monetization.record_usage_meter_increment")
     @patch("apps.portal.views_ai_gateway.invoke")
     @patch("services.ai_permissions.get_ai_permission_for_user")
     def test_gateway_response_passes_user_id_to_invoke(
         self,
         mock_permission,
         mock_invoke,
+        _mock_usage_meter,
     ):
         mock_permission.return_value = True
         mock_invoke.return_value = ("assistant reply", {"provider": "rules"})
@@ -56,12 +58,14 @@ class AIGatewaySmokeTests(SimpleTestCase):
         self.assertEqual(metadata.get("role"), "ADMIN")
         self.assertEqual(metadata.get("country_code"), "CM")
 
+    @patch("apps.marketplace.monetization.record_usage_meter_increment")
     @patch("apps.portal.views_ai_gateway.invoke")
     @patch("services.ai_permissions.get_ai_permission_for_user")
     def test_gateway_response_uses_school_pk_when_id_attribute_is_missing(
         self,
         mock_permission,
         mock_invoke,
+        _mock_usage_meter,
     ):
         mock_permission.return_value = True
         mock_invoke.return_value = ("assistant reply", {"provider": "rules"})

@@ -1,4 +1,4 @@
-"""Wave D: product code must not import get_effective_site_settings from helpers (use site_settings_read_access)."""
+"""Wave D: product code must not import get_effective_site_settings from helpers (use config_service)."""
 
 from __future__ import annotations
 
@@ -27,6 +27,7 @@ class SiteSettingsHelpersImportSurfaceTests(unittest.TestCase):
             if rel in (
                 "apps/platform_runtime/helpers.py",
                 "apps/platform_runtime/site_settings_read_access.py",
+                "apps/siteconfig/config_service.py",
             ):
                 continue
             try:
@@ -40,5 +41,5 @@ class SiteSettingsHelpersImportSurfaceTests(unittest.TestCase):
         self.assertEqual(
             bad,
             [],
-            "Import SiteSettings readers via apps.platform_runtime.site_settings_read_access",
+            "Import SiteSettings readers via apps.siteconfig.config_service",
         )

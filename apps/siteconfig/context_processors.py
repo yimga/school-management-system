@@ -16,7 +16,7 @@ from apps.accounts.models import User
 from apps.finance.models import Notification
 from apps.global_registries.models import RegionConfig
 from apps.platform_runtime.helpers import get_platform_defaults
-from apps.platform_runtime.site_settings_read_access import (
+from apps.siteconfig.config_service import (
     get_effective_flags,
     get_effective_site_settings,
 )
@@ -803,6 +803,20 @@ def site_settings(request):
     ctx["SHOW_OFFLINE_STATUS_BAR"] = ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] and bool(
         flags_ctx.get("show_offline_status_bar", True)
     )
+    ctx["OFFLINE_SYNC_QUEUE_URL"] = None
+    ctx["OFFLINE_CONFLICTS_URL"] = None
+    ctx["OFFLINE_API_ENQUEUE_URL"] = None
+    ctx["OFFLINE_API_PROCESS_URL"] = None
+    if ctx.get("SHOW_OFFLINE_STATUS_BAR") and user and getattr(
+        user, "is_authenticated", False
+    ):
+        try:
+            ctx["OFFLINE_SYNC_QUEUE_URL"] = reverse("portal:offline_sync_queue")
+            ctx["OFFLINE_CONFLICTS_URL"] = reverse("portal:offline_sync_conflicts")
+            ctx["OFFLINE_API_ENQUEUE_URL"] = reverse("portal:api_offline_enqueue")
+            ctx["OFFLINE_API_PROCESS_URL"] = reverse("portal:api_offline_process")
+        except NoReverseMatch:
+            pass
     # Super Admin / Schools: global toggle to show or hide /super/ and Schools link.
     ctx["SUPER_ADMIN_UI_ENABLED"] = bool(flags_ctx.get("enable_super_admin_ui", True))
     portal_items = ctx["PORTAL_SIDEBAR_ITEMS"]

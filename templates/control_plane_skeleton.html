@@ -9,6 +9,7 @@
     <link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
     {% block extrahead %}{% endblock %}
 
+    <link rel="stylesheet" href="{% static 'css/vendor/inter.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
@@ -26,6 +27,8 @@
     <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
     <link rel="stylesheet" href="{% static 'css/chart-rules.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
+    <link rel="stylesheet" href="{% static 'css/north-star-touch-targets.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile-luxury-surfaces.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-fluid-everywhere.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
     <link rel="stylesheet" href="{% static 'css/accessibility.css' %}">
@@ -37,6 +40,7 @@
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase2-static-templates-bundle.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ultra-luxury-ui-system.css' %}">
     {% block extrastyle %}{% endblock %}
   </head>
   <body class="control-plane-shell cp-surface" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %}>

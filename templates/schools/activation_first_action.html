@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Activate your school" %}{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <h1 class="h3 mb-3">{% trans "Do one thing to get value" %}</h1>
+      <p class="text-muted">
+        {% blocktrans with name=school_name %}Complete a quick action for <strong>{{ name }}</strong> so your workspace is real—not empty.{% endblocktrans %}
+      </p>
+      <div class="list-group my-4">
+        {% if activation_single_action %}
+        <a class="list-group-item list-group-item-action list-group-item-primary fw-semibold" href="{{ primary_action_url }}">{% trans "Do your next action" %}</a>
+        {% else %}
+        <a class="list-group-item list-group-item-action" href="{{ portal_take_url }}">{% trans "Take attendance" %}</a>
+        <a class="list-group-item list-group-item-action" href="{{ marks_url }}">{% trans "Enter marks" %}</a>
+        <a class="list-group-item list-group-item-action" href="{{ backend_url }}">{% trans "Open operator dashboard" %}</a>
+        {% endif %}
+      </div>
+      <p class="small text-muted mb-3">
+        {% trans "Saving attendance, marks, a report, or a payment records your first value and unlocks the full workspace (enforced by the platform when conversion lock is on)." %}
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

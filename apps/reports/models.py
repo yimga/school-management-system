@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models, DatabaseError
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist
 from apps.academics.models import AcademicYear, Term, Classroom
 from apps.people.models import StudentProfile
 from apps.accounts.models import User

@@ -5,7 +5,7 @@ from django.contrib.admin.sites import AlreadyRegistered
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, IntegrityError
 from config.admin import register_tenant_admin
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 
 from unfold.admin import ModelAdmin
 
@@ -46,7 +46,11 @@ from .models import (
     PaymentReminder,
     PaymentReminderLog,
     Notification,
+    OfflinePaymentIntent,
+    PaymentRail,
+    RegionPaymentProfile,
     ReportRequest,
+    TenantPaymentPolicy,
 )
 
 
@@ -1128,3 +1132,56 @@ register_tenant_admin(BankAccount, BankAccountAdmin)
 register_tenant_admin(BankStatementEntry, BankStatementEntryAdmin)
 register_tenant_admin(BankStatementUpload, BankStatementUploadAdmin)
 register_tenant_admin(SuspensePayment, SuspensePaymentAdmin)
+
+
+class PaymentRailAdmin(ModelAdmin):
+    list_display = ("code", "label", "kind")
+    search_fields = ("code", "label")
+
+
+class RegionPaymentProfileAdmin(ModelAdmin):
+    list_display = ("country_code", "name", "primary_rail", "backup_rail")
+    list_filter = ("country_code",)
+
+
+class TenantPaymentPolicyAdmin(ModelAdmin):
+    list_display = ("school", "region_profile", "allow_manual_offline_proof", "simplicity_big_buttons")
+    raw_id_fields = ("school", "region_profile")
+
+
+class OfflinePaymentIntentAdmin(ModelAdmin):
+    list_display = (
+        "id",
+        "invoice",
+        "amount",
+        "payment_method",
+        "status",
+        "transaction_reference",
+        "created_at",
+    )
+    list_filter = ("status", "payment_method")
+    search_fields = ("invoice__reference", "transaction_reference", "client_offline_id")
+    readonly_fields = ("source_sync_queue_id", "created_at", "updated_at", "reconciled_payment")
+    actions = ("reconcile_selected_intents",)
+
+    @admin.action(description="Reconcile selected queued intents (creates Payment)")
+    def reconcile_selected_intents(self, request, queryset):
+        from django.contrib import messages
+
+        from apps.finance.payment_orchestration import reconcile_offline_payment_intent
+
+        ok = 0
+        for intent in queryset.filter(status=OfflinePaymentIntent.Status.QUEUED_REVIEW):
+            try:
+                reconcile_offline_payment_intent(intent, reconciled_by=request.user)
+                ok += 1
+            except (ValueError, ValidationError, IntegrityError, DatabaseError) as exc:
+                self.message_user(request, str(exc), level=messages.ERROR)
+        if ok:
+            self.message_user(request, f"Reconciled {ok} intent(s).", level=messages.SUCCESS)
+
+
+register_tenant_admin(PaymentRail, PaymentRailAdmin)
+register_tenant_admin(RegionPaymentProfile, RegionPaymentProfileAdmin)
+register_tenant_admin(TenantPaymentPolicy, TenantPaymentPolicyAdmin)
+register_tenant_admin(OfflinePaymentIntent, OfflinePaymentIntentAdmin)

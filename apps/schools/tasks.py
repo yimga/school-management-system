@@ -640,12 +640,72 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
                 payload={"classrooms_created": classroom_created},
             )
 
+        try:
+            from apps.schools.provisioning_blueprint import (
+                record_school_template_blueprint,
+            )
+
+            record_school_template_blueprint(school)
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            RuntimeError,
+        ):
+            logger.debug("record_school_template_blueprint skipped", exc_info=True)
+
+        try:
+            from apps.schools.provisioning_personas import (
+                seed_sample_teacher_parent_student,
+                should_seed_demo_personas,
+            )
+
+            if should_seed_demo_personas(**kwargs):
+                seed_sample_teacher_parent_student(school)
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            DatabaseError,
+            IntegrityError,
+            RuntimeError,
+        ):
+            logger.warning(
+                "seed_sample_teacher_parent_student failed school=%s",
+                school_id,
+                exc_info=True,
+            )
+
+        try:
+            from apps.packages.tenant_pack_install import (
+                sync_experience_pack_install_from_school,
+            )
+
+            sync_experience_pack_install_from_school(school)
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            DatabaseError,
+            RuntimeError,
+        ):
+            logger.debug("sync_experience_pack_install_from_school skipped", exc_info=True)
+
         school.is_active = True
         school.save(update_fields=["is_active", "settings", "updated_at"])
         try:
             from apps.policies.policy_registry import invalidate_policy_cache
 
             invalidate_policy_cache(school)
+        except (ImportError, AttributeError, TypeError, ValueError):
+            pass
+        try:
+            from apps.schools.activation_gate import set_activation_gate_pending
+
+            set_activation_gate_pending(school)
         except (ImportError, AttributeError, TypeError, ValueError):
             pass
         _record_school_event(
@@ -710,7 +770,30 @@ try:
                 payload={"error": str(exc)},
             )
             raise self.retry(exc=exc)
+
+    @shared_task(name="schools.ensure_demo_environment_scheduled")
+    def ensure_demo_environment_scheduled() -> dict:
+        """
+        Nightly/periodic refresh of the public demo school (data + demo users).
+        Opt-in: set env ENSURE_DEMO_CRON_SLUG (e.g. demo-school). No-op if unset.
+        """
+        import os
+
+        from django.core.management import call_command
+
+        slug = (os.getenv("ENSURE_DEMO_CRON_SLUG") or "").strip()
+        if not slug:
+            return {"ok": False, "skipped": True, "reason": "ENSURE_DEMO_CRON_SLUG unset"}
+        call_command(
+            "ensure_demo_environment",
+            school_slug=slug,
+        )
+        return {"ok": True, "school_slug": slug}
+
 except ImportError:
 
     def provision_school_task(*args, **kwargs):
         provision_school_sync(*args, **kwargs)
+
+    def ensure_demo_environment_scheduled(*args, **kwargs):
+        return None

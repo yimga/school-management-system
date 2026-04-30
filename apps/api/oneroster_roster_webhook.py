@@ -87,7 +87,7 @@ def platform_marketplace_integration_webhook(request):
     raw = request.body or b""
     body_sha256 = hashlib.sha256(raw).hexdigest()
 
-    from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+    from apps.siteconfig.config_service import get_effective_site_settings
     from apps.platform_runtime.models import PlatformIntegrationWebhookEvent
 
     eff = get_effective_site_settings(request=None, school=None)

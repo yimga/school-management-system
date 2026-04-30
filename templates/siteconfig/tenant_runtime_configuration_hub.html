@@ -13,6 +13,9 @@
   <h1 class="h3 mb-2">{% trans "Tenant runtime configuration" %}</h1>
   <p class="text-muted small mb-2">
     {% trans "Read-only snapshot of effective settings, region, and enabled backend feature flag keys. Product links below; admin remains an escape hatch." %}
+    {% if guided_configuration_url %}
+    <a class="ms-1" href="{{ guided_configuration_url }}">{% trans "Open guided configuration workflows" %}</a>
+    {% endif %}
   </p>
   {% if school %}
   <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
@@ -27,6 +30,14 @@
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
       <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Flags on" %}</div>
       <div class="fw-semibold text-body fs-6">{{ summary_flags_n|default:0 }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Config slices" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ summary_config_n|default:0 }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Setup gaps" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ summary_missing_n|default:0 }}</div>
     </div>
     <div class="border rounded-2 px-2 py-2 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 12rem; max-width: 18rem;" role="region" aria-label="{% trans 'Regional UI' %}" data-rmc-regional-ui-status="1">
       <div class="text-uppercase text-muted mb-1" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Regional UI" %}</div>
@@ -48,7 +59,7 @@
       <a href="{% url 'siteconfig:console_domains_hub' %}" class="alert-link">{% trans "Open Configuration Control Center" %}</a>
     </p>
   </div>
-  <div class="d-flex flex-wrap gap-2 mb-3 cp-evidence-related" data-rmc-evidence-related-links="1" data-rmc-operator-evidence-related="1" aria-label="{% trans 'Related control-plane links' %}">
+  <div class="ds-action-bar d-flex flex-wrap gap-2 mb-3 cp-evidence-related" data-rmc-evidence-related-links="1" data-rmc-operator-evidence-related="1" aria-label="{% trans 'Related control-plane links' %}">
     {% if school_group_hierarchy_url %}
     <a class="btn btn-sm btn-outline-primary" href="{{ school_group_hierarchy_url }}" data-rmc-school-hierarchy-link="1">{% trans "School group hierarchy" %}</a>
     {% endif %}
@@ -91,6 +102,45 @@
   {% if school %}
   <p class="small text-muted mb-3"><strong>{% trans "Tenant" %}</strong>: {{ school.name }}</p>
   {% endif %}
+
+  <div class="card border-0 shadow-sm mb-4" data-rmc-guided-configuration-workflows="1">
+    <div class="card-header bg-light fw-semibold">{% trans "Guided configuration workflows" %}</div>
+    <div class="card-body">
+      {% if guided_workflows %}
+      <div class="row g-2">
+        {% for workflow in guided_workflows %}
+        <div class="col-12 col-md-6">
+          <div class="border rounded-2 p-2 h-100">
+            <div class="d-flex justify-content-between gap-2 align-items-start">
+              <h2 class="h6 mb-1">{{ workflow.label }}</h2>
+              <span class="badge text-bg-light">{{ workflow.value_count }}</span>
+            </div>
+            <p class="small mb-1"><strong>{% trans "Current state" %}:</strong> {{ workflow.current_state }}</p>
+            {% if workflow.missing_setup %}
+            <div class="small mb-2">
+              <strong>{% trans "Missing setup" %}:</strong>
+              <ul class="mb-0 ps-3">
+                {% for missing in workflow.missing_setup %}
+                <li>{{ missing }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% else %}
+            <p class="small text-success mb-2">{% trans "No setup gaps detected." %}</p>
+            {% endif %}
+            <p class="small mb-2"><strong>{% trans "Recommended next step" %}:</strong> {{ workflow.recommended_next_step }}</p>
+            {% if workflow.safe_fix_url %}
+            <a class="btn btn-sm btn-outline-primary" href="{{ workflow.safe_fix_url }}">{{ workflow.safe_fix_label }}</a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-muted small mb-0">{% trans "No guided workflows available." %}</p>
+      {% endif %}
+    </div>
+  </div>
 
   <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-light fw-semibold">{% trans "Effective settings (safe fields)" %}</div>

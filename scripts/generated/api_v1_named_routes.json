@@ -27,6 +27,8 @@
     "manifest",
     "me-schools",
     "me-switch-school",
+    "platform-integration-context",
+    "platform-scoped-ping",
     "reports-adhoc-list-create",
     "reports-adhoc-run",
     "reports-emis-prepare",

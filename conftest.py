@@ -166,3 +166,9 @@ def pytest_sessionfinish(session, exitstatus) -> None:
 
     keepdb = getattr(session, "_django_db_keepdb", _pytest_keepdb_enabled())
     teardown_databases(cfg, verbosity=1, parallel=0, keepdb=keepdb)
+    try:
+        from django.db import connections
+
+        connections.close_all()
+    except Exception:
+        pass

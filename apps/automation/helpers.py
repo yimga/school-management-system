@@ -6,7 +6,7 @@ from typing import Optional
 from django.utils import timezone
 from django.core.cache import cache
 from apps.academics.models import AcademicYear, Term
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 
 
 def get_cached_site_settings(*, school=None):

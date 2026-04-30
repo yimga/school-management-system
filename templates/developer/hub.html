@@ -1,0 +1,45 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n %}
+{% block title %}Developer hub – RunMyCampus{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="RunMyCampus developer hub: OAuth2, API v2 manifest, API Center, SDK, sandbox.">
+{% endblock %}
+{% block content %}
+<div class="developer-hub">
+  <header class="detail-hero" style="margin-bottom: 1.5rem;">
+    <p class="detail-eyebrow">Developers</p>
+    <h1 class="detail-headline">{{ headline }}</h1>
+    <p class="detail-subheadline">{{ subheadline }}</p>
+  </header>
+
+  <section class="section-shell" style="margin-bottom: 1rem;">
+    <h2 class="section-heading">API discovery</h2>
+    <ul style="margin: 0.5rem 0; padding-left: 1.25rem;">
+      <li><a href="{{ links.v2_manifest }}"><code>GET /api/v2/manifest.json</code></a> — contract + OAuth URLs</li>
+      <li><a href="{{ links.v1_manifest }}"><code>GET /api/v1/manifest.json</code></a> — legacy v1 discovery</li>
+      <li><a href="{{ links.v2_ping }}"><code>GET /api/v2/ping</code></a> — health</li>
+    </ul>
+  </section>
+
+  <section class="section-shell" style="margin-bottom: 1rem;">
+    <h2 class="section-heading">OAuth2</h2>
+    <p class="section-lead">Register a <strong>developer application</strong> in platform admin, then use:</p>
+    <ul style="margin: 0.5rem 0; padding-left: 1.25rem;">
+      <li><a href="{{ links.oauth_authorize }}"><code>GET /api/v1/oauth/authorize/</code></a> (after login) — authorization code</li>
+      <li><code>POST {{ links.oauth_token }}</code> — <code>client_credentials</code>, <code>refresh_token</code>, <code>authorization_code</code></li>
+    </ul>
+  </section>
+
+  <section class="section-shell" style="margin-bottom: 1rem;">
+    <h2 class="section-heading">Keys, webhooks &amp; tools</h2>
+    <ul style="margin: 0.5rem 0; padding-left: 1.25rem;">
+      <li><a href="{{ links.api_center }}">API Center</a> — tenant API keys and webhook subscriptions</li>
+      <li><a href="{{ links.sandbox }}">Developer sandbox</a></li>
+      <li><a href="{{ links.sdk }}">Python SDK (repo layout)</a></li>
+      <li><a href="{{ links.public_api_docs }}">Public API summary</a></li>
+      <li><a href="{{ links.developer_portal }}">Full developer portal</a></li>
+      <li><a href="{{ links.developer_console }}">Developer console</a> (apps, versions, keys, webhooks)</li>
+    </ul>
+  </section>
+</div>
+{% endblock %}

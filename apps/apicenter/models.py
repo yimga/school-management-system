@@ -37,6 +37,14 @@ class APIKey(models.Model):
     scopes = models.JSONField(
         default=list, blank=True, help_text="Optional list of scope strings"
     )
+    marketplace_installation = models.ForeignKey(
+        "marketplace.AppInstallation",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="api_keys",
+        help_text="When set, runtime scopes merge key.scopes with tenant scope grants.",
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -153,3 +161,158 @@ class APIAuditLog(models.Model):
         return (
             f"{self.get_action_display()} – {self.integration.slug} @ {self.created_at}"
         )
+
+
+class DeveloperApplication(models.Model):
+    """
+    Third-party / integration app registration (OAuth2 client).
+    Secrets are shown once at creation (admin or developer hub).
+    """
+
+    name = models.CharField(max_length=160)
+    app_key = models.CharField(max_length=48, unique=True, editable=False)
+    client_id = models.CharField(max_length=64, unique=True, editable=False)
+    client_secret_hash = models.CharField(max_length=64, editable=False)
+    redirect_uris = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Allowed redirect URIs for authorization_code flow (exact match).",
+    )
+    scopes = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Default OAuth scopes (strings).",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="developer_applications",
+    )
+    marketplace_app = models.ForeignKey(
+        "marketplace.MarketplaceApp",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="developer_applications",
+        help_text="Links OAuth client to a catalog app when applicable.",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_developer_apps",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Developer application"
+        verbose_name_plural = "Developer applications"
+
+    def __str__(self):
+        return f"{self.name} ({self.client_id})"
+
+    @classmethod
+    def generate_credentials(cls):
+        """Return (app_key, client_id, raw_client_secret) for one-time display."""
+        app_key = "rmcapp_" + secrets.token_urlsafe(12).replace("-", "")[:16]
+        client_id = "rmc_" + secrets.token_urlsafe(16).replace("-", "")[:22]
+        raw_secret = "cs_" + secrets.token_urlsafe(40)
+        return app_key, client_id, raw_secret
+
+
+class OAuthAuthorizationCode(models.Model):
+    """Short-lived authorization code (authorization_code grant)."""
+
+    application = models.ForeignKey(
+        DeveloperApplication,
+        on_delete=models.CASCADE,
+        related_name="authorization_codes",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="oauth_authorization_codes",
+    )
+    code_hash = models.CharField(max_length=64, db_index=True)
+    redirect_uri = models.CharField(max_length=2048)
+    scope = models.CharField(max_length=512, blank=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["code_hash", "expires_at"]),
+        ]
+
+
+class OAuthTokenPair(models.Model):
+    """Issued access + refresh tokens (hashed at rest)."""
+
+    application = models.ForeignKey(
+        DeveloperApplication,
+        on_delete=models.CASCADE,
+        related_name="token_pairs",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="oauth_token_pairs",
+    )
+    access_token_hash = models.CharField(max_length=64, unique=True)
+    refresh_token_hash = models.CharField(max_length=64, unique=True)
+    access_expires_at = models.DateTimeField()
+    revoked_at = models.DateTimeField(null=True, blank=True)
+    scope = models.CharField(max_length=512, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["application", "revoked_at"]),
+        ]
+
+
+class MarketplaceExtensionSubmission(models.Model):
+    """Publishing pipeline states for marketplace-listed extensions (developer platform)."""
+
+    class State(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        REVIEW = "review", "In review"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+        PUBLISHED = "published", "Published"
+
+    developer_application = models.ForeignKey(
+        DeveloperApplication,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="marketplace_submissions",
+    )
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=120)
+    state = models.CharField(
+        max_length=20,
+        choices=State.choices,
+        default=State.DRAFT,
+        db_index=True,
+    )
+    validation_notes = models.TextField(blank=True)
+    security_notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        verbose_name = "Marketplace extension submission"
+        verbose_name_plural = "Marketplace extension submissions"
+
+    def __str__(self):
+        return f"{self.title} ({self.get_state_display()})"

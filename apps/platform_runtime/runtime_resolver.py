@@ -362,7 +362,7 @@ def _step7_branding(school: Any) -> BrandingContext:
     if school is None:
         return BrandingContext()
     try:
-        from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+        from apps.siteconfig.config_service import get_effective_site_settings
         from apps.siteconfig.branding import resolve_brand_profile
 
         site = get_effective_site_settings(school=school)

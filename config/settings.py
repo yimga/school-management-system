@@ -27,6 +27,18 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 _is_render = os.getenv("RENDER", "").lower() == "true"
 _debug_default = "0" if _is_render else "1"
 DEBUG = os.getenv("DEBUG", _debug_default) == "1"
+# Deploy tier: used so staging keeps strict conversion + paid billing even when DEBUG=1 locally on Render.
+_RMC_DEPLOY_ENV = (
+    os.getenv("RMC_ENVIRONMENT") or os.getenv("DJANGO_ENV") or ""
+).strip().lower()
+_IS_PRODUCTION_OR_STAGING = _RMC_DEPLOY_ENV in (
+    "production",
+    "prod",
+    "staging",
+    "stage",
+)
+# Hosted deploy (Render/Heroku-style): enforce conversion + paid-install billing even when DEBUG=1.
+_IS_CLOUD_DEPLOYED = _is_render or _IS_PRODUCTION_OR_STAGING
 if not SECRET_KEY:
     if DEBUG:
         SECRET_KEY = "dev-only-change-in-production"
@@ -99,6 +111,21 @@ else:
 ONEROSTER_WEBHOOK_SECRET = (os.getenv("ONEROSTER_WEBHOOK_SECRET") or "").strip()
 # RUM: optional ingest token (>= 16 chars). When set, portal/marketing load rum-beacon.js.
 RUM_INGEST_KEY = (os.getenv("RUM_INGEST_KEY") or "").strip()
+# Marketplace: default platform take on gross tenant app charges (see apps.marketplace.monetization).
+MARKETPLACE_PLATFORM_FEE_PERCENT = (os.getenv("MARKETPLACE_PLATFORM_FEE_PERCENT") or "20").strip()
+# When True, installing a paid catalog app (compute_install_charge > 0) requires a billing account with processor customer.
+_default_marketplace_paid_billing = (
+    ""
+    if RUNNING_TESTS
+    else ("1" if ((not DEBUG) or _IS_CLOUD_DEPLOYED) else "")
+)
+MARKETPLACE_INSTALL_REQUIRES_PAID_BILLING = (
+    os.getenv(
+        "MARKETPLACE_INSTALL_REQUIRES_PAID_BILLING",
+        _default_marketplace_paid_billing,
+    ).strip().lower()
+    in ("1", "true", "yes")
+)
 # Multi-tenant: ensure main domain HTTPS origin is trusted when MULTI_TENANT_BASE_DOMAIN is set
 if _multi_tenant_base:
     _origin = f"https://{_multi_tenant_base}"
@@ -165,6 +192,7 @@ INSTALLED_APPS = [
     "apps.observability.apps.ObservabilityConfig",  # Observability/monitoring
     "apps.customersuccess",  # Section 11: Benchmark intelligence, customer success, health
     "apps.api",
+    "apps.sync_engine.apps.SyncEngineConfig",
     "apps.apicenter",
     "apps.automation",  # Automation and background tasks
     "apps.metadata.apps.MetadataConfig",  # Custom fields without DDL (metadata engine)
@@ -212,6 +240,10 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "apps.schools.middleware_conversion_lock.ConversionLockMiddleware",
+    "apps.schools.growth_funnel_middleware.GrowthFunnelMiddleware",
+    "apps.schools.middleware_activation_gate.ActivationGateMiddleware",
+    "apps.marketplace.middleware.AppApiContextMiddleware",  # Developer platform: app API key scope context
     "apps.accounts.middleware.ImpossibleTravelMiddleware",  # World Engine: single trigger for check_impossible_travel after login
     "apps.accounts.middleware.RoleBasedSessionTimeoutMiddleware",
     "apps.schools.middleware.ManagerHostControlPlaneRequiredMiddleware",  # manager host is platform-only beyond auth/bootstrap paths
@@ -221,6 +253,7 @@ MIDDLEWARE = [
     "apps.accounts.middleware.RequireMFAMiddleware",
     "apps.schools.middleware.TenantSuperAdminRequiredMiddleware",  # Restrict /super/ to SUPERADMIN
     "apps.schools.middleware.SuperAdminRateLimitMiddleware",  # 12.7: rate limit /super/ (120/min per user)
+    "apps.schools.middleware_enterprise_security.EnterpriseSuperHttpAuditMiddleware",  # optional: ENTERPRISE_SUPER_HTTP_AUDIT=1
     "apps.schools.middleware.FeatureGatekeeperMiddleware",  # Phase D: enforce plan feature by path
     "apps.schools.middleware.UsageLimitMiddleware",  # Phase D (optional, on by default): Plan max_students/max_staff; set DISABLE_USAGE_LIMIT_MIDDLEWARE=1 to turn off
 ]
@@ -274,14 +307,18 @@ TEMPLATES = [
                 "apps.accounts.context_processors.dashboard_context",  # Dashboard header/footer data
                 "apps.accounts.context_processors.sidebar_record_context",
                 "apps.schools.context_processors.marketing_base_url",  # MARKETING_BASE_URL for cross-host links
+                "apps.schools.context_processors.conversion_enforcement_context",
                 "apps.portal.context_processors.announcements",  # Global announcements banner
                 "apps.portal.context_processors.platform_status_strip",  # Public-safe platform incident strip
                 "apps.siteconfig.context_processors.ai_copilot_settings",  # AI Copilot API key
                 "apps.policies.context_processors.tenant_policy_context",  # tenant_ctx + global_env (Policy Registry)
+                "apps.platform_runtime.context_processors.click_tracking_context",
                 "apps.platform_runtime.context_processors.rum_ingest_context",
                 "apps.platform_runtime.context_processors.demo_sandbox_banner",
                 "apps.platform_runtime.context_processors.shell_contract_context",
                 "apps.platform_runtime.context_processors.ai_operating_layer_context",
+                "apps.platform_runtime.context_processors.system_actions_context",
+                "apps.platform_runtime.context_processors.offline_sync_bar_context",
             ]
         },
     }
@@ -519,6 +556,19 @@ SECURE_SSL_REDIRECT = (
 # Test runner uses plain HTTP requests; keep HTTPS redirect behavior for runtime envs.
 if RUNNING_TESTS:
     SECURE_SSL_REDIRECT = False
+
+# Serial DiscoverRunner + aggressive SQLite connection cleanup (scripts/run_full_test_suite.*).
+# Opt out: RMC_RELIABLE_TEST_RUNNER=0  OR  DJANGO_TEST_RUNNER=django.test.runner.DiscoverRunner
+if RUNNING_TESTS:
+    _test_runner_env = os.getenv("DJANGO_TEST_RUNNER", "").strip()
+    if _test_runner_env:
+        TEST_RUNNER = _test_runner_env
+    elif os.getenv("RMC_RELIABLE_TEST_RUNNER", "1").strip().lower() not in (
+        "0",
+        "false",
+        "no",
+    ):
+        TEST_RUNNER = "config.reliable_test_runner.ReliableDiscoverRunner"
 # Health/readiness probes can come over plain HTTP from platform internals.
 # Exempt these endpoints to avoid redirect loops and failed boot probes.
 SECURE_REDIRECT_EXEMPT = [
@@ -574,6 +624,11 @@ IMPERSONATION_REQUIRE_JUSTIFICATION = (
 # Default for new impersonation tokens: read-only until operator checks “allow writes”.
 IMPERSONATION_DEFAULT_READ_ONLY = (
     os.getenv("IMPERSONATION_DEFAULT_READ_ONLY", "1").strip().lower()
+    in {"1", "true", "yes"}
+)
+# Log mutating /super/ requests to compliance AuditLog (see middleware_enterprise_security).
+ENTERPRISE_SUPER_HTTP_AUDIT = (
+    os.getenv("ENTERPRISE_SUPER_HTTP_AUDIT", "0").strip().lower()
     in {"1", "true", "yes"}
 )
 # Prefixes blocked for POST/PUT/PATCH/DELETE while impersonation session has read_only=True.
@@ -638,6 +693,64 @@ RUNMYCAMPUS_DEMO_MODE = os.getenv("RUNMYCAMPUS_DEMO_MODE", "").strip().lower() i
 ) or os.getenv("DEMO_MODE", "").strip().lower() in ("1", "true", "yes")
 # Unified flag for templates (sandbox OR explicit demo mode).
 RUNMYCAMPUS_DEMO_ENABLED = RUNMYCAMPUS_DEMO_SANDBOX or RUNMYCAMPUS_DEMO_MODE
+# Tenant ADMIN activation landing after self-service signup verify (school.settings.rmc_activation_gate).
+DISABLE_SCHOOL_ACTIVATION_GATE = os.getenv(
+    "DISABLE_SCHOOL_ACTIVATION_GATE", ""
+).strip().lower() in ("1", "true", "yes")
+# Conversion lock (apps.schools.middleware_conversion_lock): blocks tenant routes until first_action_completed.
+# Production / staging / cloud host: strict ON. Local dev (DEBUG=1, not Render, not RMC_ENV): permissive.
+# Override with CONVERSION_LOCK_STRICT=0.
+_default_conversion_strict = (
+    "" if RUNNING_TESTS else ("1" if ((not DEBUG) or _IS_CLOUD_DEPLOYED) else "")
+)
+CONVERSION_LOCK_STRICT = (
+    os.getenv("CONVERSION_LOCK_STRICT", _default_conversion_strict).strip().lower()
+    in ("1", "true", "yes")
+)
+# If True with CONVERSION_LOCK_STRICT, every tenant without first_action_completed is locked.
+_default_conversion_all = "1" if CONVERSION_LOCK_STRICT else ""
+CONVERSION_LOCK_ALL_SCHOOLS = (
+    os.getenv("CONVERSION_LOCK_ALL_SCHOOLS", _default_conversion_all).strip().lower()
+    in ("1", "true", "yes")
+)
+# Use granular workflow prefixes (not full /portal/) so dashboards stay blocked until first action.
+_default_narrow = "1" if CONVERSION_LOCK_STRICT else ""
+CONVERSION_LOCK_USE_NARROW_WORKFLOW_PATHS = (
+    os.getenv("CONVERSION_LOCK_USE_NARROW_WORKFLOW_PATHS", _default_narrow).strip().lower()
+    in ("1", "true", "yes")
+)
+# Extra path prefixes (tuple of strings) appended to base allowlist in conversion_lock_paths.
+CONVERSION_LOCK_ALLOWED_PREFIXES: tuple[str, ...] = tuple(
+    p.strip()
+    for p in (os.getenv("CONVERSION_LOCK_ALLOWED_PREFIXES") or "").split(",")
+    if p.strip()
+)
+# Action strip: force at most one primary system action when True.
+_default_single_action = "1" if CONVERSION_LOCK_STRICT else ""
+CONVERSION_SINGLE_ACTION_ENFORCED = (
+    os.getenv(
+        "CONVERSION_SINGLE_ACTION_ENFORCED", _default_single_action
+    ).strip().lower()
+    in ("1", "true", "yes")
+)
+# Activation landing: allow "Skip for now" (escape hatch). Strict default: dismiss OFF in production.
+_default_allow_dismiss = "" if CONVERSION_LOCK_STRICT else "1"
+ACTIVATION_GATE_ALLOW_DISMISS = (
+    os.getenv("ACTIVATION_GATE_ALLOW_DISMISS", _default_allow_dismiss).strip().lower()
+    in ("1", "true", "yes")
+)
+# Tests: never force strict marketplace/conversion (override_settings still works for explicit tests).
+if RUNNING_TESTS:
+    CONVERSION_LOCK_STRICT = False
+    CONVERSION_LOCK_ALL_SCHOOLS = False
+    CONVERSION_LOCK_USE_NARROW_WORKFLOW_PATHS = False
+    CONVERSION_SINGLE_ACTION_ENFORCED = False
+    ACTIVATION_GATE_ALLOW_DISMISS = True
+    MARKETPLACE_INSTALL_REQUIRES_PAID_BILLING = False
+# Metrics governance: never claim ≥50% click reduction unless this is explicitly enabled with evidence.
+FIFTY_PCT_REDUCTION_CLAIM_ALLOWED = os.getenv(
+    "FIFTY_PCT_REDUCTION_CLAIM_ALLOWED", ""
+).strip().lower() in ("1", "true", "yes")
 MARKETING_ANALYTICS_SCRIPT_URL = (
     os.getenv("MARKETING_ANALYTICS_SCRIPT_URL") or ""
 ).strip() or ""
@@ -1002,6 +1115,14 @@ CELERY_BEAT_SCHEDULE = {
         "options": {"expires": 3600},
     },
 }
+# Public demo refresh: set ENSURE_DEMO_CRON_SLUG (e.g. demo-school) and run Celery beat.
+_ensure_demo_cron_slug = (os.getenv("ENSURE_DEMO_CRON_SLUG") or "").strip()
+if _ensure_demo_cron_slug:
+    CELERY_BEAT_SCHEDULE["ensure-demo-environment-daily"] = {
+        "task": "schools.ensure_demo_environment_scheduled",
+        "schedule": 86400.0,
+        "options": {"expires": 7200},
+    }
 
 # Backlog unlock matrix: refresh Django cache + emit PlatformEventLog on dependency transitions.
 # Opt-in — runs multiple repo gate scripts (CPU + minutes). See docs/BACKLOG_UNLOCK_AUTOMATION.md.
@@ -1493,6 +1614,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.compliance",
         "apps.observability.apps.ObservabilityConfig",
         "apps.api",
+        "apps.sync_engine.apps.SyncEngineConfig",
         "apps.apicenter",
         "apps.automation",
         "apps.requests",
@@ -1553,6 +1675,10 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django.middleware.common.CommonMiddleware",
         "django.middleware.csrf.CsrfViewMiddleware",
         "django.contrib.auth.middleware.AuthenticationMiddleware",
+        "apps.schools.middleware_conversion_lock.ConversionLockMiddleware",
+        "apps.schools.growth_funnel_middleware.GrowthFunnelMiddleware",
+        "apps.schools.middleware_activation_gate.ActivationGateMiddleware",
+        "apps.marketplace.middleware.AppApiContextMiddleware",
         "apps.accounts.middleware.ImpossibleTravelMiddleware",
         "apps.accounts.middleware.RoleBasedSessionTimeoutMiddleware",
         "apps.schools.middleware.ManagerHostControlPlaneRequiredMiddleware",

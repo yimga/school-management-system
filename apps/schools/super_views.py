@@ -80,6 +80,7 @@ from .super_views_exports import (
     export_super_dashboard_pdf,
 )
 from .super_views_create_school_wizard import create_school_wizard
+from .super_views_provisioning import api_create_school
 
 
 # Re-exported callables for `super_urls` (`import super_views` + attribute access).
@@ -88,6 +89,7 @@ __all__ = (
     "ai_model_hub",
     "super_ai_gateway_console",
     "api_approve_school",
+    "api_create_school",
     "api_super_dashboard_layout",
     "billing_dashboard",
     "api_education_profiles",

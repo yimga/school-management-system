@@ -202,3 +202,21 @@ def automation_failure_trend_signal() -> str:
         ),
     )
     return "failed" if breached else "ok"
+
+
+@shared_task(name="platform_runtime.deliver_event_webhook")
+def deliver_event_webhook_task(delivery_id: int) -> dict:
+    """
+    HTTP POST for :class:`~apps.platform_runtime.models.EventWebhookDelivery` (retries + DLQ in event_bus).
+    """
+    from apps.platform_runtime.event_bus import deliver_webhook_attempt
+
+    return deliver_webhook_attempt(int(delivery_id))
+
+
+@shared_task(name="platform_runtime.sweep_event_webhook_deliveries")
+def sweep_event_webhook_deliveries_task(limit: int = 50) -> int:
+    """Beat-discoverable safety sweep for stale webhook deliveries."""
+    from apps.platform_runtime.event_bus import sweep_stale_webhook_deliveries
+
+    return sweep_stale_webhook_deliveries(limit=limit)

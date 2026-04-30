@@ -4,6 +4,7 @@
 {% block cp_title %}{% trans "Platform billing" %}{% endblock %}
 {% block cp_content %}
 {% url 'super:dashboard' as dashboard_url %}
+{# ds-action-bar: shared studio_os/components/page_header.html (header.ds-action-bar) #}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
   {% phase8_dashboard_declaration "schools/billing_dashboard.html" %}
   {% include "studio_os/components/page_header.html" with title=_("Platform billing") subtitle=_("Platform-side accounts, subscriptions, usage, and ledger activity across all schools.") action_url=dashboard_url action_text=_("Back to dashboard") %}
@@ -118,7 +119,7 @@
         <div class="card-header">{% trans "Active subscriptions" %}</div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-sm align-middle mb-0">
+            <table class="table table-family table-sm align-middle mb-0">
               <thead>
                 <tr>
                   <th>{% trans "School" %}</th>
@@ -152,7 +153,7 @@
         <div class="card-header">{% trans "Free trial watchlist" %}</div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-sm align-middle mb-0">
+            <table class="table table-family table-sm align-middle mb-0">
               <thead>
                 <tr>
                   <th>{% trans "School" %}</th>
@@ -186,7 +187,7 @@
     <div class="card-header">{% trans "Processor sync ledger" %}</div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm align-middle mb-0">
+        <table class="table table-family table-sm align-middle mb-0">
           <thead>
             <tr>
               <th>{% trans "When" %}</th>
@@ -225,7 +226,7 @@
     <div class="card-header">{% trans "Scheduled revenue-share payouts" %}</div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm align-middle mb-0">
+        <table class="table table-family table-sm align-middle mb-0">
           <thead>
             <tr>
               <th>{% trans "Payee" %}</th>
@@ -264,7 +265,7 @@
     <div class="card-header">{% trans "Recent platform ledger" %}</div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm align-middle mb-0">
+        <table class="table table-family table-sm align-middle mb-0">
           <thead>
             <tr>
               <th>{% trans "When" %}</th>

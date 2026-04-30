@@ -12,7 +12,7 @@ from django.utils import timezone
 from apps.accounts.models import User
 from apps.accounts.utils import get_user_role
 from apps.academics.models import AcademicYear, Term, SubjectAssignment
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 from apps.siteconfig.models import (
     default_grade_approval_roles,
     default_grade_post_roles,
@@ -320,3 +320,37 @@ def _notify_grade_approvers(request_obj: GradeApprovalRequest) -> None:
         if not approver.email:
             continue
         service.send_grade_approval_request_email(approver, request_obj)
+
+
+def try_emit_grade_published_event(approval: GradeApprovalRequest) -> None:
+    """Emit ``grade.published`` when a grade approval batch is fully approved."""
+    if approval.status != GradeApprovalRequest.Status.APPROVED:
+        return
+    school_id = getattr(approval.teacher, "school_id", None) or (
+        getattr(
+            getattr(approval.subject_assignment, "classroom", None), "school_id", None
+        )
+    )
+    try:
+        from apps.events.services import emit_event
+
+        published_at = approval.reviewed_at or timezone.now()
+        emit_event(
+            "grade.published",
+            {
+                "grade_approval_request_id": str(approval.id),
+                "school_id": str(school_id) if school_id else None,
+                "term_id": str(approval.term_id),
+                "subject_assignment_id": str(approval.subject_assignment_id),
+                "published_at": published_at.isoformat(),
+            },
+            school_id=school_id,
+        )
+    except (
+        ImportError,
+        AttributeError,
+        TypeError,
+        ValueError,
+        KeyError,
+    ) as e:
+        logger.debug("emit grade.published skipped: %s", e)

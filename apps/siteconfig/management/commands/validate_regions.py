@@ -181,7 +181,7 @@ class Command(BaseCommand):
         if issue["code"] == "NO_PORTALS":
             region.enable_student_portal = True
             region.save()
-            self.stdout.write(f"      ✓ Fixed: Enabled student portal")
+            self.stdout.write("      ✓ Fixed: Enabled student portal")
 
     def _generate_report(self, validation_report):
         """Generate a detailed validation report."""

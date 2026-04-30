@@ -122,12 +122,12 @@
           <h1 id="parent-dashboard-title">Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h1>
           <p>Here's how your children are doing today.</p>
         </div>
-        <div class="dashboard-actions d-flex flex-wrap align-items-center gap-2">
+        <div class="dashboard-actions ds-action-bar d-flex flex-wrap align-items-center gap-2">
           {% if parent_verified %}
           <span class="px-3 py-1 rounded-pill small text-nowrap bg-primary bg-opacity-25 text-primary" role="status" aria-label="Verified Parent"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>Verified Parent</span>
           {% endif %}
-          <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-diagram-3 me-1"></i>My Workflow</a>
-          <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-chat-dots me-1"></i>Contact School</a>
+          <a class="btn btn-sm btn-primary ds-btn" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-diagram-3 me-1"></i>My Workflow</a>
+          <a class="btn btn-sm btn-outline-secondary ds-btn" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-chat-dots me-1"></i>Contact School</a>
           {% if links %}
           <select class="form-select form-select-sm" onchange="if(this.value){ window.location=this.value; }" aria-label="Switch child">
             <option selected disabled>Switch child</option>

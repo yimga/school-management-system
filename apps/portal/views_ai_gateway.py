@@ -245,6 +245,22 @@ def _gateway_response(
         metadata=md,
         response_schema=response_schema,
     )
+    if (
+        school
+        and isinstance(meta, dict)
+        and not meta.get("prompt_injection_blocked")
+    ):
+        try:
+            from apps.marketplace.monetization import USAGE_METRIC_AI, record_usage_meter_increment
+
+            record_usage_meter_increment(
+                school=school,
+                metric_code=USAGE_METRIC_AI,
+                quantity=1,
+                metadata={"source": "portal.views_ai_gateway", "task_type": task_type},
+            )
+        except OPTIONAL_GATEWAY_ERRORS:
+            logger.debug("AI gateway usage meter rollup skipped", exc_info=True)
     return result, meta
 
 
@@ -302,7 +318,7 @@ def api_setup_assistant(request):
             )
         except OPTIONAL_GATEWAY_ERRORS:
             prompt = (
-                f"You are a Setup Studio assistant. Answer concisely and helpfully.\n\n"
+                "You are a Setup Studio assistant. Answer concisely and helpfully.\n\n"
             )
             if context:
                 prompt += f"Relevant context:\n{context}\n\n"
@@ -1200,7 +1216,7 @@ def api_tenant_maturity(request):
         # §3.2: Use runtime helper instead of direct tenant site settings read (tenant-facing).
         score = 0
         try:
-            from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+            from apps.siteconfig.config_service import get_effective_site_settings
 
             settings_obj = get_effective_site_settings(request=request)
             if settings_obj and getattr(settings_obj, "features", None):

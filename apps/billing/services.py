@@ -393,6 +393,16 @@ def ensure_subscription_for_school(school):
             addon_codes=list(getattr(school, "addons", None) or []),
             metadata={"seeded_from_school": True},
         )
+        try:
+            from apps.schools.funnel_events import record_subscription_started_billing
+
+            record_subscription_started_billing(
+                school,
+                subscription_id=subscription.pk,
+                billed_amount=str(billed_amount),
+            )
+        except (ImportError, AttributeError, TypeError, ValueError):
+            pass
         return account, subscription, True
     changed_fields = []
     if subscription.plan_id != getattr(getattr(school, "plan", None), "pk", None):
@@ -710,6 +720,32 @@ def apply_processor_snapshot(
         sync_billing_incident_state(subscription)
 
         et = str(event_type or "").strip().lower()
+        _PROC_PAYMENT_OK = frozenset(
+            {
+                "invoice.paid",
+                "invoice.payment_succeeded",
+                "checkout.session.completed",
+            }
+        )
+        _PROC_PAYMENT_FAIL = frozenset(
+            {
+                "invoice.payment_failed",
+                "charge.failed",
+                "payment_intent.payment_failed",
+            }
+        )
+        if et in _PROC_PAYMENT_OK or et in _PROC_PAYMENT_FAIL:
+            from apps.schools.funnel_events import record_payment_outcome_signal
+
+            record_payment_outcome_signal(
+                school,
+                success=et in _PROC_PAYMENT_OK,
+                metadata={
+                    "processor_code": processor_code,
+                    "billing_event_type": event_type,
+                    "processor_source_ref": processor_source_ref,
+                },
+            )
         if billed_amount is not None:
             try:
                 amt = Decimal(str(billed_amount))
@@ -734,6 +770,25 @@ def apply_processor_snapshot(
                         source_ref=src_ref or str(external_subscription_ref or ""),
                         metadata={"event_type": event_type, "processor": processor_code},
                     )
+                    try:
+                        from apps.marketplace.monetization import (
+                            USAGE_METRIC_PAYMENTS,
+                            record_usage_meter_increment,
+                        )
+
+                        record_usage_meter_increment(
+                            school=school,
+                            metric_code=USAGE_METRIC_PAYMENTS,
+                            quantity=1,
+                            metadata={
+                                "source": "apply_processor_snapshot",
+                                "event_type": event_type,
+                            },
+                        )
+                    except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
+                        logger.debug(
+                            "payment rail usage meter rollup skipped", exc_info=True
+                        )
 
         return event, account, subscription
 

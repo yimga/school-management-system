@@ -57,6 +57,16 @@ class DomainEvent(models.Model):
         verbose_name = "Domain Event"
         verbose_name_plural = "Domain Events"
 
+    @property
+    def tenant_id(self):
+        """Tenant scope for this event (RunMyCampus: school UUID)."""
+        return self.school_id
+
+    @property
+    def timestamp(self):
+        """Alias for ``created_at`` (ISO serialization uses ``created_at`` on the model)."""
+        return self.created_at
+
     def __str__(self):
         return f"{self.event_type} ({self.status})"
 
@@ -147,6 +157,13 @@ class WebhookDelivery(models.Model):
                 fields=["status", "scheduled_for"], name="events_wh_status_sched"
             ),
         ]
+
+    @property
+    def is_dead_letter(self) -> bool:
+        """True when max delivery attempts were exhausted (failed permanently)."""
+        return self.status == self.Status.FAILED and self.retry_count >= max(
+            1, int(self.max_attempts or 4)
+        )
 
     def __str__(self):
         return f"{self.subscription_id} → {self.domain_event_id} ({self.status})"

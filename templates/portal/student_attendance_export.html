@@ -5,6 +5,8 @@
 <div
   class="container py-3 ui-premium-surface"
   data-page-archetype="operational-workbench"
+  data-task="attendance_export"
+  data-task-step="export:page"
   data-rmc-attendance-export="student-csv"
   data-cp-evidence-surface="student-attendance-export"
 >
@@ -25,7 +27,7 @@
 
   <div class="card card-grammar shadow-sm mb-3">
     <div class="card-body">
-      <form method="get" action="{{ export_csv_url }}" class="row g-2 align-items-end form-system" data-rmc-form-grammar="1">
+      <form method="get" action="{{ export_csv_url }}" id="rmc-attendance-export-form" class="row g-2 align-items-end form-system" data-rmc-form-grammar="1">
         <div class="col-md-3">
           <label class="form-label small" for="id_start_date">{% trans "Start date" %}</label>
           <input type="date" name="start_date" id="id_start_date" class="form-control" value="{{ filters.start_date|date:"Y-m-d" }}">
@@ -53,7 +55,7 @@
           </select>
         </div>
         <div class="col-12 d-flex flex-wrap gap-2 mt-2">
-          <button type="submit" class="btn btn-primary ds-btn">{% trans "Export CSV" %}</button>
+          <button type="submit" class="btn btn-primary ds-btn" data-action="attendance-export-csv" data-task-step="export:download">{% trans "Export CSV" %}</button>
           <span class="text-muted small align-self-center">{% trans "Primary action: export rows for the selected date range." %}</span>
         </div>
       </form>
@@ -68,4 +70,16 @@
     {% endif %}
   </div>
 </div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!window.rmcClickTaskBoundary) return;
+    window.rmcClickTaskBoundary('task_start', 'attendance_export');
+    var f = document.getElementById('rmc-attendance-export-form');
+    if (f) {
+      f.addEventListener('submit', function () {
+        window.rmcClickTaskBoundary('task_complete', 'attendance_export');
+      });
+    }
+  });
+</script>
 {% endblock %}

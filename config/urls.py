@@ -10,6 +10,10 @@ from django.template.response import TemplateResponse
 from django.http import HttpResponseForbidden
 
 from apps.platform_runtime.helpers import get_effective_flags
+from apps.platform_runtime.views_click_tracking import (
+    click_measurement_dashboard,
+    record_click_event,
+)
 from apps.platform_runtime.views_rum import rum_ingest
 
 from apps.observability import views as obs_views
@@ -28,13 +32,20 @@ from apps.schools.marketing_views import (
     topical_marketing_landing,
     blog_post_detail,
     buyer_toolkit_download,
+    developer_portal,
+    developer_sdk,
+    developer_sandbox,
     marketing_funnel_dashboard,
     marketing_robots_txt,
     marketing_sitemap_xml,
     developer_public_api_docs,
+    developer_hub,
+    developer_console,
     migrate_marketing_page,
+    migration_simulator_page,
     institution_marketing_page,
     role_marketing_page,
+    submit_demo_request,
 )
 from apps.schools.signup_views import (
     signup_school,
@@ -303,6 +314,8 @@ urlpatterns = [
     ),
     path("api/", include(("apps.api.urls", "api"), namespace="api")),
     path("api/v1/", include(("apps.api.urls_v1", "api_v1"), namespace="api_v1")),
+    path("api/v1/oauth/", include(("apps.apicenter.oauth_urls", "oauth"), namespace="oauth")),
+    path("api/v2/", include(("apps.api.urls_v2", "api_v2"), namespace="api_v2")),
     # Apps
     path(
         "siteconfig/",
@@ -365,6 +378,16 @@ urlpatterns = [
         include(("apps.metadata.urls", "metadata"), namespace="metadata"),
     ),
     path("api/internal/rum/", rum_ingest, name="rum_ingest"),
+    path(
+        "api/internal/click-tracking/",
+        record_click_event,
+        name="record_click_event",
+    ),
+    path(
+        "internal/click-measurement/",
+        click_measurement_dashboard,
+        name="click_measurement_dashboard",
+    ),
     # Section 8: Caddy on-demand TLS ask (no auth; restrict by IP in production)
     path("api/caddy-check/", verify_caddy_domain),
     path("api/v1/auth/check-domain/", verify_caddy_domain),
@@ -581,6 +604,7 @@ urlpatterns = [
         {"page_slug": "book-demo"},
         name="marketing_book_demo",
     ),
+    path("book-demo/submit/", submit_demo_request, name="marketing_book_demo_submit"),
     path(
         "interactive-preview/",
         marketing_page,
@@ -735,7 +759,13 @@ urlpatterns = [
         developer_public_api_docs,
         name="developer_public_api_docs",
     ),
+    path("developer/", developer_hub, name="developer_hub"),
+    path("developer/console/", developer_console, name="developer_console"),
+    path("developer-portal/", developer_portal, name="developer_portal"),
+    path("developer-portal/sdk/", developer_sdk, name="developer_sdk"),
+    path("developer-portal/sandbox/", developer_sandbox, name="developer_sandbox"),
     path("migrate/", migrate_marketing_page, name="migrate_marketing_page"),
+    path("migrate/simulator/", migration_simulator_page, name="migration_simulator"),
     path(
         "migrate/<str:source_slug>/",
         migrate_marketing_page,
@@ -768,7 +798,7 @@ urlpatterns = [
     ),
     path(
         "setup-studio/", onboarding_wizard, name="setup_studio"
-    ),  # Plan D1: canonical 8-step entry (currently delegates to onboarding_wizard)
+    ),  # Public 3-step onboarding (delegates to onboarding_wizard); post-signup setup lives in siteconfig Setup Studio
     path("onboard/", onboarding_wizard, name="onboard_wizard"),
     path("signup/", signup_school, name="signup_school"),
     path("verify-signup/", verify_signup, name="verify_signup"),

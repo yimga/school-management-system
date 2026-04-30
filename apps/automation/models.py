@@ -551,3 +551,12 @@ class MigrationQuarantineRecord(models.Model):
 
     def __str__(self):
         return f"Quarantine {self.domain} row {self.row_index} ({self.issue_class})"
+
+
+# Visual workflow graph (Salesforce-style); executor in apps.automation.visual_executor
+from apps.automation.workflow_graph_models import (  # noqa: E402,F401
+    Workflow,
+    WorkflowEdge,
+    WorkflowNode,
+    WorkflowRunLog,
+)

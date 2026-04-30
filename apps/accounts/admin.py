@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import Group
-from config.admin import register_tenant_admin
+from config.admin import register_both, register_tenant_admin
 
 from unfold.admin import ModelAdmin
 
@@ -184,8 +184,8 @@ class GroupAdmin(ModelAdmin):
         verbose_name_plural = "User Groups"
 
 
-# Register all models with tenant admin only
-register_tenant_admin(User, UserAdmin)
+# Users: tenant admin + platform backoffice (manager host) so operators can set role SUPERADMIN.
+register_both(User, UserAdmin)
 register_tenant_admin(AccessRole, RoleAdmin)
 register_tenant_admin(Permission, PermissionAdmin)
 register_tenant_admin(TemporaryRoleGrant, TemporaryRoleGrantAdmin)

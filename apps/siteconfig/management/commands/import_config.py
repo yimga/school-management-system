@@ -79,7 +79,7 @@ class Command(BaseCommand):
             # Validate
             validation_errors = self._validate_import_data(regions_to_import)
             if validation_errors:
-                self.stdout.write(self.style.ERROR(f"\n✗ Validation failed:"))
+                self.stdout.write(self.style.ERROR("\n✗ Validation failed:"))
                 for error in validation_errors:
                     self.stdout.write(f"  • {error}")
                 return

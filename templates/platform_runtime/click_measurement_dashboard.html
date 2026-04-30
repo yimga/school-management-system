@@ -1,0 +1,117 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Click measurement" %}{% endblock %}
+
+{% block content %}
+<div class="container-lg py-4" data-page-archetype="analytics">
+  <header class="mb-4">
+    <h1 class="h3 mb-2">{% trans "Workflow click measurement" %}</h1>
+    <p class="text-muted mb-0">
+      {% trans "Median clicks per completed session (task_start → task_complete). A 50% reduction claim requires sufficient samples on both baseline and current phases — never asserted without data below." %}
+    </p>
+  </header>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6 text-uppercase text-muted mb-3">{% trans "Click system (definitions)" %}</h2>
+      <dl class="row mb-0 small">
+        <dt class="col-sm-3">{% trans "Click" %}</dt>
+        <dd class="col-sm-9">{{ click_system.click }}</dd>
+        <dt class="col-sm-3">{% trans "Screen" %}</dt>
+        <dd class="col-sm-9">{{ click_system.screen }}</dd>
+        <dt class="col-sm-3">{% trans "Task" %}</dt>
+        <dd class="col-sm-9">{{ click_system.task }}</dd>
+      </dl>
+    </div>
+  </div>
+
+  {% if click_stats.insufficient_data %}
+  <div class="alert alert-warning border-0 shadow-sm mb-4" role="status">
+    <strong>{% trans "Insufficient data" %}</strong>
+    {% blocktrans with n=click_stats.min_completed_sessions %}Complete at least {{ n }} sessions per phase per workflow with telemetry before comparing phases.{% endblocktrans %}
+  </div>
+  {% endif %}
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6 text-uppercase text-muted">{% trans "Portfolio verdict" %}</h2>
+      <p class="mb-1">
+        <strong>{% trans "Median before (baseline phase)" %}:</strong>
+        {{ click_stats.overall_baseline_median_clicks|default_if_none:"—" }}
+      </p>
+      <p class="mb-1">
+        <strong>{% trans "Median after (current phase)" %}:</strong>
+        {{ click_stats.overall_current_median_clicks|default_if_none:"—" }}
+      </p>
+      {% if click_stats.overall_reduction_pct is not None %}
+      <p class="mb-1 small text-muted">
+        {% trans "Overall median reduction (median-of-medians across tasks)" %}:
+        {{ click_stats.overall_reduction_pct }}%
+      </p>
+      {% endif %}
+      <p class="mb-1">
+        <strong>{% trans "Measured status" %}:</strong>
+        <span data-rmc-verdict="{{ click_stats.verdict }}">{{ click_stats.verdict }}</span>
+      </p>
+      <p class="mb-1">
+        <strong>{% trans "50% program verdict" %}:</strong>
+        {% if click_stats.insufficient_data %}
+          <span class="badge bg-secondary">{% trans "INSUFFICIENT DATA" %}</span>
+        {% elif click_stats.fifty_pct_reduction_claim_allowed %}
+          <span class="badge bg-success">PASS</span>
+        {% else %}
+          <span class="badge bg-danger">FAIL</span>
+        {% endif %}
+      </p>
+      <p class="mb-1">
+        <strong>{% trans "50% claim allowed" %}:</strong>
+        {% if click_stats.fifty_pct_reduction_claim_allowed %}
+          {% trans "Yes (measurements satisfy gates)" %}
+        {% else %}
+          {% trans "No — insufficient evidence or reduction below threshold" %}
+        {% endif %}
+      </p>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-family table-density-comfortable align-middle">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Workflow" %}</th>
+          <th scope="col" class="text-end">{% trans "Baseline sessions" %}</th>
+          <th scope="col" class="text-end">{% trans "Baseline median clicks" %}</th>
+          <th scope="col" class="text-end">{% trans "Current sessions" %}</th>
+          <th scope="col" class="text-end">{% trans "Current median clicks" %}</th>
+          <th scope="col" class="text-end">{% trans "Reduction %" %}</th>
+          <th scope="col">{% trans "Notes" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for code, row in click_stats.per_task.items %}
+        <tr>
+          <td><code>{{ code }}</code></td>
+          <td class="text-end">{{ row.baseline_completed_sessions }}</td>
+          <td class="text-end">{{ row.baseline_median_clicks|default_if_none:"—" }}</td>
+          <td class="text-end">{{ row.current_completed_sessions }}</td>
+          <td class="text-end">{{ row.current_median_clicks|default_if_none:"—" }}</td>
+          <td class="text-end">
+            {% if row.reduction_pct is not None %}{{ row.reduction_pct }}%{% else %}—{% endif %}
+          </td>
+          <td>
+            {% if row.insufficient_data %}
+              <span class="badge bg-secondary">{% trans "Insufficient data" %}</span>
+            {% elif row.fifty_pct_reduction_claim_allowed %}
+              <span class="badge bg-success">{% trans "≥50% observed" %}</span>
+            {% else %}
+              <span class="badge bg-light text-dark border">{% trans "Below threshold or no lift" %}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

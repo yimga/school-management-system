@@ -57,7 +57,7 @@ def dashboard(request: HttpRequest):
             {"label": "All invoices", "url": reverse("finance:invoices")},
         ],
     }
-    dashboard_context = get_dashboard_context(request.user, "finance")
+    dashboard_context = get_dashboard_context(request.user, "finance", request=request)
     dashboard_settings = dashboard_context.get("dashboard_settings", {})
     allow_custom_layout = dashboard_context.get("allow_custom_layout", False)
     dashboard_layout_url = dashboard_context.get("dashboard_layout_url", "")

@@ -1,9 +1,10 @@
 """
-Approved platform SiteSettings read / persist entry points (SOT 1035+).
+Approved low-level re-export of helpers (SOT 1035+). Application code should prefer
+:mod:`apps.siteconfig.config_service` as the single configuration façade.
 
 **Do not** import ``SiteSettings`` from ``apps.siteconfig.models`` in product code outside
-``siteconfig/models.py`` and ``platform_runtime/helpers.py``. Use the callables re-exported
-here or the same symbols from :mod:`apps.platform_runtime.helpers` (single runtime access layer).
+``siteconfig/models.py`` and ``platform_runtime/helpers.py``. These callables mirror
+:mod:`apps.platform_runtime.helpers`.
 """
 
 from __future__ import annotations

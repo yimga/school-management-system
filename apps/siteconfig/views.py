@@ -32,7 +32,7 @@ from apps.academics.services import get_active_year_and_term
 from apps.brand_experience.models import ThemePack
 from apps.people.models import StudentProfile
 from apps.platform_runtime.helpers import get_platform_defaults
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 from apps.platform_runtime.structured_logging import log_view_exception
 from apps.policies.policy_registry import get_effective_policy
 from apps.reports.models import ReportCard

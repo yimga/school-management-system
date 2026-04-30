@@ -3,6 +3,7 @@
 {% block title %}Enter Marks{% endblock %}
 
 {% block content %}
+<div class="rmc-task-scope" data-task="teacher_marks_entry" data-task-step="marks:page">
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
   <div class="d-flex align-items-center gap-2">
     <h2 class="mb-0">Enter Marks (Bulk)</h2>
@@ -41,7 +42,7 @@
           </option>
         {% endfor %}
       </select>
-      <button class="btn btn-primary" type="submit" {% if locked %}disabled{% endif %}>Load Students</button>
+      <button class="btn btn-primary" type="submit" {% if locked %}disabled{% endif %} data-action="marks-load-roster" data-task-step="marks:filter-class">Load Students</button>
     </div>
   </div>
 </form>
@@ -190,11 +191,11 @@
           </table>
         </div>
         {% if upload_manual_review_pending %}
-          <form method="post" class="mt-3">
+          <form method="post" class="mt-3" id="marks-ocr-apply-form">
             {% csrf_token %}
             {{ upload_form.subject_assignment_id }}
             <input type="hidden" name="confirm_pending" value="1">
-            <button class="btn btn-primary" type="submit">Apply parsed marks</button>
+            <button class="btn btn-primary" type="submit" data-action="marks-ocr-apply" data-task-step="marks:ocr-commit">Apply parsed marks</button>
             <span class="ms-2 text-muted">Review and correct values above, then click to apply.</span>
           </form>
         {% endif %}
@@ -265,9 +266,9 @@
           </tbody>
         </table>
 
-        <button class="btn btn-success" type="submit" {% if locked %}disabled{% endif %}>Save All Marks</button>
+        <button class="btn btn-success" type="submit" {% if locked %}disabled{% endif %} data-action="marks-save-all" data-task-step="marks:save">Save All Marks</button>
         {% if grade_approval_enabled %}
-          <button class="btn btn-outline-warning ms-2" type="submit" name="action" value="submit_for_approval" {% if locked %}disabled{% endif %}>
+          <button class="btn btn-outline-warning ms-2" type="submit" name="action" value="submit_for_approval" {% if locked %}disabled{% endif %} data-action="marks-submit-approval" data-task-step="marks:approval">
             Submit for Review
           </button>
         {% endif %}
@@ -276,13 +277,31 @@
     </div>
   </div>
   <script src="{% static 'js/form-draft-save.js' %}"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      var form = document.getElementById('marks-entry-form');
-      if (form && window.FormDraftSave) FormDraftSave.init(form);
-    });
-  </script>
 {% endif %}
 {% include "components/was_this_helpful.html" with feedback_id="teacher-marks-entry" %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.rmcClickTaskBoundary) {
+      window.rmcClickTaskBoundary('task_start', 'teacher_marks_entry');
+    }
+    var form = document.getElementById('marks-entry-form');
+    if (form && window.FormDraftSave) {
+      FormDraftSave.init(form);
+    }
+    if (window.rmcClickTaskBoundary) {
+      function completeMarksTask() {
+        window.rmcClickTaskBoundary('task_complete', 'teacher_marks_entry');
+      }
+      if (form) {
+        form.addEventListener('submit', completeMarksTask);
+      }
+      var ocrForm = document.getElementById('marks-ocr-apply-form');
+      if (ocrForm) {
+        ocrForm.addEventListener('submit', completeMarksTask);
+      }
+    }
+  });
+</script>
+</div>
 {% endblock %}
 

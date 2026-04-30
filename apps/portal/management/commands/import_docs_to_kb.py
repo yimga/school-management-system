@@ -335,7 +335,7 @@ class Command(BaseCommand):
                 )
 
         self._safe_write("")
-        self._safe_write(self.style.SUCCESS(f"Import complete!"))
+        self._safe_write(self.style.SUCCESS("Import complete!"))
         self._safe_write(f"  Imported: {imported_count}")
         self._safe_write(f"  Skipped: {skipped_count}")
 

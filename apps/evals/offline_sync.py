@@ -6,7 +6,7 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from apps.evals.models import Evaluation, OfflineMarkEntry
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 from apps.platform_runtime.structured_logging import log_exception_with_context
 
 logger = logging.getLogger(__name__)
@@ -157,7 +157,7 @@ class OfflineSyncService:
             offline_entry.synced_at = timezone.now()
             offline_entry.offline_conflict_resolved = True
             offline_entry.teacher_conflict_choice = teacher_choice
-            offline_entry.conflict_resolution_note = f"Manually resolved by teacher"
+            offline_entry.conflict_resolution_note = "Manually resolved by teacher"
             offline_entry.save()
 
             logger.info("Conflict resolved for %s", offline_entry.id)

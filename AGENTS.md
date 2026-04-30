@@ -12,13 +12,14 @@ This repository is **not** a greenfield project. Use the **existing** enforcemen
 | [docs/SITECONFIG_OWNERSHIP_MIGRATION.md](docs/SITECONFIG_OWNERSHIP_MIGRATION.md), [docs/site_settings_usage_inventory.md](docs/site_settings_usage_inventory.md) | SiteSettings / siteconfig ownership |
 | `scripts/verify_*.py`, `scripts/lint_*.py` | Mechanical gates; `verify_phases_3_11_gates.py` bundles many |
 | `scripts/generated/*.json`, `docs/generated/*` | Regenerated ledgers and inventories — run writers when verifiers say stale |
+| [`scripts/generate_system_closure_map.py`](scripts/generate_system_closure_map.py) | After §11.4 **PARTIAL**/**NOT DONE**/**BLOCKED** edits: `python scripts/generate_system_closure_map.py --write` → [`docs/generated/system_closure_map.json`](docs/generated/system_closure_map.json) |
 
 ## Autonomous slice loop (every deliverable)
 
 1. **Inspect** — Scope files, routes, templates, and which verifier(s) apply.
 2. **Map** — Phase checklist entry, SOT §11.4 row if shipping a batch, generated artifacts touched.
 3. **Implement** — Smallest diff; match existing patterns.
-4. **Regenerate** — e.g. `scripts/build_phase8_security_ledger.py --write` when allowlists change; `generate_platform_inventory` when the gate requires it.
+4. **Regenerate** — e.g. `scripts/build_phase8_security_ledger.py --write` when allowlists change; `generate_platform_inventory` when the gate requires it; **`generate_system_closure_map.py --write`** when §11.4 partial-queue statuses change (see control framework table).
 5. **Validate** — Narrow verifier first, then broader bundle (`verify_phases_3_11_gates.py` or release script per SOT).
 6. **Remediate** — Fix failures; do not “declare done” from narrative alone.
 7. **Record** — Autonomous log + checklist + §11.4 when the slice closes.

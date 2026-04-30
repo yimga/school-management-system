@@ -97,9 +97,11 @@ def main(argv: list[str] | None) -> int:
     rs = run_script("scripts/audit_raw_sql_usage.py")
     verifier_notes["audit_raw_sql_usage"] = {"exit_code": rs.returncode}
 
-    # UX / design system
+    # UX / design system + luxury surface gate
     ds = run_script("scripts/verify_design_system_phase2.py")
     verifier_notes["verify_design_system_phase2"] = {"exit_code": ds.returncode}
+    lux = run_script("scripts/audit_luxury_ui_surface.py")
+    verifier_notes["audit_luxury_ui_surface"] = {"exit_code": lux.returncode}
 
     # Docs discipline + SOT pillar signals
     dd = run_script("scripts/verify_doc_plan_density_discipline.py")
@@ -164,8 +166,11 @@ def main(argv: list[str] | None) -> int:
         "rubric": "Billing model + founder business-value metrics surfaces.",
     }
     sections["ux_quality"] = {
-        "score": score_from_exit_ok(ds.returncode),
-        "rubric": "verify_design_system_phase2.py",
+        "score": min(
+            score_from_exit_ok(ds.returncode),
+            score_from_exit_ok(lux.returncode),
+        ),
+        "rubric": "verify_design_system_phase2.py + audit_luxury_ui_surface.py (>= 13/15 + severe integration)",
     }
     _rel_base = path_exists("apps/observability/models.py") and path_exists(
         "apps/platform_runtime/tests/test_platform_event_log.py"

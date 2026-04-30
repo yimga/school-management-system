@@ -128,6 +128,22 @@ def emit_enrollment_created(sender, instance, created, **kwargs):
 
 
 @receiver(post_save, sender=Attendance)
+def conversion_first_action_on_attendance_saved(sender, instance, **kwargs):
+    """Explicit completion signal for conversion lock (not URL-derived)."""
+    try:
+        school = getattr(getattr(instance, "student", None), "school", None)
+        if not school:
+            return
+        from apps.schools.conversion_lock_state import record_conversion_first_action
+
+        record_conversion_first_action(
+            school, source="attendance_saved", request=None, user=None
+        )
+    except _ACADEMICS_SIGNAL_ERRORS as exc:
+        logger.debug("conversion_first_action_on_attendance_saved: %s", exc)
+
+
+@receiver(post_save, sender=Attendance)
 def emit_attendance_recorded(sender, instance, created, **kwargs):
     """Emit domain event when student attendance is recorded."""
     try:
@@ -342,6 +358,32 @@ def on_incident_saved(sender, instance, created, **kwargs):
             else None,
             extra={"incident_id": instance.id},
         )
+
+
+@receiver(post_save, sender=Attendance)
+def dispatch_attendance_marked_workflows(sender, instance, created, **kwargs):
+    """School automation: attendance_marked trigger."""
+    classroom = getattr(instance, "classroom", None)
+    school = getattr(classroom, "school", None) if classroom else None
+    if not school:
+        return
+    try:
+        from apps.siteconfig.workflow_triggers import dispatch_domain_triggers_safe
+
+        dispatch_domain_triggers_safe(
+            school,
+            "attendance_marked",
+            {
+                "attendance_id": instance.pk,
+                "student_id": getattr(instance, "student_id", None),
+                "classroom_id": getattr(classroom, "pk", None),
+                "date": str(getattr(instance, "date", "")),
+                "status": getattr(instance, "status", "") or "",
+                "created": created,
+            },
+        )
+    except ImportError:
+        pass
 
 
 @receiver(post_save, sender=Classroom)

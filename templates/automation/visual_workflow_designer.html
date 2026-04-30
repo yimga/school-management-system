@@ -1,0 +1,154 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="container-fluid py-3" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=school_automation_url action_text="Classic automation builder" %}
+  <div class="row g-3">
+    <div class="col-lg-2">
+      <div class="card shadow-sm">
+        <div class="card-body small">
+          <h2 class="h6">{% trans "Palette" %}</h2>
+          <p class="text-muted">{% trans "Drag onto the canvas." %}</p>
+          <div class="d-grid gap-1" id="wf-palette">
+            <button type="button" class="btn btn-outline-success btn-sm" draggable="true" data-kind="trigger">Trigger</button>
+            <button type="button" class="btn btn-outline-warning btn-sm" draggable="true" data-kind="condition">Condition</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" draggable="true" data-kind="action">Action</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" draggable="true" data-kind="delay">Delay</button>
+          </div>
+          <hr>
+          <label class="form-label">{% trans "Workflow name" %}</label>
+          <input type="text" class="form-control form-control-sm mb-2" id="wf-name" placeholder="{% trans 'Name' %}">
+          <label class="form-label">{% trans "Trigger event" %}</label>
+          <select class="form-select form-select-sm mb-2" id="wf-trigger">
+            <option value="attendance_marked">attendance_marked</option>
+            <option value="payment_received">payment_received</option>
+            <option value="student_created">student_created</option>
+            <option value="report_generated">report_generated</option>
+          </select>
+          <label class="form-label">{% trans "Edit workflow id (optional)" %}</label>
+          <input type="number" class="form-control form-control-sm mb-2" id="wf-id" placeholder="{% trans 'New if empty' %}">
+          <button type="button" class="btn btn-primary btn-sm w-100" id="wf-save">{% trans "Save graph" %}</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-1" id="wf-sim">{% trans "Simulate" %}</button>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-8">
+      <div class="workflow-canvas-wrap" id="wf-canvas" style="min-height:480px;position:relative;border:2px dashed #dee2e6;border-radius:.375rem;background:#fafafa;">
+        <div id="wf-inner" class="workflow-canvas-inner" style="min-height:480px;"></div>
+      </div>
+      <p class="small text-muted mt-2">{% trans "Connect: click two nodes in order to draw an edge (MVP)." %}</p>
+    </div>
+    <div class="col-lg-4">
+      <div class="card shadow-sm"><div class="card-body small">
+        <h2 class="h6">{% trans "Compiled DSL preview" %}</h2>
+        <pre id="wf-dsl" class="small bg-light p-2 rounded" style="max-height:280px;overflow:auto;">{}</pre>
+        <h2 class="h6 mt-3">{% trans "Simulation" %}</h2>
+        <pre id="wf-sim-out" class="small bg-light p-2 rounded" style="max-height:200px;overflow:auto;">—</pre>
+      </div></div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var inner = document.getElementById("wf-inner");
+  var nodes = [];
+  var edges = [];
+  var connectFrom = null;
+  var csrftoken = document.cookie.match(/csrftoken=([^;]+)/);
+  csrftoken = csrftoken ? csrftoken[1] : "";
+
+  function uid(){ return "n-" + Math.random().toString(36).slice(2,10); }
+
+  function redraw(){
+    inner.querySelectorAll(".workflow-node-card").forEach(function(el){ el.remove(); });
+    nodes.forEach(function(n){
+      var el = document.createElement("div");
+      el.className = "workflow-node-card position-absolute";
+      el.style.left = (n.position.x||20)+"px";
+      el.style.top = (n.position.y||20)+"px";
+      el.dataset.kind = n.kind;
+      el.dataset.id = n.id;
+      el.textContent = n.kind + " · " + n.id.slice(0,6);
+      el.addEventListener("click", function(ev){
+        ev.stopPropagation();
+        if(!connectFrom){ connectFrom = n.id; el.classList.add("border-primary"); return;}
+        if(connectFrom !== n.id){
+          edges.push({from: connectFrom, to: n.id});
+          inner.querySelectorAll(".workflow-node-card").forEach(function(x){ x.classList.remove("border-primary"); });
+          connectFrom = null;
+        } else { connectFrom = null; el.classList.remove("border-primary"); }
+      });
+      inner.appendChild(el);
+    });
+    document.getElementById("wf-dsl").textContent = JSON.stringify({nodes:nodes,edges:edges}, null, 2);
+  }
+
+  document.getElementById("wf-palette").addEventListener("dragstart", function(ev){
+    var k = ev.target.getAttribute("data-kind");
+    if(k) ev.dataTransfer.setData("kind", k);
+  });
+  inner.addEventListener("dragover", function(ev){ ev.preventDefault(); });
+  inner.addEventListener("drop", function(ev){
+    ev.preventDefault();
+    var kind = ev.dataTransfer.getData("kind");
+    if(!kind) return;
+    var rect = inner.getBoundingClientRect();
+    var x = ev.clientX - rect.left - 40;
+    var y = ev.clientY - rect.top - 20;
+    var id = uid();
+    var cfg = {};
+    if(kind === "action"){
+      cfg = {action: {type: "notify", params: {channel: "log", body: "Hello ${student_id}"}}};
+    }
+    if(kind === "condition"){
+      cfg = {condition: {field: "school_id", op: "eq", value: "{{ school.pk }}"}};
+    }
+    if(kind === "delay"){
+      cfg = {seconds: 1};
+    }
+    nodes.push({id:id, kind:kind, config:cfg, position:{x:x,y:y}});
+    if(kind==="trigger" && nodes.filter(function(z){return z.kind==="trigger"}).length>1){
+      alert("{% trans 'Only one trigger recommended.' %}");
+    }
+    redraw();
+  });
+
+  document.getElementById("wf-save").addEventListener("click", function(){
+    var payload = {
+      workflow_id: document.getElementById("wf-id").value || null,
+      name: document.getElementById("wf-name").value || "Flow",
+      trigger_event: document.getElementById("wf-trigger").value,
+      nodes: nodes,
+      edges: edges
+    };
+    fetch("{{ save_graph_url }}", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {"Content-Type":"application/json","X-CSRFToken": csrftoken},
+      body: JSON.stringify(payload)
+    }).then(function(r){ return r.json(); }).then(function(j){
+      if(j.workflow_id){ document.getElementById("wf-id").value = j.workflow_id; }
+      document.getElementById("wf-dsl").textContent = JSON.stringify(j.compiled || j, null, 2);
+    }).catch(function(e){ alert(e); });
+  });
+
+  document.getElementById("wf-sim").addEventListener("click", function(){
+    var wid = document.getElementById("wf-id").value;
+    if(!wid){ alert("{% trans 'Save first or enter workflow id.' %}"); return; }
+    fetch("{{ simulate_url }}", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {"Content-Type":"application/json","X-CSRFToken": csrftoken},
+      body: JSON.stringify({workflow_id: parseInt(wid,10), sample_payload: {school_id: "{{ school.pk }}", student_id: 1}})
+    }).then(function(r){ return r.json(); }).then(function(j){
+      document.getElementById("wf-sim-out").textContent = JSON.stringify(j, null, 2);
+    });
+  });
+
+  // seed one trigger for convenience
+  nodes.push({id: uid(), kind:"trigger", config:{}, position:{x:40,y:40}});
+  redraw();
+})();
+</script>
+{% endblock %}

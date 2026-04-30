@@ -86,7 +86,7 @@
       }
     },
     {
-      "recorded_at": "2026-04-29T05:15:41.876751+00:00",
+      "recorded_at": "2026-04-29T11:30:40.476157+00:00",
       "counts": {
         "csrf_exempt_decorator_lines_apps_config_excl_migrations": 37,
         "cursor_execute_apps_config_py_excl_migrations": 32,
@@ -95,6 +95,18 @@
         "print_calls_scripts_py": 925,
         "site_settings_refs_apps_py_excl_migrations": 41,
         "site_settings_refs_apps_py_excl_migrations_tests": 7
+      }
+    },
+    {
+      "recorded_at": "2026-04-30T22:30:58.821088+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 37,
+        "cursor_execute_apps_config_py_excl_migrations": 32,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 926,
+        "site_settings_refs_apps_py_excl_migrations": 40,
+        "site_settings_refs_apps_py_excl_migrations_tests": 6
       }
     }
   ]

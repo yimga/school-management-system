@@ -7,8 +7,16 @@ from typing import Any, Optional
 
 try:
     import requests
+    from requests.exceptions import RequestException
 except ImportError:
     requests = None  # type: ignore[assignment]
+    RequestException = OSError  # type: ignore[misc,assignment]
+
+
+def _should_retry_status(status: int | None) -> bool:
+    if status is None:
+        return True
+    return status == 429 or status >= 500
 
 
 class RunMyCampusClient:
@@ -37,3 +45,46 @@ class RunMyCampusClient:
     def set_bearer_token(self, token: str) -> None:
         """Set Authorization: Bearer <token> for API token auth (when supported)."""
         self.session.headers["Authorization"] = f"Bearer {token}"
+
+    def request_with_retries(
+        self,
+        method: str,
+        path: str,
+        *,
+        max_attempts: int = 4,
+        backoff_seconds: tuple[float, ...] = (0.25, 1.0, 3.0),
+        **kwargs: Any,
+    ) -> Any:
+        """
+        Perform GET/POST with exponential backoff on 429 / 5xx / connection errors.
+        """
+        import time
+
+        for attempt in range(max_attempts):
+            try:
+                fn = getattr(self.session, method.lower(), None)
+                if fn is None:
+                    raise ValueError(f"Unsupported method {method}")
+                url = (
+                    self.base_url + path
+                    if path.startswith("/")
+                    else f"{self.base_url}/{path}"
+                )
+                resp = fn(url, **kwargs)
+                if hasattr(resp, "status_code") and _should_retry_status(
+                    resp.status_code
+                ):
+                    if attempt < max_attempts - 1:
+                        delay = backoff_seconds[
+                            min(attempt, len(backoff_seconds) - 1)
+                        ]
+                        time.sleep(delay)
+                        continue
+                return resp
+            except RequestException:
+                if attempt < max_attempts - 1:
+                    delay = backoff_seconds[min(attempt, len(backoff_seconds) - 1)]
+                    time.sleep(delay)
+                    continue
+                raise
+        raise RuntimeError("request_with_retries exhausted without response")

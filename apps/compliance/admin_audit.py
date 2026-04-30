@@ -9,7 +9,7 @@ from django.contrib import admin
 from django.http import HttpResponse
 from django.utils import timezone
 from unfold.admin import ModelAdmin
-from config.admin import tenant_admin_site
+from config.admin import register_both, tenant_admin_site
 from .models_audit import (
     AuditLog,
     UserActivitySession,
@@ -38,7 +38,6 @@ def _audit_log_export_rows(queryset):
         }
 
 
-@admin.register(AuditLog, site=tenant_admin_site)
 class AuditLogAdmin(ModelAdmin):
     list_display = (
         "timestamp",
@@ -135,6 +134,9 @@ class AuditLogAdmin(ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         """Prevent deletion of audit logs."""
         return False
+
+
+register_both(AuditLog, AuditLogAdmin)
 
 
 @admin.register(UserActivitySession, site=tenant_admin_site)
@@ -248,11 +250,11 @@ class ComplianceReportAdmin(ModelAdmin):
             '<a class="button" href="{}?type={}&format=json">JSON</a> '
             '<a class="button" href="{}?type={}&format=csv">CSV</a> '
             '<a class="button" href="{}?type={}&format=pdf">PDF</a>',
-            reverse("admin:compliance_compliance_report_export"),
+            reverse("compliance:compliance_reporting:export"),
             obj.report_type,
-            reverse("admin:compliance_compliance_report_export"),
+            reverse("compliance:compliance_reporting:export"),
             obj.report_type,
-            reverse("admin:compliance_compliance_report_export"),
+            reverse("compliance:compliance_reporting:export"),
             obj.report_type,
         )
 

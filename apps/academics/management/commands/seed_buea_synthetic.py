@@ -361,7 +361,7 @@ class Command(BaseCommand):
                 defaults={
                     "email": f"{uname}@buea.test",
                     "role": User.Role.TEACHER,
-                    "first_name": f"Teacher",
+                    "first_name": "Teacher",
                     "last_name": f"Buea{i}",
                     "is_active": True,
                 },

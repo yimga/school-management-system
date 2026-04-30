@@ -69,6 +69,8 @@ MANIFEST_CURATED_API_V1_URL_NAMES: tuple[tuple[str, str], ...] = (
     ("intervention_action_center", "intervention-action-center"),
     ("intervention_calculate_risk", "intervention-calculate-risk"),
     ("student_passport", "student-passport"),
+    ("platform_integration_context", "platform-integration-context"),
+    ("platform_scoped_ping", "platform-scoped-ping"),
 )
 
 
@@ -88,8 +90,8 @@ def curated_api_v1_discovery_urls(base: str) -> dict[str, str]:
     }
 
 
-def api_v1_manifest(request):
-    """Discovery for integrators: stable paths and deprecation policy."""
+def build_api_v1_manifest_data(request) -> dict:
+    """Return manifest dict (shared by v1 JsonResponse and v2 extended manifest)."""
     base = request.build_absolute_uri("/").rstrip("/")
     endpoints = {
         "oneroster_v1p1": f"{base}/api/oneroster/v1p1/",
@@ -101,20 +103,23 @@ def api_v1_manifest(request):
         "interop_district_readiness_sample": f"{base}{reverse('api:interop-district-readiness-sample')}",
         **curated_api_v1_discovery_urls(base),
     }
-    return JsonResponse(
-        {
-            "api": "RunMyCampus",
-            "version": "1.0",
-            "policy": "Non-breaking additive changes without version bump; breaking changes announced 90d via changelog.",
-            "plan_entitlements": manifest_plan_entitlements_block(),
-            "endpoints": endpoints,
-            "webhooks": {
-                "finance_payments": "POST /finance/payments/webhook/<provider>/",
-                "idempotency": "Optional header Idempotency-Key; X-Webhook-Idempotency-Key on outbound",
-            },
-            "lti": {
-                "jwks": f"{base}{reverse('lti_jwks')}",
-                "configure_lti_tool_jwks_uri": "Set lti_tool_jwks_uri + lti_tool_issuer on LTI ServiceIntegration for signed id_token verify.",
-            },
-        }
-    )
+    return {
+        "api": "RunMyCampus",
+        "version": "1.0",
+        "policy": "Non-breaking additive changes without version bump; breaking changes announced 90d via changelog.",
+        "plan_entitlements": manifest_plan_entitlements_block(),
+        "endpoints": endpoints,
+        "webhooks": {
+            "finance_payments": "POST /finance/payments/webhook/<provider>/",
+            "idempotency": "Optional header Idempotency-Key; X-Webhook-Idempotency-Key on outbound",
+        },
+        "lti": {
+            "jwks": f"{base}{reverse('lti_jwks')}",
+            "configure_lti_tool_jwks_uri": "Set lti_tool_jwks_uri + lti_tool_issuer on LTI ServiceIntegration for signed id_token verify.",
+        },
+    }
+
+
+def api_v1_manifest(request):
+    """Discovery for integrators: stable paths and deprecation policy."""
+    return JsonResponse(build_api_v1_manifest_data(request))

@@ -191,3 +191,70 @@ def handle_offline_sync_complete(sender, instance, created, **kwargs):
                 "evals.signals.handle_offline_sync_complete",
                 offline_entry_id=getattr(instance, "pk", None),
             )
+
+
+def _evaluation_has_substantive_scores(instance: Evaluation) -> bool:
+    for fname in (
+        "seq1_score",
+        "seq2_score",
+        "exam_score",
+        "mock_score",
+        "practical_score",
+        "internship_score",
+        "test1",
+        "test2",
+    ):
+        if getattr(instance, fname, None) is not None:
+            return True
+    return False
+
+
+@receiver(post_save, sender=Evaluation)
+def conversion_first_action_on_marks_saved(sender, instance, **kwargs):
+    if not _evaluation_has_substantive_scores(instance):
+        return
+    school = getattr(instance, "school", None)
+    if school is None:
+        classroom = getattr(
+            getattr(instance, "subject_assignment", None), "classroom", None
+        )
+        school = getattr(classroom, "school", None)
+    if not school:
+        return
+    try:
+        from apps.schools.conversion_lock_state import record_conversion_first_action
+
+        record_conversion_first_action(
+            school, source="marks_saved", request=None, user=None
+        )
+    except _EVALS_AUDIT_FAILURES as exc:
+        logger.debug("conversion_first_action_on_marks_saved: %s", exc)
+
+
+@receiver(post_save, sender=Evaluation)
+def dispatch_grade_submitted_workflows(sender, instance, created, **kwargs):
+    """School automation: grade_submitted trigger (non-blocking)."""
+    classroom = getattr(
+        getattr(instance, "subject_assignment", None), "classroom", None
+    )
+    school = getattr(classroom, "school", None) if classroom else None
+    if not school:
+        return
+    try:
+        from apps.siteconfig.workflow_triggers import dispatch_domain_triggers_safe
+
+        dispatch_domain_triggers_safe(
+            school,
+            "grade_submitted",
+            {
+                "evaluation_id": instance.pk,
+                "student_id": getattr(instance, "student_id", None),
+                "subject_assignment_id": getattr(instance, "subject_assignment_id", None),
+                "created": created,
+                "total_score": str(instance.total_score)
+                if getattr(instance, "total_score", None) is not None
+                else None,
+            },
+        )
+    except ImportError:
+        pass

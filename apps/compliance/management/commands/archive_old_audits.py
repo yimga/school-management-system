@@ -69,7 +69,7 @@ class Command(BaseCommand):
         session_count = old_sessions.count()
 
         if dry_run:
-            self.stdout.write(self.style.WARNING(f"[DRY RUN] Would delete:"))
+            self.stdout.write(self.style.WARNING("[DRY RUN] Would delete:"))
             self.stdout.write(
                 f"  - {audit_count} AuditLog records (older than {audit_log_days} days)"
             )
@@ -79,7 +79,7 @@ class Command(BaseCommand):
             self.stdout.write(
                 f"  - {session_count} UserActivitySession records (older than {session_days} days)"
             )
-            self.stdout.write(f"\nOldest records:")
+            self.stdout.write("\nOldest records:")
 
             if audit_count > 0:
                 oldest_audit = old_audits.order_by("timestamp").first()
@@ -111,7 +111,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS("No old records found to archive"))
 
             # Summary
-            self.stdout.write(f"\nRetention policy:")
+            self.stdout.write("\nRetention policy:")
             self.stdout.write(f"  - AuditLog: {audit_log_days} days")
             self.stdout.write(f"  - AccessLog: {access_log_days} days")
             self.stdout.write(f"  - UserActivitySession: {session_days} days")

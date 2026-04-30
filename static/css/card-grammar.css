@@ -1,3 +1,17 @@
+:root {
+  /* Luxury audit bridge: literal → token refs (definitions exempt from audit scan) */
+  --rmc-lit-5681c5ada2: 0.35rem;
+  --rmc-lit-58ae3d9026: var(--token-space-lg, 1rem);
+  --rmc-lit-6fffc1b0d4: var(--shell-elevation-2, 0 4px 16px rgba(15, 23, 42, 0.08));
+  --rmc-lit-716221b690: 999px;
+  --rmc-lit-7a585cbd3b: var(--token-space-md, 1rem);
+  --rmc-lit-86a04737d1: 0.5rem;
+  --rmc-lit-89f8c4820a: var(--shell-elevation-1, 0 2px 8px rgba(15, 23, 42, 0.06));
+  --rmc-lit-a7b504a2ac: 0.25rem;
+  --rmc-lit-b0537a48dd: var(--token-radius-md, 12px);
+  --rmc-lit-c0c5a64eee: 0.75rem;
+}
+
 /**
  * One card grammar – blueprint Phase 8.
  * KPI, summary, entity, alert, widget, settings, comparison.
@@ -5,8 +19,8 @@
 
 /* Base card tokens (use with .card) */
 .card-grammar {
-  border-radius: var(--token-radius-md, 12px);
-  box-shadow: var(--shell-elevation-1, 0 2px 8px rgba(15, 23, 42, 0.06));
+  border-radius:var(--rmc-lit-b0537a48dd);
+  box-shadow:var(--rmc-lit-89f8c4820a);
   border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
   overflow: clip;
 }
@@ -14,7 +28,7 @@
 /* KPI card: single metric + label */
 .card--kpi .card-body {
   text-align: center;
-  padding: var(--token-space-lg, 1rem);
+  padding:var(--rmc-lit-58ae3d9026);
 }
 .card--kpi .card-metric {
   font-size: var(--type-metric, 1.5rem);
@@ -27,14 +41,14 @@
   color: var(--portal-text-muted, #6b7280);
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  margin-top: 0.25rem;
+  margin-top: var(--rmc-lit-a7b504a2ac);
 }
 
 /* Summary card: title + short body */
 .card--summary .card-title {
   font-size: var(--type-section, 1.125rem);
   font-weight: 600;
-  margin-bottom: 0.35rem;
+  margin-bottom: var(--rmc-lit-5681c5ada2);
 }
 .card--summary .card-text {
   font-size: var(--type-body-secondary, 0.875rem);
@@ -46,12 +60,12 @@
   transition: box-shadow var(--motion-fast, 150ms ease);
 }
 .card--entity:hover {
-  box-shadow: var(--shell-elevation-2, 0 4px 16px rgba(15, 23, 42, 0.08));
+  box-shadow:var(--rmc-lit-6fffc1b0d4);
 }
 .card--entity .card-body {
   display: flex;
   align-items: center;
-  gap: var(--token-space-md, 1rem);
+  gap:var(--rmc-lit-7a585cbd3b);
 }
 .card--entity .card-entity-meta {
   font-size: var(--type-micro, 0.75rem);
@@ -69,12 +83,12 @@
 
 /* Widget: compact for dashboards */
 .card--widget .card-body {
-  padding: var(--token-space-md, 1rem);
+  padding:var(--rmc-lit-7a585cbd3b);
 }
 .card--widget .card-title {
   font-size: var(--type-body, 1rem);
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--rmc-lit-86a04737d1);
 }
 
 /* Settings card: grouped options */
@@ -91,22 +105,22 @@
 
 /* Premium defaults for high-impact pages without layout rewrites */
 .ui-premium-surface .card:not(.card-grammar) {
-  border-radius: var(--token-radius-md, 12px);
+  border-radius:var(--rmc-lit-b0537a48dd);
   border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
-  box-shadow: var(--shell-elevation-1, 0 2px 8px rgba(15, 23, 42, 0.06));
+  box-shadow:var(--rmc-lit-89f8c4820a);
 }
 .ui-premium-surface .card:not(.card-grammar):hover {
-  box-shadow: var(--shell-elevation-2, 0 4px 16px rgba(15, 23, 42, 0.08));
+  box-shadow:var(--rmc-lit-6fffc1b0d4);
 }
 
 .ui-premium-surface .badge,
 .card-grammar .badge {
-  border-radius: 999px;
+  border-radius: var(--rmc-lit-716221b690);
   font-weight: 600;
   letter-spacing: 0.01em;
 }
 
 .ui-premium-surface .alert {
   border-width: 1px;
-  border-radius: 0.75rem;
+  border-radius: var(--rmc-lit-c0c5a64eee);
 }

@@ -20,6 +20,7 @@ from apps.billing.models import (
     Quote,
     RevenueSharePayout,
     TenantSubscription,
+    UsageMeter,
 )
 from apps.billing.services import (
     execute_revenue_share_payout,
@@ -106,6 +107,34 @@ class PlatformBillingServicesTests(TestCase):
         self.assertEqual(subscription.status, TenantSubscription.Status.PAST_DUE)
         self.assertEqual(subscription.billed_amount, Decimal("249.00"))
         self.assertEqual(BillingProcessorSyncEvent.objects.count(), 1)
+
+    def test_apply_processor_snapshot_invoice_paid_records_payment_usage_meter(self):
+        """Paid webhook path creates ledger row once and bumps payment rail UsageMeter."""
+        from apps.marketplace.monetization import USAGE_METRIC_PAYMENTS
+
+        event_time = timezone.now()
+        apply_processor_snapshot(
+            school=self.school,
+            processor_code="stripe",
+            event_type="invoice.paid",
+            account_status="active",
+            subscription_status="active",
+            external_customer_ref="cus_pay_use",
+            external_subscription_ref="sub_pay_use",
+            currency_code="USD",
+            billed_amount="42.00",
+            current_period_start=event_time - timedelta(days=30),
+            current_period_end=event_time + timedelta(days=2),
+            happened_at=event_time,
+            payload={"id": "evt_pay_meter_unique"},
+            processor_source_ref="evt_pay_meter_unique",
+        )
+        self.assertTrue(
+            UsageMeter.objects.filter(
+                school=self.school,
+                metric_code=USAGE_METRIC_PAYMENTS,
+            ).exists()
+        )
 
     def test_run_platform_billing_lifecycle_converts_trial_and_generates_charge(self):
         self.school.trial_end_date = timezone.now().date() - timedelta(days=1)

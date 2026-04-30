@@ -64,9 +64,10 @@ class AdminRegistryBoundaryTests(SimpleTestCase):
     def test_platform_and_tenant_registries_are_separate(self):
         self.assertIsNot(platform_admin_site._registry, tenant_admin_site._registry)
 
-    def test_tenant_only_model_in_tenant_admin_not_in_platform_admin(self):
+    def test_user_model_registered_on_both_admin_sites(self):
+        """Operators edit Users on manager /admin/ (platform) and school /admin/ (tenant)."""
         self.assertIn(User, tenant_admin_site._registry)
-        self.assertNotIn(User, platform_admin_site._registry)
+        self.assertIn(User, platform_admin_site._registry)
 
     def test_platform_only_model_in_platform_admin_not_in_tenant_admin(self):
         self.assertIn(School, platform_admin_site._registry)

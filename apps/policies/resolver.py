@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
 
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.siteconfig.identifier_policy_service import default_school_code_for
 

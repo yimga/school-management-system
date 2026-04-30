@@ -73,6 +73,10 @@ def main(argv: list[str] | None) -> int:
             [exe, str(root / "scripts" / "verify_design_system_phase2.py")],
         ),
         (
+            "audit_luxury_ui_surface",
+            [exe, str(root / "scripts" / "audit_luxury_ui_surface.py")],
+        ),
+        (
             "verify_doc_plan_density_discipline",
             [exe, str(root / "scripts" / "verify_doc_plan_density_discipline.py")],
         ),

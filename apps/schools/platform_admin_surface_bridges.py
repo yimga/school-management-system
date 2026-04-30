@@ -17,6 +17,7 @@ _DESC = _(
 )
 
 PLATFORM_ADMIN_SURFACE_BRIDGE_ORDER: list[str] = [
+    "accounts_user",
     "automation_automationapprovalqueue",
     "automation_automationexecutionlog",
     "automation_migrationplaybook",
@@ -96,6 +97,18 @@ PLATFORM_ADMIN_SURFACE_BRIDGE_ORDER: list[str] = [
 ]
 
 PLATFORM_ADMIN_SURFACE_BRIDGES: dict[str, dict[str, object]] = {
+    "accounts_user": {
+        "admin_url": "admin:accounts_user_changelist",
+        "label": _("Users (platform admin)"),
+        "description": _(
+            "Set Role to Super Administrator (SUPERADMIN) for full manager-host control plane and API Center."
+        ),
+        "icon": "bi-person-badge",
+        "show_in_nav": True,
+        "nav_id": "cp_admin_bridge_accounts_users",
+        "nav_label": _("Users (admin)"),
+        "nav_icon": "bi-person-badge",
+    },
     "automation_automationapprovalqueue": {
         "admin_url": "admin:automation_automationapprovalqueue_changelist",
         "label": _("Automation approval queue (platform admin)"),

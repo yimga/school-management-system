@@ -1,5 +1,5 @@
 // Service worker for portal PWA + offline write-behind queue.
-const CACHE_VERSION = "sms-v1.4.1";
+const CACHE_VERSION = "sms-v1.4.2";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -21,6 +21,8 @@ let OFFLINE_CONFIG = {
   attendanceSyncEnabled: true,
   gradeSyncEnabled: true,
   apiSyncEnabled: true,
+  /** Explicit toggle for sync_batch (attendance + grades + offline_payment replay). */
+  paymentSyncEnabled: true,
   entitySyncEnabled: true,
   requestsSyncEnabled: true,
   backgroundSyncEnabled: true,
@@ -252,6 +254,8 @@ function isApiWriteRequest(request, url) {
   if (url.pathname.startsWith("/api/entity/") || url.pathname.startsWith("/api/entities/")) return true;
   if (url.pathname.startsWith("/api/requests/")) return true;
   if (url.pathname.startsWith("/api/finance/")) return true;
+  /** Unified offline replay: attendance, grades, offline_payment intents (POST sync_batch). */
+  if (url.pathname.startsWith("/api/sync/")) return true;
   // if (url.pathname.startsWith("/api/grades/") || url.pathname.startsWith("/api/evals/")) return true;
   return false;
 }
@@ -267,12 +271,27 @@ function queueAllowed(syncType) {
   if (!OFFLINE_CONFIG.enabled) return false;
   if (syncType === "attendance") return !!OFFLINE_CONFIG.attendanceSyncEnabled;
   if (syncType === "grade") return !!OFFLINE_CONFIG.gradeSyncEnabled;
-  if (syncType === "api") return !!OFFLINE_CONFIG.apiSyncEnabled;
+  if (syncType === "api") {
+    return !!(
+      OFFLINE_CONFIG.apiSyncEnabled ||
+      OFFLINE_CONFIG.entitySyncEnabled ||
+      OFFLINE_CONFIG.requestsSyncEnabled ||
+      OFFLINE_CONFIG.paymentSyncEnabled
+    );
+  }
   return false;
 }
 
 function isApiWriteAllowedByToggles(url) {
   const path = url.pathname || "";
+  if (path.startsWith("/api/sync/")) {
+    return !!(
+      OFFLINE_CONFIG.attendanceSyncEnabled ||
+      OFFLINE_CONFIG.gradeSyncEnabled ||
+      OFFLINE_CONFIG.apiSyncEnabled ||
+      OFFLINE_CONFIG.paymentSyncEnabled
+    );
+  }
   if (path.startsWith("/api/entity") || path.startsWith("/api/entities")) return !!OFFLINE_CONFIG.entitySyncEnabled;
   if (path.startsWith("/api/requests/")) return !!OFFLINE_CONFIG.requestsSyncEnabled;
   if (path.startsWith("/api/finance/")) return !!OFFLINE_CONFIG.apiSyncEnabled;

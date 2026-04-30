@@ -165,7 +165,7 @@ class Command(BaseCommand):
         # Send via email (assuming send_email_alert exists in alerts.py)
         try:
             send_email_alert(subject, message)
-            self.stdout.write(self.style.SUCCESS(f"📧 Digest email sent"))
+            self.stdout.write(self.style.SUCCESS("📧 Digest email sent"))
         except _SEND_DIGEST_ALERTS_EMAIL_ERRORS as e:
             log_exception_with_context(
                 "send_digest_alerts: failed to send digest email",

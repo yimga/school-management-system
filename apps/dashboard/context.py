@@ -4,6 +4,7 @@ import logging
 from datetime import timedelta
 from typing import Any, Dict, Optional
 
+from django.conf import settings as dj_settings
 from django.core.cache import cache
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.db import DatabaseError, OperationalError
@@ -16,7 +17,7 @@ from apps.dashboard.decision_surface_context import (
 )
 from apps.dashboard.role_home_engine import select_kpis_for_intent
 from apps.dashboard.services.role_home_service import build_role_home_context
-from apps.platform_runtime.site_settings_read_access import (
+from apps.siteconfig.config_service import (
     get_effective_flags,
     get_effective_site_settings,
 )
@@ -786,6 +787,44 @@ def build_dashboard_extras(
         role_home_result.get("dashboard_next_best_actions") or []
     )
 
+    if getattr(dj_settings, "CONVERSION_SINGLE_ACTION_ENFORCED", False):
+        primary_ctas = (primary_ctas or [])[:1]
+        welcome_action_grid = (welcome_action_grid or [])[:1]
+        action_chips = (action_chips or [])[:1]
+        quick_links = (quick_links or [])[:0]
+        contextual_actions = (contextual_actions or [])[:0]
+        command_palette = (command_palette or [])[:0]
+        role_home_supporting_actions = []
+        if not welcome_action_grid:
+            candidate: dict | None = None
+            if role_home_destinations:
+                d0 = role_home_destinations[0]
+                if isinstance(d0, dict) and (
+                    str(d0.get("label", "") or "").strip()
+                    or str(d0.get("url", "") or "").strip()
+                ):
+                    candidate = {
+                        "label": str(d0.get("label", "") or "").strip() or "Next step",
+                        "url": str(d0.get("url", "") or "").strip() or "#",
+                        "icon": str(d0.get("icon", "") or "bi-arrow-right-circle"),
+                    }
+                    if d0.get("id"):
+                        candidate["id"] = d0["id"]
+            if not candidate and primary_ctas:
+                candidate = dict(primary_ctas[0]) if primary_ctas else None
+            if not candidate:
+                try:
+                    demo_url = reverse("demo_flow_index")
+                except _DASHBOARD_REVERSE_ERRORS:
+                    demo_url = "#"
+                candidate = {
+                    "label": "Start guided setup",
+                    "url": demo_url,
+                    "icon": "bi-play-circle",
+                    "id": "conversion_strict_fallback",
+                }
+            welcome_action_grid = [candidate]
+
     upcoming_events = []
     try:
         from apps.academics.services import get_active_year_and_term
@@ -903,12 +942,19 @@ def build_dashboard_extras(
         role_home_primary_action=role_home_primary_action,
         role_home_supporting_actions=role_home_supporting_actions,
         dashboard_recent_activity=dashboard_recent_activity,
+        max_next_actions=(
+            1
+            if getattr(dj_settings, "CONVERSION_SINGLE_ACTION_ENFORCED", False)
+            else 4
+        ),
+        role_home_destinations=role_home_destinations,
     )
     role_home_declaration = build_role_home_declaration(role_home)
 
     operations_watch = operations_watch[:max_items]
     quick_links = quick_links[:max_items]
-    welcome_action_grid = welcome_action_grid[: max(6, max_items + 2)]
+    if not getattr(dj_settings, "CONVERSION_SINGLE_ACTION_ENFORCED", False):
+        welcome_action_grid = welcome_action_grid[: max(6, max_items + 2)]
     upcoming_events = upcoming_events[:max_items]
 
     return {

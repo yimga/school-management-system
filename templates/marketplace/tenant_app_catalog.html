@@ -13,9 +13,12 @@
 {% block content %}
 <div class="container-fluid py-4 proof-page tenant-app-catalog-wrap ui-premium-surface" data-page-archetype="catalog" data-shell-marketplace="tenant-app-catalog" data-rmc-market-surface="catalog" data-rmc-mkt-catalog-surface="1" data-rmc-component-audit="1">
   {% if not school %}
-  <div class="proof-panel">
+  <div class="proof-panel" data-page-header="1">
     <h1 class="proof-panel-title">{% trans "App catalog" %}</h1>
     <p class="proof-panel-copy">{% trans "No school context." %}</p>
+    <nav class="ds-action-bar d-flex flex-wrap gap-2 mt-2" role="toolbar" aria-label="{% trans 'Primary actions' %}">
+      <a class="btn btn-sm btn-outline-primary ds-btn" href="{% url 'accounts:login' %}">{% trans "Sign in" %}</a>
+    </nav>
   </div>
   {% else %}
   <section class="proof-hero">
@@ -37,9 +40,9 @@
         <p class="proof-hero-copy">
           {% trans "Sandbox-first catalog: every install is staged so your team can preview impact, review scopes, and activate deliberately." %}
         </p>
-        <div class="proof-hero-actions">
-          <a href="{% url 'tenant_installed_apps' %}" class="btn btn-light btn-sm">{% trans "Installed apps" %}</a>
-          <a href="{% url 'tenant_scope_consent' %}" class="btn btn-outline-light btn-sm">{% trans "Scope consent" %}</a>
+        <div class="proof-hero-actions ds-action-bar d-flex flex-wrap gap-2">
+          <a href="{% url 'tenant_installed_apps' %}" class="btn btn-light btn-sm ds-btn">{% trans "Installed apps" %}</a>
+          <a href="{% url 'tenant_scope_consent' %}" class="btn btn-outline-light btn-sm ds-btn">{% trans "Scope consent" %}</a>
         </div>
         <div class="proof-strip">
           <div class="proof-strip-card"><strong>{{ catalog_stats.apps|default:0 }}</strong><span>{% trans "apps available" %}</span></div>

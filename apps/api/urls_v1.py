@@ -4,13 +4,23 @@ Mount under path('api/v1/', include('apps.api.urls_v1')).
 """
 
 from django.urls import path
-from apps.api import views_v1, views_v1_intervention
+from apps.api import views_v1, views_v1_intervention, views_v1_platform
 from apps.api.api_v1_manifest import api_v1_manifest
 
 app_name = "api_v1"
 
 urlpatterns = [
     path("manifest.json", api_v1_manifest, name="manifest"),
+    path(
+        "platform/integration-context/",
+        views_v1_platform.IntegrationContextView.as_view(),
+        name="platform-integration-context",
+    ),
+    path(
+        "platform/scoped-ping/",
+        views_v1_platform.IntegrationScopedPingView.as_view(),
+        name="platform-scoped-ping",
+    ),
     path("me/schools", views_v1.MeSchoolsView.as_view(), name="me-schools"),
     path(
         "me/switch-school",

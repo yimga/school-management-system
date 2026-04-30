@@ -108,6 +108,14 @@ PLATFORM_ADMIN_BRIDGE_ORDER: list[str] = [
     # apps.sales — platform_admin_site (internal pipeline)
     "sales_leads",
     "sales_pipeline_stages",
+    # apps.apicenter — OAuth / developer platform admin
+    "apicenter_developer_application",
+    "apicenter_marketplace_extension_submission",
+    "apicenter_oauth_authorization_code",
+    "apicenter_oauth_token_pair",
+    # compliance + native marketplace catalog (platform admin)
+    "compliance_audit_log",
+    "app_permission_scopes",
 ]
 
 # bridge_key (URL slug) → config
@@ -673,6 +681,48 @@ PLATFORM_ADMIN_BRIDGES: dict[str, dict[str, object]] = {
         "label": _("Pipeline stages (platform admin)"),
         "description": _("PipelineStage — internal stage catalog"),
         "icon": "bi-funnel",
+        "show_in_nav": False,
+    },
+    "apicenter_developer_application": {
+        "admin_url": "admin:apicenter_developerapplication_changelist",
+        "label": _("Developer applications (platform admin)"),
+        "description": _("OAuth/developer registrations on the API Center"),
+        "icon": "bi-app-indicator",
+        "show_in_nav": False,
+    },
+    "apicenter_marketplace_extension_submission": {
+        "admin_url": "admin:apicenter_marketplaceextensionsubmission_changelist",
+        "label": _("Marketplace extension submissions (platform admin)"),
+        "description": _("Publisher extension submissions for API Center review"),
+        "icon": "bi-box-arrow-in-down",
+        "show_in_nav": False,
+    },
+    "apicenter_oauth_authorization_code": {
+        "admin_url": "admin:apicenter_oauthauthorizationcode_changelist",
+        "label": _("OAuth authorization codes (platform admin)"),
+        "description": _("Authorization codes issued by the developer OAuth flow"),
+        "icon": "bi-key",
+        "show_in_nav": False,
+    },
+    "apicenter_oauth_token_pair": {
+        "admin_url": "admin:apicenter_oauthtokenpair_changelist",
+        "label": _("OAuth token pairs (platform admin)"),
+        "description": _("Access/refresh token pairs for API Center OAuth clients"),
+        "icon": "bi-shield-lock",
+        "show_in_nav": False,
+    },
+    "compliance_audit_log": {
+        "admin_url": "admin:compliance_auditlog_changelist",
+        "label": _("Compliance audit log (platform admin)"),
+        "description": _("AuditLog — enterprise audit trail rows"),
+        "icon": "bi-journal-text",
+        "show_in_nav": False,
+    },
+    "app_permission_scopes": {
+        "admin_url": "admin:marketplace_apppermissionscope_changelist",
+        "label": _("App permission scopes (platform admin)"),
+        "description": _("AppPermissionScope — OAuth/catalog permission strings"),
+        "icon": "bi-key-fill",
         "show_in_nav": False,
     },
 }

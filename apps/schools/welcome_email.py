@@ -49,7 +49,7 @@ def render_welcome_email_html(
     """
     try:
         from apps.siteconfig.branding import resolve_brand_profile
-        from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+        from apps.siteconfig.config_service import get_effective_site_settings
 
         brand = resolve_brand_profile(
             school=school, site=get_effective_site_settings(school=school)

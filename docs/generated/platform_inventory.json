@@ -1,23 +1,23 @@
 {
   "baseline_counts": {
     "allow_any": 106,
-    "csrf_exempt": 302,
-    "cursor_execute": 380,
-    "except_exception": 318,
+    "csrf_exempt": 304,
+    "cursor_execute": 381,
+    "except_exception": 326,
     "get_solo": 206,
-    "gilead": 16660,
+    "gilead": 16659,
     "gilead_files": 161,
     "html_files": 716,
     "management_commands": 158,
     "markdown_files": 1109,
     "migration_files": 712,
-    "print_calls": 1023,
+    "print_calls": 1026,
     "python_files": 2655,
-    "site_settings": 1885
+    "site_settings": 1879
   },
   "doc_drift": {
-    "actual_installed_app_count": 44,
-    "documented_app_count": 44,
+    "actual_installed_app_count": 45,
+    "documented_app_count": 45,
     "is_stale": false,
     "legacy_doc": "docs/ALL_MODULES_COMPLETE_LIST.md"
   },
@@ -28,8 +28,8 @@
       "path": "apps/schools/marketing_page_definitions.py"
     },
     {
-      "bytes": 126054,
-      "lines": 3188,
+      "bytes": 129979,
+      "lines": 3282,
       "path": "apps/schools/marketing_views.py"
     },
     {
@@ -38,33 +38,33 @@
       "path": "apps/api/views_v1.py"
     },
     {
+      "bytes": 118357,
+      "lines": 3177,
+      "path": "apps/evals/views.py"
+    },
+    {
       "bytes": 118228,
       "lines": 3088,
       "path": "apps/accounts/views.py"
     },
     {
-      "bytes": 118203,
-      "lines": 3174,
-      "path": "apps/evals/views.py"
+      "bytes": 102964,
+      "lines": 2948,
+      "path": "apps/finance/models.py"
     },
     {
-      "bytes": 100459,
+      "bytes": 100442,
       "lines": 2668,
       "path": "apps/siteconfig/views.py"
     },
     {
-      "bytes": 98710,
+      "bytes": 98676,
       "lines": 2814,
       "path": "apps/siteconfig/admin.py"
     },
     {
-      "bytes": 98677,
-      "lines": 2814,
-      "path": "apps/finance/models.py"
-    },
-    {
-      "bytes": 91692,
-      "lines": 2317,
+      "bytes": 92659,
+      "lines": 2338,
       "path": "apps/studio_os/views.py"
     },
     {
@@ -73,13 +73,13 @@
       "path": "apps/finance/tasks.py"
     },
     {
-      "bytes": 78497,
+      "bytes": 78471,
       "lines": 2023,
       "path": "apps/siteconfig/models.py"
     },
     {
-      "bytes": 71704,
-      "lines": 1581,
+      "bytes": 78060,
+      "lines": 1707,
       "path": "config/settings.py"
     }
   ],
@@ -908,9 +908,9 @@
     "cursor_execute_apps_config_py_excl_migrations": 32,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 925,
-    "site_settings_refs_apps_py_excl_migrations": 41,
-    "site_settings_refs_apps_py_excl_migrations_tests": 7
+    "print_calls_scripts_py": 926,
+    "site_settings_refs_apps_py_excl_migrations": 40,
+    "site_settings_refs_apps_py_excl_migrations_tests": 6
   },
   "site_settings_fields": [
     {
@@ -925,7 +925,8 @@
   "successor_domain_imports": {
     "brand_experience": [
       "apps/brand_experience/models.py",
-      "apps/brand_experience/platform_global_branding.py"
+      "apps/brand_experience/platform_global_branding.py",
+      "apps/brand_experience/resolvers.py"
     ],
     "global_registries": [
       "apps/global_registries/models.py"

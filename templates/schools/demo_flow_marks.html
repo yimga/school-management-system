@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Demo — Enter marks" %}{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width: 640px;">
+  <p class="text-muted small mb-2">{% trans "Step 2 of 4" %}</p>
+  <h1 class="h4 mb-3">{% trans "Enter marks" %}</h1>
+  <p class="text-muted">{% trans "Save a grade for this demo so the flow can continue." %}</p>
+  <form method="post" action="{% url 'demo_flow_marks_complete' %}" class="mt-4">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">{% trans "Marks saved (demo)" %}</button>
+  </form>
+</div>
+{% endblock %}

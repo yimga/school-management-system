@@ -21,3 +21,17 @@ def marketing_base_url(request):
     elif getattr(request, "scheme", None):
         scheme = request.scheme
     return {"MARKETING_BASE_URL": f"{scheme}://{base_domain}"}
+
+
+def conversion_enforcement_context(request):
+    """
+    Template toggles for strict conversion / single-primary UI (see CONVERSION_* settings).
+    """
+    return {
+        "rmc_conversion_single_action_enforced": getattr(
+            django_settings, "CONVERSION_SINGLE_ACTION_ENFORCED", False
+        ),
+        "rmc_activation_gate_allow_dismiss": getattr(
+            django_settings, "ACTIVATION_GATE_ALLOW_DISMISS", True
+        ),
+    }

@@ -3,13 +3,13 @@
 Usage: {% include "studio_os/components/page_header.html" with title="Page title" subtitle="Optional subtitle" action_url=url action_text="Primary action" %}
 Or: {% include "studio_os/components/page_header.html" with title="..." action_html='<button class="btn ...">Save</button>' %}
 {% endcomment %}
-<header class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 studio-os-topbar" role="banner">
+<header class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 studio-os-topbar ds-action-bar" role="banner">
   <div class="min-w-0">
     <h1 class="h4 mb-0" style="font-size: var(--studio-font-heading, clamp(1.125rem, 2vw, 1.35rem)); color: var(--color-base-800, #1e293b);">{{ title|default:"Page" }}</h1>
     {% if subtitle %}<p class="text-muted small mb-0 mt-1" style="color: var(--color-base-600, #475569);">{{ subtitle }}</p>{% endif %}
   </div>
   {% if action_url and action_text %}
-    <a class="btn btn-sm btn-primary studio-os-cmd-btn" href="{{ action_url }}" style="--bs-btn-bg: var(--color-primary-500, #3b82f6); --bs-btn-border-color: var(--color-primary-500);">{{ action_text }}</a>
+    <a class="btn btn-sm btn-primary studio-os-cmd-btn ds-btn" href="{{ action_url }}" style="--bs-btn-bg: var(--color-primary-500, #3b82f6); --bs-btn-border-color: var(--color-primary-500);">{{ action_text }}</a>
   {% elif action_html %}
     <div class="studio-os-topbar-actions">{{ action_html|safe }}</div>
   {% endif %}

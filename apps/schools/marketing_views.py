@@ -2198,6 +2198,13 @@ def submit_demo_request(request):
     elif email:
         # No webhook configured; still count as success so user sees confirmation (admin can check logs or add webhook later)
         success = True
+    if success:
+        try:
+            from apps.schools.funnel_events import record_marketing_funnel_event
+
+            record_marketing_funnel_event("demo_started", request)
+        except (ImportError, AttributeError, TypeError, ValueError):
+            pass
     redirect_url = reverse("marketing_book_demo")
     if success:
         redirect_url += "?submitted=1"
@@ -2298,7 +2305,8 @@ def buyer_toolkit_download(request, document: str):
 @require_GET
 @staff_member_required(login_url=settings.LOGIN_URL)
 def marketing_funnel_dashboard(request):
-    """Wave 4: Conversion funnel dashboard (visit -> discovery -> signup -> activation). Staff only."""
+    """Wave 4+: Conversion funnel + growth analytics (billing-linked, no fake KPIs). Staff only."""
+    from apps.schools.growth_analytics import build_growth_funnel_snapshot
     from apps.schools.models import MarketingFunnelEvent
 
     now = timezone.now()
@@ -2336,8 +2344,16 @@ def marketing_funnel_dashboard(request):
         .annotate(
             visit=Count("id", filter=Q(event_type="visit")),
             discovery=Count("id", filter=Q(event_type="discovery")),
+            demo_started=Count("id", filter=Q(event_type="demo_started")),
             signup=Count("id", filter=Q(event_type="signup")),
+            signup_completed=Count("id", filter=Q(event_type="signup_completed")),
             activation=Count("id", filter=Q(event_type="activation")),
+            first_dashboard_view=Count(
+                "id", filter=Q(event_type="first_dashboard_view")
+            ),
+            subscription_started=Count(
+                "id", filter=Q(event_type="subscription_started")
+            ),
         )
         .order_by("-visit")
     )
@@ -2347,11 +2363,17 @@ def marketing_funnel_dashboard(request):
             "utm_medium": r.get("utm_medium") or "",
             "visit": r.get("visit", 0),
             "discovery": r.get("discovery", 0),
+            "demo_started": r.get("demo_started", 0),
             "signup": r.get("signup", 0),
+            "signup_completed": r.get("signup_completed", 0),
             "activation": r.get("activation", 0),
+            "first_dashboard_view": r.get("first_dashboard_view", 0),
+            "subscription_started": r.get("subscription_started", 0),
         }
         for r in channel_qs
     ]
+
+    growth_snapshot = build_growth_funnel_snapshot(days=30)
 
     base_ctx = _marketing_base_context(request)
     ctx = {
@@ -2363,6 +2385,7 @@ def marketing_funnel_dashboard(request):
         "last7": last7_map,
         "last30": last30_map,
         "channel_breakdown": channel_breakdown,
+        "growth": growth_snapshot,
     }
     return render(request, "schools/marketing_funnel_dashboard.html", ctx)
 
@@ -3085,6 +3108,77 @@ def marketing_sitemap_xml(request):
         chunks.append("  </url>")
     chunks.append("</urlset>")
     return HttpResponse("\n".join(chunks), content_type="application/xml")
+
+
+@require_GET
+def developer_hub(request):
+    """
+    Canonical /developer/ hub: OAuth, API v2 manifest, API Center, test console entry points.
+    """
+    base = request.build_absolute_uri("/").rstrip("/")
+    base_ctx = _marketing_base_context(request)
+    return render(
+        request,
+        "developer/hub.html",
+        {
+            **base_ctx,
+            "page_slug": "developer-hub",
+            "headline": "RunMyCampus for developers",
+            "subheadline": "Register apps, connect APIs, and ship integrations safely.",
+            "links": {
+                "v2_manifest": f"{base}/api/v2/manifest.json",
+                "v1_manifest": f"{base}/api/v1/manifest.json",
+                "v2_ping": f"{base}/api/v2/ping/",
+                "oauth_token": f"{base}/api/v1/oauth/token/",
+                "oauth_authorize": f"{base}/api/v1/oauth/authorize/",
+                "api_center": request.build_absolute_uri("/api-center/"),
+                "developer_portal": request.build_absolute_uri(reverse("developer_portal")),
+                "developer_console": request.build_absolute_uri(
+                    reverse("developer_console")
+                ),
+                "sdk": request.build_absolute_uri(reverse("developer_sdk")),
+                "sandbox": request.build_absolute_uri(reverse("developer_sandbox")),
+                "public_api_docs": request.build_absolute_uri(
+                    reverse("developer_public_api_docs")
+                ),
+            },
+        },
+    )
+
+
+@require_GET
+def developer_console(request):
+    """
+    Developer console: app registration, versions, keys, webhooks, logs entry points.
+    """
+    base_ctx = _marketing_base_context(request)
+    return render(
+        request,
+        "developer/console.html",
+        {
+            **base_ctx,
+            "page_slug": "developer-console",
+            "headline": "Developer console",
+            "subheadline": "Register apps, ship semver versions, manage keys and webhooks.",
+            "links": {
+                "hub": request.build_absolute_uri(reverse("developer_hub")),
+                "oauth_authorize": request.build_absolute_uri(
+                    reverse("oauth:authorize")
+                ),
+                "oauth_token": request.build_absolute_uri(reverse("oauth:token")),
+                "api_center": request.build_absolute_uri("/api-center/"),
+                "integration_context": request.build_absolute_uri(
+                    reverse("api_v1:platform-integration-context")
+                ),
+                "scoped_ping": request.build_absolute_uri(
+                    reverse("api_v1:platform-scoped-ping")
+                ),
+                "public_api_docs": request.build_absolute_uri(
+                    reverse("developer_public_api_docs")
+                ),
+            },
+        },
+    )
 
 
 @require_GET

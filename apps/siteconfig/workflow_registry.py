@@ -39,6 +39,48 @@ CONDITION_OPERATORS = {
     "lte": {"label": "Less or equal", "description": "Numeric comparison."},
     "in": {"label": "In list", "description": "Value is in the given list."},
     "contains": {"label": "Contains", "description": "String or list contains value."},
+    "date_before": {"label": "Date before", "description": "Context date (ISO) is before value."},
+    "date_after": {"label": "Date after", "description": "Context date (ISO) is after value."},
+    "date_on_or_before": {
+        "label": "Date on or before",
+        "description": "Context date is on or before value.",
+    },
+    "date_on_or_after": {
+        "label": "Date on or after",
+        "description": "Context date is on or after value.",
+    },
+    "hour_between": {
+        "label": "Hour between",
+        "description": "Context datetime hour in [start, end] (0-23).",
+    },
+    "weekday_in": {
+        "label": "Weekday in",
+        "description": "Weekday in list (0=Monday ... 6=Sunday).",
+    },
+}
+
+# School domain triggers (no-code builder + dispatch_domain_triggers)
+SCHOOL_DOMAIN_TRIGGERS = {
+    "student_updated": {
+        "label": "Student updated",
+        "description": "When a student profile is saved.",
+    },
+    "payment_received": {
+        "label": "Payment received",
+        "description": "When a payment or receipt is recorded.",
+    },
+    "grade_submitted": {
+        "label": "Grade submitted",
+        "description": "When an instructor submits or saves a grade.",
+    },
+    "attendance_marked": {
+        "label": "Attendance marked",
+        "description": "When attendance is recorded for a student.",
+    },
+    "report_published": {
+        "label": "Report published",
+        "description": "When a report card or term report is published.",
+    },
 }
 
 # Action types: what the workflow can do (implementations in workflow_engine.run_actions)
@@ -63,6 +105,30 @@ ACTION_TYPES = {
         "description": "POST to an external URL.",
         "params_schema": {"url": "string", "payload": "object"},
     },
+    "emit_event": {
+        "label": "Emit domain event",
+        "description": "Emit an internal domain event.",
+        "params_schema": {"event_type": "string", "payload": "object"},
+    },
+    "create_record": {
+        "label": "Create record",
+        "description": "Create an audited automation record (payload JSON).",
+        "params_schema": {"record_type": "string", "payload": "object"},
+    },
+    "update_field": {
+        "label": "Update field",
+        "description": "Merge student_profile.custom_attributes (safe subset).",
+        "params_schema": {
+            "model_key": "student_profile",
+            "field": "custom_attributes",
+            "merge": "object",
+        },
+    },
+    "ai_suggestion": {
+        "label": "Run AI suggestion",
+        "description": "Draft suggestion text (requires review before acting).",
+        "params_schema": {"goal": "string", "include_context_keys": "list"},
+    },
 }
 
 
@@ -85,6 +151,7 @@ def get_workflow_catalog() -> dict[str, Any]:
     """Return full catalog: triggers, condition_operators, action_types."""
     return {
         "triggers": get_trigger_catalog(),
+        "school_domain_triggers": dict(SCHOOL_DOMAIN_TRIGGERS),
         "condition_operators": get_condition_operators_catalog(),
         "action_types": get_action_types_catalog(),
     }

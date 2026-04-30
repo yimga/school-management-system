@@ -22,7 +22,7 @@ from apps.global_registries.models import RegionConfig
 from apps.integrations_marketplace.models import Integration
 from apps.people.models import StudentProfile, StudentGuardian
 from apps.platform_runtime.helpers import get_platform_defaults
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 
 from .models import (
     ComplianceProfile,
@@ -572,12 +572,14 @@ def _invoice_status(total: Decimal, balance: Decimal) -> str:
 def recalculate_invoice(invoice: Invoice) -> None:
     if not invoice:
         return
+    # Query by invoice_id so totals match the DB. `invoice.lines.all()` can return a stale
+    # reverse-cache if lines were just created against the same in-memory invoice instance.
     total = Decimal("0.00")
-    for line in invoice.lines.all():
+    for line in InvoiceLine.objects.filter(invoice_id=invoice.pk):
         total += line.amount
 
     paid = Decimal("0.00")
-    for payment in invoice.payments.all():
+    for payment in Payment.objects.filter(invoice_id=invoice.pk):
         paid += payment.amount
 
     balance = max(total - paid, Decimal("0.00"))
@@ -601,6 +603,32 @@ def apply_payment(payment: Payment) -> None:
     recalculate_invoice(payment.invoice)
     allocate_payment_to_payer_shares(payment)
     post_payment_to_ledger(payment)
+    try:
+        from apps.siteconfig.workflow_triggers import dispatch_payment_received_from_payment
+
+        dispatch_payment_received_from_payment(payment)
+    except ImportError:
+        pass
+    try:
+        inv = payment.invoice
+        sch = getattr(inv, "school", None) or getattr(payment, "school", None)
+        if sch is not None:
+            from apps.schools.funnel_events import (
+                record_payment_outcome_signal,
+                try_record_first_result_payment,
+            )
+
+            try_record_first_result_payment(sch, payment)
+            record_payment_outcome_signal(
+                sch,
+                success=True,
+                metadata={
+                    "source": "finance_payment",
+                    "payment_id": getattr(payment, "pk", None),
+                },
+            )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
 
 
 def split_amount_equally(total_amount: Decimal, count: int) -> list[Decimal]:
@@ -932,11 +960,12 @@ def create_payment_from_receipt(
             getattr(invoice, "student", None), "school_id", None
         )
         emit_event(
-            "payment.created",
+            "payment.received",
             {
                 "payment_id": str(payment.id),
                 "invoice_id": str(invoice.id),
                 "student_id": str(invoice.student_id) if invoice.student_id else None,
+                "school_id": str(school_id) if school_id else None,
                 "amount": str(amount_to_apply),
                 "method": getattr(proof_upload, "payment_method", "") or "",
                 "reference": payment.reference or "",
@@ -944,7 +973,7 @@ def create_payment_from_receipt(
             school_id=school_id,
         )
     except (ImportError, AttributeError, TypeError, ValueError, KeyError) as e:
-        logging.getLogger(__name__).debug("payment.created emit_event skip: %s", e)
+        logging.getLogger(__name__).debug("payment.received emit_event skip: %s", e)
     return payment
 
 

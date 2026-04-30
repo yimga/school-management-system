@@ -14,6 +14,8 @@ rm -f .django_test_dbs/final_lock.sqlite3
 DJANGO_TEST_DB_FILE=.django_test_dbs/final_lock.sqlite3 python manage.py test --noinput
 ```
 
+**Deterministic wrapper (recommended):** `bash scripts/run_full_test_suite.sh` — resets `.django_test_dbs/*`, sets a **unique** `DJANGO_TEST_DB_FILE` via `scripts/generate_test_db_path.py`, forces **serial** execution (`config.reliable_test_runner.ReliableDiscoverRunner`), and wraps `manage.py test` with `scripts/run_tests_with_guard.py` (idle stall kill). On Windows: `powershell -File scripts/run_full_test_suite.ps1`.
+
 On **Windows**, a brand-new file-backed test database can be slow; **CI Linux** is the source of truth for the fresh-DB line above. If local runs are impractical, do not claim green from a partial list alone.
 
 **Environment-only** failures (e.g. worker OOM, disk full, wrong Python, broken `DJANGO_SETTINGS_MODULE`) are **not** product regressions — retry or fix the runner, then re-run.

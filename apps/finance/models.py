@@ -2812,3 +2812,137 @@ class RecurringPaymentSubscription(models.Model):
 
     def __str__(self):
         return f"{self.user_id} - {self.plan.name}"
+
+
+class PaymentRail(models.Model):
+    """Named payment rail for regional orchestration (mobile money, bank, cash, …)."""
+
+    class RailKind(models.TextChoices):
+        MOBILE_MONEY = "MOBILE_MONEY", "Mobile money"
+        BANK_TRANSFER = "BANK_TRANSFER", "Bank transfer"
+        CASH = "CASH", "Cash"
+        CARD = "CARD", "Card"
+        WALLET = "WALLET", "Wallet"
+        MANUAL = "MANUAL", "Manual / proof upload"
+
+    code = models.SlugField(max_length=40, unique=True)
+    label = models.CharField(max_length=120)
+    kind = models.CharField(max_length=24, choices=RailKind.choices)
+
+    class Meta:
+        ordering = ["label"]
+
+    def __str__(self) -> str:
+        return f"{self.label} ({self.code})"
+
+
+class RegionPaymentProfile(models.Model):
+    """Each ISO region uses one primary rail and one backup rail."""
+
+    country_code = models.CharField(max_length=2, db_index=True)
+    name = models.CharField(max_length=120)
+    primary_rail = models.ForeignKey(
+        PaymentRail,
+        on_delete=models.PROTECT,
+        related_name="region_profiles_primary",
+    )
+    backup_rail = models.ForeignKey(
+        PaymentRail,
+        on_delete=models.PROTECT,
+        related_name="region_profiles_backup",
+    )
+    notes = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["country_code"],
+                name="uniq_finance_region_payment_profile_country",
+            ),
+        ]
+        ordering = ["country_code"]
+
+    def __str__(self) -> str:
+        return f"{self.country_code} — {self.name}"
+
+
+class TenantPaymentPolicy(models.Model):
+    """School-level payment UX and rail selection for orchestration."""
+
+    school = models.OneToOneField(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="tenant_payment_policy",
+    )
+    region_profile = models.ForeignKey(
+        RegionPaymentProfile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tenant_policies",
+    )
+    allow_manual_offline_proof = models.BooleanField(
+        default=True,
+        help_text="Allow receipt capture when offline or rails unavailable.",
+    )
+    simplicity_big_buttons = models.BooleanField(
+        default=True,
+        help_text="UI shows two obvious choices (primary vs backup).",
+    )
+
+    def __str__(self) -> str:
+        return f"TenantPaymentPolicy school={self.school_id}"
+
+
+class OfflinePaymentIntent(models.Model):
+    """Offline-queued payment awaiting reconciliation (manual proof / unstable power)."""
+
+    class Status(models.TextChoices):
+        QUEUED_REVIEW = "QUEUED_REVIEW", "Queued for review"
+        RECONCILED = "RECONCILED", "Reconciled"
+        REJECTED = "REJECTED", "Rejected"
+
+    invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.CASCADE,
+        related_name="offline_payment_intents",
+    )
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="offline_payment_intents",
+    )
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PaymentMethodCode.choices,
+        default=PaymentMethodCode.OTHER,
+    )
+    transaction_reference = models.CharField(max_length=100, blank=True)
+    notes = models.TextField(blank=True)
+    client_offline_id = models.CharField(max_length=64, blank=True, db_index=True)
+    source_sync_queue_id = models.PositiveIntegerField(null=True, blank=True)
+    status = models.CharField(
+        max_length=24,
+        choices=Status.choices,
+        default=Status.QUEUED_REVIEW,
+    )
+    reconciled_payment = models.ForeignKey(
+        Payment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="offline_intents",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["invoice", "status"]),
+            models.Index(fields=["client_offline_id"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"OfflinePaymentIntent {self.pk} ({self.status})"

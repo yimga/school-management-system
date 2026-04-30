@@ -56,6 +56,12 @@ from .views_support import (
     support_request,
     support_ticket_detail,
 )
+from .views_offline_sync import (
+    api_offline_enqueue,
+    api_offline_process,
+    offline_sync_conflicts,
+    offline_sync_queue,
+)
 from .views_contact_requests import (
     parent_contact_school,
     staff_contact_request_list,
@@ -155,6 +161,10 @@ urlpatterns = [
         name="support_ticket_detail",
     ),
     path("support/", support_request, name="support_request"),
+    path("offline/sync-queue/", offline_sync_queue, name="offline_sync_queue"),
+    path("offline/conflicts/", offline_sync_conflicts, name="offline_sync_conflicts"),
+    path("api/offline/enqueue/", api_offline_enqueue, name="api_offline_enqueue"),
+    path("api/offline/process/", api_offline_process, name="api_offline_process"),
     # Backwards compatibility: older templates and tests expect 'parent_performance'
     path("parent/performance/", parent_child_results, name="parent_performance"),
     path("features/<str:feature>/", portal_feature_page, name="portal_feature"),

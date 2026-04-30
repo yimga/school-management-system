@@ -10,6 +10,8 @@ UAE MoE+IB, UK GCSE/A-Level). Applying a pack creates a PolicyBundle for the sch
 and sets TenantBlueprint.active_bundle.
 """
 
+from decimal import Decimal
+
 from django.db import models
 from django.conf import settings
 
@@ -191,6 +193,17 @@ class BlueprintPack(models.Model):
     )
     version = models.CharField(max_length=32, default="1.0")
     deprecated_replacement_reference = models.CharField(max_length=80, blank=True)
+    list_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Commercial list price for premium blueprint packs (billing integration).",
+    )
+    is_premium_commercial = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="When True, apply/upgrade may require commercial entitlement.",
+    )
     is_active = models.BooleanField(default=True, db_index=True)
     country_code = models.CharField(max_length=10, blank=True, db_index=True)
     metadata = models.JSONField(default=dict, blank=True)

@@ -1,9 +1,16 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 
 {% block title %}Attendance{% endblock %}
 
 {% block content %}
   {% include "widgets/dashboard_hero.html" with hero=hero %}
+  <div data-page-header="1" class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 d-print-none">
+    <h1 class="visually-hidden">{% trans "Teacher attendance" %}</h1>
+    <nav class="ds-action-bar ms-auto d-flex flex-wrap gap-2" role="toolbar" aria-label="{% trans 'Exports' %}">
+      <a class="btn btn-sm btn-outline-primary ds-btn" href="{{ export_url }}">{% trans "Export CSV" %}</a>
+    </nav>
+  </div>
 
   <div class="row g-3 mb-3">
     <div class="col-md-4">
@@ -22,13 +29,10 @@
     <div class="col-md-8">
       <div class="card h-100">
         <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="mb-0">History</h5>
-            <a class="btn btn-sm btn-outline-primary" href="{{ export_url }}">Export CSV</a>
-          </div>
+          <h5 class="mb-2">History</h5>
           {% if logs %}
             <div class="table-responsive">
-              <table class="table align-middle mb-0 table-mobile-cards" id="history">
+              <table class="table table-family align-middle mb-0 table-mobile-cards" id="history">
                 <thead class="table-light">
                   <tr>
                     <th>Date</th>

@@ -13,6 +13,7 @@ from typing import Any, List, Optional
 
 from django.conf import settings
 from django.core.mail import send_mail as django_send_mail
+from django.db import DatabaseError
 
 from .circuit_breaker import (
     is_open as circuit_is_open,
@@ -46,7 +47,7 @@ def _resolve_site_settings(school: Any = None, site_settings: Any = None):
         return site_settings
     if school is not None:
         try:
-            from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+            from apps.siteconfig.config_service import get_effective_site_settings
 
             return get_effective_site_settings(school=school)
         except _NOTIFICATION_SETTINGS_RESOLVE_ERRORS:
@@ -99,6 +100,25 @@ def send_email(
         return False
 
 
+def _bump_sms_usage_meter(school: Any, body: str) -> None:
+    """Roll SMS into billing UsageMeter (segments — coarse GSM-7 estimate)."""
+    if school is None:
+        return
+    try:
+        from apps.marketplace.monetization import USAGE_METRIC_SMS, record_usage_meter_increment
+
+        text = body or ""
+        segments = max(1, (len(text) + 159) // 160)
+        record_usage_meter_increment(
+            school=school,
+            metric_code=USAGE_METRIC_SMS,
+            quantity=segments,
+            metadata={"source": "notification_service.send_sms"},
+        )
+    except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
+        logger.debug("SMS usage meter rollup skipped", exc_info=True)
+
+
 def send_sms(
     to_phone: str,
     body: str,
@@ -135,6 +155,7 @@ def send_sms(
         result = provider.send(to_phone, body, idempotency_key=idempotency_key)
         if result.ok:
             circuit_record_success(school_id, "sms")
+            _bump_sms_usage_meter(school, body)
             return True
         circuit_record_failure(school_id, "sms")
         if fallback_email and body:
@@ -156,6 +177,7 @@ def send_sms(
             site_settings=site,
         )
         return True
+    _bump_sms_usage_meter(school, body)
     return True  # console mode counts as "sent" for dev
 
 

@@ -1,40 +1,34 @@
 {% extends "base.html" %}
-{% load static %}
+{% load i18n %}
 
-{% block title %}Access denied{% endblock %}
+{% block title %}{% trans "Access needs approval" %}{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<section class="container py-5" aria-labelledby="error-title">
   <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-      <div class="card shadow-sm border-0">
-        <div class="card-body text-center py-5">
-          <div class="mb-4">
-            <i class="bi bi-shield-lock text-warning" style="font-size: 4rem;"></i>
+    <div class="col-lg-7 col-xl-6">
+      <div class="border rounded-3 bg-white shadow-sm p-4 p-md-5">
+        <p class="text-uppercase text-muted small fw-semibold mb-2">403</p>
+        <h1 id="error-title" class="h3 mb-3">{% trans "Access needs approval" %}</h1>
+        {% if is_admin_forbidden %}
+          <p class="text-muted mb-4">{% trans "This control-plane area is limited to superusers. Your daily workspace is still available." %}</p>
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-primary" href="{% url 'accounts:backend_dashboard' %}">{% trans "Open backend dashboard" %}</a>
+            <a class="btn btn-outline-secondary" href="{% url 'accounts:security_trust_hub' %}">{% trans "Review access status" %}</a>
           </div>
-          <h1 class="h4 mb-2">Access denied</h1>
-          {% if is_admin_forbidden %}
-          <p class="text-muted mb-4">
-            This area is restricted to superusers. Use the Backend Dashboard for your daily operations.
-          </p>
-          <a class="btn btn-primary" href="{% url 'accounts:backend_dashboard' %}">
-            <i class="bi bi-box-arrow-in-right me-2"></i>Go to Backend Dashboard
-          </a>
-          {% else %}
-          <p class="text-muted mb-4">You don't have permission to access this page. If you think you should, ask an admin to check your access.</p>
-          {% if PUBLIC_BRAND_MODE %}
-          <a class="btn btn-primary" href="{% url 'accounts:login' %}">
-            <i class="bi bi-box-arrow-in-right me-2"></i>Return to login
-          </a>
-          {% else %}
-          <a class="btn btn-primary" href="{% url 'accounts:redirect' %}">
-            <i class="bi bi-house me-2"></i>Go to Dashboard
-          </a>
-          {% endif %}
-          {% endif %}
-        </div>
+        {% else %}
+          <p class="text-muted mb-4">{% trans "Your account is signed in, but this page requires a permission your role does not currently have." %}</p>
+          <div class="d-flex flex-wrap gap-2">
+            {% if PUBLIC_BRAND_MODE %}
+              <a class="btn btn-primary" href="{% url 'accounts:login' %}">{% trans "Return to sign in" %}</a>
+            {% else %}
+              <a class="btn btn-primary" href="{% url 'accounts:redirect' %}">{% trans "Go to dashboard" %}</a>
+              <a class="btn btn-outline-secondary" href="{% url 'accounts:request_waiver' %}">{% trans "Request access" %}</a>
+            {% endif %}
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>
-</div>
+</section>
 {% endblock %}

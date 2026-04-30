@@ -1,0 +1,49 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n %}
+{% block title %}Developer console – RunMyCampus{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="RunMyCampus developer console: apps, versions, API keys, webhooks, logs.">
+{% endblock %}
+{% block content %}
+<div class="developer-hub">
+  <header class="detail-hero" style="margin-bottom: 1.5rem;">
+    <p class="detail-eyebrow">Developers</p>
+    <h1 class="detail-headline">{{ headline }}</h1>
+    <p class="detail-subheadline">{{ subheadline }}</p>
+  </header>
+
+  <section class="section-shell" style="margin-bottom: 1rem;">
+    <h2 class="section-heading">{% trans "App registration & OAuth" %}</h2>
+    <ul style="margin: 0.5rem 0; padding-left: 1.25rem;">
+      <li><a href="{{ links.oauth_authorize }}"><code>GET …/api/v1/oauth/authorize/</code></a> — {% trans "authorization code (after user login on tenant)" %}</li>
+      <li><code>POST {{ links.oauth_token }}</code> — {% trans "token exchange (client_credentials, refresh_token, authorization_code)" %}</li>
+      <li>{% trans "Link OAuth clients to catalog apps in platform admin (Developer application → marketplace app)." %}</li>
+    </ul>
+  </section>
+
+  <section class="section-shell" style="margin-bottom: 1rem;">
+    <h2 class="section-heading">{% trans "API keys & runtime scopes" %}</h2>
+    <ul style="margin: 0.5rem 0; padding-left: 1.25rem;">
+      <li><a href="{{ links.api_center }}">{% trans "API Center" %}</a> — {% trans "create tenant API keys; bind a key to a marketplace installation for merged scopes." %}</li>
+      <li><a href="{{ links.integration_context }}"><code>GET /api/v1/platform/integration-context/</code></a> — {% trans "introspect app auth + effective scopes (Bearer sk_live_…)." %}</li>
+      <li><a href="{{ links.scoped_ping }}"><code>GET /api/v1/platform/scoped-ping/</code></a> — {% trans "sample enforcement (requires ping:read)." %}</li>
+    </ul>
+  </section>
+
+  <section class="section-shell" style="margin-bottom: 1rem;">
+    <h2 class="section-heading">{% trans "Webhooks & logs" %}</h2>
+    <ul style="margin: 0.5rem 0; padding-left: 1.25rem;">
+      <li>{% trans "Declare webhook_subscriptions and install/uninstall hooks on the MarketplaceApp record or manifest; deliveries follow tenant webhook infrastructure." %}</li>
+      <li>{% trans "Lifecycle and webhook simulations write to marketplace App audit log (action prefixes marketplace.*)." %}</li>
+    </ul>
+  </section>
+
+  <section class="section-shell">
+    <h2 class="section-heading">{% trans "Docs & SDK" %}</h2>
+    <ul style="margin: 0.5rem 0; padding-left: 1.25rem;">
+      <li><a href="{{ links.public_api_docs }}">{% trans "Public API summary" %}</a></li>
+      <li><a href="{{ links.hub }}">{% trans "Developer hub" %}</a></li>
+    </ul>
+  </section>
+</div>
+{% endblock %}

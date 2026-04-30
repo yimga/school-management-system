@@ -17643,3 +17643,996 @@ msgstr "Stripe plan prices (platform admin)"
 
 msgid "StripePlanPrice — commercial plan/price rows"
 msgstr "StripePlanPrice — commercial plan/price rows"
+
+msgid "Frozen only"
+msgstr "Frozen only"
+
+msgid ""
+"Set Role to Super Administrator (SUPERADMIN) for full manager-host control "
+"plane and API Center."
+msgstr ""
+"Set Role to Super Administrator (SUPERADMIN) for full manager-host control "
+"plane and API Center."
+
+msgid "Users (admin)"
+msgstr "Users (admin)"
+
+msgid "Users (platform admin)"
+msgstr "Users (platform admin)"
+
+msgid "50% claim allowed"
+msgstr "50% claim allowed"
+
+msgid "AI suggestion"
+msgstr "AI suggestion"
+
+msgid "Access needs approval"
+msgstr "Access needs approval"
+
+msgid "Access/refresh token pairs for API Center OAuth clients"
+msgstr "Access/refresh token pairs for API Center OAuth clients"
+
+msgid "At a glance — status and next step"
+msgstr "At a glance — status and next step"
+
+msgid "Authorization codes issued by the developer OAuth flow"
+msgstr "Authorization codes issued by the developer OAuth flow"
+
+msgid "Auto-link each new node to previous"
+msgstr "Auto-link each new node to previous"
+
+msgid "Back to sync queue"
+msgstr "Back to sync queue"
+
+msgid "Baseline median clicks"
+msgstr "Baseline median clicks"
+
+msgid "Baseline sessions"
+msgstr "Baseline sessions"
+
+msgid ""
+"Behavioral settings live in RuntimeDefaults.payload; the slim tenant row "
+"holds media, theme/report FKs, and maintenance."
+msgstr ""
+"Behavioral settings live in RuntimeDefaults.payload; the slim tenant row "
+"holds media, theme/report FKs, and maintenance."
+
+msgid "Below threshold or no lift"
+msgstr "Below threshold or no lift"
+
+msgid "Canvas"
+msgstr "Canvas"
+
+msgid "Checking…"
+msgstr "Checking…"
+
+msgid ""
+"Choose how to resolve each item. “Keep mine” re-applies your stored payload."
+" “Use latest” accepts the server record and does not apply your offline "
+"edit. “Review manually” leaves the conflict open until you fix it on the "
+"right screen."
+msgstr ""
+"Choose how to resolve each item. “Keep mine” re-applies your stored payload."
+" “Use latest” accepts the server record and does not apply your offline "
+"edit. “Review manually” leaves the conflict open until you fix it on the "
+"right screen."
+
+msgid "Click measurement"
+msgstr "Click measurement"
+
+msgid ""
+"Complete at least {{ n }} sessions per phase per workflow with telemetry "
+"before comparing phases."
+msgstr ""
+"Complete at least {{ n }} sessions per phase per workflow with telemetry "
+"before comparing phases."
+
+msgid "Condition"
+msgstr "Condition"
+
+msgid "Conditions"
+msgstr "Conditions"
+
+msgid "Config slices"
+msgstr "Config slices"
+
+msgid "Connect mode: off"
+msgstr "Connect mode: off"
+
+msgid "Connect mode: on"
+msgstr "Connect mode: on"
+
+msgid "Contact support"
+msgstr "Contact support"
+
+msgid "Create record"
+msgstr "Create record"
+
+msgid "Current median clicks"
+msgstr "Current median clicks"
+
+msgid "Current sessions"
+msgstr "Current sessions"
+
+msgid "Current state"
+msgstr "Current state"
+
+msgid "Developer applications (platform admin)"
+msgstr "Developer applications (platform admin)"
+
+msgid "Drag onto the canvas. Use Connect mode to branch (multiple paths)."
+msgstr "Drag onto the canvas. Use Connect mode to branch (multiple paths)."
+
+msgid "Drop palette items here."
+msgstr "Drop palette items here."
+
+msgid ""
+"Each card summarizes the current modular config slice, gaps, and a safe next"
+" action. No raw singleton editing here."
+msgstr ""
+"Each card summarizes the current modular config slice, gaps, and a safe next"
+" action. No raw singleton editing here."
+
+msgid "Existing workflows"
+msgstr "Existing workflows"
+
+msgid "Go to dashboard"
+msgstr "Go to dashboard"
+
+msgid "Go to homepage"
+msgstr "Go to homepage"
+
+msgid "Guided configuration"
+msgstr "Guided configuration"
+
+msgid "Guided configuration workflows"
+msgstr "Guided configuration workflows"
+
+msgid "Highest-impact moves right now"
+msgstr "Highest-impact moves right now"
+
+msgid ""
+"If a request fails, check your connection and use your browser refresh or "
+"try again. Use your account menu if you see a permission message."
+msgstr ""
+"If a request fails, check your connection and use your browser refresh or "
+"try again. Use your account menu if you see a permission message."
+
+msgid "Insufficient data"
+msgstr "Insufficient data"
+
+msgid ""
+"Items you captured while offline are applied here when you process the "
+"queue. Conflicts require an explicit choice — nothing is overwritten "
+"silently."
+msgstr ""
+"Items you captured while offline are applied here when you process the "
+"queue. Conflicts require an explicit choice — nothing is overwritten "
+"silently."
+
+msgid "Keep mine"
+msgstr "Keep mine"
+
+msgid "Load execution logs"
+msgstr "Load execution logs"
+
+msgid "Marketplace extension submissions (platform admin)"
+msgstr "Marketplace extension submissions (platform admin)"
+
+msgid "Measured status"
+msgstr "Measured status"
+
+msgid ""
+"Median clicks per completed session (task_start → task_complete). A 50% "
+"reduction claim requires sufficient samples on both baseline and current "
+"phases — never asserted without data below."
+msgstr ""
+"Median clicks per completed session (task_start → task_complete). A 50% "
+"reduction claim requires sufficient samples on both baseline and current "
+"phases — never asserted without data below."
+
+msgid "Missing setup"
+msgstr "Missing setup"
+
+msgid "My automation"
+msgstr "My automation"
+
+msgid "Next up"
+msgstr "Next up"
+
+msgid "No blocking gaps flagged for this slice."
+msgstr "No blocking gaps flagged for this slice."
+
+msgid "No conflicts to resolve."
+msgstr "No conflicts to resolve."
+
+msgid "No guided workflows available."
+msgstr "No guided workflows available."
+
+msgid "No server-side queue entries yet."
+msgstr "No server-side queue entries yet."
+
+msgid "No setup gaps detected."
+msgstr "No setup gaps detected."
+
+msgid "No tenant settings row (pk=1)."
+msgstr "No tenant settings row (pk=1)."
+
+msgid "No workflow cards available."
+msgstr "No workflow cards available."
+
+msgid "No — insufficient evidence or reduction below threshold"
+msgstr "No — insufficient evidence or reduction below threshold"
+
+msgid "None yet."
+msgstr "None yet."
+
+msgid "Notify"
+msgstr "Notify"
+
+msgid "OAuth authorization codes (platform admin)"
+msgstr "OAuth authorization codes (platform admin)"
+
+msgid "OAuth token pairs (platform admin)"
+msgstr "OAuth token pairs (platform admin)"
+
+msgid "OAuth/developer registrations on the API Center"
+msgstr "OAuth/developer registrations on the API Center"
+
+msgid "Offline sync queue"
+msgstr "Offline sync queue"
+
+msgid "Open backend dashboard"
+msgstr "Open backend dashboard"
+
+msgid "Open guided configuration workflows"
+msgstr "Open guided configuration workflows"
+
+msgid "Open help center"
+msgstr "Open help center"
+
+msgid "Open the entity from your inbox and choose which version to keep."
+msgstr "Open the entity from your inbox and choose which version to keep."
+
+msgid "Overall median reduction (across tasks with medians)"
+msgstr "Overall median reduction (across tasks with medians)"
+
+msgid "Palette"
+msgstr "Palette"
+
+msgid "Portfolio verdict"
+msgstr "Portfolio verdict"
+
+msgid "Primary workspace"
+msgstr "Primary workspace"
+
+msgid "Problem"
+msgstr "Problem"
+
+msgid "Process queue now"
+msgstr "Process queue now"
+
+msgid "Publisher extension submissions for API Center review"
+msgstr "Publisher extension submissions for API Center review"
+
+msgid "Recent runs (retry failed actions)"
+msgstr "Recent runs (retry failed actions)"
+
+msgid "Recommended next step"
+msgstr "Recommended next step"
+
+msgid "Redraw edges"
+msgstr "Redraw edges"
+
+msgid "Reduction %"
+msgstr "Reduction %"
+
+msgid "Request access"
+msgstr "Request access"
+
+msgid "Resolve conflicts"
+msgstr "Resolve conflicts"
+
+msgid "Retry failed"
+msgstr "Retry failed"
+
+msgid "Retry failed actions"
+msgstr "Retry failed actions"
+
+msgid "Retry sync"
+msgstr "Retry sync"
+
+msgid "Return to sign in"
+msgstr "Return to sign in"
+
+msgid "Review access status"
+msgstr "Review access status"
+
+msgid "Review manually"
+msgstr "Review manually"
+
+msgid "Runtime hub"
+msgstr "Runtime hub"
+
+msgid "Selected trigger (domain)"
+msgstr "Selected trigger (domain)"
+
+msgid "Service interrupted"
+msgstr "Service interrupted"
+
+msgid "Setup gaps"
+msgstr "Setup gaps"
+
+msgid "Solution"
+msgstr "Solution"
+
+msgid "Sync"
+msgstr "Sync"
+
+msgid "Tenant settings row (slim, pk=1)"
+msgstr "Tenant settings row (slim, pk=1)"
+
+msgid "That page is not available"
+msgstr "That page is not available"
+
+msgid ""
+"The link may be old, scoped to a different host, or missing required "
+"context. Use a stable entry point below."
+msgstr ""
+"The link may be old, scoped to a different host, or missing required "
+"context. Use a stable entry point below."
+
+msgid ""
+"The page did not complete successfully. Your session is still safe; retry or"
+" return to a stable workspace."
+msgstr ""
+"The page did not complete successfully. Your session is still safe; retry or"
+" return to a stable workspace."
+
+msgid ""
+"This control-plane area is limited to superusers. Your daily workspace is "
+"still available."
+msgstr ""
+"This control-plane area is limited to superusers. Your daily workspace is "
+"still available."
+
+msgid "Triggers"
+msgstr "Triggers"
+
+msgid "Use latest"
+msgstr "Use latest"
+
+msgid "Validate & publish"
+msgstr "Validate & publish"
+
+msgid "Webhook"
+msgstr "Webhook"
+
+msgid "With Connect mode on, click two nodes to draw an edge (branching)."
+msgstr "With Connect mode on, click two nodes to draw an edge (branching)."
+
+msgid "Workflow JSON"
+msgstr "Workflow JSON"
+
+msgid "Workflow click measurement"
+msgstr "Workflow click measurement"
+
+msgid "Yes (measurements satisfy gates)"
+msgstr "Yes (measurements satisfy gates)"
+
+msgid ""
+"Your account is signed in, but this page requires a permission your role "
+"does not currently have."
+msgstr ""
+"Your account is signed in, but this page requires a permission your role "
+"does not currently have."
+
+msgid "local"
+msgstr "local"
+
+msgid "≥50% observed"
+msgstr "≥50% observed"
+
+msgid "1st dash"
+msgstr "1st dash"
+
+msgid "50% program verdict"
+msgstr "50% program verdict"
+
+msgid "API keys & runtime scopes"
+msgstr "API keys & runtime scopes"
+
+msgid "Access denied (compliance log)"
+msgstr "Access denied (compliance log)"
+
+msgid "Activate your school"
+msgstr "Activate your school"
+
+msgid "Activation rate (live DB)"
+msgstr "Activation rate (live DB)"
+
+msgid "Active sessions (sample)"
+msgstr "Active sessions (sample)"
+
+msgid "Annual academic report"
+msgstr "Annual academic report"
+
+msgid "Anomalies (7 days)"
+msgstr "Anomalies (7 days)"
+
+msgid "App registration & OAuth"
+msgstr "App registration & OAuth"
+
+msgid "App revenue (30d gross)"
+msgstr "App revenue (30d gross)"
+
+msgid "Approvals (workflow)"
+msgstr "Approvals (workflow)"
+
+msgid "Attendance & discipline"
+msgstr "Attendance & discipline"
+
+msgid ""
+"Build Salesforce-style automation graphs: triggers, conditions, actions, and"
+" delays. Drag nodes onto the canvas, connect edges, save, and simulate "
+"before publishing."
+msgstr ""
+"Build Salesforce-style automation graphs: triggers, conditions, actions, and"
+" delays. Drag nodes onto the canvas, connect edges, save, and simulate "
+"before publishing."
+
+msgid ""
+"Build workflows visually with drag-and-drop; connect steps and conditions. "
+"Open the visual designer or manage flows from the Workflow hub."
+msgstr ""
+"Build workflows visually with drag-and-drop; connect steps and conditions. "
+"Open the visual designer or manage flows from the Workflow hub."
+
+msgid "Catalog priced apps %"
+msgstr "Catalog priced apps %"
+
+msgid ""
+"Choose your region and school type. We pre-select a reasonable plan and look"
+" in the next step—change anything you like."
+msgstr ""
+"Choose your region and school type. We pre-select a reasonable plan and look"
+" in the next step—change anything you like."
+
+msgid "Churn — marketplace subs"
+msgstr "Churn — marketplace subs"
+
+msgid "Churn — platform subs"
+msgstr "Churn — platform subs"
+
+msgid "Classic JSON automation builder and templates."
+msgstr "Classic JSON automation builder and templates."
+
+msgid "Click"
+msgstr "Click"
+
+msgid "Click system (definitions)"
+msgstr "Click system (definitions)"
+
+msgid ""
+"Closed-loop events + billing truth. Staff only. Low traffic periods show "
+"“insufficient volume” — never read as product failure."
+msgstr ""
+"Closed-loop events + billing truth. Staff only. Low traffic periods show "
+"“insufficient volume” — never read as product failure."
+
+msgid "Compiled DSL preview"
+msgstr "Compiled DSL preview"
+
+msgid ""
+"Complete a quick action for <strong>{{ name }}</strong> so your workspace is"
+" real—not empty."
+msgstr ""
+"Complete a quick action for <strong>{{ name }}</strong> so your workspace is"
+" real—not empty."
+
+msgid "Compliance audit log (admin)"
+msgstr "Compliance audit log (admin)"
+
+msgid ""
+"Confirm your plan and how your school will look. One screen, fewer "
+"decisions."
+msgstr ""
+"Confirm your plan and how your school will look. One screen, fewer "
+"decisions."
+
+msgid "Connect: click two nodes in order to draw an edge (MVP)."
+msgstr "Connect: click two nodes in order to draw an edge (MVP)."
+
+msgid "Conversion (visit→subscription started, 30d)"
+msgstr "Conversion (visit→subscription started, 30d)"
+
+msgid "Create a full school on RunMyCampus to go live with this workflow."
+msgstr "Create a full school on RunMyCampus to go live with this workflow."
+
+msgid "Create your school"
+msgstr "Create your school"
+
+msgid "Data trust"
+msgstr "Data trust"
+
+msgid ""
+"Declare webhook_subscriptions and install/uninstall hooks on the "
+"MarketplaceApp record or manifest; deliveries follow tenant webhook "
+"infrastructure."
+msgstr ""
+"Declare webhook_subscriptions and install/uninstall hooks on the "
+"MarketplaceApp record or manifest; deliveries follow tenant webhook "
+"infrastructure."
+
+msgid "Demo"
+msgstr "Demo"
+
+msgid "Demo complete"
+msgstr "Demo complete"
+
+msgid "Demo tour — try these next"
+msgstr "Demo tour — try these next"
+
+msgid "Demo — Enter marks"
+msgstr "Demo — Enter marks"
+
+msgid "Demo — Generate report"
+msgstr "Demo — Generate report"
+
+msgid "Demo — Take attendance"
+msgstr "Demo — Take attendance"
+
+msgid "Developer hub"
+msgstr "Developer hub"
+
+msgid "Do one thing to get value"
+msgstr "Do one thing to get value"
+
+msgid "Do your next action"
+msgstr "Do your next action"
+
+msgid "Docs & SDK"
+msgstr "Docs & SDK"
+
+msgid "Drag onto the canvas."
+msgstr "Drag onto the canvas."
+
+msgid "Drop-offs (forward rate, 30d)"
+msgstr "Drop-offs (forward rate, 30d)"
+
+msgid "Edit workflow id (optional)"
+msgstr "Edit workflow id (optional)"
+
+msgid "Exploring the demo?"
+msgstr "Exploring the demo?"
+
+msgid "Export history (compliance log)"
+msgstr "Export history (compliance log)"
+
+msgid "Export pack (JSON)"
+msgstr "Export pack (JSON)"
+
+msgid "Exports"
+msgstr "Exports"
+
+msgid "Finish this step to unlock your outcome moment."
+msgstr "Finish this step to unlock your outcome moment."
+
+msgid "First dashboard views (30d)"
+msgstr "First dashboard views (30d)"
+
+msgid "Flag"
+msgstr "Flag"
+
+msgid "Forward %"
+msgstr "Forward %"
+
+msgid "Gap (verified → subscription events)"
+msgstr "Gap (verified → subscription events)"
+
+msgid "Generate a report"
+msgstr "Generate a report"
+
+msgid "Generate report"
+msgstr "Generate report"
+
+msgid "Generated JSON scan: CSRF, auth hints, raw SQL, exports."
+msgstr "Generated JSON scan: CSRF, auth hints, raw SQL, exports."
+
+msgid "Get oriented"
+msgstr "Get oriented"
+
+msgid "Go to marks"
+msgstr "Go to marks"
+
+msgid "Grades & results"
+msgstr "Grades & results"
+
+msgid "Growth analytics"
+msgstr "Growth analytics"
+
+msgid "Growth readiness"
+msgstr "Growth readiness"
+
+msgid "Guided tip"
+msgstr "Guided tip"
+
+msgid "Guides and answers when you are stuck."
+msgstr "Guides and answers when you are stuck."
+
+msgid "HTTP mutation audit for /super/ is ON (ENTERPRISE_SUPER_HTTP_AUDIT)."
+msgstr "HTTP mutation audit for /super/ is ON (ENTERPRISE_SUPER_HTTP_AUDIT)."
+
+msgid "Help center"
+msgstr "Help center"
+
+msgid "I took attendance"
+msgstr "I took attendance"
+
+msgid "INSUFFICIENT DATA"
+msgstr "INSUFFICIENT DATA"
+
+msgid "Impossible travel"
+msgstr "Impossible travel"
+
+msgid ""
+"Insufficient visit volume in the last 30 days for stable conversion "
+"benchmarks."
+msgstr ""
+"Insufficient visit volume in the last 30 days for stable conversion "
+"benchmarks."
+
+msgid ""
+"Lifecycle and webhook simulations write to marketplace App audit log (action"
+" prefixes marketplace.*)."
+msgstr ""
+"Lifecycle and webhook simulations write to marketplace App audit log (action"
+" prefixes marketplace.*)."
+
+msgid ""
+"Link OAuth clients to catalog apps in platform admin (Developer application "
+"→ marketplace app)."
+msgstr ""
+"Link OAuth clients to catalog apps in platform admin (Developer application "
+"→ marketplace app)."
+
+msgid "Link a child"
+msgstr "Link a child"
+
+msgid ""
+"Live signals: security events, compliance export/permission trail, active "
+"sessions. Static governance scan:"
+msgstr ""
+"Live signals: security events, compliance export/permission trail, active "
+"sessions. Static governance scan:"
+
+msgid "MRR (combined est.)"
+msgstr "MRR (combined est.)"
+
+msgid ""
+"MRR combines core TenantSubscription rows with tenant marketplace app adds "
+"(monthly-equivalent). Fees are summed PlatformMarketplaceEarning rows "
+"(platform cut). Usage rolls up UsageMeter quantities."
+msgstr ""
+"MRR combines core TenantSubscription rows with tenant marketplace app adds "
+"(monthly-equivalent). Fees are summed PlatformMarketplaceEarning rows "
+"(platform cut). Usage rolls up UsageMeter quantities."
+
+msgid "MRR — marketplace apps"
+msgstr "MRR — marketplace apps"
+
+msgid "MRR — platform core"
+msgstr "MRR — platform core"
+
+msgid "Marketplace & monetization"
+msgstr "Marketplace & monetization"
+
+msgid "Marketplace monetization"
+msgstr "Marketplace monetization"
+
+msgid "Marks saved (demo)"
+msgstr "Marks saved (demo)"
+
+msgid "Median after (current phase)"
+msgstr "Median after (current phase)"
+
+msgid "Median before (baseline phase)"
+msgstr "Median before (baseline phase)"
+
+msgid "Median time to value (min)"
+msgstr "Median time to value (min)"
+
+msgid "My marks"
+msgstr "My marks"
+
+msgid "New if empty"
+msgstr "New if empty"
+
+msgid "Next: Plan & look"
+msgstr "Next: Plan & look"
+
+msgid "No rows yet."
+msgstr "No rows yet."
+
+msgid "No sessions."
+msgstr "No sessions."
+
+msgid "None in window."
+msgstr "None in window."
+
+msgid "Offline sync"
+msgstr "Offline sync"
+
+msgid "Only one trigger recommended."
+msgstr "Only one trigger recommended."
+
+msgid "Open Conflicts and choose keep mine, use latest, or review manually."
+msgstr "Open Conflicts and choose keep mine, use latest, or review manually."
+
+msgid "Open operator dashboard"
+msgstr "Open operator dashboard"
+
+msgid "Open visual workflow designer"
+msgstr "Open visual workflow designer"
+
+msgid "Open your main school workspace."
+msgstr "Open your main school workspace."
+
+msgid ""
+"Opens self-service signup on the marketing site (prefills school name from "
+"this demo)."
+msgstr ""
+"Opens self-service signup on the marketing site (prefills school name from "
+"this demo)."
+
+msgid "Operations home"
+msgstr "Operations home"
+
+msgid ""
+"Optional: fetch site name and colors from your public site (separate "
+"request)."
+msgstr ""
+"Optional: fetch site name and colors from your public site (separate "
+"request)."
+
+msgid ""
+"Optional: set ENTERPRISE_SUPER_HTTP_AUDIT=1 to log mutating /super/ requests"
+" to the compliance audit log."
+msgstr ""
+"Optional: set ENTERPRISE_SUPER_HTTP_AUDIT=1 to log mutating /super/ requests"
+" to the compliance audit log."
+
+msgid "Overall median reduction (median-of-medians across tasks)"
+msgstr "Overall median reduction (median-of-medians across tasks)"
+
+msgid "Paying schools (active subscription with billed amount, billing app)"
+msgstr "Paying schools (active subscription with billed amount, billing app)"
+
+msgid "Permission changes (compliance log)"
+msgstr "Permission changes (compliance log)"
+
+msgid ""
+"Pick the region that matches where you operate—billing and calendar defaults"
+" follow your country."
+msgstr ""
+"Pick the region that matches where you operate—billing and calendar defaults"
+" follow your country."
+
+msgid "Platform fees (30d)"
+msgstr "Platform fees (30d)"
+
+msgid "Primary actions"
+msgstr "Primary actions"
+
+msgid "Print or save as PDF"
+msgstr "Print or save as PDF"
+
+msgid "Public API summary"
+msgstr "Public API summary"
+
+msgid "Queue"
+msgstr "Queue"
+
+msgid "Queued items (local + server)"
+msgstr "Queued items (local + server)"
+
+msgid ""
+"Record a quick attendance moment for <strong>{{ name }}</strong> to move "
+"forward. This is a guided demo path only."
+msgstr ""
+"Record a quick attendance moment for <strong>{{ name }}</strong> to move "
+"forward. This is a guided demo path only."
+
+msgid ""
+"Regional compliance CSV downloads include X-Export-Content-SHA256 and "
+"X-Export-Signature (HMAC-SHA256) for offline verification."
+msgstr ""
+"Regional compliance CSV downloads include X-Export-Content-SHA256 and "
+"X-Export-Signature (HMAC-SHA256) for offline verification."
+
+msgid "Report actions"
+msgstr "Report actions"
+
+msgid "Report generated (demo)"
+msgstr "Report generated (demo)"
+
+msgid "Return to demo tenant"
+msgstr "Return to demo tenant"
+
+msgid "Review records and submit justifications when needed."
+msgstr "Review records and submit justifications when needed."
+
+msgid ""
+"Review your choices, then create your account. After signup, we will point "
+"you to your first high-value action (attendance, marks, or a report)."
+msgstr ""
+"Review your choices, then create your account. After signup, we will point "
+"you to your first high-value action (attendance, marks, or a report)."
+
+msgid "Save a grade for this demo so the flow can continue."
+msgstr "Save a grade for this demo so the flow can continue."
+
+msgid "Save first or enter workflow id."
+msgstr "Save first or enter workflow id."
+
+msgid "Save graph"
+msgstr "Save graph"
+
+msgid ""
+"Saving attendance, marks, a report, or a payment records your first value "
+"and unlocks the full workspace (enforced by the platform when conversion "
+"lock is on)."
+msgstr ""
+"Saving attendance, marks, a report, or a payment records your first value "
+"and unlocks the full workspace (enforced by the platform when conversion "
+"lock is on)."
+
+msgid "Screen"
+msgstr "Screen"
+
+msgid "Security & audit"
+msgstr "Security & audit"
+
+msgid "Security & enterprise audit"
+msgstr "Security & enterprise audit"
+
+msgid "Security audit log (admin)"
+msgstr "Security audit log (admin)"
+
+msgid "Security events (recent)"
+msgstr "Security events (recent)"
+
+msgid "Security surface (static)"
+msgstr "Security surface (static)"
+
+msgid "Session"
+msgstr "Session"
+
+msgid "Session ref"
+msgstr "Session ref"
+
+msgid "Session visibility"
+msgstr "Session visibility"
+
+msgid "Stage counts (last 30 days)"
+msgstr "Stage counts (last 30 days)"
+
+msgid "Step 1 of 4"
+msgstr "Step 1 of 4"
+
+msgid "Step 2 of 4"
+msgstr "Step 2 of 4"
+
+msgid "Step 3 of 4"
+msgstr "Step 3 of 4"
+
+msgid "Step 4 of 4"
+msgstr "Step 4 of 4"
+
+msgid "Sub"
+msgstr "Sub"
+
+msgid "Suspicious / flagged (7 days)"
+msgstr "Suspicious / flagged (7 days)"
+
+msgid "Take attendance"
+msgstr "Take attendance"
+
+msgid "Term report"
+msgstr "Term report"
+
+msgid "To"
+msgstr "To"
+
+msgid "Trigger event"
+msgstr "Trigger event"
+
+msgid "Usage meter units (30d)"
+msgstr "Usage meter units (30d)"
+
+msgid "Verified signups (30d events)"
+msgstr "Verified signups (30d events)"
+
+msgid ""
+"We aligned starter plan and theme with your region; adjust if needed. "
+"Starting a trial keeps risk low while your team explores RunMyCampus."
+msgstr ""
+"We aligned starter plan and theme with your region; adjust if needed. "
+"Starting a trial keeps risk low while your team explores RunMyCampus."
+
+msgid "Webhooks & logs"
+msgstr "Webhooks & logs"
+
+msgid "Why users may not be paying (factual)"
+msgstr "Why users may not be paying (factual)"
+
+msgid "Workflow name"
+msgstr "Workflow name"
+
+msgid ""
+"You opened signup from the demo. Fields below may be prefilled; submit when "
+"ready."
+msgstr ""
+"You opened signup from the demo. Fields below may be prefilled; submit when "
+"ready."
+
+msgid "You reached the wow moment"
+msgstr "You reached the wow moment"
+
+msgid ""
+"You've chosen your region, plan, and look. Create your account to activate "
+"your school—we'll steer you to one fast win on the dashboard."
+msgstr ""
+"You've chosen your region, plan, and look. Create your account to activate "
+"your school—we'll steer you to one fast win on the dashboard."
+
+msgid ""
+"Your dashboard will highlight one quick win—take attendance, enter marks, or"
+" generate a report—so you see value in your first session."
+msgstr ""
+"Your dashboard will highlight one quick win—take attendance, enter marks, or"
+" generate a report—so you see value in your first session."
+
+msgid "authorization code (after user login on tenant)"
+msgstr "authorization code (after user login on tenant)"
+
+msgid ""
+"create tenant API keys; bind a key to a marketplace installation for merged "
+"scopes."
+msgstr ""
+"create tenant API keys; bind a key to a marketplace installation for merged "
+"scopes."
+
+msgid "introspect app auth + effective scopes (Bearer sk_live_…)."
+msgstr "introspect app auth + effective scopes (Bearer sk_live_…)."
+
+msgid "non-expired Django sessions (sample below)."
+msgstr "non-expired Django sessions (sample below)."
+
+msgid "sample enforcement (requires ping:read)."
+msgstr "sample enforcement (requires ping:read)."
+
+msgid "subscription funnel events"
+msgstr "subscription funnel events"
+
+msgid "suspicious security events"
+msgstr "suspicious security events"
+
+msgid "token exchange (client_credentials, refresh_token, authorization_code)"
+msgstr ""
+"token exchange (client_credentials, refresh_token, authorization_code)"
+
+msgid "Detailed logs and sessions (tables)"
+msgstr "Detailed logs and sessions (tables)"
+
+msgid "App permission scopes (platform admin)"
+msgstr "App permission scopes (platform admin)"
+
+msgid "AppPermissionScope — OAuth/catalog permission strings"
+msgstr "AppPermissionScope — OAuth/catalog permission strings"
+
+msgid "AuditLog — enterprise audit trail rows"
+msgstr "AuditLog — enterprise audit trail rows"
+
+msgid "Compliance audit log (platform admin)"
+msgstr "Compliance audit log (platform admin)"

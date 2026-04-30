@@ -1,0 +1,15 @@
+{
+  "name": "@runmycampus/sdk-client",
+  "version": "0.1.0",
+  "description": "Minimal JavaScript client for RunMyCampus tenant APIs (ESM)",
+  "type": "module",
+  "main": "./runmycampus-client.mjs",
+  "exports": {
+    ".": "./runmycampus-client.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

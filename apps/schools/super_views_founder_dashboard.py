@@ -14,6 +14,7 @@ from django.db.models import Count
 from django.shortcuts import render
 from django.urls import reverse
 
+from apps.marketplace.monetization import get_founder_marketplace_snapshot
 from apps.observability.models import PlatformIncident
 from apps.platform_runtime.business_value import get_business_value_snapshot
 from apps.platform_runtime.models import AIActionAuditLog, PlatformEventLog
@@ -173,6 +174,12 @@ def super_founder_dashboard(request):
     except Exception:
         pass
 
+    marketplace_metrics = {}
+    try:
+        marketplace_metrics = get_founder_marketplace_snapshot(days=30)
+    except Exception:
+        marketplace_metrics = {}
+
     return render(
         request,
         "super/founder_dashboard.html",
@@ -201,5 +208,6 @@ def super_founder_dashboard(request):
             "dashboard_url": reverse("super:dashboard"),
             "generated_audit_hint": gen / "northstar_audit.json",
             "founder_sales": founder_sales,
+            "marketplace_metrics": marketplace_metrics,
         },
     )

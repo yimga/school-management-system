@@ -1,6 +1,8 @@
 """
 Emit domain events into the outbox. Call from service layer only (no model signals chaos).
 Consumer processes outbox (see tasks.py) for webhooks, notifications, automation.
+
+Prefer :func:`publish` from :mod:`apps.events.bus` for new code (same implementation).
 """
 
 from django.db import transaction
@@ -22,7 +24,7 @@ def emit_event(
     from apps.events.models import DomainEvent
 
     with transaction.atomic():
-        DomainEvent.objects.create(
+        return DomainEvent.objects.create(
             event_type=event_type,
             payload=payload,
             school_id=school_id,

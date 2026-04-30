@@ -2,7 +2,7 @@ from django.core.cache import cache
 from django.db import DatabaseError
 from django.shortcuts import render
 
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 from apps.siteconfig.cache_utils import tenant_cache_key
 
 CACHE_KEY = "site_settings_v1"

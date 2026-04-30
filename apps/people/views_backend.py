@@ -138,7 +138,7 @@ def backend_student_create(request):
                                 from apps.platform_runtime.helpers import (
                                     get_site_display_name,
                                 )
-                                from apps.platform_runtime.site_settings_read_access import (
+                                from apps.siteconfig.config_service import (
                                     get_effective_flags,
                                     get_effective_site_settings,
                                 )

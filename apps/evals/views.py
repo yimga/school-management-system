@@ -64,6 +64,7 @@ from .approval import (
     grade_entries_from_submission,
     grade_approver_roles,
     grade_post_roles,
+    try_emit_grade_published_event,
     user_can_finalize_submission,
     FINAL_STATUSES,
 )
@@ -79,7 +80,7 @@ from apps.portal.models import PortalFeatureItem
 from .services import ews_students_needing_attention
 from apps.communication.models import MessageThread
 from apps.communication.views_announcements import _can_create_department_announcement
-from apps.platform_runtime.site_settings_read_access import (
+from apps.siteconfig.config_service import (
     get_effective_flags,
     get_effective_site_settings,
 )
@@ -658,7 +659,7 @@ def teacher_dashboard(request: HttpRequest):
 
     from apps.accounts.utils import get_dashboard_context
 
-    dashboard_context = get_dashboard_context(request.user, "teacher")
+    dashboard_context = get_dashboard_context(request.user, "teacher", request=request)
     available_sidebar_items = [
         {
             "id": "teacher-home",
@@ -2709,6 +2710,7 @@ def grade_approval_detail(request: HttpRequest, request_id):
                 NotificationService().send_grade_approval_decision_email(
                     approval, new_status
                 )
+                try_emit_grade_published_event(approval)
                 messages.success(
                     request, "Approval bypass recorded and decision finalized."
                 )
@@ -2730,6 +2732,7 @@ def grade_approval_detail(request: HttpRequest, request_id):
                     NotificationService().send_grade_approval_decision_email(
                         approval, new_status
                     )
+                    try_emit_grade_published_event(approval)
                     messages.success(request, "Grade approval decision saved.")
                     return redirect("evals:grade_approval_list")
 

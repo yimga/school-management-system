@@ -1,6 +1,6 @@
 {
   "allowlist_path": "scripts/allowlists/raw_sql_allowlist.json",
-  "generated_at": "2026-04-29T05:16:22.468811+00:00",
+  "generated_at": "2026-04-30T22:31:50.393745+00:00",
   "hits": [
     {
       "classification": "migration_safe",
@@ -162,6 +162,12 @@
       "classification": "migration_safe",
       "file": "apps/evals/migrations/0003_alter_assessmentweights_unique_together_and_more.py",
       "line": "53",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/evals/migrations/0003_alter_assessmentweights_unique_together_and_more.py",
+      "line": "65",
       "pattern": "connection_cursor"
     },
     {
@@ -845,6 +851,6 @@
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 140
+    "hits": 141
   }
 }

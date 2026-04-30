@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 
 from apps.api.ministry_connectors import ministry_runtime_status
 from apps.finance.ocr_runtime import get_ocr_runtime_status
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 from apps.siteconfig.models import default_backend_feature_flags
 
 

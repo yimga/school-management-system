@@ -16,7 +16,7 @@ from apps.accounts.decorators import role_required
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, SubjectAssignment, Term
 from apps.people.models import StudentProfile, TeacherProfile
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 
 from .models import EMISExport, EMISCompliance
 from .services import EMISExportService
@@ -42,7 +42,7 @@ def emis_dashboard(request):
 
     from apps.accounts.utils import get_dashboard_context
 
-    dashboard_context = get_dashboard_context(request.user, "emis")
+    dashboard_context = get_dashboard_context(request.user, "emis", request=request)
     dashboard_settings = dashboard_context.get("dashboard_settings", {})
     allow_custom_layout = dashboard_context.get("allow_custom_layout", False)
     dashboard_layout_url = dashboard_context.get("dashboard_layout_url", "")

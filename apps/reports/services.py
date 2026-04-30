@@ -10,7 +10,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from apps.global_registries.models import EducationSystemProfile, RegionConfig
 from apps.platform_runtime.helpers import get_platform_defaults
-from apps.platform_runtime.site_settings_read_access import get_effective_site_settings
+from apps.siteconfig.config_service import get_effective_site_settings
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.policies.policy_registry import get_effective_policy
 
@@ -1034,7 +1034,7 @@ def parse_share_token(token: str) -> Optional[dict]:
 
 
 def build_share_url(request, token: str) -> str:
-    return request.build_absolute_uri(reverse("report_share", args=[token]))
+    return request.build_absolute_uri(reverse("reports:report_share", args=[token]))
 
 
 def generate_report_qr_code(share_url: str) -> str:

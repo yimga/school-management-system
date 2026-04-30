@@ -79,3 +79,13 @@ class EntityCatalogOverviewManagerRouteTests(TestCase):
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn("data-shell-surface", body)
         self.assertIn("metadata-lineage-operator-hub", body)
+        # 1060: first-class CP links (not admin fallbacks)
+        fc = reverse("siteconfig:feature_control_panel", urlconf="config.manager_urls")
+        tr = reverse(
+            "siteconfig:tenant_runtime_configuration_hub",
+            urlconf="config.manager_urls",
+        )
+        self.assertIn(fc, body)
+        self.assertIn(tr, body)
+        self.assertIn("Open feature control", body)
+        self.assertIn("Open tenant runtime", body)
