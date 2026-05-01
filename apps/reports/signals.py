@@ -51,3 +51,34 @@ def funnel_first_result_on_report_output(sender, instance, **kwargs):
         )
     except Exception as exc:
         logger.debug("funnel_first_result_on_report_output: %s", exc)
+
+
+@receiver(post_save, sender=ReportCard)
+def emit_report_generated_platform_event(sender, instance, **kwargs):
+    """Platform event bus when a PDF-backed report card row exists."""
+    if not instance.pdf_file:
+        return
+    school = instance.school
+    if school is None and getattr(instance, "student_id", None):
+        st = getattr(instance, "student", None)
+        school = getattr(st, "school", None) if st else None
+    if not school:
+        return
+    try:
+        from apps.platform_runtime.event_bus import publish_event
+
+        tid = str(school.pk)
+        publish_event(
+            "report_generated",
+            {
+                "report_card_id": instance.pk,
+                "school_id": tid,
+                "student_id": str(instance.student_id),
+                "source": "report_card_pdf",
+            },
+            tenant_id=tid,
+            school_id=school.pk,
+            idempotency_key=f"report_generated:{instance.pk}"[:128],
+        )
+    except Exception as exc:
+        logger.debug("emit_report_generated_platform_event: %s", exc)

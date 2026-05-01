@@ -10,10 +10,13 @@ tenant boundary with queued/syncing/synced/failed/conflict lifecycle.
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Optional
 
 from django.db import transaction
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 # --- Existing facade (sync_engine / mobile queue) ---------------------------------
 
@@ -159,6 +162,31 @@ _OFFLINE_SOFT_ERRORS = (
 )
 
 
+def _emit_offline_action_synced(action_row: Any, sync_metadata: Optional[dict] = None) -> None:
+    """Emit platform event when an OfflineAction reaches SYNCED (idempotent key per row)."""
+    try:
+        from apps.platform_runtime.event_bus import publish_event
+
+        sid = getattr(action_row, "school_id", None)
+        tid = str(sid) if sid is not None else ""
+        publish_event(
+            "offline_action_synced",
+            {
+                "offline_action_id": action_row.pk,
+                "action_type": str(getattr(action_row, "action_type", "") or ""),
+                "user_id": getattr(action_row, "user_id", None),
+                "school_id": tid,
+                "source": "offline_queue",
+                "sync_metadata": sync_metadata or {},
+            },
+            tenant_id=tid or None,
+            school_id=sid,
+            idempotency_key=f"offline_action_synced:{action_row.pk}",
+        )
+    except Exception:
+        logger.debug("offline_action_synced publish skipped", exc_info=True)
+
+
 def enqueue_offline_action(
     *,
     user_id: int,
@@ -202,6 +230,9 @@ def mark_synced(action_id: int, *, school_id, metadata: Optional[dict] = None) -
         last_attempt_at=timezone.now(),
         sync_metadata=(metadata or {}),
     )
+    row = OfflineAction.objects.filter(pk=action_id, school_id=school_id).first()
+    if row:
+        _emit_offline_action_synced(row, metadata or {})
 
 
 def mark_conflict(
@@ -249,6 +280,73 @@ def retry_failed_actions(
     return n
 
 
+def _apply_teacher_attendance(
+    school_id,
+    user_id: int,
+    payload: dict[str, Any],
+    *,
+    force_local: bool = False,
+) -> dict[str, Any]:
+    """Teacher roll call (distinct from student ``Attendance`` rows)."""
+    from datetime import date as date_cls
+
+    from apps.people.models import TeacherAttendance, TeacherProfile
+
+    tp_id = payload.get("teacher_profile_id") or payload.get("teacher_id")
+    raw_date = payload.get("date")
+    status_val = payload.get("status")
+    remarks = str(payload.get("remarks", "") or "")[:255]
+    if not all([tp_id, raw_date, status_val]):
+        return {"ok": False, "error": "Missing teacher attendance fields."}
+    allowed = {c[0] for c in TeacherAttendance.Status.choices}
+    if status_val not in allowed:
+        return {"ok": False, "error": "Invalid teacher attendance status."}
+    try:
+        if hasattr(raw_date, "isoformat"):
+            date_obj = raw_date
+        else:
+            date_obj = date_cls.fromisoformat(str(raw_date)[:10])
+    except (TypeError, ValueError):
+        return {"ok": False, "error": "Invalid date."}
+
+    tp = TeacherProfile.objects.filter(pk=tp_id).first()
+    if not tp:
+        return {"ok": False, "error": "Teacher profile not found."}
+    if tp.school_id and tp.school_id != school_id:
+        return {"ok": False, "error": "Tenant mismatch for teacher."}
+
+    existing = TeacherAttendance.objects.filter(
+        teacher_id=tp_id,
+        date=date_obj,
+    ).first()
+    if existing:
+        if existing.status != status_val and not force_local:
+            return {
+                "ok": False,
+                "conflict": True,
+                "reason": "Teacher attendance already recorded with a different status on the server.",
+                "details": {
+                    "server_status": existing.status,
+                    "client_status": status_val,
+                    "teacher_attendance_id": existing.id,
+                },
+            }
+        if existing.status != status_val and force_local:
+            existing.status = status_val
+            existing.remarks = remarks
+            existing.save(update_fields=["status", "remarks"])
+            return {"ok": True, "teacher_attendance_id": existing.id, "forced_local": True}
+        return {"ok": True, "teacher_attendance_id": existing.id, "dedup": True}
+
+    row = TeacherAttendance.objects.create(
+        teacher_id=tp_id,
+        date=date_obj,
+        status=status_val,
+        remarks=remarks,
+    )
+    return {"ok": True, "teacher_attendance_id": row.id}
+
+
 def _apply_attendance(
     school_id,
     user_id: int,
@@ -256,6 +354,14 @@ def _apply_attendance(
     *,
     force_local: bool = False,
 ) -> dict[str, Any]:
+    if str(payload.get("scope") or "").lower() in (
+        "teacher",
+        "teacher_attendance",
+    ):
+        return _apply_teacher_attendance(
+            school_id, user_id, payload, force_local=force_local
+        )
+
     from datetime import date as date_cls
 
     from apps.academics.models import Attendance, Classroom
@@ -443,6 +549,8 @@ def _apply_grading(school_id, user_id: int, payload: dict[str, Any]) -> dict[str
         seq1_score=payload.get("seq1_score"),
         seq2_score=payload.get("seq2_score"),
         exam_score=payload.get("exam_score"),
+        mock_score=payload.get("mock_score"),
+        practical_score=payload.get("practical_score"),
         remarks=str(payload.get("remarks", "")),
         status="pending",
         created_offline_at=timezone.now(),
@@ -536,6 +644,9 @@ def process_offline_queue(
                 sync_metadata=result,
                 last_attempt_at=timezone.now(),
             )
+            synced_row = OfflineAction.objects.filter(pk=row.pk, school_id=school_id).first()
+            if synced_row:
+                _emit_offline_action_synced(synced_row, result)
             synced += 1
         else:
             OfflineAction.objects.filter(pk=row.pk, school_id=school_id).update(
@@ -588,7 +699,14 @@ def resolve_conflict_choice(
         return {"ok": False, "error": "Not found or not in conflict."}
 
     row.resolution_choice = choice
-    row.save(update_fields=["resolution_choice", "updated_at"])
+    audit_ts = timezone.now()
+    audit_blob = {
+        "resolved_at": audit_ts.isoformat(),
+        "resolver_user_id": user_id,
+        "choice": choice,
+    }
+    row.sync_metadata = {**(row.sync_metadata or {}), "resolution_audit": audit_blob}
+    row.save(update_fields=["resolution_choice", "sync_metadata", "updated_at"])
 
     if choice == OfflineAction.Resolution.REVIEW_MANUAL:
         return {"ok": True, "status": "manual_review"}
@@ -596,7 +714,13 @@ def resolve_conflict_choice(
     if choice == OfflineAction.Resolution.USE_LATEST:
         row.status = OfflineAction.Status.SYNCED
         row.conflict_reason = "Resolved: adopted server/latest state."
-        row.save(update_fields=["status", "conflict_reason", "updated_at"])
+        row.sync_metadata = {
+            **(row.sync_metadata or {}),
+            "resolution_audit": audit_blob,
+        }
+        row.save(update_fields=["status", "conflict_reason", "sync_metadata", "updated_at"])
+        row.refresh_from_db()
+        _emit_offline_action_synced(row, {"resolution": "use_latest"})
         return {"ok": True, "status": "synced_abandon_local"}
 
     result = _apply_payload(row, force_local=True)
@@ -604,7 +728,11 @@ def resolve_conflict_choice(
         row.status = OfflineAction.Status.SYNCED
         row.conflict_reason = ""
         row.conflict_details = {}
-        row.sync_metadata = result
+        row.sync_metadata = {
+            **result,
+            **(row.sync_metadata or {}),
+            "resolution_audit": audit_blob,
+        }
         row.save(
             update_fields=[
                 "status",
@@ -614,5 +742,7 @@ def resolve_conflict_choice(
                 "updated_at",
             ]
         )
+        row.refresh_from_db()
+        _emit_offline_action_synced(row, result)
         return {"ok": True, "status": "synced_local_applied"}
     return {"ok": False, "error": result.get("error", "re-apply failed")}

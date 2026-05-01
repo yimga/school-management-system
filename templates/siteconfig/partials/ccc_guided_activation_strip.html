@@ -14,7 +14,7 @@
     {% if ccc_onboarding.next_action %}
     <div class="alert alert-primary py-2 small mb-2" role="status">
       <strong>{% trans "Next action:" %}</strong>
-      <a href="{{ ccc_onboarding.next_action.url }}">{{ ccc_onboarding.next_action.label }}</a>
+      <a href="{{ ccc_onboarding.next_action.url }}" data-action="ccc-next-step" data-task="ccc_activation" data-task-step="ccc:guided-next">{{ ccc_onboarding.next_action.label }}</a>
     </div>
     {% endif %}
     <ul class="list-unstyled small mb-0">

@@ -9,6 +9,7 @@ from typing import Any
 
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, IntegrityError, OperationalError
+from django.utils import timezone
 
 from apps.schools.models import MarketingFunnelEvent
 
@@ -24,6 +25,11 @@ _ONCE_PER_SCHOOL_TYPES = frozenset(
         "first_result",
         "subscription_started",
         "signup_completed",
+        "demo_attendance_completed",
+        "demo_marks_completed",
+        "demo_report_completed",
+        "demo_cta_seen",
+        "tenant_recovered",
     }
 )
 
@@ -178,6 +184,24 @@ def try_record_first_result_payment(school, payment) -> None:
         )
     except (IntegrityError, DatabaseError, OperationalError, ValidationError, TypeError):
         pass
+    else:
+        try:
+            from apps.platform_runtime.event_bus import publish_event
+
+            tid = str(school.pk)
+            publish_event(
+                "conversion_first_result",
+                {
+                    "school_id": tid,
+                    "source": "finance_payment",
+                    "payment_id": getattr(payment, "pk", None),
+                },
+                tenant_id=tid,
+                school_id=school.pk,
+                idempotency_key=f"conversion_first_result:{school.pk}",
+            )
+        except (AttributeError, ImportError, TypeError, ValueError):
+            pass
 
 
 def try_record_first_result_report_output(
@@ -208,6 +232,23 @@ def try_record_first_result_report_output(
         )
     except (IntegrityError, DatabaseError, OperationalError, ValidationError, TypeError):
         pass
+    else:
+        try:
+            from apps.platform_runtime.event_bus import publish_event
+
+            tid = str(school.pk)
+            cr_payload: dict[str, Any] = {"school_id": tid, "source": "report_output"}
+            if report_card_id is not None:
+                cr_payload["report_card_id"] = report_card_id
+            publish_event(
+                "conversion_first_result",
+                cr_payload,
+                tenant_id=tid,
+                school_id=school.pk,
+                idempotency_key=f"conversion_first_result:{school.pk}",
+            )
+        except (AttributeError, ImportError, TypeError, ValueError):
+            pass
 
 
 def record_payment_outcome_signal(
@@ -248,3 +289,22 @@ def record_payment_outcome_signal(
         )
     except (IntegrityError, DatabaseError, OperationalError, ValidationError, TypeError):
         pass
+    else:
+        try:
+            from apps.platform_runtime.event_bus import publish_event
+
+            tid = str(school.pk)
+            plat_key = (
+                f"{event_type}:{ref}"
+                if ref
+                else f"{event_type}:{school.pk}:{timezone.now().timestamp()}"
+            )
+            publish_event(
+                event_type,
+                dict(meta),
+                tenant_id=tid,
+                school_id=school.pk,
+                idempotency_key=str(plat_key)[:128],
+            )
+        except (AttributeError, ImportError, TypeError, ValueError):
+            pass

@@ -437,3 +437,43 @@ class StudentAtRiskSignal(models.Model):
 
     def __str__(self):
         return f"{self.school_id}:{self.student_user_id}:{self.score:.1f}"
+
+
+class GovernedSavedReport(models.Model):
+    """
+    Tenant-scoped saved governed query definitions (ORM catalog only — never raw SQL).
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="governed_saved_reports",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="governed_saved_reports",
+    )
+    name = models.CharField(max_length=200)
+    definition = models.JSONField(
+        default=dict,
+        help_text="Allowed keys: dataset_id, fields, filters, group_by, aggregate, limit.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        indexes = [
+            models.Index(
+                fields=["school", "-updated_at"],
+                name="analytics_gsr_sch_upd_idx",
+            ),
+        ]
+        verbose_name = "Governed saved report"
+        verbose_name_plural = "Governed saved reports"
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.school_id})"

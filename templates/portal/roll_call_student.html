@@ -34,6 +34,8 @@
       </form>
       {% if classroom and students_with_status %}
         <form method="post" action="{% url 'portal:take_student_attendance' %}"
+              data-rmc-offline-form="attendance"
+              data-rmc-attendance-scope="student"
               data-draft-key="student_roll_{{ classroom.id }}_{{ date_value }}"
               data-draft-max-age-hours="72"
               data-offline-hint="{% trans 'Offline: attendance is saved locally and queued; syncs when you are back online.' %}"

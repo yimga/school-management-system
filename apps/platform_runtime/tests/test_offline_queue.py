@@ -8,9 +8,19 @@ from decimal import Decimal
 from django.test import TestCase
 
 from apps.accounts.models import User
-from apps.academics.models import AcademicYear, Attendance, Classroom, Department
+from apps.academics.models import (
+    AcademicYear,
+    Attendance,
+    Classroom,
+    Department,
+    Subject,
+    Specialty,
+    SubjectAssignment,
+    Term,
+)
+from apps.evals.models import OfflineMarkEntry
 from apps.finance.models import ComplianceProfile, Invoice, OfflinePaymentIntent
-from apps.people.models import StudentProfile
+from apps.people.models import StudentProfile, TeacherAttendance, TeacherProfile
 from apps.platform_runtime.models import OfflineAction
 from apps.platform_runtime.offline_queue import (
     enqueue_offline_action,
@@ -151,6 +161,137 @@ class OfflineActionQueueTests(TestCase):
             date="2025-06-02",
         )
         self.assertEqual(att.status, Attendance.Status.PRESENT)
+        audit = action.sync_metadata.get("resolution_audit") or {}
+        self.assertEqual(audit.get("choice"), OfflineAction.Resolution.KEEP_MINE)
+        self.assertEqual(audit.get("resolver_user_id"), self.user.pk)
+
+    def test_teacher_attendance_scope_queues_teacher_rows(self):
+        tp = TeacherProfile.objects.create(user=self.user, school=self.school)
+        action = enqueue_offline_action(
+            user_id=self.user.pk,
+            school_id=self.school.pk,
+            action_type=OfflineAction.ActionType.ATTENDANCE,
+            payload={
+                "scope": "teacher",
+                "teacher_profile_id": tp.pk,
+                "date": "2025-08-15",
+                "status": TeacherAttendance.Status.PRESENT,
+            },
+            idempotency_key="tatt-offline-1",
+        )
+        self.assertEqual(action.status, OfflineAction.Status.QUEUED)
+        process_offline_queue(school_id=self.school.pk, user_id=self.user.pk)
+        ta = TeacherAttendance.objects.get(teacher_id=tp.pk, date="2025-08-15")
+        self.assertEqual(ta.status, TeacherAttendance.Status.PRESENT)
+
+    def test_notes_report_enqueue_processes(self):
+        action = enqueue_offline_action(
+            user_id=self.user.pk,
+            school_id=self.school.pk,
+            action_type=OfflineAction.ActionType.NOTES_REPORT,
+            payload={
+                "body": "Student showed improvement during lab.",
+                "title": "Weekly note",
+                "kind": "quick_capture",
+                "student_id": self.student.pk,
+            },
+            idempotency_key="note-quick-1",
+        )
+        self.assertEqual(action.status, OfflineAction.Status.QUEUED)
+        out = process_offline_queue(school_id=self.school.pk, user_id=self.user.pk)
+        self.assertEqual(out["synced"], 1)
+        action.refresh_from_db()
+        self.assertEqual(action.status, OfflineAction.Status.SYNCED)
+        self.assertTrue((action.sync_metadata or {}).get("notes_report_capture"))
+
+    def test_conflict_use_latest_records_audit(self):
+        Attendance.objects.create(
+            school_id=self.school.pk,
+            student_id=self.student.pk,
+            classroom_id=self.classroom.pk,
+            date="2025-06-09",
+            status=Attendance.Status.ABSENT,
+        )
+        action = enqueue_offline_action(
+            user_id=self.user.pk,
+            school_id=self.school.pk,
+            action_type=OfflineAction.ActionType.ATTENDANCE,
+            payload={
+                "student_id": self.student.pk,
+                "classroom_id": self.classroom.pk,
+                "date": "2025-06-09",
+                "status": Attendance.Status.PRESENT,
+            },
+        )
+        process_offline_queue(school_id=self.school.pk, user_id=self.user.pk)
+        action.refresh_from_db()
+        self.assertEqual(action.status, OfflineAction.Status.CONFLICT)
+
+        r = resolve_conflict_choice(
+            action_id=action.pk,
+            school_id=self.school.pk,
+            user_id=self.user.pk,
+            choice=OfflineAction.Resolution.USE_LATEST,
+        )
+        self.assertTrue(r.get("ok"))
+        action.refresh_from_db()
+        self.assertEqual(action.status, OfflineAction.Status.SYNCED)
+        audit = (action.sync_metadata or {}).get("resolution_audit") or {}
+        self.assertEqual(audit.get("choice"), OfflineAction.Resolution.USE_LATEST)
+        att = Attendance.objects.get(
+            student_id=self.student.pk,
+            classroom_id=self.classroom.pk,
+            date="2025-06-09",
+        )
+        self.assertEqual(att.status, Attendance.Status.ABSENT)
+
+    def test_grading_offline_creates_mark_entry(self):
+        term = Term.objects.create(
+            school=self.school,
+            academic_year=self.year,
+            name="T1",
+            position=1,
+            start_date="2025-01-01",
+            end_date="2025-06-30",
+            is_active=True,
+        )
+        spec = Specialty.objects.create(
+            school=self.school,
+            department=self.classroom.department,
+            name="General",
+            code=f"G{uuid.uuid4().hex[:8]}",
+        )
+        self.student.specialty = spec
+        self.student.save(update_fields=["specialty"])
+        sub = Subject.objects.create(school=self.school, name="Algebra")
+        sa = SubjectAssignment.objects.create(
+            school=self.school,
+            academic_year=self.year,
+            term=term,
+            classroom=self.classroom,
+            specialty=spec,
+            subject=sub,
+        )
+        TeacherProfile.objects.create(user=self.user, school=self.school)
+        enqueue_offline_action(
+            user_id=self.user.pk,
+            school_id=self.school.pk,
+            action_type=OfflineAction.ActionType.GRADING,
+            payload={
+                "subject_assignment_id": sa.pk,
+                "student_id": self.student.pk,
+                "academic_year_id": self.year.pk,
+                "term_id": term.pk,
+                "seq1_score": 14,
+            },
+        )
+        out = process_offline_queue(school_id=self.school.pk, user_id=self.user.pk)
+        self.assertEqual(out["synced"], 1)
+        self.assertTrue(
+            OfflineMarkEntry.objects.filter(
+                student_id=self.student.pk, subject_assignment_id=sa.pk
+            ).exists()
+        )
 
     def test_retry_failed(self):
         action = OfflineAction.objects.create(
@@ -186,6 +327,7 @@ class OfflineActionQueueTests(TestCase):
         )
 
     def test_offline_payment_receipt_queues_intent(self):
+        """Offline receipt payload creates OfflinePaymentIntent for staff reconciliation."""
         profile = ComplianceProfile.objects.create(
             name=f"P{uuid.uuid4().hex[:6]}",
             country_code="CM",

@@ -45,6 +45,7 @@ from apps.platform_runtime.models import (
 )
 from apps.platform_runtime.tasks import deliver_event_webhook_task
 from apps.schools.models import School
+from apps.siteconfig.models import FeatureUsageEvent
 
 
 class PlatformLoopAttendanceWorkflowWebhookTests(TestCase):
@@ -227,6 +228,13 @@ class PlatformLoopAttendanceWorkflowWebhookTests(TestCase):
         self.assertEqual(wh_out.payload.get("status"), "delivered")
         self.assertIsNotNone(wh_out.payload.get("latency_ms"))
 
+        self.assertTrue(
+            FeatureUsageEvent.objects.filter(
+                school=self.school,
+                feature_code="platform_bus:attendance_saved",
+            ).exists()
+        )
+
         wh_out_before = PlatformEventLog.objects.filter(
             event_type="platform_loop_webhook_outcome"
         ).count()
@@ -234,6 +242,14 @@ class PlatformLoopAttendanceWorkflowWebhookTests(TestCase):
         deliveries_before = EventWebhookDelivery.objects.count()
         out = event_bus.replay_event(ev.pk, dispatch_webhooks=True)
         self.assertTrue(out.get("ok"))
+
+        replay_audit = (
+            PlatformEventLog.objects.filter(event_type="platform_event_replayed")
+            .order_by("-pk")
+            .first()
+        )
+        self.assertIsNotNone(replay_audit)
+        self.assertEqual(replay_audit.payload.get("source_event_id"), str(ev.pk))
 
         self.assertEqual(
             WorkflowRunLog.objects.filter(workflow=self.workflow).count(),

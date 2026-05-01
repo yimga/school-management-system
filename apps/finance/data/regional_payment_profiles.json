@@ -1,0 +1,79 @@
+{
+  "CM": {
+    "country_code": "CM",
+    "label": "Cameroon",
+    "currency": "XAF",
+    "primary_rails": ["MTN_MOMO", "ORANGE_MOMO", "BANK"],
+    "backup_rails": ["CASH", "BANK"],
+    "manual_receipt_allowed": true,
+    "offline_receipt_allowed": true,
+    "reconciliation": "staff_matches_offline_intent_to_bank_statement",
+    "notes": "Mobile money dominant; cash backup common in low-connectivity areas."
+  },
+  "GH": {
+    "country_code": "GH",
+    "label": "Ghana",
+    "currency": "GHS",
+    "primary_rails": ["BANK", "CARD"],
+    "backup_rails": ["MTN_MOMO", "CASH"],
+    "manual_receipt_allowed": true,
+    "offline_receipt_allowed": true,
+    "reconciliation": "staff_matches_reference_on_invoice",
+    "notes": "MoMo widely used; bank transfer common for fees."
+  },
+  "NG": {
+    "country_code": "NG",
+    "label": "Nigeria",
+    "currency": "NGN",
+    "primary_rails": ["BANK", "CARD"],
+    "backup_rails": ["CASH"],
+    "manual_receipt_allowed": true,
+    "offline_receipt_allowed": true,
+    "reconciliation": "staff_matches_bank_reference_or_upload",
+    "notes": "Bank transfer + cards; USSP/mobile-wallet backups vary by tenant."
+  },
+  "KE": {
+    "country_code": "KE",
+    "label": "Kenya",
+    "currency": "KES",
+    "primary_rails": ["CARD", "BANK"],
+    "backup_rails": ["MTN_MOMO", "CASH"],
+    "manual_receipt_allowed": true,
+    "offline_receipt_allowed": true,
+    "reconciliation": "staff_matches_mpesa_or_bank_line",
+    "notes": "M-Pesa-style rails often mapped to MTN_MOMO enum where shared."
+  },
+  "US": {
+    "country_code": "US",
+    "label": "United States",
+    "currency": "USD",
+    "primary_rails": ["CARD", "BANK"],
+    "backup_rails": ["BANK", "CASH"],
+    "manual_receipt_allowed": true,
+    "offline_receipt_allowed": false,
+    "reconciliation": "stripe_or_manual_bank_match",
+    "notes": "Card-first; offline receipt capture discouraged except recorded intent for cash."
+  },
+  "GB": {
+    "country_code": "GB",
+    "label": "United Kingdom",
+    "currency": "GBP",
+    "primary_rails": ["CARD", "BANK"],
+    "backup_rails": ["BANK"],
+    "manual_receipt_allowed": true,
+    "offline_receipt_allowed": false,
+    "reconciliation": "open_banking_or_manual_reference",
+    "notes": "FPS/BACS often mapped to BANK rail."
+  },
+  "EU": {
+    "country_code": "EU",
+    "label": "European Union (SEPA)",
+    "currency": "EUR",
+    "primary_rails": ["CARD", "BANK"],
+    "backup_rails": ["BANK"],
+    "manual_receipt_allowed": true,
+    "offline_receipt_allowed": false,
+    "reconciliation": "sepa_reference_match",
+    "notes": "Generic EU profile; tenants should set exact country on ComplianceProfile when possible."
+  }
+}

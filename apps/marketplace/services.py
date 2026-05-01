@@ -573,20 +573,55 @@ def install_app(
     ):
         pass
     try:
-        from apps.platform_runtime.events import emit_platform_event
+        from apps.platform_runtime.event_bus import publish_event
 
-        emit_platform_event(
+        base_key = f"mkt-install:{school.pk}:{app.pk}:{installation.pk}"
+        publish_event(
             "marketplace_app_installed",
             {
                 "app_slug": app.slug,
                 "school_id": str(school.pk),
                 "install_phase": phase,
+                "source": "marketplace.services",
             },
             tenant_id=str(school.pk),
-            school_id=None,
-            idempotency_key=f"mkt-install:{school.pk}:{app.pk}:{installation.pk}",
+            school_id=school.pk,
+            idempotency_key=base_key,
+        )
+        publish_event(
+            "app_installed",
+            {
+                "app_slug": app.slug,
+                "school_id": str(school.pk),
+                "install_phase": phase,
+                "source": "marketplace.services",
+            },
+            tenant_id=str(school.pk),
+            school_id=school.pk,
+            idempotency_key=f"{base_key}:app_installed",
         )
     except (AttributeError, ImportError, TypeError, ValueError):
+        pass
+    try:
+        from apps.siteconfig.workflow_triggers import dispatch_domain_triggers_safe
+
+        dispatch_domain_triggers_safe(
+            school,
+            "app_installed",
+            {
+                "app_slug": app.slug,
+                "school_id": str(school.pk),
+                "install_phase": phase,
+                "installation_id": installation.pk,
+            },
+        )
+    except (
+        AttributeError,
+        ImportError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ):
         pass
     # 6.3 / 29.10 + marketplace monetization: ledger + add-on subscription + platform fee log (must succeed)
     from apps.marketplace.monetization import apply_marketplace_install_monetization
@@ -632,6 +667,25 @@ def uninstall_app(school, app, *, uninstalled_by=None, run_cleanup=True):
 
         cancel_marketplace_subscription_for_uninstall(installation)
     except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+    try:
+        from apps.platform_runtime.event_bus import publish_event
+
+        publish_event(
+            "app_uninstalled",
+            {
+                "app_slug": app.slug,
+                "school_id": str(school.pk),
+                "installation_id": installation.pk,
+                "source": "marketplace.services",
+            },
+            tenant_id=str(school.pk),
+            school_id=school.pk,
+            idempotency_key=(
+                f"app_uninstall:{school.pk}:{app.pk}:{installation.uninstalled_at.isoformat()}"
+            )[:128],
+        )
+    except (AttributeError, ImportError, TypeError, ValueError):
         pass
     return installation
 

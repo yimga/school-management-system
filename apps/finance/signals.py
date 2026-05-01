@@ -113,6 +113,35 @@ def sync_payment_delete(sender, instance: Payment, **kwargs):
         recalculate_invoice(instance.invoice)
 
 
+@receiver(post_save, sender=Payment)
+def dispatch_payment_failed_workflows(sender, instance: Payment, **kwargs):
+    """Visual / school automation: payment_failed trigger when gateway marks payment failed."""
+    if getattr(instance, "status", None) != "failed":
+        return
+    inv = getattr(instance, "invoice", None)
+    school = getattr(instance, "school", None) or (
+        getattr(inv, "school", None) if inv else None
+    )
+    if not school:
+        return
+    try:
+        from apps.siteconfig.workflow_triggers import dispatch_domain_triggers_safe
+
+        dispatch_domain_triggers_safe(
+            school,
+            "payment_failed",
+            {
+                "payment_id": instance.pk,
+                "invoice_id": getattr(inv, "pk", None) if inv else None,
+                "student_id": getattr(instance, "student_id", None)
+                or (getattr(inv, "student_id", None) if inv else None),
+                "status_reason": (getattr(instance, "status_reason", None) or "")[:500],
+            },
+        )
+    except ImportError:
+        pass
+
+
 def _deactivate_reminders_for_student(student_profile):
     """Deactivate all payment reminders for invoices belonging to this student."""
     PaymentReminder.objects.filter(

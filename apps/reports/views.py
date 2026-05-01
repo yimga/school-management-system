@@ -942,16 +942,14 @@ def publish_term_results(request: HttpRequest):
                         dispatch_domain_triggers_safe,
                     )
 
-                    dispatch_domain_triggers_safe(
-                        school,
-                        "report_published",
-                        {
-                            "academic_year_id": year_obj.pk,
-                            "term_id": term_obj.pk,
-                            "publish_school": publish_school,
-                            "classroom_ids": list(selected_classrooms),
-                        },
-                    )
+                    rp_ctx = {
+                        "academic_year_id": year_obj.pk,
+                        "term_id": term_obj.pk,
+                        "publish_school": publish_school,
+                        "classroom_ids": list(selected_classrooms),
+                    }
+                    dispatch_domain_triggers_safe(school, "report_published", rp_ctx)
+                    dispatch_domain_triggers_safe(school, "report_generated", rp_ctx)
                 except ImportError:
                     pass
             messages.success(request, "Publish status updated.")

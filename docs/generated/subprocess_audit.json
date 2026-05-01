@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-30T22:14:17.840039+00:00",
+  "generated_at": "2026-05-01T19:05:37.616718+00:00",
   "hits": [
     {
       "classification": "test_safe",
@@ -1065,6 +1065,12 @@
     },
     {
       "classification": "deployment_script_safe",
+      "file": "scripts/run_sqlite_memory_tests.py",
+      "line": "39",
+      "pattern": "subprocess.call"
+    },
+    {
+      "classification": "deployment_script_safe",
       "file": "scripts/run_sweep_ab.py",
       "line": "43",
       "pattern": "subprocess.run"
@@ -1155,6 +1161,12 @@
     },
     {
       "classification": "deployment_script_safe",
+      "file": "scripts/verify_magic_ux_agent7_gate.py",
+      "line": "30",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "deployment_script_safe",
       "file": "scripts/verify_operator_phase10_11_e2e.py",
       "line": "40",
       "pattern": "subprocess.run"
@@ -1210,7 +1222,7 @@
     {
       "classification": "deployment_script_safe",
       "file": "scripts/verify_security_allowlist_density.py",
-      "line": "70",
+      "line": "71",
       "pattern": "subprocess.run"
     },
     {
@@ -1222,6 +1234,6 @@
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 203
+    "hits": 205
   }
 }

@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib import admin
+from django.contrib.admin.filters import DateFieldListFilter
 from django.utils.translation import gettext_lazy as _
 
 from unfold.admin import ModelAdmin
@@ -11,7 +12,10 @@ from .fleet_apply_surfaces import (
     resolve_fleet_apply_surface,
 )
 from .models import (
+    EventWebhookDelivery,
+    EventWebhookSubscription,
     FleetGovernedChange,
+    PlatformEventLog,
     PlatformIntegrationWebhookEvent,
     PlatformOperatorCommandCenterLink,
     PlatformOperatorMigrationCloudLink,
@@ -741,3 +745,114 @@ class PlatformIntegrationWebhookEventAdmin(ModelAdmin):
 register_platform_admin(
     PlatformIntegrationWebhookEvent, PlatformIntegrationWebhookEventAdmin
 )
+
+
+class PlatformEventLogAdmin(ModelAdmin):
+    """Append-only platform event log (replay + webhook fan-out source)."""
+
+    list_display = [
+        "pk",
+        "event_type",
+        "tenant_id",
+        "school_id",
+        "idempotency_key",
+        "created_at",
+    ]
+    list_filter = ["event_type", ("created_at", DateFieldListFilter)]
+    search_fields = ["event_type", "tenant_id", "school_id", "idempotency_key", "payload"]
+    readonly_fields = ["event_type", "payload", "tenant_id", "school_id", "idempotency_key", "created_at"]
+    date_hierarchy = "created_at"
+    ordering = ["-created_at"]
+    fieldsets = (
+        (
+            None,
+            {"fields": ("event_type", "tenant_id", "school_id", "idempotency_key", "created_at")},
+        ),
+        (_("Payload"), {"fields": ("payload",)}),
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return bool(getattr(request.user, "is_staff", False))
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    actions = ["replay_selected_events"]
+
+    @admin.action(description=_("Replay subscribers only (no new webhook deliveries)"))
+    def replay_selected_events(self, request, queryset):
+        from apps.platform_runtime.event_bus import replay_event
+
+        for obj in queryset[:200]:
+            replay_event(obj.pk, dispatch_webhooks=False)
+
+
+class EventWebhookSubscriptionAdmin(ModelAdmin):
+    list_display = [
+        "pk",
+        "name",
+        "target_url",
+        "tenant_id",
+        "school_id",
+        "is_active",
+        "created_at",
+    ]
+    list_filter = ["is_active"]
+    search_fields = ["name", "target_url", "tenant_id", "school_id"]
+    ordering = ["-created_at"]
+
+
+class EventWebhookDeliveryAdmin(ModelAdmin):
+    list_display = [
+        "pk",
+        "status",
+        "subscription",
+        "platform_event",
+        "attempt_count",
+        "last_http_status",
+        "created_at",
+        "delivered_at",
+    ]
+    list_filter = ["status", "subscription"]
+    search_fields = [
+        "last_error",
+        "subscription__name",
+        "subscription__tenant_id",
+        "platform_event__event_type",
+    ]
+    readonly_fields = [
+        "subscription",
+        "platform_event",
+        "status",
+        "attempt_count",
+        "last_http_status",
+        "last_error",
+        "next_retry_at",
+        "delivered_at",
+        "created_at",
+        "updated_at",
+    ]
+    ordering = ["-created_at"]
+
+    def has_add_permission(self, request):
+        return False
+
+    actions = ["retry_delivery_now"]
+
+    @admin.action(description=_("Deliver now (single attempt / respects DLQ rules)"))
+    def retry_delivery_now(self, request, queryset):
+        from apps.platform_runtime import event_bus
+
+        for obj in queryset[:100]:
+            event_bus.deliver_webhook_attempt(obj.pk)
+
+
+register_platform_admin(PlatformEventLog, PlatformEventLogAdmin)
+register_platform_admin(EventWebhookSubscription, EventWebhookSubscriptionAdmin)
+register_platform_admin(EventWebhookDelivery, EventWebhookDeliveryAdmin)

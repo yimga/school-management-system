@@ -1,0 +1,231 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Governed report builder" %}{% endblock %}
+{% block content %}
+{% csrf_token %}
+<div class="container-lg py-4" data-rmc-governed-report-builder="1">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 mb-0">{% trans "Operational report builder" %}</h1>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'analytics:decision_intelligence_dashboard' %}">{% trans "Decision dashboards" %}</a>
+  </div>
+  <p class="text-muted small mb-4">
+    {% trans "Allowlisted datasets only — queries compile to Django ORM (no raw SQL). Tenant and permission checks apply." %}
+  </p>
+  {% if not school_id %}
+  <div class="alert alert-warning">{% trans "No tenant context — open this page on your school subdomain." %}</div>
+  {% endif %}
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <label class="form-label">{% trans "Dataset" %}</label>
+      <select id="gr-dataset" class="form-select form-select-sm"></select>
+
+      <label class="form-label mt-3">{% trans "Fields (comma-separated)" %}</label>
+      <input id="gr-fields" class="form-control form-control-sm" placeholder="id, first_name, last_name">
+
+      <label class="form-label mt-3">{% trans "Filters (JSON object, catalog keys only)" %}</label>
+      <textarea id="gr-filters" class="form-control form-control-sm font-monospace" rows="3" placeholder='{"is_active": true}'></textarea>
+
+      <label class="form-label mt-3">{% trans "Group by (comma-separated, optional)" %}</label>
+      <input id="gr-groupby" class="form-control form-control-sm" placeholder="classroom_id">
+
+      <div class="row g-2 mt-1">
+        <div class="col-6">
+          <label class="form-label">{% trans "Aggregate fn" %}</label>
+          <select id="gr-agg-fn" class="form-select form-select-sm">
+            <option value="">{% trans "— row detail —" %}</option>
+            <option value="count">count</option>
+            <option value="sum">sum</option>
+            <option value="avg">avg</option>
+            <option value="min">min</option>
+            <option value="max">max</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-label">{% trans "Aggregate field" %}</label>
+          <input id="gr-agg-field" class="form-control form-control-sm" placeholder="id">
+        </div>
+      </div>
+
+      <label class="form-label mt-3">{% trans "Row limit" %}</label>
+      <input id="gr-limit" type="number" class="form-control form-control-sm" value="100" min="1" max="5000">
+
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <button type="button" id="gr-preview" class="btn btn-primary btn-sm">{% trans "Preview" %}</button>
+        <button type="button" id="gr-export-csv" class="btn btn-outline-secondary btn-sm">{% trans "Export CSV" %}</button>
+        <button type="button" id="gr-export-json" class="btn btn-outline-secondary btn-sm">{% trans "Export JSON (API)" %}</button>
+      </div>
+
+      <hr class="my-4">
+      <h2 class="h6">{% trans "Save report" %}</h2>
+      <label class="form-label">{% trans "Report name" %}</label>
+      <input id="gr-save-name" type="text" class="form-control form-control-sm mb-2" maxlength="200" placeholder="{% trans 'Monthly roster' %}">
+      <button type="button" id="gr-save" class="btn btn-success btn-sm">{% trans "Save" %}</button>
+
+      <label class="form-label mt-4">{% trans "Run saved report" %}</label>
+      <div class="input-group input-group-sm">
+        <select id="gr-saved-list" class="form-select"><option value="">{% trans "Load list…" %}</option></select>
+        <button type="button" id="gr-saved-refresh" class="btn btn-outline-secondary">{% trans "Refresh" %}</button>
+        <button type="button" id="gr-saved-run" class="btn btn-primary">{% trans "Run" %}</button>
+      </div>
+    </div>
+    <div class="col-lg-7">
+      <label class="form-label">{% trans "Output" %}</label>
+      <pre id="gr-output" class="border rounded p-3 bg-light small mb-0" style="max-height:560px;overflow:auto;"></pre>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  function csrfHeader(){
+    var el = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (el && el.value) return el.value;
+    var m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? m[1] : '';
+  }
+  var catalog = {{ governed_catalog_json|safe }};
+  var RUN_MAGIC = '{{ saved_run_magic }}';
+  var runUrlTpl = '{{ saved_run_url_magic|escapejs }}';
+  var ds = document.getElementById('gr-dataset');
+  Object.keys(catalog).sort().forEach(function(k){
+    var o = document.createElement('option');
+    o.value = k;
+    o.textContent = catalog[k].label + ' (' + k + ')';
+    ds.appendChild(o);
+  });
+  function parseFilters(){
+    var raw = document.getElementById('gr-filters').value.trim();
+    if (!raw) return {};
+    var o = JSON.parse(raw);
+    if (typeof o !== 'object' || o === null || Array.isArray(o)) throw new Error('Filters must be a JSON object');
+    return o;
+  }
+  function payload(){
+    var dsId = ds.value;
+    var fieldsRaw = document.getElementById('gr-fields').value || '';
+    var fields = fieldsRaw.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+    if (!fields.length && catalog[dsId]) {
+      fields = catalog[dsId].fields.slice(0, 12);
+    }
+    var filters = parseFilters();
+    var gbRaw = document.getElementById('gr-groupby').value.trim();
+    var group_by = gbRaw ? gbRaw.split(',').map(function(s){ return s.trim(); }).filter(Boolean) : null;
+    var aggFn = document.getElementById('gr-agg-fn').value.trim();
+    var aggField = document.getElementById('gr-agg-field').value.trim();
+    var aggregate = null;
+    if (group_by && group_by.length && aggFn) {
+      aggregate = { fn: aggFn, field: aggField || 'id' };
+    }
+    return {
+      dataset_id: dsId,
+      fields: fields,
+      filters: filters,
+      group_by: group_by,
+      aggregate: aggregate,
+      limit: parseInt(document.getElementById('gr-limit').value, 10) || 100
+    };
+  }
+  function refreshSaved(){
+    fetch('{{ saved_list_url }}', { credentials: 'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        var sel = document.getElementById('gr-saved-list');
+        sel.innerHTML = '';
+        var opt0 = document.createElement('option');
+        opt0.value = '';
+        opt0.textContent = '—';
+        sel.appendChild(opt0);
+        (j.saved || []).forEach(function(s){
+          var o = document.createElement('option');
+          o.value = s.id;
+          o.textContent = s.name + ' (#' + s.id + ')';
+          sel.appendChild(o);
+        });
+      })
+      .catch(function(e){ document.getElementById('gr-output').textContent = String(e); });
+  }
+  document.getElementById('gr-preview').addEventListener('click', function(){
+    try {
+      var body = JSON.stringify(payload());
+      fetch('{{ preview_url }}', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfHeader()},
+        body: body
+      }).then(function(r){ return r.json(); }).then(function(j){
+        document.getElementById('gr-output').textContent = JSON.stringify(j, null, 2);
+      }).catch(function(e){ document.getElementById('gr-output').textContent = String(e); });
+    } catch (e) {
+      document.getElementById('gr-output').textContent = e.message || String(e);
+    }
+  });
+  function downloadBlob(blob, name){
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+  }
+  document.getElementById('gr-export-csv').addEventListener('click', function(){
+    try {
+      fetch('{{ export_csv_url }}', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfHeader()},
+        body: JSON.stringify(payload())
+      }).then(function(r){ return r.blob(); }).then(function(blob){ downloadBlob(blob, 'governed_export.csv'); })
+      .catch(function(e){ document.getElementById('gr-output').textContent = String(e); });
+    } catch (e) {
+      document.getElementById('gr-output').textContent = e.message || String(e);
+    }
+  });
+  document.getElementById('gr-export-json').addEventListener('click', function(){
+    try {
+      fetch('{{ export_json_url }}', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfHeader()},
+        body: JSON.stringify(payload())
+      }).then(function(r){ return r.json(); }).then(function(j){
+        document.getElementById('gr-output').textContent = JSON.stringify(j, null, 2);
+      }).catch(function(e){ document.getElementById('gr-output').textContent = String(e); });
+    } catch (e) {
+      document.getElementById('gr-output').textContent = e.message || String(e);
+    }
+  });
+  document.getElementById('gr-save').addEventListener('click', function(){
+    var name = (document.getElementById('gr-save-name').value || '').trim();
+    if (!name) { alert('{% trans "Enter a report name." %}'); return; }
+    try {
+      var def = payload();
+      fetch('{{ saved_save_url }}', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfHeader()},
+        body: JSON.stringify({ name: name, definition: def })
+      }).then(function(r){ return r.json(); }).then(function(j){
+        document.getElementById('gr-output').textContent = JSON.stringify(j, null, 2);
+        refreshSaved();
+      });
+    } catch (e) {
+      document.getElementById('gr-output').textContent = e.message || String(e);
+    }
+  });
+  document.getElementById('gr-saved-refresh').addEventListener('click', refreshSaved);
+  document.getElementById('gr-saved-run').addEventListener('click', function(){
+    var id = document.getElementById('gr-saved-list').value;
+    if (!id) return;
+    var url = runUrlTpl.split(RUN_MAGIC).join(id);
+    fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfHeader()},
+      body: '{}'
+    }).then(function(r){ return r.json(); }).then(function(j){
+      document.getElementById('gr-output').textContent = JSON.stringify(j, null, 2);
+    }).catch(function(e){ document.getElementById('gr-output').textContent = String(e); });
+  });
+  if (document.getElementById('gr-saved-list')) {
+    refreshSaved();
+  }
+})();
+</script>
+{% endblock %}

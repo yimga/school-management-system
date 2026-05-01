@@ -1,0 +1,34 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{{ surface_title }} — {% trans "Decision intelligence" %}{% endblock %}
+{% block content %}
+<div class="container-lg py-4" data-rmc-decision-surface="{{ surface_key }}">
+  {% include "analytics/includes/decision_nav.html" %}
+  <h1 class="h4 mb-2">{{ surface_title }}</h1>
+  {% if founder_only %}
+  <p class="text-muted small mb-4">{% trans "Platform-wide rollup for operators (superuser)." %}</p>
+  {% else %}
+  <p class="text-muted small mb-4">{% trans "Insights filtered for this decision surface. Actions open existing workflows." %}</p>
+  {% endif %}
+  <div class="row g-3">
+    {% for ins in insights %}
+    <div class="col-md-6 col-xl-4">
+      <div class="card h-100 shadow-sm border-{% if ins.severity == 'danger' %}danger{% elif ins.severity == 'warning' %}warning{% else %}secondary{% endif %}">
+        <div class="card-body">
+          <div class="text-uppercase small text-muted mb-1">{{ ins.audience }}</div>
+          <h2 class="h6 card-title">{{ ins.title }}</h2>
+          <p class="small card-text">{{ ins.explanation }}</p>
+          {% if ins.primary_action %}
+          <a class="btn btn-sm btn-primary" href="{{ ins.primary_action.path }}">{{ ins.primary_action.label }}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info mb-0">{% trans "No insights on this surface for current data." %}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -7,6 +7,7 @@ Uses ``siteconfig.workflow_engine`` for conditions/actions and writes ``Workflow
 from __future__ import annotations
 
 import logging
+import secrets
 from typing import Any
 
 from django.apps import apps
@@ -48,6 +49,56 @@ def run_workflow(
         return {"ok": False, "error": "workflow_inactive"}
 
     school = wf.school
+    trig_token = ""
+
+    def _emit_platform_workflow_triggered() -> None:
+        nonlocal trig_token
+        try:
+            from apps.platform_runtime.event_bus import publish_event
+
+            trig_token = secrets.token_hex(8)
+            publish_event(
+                "workflow_triggered",
+                {
+                    "workflow_id": wf.pk,
+                    "trigger_event": str(wf.trigger_event),
+                    "source": "visual_executor",
+                },
+                tenant_id=str(school.pk),
+                school_id=school.pk,
+                idempotency_key=f"wf_trig:{wf.pk}:{trig_token}",
+            )
+        except _SOFT:
+            logger.debug("workflow_triggered publish skipped", exc_info=True)
+
+    def _emit_platform_workflow_completed(
+        log,
+        *,
+        conditions_passed: bool | None,
+    ) -> None:
+        try:
+            from apps.platform_runtime.event_bus import publish_event
+
+            lid = getattr(log, "pk", None) if log is not None else None
+            st = getattr(log, "status", None) if log is not None else None
+            publish_event(
+                "workflow_completed",
+                {
+                    "workflow_id": wf.pk,
+                    "workflow_run_log_id": lid,
+                    "status": str(st) if st is not None else "unknown",
+                    "trigger_event": str(wf.trigger_event),
+                    "conditions_passed": conditions_passed,
+                },
+                tenant_id=str(school.pk),
+                school_id=school.pk,
+                idempotency_key=(
+                    f"wf_done:{lid}" if lid else f"wf_done:{wf.pk}:{trig_token or secrets.token_hex(4)}"
+                )[:128],
+            )
+        except _SOFT:
+            logger.debug("workflow_completed publish skipped", exc_info=True)
+
     try:
         from apps.automation.graph_compiler import compile_workflow_to_dsl
 
@@ -66,6 +117,8 @@ def run_workflow(
             prev = simulate_dsl(dsl, ctx, school=school, user=user)
             return {"ok": True, "dry_run": True, **prev}
 
+        _emit_platform_workflow_triggered()
+
         conditions_passed = evaluate_conditions(dsl.get("conditions") or [], ctx)
         if not conditions_passed:
             log = None
@@ -82,6 +135,7 @@ def run_workflow(
                 )
             except _SOFT as e:
                 logger.warning("WorkflowRunLog skip write failed: %s", e)
+            _emit_platform_workflow_completed(log, conditions_passed=False)
             return {
                 "ok": True,
                 "conditions_passed": False,
@@ -117,6 +171,8 @@ def run_workflow(
             )
         except _SOFT as e:
             logger.warning("WorkflowRunLog write failed: %s", e)
+
+        _emit_platform_workflow_completed(log, conditions_passed=True)
 
         return {
             "ok": True,

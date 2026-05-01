@@ -991,10 +991,15 @@ class MarketingFunnelEvent(models.Model):
         ("visit", "Visit (landing)"),
         ("discovery", "Discovery (find school / discover)"),
         ("signup", "Signup (form submitted)"),
+        ("signup_started", "Signup flow opened (landing on self-service form)"),
         ("activation", "Activation (school verified / live)"),
         ("onboarding_start", "Public onboarding wizard opened (step 1)"),
         ("onboarding_complete", "Public onboarding wizard finished (review / signup)"),
         ("demo_started", "Demo started (book-demo submitted)"),
+        ("demo_attendance_completed", "Conversion demo: attendance step completed"),
+        ("demo_marks_completed", "Conversion demo: marks step completed"),
+        ("demo_report_completed", "Conversion demo: report step completed"),
+        ("demo_cta_seen", "Conversion demo: create-school CTA viewed"),
         ("signup_completed", "Signup completed (email verified, school active)"),
         ("first_dashboard_view", "First authenticated dashboard view"),
         ("first_action", "First substantive POST / action"),
@@ -1002,6 +1007,7 @@ class MarketingFunnelEvent(models.Model):
         ("subscription_started", "Platform subscription row created (billing)"),
         ("payment_success", "Payment processor reported successful charge/settlement"),
         ("payment_failed", "Payment processor reported failed or declined payment"),
+        ("tenant_recovered", "Tenant marked recovered after churn/at-risk resolution"),
     )
     event_type = models.CharField(max_length=40, choices=EVENT_TYPES, db_index=True)
     session_key = models.CharField(max_length=128, blank=True, db_index=True)

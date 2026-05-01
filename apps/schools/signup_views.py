@@ -83,6 +83,15 @@ def signup_school(request: HttpRequest):
         email = (request.GET.get("email") or "").strip()[:254]
         slug = (request.GET.get("slug") or "").strip()[:120]
         ref = (request.GET.get("ref") or "").strip()[:32]
+        if not request.session.get("rmc_signup_started_event"):
+            try:
+                from apps.schools.funnel_events import record_marketing_funnel_event
+
+                record_marketing_funnel_event("signup_started", request)
+            except ImportError:
+                pass
+            request.session["rmc_signup_started_event"] = True
+            request.session.modified = True
         return render(
             request,
             "schools/signup_school.html",

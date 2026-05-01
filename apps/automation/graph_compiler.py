@@ -20,11 +20,23 @@ def normalize_action_dict(raw: dict[str, Any]) -> dict[str, Any]:
     t = str(raw.get("type") or "").strip().lower()
     alias = {
         "send_message": "notify",
+        "notify_parent": "notify",
+        "notify_teacher": "notify",
+        "notify_admin": "notify",
+        "create_task": "create_record",
         "update_record": "update_field",
         "trigger_webhook": "webhook",
     }
     t = alias.get(t, t) or "notify"
     out = dict(raw)
+    if str(raw.get("type") or "").strip().lower() == "create_report":
+        out["type"] = "emit_event"
+        params = dict(raw.get("params") or {})
+        params.setdefault("event_type", "workflow.report_requested")
+        if "payload" not in params:
+            params["payload"] = {}
+        out["params"] = params
+        return out
     out["type"] = t
     if "params" not in out:
         out["params"] = {}

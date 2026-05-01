@@ -806,6 +806,21 @@ def at_risk_intervention_action(request: HttpRequest):
             )
         except (OSError, TypeError, ValueError, DatabaseError):
             pass
+        try:
+            from apps.siteconfig.workflow_triggers import dispatch_domain_triggers_safe
+
+            dispatch_domain_triggers_safe(
+                school,
+                "student_risk_detected",
+                {
+                    "intervention_id": log.pk,
+                    "student_id": str(student.pk),
+                    "trigger_reason": reason[:500],
+                    "source": "analytics.at_risk_intervention",
+                },
+            )
+        except (ImportError, TypeError, ValueError, DatabaseError):
+            pass
         if getattr(student, "user_id", None):
             from apps.analytics.models import StudentAtRiskSignal
 

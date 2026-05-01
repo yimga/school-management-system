@@ -215,6 +215,72 @@ EVENT_CATALOG = {
         "description": "Submitter submitted CSAT (1–5) after resolution",
         "payload": ["ticket_id", "school_id", "actor_id", "score"],
     },
+    "marks_submitted": {
+        "description": "Teacher saved substantive marks on an evaluation row",
+        "payload": [
+            "evaluation_id",
+            "student_id",
+            "school_id",
+            "subject_assignment_id",
+            "term_id",
+            "source",
+        ],
+    },
+    "report_generated": {
+        "description": "Report card PDF artifact persisted",
+        "payload": ["report_card_id", "school_id", "student_id", "source"],
+    },
+    "payment_success": {
+        "description": "Payment processor reported successful charge/settlement (platform bus)",
+        "payload": ["school_id", "funnel_stage", "processor_source_ref"],
+    },
+    "payment_failed": {
+        "description": "Payment processor reported failure (platform bus)",
+        "payload": ["school_id", "funnel_stage", "processor_source_ref"],
+    },
+    "app_installed": {
+        "description": "Marketplace app installed for tenant (workflow trigger alias)",
+        "payload": ["app_slug", "school_id", "install_phase"],
+    },
+    "app_uninstalled": {
+        "description": "Marketplace app marked uninstalled for tenant",
+        "payload": ["app_slug", "school_id", "installation_id"],
+    },
+    "workflow_triggered": {
+        "description": "Visual workflow executor started a live run",
+        "payload": ["workflow_id", "trigger_event", "source"],
+    },
+    "workflow_completed": {
+        "description": "Visual workflow run finished (success, failed, or skipped)",
+        "payload": [
+            "workflow_id",
+            "workflow_run_log_id",
+            "status",
+            "trigger_event",
+            "conditions_passed",
+        ],
+    },
+    "offline_action_synced": {
+        "description": "Durable OfflineAction reached SYNCED after server apply",
+        "payload": ["offline_action_id", "action_type", "user_id", "source"],
+    },
+    "conversion_first_action": {
+        "description": "Tenant completed first operational value action (conversion lock)",
+        "payload": ["school_id", "source"],
+    },
+    "conversion_first_result": {
+        "description": "Tenant recorded first funnel first_result milestone",
+        "payload": ["school_id", "source"],
+    },
+    "platform_event_replayed": {
+        "description": "Audit: subscribers/webhooks were re-invoked for an existing log row",
+        "payload": [
+            "source_event_id",
+            "source_event_type",
+            "dispatch_webhooks",
+            "replayed_at",
+        ],
+    },
     "bus.test_ping": {
         "description": "Synthetic event for event-bus unit tests",
         "payload": ["msg"],

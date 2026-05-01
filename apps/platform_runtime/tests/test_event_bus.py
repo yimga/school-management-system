@@ -39,6 +39,20 @@ class EventBusPublishSubscriberTests(TestCase):
         finally:
             _clear_handler("bus.test_ping", handler)
 
+    def test_publish_event_merges_correlation_actor_source(self):
+        row = event_bus.publish_event(
+            "bus.test_ping",
+            {"msg": "meta"},
+            correlation_id="corr-sweep",
+            actor={"user_id": 1},
+            source="contract_sweep",
+        )
+        self.assertIsNotNone(row)
+        row.refresh_from_db()
+        self.assertEqual(row.payload.get("correlation_id"), "corr-sweep")
+        self.assertEqual(row.payload.get("source"), "contract_sweep")
+        self.assertEqual(row.payload.get("actor"), {"user_id": 1})
+
     def test_replay_invokes_subscriber(self):
         row = event_bus.publish_event("bus.test_ping", {"msg": "once"})
         self.assertIsNotNone(row)
@@ -53,8 +67,27 @@ class EventBusPublishSubscriberTests(TestCase):
             out = event_bus.replay_event(row.pk, dispatch_webhooks=False)
             self.assertTrue(out.get("ok"))
             self.assertEqual(seen, ["once"])
+            audit = (
+                PlatformEventLog.objects.filter(event_type="platform_event_replayed")
+                .order_by("-pk")
+                .first()
+            )
+            self.assertIsNotNone(audit)
+            self.assertEqual(audit.payload.get("source_event_id"), str(row.pk))
         finally:
             _clear_handler("bus.test_ping", handler)
+
+    def test_replay_events_filtered_runs_all_matching(self):
+        event_bus.publish_event("bus.test_ping", {"msg": "a"})
+        event_bus.publish_event("bus.test_ping", {"msg": "b"})
+        n = PlatformEventLog.objects.filter(event_type="bus.test_ping").count()
+        out = event_bus.replay_events_filtered(
+            event_type="bus.test_ping", dispatch_webhooks=False, limit=10
+        )
+        self.assertTrue(out.get("ok"))
+        self.assertEqual(out.get("failed_ids"), [])
+        self.assertEqual(out.get("requested"), n)
+        self.assertEqual(out.get("replayed"), n)
 
 
 class EventBusWebhookTests(TestCase):

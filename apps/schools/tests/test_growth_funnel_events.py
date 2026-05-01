@@ -88,3 +88,42 @@ class GrowthFunnelOnboardingOnceTests(TestCase):
             ).count(),
             1,
         )
+
+
+class GrowthFunnelDemoStepOnceTests(TestCase):
+    databases = {"default"}
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.school = School.objects.create(
+            name="Demo Step",
+            slug="demo-step",
+            subdomain="demo-step",
+            is_active=True,
+        )
+        self.user = User.objects.create_user(
+            username="demo_step_u",
+            email="ds@example.edu",
+            password="x" * 8,
+        )
+
+    def test_demo_attendance_completed_deduped_per_school(self):
+        req = self.factory.post("/demo/flow/attendance/complete/")
+        sess = SessionStore()
+        sess.create()
+        req.session = sess
+        req.user = self.user
+        ok1 = record_school_funnel_once(
+            "demo_attendance_completed",
+            self.school,
+            req,
+            user=self.user,
+        )
+        ok2 = record_school_funnel_once(
+            "demo_attendance_completed",
+            self.school,
+            req,
+            user=self.user,
+        )
+        self.assertTrue(ok1)
+        self.assertFalse(ok2)

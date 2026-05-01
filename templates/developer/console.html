@@ -25,7 +25,7 @@
     <h2 class="section-heading">{% trans "API keys & runtime scopes" %}</h2>
     <ul style="margin: 0.5rem 0; padding-left: 1.25rem;">
       <li><a href="{{ links.api_center }}">{% trans "API Center" %}</a> — {% trans "create tenant API keys; bind a key to a marketplace installation for merged scopes." %}</li>
-      <li><a href="{{ links.integration_context }}"><code>GET /api/v1/platform/integration-context/</code></a> — {% trans "introspect app auth + effective scopes (Bearer sk_live_…)." %}</li>
+      <li><a href="{{ links.integration_context }}"><code>GET /api/v1/platform/integration-context/</code></a> — {% trans "introspect app auth + effective scopes: Bearer sk_live_… (installation-bound API key) or Bearer rmc_at_… (OAuth access token when DeveloperApplication is linked to the catalog app and the host matches the tenant)." %}</li>
       <li><a href="{{ links.scoped_ping }}"><code>GET /api/v1/platform/scoped-ping/</code></a> — {% trans "sample enforcement (requires ping:read)." %}</li>
     </ul>
   </section>

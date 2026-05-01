@@ -18657,3 +18657,276 @@ msgstr "Navigation and more"
 
 msgid "Your next step"
 msgstr "Your next step"
+
+msgid "Aggregate field"
+msgstr "Aggregate field"
+
+msgid "Aggregate fn"
+msgstr "Aggregate fn"
+
+msgid "All activity (latest 200)"
+msgstr "All activity (latest 200)"
+
+msgid ""
+"Allowlisted datasets only — queries compile to Django ORM (no raw SQL). "
+"Tenant and permission checks apply."
+msgstr ""
+"Allowlisted datasets only — queries compile to Django ORM (no raw SQL). "
+"Tenant and permission checks apply."
+
+msgid ""
+"Automated operational insights for your school. Use the tabs to focus by "
+"decision surface."
+msgstr ""
+"Automated operational insights for your school. Use the tabs to focus by "
+"decision surface."
+
+msgid "Blueprint marketplace"
+msgstr "Blueprint marketplace"
+
+msgid "Browse apps"
+msgstr "Browse apps"
+
+msgid "Browse installable apps"
+msgstr "Browse installable apps"
+
+msgid "Churn risk (at_risk) in lifecycle sample"
+msgstr "Churn risk (at_risk) in lifecycle sample"
+
+msgid "Conflict reason"
+msgstr "Conflict reason"
+
+msgid "Dataset"
+msgstr "Dataset"
+
+msgid "Decision dashboards"
+msgstr "Decision dashboards"
+
+msgid "Decision intelligence"
+msgstr "Decision intelligence"
+
+msgid "Derived from funnel + billing + health; not a billing ledger."
+msgstr "Derived from funnel + billing + health; not a billing ledger."
+
+msgid "Engagement"
+msgstr "Engagement"
+
+msgid "Enter a report name."
+msgstr "Enter a report name."
+
+msgid "Export JSON (API)"
+msgstr "Export JSON (API)"
+
+msgid "Fields (comma-separated)"
+msgstr "Fields (comma-separated)"
+
+msgid "Filters (JSON object, catalog keys only)"
+msgstr "Filters (JSON object, catalog keys only)"
+
+msgid "Founder"
+msgstr "Founder"
+
+msgid "Governed report builder"
+msgstr "Governed report builder"
+
+msgid "Group by (comma-separated, optional)"
+msgstr "Group by (comma-separated, optional)"
+
+msgid ""
+"Insights filtered for this decision surface. Actions open existing "
+"workflows."
+msgstr ""
+"Insights filtered for this decision surface. Actions open existing "
+"workflows."
+
+msgid "Internal student id if known"
+msgstr "Internal student id if known"
+
+msgid "Jump to export bundles"
+msgstr "Jump to export bundles"
+
+msgid "Jump to invoices"
+msgstr "Jump to invoices"
+
+msgid "Load list…"
+msgstr "Load list…"
+
+msgid "Monthly roster"
+msgstr "Monthly roster"
+
+msgid "More links"
+msgstr "More links"
+
+msgid "Moved to draft."
+msgstr "Moved to draft."
+
+msgid "No conflicts."
+msgstr "No conflicts."
+
+msgid "No failed items."
+msgstr "No failed items."
+
+msgid "No insights on this surface for current data."
+msgstr "No insights on this surface for current data."
+
+msgid "No recent synced entries."
+msgstr "No recent synced entries."
+
+msgid ""
+"No surfaced insights for current data — check back after attendance, marks, "
+"or finance activity."
+msgstr ""
+"No surfaced insights for current data — check back after attendance, marks, "
+"or finance activity."
+
+msgid "No tenant context — open this page on your school subdomain."
+msgstr "No tenant context — open this page on your school subdomain."
+
+msgid "Note"
+msgstr "Note"
+
+msgid "Nothing pending."
+msgstr "Nothing pending."
+
+msgid "Observation or evidence text…"
+msgstr "Observation or evidence text…"
+
+msgid "Offline note (quick capture)"
+msgstr "Offline note (quick capture)"
+
+msgid "Operational report builder"
+msgstr "Operational report builder"
+
+msgid "Output"
+msgstr "Output"
+
+msgid "Pending (queued)"
+msgstr "Pending (queued)"
+
+msgid "Pending / syncing"
+msgstr "Pending / syncing"
+
+msgid "Platform rollup (superuser)"
+msgstr "Platform rollup (superuser)"
+
+msgid "Platform-wide rollup for operators (superuser)."
+msgstr "Platform-wide rollup for operators (superuser)."
+
+msgid "Published."
+msgstr "Published."
+
+msgid "Queue note when offline"
+msgstr "Queue note when offline"
+
+msgid "Re-queue failed items for another sync attempt"
+msgstr "Re-queue failed items for another sync attempt"
+
+msgid "Recently synced"
+msgstr "Recently synced"
+
+msgid "Report name"
+msgstr "Report name"
+
+msgid "Retry all failed"
+msgstr "Retry all failed"
+
+msgid "Revenue"
+msgstr "Revenue"
+
+msgid "Risk"
+msgstr "Risk"
+
+msgid "Row limit"
+msgstr "Row limit"
+
+msgid "Run saved report"
+msgstr "Run saved report"
+
+msgid "Sandbox inspector"
+msgstr "Sandbox inspector"
+
+msgid "Save report"
+msgstr "Save report"
+
+msgid "Save the graph first (workflow id required)."
+msgstr "Save the graph first (workflow id required)."
+
+msgid "School health"
+msgstr "School health"
+
+msgid "Schools (sample)"
+msgstr "Schools (sample)"
+
+msgid "State"
+msgstr "State"
+
+msgid "Student id (optional)"
+msgstr "Student id (optional)"
+
+msgid "Studio tools"
+msgstr "Studio tools"
+
+msgid "Tenant lifecycle (recent schools sample)"
+msgstr "Tenant lifecycle (recent schools sample)"
+
+msgid "Tenant lifecycle distribution"
+msgstr "Tenant lifecycle distribution"
+
+msgid "Time-to-value ≤10 min (first result after onboarding/demo signal)"
+msgstr "Time-to-value ≤10 min (first result after onboarding/demo signal)"
+
+msgid "Title (optional)"
+msgstr "Title (optional)"
+
+msgid ""
+"When you have no connectivity, queue a short observation here; it syncs like"
+" other offline actions. When online, use your usual classroom documentation "
+"flows instead."
+msgstr ""
+"When you have no connectivity, queue a short observation here; it syncs like"
+" other offline actions. When online, use your usual classroom documentation "
+"flows instead."
+
+msgid ""
+"Your choice is recorded with your user id and timestamp on the offline "
+"action for audit."
+msgstr ""
+"Your choice is recorded with your user id and timestamp on the offline "
+"action for audit."
+
+msgid ""
+"Your highest-priority next steps appear in the strip above when your school "
+"assigns work or announcements."
+msgstr ""
+"Your highest-priority next steps appear in the strip above when your school "
+"assigns work or announcements."
+
+msgid ""
+"introspect app auth + effective scopes: Bearer sk_live_… (installation-bound"
+" API key) or Bearer rmc_at_… (OAuth access token when DeveloperApplication "
+"is linked to the catalog app and the host matches the tenant)."
+msgstr ""
+"introspect app auth + effective scopes: Bearer sk_live_… (installation-bound"
+" API key) or Bearer rmc_at_… (OAuth access token when DeveloperApplication "
+"is linked to the catalog app and the host matches the tenant)."
+
+msgid "— row detail —"
+msgstr "— row detail —"
+
+msgid "Event webhook deliveries (platform admin)"
+msgstr "Event webhook deliveries (platform admin)"
+
+msgid "Event webhook subscriptions (platform admin)"
+msgstr "Event webhook subscriptions (platform admin)"
+
+msgid "Platform event logs (platform admin)"
+msgstr "Platform event logs (platform admin)"
+
+msgid "PlatformEventLog rows for event integrity and replay audit"
+msgstr "PlatformEventLog rows for event integrity and replay audit"
+
+msgid "Tenant webhook subscriptions for event backbone delivery"
+msgstr "Tenant webhook subscriptions for event backbone delivery"
+
+msgid "Webhook delivery attempts, outcomes, and retry evidence"
+msgstr "Webhook delivery attempts, outcomes, and retry evidence"

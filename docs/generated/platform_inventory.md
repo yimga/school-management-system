@@ -1,24 +1,24 @@
 # Platform Inventory
 
 - Installed app modules: `45`
-- Python files: `2765`
+- Python files: `2770`
 - HTML templates: `735`
 - Markdown files: `1112`
-- Migration files: `730`
+- Migration files: `731`
 - Management commands: `160` (full list in JSON key `management_commands_list`)
 - `SiteSettings` refs (gross scan): `2048`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `40`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `6`
 - `get_solo()` refs: `208`
-- `except Exception`: `375`
+- `except Exception`: `383`
 - `cursor.execute()` (gross): `381`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `32`
 - `csrf_exempt` (substring, gross): `306`
 - `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `38`
 - `AllowAny`: `106`
-- `print()` (gross all `.py`): `1043`
+- `print()` (gross all `.py`): `1044`
 - `print()` (`apps` product paths): `0`; `scripts/`: `943`
-- `gilead` matches (gross corpus): `16661` across `162` files
+- `gilead` matches (gross corpus): `16660` across `162` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -78,7 +78,7 @@ Total: `160` commands. First 25 by app/command:
 ## Largest Python Files
 
 - `apps/schools/marketing_page_definitions.py`: `2861` lines / `132976` bytes
-- `apps/schools/marketing_views.py`: `3282` lines / `129979` bytes
+- `apps/schools/marketing_views.py`: `3285` lines / `130254` bytes
 - `apps/api/views_v1.py`: `2856` lines / `118727` bytes
 - `apps/evals/views.py`: `3177` lines / `118357` bytes
 - `apps/accounts/views.py`: `3088` lines / `118228` bytes
@@ -87,8 +87,8 @@ Total: `160` commands. First 25 by app/command:
 - `apps/siteconfig/admin.py`: `2814` lines / `98676` bytes
 - `apps/studio_os/views.py`: `2338` lines / `92659` bytes
 - `apps/finance/tasks.py`: `2062` lines / `82395` bytes
+- `config/settings.py`: `1747` lines / `79626` bytes
 - `apps/siteconfig/models.py`: `2023` lines / `78471` bytes
-- `config/settings.py`: `1707` lines / `78060` bytes
 
 ## Documentation Drift
 

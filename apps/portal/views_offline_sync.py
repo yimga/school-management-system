@@ -65,12 +65,31 @@ def offline_sync_queue(request: HttpRequest) -> HttpResponse:
             )
             messages.info(request, f"Re-queued {n} failed item(s).")
 
-    rows = (
-        OfflineAction.objects.filter(
-            school_id=school.pk,
-            user_id=request.user.pk,
-        )
-        .order_by("-created_at")[:200]
+    base_qs = OfflineAction.objects.filter(
+        school_id=school.pk,
+        user_id=request.user.pk,
+    )
+    rows = list(base_qs.order_by("-created_at")[:200])
+    queued_actions = list(
+        base_qs.filter(
+            status__in=(
+                OfflineAction.Status.QUEUED,
+                OfflineAction.Status.SYNCING,
+            )
+        ).order_by("-created_at")[:120]
+    )
+    failed_actions = list(
+        base_qs.filter(status=OfflineAction.Status.FAILED).order_by("-created_at")[
+            :120
+        ]
+    )
+    conflict_actions = list(
+        base_qs.filter(status=OfflineAction.Status.CONFLICT).order_by("-updated_at")[
+            :120
+        ]
+    )
+    synced_actions = list(
+        base_qs.filter(status=OfflineAction.Status.SYNCED).order_by("-updated_at")[:60]
     )
     pending = OfflineAction.objects.filter(
         school_id=school.pk,
@@ -93,6 +112,10 @@ def offline_sync_queue(request: HttpRequest) -> HttpResponse:
         "portal/offline_sync_queue.html",
         {
             "offline_actions": rows,
+            "queued_actions": queued_actions,
+            "failed_actions": failed_actions,
+            "conflict_actions": conflict_actions,
+            "synced_actions": synced_actions,
             "pending_count": pending,
             "failed_count": failed,
             "conflict_count": conflict_n,

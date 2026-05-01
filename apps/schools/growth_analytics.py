@@ -15,7 +15,12 @@ FUNNEL_STAGE_ORDER: tuple[str, ...] = (
     "visit",
     "discovery",
     "demo_started",
+    "demo_attendance_completed",
+    "demo_marks_completed",
+    "demo_report_completed",
+    "demo_cta_seen",
     "onboarding_start",
+    "signup_started",
     "signup",
     "onboarding_complete",
     "signup_completed",
@@ -25,6 +30,60 @@ FUNNEL_STAGE_ORDER: tuple[str, ...] = (
     "activation",
     "subscription_started",
 )
+
+
+def _lifecycle_distribution_sample(*, school_limit: int = 400) -> dict[str, int]:
+    from apps.platform_runtime.tenant_lifecycle_state_machine import (
+        ALL_LIFECYCLE_STATES,
+        resolve_tenant_lifecycle_state,
+    )
+    from apps.schools.models import School
+
+    counts = {s: 0 for s in ALL_LIFECYCLE_STATES}
+    for school in School.objects.order_by("-id")[:school_limit]:
+        st = resolve_tenant_lifecycle_state(school)["state"]
+        if st in counts:
+            counts[st] += 1
+    return counts
+
+
+def _time_to_value_fast_path_stats(window_qs, *, max_minutes: float = 10.0) -> dict[str, Any]:
+    """Share of schools reaching first_result within max_minutes of earliest activation signal."""
+    start_types = ("onboarding_start", "demo_started", "signup_completed")
+    schools_first: dict[int, Any] = {}
+    schools_result: dict[int, Any] = {}
+    for row in (
+        window_qs.filter(event_type__in=list(start_types) + ["first_result"])
+        .filter(school_id__isnull=False)
+        .values("school_id", "event_type", "created_at")
+        .order_by("school_id", "created_at")
+    ):
+        sid = row["school_id"]
+        et = row["event_type"]
+        ts = row["created_at"]
+        if et in start_types:
+            if sid not in schools_first:
+                schools_first[sid] = ts
+        elif et == "first_result":
+            if sid not in schools_result:
+                schools_result[sid] = ts
+    under = 0
+    eligible = 0
+    for sid, t0 in schools_first.items():
+        t1 = schools_result.get(sid)
+        if not t1 or t1 <= t0:
+            continue
+        eligible += 1
+        minutes = (t1 - t0).total_seconds() / 60.0
+        if minutes <= max_minutes:
+            under += 1
+    pct = round(100.0 * under / eligible, 2) if eligible else None
+    return {
+        "time_to_value_under_n_minutes": max_minutes,
+        "time_to_value_fast_path_eligible": eligible,
+        "time_to_value_fast_path_met": under,
+        "time_to_value_fast_path_pct": pct,
+    }
 
 
 def build_growth_funnel_snapshot(*, days: int = 30) -> dict[str, Any]:
@@ -180,4 +239,6 @@ def build_growth_funnel_snapshot(*, days: int = 30) -> dict[str, Any]:
         ),
         "growth_readiness": growth_readiness,
         "verdict": verdict,
+        "lifecycle_distribution_sample": _lifecycle_distribution_sample(),
+        "time_to_value_fast_path": _time_to_value_fast_path_stats(window_qs),
     }

@@ -284,10 +284,12 @@ class MarketplaceExtensionSubmission(models.Model):
 
     class State(models.TextChoices):
         DRAFT = "draft", "Draft"
+        SUBMITTED = "submitted", "Submitted"
         REVIEW = "review", "In review"
         APPROVED = "approved", "Approved"
         REJECTED = "rejected", "Rejected"
         PUBLISHED = "published", "Published"
+        DEPRECATED = "deprecated", "Deprecated"
 
     developer_application = models.ForeignKey(
         DeveloperApplication,

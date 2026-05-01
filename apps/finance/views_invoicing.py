@@ -484,6 +484,7 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
     )
 
     from apps.finance.models import OfflinePaymentIntent, TenantPaymentPolicy
+    from apps.finance.payment_fallback import corridor_bundle_for_invoice
     from apps.finance.payment_orchestration import build_simple_payment_flow
 
     tenant_payment_policy = None
@@ -501,6 +502,8 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
         .order_by("-created_at")[:25]
     )
 
+    payment_corridor = corridor_bundle_for_invoice(invoice)
+
     return render(
         request,
         "finance/invoice_detail.html",
@@ -512,6 +515,7 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
             "tenant_payment_policy": tenant_payment_policy,
             "simple_payment_flow": simple_payment_flow,
             "offline_payment_intents": offline_payment_intents,
+            "payment_corridor": payment_corridor,
             "finance_access_required": access_state["require_opt_in"],
             "finance_access_granted": access_state["finance_count"] > 0,
             "finance_access_summary": finance_summary,

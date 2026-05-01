@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load static phase8_tags %}
+{% load i18n static phase8_tags %}
 
 {% block cp_title %}Installation health{% endblock %}
 
@@ -20,10 +20,22 @@
           Last health check and status for active app installations. Use record_installation_health in services to update.
         </p>
       </div>
-      <div class="cp-hero-actions">
+      <div class="cp-hero-actions" data-rmc-install-health-hero-actions="1">
+        {% if rmc_conversion_single_action_enforced|default:False %}
+        <a href="{% url 'super:app_catalog' %}" class="btn btn-light btn-sm" data-rmc-install-health-primary="1">{% trans "App catalog" %}</a>
+        <details class="rmc-conversion-more-actions border border-light border-opacity-25 rounded px-2 py-1">
+          <summary class="btn btn-sm btn-outline-light mb-0">{% trans "More" %}</summary>
+          <div class="pt-2 d-flex flex-wrap gap-2">
+            <a href="{{ dashboard_url }}" class="btn btn-outline-light btn-sm">{% trans "Back to Dashboard" %}</a>
+            <a href="{% url 'super:marketplace_sandbox_inspector' %}" class="btn btn-outline-light btn-sm">{% trans "Sandbox" %}</a>
+            <a href="{% url 'super:marketplace_incident_dashboard' %}" class="btn btn-outline-light btn-sm">{% trans "Incidents" %}</a>
+          </div>
+        </details>
+        {% else %}
         <a href="{{ dashboard_url }}" class="btn btn-outline-light btn-sm">Back to Dashboard</a>
         <a href="{% url 'super:marketplace_sandbox_inspector' %}" class="btn btn-outline-light btn-sm">Sandbox</a>
         <a href="{% url 'super:marketplace_incident_dashboard' %}" class="btn btn-outline-light btn-sm">Incidents</a>
+        {% endif %}
       </div>
     </div>
   </section>

@@ -53,7 +53,45 @@
     {% if growth.insufficient_volume_for_claims %}
     <div class="alert alert-warning py-2 small mb-0">{% trans "Insufficient visit volume in the last 30 days for stable conversion benchmarks." %}</div>
     {% endif %}
+    {% if growth.time_to_value_fast_path %}
+    <div class="row g-3 mb-3">
+      <div class="col-md-6">
+        <div class="card"><div class="card-body">
+          <div class="text-muted small">{% trans "Time-to-value ≤10 min (first result after onboarding/demo signal)" %}</div>
+          <div class="fs-6 fw-semibold">
+            {% if growth.time_to_value_fast_path.time_to_value_fast_path_pct is not None %}
+              {{ growth.time_to_value_fast_path.time_to_value_fast_path_pct }}%
+              <span class="small text-muted">(n={{ growth.time_to_value_fast_path.time_to_value_fast_path_met }}/{{ growth.time_to_value_fast_path.time_to_value_fast_path_eligible }})</span>
+            {% else %}—{% endif %}
+          </div>
+        </div></div>
+      </div>
+      <div class="col-md-6">
+        <div class="card"><div class="card-body">
+          <div class="text-muted small">{% trans "Churn risk (at_risk) in lifecycle sample" %}</div>
+          <div class="fs-6 fw-semibold">{{ growth.lifecycle_distribution_sample.at_risk|default:0 }}</div>
+        </div></div>
+      </div>
+    </div>
+    {% endif %}
   </section>
+
+  {% if growth.lifecycle_distribution_sample %}
+  <section class="mb-4" aria-label="{% trans 'Tenant lifecycle distribution' %}">
+    <h2 class="h5 mb-3">{% trans "Tenant lifecycle (recent schools sample)" %}</h2>
+    <p class="small text-muted">{% trans "Derived from funnel + billing + health; not a billing ledger." %}</p>
+    <div class="table-responsive">
+      <table class="table table-sm table-bordered">
+        <thead><tr><th>{% trans "State" %}</th><th>{% trans "Schools (sample)" %}</th></tr></thead>
+        <tbody>
+          {% for k, v in growth.lifecycle_distribution_sample.items %}
+          <tr><td><code>{{ k }}</code></td><td>{{ v }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
 
   <section class="mb-4">
     <h2 class="h5 mb-3">{% trans "Stage counts (last 30 days)" %}</h2>

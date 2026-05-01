@@ -3141,6 +3141,9 @@ def developer_hub(request):
                 "public_api_docs": request.build_absolute_uri(
                     reverse("developer_public_api_docs")
                 ),
+                "admin_developer_applications": f"{base}/admin/apicenter/developerapplication/",
+                "admin_marketplace_apps": f"{base}/admin/marketplace/marketplaceapp/",
+                "admin_tenant_subscriptions": f"{base}/admin/billing/tenantsubscription/",
             },
         },
     )

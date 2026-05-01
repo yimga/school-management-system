@@ -10,9 +10,20 @@
 
 {% block content %}
   <div class="report-card-print-wrapper" data-page-archetype="record-detail" data-task="parent_payment" data-task-step="finance:page">
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 no-print">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 no-print" data-rmc-parent-finance-toolbar="1">
+    {% if rmc_conversion_single_action_enforced|default:False %}
+    <a class="btn btn-sm btn-primary" href="#parent-finance-invoices" data-action="jump-invoices" data-task-step="finance:jump-table">{% trans "Jump to invoices" %}</a>
+    <details class="rmc-conversion-more-actions border rounded px-2 py-1">
+      <summary class="btn btn-sm btn-outline-secondary mb-0">{% trans "More" %}</summary>
+      <div class="pt-2 d-flex flex-wrap gap-2 align-items-center">
+        {% include "components/pin_to_quick_access.html" with sidebar_item_id="finance" %}
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print();" aria-label="{% trans 'Print fee statement' %}"><i class="bi bi-printer me-1"></i>{% trans "Print" %}</button>
+      </div>
+    </details>
+    {% else %}
     {% include "components/pin_to_quick_access.html" with sidebar_item_id="finance" %}
     <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print();" aria-label="{% trans 'Print fee statement' %}"><i class="bi bi-printer me-1"></i>{% trans "Print" %}</button>
+    {% endif %}
   </div>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
@@ -137,7 +148,7 @@
   </form>
   {% endif %}
 
-  <div class="card">
+  <div class="card" id="parent-finance-invoices">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0">{% trans "Invoices" %}</h5>
@@ -195,7 +206,8 @@
           </table>
         </div>
       {% else %}
-        <div class="alert alert-info mb-0">{% trans "No invoices yet. Finance will publish them here when ready." %}</div>
+        {% url 'portal:parent_dashboard' as parent_dash_url %}
+        {% include "components/dashboard_empty_state.html" with icon="bi-receipt-cutoff" title=_("No invoices yet") message=_("Finance will publish fee invoices here when they are ready. You can still review reminders below.") action_url=parent_dash_url action_text=_("Back to parent home") %}
       {% endif %}
     </div>
   </div>

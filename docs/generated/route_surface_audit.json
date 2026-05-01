@@ -565,7 +565,7 @@
         },
         {
           "kind": "reverse",
-          "line": 39,
+          "line": 40,
           "name": "accounts:backend_dashboard",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -574,7 +574,7 @@
         },
         {
           "kind": "reverse",
-          "line": 43,
+          "line": 44,
           "name": "accounts:backend_dashboard",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -583,7 +583,7 @@
         },
         {
           "kind": "reverse",
-          "line": 50,
+          "line": 51,
           "name": "accounts:backend_dashboard",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -637,7 +637,7 @@
         },
         {
           "kind": "reverse",
-          "line": 597,
+          "line": 606,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -1463,6 +1463,15 @@
           "line": 607,
           "name": "accounts:backend_dashboard",
           "path": "templates/schools/super_dashboard.html",
+          "raw": "{% url 'accounts:backend_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 28,
+          "name": "accounts:backend_dashboard",
+          "path": "templates/siteconfig/compliance_exports.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
           "reason": "",
           "status": "OK"
@@ -3367,7 +3376,7 @@
         },
         {
           "kind": "template_url",
-          "line": 13,
+          "line": 14,
           "name": "accounts:login",
           "path": "templates/student/learning_home.html",
           "raw": "{% url 'accounts:login' %}",
@@ -3460,7 +3469,7 @@
         },
         {
           "kind": "template_url",
-          "line": 13,
+          "line": 14,
           "name": "accounts:logout",
           "path": "templates/student/learning_home.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -5381,7 +5390,7 @@
         },
         {
           "kind": "template_url",
-          "line": 752,
+          "line": 753,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -10685,6 +10694,116 @@
       "view": "django.contrib.admin.sites.AdminSite.password_change_done"
     },
     {
+      "name": "admin:platform_runtime_eventwebhookdelivery_add",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhookdelivery/add/",
+      "view": "django.contrib.admin.options.ModelAdmin.add_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhookdelivery_change",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhookdelivery/<path:object_id>/change/",
+      "view": "django.contrib.admin.options.ModelAdmin.change_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhookdelivery_changelist",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhookdelivery/",
+      "view": "unfold.admin.ModelAdmin.changelist_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhookdelivery_delete",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhookdelivery/<path:object_id>/delete/",
+      "view": "django.contrib.admin.options.ModelAdmin.delete_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhookdelivery_history",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhookdelivery/<path:object_id>/history/",
+      "view": "django.contrib.admin.options.ModelAdmin.history_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhooksubscription_add",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhooksubscription/add/",
+      "view": "django.contrib.admin.options.ModelAdmin.add_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhooksubscription_change",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhooksubscription/<path:object_id>/change/",
+      "view": "django.contrib.admin.options.ModelAdmin.change_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhooksubscription_changelist",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhooksubscription/",
+      "view": "unfold.admin.ModelAdmin.changelist_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhooksubscription_delete",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhooksubscription/<path:object_id>/delete/",
+      "view": "django.contrib.admin.options.ModelAdmin.delete_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhooksubscription_history",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhooksubscription/<path:object_id>/history/",
+      "view": "django.contrib.admin.options.ModelAdmin.history_view"
+    },
+    {
       "name": "admin:platform_runtime_fleetgovernedchange_add",
       "permission_requirement": "control_plane",
       "reasons": [],
@@ -10747,6 +10866,61 @@
       "status": "OK",
       "template_usage": [],
       "url_path": "/admin/platform_runtime/fleetgovernedchange/<path:object_id>/history/",
+      "view": "django.contrib.admin.options.ModelAdmin.history_view"
+    },
+    {
+      "name": "admin:platform_runtime_platformeventlog_add",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/platformeventlog/add/",
+      "view": "django.contrib.admin.options.ModelAdmin.add_view"
+    },
+    {
+      "name": "admin:platform_runtime_platformeventlog_change",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/platformeventlog/<path:object_id>/change/",
+      "view": "django.contrib.admin.options.ModelAdmin.change_view"
+    },
+    {
+      "name": "admin:platform_runtime_platformeventlog_changelist",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/platformeventlog/",
+      "view": "unfold.admin.ModelAdmin.changelist_view"
+    },
+    {
+      "name": "admin:platform_runtime_platformeventlog_delete",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/platformeventlog/<path:object_id>/delete/",
+      "view": "django.contrib.admin.options.ModelAdmin.delete_view"
+    },
+    {
+      "name": "admin:platform_runtime_platformeventlog_history",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/platformeventlog/<path:object_id>/history/",
       "view": "django.contrib.admin.options.ModelAdmin.history_view"
     },
     {
@@ -16178,7 +16352,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 60,
+          "line": 63,
           "name": "automation:visual_workflow_list",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"automation:visual_workflow_list\")",
@@ -16193,13 +16367,55 @@
       "view": "apps.automation.views_visual_workflow.visual_workflow_list"
     },
     {
+      "name": "automation:visual_workflow_publish",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 61,
+          "name": "automation:visual_workflow_publish",
+          "path": "apps/automation/views_visual_workflow.py",
+          "raw": "reverse(\"automation:visual_workflow_publish\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/automation/workflows/api/publish/",
+      "view": "apps.automation.views_visual_workflow.visual_workflow_publish"
+    },
+    {
+      "name": "automation:visual_workflow_rollback",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 62,
+          "name": "automation:visual_workflow_rollback",
+          "path": "apps/automation/views_visual_workflow.py",
+          "raw": "reverse(\"automation:visual_workflow_rollback\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/automation/workflows/api/rollback/",
+      "view": "apps.automation.views_visual_workflow.visual_workflow_rollback"
+    },
+    {
       "name": "automation:visual_workflow_save_graph",
       "permission_requirement": "control_plane",
       "reasons": [],
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 58,
+          "line": 59,
           "name": "automation:visual_workflow_save_graph",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"automation:visual_workflow_save_graph\")",
@@ -16220,7 +16436,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 59,
+          "line": 60,
           "name": "automation:visual_workflow_simulate",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"automation:visual_workflow_simulate\")",
@@ -16356,7 +16572,7 @@
         },
         {
           "kind": "reverse",
-          "line": 148,
+          "line": 160,
           "name": "home",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"home\")",
@@ -16365,7 +16581,7 @@
         },
         {
           "kind": "reverse",
-          "line": 168,
+          "line": 180,
           "name": "home",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"home\")",
@@ -16374,7 +16590,7 @@
         },
         {
           "kind": "reverse",
-          "line": 196,
+          "line": 215,
           "name": "home",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"home\")",
@@ -19437,6 +19653,15 @@
         },
         {
           "kind": "reverse",
+          "line": 276,
+          "name": "siteconfig:compliance_exports",
+          "path": "apps/siteconfig/tests/test_compliance_exports.py",
+          "raw": "reverse(\"siteconfig:compliance_exports\", urlconf=\"config.tenant_urls\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 84,
           "name": "siteconfig:compliance_exports",
           "path": "apps/security/tests/test_absolute_security_enforcement.py",
@@ -20927,7 +21152,7 @@
         },
         {
           "kind": "template_url",
-          "line": 223,
+          "line": 233,
           "name": "siteconfig:feature_control_audit",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'siteconfig:feature_control_audit' %}",
@@ -23374,7 +23599,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 48,
+          "line": 49,
           "name": "siteconfig:school_automation_builder",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"siteconfig:school_automation_builder\")",
@@ -25708,7 +25933,7 @@
         },
         {
           "kind": "template_url",
-          "line": 42,
+          "line": 52,
           "name": "studio_os:automation",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:automation' %}",
@@ -25717,7 +25942,7 @@
         },
         {
           "kind": "template_url",
-          "line": 65,
+          "line": 75,
           "name": "studio_os:automation",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:automation' %}",
@@ -25990,7 +26215,7 @@
         },
         {
           "kind": "template_url",
-          "line": 45,
+          "line": 55,
           "name": "studio_os:control",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:control' %}",
@@ -25999,7 +26224,7 @@
         },
         {
           "kind": "template_url",
-          "line": 68,
+          "line": 78,
           "name": "studio_os:control",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:control' %}",
@@ -26518,7 +26743,7 @@
         },
         {
           "kind": "template_url",
-          "line": 41,
+          "line": 18,
           "name": "studio_os:experience",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:experience' %}",
@@ -26527,7 +26752,16 @@
         },
         {
           "kind": "template_url",
-          "line": 64,
+          "line": 51,
+          "name": "studio_os:experience",
+          "path": "templates/studio_os/shell.html",
+          "raw": "{% url 'studio_os:experience' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 74,
           "name": "studio_os:experience",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:experience' %}",
@@ -26943,7 +27177,7 @@
         },
         {
           "kind": "template_url",
-          "line": 44,
+          "line": 54,
           "name": "studio_os:launch",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:launch' %}",
@@ -26952,7 +27186,7 @@
         },
         {
           "kind": "template_url",
-          "line": 67,
+          "line": 77,
           "name": "studio_os:launch",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:launch' %}",
@@ -27526,7 +27760,7 @@
         },
         {
           "kind": "template_url",
-          "line": 43,
+          "line": 53,
           "name": "studio_os:output",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:output' %}",
@@ -27535,7 +27769,7 @@
         },
         {
           "kind": "template_url",
-          "line": 66,
+          "line": 76,
           "name": "studio_os:output",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:output' %}",
@@ -28001,7 +28235,7 @@
         },
         {
           "kind": "template_url",
-          "line": 20,
+          "line": 26,
           "name": "studio_os:shell",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:shell' %}",
@@ -28010,7 +28244,7 @@
         },
         {
           "kind": "template_url",
-          "line": 40,
+          "line": 50,
           "name": "studio_os:shell",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:shell' %}",
@@ -28019,7 +28253,7 @@
         },
         {
           "kind": "template_url",
-          "line": 90,
+          "line": 100,
           "name": "studio_os:shell",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:shell' as studio_shell_home %}",
@@ -28939,7 +29173,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 716,
+          "line": 725,
           "name": "super:api_school_timeline",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"super:api_school_timeline\", args=[school.id])",
@@ -29029,6 +29263,15 @@
         },
         {
           "kind": "reverse",
+          "line": 257,
+          "name": "super:app_catalog",
+          "path": "apps/platform_runtime/tests/test_experience_single_action_ui.py",
+          "raw": "reverse(\"super:app_catalog\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 162,
           "name": "super:app_catalog",
           "path": "apps/marketplace/tests/test_governance.py",
@@ -29051,7 +29294,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 218,
+          "line": 232,
           "name": "super:app_catalog",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:app_catalog' as super_app_catalog_post_url %}",
@@ -29072,6 +29315,15 @@
           "line": 24,
           "name": "super:app_catalog",
           "path": "templates/marketplace/compatibility_matrix.html",
+          "raw": "{% url 'super:app_catalog' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 25,
+          "name": "super:app_catalog",
+          "path": "templates/marketplace/installation_health.html",
           "raw": "{% url 'super:app_catalog' %}",
           "reason": "",
           "status": "OK"
@@ -29437,7 +29689,16 @@
         },
         {
           "kind": "template_url",
-          "line": 26,
+          "line": 32,
+          "name": "super:blueprint_marketplace",
+          "path": "templates/marketplace/app_catalog.html",
+          "raw": "{% url 'super:blueprint_marketplace' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 39,
           "name": "super:blueprint_marketplace",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:blueprint_marketplace' %}",
@@ -30981,7 +31242,16 @@
         },
         {
           "kind": "template_url",
-          "line": 24,
+          "line": 30,
+          "name": "super:dashboard",
+          "path": "templates/marketplace/app_catalog.html",
+          "raw": "{% url 'super:dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 37,
           "name": "super:dashboard",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:dashboard' %}",
@@ -31377,7 +31647,7 @@
         },
         {
           "kind": "template_url",
-          "line": 18,
+          "line": 24,
           "name": "super:dashboard",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'super:dashboard' %}",
@@ -32237,7 +32507,16 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 25,
+          "line": 31,
+          "name": "super:marketplace_governance",
+          "path": "templates/marketplace/app_catalog.html",
+          "raw": "{% url 'super:marketplace_governance' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 38,
           "name": "super:marketplace_governance",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:marketplace_governance' %}",
@@ -32330,7 +32609,16 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 26,
+          "line": 31,
+          "name": "super:marketplace_incident_dashboard",
+          "path": "templates/marketplace/installation_health.html",
+          "raw": "{% url 'super:marketplace_incident_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 37,
           "name": "super:marketplace_incident_dashboard",
           "path": "templates/marketplace/installation_health.html",
           "raw": "{% url 'super:marketplace_incident_dashboard' %}",
@@ -32384,7 +32672,17 @@
       "name": "super:marketplace_installation_health",
       "permission_requirement": "control_plane",
       "reasons": [],
-      "reverse_usage": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 288,
+          "name": "super:marketplace_installation_health",
+          "path": "apps/platform_runtime/tests/test_experience_single_action_ui.py",
+          "raw": "reverse(\"super:marketplace_installation_health\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "scope": "manager",
       "status": "OK",
       "template_usage": [
@@ -32420,7 +32718,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 57,
+          "line": 69,
           "name": "super:marketplace_refresh_installation",
           "path": "templates/marketplace/installation_health.html",
           "raw": "{% url 'super:marketplace_refresh_installation' %}",
@@ -32462,7 +32760,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 27,
+          "line": 33,
           "name": "super:marketplace_sandbox_inspector",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:marketplace_sandbox_inspector' %}",
@@ -32471,7 +32769,25 @@
         },
         {
           "kind": "template_url",
-          "line": 25,
+          "line": 40,
+          "name": "super:marketplace_sandbox_inspector",
+          "path": "templates/marketplace/app_catalog.html",
+          "raw": "{% url 'super:marketplace_sandbox_inspector' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 30,
+          "name": "super:marketplace_sandbox_inspector",
+          "path": "templates/marketplace/installation_health.html",
+          "raw": "{% url 'super:marketplace_sandbox_inspector' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 36,
           "name": "super:marketplace_sandbox_inspector",
           "path": "templates/marketplace/installation_health.html",
           "raw": "{% url 'super:marketplace_sandbox_inspector' %}",
@@ -36933,7 +37249,7 @@
         },
         {
           "kind": "reverse",
-          "line": 39,
+          "line": 40,
           "name": "accounts:backend_dashboard",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -36942,7 +37258,7 @@
         },
         {
           "kind": "reverse",
-          "line": 43,
+          "line": 44,
           "name": "accounts:backend_dashboard",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -36951,7 +37267,7 @@
         },
         {
           "kind": "reverse",
-          "line": 50,
+          "line": 51,
           "name": "accounts:backend_dashboard",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -37005,7 +37321,7 @@
         },
         {
           "kind": "reverse",
-          "line": 597,
+          "line": 606,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -37831,6 +38147,15 @@
           "line": 607,
           "name": "accounts:backend_dashboard",
           "path": "templates/schools/super_dashboard.html",
+          "raw": "{% url 'accounts:backend_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 28,
+          "name": "accounts:backend_dashboard",
+          "path": "templates/siteconfig/compliance_exports.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
           "reason": "",
           "status": "OK"
@@ -39735,7 +40060,7 @@
         },
         {
           "kind": "template_url",
-          "line": 13,
+          "line": 14,
           "name": "accounts:login",
           "path": "templates/student/learning_home.html",
           "raw": "{% url 'accounts:login' %}",
@@ -39828,7 +40153,7 @@
         },
         {
           "kind": "template_url",
-          "line": 13,
+          "line": 14,
           "name": "accounts:logout",
           "path": "templates/student/learning_home.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -41749,7 +42074,7 @@
         },
         {
           "kind": "template_url",
-          "line": 752,
+          "line": 753,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -47053,6 +47378,116 @@
       "view": "django.contrib.admin.sites.AdminSite.password_change_done"
     },
     {
+      "name": "admin:platform_runtime_eventwebhookdelivery_add",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhookdelivery/add/",
+      "view": "django.contrib.admin.options.ModelAdmin.add_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhookdelivery_change",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhookdelivery/<path:object_id>/change/",
+      "view": "django.contrib.admin.options.ModelAdmin.change_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhookdelivery_changelist",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhookdelivery/",
+      "view": "unfold.admin.ModelAdmin.changelist_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhookdelivery_delete",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhookdelivery/<path:object_id>/delete/",
+      "view": "django.contrib.admin.options.ModelAdmin.delete_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhookdelivery_history",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhookdelivery/<path:object_id>/history/",
+      "view": "django.contrib.admin.options.ModelAdmin.history_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhooksubscription_add",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhooksubscription/add/",
+      "view": "django.contrib.admin.options.ModelAdmin.add_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhooksubscription_change",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhooksubscription/<path:object_id>/change/",
+      "view": "django.contrib.admin.options.ModelAdmin.change_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhooksubscription_changelist",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhooksubscription/",
+      "view": "unfold.admin.ModelAdmin.changelist_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhooksubscription_delete",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhooksubscription/<path:object_id>/delete/",
+      "view": "django.contrib.admin.options.ModelAdmin.delete_view"
+    },
+    {
+      "name": "admin:platform_runtime_eventwebhooksubscription_history",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/eventwebhooksubscription/<path:object_id>/history/",
+      "view": "django.contrib.admin.options.ModelAdmin.history_view"
+    },
+    {
       "name": "admin:platform_runtime_fleetgovernedchange_add",
       "permission_requirement": "control_plane",
       "reasons": [],
@@ -47115,6 +47550,61 @@
       "status": "OK",
       "template_usage": [],
       "url_path": "/admin/platform_runtime/fleetgovernedchange/<path:object_id>/history/",
+      "view": "django.contrib.admin.options.ModelAdmin.history_view"
+    },
+    {
+      "name": "admin:platform_runtime_platformeventlog_add",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/platformeventlog/add/",
+      "view": "django.contrib.admin.options.ModelAdmin.add_view"
+    },
+    {
+      "name": "admin:platform_runtime_platformeventlog_change",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/platformeventlog/<path:object_id>/change/",
+      "view": "django.contrib.admin.options.ModelAdmin.change_view"
+    },
+    {
+      "name": "admin:platform_runtime_platformeventlog_changelist",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/platformeventlog/",
+      "view": "unfold.admin.ModelAdmin.changelist_view"
+    },
+    {
+      "name": "admin:platform_runtime_platformeventlog_delete",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/platformeventlog/<path:object_id>/delete/",
+      "view": "django.contrib.admin.options.ModelAdmin.delete_view"
+    },
+    {
+      "name": "admin:platform_runtime_platformeventlog_history",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/platform_runtime/platformeventlog/<path:object_id>/history/",
       "view": "django.contrib.admin.options.ModelAdmin.history_view"
     },
     {
@@ -52349,6 +52839,141 @@
       "view": "apps.analytics.views.grading_deadlines"
     },
     {
+      "name": "analytics:decision_engagement_dashboard",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 14,
+          "name": "analytics:decision_engagement_dashboard",
+          "path": "templates/analytics/includes/decision_nav.html",
+          "raw": "{% url 'analytics:decision_engagement_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/analytics/decision/engagement/",
+      "view": "apps.analytics.views_governed.decision_engagement_dashboard"
+    },
+    {
+      "name": "analytics:decision_founder_dashboard",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 21,
+          "name": "analytics:decision_founder_dashboard",
+          "path": "templates/analytics/includes/decision_nav.html",
+          "raw": "{% url 'analytics:decision_founder_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/analytics/decision/founder/",
+      "view": "apps.analytics.views_governed.decision_founder_dashboard"
+    },
+    {
+      "name": "analytics:decision_intelligence_dashboard",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "analytics:decision_intelligence_dashboard",
+          "path": "templates/analytics/governed_report_builder.html",
+          "raw": "{% url 'analytics:decision_intelligence_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 5,
+          "name": "analytics:decision_intelligence_dashboard",
+          "path": "templates/analytics/includes/decision_nav.html",
+          "raw": "{% url 'analytics:decision_intelligence_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/analytics/decision-intelligence/",
+      "view": "apps.analytics.views_governed.decision_intelligence_dashboard"
+    },
+    {
+      "name": "analytics:decision_revenue_dashboard",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 11,
+          "name": "analytics:decision_revenue_dashboard",
+          "path": "templates/analytics/includes/decision_nav.html",
+          "raw": "{% url 'analytics:decision_revenue_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/analytics/decision/revenue/",
+      "view": "apps.analytics.views_governed.decision_revenue_dashboard"
+    },
+    {
+      "name": "analytics:decision_risk_dashboard",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 17,
+          "name": "analytics:decision_risk_dashboard",
+          "path": "templates/analytics/includes/decision_nav.html",
+          "raw": "{% url 'analytics:decision_risk_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/analytics/decision/risk/",
+      "view": "apps.analytics.views_governed.decision_risk_dashboard"
+    },
+    {
+      "name": "analytics:decision_school_health_dashboard",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 8,
+          "name": "analytics:decision_school_health_dashboard",
+          "path": "templates/analytics/includes/decision_nav.html",
+          "raw": "{% url 'analytics:decision_school_health_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/analytics/decision/school-health/",
+      "view": "apps.analytics.views_governed.decision_school_health_dashboard"
+    },
+    {
       "name": "analytics:executive_dashboard",
       "permission_requirement": "public",
       "reasons": [],
@@ -52379,6 +53004,153 @@
       "template_usage": [],
       "url_path": "/analytics/api/forecaster/",
       "view": "apps.analytics.views.forecaster_api"
+    },
+    {
+      "name": "analytics:governed_query_export_csv",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 95,
+          "name": "analytics:governed_query_export_csv",
+          "path": "apps/analytics/views_governed.py",
+          "raw": "reverse(\"analytics:governed_query_export_csv\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/analytics/governed/export.csv",
+      "view": "apps.analytics.views_governed.governed_query_export_csv"
+    },
+    {
+      "name": "analytics:governed_query_export_json",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 96,
+          "name": "analytics:governed_query_export_json",
+          "path": "apps/analytics/views_governed.py",
+          "raw": "reverse(\"analytics:governed_query_export_json\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/analytics/governed/export.json",
+      "view": "apps.analytics.views_governed.governed_query_export_json"
+    },
+    {
+      "name": "analytics:governed_query_preview",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 94,
+          "name": "analytics:governed_query_preview",
+          "path": "apps/analytics/views_governed.py",
+          "raw": "reverse(\"analytics:governed_query_preview\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/analytics/governed/query/preview/",
+      "view": "apps.analytics.views_governed.governed_query_preview"
+    },
+    {
+      "name": "analytics:governed_report_builder",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 25,
+          "name": "analytics:governed_report_builder",
+          "path": "templates/analytics/includes/decision_nav.html",
+          "raw": "{% url 'analytics:governed_report_builder' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/analytics/governed/report-builder/",
+      "view": "apps.analytics.views_governed.governed_report_builder"
+    },
+    {
+      "name": "analytics:governed_saved_report_run",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 99,
+          "name": "analytics:governed_saved_report_run",
+          "path": "apps/analytics/views_governed.py",
+          "raw": "reverse(\n                \"analytics:governed_saved_report_run\",\n                kwargs={\"report_id\": _run_magic},\n            )",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/analytics/governed/saved/<int:report_id>/run/",
+      "view": "apps.analytics.views_governed.governed_saved_report_run"
+    },
+    {
+      "name": "analytics:governed_saved_report_save",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 98,
+          "name": "analytics:governed_saved_report_save",
+          "path": "apps/analytics/views_governed.py",
+          "raw": "reverse(\"analytics:governed_saved_report_save\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/analytics/governed/saved/new/",
+      "view": "apps.analytics.views_governed.governed_saved_report_save"
+    },
+    {
+      "name": "analytics:governed_saved_reports_list",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 97,
+          "name": "analytics:governed_saved_reports_list",
+          "path": "apps/analytics/views_governed.py",
+          "raw": "reverse(\"analytics:governed_saved_reports_list\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/analytics/governed/saved/",
+      "view": "apps.analytics.views_governed.governed_saved_reports_list"
     },
     {
       "name": "analytics:master_sheet",
@@ -53032,7 +53804,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 34,
+          "line": 44,
           "name": "api:ai-studio-os-assistant",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'api:ai-studio-os-assistant' as api_studio_ai %}",
@@ -58104,7 +58876,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 502,
+          "line": 511,
           "name": "api_trial_school",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"api_trial_school\")",
@@ -58419,7 +59191,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3171,
+          "line": 3174,
           "name": "api_v1:platform-integration-context",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"api_v1:platform-integration-context\")",
@@ -58431,6 +59203,15 @@
           "line": 130,
           "name": "api_v1:platform-integration-context",
           "path": "apps/marketplace/tests/test_developer_platform.py",
+          "raw": "reverse(\"api_v1:platform-integration-context\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 123,
+          "name": "api_v1:platform-integration-context",
+          "path": "apps/apicenter/tests/test_developer_platform_e2e.py",
           "raw": "reverse(\"api_v1:platform-integration-context\")",
           "reason": "",
           "status": "OK"
@@ -58449,7 +59230,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3174,
+          "line": 3177,
           "name": "api_v1:platform-scoped-ping",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"api_v1:platform-scoped-ping\")",
@@ -58461,6 +59242,24 @@
           "line": 137,
           "name": "api_v1:platform-scoped-ping",
           "path": "apps/marketplace/tests/test_developer_platform.py",
+          "raw": "reverse(\"api_v1:platform-scoped-ping\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 137,
+          "name": "api_v1:platform-scoped-ping",
+          "path": "apps/apicenter/tests/test_developer_platform_e2e.py",
+          "raw": "reverse(\"api_v1:platform-scoped-ping\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 176,
+          "name": "api_v1:platform-scoped-ping",
+          "path": "apps/apicenter/tests/test_developer_platform_e2e.py",
           "raw": "reverse(\"api_v1:platform-scoped-ping\")",
           "reason": "",
           "status": "OK"
@@ -59356,7 +60155,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 60,
+          "line": 63,
           "name": "automation:visual_workflow_list",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"automation:visual_workflow_list\")",
@@ -59371,13 +60170,55 @@
       "view": "apps.automation.views_visual_workflow.visual_workflow_list"
     },
     {
+      "name": "automation:visual_workflow_publish",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 61,
+          "name": "automation:visual_workflow_publish",
+          "path": "apps/automation/views_visual_workflow.py",
+          "raw": "reverse(\"automation:visual_workflow_publish\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/automation/workflows/api/publish/",
+      "view": "apps.automation.views_visual_workflow.visual_workflow_publish"
+    },
+    {
+      "name": "automation:visual_workflow_rollback",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 62,
+          "name": "automation:visual_workflow_rollback",
+          "path": "apps/automation/views_visual_workflow.py",
+          "raw": "reverse(\"automation:visual_workflow_rollback\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/automation/workflows/api/rollback/",
+      "view": "apps.automation.views_visual_workflow.visual_workflow_rollback"
+    },
+    {
       "name": "automation:visual_workflow_save_graph",
       "permission_requirement": "public",
       "reasons": [],
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 58,
+          "line": 59,
           "name": "automation:visual_workflow_save_graph",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"automation:visual_workflow_save_graph\")",
@@ -59398,7 +60239,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 59,
+          "line": 60,
           "name": "automation:visual_workflow_simulate",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"automation:visual_workflow_simulate\")",
@@ -60538,7 +61379,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3164,
+          "line": 3167,
           "name": "developer_hub",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_hub\")",
@@ -60559,7 +61400,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3231,
+          "line": 3234,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -60568,7 +61409,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3204,
+          "line": 3207,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -60617,7 +61458,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3177,
+          "line": 3180,
           "name": "developer_public_api_docs",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_public_api_docs\")",
@@ -60638,7 +61479,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3206,
+          "line": 3209,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -60647,7 +61488,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3232,
+          "line": 3235,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -62415,7 +63256,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 523,
+          "line": 527,
           "name": "finance:invoice_request_access",
           "path": "apps/finance/views_invoicing.py",
           "raw": "reverse(\n                \"finance:invoice_request_access\", args=[invoice.id]\n            )",
@@ -62870,7 +63711,7 @@
         },
         {
           "kind": "template_url",
-          "line": 353,
+          "line": 379,
           "name": "finance:payments",
           "path": "templates/finance/invoice_detail.html",
           "raw": "{% url 'finance:payments' %}",
@@ -63223,7 +64064,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 133,
+          "line": 134,
           "name": "finance:upload_payment_receipt",
           "path": "apps/finance/tests/test_receipt_upload_flow.py",
           "raw": "reverse(\"finance:upload_payment_receipt\", args=[self.invoice.id])",
@@ -63232,7 +64073,7 @@
         },
         {
           "kind": "reverse",
-          "line": 194,
+          "line": 195,
           "name": "finance:upload_payment_receipt",
           "path": "apps/finance/tests/test_receipt_upload_flow.py",
           "raw": "reverse(\"finance:upload_payment_receipt\", args=[self.invoice.id])",
@@ -63245,7 +64086,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 263,
+          "line": 285,
           "name": "finance:upload_payment_receipt",
           "path": "templates/finance/invoice_detail.html",
           "raw": "{% url 'finance:upload_payment_receipt' invoice.id %}",
@@ -63686,7 +64527,7 @@
         },
         {
           "kind": "reverse",
-          "line": 148,
+          "line": 160,
           "name": "home",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"home\")",
@@ -63695,7 +64536,7 @@
         },
         {
           "kind": "reverse",
-          "line": 168,
+          "line": 180,
           "name": "home",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"home\")",
@@ -63704,7 +64545,7 @@
         },
         {
           "kind": "reverse",
-          "line": 196,
+          "line": 215,
           "name": "home",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"home\")",
@@ -67393,7 +68234,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3166,
+          "line": 3169,
           "name": "oauth:authorize",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"oauth:authorize\")",
@@ -67414,7 +68255,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3168,
+          "line": 3171,
           "name": "oauth:token",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"oauth:token\")",
@@ -67456,7 +68297,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 442,
+          "line": 451,
           "name": "onboard_wizard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_wizard\")",
@@ -67465,7 +68306,7 @@
         },
         {
           "kind": "reverse",
-          "line": 471,
+          "line": 480,
           "name": "onboard_wizard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_wizard\")",
@@ -67474,7 +68315,7 @@
         },
         {
           "kind": "reverse",
-          "line": 457,
+          "line": 466,
           "name": "onboard_wizard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_wizard\")",
@@ -68756,7 +69597,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 56,
+          "line": 57,
           "name": "portal:offline_sync_queue",
           "path": "templates/portal/offline_sync_conflicts.html",
           "raw": "{% url 'portal:offline_sync_queue' %}",
@@ -69284,11 +70125,20 @@
         },
         {
           "kind": "template_url",
-          "line": 144,
+          "line": 155,
           "name": "portal:parent_dashboard",
           "path": "templates/parent/finance.html",
           "raw": "{% url 'portal:parent_dashboard' %}",
           "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 209,
+          "name": "portal:parent_dashboard",
+          "path": "templates/parent/finance.html",
+          "raw": "{% url 'portal:parent_dashboard' as parent_dash_url %}",
+          "reason": "requires template context arguments",
           "status": "OK"
         },
         {
@@ -69551,6 +70401,15 @@
           "line": 959,
           "name": "portal:parent_finance",
           "path": "apps/portal/views_parent.py",
+          "raw": "reverse(\"portal:parent_finance\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 138,
+          "name": "portal:parent_finance",
+          "path": "apps/portal/tests/test_magic_ux_portal_surfaces_http.py",
           "raw": "reverse(\"portal:parent_finance\")",
           "reason": "",
           "status": "OK"
@@ -70747,7 +71606,17 @@
       "name": "portal:student_portal_grades",
       "permission_requirement": "authenticated",
       "reasons": [],
-      "reverse_usage": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 67,
+          "name": "portal:student_portal_grades",
+          "path": "apps/portal/tests/test_magic_ux_portal_surfaces_http.py",
+          "raw": "reverse(\"portal:student_portal_grades\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "scope": "public",
       "status": "OK",
       "template_usage": [],
@@ -71165,6 +72034,15 @@
           "raw": "reverse(\"portal:teacher_attendance\")",
           "reason": "protected by NoReverseMatch fallback",
           "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 46,
+          "name": "portal:teacher_attendance",
+          "path": "apps/portal/tests/test_magic_ux_portal_surfaces_http.py",
+          "raw": "reverse(\"portal:teacher_attendance\")",
+          "reason": "",
+          "status": "OK"
         }
       ],
       "scope": "public",
@@ -71421,6 +72299,15 @@
           "path": "templates/portal/unified_calendar.html",
           "raw": "{% url 'portal:teacher_dashboard_alias' %}",
           "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 64,
+          "name": "portal:teacher_dashboard_alias",
+          "path": "templates/teacher/attendance.html",
+          "raw": "{% url 'portal:teacher_dashboard_alias' as teacher_dash_url %}",
+          "reason": "requires template context arguments",
           "status": "OK"
         },
         {
@@ -73139,7 +74026,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 492,
+          "line": 501,
           "name": "signup_school",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"signup_school\")",
@@ -74181,6 +75068,15 @@
         {
           "kind": "reverse",
           "line": 250,
+          "name": "siteconfig:compliance_exports",
+          "path": "apps/siteconfig/tests/test_compliance_exports.py",
+          "raw": "reverse(\"siteconfig:compliance_exports\", urlconf=\"config.tenant_urls\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 276,
           "name": "siteconfig:compliance_exports",
           "path": "apps/siteconfig/tests/test_compliance_exports.py",
           "raw": "reverse(\"siteconfig:compliance_exports\", urlconf=\"config.tenant_urls\")",
@@ -75679,7 +76575,7 @@
         },
         {
           "kind": "template_url",
-          "line": 223,
+          "line": 233,
           "name": "siteconfig:feature_control_audit",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'siteconfig:feature_control_audit' %}",
@@ -78126,7 +79022,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 48,
+          "line": 49,
           "name": "siteconfig:school_automation_builder",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"siteconfig:school_automation_builder\")",
@@ -80460,7 +81356,7 @@
         },
         {
           "kind": "template_url",
-          "line": 42,
+          "line": 52,
           "name": "studio_os:automation",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:automation' %}",
@@ -80469,7 +81365,7 @@
         },
         {
           "kind": "template_url",
-          "line": 65,
+          "line": 75,
           "name": "studio_os:automation",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:automation' %}",
@@ -80742,7 +81638,7 @@
         },
         {
           "kind": "template_url",
-          "line": 45,
+          "line": 55,
           "name": "studio_os:control",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:control' %}",
@@ -80751,7 +81647,7 @@
         },
         {
           "kind": "template_url",
-          "line": 68,
+          "line": 78,
           "name": "studio_os:control",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:control' %}",
@@ -81270,7 +82166,7 @@
         },
         {
           "kind": "template_url",
-          "line": 41,
+          "line": 18,
           "name": "studio_os:experience",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:experience' %}",
@@ -81279,7 +82175,16 @@
         },
         {
           "kind": "template_url",
-          "line": 64,
+          "line": 51,
+          "name": "studio_os:experience",
+          "path": "templates/studio_os/shell.html",
+          "raw": "{% url 'studio_os:experience' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 74,
           "name": "studio_os:experience",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:experience' %}",
@@ -81695,7 +82600,7 @@
         },
         {
           "kind": "template_url",
-          "line": 44,
+          "line": 54,
           "name": "studio_os:launch",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:launch' %}",
@@ -81704,7 +82609,7 @@
         },
         {
           "kind": "template_url",
-          "line": 67,
+          "line": 77,
           "name": "studio_os:launch",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:launch' %}",
@@ -82278,7 +83183,7 @@
         },
         {
           "kind": "template_url",
-          "line": 43,
+          "line": 53,
           "name": "studio_os:output",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:output' %}",
@@ -82287,7 +83192,7 @@
         },
         {
           "kind": "template_url",
-          "line": 66,
+          "line": 76,
           "name": "studio_os:output",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:output' %}",
@@ -82753,7 +83658,7 @@
         },
         {
           "kind": "template_url",
-          "line": 20,
+          "line": 26,
           "name": "studio_os:shell",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:shell' %}",
@@ -82762,7 +83667,7 @@
         },
         {
           "kind": "template_url",
-          "line": 40,
+          "line": 50,
           "name": "studio_os:shell",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:shell' %}",
@@ -82771,7 +83676,7 @@
         },
         {
           "kind": "template_url",
-          "line": 90,
+          "line": 100,
           "name": "studio_os:shell",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:shell' as studio_shell_home %}",
@@ -83691,7 +84596,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 716,
+          "line": 725,
           "name": "super:api_school_timeline",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"super:api_school_timeline\", args=[school.id])",
@@ -83781,6 +84686,15 @@
         },
         {
           "kind": "reverse",
+          "line": 257,
+          "name": "super:app_catalog",
+          "path": "apps/platform_runtime/tests/test_experience_single_action_ui.py",
+          "raw": "reverse(\"super:app_catalog\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 162,
           "name": "super:app_catalog",
           "path": "apps/marketplace/tests/test_governance.py",
@@ -83803,7 +84717,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 218,
+          "line": 232,
           "name": "super:app_catalog",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:app_catalog' as super_app_catalog_post_url %}",
@@ -83824,6 +84738,15 @@
           "line": 24,
           "name": "super:app_catalog",
           "path": "templates/marketplace/compatibility_matrix.html",
+          "raw": "{% url 'super:app_catalog' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 25,
+          "name": "super:app_catalog",
+          "path": "templates/marketplace/installation_health.html",
           "raw": "{% url 'super:app_catalog' %}",
           "reason": "",
           "status": "OK"
@@ -84189,7 +85112,16 @@
         },
         {
           "kind": "template_url",
-          "line": 26,
+          "line": 32,
+          "name": "super:blueprint_marketplace",
+          "path": "templates/marketplace/app_catalog.html",
+          "raw": "{% url 'super:blueprint_marketplace' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 39,
           "name": "super:blueprint_marketplace",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:blueprint_marketplace' %}",
@@ -85733,7 +86665,16 @@
         },
         {
           "kind": "template_url",
-          "line": 24,
+          "line": 30,
+          "name": "super:dashboard",
+          "path": "templates/marketplace/app_catalog.html",
+          "raw": "{% url 'super:dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 37,
           "name": "super:dashboard",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:dashboard' %}",
@@ -86129,7 +87070,7 @@
         },
         {
           "kind": "template_url",
-          "line": 18,
+          "line": 24,
           "name": "super:dashboard",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'super:dashboard' %}",
@@ -86989,7 +87930,16 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 25,
+          "line": 31,
+          "name": "super:marketplace_governance",
+          "path": "templates/marketplace/app_catalog.html",
+          "raw": "{% url 'super:marketplace_governance' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 38,
           "name": "super:marketplace_governance",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:marketplace_governance' %}",
@@ -87082,7 +88032,16 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 26,
+          "line": 31,
+          "name": "super:marketplace_incident_dashboard",
+          "path": "templates/marketplace/installation_health.html",
+          "raw": "{% url 'super:marketplace_incident_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 37,
           "name": "super:marketplace_incident_dashboard",
           "path": "templates/marketplace/installation_health.html",
           "raw": "{% url 'super:marketplace_incident_dashboard' %}",
@@ -87136,7 +88095,17 @@
       "name": "super:marketplace_installation_health",
       "permission_requirement": "control_plane",
       "reasons": [],
-      "reverse_usage": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 288,
+          "name": "super:marketplace_installation_health",
+          "path": "apps/platform_runtime/tests/test_experience_single_action_ui.py",
+          "raw": "reverse(\"super:marketplace_installation_health\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "scope": "public",
       "status": "OK",
       "template_usage": [
@@ -87172,7 +88141,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 57,
+          "line": 69,
           "name": "super:marketplace_refresh_installation",
           "path": "templates/marketplace/installation_health.html",
           "raw": "{% url 'super:marketplace_refresh_installation' %}",
@@ -87214,7 +88183,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 27,
+          "line": 33,
           "name": "super:marketplace_sandbox_inspector",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:marketplace_sandbox_inspector' %}",
@@ -87223,7 +88192,25 @@
         },
         {
           "kind": "template_url",
-          "line": 25,
+          "line": 40,
+          "name": "super:marketplace_sandbox_inspector",
+          "path": "templates/marketplace/app_catalog.html",
+          "raw": "{% url 'super:marketplace_sandbox_inspector' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 30,
+          "name": "super:marketplace_sandbox_inspector",
+          "path": "templates/marketplace/installation_health.html",
+          "raw": "{% url 'super:marketplace_sandbox_inspector' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 36,
           "name": "super:marketplace_sandbox_inspector",
           "path": "templates/marketplace/installation_health.html",
           "raw": "{% url 'super:marketplace_sandbox_inspector' %}",
@@ -91303,7 +92290,7 @@
         },
         {
           "kind": "reverse",
-          "line": 39,
+          "line": 40,
           "name": "accounts:backend_dashboard",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -91312,7 +92299,7 @@
         },
         {
           "kind": "reverse",
-          "line": 43,
+          "line": 44,
           "name": "accounts:backend_dashboard",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -91321,7 +92308,7 @@
         },
         {
           "kind": "reverse",
-          "line": 50,
+          "line": 51,
           "name": "accounts:backend_dashboard",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -91375,7 +92362,7 @@
         },
         {
           "kind": "reverse",
-          "line": 597,
+          "line": 606,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -92201,6 +93188,15 @@
           "line": 607,
           "name": "accounts:backend_dashboard",
           "path": "templates/schools/super_dashboard.html",
+          "raw": "{% url 'accounts:backend_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 28,
+          "name": "accounts:backend_dashboard",
+          "path": "templates/siteconfig/compliance_exports.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
           "reason": "",
           "status": "OK"
@@ -94105,7 +95101,7 @@
         },
         {
           "kind": "template_url",
-          "line": 13,
+          "line": 14,
           "name": "accounts:login",
           "path": "templates/student/learning_home.html",
           "raw": "{% url 'accounts:login' %}",
@@ -94198,7 +95194,7 @@
         },
         {
           "kind": "template_url",
-          "line": 13,
+          "line": 14,
           "name": "accounts:logout",
           "path": "templates/student/learning_home.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -96119,7 +97115,7 @@
         },
         {
           "kind": "template_url",
-          "line": 752,
+          "line": 753,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -96545,7 +97541,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 502,
+          "line": 511,
           "name": "api_trial_school",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"api_trial_school\")",
@@ -96697,7 +97693,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3164,
+          "line": 3167,
           "name": "developer_hub",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_hub\")",
@@ -96729,7 +97725,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3231,
+          "line": 3234,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -96738,7 +97734,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3204,
+          "line": 3207,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -96778,7 +97774,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3206,
+          "line": 3209,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -96787,7 +97783,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3232,
+          "line": 3235,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -97285,7 +98281,7 @@
         },
         {
           "kind": "reverse",
-          "line": 148,
+          "line": 160,
           "name": "home",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"home\")",
@@ -97294,7 +98290,7 @@
         },
         {
           "kind": "reverse",
-          "line": 168,
+          "line": 180,
           "name": "home",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"home\")",
@@ -97303,7 +98299,7 @@
         },
         {
           "kind": "reverse",
-          "line": 196,
+          "line": 215,
           "name": "home",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"home\")",
@@ -99586,7 +100582,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 442,
+          "line": 451,
           "name": "onboard_wizard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_wizard\")",
@@ -99595,7 +100591,7 @@
         },
         {
           "kind": "reverse",
-          "line": 471,
+          "line": 480,
           "name": "onboard_wizard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_wizard\")",
@@ -99604,7 +100600,7 @@
         },
         {
           "kind": "reverse",
-          "line": 457,
+          "line": 466,
           "name": "onboard_wizard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_wizard\")",
@@ -99941,7 +100937,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 492,
+          "line": 501,
           "name": "signup_school",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"signup_school\")",
@@ -101181,7 +102177,7 @@
         },
         {
           "kind": "reverse",
-          "line": 39,
+          "line": 40,
           "name": "accounts:backend_dashboard",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -101190,7 +102186,7 @@
         },
         {
           "kind": "reverse",
-          "line": 43,
+          "line": 44,
           "name": "accounts:backend_dashboard",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -101199,7 +102195,7 @@
         },
         {
           "kind": "reverse",
-          "line": 50,
+          "line": 51,
           "name": "accounts:backend_dashboard",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -101253,7 +102249,7 @@
         },
         {
           "kind": "reverse",
-          "line": 597,
+          "line": 606,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -102079,6 +103075,15 @@
           "line": 607,
           "name": "accounts:backend_dashboard",
           "path": "templates/schools/super_dashboard.html",
+          "raw": "{% url 'accounts:backend_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 28,
+          "name": "accounts:backend_dashboard",
+          "path": "templates/siteconfig/compliance_exports.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
           "reason": "",
           "status": "OK"
@@ -103983,7 +104988,7 @@
         },
         {
           "kind": "template_url",
-          "line": 13,
+          "line": 14,
           "name": "accounts:login",
           "path": "templates/student/learning_home.html",
           "raw": "{% url 'accounts:login' %}",
@@ -104076,7 +105081,7 @@
         },
         {
           "kind": "template_url",
-          "line": 13,
+          "line": 14,
           "name": "accounts:logout",
           "path": "templates/student/learning_home.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -105997,7 +107002,7 @@
         },
         {
           "kind": "template_url",
-          "line": 752,
+          "line": 753,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -108678,6 +109683,61 @@
       "status": "OK",
       "template_usage": [],
       "url_path": "/admin/analytics/benchmarkaggregate/<path:object_id>/history/",
+      "view": "django.contrib.admin.options.ModelAdmin.history_view"
+    },
+    {
+      "name": "admin:analytics_governedsavedreport_add",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/analytics/governedsavedreport/add/",
+      "view": "django.contrib.admin.options.ModelAdmin.add_view"
+    },
+    {
+      "name": "admin:analytics_governedsavedreport_change",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/analytics/governedsavedreport/<path:object_id>/change/",
+      "view": "django.contrib.admin.options.ModelAdmin.change_view"
+    },
+    {
+      "name": "admin:analytics_governedsavedreport_changelist",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/analytics/governedsavedreport/",
+      "view": "unfold.admin.ModelAdmin.changelist_view"
+    },
+    {
+      "name": "admin:analytics_governedsavedreport_delete",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/analytics/governedsavedreport/<path:object_id>/delete/",
+      "view": "django.contrib.admin.options.ModelAdmin.delete_view"
+    },
+    {
+      "name": "admin:analytics_governedsavedreport_history",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admin/analytics/governedsavedreport/<path:object_id>/history/",
       "view": "django.contrib.admin.options.ModelAdmin.history_view"
     },
     {
@@ -120120,6 +121180,141 @@
       "view": "apps.analytics.views.grading_deadlines"
     },
     {
+      "name": "analytics:decision_engagement_dashboard",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 14,
+          "name": "analytics:decision_engagement_dashboard",
+          "path": "templates/analytics/includes/decision_nav.html",
+          "raw": "{% url 'analytics:decision_engagement_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/analytics/decision/engagement/",
+      "view": "apps.analytics.views_governed.decision_engagement_dashboard"
+    },
+    {
+      "name": "analytics:decision_founder_dashboard",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 21,
+          "name": "analytics:decision_founder_dashboard",
+          "path": "templates/analytics/includes/decision_nav.html",
+          "raw": "{% url 'analytics:decision_founder_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/analytics/decision/founder/",
+      "view": "apps.analytics.views_governed.decision_founder_dashboard"
+    },
+    {
+      "name": "analytics:decision_intelligence_dashboard",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "analytics:decision_intelligence_dashboard",
+          "path": "templates/analytics/governed_report_builder.html",
+          "raw": "{% url 'analytics:decision_intelligence_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 5,
+          "name": "analytics:decision_intelligence_dashboard",
+          "path": "templates/analytics/includes/decision_nav.html",
+          "raw": "{% url 'analytics:decision_intelligence_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/analytics/decision-intelligence/",
+      "view": "apps.analytics.views_governed.decision_intelligence_dashboard"
+    },
+    {
+      "name": "analytics:decision_revenue_dashboard",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 11,
+          "name": "analytics:decision_revenue_dashboard",
+          "path": "templates/analytics/includes/decision_nav.html",
+          "raw": "{% url 'analytics:decision_revenue_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/analytics/decision/revenue/",
+      "view": "apps.analytics.views_governed.decision_revenue_dashboard"
+    },
+    {
+      "name": "analytics:decision_risk_dashboard",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 17,
+          "name": "analytics:decision_risk_dashboard",
+          "path": "templates/analytics/includes/decision_nav.html",
+          "raw": "{% url 'analytics:decision_risk_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/analytics/decision/risk/",
+      "view": "apps.analytics.views_governed.decision_risk_dashboard"
+    },
+    {
+      "name": "analytics:decision_school_health_dashboard",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 8,
+          "name": "analytics:decision_school_health_dashboard",
+          "path": "templates/analytics/includes/decision_nav.html",
+          "raw": "{% url 'analytics:decision_school_health_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/analytics/decision/school-health/",
+      "view": "apps.analytics.views_governed.decision_school_health_dashboard"
+    },
+    {
       "name": "analytics:executive_dashboard",
       "permission_requirement": "public",
       "reasons": [],
@@ -120150,6 +121345,153 @@
       "template_usage": [],
       "url_path": "/analytics/api/forecaster/",
       "view": "apps.analytics.views.forecaster_api"
+    },
+    {
+      "name": "analytics:governed_query_export_csv",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 95,
+          "name": "analytics:governed_query_export_csv",
+          "path": "apps/analytics/views_governed.py",
+          "raw": "reverse(\"analytics:governed_query_export_csv\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/analytics/governed/export.csv",
+      "view": "apps.analytics.views_governed.governed_query_export_csv"
+    },
+    {
+      "name": "analytics:governed_query_export_json",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 96,
+          "name": "analytics:governed_query_export_json",
+          "path": "apps/analytics/views_governed.py",
+          "raw": "reverse(\"analytics:governed_query_export_json\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/analytics/governed/export.json",
+      "view": "apps.analytics.views_governed.governed_query_export_json"
+    },
+    {
+      "name": "analytics:governed_query_preview",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 94,
+          "name": "analytics:governed_query_preview",
+          "path": "apps/analytics/views_governed.py",
+          "raw": "reverse(\"analytics:governed_query_preview\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/analytics/governed/query/preview/",
+      "view": "apps.analytics.views_governed.governed_query_preview"
+    },
+    {
+      "name": "analytics:governed_report_builder",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 25,
+          "name": "analytics:governed_report_builder",
+          "path": "templates/analytics/includes/decision_nav.html",
+          "raw": "{% url 'analytics:governed_report_builder' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/analytics/governed/report-builder/",
+      "view": "apps.analytics.views_governed.governed_report_builder"
+    },
+    {
+      "name": "analytics:governed_saved_report_run",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 99,
+          "name": "analytics:governed_saved_report_run",
+          "path": "apps/analytics/views_governed.py",
+          "raw": "reverse(\n                \"analytics:governed_saved_report_run\",\n                kwargs={\"report_id\": _run_magic},\n            )",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        }
+      ],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/analytics/governed/saved/<int:report_id>/run/",
+      "view": "apps.analytics.views_governed.governed_saved_report_run"
+    },
+    {
+      "name": "analytics:governed_saved_report_save",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 98,
+          "name": "analytics:governed_saved_report_save",
+          "path": "apps/analytics/views_governed.py",
+          "raw": "reverse(\"analytics:governed_saved_report_save\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/analytics/governed/saved/new/",
+      "view": "apps.analytics.views_governed.governed_saved_report_save"
+    },
+    {
+      "name": "analytics:governed_saved_reports_list",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 97,
+          "name": "analytics:governed_saved_reports_list",
+          "path": "apps/analytics/views_governed.py",
+          "raw": "reverse(\"analytics:governed_saved_reports_list\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/analytics/governed/saved/",
+      "view": "apps.analytics.views_governed.governed_saved_reports_list"
     },
     {
       "name": "analytics:master_sheet",
@@ -120803,7 +122145,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 34,
+          "line": 44,
           "name": "api:ai-studio-os-assistant",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'api:ai-studio-os-assistant' as api_studio_ai %}",
@@ -126201,7 +127543,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3171,
+          "line": 3174,
           "name": "api_v1:platform-integration-context",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"api_v1:platform-integration-context\")",
@@ -126213,6 +127555,15 @@
           "line": 130,
           "name": "api_v1:platform-integration-context",
           "path": "apps/marketplace/tests/test_developer_platform.py",
+          "raw": "reverse(\"api_v1:platform-integration-context\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 123,
+          "name": "api_v1:platform-integration-context",
+          "path": "apps/apicenter/tests/test_developer_platform_e2e.py",
           "raw": "reverse(\"api_v1:platform-integration-context\")",
           "reason": "",
           "status": "OK"
@@ -126231,7 +127582,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3174,
+          "line": 3177,
           "name": "api_v1:platform-scoped-ping",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"api_v1:platform-scoped-ping\")",
@@ -126243,6 +127594,24 @@
           "line": 137,
           "name": "api_v1:platform-scoped-ping",
           "path": "apps/marketplace/tests/test_developer_platform.py",
+          "raw": "reverse(\"api_v1:platform-scoped-ping\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 137,
+          "name": "api_v1:platform-scoped-ping",
+          "path": "apps/apicenter/tests/test_developer_platform_e2e.py",
+          "raw": "reverse(\"api_v1:platform-scoped-ping\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 176,
+          "name": "api_v1:platform-scoped-ping",
+          "path": "apps/apicenter/tests/test_developer_platform_e2e.py",
           "raw": "reverse(\"api_v1:platform-scoped-ping\")",
           "reason": "",
           "status": "OK"
@@ -128206,7 +129575,7 @@
         },
         {
           "kind": "reverse",
-          "line": 205,
+          "line": 224,
           "name": "demo_flow_attendance",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"demo_flow_attendance\")",
@@ -128215,7 +129584,7 @@
         },
         {
           "kind": "reverse",
-          "line": 152,
+          "line": 164,
           "name": "demo_flow_attendance",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"demo_flow_attendance\")",
@@ -128224,7 +129593,7 @@
         },
         {
           "kind": "reverse",
-          "line": 172,
+          "line": 184,
           "name": "demo_flow_attendance",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"demo_flow_attendance\")",
@@ -128233,7 +129602,7 @@
         },
         {
           "kind": "reverse",
-          "line": 200,
+          "line": 219,
           "name": "demo_flow_attendance",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"demo_flow_attendance\")",
@@ -128275,7 +129644,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 157,
+          "line": 169,
           "name": "demo_flow_complete",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"demo_flow_complete\")",
@@ -128284,7 +129653,7 @@
         },
         {
           "kind": "reverse",
-          "line": 188,
+          "line": 207,
           "name": "demo_flow_complete",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"demo_flow_complete\")",
@@ -128344,7 +129713,7 @@
         },
         {
           "kind": "reverse",
-          "line": 156,
+          "line": 168,
           "name": "demo_flow_marks",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"demo_flow_marks\")",
@@ -128362,7 +129731,7 @@
         },
         {
           "kind": "reverse",
-          "line": 153,
+          "line": 165,
           "name": "demo_flow_marks",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"demo_flow_marks\")",
@@ -128371,7 +129740,7 @@
         },
         {
           "kind": "reverse",
-          "line": 173,
+          "line": 185,
           "name": "demo_flow_marks",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"demo_flow_marks\")",
@@ -128380,7 +129749,7 @@
         },
         {
           "kind": "reverse",
-          "line": 202,
+          "line": 221,
           "name": "demo_flow_marks",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"demo_flow_marks\")",
@@ -128431,7 +129800,7 @@
         },
         {
           "kind": "reverse",
-          "line": 140,
+          "line": 152,
           "name": "demo_flow_report",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"demo_flow_report\")",
@@ -128440,7 +129809,7 @@
         },
         {
           "kind": "reverse",
-          "line": 204,
+          "line": 223,
           "name": "demo_flow_report",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"demo_flow_report\")",
@@ -130189,7 +131558,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 523,
+          "line": 527,
           "name": "finance:invoice_request_access",
           "path": "apps/finance/views_invoicing.py",
           "raw": "reverse(\n                \"finance:invoice_request_access\", args=[invoice.id]\n            )",
@@ -130644,7 +132013,7 @@
         },
         {
           "kind": "template_url",
-          "line": 353,
+          "line": 379,
           "name": "finance:payments",
           "path": "templates/finance/invoice_detail.html",
           "raw": "{% url 'finance:payments' %}",
@@ -130997,7 +132366,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 133,
+          "line": 134,
           "name": "finance:upload_payment_receipt",
           "path": "apps/finance/tests/test_receipt_upload_flow.py",
           "raw": "reverse(\"finance:upload_payment_receipt\", args=[self.invoice.id])",
@@ -131006,7 +132375,7 @@
         },
         {
           "kind": "reverse",
-          "line": 194,
+          "line": 195,
           "name": "finance:upload_payment_receipt",
           "path": "apps/finance/tests/test_receipt_upload_flow.py",
           "raw": "reverse(\"finance:upload_payment_receipt\", args=[self.invoice.id])",
@@ -131019,7 +132388,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 263,
+          "line": 285,
           "name": "finance:upload_payment_receipt",
           "path": "templates/finance/invoice_detail.html",
           "raw": "{% url 'finance:upload_payment_receipt' invoice.id %}",
@@ -131152,7 +132521,7 @@
         },
         {
           "kind": "reverse",
-          "line": 148,
+          "line": 160,
           "name": "home",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"home\")",
@@ -131161,7 +132530,7 @@
         },
         {
           "kind": "reverse",
-          "line": 168,
+          "line": 180,
           "name": "home",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"home\")",
@@ -131170,7 +132539,7 @@
         },
         {
           "kind": "reverse",
-          "line": 196,
+          "line": 215,
           "name": "home",
           "path": "apps/schools/demo_conversion_views.py",
           "raw": "reverse(\"home\")",
@@ -132686,7 +134055,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 255,
+          "line": 266,
           "name": "marketplace:app_purchase_intent",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'marketplace:app_purchase_intent' listing.app.pk as purchase_intent_url %}",
@@ -134022,7 +135391,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 56,
+          "line": 57,
           "name": "portal:offline_sync_queue",
           "path": "templates/portal/offline_sync_conflicts.html",
           "raw": "{% url 'portal:offline_sync_queue' %}",
@@ -134550,11 +135919,20 @@
         },
         {
           "kind": "template_url",
-          "line": 144,
+          "line": 155,
           "name": "portal:parent_dashboard",
           "path": "templates/parent/finance.html",
           "raw": "{% url 'portal:parent_dashboard' %}",
           "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 209,
+          "name": "portal:parent_dashboard",
+          "path": "templates/parent/finance.html",
+          "raw": "{% url 'portal:parent_dashboard' as parent_dash_url %}",
+          "reason": "requires template context arguments",
           "status": "OK"
         },
         {
@@ -134817,6 +136195,15 @@
           "line": 959,
           "name": "portal:parent_finance",
           "path": "apps/portal/views_parent.py",
+          "raw": "reverse(\"portal:parent_finance\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 138,
+          "name": "portal:parent_finance",
+          "path": "apps/portal/tests/test_magic_ux_portal_surfaces_http.py",
           "raw": "reverse(\"portal:parent_finance\")",
           "reason": "",
           "status": "OK"
@@ -136013,7 +137400,17 @@
       "name": "portal:student_portal_grades",
       "permission_requirement": "authenticated",
       "reasons": [],
-      "reverse_usage": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 67,
+          "name": "portal:student_portal_grades",
+          "path": "apps/portal/tests/test_magic_ux_portal_surfaces_http.py",
+          "raw": "reverse(\"portal:student_portal_grades\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "scope": "tenant",
       "status": "OK",
       "template_usage": [],
@@ -136431,6 +137828,15 @@
           "raw": "reverse(\"portal:teacher_attendance\")",
           "reason": "protected by NoReverseMatch fallback",
           "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 46,
+          "name": "portal:teacher_attendance",
+          "path": "apps/portal/tests/test_magic_ux_portal_surfaces_http.py",
+          "raw": "reverse(\"portal:teacher_attendance\")",
+          "reason": "",
+          "status": "OK"
         }
       ],
       "scope": "tenant",
@@ -136687,6 +138093,15 @@
           "path": "templates/portal/unified_calendar.html",
           "raw": "{% url 'portal:teacher_dashboard_alias' %}",
           "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 64,
+          "name": "portal:teacher_dashboard_alias",
+          "path": "templates/teacher/attendance.html",
+          "raw": "{% url 'portal:teacher_dashboard_alias' as teacher_dash_url %}",
+          "reason": "requires template context arguments",
           "status": "OK"
         },
         {
@@ -139042,6 +140457,15 @@
         },
         {
           "kind": "reverse",
+          "line": 276,
+          "name": "siteconfig:compliance_exports",
+          "path": "apps/siteconfig/tests/test_compliance_exports.py",
+          "raw": "reverse(\"siteconfig:compliance_exports\", urlconf=\"config.tenant_urls\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 84,
           "name": "siteconfig:compliance_exports",
           "path": "apps/security/tests/test_absolute_security_enforcement.py",
@@ -140532,7 +141956,7 @@
         },
         {
           "kind": "template_url",
-          "line": 223,
+          "line": 233,
           "name": "siteconfig:feature_control_audit",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'siteconfig:feature_control_audit' %}",
@@ -142979,7 +144403,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 48,
+          "line": 49,
           "name": "siteconfig:school_automation_builder",
           "path": "apps/automation/views_visual_workflow.py",
           "raw": "reverse(\"siteconfig:school_automation_builder\")",
@@ -145313,7 +146737,7 @@
         },
         {
           "kind": "template_url",
-          "line": 42,
+          "line": 52,
           "name": "studio_os:automation",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:automation' %}",
@@ -145322,7 +146746,7 @@
         },
         {
           "kind": "template_url",
-          "line": 65,
+          "line": 75,
           "name": "studio_os:automation",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:automation' %}",
@@ -145595,7 +147019,7 @@
         },
         {
           "kind": "template_url",
-          "line": 45,
+          "line": 55,
           "name": "studio_os:control",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:control' %}",
@@ -145604,7 +147028,7 @@
         },
         {
           "kind": "template_url",
-          "line": 68,
+          "line": 78,
           "name": "studio_os:control",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:control' %}",
@@ -146123,7 +147547,7 @@
         },
         {
           "kind": "template_url",
-          "line": 41,
+          "line": 18,
           "name": "studio_os:experience",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:experience' %}",
@@ -146132,7 +147556,16 @@
         },
         {
           "kind": "template_url",
-          "line": 64,
+          "line": 51,
+          "name": "studio_os:experience",
+          "path": "templates/studio_os/shell.html",
+          "raw": "{% url 'studio_os:experience' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 74,
           "name": "studio_os:experience",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:experience' %}",
@@ -146548,7 +147981,7 @@
         },
         {
           "kind": "template_url",
-          "line": 44,
+          "line": 54,
           "name": "studio_os:launch",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:launch' %}",
@@ -146557,7 +147990,7 @@
         },
         {
           "kind": "template_url",
-          "line": 67,
+          "line": 77,
           "name": "studio_os:launch",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:launch' %}",
@@ -147131,7 +148564,7 @@
         },
         {
           "kind": "template_url",
-          "line": 43,
+          "line": 53,
           "name": "studio_os:output",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:output' %}",
@@ -147140,7 +148573,7 @@
         },
         {
           "kind": "template_url",
-          "line": 66,
+          "line": 76,
           "name": "studio_os:output",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:output' %}",
@@ -147606,7 +149039,7 @@
         },
         {
           "kind": "template_url",
-          "line": 20,
+          "line": 26,
           "name": "studio_os:shell",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:shell' %}",
@@ -147615,7 +149048,7 @@
         },
         {
           "kind": "template_url",
-          "line": 40,
+          "line": 50,
           "name": "studio_os:shell",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:shell' %}",
@@ -147624,7 +149057,7 @@
         },
         {
           "kind": "template_url",
-          "line": 90,
+          "line": 100,
           "name": "studio_os:shell",
           "path": "templates/studio_os/shell.html",
           "raw": "{% url 'studio_os:shell' as studio_shell_home %}",
@@ -148085,6 +149518,15 @@
         },
         {
           "kind": "reverse",
+          "line": 51,
+          "name": "tenant_app_catalog",
+          "path": "apps/marketplace/tests/test_tenant_catalog_magic_ux_strict.py",
+          "raw": "reverse(\"tenant_app_catalog\", urlconf=\"config.tenant_urls\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 244,
           "name": "tenant_app_catalog",
           "path": "apps/accounts/tests/test_smoke_urls.py",
@@ -148185,7 +149627,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 377,
+          "line": 388,
           "name": "tenant_install_app",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_install_app' as tenant_install_app_url %}",
@@ -148227,7 +149669,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 69,
+          "line": 81,
           "name": "tenant_installed_apps",
           "path": "templates/marketplace/installation_health.html",
           "raw": "{% url 'tenant_installed_apps' as installed_url %}",
@@ -148236,7 +149678,7 @@
         },
         {
           "kind": "template_url",
-          "line": 44,
+          "line": 49,
           "name": "tenant_installed_apps",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_installed_apps' %}",
@@ -148245,7 +149687,7 @@
         },
         {
           "kind": "template_url",
-          "line": 84,
+          "line": 54,
           "name": "tenant_installed_apps",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_installed_apps' %}",
@@ -148254,7 +149696,7 @@
         },
         {
           "kind": "template_url",
-          "line": 245,
+          "line": 95,
           "name": "tenant_installed_apps",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_installed_apps' %}",
@@ -148263,7 +149705,7 @@
         },
         {
           "kind": "template_url",
-          "line": 246,
+          "line": 256,
           "name": "tenant_installed_apps",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_installed_apps' %}",
@@ -148272,7 +149714,7 @@
         },
         {
           "kind": "template_url",
-          "line": 249,
+          "line": 257,
           "name": "tenant_installed_apps",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_installed_apps' %}",
@@ -148281,7 +149723,16 @@
         },
         {
           "kind": "template_url",
-          "line": 271,
+          "line": 260,
+          "name": "tenant_installed_apps",
+          "path": "templates/marketplace/tenant_app_catalog.html",
+          "raw": "{% url 'tenant_installed_apps' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 282,
           "name": "tenant_installed_apps",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_installed_apps' as installed_apps_url %}",
@@ -148341,7 +149792,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 45,
+          "line": 50,
           "name": "tenant_scope_consent",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_scope_consent' %}",
@@ -148350,7 +149801,16 @@
         },
         {
           "kind": "template_url",
-          "line": 259,
+          "line": 55,
+          "name": "tenant_scope_consent",
+          "path": "templates/marketplace/tenant_app_catalog.html",
+          "raw": "{% url 'tenant_scope_consent' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 270,
           "name": "tenant_scope_consent",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_scope_consent' %}",
@@ -148423,12 +149883,12 @@
   ],
   "summary": {
     "broken_count": 0,
-    "reverse_usages": 2075,
+    "reverse_usages": 2093,
     "risk_count": 0,
-    "routes_audited": 5524,
+    "routes_audited": 5589,
     "status": "ROUTE SYSTEM CERTIFIED",
-    "template_href_action_usages": 92,
-    "template_url_usages": 1725
+    "template_href_action_usages": 99,
+    "template_url_usages": 1746
   },
   "urlconfs": {
     "manager": "config.manager_urls",

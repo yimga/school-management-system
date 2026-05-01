@@ -17,6 +17,8 @@
       </form>
       {% if teachers_with_status %}
         <form method="post" action="{% url 'portal:record_teacher_attendance' %}"
+              data-rmc-offline-form="attendance"
+              data-rmc-attendance-scope="teacher"
               data-draft-key="teacher_roll_{{ date_value }}"
               data-draft-max-age-hours="72"
               data-offline-hint="{% trans 'Offline: teacher attendance is queued and syncs when you are back online.' %}"

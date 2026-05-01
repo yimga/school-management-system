@@ -243,18 +243,53 @@ def dispatch_grade_submitted_workflows(sender, instance, created, **kwargs):
     try:
         from apps.siteconfig.workflow_triggers import dispatch_domain_triggers_safe
 
-        dispatch_domain_triggers_safe(
-            school,
-            "grade_submitted",
-            {
-                "evaluation_id": instance.pk,
-                "student_id": getattr(instance, "student_id", None),
-                "subject_assignment_id": getattr(instance, "subject_assignment_id", None),
-                "created": created,
-                "total_score": str(instance.total_score)
-                if getattr(instance, "total_score", None) is not None
-                else None,
-            },
-        )
+        payload = {
+            "evaluation_id": instance.pk,
+            "student_id": getattr(instance, "student_id", None),
+            "subject_assignment_id": getattr(instance, "subject_assignment_id", None),
+            "created": created,
+            "total_score": str(instance.total_score)
+            if getattr(instance, "total_score", None) is not None
+            else None,
+        }
+        dispatch_domain_triggers_safe(school, "grade_submitted", payload)
+        dispatch_domain_triggers_safe(school, "marks_submitted", payload)
     except ImportError:
         pass
+
+
+@receiver(post_save, sender=Evaluation)
+def emit_marks_submitted_platform_event(sender, instance, **kwargs):
+    """Platform event bus: marks_submitted for workflows, webhooks, analytics."""
+    if not _evaluation_has_substantive_scores(instance):
+        return
+    classroom = getattr(
+        getattr(instance, "subject_assignment", None), "classroom", None
+    )
+    school = getattr(instance, "school", None) or (
+        getattr(classroom, "school", None) if classroom else None
+    )
+    if not school:
+        return
+    try:
+        from apps.platform_runtime.event_bus import publish_event
+
+        tid = str(school.pk)
+        publish_event(
+            "marks_submitted",
+            {
+                "evaluation_id": instance.pk,
+                "student_id": str(instance.student_id),
+                "school_id": tid,
+                "subject_assignment_id": instance.subject_assignment_id,
+                "term_id": instance.term_id,
+                "source": "evals.signals",
+            },
+            tenant_id=tid,
+            school_id=school.pk,
+            idempotency_key=(
+                f"marks_submitted:{instance.pk}:{instance.updated_at.isoformat()}"
+            )[:128],
+        )
+    except (_EVALS_AUDIT_FAILURES + (ImportError,)) as exc:
+        logger.debug("emit_marks_submitted_platform_event: %s", exc)

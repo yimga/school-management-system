@@ -105,20 +105,27 @@ def emit_student_created_event(sender, instance, created, **kwargs):
         )
         logger.debug("emit student.created skipped: %s", e)
     try:
-        from apps.platform_runtime.events import emit_platform_event
+        from apps.platform_runtime.event_bus import publish_event
 
-        emit_platform_event(
+        tid = str(school_id) if school_id else ""
+        publish_event(
             "student_created",
-            {"student_id": instance.id, "school_id": school_id},
+            {
+                "student_id": instance.id,
+                "school_id": school_id,
+                "source": "people.signals",
+            },
+            tenant_id=tid or None,
             school_id=school_id,
+            idempotency_key=f"student_created:{instance.id}",
         )
     except _SIGNAL_EMIT_ERRORS as e:
         log_exception_with_context(
-            "emit_platform_event student_created skipped",
+            "publish_event student_created skipped",
             school_id=school_id,
             extra={"student_id": instance.id},
         )
-        logger.debug("emit_platform_event student_created skipped: %s", e)
+        logger.debug("publish_event student_created skipped: %s", e)
 
 
 @receiver(post_save, sender=StudentProfile)

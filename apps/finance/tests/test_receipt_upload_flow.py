@@ -98,6 +98,7 @@ class ReceiptUploadFlowTests(TestCase):
         )
         self.assertContains(response, 'id="receipt-upload-form"')
         self.assertContains(response, 'id="idempotency_key"')
+        self.assertContains(response, "Regional payment corridor")
         self.assertContains(response, 'value="MTN_MOMO"')
         self.assertContains(response, 'value="ORANGE_MOMO"')
 

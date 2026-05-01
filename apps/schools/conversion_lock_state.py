@@ -102,4 +102,17 @@ def record_conversion_first_action(
             )
     except Exception:
         logger.debug("funnel first_action after conversion", exc_info=True)
+    try:
+        from apps.platform_runtime.event_bus import publish_event
+
+        tid = str(school.pk)
+        publish_event(
+            "conversion_first_action",
+            {"school_id": tid, "source": (source or "")[:200]},
+            tenant_id=tid,
+            school_id=school.pk,
+            idempotency_key=f"conversion_first_action:{school.pk}",
+        )
+    except Exception:
+        logger.debug("conversion_first_action platform event skipped", exc_info=True)
     return True

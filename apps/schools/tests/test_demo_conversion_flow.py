@@ -216,3 +216,27 @@ class DemoConversionFlowTests(TestCase):
             ).count(),
             1,
         )
+        self.assertEqual(
+            MarketingFunnelEvent.objects.filter(
+                school=self.school, event_type="demo_attendance_completed"
+            ).count(),
+            1,
+        )
+        self.assertEqual(
+            MarketingFunnelEvent.objects.filter(
+                school=self.school, event_type="demo_marks_completed"
+            ).count(),
+            1,
+        )
+        self.assertEqual(
+            MarketingFunnelEvent.objects.filter(
+                school=self.school, event_type="demo_report_completed"
+            ).count(),
+            1,
+        )
+        self.assertEqual(
+            MarketingFunnelEvent.objects.filter(
+                school=self.school, event_type="demo_cta_seen"
+            ).count(),
+            1,
+        )

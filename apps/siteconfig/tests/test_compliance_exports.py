@@ -268,3 +268,14 @@ class ComplianceExportsSlice5Tests(TestCase):
         )
         self.client.get(path)
         self.assertGreater(AuditLog.objects.count(), before)
+
+    @override_settings(CONVERSION_SINGLE_ACTION_ENFORCED=True)
+    def test_magic_ux_strict_wraps_secondary_links_in_more_actions(self):
+        u = self._perm_user()
+        self.client.force_login(u)
+        url = reverse("siteconfig:compliance_exports", urlconf="config.tenant_urls")
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200, msg=resp.content[:600])
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn("rmc-conversion-more-actions", body)
+        self.assertIn('data-task="compliance_export_hub"', body)

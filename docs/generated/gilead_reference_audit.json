@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-30T22:14:21.427705+00:00",
+  "generated_at": "2026-05-01T19:05:40.496599+00:00",
   "hits": [
     {
       "classification": "internal_tooling",
@@ -2206,1777 +2206,1783 @@
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "163",
+      "line": "29",
+      "preview": "**C. Verifier stack:** Route/security/post/tenant/raw-SQL/subprocess/Gilead/regional audits + **`verify_compliance_evidence`**, **`verify_shell_surface_inventory`**, **`verify_phase2_authenticated_she"
+    },
+    {
+      "classification": "docs_legacy",
+      "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
+      "line": "195",
       "preview": "**D. Verifiers:** Same bar as integration mission (**admin gravity**, **sitesettings surface**, **security/post/tenant/raw_sql/subprocess/gilead/regional/luxury**, **compliance evidence**, **shell inv"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "229",
+      "line": "261",
       "preview": "**C. Verifier/audit bar:** `audit_admin_gravity.py --strict`, `audit_sitesettings_python_surface.py`, `audit_security_surface.py`, `audit_post_surface.py`, `audit_tenant_isolation.py`, `audit_raw_sql_"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "275",
+      "line": "307",
       "preview": "**C. Verifiers + inventory:** `audit_admin_gravity --strict`, `audit_sitesettings_python_surface.py`, `audit_security_surface.py`, `audit_tenant_isolation.py`, `audit_raw_sql_usage.py`, `audit_subproc"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "283",
+      "line": "315",
       "preview": "**C. Full bar + verifiers:** `DJANGO_TEST_DB_FILE=.django_test_dbs/ns_ai_slice11.sqlite3 python manage.py test` \u2014 **`test_ai_assistant`**, **`test_security_enforcement`**, **`test_customer_health`** ("
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "293",
+      "line": "325",
       "preview": "**D. Verifiers:** admin gravity, sitesettings surface, security surface, tenant isolation, raw SQL, subprocess, Gilead refs strict-public, compliance evidence, shell inventory, phase2 shell conformanc"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "361",
+      "line": "393",
       "preview": "**B. Validations executed this session:** `audit_admin_gravity.py --strict`, `audit_sitesettings_python_surface.py`, `audit_security_surface.py`, `audit_tenant_isolation.py`, `audit_repo_complexity.py"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "375",
+      "line": "407",
       "preview": "**D. Validations:** Targeted `manage.py test` slice (**`--keepdb`**, 60 tests) + full verifier/audit chain (user list, including **`audit_gilead_references --strict-public`**) \u2014 **PASS**."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "383",
+      "line": "415",
       "preview": "**B. Scripts:** `verify_compliance_evidence.py`, `audit_admin_usage_extended.py`, `audit_raw_sql_usage.py`, `audit_tenant_isolation.py`, `audit_query_hotspots.py`, `audit_repo_complexity.py`, `audit_s"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "953",
+      "line": "985",
       "preview": "## Wave \u2014 \u00a711.4 batch 958: Phase III \u00a76.6 `brand_experience` \u2014 III.12 Gilead theme defaults PATH closure (2026-04-24)"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "955",
+      "line": "987",
       "preview": "**A. Scope:** **PATH \u00a76.6 III.12** \u2014 formal **DONE** with **`siteconfig` migration `0155_normalize_gilead_residue_runmycampus`**, existing **[NA_REGISTER_PATH_TO_100.md](NA_REGISTER_PATH_TO_100.md)** "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "957",
+      "line": "989",
       "preview": "**B. Implementation:** **`apps/brand_experience/tests/test_batch958_path_iii12_no_gilead_in_brand_product_tree.py`**; **`docs/PATH_TO_100_PERCENT_EXECUTION_PLAN.md`** (**III.5**, **III.12**); **`docs/"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "959",
+      "line": "991",
       "preview": "**C. Validation:** **`python manage.py test apps.brand_experience.tests.test_batch958_path_iii12_no_gilead_in_brand_product_tree --noinput -v 2`** \u2014 **1 OK**. **`python scripts/verify_doc_plan_density"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "2022",
+      "line": "2054",
       "preview": "## Slice - \u00a711.4 batch 879: Phase 12 Gilead residue \u2014 `lint_gilead_residue.py` contract tests (2026-04-09)"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "2024",
+      "line": "2056",
       "preview": "**A. Scope:** Lock the \u201cno runtime-visible Gilead residue\u201d gate by adding regression tests for the lint script\u2019s skip rules and scan modes."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "2026",
+      "line": "2058",
       "preview": "**B. Implementation:** Adds **`apps/platform_runtime/tests/test_lint_gilead_residue_script.py`** which loads **`scripts/lint_gilead_residue.py`** as a module and asserts:"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "2027",
+      "line": "2059",
       "preview": "- Passes when \u201cgilead\u201d appears only in skipped paths like `docs/`"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "2028",
+      "line": "2060",
       "preview": "- Fails when \u201cgilead\u201d appears in runtime-scanned surfaces like `templates/`"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "2031",
+      "line": "2063",
       "preview": "**C. Validation:** **`python manage.py test apps.platform_runtime.tests.test_lint_gilead_residue_script --noinput -v 2`** \u2014 **3 OK**. **`python scripts/lint_gilead_residue.py`** \u2014 **PASS**."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "2195",
+      "line": "2227",
       "preview": "## Slice - \u00a711.4 batch 851: Phase II.3 / Phase B SiteSettings \u2014 EMIS Gilead platform identity via `apply_feature_control_state` (2026-04-08)"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "3485",
+      "line": "3517",
       "preview": "**F. Follow-ons:** **`761+`** - coordinate the next SiteSettings, raw SQL, or Gilead slice without overlapping active work."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "3681",
+      "line": "3713",
       "preview": "**F. Follow-ons:** **`743+`** - coordinate the next SiteSettings, raw SQL, or Gilead slice without overlapping active work."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "4129",
+      "line": "4161",
       "preview": "**F. Follow-ons:** **`711+`** - coordinate next SiteSettings, Raw SQL, Gilead, or customer-success slice."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "5836",
+      "line": "5868",
       "preview": "**A. Scope:** **`verify_security_allowlists.py`** and **`verify_security_allowlist_density.py`** \u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u00a0\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u201e\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u00a2\u00e2\u201a\u00ac\u00c2\u00a0\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u00a2\u00e2\u20ac\u017e\u00c2\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u201a\u00c2\u00a0\u00c3\u0192\u00c6\u2019\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00a1\u00c3\u201a\u00c2\u00ac\u00c3\u0192\u00c2\u00a2\u00c3"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "5889",
+      "line": "5921",
       "preview": "## Slice - \u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u00a0\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u201e\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u00a2\u00e2\u201a\u00ac\u00c2\u00a0\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u00a2\u00e2\u20ac\u017e\u00c2\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u201a\u00c2\u00a0\u00c3\u0192\u00c6\u2019\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00a1\u00c3\u201a\u00c2\u00ac\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00be\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u00a0\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u201e\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00a1\u00c3\u201a\u00c2\u00ac\u00c3\u0192\u00e2\u20ac\u0161\u00c3\u201a\u00c2\u00a0\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u0161\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c6\u2019"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "5891",
+      "line": "5923",
       "preview": "**A. Scope:** **`lint_gilead_residue.py`** \u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u00a0\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u201e\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u00a2\u00e2\u201a\u00ac\u00c2\u00a0\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u00a2\u00e2\u20ac\u017e\u00c2\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u201a\u00c2\u00a0\u00c3\u0192\u00c6\u2019\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00a1\u00c3\u201a\u00c2\u00ac\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00be\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u00a0\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u201e\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00a1\u00c3\u201a\u00c2"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "5901",
+      "line": "5933",
       "preview": "**F. Follow-ons:** Premium-maturity **security lint lane** (raw SQL + csrf + allow_any + gilead residue) now shares the same **`main(argv)` / `main(None)` / explicit `--base`** subprocess pattern in t"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "5915",
+      "line": "5947",
       "preview": "**F. Follow-ons:** **`lint_gilead_residue.py`** `main(argv)` parity or hand off to siteconfig/marketplace depth \u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u00a0\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u201e\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u00a2\u00e2\u201a\u00ac\u00c2\u00a0\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u00a2\u00e2\u20ac\u017e\u00c2\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u201a\u00c2\u00a0\u00c3\u0192\u00c6\u2019\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c2\u00a2\u00c3"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "5959",
+      "line": "5991",
       "preview": "## Slice - \u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u00a0\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u201e\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u00a2\u00e2\u201a\u00ac\u00c2\u00a0\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u00a2\u00e2\u20ac\u017e\u00c2\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u201a\u00c2\u00a0\u00c3\u0192\u00c6\u2019\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00a1\u00c3\u201a\u00c2\u00ac\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00be\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u00a0\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u201e\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00a1\u00c3\u201a\u00c2\u00ac\u00c3\u0192\u00e2\u20ac\u0161\u00c3\u201a\u00c2\u00a0\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u0161\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c6\u2019"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "5961",
+      "line": "5993",
       "preview": "**A. Scope:** Phase 12 **full-tree Gilead classification** verifier hygiene \u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u00a0\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u201e\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u00a2\u00e2\u201a\u00ac\u00c2\u00a0\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u00a2\u00e2\u20ac\u017e\u00c2\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u201a\u00c2\u00a0\u00c3\u0192\u00c6\u2019\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00a1\u00c3\u201a\u00c2\u00ac\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00be\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "6029",
+      "line": "6061",
       "preview": "**F. Follow-ons:** **Raw SQL** / **Gilead** cadence **or** **`config/`** / **test-tree** P2 (**coordinate**) **or** Phase B typed tables **or** Postgres Playwright **or** shell matrix sign-off."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "6060",
+      "line": "6092",
       "preview": "## Slice ? \u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u00a0\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u201e\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u00a2\u00e2\u201a\u00ac\u00c2\u00a0\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u00a2\u00e2\u20ac\u017e\u00c2\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u201a\u00c2\u00a0\u00c3\u0192\u00c6\u2019\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00a1\u00c3\u201a\u00c2\u00ac\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00be\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u00a0\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u201e\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00a1\u00c3\u201a\u00c2\u00ac\u00c3\u0192\u00e2\u20ac\u0161\u00c3\u201a\u00c2\u00a0\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u0161\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c6\u2019"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "6062",
+      "line": "6094",
       "preview": "**A. Scope:** \u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u00a0\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u201e\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u00a2\u00e2\u201a\u00ac\u00c2\u00a0\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u00a2\u00e2\u20ac\u017e\u00c2\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac\u00c3\u201a\u00c2\u00a0\u00c3\u0192\u00c6\u2019\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00a1\u00c3\u201a\u00c2\u00ac\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00be\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u00a0\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u201e\u00a2\u00c3\u0192\u00c6\u2019\u00c3\u201a\u00c2\u00a2\u00c3\u0192\u00c2\u00a2\u00c3\u00a2\u00e2\u201a\u00ac\u00c5\u00a1\u00c3\u201a\u00c2\u00ac\u00c3\u0192\u00e2\u20ac\u0161\u00c3\u201a\u00c2\u00a0\u00c3\u0192\u00c6\u2019\u00c3\u2020\u00e2\u20ac\u2122\u00c3\u0192\u00e2\u20ac\u0161\u00c3\u201a\u00c2\u00a2\u00c3"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "6531",
+      "line": "6563",
       "preview": "**F. Follow-ons:** **P2** **batches 80?83** (rows below) **or** next inventory-led **P2** (**coordinate**) **or** repeat **Raw SQL** / **Gilead** / **Doc density** cadences **or** Postgres Playwright "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "6755",
+      "line": "6787",
       "preview": "**F. Follow-ons:** batch **79** (Raw SQL cadence ? row above); next inventory-led **P2** **`apps/**/*.py`** (**coordinate**); **or** **Gilead** (**batch 76**) **or** **Doc density** (**batch 77**); **"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "6819",
+      "line": "6851",
       "preview": "## Slice ? ?11.4 batch 76: Gilead residue ? live lint + full-tree classification cadence (2026-03-30)"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "6827",
+      "line": "6859",
       "preview": "**A. Scope:** ?0 **Gilead residue** ? bars **A** (runtime-visible lint) + **B** (full-tree classification) per [GILEAD_REFERENCE_CLASSIFICATION.md](GILEAD_REFERENCE_CLASSIFICATION.md); **not** gross c"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "7035",
+      "line": "7067",
       "preview": "**F. Follow-ons:** **`evals/runtime_gradebook.py`** ? log **batch 71** (row below); **`super_views_runtime_ops.py`** ? **batch 72**; next inventory **P2** file (**coordinate**); **or** **Raw SQL** / *"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "7203",
+      "line": "7235",
       "preview": "**F. Follow-ons:** **`super_views_phase_b.py`** P2 ? batch **70** (row above); next **P2** inventory file (**coordinate**); **or** **Raw SQL** / **Gilead** cadence; **or** Postgres Playwright; **or** "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "7323",
+      "line": "7355",
       "preview": "## Slice ? ?11.4 batch 67: Gilead residue ? live lint + full-tree verifier + helpers (cadence, 2026-03-29)"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "7331",
+      "line": "7363",
       "preview": "**A. Scope:** ?0 **Gilead residue (full tree)** ? close a **cadence slice** on bars **A** + **B** without claiming corpus ?done?; parallel **P2** **`phase8_declarations.py`** ? log **batch 68** (row a"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "7363",
+      "line": "7395",
       "preview": "**E. Risks / notes:** **PARTIAL** for gross corpus remains honest per ?0; **batch 66** (**P2** **`decision_architecture.py`**) is recorded in SOT + this file ? separate track from **Gilead** cadence."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "7539",
+      "line": "7571",
       "preview": "**F. Follow-ons:** **`platform_global_branding.py`** P2 ? batch **65** (row above); next **P2** from inventory (**coordinate**); **or** **Gilead** corpus program; **or** Postgres Playwright."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "8275",
+      "line": "8307",
       "preview": "## Slice ? ?11.4 batch 50: Gilead residue ? live lint + full-tree verifier + helpers (2026-03-29)"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "8283",
+      "line": "8315",
       "preview": "**A. Scope:** ?0 **Gilead residue (full tree)** ? close a **cadence slice** without claiming corpus ?done?: live bar + classification gate + unit tests."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "8315",
+      "line": "8347",
       "preview": "**E. Risks / notes:** **PARTIAL** remains correct for historical/docs/migration corpus until a dedicated retire program ships; do not confuse `report_premium_maturity_signals.py` gross counts with **`"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "8379",
+      "line": "8411",
       "preview": "**F. Follow-ons:** **Batch 50** Gilead cadence (row above); parallel **batches 48?49** siteconfig P2 below; then SOT **batch 51** queue."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "8547",
+      "line": "8579",
       "preview": "**F. Follow-ons:** Allowlist + ledger **batch 47** (row above); then shell / Gilead / AI / **`models.py`** per SOT **batch 49**."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "10259",
+      "line": "10291",
       "preview": "**A. Scope:** Align **AI / provider scatter** and continuous **Gilead / allowlist / doc density** maintenance with one doc pass and small gateway tests (no new strategy files)."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "11155",
+      "line": "11187",
       "preview": "## Premium maturity ? PARTIAL themes unlocked + inventory Gilead lint parity (2026-03-28)"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "11163",
+      "line": "11195",
       "preview": "**A. Scope:** Formalize the five **PARTIAL** Premium maturity rows as an **unlocked** A/B split (gates vs depth) in SOT **?0**; align **`scoped_gravity_counts.gilead_line_hits_*`** with **`lint_gilead"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "11195",
+      "line": "11227",
       "preview": "**E. Risks / notes:** Gross **`baseline_counts.gilead`** / migration corpus unchanged ? **full-tree** theme stays **PARTIAL** until classifier + historical data program say otherwise."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "11355",
+      "line": "11387",
       "preview": "| **5** | **P2:** [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) repository vs per-DB subsection; **P1:** [GILEAD_REFERENCE_CLASSIFICATION.md](GILEAD_REFERENCE_CLASSIFICATION.m"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "11851",
+      "line": "11883",
       "preview": "## Batch 14+ ? five-pack: `send_scheduled_reports` ops flags + hub non-staff test + smoke-light Gilead + docs (2026-03-27)"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "11899",
+      "line": "11931",
       "preview": "| **4** | **`.github/workflows/smoke-light.yml`** ? **`python scripts/verify_gilead_full_tree_classification.py`** (no Django DB). |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "11907",
+      "line": "11939",
       "preview": "| **5** | **[MANAGEMENT_COMMANDS_INDEX.md](MANAGEMENT_COMMANDS_INDEX.md)** + **[BILLING_SKUS_ENTITLEMENTS.md](BILLING_SKUS_ENTITLEMENTS.md)**; **Gilead** classifier allowlist **`.github/workflows/`** "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "11915",
+      "line": "11947",
       "preview": "## Batch 14+ ? five-pack: download/bulk gates + schedule admin + hub link + pre_deploy Gilead + tests (2026-03-28)"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "11963",
+      "line": "11995",
       "preview": "| **4** | **`pre_deploy_gate.sh`** runs **`verify_gilead_full_tree_classification.py`** after **`lint_gilead_residue.py`**. |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "11987",
+      "line": "12019",
       "preview": "## Batch 14+ ? staff publish/promotion plan gates + P2 marketplace secret queue clarity + Gilead cadence note (2026-03-27)"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "12011",
+      "line": "12043",
       "preview": "| **A. Scope** | Further report surfaces: **`/reports/publish/`**, **`/reports/promotion-preview/`** must respect plan **`reports`** (not manifest-only). Document that **P2 marketplace credential colu"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "12043",
+      "line": "12075",
       "preview": "| **E. Validation** | `pytest apps/schools/tests/test_plan_and_feature_gate.py::ReportStaffPublishPlanGateTests -q`; `python scripts/verify_gilead_full_tree_classification.py` on this train. |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "12107",
+      "line": "12139",
       "preview": "| **E. Validation** | `pytest` targeted modules; `python scripts/verify_phase_5_siteconfig.py`; `python scripts/verify_gilead_full_tree_classification.py` on cadence when corpus changes. |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "12171",
+      "line": "12203",
       "preview": "| **E. Validation** | `python manage.py migrate platform_runtime`; `pytest apps/platform_runtime/tests/test_runtime_defaults_marksheet_ocr_api_key_first_class.py -q`; `python scripts/verify_phase_5_si"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "12643",
+      "line": "12675",
       "preview": "| **E. Follow-on** | **HTTP gates:** ministry, parent PDF, custom builder, **scheduled delivery** (sections above); manifest vs plan: **`PlanEntitlementVsIsFeatureEnabledTests`**. **Marketplace secret"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "12875",
+      "line": "12907",
       "preview": "| **E. Next** | **P2 Batch 14** reconciliation slice or **Gilead corpus** program ? one theme per session. |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "13043",
+      "line": "13075",
       "preview": "| **B. Scripts run** | `lint_raw_sql_usage`, `lint_csrf_exempt_usage`, `lint_allow_any_usage`, `build_phase8_security_ledger --check`, `verify_security_allowlists`, `lint_gilead_residue`, `verify_gile"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "13483",
+      "line": "13515",
       "preview": "| **D. Validation** | Targeted pytest (premium maturity report, marketing derivation, runtime helper) **PASS**; `lint_gilead_residue.py` + `verify_i18n_catalog_fresh.py` **PASS**. |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "13499",
+      "line": "13531",
       "preview": "| **F. Legacy** | Historical **migrations** and default demo slug `gilead-school` remain DB history; SOT ?11.4 states lint bar vs gross corpus. |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "13875",
+      "line": "13907",
       "preview": "| **A. Scope** | Encode owner-listed **premium maturity** concerns (shell triad, siteconfig gravity, Gilead corpus, raw SQL / CSRF / AI key scatter, planning doc density, competitor context) as **PART"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "13883",
+      "line": "13915",
       "preview": "| **B. Finding** | Stale ?~331 cursor.execute? style bullets drift from tree reality; **runtime** raw SQL surface is much smaller than **migration-heavy** totals; **Gilead** repo-wide ? **lint_gilead_"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "14843",
+      "line": "14875",
       "preview": "| 12 | Gilead purge + docs discipline | SOT + classification |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19219",
+      "line": "19251",
       "preview": "## Program Phase 12 ? Gilead purge + docs discipline (2026-03-25)"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19227",
+      "line": "19259",
       "preview": "**Maps to SOT:** ?2.2 (Gilead residue purge), ?12 Gilead gate, workspace rule ?single execution source of truth.?"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19259",
+      "line": "19291",
       "preview": "| Lint-scoped runtime | `scripts/lint_gilead_residue.py` ? `apps/`, `services/`, `fixtures/`, `templates/`, `config/`, `render.yaml`, `QUICK_START.md`; skips `migrations/`, `tests/`, `docs/`, `managem"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19267",
+      "line": "19299",
       "preview": "| Occurrence inventory | `rg -i gilead` on `apps/`, `templates/`, `config/`, `static/`; doc set: `ADMIN_AUDIT.md`, `ADMIN_SIDEBAR_IMPROVEMENT_PLAN.md`, `PLATFORM_READINESS_CHECKLIST.md`, `GILEAD_REFER"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19307",
+      "line": "19339",
       "preview": "| Literal **?Gilead?** in backlog registry **title** | **High** (fails `lint_gilead_residue.py`, operator-visible label in super backlog center) | `backlog_unlock_registry.json` ? `gate_phases_3_11_st"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19315",
+      "line": "19347",
       "preview": "| Stale **?GileadAdminSite?** in admin audit | **Medium** (doc contradicts `config/admin.py` class names) | `docs/ADMIN_AUDIT.md` |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19331",
+      "line": "19363",
       "preview": "| Readiness checklist implied live ?Gilead default? without migration context | **Low** | `docs/PLATFORM_READINESS_CHECKLIST.md` |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19363",
+      "line": "19395",
       "preview": "| `apps/platform_runtime/backlog_unlock_registry.json` | Title: ?Gilead residue? ? ?rebrand-residue lint? (gate unchanged; still runs `lint_gilead_residue` inside bundle). |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19371",
+      "line": "19403",
       "preview": "| `docs/ADMIN_AUDIT.md` | `GileadAdminSite` ? `BaseRunMyCampusAdminSite` / `TenantAdminSite` / `PlatformAdminSite`. |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19395",
+      "line": "19427",
       "preview": "| `docs/GILEAD_REFERENCE_CLASSIFICATION.md` | Phase 12 header; lint scope clarifies JSON under `apps/`; SOT + autonomous log pointers. |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19403",
+      "line": "19435",
       "preview": "| `docs/phase_checklists/phase_12_gilead_docs_discipline.md` | All items **[x] DONE** with evidence pointers. |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19435",
+      "line": "19467",
       "preview": "| `python scripts/lint_gilead_residue.py` | **PASS** |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19443",
+      "line": "19475",
       "preview": "| `rg -i gilead templates/` | **0 matches** |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19451",
+      "line": "19483",
       "preview": "| `rg -i gilead static/` | **0 matches** |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19499",
+      "line": "19531",
       "preview": "| No product-facing Gilead residue on lint-scoped live/runtime paths | **PASS** |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19547",
+      "line": "19579",
       "preview": "| Historical migrations / slugs (`gilead-school`, etc.) | **Migration-only** ? unchanged per classification; data normalization via **0155** already documented in SOT |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19555",
+      "line": "19587",
       "preview": "| `seed_gilead_demo_users` | **REMOVED** ? use `seed_demo_tenant_users` only (see `docs/GILEAD_REFERENCE_CLASSIFICATION.md`). |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19563",
+      "line": "19595",
       "preview": "| Full-repo `gilead` counts in `docs/generated/platform_inventory.md` | **Tooling metric** ? not the same bar as `lint_gilead_residue.py`; regen may still show doc/migration-heavy counts |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "19587",
+      "line": "19619",
       "preview": "SOT **?3.2.4** / operator Program Phase **11** = marketing front (prior log block). **Phase 12** = Gilead purge + docs discipline (this block). `verify_phases_3_11_gates.py` includes the rebrand-resid"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "20515",
+      "line": "20547",
       "preview": "| **Automation** | `python scripts/verify_design_system_phase2.py` ? **PASS**; `python scripts/verify_cursor_phase5_studio_os.py` ? **PASS**; `python scripts/verify_phases_3_11_gates.py` ? **PASS** (n"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "20803",
+      "line": "20835",
       "preview": "| **12** | Gilead residue (policy scope) | **DONE** | `lint_gilead_residue` in bundle **PASS**; templates/static product paths clean per policy. |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "21755",
+      "line": "21787",
       "preview": "### Wave G1 ? Gilead purge / docs discipline (Cursor Phase 12)"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "21779",
+      "line": "21811",
       "preview": "| **A. Scope** | `scripts/lint_gilead_residue.py` (via `verify_phases_3_11_gates.py`). |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "21787",
+      "line": "21819",
       "preview": "| **B. Findings** | **no runtime-visible Gilead residue found** in gate output. |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "21931",
+      "line": "21963",
       "preview": "All steps **exit 0**. Inline-style inventory: **24** HTML files with `<style>`, **0** non-exempt flagged blocks. `verify_phases_3_11_gates.py`: all non-DB gates **PASS** (including `lint_gilead_residu"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "24347",
+      "line": "24379",
       "preview": "## Phase 12 slice ? Gilead residue lint wired into lint test suite (2026-03-26)"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "24371",
+      "line": "24403",
       "preview": "| **A. Scope** | Surface `scripts/lint_gilead_residue.py` in the shared `test_tenant_settings_lint` module so Phase 12 runtime-visible residue checks run with other narrow CI gates. |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "24387",
+      "line": "24419",
       "preview": "| **C. Implementation** | Added `TenantSettingsLintTests::test_lint_gilead_residue_passes` subprocess wrapper (180s timeout). Classification docs and migration-only paths remain out of scope per the s"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "24395",
+      "line": "24427",
       "preview": "| **D. Validation** | `python scripts/lint_gilead_residue.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k lint_gilead_residue -q` ? **PASS**; lint diagnos"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "24403",
+      "line": "24435",
       "preview": "| **E. Acceptance** | **PASS (Phase 12 wiring slice)** ? runtime-visible Gilead residue regressions fail in the consolidated gate module. |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "24627",
+      "line": "24659",
       "preview": "| 11 | Gilead + docs discipline (prompt) | `phase_12_gilead_docs_discipline.md` + `scripts/lint_gilead_residue.py`, `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md` | Prompt ?Phase 11? aligns wi"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "24643",
+      "line": "24675",
       "preview": "**D. Implementation (this audit slice)** | No code change required beyond verification: ran full `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` ? **19 passed** in ~20s "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "25475",
+      "line": "25507",
       "preview": "## Gilead full-tree slice ? classified corpus gate in shared flows (2026-03-26)"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "25499",
+      "line": "25531",
       "preview": "| **A. Scope** | Advance the **Gilead residue (full tree) PARTIAL** blocker by adding a deterministic full-tree classifier gate (beyond runtime-only lint scope) and wiring it into shared non-DB gate e"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "25507",
+      "line": "25539",
       "preview": "| **B. Findings** | Existing `lint_gilead_residue.py` enforces runtime-visible surfaces only; no shared gate asserted that remaining repository-wide references stay in documented historical/tooling bu"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "25515",
+      "line": "25547",
       "preview": "| **C. Implementation** | Added `scripts/verify_gilead_full_tree_classification.py` (requires classification doc sections; scans text-like files for `gilead`; allows only classified buckets: docs, mig"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "25523",
+      "line": "25555",
       "preview": "| **D. Validation** | `python scripts/verify_gilead_full_tree_classification.py` **PASS** (`files_with_hit=143`); `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "25531",
+      "line": "25563",
       "preview": "| **E. Acceptance** | **PASS** ? full-tree references are now constrained to explicit classified buckets, while runtime surfaces remain separately enforced by `lint_gilead_residue.py`. |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "26539",
+      "line": "26571",
       "preview": "| **A. Scope** | User mandate to **prioritize fixing** admin gravity, SiteSettings gravity, shell triad, repo sprawl, SQL/CSRF/print posture, and Gilead residue?without pretending multi-quarter archit"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "26547",
+      "line": "26579",
       "preview": "| **B. Findings** | Gross `baseline_counts` overstated **product** risk (migrations + broad file pool). Security linters (**P0**) and **P1** Gilead lint already **PASS** in-repo; remaining work is **P"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "26563",
+      "line": "26595",
       "preview": "| **D. Validation** | `python scripts/generate_platform_inventory.py --check` **PASS**; `lint_csrf_exempt_usage`, `lint_raw_sql_usage`, `lint_gilead_residue` **PASS**. |"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "26699",
+      "line": "26731",
       "preview": "| **A. Scope** | Continue **P3** tenant `ModelAdmin` change forms still lacking control-plane links; confirm **P4** `verify_shell_architecture_matrix`; confirm **P1** decomposition / Gilead tree / AI "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "26707",
+      "line": "26739",
       "preview": "| **B. Findings** | `verify_shell_architecture_matrix.py`, `verify_siteconfig_decomposition_depth.py`, `verify_gilead_full_tree_classification.py`, `verify_ai_blueprint_completion.py` already **PASS**"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
-      "line": "26979",
+      "line": "27011",
       "preview": "| **F. Follow-ons** | **Batch 11** items (**Phase H** **`TARGET_SPECS`**, playbook CSV **`filename*`**, extend structured-logging keys, finance webhook, outcomes/OpenAPI/schools ordering, CI runbook m"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "17",
+      "line": "19",
       "preview": "**\u00a711.4 forward queue - batch 1135 (full-suite failfast triage + verifier stack closure \u2014 2026-04-30):** **DONE** \u2014 **Code:** **`apps/accounts/views.py`** \u2014 dedent **`dashboard_context = get_dashboard"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "25",
+      "line": "27",
       "preview": "**\u00a711.4 forward queue - batch 1130 (integration agent \u2014 feature branches converged on main, 2026-04-29):** **DONE** \u2014 **Compliance:** **`test_incident_tickets`** uses **`@override_settings`** so **`al"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "63",
+      "line": "65",
       "preview": "**\u00a711.4 forward queue - batch 1111 (North Star slice 15 \u2014 marketplace monetization: install \u2192 bill \u2192 entitlement + revenue, 2026-04-27):** **DONE** \u2014 **`marketplace:app_purchase_intent`** routes **pai"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "65",
+      "line": "67",
       "preview": "**\u00a711.4 forward queue - batch 1110 (North Star slice 11 \u2014 AI assistant + automation drafts, local-first, 2026-04-27):** **DONE** \u2014 **`apps/platform_runtime/ai_providers.py`**: **`get_ai_provider`**, *"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "67",
+      "line": "69",
       "preview": "**\u00a711.4 forward queue - batch 1109 (North Star slice 10 \u2014 security hardening + access control, 2026-04-27):** **DONE** \u2014 **`apps/schools/tenant_access.py`**: **`safe_queryset_for_school`**, **`user_be"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "97",
+      "line": "99",
       "preview": "**\u00a711.4 forward queue - batch 1102 (enterprise governance \u2014 SOC2 readiness maps + compliance ledgers + audit scripts, 2026-04-26):** **DONE** \u2014 **`docs/compliance/`** (**`SOC2_READINESS_MAP.md`**, **`"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "361",
+      "line": "363",
       "preview": "**\u00a711.4 forward queue - batch 958 (Phase III \u00a76.6 `brand_experience` \u2014 III.12 Gilead theme defaults PATH closure, 2026-04-24):** **DONE** \u2014 **`siteconfig` migration `0155_normalize_gilead_residue_runm"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "551",
+      "line": "553",
       "preview": "**\u00a711.4 forward queue - batch 879 (Phase 12 Gilead residue \u2014 `lint_gilead_residue.py` contract tests, 2026-04-09):** **DONE** - Adds **`apps/platform_runtime/tests/test_lint_gilead_residue_script.py`*"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "567",
+      "line": "569",
       "preview": "**\u00a711.4 forward queue - batch 851 (Phase II.3 / Phase B SiteSettings \u2014 EMIS export tests set Cameroon Gilead platform identity via `apply_feature_control_state`, 2026-04-08):** **DONE** - **`emis/test"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "659",
+      "line": "661",
       "preview": "**\u00a711.4 forward queue - batch 802 (Control-plane hub registry drift \u2014 `verify_control_plane_hub_registry_drift.py` stderr + `ROOT` parity, 2026-03-31):** **DONE** - **`scripts/verify_control_plane_hub"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "661",
+      "line": "663",
       "preview": "**\u00a711.4 forward queue - batch 801 (Raw SQL SQLite integrity helper \u2014 reject collections.abc.Mapping for db_path before PRAGMA connect, 2026-04-07):** **DONE** - **`apps/siteconfig/repositories/databas"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "663",
+      "line": "665",
       "preview": "**\u00a711.4 forward queue - batch 800 (Raw SQL audit repository \u2014 reject collections.abc.Mapping for table_name on create/drop_audit_trigger, 2026-04-07):** **DONE** - **`apps/people/repositories/audit_re"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "665",
+      "line": "667",
       "preview": "**\u00a711.4 forward queue - batch 799 (Raw SQL audit repository \u2014 reject collections.abc.Mapping for schema_name before SET LOCAL search_path, 2026-04-07):** **DONE** - **`apps/people/repositories/audit_r"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "669",
+      "line": "671",
       "preview": "**\u00a711.4 forward queue - batch 797 (Raw SQL health repository \u2014 reject collections.abc.Mapping for qualified_table on check_table_exists, 2026-04-07):** **DONE** - **`apps/schools/repositories/health_r"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "671",
+      "line": "673",
       "preview": "**\u00a711.4 forward queue - batch 796 (Raw SQL health repository \u2014 reject collections.abc.Mapping for schema or table on count_table_rows, 2026-04-07):** **DONE** - **`apps/schools/repositories/health_rep"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "673",
+      "line": "675",
       "preview": "**\u00a711.4 forward queue - batch 795 (Raw SQL health repository \u2014 reject collections.abc.Mapping for schema_name on get_top_tables_by_size, 2026-04-07):** **DONE** - **`apps/schools/repositories/health_r"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "675",
+      "line": "677",
       "preview": "**\u00a711.4 forward queue - batch 794 (Raw SQL health repository \u2014 reject collections.abc.Mapping for LIMIT on get_top_tables_by_size and get_global_health_stats, 2026-04-07):** **DONE** - **`apps/schools"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "677",
+      "line": "679",
       "preview": "**\u00a711.4 forward queue - batch 793 (Raw SQL health repository \u2014 optional get_global_health_stats limit with bool/buffer rejection and cap parity, 2026-04-07):** **DONE** - **`apps/schools/repositories/"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "679",
+      "line": "681",
       "preview": "**\u00a711.4 forward queue - batch 792 (Raw SQL RLS repository \u2014 reject non-iterable table_names before get_tenant_rls_status loop, 2026-04-07):** **DONE** - **`apps/schools/repositories/rls_repository.py`"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "681",
+      "line": "683",
       "preview": "**\u00a711.4 forward queue - batch 791 (Raw SQL RLS repository \u2014 reject bool table_names before get_tenant_rls_status iteration, 2026-04-07):** **DONE** - **`apps/schools/repositories/rls_repository.py`** "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "683",
+      "line": "685",
       "preview": "**\u00a711.4 forward queue - batch 790 (Raw SQL RLS repository \u2014 reject collections.abc.Mapping table_names before get_tenant_rls_status catalog query, 2026-04-07):** **DONE** - **`apps/schools/repositorie"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "685",
+      "line": "687",
       "preview": "**\u00a711.4 forward queue - batch 789 (Raw SQL RLS repository \u2014 reject dict table_names before get_tenant_rls_status catalog query, 2026-04-07):** **DONE** - **`apps/schools/repositories/rls_repository.py"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "687",
+      "line": "689",
       "preview": "**\u00a711.4 forward queue - batch 788 (Raw SQL audit repository \u2014 create_audit_trigger table_name normalization doc parity with drop_audit_trigger, 2026-04-07):** **DONE** - **`apps/people/repositories/au"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "689",
+      "line": "691",
       "preview": "**\u00a711.4 forward queue - batch 787 (Raw SQL health repository \u2014 get_top_tables_by_size schema_name via _normalize_unqualified_identifier, 2026-04-07):** **DONE** - **`apps/schools/repositories/health_r"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "691",
+      "line": "693",
       "preview": "**\u00a711.4 forward queue - batch 786 (Raw SQL health repository \u2014 centralize bool and binary-buffer rejection in _normalize_identifier, 2026-04-07):** **DONE** - **`apps/schools/repositories/health_repos"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "693",
+      "line": "695",
       "preview": "**\u00a711.4 forward queue - batch 785 (Raw SQL audit repository \u2014 drop_audit_trigger table_name normalization parity doc and tests, 2026-04-07):** **DONE** - **`apps/people/repositories/audit_repository.p"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "695",
+      "line": "697",
       "preview": "**\u00a711.4 forward queue - batch 784 (Raw SQL SQLite integrity helper \u2014 reject bool db_path before PRAGMA connect, 2026-04-07):** **DONE** - **`apps/siteconfig/repositories/database_recovery_repository.p"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "697",
+      "line": "699",
       "preview": "**\u00a711.4 forward queue - batch 783 (Raw SQL tenant cache prefix \u2014 reject bool and binary buffers in school/schema normalization before current_setting read, 2026-04-07):** **DONE** - **`apps/siteconfig"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "699",
+      "line": "701",
       "preview": "**\u00a711.4 forward queue - batch 782 (Raw SQL SQLite integrity helper \u2014 reject bytearray and memoryview db_path before PRAGMA connect, 2026-04-07):** **DONE** - **`apps/siteconfig/repositories/database_r"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "701",
+      "line": "703",
       "preview": "**\u00a711.4 forward queue - batch 781 (Raw SQL audit repository \u2014 reject bool and binary buffers for schema/table identifiers before DDL/search_path SQL, 2026-04-07):** **DONE** - **`apps/people/repositor"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "703",
+      "line": "705",
       "preview": "**\u00a711.4 forward queue - batch 780 (Raw SQL schools RLS session GUC \u2014 reject bool and binary buffers for school_id before SET app.current_school_id, 2026-04-07):** **DONE** - **`apps/schools/rls_contex"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "705",
+      "line": "707",
       "preview": "**\u00a711.4 forward queue - batch 779 (Raw SQL health and RLS repositories \u2014 reject memoryview buffer args before retained SQL, 2026-04-07):** **DONE** - **`apps/schools/repositories/health_repository.py`"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "707",
+      "line": "709",
       "preview": "**\u00a711.4 forward queue - batch 778 (Raw SQL health repository \u2014 reject bytearray limit/schema_name and schema/table in count_table_rows and get_top_tables_by_size, 2026-04-07):** **DONE** - **`apps/sch"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "709",
+      "line": "711",
       "preview": "**\u00a711.4 forward queue - batch 777 (Raw SQL RLS repository \u2014 reject bytearray table_names before get_tenant_rls_status catalog query, 2026-04-07):** **DONE** - **`apps/schools/repositories/rls_reposito"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "711",
+      "line": "713",
       "preview": "**\u00a711.4 forward queue - batch 776 (SiteSettings theme resolver - ignore inactive selected portal theme packs and fall back to active defaults, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`**"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "713",
+      "line": "715",
       "preview": "**\u00a711.4 forward queue - batch 775 (SiteSettings ThemeColorsForm - fallback to theme-experience `*_id` values when selection-id helpers are absent, 2026-04-02):** **DONE** - **`apps/siteconfig/forms.py"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "715",
+      "line": "717",
       "preview": "**\u00a711.4 forward queue - batch 774 (SiteSettings Theme Experience - stage live PGB-backed theme/report selections onto the current instance, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** **"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "717",
+      "line": "719",
       "preview": "**\u00a711.4 forward queue - batch 773 (Raw SQL health repository \u2014 reject bytes/bytearray qualified_table in check_table_exists, 2026-04-02):** **DONE** - **`apps/schools/repositories/health_repository.py"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "719",
+      "line": "721",
       "preview": "**\u00a711.4 forward queue - batch 772 (SiteSettings Form - preserve existing compliance-profile pointer when the field is absent, 2026-04-02):** **DONE** - **`apps/siteconfig/forms.py`** **`SiteSettingsFo"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "721",
+      "line": "723",
       "preview": "**\u00a711.4 forward queue - batch 771 (SiteSettings ThemeColorsForm - treat use_secondary_font_for_headings as a real boolean field, 2026-04-02):** **DONE** - **`apps/siteconfig/forms.py`** now constructs"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "723",
+      "line": "725",
       "preview": "**\u00a711.4 forward queue - batch 770 (Raw SQL health repository \u2014 reject bytes limit in get_top_tables_by_size, 2026-04-02):** **DONE** - **`apps/schools/repositories/health_repository.py`** **`get_top_t"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "725",
+      "line": "727",
       "preview": "**\u00a711.4 forward queue - batch 769 (Raw SQL health repository \u2014 reject bytes schema_name in get_top_tables_by_size, 2026-04-02):** **DONE** - **`apps/schools/repositories/health_repository.py`** **`get"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "727",
+      "line": "729",
       "preview": "**\u00a711.4 forward queue - batch 768 (Raw SQL health repository \u2014 reject bytes schema/table in count_table_rows, 2026-04-02):** **DONE** - **`apps/schools/repositories/health_repository.py`** **`count_ta"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "729",
+      "line": "731",
       "preview": "**\u00a711.4 forward queue - batch 767 (SiteSettings Theme Experience - let draft-cleared report-style ids shadow live payloads, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** **`get_theme_exper"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "731",
+      "line": "733",
       "preview": "**\u00a711.4 forward queue - batch 766 (SiteSettings Form - route explicit theme-pack clears through the theme-experience helper, 2026-04-02):** **DONE** - **`apps/siteconfig/forms.py`** **`SiteSettingsFor"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "733",
+      "line": "735",
       "preview": "**\u00a711.4 forward queue - batch 763 (Raw SQL health repository \u2014 reject bytes qualified_table in check_table_exists, 2026-04-02):** **DONE** - **`apps/schools/repositories/health_repository.py`** **`che"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "735",
+      "line": "737",
       "preview": "**\u00a711.4 forward queue - batch 762 (SiteSettings Form - keep missing current compliance profile pointer visible in choices, 2026-04-02):** **DONE** - **`apps/siteconfig/forms.py`** now appends a synthe"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "737",
+      "line": "739",
       "preview": "**\u00a711.4 forward queue - batch 761 (SiteSettings ThemeColorsForm - honor explicit boolean presence markers on partial saves, 2026-04-02):** **DONE** - **`apps/siteconfig/forms.py`** **`ThemeColorsForm."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "739",
+      "line": "741",
       "preview": "**\u00a711.4 forward queue - batch 760 (Raw SQL health repository \u2014 reject bool qualified_table in check_table_exists, 2026-04-02):** **DONE** - **`apps/schools/repositories/health_repository.py`** **`chec"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "741",
+      "line": "743",
       "preview": "**\u00a711.4 forward queue - batch 759 (SiteSettings ThemeColorsForm - preserve absent non-boolean fields on partial saves, 2026-04-02):** **DONE** - **`apps/siteconfig/forms.py`** **`ThemeColorsForm.save("
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "743",
+      "line": "745",
       "preview": "**\u00a711.4 forward queue - batch 758 (Raw SQL health repository \u2014 reject bool schema_name in get_top_tables_by_size, 2026-04-02):** **DONE** - **`apps/schools/repositories/health_repository.py`** **`get_"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "745",
+      "line": "747",
       "preview": "**\u00a711.4 forward queue - batch 757 (SiteSettings ThemeColorsForm - honor report-style selection ids for initials and querysets, 2026-04-02):** **DONE** - **`apps/siteconfig/forms.py`** now reads **`get"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "747",
+      "line": "749",
       "preview": "**\u00a711.4 forward queue - batch 756 (Raw SQL health repository \u2014 reject bool schema/table in count_table_rows, 2026-04-02):** **DONE** - **`apps/schools/repositories/health_repository.py`** **`count_tab"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "749",
+      "line": "751",
       "preview": "**\u00a711.4 forward queue - batch 755 (SiteSettings ThemeColorsForm - keep both selected portal theme packs in the shared queryset, 2026-04-02):** **DONE** - **`apps/siteconfig/forms.py`** now builds the "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "751",
+      "line": "753",
       "preview": "**\u00a711.4 forward queue - batch 754 (Raw SQL health repository \u2014 reject bool limit in get_top_tables_by_size, 2026-04-02):** **DONE** - **`apps/schools/repositories/health_repository.py`** **`get_top_ta"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "753",
+      "line": "755",
       "preview": "**\u00a711.4 forward queue - batch 753 (Raw SQL audit repository \u2014 reject duplicate REDACT_KEYS before CREATE FUNCTION SQL, 2026-04-02):** **DONE** - **`apps/people/repositories/audit_repository.py`** **`_"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "755",
+      "line": "757",
       "preview": "**\u00a711.4 forward queue - batch 752 (SiteSettings ThemeColorsForm - restore theme-pack initial ids from the selection contract, 2026-04-02):** **DONE** - **`apps/siteconfig/forms.py`** now seeds **`them"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "757",
+      "line": "759",
       "preview": "**\u00a711.4 forward queue - batch 751 (Raw SQL SQLite integrity helper \u2014 cap PRAGMA integrity_check result length, 2026-04-02):** **DONE** - **`apps/siteconfig/repositories/database_recovery_repository.py"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "759",
+      "line": "761",
       "preview": "**\u00a711.4 forward queue - batch 750 (SiteSettings ThemeColorsForm - normalize default_widgets_per_role as JSON object, 2026-04-02):** **DONE** - **`apps/siteconfig/forms.py`** now treats the virtual **`"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "761",
+      "line": "763",
       "preview": "**\u00a711.4 forward queue - batch 749 (Raw SQL audit repository \u2014 cap REDACT_KEYS count before CREATE FUNCTION SQL, 2026-04-02):** **DONE** - **`apps/people/repositories/audit_repository.py`** **`_redact_"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "763",
+      "line": "765",
       "preview": "**\u00a711.4 forward queue - batch 748 (Raw SQL audit repository \u2014 validate REDACT_KEYS before CREATE FUNCTION SQL, 2026-04-02):** **DONE** - **`apps/people/repositories/audit_repository.py`** now builds t"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "765",
+      "line": "767",
       "preview": "**\u00a711.4 forward queue - batch 747 (SiteSettings theme experience - return default_widgets_per_role through the runtime read contract, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now incl"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "767",
+      "line": "769",
       "preview": "**\u00a711.4 forward queue - batch 746 (Raw SQL RLS repository \u2014 reject str/bytes table_names before get_tenant_rls_status iteration, 2026-04-02):** **DONE** - **`apps/schools/repositories/rls_repository.p"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "769",
+      "line": "771",
       "preview": "**\u00a711.4 forward queue - batch 745 (Raw SQL RLS repository \u2014 dedupe relnames before get_tenant_rls_status catalog IN query, 2026-04-02):** **DONE** - **`apps/schools/repositories/rls_repository.py`** *"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "771",
+      "line": "773",
       "preview": "**\u00a711.4 forward queue - batch 744 (SiteSettings report style resolvers - honor staged cached styles before DB fallback, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now adds **`_resolve_s"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "773",
+      "line": "775",
       "preview": "**\u00a711.4 forward queue - batch 743 (SiteSettings theme resolvers - honor staged cached packs before DB fallback, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now adds **`_resolve_staged_th"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "775",
+      "line": "777",
       "preview": "**\u00a711.4 forward queue - batch 742 (Raw SQL RLS repository \u2014 cap get_tenant_rls_status IN-list size, 2026-04-02):** **DONE** - **`apps/schools/repositories/rls_repository.py`** **`get_tenant_rls_status"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "777",
+      "line": "779",
       "preview": "**\u00a711.4 forward queue - batch 741 (SiteSettings theme pack helper - keep save=False draft-only and preserve live form persistence, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now makes *"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "779",
+      "line": "781",
       "preview": "**\u00a711.4 forward queue - batch 740 (SiteSettings feature control - surface staged cross-owner fields through the local read contract, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now overl"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "781",
+      "line": "783",
       "preview": "**\u00a711.4 forward queue - batch 739 (SiteSettings finance runtime - surface staged local fields through the local read contract, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now overlays lo"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "783",
+      "line": "785",
       "preview": "**\u00a711.4 forward queue - batch 738 (SiteSettings brand metadata - surface staged local fields through the local read contract, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now overlays loc"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "785",
+      "line": "787",
       "preview": "**\u00a711.4 forward queue - batch 737 (SiteSettings support contacts - surface staged local fields through the local read contract, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now overlays l"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "787",
+      "line": "789",
       "preview": "**\u00a711.4 forward queue - batch 736 (SiteSettings marketplace integrations - surface staged local fields through the local read contract, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now ov"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "789",
+      "line": "791",
       "preview": "**\u00a711.4 forward queue - batch 735 (SiteSettings report preview - surface staged local fields through the local read contract, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now overlays loc"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "791",
+      "line": "793",
       "preview": "**\u00a711.4 forward queue - batch 734 (SiteSettings offline runtime - surface staged local fields through the local read contract, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now overlays lo"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "793",
+      "line": "795",
       "preview": "**\u00a711.4 forward queue - batch 733 (Raw SQL health repository \u2014 cap get_global_health_stats schema rows, 2026-04-02):** **DONE** - **`apps/schools/repositories/health_repository.py`** **`get_global_hea"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "795",
+      "line": "797",
       "preview": "**\u00a711.4 forward queue - batch 732 (Raw SQL SQLite integrity helper \u2014 bounded sqlite3.connect timeout for read-only PRAGMA, 2026-04-02):** **DONE** - **`apps/siteconfig/repositories/database_recovery_r"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "797",
+      "line": "799",
       "preview": "**\u00a711.4 forward queue - batch 731 (SiteSettings preview platform - surface staged local fields through the local read contract, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now overlays l"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "799",
+      "line": "801",
       "preview": "**\u00a711.4 forward queue - batch 730 (Raw SQL audit repository \u2014 cap table_name length for audit_ trigger identifiers, 2026-04-02):** **DONE** - **`apps/people/repositories/audit_repository.py`** **`_nor"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "801",
+      "line": "803",
       "preview": "**\u00a711.4 forward queue - batch 729 (SiteSettings feature control - surface staged backend_feature_flags through the local read contract, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now ov"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "803",
+      "line": "805",
       "preview": "**\u00a711.4 forward queue - batch 728 (SiteSettings feature control - surface staged commit=False fields through the local read contract, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now over"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "805",
+      "line": "807",
       "preview": "**\u00a711.4 forward queue - batch 727 (Raw SQL SQLite integrity helper \u2014 cap Path string length before resolve, 2026-04-02):** **DONE** - **`apps/siteconfig/repositories/database_recovery_repository.py`**"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "807",
+      "line": "809",
       "preview": "**\u00a711.4 forward queue - batch 726 (Raw SQL SQLite integrity helper \u2014 reject bytes, overlong strings, and non-path db_path types, 2026-04-02):** **DONE** - **`apps/siteconfig/repositories/database_reco"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "809",
+      "line": "811",
       "preview": "**\u00a711.4 forward queue - batch 725 (SiteSettings theme experience - surface staged save=False payload values through the local read contract, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** n"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "811",
+      "line": "813",
       "preview": "**\u00a711.4 forward queue - batch 724 (SiteSettings theme experience - make save=False side-effect free while staging values locally, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now keeps **"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "813",
+      "line": "815",
       "preview": "**\u00a711.4 forward queue - batch 723 (Raw SQL SQLite integrity helper \u2014 cap resolved db_path length before connect, 2026-04-02):** **DONE** - **`apps/siteconfig/repositories/database_recovery_repository."
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "815",
+      "line": "817",
       "preview": "**\u00a711.4 forward queue - batch 722 (SiteSettings compliance pointer - respect staged commit=False clear before RuntimeDefaults fallback, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now ch"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "817",
+      "line": "819",
       "preview": "**\u00a711.4 forward queue - batch 721 (SiteSettings form save - stage feature-control fields for singleton persistence, 2026-04-02):** **DONE** - **`apps/siteconfig/forms.py`** now stages **`portal_featur"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "819",
+      "line": "821",
       "preview": "**\u00a711.4 forward queue - batch 720 (SiteSettings form save - preserve runtime social_links when field is absent, 2026-04-02):** **DONE** - **`apps/siteconfig/forms.py`** now updates **`instance.social_"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "821",
+      "line": "823",
       "preview": "**\u00a711.4 forward queue - batch 719 (SiteSettings form save - keep commit=False path side-effect free, 2026-04-02):** **DONE** - **`apps/siteconfig/forms.py`** **`SiteSettingsForm.save(commit=False)`** "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "823",
+      "line": "825",
       "preview": "**\u00a711.4 forward queue - batch 718 (SiteSettings form save - route compliance_profile through pointer setter, 2026-04-02):** **DONE** - **`apps/siteconfig/forms.py`** **`SiteSettingsForm.save()`** now "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "825",
+      "line": "827",
       "preview": "**\u00a711.4 forward queue - batch 717 (SiteSettings compliance profile pointer - bump updated_at after RuntimeDefaults write, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now calls **`self.sa"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "827",
+      "line": "829",
       "preview": "**\u00a711.4 forward queue - batch 716 (SiteSettings feature control - use narrow save path for payload-only writes, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** **`apply_feature_control_state"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "829",
+      "line": "831",
       "preview": "**\u00a711.4 forward queue - batch 715 (Health repository \u2014 validate identifiers for check_table_exists before introspection, 2026-04-02):** **DONE** - **`apps/schools/repositories/health_repository.py`** "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "831",
+      "line": "833",
       "preview": "**\u00a711.4 forward queue - batch 714 (SiteSettings theme experience - bump updated_at for payload-only and PGB-only writes, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** **`apply_theme_experi"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "833",
+      "line": "835",
       "preview": "**\u00a711.4 forward queue - batch 713 (Raw SQL health repository \u2014 validate identifiers for count_table_rows before COUNT query, 2026-04-02):** **DONE** - **`apps/schools/repositories/health_repository.py"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "835",
+      "line": "837",
       "preview": "**\u00a711.4 forward queue - batch 712 (Raw SQL audit repository \u2014 validate table_name before CREATE/DROP TRIGGER DDL, 2026-04-02):** **DONE** - **`apps/people/repositories/audit_repository.py`** **`_norma"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "837",
+      "line": "839",
       "preview": "**\u00a711.4 forward queue - batch 711 (SiteSettings save path - preserve partial update_fields for runtime sync scope, 2026-04-02):** **DONE** - **`apps/siteconfig/models.py`** now keeps the caller-provid"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "839",
+      "line": "841",
       "preview": "**\u00a711.4 forward queue - batch 710 (Raw SQL health repository \u2014 cap get_top_tables_by_size LIMIT, 2026-04-02):** **DONE** - **`apps/schools/repositories/health_repository.py`** **`get_top_tables_by_siz"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "841",
+      "line": "843",
       "preview": "**\u00a711.4 forward queue - batch 709 (Customer-success guided onboarding \u2014 cap Setup Studio string fields, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** adds **`_GUIDED_ONBOARDING_"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "843",
+      "line": "845",
       "preview": "**\u00a711.4 forward queue - batch 708 (Customer-success execute-launch \u2014 cap normalized error message length, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** **`_normalized_launch_err"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "845",
+      "line": "847",
       "preview": "**\u00a711.4 forward queue - batch 707 (Customer-success support copilot \u2014 cap title and optional text lengths, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** **`_required_support_str"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "847",
+      "line": "849",
       "preview": "**\u00a711.4 forward queue - batch 706 (Customer-success support copilot \u2014 cap suggestion priority to PositiveSmallIntegerField range, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** *"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "849",
+      "line": "851",
       "preview": "**\u00a711.4 forward queue - batch 705 (SiteSettings slim contract \u2014 validate db_table before introspection, 2026-04-01):** **DONE** - **`apps/siteconfig/sitesettings_slim_contract.py`** **`sitesettings_sl"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "851",
+      "line": "853",
       "preview": "**\u00a711.4 forward queue - batch 704 (Siteconfig cache_utils \u2014 validate tenant_cache_key base segment, 2026-04-01):** **DONE** - **`apps/siteconfig/cache_utils.py`** **`tenant_cache_key()`** now routes *"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "853",
+      "line": "855",
       "preview": "**\u00a711.4 forward queue - batch 703 (Siteconfig cache_utils \u2014 validate tenant schema prefix and tenant-resolution cache keys, 2026-04-01):** **DONE** - **`apps/siteconfig/cache_utils.py`** now normalize"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "855",
+      "line": "857",
       "preview": "**\u00a711.4 forward queue - batch 702 (Raw SQL RLS session read \u2014 cache_utils normalizes school id after current_setting, 2026-04-01):** **DONE** - **`apps/siteconfig/cache_utils.py`** **`_normalize_schoo"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "857",
+      "line": "859",
       "preview": "**\u00a711.4 forward queue - batch 701 (Raw SQL health repository - validate optional schema_name filter before pg_stat_user_tables query, 2026-04-01):** **DONE** - **`apps/schools/repositories/health_repo"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "859",
+      "line": "861",
       "preview": "**\u00a711.4 forward queue - batch 700 (Raw SQL RLS repository - require PostgreSQL-style table identifiers before catalog query, 2026-04-01):** **DONE** - **`apps/schools/repositories/rls_repository.py`**"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "861",
+      "line": "863",
       "preview": "**\u00a711.4 forward queue - batch 699 (Raw SQL SQLite integrity helper - reject blank or None paths before connect, 2026-04-01):** **DONE** - **`apps/siteconfig/repositories/database_recovery_repository.p"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "863",
+      "line": "865",
       "preview": "**\u00a711.4 forward queue - batch 698 (Raw SQL audit repository - validate search_path schema name before SET LOCAL, 2026-04-01):** **DONE** - **`apps/people/repositories/audit_repository.py`** now expose"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "865",
+      "line": "867",
       "preview": "**\u00a711.4 forward queue - batch 697 (Raw SQL RLS session GUC - reject oversized or malformed school_id before SET, 2026-04-01):** **DONE** - **`apps/schools/rls_context.py`** now rejects school ids long"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "867",
+      "line": "869",
       "preview": "**\u00a711.4 forward queue - batch 696 (Customer-success execute-launch - ignore blank error messages, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** now strips and drops blank string"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "869",
+      "line": "871",
       "preview": "**\u00a711.4 forward queue - batch 695 (Raw SQL health repository - reject dotted identifier components before SQL/introspection, 2026-04-01):** **DONE** - **`apps/schools/repositories/health_repository.py"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "871",
+      "line": "873",
       "preview": "**\u00a711.4 forward queue - batch 694 (Raw SQL RLS repository - reject schema-qualified table filters before catalog query, 2026-04-01):** **DONE** - **`apps/schools/repositories/rls_repository.py`** now "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "873",
+      "line": "875",
       "preview": "**\u00a711.4 forward queue - batch 693 (Raw SQL audit trigger command - reject schema-qualified table names before helper calls, 2026-04-01):** **DONE** - **`apps/people/management/commands/attach_audit_tr"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "875",
+      "line": "877",
       "preview": "**\u00a711.4 forward queue - batch 692 (Customer-success support copilot - reject blank titles, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** now treats blank or whitespace-only valu"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "877",
+      "line": "879",
       "preview": "**\u00a711.4 forward queue - batch 691 (Raw SQL audit repository - reject schema-qualified table names before trigger DDL, 2026-04-01):** **DONE** - **`apps/people/repositories/audit_repository.py`** now r"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "879",
+      "line": "881",
       "preview": "**\u00a711.4 forward queue - batch 690 (Customer-success guided onboarding - reject non-finite percent values, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** now rejects non-finite nu"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "881",
+      "line": "883",
       "preview": "**\u00a711.4 forward queue - batch 689 (Raw SQL SQLite integrity helper - skip directory paths before connection open, 2026-04-01):** **DONE** - **`apps/siteconfig/repositories/database_recovery_repository"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "883",
+      "line": "885",
       "preview": "**\u00a711.4 forward queue - batch 688 (Raw SQL health repository - reject blank qualified table names before introspection, 2026-04-01):** **DONE** - **`apps/schools/repositories/health_repository.py`** n"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "885",
+      "line": "887",
       "preview": "**\u00a711.4 forward queue - batch 687 (Customer-success tenant health APIs - skip dict rows with missing keys, 2026-04-01):** **DONE** - **`apps/customersuccess/views_super.py`** now treats **`KeyError`**"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "887",
+      "line": "889",
       "preview": "**\u00a711.4 forward queue - batch 686 (Phase 5 Studio OS conformance \u2014 `verify_phase5_studio_os_conformance.py` stderr + `ROOT` parity, 2026-03-31):** **DONE** - **`scripts/verify_phase5_studio_os_conform"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "889",
+      "line": "891",
       "preview": "**\u00a711.4 forward queue - batch 684 (Raw SQL health repository - reject malformed limits before size query, 2026-04-01):** **DONE** - **`apps/schools/repositories/health_repository.py`** now normalizes "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "891",
+      "line": "893",
       "preview": "**\u00a711.4 forward queue - batch 683 (Customer-success tenant health APIs - malformed score rows fail closed, 2026-04-01):** **DONE** - **`apps/customersuccess/views_super.py`** now serializes both singl"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "893",
+      "line": "895",
       "preview": "**\u00a711.4 forward queue - batch 681 (Customer-success super APIs - malformed risk and intervention rows fail closed, 2026-04-01):** **DONE** - **`apps/customersuccess/views_super.py`** now wraps **`api_"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "895",
+      "line": "897",
       "preview": "**\u00a711.4 forward queue - batch 680 (Raw SQL cache helper - skip RLS session lookup in schema-per-tenant mode, 2026-04-01):** **DONE** - **`apps/siteconfig/cache_utils.py`** now short-circuits **`_curre"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "897",
+      "line": "899",
       "preview": "**\u00a711.4 forward queue - batch 679 (Raw SQL health repository - reject blank schema filter before size query, 2026-04-01):** **DONE** - **`apps/schools/repositories/health_repository.py`** now short-ci"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "899",
+      "line": "901",
       "preview": "**\u00a711.4 forward queue - batch 678 (Raw SQL health repository - reject blank identifiers before row-count SQL, 2026-04-01):** **DONE** - **`apps/schools/repositories/health_repository.py`** now normali"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "901",
+      "line": "903",
       "preview": "**\u00a711.4 forward queue - batch 677 (Raw SQL audit repository - reject blank table names before trigger DDL, 2026-04-01):** **DONE** - **`apps/people/repositories/audit_repository.py`** now normalizes *"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "903",
+      "line": "905",
       "preview": "**\u00a711.4 forward queue - batch 676 (Raw SQL audit repository - reject blank schema names before `SET LOCAL search_path`, 2026-04-01):** **DONE** - **`apps/people/repositories/audit_repository.py`** now"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "905",
+      "line": "907",
       "preview": "**\u00a711.4 forward queue - batch 675 (Beachhead checklists \u2014 `verify_beachhead_checklists.py` `parse_args` + default `--base`, 2026-03-31):** **DONE** - **`scripts/verify_beachhead_checklists.py`**: **`R"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "907",
+      "line": "909",
       "preview": "**\u00a711.4 forward queue - batch 674 (Raw SQL RLS context helper - no-op in schema-per-tenant mode, 2026-04-01):** **DONE** - **`apps/schools/rls_context.py`** now short-circuits all retained RLS session"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "909",
+      "line": "911",
       "preview": "**\u00a711.4 forward queue - batch 673 (Raw SQL RLS context helper - reject malformed school ids, 2026-04-01):** **DONE** - **`apps/schools/rls_context.py`** now normalizes **`school_id`** before issuing *"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "911",
+      "line": "913",
       "preview": "**\u00a711.4 forward queue - batch 672 (Shell architecture matrix \u2014 `verify_shell_architecture_matrix.py` `parse_args` + default `--base`, 2026-03-31):** **DONE** - **`scripts/verify_shell_architecture_mat"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "913",
+      "line": "915",
       "preview": "**\u00a711.4 forward queue - batch 671 (Raw SQL audit permission revoker - blank schema input now fails closed, 2026-04-01):** **DONE** - **`apps/people/management/commands/revoke_audit_log_permissions.py`"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "915",
+      "line": "917",
       "preview": "**\u00a711.4 forward queue - batch 670 (Raw SQL audit trigger attacher - blank schema input now fails closed, 2026-04-01):** **DONE** - **`apps/people/management/commands/attach_audit_triggers.py`** now st"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "917",
+      "line": "919",
       "preview": "**\u00a711.4 forward queue - batch 669 (Raw SQL RLS repository - fail closed in schema-per-tenant mode, 2026-04-01):** **DONE** - **`apps/schools/repositories/rls_repository.py`** now returns an empty resu"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "919",
+      "line": "921",
       "preview": "**\u00a711.4 forward queue - batch 668 (Raw SQL audit trigger attacher - all-tenant `--dry-run` now matches tenant-context DDL, 2026-04-01):** **DONE** - **`apps/people/management/commands/attach_audit_tri"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "921",
+      "line": "923",
       "preview": "**\u00a711.4 forward queue - batch 667 (Raw SQL audit trigger attacher - `--dry-run` now matches transaction-local DDL, 2026-04-01):** **DONE** - **`apps/people/management/commands/attach_audit_triggers.py"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "923",
+      "line": "925",
       "preview": "**\u00a711.4 forward queue - batch 666 (Raw SQL audit permission revoker - `--dry-run` now matches transaction-local DDL, 2026-04-01):** **DONE** - **`apps/people/management/commands/revoke_audit_log_permi"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "925",
+      "line": "927",
       "preview": "**\u00a711.4 forward queue - batch 665 (Raw SQL SQLite integrity helper - read-only verification connection, 2026-04-01):** **DONE** - **`apps/siteconfig/repositories/database_recovery_repository.py`** now"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "927",
+      "line": "929",
       "preview": "**\u00a711.4 forward queue - batch 664 (Raw SQL audit DDL helper - transaction-local `search_path` only, 2026-04-01):** **DONE** - **`apps/people/repositories/audit_repository.py`** now uses **`SET LOCAL s"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "929",
+      "line": "931",
       "preview": "**\u00a711.4 forward queue - batch 663 (Raw SQL cache helper - normalize malformed RLS session school ids, 2026-04-01):** **DONE** - **`apps/siteconfig/cache_utils.py`** now normalizes school ids from both"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "931",
+      "line": "933",
       "preview": "**\u00a711.4 forward queue - batch 662 (Raw SQL RLS verifier - skip in schema-per-tenant mode, 2026-04-01):** **DONE** - **`apps/schools/management/commands/verify_tenant_rls.py`** now skips with a warning"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "933",
+      "line": "935",
       "preview": "**\u00a711.4 forward queue - batch 661 (Phase B execution \u2014 `verify_phase_b_execution.py` stderr prefix + helper test name, 2026-03-31):** **DONE** - **`scripts/verify_phase_b_execution.py`**: invalid-base"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "935",
+      "line": "937",
       "preview": "**\u00a711.4 forward queue - batch 660 (Raw SQL database recovery - `--check-only` now fails closed on missing or unreadable SQLite databases, 2026-04-01):** **DONE** - **`apps/siteconfig/management/comman"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "937",
+      "line": "939",
       "preview": "**\u00a711.4 forward queue - batch 658 (Raw SQL audit trigger attacher - fail closed on schema errors, 2026-04-01):** **DONE** - **`apps/people/management/commands/attach_audit_triggers.py`** now raises **"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "939",
+      "line": "941",
       "preview": "**\u00a711.4 forward queue - batch 657 (Raw SQL audit permission revoker - fail closed on schema errors, 2026-04-01):** **DONE** - **`apps/people/management/commands/revoke_audit_log_permissions.py`** now "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "941",
+      "line": "943",
       "preview": "**\u00a711.4 forward queue - batch 656 (Raw SQL RLS verifier - fail closed when tenant RLS is missing or disabled, 2026-04-01):** **DONE** - **`apps/schools/management/commands/verify_tenant_rls.py`** now "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "943",
+      "line": "945",
       "preview": "**\u00a711.4 forward queue - batch 655 (Raw SQL cache helper - malformed request school ids no longer create invalid cache prefixes, 2026-04-01):** **DONE** - **`apps/siteconfig/cache_utils.py`** now ignor"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "945",
+      "line": "947",
       "preview": "**\u00a711.4 forward queue - batch 654 (Security allowlist density \u2014 `verify_security_allowlist_density.py` `parse_args` + default `--base`, 2026-03-31):** **DONE** - **`scripts/verify_security_allowlist_d"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "947",
+      "line": "949",
       "preview": "**\u00a711.4 forward queue - batch 653 (Raw SQL health repository - schema-scoped top-table query without `search_path` leakage, 2026-04-01):** **DONE** - **`apps/schools/repositories/health_repository.py`"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "949",
+      "line": "951",
       "preview": "**\u00a711.4 forward queue - batch 652 (Wedge line registry \u2014 `verify_wedge_line_registry.py` `parse_args` + default `--base`, 2026-03-31):** **DONE** - **`scripts/verify_wedge_line_registry.py`**: **`ROOT"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "951",
+      "line": "953",
       "preview": "**\u00a711.4 forward queue - batch 651 (Customer-success super APIs - malformed workflow and inactivity rows fail closed, 2026-04-01):** **DONE** - **`apps/customersuccess/views_super.py`** now skips malfo"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "953",
+      "line": "955",
       "preview": "**\u00a711.4 forward queue - batch 650 (Phase 8 dashboard density \u2014 `verify_phase8_dashboard_density.py` `parse_args` + default `--base`, 2026-03-31):** **DONE** - **`scripts/verify_phase8_dashboard_densit"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "955",
+      "line": "957",
       "preview": "**\u00a711.4 forward queue - batch 649 (Customer-success tenant view - execute-launch success requires empty normalized errors, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** now requ"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "957",
+      "line": "959",
       "preview": "**\u00a711.4 forward queue - batch 648 (Customer-success tenant view - execute-launch error payload contracts fail closed, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** now normalize"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "959",
+      "line": "961",
       "preview": "**\u00a711.4 forward queue - batch 647 (45 wedge scorecard \u2014 `verify_45_wedge_scorecard.py` `parse_args` + default `--base`, 2026-04-01):** **DONE** - **`scripts/verify_45_wedge_scorecard.py`**: **`ROOT`**"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "961",
+      "line": "963",
       "preview": "**\u00a711.4 forward queue - batch 646 (Marketplace integration first-class parity \u2014 `verify_marketplace_integration_first_class_parity.py` `parse_args` + default `--base`, 2026-04-01):** **DONE** - **`scr"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "963",
+      "line": "965",
       "preview": "**\u00a711.4 forward queue - batch 645 (Admin tenant change_form product links \u2014 `verify_admin_tenant_change_form_product_links.py` `parse_args` + default `--base`, 2026-04-01):** **DONE** - **`scripts/ver"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "965",
+      "line": "967",
       "preview": "**\u00a711.4 forward queue - batch 644 (Structured logging contract \u2014 `verify_structured_logging_contract.py` `parse_args` + default `--base`, 2026-04-01):** **DONE** - **`scripts/verify_structured_logging"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "967",
+      "line": "969",
       "preview": "**\u00a711.4 forward queue - batch 643 (Phase H skip-link targets \u2014 `verify_phase_h_skiplink_targets.py` `main(argv)` + default `--base`, 2026-04-01):** **DONE** - **`scripts/verify_phase_h_skiplink_target"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "969",
+      "line": "971",
       "preview": "**\u00a711.4 forward queue - batch 642 (Migration safety doc discipline \u2014 `verify_migration_safety_doc_discipline.py` `parse_args` + default `--base`, 2026-04-01):** **DONE** - **`scripts/verify_migration_"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "971",
+      "line": "973",
       "preview": "**\u00a711.4 forward queue - batch 641 (Pre-deploy gate record \u2014 `verify_pre_deploy_gate_record.py` `parse_args` + default `--base`, 2026-04-01):** **DONE** - **`scripts/verify_pre_deploy_gate_record.py`**"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "973",
+      "line": "975",
       "preview": "**\u00a711.4 forward queue - batch 640 (UX completion \u2014 `verify_ux_completion.py` `parse_args` + default `--base`, 2026-04-01):** **DONE** - **`scripts/verify_ux_completion.py`**: single **`ROOT`** (drops "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "975",
+      "line": "977",
       "preview": "**\u00a711.4 forward queue - batch 639 (SOT pillar evidence \u2014 `verify_sot_pillar_evidence.py` `main(argv)` + default `--base`, 2026-04-01):** **DONE** - **`scripts/verify_sot_pillar_evidence.py`**: **`ROOT"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "977",
+      "line": "979",
       "preview": "**\u00a711.4 forward queue - batch 637 (Plan deliverables \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d `verify_plan_deliverables.py` `main(argv)` + default `--base`, 2026-04-01):** **DONE** - **`scripts/verify_plan_deliverables.py`**: single"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "979",
+      "line": "981",
       "preview": "**\u00a711.4 forward queue - batch 638 (Customer-success tenant view - guided onboarding non-percent integers preserve exact counts and order, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "981",
+      "line": "983",
       "preview": "**\u00a711.4 forward queue - batch 636 (Customer-success tenant view - support copilot item contracts fail closed, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** now validates support"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "983",
+      "line": "985",
       "preview": "**\u00a711.4 forward queue - batch 635 (Customer-success tenant view - guided onboarding preview and recommendation rail item contracts fail closed, 2026-04-01):** **DONE** - **`apps/customersuccess/views_"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "987",
+      "line": "989",
       "preview": "**\u00a711.4 forward queue - batch 633 (Customer-success tenant view - guided onboarding hero and launch item contracts fail closed, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** now"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "991",
+      "line": "993",
       "preview": "**\u00a711.4 forward queue - batch 631 (Customer-success tenant view - guided onboarding scalar contract fails closed, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** now enforces guid"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "993",
+      "line": "995",
       "preview": "**\u00a711.4 forward queue - batch 630 (Customer-success tenant view - guided onboarding object payloads fail closed, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** now validates guid"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "999",
+      "line": "1001",
       "preview": "**\u00a711.4 forward queue - batch 627 (Customer-success tenant view - guided onboarding right-rail collection fallback, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** validates guide"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "1001",
+      "line": "1003",
       "preview": "**\u00a711.4 forward queue - batch 626 (Customer-success tenant view - guided onboarding collection payloads fail closed, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** now validates "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "1009",
+      "line": "1011",
       "preview": "**\u00a711.4 forward queue - batch 622 (Customer-success super dashboard - section query failures degrade to empty sections, 2026-04-01):** **DONE** - **`apps/customersuccess/views_super.py`** now wraps cu"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "1013",
+      "line": "1015",
       "preview": "**\u00a711.4 forward queue - batch 619 (Customer-success tenant view - execute-launch requires boolean success flag, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** now treats only the"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "1015",
+      "line": "1017",
       "preview": "**\u00a711.4 forward queue - batch 618 (Customer-success tenant view - support-copilot malformed payload falls back to empty state, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** now "
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "1019",
+      "line": "1021",
       "preview": "**\u00a711.4 forward queue - batch 616 (Customer-success tenant view - execute-launch string errors normalize to one message, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`** now normal"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "1023",
+      "line": "1025",
       "preview": "**\u00a711.4 forward queue - batch 614 (Customer-success tenant view - execute-launch failed result without errors shows generic message, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`*"
     },
     {
       "classification": "docs_legacy",
       "file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
-      "line": "1025",
+      "line": "1027",
       "preview": "**\u00a711.4 forward queue - batch 613 (Customer-success tenant view - execute-launch malformed result degrades to generic error redirect, 2026-04-01):** **DONE** - **`apps/customersuccess/views_tenant.py`"
     },
     {
@@ -47994,17 +48000,11 @@
       "file": "docs/generated/gilead_reference_audit.json",
       "line": "24444",
       "preview": "\"file\": \"docs/generated/gilead_reference_audit.json\","
-    },
-    {
-      "classification": "docs_legacy",
-      "file": "docs/generated/gilead_reference_audit.json",
-      "line": "24446",
-      "preview": "\"preview\": \"\\\"preview\\\": \\\"\\\\\\\"preview\\\\\\\": \\\\\\\"\\\\\\\\\\\\\\\"preview\\\\\\\\\\\\\\\": \\\\\\\\\\\\\\\"| `ensure_gilead_admin` (management command) | Command | **REMOVED** | `ensure_default_tenant_admin` | Same args. Docum"
     }
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 16144,
+    "hits": 16147,
     "public_ui_violations": 0
   },
   "truncated": true

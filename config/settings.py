@@ -348,11 +348,19 @@ import os
 from urllib.parse import quote_plus
 import dj_database_url
 
+# unittest / manage.py test: set RMC_TEST_LOCAL_SQLITE=1 to use repo SQLite even when .env sets
+# DATABASE_URL (dotenv loads after empty env; without this, tests may migrate against remote Postgres).
+_RMC_TEST_LOCAL_SQLITE = RUNNING_TESTS and os.getenv(
+    "RMC_TEST_LOCAL_SQLITE", ""
+).strip().lower() in ("1", "true", "yes")
+
 # Treat empty or whitespace-only as unset (avoids dj_database_url returning incomplete config)
 DATABASE_URL = (os.getenv("DATABASE_URL") or "").strip() or None
+if _RMC_TEST_LOCAL_SQLITE:
+    DATABASE_URL = None
 # Build DATABASE_URL from separate vars if set (e.g. Render injects DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT)
 # Skip if DB_HOST looks like a placeholder (e.g. "from_render") and no real URL is available
-if not DATABASE_URL and os.getenv("DB_HOST"):
+if not DATABASE_URL and os.getenv("DB_HOST") and not _RMC_TEST_LOCAL_SQLITE:
     _db_host = (os.getenv("DB_HOST") or "").strip()
     if _db_host and _db_host not in ("from_render", "from_render ", ""):
         _db_user = os.getenv("DB_USER", "")
@@ -363,6 +371,8 @@ if not DATABASE_URL and os.getenv("DB_HOST"):
         _db_user_enc = quote_plus(_db_user) if _db_user else ""
         DATABASE_URL = f"postgresql://{_db_user_enc}:{_db_pass_enc}@{_db_host}:{_db_port}/{_db_name}"
 PREVIEW_DATABASE_URL = (os.getenv("PREVIEW_DATABASE_URL") or "").strip() or None
+if _RMC_TEST_LOCAL_SQLITE:
+    PREVIEW_DATABASE_URL = None
 
 if DATABASE_URL:
     _default_db = dj_database_url.config(
@@ -401,7 +411,26 @@ else:
         }
     }
 
-if PREVIEW_DATABASE_URL:
+# Tests: SQLite-only runner — ignores DATABASE_URL so agents/CI don't block on unreachable Postgres.
+if RUNNING_TESTS and os.getenv("RMC_SQLITE_TEST_MEMORY", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+):
+    _rmc_ts_path = BASE_DIR / ".django_test_dbs" / "rmc_sqlite_test_runner.sqlite3"
+    _rmc_ts_path.parent.mkdir(parents=True, exist_ok=True)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": str(_rmc_ts_path),
+            "OPTIONS": {"timeout": 90.0},
+        }
+    }
+
+if PREVIEW_DATABASE_URL and not (
+    RUNNING_TESTS
+    and os.getenv("RMC_SQLITE_TEST_MEMORY", "").strip().lower() in ("1", "true", "yes")
+):
     _preview_db = dj_database_url.config(
         default=PREVIEW_DATABASE_URL,
         conn_max_age=600,
@@ -452,6 +481,17 @@ for _alias, _db_config in DATABASES.items():
     # on Windows when many tests hit the same file-backed test DB (--keepdb).
     _db_config.setdefault("OPTIONS", {})
     _db_config["OPTIONS"].setdefault("timeout", 30.0)
+
+# Optional: use SQLite :memory: for TEST NAME only (can be flaky on some Windows setups).
+if RUNNING_TESTS and os.getenv("RMC_SQLITE_TEST_USE_MEMORY_NAME", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+):
+    for _db_config in DATABASES.values():
+        if _db_config.get("ENGINE") == "django.db.backends.sqlite3":
+            _db_config.setdefault("TEST", {})
+            _db_config["TEST"]["NAME"] = ":memory:"
 
 # Longer busy timeout during unittest / manage.py test reduces flaky "database is locked" on
 # Windows with file-backed SQLite + --keepdb (pre_deploy_gate, local agents).

@@ -1,0 +1,28 @@
+{% load i18n %}
+<nav class="mb-3" aria-label="{% trans 'Decision dashboards' %}">
+  <ul class="nav nav-pills flex-wrap gap-1 small">
+    <li class="nav-item">
+      <a class="nav-link py-1 px-2 {% if surface_key == 'overview' %}active{% endif %}" href="{% url 'analytics:decision_intelligence_dashboard' %}">{% trans "Overview" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link py-1 px-2 {% if surface_key == 'school_health' %}active{% endif %}" href="{% url 'analytics:decision_school_health_dashboard' %}">{% trans "School health" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link py-1 px-2 {% if surface_key == 'revenue' %}active{% endif %}" href="{% url 'analytics:decision_revenue_dashboard' %}">{% trans "Revenue" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link py-1 px-2 {% if surface_key == 'engagement' %}active{% endif %}" href="{% url 'analytics:decision_engagement_dashboard' %}">{% trans "Engagement" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link py-1 px-2 {% if surface_key == 'risk' %}active{% endif %}" href="{% url 'analytics:decision_risk_dashboard' %}">{% trans "Risk" %}</a>
+    </li>
+    {% if show_founder_nav %}
+    <li class="nav-item">
+      <a class="nav-link py-1 px-2 {% if surface_key == 'founder' %}active{% endif %}" href="{% url 'analytics:decision_founder_dashboard' %}">{% trans "Founder" %}</a>
+    </li>
+    {% endif %}
+    <li class="nav-item ms-auto">
+      <a class="nav-link py-1 px-2" href="{% url 'analytics:governed_report_builder' %}">{% trans "Report builder" %}</a>
+    </li>
+  </ul>
+</nav>

@@ -16,14 +16,21 @@ class Workflow(models.Model):
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
         PUBLISHED = "published", "Published"
+        PAUSED = "paused", "Paused"
+        FAILED = "failed", "Failed"
         ARCHIVED = "archived", "Archived"
 
     class Trigger(models.TextChoices):
         ATTENDANCE_MARKED = "attendance_marked", "Attendance marked"
         ATTENDANCE_SAVED = "attendance_saved", "Attendance saved (platform)"
+        MARKS_SUBMITTED = "marks_submitted", "Marks submitted"
         PAYMENT_RECEIVED = "payment_received", "Payment received"
+        PAYMENT_SUCCESS = "payment_success", "Payment succeeded"
+        PAYMENT_FAILED = "payment_failed", "Payment failed"
         STUDENT_CREATED = "student_created", "Student added"
         REPORT_GENERATED = "report_generated", "Report generated"
+        STUDENT_RISK_DETECTED = "student_risk_detected", "Student risk detected"
+        APP_INSTALLED = "app_installed", "Marketplace app installed"
 
     school = models.ForeignKey(
         "schools.School",

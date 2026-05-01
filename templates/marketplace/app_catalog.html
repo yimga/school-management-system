@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n static phase8_tags %}
+{# Hero: strict conversion mode keeps one dominant path to the catalog grid; secondary destinations in More. #}
 
 {% block cp_title %}App catalog{% endblock %}
 
@@ -20,11 +21,24 @@
         <p class="proof-hero-copy">
           The control-plane catalog should feel like a governed marketplace, not a list of install buttons. Every card below shows verification, compatibility shape, install scope, and sandbox posture before you commit.
         </p>
-        <div class="proof-hero-actions">
+        <div class="proof-hero-actions" data-rmc-catalog-hero-actions="1">
+          {% if rmc_conversion_single_action_enforced|default:False %}
+          <a href="#app-catalog-list" class="btn btn-light btn-sm" data-rmc-catalog-primary-cta="1">{% trans "Browse installable apps" %}</a>
+          <details class="rmc-conversion-more-actions border border-light border-opacity-25 rounded px-2 py-1">
+            <summary class="btn btn-sm btn-outline-light mb-0 text-white-50">{% trans "More" %}</summary>
+            <div class="pt-2 d-flex flex-wrap gap-2">
+              <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">{% trans "Back to Dashboard" %}</a>
+              <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">{% trans "Marketplace governance" %}</a>
+              <a href="{% url 'super:blueprint_marketplace' %}" class="btn btn-outline-light btn-sm">{% trans "Blueprint marketplace" %}</a>
+              <a href="{% url 'super:marketplace_sandbox_inspector' %}" class="btn btn-outline-light btn-sm">{% trans "Sandbox inspector" %}</a>
+            </div>
+          </details>
+          {% else %}
           <a href="{% url 'super:dashboard' %}" class="btn btn-light btn-sm">Back to Dashboard</a>
           <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">Marketplace governance</a>
           <a href="{% url 'super:blueprint_marketplace' %}" class="btn btn-outline-light btn-sm">Blueprint marketplace</a>
           <a href="{% url 'super:marketplace_sandbox_inspector' %}" class="btn btn-outline-light btn-sm">Sandbox inspector</a>
+          {% endif %}
         </div>
         <div class="proof-strip">
           <div class="proof-strip-card"><strong>{{ catalog_stats.apps|default:0 }}</strong><span>installable apps</span></div>

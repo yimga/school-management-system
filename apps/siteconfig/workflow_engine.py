@@ -177,6 +177,29 @@ def evaluate_conditions(conditions: list, context: dict) -> bool:
                 return False
             if a_dt.weekday() not in wd:
                 return False
+        elif op == "role_in":
+            want_list = want if isinstance(want, (list, tuple)) else []
+            actual_role = (
+                _context_get(ctx, field)
+                if field
+                else (
+                    ctx.get("actor_role")
+                    if isinstance(ctx, dict)
+                    else None
+                )
+                or (ctx.get("trigger_role") if isinstance(ctx, dict) else None)
+            )
+            if actual_role not in want_list:
+                return False
+        elif op == "feature_enabled":
+            key = str(want or field or "").strip()
+            if not key:
+                return False
+            bucket = _context_get(ctx, "school_features")
+            if not isinstance(bucket, dict):
+                return False
+            if not bucket.get(key):
+                return False
     return True
 
 

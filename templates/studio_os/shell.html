@@ -13,7 +13,13 @@
 <div class="container-fluid py-2 px-0 px-md-2 rmc-shell-content-grid" data-page-archetype="operational-workbench" data-shell-layout="{{ rmc_shell.layout_token|default:'studio-os' }}" data-shell-host="{{ rmc_shell.shell_data_studio_host|default:'tenant' }}" data-rmc-nav-family="{{ rmc_shell.nav_family }}" data-studio-os-surface="tenant-shell" data-rmc-shell-content-grid="1">
   <a href="#studio-canvas" class="visually-hidden-focusable btn btn-sm btn-outline-primary position-absolute top-0 start-0 m-2 px-3 py-2 rounded z-1" style="z-index: 1060;">{% trans "Skip to Studio content" %}</a>
   {# On manager host Studio uses shell_control_plane → control_plane_base (8-pill nav there). Tenant: no PRIMARY nav. #}
-  <div class="ds-action-bar d-flex align-items-center gap-2 mb-3 flex-wrap" role="toolbar" aria-label="{% trans 'Studio toolbar' %}">
+  <div class="ds-action-bar d-flex align-items-center gap-2 mb-3 flex-wrap" role="toolbar" aria-label="{% trans 'Studio toolbar' %}" data-rmc-studio-toolbar="1">
+    {% if rmc_conversion_single_action_enforced|default:False %}
+    <a href="{% url 'studio_os:experience' %}" class="btn btn-sm btn-primary" data-task="studio_os" data-task-step="studio:open-experience">{% trans "Open Experience" %}</a>
+    <details class="rmc-conversion-more-actions border rounded px-2 py-1">
+      <summary class="btn btn-sm btn-outline-secondary mb-0">{% trans "Studio tools" %}</summary>
+      <div class="pt-2 d-flex flex-wrap gap-2 align-items-center">
+    {% endif %}
     {% if request.public_host_kind == 'manager' %}
     <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Home — control plane' %}"><i class="bi bi-house-door me-1"></i>{% trans "Home" %}</a>
     {% endif %}
@@ -22,6 +28,10 @@
     </a>
     <input type="search" class="form-control form-control-sm studio-os-search" id="studio-global-search" placeholder="{% trans 'Search Studio...' %}" aria-label="{% trans 'Search' %}" style="max-width: 16rem;">
     <button type="button" class="btn btn-sm btn-outline-secondary studio-os-cmd-btn" id="studio-command-palette-btn" aria-label="{% trans 'Commands' %}">{% trans "Commands" %}</button>
+    {% if rmc_conversion_single_action_enforced|default:False %}
+      </div>
+    </details>
+    {% endif %}
     <h1 class="h5 mb-0 ms-auto">
       {% if current_mode %}
         {% for m in studio_modes %}{% if m.id == current_mode %}{{ m.label }}{% endif %}{% endfor %} – {% trans "Studio" %}

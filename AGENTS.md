@@ -13,6 +13,7 @@ This repository is **not** a greenfield project. Use the **existing** enforcemen
 | `scripts/verify_*.py`, `scripts/lint_*.py` | Mechanical gates; `verify_phases_3_11_gates.py` bundles many |
 | `scripts/generated/*.json`, `docs/generated/*` | Regenerated ledgers and inventories — run writers when verifiers say stale |
 | [`scripts/generate_system_closure_map.py`](scripts/generate_system_closure_map.py) | After §11.4 **PARTIAL**/**NOT DONE**/**BLOCKED** edits: `python scripts/generate_system_closure_map.py --write` → [`docs/generated/system_closure_map.json`](docs/generated/system_closure_map.json) |
+| [`scripts/run_sqlite_memory_tests.py`](scripts/run_sqlite_memory_tests.py) | When `DATABASE_URL` is Postgres but no server is available, or Windows SQLite test DBs hang on teardown: `python scripts/run_sqlite_memory_tests.py <labels>` sets `RMC_SQLITE_TEST_MEMORY=1` and a unique `DJANGO_TEST_DB_FILE` per run. Optional: `RMC_SQLITE_TEST_USE_MEMORY_NAME=1` uses `:memory:` for the test DB name. |
 
 ## Autonomous slice loop (every deliverable)
 

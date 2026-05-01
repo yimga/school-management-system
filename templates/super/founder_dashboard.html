@@ -186,7 +186,10 @@
   <section class="mb-4" data-rmc-founder-sales-dashboard="1">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
       <h2 class="h5 mb-0">{% trans "Sales command center" %}</h2>
+      {# Strict mode: single primary CTA lives in header toolbar — avoid duplicate pipeline buttons here. #}
+      {% if not rmc_conversion_single_action_enforced|default:False %}
       <a class="btn btn-sm btn-primary" href="{{ sales_pipeline_url }}">{% trans "Open Kanban pipeline" %}</a>
+      {% endif %}
     </div>
     <div class="row g-3">
       <div class="col-md-2 col-6">

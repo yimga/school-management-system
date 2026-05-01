@@ -8,6 +8,7 @@
   <h1 class="h4 mb-3">{% trans "Sync conflicts" %}</h1>
   <p class="text-body-secondary small mb-4">
     {% trans "Choose how to resolve each item. “Keep mine” re-applies your stored payload. “Use latest” accepts the server record and does not apply your offline edit. “Review manually” leaves the conflict open until you fix it on the right screen." %}
+    {% trans "Your choice is recorded with your user id and timestamp on the offline action for audit." %}
   </p>
 
   {% if conflicts %}

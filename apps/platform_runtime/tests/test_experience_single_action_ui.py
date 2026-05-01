@@ -231,6 +231,68 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
         nav = body[nav_start:nav_end]
         self.assertEqual(nav.count("btn-primary"), 1)
         self.assertIn("rmc-conversion-more-actions", nav)
+        self.assertNotIn("Open Kanban pipeline", body)
+
+    @patch.dict(
+        os.environ,
+        {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com", "MULTI_TENANT_LEGACY_BASE_DOMAINS": ""},
+        clear=False,
+    )
+    @override_settings(
+        CONVERSION_SINGLE_ACTION_ENFORCED=True,
+        ALLOWED_HOSTS=["*", "testserver", "127.0.0.1", "localhost", "manager.runmycampus.com"],
+        ROOT_URLCONF="config.urls",
+    )
+    def test_app_catalog_strict_hero_primary_and_more_actions(self):
+        user = User.objects.create_user(
+            username="ux_catalog_strict",
+            password="Test1234!ab",
+            role=User.Role.ADMIN,
+            is_staff=True,
+            is_superuser=True,
+        )
+        c = Client()
+        c.force_login(user)
+        r = c.get(
+            reverse("super:app_catalog"),
+            HTTP_HOST="manager.runmycampus.com",
+            follow=True,
+        )
+        self.assertEqual(r.status_code, 200)
+        body = r.content.decode("utf-8", errors="replace")
+        self.assertIn('data-rmc-catalog-primary-cta="1"', body)
+        self.assertIn("rmc-conversion-more-actions", body)
+        self.assertIn('data-rmc-catalog-hero-actions="1"', body)
+
+    @patch.dict(
+        os.environ,
+        {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com", "MULTI_TENANT_LEGACY_BASE_DOMAINS": ""},
+        clear=False,
+    )
+    @override_settings(
+        CONVERSION_SINGLE_ACTION_ENFORCED=True,
+        ALLOWED_HOSTS=["*", "testserver", "127.0.0.1", "localhost", "manager.runmycampus.com"],
+        ROOT_URLCONF="config.urls",
+    )
+    def test_installation_health_strict_hero_primary_and_more_actions(self):
+        user = User.objects.create_user(
+            username="ux_inst_health",
+            password="Test1234!ab",
+            role=User.Role.ADMIN,
+            is_staff=True,
+            is_superuser=True,
+        )
+        c = Client()
+        c.force_login(user)
+        r = c.get(
+            reverse("super:marketplace_installation_health"),
+            HTTP_HOST="manager.runmycampus.com",
+            follow=True,
+        )
+        self.assertEqual(r.status_code, 200)
+        body = r.content.decode("utf-8", errors="replace")
+        self.assertIn('data-rmc-install-health-primary="1"', body)
+        self.assertIn("rmc-conversion-more-actions", body)
 
     @override_settings(CONVERSION_SINGLE_ACTION_ENFORCED=True)
     def test_activation_first_action_single_list_cta(self):

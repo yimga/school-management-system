@@ -10,7 +10,9 @@
      data-page-archetype="operator-report"
      data-shell-surface="compliance-exports"
      data-cp-evidence-surface="compliance-exports"
-     data-rmc-compliance-exports="1">
+     data-rmc-compliance-exports="1"
+     data-task="compliance_export_hub"
+     data-task-step="exports:hub">
   <h1 class="h3 mb-2">{% trans "Regional compliance exports" %}</h1>
   <p class="text-muted small mb-2">
     {% blocktrans trimmed %}
@@ -21,14 +23,34 @@
   {% if school %}
   <p class="small text-muted mb-3"><strong>{% trans "School" %}</strong>: {{ school.name }}</p>
   {% else %}
-  <p class="text-warning">{% trans "No tenant context." %}</p>
+  <div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert">
+    <span>{% trans "No tenant context." %}</span>
+    <a class="btn btn-sm btn-primary" href="{% url 'accounts:backend_dashboard' %}" data-action="tenant-context-fallback">{% trans "Open backend dashboard" %}</a>
+  </div>
   {% endif %}
   <div class="alert alert-light border small mb-3" role="status">
     <strong>{% trans "Recommended flow" %}:</strong>
     {% trans "Review missing data warnings first, then use Download CSV as the primary action on each export card." %}
   </div>
 
-  <div class="d-flex flex-wrap gap-2 mb-4 cp-evidence-related" data-rmc-evidence-related-links="1" aria-label="{% trans 'Related control-plane links' %}">
+  {% with strict=rmc_conversion_single_action_enforced|default:False %}
+  <div class="d-flex flex-wrap gap-2 mb-4 cp-evidence-related align-items-center" data-rmc-evidence-related-links="1" aria-label="{% trans 'Related control-plane links' %}">
+    {% if strict %}
+      {% if student_attendance_export_url %}
+      <a class="btn btn-sm btn-primary" href="{{ student_attendance_export_url }}" data-rmc-related-attendance-export="1" data-action="shortcut-export" data-task-step="exports:attendance-csv">{% trans "Student attendance (CSV export)" %}</a>
+      {% elif families %}
+      <a class="btn btn-sm btn-primary" href="#rmc-compliance-export-families" data-action="scroll-to-bundles" data-task-step="exports:jump-bundles">{% trans "Jump to export bundles" %}</a>
+      {% elif runtime_hub_url %}
+      <a class="btn btn-sm btn-primary" href="{{ runtime_hub_url }}" data-task-step="exports:setup-runtime">{% trans "Tenant runtime configuration" %}</a>
+      {% elif entity_catalog_url %}
+      <a class="btn btn-sm btn-primary" href="{{ entity_catalog_url }}" data-task-step="exports:ccc-catalog">{% trans "Entity catalog (CCC)" %}</a>
+      {% elif report_templates_catalog_url %}
+      <a class="btn btn-sm btn-primary" href="{{ report_templates_catalog_url }}" data-task-step="exports:templates">{% trans "Report templates (catalog)" %}</a>
+      {% endif %}
+      <details class="rmc-conversion-more-actions border rounded px-2 py-1">
+        <summary class="btn btn-sm btn-outline-secondary mb-0">{% trans "More links" %}</summary>
+        <div class="pt-2 d-flex flex-wrap gap-2">
+    {% endif %}
     {% if report_templates_catalog_url %}
     <a class="btn btn-sm btn-outline-primary" href="{{ report_templates_catalog_url }}">{% trans "Report templates (catalog)" %}</a>
     {% endif %}
@@ -45,7 +67,9 @@
     <a class="btn btn-sm btn-outline-primary" href="{{ scheduled_reports_hub_url }}">{% trans "Scheduled report delivery" %}</a>
     {% endif %}
     {% if student_attendance_export_url %}
+    {% if not strict %}
     <a class="btn btn-sm btn-outline-primary" href="{{ student_attendance_export_url }}" data-rmc-related-attendance-export="1">{% trans "Student attendance (CSV export)" %}</a>
+    {% endif %}
     {% endif %}
     {% if entity_catalog_url %}
     <a class="btn btn-sm btn-outline-primary" href="{{ entity_catalog_url }}">{% trans "Entity catalog (CCC)" %}</a>
@@ -56,8 +80,14 @@
     {% if runtime_hub_url %}
     <a class="btn btn-sm btn-outline-primary" href="{{ runtime_hub_url }}">{% trans "Tenant runtime configuration" %}</a>
     {% endif %}
+    {% if strict %}
+        </div>
+      </details>
+    {% endif %}
   </div>
+  {% endwith %}
 
+  <div id="rmc-compliance-export-families" class="rmc-compliance-export-families-anchor"></div>
   {% for row in families %}
   <div class="card border-0 shadow-sm mb-3">
     <div class="card-body">

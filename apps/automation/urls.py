@@ -34,4 +34,14 @@ urlpatterns = [
         views_visual_workflow.visual_workflow_dispatch_test,
         name="visual_workflow_dispatch_test",
     ),
+    path(
+        "workflows/api/publish/",
+        views_visual_workflow.visual_workflow_publish,
+        name="visual_workflow_publish",
+    ),
+    path(
+        "workflows/api/rollback/",
+        views_visual_workflow.visual_workflow_rollback,
+        name="visual_workflow_rollback",
+    ),
 ]

@@ -1,0 +1,42 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Decision intelligence" %}{% endblock %}
+{% block content %}
+<div class="container-lg py-4" data-rmc-decision-intelligence="1">
+  {% include "analytics/includes/decision_nav.html" %}
+  <h1 class="h4 mb-2">{% trans "Decision intelligence" %} — {% trans "Overview" %}</h1>
+  <p class="text-muted small mb-4">
+    {% trans "Automated operational insights for your school. Use the tabs to focus by decision surface." %}
+  </p>
+  <div class="row g-3">
+    {% for ins in insights %}
+    <div class="col-md-6 col-xl-4">
+      <div class="card h-100 shadow-sm border-{% if ins.severity == 'danger' %}danger{% elif ins.severity == 'warning' %}warning{% else %}secondary{% endif %}">
+        <div class="card-body">
+          <div class="text-uppercase small text-muted mb-1">{{ ins.audience }}</div>
+          <h2 class="h6 card-title">{{ ins.title }}</h2>
+          <p class="small card-text">{{ ins.explanation }}</p>
+          {% if ins.primary_action %}
+          <a class="btn btn-sm btn-primary" href="{{ ins.primary_action.path }}">{{ ins.primary_action.label }}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info mb-0">{% trans "No surfaced insights for current data — check back after attendance, marks, or finance activity." %}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% if global_rollups %}
+  <h2 class="h6 mt-5 mb-3">{% trans "Platform rollup (superuser)" %}</h2>
+  <div class="row g-2">
+    {% for g in global_rollups %}
+    <div class="col-md-6">
+      <div class="card border-0 bg-light"><div class="card-body py-2 small">{{ g.title }} — {{ g.explanation }}</div></div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

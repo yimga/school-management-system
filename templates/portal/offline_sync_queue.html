@@ -21,8 +21,8 @@
     <form method="post" class="d-inline">
       {% csrf_token %}
       <input type="hidden" name="action" value="retry_failed">
-      <button type="submit" class="btn btn-outline-secondary btn-sm" {% if failed_count == 0 %}disabled{% endif %}>
-        {% trans "Retry failed" %} ({{ failed_count }})
+      <button type="submit" class="btn btn-outline-secondary btn-sm" {% if failed_count == 0 %}disabled{% endif %} title="{% trans 'Re-queue failed items for another sync attempt' %}">
+        {% trans "Retry all failed" %} ({{ failed_count }})
       </button>
     </form>
     {% if OFFLINE_CONFLICTS_URL and conflict_count %}
@@ -31,10 +31,125 @@
     </a>
     {% endif %}
     <span class="small text-body-secondary ms-auto">
-      {% trans "Pending" %}: {{ pending_count }}
+      {% trans "Pending (queued)" %}: {{ pending_count }}
     </span>
   </div>
 
+  <h2 class="h6 text-primary mt-4">{% trans "Pending / syncing" %}</h2>
+  <div class="table-responsive rounded border border-secondary-subtle mb-4">
+    <table class="table table-sm table-striped mb-0 align-middle">
+      <thead>
+        <tr>
+          <th>{% trans "When" %}</th>
+          <th>{% trans "Type" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Retries" %}</th>
+          <th>{% trans "Detail" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in queued_actions %}
+        <tr>
+          <td class="text-nowrap small">{{ row.created_at }}</td>
+          <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
+          <td>
+            <span class="badge {% if row.status == 'synced' %}bg-success{% elif row.status == 'failed' %}bg-danger{% elif row.status == 'conflict' %}bg-warning text-dark{% elif row.status == 'queued' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+              {{ row.get_status_display }}
+            </span>
+          </td>
+          <td>{{ row.retry_count }}</td>
+          <td class="small text-break">
+            {% if row.conflict_reason %}{{ row.conflict_reason|truncatechars:120 }}{% else %}—{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-body-secondary py-3 text-center">{% trans "Nothing pending." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="h6 text-danger">{% trans "Failed" %}</h2>
+  <div class="table-responsive rounded border border-danger-subtle mb-4">
+    <table class="table table-sm table-striped mb-0 align-middle">
+      <thead>
+        <tr>
+          <th>{% trans "When" %}</th>
+          <th>{% trans "Type" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Retries" %}</th>
+          <th>{% trans "Detail" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in failed_actions %}
+        <tr>
+          <td class="text-nowrap small">{{ row.created_at }}</td>
+          <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
+          <td><span class="badge bg-danger">{{ row.get_status_display }}</span></td>
+          <td>{{ row.retry_count }}</td>
+          <td class="small text-break">{{ row.conflict_reason|truncatechars:160|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-body-secondary py-3 text-center">{% trans "No failed items." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="h6 text-warning">{% trans "Conflicts" %}</h2>
+  <div class="table-responsive rounded border border-warning-subtle mb-4">
+    <table class="table table-sm table-striped mb-0 align-middle">
+      <thead>
+        <tr>
+          <th>{% trans "When" %}</th>
+          <th>{% trans "Type" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Retries" %}</th>
+          <th>{% trans "Conflict reason" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in conflict_actions %}
+        <tr>
+          <td class="text-nowrap small">{{ row.updated_at }}</td>
+          <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
+          <td><span class="badge bg-warning text-dark">{{ row.get_status_display }}</span></td>
+          <td>{{ row.retry_count }}</td>
+          <td class="small text-break">{{ row.conflict_reason|truncatechars:200|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-body-secondary py-3 text-center">{% trans "No conflicts." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="h6 text-success">{% trans "Recently synced" %}</h2>
+  <div class="table-responsive rounded border border-success-subtle mb-4">
+    <table class="table table-sm table-striped mb-0 align-middle">
+      <thead>
+        <tr>
+          <th>{% trans "When" %}</th>
+          <th>{% trans "Type" %}</th>
+          <th>{% trans "Status" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in synced_actions %}
+        <tr>
+          <td class="text-nowrap small">{{ row.updated_at }}</td>
+          <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
+          <td><span class="badge bg-success">{{ row.get_status_display }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="text-body-secondary py-3 text-center">{% trans "No recent synced entries." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="h6 text-body-secondary">{% trans "All activity (latest 200)" %}</h2>
   <div class="table-responsive rounded border border-secondary-subtle">
     <table class="table table-sm table-striped mb-0 align-middle">
       <thead>

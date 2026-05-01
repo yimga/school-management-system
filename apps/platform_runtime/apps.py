@@ -41,3 +41,16 @@ class PlatformRuntimeConfig(AppConfig):
                 "Celery platform task signals not connected at Django ready",
                 exc_info=True,
             )
+        try:
+            from apps.platform_runtime.platform_event_bridge import (
+                register_platform_event_ai_bridge,
+                register_platform_event_analytics_bridge,
+            )
+
+            register_platform_event_ai_bridge()
+            register_platform_event_analytics_bridge()
+        except Exception:
+            logger.debug(
+                "Platform event AI/analytics bridge not registered at Django ready",
+                exc_info=True,
+            )

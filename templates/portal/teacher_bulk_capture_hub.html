@@ -22,6 +22,30 @@
     {% endfor %}
   </div>
   {% if offline_sync_note %}
+  <div class="card border-secondary-subtle mt-4">
+    <div class="card-body">
+      <h2 class="h6">{% trans "Offline note (quick capture)" %}</h2>
+      <p class="small text-muted mb-3">{% trans "When you have no connectivity, queue a short observation here; it syncs like other offline actions. When online, use your usual classroom documentation flows instead." %}</p>
+      <form method="post" action="#" data-rmc-offline-form="notes_report" class="row g-2">
+        {% csrf_token %}
+        <div class="col-12 col-md-6">
+          <label class="form-label small mb-0">{% trans "Title (optional)" %}</label>
+          <input type="text" name="title" class="form-control form-control-sm" maxlength="200" autocomplete="off">
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label small mb-0">{% trans "Student id (optional)" %}</label>
+          <input type="number" name="student_id" class="form-control form-control-sm" min="1" placeholder="{% trans 'Internal student id if known' %}">
+        </div>
+        <div class="col-12">
+          <label class="form-label small mb-0">{% trans "Note" %}</label>
+          <textarea name="body" class="form-control" rows="3" required placeholder="{% trans 'Observation or evidence text…' %}"></textarea>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "Queue note when offline" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
   <p class="small text-secondary mt-4 border-top pt-3">{% trans "Tip: Add this page to your home screen for faster access on devices without a keyboard." %}</p>
   {% endif %}
 </div>

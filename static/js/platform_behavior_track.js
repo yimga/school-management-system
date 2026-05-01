@@ -189,6 +189,25 @@
     onDomReadyAiHooks();
   }
 
+  /** One emit per full page load when click ingest is configured (measurement: screen_transition). */
+  function emitScreenTransition() {
+    var url = window.__RMC_CLICK_INGEST;
+    if (!url) return;
+    var path = window.location && window.location.pathname ? window.location.pathname : "";
+    postIngest({
+      kind: "screen_transition",
+      path: path,
+      phase: phaseLabel(),
+      ts: Date.now(),
+    });
+    emit({ kind: "screen_transition", path: path, ts: Date.now() });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", emitScreenTransition);
+  } else {
+    emitScreenTransition();
+  }
+
   /**
    * Workflow boundaries (call from step templates when a named workflow starts or completes).
    * Completing may reset the session id for that task in sessionStorage (next run fresh).

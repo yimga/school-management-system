@@ -17239,3 +17239,258 @@ msgstr ""
 
 msgid "Your next step"
 msgstr ""
+
+msgid "Aggregate field"
+msgstr ""
+
+msgid "Aggregate fn"
+msgstr ""
+
+msgid "All activity (latest 200)"
+msgstr ""
+
+msgid ""
+"Allowlisted datasets only — queries compile to Django ORM (no raw SQL). "
+"Tenant and permission checks apply."
+msgstr ""
+
+msgid ""
+"Automated operational insights for your school. Use the tabs to focus by "
+"decision surface."
+msgstr ""
+
+msgid "Blueprint marketplace"
+msgstr ""
+
+msgid "Browse apps"
+msgstr ""
+
+msgid "Browse installable apps"
+msgstr ""
+
+msgid "Churn risk (at_risk) in lifecycle sample"
+msgstr ""
+
+msgid "Conflict reason"
+msgstr ""
+
+msgid "Dataset"
+msgstr ""
+
+msgid "Decision dashboards"
+msgstr ""
+
+msgid "Decision intelligence"
+msgstr ""
+
+msgid "Derived from funnel + billing + health; not a billing ledger."
+msgstr ""
+
+msgid "Engagement"
+msgstr ""
+
+msgid "Enter a report name."
+msgstr ""
+
+msgid "Export JSON (API)"
+msgstr ""
+
+msgid "Fields (comma-separated)"
+msgstr ""
+
+msgid "Filters (JSON object, catalog keys only)"
+msgstr ""
+
+msgid "Founder"
+msgstr ""
+
+msgid "Governed report builder"
+msgstr ""
+
+msgid "Group by (comma-separated, optional)"
+msgstr ""
+
+msgid ""
+"Insights filtered for this decision surface. Actions open existing "
+"workflows."
+msgstr ""
+
+msgid "Internal student id if known"
+msgstr ""
+
+msgid "Jump to export bundles"
+msgstr ""
+
+msgid "Jump to invoices"
+msgstr ""
+
+msgid "Load list…"
+msgstr ""
+
+msgid "Monthly roster"
+msgstr ""
+
+msgid "More links"
+msgstr ""
+
+msgid "Moved to draft."
+msgstr ""
+
+msgid "No conflicts."
+msgstr ""
+
+msgid "No failed items."
+msgstr ""
+
+msgid "No insights on this surface for current data."
+msgstr ""
+
+msgid "No recent synced entries."
+msgstr ""
+
+msgid ""
+"No surfaced insights for current data — check back after attendance, marks, "
+"or finance activity."
+msgstr ""
+
+msgid "No tenant context — open this page on your school subdomain."
+msgstr ""
+
+msgid "Note"
+msgstr ""
+
+msgid "Nothing pending."
+msgstr ""
+
+msgid "Observation or evidence text…"
+msgstr ""
+
+msgid "Offline note (quick capture)"
+msgstr ""
+
+msgid "Operational report builder"
+msgstr ""
+
+msgid "Output"
+msgstr ""
+
+msgid "Pending (queued)"
+msgstr ""
+
+msgid "Pending / syncing"
+msgstr ""
+
+msgid "Platform rollup (superuser)"
+msgstr ""
+
+msgid "Platform-wide rollup for operators (superuser)."
+msgstr ""
+
+msgid "Published."
+msgstr ""
+
+msgid "Queue note when offline"
+msgstr ""
+
+msgid "Re-queue failed items for another sync attempt"
+msgstr ""
+
+msgid "Recently synced"
+msgstr ""
+
+msgid "Report name"
+msgstr ""
+
+msgid "Retry all failed"
+msgstr ""
+
+msgid "Revenue"
+msgstr ""
+
+msgid "Risk"
+msgstr ""
+
+msgid "Row limit"
+msgstr ""
+
+msgid "Run saved report"
+msgstr ""
+
+msgid "Sandbox inspector"
+msgstr ""
+
+msgid "Save report"
+msgstr ""
+
+msgid "Save the graph first (workflow id required)."
+msgstr ""
+
+msgid "School health"
+msgstr ""
+
+msgid "Schools (sample)"
+msgstr ""
+
+msgid "State"
+msgstr ""
+
+msgid "Student id (optional)"
+msgstr ""
+
+msgid "Studio tools"
+msgstr ""
+
+msgid "Tenant lifecycle (recent schools sample)"
+msgstr ""
+
+msgid "Tenant lifecycle distribution"
+msgstr ""
+
+msgid "Time-to-value ≤10 min (first result after onboarding/demo signal)"
+msgstr ""
+
+msgid "Title (optional)"
+msgstr ""
+
+msgid ""
+"When you have no connectivity, queue a short observation here; it syncs like"
+" other offline actions. When online, use your usual classroom documentation "
+"flows instead."
+msgstr ""
+
+msgid ""
+"Your choice is recorded with your user id and timestamp on the offline "
+"action for audit."
+msgstr ""
+
+msgid ""
+"Your highest-priority next steps appear in the strip above when your school "
+"assigns work or announcements."
+msgstr ""
+
+msgid ""
+"introspect app auth + effective scopes: Bearer sk_live_… (installation-bound"
+" API key) or Bearer rmc_at_… (OAuth access token when DeveloperApplication "
+"is linked to the catalog app and the host matches the tenant)."
+msgstr ""
+
+msgid "— row detail —"
+msgstr ""
+
+msgid "Event webhook deliveries (platform admin)"
+msgstr ""
+
+msgid "Event webhook subscriptions (platform admin)"
+msgstr ""
+
+msgid "Platform event logs (platform admin)"
+msgstr ""
+
+msgid "PlatformEventLog rows for event integrity and replay audit"
+msgstr ""
+
+msgid "Tenant webhook subscriptions for event backbone delivery"
+msgstr ""
+
+msgid "Webhook delivery attempts, outcomes, and retry evidence"
+msgstr ""

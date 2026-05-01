@@ -40,9 +40,20 @@
         <p class="proof-hero-copy">
           {% trans "Sandbox-first catalog: every install is staged so your team can preview impact, review scopes, and activate deliberately." %}
         </p>
-        <div class="proof-hero-actions ds-action-bar d-flex flex-wrap gap-2">
+        <div class="proof-hero-actions ds-action-bar d-flex flex-wrap gap-2" data-rmc-tenant-catalog-hero-actions="1">
+          {% if rmc_conversion_single_action_enforced|default:False %}
+          <a href="#tenant-catalog-grid" class="btn btn-light btn-sm ds-btn" data-rmc-tenant-catalog-primary="1" data-task-step="marketplace:browse-catalog">{% trans "Browse apps" %}</a>
+          <details class="rmc-conversion-more-actions border border-light border-opacity-25 rounded px-2 py-1">
+            <summary class="btn btn-sm btn-outline-light mb-0 text-white-50">{% trans "More" %}</summary>
+            <div class="pt-2 d-flex flex-wrap gap-2">
+              <a href="{% url 'tenant_installed_apps' %}" class="btn btn-outline-light btn-sm ds-btn">{% trans "Installed apps" %}</a>
+              <a href="{% url 'tenant_scope_consent' %}" class="btn btn-outline-light btn-sm ds-btn">{% trans "Scope consent" %}</a>
+            </div>
+          </details>
+          {% else %}
           <a href="{% url 'tenant_installed_apps' %}" class="btn btn-light btn-sm ds-btn">{% trans "Installed apps" %}</a>
           <a href="{% url 'tenant_scope_consent' %}" class="btn btn-outline-light btn-sm ds-btn">{% trans "Scope consent" %}</a>
+          {% endif %}
         </div>
         <div class="proof-strip">
           <div class="proof-strip-card"><strong>{{ catalog_stats.apps|default:0 }}</strong><span>{% trans "apps available" %}</span></div>
@@ -84,7 +95,7 @@
       <a href="{% url 'tenant_installed_apps' %}" class="btn btn-outline-primary">{% trans "Review sandbox installs" %}</a>
     </div>
 
-    <div class="proof-catalog-grid">
+    <div class="proof-catalog-grid" id="tenant-catalog-grid">
       {% for listing in listings %}
       <article class="proof-app-card" data-phase9-listing-trust data-rmc-mkt-app-card="1" data-rmc-mkt-listing-pipeline-phase="{{ listing.mkt_listing_pipeline_phase|default:'' }}">
         {% if listing.preview_image_url %}

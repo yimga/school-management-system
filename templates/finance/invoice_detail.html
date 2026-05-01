@@ -254,13 +254,39 @@
     </div>
   </div>
 
+  {% if payment_corridor %}
+  <div class="card mb-3 border-secondary-subtle">
+    <div class="card-body">
+      <h5 class="h6 mb-2">Regional payment corridor</h5>
+      <p class="small mb-1">
+        {% if payment_corridor.label %}{{ payment_corridor.label }}{% endif %}
+        {% if payment_corridor.currency_code %} — {{ payment_corridor.currency_code }}{% endif %}
+      </p>
+      <ul class="small mb-2 ps-3">
+        <li><strong>Primary rails:</strong> {{ payment_corridor.primary_rails|join:", " }}</li>
+        <li><strong>Backup rails:</strong> {{ payment_corridor.backup_rails|join:", " }}</li>
+        {% if payment_corridor.reconciliation_hint %}
+        <li class="text-muted">Reconciliation: {{ payment_corridor.reconciliation_hint }}</li>
+        {% endif %}
+      </ul>
+      {% if payment_corridor.offline_receipt_allowed %}
+      <p class="small text-muted mb-0">Offline capture of payment details is supported for this region; upload the receipt file when you have connectivity.</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
   {% if invoice.status != 'PAID' %}
   <div class="card mb-3">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0">Upload Payment Receipt</h5>
       </div>
-      <form id="receipt-upload-form" method="post" action="{% url 'finance:upload_payment_receipt' invoice.id %}" enctype="multipart/form-data" data-draft-key="invoice_receipt_upload_{{ invoice.id }}" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced receipt details">
+      <form id="receipt-upload-form" method="post" action="{% url 'finance:upload_payment_receipt' invoice.id %}" enctype="multipart/form-data" novalidate
+            data-rmc-offline-form="payment_receipt"
+            data-rmc-invoice-id="{{ invoice.id }}"
+            data-rmc-invoice-balance="{{ invoice.balance_amount }}"
+            data-draft-key="invoice_receipt_upload_{{ invoice.id }}" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced receipt details">
         {% csrf_token %}
         <input type="hidden" id="idempotency_key" name="idempotency_key" value="">
         <div class="row g-3">

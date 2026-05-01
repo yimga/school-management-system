@@ -28,7 +28,14 @@ client = RunMyCampusClient(base_url="https://yourschool.runmycampus.com")
 ## Auth
 
 - **Session:** After logging in via the web UI, use the same session (e.g. `requests.Session()` with cookies) for API calls when using cookie-based auth.
-- **API token:** When the platform supports API tokens, set `client.session.headers["Authorization"] = "Bearer <token>"` or use the auth helper in this package.
+- **School API key:** Installation-scoped keys use `Authorization: Bearer sk_live_…` on the tenant host; scope is enforced per installed marketplace app.
+- **OAuth access token:** Developer OAuth tokens use `Authorization: Bearer rmc_at_…` on the tenant host when the app is installed and the token’s scopes cover the route.
+
+Set headers on the shared session, for example:
+
+```python
+client.session.headers["Authorization"] = "Bearer <sk_live_… or rmc_at_…>"
+```
 
 ## Links
 

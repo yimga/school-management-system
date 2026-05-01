@@ -14,6 +14,7 @@ import hashlib
 import hmac
 import json
 import logging
+import uuid
 from collections import defaultdict
 from datetime import timedelta
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -144,6 +145,9 @@ def publish_event(
     school_id: Optional[Union[int, UUID, str]] = None,
     idempotency_key: Optional[str] = None,
     strict_catalog: bool = True,
+    correlation_id: Optional[str] = None,
+    actor: Any = None,
+    source: Optional[str] = None,
 ) -> Optional[Any]:
     """
     Persist the event and dispatch to subscribers + webhook subscriptions.
@@ -151,14 +155,25 @@ def publish_event(
     When ``strict_catalog`` is False, types not in ``EVENT_CATALOG`` are still stored
     (integration / extension events).
 
+    Optional ``correlation_id``, ``actor``, and ``source`` are merged into ``payload`` (caller
+    payload keys win if already set).
+
     After persist, the log row's ``payload`` is updated to include ``event_id`` (string form
     of the log primary key) before subscribers and webhooks run, unless already present.
     """
     from apps.platform_runtime.events import persist_platform_event
 
+    merged = dict(payload)
+    if correlation_id is not None:
+        merged.setdefault("correlation_id", correlation_id)
+    if actor is not None:
+        merged.setdefault("actor", actor)
+    if source is not None:
+        merged.setdefault("source", source)
+
     row = persist_platform_event(
         event_type,
-        payload,
+        merged,
         tenant_id=tenant_id,
         school_id=school_id,
         idempotency_key=idempotency_key,
@@ -185,7 +200,68 @@ def replay_event(
     if row is None:
         return {"ok": False, "error": "not_found"}
     dispatch_event(row, is_replay=True, dispatch_webhooks=dispatch_webhooks)
+    if row.event_type != "platform_event_replayed":
+        try:
+            from apps.platform_runtime.events import emit_platform_event
+
+            tid = (row.tenant_id or "").strip() or None
+            sid_raw = (row.school_id or "").strip()
+            emit_platform_event(
+                "platform_event_replayed",
+                {
+                    "source_event_id": str(row.pk),
+                    "source_event_type": row.event_type,
+                    "dispatch_webhooks": dispatch_webhooks,
+                    "replayed_at": timezone.now().isoformat(),
+                    "source": "event_bus.replay_event",
+                },
+                tenant_id=tid,
+                school_id=sid_raw or None,
+                idempotency_key=(
+                    f"replay_audit:{row.pk}:{uuid.uuid4().hex}"
+                )[:128],
+            )
+        except Exception:
+            logger.debug("platform_event_replayed audit emit skipped", exc_info=True)
     return {"ok": True, "event_id": row.pk, "event_type": row.event_type}
+
+
+def replay_events_filtered(
+    *,
+    event_type: Optional[str] = None,
+    tenant_id: Optional[str] = None,
+    school_id: Optional[str] = None,
+    dispatch_webhooks: bool = False,
+    limit: int = 100,
+) -> Dict[str, Any]:
+    """
+    Replay many events (newest first), optionally constrained by type and tenant/school scope.
+    Each replay writes a ``platform_event_replayed`` audit row when applicable.
+    """
+    from apps.platform_runtime.models import PlatformEventLog
+
+    qs = PlatformEventLog.objects.all().order_by("-pk")
+    if event_type:
+        qs = qs.filter(event_type=(event_type or "").strip())
+    if tenant_id is not None and str(tenant_id).strip() != "":
+        qs = qs.filter(tenant_id=str(tenant_id).strip())
+    if school_id is not None and str(school_id).strip() != "":
+        qs = qs.filter(school_id=str(school_id).strip())
+    ids = list(qs.values_list("pk", flat=True)[: max(1, min(limit, 2000))])
+    replayed = 0
+    failed: List[int] = []
+    for eid in ids:
+        r = replay_event(int(eid), dispatch_webhooks=dispatch_webhooks)
+        if r.get("ok"):
+            replayed += 1
+        else:
+            failed.append(int(eid))
+    return {
+        "ok": True,
+        "requested": len(ids),
+        "replayed": replayed,
+        "failed_ids": failed,
+    }
 
 
 def deliver_webhook_attempt(delivery_id: int) -> dict[str, Any]:

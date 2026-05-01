@@ -98,7 +98,7 @@ def demo_flow_attendance_complete(request: HttpRequest):
         from apps.schools.funnel_events import record_school_funnel_once
 
         record_school_funnel_once(
-            "first_action",
+            "demo_attendance_completed",
             school,
             request,
             user=request.user,
@@ -137,6 +137,18 @@ def demo_flow_marks_complete(request: HttpRequest):
         return HttpResponseRedirect(reverse("demo_flow_attendance"))
     request.session[_SESSION_STEP] = "report"
     request.session.modified = True
+    try:
+        from apps.schools.funnel_events import record_school_funnel_once
+
+        record_school_funnel_once(
+            "demo_marks_completed",
+            school,
+            request,
+            user=request.user,
+            metadata={"source": "demo_flow_marks"},
+        )
+    except ImportError:
+        pass
     return HttpResponseRedirect(reverse("demo_flow_report"))
 
 
@@ -177,6 +189,13 @@ def demo_flow_report_complete(request: HttpRequest):
         from apps.schools.funnel_events import record_school_funnel_once
 
         record_school_funnel_once(
+            "demo_report_completed",
+            school,
+            request,
+            user=request.user,
+            metadata={"source": "demo_flow_report"},
+        )
+        record_school_funnel_once(
             "first_result",
             school,
             request,
@@ -215,6 +234,13 @@ def demo_flow_complete(request: HttpRequest):
     try:
         from apps.schools.funnel_events import record_school_funnel_once
 
+        record_school_funnel_once(
+            "demo_cta_seen",
+            school,
+            request,
+            user=request.user,
+            metadata={"source": "demo_conversion_flow", "step": "complete"},
+        )
         record_school_funnel_once(
             "onboarding_complete",
             school,

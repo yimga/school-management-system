@@ -1,0 +1,56 @@
+[
+  {
+    "slug": "missing_attendance_reminder",
+    "name": "Missing attendance reminder",
+    "trigger_event": "attendance_saved",
+    "summary": "When attendance is saved as absent or late, log a staff notification for follow-up.",
+    "suggested_conditions": [
+      {"field": "status", "op": "in", "value": ["absent", "late"]}
+    ],
+    "suggested_actions": [
+      {"type": "notify", "params": {"channel": "log", "body": "Attendance requires attention for student ${student_id}"}}
+    ]
+  },
+  {
+    "slug": "payment_overdue_escalation",
+    "name": "Payment overdue escalation",
+    "trigger_event": "payment_failed",
+    "summary": "Escalate failed payments with in-app/log notification for finance staff.",
+    "suggested_conditions": [],
+    "suggested_actions": [
+      {"type": "notify", "params": {"channel": "log", "body": "Payment failed — invoice ${invoice_id}"}},
+      {"type": "create_record", "params": {"record_type": "payment_escalation", "payload": {}}}
+    ]
+  },
+  {
+    "slug": "marks_missing_followup",
+    "name": "Marks missing follow-up",
+    "trigger_event": "marks_submitted",
+    "summary": "After marks submission event, notify academic lead (log channel by default).",
+    "suggested_conditions": [],
+    "suggested_actions": [
+      {"type": "notify", "params": {"channel": "log", "body": "Marks submitted for term batch — review pending items."}}
+    ]
+  },
+  {
+    "slug": "report_published_notification",
+    "name": "Report published notification",
+    "trigger_event": "report_generated",
+    "summary": "Notify when report generation completes (log/email when configured).",
+    "suggested_conditions": [],
+    "suggested_actions": [
+      {"type": "notify", "params": {"channel": "log", "body": "Report generated for school ${school_id}"}}
+    ]
+  },
+  {
+    "slug": "student_risk_intervention",
+    "name": "Student risk intervention",
+    "trigger_event": "student_risk_detected",
+    "summary": "Create audit record + AI suggestion draft when risk signal fires.",
+    "suggested_conditions": [],
+    "suggested_actions": [
+      {"type": "create_record", "params": {"record_type": "risk_signal", "payload": {}}},
+      {"type": "ai_suggestion", "params": {"goal": "Suggest intervention steps", "context_summary": "Student risk"}}
+    ]
+  }
+]

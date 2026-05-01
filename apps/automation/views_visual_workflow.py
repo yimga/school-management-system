@@ -13,6 +13,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
 from apps.automation.graph_compiler import compile_workflow_to_dsl
+from apps.automation.graph_validate import validate_workflow_for_publish
 from apps.automation.visual_executor import (
     run_matching_visual_workflows,
     simulate_workflow,
@@ -57,6 +58,8 @@ def visual_workflow_designer(request):
             "workflows": workflows,
             "save_graph_url": reverse("automation:visual_workflow_save_graph"),
             "simulate_url": reverse("automation:visual_workflow_simulate"),
+            "publish_url": reverse("automation:visual_workflow_publish"),
+            "rollback_url": reverse("automation:visual_workflow_rollback"),
             "list_url": reverse("automation:visual_workflow_list"),
             "school_automation_url": hub,
             "page_title": "Visual workflows",
@@ -212,3 +215,50 @@ def visual_workflow_dispatch_test(request):
         school, trigger_type, ctx, user=request.user, dry_run=True
     )
     return JsonResponse({"ok": True, "results": rows})
+
+
+@require_http_methods(["POST"])
+@login_required
+def visual_workflow_publish(request):
+    """Publish workflow after structural validation (invalid graphs return 400)."""
+    school, err = _staff_school(request)
+    if err:
+        return err
+    try:
+        body = json.loads(request.body) if request.body else {}
+    except json.JSONDecodeError:
+        return JsonResponse({"ok": False, "error": "Invalid JSON"}, status=400)
+    wf_id = body.get("workflow_id")
+    if not wf_id:
+        return JsonResponse({"ok": False, "error": "workflow_id required"}, status=400)
+    wf = Workflow.objects.filter(pk=int(wf_id), school=school).first()
+    if not wf:
+        return JsonResponse({"ok": False, "error": "not found"}, status=404)
+    errs = validate_workflow_for_publish(wf.pk)
+    if errs:
+        return JsonResponse({"ok": False, "validation_errors": errs}, status=400)
+    wf.status = Workflow.Status.PUBLISHED
+    wf.save(update_fields=["status", "updated_at"])
+    return JsonResponse({"ok": True, "workflow_id": wf.pk, "status": wf.status})
+
+
+@require_http_methods(["POST"])
+@login_required
+def visual_workflow_rollback(request):
+    """Move workflow back to draft (operator rollback; does not delete nodes)."""
+    school, err = _staff_school(request)
+    if err:
+        return err
+    try:
+        body = json.loads(request.body) if request.body else {}
+    except json.JSONDecodeError:
+        return JsonResponse({"ok": False, "error": "Invalid JSON"}, status=400)
+    wf_id = body.get("workflow_id")
+    if not wf_id:
+        return JsonResponse({"ok": False, "error": "workflow_id required"}, status=400)
+    wf = Workflow.objects.filter(pk=int(wf_id), school=school).first()
+    if not wf:
+        return JsonResponse({"ok": False, "error": "not found"}, status=404)
+    wf.status = Workflow.Status.DRAFT
+    wf.save(update_fields=["status", "updated_at"])
+    return JsonResponse({"ok": True, "workflow_id": wf.pk, "status": wf.status})

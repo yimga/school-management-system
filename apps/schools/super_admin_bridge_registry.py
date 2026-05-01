@@ -116,6 +116,9 @@ PLATFORM_ADMIN_BRIDGE_ORDER: list[str] = [
     # compliance + native marketplace catalog (platform admin)
     "compliance_audit_log",
     "app_permission_scopes",
+    "platform_event_logs",
+    "event_webhook_subscriptions",
+    "event_webhook_deliveries",
 ]
 
 # bridge_key (URL slug) → config
@@ -726,6 +729,32 @@ PLATFORM_ADMIN_BRIDGES: dict[str, dict[str, object]] = {
         "show_in_nav": False,
     },
 }
+
+PLATFORM_ADMIN_BRIDGES.update(
+    {
+        "platform_event_logs": {
+            "admin_url": "admin:platform_runtime_platformeventlog_changelist",
+            "label": _("Platform event logs (platform admin)"),
+            "description": _("PlatformEventLog rows for event integrity and replay audit"),
+            "icon": "bi-activity",
+            "show_in_nav": False,
+        },
+        "event_webhook_subscriptions": {
+            "admin_url": "admin:platform_runtime_eventwebhooksubscription_changelist",
+            "label": _("Event webhook subscriptions (platform admin)"),
+            "description": _("Tenant webhook subscriptions for event backbone delivery"),
+            "icon": "bi-broadcast-pin",
+            "show_in_nav": False,
+        },
+        "event_webhook_deliveries": {
+            "admin_url": "admin:platform_runtime_eventwebhookdelivery_changelist",
+            "label": _("Event webhook deliveries (platform admin)"),
+            "description": _("Webhook delivery attempts, outcomes, and retry evidence"),
+            "icon": "bi-send-check",
+            "show_in_nav": False,
+        },
+    }
+)
 
 _overlap = set(PLATFORM_ADMIN_BRIDGE_ORDER) & set(PLATFORM_ADMIN_SURFACE_BRIDGE_ORDER)
 assert not _overlap, f"Duplicate bridge keys between base and surface: {_overlap}"

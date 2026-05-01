@@ -22,9 +22,15 @@
           <label class="form-label">{% trans "Trigger event" %}</label>
           <select class="form-select form-select-sm mb-2" id="wf-trigger">
             <option value="attendance_marked">attendance_marked</option>
+            <option value="attendance_saved">attendance_saved</option>
+            <option value="marks_submitted">marks_submitted</option>
             <option value="payment_received">payment_received</option>
+            <option value="payment_success">payment_success</option>
+            <option value="payment_failed">payment_failed</option>
             <option value="student_created">student_created</option>
             <option value="report_generated">report_generated</option>
+            <option value="student_risk_detected">student_risk_detected</option>
+            <option value="app_installed">app_installed</option>
           </select>
           <label class="form-label">{% trans "Edit workflow id (optional)" %}</label>
           <input type="number" class="form-control form-control-sm mb-2" id="wf-id" placeholder="{% trans 'New if empty' %}">
@@ -130,6 +136,33 @@
     }).then(function(r){ return r.json(); }).then(function(j){
       if(j.workflow_id){ document.getElementById("wf-id").value = j.workflow_id; }
       document.getElementById("wf-dsl").textContent = JSON.stringify(j.compiled || j, null, 2);
+    }).catch(function(e){ alert(e); });
+  });
+
+  document.getElementById("wf-publish").addEventListener("click", function(){
+    var wid = document.getElementById("wf-id").value;
+    if(!wid){ alert("{% trans 'Save the graph first (workflow id required).' %}"); return; }
+    fetch("{{ publish_url }}", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {"Content-Type":"application/json","X-CSRFToken": csrftoken},
+      body: JSON.stringify({workflow_id: parseInt(wid,10)})
+    }).then(function(r){ return r.json(); }).then(function(j){
+      if(j.validation_errors){ alert(JSON.stringify(j.validation_errors)); return; }
+      alert(j.ok ? "{% trans 'Published.' %}" : (j.error || JSON.stringify(j)));
+    }).catch(function(e){ alert(e); });
+  });
+
+  document.getElementById("wf-rollback").addEventListener("click", function(){
+    var wid = document.getElementById("wf-id").value;
+    if(!wid){ return; }
+    fetch("{{ rollback_url }}", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {"Content-Type":"application/json","X-CSRFToken": csrftoken},
+      body: JSON.stringify({workflow_id: parseInt(wid,10)})
+    }).then(function(r){ return r.json(); }).then(function(j){
+      alert(j.ok ? "{% trans 'Moved to draft.' %}" : (j.error || JSON.stringify(j)));
     }).catch(function(e){ alert(e); });
   });
 

@@ -16,7 +16,7 @@ class GrowthAnalyticsTests(TestCase):
         self.assertEqual(snap["verdict"], "NOT_READY")
         self.assertTrue(snap["insufficient_volume_for_claims"])
         self.assertIsNone(snap["conversion_visit_to_subscription_pct"])
-        self.assertEqual(len(FUNNEL_STAGE_ORDER), 12)
+        self.assertEqual(len(FUNNEL_STAGE_ORDER), 17)
 
 
 class EnsureDemoScheduledTaskTests(TestCase):
