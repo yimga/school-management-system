@@ -20,6 +20,17 @@ class PlatformRuntimeConfig(AppConfig):
                 exc_info=True,
             )
         try:
+            from apps.platform_runtime.platform_loop_attendance import (
+                register_platform_loop_attendance_subscriber,
+            )
+
+            register_platform_loop_attendance_subscriber()
+        except Exception:
+            logger.debug(
+                "Platform loop attendance_saved subscriber not registered",
+                exc_info=True,
+            )
+        try:
             from apps.platform_runtime.celery_task_events import (
                 connect_celery_platform_task_signals,
             )

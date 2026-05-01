@@ -33,6 +33,19 @@
   <div class="tdm-shell">
     {% if teacher_fast_workflows %}
     <section class="card border-0 shadow-sm mb-3 p-3" data-teacher-fast-workflows="1" aria-label="{% trans 'Fast workflows' %}">
+      {% if rmc_conversion_single_action_enforced|default:False %}
+      <details class="rmc-conversion-more-actions border rounded px-2 py-2">
+        <summary class="d-flex flex-wrap align-items-center gap-2 mb-0 text-muted small user-select-none" style="cursor:pointer;">
+          <span class="text-uppercase small">{% trans "Fast workflows" %}</span>
+          <span class="small">{% trans "More teaching shortcuts" %}</span>
+        </summary>
+        <div class="d-flex flex-wrap gap-2 pt-3">
+          {% for w in teacher_fast_workflows %}
+          <a class="btn btn-sm btn-outline-primary" href="{{ w.url }}"><i class="bi {{ w.icon }} me-1"></i>{{ w.label }}</a>
+          {% endfor %}
+        </div>
+      </details>
+      {% else %}
       <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
         <span class="text-uppercase small text-muted">{% trans "Fast workflows" %}</span>
         <span class="small text-muted">{% trans "One tap to common teaching tasks" %}</span>
@@ -42,6 +55,7 @@
         <a class="btn btn-sm btn-outline-primary" href="{{ w.url }}"><i class="bi {{ w.icon }} me-1"></i>{{ w.label }}</a>
         {% endfor %}
       </div>
+      {% endif %}
     </section>
     {% endif %}
     {% url 'evals:teacher_marks_entry' as teacher_marks_entry_url %}
@@ -86,10 +100,20 @@
           {% if certification_badge %}<span class="chip chip-accent">{{ certification_badge }}</span>{% endif %}
           {% if staff_badges %}{% for b in staff_badges %}<span class="chip chip-soft">{{ b.badge_type.label }}</span>{% endfor %}{% endif %}
         </div>
-        <div class="tdm-hero__actions ds-action-bar d-flex flex-wrap gap-2 align-items-center">
+        <div class="tdm-hero__actions ds-action-bar d-flex flex-wrap gap-2 align-items-center" data-rmc-teacher-hero-actions="1">
           <a class="btn btn-primary ds-btn" href="{% url 'evals:teacher_marks_entry' %}"><i class="bi bi-pencil-square me-1"></i>{% trans "Enter marks" %}</a>
+          {% if rmc_conversion_single_action_enforced|default:False %}
+          <details class="rmc-conversion-more-actions border border-light border-opacity-25 rounded px-2 py-1 align-self-start">
+            <summary class="btn btn-sm btn-outline-light ds-btn mb-0">{% trans "More" %}</summary>
+            <div class="d-flex flex-column gap-2 pt-2">
+              <a class="btn btn-outline-light ds-btn" href="{% url 'portal:teacher_workflow' %}"><i class="bi bi-diagram-3 me-1"></i>{% trans "Workflow" %}</a>
+              <a class="btn btn-outline-light btn-sm ds-btn" href="{% url 'portal:teacher_onboarding' %}"><i class="bi bi-person-plus me-1"></i>{% trans "Complete your profile" %}</a>
+            </div>
+          </details>
+          {% else %}
           <a class="btn btn-outline-light ds-btn" href="{% url 'portal:teacher_workflow' %}"><i class="bi bi-diagram-3 me-1"></i>{% trans "Workflow" %}</a>
           <a class="btn btn-outline-light btn-sm ds-btn" href="{% url 'portal:teacher_onboarding' %}"><i class="bi bi-person-plus me-1"></i>{% trans "Complete your profile" %}</a>
+          {% endif %}
         </div>
       </div>
       <div class="tdm-hero__profile card-glass">
@@ -106,7 +130,16 @@
         </div>
         <div class="tdm-profile-actions">
           <a class="btn btn-soft" href="{% url 'evals:teacher_marks_list' %}"><i class="bi bi-list-check me-1"></i>{% trans "View marks" %}</a>
+          {% if rmc_conversion_single_action_enforced|default:False %}
+          <details class="rmc-conversion-more-actions align-self-stretch">
+            <summary class="btn btn-soft btn-sm mb-0 text-start">{% trans "More" %}</summary>
+            <div class="d-flex flex-column gap-2 mt-2">
+              <a class="btn btn-soft" href="{% url 'portal:teacher_dashboard_alias' %}"><i class="bi bi-grid me-1"></i>{% trans "Dashboard" %}</a>
+            </div>
+          </details>
+          {% else %}
           <a class="btn btn-soft" href="{% url 'portal:teacher_dashboard_alias' %}"><i class="bi bi-grid me-1"></i>{% trans "Dashboard" %}</a>
+          {% endif %}
         </div>
       </div>
     </section>

@@ -90,6 +90,17 @@
       "replay_protection": "token_auth_only_manual_review_required",
       "verdict": "keep"
     },
+    "apps/apicenter/oauth_views.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "oauth_client_secret_or_authorization_code",
+      "expected_count": 1,
+      "last_reviewed": "2026-05-01",
+      "notes": "OAuth token endpoint accepts external non-browser client credential, authorization code, and refresh token POSTs without a browser CSRF token; guarded by client secret verification, single-use authorization codes, and refresh-token rotation.",
+      "owner": "api_platform",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "authorization_code_single_use_refresh_token_rotation",
+      "verdict": "keep"
+    },
     "apps/billing/api_views.py": {
       "audit_logging": "manual_review_required",
       "auth_model": "provider_webhook_signature",
@@ -157,7 +168,7 @@
       "verdict": "keep_with_hardening"
     }
   },
-  "generated_at": "2026-04-25T10:33:47.939106+00:00",
+  "generated_at": "2026-05-01T09:49:41.226029+00:00",
   "raw_sql": {
     "apps/people/repositories/audit_repository.py": {
       "expected_count": 5,
@@ -198,7 +209,7 @@
   },
   "summary": {
     "allow_any_files": 1,
-    "csrf_exempt_files": 13,
+    "csrf_exempt_files": 14,
     "raw_sql_files": 6
   }
 }

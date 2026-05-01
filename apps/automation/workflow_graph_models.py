@@ -20,6 +20,7 @@ class Workflow(models.Model):
 
     class Trigger(models.TextChoices):
         ATTENDANCE_MARKED = "attendance_marked", "Attendance marked"
+        ATTENDANCE_SAVED = "attendance_saved", "Attendance saved (platform)"
         PAYMENT_RECEIVED = "payment_received", "Payment received"
         STUDENT_CREATED = "student_created", "Student added"
         REPORT_GENERATED = "report_generated", "Report generated"

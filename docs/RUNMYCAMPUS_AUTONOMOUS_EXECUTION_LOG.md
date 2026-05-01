@@ -1,5 +1,17 @@
 # RunMyCampus autonomous execution log
 
+## Wave — §11.4 batch 1144 parallel-branch integration certification (2026-05-01)
+
+**A. Merge posture:** Requested refs **`feature/behavior-control-conversion-lock`**, **`feature/experience-control-single-action`**, and **`feature/platform-loop-proof`** were not present after **`git fetch origin`**. Current integration candidate already contained the combined conversion-lock, single-action UI, and platform-loop workflow/webhook proof surfaces; no unresolved conflict markers were found.
+
+**B. Artifacts:** **`python scripts/generate_platform_inventory.py --write`**; **`python manage.py sync_i18n_catalog --compile`**; **`python scripts/verify_i18n_catalog_fresh.py`** → **OK**. OAuth token CSRF exemption classified in **`csrf_exempt_allowlist.json`**; **`phase8_security_ledger.json`** regenerated.
+
+**C. Tests:** Targeted bundle (**conversion lock**, route matrix, action engine, platform-loop attendance workflow/webhook, events, automation, API Center) → **117 OK**. Full suite **`python manage.py test --settings=config.settings --noinput`** → **`Ran 2542 tests in 1387.553s`**, **`OK (skipped=6)`**, exit **0**.
+
+**D. Verifiers:** **`audit_route_surface`**, **`audit_luxury_ui_surface`**, **`audit_security_surface`**, **`audit_tenant_isolation`**, **`verify_design_system_phase2`**, **`verify_shell_surface_inventory`**, **`verify_phase2_authenticated_shell_conformance`**, **`verify_test_module_contract`**, **`run_northstar_audit.py`**, **`run_kill_test.py`** — all **PASS / exit 0**.
+
+**E. Verdict:** **INTEGRATION READY**. Logs: **`.codex_full_suite_required.log`**, **`.codex_verifiers_required.log`**.
+
 ## Wave — seed_finance_defaults bootstrap guard (finance 0057 tables before PaymentRail) (2026-04-30)
 
 **A. Issue:** Deploy **`bootstrap_platform_catalog`** could run **`seed_finance_defaults`** before **`finance.0057`** tables exist → **`relation finance_paymentrail does not exist`**.

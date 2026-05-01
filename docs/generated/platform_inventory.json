@@ -1,19 +1,19 @@
 {
   "baseline_counts": {
     "allow_any": 106,
-    "csrf_exempt": 304,
+    "csrf_exempt": 306,
     "cursor_execute": 381,
-    "except_exception": 326,
-    "get_solo": 206,
-    "gilead": 16659,
-    "gilead_files": 161,
-    "html_files": 716,
-    "management_commands": 158,
-    "markdown_files": 1109,
-    "migration_files": 712,
-    "print_calls": 1026,
-    "python_files": 2655,
-    "site_settings": 1879
+    "except_exception": 375,
+    "get_solo": 208,
+    "gilead": 16661,
+    "gilead_files": 162,
+    "html_files": 735,
+    "management_commands": 160,
+    "markdown_files": 1112,
+    "migration_files": 730,
+    "print_calls": 1043,
+    "python_files": 2765,
+    "site_settings": 2048
   },
   "doc_drift": {
     "actual_installed_app_count": 45,
@@ -321,6 +321,11 @@
     },
     {
       "app": "events",
+      "command": "replay_domain_events",
+      "path": "apps/events/management/commands/replay_domain_events.py"
+    },
+    {
+      "app": "events",
       "command": "retire_legacy_webhooks",
       "path": "apps/events/management/commands/retire_legacy_webhooks.py"
     },
@@ -478,6 +483,11 @@
       "app": "platform_runtime",
       "command": "platform_inventory",
       "path": "apps/platform_runtime/management/commands/platform_inventory.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "replay_platform_event",
+      "path": "apps/platform_runtime/management/commands/replay_platform_event.py"
     },
     {
       "app": "platform_runtime",
@@ -899,16 +909,16 @@
         "platform_observability",
         "portal_office_wopi"
       ],
-      "reviewed_endpoints": 37,
-      "reviewed_files": 13
+      "reviewed_endpoints": 38,
+      "reviewed_files": 14
     }
   },
   "scoped_gravity_counts": {
-    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 37,
+    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 38,
     "cursor_execute_apps_config_py_excl_migrations": 32,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 926,
+    "print_calls_scripts_py": 943,
     "site_settings_refs_apps_py_excl_migrations": 40,
     "site_settings_refs_apps_py_excl_migrations_tests": 6
   },

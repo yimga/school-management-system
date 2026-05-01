@@ -1,14 +1,37 @@
 {% load i18n %}
 {# Global next-action strip — data from apps.platform_runtime.action_engine via system_actions_context #}
+{% with strict=rmc_conversion_single_action_enforced|default:False %}
 {% if rmc_system_actions_available and rmc_system_actions %}
-<section class="rmc-next-action-strip" data-rmc-next-action-strip="1" aria-label="{% trans 'What to do next' %}">
+<section class="rmc-next-action-strip" data-rmc-next-action-strip="1" data-rmc-next-action-strict="{% if strict %}1{% else %}0{% endif %}" aria-label="{% trans 'What to do next' %}">
   <div class="rmc-nas-inner">
     <div class="rmc-nas-heading">
       <span class="rmc-nas-kicker">{% trans "Next up" %}</span>
-      <span class="rmc-nas-hint text-muted">{% trans "Highest-impact moves right now" %}</span>
+      <span class="rmc-nas-hint text-muted">{% if strict %}{% trans "Your next step" %}{% else %}{% trans "Highest-impact moves right now" %}{% endif %}</span>
     </div>
     <div class="rmc-nas-actions" role="list">
-      {% for a in rmc_system_actions %}
+      {% if strict %}
+        {% for a in rmc_system_actions|slice:":1" %}
+      <a class="rmc-nas-chip"
+         role="listitem"
+         href="{{ a.action_url }}"
+         data-action="{% if a.recommendation_key %}ai-suggestion-open{% else %}{{ a.type }}-open{% endif %}"
+         data-task="{% if a.task_code %}{{ a.task_code }}{% else %}platform-next-action{% endif %}"
+         data-task-step="dashboard:next-action"
+         data-action-type="{{ a.type }}"
+         data-action-source="{{ a.source }}"
+         data-action-urgency="{{ a.urgency|default:'normal' }}"
+         {% if a.recommendation_key %}data-ai-rec-key="{{ a.recommendation_key }}"{% endif %}>
+        <span class="rmc-nas-chip-title">{{ a.title }}</span>
+        {% if a.description %}<span class="rmc-nas-chip-desc text-muted">{{ a.description }}</span>{% endif %}
+      </a>
+        {% empty %}
+      <a class="rmc-nas-chip" role="listitem" href="{% url 'accounts:backend_dashboard' %}" data-action="fallback-open" data-task-step="dashboard:next-action-fallback">
+        <span class="rmc-nas-chip-title">{% trans "Operations home" %}</span>
+        <span class="rmc-nas-chip-desc text-muted">{% trans "Open your main school workspace." %}</span>
+      </a>
+        {% endfor %}
+      {% else %}
+        {% for a in rmc_system_actions %}
       <a class="rmc-nas-chip"
          role="listitem"
          href="{{ a.action_url }}"
@@ -23,23 +46,24 @@
         {% if a.description %}<span class="rmc-nas-chip-desc text-muted">{{ a.description }}</span>{% endif %}
       </a>
       {% endfor %}
+      {% endif %}
     </div>
   </div>
 </section>
 {% elif request.user.is_authenticated %}
-{# No engine rows (e.g. URL resolution failed): still avoid a dead-end — link to help + home. #}
-<section class="rmc-next-action-strip rmc-next-action-strip--fallback" data-rmc-next-action-strip="1" data-rmc-next-action-fallback="1" aria-label="{% trans 'What to do next' %}">
+{# No engine rows (e.g. URL resolution failed): still avoid a dead-end — one primary link; strict mode never adds a second chip. #}
+<section class="rmc-next-action-strip rmc-next-action-strip--fallback" data-rmc-next-action-strip="1" data-rmc-next-action-fallback="1" data-rmc-next-action-strict="{% if strict %}1{% else %}0{% endif %}" aria-label="{% trans 'What to do next' %}">
   <div class="rmc-nas-inner">
     <div class="rmc-nas-heading">
       <span class="rmc-nas-kicker">{% trans "Next up" %}</span>
-      <span class="rmc-nas-hint text-muted">{% trans "Get oriented" %}</span>
+      <span class="rmc-nas-hint text-muted">{% if strict %}{% trans "Your next step" %}{% else %}{% trans "Get oriented" %}{% endif %}</span>
     </div>
     <div class="rmc-nas-actions" role="list">
       <a class="rmc-nas-chip" role="listitem" href="{% url 'accounts:backend_dashboard' %}" data-action="fallback-open" data-task-step="dashboard:next-action-fallback">
         <span class="rmc-nas-chip-title">{% trans "Operations home" %}</span>
         <span class="rmc-nas-chip-desc text-muted">{% trans "Open your main school workspace." %}</span>
       </a>
-      {% if not rmc_conversion_single_action_enforced %}
+      {% if not strict %}
       <a class="rmc-nas-chip" role="listitem" href="{% url 'portal:support_help_hub' %}" data-action="fallback-open" data-task-step="help:next-action-fallback">
         <span class="rmc-nas-chip-title">{% trans "Help center" %}</span>
         <span class="rmc-nas-chip-desc text-muted">{% trans "Guides and answers when you are stuck." %}</span>
@@ -49,3 +73,4 @@
   </div>
 </section>
 {% endif %}
+{% endwith %}

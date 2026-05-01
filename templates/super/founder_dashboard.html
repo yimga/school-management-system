@@ -29,9 +29,18 @@
     <p class="text-secondary small mb-0">
       {% trans "Metrics are read from the live database; audit and kill-test results are read from generated JSON under docs/generated/ when those scripts have been run." %}
     </p>
-    <nav class="ds-action-bar d-flex flex-wrap align-items-center gap-2 mt-3" role="toolbar" aria-label="{% trans 'Primary actions' %}">
-      <a class="btn btn-sm btn-primary ds-btn" href="{{ sales_pipeline_url }}">{% trans "Sales pipeline" %}</a>
+    <nav class="ds-action-bar d-flex flex-wrap align-items-center gap-2 mt-3" role="toolbar" aria-label="{% trans 'Primary actions' %}" data-rmc-founder-toolbar-actions="1">
+      <a class="btn btn-sm btn-primary ds-btn" href="{{ sales_pipeline_url }}" data-rmc-founder-primary-toolbar="1">{% trans "Sales pipeline" %}</a>
+      {% if rmc_conversion_single_action_enforced|default:False %}
+      <details class="rmc-conversion-more-actions border rounded px-2 py-1">
+        <summary class="btn btn-sm btn-outline-secondary ds-btn mb-0">{% trans "More" %}</summary>
+        <div class="pt-2">
+          <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ command_center_url|default:'#' }}">{% trans "Command center" %}</a>
+        </div>
+      </details>
+      {% else %}
       <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ command_center_url|default:'#' }}">{% trans "Command center" %}</a>
+      {% endif %}
     </nav>
   </header>
 
@@ -105,7 +114,9 @@
   <section class="mb-4" data-rmc-intelligent-insights="founder" aria-label="{% trans 'Founder decision insights' %}">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
       <h2 class="h5 mb-0">{% trans "Founder decision insights" %}</h2>
+      {% if not rmc_conversion_single_action_enforced|default:False %}
       <a class="btn btn-sm btn-outline-primary" href="{{ sales_pipeline_url }}">{% trans "Open sales pipeline" %}</a>
+      {% endif %}
     </div>
     <div class="row g-2">
       {% if billing_watchlist_count %}

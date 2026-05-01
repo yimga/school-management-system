@@ -144,6 +144,54 @@ def conversion_first_action_on_attendance_saved(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Attendance)
+def emit_platform_attendance_saved_bus(sender, instance, **kwargs):
+    """Publish platform bus event (webhooks + workflows) for each attendance save."""
+    try:
+        from django.utils import timezone as dj_tz
+
+        from apps.platform_runtime.event_bus import publish_event
+
+        school = getattr(instance, "school", None)
+        if school is None:
+            classroom = getattr(instance, "classroom", None)
+            school = getattr(classroom, "school", None) if classroom else None
+        if school is None:
+            return
+        recorded_at = getattr(instance, "updated_at", None)
+        if recorded_at is not None:
+            ra = recorded_at.isoformat()
+        else:
+            ra = dj_tz.now().isoformat()
+        payload = {
+            "attendance_id": str(instance.pk),
+            "student_id": str(instance.student_id) if instance.student_id else None,
+            "classroom_id": str(instance.classroom_id)
+            if getattr(instance, "classroom_id", None)
+            else None,
+            "school_id": str(school.pk),
+            "tenant_id": str(school.pk),
+            "status": getattr(instance, "status", "") or "",
+            "date": str(instance.date) if getattr(instance, "date", None) else None,
+            "recorded_at": ra,
+            "actor_user_id": None,
+        }
+        idem = (
+            f"attendance_saved:{instance.pk}:{ra}"[:120]
+            if ra
+            else f"attendance_saved:{instance.pk}"[:120]
+        )
+        publish_event(
+            "attendance_saved",
+            payload,
+            tenant_id=str(school.pk),
+            school_id=school.pk,
+            idempotency_key=idem,
+        )
+    except _ACADEMICS_SIGNAL_ERRORS as exc:
+        logger.debug("emit_platform_attendance_saved_bus skipped: %s", exc)
+
+
+@receiver(post_save, sender=Attendance)
 def emit_attendance_recorded(sender, instance, created, **kwargs):
     """Emit domain event when student attendance is recorded."""
     try:

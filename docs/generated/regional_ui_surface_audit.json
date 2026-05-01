@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-30T22:31:42.013092+00:00",
+  "generated_at": "2026-05-01T10:18:26.494257+00:00",
   "rows": [
     {
       "bucket": "shell",
@@ -23,7 +23,7 @@
       "bucket": "high_impact",
       "classification": "needs_review",
       "notes": [
-        "physical LTR/RTR class hints: 12 (sample: ['ms-', 'me-', 'me-', 'me-', 'me-'])"
+        "physical LTR/RTR class hints: 14 (sample: ['me-', 'ms-', 'ms-', 'me-', 'me-'])"
       ],
       "path": "templates/accounts/backend_dashboard.html"
     },

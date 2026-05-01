@@ -50,11 +50,11 @@
       ]
     }
   },
-  "generated_at": "2026-04-30T22:31:50.800612+00:00",
+  "generated_at": "2026-05-01T10:18:32.725543+00:00",
   "high_impact_templates_total": 158,
   "inline_styles": {
-    "count": 59,
-    "needs_review_count": 59,
+    "count": 60,
+    "needs_review_count": 60,
     "needs_review_paths": [
       "templates/accounts/backend_dashboard.html",
       "templates/marketplace/tenant_app_catalog.html",
@@ -114,7 +114,8 @@
       "templates/studio_os/partials/output_mode_canvas.html",
       "templates/studio_os/partials/shell_main_content.html",
       "templates/studio_os/partials/subpages/experience_experience_packs.html",
-      "templates/studio_os/shell.html"
+      "templates/studio_os/shell.html",
+      "templates/teacher/dashboard.html"
     ],
     "violation_count": 0,
     "violation_paths": []
@@ -807,8 +808,8 @@
       ]
     },
     "inline_style_cleanup": {
-      "count": 59,
-      "needs_review_count": 59,
+      "count": 60,
+      "needs_review_count": 60,
       "needs_review_paths": [
         "templates/accounts/backend_dashboard.html",
         "templates/marketplace/tenant_app_catalog.html",
@@ -868,7 +869,8 @@
         "templates/studio_os/partials/output_mode_canvas.html",
         "templates/studio_os/partials/shell_main_content.html",
         "templates/studio_os/partials/subpages/experience_experience_packs.html",
-        "templates/studio_os/shell.html"
+        "templates/studio_os/shell.html",
+        "templates/teacher/dashboard.html"
       ],
       "violation_count": 0,
       "violation_paths": []

@@ -38,6 +38,33 @@
       <a class="btn btn-sm btn-outline-primary" href="{{ parent_full_dashboard_url }}">{% trans "Full dashboard" %}</a>
     </div>
     <div class="row g-3 mb-4" data-parent-simple-actions="1">
+      {% if rmc_conversion_single_action_enforced|default:False %}
+        {% for action in portal_quick_actions|slice:":1" %}
+        <div class="col-12 col-md-6 col-lg-4">
+          <a class="btn btn-primary w-100 text-start" href="{{ action.url }}" data-rmc-parent-primary-quick-action="1">
+            {% if action.icon %}<i class="bi {{ action.icon }} me-1"></i>{% endif %}{{ action.label }}
+          </a>
+        </div>
+        {% endfor %}
+        {% if portal_quick_actions|length > 1 %}
+        <div class="col-12">
+          <details class="rmc-conversion-more-actions border rounded px-3 py-2">
+            <summary class="small text-muted user-select-none" style="cursor:pointer;">{% trans "More shortcuts" %}</summary>
+            <div class="row g-2 pt-3">
+              {% for action in portal_quick_actions %}
+                {% if not forloop.first %}
+                <div class="col-6 col-md-4 col-lg-2">
+                  <a class="btn btn-outline-secondary w-100 text-start" href="{{ action.url }}">
+                    {% if action.icon %}<i class="bi {{ action.icon }} me-1"></i>{% endif %}{{ action.label }}
+                  </a>
+                </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </details>
+        </div>
+        {% endif %}
+      {% else %}
       {% for action in portal_quick_actions|slice:":6" %}
       <div class="col-6 col-md-4 col-lg-2">
         <a class="btn btn-outline-secondary w-100 text-start" href="{{ action.url }}">
@@ -45,6 +72,7 @@
         </a>
       </div>
       {% endfor %}
+      {% endif %}
     </div>
     {% endif %}
 
@@ -91,6 +119,21 @@
         <p class="text-muted mb-4">
           Link your child's account to view their progress, attendance, and school updates.
         </p>
+        {% if rmc_conversion_single_action_enforced|default:False %}
+        <div class="d-flex flex-column flex-md-row gap-3 justify-content-center align-items-center">
+          <a href="{% url 'portal:claim_invite' %}" class="btn btn-primary btn-lg" data-rmc-parent-onboarding-primary="1">
+            <i class="bi bi-envelope-check me-2"></i>I have an invite code
+          </a>
+          <details class="rmc-conversion-more-actions text-start">
+            <summary class="btn btn-outline-primary btn-lg">{% trans "More ways to link" %}</summary>
+            <div class="pt-3">
+              <a href="{% url 'portal:link_child' %}" class="btn btn-outline-primary w-100">
+                <i class="bi bi-link-45deg me-2"></i>I have an admission number
+              </a>
+            </div>
+          </details>
+        </div>
+        {% else %}
         <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
           <a href="{% url 'portal:claim_invite' %}" class="btn btn-primary btn-lg">
             <i class="bi bi-envelope-check me-2"></i>I have an invite code
@@ -99,6 +142,7 @@
             <i class="bi bi-link-45deg me-2"></i>I have an admission number
           </a>
         </div>
+        {% endif %}
         <p class="small text-muted mt-3 mb-0">
           Don't have either? <a href="mailto:{{ site.company_email|default:'support@school.local' }}">Contact the school</a> to get started.
         </p>
@@ -122,12 +166,14 @@
           <h1 id="parent-dashboard-title">Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h1>
           <p>Here's how your children are doing today.</p>
         </div>
-        <div class="dashboard-actions ds-action-bar d-flex flex-wrap align-items-center gap-2">
+        <div class="dashboard-actions ds-action-bar d-flex flex-wrap align-items-center gap-2" data-rmc-parent-header-actions="1">
           {% if parent_verified %}
           <span class="px-3 py-1 rounded-pill small text-nowrap bg-primary bg-opacity-25 text-primary" role="status" aria-label="Verified Parent"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>Verified Parent</span>
           {% endif %}
-          <a class="btn btn-sm btn-primary ds-btn" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-diagram-3 me-1"></i>My Workflow</a>
+          <a class="btn btn-sm btn-primary ds-btn" href="{% url 'portal:parent_workflow' %}" data-rmc-parent-primary-header-cta="1"><i class="bi bi-diagram-3 me-1"></i>My Workflow</a>
+          {% if not rmc_conversion_single_action_enforced|default:False %}
           <a class="btn btn-sm btn-outline-secondary ds-btn" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-chat-dots me-1"></i>Contact School</a>
+          {% endif %}
           {% if links %}
           <select class="form-select form-select-sm" onchange="if(this.value){ window.location=this.value; }" aria-label="Switch child">
             <option selected disabled>Switch child</option>
@@ -139,6 +185,9 @@
           <details class="parent-actions-more">
             <summary class="btn btn-sm btn-outline-secondary">{% trans "More actions" %}</summary>
             <div class="d-flex flex-column gap-2 mt-2 p-2 border rounded-3 bg-light">
+              {% if rmc_conversion_single_action_enforced|default:False %}
+              <a class="btn btn-sm btn-outline-secondary text-start" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-chat-dots me-1"></i>{% trans "Contact School" %}</a>
+              {% endif %}
               <a class="btn btn-sm btn-outline-secondary text-start" href="{% url 'accounts:user_notifications' %}">{% trans "Manage notifications" %}</a>
               {% if SITE.enable_whatsapp_parent_portal and SITE.whatsapp_support_number or SITE.enable_whatsapp_parent_portal and SITE.footer_whatsapp_url %}
                 {% if SITE.whatsapp_support_number %}

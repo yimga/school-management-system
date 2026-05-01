@@ -222,7 +222,7 @@
         "classification": "needs_review",
         "file": "scripts/verify_security_allowlist_density.py",
         "governance_tier": "needs_review",
-        "line": "43",
+        "line": "44",
         "pattern": "allow_any"
       }
     ],
@@ -9004,7 +9004,7 @@
         "classification": "needs_review",
         "file": "scripts/verify_security_allowlist_density.py",
         "governance_tier": "controlled",
-        "line": "70",
+        "line": "71",
         "pattern": "subprocess"
       },
       {
@@ -9025,7 +9025,7 @@
       }
     ]
   },
-  "generated_at": "2026-04-30T22:31:36.445158+00:00",
+  "generated_at": "2026-05-01T10:18:22.733413+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/oneroster_roster_webhook.py",
@@ -9283,7 +9283,7 @@
       "classification": "needs_review",
       "file": "scripts/verify_security_allowlist_density.py",
       "governance_tier": "needs_review",
-      "line": "43",
+      "line": "44",
       "pattern": "allow_any"
     },
     {
@@ -18051,7 +18051,7 @@
       "classification": "needs_review",
       "file": "scripts/verify_security_allowlist_density.py",
       "governance_tier": "controlled",
-      "line": "70",
+      "line": "71",
       "pattern": "subprocess"
     },
     {

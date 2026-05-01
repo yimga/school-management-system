@@ -1,24 +1,24 @@
 # Platform Inventory
 
 - Installed app modules: `45`
-- Python files: `2655`
-- HTML templates: `716`
-- Markdown files: `1109`
-- Migration files: `712`
-- Management commands: `158` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs (gross scan): `1879`
+- Python files: `2765`
+- HTML templates: `735`
+- Markdown files: `1112`
+- Migration files: `730`
+- Management commands: `160` (full list in JSON key `management_commands_list`)
+- `SiteSettings` refs (gross scan): `2048`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `40`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `6`
-- `get_solo()` refs: `206`
-- `except Exception`: `326`
+- `get_solo()` refs: `208`
+- `except Exception`: `375`
 - `cursor.execute()` (gross): `381`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `32`
-- `csrf_exempt` (substring, gross): `304`
-- `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `37`
+- `csrf_exempt` (substring, gross): `306`
+- `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `38`
 - `AllowAny`: `106`
-- `print()` (gross all `.py`): `1026`
-- `print()` (`apps` product paths): `0`; `scripts/`: `926`
-- `gilead` matches (gross corpus): `16659` across `161` files
+- `print()` (gross all `.py`): `1043`
+- `print()` (`apps` product paths): `0`; `scripts/`: `943`
+- `gilead` matches (gross corpus): `16661` across `162` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -26,7 +26,7 @@ Gross totals include migrations and broad file pools; use **scoped** lines aroun
 
 ## Management Commands (full list)
 
-Total: `158` commands. First 25 by app/command:
+Total: `160` commands. First 25 by app/command:
 
 - `academics` / `export_certification_pack` — `apps/academics/management/commands/export_certification_pack.py`
 - `academics` / `fix_term_positions` — `apps/academics/management/commands/fix_term_positions.py`
@@ -53,12 +53,12 @@ Total: `158` commands. First 25 by app/command:
 - `billing` / `import_platform_billing_snapshot` — `apps/billing/management/commands/import_platform_billing_snapshot.py`
 - `billing` / `run_platform_billing_lifecycle` — `apps/billing/management/commands/run_platform_billing_lifecycle.py`
 - `billing` / `run_revenue_share_payouts` — `apps/billing/management/commands/run_revenue_share_payouts.py`
-- … and 133 more (see `platform_inventory.json` key `management_commands_list`).
+- … and 135 more (see `platform_inventory.json` key `management_commands_list`).
 
 ## Public Endpoint Review
 
-- Reviewed `csrf_exempt` files: `13`
-- Reviewed `csrf_exempt` endpoints: `37`
+- Reviewed `csrf_exempt` files: `14`
+- Reviewed `csrf_exempt` endpoints: `38`
 - Reviewed `AllowAny` files: `1`
 - Reviewed `AllowAny` occurrences: `2`
 

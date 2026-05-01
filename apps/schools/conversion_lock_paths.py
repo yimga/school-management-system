@@ -7,9 +7,32 @@ This module only enumerates which routes stay reachable before ``first_action_co
 
 from __future__ import annotations
 
-# Auth, onboarding, asset delivery.
+# Auth, onboarding, asset delivery (non-strict / legacy).
 CONVERSION_LOCK_BASE_PREFIXES: tuple[str, ...] = (
     "/authentication/",
+    "/activation/",
+    "/static/",
+    "/media/",
+)
+
+# Strict mode: never use a blanket "/authentication/" prefix — only these paths stay open
+# so login/logout/MFA/SSO still work while profiles, messages, backend, RBAC stay unreachable.
+CONVERSION_LOCK_AUTH_PREFIXES_STRICT: tuple[str, ...] = (
+    "/authentication/login/",
+    "/authentication/logout/",
+    "/authentication/redirect/",
+    "/authentication/school-picker/",
+    "/authentication/switch-portal-role/",
+    "/authentication/mfa/",
+    "/authentication/end-impersonation/",
+    "/authentication/impersonate/",
+    "/authentication/claim-invite/",
+    "/authentication/oidc/",
+    "/authentication/saml/",
+)
+
+# Strict base paths without authentication (activation + assets).
+CONVERSION_LOCK_BASE_PREFIXES_STRICT: tuple[str, ...] = (
     "/activation/",
     "/static/",
     "/media/",
@@ -24,14 +47,31 @@ CONVERSION_LOCK_WORKFLOW_PREFIXES: tuple[str, ...] = (
 )
 
 # Strict: only first-value surfaces (not dashboard home routes).
+# Finance: exclude ``/finance/`` root dashboard — allow operational payment/invoice paths only.
+# Reports: exclude blanket ``/reports/`` — allow publish/export/report-card workflow URLs only.
 CONVERSION_LOCK_WORKFLOW_PREFIXES_NARROW: tuple[str, ...] = (
     "/portal/attendance/",
     "/portal/parent/attendance-discipline",
     "/portal/teacher/attendance",
     "/evals/teacher/marks/",
     "/evals/teacher/marks/entry",
-    "/reports/",
-    "/finance/",
+    "/reports/parent/",
+    "/reports/share/",
+    "/reports/verify-hash/",
+    "/reports/publish/",
+    "/reports/statistical-return/",
+    "/reports/promotion-preview/",
+    "/reports/regulatory-export/",
+    "/finance/invoices/",
+    "/finance/payments/",
+    "/finance/access/",
+    "/finance/fees/",
+    "/finance/trial-balance/",
+    "/finance/reports/",
+    "/finance/notifications/",
+    "/finance/requests/",
+    "/finance/reconciliation/",
+    "/finance/accounting/",
     "/portal/api/offline/",
     "/kb/",
     "/siteconfig/reports/",
@@ -39,8 +79,7 @@ CONVERSION_LOCK_WORKFLOW_PREFIXES_NARROW: tuple[str, ...] = (
 )
 
 
-# When CONVERSION_LOCK_STRICT is on, the broad "/authentication/" prefix is too permissive
-# (it would allow the full operator backend). Block dashboard-style paths explicitly.
+# Explicit deny (documentation / defense-in-depth when strict auth uses narrow prefixes).
 _CONVERSION_LOCK_BLOCKED_WHEN_STRICT: tuple[str, ...] = (
     "/authentication/backend/",
     "/authentication/rbac/",
@@ -49,11 +88,28 @@ _CONVERSION_LOCK_BLOCKED_WHEN_STRICT: tuple[str, ...] = (
 
 def _matches_health(path: str) -> bool:
     p = path or ""
-    if p == "/health" or p.startswith("/health/"):
+    pl = p.lower()
+    if pl == "/health" or pl.startswith("/health/"):
+        return True
+    # Tenant observability probe (see config.tenant_urls api_health).
+    if pl.startswith("/api/health"):
         return True
     # Ops probes (same policy bucket as health).
-    if p.startswith("/healthz") or p.startswith("/ready") or p.startswith("/status"):
+    if pl.startswith("/healthz") or pl.startswith("/ready") or pl.startswith("/status"):
         return True
+    return False
+
+
+def _matches_strict_authentication_allowlist(path: str) -> bool:
+    """Exact ``/authentication/`` root redirect + SSO/MFA/login prefixes only."""
+    p = (path or "").replace("\\", "/").lower()
+    if not p.startswith("/"):
+        p = "/" + p
+    if p.rstrip("/") == "/authentication":
+        return True
+    for prefix in CONVERSION_LOCK_AUTH_PREFIXES_STRICT:
+        if p.startswith(prefix.lower()):
+            return True
     return False
 
 
@@ -71,7 +127,8 @@ def path_matches_conversion_allowlist(path: str, extra_prefixes: tuple[str, ...]
     p = (path or "").replace("\\", "/").lower()
     if not p.startswith("/"):
         p = "/" + p
-    if getattr(settings, "CONVERSION_LOCK_STRICT", False):
+    strict = getattr(settings, "CONVERSION_LOCK_STRICT", False)
+    if strict:
         for blocked in _CONVERSION_LOCK_BLOCKED_WHEN_STRICT:
             if p.startswith(blocked.lower()):
                 return False
@@ -79,6 +136,17 @@ def path_matches_conversion_allowlist(path: str, extra_prefixes: tuple[str, ...]
         return True
     if _matches_health(p):
         return True
+    if strict:
+        if _matches_strict_authentication_allowlist(p):
+            return True
+        for prefix in (
+            *CONVERSION_LOCK_BASE_PREFIXES_STRICT,
+            *_workflow_prefixes(),
+            *extra_prefixes,
+        ):
+            if p.startswith(prefix.lower()):
+                return True
+        return False
     for prefix in (
         *CONVERSION_LOCK_BASE_PREFIXES,
         *_workflow_prefixes(),

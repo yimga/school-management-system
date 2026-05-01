@@ -18636,3 +18636,24 @@ msgstr "AuditLog — enterprise audit trail rows"
 
 msgid "Compliance audit log (platform admin)"
 msgstr "Compliance audit log (platform admin)"
+
+msgid "Do now"
+msgstr "Do now"
+
+msgid "More setup and shortcuts"
+msgstr "More setup and shortcuts"
+
+msgid "More shortcuts"
+msgstr "More shortcuts"
+
+msgid "More teaching shortcuts"
+msgstr "More teaching shortcuts"
+
+msgid "More ways to link"
+msgstr "More ways to link"
+
+msgid "Navigation and more"
+msgstr "Navigation and more"
+
+msgid "Your next step"
+msgstr "Your next step"

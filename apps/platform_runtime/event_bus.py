@@ -16,7 +16,8 @@ import json
 import logging
 from collections import defaultdict
 from datetime import timedelta
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
+from uuid import UUID
 
 from django.utils import timezone
 
@@ -120,12 +121,27 @@ def dispatch_event(
         deliver_event_webhook_task.delay(did)
 
 
+def _ensure_payload_event_id(row: Any) -> None:
+    """Mirror log PK into JSON payload before fan-out so subscribers/webhooks see canonical event_id."""
+    from apps.platform_runtime.models import PlatformEventLog
+
+    if not isinstance(row, PlatformEventLog):
+        return
+    p = dict(row.payload) if isinstance(row.payload, dict) else {}
+    eid = str(row.pk)
+    if p.get("event_id") == eid:
+        return
+    p["event_id"] = eid
+    row.payload = p
+    row.save(update_fields=["payload"])
+
+
 def publish_event(
     event_type: str,
     payload: Dict[str, Any],
     *,
     tenant_id: Optional[str] = None,
-    school_id: Optional[int] = None,
+    school_id: Optional[Union[int, UUID, str]] = None,
     idempotency_key: Optional[str] = None,
     strict_catalog: bool = True,
 ) -> Optional[Any]:
@@ -134,6 +150,9 @@ def publish_event(
 
     When ``strict_catalog`` is False, types not in ``EVENT_CATALOG`` are still stored
     (integration / extension events).
+
+    After persist, the log row's ``payload`` is updated to include ``event_id`` (string form
+    of the log primary key) before subscribers and webhooks run, unless already present.
     """
     from apps.platform_runtime.events import persist_platform_event
 
@@ -147,6 +166,7 @@ def publish_event(
     )
     if row is None:
         return None
+    _ensure_payload_event_id(row)
     dispatch_event(row, is_replay=False, dispatch_webhooks=True)
     return row
 
@@ -242,6 +262,38 @@ def deliver_webhook_attempt(delivery_id: int) -> dict[str, Any]:
                     "updated_at",
                 ]
             )
+            if ev.event_type == "attendance_saved":
+                try:
+                    from apps.platform_runtime.events import emit_platform_event
+
+                    latency_ms = None
+                    if d.delivered_at and d.created_at:
+                        latency_ms = int(
+                            (d.delivered_at - d.created_at).total_seconds() * 1000
+                        )
+                    sch: Optional[UUID] = None
+                    if getattr(ev, "school_id", None):
+                        try:
+                            sch = UUID(str(ev.school_id).strip())
+                        except ValueError:
+                            sch = None
+                    emit_platform_event(
+                        "platform_loop_webhook_outcome",
+                        {
+                            "platform_event_id": str(ev.pk),
+                            "delivery_id": d.pk,
+                            "status": "delivered",
+                            "latency_ms": latency_ms,
+                        },
+                        tenant_id=ev.tenant_id or None,
+                        school_id=sch,
+                        idempotency_key=f"pl_wh_out:{ev.pk}:{d.pk}"[:128],
+                    )
+                except Exception:
+                    logger.debug(
+                        "platform_loop_webhook_outcome emit skipped",
+                        exc_info=True,
+                    )
             return {"ok": True, "status": "delivered", "http": r.status_code}
         err_txt = (r.text or "")[:2000]
         d.last_error = f"HTTP {r.status_code}: {err_txt}"

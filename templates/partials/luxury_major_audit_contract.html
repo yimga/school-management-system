@@ -10,7 +10,16 @@
     <a href="{{ primary_url }}" class="btn btn-primary btn-sm ds-btn">{{ primary_label }}</a>
     {% endif %}
     {% if secondary_url and secondary_label %}
+      {% if rmc_conversion_single_action_enforced|default:False %}
+      <details class="rmc-conversion-more-actions border rounded px-2 py-1 bg-body-secondary bg-opacity-10">
+        <summary class="small text-muted user-select-none" style="cursor:pointer;">{% trans "More actions" %}</summary>
+        <div class="pt-2">
+          <a href="{{ secondary_url }}" class="btn btn-outline-secondary btn-sm ds-btn">{{ secondary_label }}</a>
+        </div>
+      </details>
+      {% else %}
     <a href="{{ secondary_url }}" class="btn btn-outline-secondary btn-sm ds-btn">{{ secondary_label }}</a>
+      {% endif %}
     {% endif %}
   </nav>
 </header>

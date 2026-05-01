@@ -100,6 +100,17 @@
       "notes": "OneRoster roster webhook (school-scoped secret) + platform marketplace integration webhook (RuntimeDefaults.webhook_signing_secret; X-RunMyCampus-Integration-Signature; PlatformIntegrationWebhookEvent audit).",
       "last_reviewed": "2026-03-28"
     },
+    "apps/apicenter/oauth_views.py": {
+      "expected_count": 1,
+      "owner": "api_platform",
+      "verdict": "keep",
+      "auth_model": "oauth_client_secret_or_authorization_code",
+      "replay_protection": "authorization_code_single_use_refresh_token_rotation",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "manual_review_required",
+      "notes": "OAuth token endpoint accepts external non-browser client credential, authorization code, and refresh token POSTs without a browser CSRF token; guarded by client secret verification, single-use authorization codes, and refresh-token rotation.",
+      "last_reviewed": "2026-05-01"
+    },
     "apps/api/learning_institution_api.py": {
       "expected_count": 2,
       "owner": "learning_institution",

@@ -17218,3 +17218,24 @@ msgstr ""
 
 msgid "Compliance audit log (platform admin)"
 msgstr ""
+
+msgid "Do now"
+msgstr ""
+
+msgid "More setup and shortcuts"
+msgstr ""
+
+msgid "More shortcuts"
+msgstr ""
+
+msgid "More teaching shortcuts"
+msgstr ""
+
+msgid "More ways to link"
+msgstr ""
+
+msgid "Navigation and more"
+msgstr ""
+
+msgid "Your next step"
+msgstr ""

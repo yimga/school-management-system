@@ -8,7 +8,7 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 
-from apps.accounts.models import User
+from apps.accounts.models import Permission as FeaturePermission, User
 from apps.schools.models import School, SchoolMembership
 
 UserModel = get_user_model()
@@ -132,9 +132,14 @@ class ConversionLockStrictRoleWideTests(TestCase):
 
     def test_backend_allowed_after_first_action_recorded(self):
         self._login_role(User.Role.ADMIN, "unlockadm")
+        perm, _ = FeaturePermission.objects.get_or_create(
+            code="settings.manage",
+            defaults={"name": "Manage settings"},
+        )
+        u = UserModel.objects.get(username="unlockadm")
+        u.feature_permissions.add(perm)
         from apps.schools.conversion_lock_state import record_conversion_first_action
 
-        u = UserModel.objects.get(username="unlockadm")
         record_conversion_first_action(self.school, source="proof_test", user=u)
         r = self.client.get(
             "/authentication/backend/",

@@ -399,7 +399,36 @@ backend-shell dashboard-page-backend
                 <a href="{{ base_url }}?intent=setup" class="backend-intent-pill {% if dashboard_intent == 'setup' %}active{% endif %}">{% trans "Setup" %}</a>
               </nav>
             </div>
-            <div class="backend-v2-ctas">
+            <div class="backend-v2-ctas" data-rmc-backend-overview-ctas="1">
+              {% if rmc_conversion_single_action_enforced|default:False %}
+                {% for cta in primary_ctas|slice:":1" %}
+                <a class="backend-v2-cta" href="{{ cta.url }}" data-rmc-backend-primary-overview-cta="1">
+                  <i class="bi {{ cta.icon }}"></i>
+                  <span>{{ cta.label }}</span>
+                </a>
+                {% endfor %}
+                {% if primary_ctas|length > 1 or open_webui_url %}
+                <details class="rmc-conversion-more-actions border rounded px-2 py-1 align-self-center">
+                  <summary class="small text-muted user-select-none" style="cursor:pointer;">{% trans "More actions" %}</summary>
+                  <div class="d-flex flex-wrap gap-2 pt-2">
+                    {% for cta in primary_ctas %}
+                      {% if not forloop.first %}
+                      <a class="backend-v2-cta" href="{{ cta.url }}">
+                        <i class="bi {{ cta.icon }}"></i>
+                        <span>{{ cta.label }}</span>
+                      </a>
+                      {% endif %}
+                    {% endfor %}
+                    {% if open_webui_url %}
+                    <a class="backend-v2-cta" href="{{ open_webui_url }}" target="_blank" rel="noopener noreferrer" title="{% trans 'Internal AI ops: prompt testing, model comparison' %}">
+                      <i class="bi bi-cpu"></i>
+                      <span>{% trans "AI Ops (Open WebUI)" %}</span>
+                    </a>
+                    {% endif %}
+                  </div>
+                </details>
+                {% endif %}
+              {% else %}
               {% for cta in primary_ctas %}
               <a class="backend-v2-cta" href="{{ cta.url }}">
                 <i class="bi {{ cta.icon }}"></i>
@@ -411,6 +440,7 @@ backend-shell dashboard-page-backend
                 <i class="bi bi-cpu"></i>
                 <span>{% trans "AI Ops (Open WebUI)" %}</span>
               </a>
+              {% endif %}
               {% endif %}
             </div>
           </div>
@@ -621,6 +651,42 @@ backend-shell dashboard-page-backend
                 {% endif %}
               </div>
               <div class="backend-role-home-actions" data-shell-role-ops="backend" data-tour="quick-actions">
+                {% if rmc_conversion_single_action_enforced|default:False and role_home_primary_action %}
+                <a class="backend-role-home-primary-cta" href="{{ role_home_primary_action.url }}" data-rmc-backend-role-home-primary="1">
+                  <span class="backend-role-home-command-copy">
+                    <strong>{% if role_home_primary_action.icon %}<i class="bi {{ role_home_primary_action.icon }} me-1"></i>{% endif %}{{ role_home_primary_action.label }}</strong>
+                    <span class="backend-role-home-command-hint">{{ role_home_primary_action.reason|default:"Primary action for this role home." }}</span>
+                  </span>
+                  <span class="badge text-bg-primary">{% trans "Do now" %}</span>
+                </a>
+                <details class="rmc-conversion-more-actions border rounded px-2 py-2 w-100">
+                  <summary class="small fw-semibold user-select-none" style="cursor:pointer;">{% trans "Navigation and more" %}</summary>
+                  <div class="d-grid gap-2 pt-3">
+                    <button type="button" class="backend-role-home-command js-open-backend-command ds-btn text-start" aria-label="{% trans 'Open command palette (primary navigation)' %}">
+                      <span class="backend-role-home-command-copy">
+                        <strong>{% trans "Command center" %}</strong>
+                        <span class="backend-role-home-command-hint">{{ role_home.search_hint }} <kbd class="ms-1">Ctrl+K</kbd></span>
+                      </span>
+                      <span class="badge text-bg-secondary">{% trans "Palette" %}</span>
+                    </button>
+                    <div class="backend-role-home-secondary mb-0">
+                      <a class="backend-v2-cta" href="{% url 'siteconfig:guided_onboarding' %}" data-tour="setup-studio-link">
+                        <i class="bi bi-rocket-takeoff"></i>
+                        <span>{% trans "Setup Studio" %}</span>
+                      </a>
+                      {% for cta in role_home_supporting_actions %}
+                      <a class="backend-v2-cta" href="{{ cta.url }}">
+                        <i class="bi {{ cta.icon|default:'bi-arrow-right' }}"></i>
+                        <span>{{ cta.label }}</span>
+                      </a>
+                      {% endfor %}
+                      {% if allow_custom_layout %}
+                      {% include "components/dashboard_customize_ui.html" %}
+                      {% endif %}
+                    </div>
+                  </div>
+                </details>
+                {% else %}
                 <button type="button" class="backend-role-home-command js-open-backend-command ds-btn" aria-label="{% trans 'Open command palette (primary navigation)' %}">
                   <span class="backend-role-home-command-copy">
                     <strong>{% trans "Command center" %}</strong>
@@ -634,9 +700,29 @@ backend-shell dashboard-page-backend
                     <strong>{% if role_home_primary_action.icon %}<i class="bi {{ role_home_primary_action.icon }} me-1"></i>{% endif %}{{ role_home_primary_action.label }}</strong>
                     <span class="backend-role-home-command-hint">{{ role_home_primary_action.reason|default:"Primary action for this role home." }}</span>
                   </span>
-                  <span class="badge text-bg-primary">Do now</span>
+                  <span class="badge text-bg-primary">{% trans "Do now" %}</span>
                 </a>
                 {% endif %}
+                {% if rmc_conversion_single_action_enforced|default:False %}
+                <details class="rmc-conversion-more-actions border rounded px-2 py-2 w-100">
+                  <summary class="small fw-semibold user-select-none" style="cursor:pointer;">{% trans "More setup and shortcuts" %}</summary>
+                  <div class="backend-role-home-secondary pt-3">
+                    <a class="backend-v2-cta" href="{% url 'siteconfig:guided_onboarding' %}" data-tour="setup-studio-link">
+                      <i class="bi bi-rocket-takeoff"></i>
+                      <span>{% trans "Setup Studio" %}</span>
+                    </a>
+                    {% for cta in role_home_supporting_actions %}
+                    <a class="backend-v2-cta" href="{{ cta.url }}">
+                      <i class="bi {{ cta.icon|default:'bi-arrow-right' }}"></i>
+                      <span>{{ cta.label }}</span>
+                    </a>
+                    {% endfor %}
+                    {% if allow_custom_layout %}
+                    {% include "components/dashboard_customize_ui.html" %}
+                    {% endif %}
+                  </div>
+                </details>
+                {% else %}
                 <div class="backend-role-home-secondary">
                   <a class="backend-v2-cta" href="{% url 'siteconfig:guided_onboarding' %}" data-tour="setup-studio-link">
                     <i class="bi bi-rocket-takeoff"></i>
@@ -652,6 +738,8 @@ backend-shell dashboard-page-backend
                   {% include "components/dashboard_customize_ui.html" %}
                   {% endif %}
                 </div>
+                {% endif %}
+                {% endif %}
               </div>
             </div>
             {% if phase7_de and role_home_declaration %}

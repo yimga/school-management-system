@@ -31,6 +31,32 @@ EVENT_CATALOG = {
         "description": "Attendance marked for a session",
         "payload": ["attendance_id", "student_id", "school_id"],
     },
+    "attendance_saved": {
+        "description": "Attendance row persisted (platform bus + workflows + webhooks)",
+        "payload": [
+            "attendance_id",
+            "student_id",
+            "classroom_id",
+            "school_id",
+            "tenant_id",
+            "status",
+            "recorded_at",
+            "event_id",
+        ],
+    },
+    "platform_loop_attendance_trace": {
+        "description": "Narrow loop proof: attendance_saved subscriber outcome (workflows + replay flags)",
+        "payload": ["source_event_id", "school_id", "is_replay", "workflow_dispatch_ran"],
+    },
+    "platform_loop_webhook_outcome": {
+        "description": "Loop proof: developer webhook delivery completed (attendance_saved fan-out)",
+        "payload": [
+            "platform_event_id",
+            "delivery_id",
+            "status",
+            "latency_ms",
+        ],
+    },
     "grade_published": {
         "description": "Grades published",
         "payload": ["assessment_id", "school_id"],
@@ -218,7 +244,7 @@ def persist_platform_event(
     event_type: str,
     payload: Dict[str, Any],
     tenant_id: Optional[str] = None,
-    school_id: Optional[int] = None,
+    school_id: Optional[Any] = None,
     idempotency_key: Optional[str] = None,
     *,
     require_catalog: bool = True,
@@ -266,7 +292,7 @@ def emit_platform_event(
     event_type: str,
     payload: Dict[str, Any],
     tenant_id: Optional[str] = None,
-    school_id: Optional[int] = None,
+    school_id: Optional[Any] = None,
     idempotency_key: Optional[str] = None,
 ) -> Optional["PlatformEventLog"]:
     """

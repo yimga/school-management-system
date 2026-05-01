@@ -1096,6 +1096,15 @@
         },
         {
           "kind": "reverse",
+          "line": 189,
+          "name": "accounts:backend_dashboard",
+          "path": "apps/platform_runtime/tests/test_experience_single_action_ui.py",
+          "raw": "reverse(\"accounts:backend_dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 39,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/tests/test_backend_dashboard_shell_render.py",
@@ -1325,7 +1334,16 @@
         },
         {
           "kind": "template_url",
-          "line": 38,
+          "line": 28,
+          "name": "accounts:backend_dashboard",
+          "path": "templates/components/next_action_strip.html",
+          "raw": "{% url 'accounts:backend_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 62,
           "name": "accounts:backend_dashboard",
           "path": "templates/components/next_action_strip.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
@@ -5435,7 +5453,7 @@
         },
         {
           "kind": "template_url",
-          "line": 517,
+          "line": 550,
           "name": "accounts:user_messages",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -5529,7 +5547,7 @@
         },
         {
           "kind": "template_url",
-          "line": 142,
+          "line": 191,
           "name": "accounts:user_notifications",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -5538,7 +5556,7 @@
         },
         {
           "kind": "template_url",
-          "line": 198,
+          "line": 247,
           "name": "accounts:user_notifications",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -5749,7 +5767,7 @@
         },
         {
           "kind": "template_url",
-          "line": 443,
+          "line": 476,
           "name": "accounts:user_profile",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -19227,7 +19245,7 @@
         },
         {
           "kind": "template_url",
-          "line": 58,
+          "line": 86,
           "name": "siteconfig:clear_preview",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'siteconfig:clear_preview' %}",
@@ -22014,7 +22032,25 @@
         },
         {
           "kind": "template_url",
-          "line": 641,
+          "line": 673,
+          "name": "siteconfig:guided_onboarding",
+          "path": "templates/accounts/backend_dashboard.html",
+          "raw": "{% url 'siteconfig:guided_onboarding' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 710,
+          "name": "siteconfig:guided_onboarding",
+          "path": "templates/accounts/backend_dashboard.html",
+          "raw": "{% url 'siteconfig:guided_onboarding' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 727,
           "name": "siteconfig:guided_onboarding",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'siteconfig:guided_onboarding' %}",
@@ -23311,7 +23347,7 @@
         },
         {
           "kind": "template_url",
-          "line": 972,
+          "line": 1060,
           "name": "siteconfig:scheduled_reports_delivery_hub",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'siteconfig:scheduled_reports_delivery_hub' %}",
@@ -23690,7 +23726,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 234,
+          "line": 283,
           "name": "siteconfig:set_default_dashboard_view",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'siteconfig:set_default_dashboard_view' %}",
@@ -24768,7 +24804,7 @@
         },
         {
           "kind": "template_url",
-          "line": 57,
+          "line": 85,
           "name": "siteconfig:toggle_preview_mode",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'siteconfig:toggle_preview_mode' %}",
@@ -24995,7 +25031,7 @@
         },
         {
           "kind": "template_url",
-          "line": 1024,
+          "line": 1112,
           "name": "siteconfig:user_preferences",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'siteconfig:user_preferences' %}",
@@ -28189,7 +28225,7 @@
         },
         {
           "kind": "template_url",
-          "line": 696,
+          "line": 784,
           "name": "studio_os:workflow_center",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'studio_os:workflow_center' %}",
@@ -28198,7 +28234,7 @@
         },
         {
           "kind": "template_url",
-          "line": 806,
+          "line": 894,
           "name": "studio_os:workflow_center",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'studio_os:workflow_center' %}",
@@ -28207,7 +28243,7 @@
         },
         {
           "kind": "template_url",
-          "line": 883,
+          "line": 971,
           "name": "studio_os:workflow_center",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'studio_os:workflow_center' %}",
@@ -28216,7 +28252,7 @@
         },
         {
           "kind": "template_url",
-          "line": 1058,
+          "line": 1146,
           "name": "studio_os:workflow_center",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'studio_os:workflow_center' %}",
@@ -31775,6 +31811,15 @@
           "line": 48,
           "name": "super:founder_dashboard",
           "path": "apps/schools/tests/test_founder_dashboard.py",
+          "raw": "reverse(\"super:founder_dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 221,
+          "name": "super:founder_dashboard",
+          "path": "apps/platform_runtime/tests/test_experience_single_action_ui.py",
           "raw": "reverse(\"super:founder_dashboard\")",
           "reason": "",
           "status": "OK"
@@ -36274,7 +36319,7 @@
         },
         {
           "kind": "template_url",
-          "line": 49,
+          "line": 63,
           "name": "academics:teacher_syllabus_hub",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'academics:teacher_syllabus_hub' as teacher_syllabus_url %}",
@@ -36283,7 +36328,7 @@
         },
         {
           "kind": "template_url",
-          "line": 250,
+          "line": 283,
           "name": "academics:teacher_syllabus_hub",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'academics:teacher_syllabus_hub' %}",
@@ -37419,6 +37464,15 @@
         },
         {
           "kind": "reverse",
+          "line": 189,
+          "name": "accounts:backend_dashboard",
+          "path": "apps/platform_runtime/tests/test_experience_single_action_ui.py",
+          "raw": "reverse(\"accounts:backend_dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 39,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/tests/test_backend_dashboard_shell_render.py",
@@ -37648,7 +37702,16 @@
         },
         {
           "kind": "template_url",
-          "line": 38,
+          "line": 28,
+          "name": "accounts:backend_dashboard",
+          "path": "templates/components/next_action_strip.html",
+          "raw": "{% url 'accounts:backend_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 62,
           "name": "accounts:backend_dashboard",
           "path": "templates/components/next_action_strip.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
@@ -41758,7 +41821,7 @@
         },
         {
           "kind": "template_url",
-          "line": 517,
+          "line": 550,
           "name": "accounts:user_messages",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -41852,7 +41915,7 @@
         },
         {
           "kind": "template_url",
-          "line": 142,
+          "line": 191,
           "name": "accounts:user_notifications",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -41861,7 +41924,7 @@
         },
         {
           "kind": "template_url",
-          "line": 198,
+          "line": 247,
           "name": "accounts:user_notifications",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -42072,7 +42135,7 @@
         },
         {
           "kind": "template_url",
-          "line": 443,
+          "line": 476,
           "name": "accounts:user_profile",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -61502,7 +61565,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 969,
+          "line": 1057,
           "name": "evals:teacher_marks_entry",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'evals:teacher_marks_entry' %}",
@@ -61538,7 +61601,7 @@
         },
         {
           "kind": "template_url",
-          "line": 47,
+          "line": 61,
           "name": "evals:teacher_marks_entry",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_entry' as teacher_marks_entry_url %}",
@@ -61547,7 +61610,7 @@
         },
         {
           "kind": "template_url",
-          "line": 90,
+          "line": 104,
           "name": "evals:teacher_marks_entry",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_entry' %}",
@@ -61556,7 +61619,7 @@
         },
         {
           "kind": "template_url",
-          "line": 154,
+          "line": 187,
           "name": "evals:teacher_marks_entry",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_entry' %}",
@@ -61565,7 +61628,7 @@
         },
         {
           "kind": "template_url",
-          "line": 176,
+          "line": 209,
           "name": "evals:teacher_marks_entry",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_entry' %}",
@@ -61574,7 +61637,7 @@
         },
         {
           "kind": "template_url",
-          "line": 501,
+          "line": 534,
           "name": "evals:teacher_marks_entry",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_entry' %}",
@@ -61583,7 +61646,7 @@
         },
         {
           "kind": "template_url",
-          "line": 506,
+          "line": 539,
           "name": "evals:teacher_marks_entry",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_entry' %}",
@@ -61686,7 +61749,7 @@
         },
         {
           "kind": "template_url",
-          "line": 108,
+          "line": 132,
           "name": "evals:teacher_marks_list",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_list' %}",
@@ -61695,7 +61758,7 @@
         },
         {
           "kind": "template_url",
-          "line": 155,
+          "line": 188,
           "name": "evals:teacher_marks_list",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_list' %}",
@@ -61704,7 +61767,7 @@
         },
         {
           "kind": "template_url",
-          "line": 177,
+          "line": 210,
           "name": "evals:teacher_marks_list",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_list' %}",
@@ -61713,7 +61776,7 @@
         },
         {
           "kind": "template_url",
-          "line": 187,
+          "line": 220,
           "name": "evals:teacher_marks_list",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_list' %}",
@@ -61722,7 +61785,7 @@
         },
         {
           "kind": "template_url",
-          "line": 198,
+          "line": 231,
           "name": "evals:teacher_marks_list",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_list' %}",
@@ -61731,7 +61794,7 @@
         },
         {
           "kind": "template_url",
-          "line": 377,
+          "line": 410,
           "name": "evals:teacher_marks_list",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_list' %}",
@@ -61935,7 +61998,7 @@
         },
         {
           "kind": "template_url",
-          "line": 771,
+          "line": 859,
           "name": "finance:dashboard",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'finance:dashboard' %}",
@@ -62953,7 +63016,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 970,
+          "line": 1058,
           "name": "finance:requests",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'finance:requests' %}",
@@ -67981,7 +68044,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 95,
+          "line": 124,
           "name": "portal:claim_invite",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:claim_invite' %}",
@@ -67990,7 +68053,16 @@
         },
         {
           "kind": "template_url",
-          "line": 162,
+          "line": 138,
+          "name": "portal:claim_invite",
+          "path": "templates/parent/dashboard.html",
+          "raw": "{% url 'portal:claim_invite' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 211,
           "name": "portal:claim_invite",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:claim_invite' as parent_claim_invite_url %}",
@@ -67999,7 +68071,7 @@
         },
         {
           "kind": "template_url",
-          "line": 348,
+          "line": 397,
           "name": "portal:claim_invite",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:claim_invite' %}",
@@ -68554,7 +68626,16 @@
         },
         {
           "kind": "template_url",
-          "line": 98,
+          "line": 130,
+          "name": "portal:link_child",
+          "path": "templates/parent/dashboard.html",
+          "raw": "{% url 'portal:link_child' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 141,
           "name": "portal:link_child",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:link_child' %}",
@@ -68736,7 +68817,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 338,
+          "line": 387,
           "name": "portal:parent_child_results",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_child_results' card.link.student.id %}",
@@ -68745,7 +68826,7 @@
         },
         {
           "kind": "template_url",
-          "line": 379,
+          "line": 428,
           "name": "portal:parent_child_results",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_child_results' focus_child.link.student.id %}",
@@ -68875,7 +68956,7 @@
         },
         {
           "kind": "template_url",
-          "line": 130,
+          "line": 175,
           "name": "portal:parent_contact_school",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_contact_school' %}",
@@ -68884,7 +68965,16 @@
         },
         {
           "kind": "template_url",
-          "line": 161,
+          "line": 189,
+          "name": "portal:parent_contact_school",
+          "path": "templates/parent/dashboard.html",
+          "raw": "{% url 'portal:parent_contact_school' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 210,
           "name": "portal:parent_contact_school",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_contact_school' as parent_contact_url %}",
@@ -68893,7 +68983,7 @@
         },
         {
           "kind": "template_url",
-          "line": 378,
+          "line": 427,
           "name": "portal:parent_contact_school",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_contact_school' %}",
@@ -68902,7 +68992,7 @@
         },
         {
           "kind": "template_url",
-          "line": 475,
+          "line": 524,
           "name": "portal:parent_contact_school",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_contact_school' %}",
@@ -68911,7 +69001,7 @@
         },
         {
           "kind": "template_url",
-          "line": 476,
+          "line": 525,
           "name": "portal:parent_contact_school",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_contact_school' %}",
@@ -68920,7 +69010,7 @@
         },
         {
           "kind": "template_url",
-          "line": 515,
+          "line": 564,
           "name": "portal:parent_contact_school",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_contact_school' %}",
@@ -69480,7 +69570,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 160,
+          "line": 209,
           "name": "portal:parent_finance",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_finance' as parent_finance_url %}",
@@ -69489,7 +69579,7 @@
         },
         {
           "kind": "template_url",
-          "line": 212,
+          "line": 261,
           "name": "portal:parent_finance",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_finance' %}",
@@ -69498,7 +69588,7 @@
         },
         {
           "kind": "template_url",
-          "line": 539,
+          "line": 588,
           "name": "portal:parent_finance",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_finance' %}",
@@ -69555,7 +69645,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 300,
+          "line": 349,
           "name": "portal:parent_medal_case",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_medal_case' %}",
@@ -69596,7 +69686,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 294,
+          "line": 343,
           "name": "portal:parent_set_active_child",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_set_active_child' s.id %}",
@@ -69666,7 +69756,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 129,
+          "line": 173,
           "name": "portal:parent_workflow",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_workflow' %}",
@@ -69675,7 +69765,7 @@
         },
         {
           "kind": "template_url",
-          "line": 159,
+          "line": 208,
           "name": "portal:parent_workflow",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_workflow' as parent_workflow_url %}",
@@ -69684,7 +69774,7 @@
         },
         {
           "kind": "template_url",
-          "line": 205,
+          "line": 254,
           "name": "portal:parent_workflow",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_workflow' %}",
@@ -69693,7 +69783,7 @@
         },
         {
           "kind": "template_url",
-          "line": 234,
+          "line": 283,
           "name": "portal:parent_workflow",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_workflow' %}",
@@ -69702,16 +69792,7 @@
         },
         {
           "kind": "template_url",
-          "line": 257,
-          "name": "portal:parent_workflow",
-          "path": "templates/parent/dashboard.html",
-          "raw": "{% url 'portal:parent_workflow' %}",
-          "reason": "",
-          "status": "OK"
-        },
-        {
-          "kind": "template_url",
-          "line": 354,
+          "line": 306,
           "name": "portal:parent_workflow",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_workflow' %}",
@@ -69729,7 +69810,16 @@
         },
         {
           "kind": "template_url",
-          "line": 540,
+          "line": 452,
+          "name": "portal:parent_workflow",
+          "path": "templates/parent/dashboard.html",
+          "raw": "{% url 'portal:parent_workflow' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 589,
           "name": "portal:parent_workflow",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_workflow' %}",
@@ -70001,7 +70091,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 219,
+          "line": 268,
           "name": "portal:portal_stats",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:portal_stats' %}",
@@ -70256,7 +70346,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 514,
+          "line": 563,
           "name": "portal:signature_pending_list",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:signature_pending_list' %}",
@@ -70552,7 +70642,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 944,
+          "line": 1032,
           "name": "portal:student_attendance_export",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'portal:student_attendance_export' %}",
@@ -70733,7 +70823,7 @@
         },
         {
           "kind": "template_url",
-          "line": 43,
+          "line": 67,
           "name": "portal:support_help_hub",
           "path": "templates/components/next_action_strip.html",
           "raw": "{% url 'portal:support_help_hub' %}",
@@ -71091,7 +71181,7 @@
         },
         {
           "kind": "template_url",
-          "line": 943,
+          "line": 1031,
           "name": "portal:teacher_attendance",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'portal:teacher_attendance' %}",
@@ -71100,7 +71190,7 @@
         },
         {
           "kind": "template_url",
-          "line": 971,
+          "line": 1059,
           "name": "portal:teacher_attendance",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'portal:teacher_attendance' %}",
@@ -71127,7 +71217,7 @@
         },
         {
           "kind": "template_url",
-          "line": 50,
+          "line": 64,
           "name": "portal:teacher_attendance",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_attendance' as teacher_attendance_url %}",
@@ -71136,7 +71226,7 @@
         },
         {
           "kind": "template_url",
-          "line": 507,
+          "line": 540,
           "name": "portal:teacher_attendance",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_attendance' %}",
@@ -71145,7 +71235,7 @@
         },
         {
           "kind": "template_url",
-          "line": 544,
+          "line": 577,
           "name": "portal:teacher_attendance",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_attendance' %}",
@@ -71335,7 +71425,16 @@
         },
         {
           "kind": "template_url",
-          "line": 109,
+          "line": 137,
+          "name": "portal:teacher_dashboard_alias",
+          "path": "templates/teacher/dashboard.html",
+          "raw": "{% url 'portal:teacher_dashboard_alias' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 141,
           "name": "portal:teacher_dashboard_alias",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_dashboard_alias' %}",
@@ -71492,7 +71591,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 545,
+          "line": 578,
           "name": "portal:teacher_leave",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_leave' %}",
@@ -71573,7 +71672,16 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 92,
+          "line": 110,
+          "name": "portal:teacher_onboarding",
+          "path": "templates/teacher/dashboard.html",
+          "raw": "{% url 'portal:teacher_onboarding' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 115,
           "name": "portal:teacher_onboarding",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_onboarding' %}",
@@ -71631,7 +71739,7 @@
         },
         {
           "kind": "template_url",
-          "line": 534,
+          "line": 567,
           "name": "portal:teacher_pay_history",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_pay_history' %}",
@@ -71825,7 +71933,7 @@
         },
         {
           "kind": "template_url",
-          "line": 48,
+          "line": 62,
           "name": "portal:teacher_workflow",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_workflow' as teacher_workflow_url %}",
@@ -71834,7 +71942,7 @@
         },
         {
           "kind": "template_url",
-          "line": 91,
+          "line": 109,
           "name": "portal:teacher_workflow",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_workflow' %}",
@@ -71843,7 +71951,7 @@
         },
         {
           "kind": "template_url",
-          "line": 117,
+          "line": 114,
           "name": "portal:teacher_workflow",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_workflow' %}",
@@ -71852,7 +71960,7 @@
         },
         {
           "kind": "template_url",
-          "line": 452,
+          "line": 150,
           "name": "portal:teacher_workflow",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_workflow' %}",
@@ -71861,7 +71969,16 @@
         },
         {
           "kind": "template_url",
-          "line": 473,
+          "line": 485,
+          "name": "portal:teacher_workflow",
+          "path": "templates/teacher/dashboard.html",
+          "raw": "{% url 'portal:teacher_workflow' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 506,
           "name": "portal:teacher_workflow",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_workflow' %}",
@@ -71992,7 +72109,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 1036,
+          "line": 1124,
           "name": "portal:unified_calendar",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'portal:unified_calendar' %}",
@@ -72001,7 +72118,7 @@
         },
         {
           "kind": "template_url",
-          "line": 277,
+          "line": 326,
           "name": "portal:unified_calendar",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:unified_calendar' %}",
@@ -72010,7 +72127,7 @@
         },
         {
           "kind": "template_url",
-          "line": 404,
+          "line": 453,
           "name": "portal:unified_calendar",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:unified_calendar' %}",
@@ -72019,7 +72136,7 @@
         },
         {
           "kind": "template_url",
-          "line": 419,
+          "line": 468,
           "name": "portal:unified_calendar",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:unified_calendar' %}",
@@ -72028,7 +72145,7 @@
         },
         {
           "kind": "template_url",
-          "line": 444,
+          "line": 493,
           "name": "portal:unified_calendar",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:unified_calendar' %}",
@@ -72414,7 +72531,7 @@
         },
         {
           "kind": "template_url",
-          "line": 915,
+          "line": 1003,
           "name": "reports:publish_term_results",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'reports:publish_term_results' %}",
@@ -73880,7 +73997,7 @@
         },
         {
           "kind": "template_url",
-          "line": 58,
+          "line": 86,
           "name": "siteconfig:clear_preview",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'siteconfig:clear_preview' %}",
@@ -76667,7 +76784,25 @@
         },
         {
           "kind": "template_url",
-          "line": 641,
+          "line": 673,
+          "name": "siteconfig:guided_onboarding",
+          "path": "templates/accounts/backend_dashboard.html",
+          "raw": "{% url 'siteconfig:guided_onboarding' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 710,
+          "name": "siteconfig:guided_onboarding",
+          "path": "templates/accounts/backend_dashboard.html",
+          "raw": "{% url 'siteconfig:guided_onboarding' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 727,
           "name": "siteconfig:guided_onboarding",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'siteconfig:guided_onboarding' %}",
@@ -77964,7 +78099,7 @@
         },
         {
           "kind": "template_url",
-          "line": 972,
+          "line": 1060,
           "name": "siteconfig:scheduled_reports_delivery_hub",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'siteconfig:scheduled_reports_delivery_hub' %}",
@@ -78343,7 +78478,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 234,
+          "line": 283,
           "name": "siteconfig:set_default_dashboard_view",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'siteconfig:set_default_dashboard_view' %}",
@@ -79421,7 +79556,7 @@
         },
         {
           "kind": "template_url",
-          "line": 57,
+          "line": 85,
           "name": "siteconfig:toggle_preview_mode",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'siteconfig:toggle_preview_mode' %}",
@@ -79648,7 +79783,7 @@
         },
         {
           "kind": "template_url",
-          "line": 1024,
+          "line": 1112,
           "name": "siteconfig:user_preferences",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'siteconfig:user_preferences' %}",
@@ -82842,7 +82977,7 @@
         },
         {
           "kind": "template_url",
-          "line": 696,
+          "line": 784,
           "name": "studio_os:workflow_center",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'studio_os:workflow_center' %}",
@@ -82851,7 +82986,7 @@
         },
         {
           "kind": "template_url",
-          "line": 806,
+          "line": 894,
           "name": "studio_os:workflow_center",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'studio_os:workflow_center' %}",
@@ -82860,7 +82995,7 @@
         },
         {
           "kind": "template_url",
-          "line": 883,
+          "line": 971,
           "name": "studio_os:workflow_center",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'studio_os:workflow_center' %}",
@@ -82869,7 +83004,7 @@
         },
         {
           "kind": "template_url",
-          "line": 1058,
+          "line": 1146,
           "name": "studio_os:workflow_center",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'studio_os:workflow_center' %}",
@@ -86428,6 +86563,15 @@
           "line": 48,
           "name": "super:founder_dashboard",
           "path": "apps/schools/tests/test_founder_dashboard.py",
+          "raw": "reverse(\"super:founder_dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 221,
+          "name": "super:founder_dashboard",
+          "path": "apps/platform_runtime/tests/test_experience_single_action_ui.py",
           "raw": "reverse(\"super:founder_dashboard\")",
           "reason": "",
           "status": "OK"
@@ -91690,6 +91834,15 @@
         },
         {
           "kind": "reverse",
+          "line": 189,
+          "name": "accounts:backend_dashboard",
+          "path": "apps/platform_runtime/tests/test_experience_single_action_ui.py",
+          "raw": "reverse(\"accounts:backend_dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 39,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/tests/test_backend_dashboard_shell_render.py",
@@ -91919,7 +92072,16 @@
         },
         {
           "kind": "template_url",
-          "line": 38,
+          "line": 28,
+          "name": "accounts:backend_dashboard",
+          "path": "templates/components/next_action_strip.html",
+          "raw": "{% url 'accounts:backend_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 62,
           "name": "accounts:backend_dashboard",
           "path": "templates/components/next_action_strip.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
@@ -96029,7 +96191,7 @@
         },
         {
           "kind": "template_url",
-          "line": 517,
+          "line": 550,
           "name": "accounts:user_messages",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -96123,7 +96285,7 @@
         },
         {
           "kind": "template_url",
-          "line": 142,
+          "line": 191,
           "name": "accounts:user_notifications",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -96132,7 +96294,7 @@
         },
         {
           "kind": "template_url",
-          "line": 198,
+          "line": 247,
           "name": "accounts:user_notifications",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -96343,7 +96505,7 @@
         },
         {
           "kind": "template_url",
-          "line": 443,
+          "line": 476,
           "name": "accounts:user_profile",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -100405,7 +100567,7 @@
         },
         {
           "kind": "template_url",
-          "line": 49,
+          "line": 63,
           "name": "academics:teacher_syllabus_hub",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'academics:teacher_syllabus_hub' as teacher_syllabus_url %}",
@@ -100414,7 +100576,7 @@
         },
         {
           "kind": "template_url",
-          "line": 250,
+          "line": 283,
           "name": "academics:teacher_syllabus_hub",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'academics:teacher_syllabus_hub' %}",
@@ -101550,6 +101712,15 @@
         },
         {
           "kind": "reverse",
+          "line": 189,
+          "name": "accounts:backend_dashboard",
+          "path": "apps/platform_runtime/tests/test_experience_single_action_ui.py",
+          "raw": "reverse(\"accounts:backend_dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 39,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/tests/test_backend_dashboard_shell_render.py",
@@ -101779,7 +101950,16 @@
         },
         {
           "kind": "template_url",
-          "line": 38,
+          "line": 28,
+          "name": "accounts:backend_dashboard",
+          "path": "templates/components/next_action_strip.html",
+          "raw": "{% url 'accounts:backend_dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 62,
           "name": "accounts:backend_dashboard",
           "path": "templates/components/next_action_strip.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
@@ -105889,7 +106069,7 @@
         },
         {
           "kind": "template_url",
-          "line": 517,
+          "line": 550,
           "name": "accounts:user_messages",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -105983,7 +106163,7 @@
         },
         {
           "kind": "template_url",
-          "line": 142,
+          "line": 191,
           "name": "accounts:user_notifications",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -105992,7 +106172,7 @@
         },
         {
           "kind": "template_url",
-          "line": 198,
+          "line": 247,
           "name": "accounts:user_notifications",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -106203,7 +106383,7 @@
         },
         {
           "kind": "template_url",
-          "line": 443,
+          "line": 476,
           "name": "accounts:user_profile",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -129159,7 +129339,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 969,
+          "line": 1057,
           "name": "evals:teacher_marks_entry",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'evals:teacher_marks_entry' %}",
@@ -129195,7 +129375,7 @@
         },
         {
           "kind": "template_url",
-          "line": 47,
+          "line": 61,
           "name": "evals:teacher_marks_entry",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_entry' as teacher_marks_entry_url %}",
@@ -129204,7 +129384,7 @@
         },
         {
           "kind": "template_url",
-          "line": 90,
+          "line": 104,
           "name": "evals:teacher_marks_entry",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_entry' %}",
@@ -129213,7 +129393,7 @@
         },
         {
           "kind": "template_url",
-          "line": 154,
+          "line": 187,
           "name": "evals:teacher_marks_entry",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_entry' %}",
@@ -129222,7 +129402,7 @@
         },
         {
           "kind": "template_url",
-          "line": 176,
+          "line": 209,
           "name": "evals:teacher_marks_entry",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_entry' %}",
@@ -129231,7 +129411,7 @@
         },
         {
           "kind": "template_url",
-          "line": 501,
+          "line": 534,
           "name": "evals:teacher_marks_entry",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_entry' %}",
@@ -129240,7 +129420,7 @@
         },
         {
           "kind": "template_url",
-          "line": 506,
+          "line": 539,
           "name": "evals:teacher_marks_entry",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_entry' %}",
@@ -129343,7 +129523,7 @@
         },
         {
           "kind": "template_url",
-          "line": 108,
+          "line": 132,
           "name": "evals:teacher_marks_list",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_list' %}",
@@ -129352,7 +129532,7 @@
         },
         {
           "kind": "template_url",
-          "line": 155,
+          "line": 188,
           "name": "evals:teacher_marks_list",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_list' %}",
@@ -129361,7 +129541,7 @@
         },
         {
           "kind": "template_url",
-          "line": 177,
+          "line": 210,
           "name": "evals:teacher_marks_list",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_list' %}",
@@ -129370,7 +129550,7 @@
         },
         {
           "kind": "template_url",
-          "line": 187,
+          "line": 220,
           "name": "evals:teacher_marks_list",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_list' %}",
@@ -129379,7 +129559,7 @@
         },
         {
           "kind": "template_url",
-          "line": 198,
+          "line": 231,
           "name": "evals:teacher_marks_list",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_list' %}",
@@ -129388,7 +129568,7 @@
         },
         {
           "kind": "template_url",
-          "line": 377,
+          "line": 410,
           "name": "evals:teacher_marks_list",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'evals:teacher_marks_list' %}",
@@ -129592,7 +129772,7 @@
         },
         {
           "kind": "template_url",
-          "line": 771,
+          "line": 859,
           "name": "finance:dashboard",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'finance:dashboard' %}",
@@ -130610,7 +130790,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 970,
+          "line": 1058,
           "name": "finance:requests",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'finance:requests' %}",
@@ -133130,7 +133310,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 95,
+          "line": 124,
           "name": "portal:claim_invite",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:claim_invite' %}",
@@ -133139,7 +133319,16 @@
         },
         {
           "kind": "template_url",
-          "line": 162,
+          "line": 138,
+          "name": "portal:claim_invite",
+          "path": "templates/parent/dashboard.html",
+          "raw": "{% url 'portal:claim_invite' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 211,
           "name": "portal:claim_invite",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:claim_invite' as parent_claim_invite_url %}",
@@ -133148,7 +133337,7 @@
         },
         {
           "kind": "template_url",
-          "line": 348,
+          "line": 397,
           "name": "portal:claim_invite",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:claim_invite' %}",
@@ -133703,7 +133892,16 @@
         },
         {
           "kind": "template_url",
-          "line": 98,
+          "line": 130,
+          "name": "portal:link_child",
+          "path": "templates/parent/dashboard.html",
+          "raw": "{% url 'portal:link_child' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 141,
           "name": "portal:link_child",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:link_child' %}",
@@ -133885,7 +134083,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 338,
+          "line": 387,
           "name": "portal:parent_child_results",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_child_results' card.link.student.id %}",
@@ -133894,7 +134092,7 @@
         },
         {
           "kind": "template_url",
-          "line": 379,
+          "line": 428,
           "name": "portal:parent_child_results",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_child_results' focus_child.link.student.id %}",
@@ -134024,7 +134222,7 @@
         },
         {
           "kind": "template_url",
-          "line": 130,
+          "line": 175,
           "name": "portal:parent_contact_school",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_contact_school' %}",
@@ -134033,7 +134231,16 @@
         },
         {
           "kind": "template_url",
-          "line": 161,
+          "line": 189,
+          "name": "portal:parent_contact_school",
+          "path": "templates/parent/dashboard.html",
+          "raw": "{% url 'portal:parent_contact_school' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 210,
           "name": "portal:parent_contact_school",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_contact_school' as parent_contact_url %}",
@@ -134042,7 +134249,7 @@
         },
         {
           "kind": "template_url",
-          "line": 378,
+          "line": 427,
           "name": "portal:parent_contact_school",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_contact_school' %}",
@@ -134051,7 +134258,7 @@
         },
         {
           "kind": "template_url",
-          "line": 475,
+          "line": 524,
           "name": "portal:parent_contact_school",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_contact_school' %}",
@@ -134060,7 +134267,7 @@
         },
         {
           "kind": "template_url",
-          "line": 476,
+          "line": 525,
           "name": "portal:parent_contact_school",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_contact_school' %}",
@@ -134069,7 +134276,7 @@
         },
         {
           "kind": "template_url",
-          "line": 515,
+          "line": 564,
           "name": "portal:parent_contact_school",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_contact_school' %}",
@@ -134629,7 +134836,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 160,
+          "line": 209,
           "name": "portal:parent_finance",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_finance' as parent_finance_url %}",
@@ -134638,7 +134845,7 @@
         },
         {
           "kind": "template_url",
-          "line": 212,
+          "line": 261,
           "name": "portal:parent_finance",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_finance' %}",
@@ -134647,7 +134854,7 @@
         },
         {
           "kind": "template_url",
-          "line": 539,
+          "line": 588,
           "name": "portal:parent_finance",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_finance' %}",
@@ -134704,7 +134911,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 300,
+          "line": 349,
           "name": "portal:parent_medal_case",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_medal_case' %}",
@@ -134745,7 +134952,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 294,
+          "line": 343,
           "name": "portal:parent_set_active_child",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_set_active_child' s.id %}",
@@ -134815,7 +135022,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 129,
+          "line": 173,
           "name": "portal:parent_workflow",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_workflow' %}",
@@ -134824,7 +135031,7 @@
         },
         {
           "kind": "template_url",
-          "line": 159,
+          "line": 208,
           "name": "portal:parent_workflow",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_workflow' as parent_workflow_url %}",
@@ -134833,7 +135040,7 @@
         },
         {
           "kind": "template_url",
-          "line": 205,
+          "line": 254,
           "name": "portal:parent_workflow",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_workflow' %}",
@@ -134842,7 +135049,7 @@
         },
         {
           "kind": "template_url",
-          "line": 234,
+          "line": 283,
           "name": "portal:parent_workflow",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_workflow' %}",
@@ -134851,16 +135058,7 @@
         },
         {
           "kind": "template_url",
-          "line": 257,
-          "name": "portal:parent_workflow",
-          "path": "templates/parent/dashboard.html",
-          "raw": "{% url 'portal:parent_workflow' %}",
-          "reason": "",
-          "status": "OK"
-        },
-        {
-          "kind": "template_url",
-          "line": 354,
+          "line": 306,
           "name": "portal:parent_workflow",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_workflow' %}",
@@ -134878,7 +135076,16 @@
         },
         {
           "kind": "template_url",
-          "line": 540,
+          "line": 452,
+          "name": "portal:parent_workflow",
+          "path": "templates/parent/dashboard.html",
+          "raw": "{% url 'portal:parent_workflow' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 589,
           "name": "portal:parent_workflow",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:parent_workflow' %}",
@@ -135150,7 +135357,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 219,
+          "line": 268,
           "name": "portal:portal_stats",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:portal_stats' %}",
@@ -135405,7 +135612,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 514,
+          "line": 563,
           "name": "portal:signature_pending_list",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:signature_pending_list' %}",
@@ -135701,7 +135908,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 944,
+          "line": 1032,
           "name": "portal:student_attendance_export",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'portal:student_attendance_export' %}",
@@ -135882,7 +136089,7 @@
         },
         {
           "kind": "template_url",
-          "line": 43,
+          "line": 67,
           "name": "portal:support_help_hub",
           "path": "templates/components/next_action_strip.html",
           "raw": "{% url 'portal:support_help_hub' %}",
@@ -136240,7 +136447,7 @@
         },
         {
           "kind": "template_url",
-          "line": 943,
+          "line": 1031,
           "name": "portal:teacher_attendance",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'portal:teacher_attendance' %}",
@@ -136249,7 +136456,7 @@
         },
         {
           "kind": "template_url",
-          "line": 971,
+          "line": 1059,
           "name": "portal:teacher_attendance",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'portal:teacher_attendance' %}",
@@ -136276,7 +136483,7 @@
         },
         {
           "kind": "template_url",
-          "line": 50,
+          "line": 64,
           "name": "portal:teacher_attendance",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_attendance' as teacher_attendance_url %}",
@@ -136285,7 +136492,7 @@
         },
         {
           "kind": "template_url",
-          "line": 507,
+          "line": 540,
           "name": "portal:teacher_attendance",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_attendance' %}",
@@ -136294,7 +136501,7 @@
         },
         {
           "kind": "template_url",
-          "line": 544,
+          "line": 577,
           "name": "portal:teacher_attendance",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_attendance' %}",
@@ -136484,7 +136691,16 @@
         },
         {
           "kind": "template_url",
-          "line": 109,
+          "line": 137,
+          "name": "portal:teacher_dashboard_alias",
+          "path": "templates/teacher/dashboard.html",
+          "raw": "{% url 'portal:teacher_dashboard_alias' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 141,
           "name": "portal:teacher_dashboard_alias",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_dashboard_alias' %}",
@@ -136641,7 +136857,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 545,
+          "line": 578,
           "name": "portal:teacher_leave",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_leave' %}",
@@ -136722,7 +136938,16 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 92,
+          "line": 110,
+          "name": "portal:teacher_onboarding",
+          "path": "templates/teacher/dashboard.html",
+          "raw": "{% url 'portal:teacher_onboarding' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 115,
           "name": "portal:teacher_onboarding",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_onboarding' %}",
@@ -136780,7 +137005,7 @@
         },
         {
           "kind": "template_url",
-          "line": 534,
+          "line": 567,
           "name": "portal:teacher_pay_history",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_pay_history' %}",
@@ -136974,7 +137199,7 @@
         },
         {
           "kind": "template_url",
-          "line": 48,
+          "line": 62,
           "name": "portal:teacher_workflow",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_workflow' as teacher_workflow_url %}",
@@ -136983,7 +137208,7 @@
         },
         {
           "kind": "template_url",
-          "line": 91,
+          "line": 109,
           "name": "portal:teacher_workflow",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_workflow' %}",
@@ -136992,7 +137217,7 @@
         },
         {
           "kind": "template_url",
-          "line": 117,
+          "line": 114,
           "name": "portal:teacher_workflow",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_workflow' %}",
@@ -137001,7 +137226,7 @@
         },
         {
           "kind": "template_url",
-          "line": 452,
+          "line": 150,
           "name": "portal:teacher_workflow",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_workflow' %}",
@@ -137010,7 +137235,16 @@
         },
         {
           "kind": "template_url",
-          "line": 473,
+          "line": 485,
+          "name": "portal:teacher_workflow",
+          "path": "templates/teacher/dashboard.html",
+          "raw": "{% url 'portal:teacher_workflow' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 506,
           "name": "portal:teacher_workflow",
           "path": "templates/teacher/dashboard.html",
           "raw": "{% url 'portal:teacher_workflow' %}",
@@ -137141,7 +137375,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 1036,
+          "line": 1124,
           "name": "portal:unified_calendar",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'portal:unified_calendar' %}",
@@ -137150,7 +137384,7 @@
         },
         {
           "kind": "template_url",
-          "line": 277,
+          "line": 326,
           "name": "portal:unified_calendar",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:unified_calendar' %}",
@@ -137159,7 +137393,7 @@
         },
         {
           "kind": "template_url",
-          "line": 404,
+          "line": 453,
           "name": "portal:unified_calendar",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:unified_calendar' %}",
@@ -137168,7 +137402,7 @@
         },
         {
           "kind": "template_url",
-          "line": 419,
+          "line": 468,
           "name": "portal:unified_calendar",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:unified_calendar' %}",
@@ -137177,7 +137411,7 @@
         },
         {
           "kind": "template_url",
-          "line": 444,
+          "line": 493,
           "name": "portal:unified_calendar",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'portal:unified_calendar' %}",
@@ -137502,7 +137736,7 @@
         },
         {
           "kind": "template_url",
-          "line": 915,
+          "line": 1003,
           "name": "reports:publish_term_results",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'reports:publish_term_results' %}",
@@ -138616,7 +138850,7 @@
         },
         {
           "kind": "template_url",
-          "line": 58,
+          "line": 86,
           "name": "siteconfig:clear_preview",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'siteconfig:clear_preview' %}",
@@ -141403,7 +141637,25 @@
         },
         {
           "kind": "template_url",
-          "line": 641,
+          "line": 673,
+          "name": "siteconfig:guided_onboarding",
+          "path": "templates/accounts/backend_dashboard.html",
+          "raw": "{% url 'siteconfig:guided_onboarding' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 710,
+          "name": "siteconfig:guided_onboarding",
+          "path": "templates/accounts/backend_dashboard.html",
+          "raw": "{% url 'siteconfig:guided_onboarding' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 727,
           "name": "siteconfig:guided_onboarding",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'siteconfig:guided_onboarding' %}",
@@ -142700,7 +142952,7 @@
         },
         {
           "kind": "template_url",
-          "line": 972,
+          "line": 1060,
           "name": "siteconfig:scheduled_reports_delivery_hub",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'siteconfig:scheduled_reports_delivery_hub' %}",
@@ -143079,7 +143331,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 234,
+          "line": 283,
           "name": "siteconfig:set_default_dashboard_view",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'siteconfig:set_default_dashboard_view' %}",
@@ -144157,7 +144409,7 @@
         },
         {
           "kind": "template_url",
-          "line": 57,
+          "line": 85,
           "name": "siteconfig:toggle_preview_mode",
           "path": "templates/parent/dashboard.html",
           "raw": "{% url 'siteconfig:toggle_preview_mode' %}",
@@ -144384,7 +144636,7 @@
         },
         {
           "kind": "template_url",
-          "line": 1024,
+          "line": 1112,
           "name": "siteconfig:user_preferences",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'siteconfig:user_preferences' %}",
@@ -147578,7 +147830,7 @@
         },
         {
           "kind": "template_url",
-          "line": 696,
+          "line": 784,
           "name": "studio_os:workflow_center",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'studio_os:workflow_center' %}",
@@ -147587,7 +147839,7 @@
         },
         {
           "kind": "template_url",
-          "line": 806,
+          "line": 894,
           "name": "studio_os:workflow_center",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'studio_os:workflow_center' %}",
@@ -147596,7 +147848,7 @@
         },
         {
           "kind": "template_url",
-          "line": 883,
+          "line": 971,
           "name": "studio_os:workflow_center",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'studio_os:workflow_center' %}",
@@ -147605,7 +147857,7 @@
         },
         {
           "kind": "template_url",
-          "line": 1058,
+          "line": 1146,
           "name": "studio_os:workflow_center",
           "path": "templates/accounts/backend_dashboard.html",
           "raw": "{% url 'studio_os:workflow_center' %}",
@@ -148171,12 +148423,12 @@
   ],
   "summary": {
     "broken_count": 0,
-    "reverse_usages": 2073,
+    "reverse_usages": 2075,
     "risk_count": 0,
     "routes_audited": 5524,
     "status": "ROUTE SYSTEM CERTIFIED",
-    "template_href_action_usages": 90,
-    "template_url_usages": 1716
+    "template_href_action_usages": 92,
+    "template_url_usages": 1725
   },
   "urlconfs": {
     "manager": "config.manager_urls",
