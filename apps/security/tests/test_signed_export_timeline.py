@@ -25,7 +25,7 @@ class SignedExportTimelineTests(TestCase):
     databases = {"default"}
 
     def test_timeline_row_matches_hmac_helper(self):
-        school = School.objects.create(
+        School.objects.create(
             name="Integrity School",
             slug="integrity-school",
             subdomain="integrity-school",

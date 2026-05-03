@@ -18,8 +18,8 @@
 - `AllowAny`: `106`
 - `print()` (gross all `.py`): `1053`
 - `print()` (`apps` product paths): `0`; `scripts/`: `952`
-- `gilead` matches (gross corpus): `16669` across `166` files
-- `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `15`
+- `gilead` matches (gross corpus): `16650` across `165` files
+- `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
 - Scoped-gravity **history** (last writes): `scripts/generated/scoped_gravity_trend.json` (updated with `generate_platform_inventory.py --write`; excluded from gross `gilead` JSON scan).

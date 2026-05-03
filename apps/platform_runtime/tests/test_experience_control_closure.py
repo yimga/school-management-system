@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
 from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse

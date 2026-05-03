@@ -262,6 +262,10 @@ def _is_public_only_path(path: str) -> bool:
             or path.startswith(prefix.rstrip("/") + "/")
             or path.startswith(prefix)
         ):
+            # Marketing demo pages use ``/demo/`` on the public host; tenant conversion uses
+            # ``/demo/flow/`` on the school subdomain and must not bounce to the base domain.
+            if path.startswith("/demo/flow"):
+                continue
             return True
     return False
 

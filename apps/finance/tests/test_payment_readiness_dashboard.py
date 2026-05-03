@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from django.test import Client, RequestFactory, TestCase
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from apps.accounts.models import User

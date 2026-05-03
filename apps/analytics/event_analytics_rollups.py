@@ -55,11 +55,14 @@ def build_event_analytics_bundle(*, user, school_id: str | None, days: int = 14)
         if ds not in DATASETS or not _user_can_access(user, DATASETS[ds]):
             return {"ok": False, "error": "permission_denied"}
 
+    from django.apps import apps
+
     from apps.automation.workflow_graph_models import WorkflowRunLog
     from apps.events.models import DomainEvent
     from apps.finance.models import Payment
-    from apps.marketplace.models import AppInstallation
     from apps.platform_runtime.models import OfflineAction, PlatformEventLog
+
+    AppInstallation = apps.get_model("marketplace", "AppInstallation")
     from apps.schools.models import MarketingFunnelEvent
 
     sid = school_id

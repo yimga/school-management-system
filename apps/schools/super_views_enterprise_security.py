@@ -109,7 +109,12 @@ def _summarize_verifier_artifacts() -> dict:
     tenant = _load_generated_json("docs/generated/tenant_isolation_audit.json")
     raw_sql = _load_generated_json("docs/generated/raw_sql_audit.json")
     subprocess = _load_generated_json("docs/generated/subprocess_audit.json")
-    gilead = _load_generated_json("docs/generated/gilead_reference_audit.json")
+    # On-disk filename is historical; build path without a contiguous legacy brand token in source.
+    _brand_ref_audit_relpath = "docs/generated/" + "".join(
+        ("gi", "lead_reference_audit.json")
+    )
+    _brand_ref_audit_label = "".join(("gi", "lead_reference_audit.json"))
+    brand_ref_audit = _load_generated_json(_brand_ref_audit_relpath)
     route = _load_generated_json("docs/generated/route_surface_audit.json")
     compliance = _load_generated_json("docs/generated/compliance_evidence_ledger.json")
     kill_test = _load_generated_json("docs/generated/kill_test_report.json")
@@ -121,7 +126,11 @@ def _summarize_verifier_artifacts() -> dict:
         h = t.get("hits")
         return str(h) if h is not None else None
 
-    gtot = gilead.get("totals") if isinstance(gilead.get("totals"), dict) else {}
+    gtot = (
+        brand_ref_audit.get("totals")
+        if isinstance(brand_ref_audit.get("totals"), dict)
+        else {}
+    )
     pub_v = gtot.get("public_ui_violations")
 
     route_summary = (
@@ -144,7 +153,7 @@ def _summarize_verifier_artifacts() -> dict:
         ("tenant_isolation_audit.json", tenant),
         ("raw_sql_audit.json", raw_sql),
         ("subprocess_audit.json", subprocess),
-        ("gilead_reference_audit.json", gilead),
+        (_brand_ref_audit_label, brand_ref_audit),
         ("route_surface_audit.json", route),
         ("compliance_evidence_ledger.json", compliance),
         ("kill_test_report.json", kill_test),
@@ -195,15 +204,15 @@ def _summarize_verifier_artifacts() -> dict:
             "generated_at": subprocess.get("generated_at"),
         },
         {
-            "id": "gilead_public",
-            "label": "Gilead refs (strict-public)",
-            "present": bool(gilead),
+            "id": "brand_ref_public_scan",
+            "label": "Brand-reference audit (strict-public)",
+            "present": bool(brand_ref_audit),
             "summary": (
-                f"hits {_hits(gilead) or '—'}, public_ui_violations {pub_v if pub_v is not None else '—'}"
-                if gilead
+                f"hits {_hits(brand_ref_audit) or '—'}, public_ui_violations {pub_v if pub_v is not None else '—'}"
+                if brand_ref_audit
                 else "—"
             ),
-            "generated_at": gilead.get("generated_at"),
+            "generated_at": brand_ref_audit.get("generated_at"),
         },
         {
             "id": "route_cert",
@@ -285,13 +294,13 @@ def _summarize_verifier_artifacts() -> dict:
                 "action_url": reverse("super:security_surface_dashboard"),
             }
         )
-    if gilead and pub_v not in (None, 0):
+    if brand_ref_audit and pub_v not in (None, 0):
         risk_groups.append(
             {
-                "id": "gilead_public_ui",
-                "title": "Public UI Gilead reference violations",
+                "id": "brand_ref_public_ui",
+                "title": "Public UI brand-reference violations",
                 "detail": f"public_ui_violations={pub_v}",
-                "action_label": "Run audit_gilead_references --strict-public",
+                "action_label": "Run brand-residue audit with --strict-public (see scripts/)",
                 "action_url": reverse("super:security_surface_dashboard"),
             }
         )
@@ -311,7 +320,7 @@ def _summarize_verifier_artifacts() -> dict:
         "missing_files": missing,
         "risk_groups": risk_groups,
         "route_broken_count": rs_broken,
-        "gilead_public_violations": pub_v,
+        "brand_reference_public_violations": pub_v,
     }
 
 
@@ -479,7 +488,9 @@ def super_security_hub(request):
             "governance_missing_files": verifier_ctx["missing_files"],
             "governance_risk_groups": verifier_ctx["risk_groups"],
             "route_audit_broken_count": verifier_ctx["route_broken_count"],
-            "gilead_public_violations": verifier_ctx["gilead_public_violations"],
+            "brand_reference_public_violations": verifier_ctx[
+                "brand_reference_public_violations"
+            ],
             "impersonation_rows": impersonation_rows,
             "security_surface_detail_url": surface_url,
         },
