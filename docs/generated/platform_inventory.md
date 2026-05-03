@@ -1,11 +1,11 @@
 # Platform Inventory
 
 - Installed app modules: `45`
-- Python files: `2883`
+- Python files: `2892`
 - HTML templates: `752`
-- Markdown files: `1114`
-- Migration files: `744`
-- Management commands: `161` (full list in JSON key `management_commands_list`)
+- Markdown files: `1118`
+- Migration files: `745`
+- Management commands: `162` (full list in JSON key `management_commands_list`)
 - `SiteSettings` refs (gross scan): `2053`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `40`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `6`
@@ -16,9 +16,9 @@
 - `csrf_exempt` (substring, gross): `306`
 - `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `38`
 - `AllowAny`: `106`
-- `print()` (gross all `.py`): `1053`
-- `print()` (`apps` product paths): `0`; `scripts/`: `952`
-- `gilead` matches (gross corpus): `16660` across `165` files
+- `print()` (gross all `.py`): `1059`
+- `print()` (`apps` product paths): `0`; `scripts/`: `958`
+- `gilead` matches (gross corpus): `16661` across `165` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -26,7 +26,7 @@ Gross totals include migrations and broad file pools; use **scoped** lines aroun
 
 ## Management Commands (full list)
 
-Total: `161` commands. First 25 by app/command:
+Total: `162` commands. First 25 by app/command:
 
 - `academics` / `export_certification_pack` — `apps/academics/management/commands/export_certification_pack.py`
 - `academics` / `fix_term_positions` — `apps/academics/management/commands/fix_term_positions.py`
@@ -53,7 +53,7 @@ Total: `161` commands. First 25 by app/command:
 - `billing` / `import_platform_billing_snapshot` — `apps/billing/management/commands/import_platform_billing_snapshot.py`
 - `billing` / `run_platform_billing_lifecycle` — `apps/billing/management/commands/run_platform_billing_lifecycle.py`
 - `billing` / `run_revenue_share_payouts` — `apps/billing/management/commands/run_revenue_share_payouts.py`
-- … and 136 more (see `platform_inventory.json` key `management_commands_list`).
+- … and 137 more (see `platform_inventory.json` key `management_commands_list`).
 
 ## Public Endpoint Review
 

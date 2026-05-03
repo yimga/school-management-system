@@ -34,7 +34,7 @@ class PublicExecutionPlanPagesTests(TestCase):
             "/solutions/",
             "/pricing/",
             "/compare/",
-            "/case-studies/",
+            "/resources/case-studies/",
             "/security-compliance/",
             "/integrations/",
             "/demo/",

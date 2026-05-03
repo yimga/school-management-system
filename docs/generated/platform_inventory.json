@@ -5,14 +5,14 @@
     "cursor_execute": 381,
     "except_exception": 411,
     "get_solo": 208,
-    "gilead": 16660,
+    "gilead": 16661,
     "gilead_files": 165,
     "html_files": 752,
-    "management_commands": 161,
-    "markdown_files": 1114,
-    "migration_files": 744,
-    "print_calls": 1053,
-    "python_files": 2883,
+    "management_commands": 162,
+    "markdown_files": 1118,
+    "migration_files": 745,
+    "print_calls": 1059,
+    "python_files": 2892,
     "site_settings": 2053
   },
   "doc_drift": {
@@ -338,6 +338,11 @@
       "app": "finance",
       "command": "apply_split_late_fees",
       "path": "apps/finance/management/commands/apply_split_late_fees.py"
+    },
+    {
+      "app": "finance",
+      "command": "check_payment_gateways",
+      "path": "apps/finance/management/commands/check_payment_gateways.py"
     },
     {
       "app": "finance",
@@ -923,7 +928,7 @@
     "cursor_execute_apps_config_py_excl_migrations": 32,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 952,
+    "print_calls_scripts_py": 958,
     "site_settings_refs_apps_py_excl_migrations": 40,
     "site_settings_refs_apps_py_excl_migrations_tests": 6
   },

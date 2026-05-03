@@ -656,9 +656,9 @@
       "signal": "export_delivery_hint"
     }
   ],
-  "generated_at": "2026-05-03T15:07:30.068801+00:00",
+  "generated_at": "2026-05-03T16:45:58.500694+00:00",
   "post_handler_audit_embed": {
-    "generated_at": "2026-05-03T15:07:24.070736+00:00",
+    "generated_at": "2026-05-03T16:45:48.707645+00:00",
     "summary_by_bucket": {
       "product": 232,
       "scripts": 4
@@ -1268,7 +1268,7 @@
   },
   "schema_version": 2,
   "security_surface_audit_embed": {
-    "generated_at": "2026-05-03T15:07:19.901345+00:00",
+    "generated_at": "2026-05-03T16:45:46.482037+00:00",
     "summary": {
       "allow_any": 28,
       "csrf_exempt": 27,
