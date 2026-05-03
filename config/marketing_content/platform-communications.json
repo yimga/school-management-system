@@ -1,0 +1,91 @@
+{
+  "label": "Communications",
+  "seo_title": "School Communications Hub | RunMyCampus",
+  "seo_description": "Announcements, targeted messaging, delivery posture, and governance.",
+  "headline": "Official communications with accountability.",
+  "subheadline": "Role-aware messaging preserves privacy boundaries across staff and families.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Operational broadcasts",
+      "body": "Assessments, billing notices, and schedule changes."
+    },
+    {
+      "title": "Channel readiness",
+      "body": "Email and SMS integrations according to deployment policy."
+    },
+    {
+      "title": "Audit posture",
+      "body": "Administrative visibility without leaking sensitive threads."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Flexible academic calendars",
+      "Multi-currency fee structures",
+      "Role-based portals",
+      "Offline-ready workflows",
+      "Secure audit trails",
+      "Multi-campus support"
+    ],
+    "diagram_path": "images/marketing/module-communication.svg",
+    "premium_platform_layout": true,
+    "suppress_footer_clusters": true,
+    "stock_photo_url": "https://images.unsplash.com/photo-1533750516457-a7bb904ebb62?auto=format&fit=crop&w=1600&q=75",
+    "stock_photo_alt": "Hands typing on a laptop representing messaging workflows",
+    "stock_photo_credit": "Photo via Unsplash",
+    "problem_section": {
+      "title": "Announcements should reach the right audience",
+      "body": "Broadcast-only tools miss nuance; chat threads lose governance. RunMyCampus combines targeting, templates, and history so communications stay accountable."
+    },
+    "workflow_steps": [
+      "Compose message",
+      "Target audience",
+      "Schedule/send",
+      "Track delivery context",
+      "Archive & audit"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "Administrators",
+        "bullets": [
+          "School-wide or segmented broadcasting",
+          "Consistent tone through templates"
+        ]
+      },
+      {
+        "role": "Teachers",
+        "bullets": [
+          "Class-scoped updates without leaking data",
+          "Shared operational narrative with leadership"
+        ]
+      },
+      {
+        "role": "Families",
+        "bullets": [
+          "Fewer missed signals across portals",
+          "Transparency aligned with billing and academics"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Parent Portal",
+        "path": "/platform/parent-portal/"
+      },
+      {
+        "label": "Workflows",
+        "path": "/platform/workflows/"
+      },
+      {
+        "label": "Analytics",
+        "path": "/platform/analytics/"
+      },
+      {
+        "label": "Security & Governance",
+        "path": "/platform/security/"
+      }
+    ]
+  }
+}

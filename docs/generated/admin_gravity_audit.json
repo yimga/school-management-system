@@ -126,8 +126,8 @@
       67
     ],
     "apps/schools/super_views_enterprise_security.py": [
-      130,
-      135
+      443,
+      448
     ],
     "apps/siteconfig/admin.py": [
       637
@@ -322,7 +322,7 @@
       "title": "Dynamic field EAV operator (read-only triage; admin CRUD for definitions/values)"
     }
   ],
-  "generated_at": "2026-05-01T19:25:54.298739+00:00",
+  "generated_at": "2026-05-03T00:18:22.389239+00:00",
   "marketplace_app_admin_line_hits": {
     "apps/accounts/management/commands/ensure_default_tenant_admin.py": [
       111
@@ -332,7 +332,7 @@
       218
     ],
     "apps/accounts/permissions.py": [
-      743
+      753
     ],
     "apps/accounts/views_workflow.py": [
       209,
@@ -483,9 +483,9 @@
     "apps/studio_os": {
       "apps/studio_os/deep_links.py": {
         "line_numbers": [
-          61,
-          140,
-          158
+          62,
+          141,
+          159
         ],
         "v2_class": "docs_or_legacy_only"
       }
@@ -611,10 +611,10 @@
       29,
       41,
       71,
-      682,
-      735,
-      736,
-      1007
+      684,
+      737,
+      738,
+      1009
     ],
     "apps/schools/middleware_activation_gate.py": [
       74
@@ -629,8 +629,8 @@
       359
     ],
     "apps/schools/super_views_enterprise_security.py": [
-      130,
-      135
+      443,
+      448
     ],
     "apps/schools/super_views_phase_b.py": [
       163
@@ -763,9 +763,9 @@
       51
     ],
     "apps/studio_os/deep_links.py": [
-      61,
-      140,
-      158
+      62,
+      141,
+      159
     ]
   },
   "product_admin_bridge_hits_classified": {
@@ -959,10 +959,10 @@
         29,
         41,
         71,
-        682,
-        735,
-        736,
-        1007
+        684,
+        737,
+        738,
+        1009
       ]
     },
     "apps/schools/middleware_activation_gate.py": {
@@ -989,8 +989,8 @@
     "apps/schools/super_views_enterprise_security.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        130,
-        135
+        443,
+        448
       ]
     },
     "apps/schools/super_views_phase_b.py": {
@@ -1216,9 +1216,9 @@
     "apps/studio_os/deep_links.py": {
       "category": "redirect_or_link_to_admin",
       "line_numbers": [
-        61,
-        140,
-        158
+        62,
+        141,
+        159
       ]
     }
   },
@@ -1412,10 +1412,10 @@
         29,
         41,
         71,
-        682,
-        735,
-        736,
-        1007
+        684,
+        737,
+        738,
+        1009
       ],
       "v2": "needs_model_service_support"
     },
@@ -1442,8 +1442,8 @@
     },
     "apps/schools/super_views_enterprise_security.py": {
       "line_numbers": [
-        130,
-        135
+        443,
+        448
       ],
       "v2": "needs_model_service_support"
     },
@@ -1669,9 +1669,9 @@
     },
     "apps/studio_os/deep_links.py": {
       "line_numbers": [
-        61,
-        140,
-        158
+        62,
+        141,
+        159
       ],
       "v2": "docs_or_legacy_only"
     }
@@ -2138,10 +2138,10 @@
             29,
             41,
             71,
-            682,
-            735,
-            736,
-            1007
+            684,
+            737,
+            738,
+            1009
           ],
           "path": "apps/schools/middleware.py",
           "v2": "needs_model_service_support"
@@ -2163,8 +2163,8 @@
         },
         {
           "lines": [
-            130,
-            135
+            443,
+            448
           ],
           "path": "apps/schools/super_views_enterprise_security.py",
           "v2": "needs_model_service_support"
@@ -2454,9 +2454,9 @@
       "product_py": [
         {
           "lines": [
-            61,
-            140,
-            158
+            62,
+            141,
+            159
           ],
           "path": "apps/studio_os/deep_links.py",
           "v2": "docs_or_legacy_only"
@@ -2543,7 +2543,7 @@
       "schools": 8,
       "siteconfig": 42
     },
-    "approx_product_code_lines_with_admin_substring": 475,
+    "approx_product_code_lines_with_admin_substring": 476,
     "approx_register_calls_in_admin_py": 0,
     "apps_with_admin_py": 35,
     "high_registration_app_labels_gte_3": [],
@@ -2742,7 +2742,7 @@
       57
     ],
     "apps/studio_os/deep_links.py": [
-      61
+      62
     ]
   }
 }

@@ -19,7 +19,7 @@
           <h2 class="h6 card-title">{{ ins.title }}</h2>
           <p class="small card-text">{{ ins.explanation }}</p>
           {% if ins.primary_action %}
-          <a class="btn btn-sm btn-primary" href="{{ ins.primary_action.path }}">{{ ins.primary_action.label }}</a>
+          <a class="btn btn-sm btn-primary" href="{{ ins.primary_action.primary_action_url|default:ins.primary_action.path }}">{{ ins.primary_action.label }}</a>
           {% endif %}
         </div>
       </div>

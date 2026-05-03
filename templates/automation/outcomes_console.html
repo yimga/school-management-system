@@ -52,6 +52,47 @@
     </div>
   </div>
 
+  <div class="card shadow-sm mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">{% trans "Visual workflow runs (published flows)" %}</h5>
+    </div>
+    <div class="card-body p-0">
+      {% if recent_visual_runs %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>{% trans "Workflow" %}</th>
+              <th>{% trans "Trigger" %}</th>
+              <th>{% trans "Conditions passed" %}</th>
+              <th>{% trans "Dry run" %}</th>
+              <th>{% trans "Status" %}</th>
+              <th>{% trans "Started" %}</th>
+              <th>{% trans "By" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for vr in recent_visual_runs %}
+            <tr>
+              <td>{{ vr.workflow.name }}</td>
+              <td><code>{{ vr.trigger_event }}</code></td>
+              <td>{% if vr.conditions_passed %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
+              <td>{% if vr.dry_run %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
+              <td><span class="badge {% if vr.status == 'success' %}bg-success{% elif vr.status == 'failed' %}bg-danger{% elif vr.status == 'skipped' %}bg-secondary{% else %}bg-secondary{% endif %}">{{ vr.get_status_display }}</span></td>
+              <td>{{ vr.created_at|date:"Y-m-d H:i" }}</td>
+              <td>{% if vr.triggered_by %}{{ vr.triggered_by.get_full_name|default:vr.triggered_by.username }}{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="small text-muted px-3 py-2 mb-0">{% trans "Last 30 visual workflow executions for this tenant." %}</p>
+      {% else %}
+      <p class="text-muted px-3 py-3 mb-0">{% trans "No visual workflow runs recorded yet." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
   <div class="card shadow-sm">
     <div class="card-header">
       <h5 class="mb-0">{% trans "Recent execution logs" %}</h5>

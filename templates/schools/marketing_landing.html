@@ -1,11 +1,13 @@
 {% extends "schools/marketing_base.html" %}
 {% load static i18n %}
+{% block marketing_main_extra_classes %}container-fluid px-0 py-0 mkt-global-os-main{% endblock %}
 {% block title %}{{ seo_title|default:"RunMyCampus - The Global Operating System for Education" }}{% endblock %}
 {% block extrastyle %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/marketing-home.css' %}">
   <link rel="stylesheet" href="{% static 'css/marketing-home-scroll.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-narrative-phase10.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-global-os.css' %}">
   {# CWV: below-fold live-flow CSS loads non-blocking #}
   <link rel="preload" href="{% static 'css/mkt-live-flow.css' %}" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="{% static 'css/mkt-live-flow.css' %}"></noscript>
@@ -23,7 +25,7 @@
 {% endblock %}
 {% block content %}
 <noscript></noscript>
-<div class="marketing-home mkt-narrative-phase10" id="mkt-narrative-root" data-scroll-story="true" data-phase10-marketing-narrative="true" data-marketing-hero-variant="{{ hero_variant|default:'A' }}" data-marketing-cta-variant="{{ marketing_cta_variant|default:'default' }}" data-marketing-experiment="hero={{ hero_variant|default:'A' }};cta={{ marketing_cta_variant|default:'default' }}">
+<div class="marketing-home mkt-narrative-phase10 mkt-global-os" id="mkt-narrative-root" data-scroll-story="true" data-phase10-marketing-narrative="true" data-marketing-hero-variant="{{ hero_variant|default:'A' }}" data-marketing-cta-variant="{{ marketing_cta_variant|default:'default' }}" data-marketing-experiment="hero={{ hero_variant|default:'A' }};cta={{ marketing_cta_variant|default:'default' }}">
   <a href="#hero" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
   <div id="mkt-scroll-progress" class="mkt-scroll-progress" role="presentation" aria-hidden="true">
     <div id="mkt-scroll-progress-fill" class="mkt-scroll-progress-fill"></div>
@@ -44,9 +46,10 @@
   <div id="mkt-sticky-cta-bar" class="mkt-sticky-cta-bar" aria-hidden="true">
     <div class="container d-flex align-items-center justify-content-between gap-2 flex-wrap py-2">
       <span class="text-white small fw-medium">{% trans "Ready to run your campus?" %}</span>
-      <div class="d-flex gap-2">
-        <a href="{% url 'signup_school' %}" class="btn btn-sm btn-primary" data-cta="primary" data-page="home">{% trans "Start Free Trial" %}</a>
-        <a href="{% url 'marketing_book_demo' %}" class="btn btn-sm btn-outline-light" data-cta="demo" data-page="home">{% trans "Book a demo" %}</a>
+      <div class="d-flex gap-2 flex-wrap justify-content-end">
+        <a href="{% url 'marketing_demo' %}" class="btn btn-sm btn-primary" data-cta="demo" data-page="home">{% trans "Request Demo" %}</a>
+        <a href="{% url 'marketing_product_tour' %}" class="btn btn-sm btn-outline-light" data-cta="secondary" data-page="home">{% trans "Watch Product Tour" %}</a>
+        <a href="{% url 'signup_school' %}" class="btn btn-sm btn-outline-light" data-cta="primary" data-page="home">{% trans "Start trial" %}</a>
         <a href="{% url 'global_login_discovery' %}" class="btn btn-sm btn-outline-light">{% trans "Login" %}</a>
       </div>
     </div>
@@ -72,22 +75,37 @@
             <a href="{{ cta.url }}" class="btn {% if cta.primary %}btn-primary{% else %}btn-outline-light{% endif %}" data-cta="{% if cta.primary %}primary{% else %}secondary{% endif %}" data-page="home">{% trans cta.label %}</a>
           {% endfor %}
           {% if demo_tenant_url %}
-            <a href="{{ demo_tenant_url }}" class="btn btn-outline-light" target="_blank" rel="noopener noreferrer">{% trans "Try demo" %}</a>
+            <a href="{{ demo_tenant_url }}" class="btn btn-outline-light" target="_blank" rel="noopener noreferrer">{% trans "Try sandbox tenant" %}</a>
           {% endif %}
-          {% if marketing_product_tour_url %}<a href="{{ marketing_product_tour_url }}" class="btn btn-outline-light" target="_blank" rel="noopener noreferrer" data-cta="secondary" data-page="home">{% trans "See product tour" %}</a>{% else %}<a href="{% url 'marketing_interactive_preview' %}" class="btn btn-outline-light" data-cta="secondary" data-page="home">{% trans "See product tour" %}</a>{% endif %}
         </div>
       </div>
       <div class="mkt-hero-visual"{% if proof_hero_image_key %} data-proof-hero-key="{{ proof_hero_image_key }}"{% endif %}>
         {% if hero_video_url %}
         <video class="mkt-hero-video" width="800" height="450" poster="{% if hero_video_poster_url %}{{ hero_video_poster_url }}{% endif %}" preload="metadata" playsinline muted loop aria-label="RunMyCampus platform overview">
           <source src="{{ hero_video_url }}" type="video/mp4">
-          <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}"{% if hero_dashboard_image_srcset %} srcset="{{ hero_dashboard_image_srcset }}" sizes="{{ hero_dashboard_image_sizes }}"{% endif %} alt="RunMyCampus dashboard overview" width="800" height="450" decoding="async" loading="eager" style="object-fit: contain; background: var(--mkt-hero-bg, #0f172a);">
+          <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}"{% if hero_dashboard_image_srcset %} srcset="{{ hero_dashboard_image_srcset }}" sizes="{{ hero_dashboard_image_sizes }}"{% endif %} alt="{% trans 'Composite view of leadership analytics, administration, teacher workspace, parent mobile portal, finance, and student portal in RunMyCampus' %}" width="960" height="520" decoding="async" loading="eager" class="img-fluid mkt-hero-composite-img" style="object-fit: contain; background: var(--mkt-hero-bg, #0f172a);">
         </video>
         {% else %}
-        <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}"{% if hero_dashboard_image_srcset %} srcset="{{ hero_dashboard_image_srcset }}" sizes="{{ hero_dashboard_image_sizes }}"{% endif %} alt="RunMyCampus dashboard overview" width="800" height="450" decoding="async" fetchpriority="high" loading="eager" style="object-fit: contain; background: var(--mkt-hero-bg, #0f172a);">
+          <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}"{% if hero_dashboard_image_srcset %} srcset="{{ hero_dashboard_image_srcset }}" sizes="{{ hero_dashboard_image_sizes }}"{% endif %} alt="{% trans 'Composite view of leadership analytics, administration, teacher workspace, parent mobile portal, finance, and student portal in RunMyCampus' %}" width="960" height="520" decoding="async" fetchpriority="high" loading="eager" class="img-fluid mkt-hero-composite-img" style="object-fit: contain; background: var(--mkt-hero-bg, #0f172a);">
         {% endif %}
       </div>
     </div>
+  </section>
+
+  {% if trust_badges %}
+  <section class="mkt-section mkt-trust-glob-strip py-4 mkt-glob-strip-dark" aria-label="{% trans 'Global positioning' %}">
+    <div class="container">
+      <div class="d-flex flex-wrap gap-2 justify-content-center">
+        {% for pill in trust_badges %}<span class="badge rounded-pill mkt-glob-pill">{{ pill }}</span>{% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <section id="problem-statement" class="mkt-section container py-5 mkt-problem-glob" aria-label="{% trans 'Operational challenge' %}">
+    <h2 class="h3 text-center mb-3">{% trans "School operations are too scattered." %}</h2>
+    <p class="lead text-center text-muted mx-auto mb-3" style="max-width:42rem">{% trans "Teams often manage admissions, attendance, fees, grading, parent communication, and reporting across spreadsheets, paper forms, chat apps, disconnected tools, and manual workflows." %}</p>
+    <p class="text-center fw-semibold mb-0">{% trans "RunMyCampus connects every school workflow in one flexible operating platform." %}</p>
   </section>
 
   {# Chapter 2 — Why switch: narrative pillars + proof (Phase 10) #}
@@ -161,8 +179,8 @@
   {% if marketing_data_flow_chain %}
   <section id="data-flow-linkage" class="mkt-section mkt-reveal" aria-label="{% trans 'Data flow' %}">
     <div class="container text-center">
-      <h2 class="mkt-section-heading">{% trans "One thread: admission → roster → invoice" %}</h2>
-      <p class="mkt-section-lead">{% trans "Scroll to see how records stay linked — no duplicate entry across modules." %}</p>
+      <h2 class="mkt-section-heading">{% trans "Connected workflow across the entire campus lifecycle" %}</h2>
+      <p class="mkt-section-lead">{% trans "Each stage feeds the next—without duplicating student context across spreadsheets or standalone apps." %}</p>
       <div class="mkt-data-flow-chain" role="list">
         {% for node in marketing_data_flow_chain %}
         <div class="mkt-flow-node" role="listitem">
@@ -311,15 +329,20 @@
 
   {# Product pillars (6) — Learn more links #}
   {% if product_pillars_home %}
-  <section id="product-pillars" class="mkt-section" aria-label="{% trans 'Product pillars' %}">
-    <h2 class="mkt-section-heading">{% trans "Everything you need to run your school" %}</h2>
-    <p class="mkt-section-lead">{% trans "Admissions, academics, finance, communication, and compliance in one platform." %}</p>
-    <div class="mkt-modules-grid">
+  <section id="product-pillars" class="mkt-section container" aria-label="{% trans 'Platform overview' %}">
+    <h2 class="mkt-section-heading">{% trans "Platform overview" %}</h2>
+    <p class="mkt-section-lead">{% trans "Dedicated surfaces for each capability—each linking to a deeper product page." %}</p>
+    <div class="mkt-modules-grid mkt-platform-overview-grid">
       {% for pillar in product_pillars_home %}
-      <article class="mkt-module-card">
+      <article class="mkt-module-card mkt-platform-cap-card">
+        {% if pillar.screenshot_static %}
+        <div class="mkt-module-screenshot mkt-cap-thumb">
+          <img src="{% static pillar.screenshot_static %}" alt="{{ pillar.title }}" width="400" height="220" loading="lazy" decoding="async">
+        </div>
+        {% endif %}
         <h3>{{ pillar.title }}</h3>
         <p>{{ pillar.summary }}</p>
-        <a href="{{ pillar.path }}" class="btn btn-sm btn-outline-primary">{% trans "Learn more" %}</a>
+        <a href="{{ pillar.path }}" class="btn btn-sm btn-outline-primary">{% trans "Explore" %}</a>
       </article>
       {% endfor %}
     </div>
@@ -397,9 +420,9 @@
   {% endif %}
 
   {# Launch your school in minutes — School-in-a-Box (required per Visual Asset plan) #}
-  <section id="launch-in-minutes" class="mkt-section mkt-reveal mkt-narrative-chapter" aria-label="{% trans 'Launch your school in minutes' %}" data-chapter="4">
-    <h2 class="mkt-section-heading">{% trans "Launch your school in minutes" %}</h2>
-    <p class="mkt-section-lead">{% trans "Guided setup: choose your blueprint, brand your school, install modules, and go live." %}</p>
+  <section id="launch-in-minutes" class="mkt-section mkt-reveal mkt-narrative-chapter container" aria-label="{% trans 'Global configuration' %}" data-chapter="4">
+    <h2 class="mkt-section-heading">{% trans "Global configuration engine" %}</h2>
+    <p class="mkt-section-lead">{% trans "Tune academic years, terms and semesters, grading systems, class structures, departments, campuses, currencies, fee categories, discount rules, user roles, approval workflows, communication rules, report templates, and school branding—without fragmenting data." %}</p>
     {% if school_in_a_box_flow_image_url %}
     <div class="text-center mb-3">
       <img src="{{ school_in_a_box_flow_image_url }}" alt="{% trans 'School-in-a-Box launch flow' %}" width="800" height="320" loading="lazy" decoding="async" class="img-fluid rounded">
@@ -445,6 +468,23 @@
     </div>
   </section>
 
+  <section id="offline-ready-glob" class="mkt-section container mkt-offline-glob" aria-label="{% trans 'Offline-ready operations' %}">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7">
+        <h2 class="mkt-section-heading">{% trans "Keep school operations moving, even when connectivity is unreliable." %}</h2>
+        <p class="mkt-section-lead">{% trans "Designed as a resilience layer for any geography—offline attendance, offline mark entry, offline receipt capture, sync queues, conflict review, audit trails, and reconnection sync." %}</p>
+        <ul class="small text-muted">
+          <li>{% trans "Capture-first workflows when airports, campuses, or home broadband fluctuate." %}</li>
+          <li>{% trans "Operators retain visibility into queued work and reconciliation—not silent merges." %}</li>
+        </ul>
+        <a href="{% url 'marketing_platform_offline_first' %}" class="btn btn-outline-primary mt-2">{% trans "Explore offline-first" %}</a>
+      </div>
+      <div class="col-lg-5 text-center">
+        <img src="{% static 'images/marketing/setup-studio-flow.svg' %}" alt="{% trans 'Offline sync and setup flow diagram' %}" width="520" height="320" loading="lazy" decoding="async" class="img-fluid rounded border border-secondary">
+      </div>
+    </div>
+  </section>
+
   {# AI Intelligence — required section (Visual Asset plan) #}
   {% if ai_intelligence_features %}
   <section id="ai-intelligence" class="mkt-section" aria-label="{% trans 'AI Insights' %}" data-tour="ai-intelligence">
@@ -471,7 +511,7 @@
   {# Global infrastructure — Built for schools worldwide #}
   <section id="global-infrastructure" class="mkt-section" aria-label="{% trans 'Global infrastructure' %}" data-tour="global-infrastructure">
     <h2 class="mkt-section-heading">{% trans "Built for schools worldwide" %}</h2>
-    <p class="mkt-section-lead">{% trans "195+ country-ready profiles, multi-currency, multi-language, and education policy packs." %}</p>
+    <p class="mkt-section-lead">{% trans "Deep configuration for academic years, terms, grading scales, currencies, languages, campuses, roles, approvals, templates, and branding—without bolting on regional forks." %}</p>
     {% if global_map_image_url %}
     <div class="mkt-global-map-wrap text-center mb-3">
       <img src="{{ global_map_image_url }}" alt="{% trans 'Global coverage' %}" width="800" height="400" loading="lazy" decoding="async" class="mkt-global-map-img">
@@ -498,7 +538,7 @@
   <section id="migration" class="mkt-section mkt-reveal mkt-chapter-pinned" data-chapter="7">
     <div class="mkt-chapter-copy">
       <h2 class="mkt-section-heading">{% trans "Migrate with confidence" %}</h2>
-      <p class="mkt-section-lead">{% trans "Move from spreadsheets or legacy systems with guided setup and support. 195+ country-ready profiles, multi-currency, and data residency options." %}</p>
+      <p class="mkt-section-lead">{% trans "Move from spreadsheets or legacy stacks with phased rollout, validation, and rollback discipline." %}</p>
       <ul class="mkt-migration-list">
         {% for bullet in migration_bullets %}
           <li>{{ bullet }}</li>
@@ -583,7 +623,8 @@
   </section>
   {% endif %}
 
-  {# 9. Customer stories / testimonials — named quotes with title and org #}
+  {# 9. Customer stories / testimonials — populated only when real entries exist #}
+  {% if testimonials or video_testimonials %}
   <section id="customer-stories" class="mkt-section">
     <h2 class="mkt-section-heading">{% trans "What schools say about RunMyCampus" %}</h2>
     <p class="mkt-section-lead">{% trans "Outcomes from real operations teams." %}</p>
@@ -617,6 +658,7 @@
       <a href="{% url 'marketing_case_studies' %}" class="btn btn-outline-primary">{% trans "Read case studies" %}</a>
     </p>
   </section>
+  {% endif %}
 
   {# Second lead magnet #}
   {% if second_lead_magnet %}
@@ -630,9 +672,9 @@
   {% endif %}
 
   {# 10. Pricing snapshot — enterprise path visible #}
-  <section id="pricing-snapshot" class="mkt-section" aria-label="{% trans 'Pricing' %}">
-    <h2 class="mkt-section-heading">{% trans "Plans that scale with you" %}</h2>
-    <p class="mkt-section-lead">{% trans "From single-campus to enterprise white-label." %}</p>
+  <section id="pricing-snapshot" class="mkt-section container" aria-label="{% trans 'Pricing' %}">
+    <h2 class="mkt-section-heading">{% trans "Starter, Growth, and Enterprise" %}</h2>
+    <p class="mkt-section-lead">{% trans "Transparent packaging across the capabilities schools care about—see the full matrix on the pricing page." %}</p>
     <div class="mkt-platform-grid">
       {% for plan in pricing_snapshot %}
         <article class="mkt-platform-card rmc-glass-surface">
@@ -647,10 +689,26 @@
         </article>
       {% endfor %}
     </div>
+    <div class="table-responsive mt-4 mkt-home-price-matrix">
+      <table class="table table-dark table-striped table-sm align-middle text-center">
+        <thead><tr><th scope="col">{% trans "Capability" %}</th><th scope="col">{% trans "Starter" %}</th><th scope="col">{% trans "Growth" %}</th><th scope="col">{% trans "Enterprise" %}</th></tr></thead>
+        <tbody>
+          <tr><th scope="row" class="text-start">{% trans "Student Information System" %}</th><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><th scope="row" class="text-start">{% trans "Admissions" %}</th><td>—</td><td>✓</td><td>✓</td></tr>
+          <tr><th scope="row" class="text-start">{% trans "Attendance" %}</th><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><th scope="row" class="text-start">{% trans "Fees / payments" %}</th><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><th scope="row" class="text-start">{% trans "Grading / report cards" %}</th><td>{% trans "Core" %}</td><td>✓</td><td>✓</td></tr>
+          <tr><th scope="row" class="text-start">{% trans "Offline sync" %}</th><td>—</td><td>{% trans "Add-on" %}</td><td>✓</td></tr>
+          <tr><th scope="row" class="text-start">{% trans "Workflow depth & audits" %}</th><td>—</td><td>{% trans "Standard" %}</td><td>{% trans "Advanced" %}</td></tr>
+          <tr><th scope="row" class="text-start">{% trans "Support" %}</th><td>{% trans "Standard" %}</td><td>{% trans "Priority" %}</td><td>{% trans "Enterprise" %}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-center mt-3 mb-0"><a href="{% url 'marketing_pricing' %}" class="btn btn-outline-primary">{% trans "Full pricing comparison" %}</a></p>
     {% if enterprise_path_copy %}
     <p class="text-center small text-muted mt-3">{{ enterprise_path_copy }}</p>
     <p class="text-center mt-2">
-      <a href="{% url 'marketing_book_demo' %}" class="btn btn-sm btn-outline-secondary">{% trans "Book architecture call" %}</a>
+      <a href="{% url 'marketing_demo' %}" class="btn btn-sm btn-outline-secondary">{% trans "Talk to solutions" %}</a>
     </p>
     {% endif %}
   </section>
@@ -790,10 +848,11 @@
   {# 12. Final CTA #}
   <section id="final-cta" class="mkt-final-cta" aria-label="{% trans 'Call to action' %}">
     <h2 class="mkt-section-heading">{{ final_cta_headline }}</h2>
-    <div class="mkt-hero-ctas">
-      <a href="{% url 'signup_school' %}" class="btn btn-primary mkt-cta-focus" data-cta="primary" data-page="home">{% trans "Start Free Trial" %}</a>
-      <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-light mkt-cta-focus" data-cta="demo" data-page="home">{% trans "Book a Demo" %}</a>
-      <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light mkt-cta-focus">{% trans "Login" %}</a>
+    <p class="text-center text-muted mx-auto mb-4" style="max-width:36rem">{% trans "See how RunMyCampus can unify admissions, academics, finance, communication, reporting, and daily operations for your school or network." %}</p>
+    <div class="mkt-hero-ctas justify-content-center flex-wrap">
+      <a href="{% url 'marketing_demo' %}" class="btn btn-primary mkt-cta-focus" data-cta="demo" data-page="home">{% trans "Request Demo" %}</a>
+      <a href="{% url 'marketing_platform' %}" class="btn btn-outline-light mkt-cta-focus" data-cta="secondary" data-page="home">{% trans "Explore Platform" %}</a>
+      <a href="{% url 'marketing_product_tour' %}" class="btn btn-outline-light mkt-cta-focus">{% trans "Watch Product Tour" %}</a>
     </div>
   </section>
 </div>

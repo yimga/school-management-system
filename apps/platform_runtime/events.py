@@ -146,6 +146,30 @@ EVENT_CATALOG = {
         "description": "Marketplace app installed (sandbox or active)",
         "payload": ["app_slug", "school_id", "install_phase"],
     },
+    "marketplace_app_uninstalled": {
+        "description": "Marketplace app removed for tenant (entitlement off; ledger retained)",
+        "payload": ["app_slug", "school_id", "ledger_event_type"],
+    },
+    "marketplace_subscription_started": {
+        "description": "Tenant marketplace subscription row opened for an installation",
+        "payload": ["school_id", "sku_key", "amount", "currency"],
+    },
+    "marketplace_usage_recorded": {
+        "description": "Usage rolled into metering + optional monetization ledger row",
+        "payload": ["school_id", "sku_key", "amount", "currency"],
+    },
+    "marketplace_payment_success": {
+        "description": "Processor webhook applied for marketplace add-on / paid path",
+        "payload": ["school_id", "sku_key", "amount", "currency", "production_psp_hint"],
+    },
+    "marketplace_platform_fee_recorded": {
+        "description": "Platform fee recognized on marketplace gross",
+        "payload": ["school_id", "sku_key", "amount", "currency"],
+    },
+    "marketplace_settlement_blocked": {
+        "description": "Settlement cannot complete until corridor / PSP readiness (honest gate)",
+        "payload": ["school_id", "sku_key", "ledger_event_type"],
+    },
     "tenant_surface_viewed": {
         "description": "Structured UI surface view (logging; see apps.platform_runtime.observability)",
         "payload": ["surface", "school_id", "user_id", "path"],
@@ -263,6 +287,22 @@ EVENT_CATALOG = {
     "offline_action_synced": {
         "description": "Durable OfflineAction reached SYNCED after server apply",
         "payload": ["offline_action_id", "action_type", "user_id", "source"],
+    },
+    "offline_action_queued": {
+        "description": "New OfflineAction row persisted from client/server enqueue",
+        "payload": ["offline_action_id", "action_type", "user_id", "source"],
+    },
+    "offline_action_conflict": {
+        "description": "OfflineAction apply detected a merge conflict",
+        "payload": ["offline_action_id", "action_type", "user_id", "source", "reason"],
+    },
+    "offline_action_failed": {
+        "description": "OfflineAction processing failed (exception or domain error)",
+        "payload": ["offline_action_id", "action_type", "user_id", "source", "error"],
+    },
+    "offline_action_resolved": {
+        "description": "User or operator chose a conflict resolution path",
+        "payload": ["offline_action_id", "action_type", "user_id", "source", "resolution_choice"],
     },
     "conversion_first_action": {
         "description": "Tenant completed first operational value action (conversion lock)",

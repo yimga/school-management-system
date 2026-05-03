@@ -82,6 +82,7 @@ MANAGER_HOST_ALLOWED_PREFIXES = (
     "/media/",
     "/favicon.ico",
     "/offline/",
+    "/platform-runtime/",
 )
 
 MANAGER_HOST_PUBLIC_ACCESS_PREFIXES = (
@@ -116,6 +117,7 @@ PUBLIC_ONLY_PREFIXES = (
     "/security-compliance/",
     "/integrations/",
     "/book-demo/",
+    "/demo/",
     "/signup/",
     "/verify-signup/",
     "/api/trial/",

@@ -4,27 +4,36 @@
     <div class="row g-4">
       <div class="col-md-3 col-6">
         <div class="mkt-footer-section">
-          <h4>{% trans "Product" %}</h4>
+          <h4>{% trans "Platform" %}</h4>
           <ul class="mkt-footer-links">
-            <li><a href="{% url 'marketing_product' %}">{% trans "Product" %}</a></li>
-            <li><a href="{% url 'marketing_solutions' %}">{% trans "Solutions" %}</a></li>
-            <li><a href="{% url 'marketing_pricing' %}">{% trans "Pricing" %}</a></li>
-            <li><a href="{% url 'signup_school' %}" data-cta="primary" data-page="footer">{% trans "Start Free Trial" %}</a></li>
-            <li><a href="{% url 'marketing_compare' %}">{% trans "Compare" %}</a></li>
-            <li><a href="{% url 'migrate_marketing_page' %}">{% trans "Migrate" %}</a></li>
-            <li><a href="{% url 'marketing_integrations' %}">{% trans "Integrations" %}</a></li>
+            <li><a href="{% url 'marketing_platform' %}">{% trans "Overview" %}</a></li>
+            <li><a href="{% url 'marketing_platform_sis' %}">{% trans "Student Information System" %}</a></li>
+            <li><a href="{% url 'marketing_platform_admissions' %}">{% trans "Admissions" %}</a></li>
+            <li><a href="{% url 'marketing_platform_attendance' %}">{% trans "Attendance" %}</a></li>
+            <li><a href="{% url 'marketing_platform_fees_payments' %}">{% trans "Fees & payments" %}</a></li>
+            <li><a href="{% url 'marketing_platform_grading_report_cards' %}">{% trans "Grading & report cards" %}</a></li>
+            <li><a href="{% url 'marketing_platform_parent_portal' %}">{% trans "Parent portal" %}</a></li>
+            <li><a href="{% url 'marketing_platform_teacher_portal' %}">{% trans "Teacher portal" %}</a></li>
+            <li><a href="{% url 'marketing_platform_student_portal' %}">{% trans "Student portal" %}</a></li>
+            <li><a href="{% url 'marketing_platform_communications' %}">{% trans "Communications" %}</a></li>
+            <li><a href="{% url 'marketing_platform_analytics' %}">{% trans "Analytics" %}</a></li>
+            <li><a href="{% url 'marketing_platform_workflows' %}">{% trans "Workflows" %}</a></li>
+            <li><a href="{% url 'marketing_platform_offline_first' %}">{% trans "Offline-first" %}</a></li>
+            <li><a href="{% url 'marketing_platform_security' %}">{% trans "Security" %}</a></li>
           </ul>
         </div>
       </div>
       <div class="col-md-3 col-6">
         <div class="mkt-footer-section">
-          <h4>{% trans "Solutions by segment" %}</h4>
+          <h4>{% trans "Solutions" %}</h4>
           <ul class="mkt-footer-links">
-            <li><a href="{% url 'institution_k12' %}">{% trans "K-12" %}</a></li>
-            <li><a href="{% url 'institution_universities' %}">{% trans "Universities" %}</a></li>
-            <li><a href="{% url 'institution_technical_schools' %}">{% trans "Technical schools" %}</a></li>
+            <li><a href="{% url 'marketing_solutions' %}">{% trans "Solutions overview" %}</a></li>
             <li><a href="{% url 'institution_private_schools' %}">{% trans "Private schools" %}</a></li>
-            <li><a href="{% url 'institution_government_education' %}">{% trans "Government education" %}</a></li>
+            <li><a href="{% url 'institution_international_schools' %}">{% trans "International schools" %}</a></li>
+            <li><a href="{% url 'institution_k12_schools' %}">{% trans "K–12 schools" %}</a></li>
+            <li><a href="{% url 'institution_multi_campus' %}">{% trans "Multi-campus groups" %}</a></li>
+            <li><a href="{% url 'institution_faith_based_schools' %}">{% trans "Faith-based schools" %}</a></li>
+            <li><a href="{% url 'institution_growing_school_networks' %}">{% trans "Growing school networks" %}</a></li>
           </ul>
         </div>
       </div>
@@ -32,12 +41,13 @@
         <div class="mkt-footer-section">
           <h4>{% trans "By role" %}</h4>
           <ul class="mkt-footer-links">
+            <li><a href="{% url 'role_principals' %}">{% trans "School leadership" %}</a></li>
             <li><a href="{% url 'role_school_admin' %}">{% trans "School admins" %}</a></li>
             <li><a href="{% url 'role_teachers' %}">{% trans "Teachers" %}</a></li>
             <li><a href="{% url 'role_parents' %}">{% trans "Parents" %}</a></li>
             <li><a href="{% url 'role_students' %}">{% trans "Students" %}</a></li>
+            <li><a href="{% url 'role_finance' %}">{% trans "Finance teams" %}</a></li>
             <li><a href="{% url 'role_it_directors' %}">{% trans "IT directors" %}</a></li>
-            <li><a href="{% url 'role_government' %}">{% trans "Government" %}</a></li>
           </ul>
         </div>
       </div>
@@ -59,10 +69,12 @@
           <h4>{% trans "Resources" %}</h4>
           <ul class="mkt-footer-links">
             <li><a href="{% url 'marketing_resources' %}">{% trans "Resources hub" %}</a></li>
-            <li><a href="{% url 'marketing_blog' %}">{% trans "Blog" %}</a></li>
+            <li><a href="{% url 'marketing_resources_guides' %}">{% trans "Guides" %}</a></li>
+            <li><a href="{% url 'marketing_resources_case_studies' %}">{% trans "Case studies" %}</a></li>
+            <li><a href="{% url 'marketing_resources_help_center' %}">{% trans "Help center" %}</a></li>
+            <li><a href="{% url 'marketing_resources_product_tour' %}">{% trans "Product tour" %}</a></li>
+            <li><a href="{% url 'marketing_resources_blog' %}">{% trans "Blog" %}</a></li>
             <li><a href="{% url 'marketing_developers' %}">{% trans "Developers" %}</a></li>
-            <li><a href="{% url 'marketing_events' %}">{% trans "Events" %}</a></li>
-            <li><a href="{% url 'marketing_10_reasons' %}">{% trans "10 Reasons" %}</a></li>
           </ul>
         </div>
       </div>
@@ -72,7 +84,8 @@
           <ul class="mkt-footer-links">
             <li><a href="{% url 'marketing_about' %}">{% trans "About" %}</a></li>
             <li><a href="{% url 'marketing_contact' %}">{% trans "Contact" %}</a></li>
-            <li><a href="{% url 'marketing_book_demo' %}" data-cta="demo" data-page="footer">{% trans "Book demo" %}</a></li>
+            <li><a href="{% url 'marketing_pricing' %}">{% trans "Pricing" %}</a></li>
+            <li><a href="{% url 'marketing_demo' %}" data-cta="demo" data-page="footer">{% trans "Request demo" %}</a></li>
           </ul>
         </div>
       </div>
@@ -80,7 +93,7 @@
     <div class="row mt-4 pt-3 border-top">
       <div class="col-lg-5">
         <h4 class="h6 mb-2">{% trans "Subscribe to product updates" %}</h4>
-        <form method="post" action="{% if marketing_newsletter_form_action %}{{ marketing_newsletter_form_action }}{% else %}#{% endif %}" class="d-flex gap-2 flex-wrap" target="_blank" rel="noopener noreferrer">
+        <form method="{% if marketing_newsletter_form_action %}post{% else %}get{% endif %}" action="{% if marketing_newsletter_form_action %}{{ marketing_newsletter_form_action }}{% else %}{% url 'marketing_contact' %}?intent=newsletter{% endif %}" class="d-flex gap-2 flex-wrap" {% if marketing_newsletter_form_action %}target="_blank" rel="noopener noreferrer"{% endif %}>
           <input type="email" name="email" class="form-control form-control-sm" placeholder="{% trans 'Your email' %}" required aria-label="{% trans 'Email for newsletter' %}" style="max-width: 240px;">
           <button type="submit" class="btn btn-sm btn-primary">{% trans "Subscribe" %}</button>
         </form>

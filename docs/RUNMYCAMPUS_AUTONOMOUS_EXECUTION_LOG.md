@@ -1,5 +1,227 @@
 # RunMyCampus autonomous execution log
 
+## Wave — §11.4 batch 1164 marketplace_monetization closure (2026-05-03)
+
+**A. System:** **`marketplace_monetization`** — SKU registry (**`MARKETPLACE_SKU_CONTRACTS`**); unified **`MarketplaceMonetizationLedgerEntry`** + **`monetization_ledger_ops`** (honest settlement lanes; **relay/test** never production PSP); tenant **`marketplace:monetization_dashboard`**; webhook finalize writes payment/settlement ledger rows (**shared** **`apps/billing/services.py`**).
+
+**B. Files:** **`apps/marketplace/marketplace_sku_registry.py`**; **`apps/marketplace/monetization_ledger_ops.py`**; **`apps/marketplace/models.py`**; **`apps/marketplace/migrations/0011_marketplace_monetization_ledger_entry_v2.py`**; **`apps/marketplace/monetization.py`**; **`apps/marketplace/services.py`**; **`apps/marketplace/views_monetization_dashboard.py`**; **`templates/marketplace/monetization_dashboard.html`**; **`apps/billing/services.py`**; **`apps/platform_runtime/events.py`**; **`apps/marketplace/tests/test_marketplace_sku_metering.py`**, **`test_marketplace_ledger.py`**, **`test_marketplace_monetization_closure.py`**; **`scripts/generate_category_scope_review.py`**; **`docs/generated/system_closure_map.json`**.
+
+**C. Tests:** **`RMC_TEST_LOCAL_SQLITE=1 DJANGO_TEST_DB_FILE=.django_test_dbs/mm_close.sqlite3 python manage.py test apps.marketplace.tests.test_marketplace_sku_metering apps.marketplace.tests.test_marketplace_ledger apps.marketplace.tests.test_marketplace_monetization_closure apps.marketplace.tests.test_monetized_install_enforcement apps.marketplace.tests.test_purchase_intent --settings=config.settings --noinput`** → **`Ran 21 tests`**, **`OK`**; **`DJANGO_TEST_DB_FILE=.django_test_dbs/mm_close.sqlite3 python manage.py test apps.siteconfig.tests.test_billing_stripe_tenant apps.billing.tests.test_platform_billing_webhooks apps.apicenter.tests.test_developer_platform_e2e --settings=config.settings --noinput --keepdb`** → **`Ran 19 tests`**, **`OK`**.
+
+**D. Verifiers:** **`audit_security_surface`**, **`audit_tenant_isolation`**, **`audit_route_surface`**, **`verify_test_module_contract`**, **`audit_luxury_ui_surface`**, **`verify_design_system_phase2`**, **`run_northstar_audit`**, **`audit_post_surface`**, **`verify_compliance_evidence`** → **OK**. **`run_kill_test`** — **confirm on merge host** if local wall-clock exceeded.
+
+**E. Verdict:** **`partial_external_blocker`** classification — **repo metering/ledger/dashboard CLOSED**; **live PSP settlement** remains **`global_payments`**.
+
+## Wave — §11.4 batch 1163 enterprise_security closure (2026-05-02)
+
+**A. Scope:** Close **`enterprise_security`** in **`docs/generated/system_closure_map.json`** — unified operator **`super_security_hub`** / **`enterprise_security_command_center`**; governance JSON summaries incl. **kill / northstar / test_module_contract**; export timeline with **HMAC** integrity tokens on **`AuditLog` EXPORT**; impersonation **reason** column + breadth tests.
+
+**B. Code:** **`apps/schools/super_views_enterprise_security.py`** (**`_export_audit_integrity_token`**, **`_build_export_timeline_rows`**, extended **`_summarize_verifier_artifacts`**); **`apps/schools/super_urls.py`** (**`enterprise_security_command_center`**); **`templates/schools/super_security_hub.html`**; **`apps/security/tests/test_signed_export_timeline.py`**, **`test_impersonation_breadth.py`**; extended **`test_enterprise_security_closure`**, **`test_export_audit_breadth`**.
+
+**C. Tests:** **`apps.security`** modules listed in batch **1163** SOT row + **`apps.siteconfig.tests.test_compliance_exports`** — **`RMC_SQLITE_TEST_MEMORY=1`** **`manage.py test`** → **`Ran 39 tests`**, **`OK`** (this wave).
+
+**D. Verifiers:** Full mechanical chain including **`run_kill_test`** (**PASS**, **`kill_test_report.json`**) and **`run_northstar_audit`** (**75/75 DOMINANT**, **`northstar_audit.json`**); luxury/design/shell/phase2 **PASS** after template edits — **exit 0** (~29 min wall-clock for audits + kill + northstar on this host).
+
+**E. Artifacts:** **`generate_system_closure_map.py --write`** (**`program_gap_registry_version`** **5**); **`generate_category_scope_review.py --write --merge-proof-gates docs/generated/category_scope_review.json`**.
+
+**F. Verdict:** **`enterprise_security`** **`gap_status`** **`closed`**, **`missing_pieces`** **[]** — **ENTERPRISE SECURITY CLOSED** (repo mechanical bar).
+
+## Wave — §11.4 batch 1162 experience_control closure (2026-05-02)
+
+**A. Scope:** Close **`experience_control`** in **`docs/generated/system_closure_map.json`** via **`scripts/system_closure_registry.py`** + **`generate_system_closure_map.py --write`**; roster **`EXPERIENCE_CONTROL_SCREENS`** (**22**); strict-primary / marketing hygiene / telemetry slice tests; regenerate **`category_scope_review`** (**merge-proof-gates**).
+
+**B. Code / tests:** **`apps/platform_runtime/tests/test_experience_control_closure.py`** — portal HTTP proofs use **`PRINCIPAL`** (not **`IT_ADMIN`**) so **`ModuleAccessMiddleware`** **`module.portal.read`** aligns with **`MODULE_ACCESS_DEFAULTS`**; student 360 assertion uses **`Student 360`** / **`student360TabContent`** markers (template copy uses spaced title, not **`student_360`** substring).
+
+**C. Tests:** **`python manage.py test apps.platform_runtime.tests.test_experience_control_closure apps.portal.tests.test_experience_control_surfaces apps.marketplace.tests.test_experience_control_marketplace apps.analytics.tests.test_experience_control_analytics apps.events.tests.test_experience_control_event_console apps.finance.tests.test_experience_control_payments apps.schools.tests.test_marketing_validation --settings=config.settings --noinput --keepdb`** → **`Ran 43 tests`**, **`OK`**.
+
+**D. Verifiers:** **`validate_marketing_urls --smoke`**; **`audit_luxury_ui_surface`** (**15/15**); **`verify_design_system_phase2`**; **`verify_shell_surface_inventory`**; **`verify_phase2_authenticated_shell_conformance`**; **`audit_regional_ui_surface`**; **`audit_route_surface`** (**ROUTE SYSTEM CERTIFIED**); **`verify_test_module_contract`**; **`run_northstar_audit`** (**75/75 DOMINANT**); **`audit_security_surface`**; **`audit_tenant_isolation`** — **exit 0**.
+
+**E. Artifacts:** **`generate_system_closure_map.py --write`**; **`generate_category_scope_review.py --write --merge-proof-gates docs/generated/category_scope_review.json`**; **`verify_doc_plan_density_discipline`** **PASS**; **`verify_sot_pillar_evidence`** **OK**.
+
+**F. Verdict:** **`experience_control`** **`gap_status`** **`closed`**, **`missing_pieces`** **[]** — **EXPERIENCE CONTROL CLOSED** (repo bar).
+
+## Wave — §11.4 batch 1161 Path B closure-map expansion + category_scope_review derivation (2026-05-02)
+
+**A. Scope:** **`scripts/system_closure_registry.py`** **`PROGRAM_SYSTEMS`** — first-class **`experience_control`**, **`marketplace_monetization`**, **`enterprise_security`** (**`system_key`**, **`completion_bar`**, **`required_screens`**, tests, verifiers; **`gap_status`** **`partial`** with non-empty **`missing_pieces`**). Derive **`docs/generated/category_scope_review.{json,md}`** via **`scripts/generate_category_scope_review.py --write`**. **`global_payments`** unchanged (**partial external**).
+
+**B. Generator / hygiene:** **`scripts/generate_system_closure_map.py`** — **`program_gap_registry_version`** **4**; **`parse_partial_batch_ids`** uses only the **leading** row status bold (avoids counting **`PARTIAL EXTERNAL BLOCKER`** prose inside **`DONE`** rows). **`scripts/run_kill_test.py`** — **`DATABASE_URL`** stripped from subprocess env (**SQLite default**). **`scripts/generate_category_scope_review.py`** — verdict taxonomy aligned to **LIMITED REGISTRY SCOPE** when **`partial_repo_gaps`** exist.
+
+**C. Tests:** **`DJANGO_TEST_DB_FILE=.django_test_dbs/finance_payment.sqlite3`** **`RMC_TEST_LOCAL_SQLITE=1`** **`manage.py test`** registry slice (**70 OK**, **`keepdb`** — magic UX + monetization + billing + apicenter + security + compliance exports, incl. **`test_magic_ux_portal_surfaces_http`** + **`test_tenant_catalog_magic_ux_strict`**); **`RMC_SQLITE_TEST_MEMORY=1`** security trio (**15 OK**); **`run_kill_test.py`** **PASS**.
+
+**D. Verifiers:** Phase 7 mechanical bundle (**exit 0**): luxury/design/shell/phase2/regional · **`audit_route_surface`** (**ROUTE SYSTEM CERTIFIED**) · security/post/tenant/raw_sql/subprocess · **`audit_gilead_references --strict-public`** · **`verify_compliance_evidence`** · **`verify_test_module_contract`** · **`run_northstar_audit`** (**75/75**) · **`generate_platform_inventory.py --write`** · **`verify_doc_plan_density_discipline`** **PASS** · **`verify_sot_pillar_evidence`** **OK**. (**`validate_marketing_urls --smoke`** remains batch-local marketing hygiene — see **`category_scope_review.json`** **`proof_gates`** for this wave’s reruns.)
+
+**E. Verdict:** **`category_scope_review.final_verdict`** — **CATEGORY DEFINING — LIMITED REGISTRY SCOPE** — **`experience_control`**, **`marketplace_monetization`**, **`enterprise_security`** remain honest **`partial`**; **`global_payments`** **`partial_external_blocker`** unchanged.
+
+## Wave — §11.4 batch 1159 category scope review (2026-05-02)
+
+**A. Scope:** Classify platform vs **`docs/generated/system_closure_map.json`** after batch 1158; separate repo-controlled vs external-controlled residual risk.
+
+**B. Artifacts:** **`docs/generated/category_scope_review.json`**; **`docs/generated/category_scope_review.md`**; regenerated **`docs/generated/system_closure_map.json`**, **`docs/generated/platform_inventory.{json,md}`**.
+
+**C. Proof gates:** **`generate_system_closure_map.py --write`**; **`generate_platform_inventory.py --write`**; **`verify_doc_plan_density_discipline`** **PASS**; **`verify_sot_pillar_evidence`** **OK**; **`audit_route_surface`** (**ROUTE SYSTEM CERTIFIED**); **`audit_luxury_ui_surface`** (**15/15**); **`audit_security_surface`** **OK**; **`audit_tenant_isolation`** **OK**; **`verify_test_module_contract`** **OK**; **`run_northstar_audit`** (**75/75**).
+
+**D. Verdict:** **CATEGORY DEFINING — REPO SCOPE — external blockers remain** (**global_payments** PSP/ping); **not** **FULL MARKET**; floor **PLATFORM LEVEL READY — external blockers remain**. Full Django suite **not** re-run this wave.
+
+## Wave — §11.4 batch 1158 global_payments repo telemetry + readiness dashboard (2026-05-02)
+
+**A. System:** **`global_payments`** — tenant-scoped **gateway health snapshots** + **metadata-only** rail checks (**`ready`**, **`degraded`**, **`missing_credentials`**, **`external_required`**, **`unknown`**); **no** live card charges; **no** secret logging; **`finance:payment_readiness_dashboard`** requires **`request.school`**; regional JSON **`provider_setup_status`**, **`tenant_setup_steps`**, **`operator_ready_label`**.
+
+**B. Files:** **`apps/finance/models.py`** (**`PaymentGatewayHealthSnapshot`**); **`apps/finance/migrations/0058_payment_gateway_health_snapshot.py`**; **`apps/finance/payment_gateway_health.py`**; **`apps/finance/views_payment_readiness_dashboard.py`**; **`apps/finance/urls.py`**; **`templates/finance/payment_readiness_dashboard.html`**; **`apps/finance/data/regional_payment_profiles.json`**; **`apps/finance/regional_payment_profiles.py`**; **`apps/finance/views_dashboard.py`**; **`apps/finance/tests/test_global_payments_category_closure.py`**; **`apps/finance/tests/test_payment_gateway_health.py`**; **`apps/finance/tests/test_payment_readiness_dashboard.py`**; **`apps/billing/tests/test_regional_payment_readiness.py`**; **`apps/finance/tests/test_global_payment_profiles.py`**; **`docs/generated/system_closure_map.json`**.
+
+**C. Tests:** **`RMC_TEST_LOCAL_SQLITE=1 DJANGO_TEST_DB_FILE=.django_test_dbs/finance_payment.sqlite3 python manage.py test apps.finance.tests.test_global_payments_category_closure apps.finance.tests.test_payment_gateway_health apps.finance.tests.test_payment_readiness_dashboard apps.billing.tests.test_regional_payment_readiness apps.finance.tests.test_global_payment_profiles apps.finance.tests.test_payment_orchestration apps.billing.tests.test_platform_billing_webhooks --settings=config.settings --noinput --keepdb`** → **`Ran 46 tests`**, **`OK`**.
+
+**D. Verifiers:** **`audit_route_surface`** (**ROUTE SYSTEM CERTIFIED**); **`audit_security_surface`**; **`audit_tenant_isolation`**; **`verify_test_module_contract`**; **`audit_luxury_ui_surface`** (**15/15**); **`verify_design_system_phase2`**; **`run_northstar_audit`** (**75/75**); **`generate_system_closure_map.py --write`**.
+
+**E. Verdict:** **`global_payments`** remains **`partial`** in **`system_closure_map`** — **PARTIAL EXTERNAL BLOCKER**; **repo** bar closed for catalog + health telemetry + readiness UI; **live PSP merchant onboarding + production gateway ping** stays **outside** the repository truth model.
+
+**F. Doc gates:** **`verify_doc_plan_density_discipline`** → **PASS**; **`verify_sot_pillar_evidence`** → **OK** (**104** paths).
+
+## Wave — §11.4 batch 1157 offline_first operator portal closure (2026-05-02)
+
+**A. System:** **`offline_first`** — tenant **`portal/offline/sync-queue/`** + **`conflicts/`** for **`OfflineAction`** (**attendance**, **grading**, **payment_receipt**, **notes_report**); operator vs teacher scope; idempotency visibility; remarks-aware conflict diff; browser **`data-offline-action-type`** hooks.
+
+**B. Files:** **`templates/portal/offline_sync_queue.html`**; **`templates/portal/roll_call_student.html`**; **`templates/portal/roll_call_teacher.html`**; **`templates/teacher/marks_entry.html`**; **`templates/finance/invoice_detail.html`**; **`templates/portal/teacher_bulk_capture_hub.html`**; **`apps/portal/views_offline_sync.py`**; **`apps/platform_runtime/offline_queue.py`**; **`apps/platform_runtime/tests/test_offline_first_category_closure.py`**; **`docs/generated/system_closure_map.json`**.
+
+**C. Tests:** **`env -u DATABASE_URL RMC_SQLITE_TEST_MEMORY=1 RMC_SQLITE_TEST_USE_MEMORY_NAME=1 python manage.py test apps.platform_runtime.tests.test_offline_first_category_closure apps.portal.tests.test_offline_sync_dashboard apps.platform_runtime.tests.test_offline_queue --settings=config.settings --noinput`** → **`Ran 28 tests`**, **`OK`**.
+
+**D. Verifiers:** **`audit_route_surface`** (**ROUTE SYSTEM CERTIFIED**); **`audit_security_surface`**; **`audit_tenant_isolation`**; **`verify_test_module_contract`**; **`audit_luxury_ui_surface`**; **`verify_design_system_phase2`**; **`verify_shell_surface_inventory`**; **`run_northstar_audit`** (**75/75**); **`generate_system_closure_map.py --write`**.
+
+**E. Verdict:** **`offline_first`** **`gap_status`** **`closed`** — **OFFLINE FIRST CLOSED** for repo-backed portal queue + conflict UX + four apply domains.
+
+## Wave — §11.4 batch 1156 final integration certification recovery (2026-05-02)
+
+**A. Scope:** Post-remediation **full Django suite** + **full verifier stack** on integration tree; classify platform vs **CATEGORY DEFINING** bar (**closure map** **`offline_first`** **open**, **`global_payments`** **partial**).
+
+**B. Commands / artifacts:** **`DJANGO_TEST_DB_FILE=.django_test_dbs/final_certification.sqlite3`** **`RMC_RELIABLE_TEST_RUNNER=1`** **`env -u DATABASE_URL python manage.py test --settings=config.settings --noinput`** → **`Ran 2660 tests`**, **`OK (skipped=5)`**; verifier chain **`audit_route_surface`** … **`run_kill_test.py`** → **ALL_VERIFIERS_OK**; **`python scripts/generate_platform_inventory.py --write`**; **`python scripts/generate_system_closure_map.py --write`**; **`python manage.py sync_i18n_catalog --compile`**; **`python scripts/verify_i18n_catalog_fresh.py`**; **`python scripts/generate_observability_ledger.py`**; refreshed **`docs/generated/*.json`** from audits.
+
+**C. Tests:** Full suite result above (**exit 0**).
+
+**D. Verifiers:** Listed stack (**exit 0** each); **`verify_doc_plan_density_discipline`** / **`verify_sot_pillar_evidence`** included in chain.
+
+**E. Verdict:** **PLATFORM LEVEL READY** — mechanical proof recovered; **not** **CATEGORY DEFINING** until **`offline_first`** / **`global_payments`** program rows close per **`system_closure_map`** + product acceptance of external PSP scope.
+
+**F. Blockers recorded:** **`offline_first.missing_pieces`** (cross-domain operator dashboard + conflict breadth); **`global_payments.missing_pieces`** (live PSP onboarding + gateway telemetry).
+
+## Wave — §11.4 batch 1155 data_platform finalization (2026-05-01)
+
+**A. System:** **`data_platform`** — governed **event analytics** dashboard + JSON bundle API (**volume trends**, payments/workflows/offline-sync/domain funnel slices via catalog datasets); **NL governed intent** (**preview → confirm → execute**) with allowlisted intents only and fragment rejection (**no SQL strings emitted**).
+
+**B. Files:** **`apps/analytics/event_analytics_rollups.py`**; **`apps/analytics/governed_intent.py`**; **`apps/analytics/governed_query/catalog.py`**; **`apps/analytics/governed_query/executor.py`**; **`apps/analytics/views_governed.py`**; **`apps/analytics/urls.py`**; **`apps/analytics/insight_registry.py`**; **`templates/analytics/event_analytics_dashboard.html`**; **`templates/analytics/governed_intent_assistant.html`**; **`apps/analytics/tests/test_event_scale_analytics.py`**; **`apps/analytics/tests/test_governed_intent_layer.py`**; **`apps/analytics/tests/test_data_platform_finalization.py`**; **`docs/generated/system_closure_map.json`**; **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`**.
+
+**C. Tests:** **`RMC_TEST_LOCAL_SQLITE=1 DJANGO_TEST_DB_FILE=.django_test_dbs/certifier_final.sqlite3 python manage.py test apps.analytics.tests.test_data_platform_finalization apps.analytics.tests.test_governed_intent_layer apps.analytics.tests.test_event_scale_analytics apps.analytics.tests.test_data_platform_closure_slice --settings=config.settings --noinput --keepdb`** → **`Ran 23 tests`**, **`OK`**. (**Note:** default **`.django_test_dbs/default.sqlite3`** can drift migrations—use a migrated **`DJANGO_TEST_DB_FILE`** or recreate **`default.sqlite3`** if **`OperationalError: already exists`** appears.)
+
+**D. Verifiers:** **`audit_tenant_isolation`** OK; **`audit_raw_sql_usage`** OK; **`audit_security_surface`** OK; **`audit_route_surface`** (**ROUTE SYSTEM CERTIFIED**); **`verify_test_module_contract`** OK; **`audit_luxury_ui_surface`** (**15/15**); **`run_northstar_audit`** (**75/75**); **`generate_system_closure_map.py --write`**.
+
+**E. Verdict:** **`data_platform`** **`gap_status`** **`closed`**, **`missing_pieces`** **[]** — **DATA PLATFORM CLOSED** for bounded governed + event-safe analytics bar.
+
+## Wave — §11.4 batch 1154 tenant_lifecycle finalization (2026-05-01)
+
+**A. System:** **`tenant_lifecycle`** — seven retention playbooks with triggers/conditions/actions/owners/severity/schedules + audit logs; portfolio **`run_lifecycle_retention_scan`** with **`TenantLifecycleSchedulerRun`**; deduplicated **`TenantRetentionPlaybookAction`** rows; churn/recovered thresholds on funnel + billing **read-only** signals; dashboard **`open_retention_actions`**.
+
+**B. Files:** **`apps/platform_runtime/tenant_retention_playbooks.py`**; **`apps/platform_runtime/tenant_lifecycle_scheduler.py`**; **`apps/platform_runtime/management/commands/run_tenant_lifecycle_scheduler.py`**; **`apps/platform_runtime/models.py`**; **`apps/platform_runtime/migrations/0058_tenant_retention_playbook_models.py`**; **`apps/platform_runtime/tenant_lifecycle_state_machine.py`**; **`apps/platform_runtime/tenant_lifecycle_operator.py`**; **`config/settings.py`**; **`templates/platform_runtime/tenant_lifecycle_dashboard.html`**; **`apps/platform_runtime/tests/test_tenant_lifecycle_finalization.py`**; **`apps/platform_runtime/tests/test_tenant_lifecycle_scheduler.py`**; **`apps/platform_runtime/tests/test_tenant_retention_playbooks.py`**; **`docs/generated/system_closure_map.json`**; **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`**.
+
+**C. Tests:** **`python manage.py test apps.platform_runtime.tests.test_tenant_lifecycle_finalization apps.platform_runtime.tests.test_tenant_lifecycle_scheduler apps.platform_runtime.tests.test_tenant_retention_playbooks apps.platform_runtime.tests.test_tenant_lifecycle_closure_slice --settings=config.settings --noinput --keepdb`** → **`Ran 28 tests`**, **`OK`**.
+
+**D. Verifiers:** **`audit_route_surface`** (**ROUTE SYSTEM CERTIFIED**); **`audit_security_surface`**; **`audit_tenant_isolation`**; **`verify_test_module_contract`**; **`audit_luxury_ui_surface`**; **`run_northstar_audit`** (**75/75**); **`generate_system_closure_map.py --write`**.
+
+**E. Verdict:** **`tenant_lifecycle`** **`gap_status`** **`closed`** — **TENANT LIFECYCLE CLOSED** for bounded playbook + scheduler + churn/recovered automation (**workflow webhook dispatch remains optional**).
+
+## Wave — §11.4 batch 1153 event_system finalization (2026-05-01)
+
+**A. System:** **`event_system`** — tenant analytics (**`/domain-events/analytics/`**); DLQ remediation (**`/domain-events/dlq/`**) with **`EventSystemRemediationAudit`**; Studio Simulation ↔ domain-events links; workflow trigger correlation on event detail pages; tenant **`automation/`** routes for outcomes parity.
+
+**B. Files:** **`apps/events/views_event_ops.py`**; **`apps/events/remediation_ops.py`**; **`apps/events/models.py`**; **`apps/events/migrations/0005_webhook_delivery_remediation_audit.py`**; **`apps/events/urls.py`**; **`apps/events/views_console.py`**; **`apps/platform_runtime/models.py`**; **`apps/platform_runtime/migrations/0057_eventwebhookdelivery_operator_remediation.py`**; **`templates/events/event_analytics.html`**; **`templates/events/event_dlq.html`**; **`templates/events/event_console.html`**; **`templates/events/event_domain_detail.html`**; **`templates/events/event_platform_detail.html`**; **`apps/studio_os/views.py`**; **`templates/studio_os/partials/subpages/automation_simulation_engine.html`**; **`config/tenant_urls.py`**; **`apps/events/tests/test_event_analytics_console.py`**; **`apps/events/tests/test_event_dlq_bulk_remediation.py`**; **`apps/events/tests/test_event_system_finalization.py`**; **`docs/generated/system_closure_map.json`**; **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`**.
+
+**C. Tests:** **`python manage.py test apps.events.tests.test_event_system_finalization apps.events.tests.test_event_dlq_bulk_remediation apps.events.tests.test_event_analytics_console apps.events.tests.test_event_system_closure_slice --settings=config.settings --noinput --keepdb`** → **`Ran 19 tests`**, **`OK`**.
+
+**D. Verifiers:** **`audit_route_surface`** (**ROUTE SYSTEM CERTIFIED**); **`audit_security_surface`**; **`audit_tenant_isolation`**; **`verify_test_module_contract`**; **`audit_luxury_ui_surface`**; **`run_northstar_audit`** (**75/75**); **`generate_system_closure_map.py --write`**.
+
+**E. Verdict:** **`event_system`** **`gap_status`** **`closed`** — **EVENT SYSTEM CLOSED** for bounded operator surfaces (**analytics/DLQ/audit/Studio correlation**).
+
+## Wave — §11.4 batch 1152 global_payments corridor closure (2026-05-01)
+
+**A. System:** **`global_payments`** — normalized corridor catalog (**`CM`/`GH`/`NG`/`KE`/`US`/`GB`/`EU`**); degraded rail selection + manual receipt path; receipt reconcile **`AuditLog`**; billing readiness tiers; **`finance:payment_readiness_setup`** checklist UX.
+
+**B. Files:** **`apps/finance/data/regional_payment_profiles.json`**; **`apps/finance/regional_payment_profiles.py`**; **`apps/finance/payment_fallback.py`**; **`apps/finance/payment_fallback_engine.py`**; **`apps/billing/regional_payment_readiness.py`**; **`apps/finance/views_payment_setup.py`**; **`apps/finance/urls.py`**; **`apps/finance/views_dashboard.py`**; **`templates/finance/payment_readiness_setup.html`**; **`apps/finance/tests/test_global_payment_profiles.py`**; **`apps/finance/tests/test_payment_fallback_engine.py`**; **`apps/billing/tests/test_regional_payment_readiness.py`**; **`docs/maintenance/TEST_MODULE_CANONICAL_MAP.md`**; **`docs/generated/system_closure_map.json`**; **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`**; **`docs/developer/OFFLINE_GLOBAL_PAYMENTS_AGENT6_REPORT.md`**.
+
+**C. Tests:** **`python manage.py test apps.finance.tests.test_global_payment_profiles apps.finance.tests.test_payment_fallback_engine apps.billing.tests.test_regional_payment_readiness apps.finance.tests apps.billing.tests --settings=config.settings --noinput --keepdb`** — **run on merge host** (agent SQLite bootstrap exceeded wall-clock; prefer **`RMC_SQLITE_TEST_MEMORY=1`** + **`RMC_SQLITE_TEST_USE_MEMORY_NAME=1`** for a faster local bar when acceptable).
+
+**D. Verifiers:** **`audit_security_surface`** OK; **`audit_tenant_isolation`** OK; **`audit_route_surface`** (**ROUTE SYSTEM CERTIFIED**, **`broken_count: 0`**); **`verify_test_module_contract`** OK; **`run_northstar_audit`** **75/75** DOMINANT; **`audit_luxury_ui_surface`** **15/15** PASS; **`verify_design_system_phase2`** PASS; **`generate_system_closure_map.py --write`**.
+
+**E. Verdict:** **PARTIAL CLOSED** — corridor + reconciliation proof in-repo; PSP onboarding stays honest **`missing_pieces`**.
+
+## Wave — §11.4 batch 1151 workflow_engine finalization (2026-05-01)
+
+**A. System:** **`workflow_engine`** — visual designer canvas parity (edges + accessible add-node + validate API); **8** trigger catalog keys; **6** ready playbooks in Studio Simulation; **`offline_action_conflict`** trigger.
+
+**B. Files:** **`apps/automation/workflow_trigger_catalog.py`**; **`apps/automation/workflow_playbook_templates.py`**; **`apps/automation/workflow_graph_models.py`**; **`apps/automation/migrations/0018_workflow_trigger_offline_action_conflict.py`**; **`apps/automation/views_visual_workflow.py`**; **`apps/automation/urls.py`**; **`templates/automation/visual_workflow_designer.html`**; **`apps/studio_os/views.py`**; **`templates/studio_os/partials/subpages/automation_simulation_engine.html`**; **`apps/automation/tests/test_workflow_builder_canvas.py`**; **`apps/automation/tests/test_workflow_trigger_catalog_depth.py`**; **`apps/automation/tests/test_workflow_playbook_templates.py`**; **`apps/automation/tests/test_workflow_studio_closure_slice.py`**; **`docs/generated/system_closure_map.json`**; **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`**.
+
+**C. Tests:** **`RMC_TEST_LOCAL_SQLITE=1 python manage.py test apps.automation.tests.test_workflow_builder_canvas apps.automation.tests.test_workflow_trigger_catalog_depth apps.automation.tests.test_workflow_playbook_templates apps.automation.tests.test_workflow_studio_closure_slice apps.studio_os.tests --settings=config.settings --noinput --keepdb`** → **`Ran 86 tests`**, **`OK`**.
+
+**D. Verifiers:** **`audit_route_surface`** (**ROUTE SYSTEM CERTIFIED**, **`broken_count: 0`**); **`verify_test_module_contract`** OK; **`audit_luxury_ui_surface`** PASS; **`verify_design_system_phase2`** PASS; **`verify_shell_surface_inventory`** PASS; **`run_northstar_audit`** **75/75** DOMINANT; **`generate_system_closure_map.py --write`**.
+
+**E. Verdict:** **`workflow_engine`** **`gap_status`** **`closed`** — **WORKFLOW ENGINE CLOSED** for scoped operator slice (**batch 1147** follow-up).
+
+## Wave — §11.4 batch 1150 tenant_lifecycle closure slice (2026-05-01)
+
+**A. System:** **`tenant_lifecycle`** — funnel + billing + health **state_machine**; operator **`platform_runtime:tenant_lifecycle_dashboard`** (**manager** + **tenant** hosts); cohort activation metrics with **min-sample** gates.
+
+**B. Files:** **`apps/platform_runtime/tenant_lifecycle_state_machine.py`**; **`apps/platform_runtime/tenant_lifecycle_operator.py`**; **`apps/platform_runtime/views_tenant_lifecycle.py`**; **`apps/platform_runtime/urls.py`**; **`config/manager_urls.py`**; **`config/tenant_urls.py`**; **`config/urls.py`**; **`apps/schools/middleware.py`**; **`templates/platform_runtime/tenant_lifecycle_dashboard.html`**; **`apps/platform_runtime/tests/test_tenant_lifecycle_closure_slice.py`**; **`docs/generated/system_closure_map.json`**; **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`**.
+
+**C. Tests:** **`python manage.py test apps.platform_runtime.tests.test_tenant_lifecycle_closure_slice apps.schools.tests.test_growth_funnel_events apps.platform_runtime.tests.test_click_tracking apps.platform_runtime.tests.test_tenant_lifecycle_engine apps.platform_runtime.tests.test_tenant_lifecycle_state_machine --settings=config.settings --noinput --keepdb`** → **`Ran 37 tests`**, **`OK`**.
+
+**D. Verifiers:** **`audit_route_surface`** (**ROUTE SYSTEM CERTIFIED**); **`audit_security_surface`**; **`audit_tenant_isolation`**; **`verify_test_module_contract`**; **`run_northstar_audit`** (**75/75**); **`audit_luxury_ui_surface`**; **`verify_design_system_phase2`**; **`verify_shell_surface_inventory`**; **`generate_system_closure_map.py --write`**; **`verify_doc_plan_density_discipline`** → **PASS/OK**.
+
+**E. Verdict:** **`tenant_lifecycle`** **`gap_status`** **`partial`** — **PARTIAL CLOSED** slice.
+
+## Wave — §11.4 batch 1149 data_platform closure slice (2026-05-01)
+
+**A. System:** **`data_platform`** — governed ORM query slice (**`attendance`** + **`invoices`** filters); saved-report **`AuditLog`** + CSV export **`AuditLog`**; closure insights with **`primary_action_url`**; saved-report HTML detail + URL aliases.
+
+**B. Files:** **`apps/analytics/governed_query/catalog.py`**; **`apps/analytics/views_governed.py`**; **`apps/analytics/urls.py`**; **`apps/analytics/insight_registry.py`**; **`apps/analytics/tests/test_data_platform_closure_slice.py`**; **`apps/accounts/permissions.py`**; **`templates/analytics/governed_saved_report_detail.html`**; **`templates/analytics/decision_intelligence_dashboard.html`**; **`templates/analytics/decision_surface_dashboard.html`**; **`docs/generated/system_closure_map.json`**; **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`**.
+
+**C. Tests:** **`python manage.py test apps.analytics.tests.test_data_platform_closure_slice apps.siteconfig.tests.test_compliance_exports apps.portal.tests.test_student_attendance_export --settings=config.settings --noinput --keepdb`** → **`Ran 38 tests`**, **`OK`**.
+
+**D. Verifiers:** **`audit_tenant_isolation`**, **`audit_raw_sql_usage`**, **`audit_security_surface`**, **`audit_route_surface`**, **`verify_test_module_contract`**, **`run_northstar_audit`**, **`audit_luxury_ui_surface`**, **`verify_design_system_phase2`**, **`verify_shell_surface_inventory`**, **`generate_system_closure_map.py --write`**, **`verify_doc_plan_density_discipline`** → **PASS/OK**.
+
+**E. Verdict:** **`data_platform`** **`gap_status`** **`partial`** — **PARTIAL CLOSED** slice.
+
+## Wave — §11.4 batch 1148 event_system closure slice (2026-05-01)
+
+**A. System:** **`event_system`** — unified tenant-safe operator console (**`/domain-events/`**) for domain outbox + platform event log; replay (**domain clone**, **platform `replay_event`**); **`MODULE_ACCESS_DEFAULTS["events"]`**.
+
+**B. Files:** **`config/tenant_urls.py`**; **`apps/events/urls.py`**; **`apps/events/views_console.py`**; **`apps/events/event_contract.py`**; **`apps/events/replay_ops.py`**; **`templates/events/event_console.html`**; **`templates/events/event_domain_detail.html`**; **`templates/events/event_platform_detail.html`**; **`apps/accounts/permissions.py`**; **`apps/studio_os/deep_links.py`**; **`apps/events/tests/test_event_system_closure_slice.py`**; **`docs/generated/system_closure_map.json`**; **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`**.
+
+**C. Tests:** **`python manage.py test apps.events.tests.test_event_system_closure_slice apps.events.tests.test_event_bus_integration apps.platform_runtime.tests.test_platform_event_log apps.platform_runtime.tests.test_platform_loop_attendance_workflow_webhook --settings=config.settings --noinput --keepdb`** → **`Ran 18 tests`**, **`OK`**.
+
+**D. Verifiers:** **`verify_test_module_contract`** OK; **`audit_route_surface`** ROUTE SYSTEM CERTIFIED; **`audit_security_surface`** OK; **`audit_tenant_isolation`** OK; **`run_northstar_audit`** 75/75; **`audit_luxury_ui_surface`** PASS; **`verify_design_system_phase2`** PASS; **`verify_shell_surface_inventory`** PASS; **`generate_system_closure_map.py --write`**; **`verify_doc_plan_density_discipline`** PASS.
+
+**E. Verdict:** **`event_system`** row **`gap_status`** **`partial`** — **PARTIAL CLOSED** slice (analytics/DLQ/bulk surfaces remain).
+
+## Wave — §11.4 batch 1147 workflow_engine closure slice (2026-05-01)
+
+**A. System:** **`workflow_engine`** — Studio simulation + **`attendance_saved` / `payment_success` / `report_generated`** closure triggers + outcomes **`WorkflowRunLog`** visibility.
+
+**B. Files:** **`apps/automation/workflow_trigger_catalog.py`**; **`apps/automation/tests/test_workflow_studio_closure_slice.py`**; **`apps/automation/views.py`**; **`apps/studio_os/views.py`**; **`templates/studio_os/partials/subpages/automation_simulation_engine.html`**; **`templates/automation/outcomes_console.html`**; **`docs/generated/system_closure_map.json`**.
+
+**C. Tests:** **`env -u DATABASE_URL RMC_SQLITE_TEST_MEMORY=1 RMC_SQLITE_TEST_USE_MEMORY_NAME=1 python manage.py test apps.automation.tests.test_workflow_playbook_simulation apps.automation.tests.test_playbook_quarantine_and_logs apps.automation.tests.test_workflow_studio_closure_slice apps.studio_os.tests --settings=config.settings --noinput`** → **exit 0**.
+
+**D. Verifiers:** **`verify_test_module_contract`** OK; **`audit_route_surface`** ROUTE SYSTEM CERTIFIED; **`verify_shell_surface_inventory`** PASS; **`run_northstar_audit`** 75/75; **`audit_luxury_ui_surface`** PASS; **`verify_design_system_phase2`** PASS; **`generate_system_closure_map.py --write`**; **`verify_doc_plan_density_discipline`** PASS.
+
+**E. Verdict:** **`workflow_engine`** map row **`gap_status`** **`partial`** with narrowed **`missing_pieces`** — **PARTIAL CLOSED** slice (not full workflow catalog).
+
+## Wave — §11.4 batch 1146 developer platform closure slice 1 (2026-05-01)
+
+**A. System:** **`developer_platform`** (**`system_closure_map.json`**) — closure slice **1** (CI E2E webhook HTTP receive).
+
+**B. Files:** **`apps/apicenter/tests/test_developer_platform_e2e.py`**; **`docs/generated/system_closure_map.json`** (**`developer_platform`** **`gap_status`** / **`missing_pieces`** / **`evidence`**); **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`** §11.4 **1146**.
+
+**C. Tests:** **`env -u DATABASE_URL RMC_SQLITE_TEST_MEMORY=1 RMC_SQLITE_TEST_USE_MEMORY_NAME=1 python manage.py test apps.apicenter.tests.test_developer_platform_e2e --settings=config.settings --noinput`** → **`Ran 3 tests`**, **`OK`**.
+
+**D. Verifiers:** **`python scripts/verify_test_module_contract.py`** → **OK**; **`python scripts/audit_route_surface.py`** → **`ROUTE SYSTEM CERTIFIED`**, **`broken_count: 0`**.
+
+**E. Verdict:** **`developer_platform`** program-gap row **closed** for the former **E2E OAuth + install + webhook receive** bar; other **`systems[]`** gaps remain **open/mixed**. **PARTIAL** toward **CATEGORY DEFINING** (full completion bars for workflow/events/data/etc. still outstanding).
+
 ## Wave — §11.4 batch 1145 Final Domination Integration Certifier (2026-05-01)
 
 **A. Merge:** Seven **`feature/*-10-track`** branch names **absent** on **`origin`** (no merges performed); proof targets **integrated `main` working tree**.

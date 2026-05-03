@@ -1,0 +1,91 @@
+{
+  "label": "Analytics",
+  "seo_title": "Analytics | RunMyCampus",
+  "seo_description": "Enrollment, attendance, fee collection, academic performance, and multi-campus dashboards for school leaders worldwide.",
+  "headline": "See what is happening across your school in real time.",
+  "subheadline": "Trends and rollups built on the same records your teams use daily—without manual spreadsheet assembly.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Leadership dashboards",
+      "body": "Enrollment, attendance, collection, arrears, and academic signals in one disciplined view."
+    },
+    {
+      "title": "Multi-campus rollups",
+      "body": "Compare campuses with governed permissions—standardize definitions without hiding local context."
+    },
+    {
+      "title": "Export-ready discipline",
+      "body": "Reports structured for boards, owners, and regulators with traceable source data."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Role-based visibility",
+      "Multi-campus rollups",
+      "Audit-friendly reporting",
+      "Aligned to live operational data"
+    ],
+    "data_viz_path": "images/marketing/viz-admin.svg",
+    "data_viz_caption": "Illustrative leadership dashboard: operational signals at a glance.",
+    "premium_platform_layout": true,
+    "suppress_footer_clusters": true,
+    "stock_photo_url": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1600&q=75",
+    "stock_photo_alt": "Laptop displaying charts and analytics workspace",
+    "stock_photo_credit": "Photo via Unsplash",
+    "problem_section": {
+      "title": "Leadership cannot govern on stale spreadsheets",
+      "body": "When metrics are rebuilt every week from different exports, drift and debate replace action. RunMyCampus connects analytics to the same transactions your staff capture in operations."
+    },
+    "workflow_steps": [
+      "Capture operations",
+      "Normalize by role",
+      "Surface trends",
+      "Drill by campus",
+      "Share exports",
+      "Review in leadership forums"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "School leadership",
+        "bullets": [
+          "Fewer blind spots across enrollment and collection",
+          "Earlier signals before small issues compound"
+        ]
+      },
+      {
+        "role": "Finance",
+        "bullets": [
+          "Collection and arrears narratives tied to invoices",
+          "Less reconciliation between finance and academic systems"
+        ]
+      },
+      {
+        "role": "Operators",
+        "bullets": [
+          "Dashboards respect who may see what",
+          "Operational focus instead of pivot-table maintenance"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Fees & Payments",
+        "path": "/platform/fees-payments/"
+      },
+      {
+        "label": "Attendance",
+        "path": "/platform/attendance/"
+      },
+      {
+        "label": "Grading & Report Cards",
+        "path": "/platform/grading-report-cards/"
+      },
+      {
+        "label": "Security & Governance",
+        "path": "/platform/security/"
+      }
+    ]
+  }
+}

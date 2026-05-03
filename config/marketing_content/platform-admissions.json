@@ -1,0 +1,94 @@
+{
+  "label": "Admissions",
+  "seo_title": "School Admissions Software | RunMyCampus",
+  "seo_description": "Inquiry through enrollment with pipelines, documents, interviews, and audit-ready decisions.",
+  "headline": "Turn enquiries into enrolled students without spreadsheet chaos.",
+  "subheadline": "Campaign-aware forms, counselor ownership, and clean hand-off to student records.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Pipeline clarity",
+      "body": "Stages, owners, SLAs, and document checklists."
+    },
+    {
+      "title": "Family experience",
+      "body": "Applicants submit once; updates sync across portals."
+    },
+    {
+      "title": "Leadership oversight",
+      "body": "Conversion signals across campuses without manual rollups."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Flexible academic calendars",
+      "Multi-currency fee structures",
+      "Role-based portals",
+      "Offline-ready workflows",
+      "Secure audit trails",
+      "Multi-campus support"
+    ],
+    "diagram_path": "images/marketing/module-admissions.svg",
+    "premium_platform_layout": true,
+    "suppress_footer_clusters": true,
+    "stock_photo_url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1600&q=75",
+    "stock_photo_alt": "Staff reviewing enrollment paperwork at a school reception desk",
+    "stock_photo_credit": "Photo via Unsplash",
+    "problem_section": {
+      "title": "Pipeline blind spots slow enrollment",
+      "body": "Without a connected admissions workflow, inquiries stall, documents scatter, and leadership lacks conversion clarity. RunMyCampus ties inquiry through enrollment to billing and class placement."
+    },
+    "workflow_steps": [
+      "Inquiry",
+      "Application",
+      "Documents",
+      "Review",
+      "Decision",
+      "Enrollment",
+      "Invoice",
+      "Class placement"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "Admissions teams",
+        "bullets": [
+          "Stage ownership with SLAs and checklists",
+          "Families submit once and stay informed"
+        ]
+      },
+      {
+        "role": "Leadership",
+        "bullets": [
+          "Visibility across campuses without manual rollups",
+          "Forecast-ready funnel signals"
+        ]
+      },
+      {
+        "role": "Finance",
+        "bullets": [
+          "Clean hand-off from acceptance to billing",
+          "Fewer disputed balances at start of term"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Student Information System",
+        "path": "/platform/student-information-system/"
+      },
+      {
+        "label": "Communications",
+        "path": "/platform/communications/"
+      },
+      {
+        "label": "Fees & Payments",
+        "path": "/platform/fees-payments/"
+      },
+      {
+        "label": "Workflows",
+        "path": "/platform/workflows/"
+      }
+    ]
+  }
+}

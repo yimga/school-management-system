@@ -1,32 +1,31 @@
 {
   "schema_version": 1,
-  "program_gap_registry_version": 2,
-  "generated_at": "2026-04-30",
+  "program_gap_registry_version": 6,
+  "generated_at": "2026-05-03",
   "source": [
     "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
     "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md"
   ],
   "summary": {
-    "note": "systems[] lists program-scale gaps (missing_pieces). sot_partial_forward_queue_batches is derived from SOT \u00a711.4 lines whose status token is PARTIAL, NOT DONE, or BLOCKED \u2014 regenerate with this script.",
+    "note": "systems[] is sourced from scripts/system_closure_registry.py (PROGRAM_SYSTEMS). sot_partial_forward_queue_batches is derived from SOT \u00a711.4 lines whose status token is PARTIAL, NOT DONE, or BLOCKED \u2014 regenerate with this script.",
     "regeneration_command": "python scripts/generate_system_closure_map.py --write",
     "sot_discipline": [
       "Edit docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md \u00a711.4 first when changing batch status.",
       "Run: python scripts/generate_system_closure_map.py --write whenever PARTIAL, NOT DONE, or BLOCKED \u00a711.4 rows are added, removed, or retitled so sot_partial_forward_queue_batches stays aligned.",
       "systems[].missing_pieces and gap_status change only when a slice ships or honest scope changes \u2014 pair with a \u00a711.4 DONE row + tests/verifiers where applicable.",
       "Program gaps remain open until explicitly closed; do not claim closure from ledger edits alone."
-    ]
+    ],
+    "systems_registry": "scripts/system_closure_registry.py"
   },
   "systems": [
     {
       "id": "developer_platform",
       "name": "Developer platform (API, OAuth, SDKs, webhooks, portal, publishing, sandbox)",
-      "gap_status": "mixed",
+      "gap_status": "closed",
       "sot_status": "MIXED",
-      "evidence": "Slice 17 DONE in SOT; Python SDK sdk/runmycampus/; apicenter OAuth; events webhooks with retry",
-      "missing_pieces": [
-        "Automated E2E bar: register app, OAuth token, tenant install, webhook receive (single CI flow)"
-      ],
-      "next_batch_hint": "Ship a dedicated \u00a711.4 batch when adding the CI E2E chain; track tests under required_tests.",
+      "evidence": "Slice 17 DONE in SOT; Python SDK sdk/runmycampus/; apicenter OAuth; apps.apicenter.tests.test_developer_platform_e2e proves DeveloperApplication (provisioned path) \u2192 OAuth client_credentials \u2192 tenant install \u2192 scoped tenant API \u2192 enqueue_webhook_event + deliver_webhook_delivery with injectable HTTP POST + HMAC verification; events retry/DL remain in apps.events.tests",
+      "missing_pieces": [],
+      "next_batch_hint": "Optional depth: self-serve HTTP app registration API; fold marketplace usage/billing metering assertions into the same E2E module when product gates require it.",
       "shipped_in_closure_pass": [
         "sdk/js/runmycampus-client.mjs",
         "sdk/js/package.json",
@@ -45,64 +44,81 @@
     {
       "id": "workflow_engine",
       "name": "Workflow / automation engine",
-      "gap_status": "open",
-      "sot_status": "DONE ( core ) + depth PARTIAL in Studio visual subpage",
-      "evidence": "execute_playbook, dry_run, AutomationExecutionLog; school_automation_builder",
-      "missing_pieces": [
-        "Studio automation_visual_builder.html: finish productization beyond partial Studio notes",
-        "Broader trigger coverage beyond shipped playbooks"
-      ],
-      "next_batch_hint": "\u00a711.4 batch scoped to Studio automation builder and/or playbook triggers + automation tests.",
+      "gap_status": "closed",
+      "sot_status": "DONE \u2014 operator visual slice + expanded catalog (\u00a711.4 batch 1151)",
+      "evidence": "Relational Workflow graph; validate-graph + publish guards; designer canvas with SVG edges + drag palette + accessible Add-node controls; eight trigger catalog keys + six ready playbooks in Studio Simulation; Workflow.Trigger.offline_action_conflict; APIs: save-graph, validate-graph, simulate, publish, rollback; tests: test_workflow_builder_canvas, test_workflow_trigger_catalog_depth, test_workflow_playbook_templates, test_workflow_studio_closure_slice",
+      "missing_pieces": [],
+      "next_batch_hint": "Optional product depth: advanced canvas toolkit (multi-select, snap grid, richer drag affordances) if UX research demands beyond accessible parity.",
       "required_tests": [
+        "apps.automation.tests.test_workflow_builder_canvas",
+        "apps.automation.tests.test_workflow_trigger_catalog_depth",
+        "apps.automation.tests.test_workflow_playbook_templates",
         "apps.automation.tests.test_workflow_playbook_simulation",
-        "apps.automation.tests.test_playbook_quarantine_and_logs"
+        "apps.automation.tests.test_playbook_quarantine_and_logs",
+        "apps.automation.tests.test_workflow_studio_closure_slice"
       ],
-      "required_verifiers": []
+      "required_verifiers": [
+        "verify_shell_surface_inventory",
+        "verify_test_module_contract",
+        "audit_route_surface",
+        "run_northstar_audit"
+      ]
     },
     {
       "id": "event_system",
       "name": "Platform event bus + webhooks + replay",
-      "gap_status": "open",
-      "sot_status": "DONE ( core )",
-      "evidence": "emit_platform_event; apps/events webhooks + retry + dead letter tests",
-      "missing_pieces": [
-        "Unified replay UX for all subscription types (verify per integration path)"
-      ],
-      "next_batch_hint": "\u00a711.4 batch for operator replay surface + events tests per subscription type.",
+      "gap_status": "closed",
+      "sot_status": "DONE \u2014 operator analytics + DLQ + Studio correlation (\u00a711.4 batch 1153)",
+      "evidence": "Tenant console /domain-events/ + replay (\u00a711.4 batch 1148); /domain-events/analytics/ (volume by type/status, failures, DLQ counts, replay audits, bounded newest-N + optional latency averages, tenant/event filters); /domain-events/dlq/ remediation (retry selected + retry all filtered cap, resolve/ignore + reason); EventSystemRemediationAudit; WebhookDelivery + EventWebhookDelivery operator disposition fields; Studio simulation links to domain-events + analytics; event detail pages correlate trigger-matched Workflow rows + automation outcomes URL; tenant urlconf mounts automation/ for reverse parity; MODULE_ACCESS_DEFAULTS[\"events\"]",
+      "missing_pieces": [],
+      "next_batch_hint": "Optional product depth: streaming/warehouse-grade event BI beyond bounded tenant analytics tables.",
       "required_tests": [
         "apps.events.tests.test_event_bus_integration",
-        "apps.platform_runtime.tests.test_platform_event_log"
+        "apps.events.tests.test_event_system_closure_slice",
+        "apps.events.tests.test_event_analytics_console",
+        "apps.events.tests.test_event_dlq_bulk_remediation",
+        "apps.events.tests.test_event_system_finalization",
+        "apps.platform_runtime.tests.test_platform_event_log",
+        "apps.platform_runtime.tests.test_platform_loop_attendance_workflow_webhook"
       ],
       "required_verifiers": []
     },
     {
       "id": "data_platform",
       "name": "Reports, metrics, exports, analytics",
-      "gap_status": "open",
-      "sot_status": "PARTIAL vs arbitrary-query warehouse bar",
-      "evidence": "compliance_exports, scheduled reports, CSV/API attendance export",
-      "missing_pieces": [
-        "Ad-hoc SQL/query builder for operators (not only registry exports)",
-        "Event analytics product surface as specified in mission"
-      ],
-      "next_batch_hint": "Split: one \u00a711.4 batch for governed query/adhoc scope; another for analytics surface \u2014 registry exports remain baseline.",
+      "gap_status": "closed",
+      "sot_status": "DONE vs bounded governed-bar (no arbitrary SQL warehouse)",
+      "evidence": "Governed ORM catalog + builder (/analytics/governed/*); saved reports + AuditLog + CSV/JSON export; closure insights + primary_action_url; event analytics dashboard (/analytics/governed/events/) + bundle API via governed datasets (domain_events, platform_events, offline_sync_events, workflow_run_logs, invoices funnel slices); NL governed intent assistant with preview + confirm-only execution (allowlisted intents; rejects SQL-ish fragments; rebuilds definition server-side); insight_registry NL nav card.",
+      "missing_pieces": [],
+      "next_batch_hint": "Optional depth: richer NL vocabulary or streaming warehouse only if product escalates beyond governed ORM bar.",
       "required_tests": [
+        "RMC_TEST_LOCAL_SQLITE=1 DJANGO_TEST_DB_FILE=.django_test_dbs/certifier_final.sqlite3 python manage.py test apps.analytics.tests.test_data_platform_finalization apps.analytics.tests.test_governed_intent_layer apps.analytics.tests.test_event_scale_analytics apps.analytics.tests.test_data_platform_closure_slice --settings=config.settings --noinput --keepdb",
         "apps.siteconfig.tests.test_compliance_exports",
-        "apps.portal.tests.test_student_attendance_export"
+        "apps.portal.tests.test_student_attendance_export",
+        "apps.analytics.tests.test_governed_query_layer"
       ],
-      "required_verifiers": []
+      "required_verifiers": [
+        "audit_tenant_isolation",
+        "audit_raw_sql_usage",
+        "audit_security_surface",
+        "audit_route_surface",
+        "verify_test_module_contract",
+        "audit_luxury_ui_surface",
+        "run_northstar_audit",
+        "generate_system_closure_map.py --write"
+      ]
     },
     {
       "id": "tenant_lifecycle",
       "name": "Tenant lifecycle + onboarding + health + retention",
-      "gap_status": "open",
-      "sot_status": "PARTIAL",
-      "evidence": "SchoolOnboardingProgress; customer_health; batch 1103 SOT DONE (2026-04-29 test bar)",
-      "missing_pieces": [
-        "Retention automation triggers as named product surfaces beyond hooks"
-      ],
-      "next_batch_hint": "\u00a711.4 batch for retention surfaces + onboarding/test bars listed in required_tests.",
+      "gap_status": "closed",
+      "sot_status": "DONE",
+      "evidence": "SchoolOnboardingProgress; customer_health; tenant_lifecycle_engine; tenant_lifecycle_state_machine (funnel + billing + health + prolonged payment churn + dormant monetized churn + billing-recovered path); tenant_retention_playbooks (7 named playbooks + audit); tenant_lifecycle_scheduler + TenantLifecycleSchedulerRun; TenantRetentionPlaybookAction idempotency; platform_runtime:tenant_lifecycle_dashboard with open_retention_actions column; manage.py run_tenant_lifecycle_scheduler",
+      "missing_pieces": [],
+      "next_batch_hint": "Optional depth: automated dispatch from playbook rows into Workflow Studio or outbound lifecycle webhooks when product demands.",
       "required_tests": [
+        "python manage.py test apps.platform_runtime.tests.test_tenant_lifecycle_finalization apps.platform_runtime.tests.test_tenant_lifecycle_scheduler apps.platform_runtime.tests.test_tenant_retention_playbooks apps.platform_runtime.tests.test_tenant_lifecycle_closure_slice --settings=config.settings --noinput --keepdb",
+        "python manage.py test apps.schools.tests.test_growth_funnel_events apps.platform_runtime.tests.test_click_tracking apps.platform_runtime.tests.test_tenant_lifecycle_engine apps.platform_runtime.tests.test_tenant_lifecycle_state_machine --settings=config.settings --noinput --keepdb",
         "DJANGO_TEST_DB_FILE=.django_test_dbs/onboarding_engine_core.sqlite3 python manage.py test apps.platform_runtime.tests.test_onboarding --noinput"
       ],
       "required_verifiers": [
@@ -112,38 +128,206 @@
     {
       "id": "offline_first",
       "name": "Offline attendance, grading, payments, sync queue UI, conflict UI",
-      "gap_status": "open",
-      "sot_status": "PARTIAL",
-      "evidence": "mobile_api offline sync; OfflineMarkEntry; evals offline signals; finance offline_payment_intent + invoice_detail queue",
-      "missing_pieces": [
-        "Dedicated operator sync-queue dashboard for all offline domains",
-        "Full conflict-resolution UI for all offline paths"
-      ],
-      "next_batch_hint": "\u00a711.4 batch per domain (sync dashboard slice first, then conflict UI) \u2014 pair with mobile/offline tests.",
+      "gap_status": "closed",
+      "sot_status": "DONE \u2014 batch 1157 operator portal closure",
+      "evidence": "OfflineAction queue (attendance, grading, payment_receipt, notes_report): portal offline_sync_queue + offline_sync_conflicts; tenant + operator scope; idempotency column; process/retry; conflict compare server/local incl. remarks (attendance/grading); resolve keep_mine/use_latest/review_manual + resolution_audits; PlatformEventLog offline_action_queued|failed|conflict|resolved|synced; browser forms data-rmc-offline-form + data-offline-action-type (roll_call_student/teacher, marks_entry, invoice_detail receipt, teacher_bulk_capture notes); apps.platform_runtime.tests.test_offline_first_category_closure + test_offline_first_closure_slice + apps.portal.tests.test_offline_sync_dashboard",
+      "missing_pieces": [],
+      "next_batch_hint": "Optional depth: native mobile client parity beyond browser portal queue (sync_engine mobile bundle)",
       "required_tests": [
-        "apps.finance.tests.test_payment_orchestration",
-        "apps.evals (offline/sync tests if present)",
-        "mobile API offline sync tests"
+        "apps.platform_runtime.tests.test_offline_first_category_closure",
+        "apps.platform_runtime.tests.test_offline_first_closure_slice",
+        "apps.portal.tests.test_offline_sync_dashboard",
+        "apps.platform_runtime.tests.test_offline_queue",
+        "apps.finance.tests.test_payment_orchestration"
       ],
       "required_verifiers": []
     },
     {
       "id": "global_payments",
       "name": "Per-region primary + backup + manual fallback + reconciliation",
-      "gap_status": "mixed",
-      "sot_status": "PARTIAL",
-      "evidence": "payment_region_catalog.CANONICAL_PAYMENT_ORCHESTRATION_ISO2 + seed_finance_defaults ensures profiles; Stripe paths; receipt upload flows; RegionPaymentFallbackMatrixTests",
-      "missing_pieces": [],
-      "next_batch_hint": "New markets: add ISO2 to apps/finance/payment_region_catalog.py and rail defaults in ensure_canonical_region_payment_profiles (beyond CM).",
+      "gap_status": "partial",
+      "sot_status": "PARTIAL \u2014 batch 1158 PARTIAL EXTERNAL BLOCKER (repo telemetry + readiness dashboard; live PSP remains external)",
+      "evidence": "regional_payment_profiles.json: CM/GH/NG/KE/US/GB/EU with primary_rail, backup_rail, provider_setup_status, tenant_setup_steps, operator_ready_label, manual/offline/reconciliation flags; get_normalized_regional_profile; payment_gateway_health default_rail_health_check + PaymentGatewayHealthSnapshot (school-scoped); finance:payment_readiness_dashboard tenant workspace + staff; payment_fallback_engine select_effective_rail + approve/reject AuditLog; billing/regional_payment_readiness READY/FALLBACK_ONLY/MISSING_SETUP; finance payment_readiness_setup + receipt flows; MoMo Integration metadata checks without live charges",
+      "missing_pieces": [
+        "Credential-backed live PSP merchant onboarding and production payment-gateway ping (Stripe/Paystack/Flutterwave/MoMo production/SEPA bank APIs) \u2014 external contracts and secrets; not representable as closed inside this repository"
+      ],
+      "next_batch_hint": "Optional: marketplace entitlement snapshot vs readiness correlation; optional live PSP smoke hooks behind explicit tenant opt-in.",
       "required_tests": [
         "apps.finance.tests.test_payment_region_catalog",
+        "apps.finance.tests.test_global_payment_profiles",
+        "apps.finance.tests.test_global_payments_category_closure",
+        "apps.finance.tests.test_payment_gateway_health",
+        "apps.finance.tests.test_payment_readiness_dashboard",
+        "apps.finance.tests.test_payment_fallback_engine",
+        "apps.billing.tests.test_regional_payment_readiness",
         "apps.finance.tests.test_receipt_upload_flow",
         "apps.siteconfig.tests.test_billing_stripe_tenant",
-        "apps.billing.tests.test_platform_billing_webhooks"
+        "apps.billing.tests.test_platform_billing_webhooks",
+        "apps.finance.tests.test_payment_orchestration"
       ],
       "required_verifiers": []
+    },
+    {
+      "id": "experience_control",
+      "system_key": "experience_control",
+      "name": "Experience control \u2014 action-first UX, strict primary-action posture, public chrome hygiene",
+      "gap_status": "closed",
+      "sot_status": "DONE \u2014 batch 1162: 22-screen roster registry + experience_control test bundle + mechanical verifier chain (honest repo bar; not a substitute for product QA sign-off)",
+      "completion_bar": [
+        "Canonical roster: apps.platform_runtime.tests.experience_control_registry.EXPERIENCE_CONTROL_SCREENS (22) \u2014 every mission route reverses under declared urlconf (test_experience_control_closure + thin per-app modules).",
+        "Strict single-action posture: founder + backend dashboards + next_action_strip chip contract + governed builder markers + offline sync queue primary process control (CONVERSION_SINGLE_ACTION_ENFORCED where applicable).",
+        "Representative tenant HTTP: portal offline sync queue + student 360 + lifecycle dashboard telemetry hooks (principal/staff roles aligned with MODULE_ACCESS_DEFAULTS portal RBAC).",
+        "Marketing/public: audited templates avoid dummy href=\"#\" (marketing_templates_avoid_href_hash_dummy); validate_marketing_urls --smoke + marketing_validation ExperienceControl registry reverses.",
+        "Mechanical gates: luxury UI 15/15, design system phase2, shell inventory, phase2 authenticated shell conformance, regional UI, route surface certification, test module contract, northstar 75/75."
+      ],
+      "evidence": "apps.platform_runtime.tests.test_experience_control_closure (+ helpers/registry); apps.portal.tests.test_experience_control_surfaces; apps.marketplace.tests.test_experience_control_marketplace; apps.analytics.tests.test_experience_control_analytics; apps.events.tests.test_experience_control_event_console; apps.finance.tests.test_experience_control_payments; apps.schools.tests.test_marketing_validation (ExperienceControl marketing reverses). Prior magic UX modules remain supporting: test_magic_ux_closure_slice, test_experience_single_action_ui, test_magic_ux_surfaces, test_tenant_catalog_magic_ux_strict, etc.",
+      "missing_pieces": [],
+      "next_batch_hint": "Optional: per-tenant visual regression snapshots if product demands pixel guarantees beyond roster + HTTP/template contracts.",
+      "required_tests": [
+        "apps.platform_runtime.tests.test_experience_control_closure",
+        "apps.portal.tests.test_experience_control_surfaces",
+        "apps.marketplace.tests.test_experience_control_marketplace",
+        "apps.analytics.tests.test_experience_control_analytics",
+        "apps.events.tests.test_experience_control_event_console",
+        "apps.finance.tests.test_experience_control_payments",
+        "apps.schools.tests.test_marketing_validation",
+        "apps.platform_runtime.tests.test_magic_ux_closure_slice",
+        "apps.platform_runtime.tests.test_experience_single_action_ui",
+        "apps.portal.tests.test_magic_ux_surfaces",
+        "apps.portal.tests.test_magic_ux_portal_surfaces_http",
+        "apps.marketplace.tests.test_magic_ux_catalog",
+        "apps.marketplace.tests.test_tenant_catalog_magic_ux_strict",
+        "apps.analytics.tests.test_magic_ux_governed_query",
+        "apps.events.tests.test_magic_ux_event_console"
+      ],
+      "required_screens": [
+        "founder dashboard",
+        "backend dashboard",
+        "tenant/admin dashboard (CCC/runtime hub)",
+        "teacher dashboard",
+        "parent dashboard",
+        "student 360",
+        "marketplace catalog",
+        "installed apps",
+        "marketplace monetization dashboard",
+        "billing/payment pages",
+        "finance dashboard",
+        "attendance export",
+        "compliance exports",
+        "Studio OS",
+        "siteconfig/CCC hubs (guided configuration)",
+        "event console",
+        "tenant lifecycle dashboard",
+        "governed query dashboard",
+        "offline sync dashboard",
+        "payment readiness dashboard",
+        "marketing homepage",
+        "marketing solution/platform pages"
+      ],
+      "required_verifiers": [
+        "manage.py validate_marketing_urls --smoke",
+        "audit_luxury_ui_surface.py",
+        "verify_design_system_phase2.py",
+        "verify_shell_surface_inventory.py",
+        "verify_phase2_authenticated_shell_conformance.py",
+        "audit_regional_ui_surface.py",
+        "audit_route_surface.py",
+        "verify_test_module_contract.py",
+        "run_northstar_audit.py"
+      ]
+    },
+    {
+      "id": "marketplace_monetization",
+      "system_key": "marketplace_monetization",
+      "name": "Marketplace monetization \u2014 paid installs, billing readiness, entitlements, kill switch",
+      "gap_status": "partial",
+      "sot_status": "PARTIAL EXTERNAL BLOCKER \u2014 repo SKU catalog + MarketplaceMonetizationLedgerEntry + settlement posture honest in ledger; live PSP merchant settlement remains tenant/global_payments bar",
+      "completion_bar": [
+        "Paid install billing readiness: assert_paid_install_billing_ready_or_raise + test_monetized_install_enforcement (fails without processor customer when gated).",
+        "Uniform SKU metering contract: marketplace_sku_registry.MARKETPLACE_SKU_CONTRACTS + test_marketplace_sku_metering.",
+        "Uniform ledger: MarketplaceMonetizationLedgerEntry + monetization_ledger_ops (install/subscription/settlement/usage/payment_success/platform_fee) + migration 0011; idempotent (school,idempotency_key).",
+        "Billing webhooks: finalize_marketplace_addon_payment appends PAYMENT_SUCCESS + settlement rows without claiming relay/livemode=false as production PSP.",
+        "Dashboard: marketplace:monetization_dashboard (tenant_may_manage_marketplace) + primary action to payment readiness when blocked.",
+        "Entitlement: TenantMarketplaceSubscription + install/uninstall ledger; tenant isolation on ledger queries.",
+        "Purchase/install path: test_purchase_intent, test_install_impact, test_catalog_install_app_deeplink (kill switch)."
+      ],
+      "evidence": "apps.marketplace.marketplace_sku_registry; apps.marketplace.models.MarketplaceMonetizationLedgerEntry; apps.marketplace.monetization_ledger_ops; apps.marketplace.views_monetization_dashboard + templates/marketplace/monetization_dashboard.html; apps.marketplace.monetization (install ledger slice, usage meter optional ledger); apps.marketplace.services (uninstall ledger); apps.billing.services.finalize_marketplace_addon_payment (ledger rows); apps.platform_runtime.events marketplace_* contract keys; tests test_marketplace_sku_metering, test_marketplace_ledger, test_marketplace_monetization_closure + enforcement/purchase/webhook/stripe/e2e modules.",
+      "missing_pieces": [
+        "Live PSP merchant settlement + production gateway health ping \u2014 tenant/external (global_payments); honest ledger never fabricates settlement_completed without processor truth"
+      ],
+      "next_batch_hint": "Optional: deepen publisher payout execution when global_payments production corridor is live.",
+      "required_tests": [
+        "apps.marketplace.tests.test_marketplace_sku_metering",
+        "apps.marketplace.tests.test_marketplace_ledger",
+        "apps.marketplace.tests.test_marketplace_monetization_closure",
+        "apps.marketplace.tests.test_monetized_install_enforcement",
+        "apps.marketplace.tests.test_purchase_intent",
+        "apps.marketplace.tests.test_install_impact",
+        "apps.marketplace.tests.test_catalog_install_app_deeplink",
+        "apps.siteconfig.tests.test_billing_stripe_tenant",
+        "apps.billing.tests.test_platform_billing_webhooks",
+        "apps.apicenter.tests.test_developer_platform_e2e"
+      ],
+      "required_verifiers": [
+        "audit_security_surface.py",
+        "audit_tenant_isolation.py",
+        "audit_route_surface.py",
+        "verify_test_module_contract.py",
+        "audit_post_surface.py",
+        "verify_compliance_evidence.py",
+        "run_kill_test.py",
+        "run_northstar_audit.py",
+        "audit_luxury_ui_surface.py",
+        "verify_design_system_phase2.py"
+      ]
+    },
+    {
+      "id": "enterprise_security",
+      "system_key": "enterprise_security",
+      "name": "Enterprise security \u2014 mechanical audits, isolation, compliance evidence, kill/northstar gates",
+      "gap_status": "closed",
+      "sot_status": "DONE \u2014 enterprise security command center (super_security_hub / enterprise_security_command_center): verifier strip incl. kill/northstar/test_contract JSON; export timeline with HMAC-bound audit-row integrity tokens; impersonation table incl. reason; closure tests",
+      "completion_bar": [
+        "Security surface audit passes (audit_security_surface.py).",
+        "Tenant isolation audit passes (audit_tenant_isolation.py).",
+        "POST/CSRF-oriented surface audit passes (audit_post_surface.py).",
+        "Raw SQL + subprocess audits pass (audit_raw_sql_usage.py, audit_subprocess_usage.py).",
+        "Compliance evidence verifier passes (verify_compliance_evidence.py) with generated compliance ledgers.",
+        "Export/download and compliance paths: apps.siteconfig.tests.test_compliance_exports (+ data_platform row for governed exports).",
+        "Permission/security enforcement modules: apps.security.tests.* enforcement + absolute + tenant route leakage.",
+        "Kill test + northstar: run_kill_test.py, run_northstar_audit.py as org-wide regressions gates."
+      ],
+      "evidence": "super:security_hub / super:security_command_center / super:enterprise_security_command_center (apps.schools.super_views_enterprise_security); EXPORT AuditLog timeline rows use HMAC-SHA256 (first 32 hex) over audit identity fields; verifier JSON from docs/generated incl. kill_test_report, northstar_audit, test_module_contract; apps.security.tests (closure, signed export timeline, impersonation breadth, impersonation_approval peer AuditLog, export audit breadth) + enforcement suite; apps.siteconfig.tests.test_compliance_exports; mechanical verifiers as listed in required_verifiers.",
+      "missing_pieces": [],
+      "next_batch_hint": "Optional: cryptographic signatures on downloadable bytes beyond audit-log HMAC where product demands offline third-party verification.",
+      "required_tests": [
+        "apps.security.tests.test_security_enforcement",
+        "apps.security.tests.test_absolute_security_enforcement",
+        "apps.security.tests.test_tenant_route_leakage",
+        "apps.security.tests.test_enterprise_security_closure",
+        "apps.security.tests.test_signed_export_timeline",
+        "apps.security.tests.test_impersonation_breadth",
+        "apps.security.tests.test_impersonation_approval",
+        "apps.security.tests.test_export_audit_breadth",
+        "apps.siteconfig.tests.test_compliance_exports"
+      ],
+      "required_verifiers": [
+        "audit_security_surface.py",
+        "audit_post_surface.py",
+        "audit_tenant_isolation.py",
+        "audit_raw_sql_usage.py",
+        "audit_subprocess_usage.py",
+        "audit_gilead_references.py --strict-public",
+        "verify_compliance_evidence.py",
+        "audit_route_surface.py",
+        "verify_test_module_contract.py",
+        "run_kill_test.py",
+        "run_northstar_audit.py"
+      ]
     }
   ],
-  "sot_partial_forward_queue_batches": [],
+  "sot_partial_forward_queue_batches": [
+    "1158"
+  ],
   "generator": "scripts/generate_system_closure_map.py"
 }

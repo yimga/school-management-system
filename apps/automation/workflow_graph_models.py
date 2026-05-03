@@ -31,6 +31,10 @@ class Workflow(models.Model):
         REPORT_GENERATED = "report_generated", "Report generated"
         STUDENT_RISK_DETECTED = "student_risk_detected", "Student risk detected"
         APP_INSTALLED = "app_installed", "Marketplace app installed"
+        OFFLINE_ACTION_CONFLICT = (
+            "offline_action_conflict",
+            "Offline sync action conflict",
+        )
 
     school = models.ForeignKey(
         "schools.School",

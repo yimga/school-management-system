@@ -27,6 +27,13 @@ def filter_insights_by_surface(
     return [i for i in insights if surface in i.get("surfaces", [])]
 
 
+def ensure_primary_action_url_inplace(card: dict[str, Any]) -> None:
+    """Normalize insight cards so templates/tests can rely on primary_action_url."""
+    pa = card.get("primary_action")
+    if isinstance(pa, dict) and pa.get("path"):
+        pa.setdefault("primary_action_url", pa["path"])
+
+
 def build_insights_for_school(school_id: str, *, user=None) -> list[dict[str, Any]]:
     """
     Return insight cards for a single school. Caller must enforce tenant scope.
@@ -242,9 +249,11 @@ def build_insights_for_school(school_id: str, *, user=None) -> list[dict[str, An
         pass
 
     try:
-        from apps.marketplace.models import AppInstallation
+        from django.apps import apps
+
         from apps.schools.models import School
 
+        AppInstallation = apps.get_model("marketplace", "AppInstallation")
         school = School.objects.filter(pk=school_id).only("created_at").first()
         if school and school.created_at:
             age = timezone.now() - school.created_at
@@ -270,6 +279,127 @@ def build_insights_for_school(school_id: str, *, user=None) -> list[dict[str, An
                     )
     except Exception:
         pass
+
+    try:
+        from django.db.models import Count, Exists, OuterRef, Q
+
+        from apps.academics.models import Classroom
+        from apps.people.models import StudentProfile
+
+        today = timezone.localdate()
+        gap_cnt = (
+            Classroom.objects.filter(school_id=school_id)
+            .annotate(
+                att_today=Count(
+                    "attendance_records",
+                    filter=Q(attendance_records__date=today),
+                )
+            )
+            .filter(att_today=0)
+            .filter(
+                Exists(
+                    StudentProfile.objects.filter(
+                        classroom_id=OuterRef("pk"),
+                        school_id=school_id,
+                        is_active=True,
+                    )
+                )
+            )
+            .count()
+        )
+        if gap_cnt > 0:
+            insights.append(
+                {
+                    "id": "closure_attendance_gap_missing_roll",
+                    "severity": "warning",
+                    "title": "Classes missing today's attendance",
+                    "explanation": (
+                        f"{gap_cnt} class(es) with enrolled students have no attendance recorded "
+                        f"for {today.isoformat()}."
+                    ),
+                    "primary_action": {
+                        "label": "Take attendance",
+                        "path": "/portal/teacher/attendance/",
+                        "primary_action_url": "/portal/teacher/attendance/",
+                    },
+                    "audience": "attendance_staff",
+                    "surfaces": [SURFACE_ENGAGEMENT, SURFACE_SCHOOL_HEALTH],
+                    "dataset_source": "attendance",
+                }
+            )
+    except Exception:
+        pass
+
+    try:
+        from apps.finance.models import Invoice
+
+        today_inv = timezone.localdate()
+        overdue_cnt = Invoice.objects.filter(
+            school_id=school_id,
+            balance_amount__gt=0,
+            due_date__lt=today_inv,
+            status__in=(
+                Invoice.Status.ISSUED,
+                Invoice.Status.PARTIAL,
+                Invoice.Status.OVERDUE,
+            ),
+        ).count()
+        if overdue_cnt > 0:
+            insights.append(
+                {
+                    "id": "closure_payment_risk_overdue_balance",
+                    "severity": "warning",
+                    "title": "Overdue invoices need follow-up",
+                    "explanation": (
+                        f"{overdue_cnt} invoice(s) still carry balance past the due date — "
+                        "open reconciliation or collections."
+                    ),
+                    "primary_action": {
+                        "label": "Payment follow-up / invoices",
+                        "path": "/finance/invoices/",
+                        "primary_action_url": "/finance/invoices/",
+                    },
+                    "audience": "finance_staff",
+                    "surfaces": [SURFACE_REVENUE, SURFACE_RISK],
+                    "dataset_source": "invoices",
+                }
+            )
+    except Exception:
+        pass
+
+    try:
+        from apps.analytics.event_analytics_rollups import insight_card_event_analytics_hub
+        from apps.events.models import DomainEvent
+
+        if DomainEvent.objects.filter(
+            school_id=school_id, created_at__gte=timezone.now() - timedelta(days=14)
+        ).exists():
+            insights.append(insight_card_event_analytics_hub())
+    except Exception:
+        pass
+
+    try:
+        insights.append(
+            {
+                "id": "governed_nl_assistant_nav",
+                "severity": "info",
+                "title": "Natural-language governed queries",
+                "explanation": (
+                    "Map plain language to allowlisted datasets; preview and confirm — no raw SQL."
+                ),
+                "primary_action": {
+                    "label": "Open NL assistant",
+                    "path": "/analytics/governed/intent/",
+                },
+                "audience": "reports_staff",
+                "surfaces": [SURFACE_SCHOOL_HEALTH],
+            }
+        )
+    except Exception:
+        pass
+
+    for card in insights:
+        ensure_primary_action_url_inplace(card)
 
     return insights
 

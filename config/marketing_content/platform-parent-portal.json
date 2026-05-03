@@ -1,0 +1,93 @@
+{
+  "label": "Parent Portal",
+  "seo_title": "Parent Portal for Schools | RunMyCampus",
+  "seo_description": "Fees, attendance, announcements, assignments, results, and messaging—responsive by design.",
+  "headline": "Parents stay informed without chasing staff.",
+  "subheadline": "Busy caregivers get clarity on phones and desktops with role-safe messaging.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Financial clarity",
+      "body": "Statements, receipts, and balances."
+    },
+    {
+      "title": "Academic visibility",
+      "body": "Attendance, assessments, and report cards."
+    },
+    {
+      "title": "Official communications",
+      "body": "Announcements with traceability—not lost threads."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Flexible academic calendars",
+      "Multi-currency fee structures",
+      "Role-based portals",
+      "Offline-ready workflows",
+      "Secure audit trails",
+      "Multi-campus support"
+    ],
+    "diagram_path": "images/marketing/module-communication.svg",
+    "data_viz_path": "images/marketing/illustration-students.svg",
+    "data_viz_caption": "Guardian-first layouts work across phones and tablets.",
+    "premium_platform_layout": true,
+    "suppress_footer_clusters": true,
+    "stock_photo_url": "https://images.unsplash.com/photo-1516321497597-700fd17563d7?auto=format&fit=crop&w=1600&q=75",
+    "stock_photo_alt": "Adult using a smartphone in a calm home environment",
+    "stock_photo_credit": "Photo via Unsplash",
+    "problem_section": {
+      "title": "Families deserve one coherent channel",
+      "body": "When updates arrive through fragmented chats and PDFs, engagement drops. RunMyCampus concentrates fees, attendance, grades, announcements, and messages into a portal tuned for busy parents."
+    },
+    "workflow_steps": [
+      "School publishes update",
+      "Parent notified",
+      "Self-service views",
+      "Action on fees/forms",
+      "History retained"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "Parents & guardians",
+        "bullets": [
+          "Mobile-friendly clarity without chasing admin",
+          "Aligned messaging alongside billing truth"
+        ]
+      },
+      {
+        "role": "Administrators",
+        "bullets": [
+          "Fewer repetitive inquiries",
+          "Delivery targeting by cohort or campus"
+        ]
+      },
+      {
+        "role": "Teachers",
+        "bullets": [
+          "Share class-level context responsibly",
+          "Reduce duplicate outreach channels"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Communications",
+        "path": "/platform/communications/"
+      },
+      {
+        "label": "Fees & Payments",
+        "path": "/platform/fees-payments/"
+      },
+      {
+        "label": "Student Portal",
+        "path": "/platform/student-portal/"
+      },
+      {
+        "label": "Attendance",
+        "path": "/platform/attendance/"
+      }
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-01T19:05:37.616718+00:00",
+  "generated_at": "2026-05-02T23:59:26.275855+00:00",
   "hits": [
     {
       "classification": "test_safe",
@@ -794,6 +794,12 @@
       "pattern": "subprocess.run"
     },
     {
+      "classification": "needs_review",
+      "file": "apps/schools/super_views_enterprise_security.py",
+      "line": "195",
+      "pattern": "subprocess.get"
+    },
+    {
       "classification": "test_safe",
       "file": "apps/schools/tests/test_premium_maturity_signals_report.py",
       "line": "20",
@@ -1048,13 +1054,13 @@
     {
       "classification": "deployment_script_safe",
       "file": "scripts/run_kill_test.py",
-      "line": "87",
+      "line": "89",
       "pattern": "subprocess.run"
     },
     {
       "classification": "deployment_script_safe",
       "file": "scripts/run_kill_test.py",
-      "line": "144",
+      "line": "146",
       "pattern": "subprocess.run"
     },
     {
@@ -1234,6 +1240,6 @@
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 205
+    "hits": 206
   }
 }

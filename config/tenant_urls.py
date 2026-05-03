@@ -340,6 +340,14 @@ urlpatterns = [
         include(("apps.apicenter.urls", "apicenter"), namespace="apicenter"),
     ),
     path(
+        "domain-events/",
+        include(("apps.events.urls", "events"), namespace="events"),
+    ),
+    path(
+        "automation/",
+        include(("apps.automation.urls", "automation"), namespace="automation"),
+    ),
+    path(
         "authentication/",
         include(("apps.accounts.urls", "accounts"), namespace="accounts"),
     ),
@@ -361,6 +369,13 @@ urlpatterns = [
     path(
         "analytics/",
         include(("apps.analytics.urls", "analytics"), namespace="analytics"),
+    ),
+    path(
+        "platform-runtime/",
+        include(
+            ("apps.platform_runtime.urls", "platform_runtime"),
+            namespace="platform_runtime",
+        ),
     ),
     path("finance/", include(("apps.finance.urls", "finance"), namespace="finance")),
     path("payroll/", include(("apps.payroll.urls", "payroll"), namespace="payroll")),

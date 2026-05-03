@@ -1745,3 +1745,17 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django.middleware.clickjacking.XFrameOptionsMiddleware",
     ]
     # TenantMiddleware is not used; TenantMainMiddleware + TenantSchemaSchoolBridgeMiddleware provide request.school
+
+# Tenant lifecycle automation (retention playbooks + churn thresholds); numbers are env-overridable.
+TENANT_LIFECYCLE_CHURN_PAYMENT_FAILED_DAYS = int(
+    os.getenv("TENANT_LIFECYCLE_CHURN_PAYMENT_FAILED_DAYS", "30")
+)
+TENANT_LIFECYCLE_CHURN_INACTIVITY_DAYS = int(
+    os.getenv("TENANT_LIFECYCLE_CHURN_INACTIVITY_DAYS", "90")
+)
+TENANT_LIFECYCLE_ONBOARDING_STALL_DAYS = int(
+    os.getenv("TENANT_LIFECYCLE_ONBOARDING_STALL_DAYS", "7")
+)
+TENANT_LIFECYCLE_FIRST_ACTION_STALL_DAYS = int(
+    os.getenv("TENANT_LIFECYCLE_FIRST_ACTION_STALL_DAYS", "14")
+)

@@ -1,0 +1,92 @@
+{
+  "label": "Offline-First Operations",
+  "seo_title": "Offline-First School Software | RunMyCampus",
+  "seo_description": "Attendance, marks, and receipt capture offline with sync queues and conflict review.",
+  "headline": "Keep operations moving when connectivity drops.",
+  "subheadline": "Resilience for congested networks, rural links, and travel—wherever your schools operate.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Capture-first UX",
+      "body": "Teachers and finance capture facts offline when needed."
+    },
+    {
+      "title": "Sync discipline",
+      "body": "Queues reconcile under tenant isolation."
+    },
+    {
+      "title": "Conflict transparency",
+      "body": "Operators resolve clashes without silent merges."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Flexible academic calendars",
+      "Multi-currency fee structures",
+      "Role-based portals",
+      "Offline-ready workflows",
+      "Secure audit trails",
+      "Multi-campus support"
+    ],
+    "diagram_path": "images/marketing/setup-studio-flow.svg",
+    "premium_platform_layout": true,
+    "suppress_footer_clusters": true,
+    "stock_photo_url": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1600&q=75",
+    "stock_photo_alt": "Mobile devices representing resilient connectivity",
+    "stock_photo_credit": "Photo via Unsplash",
+    "problem_section": {
+      "title": "Connectivity should not halt school operations",
+      "body": "Attendance and capture moments happen everywhere—from buses to rural campuses. RunMyCampus queues work offline and reconciles with governance when connections return."
+    },
+    "workflow_steps": [
+      "Capture offline",
+      "Queue securely",
+      "Reconnect",
+      "Sync",
+      "Review conflicts",
+      "Retain audit trail"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "Teachers",
+        "bullets": [
+          "Keep marking attendance without guessing later",
+          "Less stress during outages"
+        ]
+      },
+      {
+        "role": "Finance",
+        "bullets": [
+          "Receipt capture that survives sketchy networks",
+          "Traceable reconciliation windows"
+        ]
+      },
+      {
+        "role": "Leadership",
+        "bullets": [
+          "Operational resilience as a design choice",
+          "Not a regional compromise story"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Attendance",
+        "path": "/platform/attendance/"
+      },
+      {
+        "label": "Security & Governance",
+        "path": "/platform/security/"
+      },
+      {
+        "label": "Teacher Portal",
+        "path": "/platform/teacher-portal/"
+      },
+      {
+        "label": "Analytics",
+        "path": "/platform/analytics/"
+      }
+    ]
+  }
+}

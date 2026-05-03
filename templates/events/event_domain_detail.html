@@ -1,0 +1,96 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block backend_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+{% trans "Back to event console" as back_console %}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=payload_summary action_url=console_url action_text=back_console %}
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header"><h5 class="mb-0">{% trans "Unified contract" %}</h5></div>
+    <div class="card-body">
+      <pre class="small bg-light p-2 rounded overflow-auto">{{ contract_json }}</pre>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header"><h5 class="mb-0">{% trans "Webhook deliveries (domain path)" %}</h5></div>
+    <div class="card-body p-0">
+      {% if deliveries %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 table-family">
+          <thead class="table-light">
+            <tr>
+              <th>{% trans "Subscription" %}</th>
+              <th>{% trans "Status" %}</th>
+              <th>{% trans "HTTP" %}</th>
+              <th>{% trans "Retries" %}</th>
+              <th>{% trans "Updated" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in deliveries %}
+            <tr>
+              <td class="small text-break">{{ d.subscription.url }}</td>
+              <td><span class="badge bg-secondary">{{ d.status }}</span></td>
+              <td>{{ d.http_status|default:"—" }}</td>
+              <td>{{ d.retry_count }}</td>
+              <td>{{ d.attempted_at|default:d.created_at }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted px-3 py-3 mb-0">{% trans "No webhook delivery rows for this event." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header"><h5 class="mb-0">{% trans "Subscriber path" %}</h5></div>
+    <div class="card-body">
+      <p class="mb-2 small text-muted">{% trans "Internal subscribers run during outbox processing (apps.events.bus.dispatch_internal_subscribers)." %}</p>
+      {% if replay_note %}<p class="small alert alert-warning mb-0">{{ replay_note }}</p>{% endif %}
+    </div>
+  </div>
+
+  {% if matching_visual_workflows %}
+  <div class="card shadow-sm mb-3" data-rmc-event-studio-automation-link="1">
+    <div class="card-header"><h5 class="mb-0">{% trans "Used by automation (visual workflows)" %}</h5></div>
+    <div class="card-body">
+      <p class="small text-muted mb-2">{% trans "Workflows whose trigger matches this event type for this school." %}</p>
+      <ul class="mb-2">
+        {% for wf in matching_visual_workflows %}
+        <li><strong>{{ wf.name }}</strong> — <code>{{ wf.trigger_event }}</code> ({{ wf.get_status_display }})</li>
+        {% endfor %}
+      </ul>
+      {% if outcomes_console_url %}
+      <p class="mb-0"><a href="{{ outcomes_console_url }}">{% trans "Automation outcomes & execution logs" %}</a></p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if replay_eligible %}
+  <div class="card shadow-sm">
+    <div class="card-header"><h5 class="mb-0">{% trans "Replay (safe clone)" %}</h5></div>
+    <div class="card-body">
+      <form method="post" action="{% url 'events:event_replay' %}" data-task="event_replay" data-task-step="events:domain-replay-submit">
+        {% csrf_token %}
+        <input type="hidden" name="source" value="domain" />
+        <input type="hidden" name="domain_event_id" value="{{ event.id }}" />
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="process_outbox" id="process_outbox" value="1" checked />
+          <label class="form-check-label" for="process_outbox">{% trans "Process outbox after clone (subscribers + webhook queue)" %}</label>
+        </div>
+        <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "Replay domain event" %}</button>
+      </form>
+      <p class="small text-muted mt-2 mb-0">{% trans "Creates a new pending DomainEvent with audit metadata in payload._replay_meta (does not mutate this row)." %}</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

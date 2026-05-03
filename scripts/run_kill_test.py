@@ -79,6 +79,8 @@ def main(argv: list[str] | None) -> int:
     test_db_security = str(dbs_dir / f"kill_test_security_{run_id}.sqlite3")
     test_db_degraded = str(dbs_dir / f"kill_test_degraded_{run_id}.sqlite3")
     base_env = os.environ.copy()
+    # Tests must use repo SQLite defaults; stray DATABASE_URL can block subprocess on Postgres.
+    base_env.pop("DATABASE_URL", None)
 
     scenarios: list[dict[str, object]] = []
 

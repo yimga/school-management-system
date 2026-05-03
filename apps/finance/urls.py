@@ -25,11 +25,23 @@ from .views import (
     expense_vs_budget,
 )
 from .views_reports import finance_reports, submit_report_request
+from .views_payment_setup import payment_readiness_setup
+from .views_payment_readiness_dashboard import payment_readiness_dashboard
 
 app_name = "finance"
 
 urlpatterns = [
     path("", dashboard, name="dashboard"),
+    path(
+        "payment-setup/",
+        payment_readiness_setup,
+        name="payment_readiness_setup",
+    ),
+    path(
+        "payment-readiness/",
+        payment_readiness_dashboard,
+        name="payment_readiness_dashboard",
+    ),
     path("invoices/", invoice_list, name="invoices"),
     path("invoices/<int:invoice_id>/", invoice_detail, name="invoice_detail"),
     path(

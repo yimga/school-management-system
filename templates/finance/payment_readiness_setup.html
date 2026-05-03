@@ -1,0 +1,98 @@
+{% extends "portal_base.html" %}
+{% load static %}
+{% block title %}Payment setup & readiness{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-page-archetype="finance-payment-setup" data-task="payment_readiness_setup" data-task-step="finance:readiness-root">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <p class="text-muted small mb-1">Finance · Global corridors</p>
+      <h1 class="h3 mb-1">{{ readiness.headline }}</h1>
+      <p class="text-muted mb-0">{{ readiness.subhead }}</p>
+    </div>
+    <span class="badge rounded-pill bg-{{ status_badge_class }} align-self-center fs-6">
+      {% if readiness.status == "READY" %}Ready{% elif readiness.status == "FALLBACK_ONLY" %}Fallback only{% else %}Needs setup{% endif %}
+    </span>
+  </div>
+
+  {% if readiness.drill_manual_if_all_rails_down %}
+  <div class="alert alert-info">
+    If every online gateway fails, guardians should still follow the manual receipt path —
+    finance staff reconciles uploads before balances update.
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h5">Setup checklist</h2>
+          <p class="small text-muted">Work top to bottom — no technical jargon required.</p>
+          <ul class="list-group list-group-flush">
+            {% for item in readiness.checklist %}
+            <li class="list-group-item d-flex justify-content-between align-items-start gap-3">
+              <div>
+                <div class="fw-semibold">{{ item.label }}</div>
+                <div class="small text-muted">{{ item.detail }}</div>
+              </div>
+              {% if item.done %}
+              <span class="badge bg-success">Done</span>
+              {% else %}
+              <span class="badge bg-warning text-dark">To do</span>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h2 class="h5">Country & currency</h2>
+          <dl class="row mb-0 small">
+            <dt class="col-sm-5">Compliance profile</dt>
+            <dd class="col-sm-7">{{ profile.name }}</dd>
+            <dt class="col-sm-5">Country</dt>
+            <dd class="col-sm-7">{{ readiness.country_code|default:"—" }}</dd>
+            <dt class="col-sm-5">Currency</dt>
+            <dd class="col-sm-7">{{ readiness.currency_code|default:"—" }}</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h2 class="h5">Recommended methods</h2>
+          <p class="small text-muted mb-2">
+            Primary first, backup second — matches guardian-facing hints for this corridor.
+          </p>
+          <ul class="mb-0">
+            <li><strong>Primary:</strong> {{ readiness.recommended_primary_rail|default:"—" }}</li>
+            <li><strong>Backup:</strong> {{ readiness.recommended_backup_rail|default:"—" }}</li>
+          </ul>
+        </div>
+      </div>
+      {% if readiness.operator_setup_steps %}
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h5">Operator playbook</h2>
+          <ol class="small mb-0 ps-3">
+            {% for step in readiness.operator_setup_steps %}
+            <li class="mb-2">{{ step }}</li>
+            {% endfor %}
+          </ol>
+        </div>
+      </div>
+      {% endif %}
+      {% if readiness.provider_notes %}
+      <div class="card shadow-sm mt-3 border-secondary">
+        <div class="card-body">
+          <h2 class="h6 text-muted">Outside RunMyCampus</h2>
+          <p class="small mb-0">{{ readiness.provider_notes }}</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

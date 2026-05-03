@@ -24,12 +24,18 @@ Optional: illustration_url, purpose (short "why this matters"), secondary_action
   {% endif %}
   <div class="dashboard-empty-actions">
     {% if action_url and action_text %}
-    <a href="{{ action_url }}" class="btn btn-primary ds-btn dashboard-empty-action me-2">
+    <a href="{{ action_url }}" class="btn btn-primary ds-btn dashboard-empty-action me-2"
+       data-action="{{ empty_primary_action|default:'empty-state-primary' }}"
+       {% if empty_primary_task %}data-task="{{ empty_primary_task }}"{% endif %}
+       {% if empty_primary_step %}data-task-step="{{ empty_primary_step }}"{% endif %}>
       <i class="bi bi-plus-circle me-2"></i>{{ action_text }}
     </a>
     {% endif %}
     {% if secondary_action_url and secondary_action_text %}
-    <a href="{{ secondary_action_url }}" class="btn btn-outline-secondary ds-btn dashboard-empty-action-secondary">
+    <a href="{{ secondary_action_url }}" class="btn btn-outline-secondary ds-btn dashboard-empty-action-secondary"
+       data-action="{{ empty_secondary_action|default:'empty-state-secondary' }}"
+       {% if empty_secondary_task %}data-task="{{ empty_secondary_task }}"{% endif %}
+       {% if empty_secondary_step %}data-task-step="{{ empty_secondary_step }}"{% endif %}>
       {{ secondary_action_text }}
     </a>
     {% endif %}

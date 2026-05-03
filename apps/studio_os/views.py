@@ -983,14 +983,96 @@ def studio_automation_natural_language_workflow(request):
 @require_http_methods(["GET"])
 @login_required
 def studio_automation_simulation_engine(request):
-    """§4.3 Automation Studio optional: Simulation engine. Explains run-before-activate; links to Workflow hub."""
-    return _automation_explainer_view(
+    """§4.3 Automation Studio: simulation guidance + canonical trigger payloads + API pointers."""
+    if not user_can_access_studio_on_request(request):
+        return redirect(reverse("accounts:backend_dashboard"))
+    workflow_hub_url = ""
+    try:
+        workflow_hub_url = reverse("studio_os:automation") + "?pane=workflow"
+    except NoReverseMatch:
+        pass
+    visual_designer_url = ""
+    outcomes_console_url = ""
+    simulate_api_url = ""
+    dispatch_test_api_url = ""
+    publish_api_url = ""
+    try:
+        visual_designer_url = reverse("automation:visual_workflow_designer")
+    except NoReverseMatch:
+        pass
+    try:
+        outcomes_console_url = reverse("automation:outcomes_console")
+    except NoReverseMatch:
+        pass
+    try:
+        simulate_api_url = reverse("automation:visual_workflow_simulate")
+    except NoReverseMatch:
+        pass
+    try:
+        dispatch_test_api_url = reverse("automation:visual_workflow_dispatch_test")
+    except NoReverseMatch:
+        pass
+    try:
+        publish_api_url = reverse("automation:visual_workflow_publish")
+    except NoReverseMatch:
+        pass
+
+    domain_events_console_url = ""
+    try:
+        domain_events_console_url = reverse("events:event_console")
+    except NoReverseMatch:
+        pass
+    domain_events_analytics_url = ""
+    try:
+        domain_events_analytics_url = reverse("events:event_analytics_console")
+    except NoReverseMatch:
+        pass
+
+    school = getattr(request, "school", None)
+    school_id = str(school.pk) if school is not None else ""
+    canonical_triggers = []
+    if school_id:
+        from apps.automation.workflow_trigger_catalog import (
+            get_operator_trigger_catalog_for_school,
+        )
+
+        canonical_triggers = get_operator_trigger_catalog_for_school(
+            school_id, slice_only=False
+        )
+
+    ready_playbooks = []
+    if school_id:
+        from apps.automation.workflow_playbook_templates import (
+            enrich_playbooks_for_template,
+        )
+
+        ready_playbooks = enrich_playbooks_for_template(school_id)
+
+    return _render_studio_subpage(
         request,
-        "studio_os/partials/subpages/automation_simulation_engine.html",
-        _("Simulation engine"),
-        _(
-            "Run workflow simulations before going live. Verify behavior and impact from the Workflow hub, then activate when ready."
-        ),
+        canvas_partial="studio_os/partials/subpages/automation_simulation_engine.html",
+        embed_title=f"{_('Simulation engine')} · {str(_('Automation'))}",
+        shell_title=f"{_('Simulation engine')} · {str(_('Automation'))}",
+        page_context={
+            "workflow_hub_url": workflow_hub_url,
+            "visual_designer_url": visual_designer_url,
+            "outcomes_console_url": outcomes_console_url,
+            "simulate_api_url": simulate_api_url,
+            "dispatch_test_api_url": dispatch_test_api_url,
+            "publish_api_url": publish_api_url,
+            "domain_events_console_url": domain_events_console_url,
+            "domain_events_analytics_url": domain_events_analytics_url,
+            "canonical_triggers": canonical_triggers,
+            "ready_playbooks": ready_playbooks,
+            "page_title": _("Simulation engine"),
+            "page_subtitle": _(
+                "Preview triggers, conditions, and actions before publishing. "
+                "Simulation is dry-run only; live runs write audit rows visible in Automation outcomes."
+            ),
+            "action_url": reverse("studio_os:automation"),
+            "action_text": _("Back to Automation"),
+        },
+        current_mode="automation",
     )
 
 

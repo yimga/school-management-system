@@ -69,6 +69,7 @@ class Command(BaseCommand):
         # 2. Resolve key marketing URL names
         url_names = [
             "marketing_landing",
+            "marketing_demo",
             "marketing_book_demo",
             "marketing_10_reasons",
             "marketing_interactive_preview",
@@ -226,6 +227,7 @@ class Command(BaseCommand):
                 self.stdout.write("Smoke-testing key URLs (test client)...")
                 smoke_names = [
                     "marketing_landing",
+                    "marketing_demo",
                     "marketing_book_demo",
                     "marketing_10_reasons",
                     "marketing_integrations",
@@ -240,7 +242,7 @@ class Command(BaseCommand):
                         pass
                 for path in paths:
                     try:
-                        resp = client.get(path, HTTP_HOST=host)
+                        resp = client.get(path, HTTP_HOST=host, follow=True)
                         if resp.status_code == 200:
                             self.stdout.write(self.style.SUCCESS(f"  GET {path} -> 200"))
                         else:

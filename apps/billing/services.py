@@ -943,6 +943,27 @@ def finalize_marketplace_addon_payment(
                 )
                 publisher_share_recorded = True
 
+    try:
+        from apps.marketplace.monetization_ledger_ops import (
+            append_payment_success_ledger,
+            infer_production_psp_for_ledger,
+        )
+
+        pay_ref = session_ref or str(snapshot.get("processor_source_ref") or "").strip()
+        if pay_ref and amt > 0:
+            prod = infer_production_psp_for_ledger(school, snapshot, processor_code)
+            append_payment_success_ledger(
+                school=school,
+                app=app,
+                amount=amt,
+                currency=curr,
+                processor_ref=pay_ref,
+                processor_code=str(processor_code or "")[:32],
+                production_psp=prod,
+            )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+
     return {
         "status": "applied",
         "addon_codes_updated": entitlement_codes if addon_changed else [],

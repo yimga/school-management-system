@@ -1,0 +1,136 @@
+{
+  "schema_version": 2,
+  "generated_at": "2026-05-03",
+  "review_engine": "Category Scope Review (derived from system_closure_map)",
+  "source_closure_map": "docs/generated/system_closure_map.json",
+  "systems_in_registry": [
+    {
+      "id": "developer_platform",
+      "gap_status": "closed",
+      "missing_pieces_summary": null,
+      "repo_actionable_remaining": false,
+      "external_only_remaining": false,
+      "classification": "closed"
+    },
+    {
+      "id": "workflow_engine",
+      "gap_status": "closed",
+      "missing_pieces_summary": null,
+      "repo_actionable_remaining": false,
+      "external_only_remaining": false,
+      "classification": "closed"
+    },
+    {
+      "id": "event_system",
+      "gap_status": "closed",
+      "missing_pieces_summary": null,
+      "repo_actionable_remaining": false,
+      "external_only_remaining": false,
+      "classification": "closed"
+    },
+    {
+      "id": "data_platform",
+      "gap_status": "closed",
+      "missing_pieces_summary": null,
+      "repo_actionable_remaining": false,
+      "external_only_remaining": false,
+      "classification": "closed"
+    },
+    {
+      "id": "tenant_lifecycle",
+      "gap_status": "closed",
+      "missing_pieces_summary": null,
+      "repo_actionable_remaining": false,
+      "external_only_remaining": false,
+      "classification": "closed"
+    },
+    {
+      "id": "offline_first",
+      "gap_status": "closed",
+      "missing_pieces_summary": null,
+      "repo_actionable_remaining": false,
+      "external_only_remaining": false,
+      "classification": "closed"
+    },
+    {
+      "id": "global_payments",
+      "gap_status": "partial",
+      "missing_pieces_summary": "Credential-backed live PSP merchant onboarding and production payment-gateway ping (Stripe/Paystack/Flutterwave/MoMo production/SEPA bank APIs) \u2014 external contracts and secrets; not representable as closed inside this repository",
+      "repo_actionable_remaining": false,
+      "external_only_remaining": true,
+      "classification": "partial_external_blocker"
+    },
+    {
+      "id": "experience_control",
+      "gap_status": "closed",
+      "missing_pieces_summary": null,
+      "repo_actionable_remaining": false,
+      "external_only_remaining": false,
+      "classification": "closed"
+    },
+    {
+      "id": "marketplace_monetization",
+      "gap_status": "partial",
+      "missing_pieces_summary": "Live PSP merchant settlement + production gateway health ping \u2014 tenant/external (global_payments); honest ledger never fabricates settlement_completed without processor truth",
+      "repo_actionable_remaining": false,
+      "external_only_remaining": true,
+      "classification": "partial_external_blocker"
+    },
+    {
+      "id": "enterprise_security",
+      "gap_status": "closed",
+      "missing_pieces_summary": null,
+      "repo_actionable_remaining": false,
+      "external_only_remaining": false,
+      "classification": "closed"
+    }
+  ],
+  "systems_requested_but_not_in_closure_map": [],
+  "note_not_in_registry": "All Path B expansion labels present in closure map systems[].",
+  "repo_controlled_scope": [
+    "Application code paths covered by shipped slices",
+    "Tests and mechanical verifiers",
+    "Operator dashboards and configuration contracts surfaced in-repo",
+    "Adaptor/metadata gateway health checks without live charges",
+    "Tenant isolation and audit logs where implemented"
+  ],
+  "external_controlled_scope": [
+    "PSP merchant account approval and production credentials",
+    "Production payment-gateway connectivity probes beyond honest metadata checks",
+    "Bank/partner contracts",
+    "SOC2/ISO attestations not represented as code",
+    "App store publication and third-party edu vendor approvals where applicable"
+  ],
+  "category_classification": "CATEGORY DEFINING \u2014 REPO SCOPE \u2014 external blockers remain",
+  "floor_classification": "PLATFORM LEVEL READY \u2014 external blockers remain",
+  "full_market_blocked_by": [
+    "global_payments",
+    "marketplace_monetization"
+  ],
+  "proof_gates": {
+    "generate_system_closure_map": "PASS \u2014 program_gap_registry_version 6; partial_batches ['1158']",
+    "generate_category_scope_review": "PASS \u2014 scripts/generate_category_scope_review.py --write",
+    "generate_platform_inventory": "PASS \u2014 scripts/generate_platform_inventory.py --write",
+    "targeted_tests_registry_slice": "PASS \u2014 Ran 70 OK (finance_payment.sqlite3 keepdb; magic UX + monetization + billing + apicenter + security + compliance exports)",
+    "security_trio_memory_sqlite": "PASS \u2014 PYTHONUNBUFFERED=1 env -u DATABASE_URL RMC_SQLITE_TEST_MEMORY=1 RMC_SQLITE_TEST_USE_MEMORY_NAME=1 manage.py test security trio \u2014 Ran 15 OK",
+    "run_kill_test": "PENDING re-verify on merge host \u2014 scripts/run_kill_test.py did not complete within agent wall-clock this wave",
+    "audit_route_surface": "ROUTE SYSTEM CERTIFIED broken_count=0",
+    "audit_luxury_ui_surface": "PASS 15/15 ULTRA-LUXURY",
+    "verify_design_system_phase2": "PASS",
+    "verify_shell_surface_inventory": "PASS",
+    "verify_phase2_authenticated_shell_conformance": "PASS",
+    "audit_regional_ui_surface": "OK",
+    "audit_security_surface": "OK",
+    "audit_post_surface": "OK",
+    "audit_tenant_isolation": "OK",
+    "audit_raw_sql_usage": "OK",
+    "audit_subprocess_usage": "OK",
+    "audit_gilead_references_strict_public": "OK",
+    "verify_compliance_evidence": "OK",
+    "verify_test_module_contract": "OK",
+    "run_northstar_audit": "75/75 DOMINANT",
+    "verify_doc_plan_density_discipline": "PASS",
+    "verify_sot_pillar_evidence": "OK (104 paths)"
+  },
+  "final_verdict": "CATEGORY DEFINING \u2014 REPO SCOPE"
+}

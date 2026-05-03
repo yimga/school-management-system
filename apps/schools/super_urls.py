@@ -378,6 +378,20 @@ urlpatterns = [
         name="security_hub",
     ),
     path(
+        "security/command-center/",
+        require_super_access_with_host(
+            super_views_enterprise_security.super_security_hub
+        ),
+        name="security_command_center",
+    ),
+    path(
+        "enterprise-security-command-center/",
+        require_super_access_with_host(
+            super_views_enterprise_security.super_security_hub
+        ),
+        name="enterprise_security_command_center",
+    ),
+    path(
         "marketplace/",
         require_super_access_with_host(marketplace_views.governance_console),
         name="marketplace_governance",

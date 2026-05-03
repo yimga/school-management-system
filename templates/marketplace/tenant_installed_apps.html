@@ -139,15 +139,25 @@
         <li class="list-group-item p-0">
           <div class="py-4">
             {% url 'tenant_app_catalog' as catalog_url %}
-            {% include "components/dashboard_empty_state.html" with icon="bi-box-seam" title=_("No apps installed.") message=_("Install apps from the catalog to sandbox first, then activate when ready.") action_url=catalog_url action_text=_("Browse app catalog") %}
+            {% include "components/dashboard_empty_state.html" with icon="bi-box-seam" title=_("No apps installed.") message=_("Install apps from the catalog to sandbox first, then activate when ready.") action_url=catalog_url action_text=_("Browse app catalog") empty_primary_task="marketplace_install" empty_primary_step="marketplace:installed-empty-primary" %}
           </div>
         </li>
         {% endfor %}
       </ul>
     </div>
   </div>
+  {% if rmc_conversion_single_action_enforced|default:False %}
+  <details class="rmc-conversion-more-actions mt-3">
+    <summary class="btn btn-sm btn-outline-secondary mb-0">{% trans "More" %}</summary>
+    <div class="pt-2 d-flex flex-wrap gap-2">
+      <a href="{% url 'tenant_app_catalog' %}" class="btn btn-outline-primary btn-sm" data-action="marketplace-browse-catalog" data-task="marketplace_install" data-task-step="marketplace:installed-footer-catalog">{% trans "Browse app catalog" %}</a>
+      <a href="{% url 'tenant_scope_consent' %}" class="btn btn-outline-secondary btn-sm" data-task="marketplace_install" data-task-step="marketplace:installed-footer-scopes">{% trans "Scope consent" %}</a>
+    </div>
+  </details>
+  {% else %}
   <a href="{% url 'tenant_app_catalog' %}" class="btn btn-outline-primary">{% trans "Browse app catalog" %}</a>
   <a href="{% url 'tenant_scope_consent' %}" class="btn btn-outline-secondary">{% trans "Scope consent" %}</a>
+  {% endif %}
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       if (!window.rmcClickTaskBoundary) return;

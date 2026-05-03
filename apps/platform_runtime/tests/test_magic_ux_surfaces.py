@@ -22,6 +22,7 @@ class DashboardEmptyStateMagicUxTests(SimpleTestCase):
         )
         self.assertIn("dashboard-empty-state", html)
         self.assertIn('data-empty-state="action-state"', html)
+        self.assertIn('data-action="empty-state-primary"', html)
 
 
 class CccGuidedActivationStripMagicUxTests(SimpleTestCase):

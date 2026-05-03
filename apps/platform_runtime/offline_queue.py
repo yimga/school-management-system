@@ -162,29 +162,48 @@ _OFFLINE_SOFT_ERRORS = (
 )
 
 
-def _emit_offline_action_synced(action_row: Any, sync_metadata: Optional[dict] = None) -> None:
-    """Emit platform event when an OfflineAction reaches SYNCED (idempotent key per row)."""
+def _emit_offline_lifecycle_event(
+    event_name: str,
+    action_row: Any,
+    *,
+    extra: Optional[dict[str, Any]] = None,
+    idempotency_key: str | None = None,
+) -> None:
+    """Thin wrapper for offline queue observability (best-effort)."""
     try:
         from apps.platform_runtime.event_bus import publish_event
 
         sid = getattr(action_row, "school_id", None)
         tid = str(sid) if sid is not None else ""
+        payload = {
+            "offline_action_id": action_row.pk,
+            "action_type": str(getattr(action_row, "action_type", "") or ""),
+            "user_id": getattr(action_row, "user_id", None),
+            "school_id": tid,
+            "source": "offline_queue",
+        }
+        if extra:
+            payload.update(extra)
+        key = idempotency_key or f"{event_name}:{action_row.pk}"
         publish_event(
-            "offline_action_synced",
-            {
-                "offline_action_id": action_row.pk,
-                "action_type": str(getattr(action_row, "action_type", "") or ""),
-                "user_id": getattr(action_row, "user_id", None),
-                "school_id": tid,
-                "source": "offline_queue",
-                "sync_metadata": sync_metadata or {},
-            },
+            event_name,
+            payload,
             tenant_id=tid or None,
             school_id=sid,
-            idempotency_key=f"offline_action_synced:{action_row.pk}",
+            idempotency_key=str(key)[:128],
         )
     except Exception:
-        logger.debug("offline_action_synced publish skipped", exc_info=True)
+        logger.debug("%s publish skipped", event_name, exc_info=True)
+
+
+def _emit_offline_action_synced(action_row: Any, sync_metadata: Optional[dict] = None) -> None:
+    """Emit platform event when an OfflineAction reaches SYNCED (idempotent key per row)."""
+    _emit_offline_lifecycle_event(
+        "offline_action_synced",
+        action_row,
+        extra={"sync_metadata": sync_metadata or {}},
+        idempotency_key=f"offline_action_synced:{action_row.pk}",
+    )
 
 
 def enqueue_offline_action(
@@ -210,7 +229,7 @@ def enqueue_offline_action(
         if existing:
             return existing
 
-    return OfflineAction.objects.create(
+    row = OfflineAction.objects.create(
         user_id=user_id,
         school_id=school_id,
         action_type=action_type,
@@ -218,6 +237,13 @@ def enqueue_offline_action(
         idempotency_key=key,
         status=OfflineAction.Status.QUEUED,
     )
+    _emit_offline_lifecycle_event(
+        "offline_action_queued",
+        row,
+        extra={"idempotency_key": key or ""},
+        idempotency_key=f"offline_action_queued:{row.pk}",
+    )
+    return row
 
 
 def mark_synced(action_id: int, *, school_id, metadata: Optional[dict] = None) -> None:
@@ -252,6 +278,17 @@ def mark_conflict(
         resolution_choice="",
         last_attempt_at=timezone.now(),
     )
+    crow = OfflineAction.objects.filter(pk=action_id, school_id=school_id).first()
+    if crow:
+        _emit_offline_lifecycle_event(
+            "offline_action_conflict",
+            crow,
+            extra={
+                "reason": (reason or "")[:500],
+                "conflict_details": details or {},
+            },
+            idempotency_key=f"offline_action_conflict:{crow.pk}",
+        )
 
 
 def retry_failed_actions(
@@ -328,6 +365,7 @@ def _apply_teacher_attendance(
                 "details": {
                     "server_status": existing.status,
                     "client_status": status_val,
+                    "server_remarks": getattr(existing, "remarks", "") or "",
                     "teacher_attendance_id": existing.id,
                 },
             }
@@ -417,6 +455,7 @@ def _apply_attendance(
                 "details": {
                     "server_status": existing.status,
                     "client_status": status_val,
+                    "server_remarks": getattr(existing, "remarks", "") or "",
                     "attendance_id": existing.id,
                 },
             }
@@ -625,6 +664,14 @@ def process_offline_queue(
                 conflict_reason=str(exc)[:2000],
                 last_attempt_at=timezone.now(),
             )
+            failed_row = OfflineAction.objects.filter(pk=row.pk, school_id=school_id).first()
+            if failed_row:
+                _emit_offline_lifecycle_event(
+                    "offline_action_failed",
+                    failed_row,
+                    extra={"error": str(exc)[:500]},
+                    idempotency_key=f"offline_action_failed:{failed_row.pk}:{failed_row.retry_count}",
+                )
             failed += 1
             processed += 1
             continue
@@ -654,6 +701,14 @@ def process_offline_queue(
                 conflict_reason=str(result.get("error") or "Apply failed")[:2000],
                 last_attempt_at=timezone.now(),
             )
+            failed_row = OfflineAction.objects.filter(pk=row.pk, school_id=school_id).first()
+            if failed_row:
+                _emit_offline_lifecycle_event(
+                    "offline_action_failed",
+                    failed_row,
+                    extra={"error": str(result.get("error") or "Apply failed")[:500]},
+                    idempotency_key=f"offline_action_failed:{failed_row.pk}:{failed_row.retry_count}",
+                )
             failed += 1
         processed += 1
 
@@ -671,6 +726,7 @@ def resolve_conflict_choice(
     school_id,
     user_id: int,
     choice: str,
+    school_operator: bool = False,
 ) -> dict[str, Any]:
     """
     User-driven resolution only.
@@ -678,6 +734,8 @@ def resolve_conflict_choice(
     - keep_mine: re-apply stored client payload (same as initial intent).
     - use_latest: mark synced without re-applying client payload (abandon local edit).
     - review_manual: leave as conflict; operator fixes on the canonical screen.
+
+    ``school_operator``: tenant hub-eligible resolver may act on any user's queue row.
     """
     from apps.platform_runtime.models import OfflineAction
 
@@ -689,12 +747,14 @@ def resolve_conflict_choice(
     ):
         return {"ok": False, "error": "invalid choice"}
 
-    row = OfflineAction.objects.filter(
+    qs = OfflineAction.objects.filter(
         pk=action_id,
         school_id=school_id,
-        user_id=user_id,
         status=OfflineAction.Status.CONFLICT,
-    ).first()
+    )
+    if not school_operator:
+        qs = qs.filter(user_id=user_id)
+    row = qs.first()
     if row is None:
         return {"ok": False, "error": "Not found or not in conflict."}
 
@@ -703,10 +763,24 @@ def resolve_conflict_choice(
     audit_blob = {
         "resolved_at": audit_ts.isoformat(),
         "resolver_user_id": user_id,
+        "original_submitter_user_id": row.user_id,
         "choice": choice,
+        "school_operator": school_operator,
     }
-    row.sync_metadata = {**(row.sync_metadata or {}), "resolution_audit": audit_blob}
+    meta = dict(row.sync_metadata or {})
+    hist = list(meta.get("resolution_audits") or [])
+    hist.append(audit_blob)
+    meta["resolution_audits"] = hist[-25:]
+    meta["resolution_audit"] = audit_blob
+    row.sync_metadata = meta
     row.save(update_fields=["resolution_choice", "sync_metadata", "updated_at"])
+
+    _emit_offline_lifecycle_event(
+        "offline_action_resolved",
+        row,
+        extra={"resolution_choice": choice, "terminal": False},
+        idempotency_key=f"offline_action_resolved:{row.pk}:{audit_blob['resolved_at']}",
+    )
 
     if choice == OfflineAction.Resolution.REVIEW_MANUAL:
         return {"ok": True, "status": "manual_review"}

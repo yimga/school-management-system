@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from .models import AutomationExecutionLog, MigrationRun
+from .workflow_graph_models import WorkflowRunLog
 
 
 def _staff_required(user):
@@ -20,7 +21,7 @@ def _staff_required(user):
 @user_passes_test(_staff_required)
 def outcomes_console(request):
     """
-    Outcomes-only console: recent migration runs and execution logs.
+    Outcomes-only console: recent migration runs, execution logs, and visual workflow runs.
     No raw settings (profiles, playbooks); read-only outcome summary.
     """
     school = getattr(request, "school", None)
@@ -35,15 +36,24 @@ def outcomes_console(request):
         base_logs = base_logs.filter(Q(school__isnull=True) | Q(school=school))
     recent_runs = list(base_runs.order_by("-started_at")[:30])
     recent_logs = list(base_logs.order_by("-started_at")[:30])
+    recent_visual_runs: list[WorkflowRunLog] = []
+    if school is not None:
+        recent_visual_runs = list(
+            WorkflowRunLog.objects.filter(workflow__school=school)
+            .select_related("workflow", "triggered_by")
+            .order_by("-created_at")[:30]
+        )
     return render(
         request,
         "automation/outcomes_console.html",
         {
             "recent_runs": recent_runs,
             "recent_logs": recent_logs,
+            "recent_visual_runs": recent_visual_runs,
             "page_title": _("Automation outcomes"),
             "page_subtitle": _(
-                "Recent migration runs and execution logs. Outcomes only; manage profiles and playbooks in Configuration Engine."
+                "Recent migration runs, automation execution logs, and visual workflow "
+                "run history. Outcomes only; manage profiles and playbooks in Configuration Engine."
             ),
             "action_url": reverse("studio_os:automation"),
             "action_text": _("Back to Automation"),

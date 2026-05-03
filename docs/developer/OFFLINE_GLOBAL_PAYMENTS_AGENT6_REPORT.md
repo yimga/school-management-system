@@ -75,7 +75,7 @@ Sets `DJANGO_TEST_DB_FILE` to `.django_test_dbs/agent6_gate.sqlite3` by default 
 | Sync success | `test_enqueue_process_*`, `test_teacher_attendance_*`, `test_grading_*`, `test_notes_report_*` |
 | Conflict creation + resolution | `test_conflict_then_keep_mine`, `test_conflict_use_latest_records_audit` |
 | Tenant isolation | `test_tenant_isolation` |
-| Payment fallback selection | `test_regional_payment_profiles.py` (CM, NG, US, EU, chain order) |
+| Payment fallback selection | `test_global_payment_profiles.py` + `test_payment_fallback_engine.py` (corridor normalization + degraded rails + reconciliation audit) |
 | Offline receipt reconciliation | `test_offline_payment_receipt_queues_intent` (docstring: staff reconciliation) |
 
 **Mechanical verifiers (mission RUN block):**

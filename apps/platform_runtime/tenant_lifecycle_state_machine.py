@@ -9,7 +9,18 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+from django.conf import settings
+from django.utils import timezone
+
 from apps.platform_runtime.tenant_lifecycle_engine import AT_RISK, resolve_lifecycle_phase
+
+
+def _churn_payment_failed_days() -> int:
+    return int(getattr(settings, "TENANT_LIFECYCLE_CHURN_PAYMENT_FAILED_DAYS", 30))
+
+
+def _churn_inactivity_days() -> int:
+    return int(getattr(settings, "TENANT_LIFECYCLE_CHURN_INACTIVITY_DAYS", 90))
 
 # ---------------------------------------------------------------------------
 # Canonical product states (public contract, mission alignment)
@@ -47,12 +58,26 @@ def _school_has_event(school_id: Optional[int], event_type: str) -> bool:
     ).exists()
 
 
+def _latest_event_ts(school_id: Optional[int], event_type: str):
+    if not school_id:
+        return None
+    from apps.schools.models import MarketingFunnelEvent
+
+    row = (
+        MarketingFunnelEvent.objects.filter(school_id=school_id, event_type=event_type)
+        .order_by("-created_at")
+        .values_list("created_at", flat=True)
+        .first()
+    )
+    return row
+
+
 def resolve_tenant_lifecycle_state(school) -> dict[str, Any]:
     """
     Return primary lifecycle label + reasons + funnel hints.
 
-    Precedence (first match wins): churned → paying → expansion_ready → at_risk (engine)
-    → activated → onboarding → signup_started → demo → activated (default healthy tenant).
+    Precedence: churned → recovered → unresolved payment_failed (billing-relevant)
+    → paying / expansion_ready → engine at_risk → activated → signup_started → onboarding → demo → default activated.
     """
     from apps.billing.models import TenantSubscription
     from apps.platform_runtime.customer_health import calculate_school_health
@@ -102,17 +127,87 @@ def resolve_tenant_lifecycle_state(school) -> dict[str, Any]:
             "event_hints": event_hints,
         }
 
+    now = timezone.now()
     sub = get_current_subscription(school)
     st_sub = str(getattr(sub, "status", "") or "")
+    billing_relevant = bool(sub) or event_hints["has_subscription_started"]
+    pf_ts = _latest_event_ts(sid, "payment_failed")
+    ps_ts = _latest_event_ts(sid, "payment_success")
+
     is_paying = st_sub == TenantSubscription.Status.ACTIVE and (
         float(getattr(sub, "billed_amount", 0) or 0) > 0
         or event_hints["has_payment_success"]
     )
+
+    churn_pay_days = _churn_payment_failed_days()
+    churn_idle_days = _churn_inactivity_days()
+    la = getattr(school, "last_activity", None)
+
+    if (
+        getattr(school, "is_active", True)
+        and la is not None
+        and not is_paying
+        and (now - la).days >= churn_idle_days
+        and (
+            event_hints["has_payment_success"]
+            or event_hints["has_subscription_started"]
+        )
+    ):
+        reasons.append("dormant_monetized_tenant")
+        return {
+            "state": STATE_CHURNED,
+            "reasons": reasons,
+            "flags": flags,
+            "event_hints": event_hints,
+        }
+
+    if (
+        billing_relevant
+        and pf_ts is not None
+        and ps_ts is not None
+        and ps_ts > pf_ts
+        and (ps_ts - pf_ts).days >= churn_pay_days
+    ):
+        reasons.append("billing_recovered_after_prolonged_failure")
+        return {
+            "state": STATE_RECOVERED,
+            "reasons": reasons,
+            "flags": flags,
+            "event_hints": event_hints,
+        }
+
+    if billing_relevant and pf_ts is not None and (
+        ps_ts is None or pf_ts > ps_ts
+    ):
+        if (now - pf_ts).days >= churn_pay_days:
+            reasons.append("prolonged_payment_failure")
+            return {
+                "state": STATE_CHURNED,
+                "reasons": reasons,
+                "flags": flags,
+                "event_hints": event_hints,
+            }
+        reasons.append("latest_payment_event_failed")
+        return {
+            "state": STATE_AT_RISK,
+            "reasons": reasons,
+            "flags": flags,
+            "event_hints": event_hints,
+        }
+
     if is_paying:
         health = calculate_school_health(school)
         students = int(health.get("student_count") or 0)
+        teachers = int(health.get("teacher_count") or 0)
         score = int(health.get("score") or 0)
-        if students >= 20 and score >= 80 and event_hints["has_first_action"]:
+        reports = bool(health.get("has_report_schedules"))
+        module_breadth = reports or teachers >= 4
+        if (
+            students >= 20
+            and score >= 77
+            and event_hints["has_first_action"]
+            and module_breadth
+        ):
             reasons.append("expansion_depth")
             return {
                 "state": STATE_EXPANSION_READY,
@@ -138,7 +233,12 @@ def resolve_tenant_lifecycle_state(school) -> dict[str, Any]:
             "event_hints": event_hints,
         }
 
-    if event_hints["has_signup_completed"] or event_hints["has_first_dashboard"]:
+    if (
+        event_hints["has_signup_completed"]
+        or event_hints["has_first_dashboard"]
+        or event_hints["has_first_action"]
+        or _school_has_event(sid, "first_result")
+    ):
         reasons.append("live_tenant")
         return {
             "state": STATE_ACTIVATED,

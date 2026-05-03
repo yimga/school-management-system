@@ -52,7 +52,7 @@
   <a href="#main-content" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
   {% include 'marketing/marketing_header.html' %}
 
-  <main id="main-content" class="mkt-main container py-4" role="main">
+  <main id="main-content" class="mkt-main {% block marketing_main_extra_classes %}container py-4{% endblock %}" role="main">
     {% if messages %}
       <div class="mb-3">
         {% for message in messages %}

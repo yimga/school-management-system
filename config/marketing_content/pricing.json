@@ -1,31 +1,50 @@
 {
   "label": "Pricing",
-  "seo_title": "RunMyCampus Pricing - Transparent plans for growing schools",
-  "seo_description": "Transparent school management pricing with plan tiers, add-ons, and enterprise deployment options.",
-  "headline": "Pricing that scales with your campus.",
-  "subheadline": "Choose a plan by operating model, unlock add-ons, and keep billing visibility across every tenant.",
+  "seo_title": "RunMyCampus Pricing — Starter, Growth, Enterprise",
+  "seo_description": "Compare Starter, Growth, and Enterprise capabilities across admissions, academics, finance, portals, offline sync, workflows, and governance.",
+  "headline": "Plans shaped around how schools actually operate.",
+  "subheadline": "Starter for digitizing core operations, Growth for full admissions-to-reporting cycles, Enterprise for multi-campus governance and advanced depth.",
   "schema_type": "OfferCatalog",
   "segments": [
-    {"title": "Plan clarity", "body": "Map plans to usage, student volume, and feature needs without hidden complexity."},
-    {"title": "Add-on flexibility", "body": "Enable advanced modules as your school grows, from integrations to analytics."},
-    {"title": "Super-admin oversight", "body": "Track trial status, usage, and billing posture in one command center."}
+    {"title": "Starter", "body": "Core records, attendance, communications, and straightforward reporting for schools beginning digitization."},
+    {"title": "Growth", "body": "Admissions pipelines, fees and invoicing, grading and report cards, analytics, and richer portal adoption."},
+    {"title": "Enterprise", "body": "Multi-campus controls, offline sync, integration-ready APIs, advanced analytics, audits, and priority implementation."}
   ],
   "extras": {
     "metrics": [
-      {"value": "3", "label": "clear plan bands", "detail": "Starter, Growth, and Enterprise White-label framing."},
-      {"value": "0", "label": "migration guesswork", "detail": "Plan boundaries map to growth stages and governance requirements."},
-      {"value": "1", "label": "billing oversight layer", "detail": "Manager workflows provide trial and usage visibility across tenants."},
-      {"value": "Flexible", "label": "add-on model", "detail": "Activate advanced modules as schools scale operational complexity."}
+      {"value": "3", "label": "plan archetypes", "detail": "Starter, Growth, and Enterprise packaging aligned to operating maturity."},
+      {"value": "Configurable", "label": "capability depth", "detail": "Turn modules on as governance requirements increase—not duplicate tenants."},
+      {"value": "Clear", "label": "upgrade story", "detail": "Growth path documented against admissions, finance, offline, and analytics depth."},
+      {"value": "Partner-led", "label": "implementation", "detail": "Enterprise engagements include rollout planning conversations."}
     ],
     "faqs": [
-      {"question": "What plans does RunMyCampus offer?", "answer": "Starter for single-campus schools, Growth for multi-campus networks, and Enterprise White-label for operators at national scale."},
-      {"question": "Can I try RunMyCampus before committing?", "answer": "Yes. Start a free trial from the signup flow; you can also book a demo for a guided walkthrough."},
-      {"question": "How does billing work for multiple schools?", "answer": "Manager workflows provide visibility into trial status, usage, and billing across all tenants in one command center."}
+      {"question": "Which plan fits a single-campus school?", "answer": "Starter focuses on digitizing records, attendance, communications, and baseline portals; Growth unlocks admissions depth and billing sophistication."},
+      {"question": "When should schools choose Enterprise?", "answer": "When multi-campus governance, offline-heavy deployments, integration portfolios, or audit-heavy workflows demand priority support and controls."},
+      {"question": "Can we pilot before expanding?", "answer": "Yes—begin with a bounded rollout and expand modules once stakeholders validate workflows."}
     ],
     "execution_blocks": [
-      {"title": "Transparent growth path", "body": "Schools can start lean, then add modules for analytics, integrations, and operator workflows."},
-      {"title": "Enterprise white-label readiness", "body": "High-scale operators get dedicated governance, compliance posture, and branding control."},
-      {"title": "Cost aligned to operations", "body": "Plans are designed around actual usage and institutional operating models, not feature sprawl."}
-    ]
+      {"title": "Align stakeholders", "body": "Finance, academics, admissions, and IT review the matrix against policy requirements."},
+      {"title": "Validate integrations", "body": "Enterprise plans coordinate LMS, payments, messaging, and identity expectations early."},
+      {"title": "Plan rollout waves", "body": "Phase portals and offline capture after core records stabilize."}
+    ],
+    "pricing_plan_comparison": {
+      "plans": ["Starter", "Growth", "Enterprise"],
+      "rows": [
+        {"feature": "Student Information System", "starter": "✓", "growth": "✓", "enterprise": "✓"},
+        {"feature": "Admissions & enrollment", "starter": "—", "growth": "✓", "enterprise": "✓"},
+        {"feature": "Attendance & timetable", "starter": "✓", "growth": "✓", "enterprise": "✓"},
+        {"feature": "Fees, invoices & payments", "starter": "✓", "growth": "✓", "enterprise": "✓"},
+        {"feature": "Grading & report cards", "starter": "Core", "growth": "✓", "enterprise": "✓"},
+        {"feature": "Parent portal", "starter": "✓", "growth": "✓", "enterprise": "✓"},
+        {"feature": "Teacher portal", "starter": "✓", "growth": "✓", "enterprise": "✓"},
+        {"feature": "Student portal", "starter": "✓", "growth": "✓", "enterprise": "✓"},
+        {"feature": "Communications hub", "starter": "✓", "growth": "✓", "enterprise": "✓"},
+        {"feature": "Analytics & dashboards", "starter": "Baseline", "growth": "✓", "enterprise": "Advanced"},
+        {"feature": "Offline sync & queues", "starter": "—", "growth": "Add-on", "enterprise": "✓"},
+        {"feature": "Workflow automation depth", "starter": "—", "growth": "Standard", "enterprise": "Advanced"},
+        {"feature": "Security, RBAC & audits", "starter": "Standard", "growth": "Strong", "enterprise": "Governance-heavy"},
+        {"feature": "Support & implementation", "starter": "Standard", "growth": "Priority", "enterprise": "Enterprise"}
+      ]
+    }
   }
 }

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import logging
+from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -18,6 +19,7 @@ from django.http import (
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
+from apps.accounts.permissions import tenant_operator_hub_eligible
 from apps.platform_runtime.models import OfflineAction
 from apps.platform_runtime.offline_queue import (
     enqueue_offline_action,
@@ -28,6 +30,89 @@ from apps.platform_runtime.offline_queue import (
 
 logger = logging.getLogger(__name__)
 _MAX_JSON_BYTES = 512 * 1024
+
+
+def _school_operator_scope(request: HttpRequest) -> bool:
+    return tenant_operator_hub_eligible(request.user)
+
+
+def _filter_offline_queryset(qs, request: HttpRequest):
+    at = (request.GET.get("action_type") or "").strip()
+    if at:
+        qs = qs.filter(action_type=at)
+    uid = request.GET.get("user")
+    if uid and str(uid).isdigit():
+        qs = qs.filter(user_id=int(uid))
+    cid = request.GET.get("classroom_id")
+    if cid and str(cid).isdigit():
+        qs = qs.filter(payload__classroom_id=int(cid))
+    sid = request.GET.get("student_id")
+    if sid and str(sid).isdigit():
+        qs = qs.filter(payload__student_id=int(sid))
+    return qs
+
+
+def _filter_submitters_for_school(school_id: int, limit: int = 80):
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    ids = list(
+        OfflineAction.objects.filter(school_id=school_id)
+        .values_list("user_id", flat=True)
+        .distinct()[:limit]
+    )
+    rows = []
+    for u in User.objects.filter(pk__in=ids).order_by("username"):
+        rows.append({"id": u.pk, "username": u.get_username()})
+    return rows
+
+
+def _conflict_compare(card_row: OfflineAction) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Human-readable server vs offline snapshots for conflict UI."""
+    det = card_row.conflict_details or {}
+    pay = card_row.payload or {}
+    server_vals: dict[str, Any] = {}
+    local_vals: dict[str, Any] = {}
+    at = card_row.action_type
+    if at == OfflineAction.ActionType.ATTENDANCE:
+        server_vals["status"] = det.get("server_status")
+        local_vals["status"] = det.get("client_status") or pay.get("status")
+        server_vals["remarks"] = det.get("server_remarks")
+        local_vals["remarks"] = pay.get("remarks")
+        server_vals["date"] = pay.get("date")
+        local_vals["date"] = pay.get("date")
+        server_vals["student_id"] = pay.get("student_id")
+        local_vals["student_id"] = pay.get("student_id")
+        server_vals["classroom_id"] = pay.get("classroom_id")
+        local_vals["classroom_id"] = pay.get("classroom_id")
+    elif at == OfflineAction.ActionType.GRADING:
+        for k in (
+            "subject_assignment_id",
+            "student_id",
+            "seq1_score",
+            "seq2_score",
+            "exam_score",
+        ):
+            local_vals[k] = pay.get(k)
+        local_vals["remarks"] = pay.get("remarks")
+        if det:
+            server_vals.update({str(k): v for k, v in det.items()})
+    elif at == OfflineAction.ActionType.PAYMENT_RECEIPT:
+        local_vals["amount"] = pay.get("amount")
+        local_vals["invoice_id"] = pay.get("invoice_id")
+        local_vals["payment_method"] = pay.get("payment_method")
+        if det:
+            server_vals.update({str(k): v for k, v in det.items()})
+    elif at == OfflineAction.ActionType.NOTES_REPORT:
+        local_vals["title"] = pay.get("title")
+        local_vals["body_preview"] = (pay.get("body") or "")[:240]
+        local_vals["student_id"] = pay.get("student_id")
+        if det:
+            server_vals.update({str(k): v for k, v in det.items()})
+    else:
+        server_vals.update({str(k): v for k, v in det.items()})
+        local_vals.update({str(k): v for k, v in pay.items()})
+    return server_vals, local_vals
 
 
 def _require_school(request: HttpRequest):
@@ -44,12 +129,15 @@ def offline_sync_queue(request: HttpRequest) -> HttpResponse:
     if err:
         return err
 
+    operator_scope = _school_operator_scope(request)
+    uid_filter = None if operator_scope else request.user.pk
+
     if request.method == "POST":
         if request.POST.get("action") == "process_queue":
             summary = process_offline_queue(
                 school_id=school.pk,
-                user_id=request.user.pk,
-                limit=50,
+                user_id=uid_filter,
+                limit=75,
             )
             messages.info(
                 request,
@@ -59,24 +147,29 @@ def offline_sync_queue(request: HttpRequest) -> HttpResponse:
         elif request.POST.get("action") == "retry_failed":
             n = retry_failed_actions(
                 school_id=school.pk,
-                user_id=request.user.pk,
+                user_id=uid_filter,
                 max_retries=5,
-                limit=100,
+                limit=200,
             )
             messages.info(request, f"Re-queued {n} failed item(s).")
 
-    base_qs = OfflineAction.objects.filter(
-        school_id=school.pk,
-        user_id=request.user.pk,
+    base_qs = OfflineAction.objects.filter(school_id=school.pk).select_related(
+        "user"
     )
+    if not operator_scope:
+        base_qs = base_qs.filter(user_id=request.user.pk)
+    base_qs = _filter_offline_queryset(base_qs, request)
+
     rows = list(base_qs.order_by("-created_at")[:200])
-    queued_actions = list(
-        base_qs.filter(
-            status__in=(
-                OfflineAction.Status.QUEUED,
-                OfflineAction.Status.SYNCING,
-            )
-        ).order_by("-created_at")[:120]
+    queued_only = list(
+        base_qs.filter(status=OfflineAction.Status.QUEUED).order_by("-created_at")[
+            :120
+        ]
+    )
+    syncing_actions = list(
+        base_qs.filter(status=OfflineAction.Status.SYNCING).order_by("-updated_at")[
+            :120
+        ]
     )
     failed_actions = list(
         base_qs.filter(status=OfflineAction.Status.FAILED).order_by("-created_at")[
@@ -91,34 +184,42 @@ def offline_sync_queue(request: HttpRequest) -> HttpResponse:
     synced_actions = list(
         base_qs.filter(status=OfflineAction.Status.SYNCED).order_by("-updated_at")[:60]
     )
-    pending = OfflineAction.objects.filter(
-        school_id=school.pk,
-        user_id=request.user.pk,
-        status=OfflineAction.Status.QUEUED,
-    ).count()
-    failed = OfflineAction.objects.filter(
-        school_id=school.pk,
-        user_id=request.user.pk,
-        status=OfflineAction.Status.FAILED,
-    ).count()
-    conflict_n = OfflineAction.objects.filter(
-        school_id=school.pk,
-        user_id=request.user.pk,
-        status=OfflineAction.Status.CONFLICT,
-    ).count()
+
+    count_qs = OfflineAction.objects.filter(school_id=school.pk)
+    if not operator_scope:
+        count_qs = count_qs.filter(user_id=request.user.pk)
+    count_qs = _filter_offline_queryset(count_qs, request)
+
+    pending = count_qs.filter(status=OfflineAction.Status.QUEUED).count()
+    syncing_n = count_qs.filter(status=OfflineAction.Status.SYNCING).count()
+    failed = count_qs.filter(status=OfflineAction.Status.FAILED).count()
+    conflict_n = count_qs.filter(status=OfflineAction.Status.CONFLICT).count()
+
+    submitters = (
+        _filter_submitters_for_school(school.pk) if operator_scope else []
+    )
 
     return render(
         request,
         "portal/offline_sync_queue.html",
         {
             "offline_actions": rows,
-            "queued_actions": queued_actions,
+            "queued_actions": queued_only,
+            "syncing_actions": syncing_actions,
             "failed_actions": failed_actions,
             "conflict_actions": conflict_actions,
             "synced_actions": synced_actions,
             "pending_count": pending,
+            "syncing_count": syncing_n,
             "failed_count": failed,
             "conflict_count": conflict_n,
+            "operator_offline_scope": operator_scope,
+            "submitters": submitters,
+            "action_type_choices": OfflineAction.ActionType.choices,
+            "filter_action_type": request.GET.get("action_type") or "",
+            "filter_user": request.GET.get("user") or "",
+            "filter_classroom_id": request.GET.get("classroom_id") or "",
+            "filter_student_id": request.GET.get("student_id") or "",
         },
     )
 
@@ -130,6 +231,8 @@ def offline_sync_conflicts(request: HttpRequest) -> HttpResponse:
     if err:
         return err
 
+    operator_scope = _school_operator_scope(request)
+
     if request.method == "POST":
         action_id = request.POST.get("action_id")
         choice = request.POST.get("resolution")
@@ -139,6 +242,7 @@ def offline_sync_conflicts(request: HttpRequest) -> HttpResponse:
                 school_id=school.pk,
                 user_id=request.user.pk,
                 choice=str(choice),
+                school_operator=operator_scope,
             )
             if result.get("ok"):
                 messages.success(request, "Resolution recorded.")
@@ -149,18 +253,35 @@ def offline_sync_conflicts(request: HttpRequest) -> HttpResponse:
                 )
             return redirect("portal:offline_sync_conflicts")
 
-    conflicts = list(
-        OfflineAction.objects.filter(
-            school_id=school.pk,
-            user_id=request.user.pk,
-            status=OfflineAction.Status.CONFLICT,
-        ).order_by("-updated_at")[:100]
-    )
+    conflict_qs = OfflineAction.objects.filter(
+        school_id=school.pk,
+        status=OfflineAction.Status.CONFLICT,
+    ).select_related("user")
+    if not operator_scope:
+        conflict_qs = conflict_qs.filter(user_id=request.user.pk)
+    conflicts = list(conflict_qs.order_by("-updated_at")[:100])
+
+    conflict_cards = []
+    for c in conflicts:
+        srv, loc = _conflict_compare(c)
+        conflict_cards.append(
+            {
+                "row": c,
+                "server_vals": srv,
+                "local_vals": loc,
+                "audit_trail": list((c.sync_metadata or {}).get("resolution_audits") or [])[
+                    -10:
+                ],
+            }
+        )
 
     return render(
         request,
         "portal/offline_sync_conflicts.html",
-        {"conflicts": conflicts},
+        {
+            "conflict_cards": conflict_cards,
+            "operator_offline_scope": operator_scope,
+        },
     )
 
 

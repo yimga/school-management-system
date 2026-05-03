@@ -4,6 +4,8 @@ Emit from service layer only; consumer processes outbox for webhooks, notificati
 """
 
 import uuid
+
+from django.conf import settings
 from django.db import models
 
 
@@ -143,6 +145,26 @@ class WebhookDelivery(models.Model):
     error_message = models.TextField(blank=True)
     idempotency_key = models.CharField(max_length=255, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    operator_resolution = models.CharField(
+        max_length=16,
+        null=True,
+        blank=True,
+        db_index=True,
+        choices=(
+            ("resolved", "Resolved"),
+            ("ignored", "Ignored"),
+        ),
+        help_text="Operator DLQ disposition; null means open on dead-letter rows.",
+    )
+    operator_resolution_reason = models.TextField(blank=True)
+    operator_resolution_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    operator_resolution_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         app_label = "events"
@@ -167,3 +189,43 @@ class WebhookDelivery(models.Model):
 
     def __str__(self):
         return f"{self.subscription_id} → {self.domain_event_id} ({self.status})"
+
+
+class EventSystemRemediationAudit(models.Model):
+    """Append-only audit trail for DLQ retries and operator disposition."""
+
+    class DeliverySource(models.TextChoices):
+        DOMAIN_WEBHOOK = "domain_webhook", "Domain webhook delivery"
+        PLATFORM_WEBHOOK = "platform_webhook", "Platform webhook delivery"
+
+    class Action(models.TextChoices):
+        RETRY = "retry", "Retry"
+        RESOLVED = "resolved", "Marked resolved"
+        IGNORED = "ignored", "Marked ignored"
+
+    school_id = models.UUIDField(db_index=True)
+    delivery_source = models.CharField(max_length=32, choices=DeliverySource.choices)
+    delivery_pk = models.PositiveBigIntegerField()
+    action = models.CharField(max_length=16, choices=Action.choices)
+    reason = models.TextField(blank=True)
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = "events"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["school_id", "created_at"]),
+            models.Index(fields=["delivery_source", "delivery_pk"]),
+        ]
+        verbose_name = "Event system remediation audit"
+        verbose_name_plural = "Event system remediation audits"
+
+    def __str__(self):
+        return f"{self.delivery_source}:{self.delivery_pk} {self.action}"

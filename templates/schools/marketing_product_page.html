@@ -35,14 +35,14 @@
         <p class="mkt-product-subheadline">{{ page.subheadline|default:"High-fidelity workflows for admissions, academics, finance, and compliance—showcased, not described." }}</p>
         <div class="mkt-product-hero-ctas">
           <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="primary">{% trans "Start Free Trial" %}</a>
-          <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-light" data-cta="demo">{% trans "Book a demo" %}</a>
+          <a href="{% url 'marketing_demo' %}" class="btn btn-outline-light" data-cta="demo">{% trans "Book a demo" %}</a>
           {% if demo_tenant_url %}
           <a href="{{ demo_tenant_url }}" class="btn btn-outline-light" target="_blank" rel="noopener noreferrer">{% trans "Try demo" %}</a>
           {% endif %}
           {% if marketing_product_tour_url %}
           <a href="{{ marketing_product_tour_url }}" class="btn btn-outline-light" target="_blank" rel="noopener noreferrer">{% trans "Product tour" %}</a>
           {% else %}
-          <a href="{% url 'marketing_interactive_preview' %}" class="btn btn-outline-light">{% trans "Product tour" %}</a>
+          <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-outline-light">{% trans "Product tour" %}</a>
           {% endif %}
         </div>
       </div>
@@ -168,7 +168,7 @@
     <p class="mkt-product-section-lead">{% trans "Start free, add your school, and see outcomes in days—not quarters." %}</p>
     <div class="mkt-product-hero-ctas">
       <a href="{% url 'signup_school' %}" class="btn btn-primary mkt-cta-focus" data-cta="primary">{% trans "Start Free Trial" %}</a>
-      <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-light mkt-cta-focus" data-cta="demo">{% trans "Book a Demo" %}</a>
+      <a href="{% url 'marketing_demo' %}" class="btn btn-outline-light mkt-cta-focus" data-cta="demo">{% trans "Book a Demo" %}</a>
       <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light mkt-cta-focus">{% trans "Login" %}</a>
     </div>
   </section>

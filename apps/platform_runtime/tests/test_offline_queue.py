@@ -164,6 +164,7 @@ class OfflineActionQueueTests(TestCase):
         audit = action.sync_metadata.get("resolution_audit") or {}
         self.assertEqual(audit.get("choice"), OfflineAction.Resolution.KEEP_MINE)
         self.assertEqual(audit.get("resolver_user_id"), self.user.pk)
+        self.assertEqual(audit.get("original_submitter_user_id"), self.user.pk)
 
     def test_teacher_attendance_scope_queues_teacher_rows(self):
         tp = TeacherProfile.objects.create(user=self.user, school=self.school)

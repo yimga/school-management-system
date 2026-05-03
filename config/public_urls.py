@@ -7,6 +7,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect, render
 from django.urls import include, path
+from django.views.generic.base import RedirectView
 
 from apps.observability import views as obs_views
 from apps.schools.error_views import school_not_found_public
@@ -70,6 +71,8 @@ def offline_page(request):
 
 urlpatterns = [
     path("", home, name="home"),
+    # Alias for tooling/checklists that expect marketing_home (same view as home).
+    path("", home, name="marketing_home"),
     path("offline/", offline_page, name="offline"),
     path(
         "authentication/",
@@ -154,6 +157,72 @@ urlpatterns = [
         name="marketing_platform_analytics",
     ),
     path(
+        "platform/student-information-system/",
+        marketing_page,
+        {"page_slug": "platform-student-information-system"},
+        name="marketing_platform_sis",
+    ),
+    path(
+        "platform/admissions/",
+        marketing_page,
+        {"page_slug": "platform-admissions"},
+        name="marketing_platform_admissions",
+    ),
+    path(
+        "platform/attendance/",
+        marketing_page,
+        {"page_slug": "platform-attendance"},
+        name="marketing_platform_attendance",
+    ),
+    path(
+        "platform/fees-payments/",
+        marketing_page,
+        {"page_slug": "platform-fees-payments"},
+        name="marketing_platform_fees_payments",
+    ),
+    path(
+        "platform/grading-report-cards/",
+        marketing_page,
+        {"page_slug": "platform-grading-report-cards"},
+        name="marketing_platform_grading_report_cards",
+    ),
+    path(
+        "platform/parent-portal/",
+        marketing_page,
+        {"page_slug": "platform-parent-portal"},
+        name="marketing_platform_parent_portal",
+    ),
+    path(
+        "platform/teacher-portal/",
+        marketing_page,
+        {"page_slug": "platform-teacher-portal"},
+        name="marketing_platform_teacher_portal",
+    ),
+    path(
+        "platform/student-portal/",
+        marketing_page,
+        {"page_slug": "platform-student-portal"},
+        name="marketing_platform_student_portal",
+    ),
+    path(
+        "platform/communications/",
+        marketing_page,
+        {"page_slug": "platform-communications"},
+        name="marketing_platform_communications",
+    ),
+    path(
+        "platform/workflows/",
+        marketing_page,
+        {"page_slug": "platform-workflows"},
+        name="marketing_platform_workflows",
+    ),
+    path(
+        "platform/offline-first/",
+        marketing_page,
+        {"page_slug": "platform-offline-first"},
+        name="marketing_platform_offline_first",
+    ),
+    path(
         "product/", marketing_page, {"page_slug": "product"}, name="marketing_product"
     ),
     path(
@@ -205,6 +274,12 @@ urlpatterns = [
         name="institution_k12",
     ),
     path(
+        "solutions/k12/",
+        institution_marketing_page,
+        {"institution_slug": "k12"},
+        name="marketing_solutions_k12",
+    ),
+    path(
         "solutions/universities/",
         institution_marketing_page,
         {"institution_slug": "universities"},
@@ -223,10 +298,74 @@ urlpatterns = [
         name="institution_private_schools",
     ),
     path(
+        "solutions/private-schools/",
+        institution_marketing_page,
+        {"institution_slug": "private-schools"},
+        name="marketing_solutions_private_schools",
+    ),
+    path(
         "solutions/government-education/",
         institution_marketing_page,
         {"institution_slug": "government-education"},
         name="institution_government_education",
+    ),
+    path(
+        "solutions/international-schools/",
+        institution_marketing_page,
+        {"institution_slug": "international-schools"},
+        name="institution_international_schools",
+    ),
+    path(
+        "solutions/international-schools/",
+        institution_marketing_page,
+        {"institution_slug": "international-schools"},
+        name="marketing_solutions_international_schools",
+    ),
+    path(
+        "solutions/faith-based-schools/",
+        institution_marketing_page,
+        {"institution_slug": "faith-based-schools"},
+        name="institution_faith_based_schools",
+    ),
+    path(
+        "solutions/faith-based-schools/",
+        institution_marketing_page,
+        {"institution_slug": "faith-based-schools"},
+        name="marketing_solutions_faith_based_schools",
+    ),
+    path(
+        "solutions/multi-campus/",
+        institution_marketing_page,
+        {"institution_slug": "multi-campus"},
+        name="institution_multi_campus",
+    ),
+    path(
+        "solutions/multi-campus/",
+        institution_marketing_page,
+        {"institution_slug": "multi-campus"},
+        name="marketing_solutions_multi_campus",
+    ),
+    path(
+        "solutions/growing-school-networks/",
+        institution_marketing_page,
+        {"institution_slug": "growing-school-networks"},
+        name="institution_growing_school_networks",
+    ),
+    path(
+        "solutions/growing-school-networks/",
+        institution_marketing_page,
+        {"institution_slug": "growing-school-networks"},
+        name="marketing_solutions_growing_school_networks",
+    ),
+    path(
+        "solutions/k12-schools/",
+        RedirectView.as_view(pattern_name="institution_k12", permanent=False),
+        name="institution_k12_schools",
+    ),
+    path(
+        "solutions/k12-schools/",
+        RedirectView.as_view(pattern_name="institution_k12", permanent=False),
+        name="marketing_solutions_k12_schools",
     ),
     path(
         "pricing/", marketing_page, {"page_slug": "pricing"}, name="marketing_pricing"
@@ -314,6 +453,12 @@ urlpatterns = [
         name="role_district_leaders",
     ),
     path(
+        "roles/finance/",
+        role_marketing_page,
+        {"role_slug": "finance"},
+        name="role_finance",
+    ),
+    path(
         "for/principals/",
         role_marketing_page,
         {"role_slug": "principals"},
@@ -365,12 +510,32 @@ urlpatterns = [
     ),
     path(
         "book-demo/",
-        marketing_page,
-        {"page_slug": "book-demo"},
+        RedirectView.as_view(pattern_name="marketing_demo", permanent=False),
         name="marketing_book_demo",
     ),
     path("book-demo/submit/", submit_demo_request, name="marketing_book_demo_submit"),
     path("demo/", marketing_page, {"page_slug": "demo"}, name="marketing_demo"),
+    path(
+        "company/",
+        RedirectView.as_view(pattern_name="marketing_about", permanent=False),
+        name="marketing_company",
+    ),
+    path(
+        "resources/case-studies/",
+        RedirectView.as_view(pattern_name="marketing_case_studies", permanent=False),
+        name="marketing_resources_case_studies",
+    ),
+    path(
+        "resources/guides/",
+        RedirectView.as_view(pattern_name="marketing_guides", permanent=False),
+        name="marketing_resources_guides",
+    ),
+    path(
+        "resources/help-center/",
+        marketing_page,
+        {"page_slug": "resources-help-center"},
+        name="marketing_resources_help_center",
+    ),
     path(
         "interactive-preview/",
         marketing_page,
@@ -379,8 +544,9 @@ urlpatterns = [
     ),
     path(
         "product-tour/",
-        marketing_page,
-        {"page_slug": "interactive-preview"},
+        RedirectView.as_view(
+            pattern_name="marketing_resources_product_tour", permanent=False
+        ),
         name="marketing_product_tour",
     ),
     path(
@@ -543,6 +709,17 @@ urlpatterns = [
         marketing_page,
         {"page_slug": "resources"},
         name="marketing_resources",
+    ),
+    path(
+        "resources/product-tour/",
+        marketing_page,
+        {"page_slug": "resources-product-tour"},
+        name="marketing_resources_product_tour",
+    ),
+    path(
+        "resources/blog/",
+        RedirectView.as_view(pattern_name="marketing_blog", permanent=False),
+        name="marketing_resources_blog",
     ),
     path(
         "research/",

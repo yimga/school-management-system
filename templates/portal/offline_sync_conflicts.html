@@ -4,37 +4,97 @@
 {% block title %}{% trans "Sync conflicts" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-4" data-rmc-offline-conflicts="1">
   <h1 class="h4 mb-3">{% trans "Sync conflicts" %}</h1>
   <p class="text-body-secondary small mb-4">
-    {% trans "Choose how to resolve each item. “Keep mine” re-applies your stored payload. “Use latest” accepts the server record and does not apply your offline edit. “Review manually” leaves the conflict open until you fix it on the right screen." %}
-    {% trans "Your choice is recorded with your user id and timestamp on the offline action for audit." %}
+    {% trans "Choose how to resolve each item. “Keep mine” re-applies your stored payload. “Use latest” accepts the server record and does not apply your offline edit. “Review manually” records your intent but leaves the conflict open until you fix it on the canonical screen." %}
+    {% trans "Your choice is recorded with resolver user id, original submitter, timestamp, and operator scope flag where applicable." %}
   </p>
 
-  {% if conflicts %}
+  {% if conflict_cards %}
   <div class="vstack gap-4">
-    {% for c in conflicts %}
+    {% for card in conflict_cards %}
+    {% with c=card.row %}
     <div class="card border-warning-subtle">
       <div class="card-body">
         <div class="d-flex justify-content-between flex-wrap gap-2 mb-2">
           <strong>{{ c.get_action_type_display }}</strong>
           <span class="small text-body-secondary">{{ c.updated_at }}</span>
         </div>
+        {% if operator_offline_scope %}
+        <p class="small mb-2 text-body-secondary">
+          {% trans "Submitted by" %}: <strong>{{ c.user.get_username }}</strong>
+          (id {{ c.user_id }})
+        </p>
+        {% endif %}
         {% if c.conflict_reason %}
-        <p class="small mb-3">{{ c.conflict_reason }}</p>
+        <div class="alert alert-warning py-2 small mb-3">
+          <strong>{% trans "Conflict reason" %}:</strong> {{ c.conflict_reason }}
+        </div>
         {% endif %}
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <h3 class="h6 text-muted">{% trans "Server / latest snapshot" %}</h3>
+            <dl class="small bg-body-secondary p-2 rounded mb-0">
+              {% if card.server_vals %}
+                {% for k,v in card.server_vals.items %}
+                <dt class="d-inline">{{ k }}:</dt>
+                <dd class="d-inline ms-1">{{ v }}</dd><br>
+                {% endfor %}
+              {% else %}
+                <dd class="mb-0 text-body-secondary">—</dd>
+              {% endif %}
+            </dl>
+          </div>
+          <div class="col-md-6">
+            <h3 class="h6 text-muted">{% trans "Local / offline snapshot" %}</h3>
+            <dl class="small bg-body-secondary p-2 rounded mb-0">
+              {% if card.local_vals %}
+                {% for k,v in card.local_vals.items %}
+                <dt class="d-inline">{{ k }}:</dt>
+                <dd class="d-inline ms-1">{{ v }}</dd><br>
+                {% endfor %}
+              {% else %}
+                <dd class="mb-0 text-body-secondary">—</dd>
+              {% endif %}
+            </dl>
+          </div>
+        </div>
+
         {% if c.conflict_details %}
-        <dl class="small bg-body-secondary p-2 rounded mb-3">
-          {% for k,v in c.conflict_details.items %}
-          <dt class="d-inline">{{ k }}:</dt>
-          <dd class="d-inline ms-1">{{ v }}</dd><br>
-          {% endfor %}
-        </dl>
+        <details class="small mb-3">
+          <summary>{% trans "Raw conflict details (technical)" %}</summary>
+          <dl class="bg-body-tertiary p-2 rounded mt-2 mb-0">
+            {% for k,v in c.conflict_details.items %}
+            <dt class="d-inline">{{ k }}:</dt>
+            <dd class="d-inline ms-1">{{ v }}</dd><br>
+            {% endfor %}
+          </dl>
+        </details>
         {% endif %}
+
+        {% if card.audit_trail %}
+        <div class="mb-3">
+          <h3 class="h6">{% trans "Resolution audit trail" %}</h3>
+          <ul class="small mb-0">
+            {% for entry in card.audit_trail %}
+            <li>
+              {{ entry.choice }} —
+              {% trans "resolver" %} {{ entry.resolver_user_id }},
+              {% trans "submitter" %} {{ entry.original_submitter_user_id }},
+              {% if entry.school_operator %}{% trans "school operator" %}{% endif %}
+              — {{ entry.resolved_at }}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
         <form method="post" class="d-flex flex-wrap gap-2 align-items-center">
           {% csrf_token %}
           <input type="hidden" name="action_id" value="{{ c.pk }}">
-          <label class="small me-2">{% trans "Resolution" %}:</label>
+          <span class="small me-2">{% trans "Resolution" %}:</span>
           <button type="submit" name="resolution" value="keep_mine" class="btn btn-sm btn-primary">
             {% trans "Keep mine" %}
           </button>
@@ -47,6 +107,7 @@
         </form>
       </div>
     </div>
+    {% endwith %}
     {% endfor %}
   </div>
   {% else %}

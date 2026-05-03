@@ -2894,6 +2894,44 @@ class TenantPaymentPolicy(models.Model):
         return f"TenantPaymentPolicy school={self.school_id}"
 
 
+class PaymentGatewayHealthSnapshot(models.Model):
+    """
+    Append-only per-check rail health (no secrets). Used for tenant readiness history.
+    """
+
+    class Status(models.TextChoices):
+        READY = "ready", "Ready"
+        DEGRADED = "degraded", "Degraded"
+        MISSING_CREDENTIALS = "missing_credentials", "Missing credentials"
+        EXTERNAL_REQUIRED = "external_required", "External PSP setup required"
+        UNKNOWN = "unknown", "Unknown"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="gateway_health_snapshots",
+    )
+    rail_code = models.CharField(max_length=40, db_index=True)
+    provider_key = models.CharField(max_length=64, blank=True)
+    status = models.CharField(
+        max_length=32,
+        choices=Status.choices,
+        db_index=True,
+    )
+    message = models.TextField(blank=True)
+    action_required = models.TextField(blank=True)
+    checked_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        ordering = ["-checked_at"]
+        indexes = [
+            models.Index(fields=["school", "-checked_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.school_id} {self.rail_code} {self.status}"
+
+
 class OfflinePaymentIntent(models.Model):
     """Offline-queued payment awaiting reconciliation (manual proof / unstable power)."""
 

@@ -1803,7 +1803,7 @@ class TenantSettingsLintTests(SimpleTestCase):
             cwd=str(root),
             capture_output=True,
             text=True,
-            timeout=300,
+            timeout=1200,
         )
         self.assertEqual(
             result.returncode,

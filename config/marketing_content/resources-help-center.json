@@ -1,0 +1,43 @@
+{
+  "label": "Help Center",
+  "seo_title": "RunMyCampus Help Center",
+  "seo_description": "Guides and answers for admissions, academics, finance, portals, and onboarding.",
+  "headline": "Help center",
+  "subheadline": "Documentation and pathways for administrators rolling out RunMyCampus.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Getting started",
+      "body": "Launch sequences for admins, finance, and academic leads."
+    },
+    {
+      "title": "Portals & roles",
+      "body": "Best practices for teacher, parent, and student adoption."
+    },
+    {
+      "title": "Need a person?",
+      "body": "Contact us or request a guided demo for your school."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Flexible academic calendars",
+      "Multi-currency fee structures",
+      "Role-based portals",
+      "Offline-ready workflows",
+      "Secure audit trails",
+      "Multi-campus support"
+    ],
+    "execution_blocks": [
+      {
+        "title": "Browse guides",
+        "body": "Step-by-step articles align with tenant governance."
+      },
+      {
+        "title": "Contact support",
+        "body": "Escalations route through authenticated channels on your tenant."
+      }
+    ]
+  }
+}

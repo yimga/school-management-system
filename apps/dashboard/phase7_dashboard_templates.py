@@ -42,6 +42,7 @@ PHASE7_DASHBOARD_TEMPLATES: tuple[str, ...] = (
     "parent/dashboard.html",
     "payroll/dashboard.html",
     "people/employer_dashboard.html",
+    "platform_runtime/tenant_lifecycle_dashboard.html",
     "requests/dashboard.html",
     "schoolops/ops_library.html",
     "schools/billing_dashboard.html",

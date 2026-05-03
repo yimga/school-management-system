@@ -3,16 +3,16 @@
     "allow_any": 106,
     "csrf_exempt": 306,
     "cursor_execute": 381,
-    "except_exception": 383,
+    "except_exception": 402,
     "get_solo": 208,
-    "gilead": 16660,
-    "gilead_files": 162,
-    "html_files": 735,
+    "gilead": 16659,
+    "gilead_files": 163,
+    "html_files": 739,
     "management_commands": 160,
-    "markdown_files": 1112,
-    "migration_files": 731,
-    "print_calls": 1044,
-    "python_files": 2770,
+    "markdown_files": 1113,
+    "migration_files": 738,
+    "print_calls": 1047,
+    "python_files": 2804,
     "site_settings": 2048
   },
   "doc_drift": {
@@ -23,13 +23,13 @@
   },
   "largest_python_files": [
     {
-      "bytes": 132976,
-      "lines": 2861,
+      "bytes": 139449,
+      "lines": 2980,
       "path": "apps/schools/marketing_page_definitions.py"
     },
     {
-      "bytes": 130254,
-      "lines": 3285,
+      "bytes": 128246,
+      "lines": 3210,
       "path": "apps/schools/marketing_views.py"
     },
     {
@@ -48,8 +48,8 @@
       "path": "apps/accounts/views.py"
     },
     {
-      "bytes": 102964,
-      "lines": 2948,
+      "bytes": 104223,
+      "lines": 2986,
       "path": "apps/finance/models.py"
     },
     {
@@ -63,8 +63,8 @@
       "path": "apps/siteconfig/admin.py"
     },
     {
-      "bytes": 92659,
-      "lines": 2338,
+      "bytes": 95628,
+      "lines": 2420,
       "path": "apps/studio_os/views.py"
     },
     {
@@ -73,8 +73,8 @@
       "path": "apps/finance/tasks.py"
     },
     {
-      "bytes": 79626,
-      "lines": 1747,
+      "bytes": 80179,
+      "lines": 1761,
       "path": "config/settings.py"
     },
     {
@@ -918,7 +918,7 @@
     "cursor_execute_apps_config_py_excl_migrations": 32,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 943,
+    "print_calls_scripts_py": 946,
     "site_settings_refs_apps_py_excl_migrations": 40,
     "site_settings_refs_apps_py_excl_migrations_tests": 6
   },

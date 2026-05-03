@@ -1,0 +1,153 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block backend_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+{% trans "Back to console" as back_console %}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-event-dlq="1">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=console_url action_text=back_console %}
+
+  <div class="mb-3">
+    <a class="btn btn-outline-secondary btn-sm me-2" href="{{ analytics_url }}">{% trans "Analytics" %}</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ console_url }}">{% trans "Event console" %}</a>
+  </div>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header"><h5 class="mb-0">{% trans "Filter" %}</h5></div>
+    <div class="card-body">
+      <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-6">
+          <label class="form-label small mb-1" for="event_type">{% trans "Event type (optional)" %}</label>
+          <input id="event_type" class="form-control form-control-sm" name="event_type" value="{{ filter_event_type }}" />
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-primary btn-sm">{% trans "Apply" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <form method="post" action="{{ remediate_url }}" class="card shadow-sm mb-4">
+    {% csrf_token %}
+    <input type="hidden" name="filter_event_type" value="{{ filter_event_type }}" />
+
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <h5 class="mb-0">{% trans "Domain webhook DLQ" %}</h5>
+      <button type="submit" name="action" value="retry_all_filtered" class="btn btn-warning btn-sm">{% trans "Retry all filtered" %}</button>
+    </div>
+    <div class="card-body p-0">
+      {% if domain_rows %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 table-family">
+          <thead class="table-light">
+            <tr>
+              <th></th>
+              <th>{% trans "ID" %}</th>
+              <th>{% trans "Event type" %}</th>
+              <th>{% trans "Target" %}</th>
+              <th>{% trans "Retries" %}</th>
+              <th>{% trans "Error" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in domain_rows %}
+            <tr>
+              <td><input class="form-check-input" type="checkbox" name="domain_delivery_ids" value="{{ d.pk }}" /></td>
+              <td>{{ d.pk }}</td>
+              <td><code>{{ d.domain_event.event_type }}</code></td>
+              <td class="small text-break">{{ d.subscription.url }}</td>
+              <td>{{ d.retry_count }} / {{ d.max_attempts }}</td>
+              <td class="small text-muted">{{ d.error_message|truncatechars:120 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted px-3 py-3 mb-0">{% trans "No open domain DLQ rows." %}</p>
+      {% endif %}
+    </div>
+
+    <div class="card-header"><h5 class="mb-0">{% trans "Platform webhook DLQ" %}</h5></div>
+    <div class="card-body p-0">
+      {% if platform_rows %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 table-family">
+          <thead class="table-light">
+            <tr>
+              <th></th>
+              <th>{% trans "ID" %}</th>
+              <th>{% trans "Event type" %}</th>
+              <th>{% trans "Target" %}</th>
+              <th>{% trans "Attempts" %}</th>
+              <th>{% trans "Error" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in platform_rows %}
+            <tr>
+              <td><input class="form-check-input" type="checkbox" name="platform_delivery_ids" value="{{ d.pk }}" /></td>
+              <td>{{ d.pk }}</td>
+              <td><code>{{ d.platform_event.event_type }}</code></td>
+              <td class="small text-break">{{ d.subscription.target_url }}</td>
+              <td>{{ d.attempt_count }}</td>
+              <td class="small text-muted">{{ d.last_error|truncatechars:120 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted px-3 py-3 mb-0">{% trans "No open platform DLQ rows." %}</p>
+      {% endif %}
+    </div>
+
+    <div class="card-body border-top">
+      <label class="form-label small" for="reason">{% trans "Reason (required for resolve / ignore)" %}</label>
+      <textarea id="reason" name="reason" class="form-control form-control-sm mb-2" rows="2"></textarea>
+      <div class="btn-group flex-wrap gap-1">
+        <button type="submit" name="action" value="retry_selected" class="btn btn-outline-primary btn-sm">{% trans "Retry selected" %}</button>
+        <button type="submit" name="action" value="resolve_selected" class="btn btn-outline-success btn-sm">{% trans "Mark selected resolved" %}</button>
+        <button type="submit" name="action" value="ignore_selected" class="btn btn-outline-secondary btn-sm">{% trans "Mark selected ignored" %}</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="card shadow-sm">
+    <div class="card-header"><h5 class="mb-0">{% trans "Recent remediation audit" %}</h5></div>
+    <div class="card-body p-0">
+      {% if audit_rows %}
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 table-family">
+          <thead class="table-light">
+            <tr>
+              <th>{% trans "When" %}</th>
+              <th>{% trans "Source" %}</th>
+              <th>{% trans "Delivery" %}</th>
+              <th>{% trans "Action" %}</th>
+              <th>{% trans "Actor" %}</th>
+              <th>{% trans "Reason" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in audit_rows %}
+            <tr>
+              <td>{{ a.created_at }}</td>
+              <td>{{ a.get_delivery_source_display }}</td>
+              <td>{{ a.delivery_pk }}</td>
+              <td>{{ a.get_action_display }}</td>
+              <td>{{ a.actor_id|default:"—" }}</td>
+              <td class="small text-muted">{{ a.reason|truncatechars:80 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted px-3 py-3 mb-0">{% trans "No audit rows yet." %}</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -35,6 +35,11 @@ urlpatterns = [
         name="visual_workflow_dispatch_test",
     ),
     path(
+        "workflows/api/validate-graph/",
+        views_visual_workflow.visual_workflow_validate_graph,
+        name="visual_workflow_validate_graph",
+    ),
+    path(
         "workflows/api/publish/",
         views_visual_workflow.visual_workflow_publish,
         name="visual_workflow_publish",

@@ -48,7 +48,7 @@ def get_marketing_ai_asset_url(key: str) -> str | None:
         return url
     # Static SVG fallbacks (repo ships these; PNG/video still via env when you add CDN assets).
     static_fallbacks: dict[str, str] = {
-        "hero_dashboard": "images/marketing/hero-placeholder.svg",
+        "hero_dashboard": "images/marketing/hero-global-os-composite.svg",
         "hero_migration_flow": "images/marketing/migration-flow.svg",
         "hero_setup_studio": "images/marketing/setup-studio-flow.svg",
         "hero_ecosystem": "images/marketing/ecosystem-diagram.svg",

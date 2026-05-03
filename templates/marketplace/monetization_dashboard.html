@@ -1,0 +1,94 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Marketplace monetization" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3" data-page-archetype="operational-workbench" data-task="marketplace_monetization_dashboard">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-1">{{ page_title }}</h1>
+      {% if school %}
+      <p class="text-muted small mb-0">{{ school.name }}</p>
+      {% endif %}
+    </div>
+    {% if primary_action_url %}
+    <a class="btn btn-primary btn-sm" href="{{ primary_action_url }}">{{ primary_action_label }}</a>
+    {% endif %}
+  </div>
+
+  {% if not school %}
+  <p class="text-muted">{% trans "No school context." %}</p>
+  {% else %}
+
+  {% if settlement_note %}
+  <div class="alert alert-info small">{{ settlement_note }}</div>
+  {% endif %}
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">{% trans "Paid vs free installs (active)" %}</div>
+          <div><strong>{{ install_mix.paid_installations }}</strong> {% trans "paid" %} · <strong>{{ install_mix.free_installations }}</strong> {% trans "free" %}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">{% trans "Payment success (ledger)" %}</div>
+          <div class="fs-5">{{ ledger_summary.payment_success_sum }} <span class="text-muted small">{% trans "sum" %}</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">{% trans "Platform fees (ledger)" %}</div>
+          <div class="fs-5">{{ ledger_summary.platform_fees_sum }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header small">{% trans "Settlement posture (ledger events)" %}</div>
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item d-flex justify-content-between">
+            <span>{% trans "Pending external" %}</span><span>{{ ledger_summary.pending_external_events }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between">
+            <span>{% trans "Blocked (external)" %}</span><span>{{ ledger_summary.blocked_events }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between">
+            <span>{% trans "Completed (production PSP signal)" %}</span><span>{{ ledger_summary.completed_settlement_events }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header small">{% trans "Ledger rows by SKU (top)" %}</div>
+        <ul class="list-group list-group-flush small">
+          {% for r in sku_usage %}
+          <li class="list-group-item d-flex justify-content-between">
+            <span><code>{{ r.sku_key }}</code></span>
+            <span>{{ r.n }} · {{ r.amt|default:"0.00" }}</span>
+          </li>
+          {% empty %}
+          <li class="list-group-item text-muted">{% trans "No SKU-tagged ledger rows yet." %}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <p class="text-muted small mb-0">
+    {% trans "Figures are tenant-scoped DB aggregates only. Live PSP settlement requires configured corridors and processor events — never inferred as success here." %}
+  </p>
+  {% endif %}
+</div>
+{% endblock %}

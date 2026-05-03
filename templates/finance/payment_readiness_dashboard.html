@@ -1,0 +1,111 @@
+{% extends "portal_base.html" %}
+{% load static %}
+{% block title %}Payment readiness — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-page-archetype="finance-payment-readiness-dashboard">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <p class="text-muted small mb-1">Finance · {{ school.name }}</p>
+      <h1 class="h3 mb-1">Payment readiness</h1>
+      <p class="text-muted mb-0">{{ readiness.subhead }}</p>
+    </div>
+    <span class="badge rounded-pill bg-{{ status_badge_class }} align-self-center fs-6">
+      {% if readiness.status == "READY" %}Ready{% elif readiness.status == "FALLBACK_ONLY" %}Fallback only{% else %}Needs setup{% endif %}
+    </span>
+  </div>
+
+  <div class="alert alert-secondary border-0 shadow-sm mb-4">
+    <div class="fw-semibold mb-1">Next action</div>
+    <p class="mb-0 small">{{ next_action }}</p>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h2 class="h5">Corridor profile</h2>
+          <dl class="row mb-0 small">
+            <dt class="col-sm-5">Compliance profile</dt>
+            <dd class="col-sm-7">{{ profile.name }}</dd>
+            <dt class="col-sm-5">Country</dt>
+            <dd class="col-sm-7">{{ readiness.country_code|default:"—" }}</dd>
+            <dt class="col-sm-5">Currency</dt>
+            <dd class="col-sm-7">{{ readiness.currency_code|default:"—" }}</dd>
+            <dt class="col-sm-5">Primary rail</dt>
+            <dd class="col-sm-7">{{ readiness.recommended_primary_rail|default:"—" }}</dd>
+            <dt class="col-sm-5">Backup rail</dt>
+            <dd class="col-sm-7">{{ readiness.recommended_backup_rail|default:"—" }}</dd>
+            <dt class="col-sm-5">Offline receipts</dt>
+            <dd class="col-sm-7">{% if readiness.manual_offline_proof_allowed %}Allowed{% else %}Disabled{% endif %}</dd>
+            <dt class="col-sm-5">Operator label</dt>
+            <dd class="col-sm-7">{{ catalog.operator_ready_label|default:"—" }}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h2 class="h5">Orchestration hint</h2>
+          <p class="small text-muted mb-2">Advisory only — billing enforcement unchanged.</p>
+          <ul class="small mb-0">
+            <li><strong>Selected rail:</strong> {{ effective_rail.selected_rail|default:"—" }}</li>
+            <li><strong>Reason:</strong> {{ effective_rail.reason|default:"—" }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h5">Gateway health (metadata checks)</h2>
+      <p class="small text-muted">No live charges; secrets never logged. CARD/BANK rails stay <code>external_required</code> until PSP onboarding completes.</p>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr>
+              <th scope="col">Role</th>
+              <th scope="col">Rail</th>
+              <th scope="col">Status</th>
+              <th scope="col">Message</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in health_rows %}
+            <tr>
+              <td>{{ row.role }}</td>
+              <td>{{ row.rail_code }}</td>
+              <td><span class="badge bg-secondary text-uppercase">{{ row.status }}</span></td>
+              <td class="small">{{ row.message }}</td>
+              <td class="small">{{ row.action_required|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-muted small">No health rows — configure compliance country.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% if latest_checks %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="h5">Latest recorded checks</h2>
+      <p class="small text-muted mb-2">Most recent snapshot per rail for this school.</p>
+      <ul class="list-group list-group-flush small">
+        {% for snap in latest_checks %}
+        <li class="list-group-item d-flex justify-content-between gap-2 flex-wrap">
+          <span><strong>{{ snap.rail_code }}</strong> · {{ snap.status }}</span>
+          <span class="text-muted">{{ snap.checked_at }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

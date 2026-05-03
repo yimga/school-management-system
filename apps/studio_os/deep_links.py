@@ -47,6 +47,7 @@ _PATHS: dict[str, str] = {
     "accounts:security_trust_hub": "/authentication/backend/security-trust/",
     "accounts:district_lms_interop": "/authentication/backend/district-lms-interop/",
     "automation:outcomes_console": "/automation/outcomes/",
+    "events:event_console": "/domain-events/",
     "metadata:metadata_lineage_graph": "/api/internal/metadata/lineage/graph/",
     "metadata:metadata_governance": "/api/internal/metadata/governance/",
     "apicenter:dashboard": "/api-center/",

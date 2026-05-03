@@ -9,10 +9,16 @@ Tenant ``marketplace`` namespace routes are registered from ``config.tenant_urls
 from django.urls import path
 
 from apps.marketplace import views
+from apps.marketplace import views_monetization_dashboard
 
 app_name = "marketplace"
 
 urlpatterns = [
+    path(
+        "monetization/",
+        views_monetization_dashboard.monetization_dashboard,
+        name="monetization_dashboard",
+    ),
     path(
         "app/<int:app_id>/purchase-intent/",
         views.app_purchase_intent,

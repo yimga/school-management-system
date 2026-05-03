@@ -2,25 +2,39 @@
 {% load i18n static %}
 {% block title %}{{ page_title }}{% endblock %}
 {% block content %}
-<div class="container-fluid py-3" data-page-archetype="operational-workbench">
+<div class="container-fluid py-3" data-page-archetype="operational-workbench" data-rmc-visual-workflow-canvas="1">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=school_automation_url action_text="Classic automation builder" %}
+  <p class="small text-muted">{% trans "Drag-drop from the palette is supported; keyboard-first operators can use Add node — behaviour matches the same graph model (parity note: native drag parity only where listed)." %}</p>
   <div class="row g-3">
-    <div class="col-lg-2">
+    <div class="col-lg-3">
       <div class="card shadow-sm">
         <div class="card-body small">
-          <h2 class="h6">{% trans "Palette" %}</h2>
-          <p class="text-muted">{% trans "Drag onto the canvas." %}</p>
-          <div class="d-grid gap-1" id="wf-palette">
-            <button type="button" class="btn btn-outline-success btn-sm" draggable="true" data-kind="trigger">Trigger</button>
-            <button type="button" class="btn btn-outline-warning btn-sm" draggable="true" data-kind="condition">Condition</button>
-            <button type="button" class="btn btn-outline-primary btn-sm" draggable="true" data-kind="action">Action</button>
-            <button type="button" class="btn btn-outline-secondary btn-sm" draggable="true" data-kind="delay">Delay</button>
+          <h2 class="h6">{% trans "Palette (drag-drop)" %}</h2>
+          <div class="d-grid gap-1 mb-3" id="wf-palette" role="toolbar" aria-label="{% trans 'Node palette' %}">
+            <button type="button" class="btn btn-outline-success btn-sm" draggable="true" data-kind="trigger">{% trans "Trigger" %}</button>
+            <button type="button" class="btn btn-outline-warning btn-sm" draggable="true" data-kind="condition">{% trans "Condition" %}</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" draggable="true" data-kind="action">{% trans "Action" %}</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" draggable="true" data-kind="delay">{% trans "Delay" %}</button>
           </div>
+          <h2 class="h6">{% trans "Add node (accessible)" %}</h2>
+          <label class="form-label" for="wf-add-kind">{% trans "Kind" %}</label>
+          <select class="form-select form-select-sm mb-2" id="wf-add-kind">
+            <option value="trigger">trigger</option>
+            <option value="condition" selected>condition</option>
+            <option value="action">action</option>
+            <option value="delay">delay</option>
+          </select>
+          <div class="row g-1 mb-2">
+            <div class="col-6"><label class="form-label mb-0" for="wf-add-x">X</label><input type="number" class="form-control form-control-sm" id="wf-add-x" value="140" aria-label="{% trans 'Canvas X position' %}"></div>
+            <div class="col-6"><label class="form-label mb-0" for="wf-add-y">Y</label><input type="number" class="form-control form-control-sm" id="wf-add-y" value="160" aria-label="{% trans 'Canvas Y position' %}"></div>
+          </div>
+          <button type="button" class="btn btn-outline-dark btn-sm w-100 mb-3" id="wf-add-node">{% trans "Add node at X/Y" %}</button>
+
           <hr>
           <label class="form-label">{% trans "Workflow name" %}</label>
           <input type="text" class="form-control form-control-sm mb-2" id="wf-name" placeholder="{% trans 'Name' %}">
           <label class="form-label">{% trans "Trigger event" %}</label>
-          <select class="form-select form-select-sm mb-2" id="wf-trigger">
+          <select class="form-select form-select-sm mb-2" id="wf-trigger" aria-label="{% trans 'Workflow trigger event' %}">
             <option value="attendance_marked">attendance_marked</option>
             <option value="attendance_saved">attendance_saved</option>
             <option value="marks_submitted">marks_submitted</option>
@@ -31,26 +45,33 @@
             <option value="report_generated">report_generated</option>
             <option value="student_risk_detected">student_risk_detected</option>
             <option value="app_installed">app_installed</option>
+            <option value="offline_action_conflict">offline_action_conflict</option>
           </select>
-          <label class="form-label">{% trans "Edit workflow id (optional)" %}</label>
+          <label class="form-label">{% trans "Workflow id (optional)" %}</label>
           <input type="number" class="form-control form-control-sm mb-2" id="wf-id" placeholder="{% trans 'New if empty' %}">
-          <button type="button" class="btn btn-primary btn-sm w-100" id="wf-save">{% trans "Save graph" %}</button>
+          <button type="button" class="btn btn-primary btn-sm w-100" id="wf-save">{% trans "Save draft (graph)" %}</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-1" id="wf-validate">{% trans "Validate graph" %}</button>
           <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-1" id="wf-sim">{% trans "Simulate" %}</button>
+          <button type="button" class="btn btn-success btn-sm w-100 mt-1" id="wf-publish">{% trans "Publish" %}</button>
+          <button type="button" class="btn btn-outline-warning btn-sm w-100 mt-1" id="wf-rollback">{% trans "Rollback to draft" %}</button>
         </div>
       </div>
     </div>
-    <div class="col-lg-8">
-      <div class="workflow-canvas-wrap" id="wf-canvas" style="min-height:480px;position:relative;border:2px dashed #dee2e6;border-radius:.375rem;background:#fafafa;">
-        <div id="wf-inner" class="workflow-canvas-inner" style="min-height:480px;"></div>
+    <div class="col-lg-6">
+      <div class="workflow-canvas-wrap position-relative" id="wf-canvas" style="min-height:480px;border:2px dashed #dee2e6;border-radius:.375rem;background:#fafafa;" role="application" aria-label="{% trans 'Workflow graph canvas' %}">
+        <svg id="wf-edge-layer" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:0;" aria-hidden="true"></svg>
+        <div id="wf-inner" class="workflow-canvas-inner position-relative" style="min-height:480px;z-index:1;"></div>
       </div>
-      <p class="small text-muted mt-2">{% trans "Connect: click two nodes in order to draw an edge (MVP)." %}</p>
+      <p class="small text-muted mt-2">{% trans "Connect edges: click node A then node B (order). Nodes and edges render on the canvas; compiled JSON is shown at right." %}</p>
     </div>
-    <div class="col-lg-4">
+    <div class="col-lg-3">
       <div class="card shadow-sm"><div class="card-body small">
-        <h2 class="h6">{% trans "Compiled DSL preview" %}</h2>
-        <pre id="wf-dsl" class="small bg-light p-2 rounded" style="max-height:280px;overflow:auto;">{}</pre>
+        <h2 class="h6">{% trans "Graph JSON" %}</h2>
+        <pre id="wf-dsl" class="small bg-light p-2 rounded" style="max-height:200px;overflow:auto;" aria-live="polite">{}</pre>
+        <h2 class="h6 mt-3">{% trans "Validation" %}</h2>
+        <pre id="wf-validate-out" class="small bg-light p-2 rounded" style="max-height:120px;overflow:auto;">—</pre>
         <h2 class="h6 mt-3">{% trans "Simulation" %}</h2>
-        <pre id="wf-sim-out" class="small bg-light p-2 rounded" style="max-height:200px;overflow:auto;">—</pre>
+        <pre id="wf-sim-out" class="small bg-light p-2 rounded" style="max-height:180px;overflow:auto;">—</pre>
       </div></div>
     </div>
   </div>
@@ -58,6 +79,7 @@
 <script>
 (function(){
   var inner = document.getElementById("wf-inner");
+  var svg = document.getElementById("wf-edge-layer");
   var nodes = [];
   var edges = [];
   var connectFrom = null;
@@ -66,28 +88,75 @@
 
   function uid(){ return "n-" + Math.random().toString(36).slice(2,10); }
 
+  function nodeCenter(n){
+    var x = (n.position && typeof n.position.x === "number") ? n.position.x : 20;
+    var y = (n.position && typeof n.position.y === "number") ? n.position.y : 20;
+    return { x: x + 48, y: y + 16 };
+  }
+
+  function redrawEdges(){
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var w = inner.parentElement.clientWidth || 800;
+    var h = inner.clientHeight || 480;
+    svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+    var byId = {};
+    nodes.forEach(function(n){ byId[n.id] = n; });
+    edges.forEach(function(e){
+      var a = byId[e.from], b = byId[e.to];
+      if(!a || !b) return;
+      var p1 = nodeCenter(a), p2 = nodeCenter(b);
+      var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", p1.x); line.setAttribute("y1", p1.y);
+      line.setAttribute("x2", p2.x); line.setAttribute("y2", p2.y);
+      line.setAttribute("stroke", "#6c757d");
+      line.setAttribute("stroke-width", "2");
+      svg.appendChild(line);
+    });
+  }
+
   function redraw(){
     inner.querySelectorAll(".workflow-node-card").forEach(function(el){ el.remove(); });
     nodes.forEach(function(n){
-      var el = document.createElement("div");
-      el.className = "workflow-node-card position-absolute";
+      var el = document.createElement("button");
+      el.type = "button";
+      el.className = "workflow-node-card position-absolute btn btn-light border shadow-sm btn-sm text-start";
       el.style.left = (n.position.x||20)+"px";
       el.style.top = (n.position.y||20)+"px";
+      el.style.minWidth = "96px";
       el.dataset.kind = n.kind;
       el.dataset.id = n.id;
-      el.textContent = n.kind + " · " + n.id.slice(0,6);
+      el.setAttribute("aria-label", n.kind + " " + n.id);
+      el.textContent = n.kind + " · " + n.id.slice(0,8);
       el.addEventListener("click", function(ev){
-        ev.stopPropagation();
+        ev.preventDefault(); ev.stopPropagation();
         if(!connectFrom){ connectFrom = n.id; el.classList.add("border-primary"); return;}
         if(connectFrom !== n.id){
           edges.push({from: connectFrom, to: n.id});
           inner.querySelectorAll(".workflow-node-card").forEach(function(x){ x.classList.remove("border-primary"); });
           connectFrom = null;
         } else { connectFrom = null; el.classList.remove("border-primary"); }
+        redraw();
       });
       inner.appendChild(el);
     });
     document.getElementById("wf-dsl").textContent = JSON.stringify({nodes:nodes,edges:edges}, null, 2);
+    redrawEdges();
+  }
+
+  function defaultConfig(kind){
+    if(kind === "action") return {action: {type: "notify", params: {channel: "log", body: "Hello ${student_id}"}}};
+    if(kind === "condition") return {condition: {field: "school_id", op: "eq", value: "{{ school.pk }}"}};
+    if(kind === "delay") return {seconds: 1};
+    return {};
+  }
+
+  function pushNode(kind, x, y){
+    var id = uid();
+    nodes.push({id:id, kind:kind, config: defaultConfig(kind), position:{x:x,y:y}});
+    if(kind==="trigger" && nodes.filter(function(z){return z.kind==="trigger"}).length>1){
+      alert("{% trans 'Only one trigger recommended — remove extras.' %}");
+    }
+    redraw();
   }
 
   document.getElementById("wf-palette").addEventListener("dragstart", function(ev){
@@ -102,23 +171,24 @@
     var rect = inner.getBoundingClientRect();
     var x = ev.clientX - rect.left - 40;
     var y = ev.clientY - rect.top - 20;
-    var id = uid();
-    var cfg = {};
-    if(kind === "action"){
-      cfg = {action: {type: "notify", params: {channel: "log", body: "Hello ${student_id}"}}};
-    }
-    if(kind === "condition"){
-      cfg = {condition: {field: "school_id", op: "eq", value: "{{ school.pk }}"}};
-    }
-    if(kind === "delay"){
-      cfg = {seconds: 1};
-    }
-    nodes.push({id:id, kind:kind, config:cfg, position:{x:x,y:y}});
-    if(kind==="trigger" && nodes.filter(function(z){return z.kind==="trigger"}).length>1){
-      alert("{% trans 'Only one trigger recommended.' %}");
-    }
-    redraw();
+    pushNode(kind, x, y);
   });
+
+  document.getElementById("wf-add-node").addEventListener("click", function(){
+    var kind = document.getElementById("wf-add-kind").value;
+    var x = parseInt(document.getElementById("wf-add-x").value, 10) || 0;
+    var y = parseInt(document.getElementById("wf-add-y").value, 10) || 0;
+    pushNode(kind, x, y);
+  });
+
+  function postJson(url, body){
+    return fetch(url, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {"Content-Type":"application/json","X-CSRFToken": csrftoken},
+      body: JSON.stringify(body)
+    }).then(function(r){ return r.json().then(function(j){ return { okHttp: r.ok, status: r.status, j: j }; }); });
+  }
 
   document.getElementById("wf-save").addEventListener("click", function(){
     var payload = {
@@ -128,27 +198,32 @@
       nodes: nodes,
       edges: edges
     };
-    fetch("{{ save_graph_url }}", {
-      method: "POST",
-      credentials: "same-origin",
-      headers: {"Content-Type":"application/json","X-CSRFToken": csrftoken},
-      body: JSON.stringify(payload)
-    }).then(function(r){ return r.json(); }).then(function(j){
+    postJson("{{ save_graph_url }}", payload).then(function(r){
+      var j = r.j;
       if(j.workflow_id){ document.getElementById("wf-id").value = j.workflow_id; }
       document.getElementById("wf-dsl").textContent = JSON.stringify(j.compiled || j, null, 2);
+      if(!j.ok && j.error){ alert(j.error); }
     }).catch(function(e){ alert(e); });
+  });
+
+  document.getElementById("wf-validate").addEventListener("click", function(){
+    var wid = document.getElementById("wf-id").value;
+    if(!wid){ alert("{% trans 'Save the graph first (workflow id required).' %}"); return; }
+    postJson("{{ validate_graph_url }}", {workflow_id: parseInt(wid,10)}).then(function(r){
+      document.getElementById("wf-validate-out").textContent = JSON.stringify(r.j, null, 2);
+    });
   });
 
   document.getElementById("wf-publish").addEventListener("click", function(){
     var wid = document.getElementById("wf-id").value;
     if(!wid){ alert("{% trans 'Save the graph first (workflow id required).' %}"); return; }
-    fetch("{{ publish_url }}", {
-      method: "POST",
-      credentials: "same-origin",
-      headers: {"Content-Type":"application/json","X-CSRFToken": csrftoken},
-      body: JSON.stringify({workflow_id: parseInt(wid,10)})
-    }).then(function(r){ return r.json(); }).then(function(j){
-      if(j.validation_errors){ alert(JSON.stringify(j.validation_errors)); return; }
+    postJson("{{ publish_url }}", {workflow_id: parseInt(wid,10)}).then(function(r){
+      var j = r.j;
+      if(!r.okHttp && j.validation_errors){
+        document.getElementById("wf-validate-out").textContent = JSON.stringify(j.validation_errors, null, 2);
+        alert("{% trans 'Publish blocked: invalid graph.' %}");
+        return;
+      }
       alert(j.ok ? "{% trans 'Published.' %}" : (j.error || JSON.stringify(j)));
     }).catch(function(e){ alert(e); });
   });
@@ -156,12 +231,8 @@
   document.getElementById("wf-rollback").addEventListener("click", function(){
     var wid = document.getElementById("wf-id").value;
     if(!wid){ return; }
-    fetch("{{ rollback_url }}", {
-      method: "POST",
-      credentials: "same-origin",
-      headers: {"Content-Type":"application/json","X-CSRFToken": csrftoken},
-      body: JSON.stringify({workflow_id: parseInt(wid,10)})
-    }).then(function(r){ return r.json(); }).then(function(j){
+    postJson("{{ rollback_url }}", {workflow_id: parseInt(wid,10)}).then(function(r){
+      var j = r.j;
       alert(j.ok ? "{% trans 'Moved to draft.' %}" : (j.error || JSON.stringify(j)));
     }).catch(function(e){ alert(e); });
   });
@@ -169,18 +240,15 @@
   document.getElementById("wf-sim").addEventListener("click", function(){
     var wid = document.getElementById("wf-id").value;
     if(!wid){ alert("{% trans 'Save first or enter workflow id.' %}"); return; }
-    fetch("{{ simulate_url }}", {
-      method: "POST",
-      credentials: "same-origin",
-      headers: {"Content-Type":"application/json","X-CSRFToken": csrftoken},
-      body: JSON.stringify({workflow_id: parseInt(wid,10), sample_payload: {school_id: "{{ school.pk }}", student_id: 1}})
-    }).then(function(r){ return r.json(); }).then(function(j){
-      document.getElementById("wf-sim-out").textContent = JSON.stringify(j, null, 2);
+    postJson("{{ simulate_url }}", {
+      workflow_id: parseInt(wid,10),
+      sample_payload: {school_id: "{{ school.pk }}", student_id: 1}
+    }).then(function(r){
+      document.getElementById("wf-sim-out").textContent = JSON.stringify(r.j, null, 2);
     });
   });
 
-  // seed one trigger for convenience
-  nodes.push({id: uid(), kind:"trigger", config:{}, position:{x:40,y:40}});
+  pushNode("trigger", 40, 40);
   redraw();
 })();
 </script>

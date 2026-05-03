@@ -1,0 +1,93 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block backend_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+{% trans "Back to event console" as back_console %}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=payload_summary action_url=console_url action_text=back_console %}
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header"><h5 class="mb-0">{% trans "Unified contract" %}</h5></div>
+    <div class="card-body">
+      <pre class="small bg-light p-2 rounded overflow-auto">{{ contract_json }}</pre>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header"><h5 class="mb-0">{% trans "Webhook deliveries (platform path)" %}</h5></div>
+    <div class="card-body p-0">
+      {% if deliveries %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 table-family">
+          <thead class="table-light">
+            <tr>
+              <th>{% trans "Target" %}</th>
+              <th>{% trans "Status" %}</th>
+              <th>{% trans "HTTP" %}</th>
+              <th>{% trans "Attempts" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in deliveries %}
+            <tr>
+              <td class="small text-break">{{ d.subscription.target_url }}</td>
+              <td><span class="badge bg-secondary">{{ d.status }}</span></td>
+              <td>{{ d.last_http_status|default:"—" }}</td>
+              <td>{{ d.attempt_count }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted px-3 py-3 mb-0">{% trans "No platform webhook delivery rows for this event." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header"><h5 class="mb-0">{% trans "Subscriber path" %}</h5></div>
+    <div class="card-body">
+      <p class="small text-muted mb-0">{% trans "In-process subscribers receive payloads from apps.platform_runtime.event_bus with is_replay on replay." %}</p>
+    </div>
+  </div>
+
+  {% if matching_visual_workflows %}
+  <div class="card shadow-sm mb-3" data-rmc-event-studio-automation-link="1">
+    <div class="card-header"><h5 class="mb-0">{% trans "Used by automation (visual workflows)" %}</h5></div>
+    <div class="card-body">
+      <p class="small text-muted mb-2">{% trans "Workflows whose trigger matches this platform event type." %}</p>
+      <ul class="mb-2">
+        {% for wf in matching_visual_workflows %}
+        <li><strong>{{ wf.name }}</strong> — <code>{{ wf.trigger_event }}</code> ({{ wf.get_status_display }})</li>
+        {% endfor %}
+      </ul>
+      {% if outcomes_console_url %}
+      <p class="mb-0"><a href="{{ outcomes_console_url }}">{% trans "Automation outcomes & execution logs" %}</a></p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if replay_eligible %}
+  <div class="card shadow-sm">
+    <div class="card-header"><h5 class="mb-0">{% trans "Replay platform event" %}</h5></div>
+    <div class="card-body">
+      <form method="post" action="{% url 'events:event_replay' %}">
+        {% csrf_token %}
+        <input type="hidden" name="source" value="platform" />
+        <input type="hidden" name="platform_event_pk" value="{{ row.pk }}" />
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="dispatch_webhooks" id="dispatch_webhooks" value="1" />
+          <label class="form-check-label" for="dispatch_webhooks">{% trans "Dispatch webhooks on replay (may enqueue new deliveries)" %}</label>
+        </div>
+        <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "Replay" %}</button>
+      </form>
+      <p class="small text-muted mt-2 mb-0">{% trans "Re-invokes subscribers; audit row platform_event_replayed may be emitted when applicable." %}</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

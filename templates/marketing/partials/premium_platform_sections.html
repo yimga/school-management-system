@@ -1,0 +1,78 @@
+{% load i18n static %}
+{% if page_extras.stock_photo_url %}
+<section class="mkt-premium-stock section-shell" aria-label="{% trans 'Context photograph' %}">
+  <div class="mkt-premium-stock-frame">
+    <img src="{{ page_extras.stock_photo_url }}"
+         alt="{{ page_extras.stock_photo_alt|default:page.label }}"
+         class="mkt-premium-stock-img"
+         width="1600"
+         height="900"
+         loading="lazy"
+         decoding="async">
+    {% if page_extras.stock_photo_credit %}
+    <p class="small text-muted mb-0 mt-2">{{ page_extras.stock_photo_credit }}</p>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
+{% if page_extras.problem_section %}
+<section class="section-shell mkt-premium-problem">
+  <div class="row g-4 align-items-start">
+    <div class="col-lg-7">
+      <h2 class="section-heading">{{ page_extras.problem_section.title }}</h2>
+      <p class="section-lead mb-0">{{ page_extras.problem_section.body }}</p>
+    </div>
+    <div class="col-lg-5">
+      <div class="mkt-premium-problem-panel">
+        <p class="small text-uppercase text-muted mb-2">{% trans "RunMyCampus" %}</p>
+        <p class="mb-0 fw-semibold">{% trans "Connected school operations — not disconnected tools." %}</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if page_extras.workflow_steps %}
+<section class="section-shell" aria-label="{% trans 'Workflow' %}">
+  <h2 class="section-heading">{% trans "How it fits together" %}</h2>
+  <p class="section-lead">{% trans "A practical path your teams follow inside the platform." %}</p>
+  <ol class="mkt-workflow-rail list-unstyled mb-0">
+    {% for step in page_extras.workflow_steps %}
+    <li class="mkt-workflow-step"><span class="mkt-workflow-index">{{ forloop.counter }}</span><span>{{ step }}</span></li>
+    {% endfor %}
+  </ol>
+</section>
+{% endif %}
+
+{% if page_extras.benefits_by_role %}
+<section class="section-shell" aria-label="{% trans 'Benefits by role' %}">
+  <h2 class="section-heading">{% trans "Benefits by role" %}</h2>
+  <p class="section-lead">{% trans "Each team gets purpose-built surfaces without leaking data across boundaries." %}</p>
+  <div class="row g-3">
+    {% for block in page_extras.benefits_by_role %}
+    <div class="col-md-4">
+      <article class="segment-card h-100">
+        <h3 class="h6">{{ block.role }}</h3>
+        <ul class="mb-0 ps-3 small text-muted">
+          {% for bullet in block.bullets %}
+          <li>{{ bullet }}</li>
+          {% endfor %}
+        </ul>
+      </article>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if page_extras.related_platform_links %}
+<section class="section-shell" aria-label="{% trans 'Related platform areas' %}">
+  <h2 class="section-heading">{% trans "Explore related platform areas" %}</h2>
+  <div class="d-flex flex-wrap gap-2">
+    {% for link in page_extras.related_platform_links %}
+    <a class="btn btn-outline-light btn-sm" href="{{ link.path }}">{{ link.label }}</a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

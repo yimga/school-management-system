@@ -1313,6 +1313,26 @@ class EventWebhookDelivery(models.Model):
     delivered_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    operator_resolution = models.CharField(
+        max_length=16,
+        null=True,
+        blank=True,
+        db_index=True,
+        choices=(
+            ("resolved", "Resolved"),
+            ("ignored", "Ignored"),
+        ),
+        help_text="Operator DLQ disposition; null means open on dead-letter rows.",
+    )
+    operator_resolution_reason = models.TextField(blank=True)
+    operator_resolution_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    operator_resolution_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         app_label = "platform_runtime"
@@ -1433,6 +1453,123 @@ class SchoolOnboardingProgress(models.Model):
 
     def __str__(self) -> str:
         return f"Onboarding {self.school_id} {self.progress_percent}%"
+
+
+class TenantLifecycleSchedulerRun(models.Model):
+    """
+    One row per lifecycle retention scheduler execution (portfolio scan).
+    """
+
+    class Status(models.TextChoices):
+        SUCCESS = "success", "Success"
+        FAILED = "failed", "Failed"
+
+    started_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    tenants_scanned = models.PositiveIntegerField(default=0)
+    actions_created = models.PositiveIntegerField(default=0)
+    audits_written = models.PositiveIntegerField(default=0)
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.SUCCESS,
+        db_index=True,
+    )
+    error_message = models.TextField(blank=True, default="")
+    meta = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_tenantlifecycleschedulerrun"
+        ordering = ["-started_at"]
+
+    def __str__(self) -> str:
+        return f"LifecycleSchedulerRun {self.pk} {self.status} ({self.started_at})"
+
+
+class TenantRetentionPlaybookAction(models.Model):
+    """
+    Deduplicated operator action emitted by a named retention playbook.
+    """
+
+    class Status(models.TextChoices):
+        OPEN = "open", "Open"
+        DONE = "done", "Done"
+        DISMISSED = "dismissed", "Dismissed"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="retention_playbook_actions",
+    )
+    playbook_code = models.CharField(max_length=64, db_index=True)
+    trigger = models.CharField(max_length=128, blank=True, default="")
+    condition_summary = models.CharField(max_length=256, blank=True, default="")
+    action_kind = models.CharField(max_length=64)
+    owner = models.CharField(max_length=64)
+    severity = models.CharField(max_length=24)
+    schedule = models.CharField(max_length=64)
+    idempotency_key = models.CharField(max_length=160, unique=True)
+    payload = models.JSONField(default=dict, blank=True)
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.OPEN,
+        db_index=True,
+    )
+    scheduler_run = models.ForeignKey(
+        TenantLifecycleSchedulerRun,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="playbook_actions",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_tenantretentionplaybookaction"
+        indexes = [
+            models.Index(fields=["school", "playbook_code", "status"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.playbook_code} school={self.school_id}"
+
+
+class TenantRetentionPlaybookAuditLog(models.Model):
+    """Append-only audit trail for playbook evaluation and action emission."""
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="retention_playbook_audits",
+    )
+    playbook_code = models.CharField(max_length=64, db_index=True)
+    trigger = models.CharField(max_length=128, blank=True, default="")
+    outcome = models.CharField(max_length=32, db_index=True)
+    detail = models.TextField(blank=True, default="")
+    payload = models.JSONField(default=dict, blank=True)
+    scheduler_run = models.ForeignKey(
+        TenantLifecycleSchedulerRun,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="playbook_audits",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_tenantretentionplaybookauditlog"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["school", "playbook_code", "created_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.playbook_code} {self.outcome} ({self.created_at})"
 
 
 class OfflineAction(models.Model):

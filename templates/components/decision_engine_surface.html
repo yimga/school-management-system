@@ -64,4 +64,11 @@
     </ul>
   </div>
   {% endif %}
+
+  {% if not de_metrics and not de_urgent_queue and not de_next_actions and not de_activity %}
+  <div class="mt-3" data-rmc-student-de-empty="1">
+    {% url 'portal:student_portal_grades' as student_grades_url %}
+    {% include "components/dashboard_empty_state.html" with icon="bi-mortarboard" title=_("You're caught up") message=_("When teachers post grades or assignments, they surface here with clear next steps.") purpose=_("Student 360 clarity") action_url=student_grades_url action_text=_("View grades") empty_primary_task="student_home" empty_primary_step="student:learning-empty" %}
+  </div>
+  {% endif %}
 </section>

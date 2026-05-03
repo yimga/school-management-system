@@ -1,0 +1,90 @@
+{
+  "label": "Security & Governance",
+  "seo_title": "Security & Governance | RunMyCampus",
+  "seo_description": "Role-based access, permission depth, audit trails, authentication discipline, backups, and multi-campus governance for school data worldwide.",
+  "headline": "Secure, governed, and role-aware by design.",
+  "subheadline": "Protect student and financial data with controls that scale from single schools to growing networks.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Access control",
+      "body": "Role-based permissions with clear ownership for administrators, teachers, finance, and families."
+    },
+    {
+      "title": "Auditability",
+      "body": "Trace sensitive operations for internal review and external assurance conversations."
+    },
+    {
+      "title": "Operational resilience",
+      "body": "Backups and continuity practices appropriate to institutional data—confirm details during implementation."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Role-based access",
+      "Tenant isolation discipline",
+      "Audit-friendly operations",
+      "Implementation hardening options"
+    ],
+    "diagram_path": "images/marketing/platform-diagram-marketing.svg",
+    "premium_platform_layout": true,
+    "suppress_footer_clusters": true,
+    "stock_photo_url": "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1600&q=75",
+    "stock_photo_alt": "Server room aesthetic representing secure infrastructure",
+    "stock_photo_credit": "Photo via Unsplash",
+    "problem_section": {
+      "title": "School data deserves enterprise-grade stewardship",
+      "body": "Casual sharing and opaque admin history create risk. RunMyCampus emphasizes least-privilege access, meaningful logs, and governance patterns that multi-campus organizations can enforce."
+    },
+    "workflow_steps": [
+      "Define roles",
+      "Assign least privilege",
+      "Enforce approvals",
+      "Review audit trails",
+      "Adjust as you grow",
+      "Assure stakeholders"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "Technology leaders",
+        "bullets": [
+          "Clear surface area for integrations and identity",
+          "Evidence for security reviews"
+        ]
+      },
+      {
+        "role": "School leadership",
+        "bullets": [
+          "Confidence in who can change financial or academic records",
+          "Support for multi-campus policy alignment"
+        ]
+      },
+      {
+        "role": "Compliance stakeholders",
+        "bullets": [
+          "Operational trace—not a vague “we are secure” claim",
+          "Paths to document retention and access reviews"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Workflows",
+        "path": "/platform/workflows/"
+      },
+      {
+        "label": "Analytics",
+        "path": "/platform/analytics/"
+      },
+      {
+        "label": "Offline-first",
+        "path": "/platform/offline-first/"
+      },
+      {
+        "label": "Communications",
+        "path": "/platform/communications/"
+      }
+    ]
+  }
+}

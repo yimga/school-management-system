@@ -3,13 +3,23 @@
 {% block title %}{% trans "Governed report builder" %}{% endblock %}
 {% block content %}
 {% csrf_token %}
-<div class="container-lg py-4" data-rmc-governed-report-builder="1">
+<div class="container-lg py-4" data-rmc-governed-report-builder="1" data-task="governed_report_export" data-task-step="analytics:governed-builder-page">
   <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h1 class="h4 mb-0">{% trans "Operational report builder" %}</h1>
+    {% if rmc_conversion_single_action_enforced|default:False %}
+    <details class="rmc-conversion-more-actions border rounded px-2 py-1">
+      <summary class="btn btn-sm btn-outline-secondary mb-0">{% trans "More" %}</summary>
+      <div class="pt-2 d-flex flex-wrap gap-2">
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'analytics:decision_intelligence_dashboard' %}" data-action="nav-decision-dashboards" data-task="governed_report_export" data-task-step="analytics:governed-nav-overview">{% trans "Decision dashboards" %}</a>
+      </div>
+    </details>
+    {% else %}
     <a class="btn btn-sm btn-outline-primary" href="{% url 'analytics:decision_intelligence_dashboard' %}">{% trans "Decision dashboards" %}</a>
+    {% endif %}
   </div>
   <p class="text-muted small mb-4">
     {% trans "Allowlisted datasets only — queries compile to Django ORM (no raw SQL). Tenant and permission checks apply." %}
+    <span class="d-block mt-2 text-body-secondary">{% trans "Done-for-you guardrails: only catalog fields compile — preview before export so operators never touch raw SQL." %}</span>
   </p>
   {% if not school_id %}
   <div class="alert alert-warning">{% trans "No tenant context — open this page on your school subdomain." %}</div>
@@ -49,11 +59,24 @@
       <label class="form-label mt-3">{% trans "Row limit" %}</label>
       <input id="gr-limit" type="number" class="form-control form-control-sm" value="100" min="1" max="5000">
 
-      <div class="d-flex flex-wrap gap-2 mt-3">
-        <button type="button" id="gr-preview" class="btn btn-primary btn-sm">{% trans "Preview" %}</button>
-        <button type="button" id="gr-export-csv" class="btn btn-outline-secondary btn-sm">{% trans "Export CSV" %}</button>
-        <button type="button" id="gr-export-json" class="btn btn-outline-secondary btn-sm">{% trans "Export JSON (API)" %}</button>
+      {% if rmc_conversion_single_action_enforced|default:False %}
+      <div class="d-flex flex-wrap gap-2 align-items-start mt-3">
+        <button type="button" id="gr-preview" class="btn btn-primary btn-sm" data-action="governed-report-preview" data-task="governed_report_export" data-task-step="analytics:governed-preview">{% trans "Preview" %}</button>
+        <details class="rmc-conversion-more-actions border rounded px-2 py-1">
+          <summary class="btn btn-sm btn-outline-secondary mb-0">{% trans "Export & APIs" %}</summary>
+          <div class="pt-2 d-flex flex-wrap gap-2">
+            <button type="button" id="gr-export-csv" class="btn btn-outline-secondary btn-sm" data-action="governed-export-csv" data-task="governed_report_export" data-task-step="analytics:governed-export-csv">{% trans "Export CSV" %}</button>
+            <button type="button" id="gr-export-json" class="btn btn-outline-secondary btn-sm" data-action="governed-export-json" data-task="governed_report_export" data-task-step="analytics:governed-export-json">{% trans "Export JSON (API)" %}</button>
+          </div>
+        </details>
       </div>
+      {% else %}
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <button type="button" id="gr-preview" class="btn btn-primary btn-sm" data-action="governed-report-preview" data-task="governed_report_export" data-task-step="analytics:governed-preview">{% trans "Preview" %}</button>
+        <button type="button" id="gr-export-csv" class="btn btn-outline-secondary btn-sm" data-action="governed-export-csv" data-task="governed_report_export" data-task-step="analytics:governed-export-csv">{% trans "Export CSV" %}</button>
+        <button type="button" id="gr-export-json" class="btn btn-outline-secondary btn-sm" data-action="governed-export-json" data-task="governed_report_export" data-task-step="analytics:governed-export-json">{% trans "Export JSON (API)" %}</button>
+      </div>
+      {% endif %}
 
       <hr class="my-4">
       <h2 class="h6">{% trans "Save report" %}</h2>

@@ -24,6 +24,7 @@ from apps.schools.marketing_settings_helpers import derive_marketing_demo_tenant
 # URL names exercised by manage.py validate_marketing_urls (and --smoke subset)
 MARKETING_URL_NAMES = [
     "marketing_landing",
+    "marketing_demo",
     "marketing_book_demo",
     "marketing_10_reasons",
     "marketing_interactive_preview",
@@ -40,6 +41,7 @@ MARKETING_URL_NAMES = [
 ]
 SMOKE_URL_NAMES = [
     "marketing_landing",
+    "marketing_demo",
     "marketing_book_demo",
     "marketing_10_reasons",
     "marketing_integrations",
@@ -189,7 +191,7 @@ class MarketingSmokeTests(TestCase):
         for name in SMOKE_URL_NAMES:
             with self.subTest(url_name=name):
                 path = reverse(name)
-                resp = self.client.get(path, HTTP_HOST=self.host)
+                resp = self.client.get(path, HTTP_HOST=self.host, follow=True)
                 self.assertEqual(resp.status_code, 200, f"GET {path} should return 200")
 
     def test_smoke_json_backed_marketing_pages_return_200(self):
@@ -238,6 +240,8 @@ class MarketingLandingContextTests(TestCase):
         self.assertContains(resp, "images/marketing/platform-diagram-marketing.svg")
         self.assertContains(resp, "images/marketing/setup-studio-flow.svg")
         self.assertContains(resp, "images/marketing/viz-admin.svg")
+        self.assertContains(resp, "hero-global-os-composite.svg")
+        self.assertContains(resp, "images/marketing/module-finance.svg")
         # Phase 10 narrative spine (verify_ux_completion.py markers)
         self.assertContains(resp, "data-phase10-marketing-narrative")
         self.assertContains(resp, "mkt-narrative-phase10")
@@ -263,16 +267,16 @@ class MarketingLandingContextTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn("dropdown-toggle", body)
-        self.assertIn("/products/admissions/", body)
+        self.assertIn("/platform/admissions/", body)
         self.assertIn("/solutions/k12/", body)
         self.assertIn("mkt-nav-submenu", body)
 
-    def test_landing_video_testimonials_use_external_watch_links(self):
+    def test_landing_includes_platform_visual_assets_without_placeholder_video_urls(self):
         resp = self.client.get("/marketing/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
-        self.assertGreaterEqual(body.count("youtube.com/watch"), 2)
         self.assertIn("illustration-students.svg", body)
+        self.assertNotIn("youtube.com/watch?v=YE7VzlLtp-4", body)
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
@@ -429,7 +433,7 @@ class MarketingAbVariantTests(TestCase):
     def tearDown(self):
         self.env.stop()
 
-    def test_secondary_cta_variant_puts_book_demo_first_in_hero(self):
+    def test_hero_lists_request_demo_before_start_trial(self):
         session = self.client.session
         session["marketing_cta_variant"] = "secondary"
         session.save()
@@ -437,14 +441,14 @@ class MarketingAbVariantTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
         hero_part = body.split('id="hero"', 1)[1].split('id="platform-pillars"', 1)[0]
-        pos_demo = hero_part.find("Book a Demo")
+        pos_demo = hero_part.find("Request Demo")
         pos_trial = hero_part.find("Start Free Trial")
-        self.assertGreater(pos_demo, -1, "hero should include Book a Demo")
+        self.assertGreater(pos_demo, -1, "hero should include Request Demo")
         self.assertGreater(pos_trial, -1, "hero should include Start Free Trial")
         self.assertLess(
             pos_demo,
             pos_trial,
-            "secondary variant should list Book a Demo before Start Free Trial in hero CTAs",
+            "Request Demo should appear before Start Free Trial in hero CTAs",
         )
 
     def test_hero_variant_b_appends_subline_when_no_cms(self):
@@ -455,3 +459,17 @@ class MarketingAbVariantTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Operator-grade visibility")
         self.assertContains(resp, 'data-marketing-hero-variant="B"')
+
+
+class ExperienceControlMarketingRegistryTests(SimpleTestCase):
+    """Experience_control roster: public marketing surfaces resolve on public_urls."""
+
+    def test_roster_marketing_home_and_platform_page_reverse(self):
+        from apps.platform_runtime.tests.experience_control_registry import (
+            EXPERIENCE_CONTROL_SCREENS,
+            reverse_screen,
+        )
+
+        for key in ("marketing_homepage", "marketing_platform_page"):
+            row = next(r for r in EXPERIENCE_CONTROL_SCREENS if r["id"] == key)
+            reverse_screen(row)

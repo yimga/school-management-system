@@ -758,6 +758,104 @@ class AppAuditLog(models.Model):
         return f"{self.action} @ {self.created_at}"
 
 
+class MarketplaceMonetizationLedgerEntry(models.Model):
+    """Tenant-scoped marketplace monetization ledger (migration 0011 — metering parity)."""
+
+    class EventType(models.TextChoices):
+        INSTALL = "install", "Install"
+        UNINSTALL = "uninstall", "Uninstall"
+        SUBSCRIPTION_STARTED = "subscription_started", "Subscription started"
+        USAGE_RECORDED = "usage_recorded", "Usage recorded"
+        INVOICE_CREATED = "invoice_created", "Invoice created"
+        PAYMENT_SUCCESS = "payment_success", "Payment success"
+        PAYMENT_FAILED = "payment_failed", "Payment failed"
+        PLATFORM_FEE_RECORDED = "platform_fee_recorded", "Platform fee recorded"
+        SETTLEMENT_PENDING = "settlement_pending", "Settlement pending"
+        SETTLEMENT_COMPLETED = "settlement_completed", "Settlement completed"
+        SETTLEMENT_EXTERNAL_BLOCKED = (
+            "settlement_external_blocked",
+            "Settlement blocked (external)",
+        )
+        SETTLEMENT_PENDING_EXTERNAL = (
+            "settlement_pending_external",
+            "Settlement pending (external PSP)",
+        )
+
+    class EntryStatus(models.TextChoices):
+        POSTED = "posted", "Posted"
+        PENDING = "pending", "Pending"
+        FAILED = "failed", "Failed"
+        BLOCKED = "blocked", "Blocked"
+
+    class SettlementDependency(models.TextChoices):
+        INTERNAL = "internal", "Internal metering"
+        EXTERNAL_PSP = "external_psp", "External PSP"
+        MANUAL = "manual", "Manual / offline"
+
+    sku_key = models.CharField(max_length=80, db_index=True, default="")
+    event_type = models.CharField(
+        max_length=40,
+        db_index=True,
+        choices=EventType.choices,
+    )
+    quantity = models.BigIntegerField(default=1)
+    amount = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0.00"))
+    currency = models.CharField(max_length=3, default="USD")
+    platform_fee_amount = models.DecimalField(
+        max_digits=14, decimal_places=2, default=Decimal("0.00")
+    )
+    provider_reference = models.CharField(max_length=255, blank=True)
+    status = models.CharField(
+        max_length=16,
+        db_index=True,
+        choices=EntryStatus.choices,
+        default=EntryStatus.POSTED,
+    )
+    settlement_dependency = models.CharField(
+        max_length=20,
+        db_index=True,
+        choices=SettlementDependency.choices,
+        default=SettlementDependency.EXTERNAL_PSP,
+    )
+    idempotency_key = models.CharField(max_length=190, db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    app = models.ForeignKey(
+        MarketplaceApp,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="monetization_ledger_entries",
+    )
+    installation = models.ForeignKey(
+        "marketplace.AppInstallation",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="monetization_ledger_entries",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="marketplace_monetization_ledger",
+    )
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "Marketplace monetization ledger entry"
+        verbose_name_plural = "Marketplace monetization ledger entries"
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "idempotency_key"],
+                name="marketplace_mon_led_unique_school_idempotency",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.event_type} ({self.school_id})"
+
+
 class AppVersionCompat(models.Model):
     """Version compatibility matrix (platform min version, app min/max)."""
 

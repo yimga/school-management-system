@@ -1,0 +1,90 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block backend_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+{% trans "Back to dashboard" as back_dashboard %}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-event-console="1" data-task="event_console" data-task-step="events:console-root">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_dashboard %}
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'events:event_analytics_console' %}">{% trans "Analytics" %}</a>
+    <a class="btn btn-outline-warning btn-sm" href="{% url 'events:event_dlq_console' %}">{% trans "DLQ & remediation" %}</a>
+  </div>
+  <div class="alert alert-secondary mb-3" role="note">
+    {% trans "Two storage paths: Domain outbox (integrations → webhook deliveries + internal subscribers via outbox processor) and Platform event log (bus/workflows/replay)." %}
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header"><h5 class="mb-0">{% trans "Domain outbox events" %}</h5></div>
+    <div class="card-body p-0">
+      {% if domain_rows %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 table-family">
+          <thead class="table-light">
+            <tr>
+              <th>{% trans "Type" %}</th>
+              <th>{% trans "Status" %}</th>
+              <th>{% trans "Summary" %}</th>
+              <th>{% trans "Created" %}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in domain_rows %}
+            <tr>
+              <td><code>{{ r.contract.event_type }}</code></td>
+              <td><span class="badge bg-secondary">{{ r.contract.status }}</span></td>
+              <td class="small text-muted text-break">{{ r.summary }}</td>
+              <td>{{ r.contract.created_at }}</td>
+              <td><a href="{{ r.detail_url }}">{% trans "Detail" %}</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="px-3 py-3">
+        {% include "components/dashboard_empty_state.html" with icon="bi-outbox" title=_("No domain outbox rows yet") message=_("Outbox events appear after integrations emit tenant-scoped contract rows.") purpose=_("Verify webhook delivery and subscriber pipelines") action_url=action_url action_text=back_dashboard empty_primary_task="event_console" empty_primary_step="events:domain-empty" %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header"><h5 class="mb-0">{% trans "Platform event log" %}</h5></div>
+    <div class="card-body p-0">
+      {% if platform_rows %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 table-family">
+          <thead class="table-light">
+            <tr>
+              <th>{% trans "ID" %}</th>
+              <th>{% trans "Type" %}</th>
+              <th>{% trans "Summary" %}</th>
+              <th>{% trans "Created" %}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in platform_rows %}
+            <tr>
+              <td><code>{{ r.contract.event_id }}</code></td>
+              <td><code>{{ r.contract.event_type }}</code></td>
+              <td class="small text-muted text-break">{{ r.summary }}</td>
+              <td>{{ r.contract.created_at }}</td>
+              <td><a href="{{ r.detail_url }}">{% trans "Detail" %}</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="px-3 py-3">
+        {% include "components/dashboard_empty_state.html" with icon="bi-diagram-3" title=_("No platform events captured yet") message=_("Workflow and bus producers land here after runtime emits PlatformEventLog rows.") purpose=_("Keep tenants observable") action_url=action_url action_text=back_dashboard empty_primary_task="event_console" empty_primary_step="events:platform-empty" %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

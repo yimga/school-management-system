@@ -224,6 +224,12 @@ PHASE8_DECLARATIONS: dict[str, dict[str, str]] = {
         "main_question": "Which people workflows are blocked or overdue?",
         "main_action": "Clear the next blocking task in hiring or onboarding.",
     },
+    "platform_runtime/tenant_lifecycle_dashboard.html": {
+        "dashboard_type": "portfolio_health",
+        "jtbd": "See tenant funnel, billing, and retention signals with honest cohort limits.",
+        "main_question": "Which tenants need lifecycle or monetization attention?",
+        "main_action": "Open the highest-risk tenant row or run the scheduler playbook.",
+    },
     "requests/dashboard.html": {
         "dashboard_type": "workflow",
         "jtbd": "Process internal requests with clear ownership and SLAs.",

@@ -3,77 +3,210 @@
     "country_code": "CM",
     "label": "Cameroon",
     "currency": "XAF",
+    "primary_rail": "MTN_MOMO",
+    "backup_rail": "ORANGE_MOMO",
     "primary_rails": ["MTN_MOMO", "ORANGE_MOMO", "BANK"],
     "backup_rails": ["CASH", "BANK"],
+    "manual_fallback": true,
     "manual_receipt_allowed": true,
     "offline_receipt_allowed": true,
+    "reconciliation_required": true,
     "reconciliation": "staff_matches_offline_intent_to_bank_statement",
-    "notes": "Mobile money dominant; cash backup common in low-connectivity areas."
+    "notes": "Mobile money dominant; cash backup common in low-connectivity areas.",
+    "provider_notes": "Live MoMo merchant onboarding is tenant-specific (MTN/Orange APIs). Cash and offline receipts always require staff reconciliation.",
+    "provider_setup_status": "external_required",
+    "operator_ready_label": "Corridor defined — connect MTN/Orange merchant APIs; offline receipts still reconcile in-app.",
+    "operator_setup_steps": [
+      "Confirm compliance profile country is Cameroon (CM) and currency XAF.",
+      "Register MoMo merchant IDs with MTN and Orange for school payout accounts.",
+      "Publish payment codes on invoices and train cashiers on offline receipt capture.",
+      "Assign finance staff to review queued receipts against bank statements."
+    ],
+    "tenant_setup_steps": [
+      "Confirm compliance profile country is Cameroon (CM) and currency XAF.",
+      "Register MoMo merchant IDs with MTN and Orange for school payout accounts.",
+      "Publish payment codes on invoices and train cashiers on offline receipt capture.",
+      "Assign finance staff to review queued receipts against bank statements."
+    ]
   },
   "GH": {
     "country_code": "GH",
     "label": "Ghana",
     "currency": "GHS",
+    "primary_rail": "BANK",
+    "backup_rail": "MTN_MOMO",
     "primary_rails": ["BANK", "CARD"],
     "backup_rails": ["MTN_MOMO", "CASH"],
+    "manual_fallback": true,
     "manual_receipt_allowed": true,
     "offline_receipt_allowed": true,
+    "reconciliation_required": true,
     "reconciliation": "staff_matches_reference_on_invoice",
-    "notes": "MoMo widely used; bank transfer common for fees."
+    "notes": "MoMo widely used; bank transfer common for fees.",
+    "provider_notes": "Bank USSD/reference flows vary by institution; Paystack or hub integrations require tenant API keys.",
+    "provider_setup_status": "external_required",
+    "operator_ready_label": "Corridor defined — add bank/hub display and optional MoMo integration in tenant settings.",
+    "operator_setup_steps": [
+      "Set Ghana compliance profile (GH / GHS).",
+      "Configure displayed bank accounts or hub settlement IDs.",
+      "Enable offline receipt capture if campuses may lose connectivity.",
+      "Train staff to match references on invoices during reconciliation."
+    ],
+    "tenant_setup_steps": [
+      "Set Ghana compliance profile (GH / GHS).",
+      "Configure displayed bank accounts or hub settlement IDs.",
+      "Enable offline receipt capture if campuses may lose connectivity.",
+      "Train staff to match references on invoices during reconciliation."
+    ]
   },
   "NG": {
     "country_code": "NG",
     "label": "Nigeria",
     "currency": "NGN",
+    "primary_rail": "BANK",
+    "backup_rail": "CARD",
     "primary_rails": ["BANK", "CARD"],
     "backup_rails": ["CASH"],
+    "manual_fallback": true,
     "manual_receipt_allowed": true,
     "offline_receipt_allowed": true,
+    "reconciliation_required": true,
     "reconciliation": "staff_matches_bank_reference_or_upload",
-    "notes": "Bank transfer + cards; USSP/mobile-wallet backups vary by tenant."
+    "notes": "Bank transfer + cards; USSD/mobile-wallet backups vary by tenant.",
+    "provider_notes": "Paystack/Flutterwave processor contracts and sandbox keys are external onboarding steps.",
+    "provider_setup_status": "external_required",
+    "operator_ready_label": "Corridor defined — connect Paystack/Flutterwave and publish bank references on invoices.",
+    "operator_setup_steps": [
+      "Set Nigeria compliance profile (NG / NGN).",
+      "Publish bank transfer instructions and invoice references.",
+      "Connect supported card processors where entitled.",
+      "Route unmatched transfers into receipt upload queue for approval."
+    ],
+    "tenant_setup_steps": [
+      "Set Nigeria compliance profile (NG / NGN).",
+      "Publish bank transfer instructions and invoice references.",
+      "Connect supported card processors where entitled.",
+      "Route unmatched transfers into receipt upload queue for approval."
+    ]
   },
   "KE": {
     "country_code": "KE",
     "label": "Kenya",
     "currency": "KES",
+    "primary_rail": "CARD",
+    "backup_rail": "BANK",
     "primary_rails": ["CARD", "BANK"],
     "backup_rails": ["MTN_MOMO", "CASH"],
+    "manual_fallback": true,
     "manual_receipt_allowed": true,
     "offline_receipt_allowed": true,
+    "reconciliation_required": true,
     "reconciliation": "staff_matches_mpesa_or_bank_line",
-    "notes": "M-Pesa-style rails often mapped to MTN_MOMO enum where shared."
+    "notes": "M-Pesa-style rails often mapped to MTN_MOMO enum where shared.",
+    "provider_notes": "Dedicated M-Pesa Daraja onboarding is not bundled; map wallet rails via tenant gateway configuration.",
+    "provider_setup_status": "external_required",
+    "operator_ready_label": "Corridor defined — map M-Pesa/Daraja or card PSP externally; keep till references consistent.",
+    "operator_setup_steps": [
+      "Set Kenya compliance profile (KE / KES).",
+      "Expose till/paybill references consistent with invoice codes.",
+      "Allow offline receipts where connectivity fails.",
+      "Match statement lines or uploads before approving collections."
+    ],
+    "tenant_setup_steps": [
+      "Set Kenya compliance profile (KE / KES).",
+      "Expose till/paybill references consistent with invoice codes.",
+      "Allow offline receipts where connectivity fails.",
+      "Match statement lines or uploads before approving collections."
+    ]
   },
   "US": {
     "country_code": "US",
     "label": "United States",
     "currency": "USD",
+    "primary_rail": "CARD",
+    "backup_rail": "BANK",
     "primary_rails": ["CARD", "BANK"],
     "backup_rails": ["BANK", "CASH"],
+    "manual_fallback": true,
     "manual_receipt_allowed": true,
     "offline_receipt_allowed": false,
+    "reconciliation_required": true,
     "reconciliation": "stripe_or_manual_bank_match",
-    "notes": "Card-first; offline receipt capture discouraged except recorded intent for cash."
+    "notes": "Card-first; offline receipt capture discouraged except recorded intent for cash.",
+    "provider_notes": "Stripe Connect / ACH onboarding is tenant-owned; platform billing uses separate Stripe accounts.",
+    "provider_setup_status": "external_required",
+    "operator_ready_label": "Corridor defined — complete Stripe/processor onboarding; ACH/wire as backup.",
+    "operator_setup_steps": [
+      "Set US compliance profile (US / USD).",
+      "Complete Stripe or processor onboarding for card-present/card-not-present.",
+      "Publish ACH/wire instructions if backup rail active.",
+      "Use finance inbox for manual matches when rails dispute."
+    ],
+    "tenant_setup_steps": [
+      "Set US compliance profile (US / USD).",
+      "Complete Stripe or processor onboarding for card-present/card-not-present.",
+      "Publish ACH/wire instructions if backup rail active.",
+      "Use finance inbox for manual matches when rails dispute."
+    ]
   },
   "GB": {
     "country_code": "GB",
     "label": "United Kingdom",
     "currency": "GBP",
+    "primary_rail": "CARD",
+    "backup_rail": "BANK",
     "primary_rails": ["CARD", "BANK"],
     "backup_rails": ["BANK"],
+    "manual_fallback": true,
     "manual_receipt_allowed": true,
     "offline_receipt_allowed": false,
+    "reconciliation_required": true,
     "reconciliation": "open_banking_or_manual_reference",
-    "notes": "FPS/BACS often mapped to BANK rail."
+    "notes": "FPS/BACS often mapped to BANK rail.",
+    "provider_notes": "Open Banking aggregators require tenant consent flows with regulated providers.",
+    "provider_setup_status": "external_required",
+    "operator_ready_label": "Corridor defined — connect UK card PSP and publish FPS/BACS beneficiary details.",
+    "operator_setup_steps": [
+      "Set UK compliance profile (GB / GBP).",
+      "Publish beneficiary details for FPS/BACS.",
+      "Enable card processing via Stripe or PSP.",
+      "Review uploads against statement references."
+    ],
+    "tenant_setup_steps": [
+      "Set UK compliance profile (GB / GBP).",
+      "Publish beneficiary details for FPS/BACS.",
+      "Enable card processing via Stripe or PSP.",
+      "Review uploads against statement references."
+    ]
   },
   "EU": {
     "country_code": "EU",
     "label": "European Union (SEPA)",
     "currency": "EUR",
+    "primary_rail": "CARD",
+    "backup_rail": "BANK",
     "primary_rails": ["CARD", "BANK"],
     "backup_rails": ["BANK"],
+    "manual_fallback": true,
     "manual_receipt_allowed": true,
     "offline_receipt_allowed": false,
+    "reconciliation_required": true,
     "reconciliation": "sepa_reference_match",
-    "notes": "Generic EU profile; tenants should set exact country on ComplianceProfile when possible."
+    "notes": "Generic EU profile; tenants should set exact country on ComplianceProfile when possible.",
+    "provider_notes": "SEPA CRED creditor identifiers and mandates are issued per PSP/bank outside this codebase.",
+    "provider_setup_status": "external_required",
+    "operator_ready_label": "Corridor defined — obtain SEPA creditor ID and EUR settlement IBAN with your PSP.",
+    "operator_setup_steps": [
+      "Prefer a concrete EU member ISO code on ComplianceProfile when known.",
+      "Configure EUR settlement IBAN and creditor identifier.",
+      "Enable cards via PSP.",
+      "Match SEPA references before closing invoices."
+    ],
+    "tenant_setup_steps": [
+      "Prefer a concrete EU member ISO code on ComplianceProfile when known.",
+      "Configure EUR settlement IBAN and creditor identifier.",
+      "Enable cards via PSP.",
+      "Match SEPA references before closing invoices."
+    ]
   }
 }

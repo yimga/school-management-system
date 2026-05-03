@@ -1,0 +1,60 @@
+{
+  "label": "Request a Demo",
+  "seo_title": "Request a Demo | RunMyCampus",
+  "seo_description": "Schedule a guided walkthrough of RunMyCampus—admissions, SIS, attendance, finance, portals, analytics, and governance—for schools worldwide.",
+  "headline": "See how RunMyCampus can work for your school.",
+  "subheadline": "Walk through admissions, daily operations, finance, portals, reporting, and governance with our team. Built for flexible calendars, grading models, currencies, and multi-campus structures.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "What we cover",
+      "body": "Student records, admissions flow, attendance, grading, parent and teacher portals, fee operations, messaging, analytics, workflows, offline capture, and security posture—aligned to how you run schools."
+    },
+    {
+      "title": "Who should attend",
+      "body": "Head of school or principal, registrar or admissions lead, finance lead, IT owner, and anyone shaping rollout—invite your core decision makers."
+    },
+    {
+      "title": "After your request",
+      "body": "We reply with next steps to schedule a session. You'll receive preparation prompts so time on the call stays focused on your priorities."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Configurable academic models",
+      "Multi-currency fee readiness",
+      "Role-based portals",
+      "Offline-ready operations",
+      "Secure audit trails",
+      "Multi-campus support"
+    ],
+    "suppress_footer_clusters": true,
+    "metrics": [
+      {
+        "value": "~45 min",
+        "label": "guided session",
+        "detail": "Tailored to your roles and campuses—not a generic slideshow."
+      },
+      {
+        "value": "Live",
+        "label": "product surfaces",
+        "detail": "Leadership dashboards, portals, finance flows, and workflows where helpful."
+      },
+      {
+        "value": "Clear",
+        "label": "next steps",
+        "detail": "Rollout framing and packaging pointers—confirm specifics during procurement."
+      }
+    ],
+    "demo_agenda": [
+      "Orientation to your structure: divisions, campuses, calendars, grading, and currencies.",
+      "Admissions pipeline through enrollment and billing hand-offs.",
+      "Daily classroom operations: attendance, assessments, assignments, communications.",
+      "Family-facing portals and transparency on fees and progress.",
+      "Leadership analytics and operational visibility.",
+      "Security, roles, approvals, and offline resilience.",
+      "Implementation expectations and success metrics discussion."
+    ]
+  }
+}

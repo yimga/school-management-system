@@ -1,0 +1,83 @@
+{
+  "label": "Product Tour",
+  "seo_title": "Product Tour | RunMyCampus",
+  "seo_description": "Guided overview of RunMyCampus surfaces—administration, teacher workspace, parent experience, finance, analytics, workflows, security, and offline-ready operations.",
+  "headline": "Tour the RunMyCampus operating model.",
+  "subheadline": "Follow how school leaders, staff, families, and finance teams move through one connected platform.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Leadership & administration",
+      "body": "Operational dashboards, enrollment posture, billing visibility, multi-campus framing, and governance-friendly reporting."
+    },
+    {
+      "title": "Teaching & learning operations",
+      "body": "Attendance rhythm, marks entry, assignments, classroom messaging, and continuity into published reports."
+    },
+    {
+      "title": "Family & learner surfaces",
+      "body": "Parent clarity on fees and attendance alongside learner-facing schedules and tasks."
+    },
+    {
+      "title": "Trust & resilience",
+      "body": "Role-aware permissions, approvals, audit trails, and offline capture paths when connectivity fluctuates."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Configurable workflows",
+      "Role-based portals",
+      "Offline-ready capture",
+      "Secure audit trails"
+    ],
+    "suppress_footer_clusters": true,
+    "product_tour_stops": [
+      {
+        "title": "Administration",
+        "body": "Tenant configuration, academic structure, users and roles, and school branding continuity.",
+        "static_visual": "images/marketing/viz-admin.svg"
+      },
+      {
+        "title": "Teacher workspace",
+        "body": "Class operations, attendance, marks, assignments, and responsible communication.",
+        "static_visual": "images/marketing/module-admissions.svg"
+      },
+      {
+        "title": "Parent experience",
+        "body": "Fees, attendance, announcements, and report-ready progress in one portal.",
+        "static_visual": "images/marketing/viz-student360.svg"
+      },
+      {
+        "title": "Student experience",
+        "body": "Timetable, coursework, results, and school updates tuned for learners.",
+        "static_visual": "images/marketing/platform-diagram-marketing.svg"
+      },
+      {
+        "title": "Finance",
+        "body": "Invoices, receipts, balances, and finance reports anchored to student records.",
+        "static_visual": "images/marketing/module-admissions.svg"
+      },
+      {
+        "title": "Analytics",
+        "body": "Leadership visibility on enrollment, attendance, collection, and academic trends.",
+        "static_visual": "images/marketing/viz-admin.svg"
+      },
+      {
+        "title": "Workflows",
+        "body": "Structured approvals across admissions, finance, and academic publishing.",
+        "static_visual": "images/marketing/platform-diagram-marketing.svg"
+      },
+      {
+        "title": "Security & governance",
+        "body": "Permission depth, audit logs, authentication expectations, and multi-campus controls.",
+        "static_visual": "images/marketing/viz-admin.svg"
+      },
+      {
+        "title": "Offline-ready operations",
+        "body": "Queue, sync, conflict review, and audit when the network returns.",
+        "static_visual": "images/marketing/platform-diagram-marketing.svg"
+      }
+    ]
+  }
+}

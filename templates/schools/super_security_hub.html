@@ -17,7 +17,7 @@
   {% phase8_dashboard_declaration "schools/super_security_hub.html" %}
   <h1 class="h4 mb-3">{% trans "Security & enterprise audit" %}</h1>
   <p class="text-secondary small mb-4">
-    {% trans "Live signals: security events, compliance export/permission trail, active sessions. Static governance scan:" %}
+    {% trans "Enterprise security command center — live signals plus generated verifier JSON summaries (docs/generated). Live signals: security events, compliance export/permission trail, active sessions. Deep static scan:" %}
     <a href="{{ security_surface_url }}">{% trans "Security surface audit" %}</a>
     · <a href="{{ support_dashboard_url }}">{% trans "Support" %}</a>
     {% if admin_security_audit_url %}
@@ -27,6 +27,64 @@
     · <a href="{{ admin_auditlog_url }}">{% trans "Compliance audit log (admin)" %}</a>
     {% endif %}
   </p>
+
+  {% for rg in governance_risk_groups %}
+  <div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert" data-rmc-security-risk-group="{{ rg.id }}">
+    <div>
+      <strong>{{ rg.title }}</strong>
+      <span class="d-block small text-wrap">{{ rg.detail }}</span>
+    </div>
+    <a class="btn btn-sm btn-primary flex-shrink-0" href="{{ rg.action_url }}">{{ rg.action_label }}</a>
+  </div>
+  {% endfor %}
+
+  <div class="card shadow-sm mb-3 border-primary" data-rmc-enterprise-verifier-strip="1">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <span>{% trans "Governance verifier summaries (generated JSON)" %}</span>
+      <a class="btn btn-sm btn-outline-primary" href="{{ security_surface_detail_url }}">{% trans "Open detailed surface ledger" %}</a>
+    </div>
+    <div class="card-body py-2">
+      <div class="row g-2">
+        {% for c in verifier_cards %}
+        <div class="col-6 col-md-4 col-xl-3">
+          <div class="border rounded p-2 h-100 small {% if not c.present %}border-warning{% endif %}">
+            <div class="fw-semibold mb-1">{{ c.label }}</div>
+            <div class="text-muted mb-1">{{ c.summary }}</div>
+            {% if c.generated_at %}<div class="text-muted" style="font-size:0.75rem;">{% trans "UTC" %} {{ c.generated_at|truncatechars:24 }}</div>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% if governance_missing_files %}
+      <p class="small text-muted mb-0 mt-2">{% trans "Missing files on disk — run the mechanical verifier scripts from repo root; dashboard degrades gracefully." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-3" data-rmc-impersonation-audit-strip="1">
+    <div class="card-header">{% trans "Impersonation & proxy (platform operator)" %}</div>
+    <div class="card-body p-0 table-responsive" style="max-height: 18rem; overflow-y: auto;">
+      <table class="table table-sm table-dark mb-0 small">
+        <thead><tr><th>{% trans "When (UTC)" %}</th><th>{% trans "Actor" %}</th><th>{% trans "Peer / approval" %}</th><th>{% trans "School" %}</th><th>{% trans "Action" %}</th><th>{% trans "Reason" %}</th><th>{% trans "Read-only" %}</th></tr></thead>
+        <tbody>
+          {% for row in impersonation_rows %}
+          <tr>
+            <td class="text-nowrap">{{ row.created_at|date:"Y-m-d H:i" }}</td>
+            <td>{% if row.actor %}{{ row.actor.get_username }}{% else %}—{% endif %}</td>
+            <td>{% if row.peer_actor %}{{ row.peer_actor.get_username }}{% else %}—{% endif %}</td>
+            <td class="text-truncate" style="max-width: 8rem;" title="{{ row.school.name }}">{{ row.school.name|default:row.school_id }}</td>
+            <td>{{ row.get_action_display }}</td>
+            <td class="text-truncate" style="max-width: 10rem;" title="{{ row.reason|default:'' }}">{% if row.reason %}{{ row.reason|truncatechars:80 }}{% else %}—{% endif %}</td>
+            <td>{% if row.read_only is None %}—{% elif row.read_only %}{% trans "yes" %}{% else %}{% trans "no" %}{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-secondary px-3 py-2">{% trans "No impersonation rows yet." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer small text-muted">{% trans "Dual-control schools require a peer approver on switch; consent + justification policies apply per settings." %}</div>
+  </div>
 
   <div class="row g-3 mb-3">
     <div class="col-md-3">
@@ -181,19 +239,24 @@
     </div>
     <div class="col-lg-4">
       <div class="card shadow-sm">
-        <div class="card-header">{% trans "Export history (compliance log)" %}</div>
+        <div class="card-header">{% trans "Export timeline (compliance log + integrity)" %}</div>
         <div class="card-body p-0 table-responsive" style="max-height: 22rem; overflow-y: auto;">
-          <table class="table table-sm table-dark table-hover mb-0 small">
-            <thead><tr><th>{% trans "When" %}</th><th>{% trans "Export" %}</th><th>{% trans "User" %}</th></tr></thead>
+          <table class="table table-sm table-dark table-hover mb-0 small" data-rmc-export-timeline="1">
+            <thead><tr><th>{% trans "When" %}</th><th>{% trans "Tenant" %}</th><th>{% trans "Type" %}</th><th>{% trans "Summary" %}</th><th>{% trans "Actor" %}</th><th>{% trans "Status" %}</th><th>{% trans "Integrity" %}</th><th>{% trans "Verification" %}</th></tr></thead>
             <tbody>
-              {% for e in export_events %}
-              <tr>
-                <td class="text-nowrap">{{ e.timestamp|date:"Y-m-d H:i" }}</td>
-                <td class="text-truncate" style="max-width: 6rem;" title="{{ e.object_repr }}">{{ e.object_repr|default:"—" }}</td>
-                <td>{% if e.user %}{{ e.user.get_username }}{% else %}—{% endif %}</td>
+              {% for row in export_timeline_rows %}
+              <tr data-rmc-export-integrity="{{ row.integrity_token }}">
+                <td class="text-nowrap">{{ row.timestamp|date:"Y-m-d H:i" }}</td>
+                <td class="text-truncate" style="max-width: 6rem;" title="{{ row.school_tenant }}">{{ row.school_tenant|default:"—" }}</td>
+                <td class="text-truncate" style="max-width: 6rem;" title="{{ row.export_type }}">{{ row.export_type|default:"—" }}</td>
+                <td class="text-truncate" style="max-width: 8rem;" title="{{ row.filter_summary }}">{{ row.filter_summary|default:"—" }}</td>
+                <td>{{ row.actor_username }}</td>
+                <td>{{ row.status }}</td>
+                <td><code class="small">{{ row.integrity_token }}</code></td>
+                <td>{{ row.verification_state }}</td>
               </tr>
               {% empty %}
-              <tr><td colspan="3" class="text-secondary px-3 py-2">{% trans "No rows yet." %}</td></tr>
+              <tr><td colspan="8" class="text-secondary px-3 py-2">{% trans "No rows yet." %}</td></tr>
               {% endfor %}
             </tbody>
           </table>

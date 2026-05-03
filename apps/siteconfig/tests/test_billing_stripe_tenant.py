@@ -175,6 +175,7 @@ class BillingStripeTenantRoutesTests(TestCase):
                 "billing_sku": "mkt_addon_sku_1",
             },
             publisher=pub,
+            pricing_model=MarketplaceApp.PricingModel.SUBSCRIPTION,
         )
         MarketplaceListing.objects.create(
             app=app,
@@ -238,6 +239,7 @@ class BillingStripeTenantRoutesTests(TestCase):
             version="1.0.0",
             manifest={"pricing_type": "paid", "billing_sku": "mkt_ks_sku"},
             publisher=pub,
+            pricing_model=MarketplaceApp.PricingModel.SUBSCRIPTION,
         )
         MarketplaceListing.objects.create(
             app=app,

@@ -14,7 +14,6 @@ from __future__ import annotations
 import uuid as uuid_mod
 
 from django.core.management.base import BaseCommand, CommandError
-from django.utils import timezone
 
 
 class Command(BaseCommand):
@@ -34,6 +33,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         from apps.events.models import DomainEvent
+        from apps.events.replay_ops import clone_domain_event_for_operator_replay
 
         raw_id = str(options["event_id"]).strip()
         try:
@@ -45,15 +45,7 @@ class Command(BaseCommand):
         if src is None:
             raise CommandError(f"DomainEvent not found: {pk}")
 
-        dup = DomainEvent.objects.create(
-            event_type=src.event_type,
-            payload=dict(src.payload or {}),
-            school_id=src.school_id,
-            schema_name=src.schema_name,
-            schema_version=src.schema_version or "1.0",
-            status=DomainEvent.Status.PENDING,
-            idempotency_key=f"{src.id}-replay-{timezone.now().timestamp():.6f}",
-        )
+        dup = clone_domain_event_for_operator_replay(src, actor=None)
         self.stdout.write(
             self.style.SUCCESS(
                 f"Cloned event {src.id} -> new pending event {dup.id} ({dup.event_type})."

@@ -1,0 +1,92 @@
+{
+  "label": "Teacher Portal",
+  "seo_title": "Teacher Portal & Classroom Tools | RunMyCampus",
+  "seo_description": "Attendance, marks, syllabus signals, assignments, and guardian messaging connected.",
+  "headline": "Teacher workflows tuned for daily classroom reality.",
+  "subheadline": "Fewer hops between spreadsheets, gradebooks, and messaging apps.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Day-one usability",
+      "body": "Registers and marks entry surfaced quickly."
+    },
+    {
+      "title": "Guardian alignment",
+      "body": "Messaging respects visibility policies."
+    },
+    {
+      "title": "Insight-ready",
+      "body": "Signals leadership needs without manual reporting marathons."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Flexible academic calendars",
+      "Multi-currency fee structures",
+      "Role-based portals",
+      "Offline-ready workflows",
+      "Secure audit trails",
+      "Multi-campus support"
+    ],
+    "diagram_path": "images/marketing/viz-teacher.svg",
+    "premium_platform_layout": true,
+    "suppress_footer_clusters": true,
+    "stock_photo_url": "https://images.unsplash.com/photo-1497633764215-c864088fc966?auto=format&fit=crop&w=1600&q=75",
+    "stock_photo_alt": "Educator preparing materials at a desk with a laptop",
+    "stock_photo_credit": "Photo via Unsplash",
+    "problem_section": {
+      "title": "Teachers need one daily workspace",
+      "body": "Switching tools for attendance, marks, assignments, and communication burns time. RunMyCampus centralizes classroom operations with role-aware visibility."
+    },
+    "workflow_steps": [
+      "Plan lesson",
+      "Take attendance",
+      "Capture marks",
+      "Assign work",
+      "Message families",
+      "Report progress"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "Teachers",
+        "bullets": [
+          "Fewer disconnected tabs during class prep",
+          "Notes and outreach aligned to students"
+        ]
+      },
+      {
+        "role": "Leadership",
+        "bullets": [
+          "Operational visibility without micromanagement",
+          "Consistent adoption across campuses"
+        ]
+      },
+      {
+        "role": "Parents",
+        "bullets": [
+          "Updates originate from the same system of record",
+          "Less conflicting information across channels"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Attendance",
+        "path": "/platform/attendance/"
+      },
+      {
+        "label": "Grading & Report Cards",
+        "path": "/platform/grading-report-cards/"
+      },
+      {
+        "label": "Communications",
+        "path": "/platform/communications/"
+      },
+      {
+        "label": "Workflows",
+        "path": "/platform/workflows/"
+      }
+    ]
+  }
+}

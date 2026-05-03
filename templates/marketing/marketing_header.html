@@ -37,7 +37,7 @@
         {% endfor %}
         {% if marketing_navbar_has_more %}
         <li class="nav-item dropdown mkt-nav-dropdown">
-          <a class="nav-link px-2 dropdown-toggle" href="#" id="mktNavMore" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">{% trans "More" %}</a>
+          <button type="button" class="nav-link px-2 dropdown-toggle btn btn-link text-white text-decoration-none border-0 bg-transparent shadow-none d-inline-flex align-items-center" id="mktNavMore" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">{% trans "More" %}</button>
           <ul class="dropdown-menu dropdown-menu-dark mkt-nav-submenu" aria-labelledby="mktNavMore">
             {% for item in marketing_navbar_primary %}
               {% if forloop.counter > marketing_navbar_visible_count|default:7 %}
@@ -59,7 +59,8 @@
       </ul>
       <div class="d-flex align-items-center gap-2 flex-shrink-0">
         <a class="btn btn-outline-light btn-sm" href="{% url 'global_login_discovery' %}">{% trans "Login" %}</a>
-        <a class="btn btn-cta-primary btn-sm" href="{% url 'signup_school' %}" data-cta="primary" data-page="header">{% trans "Start Free Trial" %}</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'signup_school' %}" data-cta="trial" data-page="header">{% trans "Start trial" %}</a>
+        <a class="btn btn-cta-primary btn-sm" href="{% url 'marketing_demo' %}" data-cta="demo" data-page="header">{% trans "Request demo" %}</a>
       </div>
     </div>
   </div>

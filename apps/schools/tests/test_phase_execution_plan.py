@@ -37,7 +37,7 @@ class PublicExecutionPlanPagesTests(TestCase):
             "/case-studies/",
             "/security-compliance/",
             "/integrations/",
-            "/book-demo/",
+            "/demo/",
             "/solutions/k12-school-management-system/",
             "/solutions/multi-campus-school-software/",
             "/solutions/student-passport-transcript-portability/",
@@ -61,7 +61,7 @@ class PublicExecutionPlanPagesTests(TestCase):
         self.assertEqual(response.status_code, 200)
         body = response.content.decode()
         self.assertIn("/product/", body)
-        self.assertIn("/book-demo/", body)
+        self.assertIn("/demo/", body)
         self.assertIn("/solutions/k12-school-management-system/", body)
 
 

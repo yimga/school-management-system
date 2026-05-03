@@ -1,0 +1,91 @@
+{
+  "label": "Workflow Automation",
+  "seo_title": "School Workflow Automation | RunMyCampus",
+  "seo_description": "Approval chains across admissions, finance, and compliance checkpoints.",
+  "headline": "Automation without brittle email routing.",
+  "subheadline": "Governed workflows publish when leadership requires evidence—not shadow IT scripts.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Cross-functional approvals",
+      "body": "Finance, academics, and leadership stay coordinated."
+    },
+    {
+      "title": "Repeatability",
+      "body": "Blueprint-friendly patterns across campuses."
+    },
+    {
+      "title": "Evidence",
+      "body": "Workflow histories complement audit logs."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Flexible academic calendars",
+      "Multi-currency fee structures",
+      "Role-based portals",
+      "Offline-ready workflows",
+      "Secure audit trails",
+      "Multi-campus support"
+    ],
+    "diagram_path": "images/marketing/illustration-workflow.svg",
+    "premium_platform_layout": true,
+    "suppress_footer_clusters": true,
+    "stock_photo_url": "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1600&q=75",
+    "stock_photo_alt": "Team collaborating around a laptop in an office setting",
+    "stock_photo_credit": "Photo via Unsplash",
+    "problem_section": {
+      "title": "Manual routing hides delays",
+      "body": "Approvals trapped in email chains break SLAs. RunMyCampus routes admissions, finance, academic, and publishing tasks with notifications and trails."
+    },
+    "workflow_steps": [
+      "Define stages",
+      "Assign owners",
+      "Automate hand-offs",
+      "Notify stakeholders",
+      "Audit outcomes"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "Leadership",
+        "bullets": [
+          "Predictable throughput across campuses",
+          "Evidence for governance conversations"
+        ]
+      },
+      {
+        "role": "Operators",
+        "bullets": [
+          "Queues instead of inbox archaeology",
+          "Less rework when roles change"
+        ]
+      },
+      {
+        "role": "Finance & admissions",
+        "bullets": [
+          "Aligned checkpoints before money moves",
+          "Cleaner transitions between teams"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Admissions & Enrollment",
+        "path": "/platform/admissions/"
+      },
+      {
+        "label": "Fees & Payments",
+        "path": "/platform/fees-payments/"
+      },
+      {
+        "label": "Security & Governance",
+        "path": "/platform/security/"
+      },
+      {
+        "label": "Analytics",
+        "path": "/platform/analytics/"
+      }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{{ report.name }} — {% trans "Saved governed report" %}{% endblock %}
+{% block content %}
+<div class="container-lg py-4" data-page-archetype="operational-workbench" data-rmc-governed-saved-detail="1">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 studio-os-topbar ds-action-bar">
+    <div class="min-w-0">
+      <h1 class="h4 mb-0">{{ report.name }}</h1>
+      <p class="text-muted small mb-0 mt-1">{% trans "Allowlisted definition — POST run refreshes tenant-scoped rows." %}</p>
+    </div>
+    <a class="btn btn-sm btn-primary studio-os-cmd-btn ds-btn" href="{{ builder_url }}">{% trans "Back to report builder" %}</a>
+  </div>
+  <div class="card shadow-sm mb-3">
+    <div class="card-header"><h2 class="h6 mb-0">{% trans "Definition" %}</h2></div>
+    <div class="card-body">
+      <pre class="small bg-light p-2 rounded mb-0 overflow-auto">{{ definition_json }}</pre>
+    </div>
+  </div>
+  <p class="small text-muted mb-2">{% trans "Run endpoint (POST JSON):" %} <code>{{ run_url }}</code></p>
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ saved_list_url }}">{% trans "Saved reports list (JSON)" %}</a>
+  </div>
+</div>
+{% endblock %}

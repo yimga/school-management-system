@@ -2305,6 +2305,106 @@ INSTITUTION_LANDING_DEFINITIONS = {
         "cta_primary": "Start free trial",
         "cta_secondary": "Book demo",
     },
+    "international-schools": {
+        "label": "International schools",
+        "seo_title": "International School Management Platform | RunMyCampus",
+        "seo_description": "Global-ready school operating system for IB, British, American, and blended curricula—multi-language, multi-campus, and audit-ready.",
+        "headline": "Built for international school operating models.",
+        "subheadline": "Flexible calendars, grading scales, fees in multiple currencies, and role portals that fit diverse curricula—not one-country assumptions.",
+        "workflow_examples": [
+            {
+                "title": "Cross-curricular alignment",
+                "body": "Configure terms, assessments, and reporting to match your diploma pathways.",
+            },
+            {
+                "title": "Family mobility",
+                "body": "Guardian access, transcripts, and communications stay coherent across campuses.",
+            },
+            {
+                "title": "Governance & audits",
+                "body": "Permissioned visibility for boards and leadership with logged administrative actions.",
+            },
+        ],
+        "compliance_angle": "FERPA- and GDPR-aligned practices with configurable retention and export tooling.",
+        "migration_pathway": "Import applicants and student records; align grading scales and fee schedules; activate portals per campus.",
+        "cta_primary": "Request demo",
+        "cta_secondary": "Explore platform",
+    },
+    "faith-based-schools": {
+        "label": "Faith-based schools",
+        "seo_title": "Faith-Based School Operations Software | RunMyCampus",
+        "seo_description": "Unified admissions, academics, finance, and family engagement for denominational and faith-centered schools worldwide.",
+        "headline": "Operate your mission-driven school with clarity.",
+        "subheadline": "Enrollment, pastoral communications, tuition, and academics connected—with governance your trustees can trust.",
+        "workflow_examples": [
+            {
+                "title": "Enrollment & stewardship",
+                "body": "Application pipelines, sibling linking, and aid workflows without spreadsheet drift.",
+            },
+            {
+                "title": "Community engagement",
+                "body": "Announcements and messaging aligned to classroom and parish networks.",
+            },
+            {
+                "title": "Finance transparency",
+                "body": "Fees, receipts, and statements with audit trails for leadership.",
+            },
+        ],
+        "compliance_angle": "Role-based access and audit trails suitable for accountable governance.",
+        "migration_pathway": "Migrate families and fee schedules; configure branding and portals; phase academics module rollout.",
+        "cta_primary": "Request demo",
+        "cta_secondary": "Explore platform",
+    },
+    "multi-campus": {
+        "label": "Multi-campus groups",
+        "seo_title": "Multi-Campus School Software | RunMyCampus",
+        "seo_description": "Govern multiple campuses from one connected platform—shared policies, localized operations, consolidated analytics.",
+        "headline": "One operating system across every campus.",
+        "subheadline": "Leadership dashboards, campus autonomy, and consistent admissions and finance workflows.",
+        "workflow_examples": [
+            {
+                "title": "Central policy, local execution",
+                "body": "Roll out grading templates and fee rules while campuses retain daily operations.",
+            },
+            {
+                "title": "Roll-ups leadership need",
+                "body": "Enrollment, attendance, and revenue visibility across entities.",
+            },
+            {
+                "title": "Unified identity",
+                "body": "Staff and families move across campuses without duplicate profiles.",
+            },
+        ],
+        "compliance_angle": "Tenant isolation with optional network oversight—audit-ready exports.",
+        "migration_pathway": "Define hierarchy; import each campus; validate cross-campus reporting.",
+        "cta_primary": "Request demo",
+        "cta_secondary": "Compare architecture",
+    },
+    "growing-school-networks": {
+        "label": "Growing school networks",
+        "seo_title": "School Network Operating Platform | RunMyCampus",
+        "seo_description": "Scale from one school to many—repeatable onboarding, governance, and automation without rebuilding IT.",
+        "headline": "Grow your network without operational chaos.",
+        "subheadline": "Provisioning templates, marketplace extensions, and automation rails keep every new campus aligned.",
+        "workflow_examples": [
+            {
+                "title": "Repeatable onboarding",
+                "body": "Blueprint packs accelerate setup for each new member school.",
+            },
+            {
+                "title": "Automation",
+                "body": "Approval workflows across admissions, finance, and HR-like staffing signals.",
+            },
+            {
+                "title": "Evidence for sponsors",
+                "body": "Exports and dashboards suitable for boards and ministries.",
+            },
+        ],
+        "compliance_angle": "Configurable retention and audit trails as networks mature.",
+        "migration_pathway": "Pilot one flagship campus; templatize configuration; clone governance patterns.",
+        "cta_primary": "Book architecture review",
+        "cta_secondary": "View marketplace",
+    },
 }
 
 ROLE_PAGE_DEFINITIONS = {
@@ -2429,6 +2529,25 @@ ROLE_PAGE_DEFINITIONS = {
         ],
         "dashboards": ["District overview", "School health", "Usage and compliance"],
         "outcomes": ["Central visibility", "Consistent policy", "School autonomy"],
+    },
+    "finance": {
+        "label": "Finance teams",
+        "seo_title": "School Finance & Billing Software | RunMyCampus",
+        "seo_description": "Invoices, receipts, currencies, discounts, arrears, and financial reporting unified with student records.",
+        "headline": "Finance tied to real enrollment—not spreadsheets.",
+        "subheadline": "Invoice lifecycle, receipt capture (including offline), balances, and exports audit-ready for leadership.",
+        "workflows": [
+            "Fee schedules & currencies",
+            "Invoices & receipts",
+            "Payment history & arrears",
+            "Financial reporting",
+        ],
+        "dashboards": ["Cash position", "Outstanding balances", "Campus roll-ups"],
+        "outcomes": [
+            "Fewer reconciliation loops",
+            "Clear payer visibility",
+            "Governed adjustments",
+        ],
     },
 }
 

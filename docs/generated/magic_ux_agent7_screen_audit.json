@@ -1,8 +1,15 @@
 {
-  "generated_at": "2026-05-01T15:09:56.532452+00:00",
+  "generated_at": "2026-05-01T22:45:06.454755+00:00",
   "agent": "Magic UX / Experience Control Architect",
+  "phase": "experience_control_phase1_audit",
   "rows": [
     {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "",
       "surface": "founder_dashboard",
       "template": "super/founder_dashboard.html",
       "primary_action": "Sales pipeline (toolbar); next-action strip",
@@ -10,6 +17,12 @@
       "empty_state": "Audit metrics show run-script hints"
     },
     {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "",
       "surface": "backend_dashboard",
       "template": "accounts/backend_dashboard.html",
       "primary_action": "Role-home primary + next-action strip",
@@ -17,6 +30,12 @@
       "empty_state": "Context-driven tiles"
     },
     {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "",
       "surface": "teacher_dashboard",
       "template": "teacher/dashboard.html",
       "primary_action": "Hero primary + strip",
@@ -24,6 +43,12 @@
       "empty_state": "Workflow-driven"
     },
     {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "",
       "surface": "parent_dashboard",
       "template": "parent/dashboard.html",
       "primary_action": "Header CTA + strip",
@@ -31,6 +56,12 @@
       "empty_state": "Cards + recovery"
     },
     {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "",
       "surface": "student_360",
       "template": "student/learning_home.html",
       "primary_action": "Decision engine surface + next-action strip",
@@ -38,6 +69,12 @@
       "empty_state": "DE fills when school assigns work"
     },
     {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "",
       "surface": "marketplace_catalog_super",
       "template": "marketplace/app_catalog.html",
       "primary_action": "Browse installable apps + More",
@@ -45,6 +82,12 @@
       "empty_state": "Catalog grid"
     },
     {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "",
       "surface": "marketplace_catalog_tenant",
       "template": "marketplace/tenant_app_catalog.html",
       "primary_action": "Browse apps anchor + More",
@@ -52,6 +95,12 @@
       "empty_state": "Governed empty catalog recovery"
     },
     {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "",
       "surface": "installed_apps",
       "template": "marketplace/tenant_installed_apps.html",
       "primary_action": "Back to catalog (page header)",
@@ -59,6 +108,12 @@
       "empty_state": "N/A list empty"
     },
     {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "",
       "surface": "installation_health",
       "template": "marketplace/installation_health.html",
       "primary_action": "App catalog + More",
@@ -66,6 +121,12 @@
       "empty_state": "Table empty state with link"
     },
     {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "",
       "surface": "billing_payment_parent",
       "template": "parent/finance.html",
       "primary_action": "Jump to invoices + Pay now rows",
@@ -73,6 +134,12 @@
       "empty_state": "Invoice table empty state component"
     },
     {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "",
       "surface": "attendance_export_teacher",
       "template": "teacher/attendance.html",
       "primary_action": "Export CSV (primary when strict)",
@@ -80,6 +147,12 @@
       "empty_state": "dashboard_empty_state with home + export"
     },
     {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "",
       "surface": "compliance_exports",
       "template": "siteconfig/compliance_exports.html",
       "primary_action": "Attendance shortcut / jump / runtime / templates chain",
@@ -87,6 +160,12 @@
       "empty_state": "guided_recovery_state + tenant fallback link"
     },
     {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "",
       "surface": "studio_os",
       "template": "studio_os/shell.html",
       "primary_action": "Open Experience + tools drawer when strict",
@@ -94,11 +173,95 @@
       "empty_state": "Overview mode cards"
     },
     {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "",
       "surface": "siteconfig_ccc",
       "template": "siteconfig/partials/ccc_guided_activation_strip.html",
       "primary_action": "Next action link (weighted checklist)",
       "strict_notes": "Instrumentation on next-action anchor",
       "empty_state": "Hidden when no onboarding context"
+    },
+    {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "medium",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "DL/DD cards are interpretive \u2014 paired with operators list + CTAs.",
+      "surface": "tenant_lifecycle_dashboard",
+      "template": "platform_runtime/tenant_lifecycle_dashboard.html",
+      "primary_action": "Operations home + cohort metrics; at-risk rows link out",
+      "strict_notes": "N/A control plane; insufficient-cohort strip uses dashboard_empty_state",
+      "empty_state": "At-risk / expansion empty panels action-first; insufficient_data block with CTA"
+    },
+    {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "Root data-task report_generation.",
+      "surface": "decision_intelligence_overview",
+      "template": "analytics/decision_intelligence_dashboard.html",
+      "primary_action": "Insight cards open primary_action; strip from portal shell",
+      "strict_notes": "Empty branch: governed builder + school health secondary",
+      "empty_state": "dashboard_empty_state with builder + secondary surface"
+    },
+    {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "",
+      "surface": "governed_report_builder",
+      "template": "analytics/governed_report_builder.html",
+      "primary_action": "Preview primary; exports in More when strict",
+      "strict_notes": "Header decision link in More when strict",
+      "empty_state": "No-tenant alert with copy; dataset flow always action-first"
+    },
+    {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "data-task offline_sync across controls.",
+      "surface": "offline_sync_queue",
+      "template": "portal/offline_sync_queue.html",
+      "primary_action": "Process queue now; retries/conflicts in More (strict)",
+      "strict_notes": "Toolbar uses rmc-conversion-more-actions pattern",
+      "empty_state": "Queue-clear empty state above tables when all buckets empty"
+    },
+    {
+      "one_primary_above_fold": true,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "low",
+      "task_path_clear": true,
+      "magic_ux_notes": "data-rmc-event-console + data-task hooks.",
+      "surface": "event_console",
+      "template": "events/event_console.html",
+      "primary_action": "Back to operations (header); empty tables use empty state",
+      "strict_notes": "N/A backend surface; avoids dead-end muted copy",
+      "empty_state": "dashboard_empty_state per card (domain + platform)"
+    },
+    {
+      "one_primary_above_fold": false,
+      "passive_stats_only_risk": "low",
+      "empty_or_permission_has_primary_action": true,
+      "overflow_or_competing_primary_cta_risk": "high",
+      "task_path_clear": true,
+      "magic_ux_notes": "Tracked as remaining multi-primary in no-mode overview.",
+      "surface": "studio_os_overview_gap",
+      "template": "studio_os/shell.html",
+      "primary_action": "Strict: Open Experience toolbar; modal cards below",
+      "strict_notes": "GAP: overview grid still exposes multiple Open * primaries \u2014 needs product pass",
+      "empty_state": "Start here guidance + mode cards"
     }
   ]
 }

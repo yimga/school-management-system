@@ -1,0 +1,92 @@
+{
+  "label": "Fees & Payments",
+  "seo_title": "School Fees, Invoices & Payments | RunMyCampus",
+  "seo_description": "Multi-currency fees, invoices, receipts, discounts, arrears, and finance-ready reporting.",
+  "headline": "Finance grounded in enrollment reality.",
+  "subheadline": "Plans map to academic years and campuses with governance over adjustments.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Unified balances",
+      "body": "Guardian views and finance dashboards stay aligned."
+    },
+    {
+      "title": "Receipt discipline",
+      "body": "Offline receipt capture can sync through governed queues."
+    },
+    {
+      "title": "Reporting depth",
+      "body": "Exports that match how leadership reviews revenue and arrears."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Flexible academic calendars",
+      "Multi-currency fee structures",
+      "Role-based portals",
+      "Offline-ready workflows",
+      "Secure audit trails",
+      "Multi-campus support"
+    ],
+    "diagram_path": "images/marketing/module-finance.svg",
+    "premium_platform_layout": true,
+    "suppress_footer_clusters": true,
+    "stock_photo_url": "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1600&q=75",
+    "stock_photo_alt": "Finance professional reviewing figures on a laptop",
+    "stock_photo_credit": "Photo via Unsplash",
+    "problem_section": {
+      "title": "Billing confusion strains trust",
+      "body": "When invoices, receipts, and balances are fragmented, finance teams reconcile manually and parents call for the same answers. RunMyCampus brings fee setup, invoicing, receipts, and arrears into one auditable flow."
+    },
+    "workflow_steps": [
+      "Fee setup",
+      "Invoice issued",
+      "Payment recorded",
+      "Receipt generated",
+      "Balance updated",
+      "Finance reports"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "Finance teams",
+        "bullets": [
+          "Structured arrears and discount handling",
+          "Payment history schools can defend in audits"
+        ]
+      },
+      {
+        "role": "Administrators",
+        "bullets": [
+          "Operational clarity across campuses",
+          "Configurable currencies and fee categories"
+        ]
+      },
+      {
+        "role": "Parents",
+        "bullets": [
+          "Transparent balances and receipts",
+          "Fewer surprise bills at renewal time"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Parent Portal",
+        "path": "/platform/parent-portal/"
+      },
+      {
+        "label": "Analytics",
+        "path": "/platform/analytics/"
+      },
+      {
+        "label": "Student Information System",
+        "path": "/platform/student-information-system/"
+      },
+      {
+        "label": "Workflows",
+        "path": "/platform/workflows/"
+      }
+    ]
+  }
+}

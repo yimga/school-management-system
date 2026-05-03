@@ -58,7 +58,7 @@ DATASETS: dict[str, dict[str, Any]] = {
             "student__last_name",
             "classroom__name",
         ),
-        "filters": frozenset({"classroom_id", "status", "date__gte", "date__lte"}),
+        "filters": frozenset({"classroom_id", "status", "date", "date__gte", "date__lte"}),
         "group_by": frozenset({"classroom_id", "status", "date"}),
         "aggregate_fields": frozenset({"id"}),
         "date_fields": ("date",),
@@ -81,7 +81,14 @@ DATASETS: dict[str, dict[str, Any]] = {
             "student__last_name",
         ),
         "filters": frozenset(
-            {"term_id", "academic_year_id", "student_id", "subject_assignment_id"}
+            {
+                "term_id",
+                "academic_year_id",
+                "student_id",
+                "subject_assignment_id",
+                "final_score__lt",
+                "final_score__lte",
+            }
         ),
         "group_by": frozenset({"term_id", "letter_grade", "subject_assignment_id"}),
         "aggregate_fields": frozenset({"final_score", "id"}),
@@ -97,12 +104,25 @@ DATASETS: dict[str, dict[str, Any]] = {
             "total_amount",
             "balance_amount",
             "student_id",
+            "student__classroom_id",
+            "student__classroom__name",
             "school_id",
             "created_at",
             "due_date",
         ),
-        "filters": frozenset({"status", "student_id", "created_at__gte", "created_at__lte"}),
-        "group_by": frozenset({"status"}),
+        "filters": frozenset(
+            {
+                "status",
+                "status__in",
+                "student_id",
+                "created_at__gte",
+                "created_at__lte",
+                "due_date__lte",
+                "due_date__gte",
+                "balance_amount__gt",
+            }
+        ),
+        "group_by": frozenset({"status", "student__classroom_id"}),
         "aggregate_fields": frozenset({"total_amount", "balance_amount", "id"}),
     },
     "payments": {
@@ -204,6 +224,88 @@ DATASETS: dict[str, dict[str, Any]] = {
         ),
         "group_by": frozenset({"event_type", "utm_source"}),
         "aggregate_fields": frozenset({"id"}),
+    },
+    "domain_events": {
+        "label": "Domain events (outbox)",
+        "permissions": _DEFAULT_REPORT_PERMS,
+        "tenant_field": "school_id",
+        "model": "events.DomainEvent",
+        "fields": (
+            "id",
+            "event_type",
+            "schema_version",
+            "status",
+            "school_id",
+            "retry_count",
+            "created_at",
+            "processed_at",
+        ),
+        "filters": frozenset(
+            {"event_type", "status", "created_at__gte", "created_at__lte"}
+        ),
+        "group_by": frozenset({"event_type", "status"}),
+        "aggregate_fields": frozenset({"id"}),
+        "date_fields": ("created_at",),
+    },
+    "platform_events": {
+        "label": "Platform event log",
+        "permissions": _DEFAULT_REPORT_PERMS,
+        "tenant_field": "school_id",
+        "model": "platform_runtime.PlatformEventLog",
+        "fields": (
+            "id",
+            "event_type",
+            "school_id",
+            "tenant_id",
+            "payload",
+            "created_at",
+        ),
+        "filters": frozenset({"event_type", "created_at__gte", "created_at__lte"}),
+        "group_by": frozenset({"event_type"}),
+        "aggregate_fields": frozenset({"id"}),
+        "date_fields": ("created_at",),
+    },
+    "offline_sync_events": {
+        "label": "Offline sync queue",
+        "permissions": _DEFAULT_REPORT_PERMS,
+        "tenant_field": "school_id",
+        "model": "platform_runtime.OfflineAction",
+        "fields": (
+            "id",
+            "action_type",
+            "status",
+            "school_id",
+            "retry_count",
+            "created_at",
+            "updated_at",
+        ),
+        "filters": frozenset(
+            {"action_type", "status", "created_at__gte", "created_at__lte"}
+        ),
+        "group_by": frozenset({"action_type", "status"}),
+        "aggregate_fields": frozenset({"id"}),
+        "date_fields": ("created_at",),
+    },
+    "workflow_run_logs": {
+        "label": "Workflow executions",
+        "permissions": _DEFAULT_REPORT_PERMS,
+        "tenant_lookup": "workflow__school_id",
+        "model": "automation.WorkflowRunLog",
+        "fields": (
+            "id",
+            "workflow_id",
+            "trigger_event",
+            "status",
+            "dry_run",
+            "conditions_passed",
+            "created_at",
+        ),
+        "filters": frozenset(
+            {"status", "trigger_event", "dry_run", "created_at__gte", "created_at__lte"}
+        ),
+        "group_by": frozenset({"trigger_event", "status"}),
+        "aggregate_fields": frozenset({"id"}),
+        "date_fields": ("created_at",),
     },
 }
 

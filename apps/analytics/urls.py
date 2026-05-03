@@ -17,10 +17,16 @@ from .views_governed import (
     decision_revenue_dashboard,
     decision_risk_dashboard,
     decision_school_health_dashboard,
+    event_analytics_bundle_api,
+    event_analytics_dashboard,
+    governed_intent_assistant,
+    governed_intent_execute,
+    governed_intent_preview,
     governed_query_export_csv,
     governed_query_export_json,
     governed_query_preview,
     governed_report_builder,
+    governed_saved_report_detail,
     governed_saved_report_run,
     governed_saved_report_save,
     governed_saved_reports_list,
@@ -29,6 +35,11 @@ from .views_governed import (
 app_name = "analytics"
 
 urlpatterns = [
+    path(
+        "governed/query-builder/",
+        governed_report_builder,
+        name="governed_query_builder",
+    ),
     path(
         "governed/report-builder/",
         governed_report_builder,
@@ -50,6 +61,11 @@ urlpatterns = [
         name="governed_query_export_json",
     ),
     path(
+        "governed/saved-reports/",
+        governed_saved_reports_list,
+        name="governed_saved_reports",
+    ),
+    path(
         "governed/saved/",
         governed_saved_reports_list,
         name="governed_saved_reports_list",
@@ -60,9 +76,39 @@ urlpatterns = [
         name="governed_saved_report_save",
     ),
     path(
+        "governed/saved/<int:report_id>/",
+        governed_saved_report_detail,
+        name="governed_saved_report_detail",
+    ),
+    path(
         "governed/saved/<int:report_id>/run/",
         governed_saved_report_run,
         name="governed_saved_report_run",
+    ),
+    path(
+        "governed/events/",
+        event_analytics_dashboard,
+        name="event_analytics_dashboard",
+    ),
+    path(
+        "governed/events/bundle.json",
+        event_analytics_bundle_api,
+        name="event_analytics_bundle_api",
+    ),
+    path(
+        "governed/intent/",
+        governed_intent_assistant,
+        name="governed_intent_assistant",
+    ),
+    path(
+        "governed/intent/preview/",
+        governed_intent_preview,
+        name="governed_intent_preview",
+    ),
+    path(
+        "governed/intent/execute/",
+        governed_intent_execute,
+        name="governed_intent_execute",
     ),
     path(
         "decision-intelligence/",

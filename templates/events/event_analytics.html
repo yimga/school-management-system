@@ -1,0 +1,181 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block backend_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+{% trans "Back to console" as back_console %}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-event-analytics="1">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=console_url action_text=back_console %}
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header"><h5 class="mb-0">{% trans "Filters" %}</h5></div>
+    <div class="card-body">
+      <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label small mb-1" for="event_type">{% trans "Event type (optional)" %}</label>
+          <input id="event_type" class="form-control form-control-sm" name="event_type" value="{{ filter_event_type }}" placeholder="{% trans 'e.g. payment_success' %}" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small mb-1" for="newest_limit">{% trans "Newest N (max 200)" %}</label>
+          <input id="newest_limit" type="number" min="1" max="200" class="form-control form-control-sm" name="newest_limit" value="{{ newest_limit }}" />
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-primary btn-sm">{% trans "Apply" %}</button>
+          <a href="{% url 'events:event_analytics_console' %}" class="btn btn-outline-secondary btn-sm">{% trans "Reset" %}</a>
+        </div>
+      </form>
+      <p class="small text-muted mb-0 mt-2">
+        <a href="{{ dlq_url }}">{% trans "Open DLQ console" %}</a>
+      </p>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h6 class="text-muted text-uppercase small">{% trans "Domain webhook failures" %}</h6>
+          <p class="h4 mb-1">{{ domain_failed_deliveries }}</p>
+          <p class="small text-muted mb-0">{% trans "DLQ open (dead-letter, no disposition)" %}: <strong>{{ domain_dlq_open }}</strong></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h6 class="text-muted text-uppercase small">{% trans "Platform webhook failures" %}</h6>
+          <p class="h4 mb-1">{{ platform_failed_live }}</p>
+          <p class="small text-muted mb-0">{% trans "DLQ open (dead-letter)" %}: <strong>{{ platform_dlq_open }}</strong></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h6 class="text-muted text-uppercase small">{% trans "Replay audits" %}</h6>
+          <p class="h4 mb-1">{{ replay_attempts }}</p>
+          <p class="small text-muted mb-0">{% trans "platform_event_replayed rows for this tenant" %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">{% trans "Avg delivery latency (domain path)" %}</div>
+        <div class="card-body">
+          {% if domain_latency_ms != None %}
+          <p class="mb-0"><strong>{{ domain_latency_ms }}</strong> {% trans "ms (created → delivered, delivered rows only)" %}</p>
+          {% else %}
+          <p class="text-muted mb-0">{% trans "No delivered samples in window." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">{% trans "Avg delivery latency (platform path)" %}</div>
+        <div class="card-body">
+          {% if platform_latency_ms != None %}
+          <p class="mb-0"><strong>{{ platform_latency_ms }}</strong> {% trans "ms (created → delivered)" %}</p>
+          {% else %}
+          <p class="text-muted mb-0">{% trans "No delivered samples in window." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header"><h5 class="mb-0">{% trans "Domain volume by type" %} {% if filter_event_type %}<span class="badge bg-secondary">{{ filter_event_type }}</span>{% endif %}</h5></div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 table-family">
+          <thead class="table-light"><tr><th>{% trans "Type" %}</th><th>{% trans "Count" %}</th></tr></thead>
+          <tbody>
+            {% for row in domain_by_type %}
+            <tr><td><code>{{ row.event_type }}</code></td><td>{{ row.c }}</td></tr>
+            {% empty %}
+            <tr><td colspan="2" class="text-muted px-3 py-3">{% trans "No rows." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header"><h5 class="mb-0">{% trans "Domain status distribution (tenant)" %}</h5></div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 table-family">
+          <thead class="table-light"><tr><th>{% trans "Status" %}</th><th>{% trans "Count" %}</th></tr></thead>
+          <tbody>
+            {% for row in domain_by_status %}
+            <tr><td><span class="badge bg-secondary">{{ row.status }}</span></td><td>{{ row.c }}</td></tr>
+            {% empty %}
+            <tr><td colspan="2" class="text-muted px-3 py-3">{% trans "No rows." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header"><h5 class="mb-0">{% trans "Platform volume by type" %}</h5></div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 table-family">
+          <thead class="table-light"><tr><th>{% trans "Type" %}</th><th>{% trans "Count" %}</th></tr></thead>
+          <tbody>
+            {% for row in platform_by_type %}
+            <tr><td><code>{{ row.event_type }}</code></td><td>{{ row.c }}</td></tr>
+            {% empty %}
+            <tr><td colspan="2" class="text-muted px-3 py-3">{% trans "No rows." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header"><h5 class="mb-0">{% trans "Newest domain events" %} (≤ {{ newest_limit }})</h5></div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 table-family">
+          <thead class="table-light"><tr><th>{% trans "Type" %}</th><th>{% trans "Status" %}</th><th>{% trans "Created" %}</th></tr></thead>
+          <tbody>
+            {% for ev in recent_domain %}
+            <tr><td><code>{{ ev.event_type }}</code></td><td>{{ ev.status }}</td><td>{{ ev.created_at }}</td></tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-muted px-3 py-3">{% trans "No rows." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header"><h5 class="mb-0">{% trans "Newest platform events" %} (≤ {{ newest_limit }})</h5></div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 table-family">
+          <thead class="table-light"><tr><th>{% trans "Type" %}</th><th>{% trans "ID" %}</th><th>{% trans "Created" %}</th></tr></thead>
+          <tbody>
+            {% for ev in recent_platform %}
+            <tr><td><code>{{ ev.event_type }}</code></td><td>{{ ev.pk }}</td><td>{{ ev.created_at }}</td></tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-muted px-3 py-3">{% trans "No rows." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

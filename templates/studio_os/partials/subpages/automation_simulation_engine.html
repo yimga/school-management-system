@@ -1,10 +1,85 @@
 {% load i18n static %}
 <div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
-  <div class="studio-os__card py-3 px-3">
-    <p class="mb-3">{% trans "Run workflow simulations before going live. The simulation engine lets you verify behavior, check side effects, and see impact without activating. Run simulations from the Workflow hub, then activate when ready." %}</p>
-    {% if workflow_hub_url %}
-    <p class="mb-0"><a href="{{ workflow_hub_url }}">{% trans "Workflow hub" %}</a> — {% trans "Run simulations and activate workflows." %}</p>
-    {% endif %}
+  <div class="studio-os__card py-3 px-3 mb-3">
+    <p class="mb-2">{% trans "Simulations run through the visual workflow APIs below: dry-run does not mutate tenant data and does not write WorkflowRunLog rows. Publishing blocked workflows stays in draft until structural validation passes (trigger → condition → action, connected graph)." %}</p>
+    <ul class="mb-0">
+      {% if visual_designer_url %}
+      <li class="mb-1"><a class="btn btn-primary btn-sm" href="{{ visual_designer_url }}">{% trans "Open visual workflow designer" %}</a></li>
+      {% endif %}
+      {% if workflow_hub_url %}
+      <li class="mb-1"><a href="{{ workflow_hub_url }}">{% trans "Workflow hub" %}</a> — {% trans "Classic automation templates and installs." %}</li>
+      {% endif %}
+      {% if outcomes_console_url %}
+      <li class="mb-1"><a href="{{ outcomes_console_url }}">{% trans "Automation outcomes" %}</a> — {% trans "Migration runs, execution logs, and visual workflow run history." %}</li>
+      {% endif %}
+      {% if domain_events_console_url %}
+      <li class="mb-1" data-rmc-studio-domain-events-link="1"><a href="{{ domain_events_console_url }}">{% trans "Tenant event console" %}</a> — {% trans "Domain outbox + platform log, replay, DLQ." %}</li>
+      {% endif %}
+      {% if domain_events_analytics_url %}
+      <li class="mb-1"><a href="{{ domain_events_analytics_url }}">{% trans "Event analytics" %}</a> — {% trans "Volumes, failures, replay counts, latency." %}</li>
+      {% endif %}
+      {% if simulate_api_url %}
+      <li class="mb-1"><code>{{ simulate_api_url }}</code> — {% trans "POST simulate (workflow_id + sample_payload)." %}</li>
+      {% endif %}
+      {% if dispatch_test_api_url %}
+      <li class="mb-1"><code>{{ dispatch_test_api_url }}</code> — {% trans "POST dispatch-test (trigger_type + context, dry-run matching published flows)." %}</li>
+      {% endif %}
+      {% if publish_api_url %}
+      <li class="mb-0"><code>{{ publish_api_url }}</code> — {% trans "POST publish after validation; unsafe graphs return validation_errors (blocked)." %}</li>
+      {% endif %}
+    </ul>
   </div>
+
+  {% if canonical_triggers %}
+  <div class="studio-os__card py-3 px-3" data-rmc-workflow-trigger-catalog="1">
+    <h2 class="h6 mb-3">{% trans "Operator trigger catalog" %}</h2>
+    <p class="small text-muted mb-3">{% trans "Sample payloads for Studio verification; extend conditions/actions in the visual designer." %}</p>
+    {% for row in canonical_triggers %}
+      <div class="border rounded p-3 mb-3">
+      <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
+        <strong>{{ row.label }}</strong>
+        <code>{{ row.trigger_key }}</code>
+      </div>
+      <p class="small mb-2"><strong>{% trans "Sample payload" %}</strong></p>
+      <pre class="small bg-light p-2 rounded mb-2 overflow-auto">{{ row.sample_payload_json }}</pre>
+      <p class="small mb-1"><strong>{% trans "Conditions" %}</strong></p>
+      <ul class="small mb-2">
+        {% for c in row.supported_conditions %}<li>{{ c }}</li>{% endfor %}
+      </ul>
+      <p class="small mb-1"><strong>{% trans "Actions" %}</strong></p>
+      <ul class="small mb-2">
+        {% for a in row.supported_actions %}<li>{{ a }}</li>{% endfor %}
+      </ul>
+      <p class="small text-muted mb-0">{{ row.simulation_hint }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="studio-os__card py-3 px-3">
+    <p class="text-muted mb-0">{% trans "Open Studio from your school tenant to load canonical trigger samples (school context required)." %}</p>
+  </div>
+  {% endif %}
+
+  {% if ready_playbooks %}
+  <div class="studio-os__card py-3 px-3 mt-3" data-rmc-workflow-playbook-catalog="1">
+    <h2 class="h6 mb-3">{% trans "Ready playbooks" %}</h2>
+    <p class="small text-muted mb-3">{% trans "Each playbook lists trigger, condition, action, audience, risk, and a simulation sample." %}</p>
+    {% for pb in ready_playbooks %}
+    <div class="border rounded p-3 mb-3">
+      <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
+        <strong>{{ pb.title }}</strong>
+        <code>{{ pb.slug }}</code>
+      </div>
+      <p class="small mb-1"><strong>{% trans "Trigger" %}</strong> <code>{{ pb.trigger_key }}</code></p>
+      <p class="small mb-1"><strong>{% trans "Condition" %}</strong> {{ pb.condition_summary }}</p>
+      <p class="small mb-1"><strong>{% trans "Action" %}</strong> {{ pb.action_summary }}</p>
+      <p class="small mb-1"><strong>{% trans "Owner / audience" %}</strong> {{ pb.owner_audience }}</p>
+      <p class="small mb-1"><strong>{% trans "Risk level" %}</strong> {{ pb.risk_level }}</p>
+      <p class="small mb-1"><strong>{% trans "Simulation sample" %}</strong></p>
+      <pre class="small bg-light p-2 rounded mb-0 overflow-auto">{{ pb.simulation_sample_json }}</pre>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 </div>

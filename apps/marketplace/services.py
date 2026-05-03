@@ -669,6 +669,12 @@ def uninstall_app(school, app, *, uninstalled_by=None, run_cleanup=True):
     except (ImportError, AttributeError, TypeError, ValueError):
         pass
     try:
+        from apps.marketplace.monetization_ledger_ops import append_uninstall_ledger
+
+        append_uninstall_ledger(school=school, app=app, installation=installation)
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+    try:
         from apps.platform_runtime.event_bus import publish_event
 
         publish_event(

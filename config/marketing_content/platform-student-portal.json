@@ -1,0 +1,91 @@
+{
+  "label": "Student Portal",
+  "seo_title": "Student Portal | RunMyCampus",
+  "seo_description": "Timetables, assignments, resources, announcements, and academic progress.",
+  "headline": "Students stay oriented across devices.",
+  "subheadline": "Supports BYOD-friendly campuses with official communications prioritized.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Schedule clarity",
+      "body": "Timetables and room moves surfaced quickly."
+    },
+    {
+      "title": "Learning continuity",
+      "body": "Assignments and resources centralized."
+    },
+    {
+      "title": "Safe announcements",
+      "body": "Operational notices stay authoritative."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Flexible academic calendars",
+      "Multi-currency fee structures",
+      "Role-based portals",
+      "Offline-ready workflows",
+      "Secure audit trails",
+      "Multi-campus support"
+    ],
+    "diagram_path": "images/marketing/illustration-students.svg",
+    "premium_platform_layout": true,
+    "suppress_footer_clusters": true,
+    "stock_photo_url": "https://images.unsplash.com/photo-1523580846011-d3a172bcabd9?auto=format&fit=crop&w=1600&q=75",
+    "stock_photo_alt": "Student working on coursework with a laptop",
+    "stock_photo_credit": "Photo via Unsplash",
+    "problem_section": {
+      "title": "Students should see school life clearly",
+      "body": "Opaque schedules and scattered assignment notices hurt accountability. RunMyCampus gives learners timetables, tasks, results, and announcements in one portal."
+    },
+    "workflow_steps": [
+      "Publish timetable",
+      "Assign coursework",
+      "Release results",
+      "Announce updates",
+      "Track engagement"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "Students",
+        "bullets": [
+          "Predictable place for deadlines and grades",
+          "Better readiness for parent conversations"
+        ]
+      },
+      {
+        "role": "Teachers",
+        "bullets": [
+          "Assignments appear where students already look",
+          "Less chasing via unofficial channels"
+        ]
+      },
+      {
+        "role": "Administrators",
+        "bullets": [
+          "Guardrails on what learners can see",
+          "Operational continuity across divisions"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Parent Portal",
+        "path": "/platform/parent-portal/"
+      },
+      {
+        "label": "Teacher Portal",
+        "path": "/platform/teacher-portal/"
+      },
+      {
+        "label": "Communications",
+        "path": "/platform/communications/"
+      },
+      {
+        "label": "Grading & Report Cards",
+        "path": "/platform/grading-report-cards/"
+      }
+    ]
+  }
+}

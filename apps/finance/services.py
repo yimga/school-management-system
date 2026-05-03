@@ -879,8 +879,12 @@ def create_payment_from_receipt(
     """
     invoice = proof_upload.invoice
     balance = invoice.balance_amount or invoice.total_amount or Decimal("0")
+    if not isinstance(balance, Decimal):
+        balance = Decimal(str(balance))
 
     amount = verification_data.get("amount") or proof_upload.uploaded_amount
+    if amount is not None and not isinstance(amount, Decimal):
+        amount = Decimal(str(amount))
     if not amount:
         raise ValueError("Cannot create payment: amount not found in receipt")
 

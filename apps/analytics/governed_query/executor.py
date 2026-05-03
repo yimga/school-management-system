@@ -88,13 +88,18 @@ def execute_governed_query(
         raise GovernedQueryError("permission denied for dataset")
 
     tenant_field = meta.get("tenant_field")
-    if tenant_field and not school_id:
+    tenant_lookup = (meta.get("tenant_lookup") or "").strip()
+    if tenant_lookup and not school_id:
+        raise GovernedQueryError("school_id is required for this dataset")
+    if tenant_field and not tenant_lookup and not school_id:
         raise GovernedQueryError("school_id is required for this dataset")
 
     Model = _get_model(meta)
     qs = Model.objects.all()
 
-    if tenant_field and school_id is not None:
+    if tenant_lookup:
+        qs = qs.filter(**{tenant_lookup: school_id})
+    elif tenant_field and school_id is not None:
         qs = qs.filter(**{tenant_field: school_id})
 
     qs = _apply_filters(qs, meta, filters or {})

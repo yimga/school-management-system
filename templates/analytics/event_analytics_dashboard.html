@@ -1,0 +1,28 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Event-scale analytics" %}{% endblock %}
+{% block content %}
+<div class="container-lg py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-0">{% trans "Event-scale analytics" %}</h1>
+      <p class="text-muted small mb-0">
+        {% trans "Volume trends and snapshots use Django ORM on allowlisted models only — same guardrails as the governed catalog." %}
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-sm btn-outline-primary" href="{{ builder_url }}">{% trans "Governed builder" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ intent_url }}">{% trans "NL assistant" %}</a>
+    </div>
+  </div>
+  {% if not school_id %}
+  <div class="alert alert-warning">{% trans "Open this page on your school subdomain." %}</div>
+  {% endif %}
+  <div class="card shadow-sm">
+    <div class="card-header small text-muted">{% trans "Bundle (JSON)" %}</div>
+    <div class="card-body">
+      <pre class="small mb-0" style="max-height:70vh;overflow:auto;background:#0f172a;color:#e2e8f0;padding:1rem;border-radius:.35rem;">{{ bundle_json }}</pre>
+    </div>
+  </div>
+</div>
+{% endblock %}

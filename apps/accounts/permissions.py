@@ -298,8 +298,14 @@ MODULE_ACCESS_DEFAULTS = {
             "VICE_PRINCIPAL",
             "DEAN",
             "ACADEMICS_STAFF",
+            "IT_ADMIN",
+            "HOD",
+            "BURSAR",
+            "FINANCE_STAFF",
+            "ACCOUNTANT",
+            "TEACHER",
         },
-        "write": {"ADMIN", "SUPERADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
     },
     "payroll": {
         "read": {
@@ -337,6 +343,10 @@ MODULE_ACCESS_DEFAULTS = {
     },
     "studio_os": {
         "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+    },
+    "events": {
+        "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN", "LEADERSHIP", "PRINCIPAL"},
         "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
     },
     "accounts": {

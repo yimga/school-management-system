@@ -1,0 +1,236 @@
+"""
+Natural-language → governed query mapping (allowlisted intents only).
+
+Never constructs or returns raw SQL — outputs catalog-backed definition dicts only.
+"""
+
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass
+from datetime import timedelta
+from typing import Any
+
+from django.utils import timezone
+
+_UNSAFE_MARKERS = (
+    "select ",
+    "insert ",
+    "delete ",
+    "update ",
+    "drop ",
+    "alter ",
+    ";--",
+    " union ",
+    " union\t",
+    "`",
+    "information_schema",
+    "pg_catalog",
+    "sqlite_master",
+)
+
+
+def text_contains_disallowed_sql_fragment(text: str) -> bool:
+    t = (text or "").lower()
+    return any(m in t for m in _UNSAFE_MARKERS)
+
+
+@dataclass(frozen=True)
+class GovernedIntentMatch:
+    supported: bool
+    intent_id: str | None = None
+    label: str | None = None
+    governed_definition: dict[str, Any] | None = None
+    insight: dict[str, Any] | None = None
+    reason: str | None = None
+
+
+def _rolling_date_gte_iso(days: int) -> str:
+    return (timezone.now().date() - timedelta(days=days)).isoformat()
+
+
+_INTENT_SPEC: list[tuple[str, str, re.Pattern[str], dict[str, Any], dict[str, Any]]] = [
+    (
+        "unpaid_invoices_by_class",
+        "Unpaid invoices by class",
+        re.compile(
+            r"\b(unpaid|outstanding|overdue)\s+(invoice|fee|balance)s?\b.*\b(class|room)\b|"
+            r"\b(class|room)\b.*\b(unpaid|outstanding|overdue)\s+(invoice|fee|balance)s?\b",
+            re.I,
+        ),
+        {
+            "dataset_id": "invoices",
+            "fields": [
+                "id",
+                "status",
+                "balance_amount",
+                "student__classroom_id",
+                "student__classroom__name",
+                "due_date",
+            ],
+            "filters": {"balance_amount__gt": 0, "status__in": ["PARTIAL", "OVERDUE"]},
+            "group_by": ["student__classroom_id"],
+            "aggregate": {"fn": "sum", "field": "balance_amount"},
+            "limit": 200,
+        },
+        {
+            "id": "intent_unpaid_invoices_class",
+            "severity": "warning",
+            "title": "Unpaid invoice balances by class",
+            "explanation": "Governed aggregation of invoice balances grouped by classroom.",
+            "primary_action": {"label": "Open governed builder", "path": "/analytics/governed/query-builder/"},
+            "audience": "finance_staff",
+            "surfaces": ["revenue"],
+        },
+    ),
+    (
+        "attendance_gaps",
+        "Attendance gaps (recent absences)",
+        re.compile(
+            r"\b(attendance|absence|absent)\b.*\b(gap|missing|risk)\b|\b(gaps?)\b.*\battendance\b",
+            re.I,
+        ),
+        {
+            "dataset_id": "attendance",
+            "fields": [
+                "id",
+                "date",
+                "status",
+                "student_id",
+                "classroom__name",
+            ],
+            "filters": {"status": "absent"},
+            "limit": 300,
+        },
+        {
+            "id": "intent_attendance_gaps",
+            "severity": "info",
+            "title": "Attendance gaps (last 30 days)",
+            "explanation": "Absent attendance rows for the current tenant.",
+            "primary_action": {"label": "Teacher attendance", "path": "/portal/teacher/attendance/"},
+            "audience": "attendance_team",
+            "surfaces": ["engagement"],
+        },
+    ),
+    (
+        "students_at_risk",
+        "Students at academic risk",
+        re.compile(r"\bstudents?\b.*\b(at[\s-]?risk|risk)\b|\bat[\s-]?risk\b.*\bstudents?\b", re.I),
+        {
+            "dataset_id": "marks",
+            "fields": [
+                "id",
+                "final_score",
+                "student_id",
+                "term_id",
+                "student__first_name",
+                "student__last_name",
+            ],
+            "filters": {"final_score__lt": 50},
+            "limit": 250,
+        },
+        {
+            "id": "intent_students_at_risk",
+            "severity": "danger",
+            "title": "Students with marks below threshold",
+            "explanation": "Evaluations with final score under 50.",
+            "primary_action": {"label": "Marks / evaluations", "path": "/evals/"},
+            "audience": "academic_staff",
+            "surfaces": ["risk"],
+        },
+    ),
+    (
+        "reports_generated",
+        "Reports generated",
+        re.compile(
+            r"\b(report\s*cards?|generated\s+reports?)\b|\breports?\b.*\bgenerated\b",
+            re.I,
+        ),
+        {
+            "dataset_id": "report_cards",
+            "fields": ["id", "type", "student_id", "term_id", "generated_at"],
+            "group_by": ["term_id"],
+            "aggregate": {"fn": "count", "field": "id"},
+            "limit": 120,
+        },
+        {
+            "id": "intent_reports_generated",
+            "severity": "info",
+            "title": "Report cards generated by term",
+            "explanation": "Term-level counts from governed report_cards dataset.",
+            "primary_action": {"label": "Reports hub", "path": "/reports/"},
+            "audience": "academic_staff",
+            "surfaces": ["school_health"],
+        },
+    ),
+    (
+        "payment_failures",
+        "Payment failures",
+        re.compile(r"\bpayment\b.*\b(fail|failed|declin)|\bfail(ed)?\b.*\bpayments?\b", re.I),
+        {
+            "dataset_id": "payments",
+            "fields": ["id", "amount", "status", "student_id", "created_at", "purpose"],
+            "filters": {"status": "failed"},
+            "limit": 200,
+        },
+        {
+            "id": "intent_payment_failures",
+            "severity": "warning",
+            "title": "Failed payments",
+            "explanation": "Payments with failed status for follow-up.",
+            "primary_action": {"label": "Finance payments", "path": "/finance/payments/"},
+            "audience": "finance_staff",
+            "surfaces": ["revenue", "risk"],
+        },
+    ),
+]
+
+
+def match_governed_intent(text: str) -> GovernedIntentMatch:
+    raw = (text or "").strip()
+    if not raw:
+        return GovernedIntentMatch(supported=False, reason="empty")
+
+    if text_contains_disallowed_sql_fragment(raw):
+        return GovernedIntentMatch(supported=False, reason="disallowed_fragment")
+
+    norm = " ".join(raw.lower().split())
+    for intent_id, label, pattern, definition, insight in _INTENT_SPEC:
+        if pattern.search(norm):
+            spec = dict(definition)
+            filt = dict(spec.get("filters") or {})
+            if intent_id == "attendance_gaps":
+                filt["date__gte"] = _rolling_date_gte_iso(30)
+                spec["filters"] = filt
+            return GovernedIntentMatch(
+                supported=True,
+                intent_id=intent_id,
+                label=label,
+                governed_definition=spec,
+                insight=dict(insight),
+            )
+
+    return GovernedIntentMatch(supported=False, reason="not_supported")
+
+
+ALLOWED_INTENT_IDS = frozenset(x[0] for x in _INTENT_SPEC)
+
+
+def insight_for_intent(intent_id: str) -> dict[str, Any] | None:
+    for iid, _lab, _pat, _defn, insight in _INTENT_SPEC:
+        if iid == intent_id:
+            return dict(insight)
+    return None
+
+
+def rebuild_definition_for_intent(intent_id: str) -> dict[str, Any] | None:
+    """Server-side reconstruction for execute path (do not trust client definition bodies)."""
+    for iid, _lab, _pat, definition, _ins in _INTENT_SPEC:
+        if iid == intent_id:
+            spec = dict(definition)
+            if intent_id == "attendance_gaps":
+                filt = dict(spec.get("filters") or {})
+                filt["date__gte"] = _rolling_date_gte_iso(30)
+                spec["filters"] = filt
+            return spec
+    return None

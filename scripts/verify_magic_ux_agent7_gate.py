@@ -39,6 +39,7 @@ def main() -> int:
             py,
             "manage.py",
             "test",
+            "apps.platform_runtime.tests.test_magic_ux_closure_slice",
             "apps.platform_runtime.tests.test_magic_ux_surfaces",
             "apps.platform_runtime.tests.test_magic_ux_measurement_and_literals",
             "--noinput",

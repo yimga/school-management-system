@@ -234,7 +234,7 @@
     </div>
     <div class="card-body table-responsive">
       <form method="post" id="marks-entry-form"
-            {% if year and term %}data-rmc-offline-form="grading" data-rmc-year-id="{{ year.id }}" data-rmc-term-id="{{ term.id }}"{% endif %}
+            {% if year and term %}data-rmc-offline-form="grading" data-offline-action-type="grading" data-rmc-year-id="{{ year.id }}" data-rmc-term-id="{{ term.id }}"{% endif %}
             data-draft-key="marks_{{ sa.id }}" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced marks">
         {% csrf_token %}
         <input type="hidden" name="subject_assignment_id" value="{{ sa.id }}">

@@ -50,7 +50,7 @@
       ]
     }
   },
-  "generated_at": "2026-05-01T19:25:56.201204+00:00",
+  "generated_at": "2026-05-03T00:18:26.323855+00:00",
   "high_impact_templates_total": 158,
   "inline_styles": {
     "count": 60,
@@ -123,8 +123,8 @@
   "luxury_gate_min_score": 13,
   "luxury_gate_passed": true,
   "missing_ds_btn": {
-    "count": 82,
-    "needs_review_count": 82,
+    "count": 83,
+    "needs_review_count": 83,
     "needs_review_paths": [
       "templates/base.html",
       "templates/control_plane_base.html",
@@ -206,6 +206,7 @@
       "templates/studio_os/partials/output_mode_canvas.html",
       "templates/studio_os/partials/output_reports_library_body.html",
       "templates/studio_os/partials/shell_main_content.html",
+      "templates/studio_os/partials/subpages/automation_simulation_engine.html",
       "templates/studio_os/partials/subpages/automation_visual_builder.html",
       "templates/studio_os/shell.html"
     ],

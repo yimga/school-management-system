@@ -26,7 +26,7 @@
     <div class="card-body">
       <h2 class="h6">{% trans "Offline note (quick capture)" %}</h2>
       <p class="small text-muted mb-3">{% trans "When you have no connectivity, queue a short observation here; it syncs like other offline actions. When online, use your usual classroom documentation flows instead." %}</p>
-      <form method="post" action="#" data-rmc-offline-form="notes_report" class="row g-2">
+      <form method="post" action="#" data-rmc-offline-form="notes_report" data-offline-action-type="notes_report" class="row g-2">
         {% csrf_token %}
         <div class="col-12 col-md-6">
           <label class="form-label small mb-0">{% trans "Title (optional)" %}</label>

@@ -17494,3 +17494,577 @@ msgstr ""
 
 msgid "Webhook delivery attempts, outcomes, and retry evidence"
 msgstr ""
+
+msgid "Action type"
+msgstr ""
+
+msgid "Activation rate (started → first action)"
+msgstr ""
+
+msgid "Add node (accessible)"
+msgstr ""
+
+msgid "Add node at X/Y"
+msgstr ""
+
+msgid "All submitters"
+msgstr ""
+
+msgid "Allowlisted definition — POST run refreshes tenant-scoped rows."
+msgstr ""
+
+msgid "Apply filters"
+msgstr ""
+
+msgid "At-risk (primary action)"
+msgstr ""
+
+msgid "Attempts"
+msgstr ""
+
+msgid "Automation outcomes & execution logs"
+msgstr ""
+
+msgid "Avg delivery latency (domain path)"
+msgstr ""
+
+msgid "Avg delivery latency (platform path)"
+msgstr ""
+
+msgid "Back to console"
+msgstr ""
+
+msgid "Back to event console"
+msgstr ""
+
+msgid "Back to report builder"
+msgstr ""
+
+msgid "Bundle (JSON)"
+msgstr ""
+
+msgid "Canvas X position"
+msgstr ""
+
+msgid "Canvas Y position"
+msgstr ""
+
+msgid ""
+"Choose how to resolve each item. “Keep mine” re-applies your stored payload."
+" “Use latest” accepts the server record and does not apply your offline "
+"edit. “Review manually” records your intent but leaves the conflict open "
+"until you fix it on the canonical screen."
+msgstr ""
+
+msgid "Class ID"
+msgstr ""
+
+msgid "Classic automation templates and installs."
+msgstr ""
+
+msgid "Conditions passed"
+msgstr ""
+
+msgid "Confirm run"
+msgstr ""
+
+msgid ""
+"Connect edges: click node A then node B (order). Nodes and edges render on "
+"the canvas; compiled JSON is shown at right."
+msgstr ""
+
+msgid "Conversion rate (started → onboarding complete)"
+msgstr ""
+
+msgid ""
+"Creates a new pending DomainEvent with audit metadata in "
+"payload._replay_meta (does not mutate this row)."
+msgstr ""
+
+msgid "DLQ & remediation"
+msgstr ""
+
+msgid "DLQ open (dead-letter)"
+msgstr ""
+
+msgid "DLQ open (dead-letter, no disposition)"
+msgstr ""
+
+msgid "Definition"
+msgstr ""
+
+msgid "Delay"
+msgstr ""
+
+msgid "Delivery"
+msgstr ""
+
+msgid "Describe what you need"
+msgstr ""
+
+msgid "Dispatch webhooks on replay (may enqueue new deliveries)"
+msgstr ""
+
+msgid "Domain outbox + platform log, replay, DLQ."
+msgstr ""
+
+msgid "Domain outbox events"
+msgstr ""
+
+msgid "Domain status distribution (tenant)"
+msgstr ""
+
+msgid "Domain volume by type"
+msgstr ""
+
+msgid "Domain webhook DLQ"
+msgstr ""
+
+msgid "Domain webhook failures"
+msgstr ""
+
+msgid ""
+"Done-for-you guardrails: only catalog fields compile — preview before export"
+" so operators never touch raw SQL."
+msgstr ""
+
+msgid ""
+"Drag-drop from the palette is supported; keyboard-first operators can use "
+"Add node — behaviour matches the same graph model (parity note: native drag "
+"parity only where listed)."
+msgstr ""
+
+msgid ""
+"Each playbook lists trigger, condition, action, audience, risk, and a "
+"simulation sample."
+msgstr ""
+
+msgid "Event analytics"
+msgstr ""
+
+msgid "Event console"
+msgstr ""
+
+msgid "Event type"
+msgstr ""
+
+msgid "Event type (optional)"
+msgstr ""
+
+msgid "Event-scale analytics"
+msgstr ""
+
+msgid "Expansion-ready (primary action)"
+msgstr ""
+
+msgid "Export & APIs"
+msgstr ""
+
+msgid "Filters"
+msgstr ""
+
+msgid "Governed NL assistant"
+msgstr ""
+
+msgid "Governed builder"
+msgstr ""
+
+msgid "Graph JSON"
+msgstr ""
+
+msgid "HTTP"
+msgstr ""
+
+msgid ""
+"In-process subscribers receive payloads from apps.platform_runtime.event_bus"
+" with is_replay on replay."
+msgstr ""
+
+msgid "Insufficient cohort data"
+msgstr ""
+
+msgid ""
+"Internal subscribers run during outbox processing "
+"(apps.events.bus.dispatch_internal_subscribers)."
+msgstr ""
+
+msgid ""
+"Items captured while offline are applied here when you process the queue. "
+"Conflicts require an explicit choice — nothing is overwritten silently."
+msgstr ""
+
+msgid "Largest funnel drop-off stage"
+msgstr ""
+
+msgid "Last 30 visual workflow executions for this tenant."
+msgstr ""
+
+msgid "Lifecycle state distribution (this page)"
+msgstr ""
+
+msgid "Local / offline snapshot"
+msgstr ""
+
+msgid "Manual builder"
+msgstr ""
+
+msgid "Mark selected ignored"
+msgstr ""
+
+msgid "Mark selected resolved"
+msgstr ""
+
+msgid "Median time onboarding_start → first_action (seconds):"
+msgstr ""
+
+msgid ""
+"Median time-to-first-action unavailable (need more schools with both "
+"onboarding_start and first_action)."
+msgstr ""
+
+msgid "Migration runs, execution logs, and visual workflow run history."
+msgstr ""
+
+msgid "NL assistant"
+msgstr ""
+
+msgid ""
+"Need at least {{ n }} distinct schools with onboarding_start events for "
+"portfolio activation/conversion rates."
+msgstr ""
+
+msgid "Newest N (max 200)"
+msgstr ""
+
+msgid "Newest domain events"
+msgstr ""
+
+msgid "Newest platform events"
+msgstr ""
+
+msgid "No audit rows yet."
+msgstr ""
+
+msgid "No delivered samples in window."
+msgstr ""
+
+msgid "No domain outbox rows for this tenant."
+msgstr ""
+
+msgid "No open domain DLQ rows."
+msgstr ""
+
+msgid "No open platform DLQ rows."
+msgstr ""
+
+msgid "No platform webhook delivery rows for this event."
+msgstr ""
+
+msgid "No rows."
+msgstr ""
+
+msgid "No visual workflow runs recorded yet."
+msgstr ""
+
+msgid "No webhook delivery rows for this event."
+msgstr ""
+
+msgid "Node palette"
+msgstr ""
+
+msgid "Nothing actively syncing."
+msgstr ""
+
+msgid "Nothing queued."
+msgstr ""
+
+msgid "Only one trigger recommended — remove extras."
+msgstr ""
+
+msgid "Open DLQ console"
+msgstr ""
+
+msgid ""
+"Open Studio from your school tenant to load canonical trigger samples "
+"(school context required)."
+msgstr ""
+
+msgid "Open conflict resolution screen"
+msgstr ""
+
+msgid "Open retention tasks"
+msgstr ""
+
+msgid "Open this page on your school subdomain."
+msgstr ""
+
+msgid "Operator trigger catalog"
+msgstr ""
+
+msgid ""
+"Operator view: queue spans all submitters for this school (tenant-scoped)."
+msgstr ""
+
+msgid "Owner / audience"
+msgstr ""
+
+msgid ""
+"POST dispatch-test (trigger_type + context, dry-run matching published "
+"flows)."
+msgstr ""
+
+msgid ""
+"POST publish after validation; unsafe graphs return validation_errors "
+"(blocked)."
+msgstr ""
+
+msgid "POST simulate (workflow_id + sample_payload)."
+msgstr ""
+
+msgid "Paid penetration (started → subscription/payment signal)"
+msgstr ""
+
+msgid "Palette (drag-drop)"
+msgstr ""
+
+msgid "Payload classroom_id"
+msgstr ""
+
+msgid "Payload student_id"
+msgstr ""
+
+msgid ""
+"Plain-language prompts map to fixed governed datasets only. Preview the "
+"structured query, then confirm execution — SQL fragments are rejected."
+msgstr ""
+
+msgid "Platform volume by type"
+msgstr ""
+
+msgid "Platform webhook DLQ"
+msgstr ""
+
+msgid "Platform webhook failures"
+msgstr ""
+
+msgid "Portfolio activation (telemetry-backed)"
+msgstr ""
+
+msgid ""
+"Preview triggers, conditions, and actions before publishing. Simulation is "
+"dry-run only; live runs write audit rows visible in Automation outcomes."
+msgstr ""
+
+msgid "Process outbox after clone (subscribers + webhook queue)"
+msgstr ""
+
+msgid "Publish"
+msgstr ""
+
+msgid "Publish blocked: invalid graph."
+msgstr ""
+
+msgid "Queued"
+msgstr ""
+
+msgid "Raw conflict details (technical)"
+msgstr ""
+
+msgid ""
+"Re-invokes subscribers; audit row platform_event_replayed may be emitted "
+"when applicable."
+msgstr ""
+
+msgid "Ready playbooks"
+msgstr ""
+
+msgid "Reason (required for resolve / ignore)"
+msgstr ""
+
+msgid ""
+"Recent migration runs, automation execution logs, and visual workflow run "
+"history. Outcomes only; manage profiles and playbooks in Configuration "
+"Engine."
+msgstr ""
+
+msgid "Recent remediation audit"
+msgstr ""
+
+msgid "Replay"
+msgstr ""
+
+msgid "Replay (safe clone)"
+msgstr ""
+
+msgid "Replay audits"
+msgstr ""
+
+msgid "Replay domain event"
+msgstr ""
+
+msgid "Replay platform event"
+msgstr ""
+
+msgid "Reset"
+msgstr ""
+
+msgid "Resolution audit trail"
+msgstr ""
+
+msgid "Retry all filtered"
+msgstr ""
+
+msgid "Retry selected"
+msgstr ""
+
+msgid "Risk level"
+msgstr ""
+
+msgid "Rollback to draft"
+msgstr ""
+
+msgid "Run endpoint (POST JSON):"
+msgstr ""
+
+msgid "Sample payload"
+msgstr ""
+
+msgid ""
+"Sample payloads for Studio verification; extend conditions/actions in the "
+"visual designer."
+msgstr ""
+
+msgid "Save draft (graph)"
+msgstr ""
+
+msgid "Saved governed report"
+msgstr ""
+
+msgid "Saved reports list (JSON)"
+msgstr ""
+
+msgid "Scope:"
+msgstr ""
+
+msgid "Server / latest snapshot"
+msgstr ""
+
+msgid "Simulation sample"
+msgstr ""
+
+msgid ""
+"Simulations run through the visual workflow APIs below: dry-run does not "
+"mutate tenant data and does not write WorkflowRunLog rows. Publishing "
+"blocked workflows stays in draft until structural validation passes (trigger"
+" → condition → action, connected graph)."
+msgstr ""
+
+msgid ""
+"States derive from funnel events, subscription rows, and tenant health — no "
+"raw SQL. Cohort percentages require sufficient schools with onboarding_start"
+" telemetry."
+msgstr ""
+
+msgid "Submitted by"
+msgstr ""
+
+msgid "Subscriber path"
+msgstr ""
+
+msgid "Syncing"
+msgstr ""
+
+msgid "Tenant context required."
+msgstr ""
+
+msgid "Tenant event console"
+msgstr ""
+
+msgid "Tenant lifecycle"
+msgstr ""
+
+msgid ""
+"Two storage paths: Domain outbox (integrations → webhook deliveries + "
+"internal subscribers via outbox processor) and Platform event log "
+"(bus/workflows/replay)."
+msgstr ""
+
+msgid "Unified contract"
+msgstr ""
+
+msgid "Used by automation (visual workflows)"
+msgstr ""
+
+msgid "Validate graph"
+msgstr ""
+
+msgid "Visual workflow runs (published flows)"
+msgstr ""
+
+msgid ""
+"Volume trends and snapshots use Django ORM on allowlisted models only — same"
+" guardrails as the governed catalog."
+msgstr ""
+
+msgid "Volumes, failures, replay counts, latency."
+msgstr ""
+
+msgid "Webhook deliveries (domain path)"
+msgstr ""
+
+msgid "Webhook deliveries (platform path)"
+msgstr ""
+
+msgid ""
+"What happens next: pick one surface tab or open the governed builder — "
+"insights sharpen as attendance, marks, and billing activity accumulate."
+msgstr ""
+
+msgid ""
+"What happens next: process applies queued mutations in order — failures stay"
+" visible so you can retry or resolve conflicts deliberately."
+msgstr ""
+
+msgid "Workflow graph canvas"
+msgstr ""
+
+msgid "Workflow id (optional)"
+msgstr ""
+
+msgid "Workflow trigger event"
+msgstr ""
+
+msgid "Workflows whose trigger matches this event type for this school."
+msgstr ""
+
+msgid "Workflows whose trigger matches this platform event type."
+msgstr ""
+
+msgid ""
+"Your choice is recorded with resolver user id, original submitter, "
+"timestamp, and operator scope flag where applicable."
+msgstr ""
+
+msgid "e.g. payment_success"
+msgstr ""
+
+msgid "e.g. show unpaid invoices by class"
+msgstr ""
+
+msgid "ms (created → delivered)"
+msgstr ""
+
+msgid "ms (created → delivered, delivered rows only)"
+msgstr ""
+
+msgid "platform_event_replayed rows for this tenant"
+msgstr ""
+
+msgid "resolver"
+msgstr ""
+
+msgid "school operator"
+msgstr ""
+
+msgid "submitter"
+msgstr ""

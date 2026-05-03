@@ -1,0 +1,91 @@
+{
+  "label": "Attendance",
+  "seo_title": "School Attendance & Timetable | RunMyCampus",
+  "seo_description": "Daily attendance, timetable alignment, interventions, and exports—online or offline-first.",
+  "headline": "Attendance that fits your bell schedules and calendars.",
+  "subheadline": "Mobile-ready capture with reconciliation when connectivity returns.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Daily operations",
+      "body": "Registers, tardiness patterns, and educator workflows."
+    },
+    {
+      "title": "Reporting",
+      "body": "Summaries for compliance and leadership reviews."
+    },
+    {
+      "title": "Offline capture",
+      "body": "Capture-first UX for unreliable networks anywhere in the world."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Flexible academic calendars",
+      "Multi-currency fee structures",
+      "Role-based portals",
+      "Offline-ready workflows",
+      "Secure audit trails",
+      "Multi-campus support"
+    ],
+    "diagram_path": "images/marketing/module-academics.svg",
+    "premium_platform_layout": true,
+    "suppress_footer_clusters": true,
+    "stock_photo_url": "https://images.unsplash.com/photo-1427504494785-c39cd536d887?auto=format&fit=crop&w=1600&q=75",
+    "stock_photo_alt": "Teacher engaging students during class",
+    "stock_photo_credit": "Photo via Unsplash",
+    "problem_section": {
+      "title": "Registers that do not reach families fast enough",
+      "body": "Paper registers and disconnected apps delay visibility for parents and leaders. RunMyCampus captures attendance with audit-friendly history—online or offline—and reflects it where stakeholders already work."
+    },
+    "workflow_steps": [
+      "Teacher marks roll",
+      "Late/absence tracked",
+      "Parent visibility",
+      "Admin monitors trends",
+      "Reports exported"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "Teachers",
+        "bullets": [
+          "Fast class attendance with familiar workflows",
+          "Offline-ready capture where connectivity dips"
+        ]
+      },
+      {
+        "role": "Administrators",
+        "bullets": [
+          "Campus-wide attendance posture without chasing sheets",
+          "Consistent patterns for interventions"
+        ]
+      },
+      {
+        "role": "Parents",
+        "bullets": [
+          "Timely visibility into attendance patterns",
+          "Aligned with announcements and fees context"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Teacher Portal",
+        "path": "/platform/teacher-portal/"
+      },
+      {
+        "label": "Parent Portal",
+        "path": "/platform/parent-portal/"
+      },
+      {
+        "label": "Analytics",
+        "path": "/platform/analytics/"
+      },
+      {
+        "label": "Offline-first",
+        "path": "/platform/offline-first/"
+      }
+    ]
+  }
+}

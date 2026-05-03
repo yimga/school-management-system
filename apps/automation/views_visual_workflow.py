@@ -60,11 +60,38 @@ def visual_workflow_designer(request):
             "simulate_url": reverse("automation:visual_workflow_simulate"),
             "publish_url": reverse("automation:visual_workflow_publish"),
             "rollback_url": reverse("automation:visual_workflow_rollback"),
+            "validate_graph_url": reverse("automation:visual_workflow_validate_graph"),
             "list_url": reverse("automation:visual_workflow_list"),
             "school_automation_url": hub,
             "page_title": "Visual workflows",
-            "page_subtitle": "Drag nodes, connect edges, publish, then dispatch with domain triggers.",
+            "page_subtitle": (
+                "Canvas shows nodes and edges; use drag-drop or accessible Add node controls. "
+                "Validate before publish; invalid graphs stay blocked with reasons."
+            ),
         },
+    )
+
+
+@require_http_methods(["POST"])
+@login_required
+def visual_workflow_validate_graph(request):
+    """Structural validation without publishing (returns validation_errors list)."""
+    school, err = _staff_school(request)
+    if err:
+        return err
+    try:
+        body = json.loads(request.body) if request.body else {}
+    except json.JSONDecodeError:
+        return JsonResponse({"ok": False, "error": "Invalid JSON"}, status=400)
+    wf_id = body.get("workflow_id")
+    if not wf_id:
+        return JsonResponse({"ok": False, "error": "workflow_id required"}, status=400)
+    wf = Workflow.objects.filter(pk=int(wf_id), school=school).first()
+    if not wf:
+        return JsonResponse({"ok": False, "error": "not found"}, status=404)
+    errs = validate_workflow_for_publish(wf.pk)
+    return JsonResponse(
+        {"ok": len(errs) == 0, "validation_errors": errs, "workflow_id": wf.pk}
     )
 
 

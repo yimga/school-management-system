@@ -147,6 +147,27 @@ def apply_marketplace_install_monetization(
             ]
         )
 
+    curr = getattr(account, "currency_code", None) or "USD"
+    snap = None
+    try:
+        from apps.marketplace.monetization_ledger_ops import (
+            append_install_ledger_slice,
+            classify_settlement_lane,
+        )
+
+        snap = classify_settlement_lane(school)
+        append_install_ledger_slice(
+            school=school,
+            app=app,
+            installation=installation,
+            charge=charge,
+            listing=lst,
+            currency_code=curr,
+            settlement_snapshot=snap,
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        snap = None
+
     if charge > 0 and not already_charged:
         pf, pool, pub = _split_gross(charge, listing=lst)
         PlatformMarketplaceEarning.objects.create(
@@ -159,7 +180,7 @@ def apply_marketplace_install_monetization(
             platform_fee_amount=pf,
             publisher_pool_amount=pool,
             publisher_share_amount=pub,
-            currency_code=getattr(account, "currency_code", None) or "USD",
+            currency_code=curr,
             metadata={
                 "platform_fee_percent": str(get_platform_fee_percent()),
                 "revenue_share_percent": str(
@@ -167,6 +188,20 @@ def apply_marketplace_install_monetization(
                 ),
             },
         )
+        try:
+            from apps.marketplace.monetization_ledger_ops import append_platform_fee_ledger
+
+            append_platform_fee_ledger(
+                school=school,
+                app=app,
+                installation=installation,
+                gross=charge,
+                platform_fee=pf,
+                currency=curr,
+                listing=lst,
+            )
+        except (ImportError, AttributeError, TypeError, ValueError):
+            pass
 
     return {
         "charge": str(charge),
@@ -197,9 +232,12 @@ def record_usage_meter_increment(
     period_start=None,
     period_end=None,
     metadata: dict | None = None,
+    ledger_sku_key: str | None = None,
+    ledger_idempotency_key: str | None = None,
 ):
     """
     Roll up usage into apps.billing.UsageMeter for end-of-period invoicing.
+    Optional marketplace ledger row when ``ledger_idempotency_key`` is provided (idempotent).
     """
     from apps.billing.models import UsageMeter
     from apps.billing.services import ensure_billing_account_for_school
@@ -224,6 +262,24 @@ def record_usage_meter_increment(
         meta.update(metadata)
     meter.metadata = meta
     meter.save(update_fields=["quantity", "metadata", "updated_at"])
+    if ledger_idempotency_key:
+        try:
+            from apps.marketplace.marketplace_sku_registry import get_contract
+            from apps.marketplace.monetization_ledger_ops import append_usage_ledger
+
+            sku = ledger_sku_key or "platform_ai_usage"
+            contract = get_contract(sku)
+            if contract is not None:
+                sku = contract.sku_key
+            append_usage_ledger(
+                school=school,
+                metric_code=metric_code,
+                quantity=int(quantity),
+                sku_key=sku,
+                idempotency_key=ledger_idempotency_key[:180],
+            )
+        except (ImportError, AttributeError, TypeError, ValueError):
+            pass
     return meter
 
 

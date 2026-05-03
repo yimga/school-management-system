@@ -18,7 +18,7 @@
         <h1 class="proof-hero-title">{{ page.headline }}</h1>
         <p class="proof-hero-copy">{{ page.subheadline }}</p>
         <div class="proof-hero-actions">
-          <a href="{% url 'marketing_book_demo' %}" class="btn btn-light" data-cta="demo" data-page="migrate">{{ page.cta }}</a>
+          <a href="{% url 'marketing_demo' %}" class="btn btn-light" data-cta="demo" data-page="migrate">{{ page.cta }}</a>
           <a href="{% url 'migration_simulator' %}" class="btn btn-outline-light">{% trans "Open migration simulator" %}</a>
         </div>
         <div class="proof-strip">
@@ -113,7 +113,7 @@
       <h2 class="proof-panel-title">{% trans "Conversion-grade CTA" %}</h2>
       <p class="proof-panel-copy">{% trans "If you are replacing PowerSchool, Blackbaud, Infinite Campus, Veracross, or spreadsheets, this is the migration posture your operators need: visible, governed, and reversible." %}</p>
       <div class="proof-hero-actions">
-        <a href="{% url 'marketing_book_demo' %}" class="btn btn-primary" data-cta="demo" data-page="migrate-primary">{% trans "Request migration assessment" %}</a>
+        <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="demo" data-page="migrate-primary">{% trans "Request migration assessment" %}</a>
         <a href="{% url 'migration_simulator' %}" class="btn btn-outline-primary">{% trans "See source-by-source paths" %}</a>
       </div>
     </div>

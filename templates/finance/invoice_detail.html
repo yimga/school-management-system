@@ -284,6 +284,7 @@
       </div>
       <form id="receipt-upload-form" method="post" action="{% url 'finance:upload_payment_receipt' invoice.id %}" enctype="multipart/form-data" novalidate
             data-rmc-offline-form="payment_receipt"
+            data-offline-action-type="payment_receipt"
             data-rmc-invoice-id="{{ invoice.id }}"
             data-rmc-invoice-balance="{{ invoice.balance_amount }}"
             data-draft-key="invoice_receipt_upload_{{ invoice.id }}" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced receipt details">

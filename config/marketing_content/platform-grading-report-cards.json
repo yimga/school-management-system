@@ -1,0 +1,92 @@
+{
+  "label": "Grading & Report Cards",
+  "seo_title": "Grading, Exams & Report Cards | RunMyCampus",
+  "seo_description": "Configurable grading scales, assessments, transcripts, and published report cards.",
+  "headline": "Flexible grading models—not a single-country default.",
+  "subheadline": "Terms, scales, rubrics, and approvals tuned to your academic governance.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Assessment workflows",
+      "body": "Marks entry with oversight where policy demands."
+    },
+    {
+      "title": "Guardian transparency",
+      "body": "Published results flow into parent portals."
+    },
+    {
+      "title": "Historical integrity",
+      "body": "Audit trails protect academic records across cycles."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Flexible academic calendars",
+      "Multi-currency fee structures",
+      "Role-based portals",
+      "Offline-ready workflows",
+      "Secure audit trails",
+      "Multi-campus support"
+    ],
+    "diagram_path": "images/marketing/module-academics.svg",
+    "premium_platform_layout": true,
+    "suppress_footer_clusters": true,
+    "stock_photo_url": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1600&q=75",
+    "stock_photo_alt": "Books and study materials representing assessment",
+    "stock_photo_credit": "Photo via Unsplash",
+    "problem_section": {
+      "title": "Marks trapped in spreadsheets miss governance",
+      "body": "Disconnected gradebooks make approvals messy and delay parent-ready reporting. RunMyCampus connects marks entry, grading scales, approvals, and published report cards."
+    },
+    "workflow_steps": [
+      "Marks entry",
+      "Moderation",
+      "Approval",
+      "Report generation",
+      "Publish",
+      "Parent access"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "Teachers",
+        "bullets": [
+          "Structured scales aligned to your academic model",
+          "Comments and outcomes in one workspace"
+        ]
+      },
+      {
+        "role": "Leadership",
+        "bullets": [
+          "Confidence before publish with approval rails",
+          "Performance visibility across cohorts"
+        ]
+      },
+      {
+        "role": "Parents",
+        "bullets": [
+          "Official report cards in the portal",
+          "Consistent narrative alongside attendance and fees"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Teacher Portal",
+        "path": "/platform/teacher-portal/"
+      },
+      {
+        "label": "Parent Portal",
+        "path": "/platform/parent-portal/"
+      },
+      {
+        "label": "Analytics",
+        "path": "/platform/analytics/"
+      },
+      {
+        "label": "Student Portal",
+        "path": "/platform/student-portal/"
+      }
+    ]
+  }
+}

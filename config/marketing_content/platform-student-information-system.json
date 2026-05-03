@@ -1,0 +1,92 @@
+{
+  "label": "Student Information System",
+  "seo_title": "Student Information System (SIS) | RunMyCampus",
+  "seo_description": "Global student records, guardians, enrollment history, documents, and configurable profiles.",
+  "headline": "One student record across admissions, academics, finance, and communications.",
+  "subheadline": "Configurable fields and workflows so nursery through secondary schools worldwide stay aligned.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Holistic profiles",
+      "body": "Guardians, documents, and cohort placement governed by role visibility."
+    },
+    {
+      "title": "Configurable structures",
+      "body": "Programs, levels, departments, and campuses mapped to how you operate."
+    },
+    {
+      "title": "Governed visibility",
+      "body": "Teachers, finance, and leadership each see appropriate data—not spreadsheet exports."
+    }
+  ],
+  "extras": {
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Flexible academic calendars",
+      "Multi-currency fee structures",
+      "Role-based portals",
+      "Offline-ready workflows",
+      "Secure audit trails",
+      "Multi-campus support"
+    ],
+    "diagram_path": "images/marketing/viz-student360.svg",
+    "premium_platform_layout": true,
+    "suppress_footer_clusters": true,
+    "stock_photo_url": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1600&q=75",
+    "stock_photo_alt": "Students collaborating in a bright classroom setting",
+    "stock_photo_credit": "Photo via Unsplash",
+    "problem_section": {
+      "title": "Student data scattered across spreadsheets and folders",
+      "body": "When profiles, guardians, and academic history live in different places, teams duplicate work and visibility breaks down. RunMyCampus keeps one governed student record that admissions, academics, finance, and portals share."
+    },
+    "workflow_steps": [
+      "Enroll",
+      "Assign classes",
+      "Link guardians",
+      "Sync attendance & grades",
+      "Publish reports",
+      "Share with families"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "Administrators",
+        "bullets": [
+          "Fewer reconciliation loops across departments",
+          "Configurable structures for programs and campuses"
+        ]
+      },
+      {
+        "role": "Teachers",
+        "bullets": [
+          "Class lists and notes with appropriate visibility",
+          "Less time hunting for student context"
+        ]
+      },
+      {
+        "role": "Parents",
+        "bullets": [
+          "One place to understand fees, attendance, and progress",
+          "Mobile-friendly access aligned to school branding"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Admissions & Enrollment",
+        "path": "/platform/admissions/"
+      },
+      {
+        "label": "Fees & Payments",
+        "path": "/platform/fees-payments/"
+      },
+      {
+        "label": "Grading & Report Cards",
+        "path": "/platform/grading-report-cards/"
+      },
+      {
+        "label": "Attendance",
+        "path": "/platform/attendance/"
+      }
+    ]
+  }
+}

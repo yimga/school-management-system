@@ -4,66 +4,176 @@
 {% block title %}{% trans "Offline sync queue" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-4" data-rmc-offline-sync-queue="1" data-task="offline_sync" data-task-step="portal:offline-sync-queue">
   <h1 class="h4 mb-3">{% trans "Offline sync queue" %}</h1>
   <p class="text-body-secondary small mb-4">
-    {% trans "Items you captured while offline are applied here when you process the queue. Conflicts require an explicit choice — nothing is overwritten silently." %}
+    {% trans "Items captured while offline are applied here when you process the queue. Conflicts require an explicit choice — nothing is overwritten silently." %}
+    {% if operator_offline_scope %}
+      <span class="d-block mt-2 small">{% trans "Operator view: queue spans all submitters for this school (tenant-scoped)." %}</span>
+    {% endif %}
+    <span class="d-block mt-2 text-body-secondary">{% trans "What happens next: process applies queued mutations in order — failures stay visible so you can retry or resolve conflicts deliberately." %}</span>
   </p>
 
-  <div class="d-flex flex-wrap gap-2 mb-4 align-items-center">
+  {% if pending_count == 0 and syncing_count == 0 and failed_count == 0 and conflict_count == 0 %}
+  {% url 'accounts:backend_dashboard' as dash_url %}
+  {% include "components/dashboard_empty_state.html" with icon="bi-cloud-arrow-up" title=_("Queue is clear") message=_("Nothing is waiting to sync right now — capture offline actions from supported flows and they will land here.") purpose=_("Stay caught up") action_url=dash_url action_text=_("Back to operations home") secondary_action_url=request.path secondary_action_text=_("Refresh this page") empty_primary_task="offline_sync" empty_primary_step="offline:queue-clear-primary" empty_secondary_task="offline_sync" empty_secondary_step="offline:queue-clear-secondary" %}
+  {% endif %}
+
+  <div class="card border-secondary-subtle mb-4">
+    <div class="card-body py-3">
+      <form method="get" class="row g-2 align-items-end small">
+        <div class="col-md-3">
+          <label class="form-label mb-1">{% trans "Action type" %}</label>
+          <select name="action_type" class="form-select form-select-sm">
+            <option value="">{% trans "All types" %}</option>
+            {% for val, label in action_type_choices %}
+            <option value="{{ val }}" {% if filter_action_type == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% if operator_offline_scope %}
+        <div class="col-md-3">
+          <label class="form-label mb-1">{% trans "Submitter" %}</label>
+          <select name="user" class="form-select form-select-sm">
+            <option value="">{% trans "All submitters" %}</option>
+            {% for s in submitters %}
+            <option value="{{ s.id }}" {% if filter_user == s.id|stringformat:"s" %}selected{% endif %}>{{ s.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+        <div class="col-md-2">
+          <label class="form-label mb-1">{% trans "Class ID" %}</label>
+          <input type="number" name="classroom_id" value="{{ filter_classroom_id }}" class="form-control form-control-sm" placeholder="{% trans 'Payload classroom_id' %}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label mb-1">{% trans "Student ID" %}</label>
+          <input type="number" name="student_id" value="{{ filter_student_id }}" class="form-control form-control-sm" placeholder="{% trans 'Payload student_id' %}">
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-sm btn-outline-primary flex-grow-1">{% trans "Apply filters" %}</button>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:offline_sync_queue' %}">{% trans "Reset" %}</a>
+        </div>
+      </form>
+      <div class="d-flex flex-wrap gap-3 mt-3 small text-body-secondary">
+        <span>{% trans "Queued" %}: <strong>{{ pending_count }}</strong></span>
+        <span>{% trans "Syncing" %}: <strong>{{ syncing_count }}</strong></span>
+        <span>{% trans "Failed" %}: <strong>{{ failed_count }}</strong></span>
+        <span>{% trans "Conflicts" %}: <strong>{{ conflict_count }}</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 mb-4 align-items-center" data-rmc-offline-sync-toolbar="1">
+    {% if rmc_conversion_single_action_enforced|default:False %}
     <form method="post" class="d-inline">
       {% csrf_token %}
       <input type="hidden" name="action" value="process_queue">
-      <button type="submit" class="btn btn-primary btn-sm">
+      <button type="submit" class="btn btn-primary btn-sm" data-action="offline-process-queue" data-task="offline_sync" data-task-step="offline:process-queue">
+        {% trans "Process queue now" %}
+      </button>
+    </form>
+    <details class="rmc-conversion-more-actions border rounded px-2 py-1">
+      <summary class="btn btn-sm btn-outline-secondary mb-0">{% trans "More" %}</summary>
+      <div class="pt-2 d-flex flex-wrap gap-2 align-items-center">
+        <form method="post" class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="retry_failed">
+          <button type="submit" class="btn btn-outline-secondary btn-sm" {% if failed_count == 0 %}disabled{% endif %} data-action="offline-retry-failed" data-task="offline_sync" data-task-step="offline:retry-failed" title="{% trans 'Re-queue failed items for another sync attempt' %}">
+            {% trans "Retry all failed" %} ({{ failed_count }})
+          </button>
+        </form>
+        {% if OFFLINE_CONFLICTS_URL and conflict_count %}
+        <a class="btn btn-warning btn-sm" href="{{ OFFLINE_CONFLICTS_URL }}" data-action="offline-resolve-conflicts" data-task="offline_sync" data-task-step="offline:conflicts-nav">
+          {% trans "Resolve conflicts" %} ({{ conflict_count }})
+        </a>
+        {% endif %}
+      </div>
+    </details>
+    {% else %}
+    <form method="post" class="d-inline">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="process_queue">
+      <button type="submit" class="btn btn-primary btn-sm" data-action="offline-process-queue" data-task="offline_sync" data-task-step="offline:process-queue">
         {% trans "Process queue now" %}
       </button>
     </form>
     <form method="post" class="d-inline">
       {% csrf_token %}
       <input type="hidden" name="action" value="retry_failed">
-      <button type="submit" class="btn btn-outline-secondary btn-sm" {% if failed_count == 0 %}disabled{% endif %} title="{% trans 'Re-queue failed items for another sync attempt' %}">
+      <button type="submit" class="btn btn-outline-secondary btn-sm" {% if failed_count == 0 %}disabled{% endif %} data-action="offline-retry-failed" data-task="offline_sync" data-task-step="offline:retry-failed" title="{% trans 'Re-queue failed items for another sync attempt' %}">
         {% trans "Retry all failed" %} ({{ failed_count }})
       </button>
     </form>
     {% if OFFLINE_CONFLICTS_URL and conflict_count %}
-    <a class="btn btn-warning btn-sm" href="{{ OFFLINE_CONFLICTS_URL }}">
+    <a class="btn btn-warning btn-sm" href="{{ OFFLINE_CONFLICTS_URL }}" data-action="offline-resolve-conflicts" data-task="offline_sync" data-task-step="offline:conflicts-nav">
       {% trans "Resolve conflicts" %} ({{ conflict_count }})
     </a>
     {% endif %}
-    <span class="small text-body-secondary ms-auto">
-      {% trans "Pending (queued)" %}: {{ pending_count }}
-    </span>
+    {% endif %}
   </div>
 
-  <h2 class="h6 text-primary mt-4">{% trans "Pending / syncing" %}</h2>
+  <h2 class="h6 text-primary mt-4">{% trans "Queued" %}</h2>
   <div class="table-responsive rounded border border-secondary-subtle mb-4">
     <table class="table table-sm table-striped mb-0 align-middle">
       <thead>
         <tr>
           <th>{% trans "When" %}</th>
+          {% if operator_offline_scope %}<th>{% trans "Submitter" %}</th>{% endif %}
           <th>{% trans "Type" %}</th>
           <th>{% trans "Status" %}</th>
           <th>{% trans "Retries" %}</th>
           <th>{% trans "Detail" %}</th>
+          <th>{% trans "Idempotency key" %}</th>
         </tr>
       </thead>
       <tbody>
         {% for row in queued_actions %}
-        <tr>
+        <tr data-rmc-offline-row="{{ row.pk }}">
           <td class="text-nowrap small">{{ row.created_at }}</td>
+          {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
           <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
           <td>
-            <span class="badge {% if row.status == 'synced' %}bg-success{% elif row.status == 'failed' %}bg-danger{% elif row.status == 'conflict' %}bg-warning text-dark{% elif row.status == 'queued' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
-              {{ row.get_status_display }}
-            </span>
+            <span class="badge bg-info text-dark">{{ row.get_status_display }}</span>
           </td>
           <td>{{ row.retry_count }}</td>
           <td class="small text-break">
             {% if row.conflict_reason %}{{ row.conflict_reason|truncatechars:120 }}{% else %}—{% endif %}
           </td>
+          <td class="small text-break font-monospace">{% if row.idempotency_key %}{{ row.idempotency_key|truncatechars:40 }}{% else %}—{% endif %}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="text-body-secondary py-3 text-center">{% trans "Nothing pending." %}</td></tr>
+        <tr><td colspan="{% if operator_offline_scope %}7{% else %}6{% endif %}" class="text-body-secondary py-3 text-center">{% trans "Nothing queued." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="h6 text-secondary">{% trans "Syncing" %}</h2>
+  <div class="table-responsive rounded border border-secondary-subtle mb-4">
+    <table class="table table-sm table-striped mb-0 align-middle">
+      <thead>
+        <tr>
+          <th>{% trans "Updated" %}</th>
+          {% if operator_offline_scope %}<th>{% trans "Submitter" %}</th>{% endif %}
+          <th>{% trans "Type" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Retries" %}</th>
+          <th>{% trans "Idempotency key" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in syncing_actions %}
+        <tr data-rmc-offline-row="{{ row.pk }}">
+          <td class="text-nowrap small">{{ row.updated_at }}</td>
+          {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
+          <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
+          <td><span class="badge bg-secondary">{{ row.get_status_display }}</span></td>
+          <td>{{ row.retry_count }}</td>
+          <td class="small text-break font-monospace">{% if row.idempotency_key %}{{ row.idempotency_key|truncatechars:40 }}{% else %}—{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="{% if operator_offline_scope %}6{% else %}5{% endif %}" class="text-body-secondary py-3 text-center">{% trans "Nothing actively syncing." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -75,23 +185,27 @@
       <thead>
         <tr>
           <th>{% trans "When" %}</th>
+          {% if operator_offline_scope %}<th>{% trans "Submitter" %}</th>{% endif %}
           <th>{% trans "Type" %}</th>
           <th>{% trans "Status" %}</th>
           <th>{% trans "Retries" %}</th>
           <th>{% trans "Detail" %}</th>
+          <th>{% trans "Idempotency key" %}</th>
         </tr>
       </thead>
       <tbody>
         {% for row in failed_actions %}
-        <tr>
+        <tr data-rmc-offline-row="{{ row.pk }}">
           <td class="text-nowrap small">{{ row.created_at }}</td>
+          {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
           <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
           <td><span class="badge bg-danger">{{ row.get_status_display }}</span></td>
           <td>{{ row.retry_count }}</td>
           <td class="small text-break">{{ row.conflict_reason|truncatechars:160|default:"—" }}</td>
+          <td class="small text-break font-monospace">{% if row.idempotency_key %}{{ row.idempotency_key|truncatechars:40 }}{% else %}—{% endif %}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="text-body-secondary py-3 text-center">{% trans "No failed items." %}</td></tr>
+        <tr><td colspan="{% if operator_offline_scope %}7{% else %}6{% endif %}" class="text-body-secondary py-3 text-center">{% trans "No failed items." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -103,27 +217,35 @@
       <thead>
         <tr>
           <th>{% trans "When" %}</th>
+          {% if operator_offline_scope %}<th>{% trans "Submitter" %}</th>{% endif %}
           <th>{% trans "Type" %}</th>
           <th>{% trans "Status" %}</th>
           <th>{% trans "Retries" %}</th>
           <th>{% trans "Conflict reason" %}</th>
+          <th>{% trans "Idempotency key" %}</th>
         </tr>
       </thead>
       <tbody>
         {% for row in conflict_actions %}
-        <tr>
+        <tr data-rmc-offline-row="{{ row.pk }}">
           <td class="text-nowrap small">{{ row.updated_at }}</td>
+          {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
           <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
           <td><span class="badge bg-warning text-dark">{{ row.get_status_display }}</span></td>
           <td>{{ row.retry_count }}</td>
           <td class="small text-break">{{ row.conflict_reason|truncatechars:200|default:"—" }}</td>
+          <td class="small text-break font-monospace">{% if row.idempotency_key %}{{ row.idempotency_key|truncatechars:40 }}{% else %}—{% endif %}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="text-body-secondary py-3 text-center">{% trans "No conflicts." %}</td></tr>
+        <tr><td colspan="{% if operator_offline_scope %}7{% else %}6{% endif %}" class="text-body-secondary py-3 text-center">{% trans "No conflicts." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+
+  {% if OFFLINE_CONFLICTS_URL and conflict_count %}
+  <p class="small mb-4"><a href="{{ OFFLINE_CONFLICTS_URL }}" data-task="offline_sync" data-task-step="offline:conflicts-inline-nav">{% trans "Open conflict resolution screen" %}</a></p>
+  {% endif %}
 
   <h2 class="h6 text-success">{% trans "Recently synced" %}</h2>
   <div class="table-responsive rounded border border-success-subtle mb-4">
@@ -131,19 +253,23 @@
       <thead>
         <tr>
           <th>{% trans "When" %}</th>
+          {% if operator_offline_scope %}<th>{% trans "Submitter" %}</th>{% endif %}
           <th>{% trans "Type" %}</th>
           <th>{% trans "Status" %}</th>
+          <th>{% trans "Idempotency key" %}</th>
         </tr>
       </thead>
       <tbody>
         {% for row in synced_actions %}
-        <tr>
+        <tr data-rmc-offline-row="{{ row.pk }}">
           <td class="text-nowrap small">{{ row.updated_at }}</td>
+          {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
           <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
           <td><span class="badge bg-success">{{ row.get_status_display }}</span></td>
+          <td class="small text-break font-monospace">{% if row.idempotency_key %}{{ row.idempotency_key|truncatechars:40 }}{% else %}—{% endif %}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="3" class="text-body-secondary py-3 text-center">{% trans "No recent synced entries." %}</td></tr>
+        <tr><td colspan="{% if operator_offline_scope %}5{% else %}4{% endif %}" class="text-body-secondary py-3 text-center">{% trans "No recent synced entries." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -155,16 +281,19 @@
       <thead>
         <tr>
           <th>{% trans "When" %}</th>
+          {% if operator_offline_scope %}<th>{% trans "Submitter" %}</th>{% endif %}
           <th>{% trans "Type" %}</th>
           <th>{% trans "Status" %}</th>
           <th>{% trans "Retries" %}</th>
           <th>{% trans "Detail" %}</th>
+          <th>{% trans "Idempotency key" %}</th>
         </tr>
       </thead>
       <tbody>
         {% for row in offline_actions %}
-        <tr>
+        <tr data-rmc-offline-row="{{ row.pk }}">
           <td class="text-nowrap small">{{ row.created_at }}</td>
+          {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
           <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
           <td>
             <span class="badge {% if row.status == 'synced' %}bg-success{% elif row.status == 'failed' %}bg-danger{% elif row.status == 'conflict' %}bg-warning text-dark{% elif row.status == 'queued' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
@@ -181,9 +310,10 @@
               —
             {% endif %}
           </td>
+          <td class="small text-break font-monospace">{% if row.idempotency_key %}{{ row.idempotency_key|truncatechars:40 }}{% else %}—{% endif %}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="text-body-secondary py-4 text-center">{% trans "No server-side queue entries yet." %}</td></tr>
+        <tr><td colspan="{% if operator_offline_scope %}7{% else %}6{% endif %}" class="text-body-secondary py-4 text-center">{% trans "No server-side queue entries yet." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>

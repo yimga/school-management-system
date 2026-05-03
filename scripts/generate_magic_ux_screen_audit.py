@@ -115,13 +115,85 @@ ROWS = [
     },
 ]
 
+# Phase 1 Experience Control audit dimensions (defaults merged into each row at generation time).
+AUDIT_DEFAULTS = {
+    "one_primary_above_fold": True,
+    "passive_stats_only_risk": "low",
+    "empty_or_permission_has_primary_action": True,
+    "overflow_or_competing_primary_cta_risk": "low",
+    "task_path_clear": True,
+    "magic_ux_notes": "",
+}
+
+EXTRA_ROWS = [
+    {
+        "surface": "tenant_lifecycle_dashboard",
+        "template": "platform_runtime/tenant_lifecycle_dashboard.html",
+        "primary_action": "Operations home + cohort metrics; at-risk rows link out",
+        "strict_notes": "N/A control plane; insufficient-cohort strip uses dashboard_empty_state",
+        "empty_state": "At-risk / expansion empty panels action-first; insufficient_data block with CTA",
+        "passive_stats_only_risk": "medium",
+        "magic_ux_notes": "DL/DD cards are interpretive — paired with operators list + CTAs.",
+    },
+    {
+        "surface": "decision_intelligence_overview",
+        "template": "analytics/decision_intelligence_dashboard.html",
+        "primary_action": "Insight cards open primary_action; strip from portal shell",
+        "strict_notes": "Empty branch: governed builder + school health secondary",
+        "empty_state": "dashboard_empty_state with builder + secondary surface",
+        "magic_ux_notes": "Root data-task report_generation.",
+    },
+    {
+        "surface": "governed_report_builder",
+        "template": "analytics/governed_report_builder.html",
+        "primary_action": "Preview primary; exports in More when strict",
+        "strict_notes": "Header decision link in More when strict",
+        "empty_state": "No-tenant alert with copy; dataset flow always action-first",
+        "overflow_or_competing_primary_cta_risk": "low",
+    },
+    {
+        "surface": "offline_sync_queue",
+        "template": "portal/offline_sync_queue.html",
+        "primary_action": "Process queue now; retries/conflicts in More (strict)",
+        "strict_notes": "Toolbar uses rmc-conversion-more-actions pattern",
+        "empty_state": "Queue-clear empty state above tables when all buckets empty",
+        "magic_ux_notes": "data-task offline_sync across controls.",
+    },
+    {
+        "surface": "event_console",
+        "template": "events/event_console.html",
+        "primary_action": "Back to operations (header); empty tables use empty state",
+        "strict_notes": "N/A backend surface; avoids dead-end muted copy",
+        "empty_state": "dashboard_empty_state per card (domain + platform)",
+        "magic_ux_notes": "data-rmc-event-console + data-task hooks.",
+    },
+    {
+        "surface": "studio_os_overview_gap",
+        "template": "studio_os/shell.html",
+        "primary_action": "Strict: Open Experience toolbar; modal cards below",
+        "strict_notes": "GAP: overview grid still exposes multiple Open * primaries — needs product pass",
+        "empty_state": "Start here guidance + mode cards",
+        "one_primary_above_fold": False,
+        "overflow_or_competing_primary_cta_risk": "high",
+        "magic_ux_notes": "Tracked as remaining multi-primary in no-mode overview.",
+    },
+]
+
 
 def main() -> int:
     OUT.parent.mkdir(parents=True, exist_ok=True)
+    merged_rows = []
+    for r in ROWS:
+        row = {**AUDIT_DEFAULTS, **r}
+        merged_rows.append(row)
+    for r in EXTRA_ROWS:
+        row = {**AUDIT_DEFAULTS, **r}
+        merged_rows.append(row)
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "agent": "Magic UX / Experience Control Architect",
-        "rows": ROWS,
+        "phase": "experience_control_phase1_audit",
+        "rows": merged_rows,
     }
     OUT.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     print(f"generate_magic_ux_screen_audit: OK -> {OUT}")

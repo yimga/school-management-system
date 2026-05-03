@@ -55,6 +55,14 @@ def dashboard(request: HttpRequest):
             },
             {"label": "Generate fees", "url": reverse("finance:generate_fees")},
             {"label": "All invoices", "url": reverse("finance:invoices")},
+            {
+                "label": "Payment setup",
+                "url": reverse("finance:payment_readiness_setup"),
+            },
+            {
+                "label": "Payment readiness (tenant)",
+                "url": reverse("finance:payment_readiness_dashboard"),
+            },
         ],
     }
     dashboard_context = get_dashboard_context(request.user, "finance", request=request)
@@ -98,6 +106,18 @@ def dashboard(request: HttpRequest):
             "label": "Reports",
             "url": reverse("finance:reports"),
             "icon": "bi-graph-up-arrow",
+        },
+        {
+            "id": "finance-payment-setup",
+            "label": "Payment setup",
+            "url": reverse("finance:payment_readiness_setup"),
+            "icon": "bi-geo-alt",
+        },
+        {
+            "id": "finance-payment-readiness",
+            "label": "Payment readiness",
+            "url": reverse("finance:payment_readiness_dashboard"),
+            "icon": "bi-shield-check",
         },
     ]
     finance_requests_qs = Notification.objects.filter(

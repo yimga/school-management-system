@@ -1,19 +1,23 @@
 """
-End-to-end developer platform chain (OAuth + tenant install + scoped API + webhook audit).
+End-to-end developer platform chain (OAuth + tenant install + scoped API + webhook HTTP).
 
-Proves: DeveloperApplication → OAuth token → active AppInstallation on tenant host →
-scope-enforced GET /api/v1/platform/scoped-ping/ → webhook subscription row + audit hook.
+Proves: DeveloperApplication (registration parity path) → OAuth token → active
+AppInstallation on tenant host → scope-enforced GET /api/v1/platform/scoped-ping/ →
+tenant webhook subscription → enqueue_webhook_event → deliver_webhook_delivery (HTTP POST)
+with verified HMAC signature → marketplace webhook audit hook.
 """
 
 from __future__ import annotations
 
+import json
 from urllib.parse import urlencode
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.apicenter.models import DeveloperApplication, _hash_secret
-from apps.events.models import WebhookSubscription
+from apps.events.models import WebhookDelivery, WebhookSubscription
+from apps.events.webhooks import deliver_webhook_delivery, enqueue_webhook_event, sign_payload
 from apps.marketplace.lifecycle import emit_webhook_audit, install_app
 from apps.marketplace.models import (
     AppAuditLog,
@@ -112,14 +116,45 @@ class DeveloperPlatformE2ETests(TestCase):
         )
         self.assertTrue(wh.pk)
 
-        # 4) Event → audit trail (same pathway as marketplace webhooks proof)
+        # 4) Domain event → queued delivery → HTTP POST receive (injectable transport)
+        captured: list[bytes] = []
+
+        def fake_http_post(url, body, headers, timeout):
+            self.assertEqual(url, wh.url)
+            captured.append(body)
+            expected_sig = sign_payload(wh.secret or "", body)
+            self.assertEqual(headers.get("X-Webhook-Signature"), expected_sig)
+            self.assertEqual(headers.get("X-Webhook-Event"), "student.created")
+            return 200, "ok"
+
+        deliveries = enqueue_webhook_event(
+            school=self.school,
+            event_type="student.created",
+            data={"install_id": str(inst.id), "proof": "ci_e2e"},
+        )
+        self.assertEqual(len(deliveries), 1)
+        result = deliver_webhook_delivery(
+            deliveries[0], http_post=fake_http_post, now=None
+        )
+        self.assertEqual(result["status"], WebhookDelivery.Status.DELIVERED)
+        deliveries[0].refresh_from_db()
+        self.assertEqual(deliveries[0].status, WebhookDelivery.Status.DELIVERED)
+
+        envelope = json.loads(captured[0])
+        self.assertEqual(envelope.get("event_type"), "student.created")
+        self.assertEqual(
+            (envelope.get("data") or {}).get("proof"),
+            "ci_e2e",
+        )
+
+        # 5) Marketplace install webhook audit trail (secondary pathway)
         emit_webhook_audit(inst, "e2e.proof", {"install_id": str(inst.id)})
         audit = AppAuditLog.objects.filter(
             action="marketplace.webhook.e2e.proof"
         ).first()
         self.assertIsNotNone(audit)
 
-        # 5) OAuth Bearer on tenant host: integration context
+        # 6) OAuth Bearer on tenant host: integration context
         ctx_url = reverse("api_v1:platform-integration-context")
         r_ctx = client.get(
             ctx_url,
@@ -133,7 +168,7 @@ class DeveloperPlatformE2ETests(TestCase):
         self.assertEqual(ctx.get("marketplace_installation_id"), str(inst.id))
         self.assertIn("ping:read", ctx.get("app_scope") or [])
 
-        # 6) Scope-enforced ping succeeds
+        # 7) Scope-enforced ping succeeds
         ping_url = reverse("api_v1:platform-scoped-ping")
         r_ok = client.get(
             ping_url,
@@ -143,7 +178,7 @@ class DeveloperPlatformE2ETests(TestCase):
         self.assertEqual(r_ok.status_code, 200, r_ok.content)
         self.assertTrue(r_ok.json().get("ok"))
 
-        # 7) Same token on wrong tenant host → no installation resolution
+        # 8) Same token on wrong tenant host → no installation resolution
         other = School.objects.create(
             name="Other E2E",
             slug="other-e2e",

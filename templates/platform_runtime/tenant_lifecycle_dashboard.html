@@ -1,0 +1,148 @@
+{% extends "control_plane_base.html" %}
+{% load i18n phase8_tags %}
+
+{% block cp_title %}{% trans "Tenant lifecycle" %}{% endblock %}
+
+{% block cp_content %}
+<div class="container-lg py-4" data-page-archetype="operations" data-decision-engine="surface" data-rmc-tenant-lifecycle-dashboard="{{ page_marker }}" data-task="tenant_lifecycle" data-task-step="lifecycle:dashboard-root">
+  {% phase8_dashboard_declaration "platform_runtime/tenant_lifecycle_dashboard.html" %}
+  <header class="mb-4">
+    <h1 class="h3 mb-2">{% trans "Tenant lifecycle" %}</h1>
+    <p class="text-muted mb-0">
+      {% trans "States derive from funnel events, subscription rows, and tenant health — no raw SQL. Cohort percentages require sufficient schools with onboarding_start telemetry." %}
+    </p>
+    <p class="small text-muted mb-0">
+      {% trans "Scope:" %} <strong>{{ viewer_scope }}</strong>
+    </p>
+  </header>
+
+  {% if metrics.insufficient_data %}
+  <div class="alert alert-warning border-0 shadow-sm mb-4" role="status">
+    <strong>{% trans "Insufficient cohort data" %}</strong>
+    {% blocktrans with n=metrics.min_sample %}Need at least {{ n }} distinct schools with onboarding_start events for portfolio activation/conversion rates.{% endblocktrans %}
+    <div class="mt-3">
+      {% url 'accounts:backend_dashboard' as lifecycle_recover_url %}
+      {% include "components/dashboard_empty_state.html" with icon="bi-bar-chart-steps" title=_("Portfolio metrics need more telemetry") message=_("Continue onboarding schools so funnel signals cross the minimum cohort — rates unlock automatically.") purpose=_("Next operator step") action_url=lifecycle_recover_url action_text=_("Return to operations home") empty_primary_task="tenant_lifecycle" empty_primary_step="lifecycle:insufficient-cohort" %}
+    </div>
+  </div>
+  {% else %}
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6 text-uppercase text-muted mb-3">{% trans "Portfolio activation (telemetry-backed)" %}</h2>
+      <dl class="row mb-0 small">
+        <dt class="col-sm-4">{% trans "Activation rate (started → first action)" %}</dt>
+        <dd class="col-sm-8">{{ metrics.activation_rate|default_if_none:"—" }}</dd>
+        <dt class="col-sm-4">{% trans "Conversion rate (started → onboarding complete)" %}</dt>
+        <dd class="col-sm-8">{{ metrics.conversion_rate|default_if_none:"—" }}</dd>
+        <dt class="col-sm-4">{% trans "Paid penetration (started → subscription/payment signal)" %}</dt>
+        <dd class="col-sm-8">{{ metrics.paid_penetration|default_if_none:"—" }}</dd>
+        <dt class="col-sm-4">{% trans "Largest funnel drop-off stage" %}</dt>
+        <dd class="col-sm-8">{{ metrics.dropoff_stage|default_if_none:"—" }}</dd>
+      </dl>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if metrics.time_to_first_value_insufficient_data %}
+  <div class="alert alert-secondary border-0 shadow-sm mb-4" role="status">
+    {% trans "Median time-to-first-action unavailable (need more schools with both onboarding_start and first_action)." %}
+  </div>
+  {% else %}
+  <p class="small text-muted mb-4">
+    {% trans "Median time onboarding_start → first_action (seconds):" %}
+    <strong>{{ metrics.median_time_to_first_action_seconds|default_if_none:"—" }}</strong>
+  </p>
+  {% endif %}
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6 text-uppercase text-muted mb-3">{% trans "Lifecycle state distribution (this page)" %}</h2>
+      <ul class="list-unstyled mb-0 small">
+        {% for state, count in distribution.items %}
+        <li><code>{{ state }}</code>: {{ count }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <h2 class="h6 text-uppercase text-muted mb-3">{% trans "At-risk (primary action)" %}</h2>
+          {% if not at_risk_rows %}
+          {% url 'accounts:backend_dashboard' as tl_blank_url %}
+          {% include "components/dashboard_empty_state.html" with icon="bi-shield-exclamation" title=_("No at-risk tenants flagged") message=_("Lifecycle scoring updates as activation telemetry arrives.") action_url=tl_blank_url action_text=_("Open operations home") empty_primary_task="tenant_lifecycle" empty_primary_step="lifecycle:at-risk-empty" %}
+          {% else %}
+          <ul class="list-group list-group-flush">
+            {% for row in at_risk_rows %}
+            <li class="list-group-item px-0">
+              <div class="fw-semibold">{{ row.school_name }}</div>
+              <div class="small text-muted">{{ row.reason }}</div>
+              {% if row.primary_action_url %}
+              <a class="btn btn-sm btn-outline-primary mt-2" href="{{ row.primary_action_url }}" data-action="tenant-lifecycle-row-primary" data-task="tenant_lifecycle" data-task-step="lifecycle:at-risk-primary">{% trans "Primary action" %}</a>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <h2 class="h6 text-uppercase text-muted mb-3">{% trans "Expansion-ready (primary action)" %}</h2>
+          {% if not expansion_ready_rows %}
+          {% url 'accounts:backend_dashboard' as tl_blank_url %}
+          {% include "components/dashboard_empty_state.html" with icon="bi-graph-up-arrow" title=_("No expansion-ready tenants surfaced") message=_("Healthy tenants surface automatically when funnel milestones align.") action_url=tl_blank_url action_text=_("Open operations home") empty_primary_task="tenant_lifecycle" empty_primary_step="lifecycle:expansion-empty" %}
+          {% else %}
+          <ul class="list-group list-group-flush">
+            {% for row in expansion_ready_rows %}
+            <li class="list-group-item px-0">
+              <div class="fw-semibold">{{ row.school_name }}</div>
+              <div class="small text-muted">{{ row.reason }}</div>
+              {% if row.primary_action_url %}
+              <a class="btn btn-sm btn-outline-primary mt-2" href="{{ row.primary_action_url }}" data-action="tenant-lifecycle-row-primary" data-task="tenant_lifecycle" data-task-step="lifecycle:expansion-primary">{% trans "Primary action" %}</a>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-family table-density-comfortable align-middle">
+      <thead>
+        <tr>
+          <th>{% trans "School" %}</th>
+          <th>{% trans "State" %}</th>
+          <th>{% trans "Severity" %}</th>
+          <th>{% trans "Open retention tasks" %}</th>
+          <th>{% trans "Primary action" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td>{{ row.school_name }}</td>
+          <td><span class="badge bg-light text-dark border">{{ row.label }}</span></td>
+          <td>{{ row.severity }}</td>
+          <td>{{ row.open_retention_actions|default:0 }}</td>
+          <td>
+            {% if row.primary_action_url %}
+            <a href="{{ row.primary_action_url }}">{% trans "Open" %}</a>
+            {% else %}
+            —
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

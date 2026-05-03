@@ -381,6 +381,13 @@ urlpatterns = [
         include(("apps.apicenter.urls", "apicenter"), namespace="apicenter"),
     ),
     path(
+        "platform-runtime/",
+        include(
+            ("apps.platform_runtime.urls", "platform_runtime"),
+            namespace="platform_runtime",
+        ),
+    ),
+    path(
         "ops/incidents/",
         obs_views.platform_incidents_console,
         name="platform_incidents_console",

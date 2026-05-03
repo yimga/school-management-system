@@ -10,9 +10,9 @@
     <h1 class="visually-hidden">{% trans "Teacher attendance" %}</h1>
     <nav class="ds-action-bar ms-auto d-flex flex-wrap gap-2" role="toolbar" aria-label="{% trans 'Exports' %}" data-rmc-teacher-attendance-actions="1">
       {% if rmc_conversion_single_action_enforced|default:False %}
-      <a class="btn btn-sm btn-primary ds-btn" href="{{ export_url }}" data-action="csv-export" data-task-step="teacher:export-csv">{% trans "Export CSV" %}</a>
+      <a class="btn btn-sm btn-primary ds-btn" href="{{ export_url }}" data-action="csv-export" data-task="attendance_export" data-task-step="attendance_export:csv-primary">{% trans "Export CSV" %}</a>
       {% else %}
-      <a class="btn btn-sm btn-outline-primary ds-btn" href="{{ export_url }}" data-action="csv-export" data-task-step="teacher:export-csv">{% trans "Export CSV" %}</a>
+      <a class="btn btn-sm btn-outline-primary ds-btn" href="{{ export_url }}" data-action="csv-export" data-task="attendance_export" data-task-step="attendance_export:csv">{% trans "Export CSV" %}</a>
       {% endif %}
     </nav>
   </div>
