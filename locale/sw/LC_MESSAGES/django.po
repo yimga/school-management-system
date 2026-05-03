@@ -18068,3 +18068,356 @@ msgstr ""
 
 msgid "submitter"
 msgstr ""
+
+msgid "A practical path your teams follow inside the platform."
+msgstr ""
+
+msgid "Add-on"
+msgstr ""
+
+msgid "Approximate student count"
+msgstr ""
+
+msgid "Benefits by role"
+msgstr ""
+
+msgid "Blocked (external)"
+msgstr ""
+
+msgid "Capability"
+msgstr ""
+
+msgid "Capability comparison"
+msgstr ""
+
+msgid ""
+"Capture-first workflows when airports, campuses, or home broadband "
+"fluctuate."
+msgstr ""
+
+msgid "Case studies"
+msgstr ""
+
+msgid "Completed (production PSP signal)"
+msgstr ""
+
+msgid ""
+"Composite view of leadership analytics, administration, teacher workspace, "
+"parent mobile portal, finance, and student portal in RunMyCampus"
+msgstr ""
+
+msgid "Connected school operations — not disconnected tools."
+msgstr ""
+
+msgid "Connected workflow across the entire campus lifecycle"
+msgstr ""
+
+msgid "Context photograph"
+msgstr ""
+
+msgid "Core"
+msgstr ""
+
+msgid ""
+"Dedicated surfaces for each capability—each linking to a deeper product "
+"page."
+msgstr ""
+
+msgid ""
+"Deep configuration for academic years, terms, grading scales, currencies, "
+"languages, campuses, roles, approvals, templates, and branding—without "
+"bolting on regional forks."
+msgstr ""
+
+msgid ""
+"Designed as a resilience layer for any geography—offline attendance, offline"
+" mark entry, offline receipt capture, sync queues, conflict review, audit "
+"trails, and reconnection sync."
+msgstr ""
+
+msgid ""
+"Dual-control schools require a peer approver on switch; consent + "
+"justification policies apply per settings."
+msgstr ""
+
+msgid ""
+"Each stage feeds the next—without duplicating student context across "
+"spreadsheets or standalone apps."
+msgstr ""
+
+msgid ""
+"Each team gets purpose-built surfaces without leaking data across "
+"boundaries."
+msgstr ""
+
+msgid ""
+"Enterprise security command center — live signals plus generated verifier "
+"JSON summaries (docs/generated). Live signals: security events, compliance "
+"export/permission trail, active sessions. Deep static scan:"
+msgstr ""
+
+msgid "Explore Platform"
+msgstr ""
+
+msgid "Explore offline-first"
+msgstr ""
+
+msgid "Explore related platform areas"
+msgstr ""
+
+msgid "Export timeline (compliance log + integrity)"
+msgstr ""
+
+msgid "Faith-based schools"
+msgstr ""
+
+msgid "Fees & payments"
+msgstr ""
+
+msgid "Fees / payments"
+msgstr ""
+
+msgid ""
+"Figures are tenant-scoped DB aggregates only. Live PSP settlement requires "
+"configured corridors and processor events — never inferred as success here."
+msgstr ""
+
+msgid "Finance teams"
+msgstr ""
+
+msgid "Full pricing comparison"
+msgstr ""
+
+msgid "Global configuration"
+msgstr ""
+
+msgid "Global configuration engine"
+msgstr ""
+
+msgid "Global positioning"
+msgstr ""
+
+msgid "Governance verifier summaries (generated JSON)"
+msgstr ""
+
+msgid "Grading & report cards"
+msgstr ""
+
+msgid "Grading / report cards"
+msgstr ""
+
+msgid "Growing school networks"
+msgstr ""
+
+msgid "Growth"
+msgstr ""
+
+msgid "Guides"
+msgstr ""
+
+msgid "How it fits together"
+msgstr ""
+
+msgid "Idempotency key"
+msgstr ""
+
+msgid "Impersonation & proxy (platform operator)"
+msgstr ""
+
+msgid "Integrity"
+msgstr ""
+
+msgid "International schools"
+msgstr ""
+
+msgid "Keep school operations moving, even when connectivity is unreliable."
+msgstr ""
+
+msgid "K–12 schools"
+msgstr ""
+
+msgid "Ledger rows by SKU (top)"
+msgstr ""
+
+msgid ""
+"Missing files on disk — run the mechanical verifier scripts from repo root; "
+"dashboard degrades gracefully."
+msgstr ""
+
+msgid ""
+"Move from spreadsheets or legacy stacks with phased rollout, validation, and"
+" rollback discipline."
+msgstr ""
+
+msgid "Multi-campus groups"
+msgstr ""
+
+msgid "No SKU-tagged ledger rows yet."
+msgstr ""
+
+msgid "No impersonation rows yet."
+msgstr ""
+
+msgid "Offline sync and setup flow diagram"
+msgstr ""
+
+msgid "Offline-first"
+msgstr ""
+
+msgid "Offline-ready operations"
+msgstr ""
+
+msgid "Open detailed surface ledger"
+msgstr ""
+
+msgid "Operational challenge"
+msgstr ""
+
+msgid ""
+"Operators retain visibility into queued work and reconciliation—not silent "
+"merges."
+msgstr ""
+
+msgid "Paid vs free installs (active)"
+msgstr ""
+
+msgid "Payment success (ledger)"
+msgstr ""
+
+msgid "Peer / approval"
+msgstr ""
+
+msgid "Pending external"
+msgstr ""
+
+msgid "Platform fees (ledger)"
+msgstr ""
+
+msgid "Pricing comparison"
+msgstr ""
+
+msgid "Product tour stops"
+msgstr ""
+
+msgid "Related platform areas"
+msgstr ""
+
+msgid "Request Demo"
+msgstr ""
+
+msgid "Request demo"
+msgstr ""
+
+msgid ""
+"RunMyCampus connects every school workflow in one flexible operating "
+"platform."
+msgstr ""
+
+msgid "School leadership"
+msgstr ""
+
+msgid "School operations are too scattered."
+msgstr ""
+
+msgid ""
+"See how RunMyCampus can unify admissions, academics, finance, communication,"
+" reporting, and daily operations for your school or network."
+msgstr ""
+
+msgid "Settlement posture (ledger events)"
+msgstr ""
+
+msgid "Solutions overview"
+msgstr ""
+
+msgid "Standard"
+msgstr ""
+
+msgid "Start trial"
+msgstr ""
+
+msgid "Starter"
+msgstr ""
+
+msgid ""
+"Starter through Enterprise mapped to admissions depth, finance "
+"sophistication, offline resilience, and governance."
+msgstr ""
+
+msgid "Starter, Growth, and Enterprise"
+msgstr ""
+
+msgid "Student Information System"
+msgstr ""
+
+msgid "Student portal"
+msgstr ""
+
+msgid ""
+"Summarized packaging—confirm specifics with our team during procurement."
+msgstr ""
+
+msgid "Talk to solutions"
+msgstr ""
+
+msgid "Teacher portal"
+msgstr ""
+
+msgid ""
+"Teams often manage admissions, attendance, fees, grading, parent "
+"communication, and reporting across spreadsheets, paper forms, chat apps, "
+"disconnected tools, and manual workflows."
+msgstr ""
+
+msgid "Tour highlights"
+msgstr ""
+
+msgid ""
+"Transparent packaging across the capabilities schools care about—see the "
+"full matrix on the pricing page."
+msgstr ""
+
+msgid "Try sandbox tenant"
+msgstr ""
+
+msgid ""
+"Tune academic years, terms and semesters, grading systems, class structures,"
+" departments, campuses, currencies, fee categories, discount rules, user "
+"roles, approval workflows, communication rules, report templates, and school"
+" branding—without fragmenting data."
+msgstr ""
+
+msgid "UTC"
+msgstr ""
+
+msgid ""
+"Walk the surfaces your leadership, staff, families, and finance team rely "
+"on."
+msgstr ""
+
+msgid "Watch Product Tour"
+msgstr ""
+
+msgid "When (UTC)"
+msgstr ""
+
+msgid "Workflow depth & audits"
+msgstr ""
+
+msgid "e.g. private K–12, international, network"
+msgstr ""
+
+msgid "free"
+msgstr ""
+
+msgid "no"
+msgstr ""
+
+msgid "paid"
+msgstr ""
+
+msgid "sum"
+msgstr ""
+
+msgid "yes"
+msgstr ""

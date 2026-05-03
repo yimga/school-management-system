@@ -132,6 +132,18 @@
         "site_settings_refs_apps_py_excl_migrations": 40,
         "site_settings_refs_apps_py_excl_migrations_tests": 6
       }
+    },
+    {
+      "recorded_at": "2026-05-03T00:34:14.116152+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 38,
+        "cursor_execute_apps_config_py_excl_migrations": 32,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 15,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 952,
+        "site_settings_refs_apps_py_excl_migrations": 40,
+        "site_settings_refs_apps_py_excl_migrations_tests": 6
+      }
     }
   ]
 }
