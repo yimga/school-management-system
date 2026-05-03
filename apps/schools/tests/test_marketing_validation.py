@@ -6,6 +6,7 @@ Ensures all key marketing routes resolve and return 200 on canonical host; landi
 import json
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 from unittest.mock import patch
 
 from django.conf import settings
@@ -204,7 +205,7 @@ class MarketingSmokeTests(TestCase):
         ):
             with self.subTest(url_name=name):
                 path = reverse(name)
-                resp = self.client.get(path, HTTP_HOST=self.host)
+                resp = self.client.get(path, HTTP_HOST=self.host, follow=True)
                 self.assertEqual(resp.status_code, 200, f"GET {path} should return 200")
 
 
@@ -268,7 +269,7 @@ class MarketingLandingContextTests(TestCase):
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn("dropdown-toggle", body)
         self.assertIn("/platform/admissions/", body)
-        self.assertIn("/solutions/k12/", body)
+        self.assertIn("/solutions/k12-schools/", body)
         self.assertIn("mkt-nav-submenu", body)
 
     def test_landing_includes_platform_visual_assets_without_placeholder_video_urls(self):
@@ -459,6 +460,142 @@ class MarketingAbVariantTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Operator-grade visibility")
         self.assertContains(resp, 'data-marketing-hero-variant="B"')
+
+
+@override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
+class MarketingLegacyCanonicalRedirectTests(TestCase):
+    """Legacy marketing paths 301 to brief-critical canonical URLs."""
+
+    def setUp(self):
+        self.client = Client()
+        self.host = "runmycampus.com"
+        self.env = patch.dict(
+            os.environ,
+            {
+                "MULTI_TENANT_BASE_DOMAIN": "runmycampus.com",
+                "MULTI_TENANT_LEGACY_BASE_DOMAINS": "",
+            },
+            clear=False,
+        )
+        self.env.start()
+
+    def tearDown(self):
+        self.env.stop()
+
+    def test_legacy_paths_301_to_canonical(self):
+        pairs = (
+            ("/guides/", "/resources/guides/"),
+            ("/blog/", "/resources/blog/"),
+            ("/case-studies/", "/resources/case-studies/"),
+            (reverse("institution_k12"), "/solutions/k12-schools/"),
+        )
+        for src, expected_path in pairs:
+            with self.subTest(src=src):
+                resp = self.client.get(src, HTTP_HOST=self.host, follow=False)
+                self.assertEqual(resp.status_code, 301)
+                loc = resp.headers["Location"]
+                path = urlparse(loc).path if "://" in loc else loc
+                self.assertEqual(
+                    path,
+                    expected_path,
+                    f"Unexpected redirect Location {loc!r} for {src}",
+                )
+
+    def test_canonical_brief_paths_return_200(self):
+        for path in (
+            "/resources/guides/",
+            "/resources/case-studies/",
+            "/resources/blog/",
+            "/solutions/k12-schools/",
+        ):
+            with self.subTest(path=path):
+                r = self.client.get(path, HTTP_HOST=self.host)
+                self.assertEqual(r.status_code, 200)
+
+
+@override_settings(
+    ALLOWED_HOSTS=["*"],
+    DEBUG=False,
+    SECURE_SSL_REDIRECT=False,
+    MARKETING_CONTACT_WEBHOOK_URL=None,
+    MARKETING_DEMO_WEBHOOK_URL=None,
+)
+class MarketingContactSubmitTests(TestCase):
+    """Contact POST-only route and redirect query params."""
+
+    def setUp(self):
+        self.client = Client()
+        self.host = "runmycampus.com"
+        self.env = patch.dict(
+            os.environ,
+            {
+                "MULTI_TENANT_BASE_DOMAIN": "runmycampus.com",
+                "MULTI_TENANT_LEGACY_BASE_DOMAINS": "",
+            },
+            clear=False,
+        )
+        self.env.start()
+
+    def tearDown(self):
+        self.env.stop()
+
+    def test_contact_submit_get_returns_405(self):
+        resp = self.client.get(
+            reverse("marketing_contact_submit"),
+            HTTP_HOST=self.host,
+        )
+        self.assertEqual(resp.status_code, 405)
+
+    def test_contact_submit_post_with_email_redirects_submitted(self):
+        resp = self.client.post(
+            reverse("marketing_contact_submit"),
+            {
+                "name": "Test User",
+                "email": "contact-test@example.com",
+                "message": "Hello",
+            },
+            HTTP_HOST=self.host,
+        )
+        self.assertEqual(resp.status_code, 302)
+        loc = resp.headers["Location"]
+        self.assertIn(reverse("marketing_contact"), loc)
+        self.assertIn("submitted=1", loc)
+
+    def test_contact_submit_post_without_email_redirects_error(self):
+        resp = self.client.post(
+            reverse("marketing_contact_submit"),
+            {"name": "Test User", "message": "Hello"},
+            HTTP_HOST=self.host,
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("error=1", resp.headers["Location"])
+
+
+@override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
+class MarketingInstitutionPremiumVisualTests(TestCase):
+    """Institution premium layer uses self-hosted static artwork + alt text."""
+
+    def setUp(self):
+        self.client = Client()
+        self.host = "runmycampus.com"
+        self.env = patch.dict(
+            os.environ,
+            {
+                "MULTI_TENANT_BASE_DOMAIN": "runmycampus.com",
+                "MULTI_TENANT_LEGACY_BASE_DOMAINS": "",
+            },
+            clear=False,
+        )
+        self.env.start()
+
+    def tearDown(self):
+        self.env.stop()
+
+    def test_k12_schools_stock_visual_is_static_with_alt(self):
+        resp = self.client.get("/solutions/k12-schools/", HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "/static/images/marketing/module-academics.svg")
+        self.assertContains(resp, 'alt="Illustration of K–12 academics')
 
 
 class ExperienceControlMarketingRegistryTests(SimpleTestCase):

@@ -771,7 +771,10 @@ class MarketplaceMonetizationLedgerEntry(models.Model):
         PAYMENT_FAILED = "payment_failed", "Payment failed"
         PLATFORM_FEE_RECORDED = "platform_fee_recorded", "Platform fee recorded"
         SETTLEMENT_PENDING = "settlement_pending", "Settlement pending"
+        SETTLEMENT_READY = "settlement_ready", "Settlement ready (awaiting PSP payout)"
         SETTLEMENT_COMPLETED = "settlement_completed", "Settlement completed"
+        SETTLEMENT_FAILED = "settlement_failed", "Settlement failed"
+        SETTLEMENT_RECONCILED = "settlement_reconciled", "Settlement reconciled (manual)"
         SETTLEMENT_EXTERNAL_BLOCKED = (
             "settlement_external_blocked",
             "Settlement blocked (external)",

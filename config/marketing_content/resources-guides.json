@@ -1,0 +1,49 @@
+{
+  "label": "Guides",
+  "seo_title": "Guides | RunMyCampus",
+  "seo_description": "Starter topics to help teams evaluate school operating platforms and plan connected operations—honest outlines, not disguised whitepapers.",
+  "headline": "Practical guides—starting points, not hidden downloads.",
+  "subheadline": "These topics summarize how schools evaluate systems and prepare for connected operations. Full long-form articles will expand here over time.",
+  "schema_type": "CollectionPage",
+  "segments": [],
+  "extras": {
+    "suppress_footer_clusters": true,
+    "trust_strip": [
+      "Honest scope labels",
+      "No fake PDF libraries",
+      "Links to platform proof points"
+    ],
+    "guide_topics": [
+      {
+        "title": "How to choose a school management system",
+        "summary": "Evaluation framing: tenancy model, integrations, portals, offline posture, and governance—questions your steering committee should align on.",
+        "status_label": "Starter outline"
+      },
+      {
+        "title": "Building connected school operations",
+        "summary": "Why duplicate student context hurts admissions, billing, and reporting—and how one operating layer reduces rework.",
+        "status_label": "Starter outline"
+      },
+      {
+        "title": "Improving parent communication",
+        "summary": "Channels, transparency on fees and progress, and audit-friendly messaging expectations.",
+        "status_label": "Starter outline"
+      },
+      {
+        "title": "Modernizing school fee collection",
+        "summary": "Invoices, receipts, multi-currency readiness, and reconciliation discipline without spreadsheet sprawl.",
+        "status_label": "Starter outline"
+      },
+      {
+        "title": "Preparing for multi-campus growth",
+        "summary": "Policy propagation, localized execution, and consolidated analytics without brittle imports.",
+        "status_label": "Starter outline"
+      },
+      {
+        "title": "Moving from spreadsheets to a connected platform",
+        "summary": "Migration posture: validation dry-runs, phased portals, and rollback discipline.",
+        "status_label": "Starter outline"
+      }
+    ]
+  }
+}

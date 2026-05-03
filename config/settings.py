@@ -848,6 +848,13 @@ MARKETING_STATUS_PAGE_URL = (
     os.getenv("MARKETING_STATUS_PAGE_URL") or ""
 ).strip() or None
 MARKETING_CALENDLY_URL = (os.getenv("MARKETING_CALENDLY_URL") or "").strip() or None
+# Optional inbound webhooks for marketing forms (POST JSON). Contact form prefers CONTACT then DEMO URL.
+MARKETING_DEMO_WEBHOOK_URL = (
+    (os.getenv("MARKETING_DEMO_WEBHOOK_URL") or "").strip() or None
+)
+MARKETING_CONTACT_WEBHOOK_URL = (
+    (os.getenv("MARKETING_CONTACT_WEBHOOK_URL") or "").strip() or None
+)
 # Demo page: "What you'll see" bullets (required); set MARKETING_DEMO_WHAT_YOU_SEE as JSON array or comma-separated in env
 _demo_what = os.getenv("MARKETING_DEMO_WHAT_YOU_SEE", "").strip()
 if _demo_what:

@@ -6,11 +6,11 @@
 - Markdown files: `1114`
 - Migration files: `744`
 - Management commands: `161` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs (gross scan): `2048`
+- `SiteSettings` refs (gross scan): `2053`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `40`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `6`
 - `get_solo()` refs: `208`
-- `except Exception`: `410`
+- `except Exception`: `411`
 - `cursor.execute()` (gross): `381`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `32`
 - `csrf_exempt` (substring, gross): `306`
@@ -18,7 +18,7 @@
 - `AllowAny`: `106`
 - `print()` (gross all `.py`): `1053`
 - `print()` (`apps` product paths): `0`; `scripts/`: `952`
-- `gilead` matches (gross corpus): `16665` across `165` files
+- `gilead` matches (gross corpus): `16660` across `165` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -77,8 +77,8 @@ Total: `161` commands. First 25 by app/command:
 
 ## Largest Python Files
 
-- `apps/schools/marketing_page_definitions.py`: `2980` lines / `139449` bytes
-- `apps/schools/marketing_views.py`: `3210` lines / `128246` bytes
+- `apps/schools/marketing_page_definitions.py`: `3005` lines / `140819` bytes
+- `apps/schools/marketing_views.py`: `3273` lines / `130667` bytes
 - `apps/api/views_v1.py`: `2856` lines / `118727` bytes
 - `apps/evals/views.py`: `3177` lines / `118357` bytes
 - `apps/accounts/views.py`: `3088` lines / `118228` bytes
@@ -87,7 +87,7 @@ Total: `161` commands. First 25 by app/command:
 - `apps/siteconfig/admin.py`: `2814` lines / `98676` bytes
 - `apps/studio_os/views.py`: `2420` lines / `95628` bytes
 - `apps/finance/tasks.py`: `2062` lines / `82395` bytes
-- `config/settings.py`: `1761` lines / `80179` bytes
+- `config/settings.py`: `1768` lines / `80492` bytes
 - `apps/siteconfig/models.py`: `2023` lines / `78471` bytes
 
 ## Documentation Drift

@@ -1,5 +1,5 @@
 {% extends "marketing/base_marketing.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}{{ seo_title|default:"RunMyCampus" }}{% endblock %}
 {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:'' }}">
@@ -7,11 +7,76 @@
   <script type="application/ld+json">{{ structured_data_json|safe }}</script>
   {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
 {% endblock %}
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-institution-premium.css' %}">
+{% endblock %}
 {% block content %}
-<section class="container py-4 py-lg-5 page-stack">
-  <p class="text-uppercase small text-muted mb-2">RunMyCampus Solutions</p>
-  <h1 class="display-6 fw-bold mb-3">{{ page.headline }}</h1>
-  <p class="lead text-muted mb-4">{{ page.subheadline }}</p>
+<section class="container py-4 py-lg-5 page-stack mkt-institution-premium">
+  <header class="mkt-inst-hero mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+    <p class="text-uppercase small text-muted mb-2">{% trans "RunMyCampus Solutions" %}</p>
+    <h1 class="display-6 fw-bold mb-3">{{ page.headline }}</h1>
+    <p class="lead text-muted mb-0">{{ page.subheadline }}</p>
+    <div class="d-flex flex-wrap gap-2 mt-4">
+      <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="primary" data-page="institution">{{ page.cta_primary }}</a>
+      <a href="{% url 'marketing_demo' %}" class="btn btn-outline-primary" data-cta="demo" data-page="institution">{{ page.cta_secondary }}</a>
+      <a href="{% url 'marketing_solutions' %}" class="btn btn-outline-secondary">{% trans "Solutions overview" %}</a>
+    </div>
+  </header>
+
+  {% if page.stock_photo_static %}
+  <figure class="mkt-inst-stock rounded overflow-hidden mb-5 border border-secondary border-opacity-25">
+    <img src="{% static page.stock_photo_static %}" alt="{{ page.stock_photo_alt|default:page.label }}" width="1600" height="900" loading="lazy" decoding="async" class="w-100 object-fit-cover" style="max-height: 380px;">
+    {% if page.stock_photo_credit %}<figcaption class="small text-muted px-3 py-2 mb-0">{{ page.stock_photo_credit }}</figcaption>{% endif %}
+  </figure>
+  {% elif page.stock_photo_url %}
+  <figure class="mkt-inst-stock rounded overflow-hidden mb-5 border border-secondary border-opacity-25">
+    <img src="{{ page.stock_photo_url }}" alt="{{ page.stock_photo_alt|default:page.label }}" width="1600" height="900" loading="lazy" decoding="async" class="w-100 object-fit-cover" style="max-height: 380px;">
+    {% if page.stock_photo_credit %}<figcaption class="small text-muted px-3 py-2 mb-0">{{ page.stock_photo_credit }}</figcaption>{% endif %}
+  </figure>
+  {% endif %}
+
+  {% if page.problem_section %}
+  <section class="section-shell mkt-inst-problem" aria-label="{% trans 'Challenge' %}">
+    <div class="row g-4 align-items-start">
+      <div class="col-lg-8">
+        <h2 class="section-heading">{{ page.problem_section.title }}</h2>
+        <p class="section-lead mb-0">{{ page.problem_section.body }}</p>
+      </div>
+      <div class="col-lg-4">
+        <div class="segment-card h-100 border border-secondary border-opacity-50">
+          <p class="small text-uppercase text-muted mb-2">{% trans "Global configurability" %}</p>
+          <p class="mb-0 fw-semibold">{{ page.global_config_note }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if page.recommended_modules %}
+  <section class="section-shell" aria-label="{% trans 'Recommended modules' %}">
+    <h2 class="section-heading">{% trans "Recommended platform modules" %}</h2>
+    <p class="section-lead">{% trans "Each tile opens the matching RunMyCampus capability page." %}</p>
+    <div class="row g-3">
+      {% for mod in page.recommended_modules %}
+      <div class="col-sm-6 col-lg-4">
+        <a href="{{ mod.path }}" class="text-decoration-none d-block segment-card h-100 mkt-inst-module-card">
+          <span class="fw-semibold text-white">{{ mod.label }}</span>
+          <span class="small text-muted d-block mt-2">{% trans "Explore capability" %} →</span>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if page.workflow_diagram_static %}
+  <section class="section-shell text-center" aria-label="{% trans 'Workflow overview' %}">
+    <h2 class="section-heading">{% trans "Workflow overview" %}</h2>
+    <p class="section-lead">{% trans "Illustrative flow across operational surfaces—not a substitute for your tenant configuration." %}</p>
+    <img src="{% static page.workflow_diagram_static %}" alt="{% trans 'Workflow illustration for this solution segment' %}" class="img-fluid rounded mkt-inst-diagram" width="720" height="420" loading="lazy" decoding="async">
+  </section>
+  {% endif %}
 
   {% if page.workflow_examples %}
   <section class="section-shell" aria-label="{% trans 'Workflow examples' %}">
@@ -29,7 +94,7 @@
 
   {% if page.compliance_angle %}
   <section class="section-shell" aria-label="{% trans 'Compliance' %}">
-    <h2 class="section-heading">{% trans "Compliance" %}</h2>
+    <h2 class="section-heading">{% trans "Compliance & governance note" %}</h2>
     <p class="section-lead mb-0">{{ page.compliance_angle }}</p>
   </section>
   {% endif %}
@@ -42,10 +107,15 @@
   {% endif %}
 
   <section class="section-shell border-0 bg-transparent pt-0">
-    <div class="d-flex flex-wrap gap-2">
-      <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="primary" data-page="institution">{{ page.cta_primary }}</a>
-      <a href="{% url 'marketing_demo' %}" class="btn btn-outline-primary" data-cta="demo" data-page="institution">{{ page.cta_secondary }}</a>
-      <a href="{% url 'marketing_solutions' %}" class="btn btn-outline-secondary">{% trans "Back to solutions" %}</a>
+    <div class="segment-card d-flex flex-wrap gap-2 justify-content-between align-items-center">
+      <div>
+        <p class="fw-semibold mb-1">{% trans "Ready for the next step?" %}</p>
+        <p class="small text-muted mb-0">{% trans "See the platform with your roles and campuses in mind." %}</p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="demo" data-page="institution-footer">{% trans "Request Demo" %}</a>
+        <a href="{% url 'marketing_contact' %}" class="btn btn-outline-secondary">{% trans "Contact us" %}</a>
+      </div>
     </div>
   </section>
 </section>

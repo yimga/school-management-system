@@ -1,0 +1,18 @@
+{
+  "label": "Blog",
+  "seo_title": "Blog | RunMyCampus",
+  "seo_description": "Insights on admissions, finance, multi-campus operations, and compliance—published as editorial cadence ramps.",
+  "headline": "Insights for operators modernizing school systems.",
+  "subheadline": "When posts are available they appear below. If none are published yet, request a demo for a guided walkthrough of the platform.",
+  "schema_type": "Blog",
+  "segments": [],
+  "extras": {
+    "suppress_footer_clusters": true,
+    "trust_strip": [
+      "Editorial—not paid endorsements",
+      "Grounded in product reality",
+      "Global operations lens"
+    ],
+    "blog_empty_hint": "We're preparing editorial cadence on admissions, finance, migration, and governance topics. Meanwhile, explore product surfaces via a guided session."
+  }
+}

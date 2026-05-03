@@ -1,0 +1,43 @@
+{
+  "label": "Company",
+  "seo_title": "Company | RunMyCampus",
+  "seo_description": "Mission, vision, and operating principles behind RunMyCampus—a global school operating platform for admissions, academics, finance, and compliance.",
+  "headline": "RunMyCampus builds the school operating layer the world runs on.",
+  "subheadline": "One configurable platform for admissions through daily operations—designed for schools and networks everywhere, without locking you into a single country or curriculum.",
+  "schema_type": "AboutPage",
+  "segments": [],
+  "extras": {
+    "suppress_footer_clusters": true,
+    "trust_strip": [
+      "Global-first positioning",
+      "Schema-per-tenant isolation posture",
+      "Implementation with real schools—not slideware"
+    ],
+    "company_pillars": [
+      {
+        "title": "Mission",
+        "body": "Give every school a single, governable operating system for student context, finance, communication, and compliance—so leaders spend less time reconciling tools and more time on learning outcomes."
+      },
+      {
+        "title": "Vision for global school operations",
+        "body": "Schools worldwide should run on the same disciplined platform core while tuning calendars, grading, currencies, languages, and policies to their region—without forking products or rebuilding integrations per country."
+      },
+      {
+        "title": "Product principles",
+        "body": "Role-native surfaces, audit-friendly actions, offline-resilient capture where operations cannot stop, marketplace extensibility without compromising tenant boundaries, and upgrade paths that respect production data."
+      },
+      {
+        "title": "Trust and security commitment",
+        "body": "Encryption in transit and at rest, role-based access, tenant-scoped data, and operational logging designed for leadership and compliance review. Specific certifications and attestations evolve with customer demand—ask during procurement."
+      },
+      {
+        "title": "Implementation philosophy",
+        "body": "Phased rollout: stabilize records and portals first, expand workflows and integrations next, and tune analytics once stakeholders trust the core. We bias toward measurable milestones rather than big-bang cutovers."
+      },
+      {
+        "title": "Global platform positioning",
+        "body": "RunMyCampus is engineered as a multi-tenant global platform: configure regions and school models rather than deploying separate products per geography."
+      }
+    ]
+  }
+}

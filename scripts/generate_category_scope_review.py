@@ -24,8 +24,44 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 CLOSURE_PATH = REPO / "docs" / "generated" / "system_closure_map.json"
+EXT_REG_PATH = REPO / "docs" / "generated" / "external_dependencies_register.json"
 OUT_JSON = REPO / "docs" / "generated" / "category_scope_review.json"
 OUT_MD = REPO / "docs" / "generated" / "category_scope_review.md"
+
+
+def _external_register_bundle(partial_external_ids: list[str]) -> dict:
+    """Summarize generated external-dependencies ledger when present."""
+    rel = "docs/generated/external_dependencies_register.json"
+    missing = {
+        "external_dependency_register_path": None,
+        "external_blockers_summary": (
+            "External dependency register not generated — run "
+            "`python scripts/generate_external_dependencies_register.py --write`."
+        ),
+        "external_blockers_by_blocking_level": {},
+        "systems_blocked_by_external_dependencies": sorted(partial_external_ids),
+    }
+    if not EXT_REG_PATH.is_file():
+        return missing
+    try:
+        reg = json.loads(EXT_REG_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return missing
+
+    counts = dict(reg.get("blocking_level_counts") or {})
+    flat = reg.get("entries_flat") or []
+    n = len(flat)
+    summary = (
+        f"{n} tracked dependencies; blocking_level_counts={counts}; "
+        f"see `{rel}` for PSP/KYC/settlement rows."
+    )
+    impacted = sorted(set(reg.get("systems_impacted") or []) | set(partial_external_ids))
+    return {
+        "external_dependency_register_path": rel,
+        "external_blockers_summary": summary,
+        "external_blockers_by_blocking_level": counts,
+        "systems_blocked_by_external_dependencies": impacted,
+    }
 
 
 def _classify_row(row: dict) -> tuple[str, bool, bool, str]:
@@ -118,11 +154,14 @@ def _build_review(closure: dict, merge_proof: dict | None) -> dict:
     proof_gates = dict(merge_proof or {})
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
+    ext_bundle = _external_register_bundle(partial_ext)
+
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "generated_at": now,
         "review_engine": "Category Scope Review (derived from system_closure_map)",
         "source_closure_map": "docs/generated/system_closure_map.json",
+        **ext_bundle,
         "systems_in_registry": rows_out,
         "systems_requested_but_not_in_closure_map": requested_missing,
         "note_not_in_registry": (
@@ -178,9 +217,17 @@ def _render_md(data: dict) -> str:
     lines.extend(
         [
             "",
-            "## Labels previously missing from closure map",
-            "",
-        ]
+        "## External dependency register linkage",
+        "",
+        f"- **Path:** `{data.get('external_dependency_register_path') or '(not generated)'}`",
+        f"- **Summary:** {data.get('external_blockers_summary') or '—'}",
+        f"- **Blocking levels:** `{data.get('external_blockers_by_blocking_level')}`",
+        f"- **Systems impacted / blocked-by-external union:** "
+        f"{', '.join(data.get('systems_blocked_by_external_dependencies') or [])}",
+        "",
+        "## Labels previously missing from closure map",
+        "",
+    ]
     )
     missing = data.get("systems_requested_but_not_in_closure_map") or []
     if missing:

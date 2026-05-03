@@ -25909,7 +25909,7 @@
         },
         {
           "kind": "reverse",
-          "line": 161,
+          "line": 162,
           "name": "studio_os:automation",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:automation\")",
@@ -26629,7 +26629,7 @@
         },
         {
           "kind": "reverse",
-          "line": 156,
+          "line": 157,
           "name": "studio_os:experience",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -26638,7 +26638,7 @@
         },
         {
           "kind": "reverse",
-          "line": 180,
+          "line": 181,
           "name": "studio_os:experience",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -27601,7 +27601,7 @@
         },
         {
           "kind": "reverse",
-          "line": 171,
+          "line": 172,
           "name": "studio_os:output",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:output\")",
@@ -54137,7 +54137,7 @@
         },
         {
           "kind": "reverse",
-          "line": 133,
+          "line": 134,
           "name": "api-schema",
           "path": "config/urls.py",
           "raw": "reverse(\"api-schema\")",
@@ -60055,7 +60055,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3099,
+          "line": 3162,
           "name": "api_v1:platform-integration-context",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"api_v1:platform-integration-context\")",
@@ -60094,7 +60094,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3102,
+          "line": 3165,
           "name": "api_v1:platform-scoped-ping",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"api_v1:platform-scoped-ping\")",
@@ -62406,7 +62406,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3062,
+          "line": 3125,
           "name": "developer_console",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_console\")",
@@ -62427,7 +62427,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3092,
+          "line": 3155,
           "name": "developer_hub",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_hub\")",
@@ -62448,7 +62448,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3159,
+          "line": 3222,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -62457,7 +62457,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3132,
+          "line": 3195,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -62466,7 +62466,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3060,
+          "line": 3123,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -62497,7 +62497,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3067,
+          "line": 3130,
           "name": "developer_public_api_docs",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_public_api_docs\")",
@@ -62506,7 +62506,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3105,
+          "line": 3168,
           "name": "developer_public_api_docs",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_public_api_docs\")",
@@ -62527,7 +62527,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3134,
+          "line": 3197,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -62536,7 +62536,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3160,
+          "line": 3223,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -62545,7 +62545,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3065,
+          "line": 3128,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -62566,7 +62566,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3064,
+          "line": 3127,
           "name": "developer_sdk",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sdk\")",
@@ -64708,7 +64708,7 @@
         },
         {
           "kind": "reverse",
-          "line": 101,
+          "line": 103,
           "name": "finance:payment_readiness_setup",
           "path": "apps/marketplace/views_monetization_dashboard.py",
           "raw": "reverse(\"finance:payment_readiness_setup\")",
@@ -65436,7 +65436,7 @@
         },
         {
           "kind": "template_url",
-          "line": 452,
+          "line": 583,
           "name": "global_login_discovery",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'global_login_discovery' %}",
@@ -65818,13 +65818,23 @@
       "name": "institution_k12",
       "permission_requirement": "public",
       "reasons": [],
-      "reverse_usage": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 490,
+          "name": "institution_k12",
+          "path": "apps/schools/tests/test_marketing_validation.py",
+          "raw": "reverse(\"institution_k12\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "scope": "public",
       "status": "OK",
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 335,
+          "line": 466,
           "name": "institution_k12",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'institution_k12' %}",
@@ -65833,7 +65843,7 @@
         }
       ],
       "url_path": "/solutions/k12/",
-      "view": "apps.schools.marketing_views.institution_marketing_page"
+      "view": "django.views.generic.base.RedirectView"
     },
     {
       "name": "institution_k12_schools",
@@ -65854,7 +65864,7 @@
         }
       ],
       "url_path": "/solutions/k12-schools/",
-      "view": "django.views.generic.base.RedirectView"
+      "view": "apps.schools.marketing_views.institution_marketing_page"
     },
     {
       "name": "institution_multi_campus",
@@ -65919,7 +65929,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 335,
+          "line": 466,
           "name": "institution_universities",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'institution_universities' %}",
@@ -67859,7 +67869,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 85,
+          "line": 86,
           "name": "marketing_about",
           "path": "templates/marketing/marketing_footer.html",
           "raw": "{% url 'marketing_about' %}",
@@ -67919,7 +67929,7 @@
         }
       ],
       "url_path": "/blog/",
-      "view": "apps.schools.marketing_views.marketing_page"
+      "view": "django.views.generic.base.RedirectView"
     },
     {
       "name": "marketing_blog_detail",
@@ -67941,7 +67951,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 180,
+          "line": 303,
           "name": "marketing_blog_detail",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_blog_detail' slug=post.slug %}",
@@ -67983,7 +67993,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 112,
+          "line": 233,
           "name": "marketing_book_demo_submit",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_book_demo_submit' %}",
@@ -68015,7 +68025,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 259,
+          "line": 390,
           "name": "marketing_buyer_toolkit_download",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_buyer_toolkit_download' document='buyer-checklist' %}",
@@ -68024,7 +68034,7 @@
         },
         {
           "kind": "template_url",
-          "line": 260,
+          "line": 391,
           "name": "marketing_buyer_toolkit_download",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_buyer_toolkit_download' document='implementation-checklist' %}",
@@ -68065,7 +68075,7 @@
         }
       ],
       "url_path": "/case-studies/",
-      "view": "apps.schools.marketing_views.marketing_page"
+      "view": "django.views.generic.base.RedirectView"
     },
     {
       "name": "marketing_cm",
@@ -68085,9 +68095,19 @@
       "reverse_usage": [],
       "scope": "public",
       "status": "OK",
-      "template_usage": [],
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 85,
+          "name": "marketing_company",
+          "path": "templates/marketing/marketing_footer.html",
+          "raw": "{% url 'marketing_company' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "url_path": "/company/",
-      "view": "django.views.generic.base.RedirectView"
+      "view": "apps.schools.marketing_views.marketing_page"
     },
     {
       "name": "marketing_compare",
@@ -68115,13 +68135,32 @@
       "name": "marketing_contact",
       "permission_requirement": "public",
       "reasons": [],
-      "reverse_usage": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 2171,
+          "name": "marketing_contact",
+          "path": "apps/schools/marketing_views.py",
+          "raw": "reverse(\"marketing_contact\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 561,
+          "name": "marketing_contact",
+          "path": "apps/schools/tests/test_marketing_validation.py",
+          "raw": "reverse(\"marketing_contact\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "scope": "public",
       "status": "OK",
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 86,
+          "line": 87,
           "name": "marketing_contact",
           "path": "templates/marketing/marketing_footer.html",
           "raw": "{% url 'marketing_contact' %}",
@@ -68130,9 +68169,18 @@
         },
         {
           "kind": "template_url",
-          "line": 96,
+          "line": 97,
           "name": "marketing_contact",
           "path": "templates/marketing/marketing_footer.html",
+          "raw": "{% url 'marketing_contact' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 117,
+          "name": "marketing_contact",
+          "path": "templates/marketing/marketing_institution_page.html",
           "raw": "{% url 'marketing_contact' %}",
           "reason": "",
           "status": "OK"
@@ -68140,6 +68188,55 @@
       ],
       "url_path": "/contact/",
       "view": "apps.schools.marketing_views.marketing_page"
+    },
+    {
+      "name": "marketing_contact_submit",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 544,
+          "name": "marketing_contact_submit",
+          "path": "apps/schools/tests/test_marketing_validation.py",
+          "raw": "reverse(\"marketing_contact_submit\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 551,
+          "name": "marketing_contact_submit",
+          "path": "apps/schools/tests/test_marketing_validation.py",
+          "raw": "reverse(\"marketing_contact_submit\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 566,
+          "name": "marketing_contact_submit",
+          "path": "apps/schools/tests/test_marketing_validation.py",
+          "raw": "reverse(\"marketing_contact_submit\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 105,
+          "name": "marketing_contact_submit",
+          "path": "templates/schools/marketing_page.html",
+          "raw": "{% url 'marketing_contact_submit' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/contact/submit/",
+      "view": "apps.schools.marketing_views.submit_contact_request"
     },
     {
       "name": "marketing_cookie_policy",
@@ -68180,7 +68277,7 @@
       "status": "OK",
       "template_usage": [],
       "url_path": "/customers/",
-      "view": "config.urls.<lambda>"
+      "view": "django.views.generic.base.RedirectView"
     },
     {
       "name": "marketing_demo",
@@ -68189,7 +68286,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2111,
+          "line": 2114,
           "name": "marketing_demo",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_demo\")",
@@ -68211,7 +68308,7 @@
         },
         {
           "kind": "template_url",
-          "line": 88,
+          "line": 89,
           "name": "marketing_demo",
           "path": "templates/marketing/marketing_footer.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -68229,7 +68326,16 @@
         },
         {
           "kind": "template_url",
-          "line": 47,
+          "line": 22,
+          "name": "marketing_demo",
+          "path": "templates/marketing/marketing_institution_page.html",
+          "raw": "{% url 'marketing_demo' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 116,
           "name": "marketing_demo",
           "path": "templates/marketing/marketing_institution_page.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -68328,7 +68434,16 @@
         },
         {
           "kind": "template_url",
-          "line": 451,
+          "line": 312,
+          "name": "marketing_demo",
+          "path": "templates/schools/marketing_page.html",
+          "raw": "{% url 'marketing_demo' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 582,
           "name": "marketing_demo",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -68473,7 +68588,7 @@
       "status": "OK",
       "template_usage": [],
       "url_path": "/guides/",
-      "view": "apps.schools.marketing_views.marketing_page"
+      "view": "django.views.generic.base.RedirectView"
     },
     {
       "name": "marketing_home",
@@ -68982,7 +69097,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 87,
+          "line": 88,
           "name": "marketing_pricing",
           "path": "templates/marketing/marketing_footer.html",
           "raw": "{% url 'marketing_pricing' %}",
@@ -69201,7 +69316,7 @@
         }
       ],
       "url_path": "/resources/blog/",
-      "view": "django.views.generic.base.RedirectView"
+      "view": "apps.schools.marketing_views.marketing_page"
     },
     {
       "name": "marketing_resources_case_studies",
@@ -69222,7 +69337,7 @@
         }
       ],
       "url_path": "/resources/case-studies/",
-      "view": "django.views.generic.base.RedirectView"
+      "view": "apps.schools.marketing_views.marketing_page"
     },
     {
       "name": "marketing_resources_guides",
@@ -69243,7 +69358,7 @@
         }
       ],
       "url_path": "/resources/guides/",
-      "view": "django.views.generic.base.RedirectView"
+      "view": "apps.schools.marketing_views.marketing_page"
     },
     {
       "name": "marketing_resources_help_center",
@@ -69279,6 +69394,15 @@
           "line": 75,
           "name": "marketing_resources_product_tour",
           "path": "templates/marketing/marketing_footer.html",
+          "raw": "{% url 'marketing_resources_product_tour' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 313,
+          "name": "marketing_resources_product_tour",
+          "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_resources_product_tour' %}",
           "reason": "",
           "status": "OK"
@@ -69357,7 +69481,7 @@
         },
         {
           "kind": "template_url",
-          "line": 335,
+          "line": 466,
           "name": "marketing_security_compliance",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_security_compliance' %}",
@@ -69398,7 +69522,7 @@
         },
         {
           "kind": "template_url",
-          "line": 48,
+          "line": 23,
           "name": "marketing_solutions",
           "path": "templates/marketing/marketing_institution_page.html",
           "raw": "{% url 'marketing_solutions' %}",
@@ -69452,17 +69576,6 @@
       "view": "apps.schools.marketing_views.institution_marketing_page"
     },
     {
-      "name": "marketing_solutions_k12",
-      "permission_requirement": "public",
-      "reasons": [],
-      "reverse_usage": [],
-      "scope": "public",
-      "status": "OK",
-      "template_usage": [],
-      "url_path": "/solutions/k12/",
-      "view": "apps.schools.marketing_views.institution_marketing_page"
-    },
-    {
       "name": "marketing_solutions_k12_schools",
       "permission_requirement": "public",
       "reasons": [],
@@ -69471,7 +69584,7 @@
       "status": "OK",
       "template_usage": [],
       "url_path": "/solutions/k12-schools/",
-      "view": "django.views.generic.base.RedirectView"
+      "view": "apps.schools.marketing_views.institution_marketing_page"
     },
     {
       "name": "marketing_solutions_multi_campus",
@@ -69557,7 +69670,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 335,
+          "line": 466,
           "name": "marketing_topic",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_topic' topic_slug='multi-campus-school-software' %}",
@@ -69566,7 +69679,7 @@
         },
         {
           "kind": "template_url",
-          "line": 335,
+          "line": 466,
           "name": "marketing_topic",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_topic' topic_slug='admissions-software' %}",
@@ -69882,7 +69995,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3094,
+          "line": 3157,
           "name": "oauth:authorize",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"oauth:authorize\")",
@@ -69903,7 +70016,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3096,
+          "line": 3159,
           "name": "oauth:token",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"oauth:token\")",
@@ -75959,7 +76072,7 @@
         },
         {
           "kind": "template_url",
-          "line": 46,
+          "line": 21,
           "name": "signup_school",
           "path": "templates/marketing/marketing_institution_page.html",
           "raw": "{% url 'signup_school' %}",
@@ -76049,7 +76162,7 @@
         },
         {
           "kind": "template_url",
-          "line": 450,
+          "line": 581,
           "name": "signup_school",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'signup_school' %}",
@@ -82885,7 +82998,7 @@
         },
         {
           "kind": "reverse",
-          "line": 161,
+          "line": 162,
           "name": "studio_os:automation",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:automation\")",
@@ -83605,7 +83718,7 @@
         },
         {
           "kind": "reverse",
-          "line": 156,
+          "line": 157,
           "name": "studio_os:experience",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -83614,7 +83727,7 @@
         },
         {
           "kind": "reverse",
-          "line": 180,
+          "line": 181,
           "name": "studio_os:experience",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -84577,7 +84690,7 @@
         },
         {
           "kind": "reverse",
-          "line": 171,
+          "line": 172,
           "name": "studio_os:output",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:output\")",
@@ -99817,7 +99930,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3092,
+          "line": 3155,
           "name": "developer_hub",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_hub\")",
@@ -99849,7 +99962,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3159,
+          "line": 3222,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -99858,7 +99971,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3132,
+          "line": 3195,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -99867,7 +99980,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3060,
+          "line": 3123,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -99898,7 +100011,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3134,
+          "line": 3197,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -99907,7 +100020,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3160,
+          "line": 3223,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -99916,7 +100029,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3065,
+          "line": 3128,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -99937,7 +100050,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3064,
+          "line": 3127,
           "name": "developer_sdk",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sdk\")",
@@ -100218,7 +100331,7 @@
         },
         {
           "kind": "template_url",
-          "line": 452,
+          "line": 583,
           "name": "global_login_discovery",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'global_login_discovery' %}",
@@ -100570,13 +100683,23 @@
       "name": "institution_k12",
       "permission_requirement": "public",
       "reasons": [],
-      "reverse_usage": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 490,
+          "name": "institution_k12",
+          "path": "apps/schools/tests/test_marketing_validation.py",
+          "raw": "reverse(\"institution_k12\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "scope": "public_host",
       "status": "OK",
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 335,
+          "line": 466,
           "name": "institution_k12",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'institution_k12' %}",
@@ -100585,7 +100708,7 @@
         }
       ],
       "url_path": "/solutions/k12/",
-      "view": "apps.schools.marketing_views.institution_marketing_page"
+      "view": "django.views.generic.base.RedirectView"
     },
     {
       "name": "institution_k12_schools",
@@ -100606,7 +100729,7 @@
         }
       ],
       "url_path": "/solutions/k12-schools/",
-      "view": "django.views.generic.base.RedirectView"
+      "view": "apps.schools.marketing_views.institution_marketing_page"
     },
     {
       "name": "institution_multi_campus",
@@ -100671,7 +100794,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 335,
+          "line": 466,
           "name": "institution_universities",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'institution_universities' %}",
@@ -101153,7 +101276,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 85,
+          "line": 86,
           "name": "marketing_about",
           "path": "templates/marketing/marketing_footer.html",
           "raw": "{% url 'marketing_about' %}",
@@ -101213,7 +101336,7 @@
         }
       ],
       "url_path": "/blog/",
-      "view": "apps.schools.marketing_views.marketing_page"
+      "view": "django.views.generic.base.RedirectView"
     },
     {
       "name": "marketing_blog_detail",
@@ -101235,7 +101358,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 180,
+          "line": 303,
           "name": "marketing_blog_detail",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_blog_detail' slug=post.slug %}",
@@ -101277,7 +101400,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 112,
+          "line": 233,
           "name": "marketing_book_demo_submit",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_book_demo_submit' %}",
@@ -101309,7 +101432,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 259,
+          "line": 390,
           "name": "marketing_buyer_toolkit_download",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_buyer_toolkit_download' document='buyer-checklist' %}",
@@ -101318,7 +101441,7 @@
         },
         {
           "kind": "template_url",
-          "line": 260,
+          "line": 391,
           "name": "marketing_buyer_toolkit_download",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_buyer_toolkit_download' document='implementation-checklist' %}",
@@ -101359,7 +101482,7 @@
         }
       ],
       "url_path": "/case-studies/",
-      "view": "apps.schools.marketing_views.marketing_page"
+      "view": "django.views.generic.base.RedirectView"
     },
     {
       "name": "marketing_cm",
@@ -101379,9 +101502,19 @@
       "reverse_usage": [],
       "scope": "public_host",
       "status": "OK",
-      "template_usage": [],
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 85,
+          "name": "marketing_company",
+          "path": "templates/marketing/marketing_footer.html",
+          "raw": "{% url 'marketing_company' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "url_path": "/company/",
-      "view": "django.views.generic.base.RedirectView"
+      "view": "apps.schools.marketing_views.marketing_page"
     },
     {
       "name": "marketing_compare",
@@ -101409,13 +101542,32 @@
       "name": "marketing_contact",
       "permission_requirement": "public",
       "reasons": [],
-      "reverse_usage": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 2171,
+          "name": "marketing_contact",
+          "path": "apps/schools/marketing_views.py",
+          "raw": "reverse(\"marketing_contact\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 561,
+          "name": "marketing_contact",
+          "path": "apps/schools/tests/test_marketing_validation.py",
+          "raw": "reverse(\"marketing_contact\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "scope": "public_host",
       "status": "OK",
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 86,
+          "line": 87,
           "name": "marketing_contact",
           "path": "templates/marketing/marketing_footer.html",
           "raw": "{% url 'marketing_contact' %}",
@@ -101424,9 +101576,18 @@
         },
         {
           "kind": "template_url",
-          "line": 96,
+          "line": 97,
           "name": "marketing_contact",
           "path": "templates/marketing/marketing_footer.html",
+          "raw": "{% url 'marketing_contact' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 117,
+          "name": "marketing_contact",
+          "path": "templates/marketing/marketing_institution_page.html",
           "raw": "{% url 'marketing_contact' %}",
           "reason": "",
           "status": "OK"
@@ -101434,6 +101595,55 @@
       ],
       "url_path": "/contact/",
       "view": "apps.schools.marketing_views.marketing_page"
+    },
+    {
+      "name": "marketing_contact_submit",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 544,
+          "name": "marketing_contact_submit",
+          "path": "apps/schools/tests/test_marketing_validation.py",
+          "raw": "reverse(\"marketing_contact_submit\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 551,
+          "name": "marketing_contact_submit",
+          "path": "apps/schools/tests/test_marketing_validation.py",
+          "raw": "reverse(\"marketing_contact_submit\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 566,
+          "name": "marketing_contact_submit",
+          "path": "apps/schools/tests/test_marketing_validation.py",
+          "raw": "reverse(\"marketing_contact_submit\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public_host",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 105,
+          "name": "marketing_contact_submit",
+          "path": "templates/schools/marketing_page.html",
+          "raw": "{% url 'marketing_contact_submit' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/contact/submit/",
+      "view": "apps.schools.marketing_views.submit_contact_request"
     },
     {
       "name": "marketing_cookie_policy",
@@ -101474,7 +101684,7 @@
       "status": "OK",
       "template_usage": [],
       "url_path": "/customers/",
-      "view": "config.public_urls.<lambda>"
+      "view": "django.views.generic.base.RedirectView"
     },
     {
       "name": "marketing_demo",
@@ -101483,7 +101693,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2111,
+          "line": 2114,
           "name": "marketing_demo",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_demo\")",
@@ -101505,7 +101715,7 @@
         },
         {
           "kind": "template_url",
-          "line": 88,
+          "line": 89,
           "name": "marketing_demo",
           "path": "templates/marketing/marketing_footer.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -101523,7 +101733,16 @@
         },
         {
           "kind": "template_url",
-          "line": 47,
+          "line": 22,
+          "name": "marketing_demo",
+          "path": "templates/marketing/marketing_institution_page.html",
+          "raw": "{% url 'marketing_demo' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 116,
           "name": "marketing_demo",
           "path": "templates/marketing/marketing_institution_page.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -101622,7 +101841,16 @@
         },
         {
           "kind": "template_url",
-          "line": 451,
+          "line": 312,
+          "name": "marketing_demo",
+          "path": "templates/schools/marketing_page.html",
+          "raw": "{% url 'marketing_demo' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 582,
           "name": "marketing_demo",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -101789,7 +102017,7 @@
       "status": "OK",
       "template_usage": [],
       "url_path": "/guides/",
-      "view": "apps.schools.marketing_views.marketing_page"
+      "view": "django.views.generic.base.RedirectView"
     },
     {
       "name": "marketing_home",
@@ -102331,7 +102559,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 87,
+          "line": 88,
           "name": "marketing_pricing",
           "path": "templates/marketing/marketing_footer.html",
           "raw": "{% url 'marketing_pricing' %}",
@@ -102561,7 +102789,7 @@
         }
       ],
       "url_path": "/resources/blog/",
-      "view": "django.views.generic.base.RedirectView"
+      "view": "apps.schools.marketing_views.marketing_page"
     },
     {
       "name": "marketing_resources_case_studies",
@@ -102582,7 +102810,7 @@
         }
       ],
       "url_path": "/resources/case-studies/",
-      "view": "django.views.generic.base.RedirectView"
+      "view": "apps.schools.marketing_views.marketing_page"
     },
     {
       "name": "marketing_resources_guides",
@@ -102603,7 +102831,7 @@
         }
       ],
       "url_path": "/resources/guides/",
-      "view": "django.views.generic.base.RedirectView"
+      "view": "apps.schools.marketing_views.marketing_page"
     },
     {
       "name": "marketing_resources_help_center",
@@ -102639,6 +102867,15 @@
           "line": 75,
           "name": "marketing_resources_product_tour",
           "path": "templates/marketing/marketing_footer.html",
+          "raw": "{% url 'marketing_resources_product_tour' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 313,
+          "name": "marketing_resources_product_tour",
+          "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_resources_product_tour' %}",
           "reason": "",
           "status": "OK"
@@ -102728,7 +102965,7 @@
         },
         {
           "kind": "template_url",
-          "line": 335,
+          "line": 466,
           "name": "marketing_security_compliance",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_security_compliance' %}",
@@ -102769,7 +103006,7 @@
         },
         {
           "kind": "template_url",
-          "line": 48,
+          "line": 23,
           "name": "marketing_solutions",
           "path": "templates/marketing/marketing_institution_page.html",
           "raw": "{% url 'marketing_solutions' %}",
@@ -102823,17 +103060,6 @@
       "view": "apps.schools.marketing_views.institution_marketing_page"
     },
     {
-      "name": "marketing_solutions_k12",
-      "permission_requirement": "public",
-      "reasons": [],
-      "reverse_usage": [],
-      "scope": "public_host",
-      "status": "OK",
-      "template_usage": [],
-      "url_path": "/solutions/k12/",
-      "view": "apps.schools.marketing_views.institution_marketing_page"
-    },
-    {
       "name": "marketing_solutions_k12_schools",
       "permission_requirement": "public",
       "reasons": [],
@@ -102842,7 +103068,7 @@
       "status": "OK",
       "template_usage": [],
       "url_path": "/solutions/k12-schools/",
-      "view": "django.views.generic.base.RedirectView"
+      "view": "apps.schools.marketing_views.institution_marketing_page"
     },
     {
       "name": "marketing_solutions_multi_campus",
@@ -102928,7 +103154,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 335,
+          "line": 466,
           "name": "marketing_topic",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_topic' topic_slug='multi-campus-school-software' %}",
@@ -102937,7 +103163,7 @@
         },
         {
           "kind": "template_url",
-          "line": 335,
+          "line": 466,
           "name": "marketing_topic",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'marketing_topic' topic_slug='admissions-software' %}",
@@ -103660,7 +103886,7 @@
         },
         {
           "kind": "template_url",
-          "line": 46,
+          "line": 21,
           "name": "signup_school",
           "path": "templates/marketing/marketing_institution_page.html",
           "raw": "{% url 'signup_school' %}",
@@ -103750,7 +103976,7 @@
         },
         {
           "kind": "template_url",
-          "line": 450,
+          "line": 581,
           "name": "signup_school",
           "path": "templates/schools/marketing_page.html",
           "raw": "{% url 'signup_school' %}",
@@ -124626,7 +124852,7 @@
         },
         {
           "kind": "reverse",
-          "line": 133,
+          "line": 134,
           "name": "api-schema",
           "path": "config/urls.py",
           "raw": "reverse(\"api-schema\")",
@@ -130555,7 +130781,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3099,
+          "line": 3162,
           "name": "api_v1:platform-integration-context",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"api_v1:platform-integration-context\")",
@@ -130594,7 +130820,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3102,
+          "line": 3165,
           "name": "api_v1:platform-scoped-ping",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"api_v1:platform-scoped-ping\")",
@@ -135697,7 +135923,7 @@
         },
         {
           "kind": "reverse",
-          "line": 101,
+          "line": 103,
           "name": "finance:payment_readiness_setup",
           "path": "apps/marketplace/views_monetization_dashboard.py",
           "raw": "reverse(\"finance:payment_readiness_setup\")",
@@ -150436,7 +150662,7 @@
         },
         {
           "kind": "reverse",
-          "line": 161,
+          "line": 162,
           "name": "studio_os:automation",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:automation\")",
@@ -151156,7 +151382,7 @@
         },
         {
           "kind": "reverse",
-          "line": 156,
+          "line": 157,
           "name": "studio_os:experience",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -151165,7 +151391,7 @@
         },
         {
           "kind": "reverse",
-          "line": 180,
+          "line": 181,
           "name": "studio_os:experience",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -152128,7 +152354,7 @@
         },
         {
           "kind": "reverse",
-          "line": 171,
+          "line": 172,
           "name": "studio_os:output",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:output\")",
@@ -153527,7 +153753,7 @@
         },
         {
           "kind": "reverse",
-          "line": 104,
+          "line": 106,
           "name": "tenant_app_catalog",
           "path": "apps/marketplace/views_monetization_dashboard.py",
           "raw": "reverse(\"tenant_app_catalog\")",
@@ -153983,12 +154209,12 @@
   ],
   "summary": {
     "broken_count": 0,
-    "reverse_usages": 2214,
+    "reverse_usages": 2220,
     "risk_count": 0,
     "routes_audited": 5699,
     "status": "ROUTE SYSTEM CERTIFIED",
     "template_href_action_usages": 116,
-    "template_url_usages": 1779
+    "template_url_usages": 1785
   },
   "urlconfs": {
     "manager": "config.manager_urls",

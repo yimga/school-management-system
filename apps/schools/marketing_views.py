@@ -24,6 +24,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_protect
 
 from apps.schools.domain_resolution_service import get_canonical_base_domain
+from apps.schools.marketing_institution_premium import INSTITUTION_PREMIUM_LAYER
 from apps.schools.marketing_page_definitions import (
     COMPARE_PAGE_DEFINITIONS,
     GETTING_STARTED_SIMULATOR_STEPS,
@@ -822,8 +823,8 @@ def _marketing_context(
     # Education Operating System narrative: headline and subtext align with Platform Visual Architecture.
     hero_headline = "Run your entire school from one modern operating system."
     hero_subheadline = (
-        "Admissions, student records, attendance, grading, fees, parent communication, reports, "
-        "analytics, and workflows — connected in one flexible platform built for schools around the world."
+        "Admissions, student records, attendance, grading, finance, communication, reporting, "
+        "and daily school operations — unified in one powerful platform built for schools worldwide."
     )
     _hero_by_country: dict[str, dict[str, str]] = {}
     _hero_by_channel = {
@@ -1071,7 +1072,7 @@ def _marketing_context(
         {
             "label": "K-12",
             "summary": "Elementary and secondary schools with enrollment, grades, and parent engagement.",
-            "path": _safe_reverse("institution_k12") or "/solutions/k12/",
+            "path": _safe_reverse("institution_k12_schools") or "/solutions/k12-schools/",
         },
         {
             "label": "International schools",
@@ -1984,7 +1985,9 @@ def marketing_page(request, page_slug: str):
         path=canonical_path,
     )
 
-    blog_posts = _get_blog_posts() if page_slug == "blog" else []
+    blog_posts = (
+        _get_blog_posts() if page_slug in ("blog", "resources-blog") else []
+    )
     blog_list_intro_html = ""
     if normalized_slug == "blog":
         try:
@@ -2109,6 +2112,63 @@ def submit_demo_request(request):
         except (ImportError, AttributeError, TypeError, ValueError):
             pass
     redirect_url = reverse("marketing_demo")
+    if success:
+        redirect_url += "?submitted=1"
+    else:
+        redirect_url += "?error=1"
+    return redirect(redirect_url)
+
+
+@require_POST
+@csrf_protect
+def submit_contact_request(request):
+    """
+    Contact form POST (sales, implementation, support routing, partnerships, general).
+
+    Webhook JSON POST when ``MARKETING_CONTACT_WEBHOOK_URL`` is set (see ``config/settings.py``).
+    If unset, falls back to ``MARKETING_DEMO_WEBHOOK_URL`` so operators can reuse one inbound endpoint.
+    Missing/unreachable webhooks still redirect with ``?submitted=1`` when ``email`` is present so UX does not dead-end.
+
+    Redirects to ``marketing_contact`` with ``?submitted=1`` or ``?error=1``. GET returns 405 (POST-only route).
+    """
+    name = (request.POST.get("name") or "").strip()[:256]
+    email = (request.POST.get("email") or "").strip()[:256]
+    school = (request.POST.get("school") or "").strip()[:256]
+    country = (request.POST.get("country") or "").strip()[:128]
+    inquiry_type = (request.POST.get("inquiry_type") or "").strip()[:64]
+    message = (request.POST.get("message") or "").strip()[:4000]
+    webhook_url = getattr(settings, "MARKETING_CONTACT_WEBHOOK_URL", None) or getattr(
+        settings, "MARKETING_DEMO_WEBHOOK_URL", None
+    ) or ""
+    success = False
+    payload_obj = {
+        "source": "marketing_contact",
+        "name": name,
+        "email": email,
+        "school": school,
+        "country": country,
+        "inquiry_type": inquiry_type,
+        "message": message,
+    }
+    if webhook_url and email:
+        payload = json.dumps(payload_obj)
+        try:
+            from urllib.request import Request, urlopen
+            from urllib.error import URLError, HTTPError
+
+            req = Request(
+                webhook_url,
+                data=payload.encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            urlopen(req, timeout=10)
+            success = True
+        except (URLError, HTTPError, OSError):
+            pass
+    elif email:
+        success = True
+    redirect_url = reverse("marketing_contact")
     if success:
         redirect_url += "?submitted=1"
     else:
@@ -2355,6 +2415,9 @@ def institution_marketing_page(request, institution_slug: str):
     canonical_path = f"/solutions/{institution_slug}/"
     canonical_url = _absolute_url(request, canonical_path)
     page_copy = deepcopy(definition)
+    premium = INSTITUTION_PREMIUM_LAYER.get((institution_slug or "").strip().lower())
+    if premium:
+        page_copy.update(deepcopy(premium))
     page_copy["slug"] = institution_slug
     structured_data = _structured_data_for_page(
         page_type="CollectionPage",

@@ -49,6 +49,7 @@
 </head>
 {# data-cta (primary|demo|secondary) and data-page (page slug or home|footer) on CTAs are for GTM/analytics conversion tracking. #}
 <body class="{% block body_class %}marketing-surface{% endblock %}">
+  {# Public marketing surface: tenant PWA/service-worker prompts belong on school subdomains, not this shell (see portal_base vs marketing templates). #}
   <a href="#main-content" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
   {% include 'marketing/marketing_header.html' %}
 

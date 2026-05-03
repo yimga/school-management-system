@@ -18421,3 +18421,113 @@ msgstr ""
 
 msgid "yes"
 msgstr ""
+
+msgid "Blocked settlement detail"
+msgstr ""
+
+msgid "Challenge"
+msgstr ""
+
+msgid "Choose how you want to engage"
+msgstr ""
+
+msgid "Compliance & governance note"
+msgstr ""
+
+msgid "Contact form"
+msgstr ""
+
+msgid "Contact us"
+msgstr ""
+
+msgid "Each tile opens the matching RunMyCampus capability page."
+msgstr ""
+
+msgid ""
+"Every path returns to one accountable team—we label expectations up front."
+msgstr ""
+
+msgid "Explore capability"
+msgstr ""
+
+msgid "Explore resource areas"
+msgstr ""
+
+msgid ""
+"Full articles roll out over time—these cards describe honest scope today."
+msgstr ""
+
+msgid "Global configurability"
+msgstr ""
+
+msgid "Guide topics"
+msgstr ""
+
+msgid "How to reach us"
+msgstr ""
+
+msgid ""
+"Illustrative flow across operational surfaces—not a substitute for your "
+"tenant configuration."
+msgstr ""
+
+msgid "Implementation"
+msgstr ""
+
+msgid "Inquiry type"
+msgstr ""
+
+msgid ""
+"Insights are on the way—browse product surfaces through a guided tour while "
+"editorial ramps."
+msgstr ""
+
+msgid "Partnership"
+msgstr ""
+
+msgid "Ready for the next step?"
+msgstr ""
+
+msgid "Recommended modules"
+msgstr ""
+
+msgid "Recommended platform modules"
+msgstr ""
+
+msgid "Resource areas"
+msgstr ""
+
+msgid "RunMyCampus Solutions"
+msgstr ""
+
+msgid "Sales"
+msgstr ""
+
+msgid "See the platform with your roles and campuses in mind."
+msgstr ""
+
+msgid "Select…"
+msgstr ""
+
+msgid "Send a message"
+msgstr ""
+
+msgid ""
+"Something went wrong. Please retry or email from your workspace if you are "
+"already a customer."
+msgstr ""
+
+msgid "Starter topics"
+msgstr ""
+
+msgid "Submit inquiry"
+msgstr ""
+
+msgid "Thanks—we received your note and will respond as soon as possible."
+msgstr ""
+
+msgid "Workflow illustration for this solution segment"
+msgstr ""
+
+msgid "Demo steps"
+msgstr ""

@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "generated_hint": "Human-edited source; run scripts/generate_external_dependencies_register.py to emit docs/generated/external_dependencies_register.{json,md}",
+  "sections": [
+    {
+      "id": "payments_psp_settlement",
+      "title": "12.1 Payments / PSP / Settlement",
+      "entries": [
+        {
+          "id": "stripe_global_cards",
+          "external_dependency": "Stripe — global card payments",
+          "system_impacted": "global_payments, marketplace_monetization",
+          "provider_authority": "Stripe, Inc.",
+          "countries_regions": "Global (corridor-dependent)",
+          "status": "credentials_needed",
+          "owner": "Platform billing owner",
+          "required_credentials_approvals": "Live merchant account; pk_live/sk_live; STRIPE_WEBHOOK_SECRET; payout bank",
+          "repo_readiness": "partial — integration hooks, webhook scaffolding, metadata health command",
+          "external_action_needed": "Complete Stripe onboarding; configure live keys and webhook endpoint in deployment secrets",
+          "blocking_level": "blocks_full_market",
+          "target_environment": "production",
+          "evidence_notes": "Dashboard payout exports + webhook delivery logs"
+        },
+        {
+          "id": "paystack_wa",
+          "external_dependency": "Paystack — Ghana / Nigeria cards & bank transfers",
+          "system_impacted": "global_payments",
+          "provider_authority": "Paystack",
+          "countries_regions": "GH, NG (typical)",
+          "status": "credentials_needed",
+          "owner": "Regional billing owner",
+          "required_credentials_approvals": "Merchant verification; PAYSTACK_* keys; webhook signing secret",
+          "repo_readiness": "partial — regional hints + adapter stubs where present",
+          "external_action_needed": "Merchant approval and production keys in tenant/integration config",
+          "blocking_level": "blocks_region",
+          "target_environment": "production",
+          "evidence_notes": "Paystack dashboard settlements"
+        },
+        {
+          "id": "flutterwave_multi_country",
+          "external_dependency": "Flutterwave — Africa multi-country fallback",
+          "system_impacted": "global_payments",
+          "provider_authority": "Flutterwave Technology Solutions Limited",
+          "countries_regions": "Africa multi-country",
+          "status": "credentials_needed",
+          "owner": "Regional billing owner",
+          "required_credentials_approvals": "Merchant verification; FLUTTERWAVE_* keys; FLW_SECRET_HASH",
+          "repo_readiness": "partial",
+          "external_action_needed": "Flutterwave merchant onboarding + live secrets",
+          "blocking_level": "blocks_region",
+          "target_environment": "production",
+          "evidence_notes": "Flutterwave settlements export"
+        },
+        {
+          "id": "mtn_momo",
+          "external_dependency": "MTN MoMo collections",
+          "system_impacted": "global_payments",
+          "provider_authority": "MTN / authorized aggregator",
+          "countries_regions": "CM, GH, UG (examples)",
+          "status": "waiting_on_provider",
+          "owner": "Regional integrations owner",
+          "required_credentials_approvals": "Merchant MoMo account; aggregator API credentials; callback registration",
+          "repo_readiness": "partial — Integration slug mtn_momo / mtn",
+          "external_action_needed": "Telco / aggregator production approval + credential provisioning",
+          "blocking_level": "blocks_region",
+          "target_environment": "production",
+          "evidence_notes": "Aggregator settlement reports"
+        },
+        {
+          "id": "orange_money",
+          "external_dependency": "Orange Money collections",
+          "system_impacted": "global_payments",
+          "provider_authority": "Orange / partner PSP",
+          "countries_regions": "Francophone corridors",
+          "status": "waiting_on_provider",
+          "owner": "Regional integrations owner",
+          "required_credentials_approvals": "Merchant Orange Money profile; partner API credentials",
+          "repo_readiness": "partial — Integration slug orange_momo / orange",
+          "external_action_needed": "Partner onboarding + callbacks",
+          "blocking_level": "blocks_region",
+          "target_environment": "production",
+          "evidence_notes": "Partner settlement artifacts"
+        },
+        {
+          "id": "bank_sepa_card_partner",
+          "external_dependency": "Bank / SEPA / sponsor bank rails",
+          "system_impacted": "global_payments",
+          "provider_authority": "Bank / acquirer",
+          "countries_regions": "EU / UK / US dependent",
+          "status": "not_started",
+          "owner": "Finance architecture owner",
+          "required_credentials_approvals": "Sponsor bank agreement; settlement IBANs; scheme memberships",
+          "repo_readiness": "partial — CARD/BANK rails flagged external_required without PSP",
+          "external_action_needed": "Legal + banking onboarding outside repo",
+          "blocking_level": "blocks_full_market",
+          "target_environment": "production",
+          "evidence_notes": "Bank statements / sponsor confirmations"
+        },
+        {
+          "id": "manual_fallback_operations",
+          "external_dependency": "Manual offline receipt + reconciliation owner",
+          "system_impacted": "global_payments",
+          "provider_authority": "Tenant operations",
+          "countries_regions": "Per tenant policy",
+          "status": "approved_test",
+          "owner": "Tenant finance lead",
+          "required_credentials_approvals": "Internal approval matrix for offline proofs",
+          "repo_readiness": "partial — TenantPaymentPolicy + receipt UX where deployed",
+          "external_action_needed": "Define operational procedure per tenant",
+          "blocking_level": "blocks_feature",
+          "target_environment": "tenant-specific",
+          "evidence_notes": "AuditLog approve/reject trail"
+        }
+      ]
+    },
+    {
+      "id": "identity_sso",
+      "title": "12.2 Identity / SSO / Partner Integrations",
+      "entries": [
+        {
+          "id": "sso_placeholder",
+          "external_dependency": "Enterprise IdP / SAML / OIDC partner contracts",
+          "system_impacted": "accounts",
+          "provider_authority": "Customer IdP vendor",
+          "countries_regions": "Global",
+          "status": "not_required",
+          "owner": "Security architecture owner",
+          "required_credentials_approvals": "Metadata URLs; signing certs",
+          "repo_readiness": "partial — varies by deployment",
+          "external_action_needed": "Customer provisions IdP apps",
+          "blocking_level": "non_blocking",
+          "target_environment": "enterprise tenants",
+          "evidence_notes": "Scoped per tenant — not gate for PSP readiness"
+        }
+      ]
+    },
+    {
+      "id": "communications",
+      "title": "12.3 Communications Providers",
+      "entries": [
+        {
+          "id": "sms_email_placeholder",
+          "external_dependency": "SMS / email delivery providers",
+          "system_impacted": "notifications",
+          "provider_authority": "Twilio / SendGrid / regional carriers",
+          "countries_regions": "Global",
+          "status": "not_required",
+          "owner": "Platform ops",
+          "required_credentials_approvals": "API keys per corridor",
+          "repo_readiness": "partial",
+          "external_action_needed": "Provision carrier contracts",
+          "blocking_level": "non_blocking",
+          "target_environment": "production",
+          "evidence_notes": ""
+        }
+      ]
+    },
+    {
+      "id": "app_stores",
+      "title": "12.4 App Stores / Developer Distribution",
+      "entries": [
+        {
+          "id": "mobile_distribution_placeholder",
+          "external_dependency": "Apple App Store / Google Play enrollment",
+          "system_impacted": "mobile_clients",
+          "provider_authority": "Apple / Google",
+          "countries_regions": "Global",
+          "status": "not_required",
+          "owner": "Product distribution owner",
+          "required_credentials_approvals": "Developer programs",
+          "repo_readiness": "not tracked in repo depth",
+          "external_action_needed": "Separate mobile release track",
+          "blocking_level": "non_blocking",
+          "target_environment": "production",
+          "evidence_notes": ""
+        }
+      ]
+    },
+    {
+      "id": "compliance_certifications",
+      "title": "12.5 Compliance / Certifications",
+      "entries": [
+        {
+          "id": "soc2_pci_placeholder",
+          "external_dependency": "SOC2 / PCI attestations where marketed",
+          "system_impacted": "platform_security",
+          "provider_authority": "Independent auditors",
+          "countries_regions": "Global",
+          "status": "in_progress",
+          "owner": "Security compliance owner",
+          "required_credentials_approvals": "Audit evidence packs",
+          "repo_readiness": "partial — compliance docs under docs/compliance/",
+          "external_action_needed": "Formal audits external to repo",
+          "blocking_level": "blocks_full_market",
+          "target_environment": "enterprise sales",
+          "evidence_notes": "Evidence ledger paths in docs/generated/"
+        }
+      ]
+    },
+    {
+      "id": "infrastructure_hosting",
+      "title": "12.6 Infrastructure / Hosting / Domains",
+      "entries": [
+        {
+          "id": "cloud_dns_placeholder",
+          "external_dependency": "Production hosting + DNS + TLS certificates",
+          "system_impacted": "platform_runtime",
+          "provider_authority": "Cloud provider / registrar",
+          "countries_regions": "Global",
+          "status": "verified_live",
+          "owner": "Platform ops",
+          "required_credentials_approvals": "Cloud IAM; DNS control",
+          "repo_readiness": "deploy manifests external",
+          "external_action_needed": "Operator-managed",
+          "blocking_level": "non_blocking",
+          "target_environment": "production",
+          "evidence_notes": "Operational — classify per deployment"
+        }
+      ]
+    },
+    {
+      "id": "government_regional",
+      "title": "12.7 Government / Regional Compliance",
+      "entries": [
+        {
+          "id": "data_localization_placeholder",
+          "external_dependency": "Data residency / localization where mandated",
+          "system_impacted": "multi_region",
+          "provider_authority": "National regulators",
+          "countries_regions": "Corridor-specific",
+          "status": "not_started",
+          "owner": "Legal counsel",
+          "required_credentials_approvals": "Legal opinions",
+          "repo_readiness": "partial — tenant isolation primitives",
+          "external_action_needed": "Regional hosting decisions",
+          "blocking_level": "blocks_region",
+          "target_environment": "regulated tenants",
+          "evidence_notes": ""
+        }
+      ]
+    },
+    {
+      "id": "procurement_enterprise_sales",
+      "title": "12.8 Procurement / Enterprise Sales Requirements",
+      "entries": [
+        {
+          "id": "msa_placeholder",
+          "external_dependency": "Enterprise MSA / DPAs",
+          "system_impacted": "sales_contracts",
+          "provider_authority": "Customer legal",
+          "countries_regions": "Global",
+          "status": "not_required",
+          "owner": "Sales counsel",
+          "required_credentials_approvals": "Executed contracts",
+          "repo_readiness": "not_required",
+          "external_action_needed": "Commercial negotiation",
+          "blocking_level": "non_blocking",
+          "target_environment": "enterprise deals",
+          "evidence_notes": ""
+        }
+      ]
+    }
+  ]
+}

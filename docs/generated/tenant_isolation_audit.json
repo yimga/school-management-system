@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-03T04:27:32.329847+00:00",
+  "generated_at": "2026-05-03T14:38:23.405015+00:00",
   "hits": [
     {
       "classification": "tenant_scoped",
@@ -7394,6 +7394,12 @@
       "preview": "Abstract interface; tenant routing by school_id; optional platform fee."
     },
     {
+      "classification": "needs_review",
+      "file": "apps/finance/management/commands/check_payment_gateways.py",
+      "line": "41",
+      "preview": "school = School.objects.filter(slug=slug).first()"
+    },
+    {
       "classification": "tenant_scoped",
       "file": "apps/finance/models.py",
       "line": "1126",
@@ -8122,25 +8128,25 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/marketplace/models.py",
-      "line": "851",
+      "line": "854",
       "preview": "name=\"marketplace_mon_led_unique_school_idempotency\","
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/marketplace/models.py",
-      "line": "856",
+      "line": "859",
       "preview": "return f\"{self.event_type} ({self.school_id})\""
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/marketplace/monetization_ledger_ops.py",
-      "line": "98",
+      "line": "113",
       "preview": "school_id=school.pk,"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/marketplace/monetization_ledger_ops.py",
-      "line": "165",
+      "line": "183",
       "preview": "\"school_id\": str(school.pk),"
     },
     {
@@ -8385,6 +8391,12 @@
     },
     {
       "classification": "tenant_scoped",
+      "file": "apps/marketplace/tests/test_marketplace_settlement_truth.py",
+      "line": "131",
+      "preview": "request.school = self.school_a"
+    },
+    {
+      "classification": "tenant_scoped",
       "file": "apps/marketplace/tests/test_tenant_marketplace_post_security.py",
       "line": "7",
       "preview": "serves ``config.tenant_urls`` and ``TenantMiddleware`` resolves ``request.school`` from subdomain."
@@ -8614,7 +8626,7 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/marketplace/views_monetization_dashboard.py",
-      "line": "23",
+      "line": "24",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
@@ -15904,31 +15916,31 @@
     {
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "473",
+      "line": "474",
       "preview": "school = School.objects.filter(is_active=True).order_by(\"created_at\")"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/schools/marketing_views.py",
-      "line": "513",
+      "line": "514",
       "preview": "school_identity_primary_url = ("
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/schools/marketing_views.py",
-      "line": "518",
+      "line": "519",
       "preview": "school_identity_primary_label = ("
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/schools/marketing_views.py",
-      "line": "538",
+      "line": "539",
       "preview": "\"primary_cta_label\": school_identity_primary_label,"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/schools/marketing_views.py",
-      "line": "539",
+      "line": "540",
       "preview": "\"primary_cta_url\": school_identity_primary_url,"
     },
     {
@@ -23146,73 +23158,73 @@
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "961",
+      "line": "968",
       "preview": "# Phase H: Bento-style admin index; injects school logo/colors when request.school is set"
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "1252",
+      "line": "1259",
       "preview": "# Build handlers list (request_context filter adds request_id, tenant_id, user_id, school_id \u2014 A4)"
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "1298",
+      "line": "1305",
       "preview": "\"user_id=%(user_id)s school_id=%(school_id)s http_method=%(http_method)s \""
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "1319",
+      "line": "1326",
       "preview": "\"school_id=%(school_id)s http_method=%(http_method)s \""
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "1597",
+      "line": "1604",
       "preview": "#     resolve request.tenant/request.school from customers.Domain; tenant tables live in per-tenant schemas."
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "1598",
+      "line": "1605",
       "preview": "#   - USE_DJANGO_TENANTS=0 or non-PostgreSQL: TenantMiddleware resolves request.school from"
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "1747",
+      "line": "1754",
       "preview": "# TenantMiddleware is not used; TenantMainMiddleware + TenantSchemaSchoolBridgeMiddleware provide request.school"
     },
     {
       "classification": "manager_scoped",
       "file": "config/urls.py",
-      "line": "194",
+      "line": "195",
       "preview": "if getattr(request, \"public_host_kind\", None) == \"manager\""
     },
     {
       "classification": "manager_scoped",
       "file": "config/urls.py",
-      "line": "207",
+      "line": "208",
       "preview": "if getattr(request, \"public_host_kind\", None) == \"manager\""
     },
     {
       "classification": "manager_scoped",
       "file": "config/urls.py",
-      "line": "219",
+      "line": "220",
       "preview": "if getattr(request, \"public_host_kind\", None) == \"manager\""
     },
     {
       "classification": "manager_scoped",
       "file": "config/urls.py",
-      "line": "1045",
+      "line": "1059",
       "preview": "# Resolve name for templates that link to operator help (manager host uses config.manager_urls; root needs name for tests/shared templates)"
     }
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 3868
+    "hits": 3870
   },
   "truncated": false
 }

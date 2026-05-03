@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-03T04:27:27.134568+00:00",
+  "generated_at": "2026-05-03T15:07:24.070736+00:00",
   "rows": [
     {
       "bucket": "product",
@@ -1048,7 +1048,14 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2044",
+      "line": "2047",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/schools/marketing_views.py",
+      "line": "2122",
       "protective_decorator_nearby": false
     },
     {
@@ -1649,15 +1656,15 @@
   ],
   "schema_version": 1,
   "summary_by_bucket": {
-    "product": 231,
+    "product": 232,
     "scripts": 4
   },
   "summary_by_classification": {
-    "needs_review": 83,
+    "needs_review": 84,
     "protected_candidate": 148,
     "scripts_cli": 4
   },
   "totals": {
-    "hits": 235
+    "hits": 236
   }
 }

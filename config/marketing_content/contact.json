@@ -1,19 +1,53 @@
 {
-  "label": "Contact Us",
-  "seo_title": "Contact RunMyCampus - Get in touch",
-  "seo_description": "Contact RunMyCampus for sales, support, or partnership inquiries.",
-  "headline": "Contact us.",
-  "subheadline": "Sales, support, and partnership inquiries. We respond within 24 hours.",
+  "label": "Contact",
+  "seo_title": "Contact | RunMyCampus",
+  "seo_description": "Reach RunMyCampus for sales, implementation planning, partnerships, or general questions. Support for existing schools is routed through your tenant portal.",
+  "headline": "Let's connect your school or network to one operating platform.",
+  "subheadline": "Tell us whether you are exploring procurement, planning rollout, need partner information, or want a general orientation—we'll route your message appropriately.",
   "schema_type": "ContactPage",
-  "segments": [
-    {"title": "Sales", "body": "Request a demo or discuss plans for your school or network."},
-    {"title": "Support", "body": "Existing customers can reach 24/7 support via the tenant portal or support hub."},
-    {"title": "Partnerships", "body": "Integrations, resellers, and technology partners."}
-  ],
+  "segments": [],
   "extras": {
-    "faqs": [
-      {"question": "How fast do you respond?", "answer": "We aim to respond to inbound requests within one business day."},
-      {"question": "I'm already a customer—where do I log support?", "answer": "Use your tenant portal or the support hub linked from your school admin workspace."}
-    ]
+    "suppress_footer_clusters": true,
+    "trust_strip": [
+      "Built for schools worldwide",
+      "Clear response expectations",
+      "No obligation to procure",
+      "Security-aware handling"
+    ],
+    "contact_intent_cards": [
+      {
+        "title": "Sales inquiry",
+        "body": "Evaluate fit, packaging, and roadmap for your leadership team.",
+        "cta_label": "Request a demo",
+        "cta_href": "/demo/"
+      },
+      {
+        "title": "Implementation inquiry",
+        "body": "Discuss phases, integrations, and success criteria before go-live.",
+        "cta_label": "Use the form below",
+        "cta_href": "/contact/#contact-form-block"
+      },
+      {
+        "title": "Support",
+        "body": "Operational help for schools already on the platform.",
+        "cta_label": "Open support hub",
+        "cta_href": "/support/"
+      },
+      {
+        "title": "Partnership",
+        "body": "Integrations, resellers, and implementation collaborators.",
+        "cta_label": "Message partnerships",
+        "cta_href": "/contact/#contact-form-block",
+        "hint": "Choose “Partnership” in the form."
+      },
+      {
+        "title": "General",
+        "body": "Anything else—we will triage and respond.",
+        "cta_label": "Send a message",
+        "cta_href": "/contact/#contact-form-block"
+      }
+    ],
+    "contact_support_note": "We aim to respond to inbound requests within one business day. Existing customers should use in-product support channels for fastest resolution.",
+    "contact_implementation_note": "Implementation conversations cover data expectations, rollout waves, training, and governance—without committing you to a purchase timeline."
   }
 }

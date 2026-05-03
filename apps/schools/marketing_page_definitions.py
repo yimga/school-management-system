@@ -559,7 +559,7 @@ MARKETING_PAGE_DEFINITIONS = {
     },
     "solutions": {
         "label": "Solutions",
-        "seo_title": "RunMyCampus Solutions - K12, multi-campus, and private schools",
+        "seo_title": "Solutions | RunMyCampus",
         "seo_description": "Purpose-built deployment patterns for private schools, district networks, and multi-campus operators.",
         "headline": "Solutions aligned to your school model.",
         "subheadline": "Deploy fast with templates for private schools, district groups, and multi-entity education organizations.",
@@ -1491,7 +1491,7 @@ MARKETING_PAGE_DEFINITIONS = {
     },
     "guides": {
         "label": "Guides",
-        "seo_title": "Guides | RunMyCampus - Implementation and how-to guides",
+        "seo_title": "Guides | RunMyCampus",
         "seo_description": "How-to and implementation guides for RunMyCampus and school operations.",
         "headline": "Guides.",
         "subheadline": "Implementation and how-to guides for setup, migration, and operations.",
@@ -2182,7 +2182,7 @@ TOPICAL_LANDING_DEFINITIONS = {
 INSTITUTION_LANDING_DEFINITIONS = {
     "k12": {
         "label": "K-12",
-        "seo_title": "K-12 School Management | RunMyCampus",
+        "seo_title": "K–12 Schools | RunMyCampus",
         "seo_description": "RunMyCampus for K-12: enrollment, grades, attendance, and parent engagement in one platform.",
         "headline": "K-12 operations in one platform.",
         "subheadline": "Elementary and secondary schools get enrollment, academics, communication, and compliance without tool sprawl.",
@@ -2257,7 +2257,7 @@ INSTITUTION_LANDING_DEFINITIONS = {
     },
     "private-schools": {
         "label": "Private schools",
-        "seo_title": "Private School Management | RunMyCampus",
+        "seo_title": "Private Schools | RunMyCampus",
         "seo_description": "RunMyCampus for independent and faith-based schools: full operations and fundraising.",
         "headline": "Private schools run with one platform.",
         "subheadline": "Independent and faith-based schools get admissions, academics, finance, and fundraising without sprawl.",
@@ -2307,7 +2307,7 @@ INSTITUTION_LANDING_DEFINITIONS = {
     },
     "international-schools": {
         "label": "International schools",
-        "seo_title": "International School Management Platform | RunMyCampus",
+        "seo_title": "International Schools | RunMyCampus",
         "seo_description": "Global-ready school operating system for IB, British, American, and blended curricula—multi-language, multi-campus, and audit-ready.",
         "headline": "Built for international school operating models.",
         "subheadline": "Flexible calendars, grading scales, fees in multiple currencies, and role portals that fit diverse curricula—not one-country assumptions.",
@@ -2332,7 +2332,7 @@ INSTITUTION_LANDING_DEFINITIONS = {
     },
     "faith-based-schools": {
         "label": "Faith-based schools",
-        "seo_title": "Faith-Based School Operations Software | RunMyCampus",
+        "seo_title": "Faith-Based Schools | RunMyCampus",
         "seo_description": "Unified admissions, academics, finance, and family engagement for denominational and faith-centered schools worldwide.",
         "headline": "Operate your mission-driven school with clarity.",
         "subheadline": "Enrollment, pastoral communications, tuition, and academics connected—with governance your trustees can trust.",
@@ -2357,7 +2357,7 @@ INSTITUTION_LANDING_DEFINITIONS = {
     },
     "multi-campus": {
         "label": "Multi-campus groups",
-        "seo_title": "Multi-Campus School Software | RunMyCampus",
+        "seo_title": "Multi-Campus Groups | RunMyCampus",
         "seo_description": "Govern multiple campuses from one connected platform—shared policies, localized operations, consolidated analytics.",
         "headline": "One operating system across every campus.",
         "subheadline": "Leadership dashboards, campus autonomy, and consistent admissions and finance workflows.",
@@ -2382,7 +2382,7 @@ INSTITUTION_LANDING_DEFINITIONS = {
     },
     "growing-school-networks": {
         "label": "Growing school networks",
-        "seo_title": "School Network Operating Platform | RunMyCampus",
+        "seo_title": "Growing School Networks | RunMyCampus",
         "seo_description": "Scale from one school to many—repeatable onboarding, governance, and automation without rebuilding IT.",
         "headline": "Grow your network without operational chaos.",
         "subheadline": "Provisioning templates, marketplace extensions, and automation rails keep every new campus aligned.",
@@ -2404,6 +2404,31 @@ INSTITUTION_LANDING_DEFINITIONS = {
         "migration_pathway": "Pilot one flagship campus; templatize configuration; clone governance patterns.",
         "cta_primary": "Book architecture review",
         "cta_secondary": "View marketplace",
+    },
+    "k12-schools": {
+        "label": "K–12 schools",
+        "seo_title": "K–12 Schools | RunMyCampus",
+        "seo_description": "RunMyCampus for K–12: enrollment, attendance, grading, portals, and parent engagement in one global-ready platform.",
+        "headline": "K–12 operations connected end to end.",
+        "subheadline": "Elementary and secondary schools unify enrollment, daily classroom operations, communication, and reporting without tool sprawl.",
+        "workflow_examples": [
+            {
+                "title": "Enrollment and attendance",
+                "body": "Daily attendance, term calendars, and guardian visibility stay aligned to your academic calendar.",
+            },
+            {
+                "title": "Grades and report cards",
+                "body": "Assessment workflows and published reports with oversight suitable for leadership review.",
+            },
+            {
+                "title": "Family and student portals",
+                "body": "Role-ready surfaces so guardians and learners see fees, progress, and announcements without chasing staff.",
+            },
+        ],
+        "compliance_angle": "FERPA-aligned workflows and configurable regional defaults for K–12 operators.",
+        "migration_pathway": "Import students and staff from your SIS or spreadsheets; configure terms and grading; launch teacher, student, and parent access in phased waves.",
+        "cta_primary": "Start free trial",
+        "cta_secondary": "Book demo",
     },
 }
 

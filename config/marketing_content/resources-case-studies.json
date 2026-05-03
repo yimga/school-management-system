@@ -1,0 +1,27 @@
+{
+  "label": "Case Studies",
+  "seo_title": "Case Studies | RunMyCampus",
+  "seo_description": "Published customer stories will appear as schools complete implementations. Explore the platform today through a guided demo.",
+  "headline": "Case studies will appear as partner schools go live.",
+  "subheadline": "We do not publish anonymous claims or fabricated outcomes. Early implementations are underway; documented stories will cover implementation discipline, parent engagement, attendance and fee visibility, reporting, and multi-campus operations.",
+  "schema_type": "CollectionPage",
+  "segments": [
+    {
+      "title": "What to expect next",
+      "body": "Future studies will highlight verified workflows—such as rollout sequencing, portal adoption, finance transparency, and governance—with school approval."
+    },
+    {
+      "title": "Become an early partner",
+      "body": "Schools preparing for launch can work with us to document anonymized patterns suitable for public sharing."
+    }
+  ],
+  "extras": {
+    "suppress_footer_clusters": true,
+    "suppress_case_cards": true,
+    "trust_strip": [
+      "No fabricated quotes",
+      "No invented logos",
+      "Evidence-led publishing only"
+    ]
+  }
+}

@@ -1,8 +1,27 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "generated_at": "2026-05-03",
   "review_engine": "Category Scope Review (derived from system_closure_map)",
   "source_closure_map": "docs/generated/system_closure_map.json",
+  "external_dependency_register_path": "docs/generated/external_dependencies_register.json",
+  "external_blockers_summary": "14 tracked dependencies; blocking_level_counts={'blocks_feature': 1, 'blocks_full_market': 3, 'blocks_region': 5, 'non_blocking': 5}; see `docs/generated/external_dependencies_register.json` for PSP/KYC/settlement rows.",
+  "external_blockers_by_blocking_level": {
+    "blocks_feature": 1,
+    "blocks_full_market": 3,
+    "blocks_region": 5,
+    "non_blocking": 5
+  },
+  "systems_blocked_by_external_dependencies": [
+    "accounts",
+    "global_payments",
+    "marketplace_monetization",
+    "mobile_clients",
+    "multi_region",
+    "notifications",
+    "platform_runtime",
+    "platform_security",
+    "sales_contracts"
+  ],
   "systems_in_registry": [
     {
       "id": "developer_platform",
@@ -46,6 +65,14 @@
     },
     {
       "id": "offline_first",
+      "gap_status": "closed",
+      "missing_pieces_summary": null,
+      "repo_actionable_remaining": false,
+      "external_only_remaining": false,
+      "classification": "closed"
+    },
+    {
+      "id": "tenant_configuration",
       "gap_status": "closed",
       "missing_pieces_summary": null,
       "repo_actionable_remaining": false,
@@ -108,27 +135,33 @@
     "marketplace_monetization"
   ],
   "proof_gates": {
-    "generate_system_closure_map": "PASS \u2014 program_gap_registry_version 6; partial_batches ['1158']",
-    "generate_category_scope_review": "PASS \u2014 scripts/generate_category_scope_review.py --write",
+    "generate_system_closure_map": "PASS \u2014 program_gap_registry_version 7; partial_batches ['1158']",
+    "generate_category_scope_review": "PASS \u2014 scripts/generate_category_scope_review.py --write --merge-proof-gates",
+    "generate_external_dependencies_register": "PASS \u2014 scripts/generate_external_dependencies_register.py --write",
     "generate_platform_inventory": "PASS \u2014 scripts/generate_platform_inventory.py --write",
-    "targeted_tests_registry_slice": "PASS \u2014 Ran 70 OK (finance_payment.sqlite3 keepdb; magic UX + monetization + billing + apicenter + security + compliance exports)",
-    "security_trio_memory_sqlite": "PASS \u2014 PYTHONUNBUFFERED=1 env -u DATABASE_URL RMC_SQLITE_TEST_MEMORY=1 RMC_SQLITE_TEST_USE_MEMORY_NAME=1 manage.py test security trio \u2014 Ran 15 OK",
-    "run_kill_test": "PENDING re-verify on merge host \u2014 scripts/run_kill_test.py did not complete within agent wall-clock this wave",
+    "final_completion_orchestrator_bundles": "PASS \u2014 marketplace monetization 45 OK (DJANGO_TEST_DB_FILE=.django_test_dbs/final_completion_mm.sqlite3 --keepdb); global_payments + settlement_truth overlap + external_deps_register + orchestration 47 OK (.django_test_dbs/final_completion_gp.sqlite3 --keepdb)",
+    "targeted_phase4_7_bundles": "PASS \u2014 experience_control 43 OK; marketplace_monetization 45 OK; global_payments overlap 55 OK; enterprise_security 53 OK (sequential RMC_SQLITE_TEST_MEMORY=1 --keepdb; parallel manage.py processes can sqlite-lock the same DJANGO_TEST_DB_FILE)",
+    "validate_marketing_urls_smoke": "PASS \u2014 python manage.py validate_marketing_urls --smoke",
+    "security_trio_memory_sqlite": "PASS \u2014 RMC_SQLITE_TEST_MEMORY=1 security trio \u2014 see prior certifier waves",
+    "run_kill_test": "PASS \u2014 docs/generated/kill_test_report.json critical_count=0 generated_at=2026-05-03T15:05:34Z",
+    "run_northstar_audit": "PASS \u2014 75/75 DOMINANT \u2192 docs/generated/northstar_audit.json",
+    "run_northstar_self_heal": "PASS \u2014 docs/generated/northstar_self_heal_report.json status=SELF_HEALED_PASS generated_at=2026-05-03T15:07:30Z (informational kill_test + audit rc=0)",
     "audit_route_surface": "ROUTE SYSTEM CERTIFIED broken_count=0",
     "audit_luxury_ui_surface": "PASS 15/15 ULTRA-LUXURY",
+    "audit_sitesettings_python_surface": "OK",
     "verify_design_system_phase2": "PASS",
     "verify_shell_surface_inventory": "PASS",
     "verify_phase2_authenticated_shell_conformance": "PASS",
     "audit_regional_ui_surface": "OK",
     "audit_security_surface": "OK",
     "audit_post_surface": "OK",
+    "audit_post_handler_surface": "OK",
     "audit_tenant_isolation": "OK",
     "audit_raw_sql_usage": "OK",
     "audit_subprocess_usage": "OK",
     "audit_gilead_references_strict_public": "OK",
     "verify_compliance_evidence": "OK",
     "verify_test_module_contract": "OK",
-    "run_northstar_audit": "75/75 DOMINANT",
     "verify_doc_plan_density_discipline": "PASS",
     "verify_sot_pillar_evidence": "OK (104 paths)"
   },

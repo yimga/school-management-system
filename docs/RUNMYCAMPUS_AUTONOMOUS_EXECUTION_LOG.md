@@ -1,5 +1,71 @@
 # RunMyCampus autonomous execution log
 
+## Wave — §11.4 batch 1169 Marketing front final QA closure (2026-05-03)
+
+**A. Classification:** **FULLY ADDRESSED for repo validation + controlled fast browser smoke.**
+
+**B. Playwright (fast smoke, axe skipped):** `SKIP_AXE=1 MARKETING_BASE_URL=http://runmycampus.com:8010 npx playwright test tests/e2e/marketing-smoke.spec.js --workers=1 --reporter=line` → **`50 passed`**, **`15 skipped`**, **exit 0** (**`15 skipped`** = full **`axe @ desktop width`** describe block skipped by **`SKIP_AXE=1`**). Controlled env: **`MULTI_TENANT_BASE_DOMAIN=runmycampus.com`** on Django; **`MARKETING_BASE_URL`** matched live **`runserver`** port (**8010** in recorded run); Chromium host resolver maps **`runmycampus.com`** → **`127.0.0.1`**.
+
+**C. Django marketing validation:** `python manage.py test apps.schools.tests.test_marketing_validation --settings=config.settings --noinput --keepdb -v 1` → **`OK`**.
+
+**D. SQLite memory wrapper:** `python scripts/run_sqlite_memory_tests.py apps.schools.tests.test_marketing_validation --verbosity=2 --keepdb` → **`30 tests OK`**, **exit 0** (additional duplicate wrapper runs also green; earlier apparent “stuck” runs were **`tail`** pipe buffering / parallel wrapper contention — **not** marketing regression).
+
+**E. URL smoke:** `MULTI_TENANT_BASE_DOMAIN=runmycampus.com python manage.py validate_marketing_urls --smoke --settings=config.settings` → **`Marketing URL validation passed.`**
+
+**F. Route surface audit:** `python scripts/audit_route_surface.py` → **`docs/generated/route_surface_audit.json`**, **`broken_count: 0`**, **`ROUTE SYSTEM CERTIFIED`**.
+
+**G. Contact submit semantics:** **`GET /contact/submit/`** → **`405`** (correct for POST-only); **`POST /contact/submit/`** → redirect **`/contact/?submitted=1`** or error path.
+
+**H. Task 713658:** Confirmed **resolved** — public marketing URL/name reverse health maintained (**no** **`NoReverseMatch`** in this closure evidence).
+
+**I. Optional non-blocking follow-ups:** Full axe without **`SKIP_AXE=1`**; staging/CDN hero visual spot-check; optional **`hosts`** entry **`127.0.0.1 runmycampus.com`** for easier local curl to hostname; avoid parallel **`run_sqlite_memory_tests.py`** jobs.
+
+**J. Suite:** Full **`manage.py test`** **not** re-run (canonical documentation closure only).
+
+## Wave — §11.4 batch 1168 Final completion + external-blocker orchestrator (2026-05-03)
+
+**A. Scope:** Repo-actionable completion sweep; **do not** fake PSP/settlement or strip **§12** external rows.
+
+**B. Tests:** Marketplace monetization closure bundle **`Ran 45 tests`**, **`OK`** (**`.django_test_dbs/final_completion_mm.sqlite3`**, **`--keepdb`**); global payments / settlement overlap / external-deps-register / orchestration bundle **`Ran 47 tests`**, **`OK`** (**`.django_test_dbs/final_completion_gp.sqlite3`**).
+
+**C. Regenerate:** **`generate_system_closure_map`**, **`generate_external_dependencies_register`**, **`generate_category_scope_review`** (**merge-proof-gates** + **`final_completion_orchestrator_bundles`** proof line), **`generate_platform_inventory`** — **exit 0**.
+
+**D. Verifiers:** Full Phase **10** mechanical list through **`verify_test_module_contract`**; **`run_northstar_audit`** (**75/75**); **`run_kill_test`** (**PASS**); **`run_northstar_self_heal`** (**SELF_HEALED_PASS**) — **exit 0**.
+
+**E. Docs:** **`verify_doc_plan_density_discipline`** **PASS**; **`verify_sot_pillar_evidence`** **OK** after **SOT/log** prepend.
+
+**F. Classification:** **CATEGORY DEFINING — REPO SCOPE — EXTERNAL BLOCKERS REMAIN** (**`global_payments`** + **`marketplace_monetization`** **`partial_external_blocker`**). Full-market naming blocked until **§12** dependencies verified live or formally scoped out (**exact sentence remains in SOT §12**).
+
+**G. Suite:** Full **`manage.py test`** **not** re-run (no material product edit this wave).
+
+## Wave — §11.4 batch 1167 Final category-scope closure validator (2026-05-03)
+
+**A. Scope:** End-to-end validation of **`system_closure_map`** / **`category_scope_review`** chain (**registry expansion**, **`experience_control`**, **`marketplace_monetization`**, **`enterprise_security`**, **`global_payments`**, full-market honesty); pillar audit mapped large edu-OS domains onto existing **`PROGRAM_SYSTEMS`** rows plus **`tenant_configuration`** (**no duplicate sparse PROGRAM_SYSTEM rows** for academics/portals/comms except where already tracked via **`external_dependencies_register`** slices).
+
+**B. Registry artifacts:** **`program_gap_registry_version`** **7**; **`systems_requested_but_not_in_closure_map`** **`[]`**; **`tenant_configuration`** **`closed`**; **`generate_category_scope_review.py --write --merge-proof-gates`** with refreshed **`proof_gates`** (**kill_test PASS**, **northstar_audit PASS**, **northstar_self_heal SELF_HEALED_PASS**).
+
+**C. Tests:** **`experience_control`** bundle **`Ran 43 tests`**, **`OK`**; **`marketplace_monetization`** bundle **`Ran 45 tests`**, **`OK`**; PSP/readiness overlap **`Ran 55 tests`**, **`OK`**; **`enterprise_security`** bundle **`Ran 53 tests`**, **`OK`** after **sequential** SQLite (two concurrent Django test runners sharing one SQLite file raised sqlite3 database is locked).
+
+**D. Verifiers:** Phase **10** mechanical subset as listed in batch **1167** SOT row (**route**, luxury, sitesettings, security, POST/post-handler, tenant isolation, raw SQL, subprocess, Gilead strict-public, regional UI, compliance evidence, shell inventory, phase2 shell conformance, design phase2, doc discipline, SOT pillar evidence, test module contract, northstar audit, kill test); **`validate_marketing_urls --smoke`** **exit 0**.
+
+**E. Classification:** **`CATEGORY DEFINING — REPO SCOPE — external blockers remain`** (**`global_payments`** + **`marketplace_monetization`** honest **`partial_external_blocker`**); **not** **FULL MARKET CATEGORY DEFINING** until **§12** live PSP/settlement proof or formal rescope (**sentence already in SOT §12**).
+
+**F. Verdict:** **CLOSURE VALIDATION COMPLETE** on repo-mechanical bar; external PSP/settlement rows unchanged (**no fake live success**).
+
+## Wave — §11.4 batch 1166 PSP readiness + settlement truth + external deps register (2026-04-28)
+
+**A. Scope:** Repo-side **live PSP preparation** without claiming external closure — **`global_payments`** / **`marketplace_monetization`** stay **`partial_external_blocker`**.
+
+**B. Deliverables:** **`docs/payments/*`** readiness + env contract + blocker classification; **`docs/external_dependencies_register.json`** + **`scripts/generate_external_dependencies_register.py`** + **`docs/generated/external_dependencies_register.{json,md}`**; **`manage.py check_payment_gateways`**; **`apps/finance/payment_gateway_health.py`** provider probes + scrubbed JSON stdout; **`apps/marketplace/settlement_truth.py`**, monetization dashboard **`settlement_blocked_detail`**, ledger **`SETTLEMENT_COMPLETED`** proof guard + migration **`0012_settlement_truth_event_types`**; **`scripts/generate_category_scope_review.py`** **v3** external-register linkage.
+
+**C. Tests:** **`DJANGO_TEST_DB_FILE=.django_test_dbs/psp_quick.sqlite3`** **`test_live_psp_readiness_contract`**, **`test_payment_gateway_health_command`**, **`test_marketplace_settlement_truth`**, **`test_external_dependencies_register`** → **`Ran 13 tests`**, **`OK`**; **`RMC_SQLITE_TEST_MEMORY=1`** **`test_global_payments_category_closure`**, **`test_marketplace_monetization_closure`** **`--keepdb`** → **`Ran 11 tests`**, **`OK`**.
+
+**D. Verifiers:** **`audit_security_surface`**, **`audit_tenant_isolation`**, **`audit_route_surface`**, **`verify_test_module_contract`**, **`run_northstar_audit`** (**75/75 DOMINANT**), **`audit_luxury_ui_surface`**, **`verify_design_system_phase2`**, **`generate_platform_inventory --write`**, **`verify_doc_plan_density_discipline`**, **`verify_sot_pillar_evidence`** → **exit 0**.
+
+**E. Docs:** **`RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`** **§11.4 batch 1166** + permanent **§12 External Dependencies** section (**explicit full-market blocker sentence**).
+
+**F. Verdict:** **REPO-SIDE PSP READINESS COMPLETE — EXTERNAL BLOCKERS REMAIN** — **not** **FULL MARKET CATEGORY DEFINING** until PSP/settlement evidence exists per corridor.
+
 ## Wave — §11.4 batch 1165 Marketplace + Experience Integration Certifier (2026-05-03)
 
 **A. Scope:** Integrate proof for **`marketplace_monetization`** + **`experience_control`** closure branches on **`feature/marketplace-monetization-closure`**; **merge** **`feature/experience-control-closure`** → **`Already up to date`**.

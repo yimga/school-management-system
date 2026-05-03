@@ -19965,3 +19965,121 @@ msgstr "sum"
 
 msgid "yes"
 msgstr "yes"
+
+msgid "Blocked settlement detail"
+msgstr "Blocked settlement detail"
+
+msgid "Challenge"
+msgstr "Challenge"
+
+msgid "Choose how you want to engage"
+msgstr "Choose how you want to engage"
+
+msgid "Compliance & governance note"
+msgstr "Compliance & governance note"
+
+msgid "Contact form"
+msgstr "Contact form"
+
+msgid "Contact us"
+msgstr "Contact us"
+
+msgid "Each tile opens the matching RunMyCampus capability page."
+msgstr "Each tile opens the matching RunMyCampus capability page."
+
+msgid ""
+"Every path returns to one accountable team—we label expectations up front."
+msgstr ""
+"Every path returns to one accountable team—we label expectations up front."
+
+msgid "Explore capability"
+msgstr "Explore capability"
+
+msgid "Explore resource areas"
+msgstr "Explore resource areas"
+
+msgid ""
+"Full articles roll out over time—these cards describe honest scope today."
+msgstr ""
+"Full articles roll out over time—these cards describe honest scope today."
+
+msgid "Global configurability"
+msgstr "Global configurability"
+
+msgid "Guide topics"
+msgstr "Guide topics"
+
+msgid "How to reach us"
+msgstr "How to reach us"
+
+msgid ""
+"Illustrative flow across operational surfaces—not a substitute for your "
+"tenant configuration."
+msgstr ""
+"Illustrative flow across operational surfaces—not a substitute for your "
+"tenant configuration."
+
+msgid "Implementation"
+msgstr "Implementation"
+
+msgid "Inquiry type"
+msgstr "Inquiry type"
+
+msgid ""
+"Insights are on the way—browse product surfaces through a guided tour while "
+"editorial ramps."
+msgstr ""
+"Insights are on the way—browse product surfaces through a guided tour while "
+"editorial ramps."
+
+msgid "Partnership"
+msgstr "Partnership"
+
+msgid "Ready for the next step?"
+msgstr "Ready for the next step?"
+
+msgid "Recommended modules"
+msgstr "Recommended modules"
+
+msgid "Recommended platform modules"
+msgstr "Recommended platform modules"
+
+msgid "Resource areas"
+msgstr "Resource areas"
+
+msgid "RunMyCampus Solutions"
+msgstr "RunMyCampus Solutions"
+
+msgid "Sales"
+msgstr "Sales"
+
+msgid "See the platform with your roles and campuses in mind."
+msgstr "See the platform with your roles and campuses in mind."
+
+msgid "Select…"
+msgstr "Select…"
+
+msgid "Send a message"
+msgstr "Send a message"
+
+msgid ""
+"Something went wrong. Please retry or email from your workspace if you are "
+"already a customer."
+msgstr ""
+"Something went wrong. Please retry or email from your workspace if you are "
+"already a customer."
+
+msgid "Starter topics"
+msgstr "Starter topics"
+
+msgid "Submit inquiry"
+msgstr "Submit inquiry"
+
+msgid "Thanks—we received your note and will respond as soon as possible."
+msgstr "Thanks—we received your note and will respond as soon as possible."
+
+msgid "Workflow illustration for this solution segment"
+msgstr "Workflow illustration for this solution segment"
+
+msgid "Demo steps"
+msgstr "Demo steps"

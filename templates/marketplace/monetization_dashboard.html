@@ -24,6 +24,9 @@
   {% if settlement_note %}
   <div class="alert alert-info small">{{ settlement_note }}</div>
   {% endif %}
+  {% if settlement_blocked_detail %}
+  <div class="alert alert-warning small" data-rmc-settlement-blocked-reason="1"><strong>{% trans "Blocked settlement detail" %}:</strong> {{ settlement_blocked_detail }}</div>
+  {% endif %}
 
   <div class="row g-3 mb-3">
     <div class="col-md-4">

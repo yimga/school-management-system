@@ -1,19 +1,17 @@
 {
   "label": "Case Studies",
-  "seo_title": "RunMyCampus Case Studies - Real school implementation outcomes",
-  "seo_description": "See how schools improve onboarding speed, intervention outcomes, and operational control with RunMyCampus.",
-  "headline": "Results from real school operations.",
-  "subheadline": "Case patterns show how teams reduce onboarding friction, improve intervention response, and scale governance.",
+  "seo_title": "Case Studies | RunMyCampus",
+  "seo_description": "Published customer narratives appear when partner schools approve them. Explore the platform through a guided demo today.",
+  "headline": "Verified stories—not invented outcomes.",
+  "subheadline": "Case studies require partner consent and editorial review. Until published entries exist, explore capabilities directly with our team.",
   "schema_type": "CollectionPage",
   "segments": [
-    {"title": "Faster onboarding", "body": "New campuses provision with clearer timelines and less manual setup overhead."},
-    {"title": "Better intervention response", "body": "Risk monitoring and action-center workflows improve follow-through for at-risk learners."},
-    {"title": "Higher support visibility", "body": "Global queues and SLA tracking reduce blind spots across growing tenant portfolios."}
+    {"title": "Why the library may look quiet", "body": "We avoid anonymous quotes, fabricated metrics, or logos without contracts."},
+    {"title": "What future studies will emphasize", "body": "Implementation sequencing, parent engagement, attendance visibility, fee transparency, reporting discipline, and multi-campus governance patterns."},
+    {"title": "Talk with us", "body": "Request a demo or discuss becoming an early documented partner."}
   ],
   "extras": {
-    "faqs": [
-      {"question": "What outcomes do schools report?", "answer": "Teams typically see faster onboarding, clearer intervention follow-through, and better visibility into support and operations across tenants."},
-      {"question": "Can we read anonymized patterns?", "answer": "Marketing case studies summarize operational patterns without exposing tenant-identifiable data."}
-    ]
+    "suppress_footer_clusters": true,
+    "suppress_case_cards": true
   }
 }

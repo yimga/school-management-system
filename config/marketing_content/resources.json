@@ -1,15 +1,22 @@
 {
   "label": "Resources",
-  "seo_title": "Resources - Reports, Guides, and Webinars | RunMyCampus",
-  "seo_description": "Reports, implementation checklists, webinars, and best practices for school operations.",
-  "headline": "Resources to run your campus.",
-  "subheadline": "Reports, checklists, webinars, and guides—all in one place.",
+  "seo_title": "Resources | RunMyCampus",
+  "seo_description": "Product tour, guides, case studies, help center, and blog—honest entry points into RunMyCampus content and proof.",
+  "headline": "Resources for evaluating and operating RunMyCampus.",
+  "subheadline": "Explore structured tours and help topics. Guides grow over time with labeled outlines—not simulated libraries of PDFs.",
   "schema_type": "CollectionPage",
   "segments": [
-    {"title": "State of School Operations report", "body": "Download our flagship report on how schools are unifying operations."},
-    {"title": "Buyer toolkit", "body": "Checklists and implementation timeline for evaluation and go-live."},
-    {"title": "Webinars", "body": "Customer roundtables and migration best practices. Register for upcoming sessions."},
-    {"title": "Blog", "body": "Admissions, finance, multi-campus, migration, and compliance topics."}
+    {"title": "Transparent scope", "body": "We label what's published versus what's planned so evaluation teams aren't surprised."},
+    {"title": "Proof without invented logos", "body": "Case studies publish only with partner approval; until then we describe what future narratives will cover."}
   ],
-  "extras": {}
+  "extras": {
+    "suppress_footer_clusters": true,
+    "resources_hub_cards": [
+      {"title": "Product Tour", "body": "Walk key surfaces leadership and operational teams rely on.", "path": "/resources/product-tour/"},
+      {"title": "Guides", "body": "Starter outlines on evaluation, fees, communications, and multi-campus readiness.", "path": "/resources/guides/"},
+      {"title": "Case Studies", "body": "Stories appear as implementations mature—see what's published today.", "path": "/resources/case-studies/"},
+      {"title": "Help Center", "body": "Operational answers and onboarding-oriented articles.", "path": "/resources/help-center/"},
+      {"title": "Blog", "body": "Insights on admissions, finance, migration, and governance.", "path": "/resources/blog/"}
+    ]
+  }
 }

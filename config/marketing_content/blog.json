@@ -1,19 +1,34 @@
 {
   "label": "Blog",
-  "seo_title": "RunMyCampus Blog - Topics for leading faculties",
+  "seo_title": "Blog | RunMyCampus",
   "seo_description": "Insights, product updates, and best practices for school operators.",
   "headline": "Topics of leading faculties.",
   "subheadline": "Product updates, best practices, and stories from schools worldwide.",
   "schema_type": "Blog",
   "segments": [
-    {"title": "Product updates", "body": "New features and improvements to the RunMyCampus platform."},
-    {"title": "Best practices", "body": "How schools use RunMyCampus for admissions, compliance, and operations."},
-    {"title": "Global education", "body": "Trends and insights for K-12 and international school operations."}
+    {
+      "title": "Product updates",
+      "body": "New features and improvements to the RunMyCampus platform."
+    },
+    {
+      "title": "Best practices",
+      "body": "How schools use RunMyCampus for admissions, compliance, and operations."
+    },
+    {
+      "title": "Global education",
+      "body": "Trends and insights for K-12 and international school operations."
+    }
   ],
   "extras": {
     "faqs": [
-      {"question": "Where do blog posts come from?", "answer": "Published posts are stored in the platform database; run seed_marketing_cms or create posts in admin for a populated /blog/."},
-      {"question": "Can I customize the blog intro?", "answer": "Yes—MarketingContent key blog_list_intro overrides the intro HTML on the blog index."}
+      {
+        "question": "Where do blog posts come from?",
+        "answer": "Published posts are stored in the platform database; run seed_marketing_cms or create posts in admin for a populated /blog/."
+      },
+      {
+        "question": "Can I customize the blog intro?",
+        "answer": "Yes—MarketingContent key blog_list_intro overrides the intro HTML on the blog index."
+      }
     ]
   }
 }

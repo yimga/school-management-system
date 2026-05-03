@@ -15,7 +15,7 @@ from django.utils import timezone
 from apps.finance.models import ComplianceProfile, TenantPaymentPolicy
 from apps.finance.payment_fallback_engine import MANUAL_FALLBACK_CODE
 from apps.finance.regional_payment_profiles import get_normalized_regional_profile
-from apps.finance.services import get_payment_integration_by_slug
+from apps.finance.services import get_payment_integration_by_slug, normalize_provider_slug
 
 # Rail codes handled without hitting external PSP APIs (metadata-only checks).
 RAIL_CODE_TO_SLUG: dict[str, str] = {
@@ -246,3 +246,276 @@ def availability_map_from_rows(rows: list[dict[str, Any]]) -> dict[str, bool]:
             continue
         avail[rc] = st == GatewayHealthStatus.READY
     return avail
+
+
+CARD_BANK_SLUGS = frozenset({"card", "bank", "bank_transfer", "sepa"})
+PSP_INTEGRATION_SLUGS = frozenset({"stripe", "paystack", "flutterwave"})
+
+
+def integration_secret_hint_present(cfg: dict[str, Any] | None) -> bool:
+    """True when config appears to carry credential material (never inspect/log values)."""
+    cfg = cfg or {}
+    for key, val in cfg.items():
+        lk = str(key).lower()
+        if any(tok in lk for tok in ("secret", "api_key", "private", "token", "password")):
+            if isinstance(val, str) and val.strip():
+                return True
+            if val not in (None, "", [], {}, False):
+                return True
+    return False
+
+
+def stripe_secret_tier(cfg: dict[str, Any] | None) -> str:
+    """Return ``live``, ``test``, or empty — never exposes key material."""
+    import os
+
+    cfg = cfg or {}
+    env_key = os.environ.get("STRIPE_SECRET_KEY") or os.environ.get("STRIPE_API_KEY") or ""
+    cfg_key = str(cfg.get("secret_key") or cfg.get("secret") or "").strip()
+    cand = str(env_key or cfg_key).strip()
+    if cand.startswith("sk_live_"):
+        return "live"
+    if cand.startswith("sk_test_"):
+        return "test"
+    return ""
+
+
+def run_safe_production_ping(
+    slug: str,
+    cfg: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """
+    Non-destructive live probes only where explicitly supported (Stripe Balance.retrieve).
+    Never prints secrets or raw provider payloads.
+    """
+    cfg = cfg or {}
+    slug_l = (slug or "").strip().lower()
+    base = {
+        "rail_code": slug_l.upper()[:40],
+        "provider_key": slug_l[:64],
+        "mode": "production_ping",
+        "external_action_needed": "",
+    }
+    if slug_l != "stripe":
+        return {
+            **base,
+            "status": GatewayHealthStatus.EXTERNAL_REQUIRED,
+            "message": (
+                "Production ping not implemented for this provider — collect proof via provider dashboard."
+            ),
+            "action_required": "",
+            "external_action_needed": (
+                "Run provider-supported non-charge production check per docs/payments/PAYMENT_ENVIRONMENT_CONTRACT.md."
+            ),
+        }
+
+    tier = stripe_secret_tier(cfg)
+    if not tier:
+        return {
+            **base,
+            "status": GatewayHealthStatus.MISSING_CREDENTIALS,
+            "message": "Stripe secret not present in env or integration config metadata.",
+            "action_required": "Configure STRIPE_SECRET_KEY or integration secret fields.",
+            "external_action_needed": "",
+        }
+    if tier != "live":
+        return {
+            **base,
+            "status": GatewayHealthStatus.EXTERNAL_REQUIRED,
+            "message": "Production ping requires sk_live_* credentials (test keys are not live proof).",
+            "action_required": "Install live Stripe keys in deployment secrets.",
+            "external_action_needed": "Stripe merchant activation + live secret key rollout.",
+        }
+
+    import os
+
+    try:
+        import stripe  # type: ignore
+    except ImportError:
+        return {
+            **base,
+            "status": GatewayHealthStatus.EXTERNAL_REQUIRED,
+            "message": "stripe Python package not installed.",
+            "action_required": "Add stripe dependency for Balance.retrieve probes.",
+            "external_action_needed": "Ops dependency install",
+        }
+
+    key = os.environ.get("STRIPE_SECRET_KEY") or os.environ.get("STRIPE_API_KEY") or cfg.get(
+        "secret_key"
+    ) or cfg.get("secret")
+    stripe.api_key = str(key).strip()
+    try:
+        stripe.Balance.retrieve()
+    except Exception:
+        return {
+            **base,
+            "status": GatewayHealthStatus.DEGRADED,
+            "message": "Stripe Balance.retrieve failed (check network/API reachability).",
+            "action_required": "Inspect Stripe dashboard connectivity without logging secrets.",
+            "external_action_needed": "",
+        }
+    return {
+        **base,
+        "status": GatewayHealthStatus.READY,
+        "message": "Stripe Balance.retrieve succeeded (non-charge production ping).",
+        "action_required": "",
+        "external_action_needed": "",
+    }
+
+
+def evaluate_named_provider_health(
+    provider_slug: str,
+    *,
+    mode: str = "metadata",
+    school=None,
+    compliance_profile=None,
+) -> dict[str, Any]:
+    """
+    Targeted PSP/mobile-money evaluation for ``check_payment_gateways``.
+    Does not charge; does not log secrets.
+    """
+    raw = (provider_slug or "").strip()
+    slug = normalize_provider_slug(raw) or raw.lower()
+
+    base_out: dict[str, Any] = {
+        "rail_code": (raw.upper() if raw.isascii() else slug.upper())[:40],
+        "provider_key": slug[:64],
+        "mode": mode,
+        "external_action_needed": "",
+    }
+
+    ru = raw.upper()
+    if slug in CARD_BANK_SLUGS or ru in {"CARD", "BANK", "SEPA"}:
+        rc = ru if ru in {"CARD", "BANK", "SEPA"} else slug.upper()
+        return {
+            **base_out,
+            "rail_code": rc[:40],
+            "status": GatewayHealthStatus.EXTERNAL_REQUIRED,
+            "message": "Card/bank rails require PSP or sponsor bank onboarding outside the repo.",
+            "action_required": "Complete merchant onboarding; store credentials only in secrets.",
+            "external_action_needed": "Bank/PSP approval + settlement account verification.",
+        }
+
+    rail = ""
+    if slug in {"mtn_momo", "mtn"}:
+        rail = "MTN_MOMO"
+    elif slug in {"orange_momo", "orange_money", "orange"}:
+        rail = "ORANGE_MOMO"
+
+    if rail:
+        rows = build_gateway_health_rows(school, compliance_profile)
+        hit = next((r for r in rows if str(r.get("rail_code")) == rail), None)
+        if hit:
+            out = dict(hit)
+            out["mode"] = mode
+            if out.get("status") == GatewayHealthStatus.EXTERNAL_REQUIRED:
+                out.setdefault(
+                    "external_action_needed",
+                    out.get("action_required") or "Telco or aggregator onboarding.",
+                )
+            if mode == "production_ping":
+                out["status"] = GatewayHealthStatus.EXTERNAL_REQUIRED
+                out["message"] = (
+                    "MoMo production ping not implemented — supervised live corridor proof required."
+                )
+                out["external_action_needed"] = (
+                    "Complete aggregator callbacks + supervised transaction or portal evidence."
+                )
+            return out
+        return {
+            **base_out,
+            "rail_code": rail,
+            "status": GatewayHealthStatus.MISSING_CREDENTIALS,
+            "message": "MoMo rail not surfaced from regional profile + integrations.",
+            "action_required": "Configure school country + payments Integration.",
+            "external_action_needed": "",
+        }
+
+    check_slug = slug
+    if check_slug not in PSP_INTEGRATION_SLUGS:
+        alt = normalize_provider_slug(raw)
+        if alt in PSP_INTEGRATION_SLUGS:
+            check_slug = alt
+
+    if check_slug in PSP_INTEGRATION_SLUGS:
+        integ = get_payment_integration_by_slug(check_slug)
+        if not integ:
+            return {
+                **base_out,
+                "rail_code": check_slug.upper(),
+                "provider_key": check_slug,
+                "status": GatewayHealthStatus.MISSING_CREDENTIALS,
+                "message": f"No enabled payments integration resolved for '{check_slug}'.",
+                "action_required": "Create Integration(provider=payments) with matching slug/config.",
+                "external_action_needed": "",
+            }
+        cfg = integ.config or {}
+        secret_ok = integration_secret_hint_present(cfg)
+        stripe_tier = ""
+        if check_slug == "stripe":
+            stripe_tier = stripe_secret_tier(cfg)
+            secret_ok = secret_ok or bool(stripe_tier)
+        if not secret_ok:
+            return {
+                **base_out,
+                "rail_code": check_slug.upper(),
+                "provider_key": check_slug,
+                "status": GatewayHealthStatus.MISSING_CREDENTIALS,
+                "message": "Integration row exists but credential hints are absent.",
+                "action_required": "Populate secret/API fields via deployment config.",
+                "external_action_needed": "",
+            }
+        degraded_urls = False
+        if check_slug != "stripe" and not (cfg.get("base_url") or cfg.get("callback_url")):
+            degraded_urls = True
+        if mode == "production_ping":
+            return run_safe_production_ping(check_slug, cfg)
+        st = GatewayHealthStatus.DEGRADED if degraded_urls else GatewayHealthStatus.READY
+        msg = (
+            "PSP integration metadata present (metadata mode — no payment probe)."
+            if not degraded_urls
+            else "Integration partially configured — finish callback/base URLs."
+        )
+        if check_slug == "stripe" and stripe_tier == "test" and not degraded_urls:
+            st = GatewayHealthStatus.DEGRADED
+            msg = "Stripe test credentials present — not live PSP proof."
+        return {
+            **base_out,
+            "rail_code": check_slug.upper(),
+            "provider_key": check_slug,
+            "status": st,
+            "message": msg,
+            "action_required": "Finish webhook URLs per PAYMENT_ENVIRONMENT_CONTRACT.md."
+            if degraded_urls
+            else "",
+            "external_action_needed": "",
+        }
+
+    return {
+        **base_out,
+        "status": GatewayHealthStatus.UNKNOWN,
+        "message": "Unknown provider — use stripe, paystack, flutterwave, mtn_momo, orange_momo, card, bank.",
+        "action_required": "See docs/payments/PAYMENT_ENVIRONMENT_CONTRACT.md.",
+        "external_action_needed": "",
+    }
+
+
+def sanitize_health_payload_for_output(payload: dict[str, Any]) -> dict[str, Any]:
+    """Strip any nested objects that might carry secrets before CLI/HTTP emission."""
+
+    def scrub(obj: Any) -> Any:
+        if isinstance(obj, dict):
+            out = {}
+            for k, v in obj.items():
+                lk = str(k).lower()
+                if lk in {"secret", "secrets", "config", "authorization", "api_key"}:
+                    continue
+                if "secret" in lk or "password" in lk or "token" in lk:
+                    continue
+                out[k] = scrub(v)
+            return out
+        if isinstance(obj, list):
+            return [scrub(x) for x in obj]
+        return obj
+
+    return scrub(payload)

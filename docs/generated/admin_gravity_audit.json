@@ -322,7 +322,7 @@
       "title": "Dynamic field EAV operator (read-only triage; admin CRUD for definitions/values)"
     }
   ],
-  "generated_at": "2026-05-03T04:46:37.908386+00:00",
+  "generated_at": "2026-05-03T15:07:14.843795+00:00",
   "marketplace_app_admin_line_hits": {
     "apps/accounts/management/commands/ensure_default_tenant_admin.py": [
       111
@@ -2543,7 +2543,7 @@
       "schools": 8,
       "siteconfig": 42
     },
-    "approx_product_code_lines_with_admin_substring": 476,
+    "approx_product_code_lines_with_admin_substring": 477,
     "approx_register_calls_in_admin_py": 0,
     "apps_with_admin_py": 35,
     "high_registration_app_labels_gte_3": [],

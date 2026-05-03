@@ -46,6 +46,7 @@ from apps.schools.marketing_views import (
     migration_simulator_page,
     institution_marketing_page,
     role_marketing_page,
+    submit_contact_request,
     submit_demo_request,
 )
 from apps.schools.signup_views import (
@@ -420,22 +421,26 @@ urlpatterns = [
     ),
     path(
         "resources/blog/",
-        RedirectView.as_view(pattern_name="marketing_blog", permanent=False),
+        marketing_page,
+        {"page_slug": "resources-blog"},
         name="marketing_resources_blog",
     ),
     path(
         "company/",
-        RedirectView.as_view(pattern_name="marketing_about", permanent=False),
+        marketing_page,
+        {"page_slug": "company"},
         name="marketing_company",
     ),
     path(
         "resources/case-studies/",
-        RedirectView.as_view(pattern_name="marketing_case_studies", permanent=False),
+        marketing_page,
+        {"page_slug": "resources-case-studies"},
         name="marketing_resources_case_studies",
     ),
     path(
         "resources/guides/",
-        RedirectView.as_view(pattern_name="marketing_guides", permanent=False),
+        marketing_page,
+        {"page_slug": "resources-guides"},
         name="marketing_resources_guides",
     ),
     path(
@@ -446,12 +451,14 @@ urlpatterns = [
     ),
     path(
         "solutions/k12-schools/",
-        RedirectView.as_view(pattern_name="institution_k12", permanent=False),
+        institution_marketing_page,
+        {"institution_slug": "k12-schools"},
         name="institution_k12_schools",
     ),
     path(
         "solutions/k12-schools/",
-        RedirectView.as_view(pattern_name="institution_k12", permanent=False),
+        institution_marketing_page,
+        {"institution_slug": "k12-schools"},
         name="marketing_solutions_k12_schools",
     ),
     path("marketing/", marketing_landing, name="marketing_landing"),
@@ -628,15 +635,8 @@ urlpatterns = [
     ),
     path(
         "solutions/k12/",
-        institution_marketing_page,
-        {"institution_slug": "k12"},
+        RedirectView.as_view(url="/solutions/k12-schools/", permanent=True),
         name="institution_k12",
-    ),
-    path(
-        "solutions/k12/",
-        institution_marketing_page,
-        {"institution_slug": "k12"},
-        name="marketing_solutions_k12",
     ),
     path(
         "solutions/universities/",
@@ -778,13 +778,14 @@ urlpatterns = [
     ),
     path(
         "case-studies/",
-        marketing_page,
-        {"page_slug": "case-studies"},
+        RedirectView.as_view(url="/resources/case-studies/", permanent=True),
         name="marketing_case_studies",
     ),
     path(
         "customers/",
-        lambda req: redirect("marketing_case_studies", permanent=False),
+        RedirectView.as_view(
+            pattern_name="marketing_resources_case_studies", permanent=False
+        ),
         name="marketing_customers",
     ),
     path(
@@ -855,8 +856,17 @@ urlpatterns = [
         {"page_slug": "features"},
         name="marketing_features",
     ),
-    path("blog/", marketing_page, {"page_slug": "blog"}, name="marketing_blog"),
+    path(
+        "blog/",
+        RedirectView.as_view(url="/resources/blog/", permanent=True),
+        name="marketing_blog",
+    ),
     path("blog/<slug:slug>/", blog_post_detail, name="marketing_blog_detail"),
+    path(
+        "contact/submit/",
+        submit_contact_request,
+        name="marketing_contact_submit",
+    ),
     path(
         "contact/", marketing_page, {"page_slug": "contact"}, name="marketing_contact"
     ),
@@ -911,7 +921,11 @@ urlpatterns = [
     path(
         "reports/", marketing_page, {"page_slug": "reports"}, name="marketing_reports"
     ),
-    path("guides/", marketing_page, {"page_slug": "guides"}, name="marketing_guides"),
+    path(
+        "guides/",
+        RedirectView.as_view(url="/resources/guides/", permanent=True),
+        name="marketing_guides",
+    ),
     path("events/", marketing_page, {"page_slug": "events"}, name="marketing_events"),
     path(
         "trust-center/",

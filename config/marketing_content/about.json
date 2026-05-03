@@ -1,19 +1,34 @@
 {
   "label": "About",
-  "seo_title": "About RunMyCampus - Global school operations platform",
+  "seo_title": "About | RunMyCampus",
   "seo_description": "Learn about RunMyCampus mission, team, and commitment to schools worldwide.",
   "headline": "About RunMyCampus.",
   "subheadline": "One platform for global school operations, built for 195 countries.",
   "schema_type": "WebPage",
   "segments": [
-    {"title": "Mission", "body": "Empower every school with unified operations, compliance, and growth tools."},
-    {"title": "Global reach", "body": "Multi-language, multi-currency, and data residency options for every region."},
-    {"title": "Security first", "body": "Schema-per-tenant isolation and audit-ready controls for trust and compliance."}
+    {
+      "title": "Mission",
+      "body": "Empower every school with unified operations, compliance, and growth tools."
+    },
+    {
+      "title": "Global reach",
+      "body": "Multi-language, multi-currency, and data residency options for every region."
+    },
+    {
+      "title": "Security first",
+      "body": "Schema-per-tenant isolation and audit-ready controls for trust and compliance."
+    }
   ],
   "extras": {
     "faqs": [
-      {"question": "Who is RunMyCampus for?", "answer": "K-12 schools, international schools, and multi-campus operators who need one operating system for admissions, academics, finance, and compliance."},
-      {"question": "Where do you operate?", "answer": "The platform is built for global deployment with region-aware compliance defaults."}
+      {
+        "question": "Who is RunMyCampus for?",
+        "answer": "K-12 schools, international schools, and multi-campus operators who need one operating system for admissions, academics, finance, and compliance."
+      },
+      {
+        "question": "Where do you operate?",
+        "answer": "The platform is built for global deployment with region-aware compliance defaults."
+      }
     ]
   }
 }

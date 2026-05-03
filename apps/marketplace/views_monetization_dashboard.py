@@ -14,6 +14,7 @@ from django.views.decorators.http import require_GET
 
 from apps.marketplace.models import AppInstallation, MarketplaceMonetizationLedgerEntry
 from apps.marketplace.permissions import tenant_may_manage_marketplace
+from apps.marketplace.settlement_truth import blocked_settlement_reason_from_entry
 
 
 @login_required
@@ -36,6 +37,7 @@ def monetization_dashboard(request):
                 "primary_action_url": None,
                 "primary_action_label": None,
                 "settlement_note": "",
+                "settlement_blocked_detail": "",
             },
         )
 
@@ -104,6 +106,15 @@ def monetization_dashboard(request):
             primary_url = reverse("tenant_app_catalog")
             primary_label = "Back to marketplace catalog"
 
+    blocked_entry = (
+        qs.filter(
+            event_type=MarketplaceMonetizationLedgerEntry.EventType.SETTLEMENT_EXTERNAL_BLOCKED
+        )
+        .order_by("-created_at")
+        .first()
+    )
+    settlement_blocked_detail = blocked_settlement_reason_from_entry(blocked_entry)
+
     settlement_note = ""
     if blocked > 0:
         settlement_note = (
@@ -135,5 +146,6 @@ def monetization_dashboard(request):
             "primary_action_url": primary_url,
             "primary_action_label": primary_label,
             "settlement_note": settlement_note,
+            "settlement_blocked_detail": settlement_blocked_detail,
         },
     )

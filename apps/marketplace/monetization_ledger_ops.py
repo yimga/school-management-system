@@ -16,6 +16,21 @@ from django.db import IntegrityError, transaction
 from apps.marketplace.models import MarketplaceApp, MarketplaceMonetizationLedgerEntry
 
 
+def _validate_settlement_completed_metadata(metadata: dict | None) -> None:
+    """
+    Never emit settlement_completed without PSP payout/ref confirmation or audited manual reconcile.
+    """
+    md = dict(metadata or {})
+    ref = str(md.get("provider_settlement_confirmation_ref") or "").strip()
+    recon = str(md.get("reconciliation_audit_ref") or "").strip()
+    if ref or recon:
+        return
+    raise ValueError(
+        "SETTLEMENT_COMPLETED requires metadata.provider_settlement_confirmation_ref "
+        "or metadata.reconciliation_audit_ref."
+    )
+
+
 def _running_under_unittest() -> bool:
     return getattr(settings, "RUNNING_TESTS", False) or ("test" in sys.argv)
 
@@ -135,6 +150,9 @@ def append_marketplace_ledger_entry(
     ).first()
     if existing:
         return existing
+
+    if event_type == MarketplaceMonetizationLedgerEntry.EventType.SETTLEMENT_COMPLETED:
+        _validate_settlement_completed_metadata(md)
 
     row = MarketplaceMonetizationLedgerEntry(
         school=school,
@@ -384,11 +402,17 @@ def append_payment_success_ledger(
         metadata=md,
         emit_event="marketplace_payment_success",
     )
+    ref_ok = bool((processor_ref or "").strip())
     settle_type = (
         MarketplaceMonetizationLedgerEntry.EventType.SETTLEMENT_COMPLETED
-        if production_psp
+        if production_psp and ref_ok
         else MarketplaceMonetizationLedgerEntry.EventType.SETTLEMENT_PENDING_EXTERNAL
     )
+    settle_md = {
+        "follows_payment_ledger_id": evt_pay.pk,
+        "production_psp": production_psp,
+        "provider_settlement_confirmation_ref": (processor_ref or "")[:255],
+    }
     append_marketplace_ledger_entry(
         school=school,
         event_type=settle_type,
@@ -399,10 +423,7 @@ def append_payment_success_ledger(
         provider_reference=processor_ref[:255],
         app=app,
         idempotency_key=f"mkt_settle_pay:{school.pk}:{processor_ref}"[:190],
-        metadata={
-            "follows_payment_ledger_id": evt_pay.pk,
-            "production_psp": production_psp,
-        },
+        metadata=settle_md,
         emit_event=None,
     )
     return evt_pay

@@ -146,7 +146,7 @@
       }
     },
     {
-      "recorded_at": "2026-05-03T04:18:25.492944+00:00",
+      "recorded_at": "2026-05-03T15:06:40.191721+00:00",
       "counts": {
         "csrf_exempt_decorator_lines_apps_config_excl_migrations": 38,
         "cursor_execute_apps_config_py_excl_migrations": 32,

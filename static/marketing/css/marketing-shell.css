@@ -31,6 +31,15 @@ body.marketing-surface,
   outline-offset: 2px;
 }
 
+.marketing-surface .btn:focus-visible,
+.marketing-surface .nav-link:focus-visible,
+.marketing-surface .dropdown-toggle:focus-visible,
+.marketing-surface .form-control:focus-visible,
+.marketing-surface .form-select:focus-visible {
+  outline: 2px solid var(--mkt-accent, #f59e0b);
+  outline-offset: 2px;
+}
+
 /* ----- Nav (sticky): one bar, no horizontal scroll (Scroll directive §8.0) ----- */
 .mkt-navbar {
   position: sticky;

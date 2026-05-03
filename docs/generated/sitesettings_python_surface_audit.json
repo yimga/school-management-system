@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-05-03T04:46:43.625943+00:00",
+  "generated_at": "2026-05-03T15:07:16.813097+00:00",
   "class_level_allowlist": [
     "apps/platform_runtime/helpers.py",
     "apps/siteconfig/models.py"

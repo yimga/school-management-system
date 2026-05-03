@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "program_gap_registry_version": 6,
+  "program_gap_registry_version": 7,
   "generated_at": "2026-05-03",
   "source": [
     "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
@@ -143,11 +143,36 @@
       "required_verifiers": []
     },
     {
+      "id": "tenant_configuration",
+      "name": "Tenant configuration control plane (SiteSettings, CCC / runtime hub, feature toggles)",
+      "gap_status": "closed",
+      "sot_status": "DONE \u2014 siteconfig-owned mechanical surfaces + audits",
+      "evidence": "Tenant runtime configuration hub, feature control panel, curriculum/grading/regional hubs; SiteSettings governance (docs/site_settings_usage_inventory.md, docs/SITECONFIG_OWNERSHIP_MIGRATION.md); audit_sitesettings_python_surface catches helpers-import drift; shell inventory rows for CP templates.",
+      "missing_pieces": [],
+      "next_batch_hint": "Optional: collapse legacy duplicate settings keys when data migrations permit.",
+      "completion_bar": [
+        "tenant_runtime_configuration_hub + related CCC routes reverse and enforce permission gates.",
+        "Mechanical drift gates: audit_sitesettings_python_surface + verify_shell_surface_inventory rows for CP hubs.",
+        "Regression tests on mutating routes / config mutation audit evidence surfaces."
+      ],
+      "required_tests": [
+        "apps.siteconfig.tests.test_tenant_runtime_configuration_hub",
+        "apps.siteconfig.tests.test_config_mutation_audit_evidence",
+        "apps.siteconfig.tests.test_mutating_routes_expansion"
+      ],
+      "required_verifiers": [
+        "audit_sitesettings_python_surface.py",
+        "verify_shell_surface_inventory.py",
+        "audit_route_surface.py",
+        "verify_test_module_contract.py"
+      ]
+    },
+    {
       "id": "global_payments",
       "name": "Per-region primary + backup + manual fallback + reconciliation",
       "gap_status": "partial",
       "sot_status": "PARTIAL \u2014 batch 1158 PARTIAL EXTERNAL BLOCKER (repo telemetry + readiness dashboard; live PSP remains external)",
-      "evidence": "regional_payment_profiles.json: CM/GH/NG/KE/US/GB/EU with primary_rail, backup_rail, provider_setup_status, tenant_setup_steps, operator_ready_label, manual/offline/reconciliation flags; get_normalized_regional_profile; payment_gateway_health default_rail_health_check + PaymentGatewayHealthSnapshot (school-scoped); finance:payment_readiness_dashboard tenant workspace + staff; payment_fallback_engine select_effective_rail + approve/reject AuditLog; billing/regional_payment_readiness READY/FALLBACK_ONLY/MISSING_SETUP; finance payment_readiness_setup + receipt flows; MoMo Integration metadata checks without live charges",
+      "evidence": "regional_payment_profiles.json: CM/GH/NG/KE/US/GB/EU with primary_rail, backup_rail, provider_setup_status, tenant_setup_steps, operator_ready_label, manual/offline/reconciliation flags; get_normalized_regional_profile; payment_gateway_health default_rail_health_check + PaymentGatewayHealthSnapshot (school-scoped); finance:payment_readiness_dashboard tenant workspace + staff; manage.py check_payment_gateways (--mode=metadata|production_ping); docs/payments/* readiness + docs/external_dependencies_register.json; payment_fallback_engine select_effective_rail + approve/reject AuditLog; billing/regional_payment_readiness READY/FALLBACK_ONLY/MISSING_SETUP; finance payment_readiness_setup + receipt flows; MoMo Integration metadata checks without live charges",
       "missing_pieces": [
         "Credential-backed live PSP merchant onboarding and production payment-gateway ping (Stripe/Paystack/Flutterwave/MoMo production/SEPA bank APIs) \u2014 external contracts and secrets; not representable as closed inside this repository"
       ],
@@ -163,9 +188,17 @@
         "apps.finance.tests.test_receipt_upload_flow",
         "apps.siteconfig.tests.test_billing_stripe_tenant",
         "apps.billing.tests.test_platform_billing_webhooks",
+        "apps.finance.tests.test_live_psp_readiness_contract",
+        "apps.finance.tests.test_payment_gateway_health_command",
+        "apps.platform_runtime.tests.test_external_dependencies_register",
         "apps.finance.tests.test_payment_orchestration"
       ],
-      "required_verifiers": []
+      "required_verifiers": [
+        "generate_external_dependencies_register.py --write",
+        "generate_category_scope_review.py --write --merge-proof-gates",
+        "verify_doc_plan_density_discipline.py",
+        "verify_sot_pillar_evidence.py"
+      ]
     },
     {
       "id": "experience_control",
@@ -249,9 +282,10 @@
         "Billing webhooks: finalize_marketplace_addon_payment appends PAYMENT_SUCCESS + settlement rows without claiming relay/livemode=false as production PSP.",
         "Dashboard: marketplace:monetization_dashboard (tenant_may_manage_marketplace) + primary action to payment readiness when blocked.",
         "Entitlement: TenantMarketplaceSubscription + install/uninstall ledger; tenant isolation on ledger queries.",
-        "Purchase/install path: test_purchase_intent, test_install_impact, test_catalog_install_app_deeplink (kill switch)."
+        "Purchase/install path: test_purchase_intent, test_install_impact, test_catalog_install_app_deeplink (kill switch).",
+        "Settlement truth: settlement_truth.py phase map; SETTLEMENT_COMPLETED requires provider confirmation or reconciliation_audit_ref; dashboard settlement_blocked_detail."
       ],
-      "evidence": "apps.marketplace.marketplace_sku_registry; apps.marketplace.models.MarketplaceMonetizationLedgerEntry; apps.marketplace.monetization_ledger_ops; apps.marketplace.views_monetization_dashboard + templates/marketplace/monetization_dashboard.html; apps.marketplace.monetization (install ledger slice, usage meter optional ledger); apps.marketplace.services (uninstall ledger); apps.billing.services.finalize_marketplace_addon_payment (ledger rows); apps.platform_runtime.events marketplace_* contract keys; tests test_marketplace_sku_metering, test_marketplace_ledger, test_marketplace_monetization_closure + enforcement/purchase/webhook/stripe/e2e modules.",
+      "evidence": "apps.marketplace.marketplace_sku_registry; apps.marketplace.models.MarketplaceMonetizationLedgerEntry; apps.marketplace.monetization_ledger_ops + settlement metadata guards; apps.marketplace.settlement_truth; apps.marketplace.views_monetization_dashboard + templates/marketplace/monetization_dashboard.html (blocked reason); apps.marketplace.monetization (install ledger slice, usage meter optional ledger); apps.marketplace.services (uninstall ledger); apps.billing.services.finalize_marketplace_addon_payment (ledger rows); apps.platform_runtime.events marketplace_* contract keys; tests test_marketplace_sku_metering, test_marketplace_ledger, test_marketplace_settlement_truth, test_marketplace_monetization_closure + enforcement/purchase/webhook/stripe/e2e modules.",
       "missing_pieces": [
         "Live PSP merchant settlement + production gateway health ping \u2014 tenant/external (global_payments); honest ledger never fabricates settlement_completed without processor truth"
       ],
@@ -264,6 +298,7 @@
         "apps.marketplace.tests.test_purchase_intent",
         "apps.marketplace.tests.test_install_impact",
         "apps.marketplace.tests.test_catalog_install_app_deeplink",
+        "apps.marketplace.tests.test_marketplace_settlement_truth",
         "apps.siteconfig.tests.test_billing_stripe_tenant",
         "apps.billing.tests.test_platform_billing_webhooks",
         "apps.apicenter.tests.test_developer_platform_e2e"
@@ -275,6 +310,7 @@
         "verify_test_module_contract.py",
         "audit_post_surface.py",
         "verify_compliance_evidence.py",
+        "generate_external_dependencies_register.py --write",
         "run_kill_test.py",
         "run_northstar_audit.py",
         "audit_luxury_ui_surface.py",
@@ -309,7 +345,8 @@
         "apps.security.tests.test_impersonation_breadth",
         "apps.security.tests.test_impersonation_approval",
         "apps.security.tests.test_export_audit_breadth",
-        "apps.siteconfig.tests.test_compliance_exports"
+        "apps.siteconfig.tests.test_compliance_exports",
+        "apps.portal.tests.test_student_attendance_export"
       ],
       "required_verifiers": [
         "audit_security_surface.py",

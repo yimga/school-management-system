@@ -1900,7 +1900,7 @@
         "classification": "allowed",
         "file": "apps/marketplace/views_monetization_dashboard.py",
         "governance_tier": "safe",
-        "line": "19",
+        "line": "20",
         "pattern": "login_required"
       },
       {
@@ -3908,7 +3908,7 @@
         "classification": "allowed",
         "file": "config/urls.py",
         "governance_tier": "safe",
-        "line": "115",
+        "line": "116",
         "pattern": "login_required"
       },
       {
@@ -3916,7 +3916,7 @@
         "classification": "allowed",
         "file": "config/urls.py",
         "governance_tier": "safe",
-        "line": "147",
+        "line": "148",
         "pattern": "login_required"
       },
       {
@@ -5624,7 +5624,15 @@
         "classification": "allowed",
         "file": "apps/schools/marketing_views.py",
         "governance_tier": "safe",
-        "line": "2044",
+        "line": "2047",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/schools/marketing_views.py",
+        "governance_tier": "safe",
+        "line": "2122",
         "pattern": "require_http_methods"
       },
       {
@@ -7234,7 +7242,7 @@
         "classification": "allowed",
         "file": "apps/schools/marketing_views.py",
         "governance_tier": "safe",
-        "line": "2209",
+        "line": "2269",
         "pattern": "staff_member_required"
       },
       {
@@ -9441,7 +9449,7 @@
       }
     ]
   },
-  "generated_at": "2026-05-03T04:46:33.649703+00:00",
+  "generated_at": "2026-05-03T15:07:19.901345+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/oneroster_roster_webhook.py",
@@ -9459,23 +9467,23 @@
     "cursor_execute": 2,
     "login_required": 435,
     "permission_classes": 33,
-    "require_http_methods": 323,
+    "require_http_methods": 324,
     "staff_member_required": 72,
     "subprocess": 258
   },
   "summary_by_classification": {
-    "allowed": 1026,
+    "allowed": 1027,
     "needs_review": 141,
     "unsafe": 11
   },
   "summary_by_governance_tier": {
     "controlled": 104,
     "needs_review": 38,
-    "safe": 1026,
+    "safe": 1027,
     "violation": 10
   },
   "totals": {
-    "hits": 1178
+    "hits": 1179
   },
   "unified": [
     {
@@ -11371,7 +11379,7 @@
       "classification": "allowed",
       "file": "apps/marketplace/views_monetization_dashboard.py",
       "governance_tier": "safe",
-      "line": "19",
+      "line": "20",
       "pattern": "login_required"
     },
     {
@@ -13379,7 +13387,7 @@
       "classification": "allowed",
       "file": "config/urls.py",
       "governance_tier": "safe",
-      "line": "115",
+      "line": "116",
       "pattern": "login_required"
     },
     {
@@ -13387,7 +13395,7 @@
       "classification": "allowed",
       "file": "config/urls.py",
       "governance_tier": "safe",
-      "line": "147",
+      "line": "148",
       "pattern": "login_required"
     },
     {
@@ -15091,7 +15099,15 @@
       "classification": "allowed",
       "file": "apps/schools/marketing_views.py",
       "governance_tier": "safe",
-      "line": "2044",
+      "line": "2047",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/schools/marketing_views.py",
+      "governance_tier": "safe",
+      "line": "2122",
       "pattern": "require_http_methods"
     },
     {
@@ -16699,7 +16715,7 @@
       "classification": "allowed",
       "file": "apps/schools/marketing_views.py",
       "governance_tier": "safe",
-      "line": "2209",
+      "line": "2269",
       "pattern": "staff_member_required"
     },
     {

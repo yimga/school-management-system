@@ -103,7 +103,7 @@ def main(argv: list[str] | None = None) -> int:
 
     data = dict(base)
     data["schema_version"] = data.get("schema_version", 1)
-    data["program_gap_registry_version"] = 6
+    data["program_gap_registry_version"] = 7
     data["systems"] = _load_program_systems()
     data["generated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     data["source"] = [
