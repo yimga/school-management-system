@@ -1,5 +1,13 @@
 # RunMyCampus autonomous execution log
 
+## Wave — §11.4 batch 1170-dev local deploy + Stripe metadata sanity (2026-05-03)
+
+**A. Scope:** Advance **Lane 2** with **honest** local-only evidence before staging exists: **`manage.py check --deploy`**, **`manage.py check_payment_gateways`** (**metadata**).
+
+**B. Commands:** `python manage.py check --deploy --settings=config.settings` → **exit 0**, **6** security warnings (HSTS, SSL redirect, SECRET_KEY, secure cookies, DEBUG). `python manage.py check_payment_gateways --school=xp-tenant --provider=stripe --mode=metadata --settings=config.settings` → **`missing_credentials`** (no Stripe payments **Integration** on tenant in local DB).
+
+**C. Verdict:** **STAGING UNKNOWN** / **STRIPE LIVE BLOCKED**; tooling **operational** — repeat on **staging** with real env + school slug.
+
 ## Wave — Lane 2 scaffolding: §11.4 batches 1170–1175 + §12 command center + pilot scorecard (2026-04-29)
 
 **A. Scope:** Primary focus shifts to **live external execution** + **controlled pilots**; extend **`RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`** with two-lane model, **§12.0** external command-center table (blocking PSP/settlement rows), and **§11.4** batches **1170–1175** (**NOT STARTED** until evidence exists). Add **`docs/generated/pilot_readiness_scorecard.{json,md}`** scaffold.
