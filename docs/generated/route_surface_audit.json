@@ -1132,7 +1132,7 @@
         },
         {
           "kind": "reverse",
-          "line": 87,
+          "line": 86,
           "name": "accounts:backend_dashboard",
           "path": "apps/platform_runtime/tests/test_experience_control_closure.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -7780,7 +7780,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 448,
+          "line": 457,
           "name": "admin:compliance_auditlog_changelist",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"admin:compliance_auditlog_changelist\")",
@@ -18873,7 +18873,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 254,
+          "line": 253,
           "name": "platform_runtime:tenant_lifecycle_dashboard",
           "path": "apps/platform_runtime/tests/test_experience_control_closure.py",
           "raw": "reverse(\"platform_runtime:tenant_lifecycle_dashboard\")",
@@ -30759,7 +30759,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1013,
+          "line": 1017,
           "name": "super:dashboard",
           "path": "apps/schools/middleware.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -30939,7 +30939,7 @@
         },
         {
           "kind": "reverse",
-          "line": 353,
+          "line": 362,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32457,7 +32457,7 @@
         },
         {
           "kind": "reverse",
-          "line": 110,
+          "line": 109,
           "name": "super:founder_dashboard",
           "path": "apps/platform_runtime/tests/test_experience_control_closure.py",
           "raw": "reverse(\"super:founder_dashboard\", urlconf=\"config.manager_urls\")",
@@ -35423,7 +35423,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 354,
+          "line": 363,
           "name": "super:security_surface_dashboard",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"super:security_surface_dashboard\")",
@@ -35432,7 +35432,7 @@
         },
         {
           "kind": "reverse",
-          "line": 275,
+          "line": 284,
           "name": "super:security_surface_dashboard",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"super:security_surface_dashboard\")",
@@ -35441,7 +35441,7 @@
         },
         {
           "kind": "reverse",
-          "line": 285,
+          "line": 294,
           "name": "super:security_surface_dashboard",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"super:security_surface_dashboard\")",
@@ -35450,7 +35450,7 @@
         },
         {
           "kind": "reverse",
-          "line": 295,
+          "line": 304,
           "name": "super:security_surface_dashboard",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"super:security_surface_dashboard\")",
@@ -35459,7 +35459,7 @@
         },
         {
           "kind": "reverse",
-          "line": 305,
+          "line": 314,
           "name": "super:security_surface_dashboard",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"super:security_surface_dashboard\")",
@@ -35820,7 +35820,7 @@
         },
         {
           "kind": "reverse",
-          "line": 459,
+          "line": 468,
           "name": "super:support_dashboard",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"super:support_dashboard\")",
@@ -38306,7 +38306,7 @@
         },
         {
           "kind": "reverse",
-          "line": 87,
+          "line": 86,
           "name": "accounts:backend_dashboard",
           "path": "apps/platform_runtime/tests/test_experience_control_closure.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -44954,7 +44954,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 448,
+          "line": 457,
           "name": "admin:compliance_auditlog_changelist",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"admin:compliance_auditlog_changelist\")",
@@ -70334,7 +70334,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 254,
+          "line": 253,
           "name": "platform_runtime:tenant_lifecycle_dashboard",
           "path": "apps/platform_runtime/tests/test_experience_control_closure.py",
           "raw": "reverse(\"platform_runtime:tenant_lifecycle_dashboard\")",
@@ -71343,7 +71343,7 @@
         },
         {
           "kind": "reverse",
-          "line": 177,
+          "line": 176,
           "name": "portal:offline_sync_queue",
           "path": "apps/platform_runtime/tests/test_experience_control_closure.py",
           "raw": "reverse(\"portal:offline_sync_queue\")",
@@ -73262,7 +73262,7 @@
         },
         {
           "kind": "reverse",
-          "line": 312,
+          "line": 311,
           "name": "portal:student_360_page",
           "path": "apps/platform_runtime/tests/test_experience_control_closure.py",
           "raw": "reverse(\"portal:student_360_page\", kwargs={\"student_id\": stu.pk})",
@@ -87735,7 +87735,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1013,
+          "line": 1017,
           "name": "super:dashboard",
           "path": "apps/schools/middleware.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -87915,7 +87915,7 @@
         },
         {
           "kind": "reverse",
-          "line": 353,
+          "line": 362,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -89433,7 +89433,7 @@
         },
         {
           "kind": "reverse",
-          "line": 110,
+          "line": 109,
           "name": "super:founder_dashboard",
           "path": "apps/platform_runtime/tests/test_experience_control_closure.py",
           "raw": "reverse(\"super:founder_dashboard\", urlconf=\"config.manager_urls\")",
@@ -92399,7 +92399,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 354,
+          "line": 363,
           "name": "super:security_surface_dashboard",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"super:security_surface_dashboard\")",
@@ -92408,7 +92408,7 @@
         },
         {
           "kind": "reverse",
-          "line": 275,
+          "line": 284,
           "name": "super:security_surface_dashboard",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"super:security_surface_dashboard\")",
@@ -92417,7 +92417,7 @@
         },
         {
           "kind": "reverse",
-          "line": 285,
+          "line": 294,
           "name": "super:security_surface_dashboard",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"super:security_surface_dashboard\")",
@@ -92426,7 +92426,7 @@
         },
         {
           "kind": "reverse",
-          "line": 295,
+          "line": 304,
           "name": "super:security_surface_dashboard",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"super:security_surface_dashboard\")",
@@ -92435,7 +92435,7 @@
         },
         {
           "kind": "reverse",
-          "line": 305,
+          "line": 314,
           "name": "super:security_surface_dashboard",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"super:security_surface_dashboard\")",
@@ -92796,7 +92796,7 @@
         },
         {
           "kind": "reverse",
-          "line": 459,
+          "line": 468,
           "name": "super:support_dashboard",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"super:support_dashboard\")",
@@ -94900,7 +94900,7 @@
         },
         {
           "kind": "reverse",
-          "line": 87,
+          "line": 86,
           "name": "accounts:backend_dashboard",
           "path": "apps/platform_runtime/tests/test_experience_control_closure.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -105382,7 +105382,7 @@
         },
         {
           "kind": "reverse",
-          "line": 87,
+          "line": 86,
           "name": "accounts:backend_dashboard",
           "path": "apps/platform_runtime/tests/test_experience_control_closure.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -112053,7 +112053,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 442,
+          "line": 451,
           "name": "admin:accounts_securityauditlog_changelist",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\n                \"admin:accounts_securityauditlog_changelist\"\n            )",
@@ -113538,7 +113538,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 448,
+          "line": 457,
           "name": "admin:compliance_auditlog_changelist",
           "path": "apps/schools/super_views_enterprise_security.py",
           "raw": "reverse(\"admin:compliance_auditlog_changelist\")",
@@ -138323,7 +138323,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 254,
+          "line": 253,
           "name": "platform_runtime:tenant_lifecycle_dashboard",
           "path": "apps/platform_runtime/tests/test_experience_control_closure.py",
           "raw": "reverse(\"platform_runtime:tenant_lifecycle_dashboard\")",
@@ -139332,7 +139332,7 @@
         },
         {
           "kind": "reverse",
-          "line": 177,
+          "line": 176,
           "name": "portal:offline_sync_queue",
           "path": "apps/platform_runtime/tests/test_experience_control_closure.py",
           "raw": "reverse(\"portal:offline_sync_queue\")",
@@ -141251,7 +141251,7 @@
         },
         {
           "kind": "reverse",
-          "line": 312,
+          "line": 311,
           "name": "portal:student_360_page",
           "path": "apps/platform_runtime/tests/test_experience_control_closure.py",
           "raw": "reverse(\"portal:student_360_page\", kwargs={\"student_id\": stu.pk})",

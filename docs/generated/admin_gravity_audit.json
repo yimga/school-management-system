@@ -126,8 +126,8 @@
       67
     ],
     "apps/schools/super_views_enterprise_security.py": [
-      443,
-      448
+      452,
+      457
     ],
     "apps/siteconfig/admin.py": [
       637
@@ -322,7 +322,7 @@
       "title": "Dynamic field EAV operator (read-only triage; admin CRUD for definitions/values)"
     }
   ],
-  "generated_at": "2026-05-03T00:18:22.389239+00:00",
+  "generated_at": "2026-05-03T04:46:37.908386+00:00",
   "marketplace_app_admin_line_hits": {
     "apps/accounts/management/commands/ensure_default_tenant_admin.py": [
       111
@@ -611,10 +611,10 @@
       29,
       41,
       71,
-      684,
-      737,
-      738,
-      1009
+      688,
+      741,
+      742,
+      1013
     ],
     "apps/schools/middleware_activation_gate.py": [
       74
@@ -629,8 +629,8 @@
       359
     ],
     "apps/schools/super_views_enterprise_security.py": [
-      443,
-      448
+      452,
+      457
     ],
     "apps/schools/super_views_phase_b.py": [
       163
@@ -959,10 +959,10 @@
         29,
         41,
         71,
-        684,
-        737,
-        738,
-        1009
+        688,
+        741,
+        742,
+        1013
       ]
     },
     "apps/schools/middleware_activation_gate.py": {
@@ -989,8 +989,8 @@
     "apps/schools/super_views_enterprise_security.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        443,
-        448
+        452,
+        457
       ]
     },
     "apps/schools/super_views_phase_b.py": {
@@ -1412,10 +1412,10 @@
         29,
         41,
         71,
-        684,
-        737,
-        738,
-        1009
+        688,
+        741,
+        742,
+        1013
       ],
       "v2": "needs_model_service_support"
     },
@@ -1442,8 +1442,8 @@
     },
     "apps/schools/super_views_enterprise_security.py": {
       "line_numbers": [
-        443,
-        448
+        452,
+        457
       ],
       "v2": "needs_model_service_support"
     },
@@ -2138,10 +2138,10 @@
             29,
             41,
             71,
-            684,
-            737,
-            738,
-            1009
+            688,
+            741,
+            742,
+            1013
           ],
           "path": "apps/schools/middleware.py",
           "v2": "needs_model_service_support"
@@ -2163,8 +2163,8 @@
         },
         {
           "lines": [
-            443,
-            448
+            452,
+            457
           ],
           "path": "apps/schools/super_views_enterprise_security.py",
           "v2": "needs_model_service_support"

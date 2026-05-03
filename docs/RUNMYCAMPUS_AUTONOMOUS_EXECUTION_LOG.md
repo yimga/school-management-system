@@ -1,5 +1,21 @@
 # RunMyCampus autonomous execution log
 
+## Wave — §11.4 batch 1165 Marketplace + Experience Integration Certifier (2026-05-03)
+
+**A. Scope:** Integrate proof for **`marketplace_monetization`** + **`experience_control`** closure branches on **`feature/marketplace-monetization-closure`**; **merge** **`feature/experience-control-closure`** → **`Already up to date`**.
+
+**B. Phase 2:** **`generate_system_closure_map.py --write`**; **`generate_category_scope_review.py --write --merge-proof-gates docs/generated/category_scope_review.json`**; **`generate_platform_inventory.py --write`**; **`sync_i18n_catalog --compile`**; **`verify_i18n_catalog_fresh.py`** → **OK**.
+
+**C. Phase 3:** **`RMC_TEST_LOCAL_SQLITE=1 DJANGO_TEST_DB_FILE=.django_test_dbs/mm_exp_targeted.sqlite3`** targeted bundles (**marketplace monetization + billing + experience_control slices + marketing registry**) → **`Ran 54 tests`**, **`OK`**.
+
+**D. Phase 4:** **`RMC_TEST_LOCAL_SQLITE=1 RMC_RELIABLE_TEST_RUNNER=1 DJANGO_TEST_DB_FILE=.django_test_dbs/mm_integration_full.sqlite3 python manage.py test --settings=config.settings --noinput --verbosity 0`** → **`Ran 2734 tests`**, **`OK (skipped=5)`**, **exit 0** (**stderr log:** **`.django_test_dbs/mm_integration_full.err`**).
+
+**E. Phase 5:** Full mechanical stack — sequential **exit 0** each (**`.django_test_dbs/mm_phase5_stack.log`**): **`audit_route_surface`** … **`run_kill_test.py`** (**PASS**).
+
+**F. Classification:** **`docs/generated/category_scope_review.json`** — **`experience_control`** **`closed`**; **`enterprise_security`** **`closed`**; **`global_payments`** / **`marketplace_monetization`** **`partial_external_blocker`**; **`floor_classification`** **PLATFORM LEVEL READY — external blockers remain**.
+
+**G. Verdict:** **PLATFORM LEVEL READY** — integrated mechanical certification; **full market** still gated by **`global_payments`** + **`marketplace_monetization`** external honesty rows.
+
 ## Wave — §11.4 batch 1164 marketplace_monetization closure (2026-05-03)
 
 **A. System:** **`marketplace_monetization`** — SKU registry (**`MARKETPLACE_SKU_CONTRACTS`**); unified **`MarketplaceMonetizationLedgerEntry`** + **`monetization_ledger_ops`** (honest settlement lanes; **relay/test** never production PSP); tenant **`marketplace:monetization_dashboard`**; webhook finalize writes payment/settlement ledger rows (**shared** **`apps/billing/services.py`**).

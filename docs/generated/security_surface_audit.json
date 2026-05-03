@@ -7242,7 +7242,7 @@
         "classification": "allowed",
         "file": "apps/schools/middleware.py",
         "governance_tier": "safe",
-        "line": "1117",
+        "line": "1121",
         "pattern": "staff_member_required"
       },
       {
@@ -8508,7 +8508,7 @@
         "classification": "needs_review",
         "file": "apps/schools/super_views_enterprise_security.py",
         "governance_tier": "needs_review",
-        "line": "195",
+        "line": "204",
         "pattern": "subprocess"
       },
       {
@@ -9441,7 +9441,7 @@
       }
     ]
   },
-  "generated_at": "2026-05-03T00:18:10.063201+00:00",
+  "generated_at": "2026-05-03T04:46:33.649703+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/oneroster_roster_webhook.py",
@@ -16707,7 +16707,7 @@
       "classification": "allowed",
       "file": "apps/schools/middleware.py",
       "governance_tier": "safe",
-      "line": "1117",
+      "line": "1121",
       "pattern": "staff_member_required"
     },
     {
@@ -17971,7 +17971,7 @@
       "classification": "needs_review",
       "file": "apps/schools/super_views_enterprise_security.py",
       "governance_tier": "needs_review",
-      "line": "195",
+      "line": "204",
       "pattern": "subprocess"
     },
     {

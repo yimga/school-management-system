@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-03T00:18:17.133193+00:00",
+  "generated_at": "2026-05-03T04:27:32.329847+00:00",
   "hits": [
     {
       "classification": "tenant_scoped",
@@ -1366,61 +1366,61 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/analytics/event_analytics_rollups.py",
-      "line": "65",
+      "line": "68",
       "preview": "sid = school_id"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/analytics/event_analytics_rollups.py",
-      "line": "67",
+      "line": "70",
       "preview": "domain_qs = DomainEvent.objects.filter(school_id=sid)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/analytics/event_analytics_rollups.py",
-      "line": "68",
+      "line": "71",
       "preview": "platform_qs = PlatformEventLog.objects.filter(school_id=str(sid))"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/analytics/event_analytics_rollups.py",
-      "line": "69",
+      "line": "72",
       "preview": "offline_qs = OfflineAction.objects.filter(school_id=sid)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/analytics/event_analytics_rollups.py",
-      "line": "70",
+      "line": "73",
       "preview": "payment_qs = Payment.objects.filter(school_id=sid)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/analytics/event_analytics_rollups.py",
-      "line": "71",
+      "line": "74",
       "preview": "install_qs = AppInstallation.objects.filter(school_id=sid)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/analytics/event_analytics_rollups.py",
-      "line": "72",
+      "line": "75",
       "preview": "funnel_qs = MarketingFunnelEvent.objects.filter(school_id=sid)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/analytics/event_analytics_rollups.py",
-      "line": "73",
+      "line": "76",
       "preview": "wf_qs = WorkflowRunLog.objects.filter(workflow__school_id=sid)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/analytics/event_analytics_rollups.py",
-      "line": "77",
+      "line": "80",
       "preview": "\"school_id\": sid,"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/analytics/event_analytics_rollups.py",
-      "line": "102",
+      "line": "105",
       "preview": "school_id=sid,"
     },
     {
@@ -11734,49 +11734,49 @@
     {
       "classification": "manager_scoped",
       "file": "apps/platform_runtime/tests/test_experience_control_closure.py",
-      "line": "60",
+      "line": "59",
       "preview": "ALLOWED_HOSTS=[\"*\", \"testserver\", \"manager.runmycampus.com\"],"
     },
     {
       "classification": "manager_scoped",
       "file": "apps/platform_runtime/tests/test_experience_control_closure.py",
-      "line": "97",
+      "line": "96",
       "preview": "ALLOWED_HOSTS=[\"*\", \"manager.runmycampus.com\"],"
     },
     {
       "classification": "manager_scoped",
       "file": "apps/platform_runtime/tests/test_experience_control_closure.py",
-      "line": "110",
+      "line": "109",
       "preview": "url = reverse(\"super:founder_dashboard\", urlconf=\"config.manager_urls\")"
     },
     {
       "classification": "manager_scoped",
       "file": "apps/platform_runtime/tests/test_experience_control_closure.py",
-      "line": "111",
+      "line": "110",
       "preview": "r = c.get(url, HTTP_HOST=\"manager.runmycampus.com\")"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/platform_runtime/tests/test_experience_control_closure.py",
-      "line": "163",
+      "line": "162",
       "preview": "school_id=self.school.pk,"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/platform_runtime/tests/test_experience_control_closure.py",
-      "line": "192",
+      "line": "191",
       "preview": "\"school_id\": str(self.school.pk),"
     },
     {
       "classification": "manager_scoped",
       "file": "apps/platform_runtime/tests/test_experience_control_closure.py",
-      "line": "240",
+      "line": "239",
       "preview": "\"manager.runmycampus.com\","
     },
     {
       "classification": "manager_scoped",
       "file": "apps/platform_runtime/tests/test_experience_control_closure.py",
-      "line": "255",
+      "line": "254",
       "preview": "r = c.get(url, HTTP_HOST=\"manager.runmycampus.com\")"
     },
     {
@@ -15946,44 +15946,38 @@
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "381",
+      "line": "385",
       "preview": "- manager -> config.manager_urls"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "389",
+      "line": "393",
       "preview": "kind = public_host_kind(host)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "391",
+      "line": "395",
       "preview": "request.public_host_kind = kind"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "397",
+      "line": "401",
       "preview": "request.urlconf = \"config.manager_urls\""
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "438",
+      "line": "442",
       "preview": "kind = public_host_kind(host)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "439",
+      "line": "443",
       "preview": "request.public_host_kind = kind"
-    },
-    {
-      "classification": "global_safe",
-      "file": "apps/schools/middleware.py",
-      "line": "454",
-      "preview": "school = School.objects.filter("
     },
     {
       "classification": "global_safe",
@@ -15994,104 +15988,104 @@
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "538",
+      "line": "462",
+      "preview": "school = School.objects.filter("
+    },
+    {
+      "classification": "global_safe",
+      "file": "apps/schools/middleware.py",
+      "line": "542",
       "preview": "school = School.objects.filter(pk=cached_id, is_active=True).first()"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "551",
+      "line": "555",
       "preview": "if school_domain and school_domain.school_id:"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "557",
+      "line": "561",
       "preview": "school = School.objects.filter("
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "571",
+      "line": "575",
       "preview": "school = School.objects.filter(pk=cached_id, is_active=True).first()"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "574",
+      "line": "578",
       "preview": "school = School.objects.filter("
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "584",
+      "line": "588",
       "preview": "school = School.objects.filter("
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "615",
+      "line": "619",
       "preview": "School.objects.filter(is_active=True).order_by(\"created_at\", \"id\")[:2]"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "625",
+      "line": "629",
       "preview": "This bridge sets request.school = request.tenant.school so all code that expects request.school works."
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "632",
+      "line": "636",
       "preview": "request.school = tenant.school"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "633",
+      "line": "637",
       "preview": "if request.school and getattr(request, \"session\", None) is not None:"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "634",
+      "line": "638",
       "preview": "request.session[\"school_id\"] = str(request.school.id)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "636",
+      "line": "640",
       "preview": "request.school = None"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "642",
+      "line": "646",
       "preview": "but no tenant was resolved (request.school is None), return branded \"School Not Found\" 404."
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "664",
+      "line": "668",
       "preview": "if getattr(request, \"school\", None) is not None:"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "677",
+      "line": "681",
       "preview": "Sets request.school, request.session['school_id'], and PostgreSQL app.current_school_id."
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "687",
+      "line": "691",
       "preview": "request.school = None"
-    },
-    {
-      "classification": "global_safe",
-      "file": "apps/schools/middleware.py",
-      "line": "699",
-      "preview": "school = School.objects.filter("
     },
     {
       "classification": "global_safe",
@@ -16102,247 +16096,253 @@
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "720",
-      "preview": "and request.session.get(\"school_id\")"
-    },
-    {
-      "classification": "global_safe",
-      "file": "apps/schools/middleware.py",
-      "line": "723",
+      "line": "707",
       "preview": "school = School.objects.filter("
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
       "line": "724",
+      "preview": "and request.session.get(\"school_id\")"
+    },
+    {
+      "classification": "global_safe",
+      "file": "apps/schools/middleware.py",
+      "line": "727",
+      "preview": "school = School.objects.filter("
+    },
+    {
+      "classification": "global_safe",
+      "file": "apps/schools/middleware.py",
+      "line": "728",
       "preview": "id=request.session[\"school_id\"],"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "736",
+      "line": "740",
       "preview": "request.school = school"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "750",
+      "line": "754",
       "preview": "request.session[\"school_id\"] = str(school.id)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "763",
+      "line": "767",
       "preview": "from apps.schools.rls_context import set_rls_school_id"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "765",
+      "line": "769",
       "preview": "set_rls_school_id(school.id)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "766",
+      "line": "770",
       "preview": "request._rls_school_id_set = True"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "768",
+      "line": "772",
       "preview": "logger.debug(\"Could not set app.current_school_id: %s\", e)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "770",
+      "line": "774",
       "preview": "request.session.pop(\"school_id\", None)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "776",
+      "line": "780",
       "preview": "if getattr(request, \"_rls_school_id_set\", False):"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "778",
+      "line": "782",
       "preview": "from apps.schools.rls_context import reset_rls_school_id"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "780",
+      "line": "784",
       "preview": "reset_rls_school_id()"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "782",
+      "line": "786",
       "preview": "logger.debug(\"Could not reset app.current_school_id: %s\", e)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "783",
+      "line": "787",
       "preview": "request._rls_school_id_set = False"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "787",
+      "line": "791",
       "preview": "def _reset_rls_school_id_if_set(request):"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "788",
+      "line": "792",
       "preview": "\"\"\"Reset app.current_school_id when this request had set it. Used on exception path.\"\"\""
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "789",
+      "line": "793",
       "preview": "if not getattr(request, \"_rls_school_id_set\", False):"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "792",
+      "line": "796",
       "preview": "from apps.schools.rls_context import reset_rls_school_id"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "794",
+      "line": "798",
       "preview": "reset_rls_school_id()"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "796",
+      "line": "800",
       "preview": "logger.debug(\"Could not reset app.current_school_id (finally): %s\", e)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "797",
+      "line": "801",
       "preview": "request._rls_school_id_set = False"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "802",
+      "line": "806",
       "preview": "Ensures app.current_school_id is RESET even when a view or inner middleware raises."
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "810",
+      "line": "814",
       "preview": "_reset_rls_school_id_if_set(request)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "832",
+      "line": "836",
       "preview": "Section 8.6: When request.school is set and school.is_frozen is True, redirect to"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "848",
+      "line": "852",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "863",
+      "line": "867",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "879",
+      "line": "883",
       "preview": "When request.school is set and path is under /api/, enforces throttle_tenant_request."
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "889",
+      "line": "893",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "913",
+      "line": "917",
       "preview": "\"\"\"Phase H optional: tag Sentry events with school_id when request.school is set.\"\"\""
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "916",
+      "line": "920",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "921",
+      "line": "925",
       "preview": "sentry_sdk.set_tag(\"school_id\", str(school.id))"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "929",
+      "line": "933",
       "preview": "\"\"\"Phase H optional: update School.last_activity when request.school is set (throttled ~1/hour per school).\"\"\""
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "932",
+      "line": "936",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "945",
+      "line": "949",
       "preview": "School.objects.filter(pk=school.id).update(last_activity=timezone.now())"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "990",
+      "line": "994",
       "preview": "This prevents tenant staff users from treating manager.runmycampus.com as a"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "996",
+      "line": "1000",
       "preview": "if getattr(request, \"public_host_kind\", None) != \"manager\":"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "1208",
+      "line": "1212",
       "preview": "Phase D / Batch 14+: Enforce feature access by path when ``request.school`` is set."
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "1217",
+      "line": "1221",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "1246",
+      "line": "1250",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
       "classification": "global_safe",
       "file": "apps/schools/middleware.py",
-      "line": "1273",
+      "line": "1277",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {

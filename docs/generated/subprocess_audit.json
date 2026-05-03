@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-02T23:59:26.275855+00:00",
+  "generated_at": "2026-05-03T04:01:02.149705+00:00",
   "hits": [
     {
       "classification": "test_safe",
@@ -796,7 +796,7 @@
     {
       "classification": "needs_review",
       "file": "apps/schools/super_views_enterprise_security.py",
-      "line": "195",
+      "line": "204",
       "pattern": "subprocess.get"
     },
     {
