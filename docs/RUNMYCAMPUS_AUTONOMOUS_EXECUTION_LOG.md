@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Wave — Lane 2 scaffolding: §11.4 batches 1170–1175 + §12 command center + pilot scorecard (2026-04-29)
+
+**A. Scope:** Primary focus shifts to **live external execution** + **controlled pilots**; extend **`RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`** with two-lane model, **§12.0** external command-center table (blocking PSP/settlement rows), and **§11.4** batches **1170–1175** (**NOT STARTED** until evidence exists). Add **`docs/generated/pilot_readiness_scorecard.{json,md}`** scaffold.
+
+**B. Files:** SOT (**§11.4** head + **§12.0**); **`docs/generated/pilot_readiness_scorecard.json`**; **`docs/generated/pilot_readiness_scorecard.md`**.
+
+**C. Proof:** Planning artifacts only — **no** staging deploy, **no** live PSP secrets, **no** pilot PII in repo.
+
+**D. Verdict:** Program **PILOT BLOCKED** until **1170–1173** execute with external evidence; repo classification remains **CATEGORY DEFINING — REPO SCOPE — EXTERNAL BLOCKERS REMAIN** per **`category_scope_review`**.
+
 ## Wave — §11.4 batch 1169 Marketing front final QA closure (2026-05-03)
 
 **A. Classification:** **FULLY ADDRESSED for repo validation + controlled fast browser smoke.**
