@@ -9180,7 +9180,7 @@
         "classification": "needs_review",
         "file": "scripts/run_sqlite_memory_tests.py",
         "governance_tier": "controlled",
-        "line": "39",
+        "line": "44",
         "pattern": "subprocess"
       },
       {
@@ -9513,7 +9513,7 @@
       }
     ]
   },
-  "generated_at": "2026-05-04T20:04:18.558367+00:00",
+  "generated_at": "2026-05-04T20:41:19.328004+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/oneroster_roster_webhook.py",
@@ -18715,7 +18715,7 @@
       "classification": "needs_review",
       "file": "scripts/run_sqlite_memory_tests.py",
       "governance_tier": "controlled",
-      "line": "39",
+      "line": "44",
       "pattern": "subprocess"
     },
     {

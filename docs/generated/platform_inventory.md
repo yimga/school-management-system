@@ -6,7 +6,7 @@
 - Markdown files: `1121`
 - Migration files: `747`
 - Management commands: `162` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs (gross scan): `2057`
+- `SiteSettings` refs (gross scan): `2059`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `41`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `7`
 - `get_solo()` refs: `208`
@@ -18,7 +18,7 @@
 - `AllowAny`: `106`
 - `print()` (gross all `.py`): `1059`
 - `print()` (`apps` product paths): `0`; `scripts/`: `958`
-- `gilead` matches (gross corpus): `16654` across `166` files
+- `gilead` matches (gross corpus): `16654` across `165` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).

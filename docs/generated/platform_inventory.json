@@ -6,14 +6,14 @@
     "except_exception": 414,
     "get_solo": 208,
     "gilead": 16654,
-    "gilead_files": 166,
+    "gilead_files": 165,
     "html_files": 789,
     "management_commands": 162,
     "markdown_files": 1121,
     "migration_files": 747,
     "print_calls": 1059,
     "python_files": 2920,
-    "site_settings": 2057
+    "site_settings": 2059
   },
   "doc_drift": {
     "actual_installed_app_count": 45,

@@ -1,8 +1,11 @@
 {
   "critical_count": 0,
-  "django_test_db_file": ".django_test_dbs/main_branch_consolidation.sqlite3",
-  "generated_at": "2026-05-04T19:03:29.737512+00:00",
-  "keepdb": true,
+  "django_test_db_file": {
+    "degraded": ".django_test_dbs/kill_test_degraded_1af811e20a55.sqlite3",
+    "security": ".django_test_dbs/kill_test_security_1af811e20a55.sqlite3"
+  },
+  "generated_at": "2026-05-04T20:40:59.832511+00:00",
+  "keepdb": false,
   "result": "PASS",
   "scenarios": [
     {
@@ -26,5 +29,5 @@
       "title": "Founder surface degrades gracefully when generated ledgers are missing"
     }
   ],
-  "sqlite_mode": "shared_keepdb"
+  "sqlite_mode": "ephemeral_pair"
 }
