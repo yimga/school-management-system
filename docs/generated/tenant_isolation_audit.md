@@ -1,6 +1,6 @@
 # Tenant isolation audit (generated)
 
-**UTC** `2026-05-04T20:58:58.088670+00:00`
+**UTC** `2026-05-04T22:06:48.405809+00:00`
 
 **Total hits (capped in JSON):** 3919
 

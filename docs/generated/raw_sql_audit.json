@@ -1,6 +1,6 @@
 {
   "allowlist_path": "scripts/allowlists/raw_sql_allowlist.json",
-  "generated_at": "2026-05-04T20:59:12.431846+00:00",
+  "generated_at": "2026-05-04T22:07:00.124611+00:00",
   "hits": [
     {
       "classification": "migration_safe",

@@ -1,5 +1,21 @@
 # RunMyCampus autonomous execution log
 
+## Wave — batch 1183 UX certifier stale row closure on `main` (2026-05-04)
+
+**A. Scope:** Close the dangling **PARTIAL** narrative for **batch 1183** after **`main`** already holds **batch 1186** certified UX proof; re-run artifacts + self-heal + full SQLite suite + phase gates on current tree.
+
+**B. Regeneration:** **`generate_platform_inventory.py --write`**, **`manage.py sync_i18n_catalog --compile`**, **`verify_i18n_catalog_fresh.py`** → **OK**.
+
+**C. North Star self-heal:** **`python scripts/run_northstar_self_heal.py`** → **`SELF_HEALED_PASS`** (**`docs/generated/northstar_self_heal_report.json`**; host log **`.django_test_dbs/ux_factory_northstar_self_heal_main.log`**).
+
+**D. Full Django suite:** **`DJANGO_TEST_DB_FILE=.django_test_dbs/ux_factory_reset.sqlite3 RMC_RELIABLE_TEST_RUNNER=1 python manage.py test --settings=config.settings --noinput`** → **`Ran 2816 tests`**, **`OK (skipped=5)`** (**`.django_test_dbs/ux_factory_phase5_full_suite_main.log`**).
+
+**E. Gates:** **`verify_phases_3_11_gates.py`**, **`verify_doc_plan_density_discipline.py`**, **`verify_sot_pillar_evidence.py`** → **exit 0**.
+
+**F. Kill + North Star audit:** **`RMC_SQLITE_TEST_MEMORY=1 RMC_KILL_TEST_DB_FILE=.django_test_dbs/ux_factory_reset.sqlite3 RMC_KILL_TEST_KEEPDB=1 python scripts/run_kill_test.py`** → **`Kill test: PASS`** (**`docs/generated/kill_test_report.json`**, **`.django_test_dbs/ux_factory_finish_kill_test.log`**); **`python scripts/run_northstar_audit.py`** → **`75/75 (DOMINANT)`** (**`docs/generated/northstar_audit.json`**, **`.django_test_dbs/ux_factory_finish_northstar_audit.log`**).
+
+**G. Docs:** **`RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`** batch **1183** set to **DEPRECATED/REPLACED** with pointer to **1186**/**1187** and this finish-pass evidence (including kill + audit logs above).
+
 ## Wave — §11.4 batch 1189 Offline-first proof + SQLite memory test runner default (2026-05-04)
 
 **A. Scope:** Close Lane 1 proof for offline queue/dashboard/conflict slice on **`main`**; unblock **`run_sqlite_memory_tests.py`** on Windows file-lock teardown.
