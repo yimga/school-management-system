@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Wave — §11.4 batch 1189 Offline-first proof + SQLite memory test runner default (2026-05-04)
+
+**A. Scope:** Close Lane 1 proof for offline queue/dashboard/conflict slice on **`main`**; unblock **`run_sqlite_memory_tests.py`** on Windows file-lock teardown.
+
+**B. Code:** **`scripts/run_sqlite_memory_tests.py`** — default **`RMC_SQLITE_TEST_USE_MEMORY_NAME=1`** (documented in module docstring).
+
+**C. Tests:** **`RMC_SQLITE_TEST_MEMORY=1 RMC_SQLITE_TEST_USE_MEMORY_NAME=1 python manage.py test`** **`apps.platform_runtime.tests.test_offline_first_closure_slice`** **`apps.portal.tests.test_offline_sync_dashboard`** **`apps.platform_runtime.tests.test_offline_queue`** **`--settings=config.settings --noinput --verbosity=1`** → **`Ran 23 tests`**, **`OK`**.
+
+**D. Verifiers:** **`audit_tenant_isolation`**, **`audit_security_surface`**, **`audit_route_surface`**, **`verify_test_module_contract`**, **`run_northstar_audit`**, **`audit_luxury_ui_surface`**, **`verify_design_system_phase2`**, **`verify_shell_surface_inventory`** → green.
+
+**E. Generated:** **`python scripts/generate_system_closure_map.py --write`** ( **`offline_first`** row remains **closed** in **`docs/generated/system_closure_map.json`** ).
+
+**F. Verdict:** **DONE (Lane 1)** for batch **1189** proof slice; **`api_offline_process`** JSON scope gap recorded in SOT batch row only.
+
 ## Wave — §11.4 batch 1188 Domain events replay + webhook DLQ tests (Windows cp1252 + retry clock) (2026-04-29)
 
 **A. Scope:** Close event-bus integration proof gaps: management command stdout safe on Windows; webhook retry test respects **`scheduled_for`** backoff; architecture docs match **`payment.received`** and catalog.
