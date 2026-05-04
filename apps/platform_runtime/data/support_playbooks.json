@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "playbooks": [
+    {
+      "id": "setup_tenant_academic_calendar",
+      "title": "Top setup issue: academic year / terms missing",
+      "audience": "setup",
+      "severity": "high",
+      "owner_role": "Implementation lead",
+      "expected_resolution_time": "4-8 business hours (tenant access confirmed)",
+      "steps": [
+        "Open Tenant configuration hub and confirm an active academic year.",
+        "Create terms with start/end dates aligned to your ministry or board calendar.",
+        "Set exactly one active term for day-to-day operations if your policy requires it."
+      ],
+      "escalation": "Escalate to platform support if term constraints conflict with legacy data migration.",
+      "copy_response": "We see the academic calendar is not fully configured yet. Please complete the active academic year and terms in your tenant hub — attendance and reports depend on those dates. If import blocks you, reply with your intended term pattern and we will suggest the shortest safe sequence.",
+      "primary_action": {"label": "Open tenant runtime hub", "url_name": "siteconfig:tenant_runtime_configuration_hub"}
+    },
+    {
+      "id": "setup_no_roster",
+      "title": "Top setup issue: empty classes / students / teachers",
+      "audience": "setup",
+      "severity": "high",
+      "owner_role": "Data onboarding",
+      "expected_resolution_time": "1-2 business days (depends on import size)",
+      "steps": [
+        "Confirm departments and classrooms for the active academic year.",
+        "Import or create teacher profiles, then student profiles.",
+        "Attach students to classrooms before enabling attendance."
+      ],
+      "escalation": "If imports fail, capture the quarantine CSV row index and module name for engineering.",
+      "copy_response": "Roster data is still incomplete for go-live. Next step: finish classes and attach students/teachers for the active year. We can walk through import mapping if you share which file format you are using (CSV template vs manual entry).",
+      "primary_action": {"label": "Open implementation command center", "url_name": "platform_runtime:implementation_command_center"}
+    },
+    {
+      "id": "import_failure_quarantine",
+      "title": "Bulk import failed or rows quarantined",
+      "audience": "setup",
+      "severity": "high",
+      "owner_role": "Data onboarding",
+      "expected_resolution_time": "Same business day for mapping fixes; 1-3 days if schema change",
+      "steps": [
+        "Export or screenshot the quarantine report with row numbers (no unnecessary PII in tickets).",
+        "Confirm file encoding (UTF-8), delimiter, and header row matches the approved template.",
+        "Retry a 10-row pilot import after fixing the first failing column."
+      ],
+      "escalation": "If the same column fails after template correction, escalate with sample row (redacted) and module name.",
+      "copy_response": "Imports usually fail on column mapping, duplicate keys, or inactive academic year references. Please share the quarantine row index and which entity type failed (student, teacher, class). We will suggest the minimal column fix before you re-run the full file.",
+      "primary_action": {"label": "Implementation command center", "url_name": "platform_runtime:implementation_command_center"}
+    },
+    {
+      "id": "teacher_attendance_sync",
+      "title": "Top teacher issue: attendance not visible after entry",
+      "audience": "teacher",
+      "severity": "medium",
+      "owner_role": "School IT / academic lead",
+      "expected_resolution_time": "2-6 business hours",
+      "steps": [
+        "Confirm the teacher is scoped to the same school tenant and classroom.",
+        "Check active academic year and term on the attendance date.",
+        "If offline was used, open offline sync queue and process pending actions."
+      ],
+      "escalation": "If queue shows repeated conflicts, escalate with conflict payload redacted of student PII.",
+      "copy_response": "Attendance may be queued offline or tied to the wrong term. Please open Offline sync from the portal menu and complete pending items; also verify the attendance date falls inside the active term.",
+      "primary_action": {"label": "Offline sync queue", "url_name": "portal:offline_sync_queue"}
+    },
+    {
+      "id": "teacher_marks_grading",
+      "title": "Top teacher issue: marks sheet locked or wrong term",
+      "audience": "teacher",
+      "severity": "medium",
+      "owner_role": "Academic lead",
+      "expected_resolution_time": "Same day if policy unlock; otherwise next leadership window",
+      "steps": [
+        "Verify the marking period / term selected in the gradebook UI.",
+        "Check academic year lock flags with leadership.",
+        "Retry after cache refresh; capture error banner text if it persists."
+      ],
+      "escalation": "If year-end lock is unintended, leadership must request unlock via support with audit trail.",
+      "copy_response": "Grading is usually blocked by term selection or an academic-year lock. Please confirm the active term and whether leaders have locked the year for rollover. Send a screenshot of the banner message if the issue continues.",
+      "primary_action": {"label": "Back to operations home", "url_name": "accounts:backend_dashboard"}
+    },
+    {
+      "id": "parent_portal_login",
+      "title": "Top parent issue: cannot access portal / wrong school",
+      "audience": "parent",
+      "severity": "medium",
+      "owner_role": "Front office",
+      "expected_resolution_time": "Same business day",
+      "steps": [
+        "Confirm parent is using the school-specific URL or discovery flow.",
+        "Verify guardian link to student profile in admin.",
+        "Reset invitation or password using the standard accounts flow."
+      ],
+      "escalation": "If discovery returns multiple schools, use the ministry or region hint your comms team published.",
+      "copy_response": "Please use the school link from your latest enrollment email or the Find school page. If login still fails, the office can confirm your guardian record is linked to the correct student profile.",
+      "primary_action": {"label": "Global login discovery", "url_name": "global_login_discovery"}
+    },
+    {
+      "id": "payment_receipt_mismatch",
+      "title": "Payment / receipt issue: invoice paid but balance shows due",
+      "audience": "finance",
+      "severity": "high",
+      "owner_role": "Bursar / finance operator",
+      "expected_resolution_time": "4-24 hours (product ledger); longer if PSP webhook gap",
+      "steps": [
+        "Open the invoice detail and list payments attached.",
+        "If manual receipt capture was used, verify receipt reference and amount currency.",
+        "Check latest payment gateway health snapshot for rail degradation (not a live-money guarantee)."
+      ],
+      "escalation": "If PSP webhooks are missing, this is often an external credential or endpoint issue — involve PSP support with sanitized references.",
+      "copy_response": "We will trace the invoice ledger row and any captured receipts. Please send the invoice number and payment reference (no full card data). Note: live PSP settlement is outside the product if webhooks or merchant onboarding are incomplete.",
+      "primary_action": {"label": "Finance dashboard", "url_name": "finance:dashboard"}
+    },
+    {
+      "id": "failed_payment_readiness_rehearsal",
+      "title": "Go-live rehearsal: payment rail not ready or health snapshot red",
+      "audience": "finance",
+      "severity": "high",
+      "owner_role": "Bursar + IT",
+      "expected_resolution_time": "External: PSP onboarding; product config: 1-3 business days",
+      "steps": [
+        "Open payment readiness / gateway health for the tenant and capture the status message.",
+        "Confirm whether you are in sandbox vs production keys and whether webhooks are registered.",
+        "Run a single low-value test invoice in the agreed corridor only when policy allows."
+      ],
+      "escalation": "If health shows EXTERNAL_REQUIRED, pause live collection until PSP credentials and webhooks are verified.",
+      "copy_response": "The product can show invoicing and orchestration ready while live collection is still blocked by PSP merchant onboarding or webhooks. Next step: confirm corridor, environment (sandbox vs prod), and webhook endpoint reachability with your PSP — we will align product-side toggles once those are green.",
+      "primary_action": {"label": "Payment readiness setup", "url_name": "finance:payment_readiness_setup"}
+    },
+    {
+      "id": "offline_sync_conflicts",
+      "title": "Offline sync issue: conflicts after reconnect",
+      "audience": "operations",
+      "severity": "high",
+      "owner_role": "School IT",
+      "expected_resolution_time": "Same business day for under 50 conflicts",
+      "steps": [
+        "Open Offline sync conflicts from the portal.",
+        "For each conflict, choose server vs local truth per policy.",
+        "Re-run queue processing and confirm zero pending."
+      ],
+      "escalation": "If conflicts repeat for the same entity, capture event ids from the operator log (no student names in ticket title).",
+      "copy_response": "Conflicts appear when the same record changed offline and online. Please open Offline conflicts, pick the authoritative version per your policy, then reprocess the queue. We can join a working session if you share conflict types only.",
+      "primary_action": {"label": "Offline conflicts", "url_name": "portal:offline_sync_conflicts"}
+    },
+    {
+      "id": "report_card_generation",
+      "title": "Report card issue: template or term selection",
+      "audience": "academic",
+      "severity": "medium",
+      "owner_role": "Registrar",
+      "expected_resolution_time": "Same business day after marks complete",
+      "steps": [
+        "Confirm all required marks columns are populated for the term.",
+        "Select the correct report template and language variant.",
+        "Generate a single-class pilot PDF before whole-school batch."
+      ],
+      "escalation": "If template registry is empty, enable the report pack for your tenant via configuration support.",
+      "copy_response": "Report generation usually fails when marks are incomplete or the wrong term is selected. Please validate marks completeness for the reporting term, then retry a single class export before batching.",
+      "primary_action": {"label": "Operations home", "url_name": "accounts:backend_dashboard"}
+    },
+    {
+      "id": "report_card_publish_rush",
+      "title": "Report card rush: batch deadline pressure",
+      "audience": "academic",
+      "severity": "high",
+      "owner_role": "Registrar + communications",
+      "expected_resolution_time": "Pilot class same day; full school 1-2 days (queue + QA)",
+      "steps": [
+        "Freeze marks entry except authorized corrections; publish a single-class pilot PDF.",
+        "Validate parent portal entitlement and link stability before whole-school publish.",
+        "Stage comms with one primary support path (avoid duplicate help-desk aliases)."
+      ],
+      "escalation": "If batch jobs fail mid-run, stop, capture job id, and retry class slices — do not double-publish without audit.",
+      "copy_response": "We will prioritize a safe pilot publish first, then scale batch size. Please confirm marks approval state, reporting term, and whether parents should receive email vs portal-only. Send the registrar cutoff time so we align retries.",
+      "primary_action": {"label": "Support playbooks", "url_name": "platform_runtime:support_playbook_center"}
+    }
+  ]
+}

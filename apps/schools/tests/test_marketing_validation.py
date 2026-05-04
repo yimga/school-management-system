@@ -39,6 +39,18 @@ MARKETING_URL_NAMES = [
     "marketing_sitemap_xml",
     "signup_school",
     "global_login_discovery",
+    "marketing_trust_dedicated",
+    "marketing_pricing_packages_clarity",
+    "marketing_story_implementation",
+    "marketing_story_offline_first",
+    "marketing_story_payments_readiness",
+    "marketing_story_private_schools",
+    "marketing_story_school_networks",
+    "marketing_story_pilot_program",
+    "marketing_procurement_checklist",
+    "marketing_implementation_assurance",
+    "marketing_security_packet_request",
+    "marketing_security_packet_submit",
 ]
 SMOKE_URL_NAMES = [
     "marketing_landing",
@@ -48,6 +60,11 @@ SMOKE_URL_NAMES = [
     "marketing_integrations",
     "marketing_app_marketplace",
     "marketing_developers",
+    "marketing_trust_dedicated",
+    "marketing_pricing_packages_clarity",
+    "marketing_procurement_checklist",
+    "marketing_implementation_assurance",
+    "marketing_security_packet_request",
 ]
 
 
@@ -242,12 +259,14 @@ class MarketingLandingContextTests(TestCase):
         self.assertContains(resp, "images/marketing/setup-studio-flow.svg")
         self.assertContains(resp, "images/marketing/viz-admin.svg")
         self.assertContains(resp, "hero-global-os-composite.svg")
+        self.assertContains(resp, "mkt-hero-composite-img")
         self.assertContains(resp, "images/marketing/module-finance.svg")
         # Phase 10 narrative spine (verify_ux_completion.py markers)
         self.assertContains(resp, "data-phase10-marketing-narrative")
         self.assertContains(resp, "mkt-narrative-phase10")
         self.assertContains(resp, "Why schools switch")
-        self.assertContains(resp, "Studio OS — one shell for every mode")
+        self.assertContains(resp, "product-visualization")
+        self.assertContains(resp, "Studio OS")
 
     def test_landing_renders_admissions_flow_post_enrollment_and_what_you_get(self):
         """MARKETING_PAGE_AUDIT: context keys must surface on HTML (was context-only)."""
@@ -268,9 +287,13 @@ class MarketingLandingContextTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn("dropdown-toggle", body)
-        self.assertIn("/platform/admissions/", body)
-        self.assertIn("/solutions/k12-schools/", body)
-        self.assertIn("mkt-nav-submenu", body)
+        # Mega-menu header (replaces legacy compact nav dropdown panel).
+        self.assertIn("mkt-mega-menu", body)
+        self.assertIn("/platform/student-information-system/", body)
+        self.assertIn("/for-private-schools/", body)
+        self.assertIn("/offline-first/", body)
+        self.assertIn("Why RunMyCampus", body)
+        self.assertIn("/trust/", body)
 
     def test_landing_includes_platform_visual_assets_without_placeholder_video_urls(self):
         resp = self.client.get("/marketing/", HTTP_HOST=self.host)
@@ -313,6 +336,56 @@ class MarketingPageExtrasTests(TestCase):
     def test_onboard_wizard_returns_200(self):
         resp = self.client.get("/onboard/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
+
+    def test_platform_admissions_differentiated_layout_and_pipeline_asset(self):
+        resp = self.client.get("/platform/admissions/", HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn('data-mkt-platform-admissions="1"', body)
+        self.assertIn("platform-admissions-pipeline.svg", body)
+        self.assertIn("data-mkt-admissions-pipeline-visual", body)
+        self.assertIn(
+            "Turn every inquiry into an organized enrollment journey.", body
+        )
+        self.assertIn("marketing-platform-admissions.css", body)
+
+    def test_platform_fees_payments_differentiated_layout(self):
+        resp = self.client.get("/platform/fees-payments/", HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn('data-mkt-platform-fees-payments="1"', body)
+        self.assertIn("platform-fees-payments-dashboard.svg", body)
+        self.assertIn("data-mkt-fees-dashboard-visual", body)
+        self.assertIn("data-mkt-fees-connected-handoff", body)
+        self.assertIn(
+            "Every invoice, receipt, and balance in one finance workspace.", body
+        )
+        self.assertIn("marketing-platform-fees-payments.css", body)
+
+    def test_platform_parent_portal_differentiated_layout(self):
+        resp = self.client.get("/platform/parent-portal/", HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn('data-mkt-platform-parent-portal="1"', body)
+        self.assertIn("platform-parent-mobile-portal.svg", body)
+        self.assertIn("data-mkt-parent-portal-visual", body)
+        self.assertIn("data-mkt-parent-connected-handoff", body)
+        self.assertIn("Give families a clear window into school life.", body)
+        self.assertIn("marketing-platform-parent-portal.css", body)
+
+    def test_platform_teacher_portal_differentiated_layout(self):
+        resp = self.client.get("/platform/teacher-portal/", HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn('data-mkt-platform-teacher-portal="1"', body)
+        self.assertIn("platform-teacher-workspace.svg", body)
+        self.assertIn("data-mkt-teacher-workspace-visual", body)
+        self.assertIn("data-mkt-teacher-connected-handoff", body)
+        self.assertIn(
+            "One classroom workspace for attendance, marks, assignments, and progress.",
+            body,
+        )
+        self.assertIn("marketing-platform-teacher-portal.css", body)
 
 
 class MarketingJsonLoaderTests(SimpleTestCase):
@@ -434,7 +507,7 @@ class MarketingAbVariantTests(TestCase):
     def tearDown(self):
         self.env.stop()
 
-    def test_hero_lists_request_demo_before_start_trial(self):
+    def test_hero_primary_book_demo_with_product_tour_only(self):
         session = self.client.session
         session["marketing_cta_variant"] = "secondary"
         session.save()
@@ -442,15 +515,9 @@ class MarketingAbVariantTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
         hero_part = body.split('id="hero"', 1)[1].split('id="platform-pillars"', 1)[0]
-        pos_demo = hero_part.find("Request Demo")
-        pos_trial = hero_part.find("Start Free Trial")
-        self.assertGreater(pos_demo, -1, "hero should include Request Demo")
-        self.assertGreater(pos_trial, -1, "hero should include Start Free Trial")
-        self.assertLess(
-            pos_demo,
-            pos_trial,
-            "Request Demo should appear before Start Free Trial in hero CTAs",
-        )
+        self.assertIn("Book demo", hero_part)
+        self.assertIn("See product tour", hero_part)
+        self.assertNotIn("Start Free Trial", hero_part)
 
     def test_hero_variant_b_appends_subline_when_no_cms(self):
         session = self.client.session
@@ -610,3 +677,18 @@ class ExperienceControlMarketingRegistryTests(SimpleTestCase):
         for key in ("marketing_homepage", "marketing_platform_page"):
             row = next(r for r in EXPERIENCE_CONTROL_SCREENS if r["id"] == key)
             reverse_screen(row)
+
+    def test_roster_public_urls_procurement_surfaces_reverse(self):
+        from apps.platform_runtime.tests.experience_control_registry import (
+            EXPERIENCE_CONTROL_SCREENS,
+            reverse_screen,
+        )
+
+        for key in (
+            "marketing_procurement_checklist",
+            "marketing_implementation_assurance",
+            "marketing_security_packet_request",
+        ):
+            row = next(r for r in EXPERIENCE_CONTROL_SCREENS if r["id"] == key)
+            path = reverse_screen(row)
+            self.assertTrue(path.startswith("/"), msg=path)

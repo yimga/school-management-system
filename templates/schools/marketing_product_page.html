@@ -34,15 +34,14 @@
         <h1 class="mkt-product-headline">{{ page.headline|default:"One platform. Every outcome." }}</h1>
         <p class="mkt-product-subheadline">{{ page.subheadline|default:"High-fidelity workflows for admissions, academics, finance, and compliance—showcased, not described." }}</p>
         <div class="mkt-product-hero-ctas">
-          <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="primary">{% trans "Start Free Trial" %}</a>
-          <a href="{% url 'marketing_demo' %}" class="btn btn-outline-light" data-cta="demo">{% trans "Book a demo" %}</a>
+          <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="demo">{% trans "Book demo" %}</a>
           {% if demo_tenant_url %}
           <a href="{{ demo_tenant_url }}" class="btn btn-outline-light" target="_blank" rel="noopener noreferrer">{% trans "Try demo" %}</a>
           {% endif %}
           {% if marketing_product_tour_url %}
           <a href="{{ marketing_product_tour_url }}" class="btn btn-outline-light" target="_blank" rel="noopener noreferrer">{% trans "Product tour" %}</a>
           {% else %}
-          <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-outline-light">{% trans "Product tour" %}</a>
+          <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-outline-light" data-cta="secondary">{% trans "See product tour" %}</a>
           {% endif %}
         </div>
       </div>
@@ -50,7 +49,7 @@
         {% if hero_dashboard_image_url %}
         <img src="{{ hero_dashboard_image_url }}" alt="{% trans 'RunMyCampus dashboard' %}" width="800" height="450" decoding="async" fetchpriority="high" loading="eager" class="mkt-product-hero-img">
         {% else %}
-        <img src="{% static 'images/marketing/hero-placeholder.svg' %}" alt="{% trans 'Platform overview' %}" width="800" height="450" decoding="async" fetchpriority="high" loading="eager" class="mkt-product-hero-img">
+        <img src="{% static 'images/marketing/hero-global-os-composite.svg' %}" alt="{% trans 'Composite view of leadership analytics, administration, teacher workspace, parent mobile portal, finance, and student portal in RunMyCampus' %}" width="800" height="450" decoding="async" fetchpriority="high" loading="eager" class="mkt-product-hero-img">
         {% endif %}
       </div>
     </div>
@@ -145,11 +144,12 @@
   </section>
   {% endif %}
 
-  {# 6. Core capabilities — segments from page #}
+  {# 6. Platform surface map — segments from page #}
   {% if page.segments %}
-  <section id="mkt-product-capabilities" class="mkt-product-section mkt-reveal" aria-label="{% trans 'Core capabilities' %}" data-chapter="6">
+  <section id="mkt-product-capabilities" class="mkt-product-section mkt-reveal" aria-label="{% trans 'Platform surface map' %}" data-chapter="6">
     <div class="mkt-product-section-inner">
-      <h2 class="mkt-product-section-heading">{% trans "Core capabilities" %}</h2>
+      <h2 class="mkt-product-section-heading">{% trans "How the platform composes for your school" %}</h2>
+      <p class="mkt-product-section-lead">{% trans "Each pillar is a buyer-visible surface—not an internal module code name." %}</p>
       <div class="mkt-product-segments mkt-reveal-stagger">
         {% for segment in page.segments %}
         <article class="mkt-product-segment">
@@ -165,10 +165,9 @@
   {# 7. Final CTA #}
   <section id="mkt-product-final-cta" class="mkt-product-final-cta mkt-reveal" aria-label="{% trans 'Get started' %}">
     <h2 class="mkt-product-section-heading">{% trans "Run your campus on one platform" %}</h2>
-    <p class="mkt-product-section-lead">{% trans "Start free, add your school, and see outcomes in days—not quarters." %}</p>
+    <p class="mkt-product-section-lead">{% trans "Book a walkthrough to map rollout, integrations, and honest payment posture for your campuses." %}</p>
     <div class="mkt-product-hero-ctas">
-      <a href="{% url 'signup_school' %}" class="btn btn-primary mkt-cta-focus" data-cta="primary">{% trans "Start Free Trial" %}</a>
-      <a href="{% url 'marketing_demo' %}" class="btn btn-outline-light mkt-cta-focus" data-cta="demo">{% trans "Book a Demo" %}</a>
+      <a href="{% url 'marketing_demo' %}" class="btn btn-primary mkt-cta-focus" data-cta="demo">{% trans "Book demo" %}</a>
       <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light mkt-cta-focus">{% trans "Login" %}</a>
     </div>
   </section>
@@ -180,7 +179,7 @@
       {% if hero_dashboard_image_url %}
       <img src="{{ hero_dashboard_image_url }}" alt="{% trans 'Platform overview' %}" width="600" height="338" loading="lazy" decoding="async">
       {% else %}
-      <img src="{% static 'images/marketing/hero-placeholder.svg' %}" alt="{% trans 'Platform overview' %}" width="600" height="338" loading="lazy" decoding="async">
+      <img src="{% static 'images/marketing/hero-global-os-composite.svg' %}" alt="{% trans 'Composite view of leadership analytics, administration, teacher workspace, parent mobile portal, finance, and student portal in RunMyCampus' %}" width="600" height="338" loading="lazy" decoding="async">
       {% endif %}
     </div>
     <div class="mkt-product-pinned-panel" data-chapter="2">
@@ -210,7 +209,7 @@
       <img src="{% static 'images/marketing/platform-diagram-marketing.svg' %}" alt="{% trans 'Outcomes' %}" width="600" height="338" loading="lazy" decoding="async">
     </div>
     <div class="mkt-product-pinned-panel" data-chapter="6">
-      <img src="{% static 'images/marketing/platform-diagram-marketing.svg' %}" alt="{% trans 'Core capabilities' %}" width="600" height="338" loading="lazy" decoding="async">
+      <img src="{% static 'images/marketing/platform-diagram-marketing.svg' %}" alt="{% trans 'Platform surface map' %}" width="600" height="338" loading="lazy" decoding="async">
     </div>
   </aside>
   </div>{# /.mkt-product-story-inner #}

@@ -1,0 +1,42 @@
+/**
+ * RunMyCampus OS shell — shared authenticated layout tokens.
+ * Complements portal-premium-shell / control-plane shells.
+ */
+
+[data-rmc-os-shell] {
+  --rmc-os-header-pad: 0.75rem;
+  --rmc-os-canvas-gap: 1rem;
+}
+
+.rmc-os-page-header {
+  border-color: color-mix(in srgb, var(--bs-border-color, #dee2e6) 85%, transparent);
+}
+
+.rmc-os-status-stack .alert,
+.rmc-os-status-stack .rmc-offline-sync-bar {
+  margin-bottom: 0.75rem;
+}
+
+.rmc-os-payment-readiness-slot:empty {
+  display: none;
+}
+
+.rmc-os-context-rail {
+  display: none;
+}
+
+@media (min-width: 1400px) {
+  .rmc-os-layout-with-rail .rmc-os-context-rail {
+    display: block;
+  }
+}
+
+.portal-main-col .page-wrap.rmc-shell-content-grid,
+.cp-main-col .rmc-shell-content-grid {
+  gap: var(--rmc-os-canvas-gap);
+}
+
+.rmc-os-section-header + .card,
+.rmc-os-section-header + .table-responsive {
+  margin-top: 0.25rem;
+}

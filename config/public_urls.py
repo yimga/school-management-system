@@ -11,6 +11,14 @@ from django.views.generic.base import RedirectView
 
 from apps.observability import views as obs_views
 from apps.schools.error_views import school_not_found_public
+from apps.schools.competitive_marketing_views import (
+    marketing_implementation_assurance,
+    marketing_pricing_packages_clarity,
+    marketing_procurement_checklist,
+    marketing_security_packet_request,
+    marketing_story_page,
+    marketing_trust_dedicated,
+)
 from apps.schools.marketing_views import (
     blog_post_detail,
     buyer_toolkit_download,
@@ -32,6 +40,7 @@ from apps.schools.marketing_views import (
     role_marketing_page,
     submit_contact_request,
     submit_demo_request,
+    submit_security_packet_request,
     topical_marketing_landing,
     marketing_robots_txt,
     marketing_sitemap_xml,
@@ -365,6 +374,63 @@ urlpatterns = [
     ),
     path(
         "pricing/", marketing_page, {"page_slug": "pricing"}, name="marketing_pricing"
+    ),
+    path(
+        "pricing-packages/",
+        marketing_pricing_packages_clarity,
+        name="marketing_pricing_packages_clarity",
+    ),
+    path("trust/", marketing_trust_dedicated, name="marketing_trust_dedicated"),
+    path(
+        "implementation/",
+        marketing_story_page,
+        {"story_slug": "implementation"},
+        name="marketing_story_implementation",
+    ),
+    path(
+        "offline-first/",
+        marketing_story_page,
+        {"story_slug": "offline-first"},
+        name="marketing_story_offline_first",
+    ),
+    path(
+        "payments-readiness/",
+        marketing_story_page,
+        {"story_slug": "payments-readiness"},
+        name="marketing_story_payments_readiness",
+    ),
+    path(
+        "for-private-schools/",
+        marketing_story_page,
+        {"story_slug": "for-private-schools"},
+        name="marketing_story_private_schools",
+    ),
+    path(
+        "for-school-networks/",
+        marketing_story_page,
+        {"story_slug": "for-school-networks"},
+        name="marketing_story_school_networks",
+    ),
+    path(
+        "pilot-program/",
+        marketing_story_page,
+        {"story_slug": "pilot-program"},
+        name="marketing_story_pilot_program",
+    ),
+    path(
+        "procurement-checklist/",
+        marketing_procurement_checklist,
+        name="marketing_procurement_checklist",
+    ),
+    path(
+        "implementation-assurance/",
+        marketing_implementation_assurance,
+        name="marketing_implementation_assurance",
+    ),
+    path(
+        "security-packet/",
+        marketing_security_packet_request,
+        name="marketing_security_packet_request",
     ),
     path(
         "compare/", marketing_page, {"page_slug": "compare"}, name="marketing_compare"
@@ -773,6 +839,11 @@ urlpatterns = [
         "contact/submit/",
         submit_contact_request,
         name="marketing_contact_submit",
+    ),
+    path(
+        "security-packet/submit/",
+        submit_security_packet_request,
+        name="marketing_security_packet_submit",
     ),
     path(
         "contact/", marketing_page, {"page_slug": "contact"}, name="marketing_contact"

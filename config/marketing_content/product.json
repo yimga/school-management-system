@@ -2,8 +2,8 @@
   "label": "Product",
   "seo_title": "Product | RunMyCampus",
   "seo_description": "One platform for admissions, academics, finance, communication, and compliance across every campus.",
-  "headline": "One operating system for every school workflow.",
-  "subheadline": "Run admissions, academics, billing, communication, and compliance from a single tenant-first platform.",
+  "headline": "One operating rhythm from inquiry through daily operations.",
+  "subheadline": "Admissions, academics, billing, communication, and compliance share one learner and guardian thread—technical architecture is documented on Platform pages.",
   "schema_type": "SoftwareApplication",
   "segments": [
     {"title": "AI Co-pilot", "body": "Smart assistance for workflows, reporting, and decision support across admissions, academics, and operations."},
@@ -14,12 +14,12 @@
     {"title": "Global tenancy", "body": "Operate one campus or many with domain, policy, and branding isolation."}
   ],
   "extras": {
-    "trust_strip": ["Unified data model", "Role-ready portals", "Global tenancy", "FERPA aligned", "GDPR ready"],
+    "trust_strip": ["Unified data model", "Role-ready portals", "Global tenancy", "FERPA-conscious workflows", "GDPR-aligned practices"],
     "metrics": [
       {"value": "1", "label": "unified data model", "detail": "Admissions, academics, finance, and communication stay in one platform."},
       {"value": "4", "label": "core operator modules", "detail": "Enrollment, academics, operations, and support control surfaces."},
       {"value": "3", "label": "role portals", "detail": "Parent, teacher, and student experiences stay role-specific and auditable."},
-      {"value": "24/7", "label": "operational continuity", "detail": "Manager-level workflows keep support and governance responsive."}
+      {"value": "Always-on", "label": "workflow continuity", "detail": "Automations and queues keep work moving; human support scope follows your agreement."}
     ],
     "execution_blocks": [
       {"title": "Admissions to enrollment continuity", "body": "Lead capture, qualification, and onboarding transitions run without disconnected tooling."},

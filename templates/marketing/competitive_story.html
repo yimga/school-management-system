@@ -1,0 +1,21 @@
+{% extends "schools/marketing_base.html" %}
+{% load i18n %}
+{% block title %}{{ seo_title }}{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <article>
+    <h1 class="h2 mb-3">{{ headline }}</h1>
+    <p class="lead text-muted">{{ lede }}</p>
+    <ul class="mt-4">
+      {% for line in bullets %}
+      <li class="mb-2">{{ line }}</li>
+      {% endfor %}
+    </ul>
+    <nav class="d-flex flex-wrap gap-2 mt-4" aria-label="{% trans 'Primary actions' %}">
+      {% for c in ctas_resolved %}
+      <a class="btn btn-primary" href="{{ c.url }}">{{ c.label }}</a>
+      {% endfor %}
+    </nav>
+  </article>
+</div>
+{% endblock %}

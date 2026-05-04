@@ -32,7 +32,19 @@
       "go_live_blockers": [],
       "critical_bugs": [],
       "user_feedback_notes": "",
-      "pilot_verdict": "not_started"
+      "pilot_verdict": "not_started",
+      "attendance_completed": false,
+      "marks_completed": false,
+      "report_generated": false,
+      "invoice_created": false,
+      "receipt_or_payment_captured": false,
+      "parent_portal_viewed": false,
+      "offline_sync_used": false,
+      "defects_found": 0,
+      "defects_resolved": 0,
+      "testimonial_permission_status": "not_requested",
+      "reference_status": "none",
+      "evidence_link_or_notes": ""
     },
     {
       "slot": 2,
@@ -51,7 +63,19 @@
       "go_live_blockers": [],
       "critical_bugs": [],
       "user_feedback_notes": "",
-      "pilot_verdict": "not_started"
+      "pilot_verdict": "not_started",
+      "attendance_completed": false,
+      "marks_completed": false,
+      "report_generated": false,
+      "invoice_created": false,
+      "receipt_or_payment_captured": false,
+      "parent_portal_viewed": false,
+      "offline_sync_used": false,
+      "defects_found": 0,
+      "defects_resolved": 0,
+      "testimonial_permission_status": "not_requested",
+      "reference_status": "none",
+      "evidence_link_or_notes": ""
     },
     {
       "slot": 3,
@@ -70,7 +94,19 @@
       "go_live_blockers": [],
       "critical_bugs": [],
       "user_feedback_notes": "",
-      "pilot_verdict": "not_started"
+      "pilot_verdict": "not_started",
+      "attendance_completed": false,
+      "marks_completed": false,
+      "report_generated": false,
+      "invoice_created": false,
+      "receipt_or_payment_captured": false,
+      "parent_portal_viewed": false,
+      "offline_sync_used": false,
+      "defects_found": 0,
+      "defects_resolved": 0,
+      "testimonial_permission_status": "not_requested",
+      "reference_status": "none",
+      "evidence_link_or_notes": ""
     }
   ],
   "workflow_evidence_template": {
@@ -84,5 +120,5 @@
     "conflict_resolved": false,
     "admin_next_action_completed": false
   },
-  "notes": "Populate after batch 1172+. Do not store secrets or full PII in this file; reference internal CRM."
+  "notes": "Populate after batch 1172+. Do not store secrets or full PII in this file; reference internal CRM. testimonial_permission_status: not_requested | requested | approved_internal | approved_public. reference_status: none | internal_only | public_reference. Public marketing must not show identifying reference details unless both reference_status is public_reference and testimonial_permission_status is approved_public."
 }

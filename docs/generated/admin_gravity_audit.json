@@ -86,13 +86,13 @@
       2
     ],
     "apps/schools/platform_admin_surface_bridges.py": [
-      162,
-      239,
-      302,
-      491,
-      624,
-      631,
-      638
+      163,
+      240,
+      303,
+      492,
+      632,
+      639,
+      646
     ],
     "apps/schools/super_admin_bridge_registry.py": [
       217,
@@ -322,7 +322,7 @@
       "title": "Dynamic field EAV operator (read-only triage; admin CRUD for definitions/values)"
     }
   ],
-  "generated_at": "2026-05-03T17:25:59.706325+00:00",
+  "generated_at": "2026-05-04T15:42:13.809734+00:00",
   "marketplace_app_admin_line_hits": {
     "apps/accounts/management/commands/ensure_default_tenant_admin.py": [
       111
@@ -347,22 +347,22 @@
       115
     ],
     "apps/schools/platform_admin_surface_bridges.py": [
-      113,
-      190,
-      239,
-      246,
-      253,
-      260,
-      267,
-      274,
-      281,
-      288,
-      295,
-      302,
-      309,
-      477,
-      484,
-      596
+      114,
+      191,
+      240,
+      247,
+      254,
+      261,
+      268,
+      275,
+      282,
+      289,
+      296,
+      303,
+      310,
+      478,
+      485,
+      604
     ],
     "apps/schools/super_admin_bridge_registry.py": [
       127,
@@ -416,10 +416,10 @@
     "apps/schools/platform_admin_surface_bridges.py": {
       "classify": "declared_admin_bridge_table",
       "line_numbers": [
-        491,
-        498,
-        505,
-        512
+        492,
+        499,
+        506,
+        513
       ]
     },
     "apps/siteconfig/views_config_mutation_evidence.py": {
@@ -462,8 +462,8 @@
   },
   "metadata_dynamicfield_admin_bridge_hits": {
     "apps/schools/platform_admin_surface_bridges.py": [
-      498,
-      505
+      499,
+      506
     ],
     "apps/siteconfig/views_console_domains.py": [
       165
@@ -1678,10 +1678,10 @@
   },
   "product_admin_metadata_namespace_bridge_hits": {
     "apps/schools/platform_admin_surface_bridges.py": [
-      491,
-      498,
-      505,
-      512
+      492,
+      499,
+      506,
+      513
     ],
     "apps/siteconfig/views_config_mutation_evidence.py": [
       43
@@ -2477,7 +2477,7 @@
   "registrations_by_app": [],
   "reports_bulk_export_admin_line_hits": {
     "apps/schools/platform_admin_surface_bridges.py": [
-      617
+      625
     ],
     "apps/schools/super_admin_bridge_registry.py": [
       556,
@@ -2533,7 +2533,7 @@
       "observability": 5,
       "packages": 6,
       "people": 17,
-      "platform": 24,
+      "platform": 25,
       "policies": 3,
       "portal": 1,
       "registries": 13,
@@ -2689,13 +2689,13 @@
       307
     ],
     "apps/schools/platform_admin_surface_bridges.py": [
-      113,
-      120,
-      127,
-      134,
-      141,
-      225,
-      610
+      114,
+      121,
+      128,
+      135,
+      142,
+      226,
+      618
     ],
     "apps/schools/super_admin_bridge_registry.py": [
       158,

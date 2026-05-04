@@ -1,0 +1,98 @@
+{% extends "control_plane_base.html" %}
+{% load i18n phase8_tags %}
+{% block cp_title %}{% trans "Implementation command center" %}{% endblock %}
+{% block cp_content %}
+<div class="container-lg py-4" data-page-archetype="operations" data-decision-engine="surface" data-rmc-implementation-command-center="{{ page_marker }}">
+  {% phase8_dashboard_declaration "platform_runtime/implementation_command_center.html" %}
+  <header class="mb-4">
+    <h1 class="h3">{% trans "Implementation command center" %}</h1>
+    {% if school %}
+    <p class="text-muted mb-0">{% trans "School:" %} <strong>{{ school.name }}</strong> ({{ school.slug }})</p>
+    {% else %}
+    <p class="text-muted mb-0">{% trans "Platform scope: pass school_slug query parameter to focus a tenant checklist." %}</p>
+    {% endif %}
+  </header>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6 text-uppercase text-muted">{% trans "Go-live readiness" %}</h2>
+      <p class="mb-1">
+        <span class="display-6">{{ go_live_readiness_score }}</span>
+        <span class="text-muted">/ 100</span>
+        <span class="badge bg-light text-dark border ms-2">{{ go_live_readiness_band }}</span>
+      </p>
+      {% if consolidated_blockers %}
+      <p class="small text-muted mb-2">{% trans "Consolidated blockers (missing + partial checklist items)" %}</p>
+      <ul class="small mb-0">
+        {% for b in consolidated_blockers|slice:":12" %}
+        <li><strong>{{ b.title }}</strong> — <span class="text-muted">{{ b.status }}</span>{% if b.detail %}: {{ b.detail|truncatewords:24 }}{% endif %}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="small text-muted mb-0">{% trans "No checklist blockers in missing/partial state for this scope." %}</p>
+      {% endif %}
+      <p class="small mt-2 mb-0">
+        <a href="{% url 'platform_runtime:implementation_missing_data_blockers_json' %}">{% trans "Blockers JSON" %}</a>
+        {% if school %}(<code>?school_slug={{ school.slug }}</code>){% endif %}
+      </p>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6 text-uppercase text-muted">{% trans "Primary next action" %}</h2>
+      <a class="btn btn-primary" href="{{ primary_next_action.url }}">{{ primary_next_action.label }}</a>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6 text-uppercase text-muted">{% trans "Adoption signals (event log — honest)" %}</h2>
+      {% if adoption_metrics.insufficient_data %}
+      <p class="small text-warning mb-0">{{ adoption_metrics.reason }}</p>
+      {% else %}
+      <ul class="small mb-0">
+        <li>{% trans "Dashboard / lifecycle signals" %}: {{ adoption_metrics.dashboard_viewed|yesno:"yes,no" }}</li>
+        <li>{% trans "First action (observed)" %}: {{ adoption_metrics.first_action_completed|yesno:"yes,no" }}</li>
+        <li>{% trans "Workflow / automation" %}: {{ adoption_metrics.workflow_used|yesno:"yes,no" }}</li>
+        <li>{% trans "Reports" %}: {{ adoption_metrics.report_generated|yesno:"yes,no" }}</li>
+        <li>{% trans "Parent portal" %}: {{ adoption_metrics.parent_portal_activated|yesno:"yes,no" }}</li>
+        <li>{% trans "Offline" %}: {{ adoption_metrics.offline_sync_used|yesno:"yes,no" }}</li>
+        <li>{% trans "Sample size (events)" %}: {{ adoption_metrics.event_sample_size }}</li>
+      </ul>
+      {% endif %}
+      {% for b in adoption_metrics.blockers %}
+      <div class="mt-2">
+        <span class="small">{{ b.label }}</span>
+        {% if b.primary_action.url %}
+        <a class="btn btn-sm btn-outline-secondary ms-2" href="{{ b.primary_action.url }}">{{ b.primary_action.label }}</a>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>{% trans "Item" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Detail" %}</th>
+          <th>{% trans "Primary action" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in checklist_items %}
+        <tr>
+          <td>{{ row.title }}</td>
+          <td><span class="badge bg-light text-dark border">{{ row.status }}</span></td>
+          <td class="small text-muted">{{ row.detail }}</td>
+          <td><a href="{{ row.primary_action.url }}">{{ row.primary_action.label }}</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

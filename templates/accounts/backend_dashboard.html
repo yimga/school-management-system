@@ -1,7 +1,7 @@
 {% extends "backend_base.html" %}
 {% load admin_health i18n static region_format phase8_tags %}
 
-{% block backend_title %}Backend Dashboard{% endblock %}
+{% block backend_title %}{% trans "School Command Center" %}{% endblock %}
 {% block body_extra_class %}
 backend-shell dashboard-page-backend
 {% if backend_theme_settings.warm_palette %} backend-theme-warm{% endif %}
@@ -19,6 +19,7 @@ backend-shell dashboard-page-backend
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-v2.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-v2-contract.css' %}">
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
+<link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
 <!-- Include navigation bridge styles -->
 <script>
   (function () {
@@ -316,9 +317,10 @@ backend-shell dashboard-page-backend
   {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
 
   {# Optional: load status strip via HTMX so initial render does not wait on this data #}
-  <div class="backend-dashboard-content ui-premium-surface" data-decision-engine="surface" data-shell-surface="backend-dashboard" data-rmc-blueprint-surface="1101" data-rmc-component-audit="1">
+  <div class="backend-dashboard-content ui-premium-surface" data-decision-engine="surface" data-shell-surface="backend-dashboard" data-rmc-blueprint-surface="1101" data-rmc-component-audit="1" data-rmc-ux-role-dashboard="school-command-center">
   {% include "partials/shell_chrome_backend_operational_status_load.html" %}
 
+  <div data-rmc-ux-section="today-operations" class="mb-2">
   {% include "partials/shell_chrome_backend_ops_strip.html" %}
   {% include "partials/shell_chrome_backend_system_indicators.html" %}
   {% include "partials/shell_chrome_backend_ops_depth_summary.html" %}
@@ -332,11 +334,12 @@ backend-shell dashboard-page-backend
   {% url 'siteconfig:guided_onboarding' as backend_onboarding_url %}
   {% url 'siteconfig:scheduled_reports_delivery_hub' as backend_controls_url %}
   {# data-page-header #}{# ds-action-bar #}
-  {% include "partials/luxury_major_audit_contract.html" with title=_("Operations dashboard") subtitle=_("Live health, workflows, and command surfaces for your school.") primary_url=backend_workflow_url primary_label=_("Workflow center") secondary_url=backend_reports_url secondary_label=_("Reports") %}
+  {% include "partials/luxury_major_audit_contract.html" with title=_("School Command Center") subtitle=_("What is happening, what needs attention, and your next step — without hunting through cards.") primary_url=backend_workflow_url primary_label=_("Workflow center") secondary_url=backend_reports_url secondary_label=_("Reports") %}
+  <!-- rmc-ux-above-fold-end -->
 
-  <section class="mb-3" data-rmc-intelligent-insights="backend" aria-label="{% trans 'Decision insights' %}">
+  <section class="mb-3" data-rmc-intelligent-insights="backend" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-      <h2 class="h6 mb-0">{% trans "Decision insights" %}</h2>
+      <h2 class="h6 mb-0">{% trans "What needs attention" %}</h2>
       <span class="small text-muted">{% trans "3-5 actions based on live operations data" %}</span>
     </div>
     <div class="row g-2">
@@ -371,9 +374,11 @@ backend-shell dashboard-page-backend
   {% if first_login_checklist_show %}
   {% include "accounts/first_login_checklist_card.html" %}
   {% endif %}
+  <div data-rmc-ux-section="school-readiness">
   {% include "accounts/school_onboarding_card.html" %}
   {% include "accounts/ai_system_layer_strip.html" %}
   {% include "partials/backend_command_center_setup_strip.html" %}
+  </div>
 
   <div class="backend-v2-shell" data-dashboard-intent="{{ dashboard_intent|default:'operational' }}" data-tour="dashboard-main">
     {% if backend_intent_emphasize_setup %}

@@ -27,10 +27,10 @@ def _tenant_host(school: School) -> str:
 
 
 class ExperienceControlRegistryTests(TestCase):
-    """Phase 1–2: roster must enumerate every mission-required surface (22)."""
+    """Phase 1–2: roster must enumerate every mission-required surface (34)."""
 
-    def test_registry_has_twenty_two_screens(self):
-        self.assertEqual(len(EXPERIENCE_CONTROL_SCREENS), 22)
+    def test_registry_has_thirty_four_screens(self):
+        self.assertEqual(len(EXPERIENCE_CONTROL_SCREENS), 34)
 
     def test_every_screen_reverse_resolves(self):
         for row in EXPERIENCE_CONTROL_SCREENS:

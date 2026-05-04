@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-03T16:45:48.707645+00:00",
+  "generated_at": "2026-05-04T15:41:50.336372+00:00",
   "rows": [
     {
       "bucket": "product",
@@ -145,7 +145,7 @@
       "bucket": "product",
       "classification": "protected_candidate",
       "file": "apps/analytics/views.py",
-      "line": "753",
+      "line": "762",
       "protective_decorator_nearby": true
     },
     {
@@ -446,7 +446,7 @@
       "bucket": "product",
       "classification": "protected_candidate",
       "file": "apps/events/views_console.py",
-      "line": "209",
+      "line": "211",
       "protective_decorator_nearby": true
     },
     {
@@ -936,21 +936,21 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/sales/views.py",
-      "line": "100",
+      "line": "109",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/sales/views.py",
-      "line": "136",
+      "line": "160",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/sales/views.py",
-      "line": "207",
+      "line": "245",
       "protective_decorator_nearby": false
     },
     {
@@ -1048,14 +1048,21 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2047",
+      "line": "2356",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2122",
+      "line": "2431",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/schools/marketing_views.py",
+      "line": "2488",
       "protective_decorator_nearby": false
     },
     {
@@ -1656,15 +1663,15 @@
   ],
   "schema_version": 1,
   "summary_by_bucket": {
-    "product": 232,
+    "product": 233,
     "scripts": 4
   },
   "summary_by_classification": {
-    "needs_review": 84,
+    "needs_review": 85,
     "protected_candidate": 148,
     "scripts_cli": 4
   },
   "totals": {
-    "hits": 236
+    "hits": 237
   }
 }

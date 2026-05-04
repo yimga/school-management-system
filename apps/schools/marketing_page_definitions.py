@@ -2327,7 +2327,7 @@ INSTITUTION_LANDING_DEFINITIONS = {
         ],
         "compliance_angle": "FERPA- and GDPR-aligned practices with configurable retention and export tooling.",
         "migration_pathway": "Import applicants and student records; align grading scales and fee schedules; activate portals per campus.",
-        "cta_primary": "Request demo",
+        "cta_primary": "Book demo",
         "cta_secondary": "Explore platform",
     },
     "faith-based-schools": {
@@ -2352,7 +2352,7 @@ INSTITUTION_LANDING_DEFINITIONS = {
         ],
         "compliance_angle": "Role-based access and audit trails suitable for accountable governance.",
         "migration_pathway": "Migrate families and fee schedules; configure branding and portals; phase academics module rollout.",
-        "cta_primary": "Request demo",
+        "cta_primary": "Book demo",
         "cta_secondary": "Explore platform",
     },
     "multi-campus": {
@@ -2377,7 +2377,7 @@ INSTITUTION_LANDING_DEFINITIONS = {
         ],
         "compliance_angle": "Tenant isolation with optional network oversight—audit-ready exports.",
         "migration_pathway": "Define hierarchy; import each campus; validate cross-campus reporting.",
-        "cta_primary": "Request demo",
+        "cta_primary": "Book demo",
         "cta_secondary": "Compare architecture",
     },
     "growing-school-networks": {

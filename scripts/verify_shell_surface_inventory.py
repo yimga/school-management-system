@@ -136,6 +136,7 @@ TEMPLATE_REQUIRED_SUBSTRINGS: dict[str, tuple[str, ...]] = {
     "templates/partials/shell_portal_layout_wrap_open.html": (
         "portal_wrap_authenticated_shell",
         "data-rmc-authenticated-shell",
+        "data-rmc-os-shell",
     ),
     "templates/partials/shell_skip_link.html": (
         "skip_href",

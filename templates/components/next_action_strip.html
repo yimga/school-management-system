@@ -14,6 +14,7 @@
       <a class="rmc-nas-chip"
          role="listitem"
          href="{{ a.action_url }}"
+         data-rmc-primary-action="1"
          data-action="{% if a.recommendation_key %}ai-suggestion-open{% else %}{{ a.type }}-open{% endif %}"
          data-task="{% if a.task_code %}{{ a.task_code }}{% else %}platform-next-action{% endif %}"
          data-task-step="dashboard:next-action"
@@ -25,7 +26,7 @@
         {% if a.description %}<span class="rmc-nas-chip-desc text-muted">{{ a.description }}</span>{% endif %}
       </a>
         {% empty %}
-      <a class="rmc-nas-chip" role="listitem" href="{% url 'accounts:backend_dashboard' %}" data-action="fallback-open" data-task="platform-next-action" data-task-step="dashboard:next-action-fallback">
+      <a class="rmc-nas-chip" role="listitem" href="{% url 'accounts:backend_dashboard' %}" data-rmc-primary-action="1" data-action="fallback-open" data-task="platform-next-action" data-task-step="dashboard:next-action-fallback">
         <span class="rmc-nas-chip-title">{% trans "Operations home" %}</span>
         <span class="rmc-nas-chip-desc text-muted">{% trans "Open your main school workspace." %}</span>
       </a>
@@ -35,6 +36,7 @@
       <a class="rmc-nas-chip"
          role="listitem"
          href="{{ a.action_url }}"
+         {% if forloop.first %}data-rmc-primary-action="1"{% endif %}
          data-action="{% if a.recommendation_key %}ai-suggestion-open{% else %}{{ a.type }}-open{% endif %}"
          data-task="{% if a.task_code %}{{ a.task_code }}{% else %}platform-next-action{% endif %}"
          data-task-step="dashboard:next-action"
@@ -59,7 +61,7 @@
       <span class="rmc-nas-hint text-muted">{% if strict %}{% trans "Your next step" %}{% else %}{% trans "Get oriented" %}{% endif %}</span>
     </div>
     <div class="rmc-nas-actions" role="list">
-      <a class="rmc-nas-chip" role="listitem" href="{% url 'accounts:backend_dashboard' %}" data-action="fallback-open" data-task="platform-next-action" data-task-step="dashboard:next-action-fallback">
+      <a class="rmc-nas-chip" role="listitem" href="{% url 'accounts:backend_dashboard' %}" data-rmc-primary-action="1" data-action="fallback-open" data-task="platform-next-action" data-task-step="dashboard:next-action-fallback">
         <span class="rmc-nas-chip-title">{% trans "Operations home" %}</span>
         <span class="rmc-nas-chip-desc text-muted">{% trans "Open your main school workspace." %}</span>
       </a>

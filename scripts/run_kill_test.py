@@ -6,6 +6,16 @@ Runs a narrow Django test subset, resolves critical platform URLs with Django
 configured, records failures to docs/generated/kill_test_report.{json,md}.
 
 Exit 1 when any critical scenario fails.
+
+Windows / slow hosts: avoid fresh SQLite migrate/teardown stalls by reusing one DB:
+
+  RMC_SQLITE_TEST_MEMORY=1 \\
+  RMC_KILL_TEST_DB_FILE=.django_test_dbs/your_migrated.sqlite3 \\
+  RMC_KILL_TEST_KEEPDB=1 \\
+  python scripts/run_kill_test.py
+
+Or: ``python scripts/run_kill_test.py --db-file .django_test_dbs/your_migrated.sqlite3 --keepdb``
+(env vars ``RMC_KILL_TEST_*`` override defaults when CLI omitted).
 """
 
 from __future__ import annotations
@@ -65,22 +75,55 @@ def _write(out: dict, gen: Path) -> None:
     p_md.write_text("\n".join(lines), encoding="utf-8")
 
 
+def _truthy_env(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() in ("1", "true", "yes", "on")
+
+
 def main(argv: list[str] | None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.parse_args(argv)
+    parser.add_argument(
+        "--db-file",
+        default=None,
+        help=(
+            "SQLite path for both Django test subprocesses (serial). "
+            "Relative paths resolve from repo root. Default: two fresh UUID-named files."
+        ),
+    )
+    parser.add_argument(
+        "--keepdb",
+        action="store_true",
+        help="Append --keepdb to manage.py test (recommended with --db-file on Windows).",
+    )
+    args = parser.parse_args(argv)
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
     exe = sys.executable
     dbs_dir = ROOT / ".django_test_dbs"
     dbs_dir.mkdir(parents=True, exist_ok=True)
-    # Fresh paths each run so parallel agents / hung processes do not lock the same
-    # filenames during Django's test DB teardown (WinError 32 on Windows).
-    run_id = uuid.uuid4().hex[:12]
-    test_db_security = str(dbs_dir / f"kill_test_security_{run_id}.sqlite3")
-    test_db_degraded = str(dbs_dir / f"kill_test_degraded_{run_id}.sqlite3")
+    shared_raw = (args.db_file or os.environ.get("RMC_KILL_TEST_DB_FILE") or "").strip()
+    use_keepdb = bool(args.keepdb) or _truthy_env("RMC_KILL_TEST_KEEPDB")
+    if shared_raw:
+        p = Path(shared_raw)
+        if not p.is_absolute():
+            p = ROOT / p
+        test_db_security = str(p)
+        test_db_degraded = str(p)
+        sqlite_mode = "shared_keepdb" if use_keepdb else "shared"
+    else:
+        # Fresh paths each run so parallel agents / hung processes do not lock the same
+        # filenames during Django's test DB teardown (WinError 32 on Windows).
+        run_id = uuid.uuid4().hex[:12]
+        test_db_security = str(dbs_dir / f"kill_test_security_{run_id}.sqlite3")
+        test_db_degraded = str(dbs_dir / f"kill_test_degraded_{run_id}.sqlite3")
+        sqlite_mode = "ephemeral_pair"
+
     base_env = os.environ.copy()
     # Tests must use repo SQLite defaults; stray DATABASE_URL can block subprocess on Postgres.
     base_env.pop("DATABASE_URL", None)
+
+    extra_test_args: list[str] = []
+    if use_keepdb:
+        extra_test_args.append("--keepdb")
 
     scenarios: list[dict[str, object]] = []
 
@@ -95,6 +138,7 @@ def main(argv: list[str] | None) -> int:
             "apps.security.tests.test_absolute_security_enforcement",
             "apps.security.tests.test_tenant_route_leakage",
             "--noinput",
+            *extra_test_args,
         ],
         cwd=str(ROOT),
         capture_output=True,
@@ -150,6 +194,7 @@ def main(argv: list[str] | None) -> int:
             "test",
             "apps.schools.tests.test_founder_dashboard.FounderDashboardTests.test_dashboard_degrades_when_generated_json_missing",
             "--noinput",
+            *extra_test_args,
         ],
         cwd=str(ROOT),
         capture_output=True,
@@ -176,6 +221,11 @@ def main(argv: list[str] | None) -> int:
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "result": "PASS" if overall_ok else "FAIL",
         "critical_count": critical_failures,
+        "sqlite_mode": sqlite_mode,
+        "django_test_db_file": test_db_security
+        if test_db_security == test_db_degraded
+        else {"security": test_db_security, "degraded": test_db_degraded},
+        "keepdb": use_keepdb,
         "scenarios": scenarios,
     }
     gen = ROOT / "docs" / "generated"

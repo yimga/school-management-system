@@ -86,14 +86,14 @@ MARKETING_CONTENT_SEED = [
     {
         "key": "landing_hero_headline",
         "locale": "",
-        "content_html": "The Operating System for Modern Schools",
+        "content_html": "Offline-ready education operating system for modern schools.",
     },
     {
         "key": "landing_hero_subheadline",
         "locale": "",
         "content_html": (
-            "Admissions, academics, finance, communication, analytics, and governance - "
-            "unified in one platform."
+            "One truthful picture of enrollment, fees, and learner progress across admissions, "
+            "academics, finance, communication, reporting, and daily school operations."
         ),
     },
     {

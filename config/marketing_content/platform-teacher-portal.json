@@ -2,21 +2,21 @@
   "label": "Teacher Portal",
   "seo_title": "Teacher Portal | RunMyCampus",
   "seo_description": "Attendance, marks, syllabus signals, assignments, and guardian messaging connected.",
-  "headline": "Teacher workflows tuned for daily classroom reality.",
-  "subheadline": "Fewer hops between spreadsheets, gradebooks, and messaging apps.",
+  "headline": "One classroom workspace for attendance, marks, assignments, and progress.",
+  "subheadline": "Plan the day, take attendance, capture marks, assign work, track lesson coverage, keep student notes, and reach families—with policies that respect what each role should see.",
   "schema_type": "WebPage",
   "segments": [
     {
       "title": "Day-one usability",
-      "body": "Registers and marks entry surfaced quickly."
+      "body": "Registers and marks entry surfaced for real class blocks—not buried five clicks deep."
     },
     {
       "title": "Guardian alignment",
-      "body": "Messaging respects visibility policies."
+      "body": "Messaging respects visibility policies tied to the same records parents see."
     },
     {
       "title": "Insight-ready",
-      "body": "Signals leadership needs without manual reporting marathons."
+      "body": "Signals leadership needs without every teacher becoming a reporting clerk."
     }
   ],
   "extras": {
@@ -29,44 +29,56 @@
       "Secure audit trails",
       "Multi-campus support"
     ],
-    "diagram_path": "images/marketing/viz-teacher.svg",
+    "diagram_path": "images/marketing/platform-teacher-workspace.svg",
     "premium_platform_layout": true,
     "suppress_footer_clusters": true,
-    "stock_photo_url": "https://images.unsplash.com/photo-1497633764215-c864088fc966?auto=format&fit=crop&w=1600&q=75",
-    "stock_photo_alt": "Educator preparing materials at a desk with a laptop",
-    "stock_photo_credit": "Photo via Unsplash",
     "problem_section": {
       "title": "Teachers need one daily workspace",
       "body": "Switching tools for attendance, marks, assignments, and communication burns time. RunMyCampus centralizes classroom operations with role-aware visibility."
     },
     "workflow_steps": [
-      "Plan lesson",
+      "Open class",
       "Take attendance",
       "Capture marks",
       "Assign work",
+      "Track lesson coverage",
       "Message families",
-      "Report progress"
+      "Record notes"
     ],
     "benefits_by_role": [
       {
         "role": "Teachers",
         "bullets": [
-          "Fewer disconnected tabs during class prep",
-          "Notes and outreach aligned to students"
+          "Fewer disconnected tabs during prep and between periods",
+          "Notes and outreach aligned to students in context"
+        ]
+      },
+      {
+        "role": "Department heads",
+        "bullets": [
+          "Consistent operational patterns across sections",
+          "Less variance in how marks and attendance are captured"
         ]
       },
       {
         "role": "Leadership",
         "bullets": [
-          "Operational visibility without micromanagement",
-          "Consistent adoption across campuses"
+          "Operational visibility without micromanaging every classroom",
+          "Adoption signals when your deployment instruments them"
         ]
       },
       {
         "role": "Parents",
         "bullets": [
-          "Updates originate from the same system of record",
-          "Less conflicting information across channels"
+          "Updates originate from the same system of record as the portal",
+          "Less conflicting information across informal channels"
+        ]
+      },
+      {
+        "role": "Administrators",
+        "bullets": [
+          "Support load drops when the teacher workspace is coherent",
+          "Easier onboarding for new staff"
         ]
       }
     ],
@@ -82,6 +94,14 @@
       {
         "label": "Communications",
         "path": "/platform/communications/"
+      },
+      {
+        "label": "Parent Portal",
+        "path": "/platform/parent-portal/"
+      },
+      {
+        "label": "Analytics",
+        "path": "/platform/analytics/"
       },
       {
         "label": "Workflows",

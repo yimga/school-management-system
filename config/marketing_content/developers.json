@@ -1,19 +1,19 @@
 {
   "label": "Developers",
   "seo_title": "Developers | RunMyCampus",
-  "seo_description": "API documentation, authentication, rate limits, and integration guides for RunMyCampus.",
-  "headline": "Developer Portal & API.",
-  "subheadline": "Build integrations with versioned APIs, webhooks, and LTI. Auth, rate limiting, and OpenAPI documented.",
+  "seo_description": "APIs, authentication, and integration guides for teams extending RunMyCampus safely.",
+  "headline": "Build on the same rails schools operate every day.",
+  "subheadline": "Versioned HTTP APIs, webhooks, and interoperability patterns—documented where your deployment exposes them.",
   "schema_type": "WebPage",
   "segments": [
-    {"title": "API access", "body": "Authenticate with API keys or OAuth; versioned endpoints under /api/."},
-    {"title": "Rate limiting", "body": "Per-tenant and per-IP limits; 429 with Retry-After for fair use."},
-    {"title": "Integrations", "body": "LTI 1.3, OneRoster, webhooks, and custom integrations. See docs for details."}
+    {"title": "Authenticated API access", "body": "Issue keys or OAuth clients under tenant policy; endpoints stay scoped and traceable."},
+    {"title": "Fair use guardrails", "body": "Rate limits protect tenants and shared infrastructure—documented status codes and backoff hints."},
+    {"title": "Interop patterns", "body": "LTI, roster feeds, and outbound webhooks when enabled—follow the live docs for your stack."}
   ],
   "extras": {
     "faqs": [
-      {"question": "Where is the OpenAPI schema?", "answer": "Use the platform OpenAPI entrypoint documented in the API runbook; schema access is gated for deploy environments."},
-      {"question": "How do I get API credentials?", "answer": "Tenant administrators issue or approve credentials per your school’s integration policy."}
+      {"question": "Where is the OpenAPI schema?", "answer": "Schema publication follows your environment’s API runbook—access may be gated outside local development."},
+      {"question": "How do I get API credentials?", "answer": "Tenant administrators approve credentials consistent with your school’s integration policy."}
     ]
   }
 }

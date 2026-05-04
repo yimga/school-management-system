@@ -36,6 +36,19 @@ class Lead(models.Model):
         blank=True,
         help_text="Optional one-line summary; use Activity for dated entries.",
     )
+    decision_maker = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Primary decision-maker name or title (internal).",
+    )
+    deal_owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="owned_sales_leads",
+        help_text="Internal owner for follow-up (platform operator).",
+    )
     next_follow_up = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

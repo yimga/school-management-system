@@ -1,11 +1,16 @@
 {% extends "portal_base.html" %}
+{% block rmc_workspace_os_header %}{% endblock %}
 {% load i18n %}
 
 {% block title %}{% trans "Sync conflicts" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
-<div class="container py-4" data-rmc-offline-conflicts="1">
-  <h1 class="h4 mb-3">{% trans "Sync conflicts" %}</h1>
+<div class="container py-4" data-rmc-offline-conflicts="1" data-rmc-os-center="offline_sync_conflicts">
+  {% trans "Offline Sync" as oc_eyebrow %}
+  {% trans "Resolve divergences between your offline edits and the latest server record — every choice is audited." as oc_purpose %}
+  {% include "components/rmc_os_page_header.html" with os_center_key="offline_sync_conflicts" center_eyebrow=oc_eyebrow center_title=_("Offline Sync Center — conflicts") center_purpose=oc_purpose %}
+  {% url 'portal:offline_sync_queue' as offline_queue_url %}
+  {% include "components/rmc_os_action_bar.html" with primary_url=offline_queue_url primary_label=_("Back to sync queue") primary_data_action="offline-back-queue" primary_task="offline_sync" primary_step="offline:conflicts-back-queue" %}
   <p class="text-body-secondary small mb-4">
     {% trans "Choose how to resolve each item. “Keep mine” re-applies your stored payload. “Use latest” accepts the server record and does not apply your offline edit. “Review manually” records your intent but leaves the conflict open until you fix it on the canonical screen." %}
     {% trans "Your choice is recorded with resolver user id, original submitter, timestamp, and operator scope flag where applicable." %}
@@ -111,11 +116,9 @@
     {% endfor %}
   </div>
   {% else %}
-  <p class="text-body-secondary">{% trans "No conflicts to resolve." %}</p>
+  {% url 'portal:offline_sync_queue' as qurl %}
+  {% include "components/dashboard_empty_state.html" with icon="bi-check2-circle" title=_("No sync conflicts") message=_("When offline edits disagree with the server, they appear here with a side-by-side diff.") purpose=_("Keep data trustworthy") action_url=qurl action_text=_("Return to Offline Sync Center") empty_primary_task="offline_sync" empty_primary_step="offline:conflicts-empty" %}
   {% endif %}
 
-  <p class="mt-4">
-    <a href="{% url 'portal:offline_sync_queue' %}">{% trans "Back to sync queue" %}</a>
-  </p>
 </div>
 {% endblock %}

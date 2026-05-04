@@ -80,6 +80,7 @@
     <link rel="stylesheet" href="{% static 'css/mobile-luxury-surfaces.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
     <link rel="stylesheet" href="{% static 'css/ultra-luxury-ui-system.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-os-shell.css' %}">
 
     <link rel="stylesheet" href="{% static 'css/portal-base-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
@@ -332,6 +333,14 @@
           {% include "partials/shell_chrome_breadcrumb_row_between_primary_and_actions.html" %}
             {% block breadcrumb_actions %}{% endblock %}
           {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
+            {% if request.user.is_authenticated %}
+            {% block rmc_workspace_os_header %}
+            {% include "components/rmc_os_page_header.html" %}
+            {% endblock %}
+            <div class="d-flex flex-wrap justify-content-end gap-2 mb-3" data-rmc-os-primary-action-slot="1">
+              {% block rmc_os_shell_primary_action %}{% endblock %}
+            </div>
+            {% endif %}
             {% if request.user.is_authenticated and request.resolver_match.namespace|default:'' != 'studio_os' %}
               {% if request.user|tenant_operator_hub_visible %}
                 {% include "partials/tenant_studio_product_strip.html" %}
@@ -340,9 +349,7 @@
                 </div>
               {% endif %}
             {% endif %}
-            {% if platform_status_strip and platform_status_strip.show %}
-              {% include "portal/partials/platform_status_strip.html" %}
-            {% endif %}
+            {% include "components/rmc_os_status_strip.html" %}
             {% if runmycampus_demo_sandbox %}
             <div class="alert alert-info border-info mb-3 py-2 small" role="status" data-rmc-demo-sandbox-banner="1">
               <strong>{% trans "Demo sandbox" %}</strong> — {% trans "This tenant is flagged as a demonstration environment. Data may be reset; do not use for regulated production records." %}
@@ -355,10 +362,6 @@
             {% block rmc_zero_click_strip %}
             {% include "partials/rmc_zero_click_command_strip.html" with triage_anchor="#main-content" %}
             {% endblock %}
-            {% endif %}
-
-            {% if request.user.is_authenticated %}
-            {% include "components/offline_sync_status_bar.html" %}
             {% endif %}
 
             {% if dashboard_stats_cards %}
@@ -390,6 +393,9 @@
             {% endblock %}
 
             {% block content %}{% endblock %}
+            {% block rmc_os_context_rail %}
+            {% include "components/rmc_os_context_rail.html" %}
+            {% endblock %}
           </div>
         </div>
       </div>

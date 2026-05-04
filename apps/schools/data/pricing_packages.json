@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "live_psp_caveat": "Live card, wallet, and mobile-money collection requires your organisation to complete merchant onboarding with your chosen payment service provider (PSP). RunMyCampus ships product-side rails and reconciliation workflows; PSP contracts, production API keys, webhooks, and settlement accounts are external prerequisites — not unlimited or automatic.",
+  "packages": [
+    {
+      "slug": "starter",
+      "label": "Starter",
+      "target_school_types": ["Single-campus private K–12", "Pilot schools", "Micro-schools"],
+      "included_modules": ["Core academics", "Attendance", "Basic portal", "Tenant isolation", "Audit-ready exports"],
+      "optional_add_ons": ["Advanced analytics", "Regional report packs", "Marketplace apps"],
+      "offline_support": "Offline capture and sync where modules support it; conflict resolution in-product.",
+      "payment_support": "Invoicing and receipt capture in-product; live PSP rails after external merchant setup (see caveat).",
+      "marketplace_access": "Browse and install approved tenant-scoped apps where plan allows.",
+      "implementation_support": "Self-serve plus documentation; optional guided kickoff (commercial).",
+      "support_sla_wording": "Standard business-hours support; severity-based response targets per contract (not unlimited).",
+      "cta_route": "marketing_contact",
+      "cta_label": "Contact sales"
+    },
+    {
+      "slug": "growth",
+      "label": "Growth",
+      "target_school_types": ["Growing private schools", "Multi-stream fee models"],
+      "included_modules": ["Starter", "Finance workspace", "Parent communications", "Workflow automation entry"],
+      "optional_add_ons": ["Payroll integration depth", "EMIS bridges", "Custom workflows"],
+      "offline_support": "Full offline-first paths for supported attendance and fee workflows.",
+      "payment_support": "Multi-rail readiness by region; live PSP still requires external onboarding (see caveat).",
+      "marketplace_access": "Expanded catalog subject to policy and vetting.",
+      "implementation_support": "Named implementation window; data migration checklist.",
+      "support_sla_wording": "Enhanced support tier available; exact SLA in order form (no fake unlimited claims).",
+      "cta_route": "marketing_book_demo",
+      "cta_label": "Book a demo"
+    },
+    {
+      "slug": "professional",
+      "label": "Professional",
+      "target_school_types": ["Established private schools", "IB / exam-track schools"],
+      "included_modules": ["Growth", "Report cards & transcripts", "Ministry-oriented exports where enabled", "Deeper automation"],
+      "optional_add_ons": ["API center access", "LTI / roster integrations", "Premium analytics"],
+      "offline_support": "Same as Growth with operator playbooks for conflict handling.",
+      "payment_support": "Orchestrated payment UX; PSP health snapshots; external credentials still required for live money movement.",
+      "marketplace_access": "Professional-tier marketplace features per contract.",
+      "implementation_support": "Structured onboarding factory + command-center checklists in-product.",
+      "support_sla_wording": "Priority queue; named CSM optional — terms in contract.",
+      "cta_route": "marketing_contact",
+      "cta_label": "Request a proposal"
+    },
+    {
+      "slug": "enterprise",
+      "label": "Enterprise",
+      "target_school_types": ["Large independent schools", "District-style governance", "Strict procurement"],
+      "included_modules": ["Professional", "Control-plane visibility", "Security evidence surfaces", "Retention playbooks"],
+      "optional_add_ons": ["Dedicated environment options (commercial)", "Custom integrations", "On-prem edge (scoped engagements)"],
+      "offline_support": "Enterprise offline and audit expectations documented in security packet request.",
+      "payment_support": "Multi-entity finance; PSP still external for settlement (see caveat).",
+      "marketplace_access": "Governed marketplace with review workflows.",
+      "implementation_support": "Enterprise implementation playbook + weekly checkpoint template.",
+      "support_sla_wording": "Negotiated SLA; severity matrix in schedule — not a blanket unlimited promise.",
+      "cta_route": "marketing_contact",
+      "cta_label": "Talk to procurement"
+    },
+    {
+      "slug": "network",
+      "label": "Network / Multi-campus",
+      "target_school_types": ["School groups", "Franchise networks", "Faith networks"],
+      "included_modules": ["Enterprise", "Per-campus tenants", "Group reporting patterns", "Shared policy templates"],
+      "optional_add_ons": ["Central data warehouse exports", "Group SSO patterns (scoped)", "Network automation"],
+      "offline_support": "Per-campus offline with group-level monitoring hooks where deployed.",
+      "payment_support": "Campus-level PSP configuration; group finance rollups — external PSP per campus or group per your PSP agreements.",
+      "marketplace_access": "Network-approved app allowlists.",
+      "implementation_support": "Phased rollout template across campuses.",
+      "support_sla_wording": "Network support model defined in MSA — explicit caps, not unlimited.",
+      "cta_route": "marketing_contact",
+      "cta_label": "Plan a network rollout"
+    }
+  ]
+}

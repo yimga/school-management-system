@@ -1,5 +1,5 @@
 {% load i18n %}
-<nav class="cp-sidebar-nav cp-sidebar-ultra" id="cpSidebarNav" aria-label="{% trans 'Control plane navigation' %}" data-sidebar-nav="true" data-shell-nav-family="control-plane">
+<nav class="cp-sidebar-nav cp-sidebar-ultra" id="cpSidebarNav" aria-label="{% trans 'Control plane navigation' %}" data-sidebar-nav="true" data-shell-nav-family="control-plane" data-rmc-os-nav="1" data-rmc-os-role-cluster="{{ rmc_os_shell.role_cluster|default:'operator' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}>
   <div class="d-flex justify-content-end mb-2">
     <button type="button" class="btn btn-sm btn-outline-secondary cp-sidebar-compact-toggle" aria-label="{% trans 'Toggle compact sidebar' %}" title="{% trans 'Compact mode' %}"><i class="bi bi-layout-sidebar-inset-reverse"></i></button>
   </div>

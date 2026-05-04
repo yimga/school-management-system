@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 340" width="920" height="340" role="img" aria-labelledby="adm-pipe-title adm-pipe-desc">
+  <title id="adm-pipe-title">Admissions pipeline from inquiry to invoice</title>
+  <desc id="adm-pipe-desc">Horizontal pipeline with status chips, applicant card, and stage connectors.</desc>
+  <defs>
+    <linearGradient id="rail" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <filter id="s"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.35"/></filter>
+    <style>
+      .chip { fill: #0f172a; stroke: #475569; stroke-width: 1.2; rx: 20; filter: url(#s); }
+      .chip-on { fill: #1e3a2f; stroke: #34d399; stroke-width: 1.5; }
+      .chip-wait { fill: #1c1917; stroke: #f59e0b; stroke-width: 1.2; }
+      .arrow { stroke: #64748b; stroke-width: 2; fill: none; marker-end: url(#m); }
+      .t { fill: #e2e8f0; font: 700 11px ui-sans-serif, system-ui, sans-serif; }
+      .ts { fill: #94a3b8; font: 600 9px ui-sans-serif, system-ui, sans-serif; }
+      .card { fill: url(#rail); stroke: #475569; rx: 12; filter: url(#s); }
+      .row { fill: #334155; rx: 3; opacity: 0.8; }
+      .row-h { fill: #f59e0b; opacity: 0.35; rx: 3; }
+    </style>
+    <marker id="m" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect width="920" height="340" fill="#020617" rx="0"/>
+  <text class="t" x="460" y="28" text-anchor="middle" font-size="13">Enrollment pipeline  every stage visible to staff and families</text>
+
+  <!-- Stages -->
+  <g transform="translate(24,52)">
+    <rect class="chip-on" x="0" y="0" width="88" height="36"/><text class="t" x="44" y="23" text-anchor="middle">Inquiry</text>
+    <path class="arrow" d="M92 18 H108"/>
+    <rect class="chip-on" x="112" y="0" width="96" height="36"/><text class="t" x="160" y="23" text-anchor="middle">Application</text>
+    <path class="arrow" d="M212 18 H228"/>
+    <rect class="chip-wait" x="232" y="0" width="118" height="36"/><text class="t" x="291" y="23" text-anchor="middle">Doc review</text>
+    <path class="arrow" d="M354 18 H370"/>
+    <rect class="chip" x="374" y="0" width="132" height="36"/><text class="t" x="440" y="23" text-anchor="middle">Interview</text>
+    <path class="arrow" d="M510 18 H526"/>
+    <rect class="chip" x="530" y="0" width="88" height="36"/><text class="t" x="574" y="23" text-anchor="middle">Decision</text>
+    <path class="arrow" d="M622 18 H638"/>
+    <rect class="chip" x="642" y="0" width="102" height="36"/><text class="t" x="693" y="23" text-anchor="middle">Enrollment</text>
+    <path class="arrow" d="M748 18 H764"/>
+    <rect class="chip" x="768" y="0" width="88" height="36"/><text class="t" x="812" y="23" text-anchor="middle">Invoice</text>
+  </g>
+
+  <!-- Applicant card -->
+  <rect class="card" x="48" y="118" width="280" height="190"/>
+  <text class="t" x="64" y="142">Applicant</text>
+  <text class="ts" x="64" y="158">Stage: Document review � Owner: Admissions</text>
+  <rect class="row-h" x="64" y="172" width="120" height="8"/>
+  <rect class="row" x="190" y="172" width="118" height="8"/>
+  <rect class="row" x="64" y="188" width="244" height="8"/>
+  <rect class="row" x="64" y="204" width="200" height="8"/>
+  <text class="ts" x="64" y="232">Documents</text>
+  <rect class="row-h" x="64" y="240" width="72" height="22" rx="6"/>
+  <rect class="row" x="142" y="240" width="72" height="22" rx="6"/>
+  <rect class="row" x="220" y="240" width="72" height="22" rx="6"/>
+  <text class="ts" x="64" y="286">Parent message queued � SLA 24h</text>
+
+  <!-- Mini stage summary -->
+  <rect class="card" x="360" y="118" width="512" height="190"/>
+  <text class="t" x="376" y="142">Pipeline health</text>
+  <rect class="row-h" x="376" y="156" width="100" height="36" rx="8"/>
+  <text class="ts" x="386" y="178">12 active</text>
+  <rect class="row" x="488" y="156" width="100" height="36" rx="8"/>
+  <text class="ts" x="502" y="178">3 waiting</text>
+  <rect class="row" x="600" y="156" width="100" height="36" rx="8"/>
+  <text class="ts" x="614" y="178">2 decisions</text>
+  <rect class="row" x="712" y="156" width="144" height="36" rx="8"/>
+  <text class="ts" x="726" y="178">Handoff ready</text>
+  <rect class="row" x="376" y="206" width="480" height="10"/>
+  <rect class="row" x="376" y="224" width="420" height="10"/>
+  <rect class="row" x="376" y="242" width="460" height="10"/>
+  <text class="ts" x="376" y="278">Connected to SIS, billing, and parent portal  no duplicate entry</text>
+</svg>

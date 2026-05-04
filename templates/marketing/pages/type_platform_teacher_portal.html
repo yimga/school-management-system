@@ -1,0 +1,141 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}">
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-teacher-portal.css' %}">
+{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-teacher-portal mkt-platform-theme--platform-teacher-portal{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-teacher-page" data-mkt-platform-teacher-portal="1">
+  <nav class="marketing-hub-strip small text-muted mb-2 d-flex flex-wrap gap-2 align-items-center" aria-label="{% trans 'Key hubs' %}">
+    <a href="{% url 'marketing_solutions' %}">{% trans "Solutions" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_platform' %}">{% trans "Platform" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_trust_dedicated' %}">{% trans "Trust" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_resources' %}">{% trans "Resources" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_pricing' %}">{% trans "Pricing" %}</a>
+  </nav>
+
+  <header class="mkt-teacher-hero">
+    <div class="mkt-teacher-hero-copy">
+      <p class="detail-eyebrow mb-0">runmycampus.com | {{ page.label }}</p>
+      <h1 class="detail-headline">{{ page.headline }}</h1>
+      <p class="detail-subheadline">{{ page.subheadline }}</p>
+      <div class="hero-cta mt-3">
+        <a href="{% url 'marketing_demo' %}" class="btn btn-light" data-cta="demo" data-page="platform-teacher-portal">{% trans "Request demo" %}</a>
+        <a href="{% url 'marketing_platform' %}" class="btn btn-outline-light" data-cta="secondary" data-page="platform-teacher-portal">{% trans "Explore platform" %}</a>
+        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light">{% trans "Login" %}</a>
+      </div>
+      {% if page_extras.trust_strip %}
+      <div class="mkt-teacher-trust trust-strip">
+        {% for item in page_extras.trust_strip %}
+        <span class="trust-pill">{{ item }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="mkt-teacher-hero-visual" aria-hidden="true">
+      <img src="{% static 'images/marketing/platform-teacher-workspace.svg' %}" alt="" width="920" height="340" loading="eager" decoding="async" class="img-fluid">
+    </div>
+  </header>
+
+  <section class="mkt-teacher-section" aria-labelledby="mkt-teacher-visual-heading">
+    <h2 id="mkt-teacher-visual-heading">{% trans "One surface for registers, marks, and class context" %}</h2>
+    <p class="section-lead">{% trans "Teachers move through attendance, marks, assignments, lesson coverage, and student notes without hopping between disconnected tools." %}</p>
+    <div class="mkt-teacher-visual-wrap">
+      <img src="{% static 'images/marketing/platform-teacher-workspace.svg' %}" alt="{% trans 'Diagram: class list, attendance, marks and assignments, lesson coverage, and student notes' %}" width="920" height="340" loading="lazy" decoding="async" data-mkt-teacher-workspace-visual="1">
+    </div>
+  </section>
+
+  <section class="mkt-teacher-section" aria-labelledby="mkt-teacher-before-after-heading">
+    <h2 id="mkt-teacher-before-after-heading">{% trans "Before and after a real daily workspace" %}</h2>
+    <p class="section-lead">{% trans "Replace duplicate entry and scattered class updates with flows built around the school day." %}</p>
+    <div class="mkt-teacher-split">
+      <div class="mkt-teacher-card mkt-teacher-card--before">
+        <h3>{% trans "Before" %}</h3>
+        <ul>
+          <li>{% trans "Teachers repeat work across registers and gradebooks" %}</li>
+          <li>{% trans "Marks and feedback are delayed or inconsistent" %}</li>
+          <li>{% trans "Class updates live in chats and ad-hoc documents" %}</li>
+          <li>{% trans "Syllabus and lesson progress are hard to see as a whole" %}</li>
+        </ul>
+      </div>
+      <div class="mkt-teacher-card mkt-teacher-card--after">
+        <h3>{% trans "After" %}</h3>
+        <ul>
+          <li>{% trans "Daily tasks stay in one classroom-oriented workspace" %}</li>
+          <li>{% trans "Marks flow into reporting with fewer manual bridges" %}</li>
+          <li>{% trans "Attendance is captured in context with the class list" %}</li>
+          <li>{% trans "Student progress and notes are easier to track over time" %}</li>
+          <li>{% trans "Communication to families aligns with what the system records" %}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="mkt-teacher-section" aria-labelledby="mkt-teacher-handoff-heading" data-mkt-teacher-connected-handoff="1">
+    <h2 id="mkt-teacher-handoff-heading">{% trans "Connected to academics, families, and insight" %}</h2>
+    <p class="section-lead">{% trans "Teaching sits between attendance, grading, parent communication, and how leadership understands school health." %}</p>
+    <div class="mkt-teacher-handoff-grid">
+      <a href="{% url 'marketing_platform_attendance' %}">{% trans "Attendance" %}</a>
+      <a href="{% url 'marketing_platform_grading_report_cards' %}">{% trans "Grading & Report Cards" %}</a>
+      <a href="{% url 'marketing_platform_communications' %}">{% trans "Communications" %}</a>
+      <a href="{% url 'marketing_platform_parent_portal' %}">{% trans "Parent Portal" %}</a>
+      <a href="{% url 'marketing_platform_analytics' %}">{% trans "Analytics" %}</a>
+      <a href="{% url 'marketing_platform_workflows' %}">{% trans "Workflows" %}</a>
+    </div>
+  </section>
+
+  <section class="mkt-teacher-section" aria-labelledby="mkt-teacher-roles-heading">
+    <h2 id="mkt-teacher-roles-heading">{% trans "Who benefits" %}</h2>
+    <p class="section-lead">{% trans "A better teacher day improves outcomes for students, families, and leadership—not just the classroom." %}</p>
+    <div class="mkt-teacher-roles">
+      <div class="mkt-teacher-role">
+        <h3>{% trans "Teachers" %}</h3>
+        <p>{% trans "Less tab sprawl during prep and during class-adjacent workflows." %}</p>
+      </div>
+      <div class="mkt-teacher-role">
+        <h3>{% trans "Department heads" %}</h3>
+        <p>{% trans "Consistent patterns across sections without forcing every teacher into the same rigid form." %}</p>
+      </div>
+      <div class="mkt-teacher-role">
+        <h3>{% trans "Administrators" %}</h3>
+        <p>{% trans "Operational adoption and support load improve when the workspace is coherent." %}</p>
+      </div>
+      <div class="mkt-teacher-role">
+        <h3>{% trans "Parents" %}</h3>
+        <p>{% trans "Updates originate from the same records parents already see in the portal." %}</p>
+      </div>
+      <div class="mkt-teacher-role">
+        <h3>{% trans "School leadership" %}</h3>
+        <p>{% trans "Signals on teaching operations without micromanaging every classroom." %}</p>
+      </div>
+    </div>
+  </section>
+
+  {% if page.segments %}
+  <section class="mkt-teacher-section" aria-label="{% trans 'Highlights' %}">
+    <h2>{% trans "What this surface emphasizes" %}</h2>
+    <div class="row g-3">
+      {% for seg in page.segments %}
+      <div class="col-md-4">
+        <article class="segment-card h-100">
+          <h3 class="h6">{{ seg.title }}</h3>
+          <p class="mb-0 text-muted small">{{ seg.body }}</p>
+        </article>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <footer class="mkt-teacher-cta">
+    <a href="{% url 'marketing_demo' %}" class="btn btn-primary btn-lg">{% trans "Request demo" %}</a>
+    <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-outline-light btn-lg">{% trans "Watch product tour" %}</a>
+  </footer>
+</article>
+{% endblock %}

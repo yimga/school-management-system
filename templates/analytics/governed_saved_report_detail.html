@@ -1,15 +1,13 @@
 {% extends "portal_base.html" %}
+{% block rmc_workspace_os_header %}{% endblock %}
 {% load i18n %}
 {% block title %}{{ report.name }} — {% trans "Saved governed report" %}{% endblock %}
 {% block content %}
-<div class="container-lg py-4" data-page-archetype="operational-workbench" data-rmc-governed-saved-detail="1">
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 studio-os-topbar ds-action-bar">
-    <div class="min-w-0">
-      <h1 class="h4 mb-0">{{ report.name }}</h1>
-      <p class="text-muted small mb-0 mt-1">{% trans "Allowlisted definition — POST run refreshes tenant-scoped rows." %}</p>
-    </div>
-    <a class="btn btn-sm btn-primary studio-os-cmd-btn ds-btn" href="{{ builder_url }}">{% trans "Back to report builder" %}</a>
-  </div>
+<div class="container-lg py-4" data-page-archetype="operational-workbench" data-rmc-governed-saved-detail="1" data-rmc-os-center="insights_saved_report">
+  {% trans "Insights" as sv_eyebrow %}
+  {% trans "Saved governed definition — run via POST to refresh rows; no ad-hoc SQL." as sv_purpose %}
+  {% include "components/rmc_os_page_header.html" with os_center_key="insights_saved_report" center_eyebrow=sv_eyebrow center_title=report.name center_purpose=sv_purpose %}
+  {% include "components/rmc_os_action_bar.html" with primary_url=builder_url primary_label=_("Edit in report builder") primary_data_action="governed-back-builder" primary_task="governed_report_export" primary_step="analytics:saved-detail-builder" %}
   <div class="card shadow-sm mb-3">
     <div class="card-header"><h2 class="h6 mb-0">{% trans "Definition" %}</h2></div>
     <div class="card-body">
@@ -17,8 +15,8 @@
     </div>
   </div>
   <p class="small text-muted mb-2">{% trans "Run endpoint (POST JSON):" %} <code>{{ run_url }}</code></p>
-  <div class="d-flex flex-wrap gap-2">
-    <a class="btn btn-sm btn-outline-secondary" href="{{ saved_list_url }}">{% trans "Saved reports list (JSON)" %}</a>
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ saved_list_url }}" data-action="governed-saved-list" data-task="governed_report_export" data-task-step="analytics:saved-list">{% trans "Saved reports list (JSON)" %}</a>
   </div>
 </div>
 {% endblock %}

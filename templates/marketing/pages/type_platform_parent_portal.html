@@ -1,0 +1,142 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}">
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-parent-portal.css' %}">
+{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-parent-portal mkt-platform-theme--platform-parent-portal{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-parent-page" data-mkt-platform-parent-portal="1">
+  <nav class="marketing-hub-strip small text-muted mb-2 d-flex flex-wrap gap-2 align-items-center" aria-label="{% trans 'Key hubs' %}">
+    <a href="{% url 'marketing_solutions' %}">{% trans "Solutions" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_platform' %}">{% trans "Platform" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_trust_dedicated' %}">{% trans "Trust" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_resources' %}">{% trans "Resources" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_pricing' %}">{% trans "Pricing" %}</a>
+  </nav>
+
+  <header class="mkt-parent-hero">
+    <div class="mkt-parent-hero-copy">
+      <p class="detail-eyebrow mb-0">runmycampus.com | {{ page.label }}</p>
+      <h1 class="detail-headline">{{ page.headline }}</h1>
+      <p class="detail-subheadline">{{ page.subheadline }}</p>
+      <div class="hero-cta mt-3">
+        <a href="{% url 'marketing_demo' %}" class="btn btn-light" data-cta="demo" data-page="platform-parent-portal">{% trans "Request demo" %}</a>
+        <a href="{% url 'marketing_platform' %}" class="btn btn-outline-light" data-cta="secondary" data-page="platform-parent-portal">{% trans "Explore platform" %}</a>
+        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light">{% trans "Login" %}</a>
+      </div>
+      {% if page_extras.trust_strip %}
+      <div class="mkt-parent-trust trust-strip">
+        {% for item in page_extras.trust_strip %}
+        <span class="trust-pill">{{ item }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="mkt-parent-hero-visual" aria-hidden="true">
+      <img src="{% static 'images/marketing/platform-parent-mobile-portal.svg' %}" alt="" width="520" height="420" loading="eager" decoding="async" class="img-fluid">
+    </div>
+  </header>
+
+  <section class="mkt-parent-section" aria-labelledby="mkt-parent-visual-heading">
+    <h2 id="mkt-parent-visual-heading">{% trans "What families see on their phones" %}</h2>
+    <p class="section-lead">{% trans "A mobile-first layout for fees, attendance, announcements, assignments, and report access—so caregivers do not need five different channels to stay current." %}</p>
+    <div class="mkt-parent-visual-wrap">
+      <img src="{% static 'images/marketing/platform-parent-mobile-portal.svg' %}" alt="{% trans 'Diagram: parent mobile portal with child profile, attendance, fee balance, report card, announcements, and assignments' %}" width="520" height="420" loading="lazy" decoding="async" data-mkt-parent-portal-visual="1">
+    </div>
+  </section>
+
+  <section class="mkt-parent-section" aria-labelledby="mkt-parent-before-after-heading">
+    <h2 id="mkt-parent-before-after-heading">{% trans "Before and after a single family channel" %}</h2>
+    <p class="section-lead">{% trans "Reduce repeated calls and mixed messages by concentrating official school updates in one portal." %}</p>
+    <div class="mkt-parent-split">
+      <div class="mkt-parent-card mkt-parent-card--before">
+        <h3>{% trans "Before" %}</h3>
+        <ul>
+          <li>{% trans "Parents call the office for balances and due dates" %}</li>
+          <li>{% trans "Report cards and results feel delayed or hard to find" %}</li>
+          <li>{% trans "Attendance context is unclear between paper and chat" %}</li>
+          <li>{% trans "Announcements get lost across groups and email" %}</li>
+          <li>{% trans "Teachers and admin repeat the same updates manually" %}</li>
+        </ul>
+      </div>
+      <div class="mkt-parent-card mkt-parent-card--after">
+        <h3>{% trans "After" %}</h3>
+        <ul>
+          <li>{% trans "Parents see the updates the school marks as official" %}</li>
+          <li>{% trans "Finance questions drop when balances and receipts are visible" %}</li>
+          <li>{% trans "Attendance signals are easier to understand at a glance" %}</li>
+          <li>{% trans "Report cards and key documents live alongside messaging context" %}</li>
+          <li>{% trans "Communication stays centralized with history you can trust" %}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="mkt-parent-section" aria-labelledby="mkt-parent-handoff-heading" data-mkt-parent-connected-handoff="1">
+    <h2 id="mkt-parent-handoff-heading">{% trans "Connected to daily school operations" %}</h2>
+    <p class="section-lead">{% trans "The parent portal reflects the same records teachers and finance teams maintain—without asking families to learn internal tools." %}</p>
+    <div class="mkt-parent-handoff-grid">
+      <a href="{% url 'marketing_platform_attendance' %}">{% trans "Attendance" %}</a>
+      <a href="{% url 'marketing_platform_fees_payments' %}">{% trans "Fees & Payments" %}</a>
+      <a href="{% url 'marketing_platform_grading_report_cards' %}">{% trans "Grading & Report Cards" %}</a>
+      <a href="{% url 'marketing_platform_communications' %}">{% trans "Communications" %}</a>
+      <a href="{% url 'marketing_platform_teacher_portal' %}">{% trans "Teacher Portal" %}</a>
+      <a href="{% url 'marketing_platform_student_portal' %}">{% trans "Student Portal" %}</a>
+    </div>
+  </section>
+
+  <section class="mkt-parent-section" aria-labelledby="mkt-parent-roles-heading">
+    <h2 id="mkt-parent-roles-heading">{% trans "Who benefits" %}</h2>
+    <p class="section-lead">{% trans "Designed for families first, with knock-on benefits for staff who answer fewer repetitive questions." %}</p>
+    <div class="mkt-parent-roles">
+      <div class="mkt-parent-role">
+        <h3>{% trans "Parents & guardians" %}</h3>
+        <p>{% trans "Clarity on phones and desktops without chasing staff for every update." %}</p>
+      </div>
+      <div class="mkt-parent-role">
+        <h3>{% trans "Administrators" %}</h3>
+        <p>{% trans "Official channels reduce duplicate inquiries and conflicting messages." %}</p>
+      </div>
+      <div class="mkt-parent-role">
+        <h3>{% trans "Teachers" %}</h3>
+        <p>{% trans "Share class-appropriate context responsibly from the same system of record." %}</p>
+      </div>
+      <div class="mkt-parent-role">
+        <h3>{% trans "Finance team" %}</h3>
+        <p>{% trans "Billing truth in the portal aligns with invoices and receipts in finance." %}</p>
+      </div>
+      <div class="mkt-parent-role">
+        <h3>{% trans "School leadership" %}</h3>
+        <p>{% trans "Engagement and communication posture you can stand behind with families." %}</p>
+      </div>
+    </div>
+  </section>
+
+  {% if page.segments %}
+  <section class="mkt-parent-section" aria-label="{% trans 'Highlights' %}">
+    <h2>{% trans "What this surface emphasizes" %}</h2>
+    <div class="row g-3">
+      {% for seg in page.segments %}
+      <div class="col-md-4">
+        <article class="segment-card h-100">
+          <h3 class="h6">{{ seg.title }}</h3>
+          <p class="mb-0 text-muted small">{{ seg.body }}</p>
+        </article>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <footer class="mkt-parent-cta">
+    <a href="{% url 'marketing_demo' %}" class="btn btn-primary btn-lg">{% trans "Request demo" %}</a>
+    <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-outline-light btn-lg">{% trans "Watch product tour" %}</a>
+  </footer>
+</article>
+{% endblock %}

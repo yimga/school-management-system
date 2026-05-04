@@ -76,6 +76,7 @@ PLATFORM_ADMIN_SURFACE_BRIDGE_ORDER: list[str] = [
     "metadata_dynamicfielddefinition",
     "metadata_dynamicfieldvalue",
     "metadata_entitycatalogentry",
+    "platform_runtime_pilotdefect",
     "platform_runtime_platformintegrationwebhookevent",
     "platform_runtime_platformoperatorcommandcenterlink",
     "platform_runtime_platformoperatormigrationcloudlink",
@@ -513,6 +514,13 @@ PLATFORM_ADMIN_SURFACE_BRIDGES: dict[str, dict[str, object]] = {
         "label": _("Entity catalog entry (platform admin)"),
         "description": _DESC,
         "icon": "bi-collection",
+        "show_in_nav": False,
+    },
+    "platform_runtime_pilotdefect": {
+        "admin_url": "admin:platform_runtime_pilotdefect_changelist",
+        "label": _("Pilot defect (platform admin)"),
+        "description": _DESC,
+        "icon": "bi-bug",
         "show_in_nav": False,
     },
     "platform_runtime_platformintegrationwebhookevent": {

@@ -1,6 +1,6 @@
 # Category scope review (program_gap_registry / system_closure_map)
 
-**Date:** 2026-05-03  
+**Date:** 2026-05-04  
 **Inputs:** `docs/generated/system_closure_map.json`  
 **Verdict:** **CATEGORY DEFINING — REPO SCOPE**
 

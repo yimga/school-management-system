@@ -210,3 +210,18 @@
   font-weight: var(--statement-logo-weight, 700);
   color: var(--statement-header-fg);
 }
+
+/* Marketing mega menus: avoid clipping dropdown panels (header stays sticky) */
+@media (min-width: 992px) {
+  .mkt-navbar.statement-header:has(.mkt-mega-menu.show),
+  .mkt-navbar.statement-header:has(.mkt-mega-menu.show) .mkt-navbar-container,
+  .mkt-navbar.statement-header:has(.mkt-mega-menu.show) .container,
+  .mkt-navbar.statement-header:has(.mkt-mega-menu.show) .navbar-collapse,
+  .mkt-navbar.statement-header:has(.mkt-mega-menu.show) .mkt-nav-primary--mega {
+    overflow: visible;
+  }
+  .mkt-navbar.statement-header .mkt-mega-menu,
+  .mkt-navbar.statement-header .dropdown-menu.mkt-mega-menu {
+    z-index: 1205;
+  }
+}

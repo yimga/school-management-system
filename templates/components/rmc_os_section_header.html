@@ -1,0 +1,11 @@
+{% load i18n %}
+<header class="rmc-os-section-header d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2" data-rmc-os-section-header="1">
+  <div>
+    {% if kicker %}<div class="text-muted text-uppercase small fw-semibold mb-1" style="letter-spacing:0.04em;">{{ kicker }}</div>{% endif %}
+    {% if title %}<h2 class="h6 mb-0 fw-semibold">{{ title }}</h2>{% endif %}
+    {% if subtitle %}<p class="small text-muted mb-0">{{ subtitle }}</p>{% endif %}
+  </div>
+  {% if action_slot %}
+    <div class="rmc-os-section-header__actions" data-rmc-os-section-actions="1">{{ action_slot }}</div>
+  {% endif %}
+</header>

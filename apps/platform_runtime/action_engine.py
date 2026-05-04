@@ -591,7 +591,7 @@ def get_control_plane_actions(user, *, limit: int = 6) -> list[SystemAction]:
         return []
     out: list[SystemAction] = []
     pairs = [
-        ("super:founder_dashboard", "Founder North Star", "Platform closure metrics and audits."),
+        ("super:founder_dashboard", "Platform Command Center", "Platform closure metrics and audits."),
         ("super:command_center", "Command center", "Cross-tenant operations and incidents."),
         ("super:dashboard", "Control plane home", "School portfolio and health."),
         ("siteconfig:console_domains_hub", "Configuration center", "Domains and platform wiring."),

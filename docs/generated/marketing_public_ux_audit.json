@@ -1,0 +1,107 @@
+{
+  "audit_version": "2026-04-30",
+  "marketing_content_refresh": "2026-05-03 — solutions/product/studio-os/security-trust; integrations/developers/compare.json; inner diagram alt + Book demo CTAs",
+  "theme": "Public marketing UX / story reset (Agent 1)",
+  "rows": [
+    {
+      "page": "Homepage / marketing_landing.html",
+      "issue": "Horizontal chapter dots + many equal hero CTAs + early Studio OS jargon",
+      "visitor_confusion": "Reads as many modules; unclear single next step",
+      "primary_buyer": "School owner / head of school",
+      "primary_action": "Book demo",
+      "cta_problem": "Trial and platform explore competed with demo",
+      "route_risk": "Low (smoke passes)",
+      "fix": "Hide chapter nav by default; two hero CTAs; pain→solution strip; trust links",
+      "priority": "P0",
+      "classification": ["IA/story", "navigation", "CTA", "copy"]
+    },
+    {
+      "page": "Global header",
+      "issue": "Start trial competed with demo",
+      "visitor_confusion": "Two competing conversion paths",
+      "primary_buyer": "Evaluator",
+      "primary_action": "Book demo",
+      "cta_problem": "Dual primary",
+      "route_risk": "Low",
+      "fix": "Single primary Book demo; Login secondary",
+      "priority": "P0",
+      "classification": ["CTA", "navigation"]
+    },
+    {
+      "page": "Platform mega-menu",
+      "issue": "Mega columns above the fold",
+      "visitor_confusion": "Feels like enterprise catalog not one OS story",
+      "primary_buyer": "CTO / operations",
+      "primary_action": "Platform overview",
+      "cta_problem": "N/A",
+      "route_risk": "Low",
+      "fix": "Compact Platform dropdown; Solutions buyer segments",
+      "priority": "P0",
+      "classification": ["navigation", "IA/story", "visual hierarchy"]
+    },
+    {
+      "page": "Trust strip / badges",
+      "issue": "SOC2 roadmap + GDPR ready implied certification",
+      "visitor_confusion": "Looks like formal attestation",
+      "primary_buyer": "Risk / IT",
+      "primary_action": "Trust page",
+      "cta_problem": "Overstated proof",
+      "route_risk": "Honesty",
+      "fix": "Badges reworded; dedicated Trust + offline + payment story links",
+      "priority": "P0",
+      "classification": ["trust/proof", "external honesty"]
+    },
+    {
+      "page": "JSON-backed inner pages (inner_head / product page)",
+      "issue": "Start free trial primary",
+      "visitor_confusion": "Conflicts with pilot-led positioning",
+      "primary_buyer": "Procurement",
+      "primary_action": "Book demo",
+      "cta_problem": "Trial-first",
+      "route_risk": "Low",
+      "fix": "Book demo + product tour; honest final CTA copy",
+      "priority": "P1",
+      "classification": ["CTA", "copy"],
+      "status": "addressed"
+    },
+    {
+      "page": "Footer solutions",
+      "issue": "Segment list diverged from nav story",
+      "visitor_confusion": "Different mental model than header",
+      "primary_buyer": "All",
+      "primary_action": "Segment story",
+      "cta_problem": "N/A",
+      "route_risk": "Low if URLs real",
+      "fix": "Aligned with six buyer segments + story slugs",
+      "priority": "P1",
+      "classification": ["navigation", "IA/story"],
+      "status": "addressed"
+    },
+    {
+      "page": "Inner marketing chip strip (page-nav-scroll)",
+      "issue": "Full marketing_nav chip row on every JSON page",
+      "visitor_confusion": "Feels like module catalog",
+      "primary_buyer": "Evaluator",
+      "primary_action": "Read page",
+      "cta_problem": "N/A",
+      "route_risk": "Low",
+      "fix": "Default hub strip (Solutions/Platform/Trust/Resources/Pricing); chips opt-in via marketing_show_marketing_nav_chips",
+      "priority": "P1",
+      "classification": ["navigation", "IA/story"],
+      "status": "addressed"
+    },
+    {
+      "page": "Homepage institution strip",
+      "issue": "Parallel K-12 / faith catalog vs Solutions nav",
+      "visitor_confusion": "Two segment models",
+      "primary_buyer": "Owner",
+      "primary_action": "Pick a journey",
+      "cta_problem": "N/A",
+      "route_risk": "Low",
+      "fix": "Strip matches six buyer segments (stories + roles)",
+      "priority": "P1",
+      "classification": ["IA/story", "navigation"],
+      "status": "addressed"
+    }
+  ]
+}

@@ -5,14 +5,21 @@
 
 {% block content %}
 {% trans "Back to dashboard" as back_dashboard %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-event-console="1" data-task="event_console" data-task-step="events:console-root">
-  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_dashboard %}
-  <div class="d-flex flex-wrap gap-2 mb-3">
-    <a class="btn btn-outline-primary btn-sm" href="{% url 'events:event_analytics_console' %}">{% trans "Analytics" %}</a>
-    <a class="btn btn-outline-warning btn-sm" href="{% url 'events:event_dlq_console' %}">{% trans "DLQ & remediation" %}</a>
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-event-console="1" data-rmc-os-center="event_timeline" data-task="event_console" data-task-step="events:console-root">
+  {% trans "Events" as ev_eyebrow %}
+  {% include "components/rmc_os_page_header.html" with os_center_key="event_timeline" center_eyebrow=ev_eyebrow center_title=page_title center_purpose=page_subtitle %}
+  <div class="d-flex flex-wrap gap-2 mb-2">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ action_url }}">{{ back_dashboard }}</a>
   </div>
+  {% include "components/rmc_os_action_bar.html" with primary_url=dlq_url primary_label=_("Review DLQ & remediation") primary_data_action="events-open-dlq" primary_task="event_console" primary_step="events:dlq-primary" %}
+  <details class="mb-3 de-secondary-collapsible">
+    <summary class="small text-muted">{% trans "More event tools" %}</summary>
+    <div class="d-flex flex-wrap gap-2 mt-2">
+      <a class="btn btn-outline-secondary btn-sm" href="{{ analytics_url }}" data-action="events-analytics" data-task="event_console" data-task-step="events:analytics">{% trans "Event analytics" %}</a>
+    </div>
+  </details>
   <div class="alert alert-secondary mb-3" role="note">
-    {% trans "Two storage paths: Domain outbox (integrations → webhook deliveries + internal subscribers via outbox processor) and Platform event log (bus/workflows/replay)." %}
+    {% trans "Two storage paths: Domain outbox (integrations → webhook deliveries + internal subscribers via outbox processor) and Platform event log (bus/workflows/replay). Inspect a row to replay or trace webhook status." %}
   </div>
 
   <div class="card shadow-sm mb-4">

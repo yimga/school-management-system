@@ -1,7 +1,8 @@
 {% extends "portal_base.html" %}
-{% load region_format tenant_hook phase8_tags %}
+{% block rmc_workspace_os_header %}{% endblock %}
+{% load i18n region_format tenant_hook phase8_tags %}
 {% load static %}
-{% block title %}Finance Dashboard{% endblock %}
+{% block title %}{% trans "Money Center" %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -16,7 +17,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2" data-page-archetype="role-home">
+<div class="container-fluid py-2" data-page-archetype="role-home" data-rmc-os-center="money_center" data-rmc-ux-role-dashboard="finance-workspace">
 {% phase8_dashboard_declaration "finance/dashboard.html" %}
 {% if finance_requests_count %}
   <div class="alert alert-warning d-flex justify-content-between align-items-center mb-4">
@@ -47,25 +48,29 @@
   {% endif %}
 {% endif %}
 
+<div class="finance-dashboard-widgets">
+
+  <div data-rmc-ux-section="what-needs-attention">
+  {% trans "Finance" as money_eyebrow %}
+  {% include "components/rmc_os_page_header.html" with os_center_key="money_center" center_eyebrow=money_eyebrow center_title=_("Money Center") center_purpose="" %}
+  <p class="text-body-secondary small mb-3">{% blocktrans with p=profile.name c=profile.country_code %}Invoices, fees, and payments — compliance profile {{ p }} ({{ c }}).{% endblocktrans %}</p>
+  {% url 'finance:invoices' as money_primary_url %}
+  {% include "components/rmc_os_action_bar.html" with primary_url=money_primary_url primary_label=_("Open invoices") primary_data_action="money-open-invoices" primary_task="money_center" primary_step="finance:invoices" %}
+  <details class="mb-3 de-secondary-collapsible">
+    <summary class="small text-muted">{% trans "More money actions" %}</summary>
+    <div class="d-flex flex-wrap gap-2 mt-2">
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:generate_fees' %}" data-action="money-generate-fees" data-task="money_center" data-task-step="finance:generate-fees">{% trans "Generate fee invoices" %}</a>
+      <a class="btn btn-outline-warning btn-sm" href="{% url 'finance:invoices' %}?status=OVERDUE" data-action="money-overdue" data-task="money_center" data-task-step="finance:overdue">{% trans "Overdue" %}</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:payments' %}" data-action="money-payments" data-task="money_center" data-task-step="finance:payments">{% trans "Payments" %}</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:trial_balance' %}" data-action="money-trial-balance" data-task="money_center" data-task-step="finance:trial-balance">{% trans "Trial balance" %}</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:payment_readiness_dashboard' %}" data-action="money-payment-readiness" data-task="money_center" data-task-step="finance:readiness">{% trans "Payment Readiness Center" %}</a>
+    </div>
+  </details>
+  </div>
+  <!-- rmc-ux-above-fold-end -->
 {% if phase7_de %}
   {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
 {% endif %}
-
-<div class="finance-dashboard-widgets">
-
-  <div class="d-flex flex-wrap align-items-center justify-content-between mb-2 gap-3">
-    <div>
-      <h2 class="mb-0">Finance Dashboard</h2>
-      <div class="text-muted">Compliance: {{ profile.name }} ({{ profile.country_code }})</div>
-    </div>
-    <div class="d-flex flex-wrap gap-2">
-      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:generate_fees' %}">Generate Fee Invoices</a>
-      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:invoices' %}">All Invoices</a>
-      <a class="btn btn-outline-warning btn-sm" href="{% url 'finance:invoices' %}?status=OVERDUE">Overdue</a>
-      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:payments' %}">Payments</a>
-      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:trial_balance' %}">Trial Balance</a>
-    </div>
-  </div>
   <div class="finance-dashboard-extra mb-3">
     {% tenant_hook 'FINANCE_DASHBOARD_EXTRA' %}
   </div>

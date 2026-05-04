@@ -80,6 +80,11 @@ def _parse_decimal(value: str | None, default: Decimal) -> Decimal:
         return Decimal(str(default))
 
 
+def _analytics_request_school(request: HttpRequest):
+    """Tenant middleware sets ``request.school`` on school-scoped hosts; keep analytics aligned."""
+    return getattr(request, "school", None)
+
+
 @staff_member_required(login_url=settings.LOGIN_URL)
 def dashboard(request: HttpRequest):
     # Part B.5: Optional response cache. Enable via Feature Control (enable_analytics_dashboard_cache) or analytics_dashboard_cache_seconds > 0.
@@ -109,7 +114,9 @@ def dashboard(request: HttpRequest):
         if cached is not None:
             return HttpResponse(cached, content_type="text/html; charset=utf-8")
 
-    active_year, active_term = get_active_year_and_term()
+    active_year, active_term = get_active_year_and_term(
+        school=_analytics_request_school(request)
+    )
     if not active_year or not active_term:
         return HttpResponseForbidden("No active academic year/term configured yet.")
 
@@ -568,7 +575,9 @@ def grading_deadlines(request: HttpRequest):
     Grading deadlines management.
     Uses SubjectAssignment.grading_deadline_at; deadlines can be set per assignment in admin.
     """
-    active_year, active_term = get_active_year_and_term()
+    active_year, active_term = get_active_year_and_term(
+        school=_analytics_request_school(request)
+    )
     if not active_year or not active_term:
         return HttpResponseForbidden("No active academic year/term configured yet.")
 
@@ -631,7 +640,7 @@ def strategic_report(request: HttpRequest):
     from apps.people.models import StudentProfile
 
     school = getattr(request, "school", None)
-    active_year, _ = get_active_year_and_term()
+    active_year, _ = get_active_year_and_term(school=school)
     student_qs = StudentProfile.objects.filter(is_active=True)
     teacher_qs = TeacherProfile.objects.filter(is_active=True)
     if school is not None:

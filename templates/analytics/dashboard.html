@@ -1,7 +1,8 @@
 {% extends "portal_base.html" %}
+{% block rmc_workspace_os_header %}{% endblock %}
 {% load i18n static region_format phase8_tags %}
 
-{% block title %}Analytics Dashboard{% endblock %}
+{% block title %}{% trans "Insights Center" %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -17,10 +18,7 @@
 
 {% block content %}
 {% phase8_dashboard_declaration "analytics/dashboard.html" %}
-<div class="container-fluid py-2" data-page-archetype="role-home">
-{% if phase7_de %}
-{% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
-{% endif %}
+<div class="container-fluid py-2" data-page-archetype="role-home" data-rmc-os-center="insights_center" data-rmc-ux-role-dashboard="analytics-insights">
 {% if finance_requests_count %}
   <div class="alert alert-warning d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -52,16 +50,25 @@
 
 <div class="analytics-dashboard-widgets">
 
-<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-  <div>
-    <h2 class="mb-0">Analytics Dashboard</h2>
-    <div class="text-muted">School-wide performance insights based on submitted scores.</div>
+<div data-rmc-ux-section="what-needs-attention">
+{% trans "Analytics" as an_eyebrow %}
+{% trans "School-wide performance and governed reporting — allowlisted queries only." as an_purpose %}
+{% include "components/rmc_os_page_header.html" with os_center_key="insights_center" center_eyebrow=an_eyebrow center_title=_("Insights Center") center_purpose=an_purpose %}
+{% url 'analytics:governed_report_builder' as insights_primary_url %}
+{% include "components/rmc_os_action_bar.html" with primary_url=insights_primary_url primary_label=_("Build governed report") primary_data_action="insights-governed-builder" primary_task="insights_center" primary_step="analytics:governed-builder" %}
+<details class="mb-3 de-secondary-collapsible">
+  <summary class="small text-muted">{% trans "More insights" %}</summary>
+  <div class="d-flex flex-wrap gap-2 mt-2">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'analytics:master_sheet' %}" data-action="insights-master-sheet" data-task="insights_center" data-task-step="analytics:master-sheet">{% trans "Master sheet" %}</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'analytics:deadlines' %}" data-action="insights-deadlines" data-task="insights_center" data-task-step="analytics:deadlines">{% trans "Grading deadlines" %}</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'analytics:decision_intelligence_dashboard' %}" data-action="insights-decision" data-task="insights_center" data-task-step="analytics:decision">{% trans "Decision dashboards" %}</a>
   </div>
-  <div class="d-flex gap-2">
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'analytics:master_sheet' %}">Master Sheet</a>
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'analytics:deadlines' %}">Grading Deadlines</a>
-  </div>
+</details>
 </div>
+<!-- rmc-ux-above-fold-end -->
+{% if phase7_de %}
+{% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
+{% endif %}
 
 <details class="de-secondary-collapsible mb-2">
 <summary>{% trans "Expand full operational KPI grid" %}</summary>

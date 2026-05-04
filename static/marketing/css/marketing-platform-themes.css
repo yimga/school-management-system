@@ -1,0 +1,54 @@
+/**
+ * Platform capability pages: subtle per-page visual identity (no route changes).
+ * Class: .mkt-platform-theme--<slug> on .page-stack (see type_platform_detail.html).
+ */
+.mkt-page-type-platform-detail {
+  position: relative;
+}
+.mkt-page-type-platform-detail::before {
+  content: "";
+  display: block;
+  height: 3px;
+  border-radius: 3px;
+  margin-bottom: 1rem;
+  background: linear-gradient(90deg, var(--mkt-plat-accent, #38bdf8), transparent);
+}
+.mkt-platform-theme--platform-admissions {
+  --mkt-plat-accent: #22c55e;
+}
+.mkt-platform-theme--platform-fees-payments {
+  --mkt-plat-accent: #f59e0b;
+}
+.mkt-platform-theme--platform-parent-portal {
+  --mkt-plat-accent: #a78bfa;
+}
+.mkt-platform-theme--platform-teacher-portal {
+  --mkt-plat-accent: #38bdf8;
+}
+.mkt-platform-theme--platform-student-portal {
+  --mkt-plat-accent: #2dd4bf;
+}
+.mkt-platform-theme--platform-analytics {
+  --mkt-plat-accent: #818cf8;
+}
+.mkt-platform-theme--platform-security {
+  --mkt-plat-accent: #f472b6;
+}
+.mkt-platform-theme--platform-student-information-system {
+  --mkt-plat-accent: #60a5fa;
+}
+.mkt-platform-theme--platform-attendance {
+  --mkt-plat-accent: #34d399;
+}
+.mkt-platform-theme--platform-grading-report-cards {
+  --mkt-plat-accent: #fbbf24;
+}
+.mkt-platform-theme--platform-communications {
+  --mkt-plat-accent: #94a3b8;
+}
+.mkt-platform-theme--platform-workflows {
+  --mkt-plat-accent: #c084fc;
+}
+.mkt-platform-theme--platform-offline-first {
+  --mkt-plat-accent: #2dd4bf;
+}

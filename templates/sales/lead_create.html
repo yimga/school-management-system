@@ -25,6 +25,19 @@
       <label class="form-label" for="phone">{% trans "Phone" %}</label>
       <input class="form-control" id="phone" name="phone">
     </div>
+    <div class="mb-2">
+      <label class="form-label" for="decision_maker">{% trans "Decision maker" %}</label>
+      <input class="form-control" id="decision_maker" name="decision_maker" maxlength="200" placeholder="{% trans 'Name or title' %}">
+    </div>
+    <div class="mb-2">
+      <label class="form-label" for="deal_owner_id">{% trans "Deal owner" %} (staff)</label>
+      <select class="form-select" name="deal_owner_id" id="deal_owner_id">
+        <option value="">—</option>
+        {% for u in staff_owners %}
+        <option value="{{ u.pk }}">{{ u.get_full_name|default:u.username }}</option>
+        {% endfor %}
+      </select>
+    </div>
     <button class="btn btn-primary" type="submit">{% trans "Create" %}</button>
     <a class="btn btn-link" href="{% url 'sales:pipeline_board' %}">{% trans "Cancel" %}</a>
   </form>

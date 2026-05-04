@@ -2,21 +2,21 @@
   "label": "Admissions",
   "seo_title": "Admissions & Enrollment | RunMyCampus",
   "seo_description": "Inquiry through enrollment with pipelines, documents, interviews, and audit-ready decisions.",
-  "headline": "Turn enquiries into enrolled students without spreadsheet chaos.",
-  "subheadline": "Campaign-aware forms, counselor ownership, and clean hand-off to student records.",
+  "headline": "Turn every inquiry into an organized enrollment journey.",
+  "subheadline": "Manage inquiries, applications, document collection, review stages, admission decisions, enrollment conversion, family communication, and first invoice handoff—so the front office and the rest of the school stay in sync.",
   "schema_type": "WebPage",
   "segments": [
     {
       "title": "Pipeline clarity",
-      "body": "Stages, owners, SLAs, and document checklists."
+      "body": "Stages, owners, SLAs, and document checklists everyone can trust."
     },
     {
       "title": "Family experience",
-      "body": "Applicants submit once; updates sync across portals."
+      "body": "Applicants submit once; status and next steps stay visible in the portal."
     },
     {
       "title": "Leadership oversight",
-      "body": "Conversion signals across campuses without manual rollups."
+      "body": "Conversion signals across campuses without spreadsheet rollups."
     }
   ],
   "extras": {
@@ -29,12 +29,9 @@
       "Secure audit trails",
       "Multi-campus support"
     ],
-    "diagram_path": "images/marketing/module-admissions.svg",
+    "diagram_path": "images/marketing/platform-admissions-pipeline.svg",
     "premium_platform_layout": true,
     "suppress_footer_clusters": true,
-    "stock_photo_url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1600&q=75",
-    "stock_photo_alt": "Staff reviewing enrollment paperwork at a school reception desk",
-    "stock_photo_credit": "Photo via Unsplash",
     "problem_section": {
       "title": "Pipeline blind spots slow enrollment",
       "body": "Without a connected admissions workflow, inquiries stall, documents scatter, and leadership lacks conversion clarity. RunMyCampus ties inquiry through enrollment to billing and class placement."
@@ -42,32 +39,45 @@
     "workflow_steps": [
       "Inquiry",
       "Application",
-      "Documents",
-      "Review",
+      "Document review",
+      "Interview / review",
       "Decision",
       "Enrollment",
-      "Invoice",
-      "Class placement"
+      "Invoice"
     ],
     "benefits_by_role": [
       {
-        "role": "Admissions teams",
+        "role": "Admissions team",
         "bullets": [
           "Stage ownership with SLAs and checklists",
           "Families submit once and stay informed"
         ]
       },
       {
-        "role": "Leadership",
+        "role": "Administrators",
+        "bullets": [
+          "Forms, intakes, and handoff into academic structure",
+          "Fewer duplicate records at go-live"
+        ]
+      },
+      {
+        "role": "Parents",
+        "bullets": [
+          "Clear status and fewer repeated document requests",
+          "Professional, consistent communication"
+        ]
+      },
+      {
+        "role": "School leadership",
         "bullets": [
           "Visibility across campuses without manual rollups",
           "Forecast-ready funnel signals"
         ]
       },
       {
-        "role": "Finance",
+        "role": "Finance team",
         "bullets": [
-          "Clean hand-off from acceptance to billing",
+          "Clean handoff from acceptance to billing",
           "Fewer disputed balances at start of term"
         ]
       }
@@ -78,16 +88,24 @@
         "path": "/platform/student-information-system/"
       },
       {
-        "label": "Communications",
-        "path": "/platform/communications/"
+        "label": "Attendance",
+        "path": "/platform/attendance/"
       },
       {
         "label": "Fees & Payments",
         "path": "/platform/fees-payments/"
       },
       {
-        "label": "Workflows",
-        "path": "/platform/workflows/"
+        "label": "Parent Portal",
+        "path": "/platform/parent-portal/"
+      },
+      {
+        "label": "Communications",
+        "path": "/platform/communications/"
+      },
+      {
+        "label": "Analytics",
+        "path": "/platform/analytics/"
       }
     ]
   }

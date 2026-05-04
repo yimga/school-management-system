@@ -24,6 +24,8 @@ class EventConsoleMagicUxTests(TestCase):
                 "domain_rows": [],
                 "platform_rows": [],
                 "action_url": "/backend/",
+                "dlq_url": "/events/dlq/",
+                "analytics_url": "/events/analytics/",
             },
             request=req,
         )

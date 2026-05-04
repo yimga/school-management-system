@@ -14,3 +14,29 @@
 .mkt-institution-premium .object-fit-cover {
   object-fit: cover;
 }
+
+/* Audience-specific hero accent (class from marketing_institution_page.html) */
+.mkt-inst-audience--private-schools .mkt-inst-hero {
+  border-left: 4px solid #38bdf8;
+  padding-left: 1rem;
+}
+.mkt-inst-audience--international-schools .mkt-inst-hero {
+  border-left: 4px solid #2dd4bf;
+  padding-left: 1rem;
+}
+.mkt-inst-audience--k12-schools .mkt-inst-hero {
+  border-left: 4px solid #a78bfa;
+  padding-left: 1rem;
+}
+.mkt-inst-audience--multi-campus .mkt-inst-hero {
+  border-left: 4px solid #f59e0b;
+  padding-left: 1rem;
+}
+.mkt-inst-audience--faith-based-schools .mkt-inst-hero {
+  border-left: 4px solid #f472b6;
+  padding-left: 1rem;
+}
+.mkt-inst-audience--growing-school-networks .mkt-inst-hero {
+  border-left: 4px solid #22c55e;
+  padding-left: 1rem;
+}

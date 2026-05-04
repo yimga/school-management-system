@@ -54,3 +54,22 @@ Configured in `config/settings.py`:
 - When `test` is in `sys.argv`, SQLite engines use **`CONN_MAX_AGE = 0`** so persistent connections do not worsen locks with `--keepdb` / `DJANGO_TEST_DB_FILE`.
 
 `scripts/migrate_gate_test_db.py` runs migrations **outside** `manage.py test`; it lowers `django.db.backends` log levels to **WARNING** so DEBUG builds do not emit full SQL (huge I/O and log bloat during long migrates).
+
+## Marketing public story tests (`TestCase`)
+
+`apps.schools.tests.test_marketing_public_story_reset` hits the database. If `.env` sets **`DATABASE_URL`** to Postgres that is unreachable or slow, Django may appear **stuck on “Creating test database…”** while connecting or migrating Postgres.
+
+**Fix:** force local SQLite for the test runner (see `config/settings.py`):
+
+```bash
+export RMC_TEST_LOCAL_SQLITE=1        # ignore DATABASE_URL during tests
+export RMC_SQLITE_TEST_MEMORY=1       # SQLite engine for unittest
+export RMC_SQLITE_TEST_USE_MEMORY_NAME=1   # optional; TEST NAME uses shared-memory SQLite (fewer Windows file locks)
+```
+
+**Scripts:**
+
+| Script | Purpose |
+|--------|---------|
+| `bash scripts/smoke_marketing_public_story.sh` | Fast smoke: `validate_marketing_urls --smoke` + JSON tests + nav contract (mostly DB-free). Sets the exports above by default. |
+| `bash scripts/smoke_marketing_public_story_full.sh` | Runs **`test_marketing_public_story_reset`** with the same exports. First run migrates the full schema (long); use `DJANGO_TEST_DB_FILE=.django_test_dbs/marketing_public_story.sqlite3` and **`--keepdb`** on later runs to reuse the migrated file. |

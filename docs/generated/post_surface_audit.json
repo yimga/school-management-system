@@ -302,7 +302,7 @@
     },
     {
       "file": "apps/analytics/views.py",
-      "line": "499",
+      "line": "506",
       "signal": "export_delivery_hint"
     },
     {
@@ -572,7 +572,7 @@
     },
     {
       "file": "apps/schools/marketing_views.py",
-      "line": "2264",
+      "line": "2629",
       "signal": "export_delivery_hint"
     },
     {
@@ -656,20 +656,20 @@
       "signal": "export_delivery_hint"
     }
   ],
-  "generated_at": "2026-05-03T16:45:58.500694+00:00",
+  "generated_at": "2026-05-04T15:41:57.780310+00:00",
   "post_handler_audit_embed": {
-    "generated_at": "2026-05-03T16:45:48.707645+00:00",
+    "generated_at": "2026-05-04T15:41:50.336372+00:00",
     "summary_by_bucket": {
-      "product": 232,
+      "product": 233,
       "scripts": 4
     },
     "summary_by_classification": {
-      "needs_review": 84,
+      "needs_review": 85,
       "protected_candidate": 148,
       "scripts_cli": 4
     },
     "totals": {
-      "hits": 236
+      "hits": 237
     }
   },
   "post_handler_product_needs_review": [
@@ -901,21 +901,21 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/sales/views.py",
-      "line": "100",
+      "line": "109",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/sales/views.py",
-      "line": "136",
+      "line": "160",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/sales/views.py",
-      "line": "207",
+      "line": "245",
       "protective_decorator_nearby": false
     },
     {
@@ -929,14 +929,21 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2047",
+      "line": "2356",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2122",
+      "line": "2431",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/schools/marketing_views.py",
+      "line": "2488",
       "protective_decorator_nearby": false
     },
     {
@@ -1263,29 +1270,29 @@
     }
   ],
   "post_risk": {
-    "product_needs_review_post_handlers": 84,
+    "product_needs_review_post_handlers": 85,
     "product_protected_candidate_post_handlers": 148
   },
   "schema_version": 2,
   "security_surface_audit_embed": {
-    "generated_at": "2026-05-03T16:45:46.482037+00:00",
+    "generated_at": "2026-05-04T15:41:47.854318+00:00",
     "summary": {
       "allow_any": 28,
       "csrf_exempt": 27,
       "cursor_execute": 2,
-      "login_required": 435,
+      "login_required": 442,
       "permission_classes": 33,
-      "require_http_methods": 324,
+      "require_http_methods": 325,
       "staff_member_required": 72,
       "subprocess": 258
     },
     "summary_by_classification": {
-      "allowed": 1027,
+      "allowed": 1035,
       "needs_review": 141,
       "unsafe": 11
     },
     "totals": {
-      "hits": 1179
+      "hits": 1187
     }
   },
   "subprocess_hits": [
@@ -1400,8 +1407,8 @@
     "csrf_exempt_hits_apps": 53,
     "cursor_execute_hits_apps": 0,
     "export_delivery_hint_hits_apps": 75,
-    "product_needs_review": 84,
-    "product_post_handlers": 232,
+    "product_needs_review": 85,
+    "product_post_handlers": 233,
     "product_protected_candidate": 148,
     "subprocess_hits_apps": 21
   }

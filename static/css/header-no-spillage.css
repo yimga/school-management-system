@@ -48,19 +48,35 @@ nav#portalHeader.statement-header {
   overflow-y: visible;
 }
 
-/* Marketing: .mkt-navbar (marketing_header.html) */
+/* Marketing: .mkt-navbar (marketing_header.html)
+   overflow-x: hidden clips Bootstrap dropdowns (Popper absolutely positioned).
+   Use clip + visible y (same pattern as portal header). */
 .mkt-navbar.statement-header,
 nav.mkt-navbar.statement-header {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
 }
 .mkt-navbar .mkt-navbar-container,
 .mkt-navbar .container {
   max-width: 100%;
   min-width: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+.mkt-navbar .navbar-collapse {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+@media (min-width: 992px) {
+  .mkt-navbar-unified:has(.mkt-mega-menu.show) .mkt-navbar-container,
+  .mkt-navbar-unified:has(.mkt-mega-menu.show) .navbar-collapse,
+  .mkt-navbar-unified:has(.mkt-mega-menu.show) .container {
+    overflow-x: visible;
+    overflow-y: visible;
+  }
 }
 
 /* Auth / standalone: any .navbar that is a direct header */

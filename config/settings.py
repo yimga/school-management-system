@@ -316,6 +316,7 @@ TEMPLATES = [
                 "apps.platform_runtime.context_processors.rum_ingest_context",
                 "apps.platform_runtime.context_processors.demo_sandbox_banner",
                 "apps.platform_runtime.context_processors.shell_contract_context",
+                "apps.platform_runtime.context_processors.rmc_os_shell_context",
                 "apps.platform_runtime.context_processors.ai_operating_layer_context",
                 "apps.platform_runtime.context_processors.system_actions_context",
                 "apps.platform_runtime.context_processors.offline_sync_bar_context",

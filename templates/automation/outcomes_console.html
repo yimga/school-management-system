@@ -5,8 +5,12 @@
 {% block backend_title %}{% trans "Automation outcomes" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
-  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-os-center="automation_studio_outcomes">
+  {% include "components/rmc_os_page_header.html" with os_center_key="automation_studio_outcomes" center_eyebrow=_("Automation") center_title=page_title center_purpose=page_subtitle %}
+  <div class="d-flex flex-wrap gap-2 mb-2">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ action_url }}" data-action="automation-back" data-task="automation_studio" data-task-step="automation:back">{{ action_text }}</a>
+  </div>
+  {% include "components/rmc_os_action_bar.html" with primary_url=visual_designer_url primary_label=_("Open visual workflow builder") primary_data_action="automation-open-designer" primary_task="automation_studio" primary_step="automation:visual-designer" %}
   <div class="card shadow-sm mb-4">
     <div class="card-header">
       <h5 class="mb-0">{% trans "Recent migration runs" %}</h5>
@@ -47,7 +51,9 @@
       </div>
       <p class="small text-muted px-3 py-2 mb-0">{% trans "Last 30 runs." %}</p>
       {% else %}
-      <p class="text-muted px-3 py-3 mb-0">{% trans "No migration runs yet." %}</p>
+      <div class="px-3 py-3">
+        {% include "components/dashboard_empty_state.html" with icon="bi-cpu" title=_("No migration runs yet") message=_("CSV migrations and playbook runs will appear here after you execute them.") purpose=_("Verify automation is executing") action_url=visual_designer_url action_text=_("Open Automation Studio builder") empty_primary_task="automation_studio" empty_primary_step="automation:outcomes-empty-migration" %}
+      </div>
       {% endif %}
     </div>
   </div>

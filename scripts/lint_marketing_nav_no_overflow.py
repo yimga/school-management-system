@@ -27,16 +27,37 @@ def _resolve_base(base: str) -> Path:
     return root
 
 
+def _navbar_primary_return_list_slice(text: str) -> str:
+    """Return only the ``return [ ... ]`` list body for ``_marketing_navbar_primary``."""
+    start = text.find("def _marketing_navbar_primary()")
+    if start == -1:
+        return ""
+    ret = text.find("return [", start)
+    if ret == -1:
+        return ""
+    # Start after ``return [``
+    i = ret + len("return [")
+    depth = 1
+    n = len(text)
+    while i < n and depth:
+        c = text[i]
+        if c == "[":
+            depth += 1
+        elif c == "]":
+            depth -= 1
+        i += 1
+    return text[ret:i]
+
+
 def count_primary_items(root: Path) -> int:
     views = root / "apps" / "schools" / "marketing_views.py"
     text = views.read_text(encoding="utf-8")
-    # Find _marketing_navbar_primary return list: count {"label": ...} entries
-    start = text.find("def _marketing_navbar_primary()")
-    if start == -1:
+    block = _navbar_primary_return_list_slice(text)
+    if not block:
         return 0
-    block = text[start : start + 4000]
-    # Count lines like {"label": "Product", "path": ...}
-    return len(re.findall(r'\{"label"\s*:', block))
+    # Top-level nav dicts: multiline ``{`` + ``"label"`` or single-line ``{"label"``.
+    pat = r'(?:\r?\n        \{\r?\n            "label":|\r?\n        \{"label":)'
+    return len(re.findall(pat, block))
 
 
 def has_overflow_handling(root: Path) -> bool:

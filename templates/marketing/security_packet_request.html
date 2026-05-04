@@ -1,0 +1,60 @@
+{% extends "schools/marketing_base.html" %}
+{% load i18n %}
+{% block title %}{{ seo_title }}{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width: 40rem">
+  <header class="mb-4">
+    <h1 class="h2">{% trans "Request security packet" %}</h1>
+    <p class="text-muted small mb-0">
+      {% trans "For procurement and InfoSec reviews. Submissions use a dedicated channel (source: security_packet_request) when webhooks are configured. We do not use this form to claim certifications — verification is always against your register and contract." %}
+    </p>
+  </header>
+
+  {% if submitted %}
+  <div class="alert alert-success">{% trans "Thank you — we received your request. Our team will follow up at the email you provided." %}</div>
+  {% elif error %}
+  <div class="alert alert-warning">{% trans "We could not confirm delivery. If you included an email, we still logged your intent — please try again or use the general contact page." %}</div>
+  {% endif %}
+
+  <form method="post" action="{{ submit_url }}" class="card border-0 shadow-sm">
+    {% csrf_token %}
+    <div class="card-body">
+      <div class="mb-3">
+        <label class="form-label" for="sp_name">{% trans "Your name" %} *</label>
+        <input class="form-control" id="sp_name" name="name" required maxlength="256">
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="sp_email">{% trans "Work email" %} *</label>
+        <input class="form-control" type="email" id="sp_email" name="email" required maxlength="256">
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="sp_org">{% trans "Organization / school group" %} *</label>
+        <input class="form-control" id="sp_org" name="organization" required maxlength="256">
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="sp_role">{% trans "Role" %}</label>
+        <input class="form-control" id="sp_role" name="role" maxlength="128" placeholder="{% trans 'e.g. CIO, DPO, procurement lead' %}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="sp_country">{% trans "Country" %}</label>
+        <input class="form-control" id="sp_country" name="country" maxlength="128">
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="sp_nda">{% trans "NDA status" %}</label>
+        <input class="form-control" id="sp_nda" name="nda_status" maxlength="128" placeholder="{% trans 'e.g. NDA signed 2026-04-01, or request NDA' %}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="sp_art">{% trans "Artefacts needed" %}</label>
+        <textarea class="form-control" id="sp_art" name="artifact_needs" rows="4" maxlength="4000" placeholder="{% trans 'e.g. data flow, subprocessors, pen test summary, RLS model, incident response' %}"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">{% trans "Submit request" %}</button>
+    </div>
+  </form>
+
+  <p class="small text-muted mt-3 mb-0">
+    <a href="{{ procurement_url }}">{% trans "Procurement checklist" %}</a>
+    ·
+    <a href="{{ trust_url }}">{% trans "Trust center" %}</a>
+  </p>
+</div>
+{% endblock %}

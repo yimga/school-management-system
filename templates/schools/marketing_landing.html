@@ -30,33 +30,32 @@
   <div id="mkt-scroll-progress" class="mkt-scroll-progress" role="presentation" aria-hidden="true">
     <div id="mkt-scroll-progress-fill" class="mkt-scroll-progress-fill"></div>
   </div>
+  {% if marketing_show_chapter_indicator %}
   <nav id="mkt-chapter-indicator" class="mkt-chapter-indicator" aria-label="{% trans 'Page sections' %}" role="navigation">
-    <a href="#hero" class="mkt-chapter-dot" data-chapter="1" aria-label="{% trans 'Hero' %}"></a>
-    <a href="#platform-pillars" class="mkt-chapter-dot" data-chapter="2" aria-label="{% trans 'Why schools switch' %}"></a>
-    <a href="#one-platform" class="mkt-chapter-dot" data-chapter="3" aria-label="{% trans 'Platform' %}"></a>
-    <a href="#launch-in-minutes" class="mkt-chapter-dot" data-chapter="4" aria-label="{% trans 'Launch' %}"></a>
-    <a href="#product-visualization" class="mkt-chapter-dot" data-chapter="5" aria-label="{% trans 'Studio OS' %}"></a>
-    <a href="#ecosystem" class="mkt-chapter-dot" data-chapter="6" aria-label="{% trans 'Marketplace' %}"></a>
-    <a href="#migration" class="mkt-chapter-dot" data-chapter="7" aria-label="{% trans 'Migration' %}"></a>
-    <a href="#for-your-role" class="mkt-chapter-dot" data-chapter="8" aria-label="{% trans 'Roles' %}"></a>
-    <a href="#security-compliance" class="mkt-chapter-dot" data-chapter="9" aria-label="{% trans 'Security' %}"></a>
-    <a href="#final-cta" class="mkt-chapter-dot" data-chapter="10" aria-label="{% trans 'Get started' %}"></a>
-    <a href="#live-flow-preview" class="mkt-chapter-dot" data-chapter="11" aria-label="{% trans 'Product flow demo' %}"></a>
+    <a href="#hero" class="mkt-chapter-dot" data-chapter="1" aria-label="{% trans 'The promise' %}"></a>
+    <a href="#problem-statement" class="mkt-chapter-dot" data-chapter="2" aria-label="{% trans 'The pain' %}"></a>
+    <a href="#platform-pillars" class="mkt-chapter-dot" data-chapter="3" aria-label="{% trans 'Why schools switch' %}"></a>
+    <a href="#data-flow-linkage" class="mkt-chapter-dot" data-chapter="4" aria-label="{% trans 'Student journey' %}"></a>
+    <a href="#product-pillars" class="mkt-chapter-dot" data-chapter="5" aria-label="{% trans 'Product surfaces' %}"></a>
+    <a href="#for-your-role" class="mkt-chapter-dot" data-chapter="6" aria-label="{% trans 'By role' %}"></a>
+    <a href="#launch-in-minutes" class="mkt-chapter-dot" data-chapter="7" aria-label="{% trans 'Global configuration' %}"></a>
+    <a href="#security-compliance" class="mkt-chapter-dot" data-chapter="8" aria-label="{% trans 'Trust' %}"></a>
+    <a href="#final-cta" class="mkt-chapter-dot" data-chapter="9" aria-label="{% trans 'Get started' %}"></a>
   </nav>
+  {% endif %}
   <div id="mkt-sticky-cta-bar" class="mkt-sticky-cta-bar" aria-hidden="true">
     <div class="container d-flex align-items-center justify-content-between gap-2 flex-wrap py-2">
       <span class="text-white small fw-medium">{% trans "Ready to run your campus?" %}</span>
       <div class="d-flex gap-2 flex-wrap justify-content-end">
-        <a href="{% url 'marketing_demo' %}" class="btn btn-sm btn-primary" data-cta="demo" data-page="home">{% trans "Request Demo" %}</a>
-        <a href="{% url 'marketing_product_tour' %}" class="btn btn-sm btn-outline-light" data-cta="secondary" data-page="home">{% trans "Watch Product Tour" %}</a>
-        <a href="{% url 'signup_school' %}" class="btn btn-sm btn-outline-light" data-cta="primary" data-page="home">{% trans "Start trial" %}</a>
-        <a href="{% url 'global_login_discovery' %}" class="btn btn-sm btn-outline-light">{% trans "Login" %}</a>
+        <a href="{% url 'marketing_demo' %}" class="btn btn-sm btn-primary" data-cta="demo" data-page="home">{% trans "Book demo" %}</a>
+        <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-sm btn-outline-light" data-cta="secondary" data-page="home">{% trans "See product tour" %}</a>
+        <a href="{% url 'global_login_discovery' %}" class="btn btn-sm btn-link text-white-50 text-decoration-none">{% trans "Login" %}</a>
       </div>
     </div>
   </div>
 
   {# 1. Hero — single platform headline, primary CTA, category claim (data-tour for product tour library) #}
-  <section id="hero" class="mkt-hero" tabindex="-1" data-tour="hero">
+  <section id="hero" class="mkt-hero" tabindex="-1" data-tour="hero" data-chapter="1">
     <div class="mkt-hero-inner">
       <div>
         <h1 class="mkt-hero-headline">{{ platform_headline|default:hero_headline }}</h1>
@@ -83,10 +82,10 @@
         {% if hero_video_url %}
         <video class="mkt-hero-video" width="800" height="450" poster="{% if hero_video_poster_url %}{{ hero_video_poster_url }}{% endif %}" preload="metadata" playsinline muted loop aria-label="RunMyCampus platform overview">
           <source src="{{ hero_video_url }}" type="video/mp4">
-          <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}"{% if hero_dashboard_image_srcset %} srcset="{{ hero_dashboard_image_srcset }}" sizes="{{ hero_dashboard_image_sizes }}"{% endif %} alt="{% trans 'Composite view of leadership analytics, administration, teacher workspace, parent mobile portal, finance, and student portal in RunMyCampus' %}" width="960" height="520" decoding="async" loading="eager" class="img-fluid mkt-hero-composite-img" style="object-fit: contain; background: var(--mkt-hero-bg, #0f172a);">
+          <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/marketing/hero-global-os-composite.svg' %}{% endif %}"{% if hero_dashboard_image_srcset %} srcset="{{ hero_dashboard_image_srcset }}" sizes="{{ hero_dashboard_image_sizes }}"{% endif %} alt="{% trans 'Composite view of leadership analytics, administration, teacher workspace, parent mobile portal, finance, and student portal in RunMyCampus' %}" width="960" height="520" decoding="async" loading="eager" class="img-fluid mkt-hero-composite-img" style="object-fit: contain; background: var(--mkt-hero-bg, #0f172a);">
         </video>
         {% else %}
-          <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}"{% if hero_dashboard_image_srcset %} srcset="{{ hero_dashboard_image_srcset }}" sizes="{{ hero_dashboard_image_sizes }}"{% endif %} alt="{% trans 'Composite view of leadership analytics, administration, teacher workspace, parent mobile portal, finance, and student portal in RunMyCampus' %}" width="960" height="520" decoding="async" fetchpriority="high" loading="eager" class="img-fluid mkt-hero-composite-img" style="object-fit: contain; background: var(--mkt-hero-bg, #0f172a);">
+          <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/marketing/hero-global-os-composite.svg' %}{% endif %}"{% if hero_dashboard_image_srcset %} srcset="{{ hero_dashboard_image_srcset }}" sizes="{{ hero_dashboard_image_sizes }}"{% endif %} alt="{% trans 'Composite view of leadership analytics, administration, teacher workspace, parent mobile portal, finance, and student portal in RunMyCampus' %}" width="960" height="520" decoding="async" fetchpriority="high" loading="eager" class="img-fluid mkt-hero-composite-img" style="object-fit: contain; background: var(--mkt-hero-bg, #0f172a);">
         {% endif %}
       </div>
     </div>
@@ -102,18 +101,43 @@
   </section>
   {% endif %}
 
-  <section id="problem-statement" class="mkt-section container py-5 mkt-problem-glob" aria-label="{% trans 'Operational challenge' %}">
-    <h2 class="h3 text-center mb-3">{% trans "School operations are too scattered." %}</h2>
-    <p class="lead text-center text-muted mx-auto mb-3" style="max-width:42rem">{% trans "Teams often manage admissions, attendance, fees, grading, parent communication, and reporting across spreadsheets, paper forms, chat apps, disconnected tools, and manual workflows." %}</p>
-    <p class="text-center fw-semibold mb-0">{% trans "RunMyCampus connects every school workflow in one flexible operating platform." %}</p>
+  <section id="problem-statement" class="mkt-section container py-5 mkt-problem-glob mkt-story-pain" aria-label="{% trans 'Operational challenge' %}" data-chapter="2">
+    <h2 class="h3 text-center mb-3">{% trans "The old way: operations scattered everywhere." %}</h2>
+    <p class="lead text-center text-muted mx-auto mb-4" style="max-width:44rem">{% trans "Spreadsheets, paper registers, manual fee tracking, disconnected parent communication, duplicate data entry, and one-off apps — leadership never gets one truthful picture of enrollment, cash, or learner progress." %}</p>
+    <ul class="row g-3 list-unstyled justify-content-center mkt-pain-grid">
+      <li class="col-6 col-md-4 col-lg-2 text-center"><span class="mkt-pain-chip">{% trans "Spreadsheets" %}</span></li>
+      <li class="col-6 col-md-4 col-lg-2 text-center"><span class="mkt-pain-chip">{% trans "Paper registers" %}</span></li>
+      <li class="col-6 col-md-4 col-lg-2 text-center"><span class="mkt-pain-chip">{% trans "Manual fee tracking" %}</span></li>
+      <li class="col-6 col-md-4 col-lg-2 text-center"><span class="mkt-pain-chip">{% trans "Fragmented parent comms" %}</span></li>
+      <li class="col-6 col-md-4 col-lg-2 text-center"><span class="mkt-pain-chip">{% trans "Duplicate data entry" %}</span></li>
+      <li class="col-6 col-md-4 col-lg-2 text-center"><span class="mkt-pain-chip">{% trans "Weak leadership visibility" %}</span></li>
+    </ul>
+    <p class="text-center fw-semibold mb-0 mt-4">{% trans "RunMyCampus reconnects those fragments into one governed operating system for the whole campus." %}</p>
   </section>
+
+  {% if solve_by_challenge %}
+  <section id="pain-to-solution" class="mkt-section container py-4" aria-label="{% trans 'Pain to solution' %}">
+    <h2 class="mkt-section-heading text-center">{% trans "From daily pain to one operating rhythm" %}</h2>
+    <p class="mkt-section-lead text-center">{% trans "Pick the job you need done—each link opens a focused story, not a maze of modules." %}</p>
+    <div class="row g-3">
+      {% for item in solve_by_challenge %}
+      <div class="col-md-6 col-lg-4">
+        <div class="border border-secondary rounded p-3 h-100 rmc-glass-surface">
+          <h3 class="h6">{{ item.title }}</h3>
+          <a href="{{ item.path }}" class="btn btn-sm btn-outline-primary mt-2">{% trans "Explore" %}</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
 
   {# Chapter 2 — Why switch: narrative pillars + proof (Phase 10) #}
   {% if platform_pillar_grid %}
-  <section id="platform-pillars" class="mkt-section mkt-section-pillars mkt-reveal mkt-narrative-chapter" aria-label="{% trans 'Why schools switch' %}" data-chapter="2">
+  <section id="platform-pillars" class="mkt-section mkt-section-pillars mkt-reveal mkt-narrative-chapter" aria-label="{% trans 'Why schools switch' %}" data-chapter="3">
     <div class="container">
       <h2 class="mkt-section-heading text-center">{% trans "Why schools switch" %}</h2>
-      <p class="mkt-section-lead text-center">{% trans "Six platform chapters — one continuous story from classroom to control plane." %}</p>
+      <p class="mkt-section-lead text-center">{% trans "Six outcomes your buyers feel before we talk architecture." %}</p>
       <div class="row g-3 g-md-4 text-center mkt-reveal-stagger mkt-narrative-pillars">
         {% for pillar in platform_pillar_grid %}
         <div class="col-md-6 col-lg-4">
@@ -145,10 +169,10 @@
 
   {# Chapter 3 — Platform architecture (pinned layout on desktop) #}
   {% if platform_architecture_diagram_url %}
-  <section id="one-platform" class="mkt-section mkt-reveal mkt-chapter-pinned" aria-label="{% trans 'One platform' %}" data-chapter="3">
+  <section id="one-platform" class="mkt-section mkt-reveal mkt-chapter-pinned" aria-label="{% trans 'One platform' %}">
     <div class="mkt-chapter-copy">
       <h2 class="mkt-section-heading">{% trans "One platform. Every school operation." %}</h2>
-      <p class="mkt-section-lead">{% trans "Education OS, Control Plane, Marketplace, Migration Cloud, and Analytics—one infrastructure." %}</p>
+      <p class="mkt-section-lead">{% trans "Admissions through daily operations share one learner, fee, and guardian thread—technical layers are documented on the Platform page." %}</p>
     </div>
     <div class="mkt-chapter-visual">
       <img src="{{ platform_architecture_diagram_url }}" alt="{% trans 'RunMyCampus platform architecture' %}" width="800" height="450" loading="lazy" decoding="async" class="img-fluid rounded">
@@ -177,10 +201,10 @@
   </section>
   {% endif %}
   {% if marketing_data_flow_chain %}
-  <section id="data-flow-linkage" class="mkt-section mkt-reveal" aria-label="{% trans 'Data flow' %}">
+  <section id="data-flow-linkage" class="mkt-section mkt-reveal" aria-label="{% trans 'Data flow' %}" data-chapter="4">
     <div class="container text-center">
-      <h2 class="mkt-section-heading">{% trans "Connected workflow across the entire campus lifecycle" %}</h2>
-      <p class="mkt-section-lead">{% trans "Each stage feeds the next—without duplicating student context across spreadsheets or standalone apps." %}</p>
+      <h2 class="mkt-section-heading">{% trans "One student journey—end to end" %}</h2>
+      <p class="mkt-section-lead">{% trans "Inquiry through leadership analytics on one thread: every stage inherits the same learner, fee, and guardian context." %}</p>
       <div class="mkt-data-flow-chain" role="list">
         {% for node in marketing_data_flow_chain %}
         <div class="mkt-flow-node" role="listitem">
@@ -227,7 +251,7 @@
   {% include "marketing/partials/live_flow_preview.html" %}
 
   {% if setup_studio_flow_image_url %}
-  <section id="setup-studio-flow" class="mkt-section mkt-reveal" aria-label="{% trans 'Setup flow' %}" data-chapter="3">
+  <section id="setup-studio-flow" class="mkt-section mkt-reveal" aria-label="{% trans 'Setup flow' %}">
     <h2 class="mkt-section-heading">{% trans "Guided setup" %}</h2>
     <p class="mkt-section-lead">{% trans "From signup to launch with health score and role preview." %}</p>
     <div class="text-center">
@@ -237,7 +261,7 @@
   {% endif %}
 
   {% if from_single_to_enterprise %}
-  <section id="from-single-to-enterprise" class="mkt-section mkt-reveal" aria-label="{% trans 'From single school to enterprise' %}" data-chapter="3">
+  <section id="from-single-to-enterprise" class="mkt-section mkt-reveal" aria-label="{% trans 'From single school to enterprise' %}">
     <h2 class="mkt-section-heading">{% trans "From single school to enterprise" %}</h2>
     <p class="mkt-section-lead">{% trans "One platform for every stage." %}</p>
     <div class="mkt-platform-grid">
@@ -292,7 +316,7 @@
 
   {# Chapter 5 — Studio OS / pinned product frame (Phase 10) #}
   {% if product_visualization_slides %}
-  <section id="product-visualization" class="mkt-section mkt-reveal mkt-narrative-chapter" aria-label="{% trans 'Studio OS' %}" data-tour="product-visualization" data-chapter="5">
+  <section id="product-visualization" class="mkt-section mkt-reveal mkt-narrative-chapter" aria-label="{% trans 'Studio OS' %}" data-tour="product-visualization">
     <div class="container mkt-studio-pinned">
       <div class="mkt-studio-copy">
         <h2 class="mkt-section-heading">{% trans "Studio OS — one shell for every mode" %}</h2>
@@ -329,9 +353,9 @@
 
   {# Product pillars (6) — Learn more links #}
   {% if product_pillars_home %}
-  <section id="product-pillars" class="mkt-section container" aria-label="{% trans 'Platform overview' %}">
-    <h2 class="mkt-section-heading">{% trans "Platform overview" %}</h2>
-    <p class="mkt-section-lead">{% trans "Dedicated surfaces for each capability—each linking to a deeper product page." %}</p>
+  <section id="product-pillars" class="mkt-section container" aria-label="{% trans 'Platform overview' %}" data-chapter="5">
+    <h2 class="mkt-section-heading">{% trans "Six product surfaces your buyers expect to see" %}</h2>
+    <p class="mkt-section-lead">{% trans "Command center, classroom, family, finance, records, and governance—each with a dedicated story, not a generic portal." %}</p>
     <div class="mkt-modules-grid mkt-platform-overview-grid">
       {% for pillar in product_pillars_home %}
       <article class="mkt-module-card mkt-platform-cap-card">
@@ -370,9 +394,9 @@
 
   {# Chapter 8 — Role experiences + role-home visuals #}
   {% if for_your_role %}
-  <section id="for-your-role" class="mkt-section mkt-reveal mkt-narrative-chapter" aria-label="{% trans 'For your role' %}" data-chapter="8">
-    <h2 class="mkt-section-heading">{% trans "Role-native experiences" %}</h2>
-    <p class="mkt-section-lead">{% trans "Purpose-built home surfaces — not a one-size portal." %}</p>
+  <section id="for-your-role" class="mkt-section mkt-reveal mkt-narrative-chapter" aria-label="{% trans 'For your role' %}" data-chapter="6">
+    <h2 class="mkt-section-heading">{% trans "Built for how each role actually works" %}</h2>
+    <p class="mkt-section-lead">{% trans "Owners, administrators, teachers, parents, finance, and networks each get a credible home—not a shared login with hidden menus." %}</p>
     {% if role_preview_images %}
     <div class="mkt-role-visual-strip" data-phase10-role-visuals>
       {% for rp in role_preview_images %}
@@ -400,8 +424,8 @@
   {% endif %}
 
   {% if get_started_three_steps %}
-  <section id="get-started" class="mkt-section mkt-reveal" aria-label="{% trans 'Get started' %}" data-chapter="4">
-    <h2 class="mkt-section-heading">{% trans "Start in three steps" %}</h2>
+  <section id="get-started" class="mkt-section mkt-reveal" aria-label="{% trans 'Get started' %}">
+    <h2 class="mkt-section-heading">{% trans "Implementation path" %}</h2>
     <div class="row g-3">
       {% for step in get_started_three_steps %}
       <div class="col-md-4">
@@ -414,13 +438,14 @@
       {% endfor %}
     </div>
     <p class="text-center mt-3">
-      <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="primary" data-page="home">{% trans "Start Free Trial" %}</a>
+      <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="demo" data-page="home">{% trans "Book demo" %}</a>
+      <a href="{% url 'marketing_story_pilot_program' %}" class="btn btn-outline-primary ms-2">{% trans "Pilot program" %}</a>
     </p>
   </section>
   {% endif %}
 
   {# Launch your school in minutes — School-in-a-Box (required per Visual Asset plan) #}
-  <section id="launch-in-minutes" class="mkt-section mkt-reveal mkt-narrative-chapter container" aria-label="{% trans 'Global configuration' %}" data-chapter="4">
+  <section id="launch-in-minutes" class="mkt-section mkt-reveal mkt-narrative-chapter container" aria-label="{% trans 'Global configuration' %}" data-chapter="7">
     <h2 class="mkt-section-heading">{% trans "Global configuration engine" %}</h2>
     <p class="mkt-section-lead">{% trans "Tune academic years, terms and semesters, grading systems, class structures, departments, campuses, currencies, fee categories, discount rules, user roles, approval workflows, communication rules, report templates, and school branding—without fragmenting data." %}</p>
     {% if school_in_a_box_flow_image_url %}
@@ -435,8 +460,8 @@
       <li class="col-md-3">{% trans "Launch" %}</li>
     </ul>
     <p class="text-center mt-3">
-      <a href="{% url 'onboard_wizard' %}" class="btn btn-outline-primary">{% trans "Start guided setup" %}</a>
-      <a href="{% url 'signup_school' %}" class="btn btn-primary ms-2" data-cta="primary" data-page="home">{% trans "Start Free Trial" %}</a>
+      <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="demo" data-page="home">{% trans "Book demo" %}</a>
+      <a href="{% url 'marketing_story_implementation' %}" class="btn btn-outline-primary ms-2">{% trans "Implementation overview" %}</a>
     </p>
   </section>
 
@@ -535,7 +560,7 @@
   </section>
 
   {# 6. Migration angle — Chapter 7 (pinned layout on desktop) #}
-  <section id="migration" class="mkt-section mkt-reveal mkt-chapter-pinned" data-chapter="7">
+  <section id="migration" class="mkt-section mkt-reveal mkt-chapter-pinned">
     <div class="mkt-chapter-copy">
       <h2 class="mkt-section-heading">{% trans "Migrate with confidence" %}</h2>
       <p class="mkt-section-lead">{% trans "Move from spreadsheets or legacy stacks with phased rollout, validation, and rollback discipline." %}</p>
@@ -555,7 +580,7 @@
   </section>
 
   {# 7. Marketplace & packs — pinned diagram + apps (Phase 10) #}
-  <section id="ecosystem" class="mkt-section mkt-reveal mkt-narrative-chapter mkt-chapter-pinned" data-tour="ecosystem" data-chapter="6">
+  <section id="ecosystem" class="mkt-section mkt-reveal mkt-narrative-chapter mkt-chapter-pinned" data-tour="ecosystem">
     <div class="mkt-chapter-copy">
       {% if app_marketplace_hero %}
       <h2 class="mkt-section-heading">{{ app_marketplace_hero.title }}</h2>
@@ -568,8 +593,8 @@
       <p class="small text-muted">{% trans "Works with:" %} {{ integrations_strip|join:", " }}</p>
       {% endif %}
       <p class="mt-3">
-        <a href="{% url 'marketing_app_marketplace' %}" class="btn btn-primary">{% if app_marketplace_hero %}{{ app_marketplace_hero.cta_label }}{% else %}{% trans "App Marketplace" %}{% endif %}</a>
-        <a href="{% url 'marketing_integrations' %}" class="btn btn-outline-primary ms-2">{% trans "View integrations" %}</a>
+        <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="demo" data-page="home">{% trans "Book demo" %}</a>
+        <a href="{% url 'marketing_app_marketplace' %}" class="btn btn-outline-primary ms-2">{% if app_marketplace_hero %}{{ app_marketplace_hero.cta_label }}{% else %}{% trans "Browse marketplace" %}{% endif %}</a>
       </p>
       {% if partners_list %}
       <p class="small text-muted mt-2">{% trans "Implementation partners:" %} {% for p in partners_list %}<a href="{{ p.url }}">{{ p.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
@@ -811,9 +836,9 @@
 
   {# 11. Trust + security — support & accessibility #}
   {# Chapter 9 — Security & trust + control-plane visual #}
-  <section id="security-compliance" class="mkt-section mkt-reveal mkt-narrative-chapter" data-chapter="9">
+  <section id="security-compliance" class="mkt-section mkt-reveal mkt-narrative-chapter" data-chapter="8">
     <h2 class="mkt-section-heading">{% trans "Security & trust" %}</h2>
-    <p class="mkt-section-lead">{% trans "Enterprise-grade safeguards, regional compliance defaults, and operator-grade audit." %}</p>
+    <p class="mkt-section-lead">{% trans "Strong defaults for schools that need audit-friendly operations—details and scope live on the Trust page." %}</p>
     <div class="mkt-trust-visual-row">
       {% if control_plane_diagram_url %}
       <img src="{{ control_plane_diagram_url }}" alt="{% trans 'Control plane governance' %}" loading="lazy" decoding="async">
@@ -846,13 +871,12 @@
   </section>
 
   {# 12. Final CTA #}
-  <section id="final-cta" class="mkt-final-cta" aria-label="{% trans 'Call to action' %}">
+  <section id="final-cta" class="mkt-final-cta" aria-label="{% trans 'Call to action' %}" data-chapter="9">
     <h2 class="mkt-section-heading">{{ final_cta_headline }}</h2>
     <p class="text-center text-muted mx-auto mb-4" style="max-width:36rem">{% trans "See how RunMyCampus can unify admissions, academics, finance, communication, reporting, and daily operations for your school or network." %}</p>
     <div class="mkt-hero-ctas justify-content-center flex-wrap">
-      <a href="{% url 'marketing_demo' %}" class="btn btn-primary mkt-cta-focus" data-cta="demo" data-page="home">{% trans "Request Demo" %}</a>
-      <a href="{% url 'marketing_platform' %}" class="btn btn-outline-light mkt-cta-focus" data-cta="secondary" data-page="home">{% trans "Explore Platform" %}</a>
-      <a href="{% url 'marketing_product_tour' %}" class="btn btn-outline-light mkt-cta-focus">{% trans "Watch Product Tour" %}</a>
+      <a href="{% url 'marketing_demo' %}" class="btn btn-primary mkt-cta-focus" data-cta="demo" data-page="home">{% trans "Book demo" %}</a>
+      <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-outline-light mkt-cta-focus" data-cta="secondary" data-page="home">{% trans "See product tour" %}</a>
     </div>
   </section>
 </div>

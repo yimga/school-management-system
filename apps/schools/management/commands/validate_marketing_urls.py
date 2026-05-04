@@ -83,6 +83,18 @@ class Command(BaseCommand):
             "marketing_sitemap_xml",
             "signup_school",
             "global_login_discovery",
+            "marketing_trust_dedicated",
+            "marketing_pricing_packages_clarity",
+            "marketing_story_implementation",
+            "marketing_story_offline_first",
+            "marketing_story_payments_readiness",
+            "marketing_story_private_schools",
+            "marketing_story_school_networks",
+            "marketing_story_pilot_program",
+            "marketing_procurement_checklist",
+            "marketing_implementation_assurance",
+            "marketing_security_packet_request",
+            "marketing_security_packet_submit",
         ]
         self.stdout.write("Resolving marketing URL names...")
         for name in url_names:
@@ -233,6 +245,9 @@ class Command(BaseCommand):
                     "marketing_integrations",
                     "marketing_app_marketplace",
                     "marketing_developers",
+                    "marketing_trust_dedicated",
+                    "marketing_pricing_packages_clarity",
+                    "marketing_story_implementation",
                 ]
                 paths = []
                 for name in smoke_names:

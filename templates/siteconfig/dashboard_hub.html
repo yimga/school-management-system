@@ -1,7 +1,8 @@
 {% extends "portal_base.html" %}
+{% block rmc_workspace_os_header %}{% endblock %}
 {% load static i18n phase8_tags %}
 
-{% block title %}{% trans "Dashboard Hub" %}{% endblock %}
+{% block title %}{% trans "Configuration Center" %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -10,22 +11,26 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4 hub-page professional-page" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<div class="container-fluid py-4 hub-page professional-page" data-page-archetype="operational-workbench" data-decision-engine="surface" data-rmc-os-center="configuration_center">
   {% phase8_dashboard_declaration "siteconfig/dashboard_hub.html" %}
-  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  {% include "components/rmc_os_page_header.html" with os_center_key="configuration_center" center_eyebrow=_("Site settings") center_title=page_title center_purpose=page_subtitle %}
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ action_url }}">{{ action_text }}</a>
+  </div>
+  {% include "components/rmc_os_action_bar.html" with primary_url=config_url primary_label=_("Assign dashboards by role") primary_data_action="config-open-dashboard-assign" primary_task="configuration_center" primary_step="siteconfig:dashboard-config" %}
 
   <div class="hub-cards">
     <article class="hub-action-card">
       <div class="hub-card-icon"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i></div>
-      <h2 class="hub-card-title">{% trans "Configure dashboards by role" %}</h2>
-      <p class="hub-card-desc">{% trans "All role-based dashboards (admin, teacher, registrar, etc.) are resolved from a single hub. Assign a dashboard template to each role; runtime layout and theme come from the template; user preferences can still override where allowed." %}</p>
-      <a href="{{ config_url }}" class="btn btn-primary btn-sm">{% trans "Configure dashboards by role" %}</a>
+      <h2 class="hub-card-title">{% trans "Role dashboard templates" %}</h2>
+      <p class="hub-card-desc">{% trans "Each role (admin, teacher, registrar, …) gets a default layout from the template you assign. Operators can still personalize where the product allows." %}</p>
+      <a href="{{ config_url }}" class="btn btn-outline-secondary btn-sm" data-action="config-hub-card-assign" data-task="configuration_center" data-task-step="siteconfig:hub-card">{% trans "Open assignment hub" %}</a>
     </article>
     <article class="hub-action-card">
       <div class="hub-card-icon"><i class="bi bi-list-check" aria-hidden="true"></i></div>
-      <h2 class="hub-card-title">{% trans "Current assignments" %}</h2>
-      <p class="hub-card-desc">{% blocktrans count counter=assignment_count %}You have {{ counter }} role assignment.{% plural %}You have {{ counter }} role assignments.{% endblocktrans %} {% trans "View or change template per role in the configuration hub." %}</p>
-      <a href="{{ config_url }}" class="btn btn-outline-primary btn-sm">{% trans "View configuration" %}</a>
+      <h2 class="hub-card-title">{% trans "Coverage & risks" %}</h2>
+      <p class="hub-card-desc">{% blocktrans count counter=assignment_count %}You have {{ counter }} role assignment on file.{% plural %}You have {{ counter }} role assignments on file.{% endblocktrans %} {% trans "Roles without assignments rely on platform defaults — review gaps in the assignment hub." %}</p>
+      <a href="{{ config_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Review assignments" %}</a>
     </article>
   </div>
 </div>

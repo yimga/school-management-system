@@ -234,7 +234,7 @@ class OfflineSyncDashboardHttpTests(TestCase):
 
         cleared = self.client.get(conflicts_url, HTTP_HOST=_tenant_host(self.school_a))
         self.assertEqual(cleared.status_code, 200)
-        self.assertContains(cleared, "No conflicts")
+        self.assertContains(cleared, "No sync conflicts")
 
     def test_retry_failed_post_requeues_for_teacher(self):
         failed = OfflineAction.objects.create(

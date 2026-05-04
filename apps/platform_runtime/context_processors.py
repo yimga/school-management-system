@@ -5,6 +5,7 @@ from __future__ import annotations
 from django.conf import settings
 from django.urls import NoReverseMatch, reverse
 
+from apps.platform_runtime.rmc_os_shell import resolve_rmc_os_shell
 from apps.platform_runtime.shell_contract import resolve_shell_contract
 
 
@@ -191,3 +192,18 @@ def shell_contract_context(request):
     See ``apps.platform_runtime.shell_contract`` — descriptive only, not authorization.
     """
     return {"rmc_shell": resolve_shell_contract(request)}
+
+
+def rmc_os_shell_context(request):
+    """RunMyCampus OS shell markers (role cluster, page slug, surface kind)."""
+    shell = resolve_rmc_os_shell(request)
+    try:
+        from apps.platform_runtime.rmc_os_nav_registry import job_clusters_for
+
+        shell = {
+            **shell,
+            "nav_job_clusters": job_clusters_for(shell.get("role_cluster", "")),
+        }
+    except Exception:  # noqa: BLE001
+        shell = {**shell, "nav_job_clusters": ()}
+    return {"rmc_os_shell": shell}

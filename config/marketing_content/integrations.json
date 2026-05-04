@@ -1,19 +1,19 @@
 {
   "label": "Integrations",
   "seo_title": "Integrations | RunMyCampus",
-  "seo_description": "Integrate LMS, payment gateways, messaging providers, and external services with governance controls.",
-  "headline": "Integrations with governance, not chaos.",
-  "subheadline": "Connect external systems while controlling activation, audit context, and operational blast radius.",
+  "seo_description": "Connect LMS, payments, and messaging with clear activation rules—know what is live, for whom, and why.",
+  "headline": "Integrations your operators can trust.",
+  "subheadline": "School teams connect external tools without losing audit context—activation, ownership, and rollback stay explicit.",
   "schema_type": "ItemList",
   "segments": [
-    {"title": "Integration registry", "body": "Manage service entries and switch states in one governed control surface."},
-    {"title": "Interoperability APIs", "body": "Expose standards-aware endpoints for identity, academic workflows, and data exchange."},
-    {"title": "Operational safeguards", "body": "Track reasons, activity, and changes for every integration toggle."}
+    {"title": "Governed connections", "body": "See which integrations are enabled per tenant, who approved them, and what data flows apply."},
+    {"title": "Standards-friendly APIs", "body": "Patterns such as LTI, REST, and roster exchange—scoped to what your deployment exposes."},
+    {"title": "Safer toggles", "body": "Turn integrations on or off with traceability—not anonymous switches in a crowded admin menu."}
   ],
   "extras": {
     "faqs": [
-      {"question": "Which standards do you support?", "answer": "The platform supports patterns such as LTI, OneRoster, SCIM, and versioned REST APIs—see developer docs for the current matrix."},
-      {"question": "Who can turn integrations on?", "answer": "Tenant and platform governance rules control activation; changes are auditable."}
+      {"question": "Which standards do you support?", "answer": "Supported patterns depend on your contract and environment—see developer docs for the matrix that applies to your tenant."},
+      {"question": "Who can turn integrations on?", "answer": "Tenant and platform rules decide activation; auditable changes preserve accountability."}
     ]
   }
 }

@@ -49,8 +49,17 @@ body.marketing-surface,
   box-shadow: 0 4px 20px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.04);
   font-weight: 500;
 }
-.mkt-navbar-unified .mkt-navbar-container { min-width: 0; overflow-x: hidden; }
-.mkt-navbar-unified .navbar-collapse { min-width: 0; flex-wrap: wrap; }
+.mkt-navbar-unified .mkt-navbar-container {
+  min-width: 0;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+.mkt-navbar-unified .navbar-collapse {
+  min-width: 0;
+  flex-wrap: wrap;
+  overflow-x: clip;
+  overflow-y: visible;
+}
 .mkt-navbar-unified .mkt-nav-primary { flex-wrap: wrap; min-width: 0; }
 .mkt-navbar .navbar-brand { color: var(--mkt-text-inverse) !important; font-size: 1.125rem; background: transparent !important; }
 .mkt-navbar .navbar-brand { min-width: 0; }
@@ -84,7 +93,8 @@ body.marketing-surface,
     flex: 1 1 auto;
     min-width: 0;
     flex-wrap: nowrap;
-    overflow: hidden;
+    overflow-x: clip;
+    overflow-y: visible;
   }
 }
 .mkt-navbar .nav-link {
@@ -98,8 +108,88 @@ body.marketing-surface,
   max-height: min(70vh, 28rem);
   overflow-y: auto;
   min-width: 12.5rem;
+  z-index: 1200;
 }
 .mkt-navbar .mkt-nav-submenu .dropdown-item { white-space: nowrap; }
+
+/* Mega menus: wide panels, must not be clipped by ancestors (see header-no-spillage). */
+.mkt-navbar .mkt-mega-menu {
+  min-width: min(1024px, 96vw);
+  max-width: 1080px;
+  padding: 0;
+  z-index: 1205;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+}
+.mkt-navbar .mkt-mega-menu.dropdown-menu {
+  z-index: 1205;
+}
+.mkt-navbar .mkt-mega-link:focus-visible {
+  outline: 2px solid var(--mkt-accent, #f59e0b);
+  outline-offset: 2px;
+}
+@media (min-width: 992px) {
+  /* Allow mega panels to paint outside clipped flex rows when a menu is open */
+  .mkt-navbar-unified:has(.mkt-mega-menu.show) .mkt-navbar-container,
+  .mkt-navbar-unified:has(.mkt-mega-menu.show) .navbar-collapse,
+  .mkt-navbar-unified:has(.mkt-mega-menu.show) .mkt-nav-primary--mega {
+    overflow-x: visible;
+    overflow-y: visible;
+  }
+}
+.mkt-navbar .mkt-mega-menu .mkt-mega-inner {
+  max-height: min(78vh, 32rem);
+  overflow-y: auto;
+}
+.mkt-navbar .mkt-mega-menu .mkt-mega-col-title {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(248, 250, 252, 0.55);
+  margin-bottom: 0.65rem;
+}
+.mkt-navbar .mkt-mega-menu .mkt-mega-link {
+  display: block;
+  padding: 0.4rem 0.35rem;
+  margin: 0 -0.35rem;
+  border-radius: var(--mkt-radius-sm);
+  color: rgba(248, 250, 252, 0.95) !important;
+  text-decoration: none !important;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.mkt-navbar .mkt-mega-menu .mkt-mega-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff !important;
+}
+.mkt-navbar .mkt-mega-menu .mkt-mega-link .mkt-mega-label {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.mkt-navbar .mkt-mega-menu .mkt-mega-link .mkt-mega-blurb {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.35;
+  color: rgba(248, 250, 252, 0.62);
+  margin-top: 0.2rem;
+}
+/* Full-width mega panels: static positioning on the LI so the menu can span the bar. */
+.mkt-navbar .mkt-nav-dropdown--mega {
+  position: static;
+}
+@media (min-width: 992px) {
+  .mkt-navbar-unified .mkt-nav-dropdown--mega {
+    position: static;
+  }
+}
+.mkt-navbar .mkt-nav-dropdown--mega .mkt-mega-menu {
+  left: 0 !important;
+  right: 0;
+  width: min(960px, 96vw);
+  margin-left: auto;
+  margin-right: auto;
+}
 .mkt-navbar .mkt-nav-dropdown .dropdown-toggle::after { margin-left: 0.35em; }
 
 .mkt-navbar .btn-cta-primary {

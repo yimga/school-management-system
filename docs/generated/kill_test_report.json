@@ -1,6 +1,11 @@
 {
   "critical_count": 0,
-  "generated_at": "2026-05-03T17:14:47.047838+00:00",
+  "django_test_db_file": {
+    "degraded": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\.django_test_dbs\\kill_test_degraded_bf1455d1c162.sqlite3",
+    "security": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\.django_test_dbs\\kill_test_security_bf1455d1c162.sqlite3"
+  },
+  "generated_at": "2026-05-04T16:11:24.326316+00:00",
+  "keepdb": false,
   "result": "PASS",
   "scenarios": [
     {
@@ -23,5 +28,6 @@
       "ok": true,
       "title": "Founder surface degrades gracefully when generated ledgers are missing"
     }
-  ]
+  ],
+  "sqlite_mode": "ephemeral_pair"
 }

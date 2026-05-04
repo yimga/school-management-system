@@ -80,7 +80,7 @@ def event_console(request):
         request,
         "events/event_console.html",
         {
-            "page_title": "Event & replay console",
+            "page_title": "Event Timeline",
             "page_subtitle": (
                 "Domain outbox (integrations) and platform event log (workflows / bus) "
                 "for this tenant. Replays are audited; duplicates use new IDs / idempotency keys."
@@ -88,6 +88,8 @@ def event_console(request):
             "domain_rows": domain_rows,
             "platform_rows": platform_rows,
             "action_url": reverse("accounts:backend_dashboard"),
+            "dlq_url": reverse("events:event_dlq_console"),
+            "analytics_url": reverse("events:event_analytics_console"),
         },
     )
 

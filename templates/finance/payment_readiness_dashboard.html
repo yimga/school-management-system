@@ -1,23 +1,27 @@
 {% extends "portal_base.html" %}
-{% load static %}
-{% block title %}Payment readiness — {{ school.name }}{% endblock %}
+{% block rmc_workspace_os_header %}{% endblock %}
+{% load static i18n %}
+{% block title %}{% trans "Payment Readiness Center" %} — {{ school.name }}{% endblock %}
 
 {% block content %}
-<div class="container py-4" data-page-archetype="finance-payment-readiness-dashboard">
-  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
-    <div>
-      <p class="text-muted small mb-1">Finance · {{ school.name }}</p>
-      <h1 class="h3 mb-1">Payment readiness</h1>
-      <p class="text-muted mb-0">{{ readiness.subhead }}</p>
-    </div>
-    <span class="badge rounded-pill bg-{{ status_badge_class }} align-self-center fs-6">
-      {% if readiness.status == "READY" %}Ready{% elif readiness.status == "FALLBACK_ONLY" %}Fallback only{% else %}Needs setup{% endif %}
-    </span>
+<div class="container py-4" data-page-archetype="finance-payment-readiness-dashboard" data-rmc-os-center="payment_readiness">
+  {% trans "Finance" as fin_eyebrow %}
+  {% trans "Honest corridor status: metadata-only health checks — no live charges; CARD/BANK stay external until PSP onboarding." as pay_purpose %}
+  {% include "components/rmc_os_page_header.html" with os_center_key="payment_readiness" center_eyebrow=fin_eyebrow center_title=_("Payment Readiness Center") center_purpose=pay_purpose status_badge_text=readiness_display_label status_badge_variant=status_badge_class %}
+  {% include "components/rmc_os_status_strip.html" with strip_items=os_strip_items %}
+  {% if readiness.subhead %}<p class="text-muted small mb-3">{{ readiness.subhead }}</p>{% endif %}
+
+  {% include "components/rmc_os_action_bar.html" with primary_url=primary_cta_url primary_label=primary_cta_label primary_data_action="payment-readiness-primary" primary_task="payment_readiness" primary_step="finance:readiness-primary" %}
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:dashboard' %}" data-action="nav-money-center" data-task="payment_readiness" data-task-step="finance:nav-dashboard">{% trans "Open Money Center" %}</a>
   </div>
 
-  <div class="alert alert-secondary border-0 shadow-sm mb-4">
-    <div class="fw-semibold mb-1">Next action</div>
+  <div class="alert alert-secondary border-0 shadow-sm mb-4" data-rmc-payment-next-action="1">
+    <div class="fw-semibold mb-1">{% trans "Current status & next action" %}</div>
     <p class="mb-0 small">{{ next_action }}</p>
+    {% if readiness.manual_offline_proof_allowed %}
+    <p class="mb-0 small mt-2 text-muted">{% trans "Manual / proof fallback path is allowed for this tenant — use when automated rails are external or degraded." %}</p>
+    {% endif %}
   </div>
 
   <div class="row g-4 mb-4">

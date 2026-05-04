@@ -110,6 +110,12 @@ PHASE8_DECLARATIONS: dict[str, dict[str, str]] = {
         "main_question": "Are integrations reliable and within policy?",
         "main_action": "Rotate or scope credentials for the riskiest integration.",
     },
+    "automation/workflow_template_gallery.html": {
+        "dashboard_type": "automation_catalog",
+        "jtbd": "Browse workflow templates, dry-runs, and operator playbooks from one gallery.",
+        "main_question": "Which template or validation closes the next automation gap?",
+        "main_action": "Open the template card and run the documented dry-run or approval path.",
+    },
     "compliance/dashboard.html": {
         "dashboard_type": "compliance",
         "jtbd": "Track obligations, evidence, and audit readiness.",
@@ -230,11 +236,41 @@ PHASE8_DECLARATIONS: dict[str, dict[str, str]] = {
         "main_question": "Which tenants need lifecycle or monetization attention?",
         "main_action": "Open the highest-risk tenant row or run the scheduler playbook.",
     },
+    "platform_runtime/implementation_command_center.html": {
+        "dashboard_type": "implementation_ops",
+        "jtbd": "See go-live readiness, blockers, and operator truth without admin detours.",
+        "main_question": "What implementation blocker or score move matters today?",
+        "main_action": "Open the highest-severity blocker row or export evidence for review.",
+    },
+    "platform_runtime/pilot_defect_dashboard.html": {
+        "dashboard_type": "pilot_quality",
+        "jtbd": "Triage pilot defects with durable IDs and closure loops.",
+        "main_question": "Which defect blocks the next pilot milestone?",
+        "main_action": "Assign or close the top-severity open defect with evidence.",
+    },
+    "platform_runtime/pilot_evidence_dashboard.html": {
+        "dashboard_type": "pilot_evidence",
+        "jtbd": "Link pilot artifacts, screenshots, and verifier exports to decisions.",
+        "main_question": "Which evidence gap would fail an audit of this pilot?",
+        "main_action": "Attach or reference the missing artifact on the pilot record.",
+    },
+    "platform_runtime/support_playbook_center.html": {
+        "dashboard_type": "support_ops",
+        "jtbd": "Run support playbooks with honest resolution targets and escalation paths.",
+        "main_question": "Which playbook run is stale or missing an owner?",
+        "main_action": "Open the playbook row and advance status with customer-visible notes.",
+    },
     "requests/dashboard.html": {
         "dashboard_type": "workflow",
         "jtbd": "Process internal requests with clear ownership and SLAs.",
         "main_question": "What request is oldest or highest priority in my queue?",
         "main_action": "Move the next item to in-progress or resolved with a note.",
+    },
+    "sales/first_100_dashboard.html": {
+        "dashboard_type": "revenue_ops",
+        "jtbd": "Prioritize first-hundred school pipeline with explicit owners and next steps.",
+        "main_question": "Which account moved backward or stalled without an owner?",
+        "main_action": "Update the deal stage or assign the dormant lead to an owner.",
     },
     "schoolops/ops_library.html": {
         "dashboard_type": "operational_catalog",

@@ -4,7 +4,11 @@ Default placeholder SVGs are included so no section 404s. Replace with final art
 
 ## Included placeholders (no code change required to run)
 
-- **Hero:** `hero-placeholder.svg` – used when `MARKETING_HERO_IMAGE_URL` is unset.
+- **Hero:** `hero-global-os-composite.svg` – default product composite (leadership, admin, teacher, parent mobile, finance, student, analytics). `hero-placeholder.svg` remains for legacy references only.
+- **Admissions pipeline:** `platform-admissions-pipeline.svg` – enrollment stages mockup for `/platform/admissions/`.
+- **Fees & payments:** `platform-fees-payments-dashboard.svg` – finance workspace mockup for `/platform/fees-payments/`.
+- **Parent portal:** `platform-parent-mobile-portal.svg` – mobile-first parent UI for `/platform/parent-portal/`.
+- **Teacher portal:** `platform-teacher-workspace.svg` – classroom workspace for `/platform/teacher-portal/`.
 - **Module screenshots:** `module-admissions.svg`, `module-academics.svg`, `module-finance.svg`, `module-communication.svg`, `module-compliance.svg` – wired in `core_modules` context.
 - **Product viz:** `viz-student360.svg`, `viz-teacher.svg`, `viz-admin.svg` – wired in `product_visualization_slides`.
 - **Global map:** `global-map.svg` – used when `MARKETING_GLOBAL_MAP_IMAGE_URL` is unset.

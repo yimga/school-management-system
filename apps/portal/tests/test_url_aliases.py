@@ -67,4 +67,4 @@ class UrlAliasTests(TestCase):
         self.client.force_login(parent_user)
         resp = self.client.get("/portal/student-portal/grades/", follow=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "Parent Dashboard")
+        self.assertContains(resp, "Family Home")

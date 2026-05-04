@@ -1,6 +1,6 @@
 {% extends "portal_base.html" %}
 {% load admin_health evals_extras static region_format i18n phase8_tags %}
-{% block title %}Teacher Dashboard{% endblock %}
+{% block title %}{% trans "My Teaching Day" %}{% endblock %}
 {% block body_extra_class %}dashboard-page-teacher{% endblock %}
 
 {% block extrastyle %}
@@ -30,7 +30,7 @@
 {% with widgets=display_widgets %}
 <div class="tdm-bg" data-decision-engine="surface">
   {% phase8_dashboard_declaration "teacher/dashboard.html" %}
-  <div class="tdm-shell">
+  <div class="tdm-shell" data-rmc-ux-role-dashboard="teacher-workspace">
     {% if teacher_fast_workflows %}
     <section class="card border-0 shadow-sm mb-3 p-3" data-teacher-fast-workflows="1" aria-label="{% trans 'Fast workflows' %}">
       {% if rmc_conversion_single_action_enforced|default:False %}
@@ -62,9 +62,9 @@
     {% url 'portal:teacher_workflow' as teacher_workflow_url %}
     {% url 'academics:teacher_syllabus_hub' as teacher_syllabus_url %}
     {% url 'portal:teacher_attendance' as teacher_attendance_url %}
-    <section class="mb-3" data-rmc-intelligent-insights="teacher" aria-label="{% trans 'Teacher decision insights' %}">
+    <section class="mb-3" data-rmc-intelligent-insights="teacher" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-        <h2 class="h6 mb-0">{% trans "Teaching insights" %}</h2>
+        <h2 class="h6 mb-0">{% trans "What needs attention" %}</h2>
         <span class="small text-muted">{% trans "Focused guidance from attendance, marks, and workflow signals" %}</span>
       </div>
       <div class="row g-2">
@@ -90,9 +90,9 @@
         {% endif %}
       </div>
     </section>
-    <section class="tdm-hero card-glass" data-decision-zone="headline">
+    <section class="tdm-hero card-glass" data-decision-zone="headline" data-rmc-ux-section="today-plan" aria-label="{% trans 'Teaching plan for today' %}">
       <div class="tdm-hero__text">
-        <p class="tdm-eyebrow">{% trans "Teacher Hub" %}</p>
+        <p class="tdm-eyebrow">{% trans "Teacher workspace" %}</p>
         <h1>{% trans "Good afternoon" %}{% if request.user %}, {{ request.user.get_full_name|default:request.user.username }}{% endif %}</h1>
         <p class="tdm-subtitle">{% trans "Here's an overview of your classes for today." %}</p>
         <div class="tdm-hero__chips">
@@ -143,6 +143,7 @@
         </div>
       </div>
     </section>
+    <!-- rmc-ux-above-fold-end -->
 
     {% if not assignments %}
     <div class="alert alert-info mb-3" role="status">
@@ -152,7 +153,7 @@
     </div>
     {% endif %}
 
-    <section class="tdm-overview-grid dashboard-card-grid dashboard-card-grid--dense" data-decision-zone="supporting-metrics">
+    <section class="tdm-overview-grid dashboard-card-grid dashboard-card-grid--dense" data-decision-zone="supporting-metrics" data-rmc-ux-section="today-metrics">
       <div class="tdm-stat card-glass purple">
         <div class="tdm-stat-label">{% trans "Classes today" %}</div>
         <div class="tdm-stat-value">{{ assignments|length|default:0 }}</div>
@@ -177,7 +178,7 @@
 
     <section class="tdm-main-grid">
       <div class="tdm-main-left">
-        <div class="card-glass tdm-panel">
+        <div class="card-glass tdm-panel" data-rmc-ux-section="my-classes">
           <div class="tdm-panel-head">
             <div>
               <p class="tdm-eyebrow">{% trans "My classes" %}</p>

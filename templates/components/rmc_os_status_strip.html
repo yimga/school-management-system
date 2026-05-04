@@ -1,0 +1,18 @@
+{% load i18n %}
+<div class="rmc-os-status-stack" data-rmc-os-status-strip="1" aria-label="{% trans 'Platform and connectivity status' %}">
+  {% if strip_items %}
+  <div class="d-flex flex-wrap gap-2 mb-2" data-rmc-os-strip-items="1" role="list">
+    {% for it in strip_items %}
+    <span class="badge rounded-pill {% if it.tone == 'danger' %}text-bg-danger{% elif it.tone == 'warning' %}text-bg-warning{% elif it.tone == 'success' %}text-bg-success{% else %}text-bg-secondary{% endif %}" role="listitem" {% if it.title %}title="{{ it.title }}"{% endif %}>{{ it.label }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if platform_status_strip and platform_status_strip.show %}
+    {% include "portal/partials/platform_status_strip.html" %}
+  {% endif %}
+  {# Reserved slot for payment readiness banners (pages may inject visible content here later). #}
+  <div data-rmc-payment-readiness-slot="1" class="rmc-os-payment-readiness-slot"></div>
+  {% if request.user.is_authenticated %}
+    {% include "components/offline_sync_status_bar.html" %}
+  {% endif %}
+</div>

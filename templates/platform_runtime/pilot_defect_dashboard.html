@@ -1,0 +1,83 @@
+{% extends "control_plane_base.html" %}
+{% load i18n phase8_tags %}
+{% block cp_title %}{% trans "Pilot defect closure" %}{% endblock %}
+{% block cp_content %}
+<div class="container-lg py-4" data-decision-engine="surface" data-rmc-pilot-defect-dashboard="{{ page_marker }}">
+  {% phase8_dashboard_declaration "platform_runtime/pilot_defect_dashboard.html" %}
+  <header class="mb-4">
+    <h1 class="h3">{% trans "Defect closure loop" %}</h1>
+    <p class="small text-muted mb-0">{% trans "Fixed defects require a linked test id or a documented exception. Defects are stored in the database when present; use SOT batch on each row for forward-queue traceability." %}</p>
+  </header>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <h2 class="h6 text-uppercase text-muted">{% trans "Open critical" %}</h2>
+          <ul class="small mb-0">
+            {% for d in buckets.open_critical %}
+            <li>{{ d.title }} — {{ d.status }}</li>
+            {% empty %}
+            <li>{% trans "None" %}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <h2 class="h6 text-uppercase text-muted">{% trans "Awaiting verification" %}</h2>
+          <ul class="small mb-0">
+            {% for d in buckets.awaiting_verification %}
+            <li>{{ d.title }}</li>
+            {% empty %}
+            <li>{% trans "None" %}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6 text-uppercase text-muted">{% trans "Fixes without proof" %}</h2>
+      <ul class="small mb-0">
+        {% for d in buckets.fixes_without_proof %}
+        <li class="text-danger">{{ d.id }} — {{ d.title }}</li>
+        {% empty %}
+        <li>{% trans "None" %}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-sm">
+      <thead>
+        <tr>
+          <th>{% trans "ID" %}</th>
+          <th>{% trans "Title" %}</th>
+          <th>{% trans "Severity" %}</th>
+          <th>{% trans "Module" %}</th>
+          <th>{% trans "SOT batch" %}</th>
+          <th>{% trans "Status" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in defects %}
+        <tr>
+          <td>{{ d.id }}</td>
+          <td>{{ d.title }}</td>
+          <td>{{ d.severity }}</td>
+          <td>{{ d.module }}</td>
+          <td class="small">{% if d.sot_batch %}<code>{{ d.sot_batch }}</code>{% else %}—{% endif %}</td>
+          <td>{{ d.status }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

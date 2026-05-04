@@ -2,21 +2,21 @@
   "label": "Parent Portal",
   "seo_title": "Parent Portal | RunMyCampus",
   "seo_description": "Fees, attendance, announcements, assignments, results, and messaging—responsive by design.",
-  "headline": "Parents stay informed without chasing staff.",
-  "subheadline": "Busy caregivers get clarity on phones and desktops with role-safe messaging.",
+  "headline": "Give families a clear window into school life.",
+  "subheadline": "Fees, attendance, announcements, assignments, report cards, and messages converge in a portal tuned for busy caregivers—on phones and desktops, with role-safe visibility.",
   "schema_type": "WebPage",
   "segments": [
     {
       "title": "Financial clarity",
-      "body": "Statements, receipts, and balances."
+      "body": "Statements, receipts, and balances parents can find without calling the office."
     },
     {
       "title": "Academic visibility",
-      "body": "Attendance, assessments, and report cards."
+      "body": "Attendance, assessments, and report cards in one official channel."
     },
     {
       "title": "Official communications",
-      "body": "Announcements with traceability—not lost threads."
+      "body": "Announcements with traceability—not lost threads across chat apps."
     }
   ],
   "extras": {
@@ -29,14 +29,9 @@
       "Secure audit trails",
       "Multi-campus support"
     ],
-    "diagram_path": "images/marketing/module-communication.svg",
-    "data_viz_path": "images/marketing/illustration-students.svg",
-    "data_viz_caption": "Guardian-first layouts work across phones and tablets.",
+    "diagram_path": "images/marketing/platform-parent-mobile-portal.svg",
     "premium_platform_layout": true,
     "suppress_footer_clusters": true,
-    "stock_photo_url": "https://images.unsplash.com/photo-1516321497597-700fd17563d7?auto=format&fit=crop&w=1600&q=75",
-    "stock_photo_alt": "Adult using a smartphone in a calm home environment",
-    "stock_photo_credit": "Photo via Unsplash",
     "problem_section": {
       "title": "Families deserve one coherent channel",
       "body": "When updates arrive through fragmented chats and PDFs, engagement drops. RunMyCampus concentrates fees, attendance, grades, announcements, and messages into a portal tuned for busy parents."
@@ -52,22 +47,34 @@
       {
         "role": "Parents & guardians",
         "bullets": [
-          "Mobile-friendly clarity without chasing admin",
-          "Aligned messaging alongside billing truth"
+          "Mobile-friendly clarity without chasing admin for every detail",
+          "Official messaging alongside billing truth"
         ]
       },
       {
         "role": "Administrators",
         "bullets": [
-          "Fewer repetitive inquiries",
-          "Delivery targeting by cohort or campus"
+          "Fewer repetitive inquiries at the front office",
+          "Delivery patterns that respect cohorts and campuses"
         ]
       },
       {
         "role": "Teachers",
         "bullets": [
-          "Share class-level context responsibly",
+          "Share class-appropriate context responsibly",
           "Reduce duplicate outreach channels"
+        ]
+      },
+      {
+        "role": "Finance team",
+        "bullets": [
+          "Balances parents see align to invoicing discipline in finance"
+        ]
+      },
+      {
+        "role": "School leadership",
+        "bullets": [
+          "A communication posture you can explain to boards and families"
         ]
       }
     ],
@@ -87,6 +94,14 @@
       {
         "label": "Attendance",
         "path": "/platform/attendance/"
+      },
+      {
+        "label": "Grading & Report Cards",
+        "path": "/platform/grading-report-cards/"
+      },
+      {
+        "label": "Teacher Portal",
+        "path": "/platform/teacher-portal/"
       }
     ]
   }

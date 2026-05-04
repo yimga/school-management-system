@@ -26,7 +26,11 @@ class MarketingUrlSmokeTarget:
 
 # ``marketing_book_demo_submit`` is ``@require_POST``; GET must return 405, not 200.
 _POST_ONLY_MARKETING_NAMES = frozenset(
-    {"marketing_book_demo_submit", "marketing_contact_submit"}
+    {
+        "marketing_book_demo_submit",
+        "marketing_contact_submit",
+        "marketing_security_packet_submit",
+    }
 )
 _GET_OK_DEFAULT = frozenset({200})
 _GET_OK_POST_ONLY = frozenset({200, 405})

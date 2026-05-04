@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-03T14:01:34.411631+00:00",
+  "generated_at": "2026-05-04T15:02:04.057394+00:00",
   "hits": [
     {
       "classification": "test_safe",
@@ -1054,13 +1054,13 @@
     {
       "classification": "deployment_script_safe",
       "file": "scripts/run_kill_test.py",
-      "line": "89",
+      "line": "132",
       "pattern": "subprocess.run"
     },
     {
       "classification": "deployment_script_safe",
       "file": "scripts/run_kill_test.py",
-      "line": "146",
+      "line": "190",
       "pattern": "subprocess.run"
     },
     {

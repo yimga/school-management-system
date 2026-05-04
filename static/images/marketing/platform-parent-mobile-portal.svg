@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 420" width="520" height="420" role="img" aria-labelledby="pp-mob-title pp-mob-desc">
+  <title id="pp-mob-title">Parent mobile portal preview</title>
+  <desc id="pp-mob-desc">Phone frame with child profile, attendance, fees, report card, announcements, and assignments.</desc>
+  <defs>
+    <linearGradient id="pp-g" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#312e81"/><stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <filter id="pp-s"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity="0.4"/></filter>
+    <style>
+      .phone { fill: url(#pp-g); stroke: #a78bfa; stroke-width: 2; rx: 28; filter: url(#pp-s); }
+      .in { fill: #1e1b4b; rx: 8; }
+      .t { fill: #e9d5ff; font: 700 11px ui-sans-serif, system-ui, sans-serif; }
+      .ts { fill: #c4b5fd; font: 600 9px ui-sans-serif, system-ui, sans-serif; }
+      .chip { fill: #4c1d95; rx: 12; opacity: 0.9; }
+      .bar { fill: #5b21b6; rx: 3; opacity: 0.7; }
+      .hot { fill: #a78bfa; opacity: 0.4; rx: 3; }
+    </style>
+  </defs>
+  <rect width="520" height="420" fill="#020617"/>
+  <text class="t" x="260" y="28" text-anchor="middle" font-size="13">Parent portal  mobile-first clarity</text>
+  <rect class="phone" x="130" y="48" width="260" height="352"/>
+  <rect class="in" x="150" y="72" width="220" height="36"/>
+  <text class="ts" x="260" y="94" text-anchor="middle">Child profile � Grade 8</text>
+  <text class="ts" x="164" y="128">Attendance</text>
+  <rect class="hot" x="164" y="136" width="192" height="28" rx="6"/>
+  <text class="ts" x="164" y="182">Fee balance</text>
+  <rect class="chip" x="164" y="190" width="100" height="26"/>
+  <text class="t" x="214" y="207" text-anchor="middle" font-size="9">Due � Receipt</text>
+  <text class="ts" x="164" y="236">Report card</text>
+  <rect class="bar" x="164" y="244" width="192" height="40" rx="6"/>
+  <text class="ts" x="164" y="298">Announcements</text>
+  <rect class="bar" x="164" y="306" width="192" height="10"/>
+  <rect class="bar" x="164" y="322" width="160" height="10"/>
+  <text class="ts" x="164" y="352">Assignments</text>
+  <rect class="hot" x="164" y="360" width="88" height="22" rx="6"/>
+  <rect class="bar" x="260" y="360" width="96" height="22" rx="6"/>
+</svg>

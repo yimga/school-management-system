@@ -1,0 +1,34 @@
+{% load i18n %}
+{% with s=institution_segment_slug|default:'' %}
+{% if s == 'international-schools' %}
+<div class="mkt-inst-audience-callout mkt-inst-audience-callout--international border border-secondary border-opacity-25 rounded-3 px-4 py-3 mb-4" role="region" aria-label="{% trans 'International school positioning' %}">
+  <p class="small text-uppercase text-muted mb-1">{% trans "International schools" %}</p>
+  <p class="mb-0 fw-semibold">{% trans "Designed for multi-currency finance, flexible academic calendars, globally mobile families, and governance your board can explain." %}</p>
+</div>
+{% elif s == 'multi-campus' %}
+<div class="mkt-inst-audience-callout mkt-inst-audience-callout--multicampus border border-secondary border-opacity-25 rounded-3 px-4 py-3 mb-4" role="region" aria-label="{% trans 'Multi-campus positioning' %}">
+  <p class="small text-uppercase text-muted mb-1">{% trans "Multi-campus command center" %}</p>
+  <p class="mb-0 fw-semibold">{% trans "Standardize policy and reporting without suffocating campus autonomy—one operating model, many front doors." %}</p>
+</div>
+{% elif s == 'faith-based-schools' %}
+<div class="mkt-inst-audience-callout mkt-inst-audience-callout--faith border border-secondary border-opacity-25 rounded-3 px-4 py-3 mb-4" role="region" aria-label="{% trans 'Faith-based positioning' %}">
+  <p class="small text-uppercase text-muted mb-1">{% trans "Mission-driven schools" %}</p>
+  <p class="mb-0 fw-semibold">{% trans "Community trust starts with transparent tuition, pastoral communications, and academics families can follow in one place." %}</p>
+</div>
+{% elif s == 'private-schools' %}
+<div class="mkt-inst-audience-callout mkt-inst-audience-callout--private border border-secondary border-opacity-25 rounded-3 px-4 py-3 mb-4" role="region" aria-label="{% trans 'Private school positioning' %}">
+  <p class="small text-uppercase text-muted mb-1">{% trans "Private & independent" %}</p>
+  <p class="mb-0 fw-semibold">{% trans "Enrollment velocity, premium parent experience, and fee collection that match the standard of your brand." %}</p>
+</div>
+{% elif s == 'growing-school-networks' %}
+<div class="mkt-inst-audience-callout mkt-inst-audience-callout--networks border border-secondary border-opacity-25 rounded-3 px-4 py-3 mb-4" role="region" aria-label="{% trans 'School network positioning' %}">
+  <p class="small text-uppercase text-muted mb-1">{% trans "Growing networks" %}</p>
+  <p class="mb-0 fw-semibold">{% trans "Repeatable launch playbooks, shared blueprints, and measurable standardization as you add campuses." %}</p>
+</div>
+{% elif s == 'k12-schools' or s == 'k12' %}
+<div class="mkt-inst-audience-callout mkt-inst-audience-callout--k12 border border-secondary border-opacity-25 rounded-3 px-4 py-3 mb-4" role="region" aria-label="{% trans 'K–12 positioning' %}">
+  <p class="small text-uppercase text-muted mb-1">{% trans "K–12 lifecycle" %}</p>
+  <p class="mb-0 fw-semibold">{% trans "Daily attendance through graduation reporting—with divisions, grade levels, and family communication that scale." %}</p>
+</div>
+{% endif %}
+{% endwith %}

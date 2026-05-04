@@ -20083,3 +20083,1607 @@ msgstr "Workflow illustration for this solution segment"
 
 msgid "Demo steps"
 msgstr "Demo steps"
+
+msgid ""
+"A concise, honest view of how RunMyCampus approaches security posture, "
+"tenant isolation, compliance evidence, and external dependencies — without "
+"claiming certifications that are not verified on an external register."
+msgstr ""
+"A concise, honest view of how RunMyCampus approaches security posture, "
+"tenant isolation, compliance evidence, and external dependencies — without "
+"claiming certifications that are not verified on an external register."
+
+msgid ""
+"Admissions through daily operations share one learner, fee, and guardian "
+"thread—technical layers are documented on the Platform page."
+msgstr ""
+"Admissions through daily operations share one learner, fee, and guardian "
+"thread—technical layers are documented on the Platform page."
+
+msgid "Adoption signals (event log — honest)"
+msgstr "Adoption signals (event log — honest)"
+
+msgid ""
+"Allowlisted datasets only — ORM compilation, preview, save, export. No raw "
+"SQL."
+msgstr ""
+"Allowlisted datasets only — ORM compilation, preview, save, export. No raw "
+"SQL."
+
+msgid "Architecture & tenancy"
+msgstr "Architecture & tenancy"
+
+msgid "Artefacts needed"
+msgstr "Artefacts needed"
+
+msgid "Assign template by role"
+msgstr "Assign template by role"
+
+msgid "Audience"
+msgstr "Audience"
+
+msgid "Automation Studio"
+msgstr "Automation Studio"
+
+msgid "Automation Studio — outcomes"
+msgstr "Automation Studio — outcomes"
+
+msgid "Awaiting verification"
+msgstr "Awaiting verification"
+
+msgid "Back to Configuration Center home"
+msgstr "Back to Configuration Center home"
+
+msgid "Blockers"
+msgstr "Blockers"
+
+msgid "Blockers JSON"
+msgstr "Blockers JSON"
+
+msgid ""
+"Book a guided walkthrough, validate your architecture, and align rollout "
+"with the right operating model."
+msgstr ""
+"Book a guided walkthrough, validate your architecture, and align rollout "
+"with the right operating model."
+
+msgid ""
+"Book a walkthrough to map rollout, integrations, and honest payment posture "
+"for your campuses."
+msgstr ""
+"Book a walkthrough to map rollout, integrations, and honest payment posture "
+"for your campuses."
+
+msgid "Browse marketplace"
+msgstr "Browse marketplace"
+
+msgid "Built for how each role actually works"
+msgstr "Built for how each role actually works"
+
+msgid "Buyer procurement checklist"
+msgstr "Buyer procurement checklist"
+
+msgid "Classic automation builder"
+msgstr "Classic automation builder"
+
+msgid "Classic pricing page"
+msgstr "Classic pricing page"
+
+msgid ""
+"Command center, classroom, family, finance, records, and governance—each "
+"with a dedicated story, not a generic portal."
+msgstr ""
+"Command center, classroom, family, finance, records, and governance—each "
+"with a dedicated story, not a generic portal."
+
+msgid ""
+"Community trust starts with transparent tuition, pastoral communications, "
+"and academics families can follow in one place."
+msgstr ""
+"Community trust starts with transparent tuition, pastoral communications, "
+"and academics families can follow in one place."
+
+msgid "Complete PSP setup or enable manual fallback"
+msgstr "Complete PSP setup or enable manual fallback"
+
+msgid "Complete payment setup"
+msgstr "Complete payment setup"
+
+msgid "Compliance evidence"
+msgstr "Compliance evidence"
+
+msgid "Concrete outcomes your teams should expect—not a generic feature list."
+msgstr ""
+"Concrete outcomes your teams should expect—not a generic feature list."
+
+msgid "Configuration Center"
+msgstr "Configuration Center"
+
+msgid "Configuration Center — dashboards by role"
+msgstr "Configuration Center — dashboards by role"
+
+msgid "Consolidated blockers (missing + partial checklist items)"
+msgstr "Consolidated blockers (missing + partial checklist items)"
+
+msgid "Context and next steps"
+msgstr "Context and next steps"
+
+msgid "Context panel"
+msgstr "Context panel"
+
+msgid "Coverage & risks"
+msgstr "Coverage & risks"
+
+msgid "Current status & next action"
+msgstr "Current status & next action"
+
+msgid "Customer success playbooks"
+msgstr "Customer success playbooks"
+
+msgid ""
+"Daily attendance through graduation reporting—with divisions, grade levels, "
+"and family communication that scale."
+msgstr ""
+"Daily attendance through graduation reporting—with divisions, grade levels, "
+"and family communication that scale."
+
+msgid "Dashboard / lifecycle signals"
+msgstr "Dashboard / lifecycle signals"
+
+msgid "Data privacy"
+msgstr "Data privacy"
+
+msgid "Day-to-day modules K–12 teams run together"
+msgstr "Day-to-day modules K–12 teams run together"
+
+msgid "Deal owner"
+msgstr "Deal owner"
+
+msgid "Decision maker"
+msgstr "Decision maker"
+
+msgid "Defect closure loop"
+msgstr "Defect closure loop"
+
+msgid "Defects"
+msgstr "Defects"
+
+msgid ""
+"Defense in depth, audited surfaces in-repo, and operator tooling for route "
+"and tenant isolation reviews. Request the security packet for procurement-"
+"specific detail."
+msgstr ""
+"Defense in depth, audited surfaces in-repo, and operator tooling for route "
+"and tenant isolation reviews. Request the security packet for procurement-"
+"specific detail."
+
+msgid "Degraded · %(rail)s"
+msgstr "Degraded · %(rail)s"
+
+msgid ""
+"Designed for multi-currency finance, flexible academic calendars, globally "
+"mobile families, and governance your board can explain."
+msgstr ""
+"Designed for multi-currency finance, flexible academic calendars, globally "
+"mobile families, and governance your board can explain."
+
+msgid "Dry-run (JSON)"
+msgstr "Dry-run (JSON)"
+
+msgid ""
+"Each pillar is a buyer-visible surface—not an internal module code name."
+msgstr ""
+"Each pillar is a buyer-visible surface—not an internal module code name."
+
+msgid ""
+"Each role (admin, teacher, registrar, …) gets a default layout from the "
+"template you assign. Operators can still personalize where the product "
+"allows."
+msgstr ""
+"Each role (admin, teacher, registrar, …) gets a default layout from the "
+"template you assign. Operators can still personalize where the product "
+"allows."
+
+msgid ""
+"Email, SMS, AI, and payment service providers remain external contracts. "
+"Uptime and incident comms follow their registers — we provide honesty, not "
+"fairy tales."
+msgstr ""
+"Email, SMS, AI, and payment service providers remain external contracts. "
+"Uptime and incident comms follow their registers — we provide honesty, not "
+"fairy tales."
+
+msgid ""
+"Enrollment velocity, premium parent experience, and fee collection that "
+"match the standard of your brand."
+msgstr ""
+"Enrollment velocity, premium parent experience, and fee collection that "
+"match the standard of your brand."
+
+msgid "Event Timeline"
+msgstr "Event Timeline"
+
+msgid "Event sample"
+msgstr "Event sample"
+
+msgid ""
+"Evidence dashboards and exports are designed for institutional review. We do"
+" not claim SOC 2 or ISO 9001 unless your verification register shows them as"
+" active and in scope."
+msgstr ""
+"Evidence dashboards and exports are designed for institutional review. We do"
+" not claim SOC 2 or ISO 9001 unless your verification register shows them as"
+" active and in scope."
+
+msgid "Expected resolution (target)"
+msgstr "Expected resolution (target)"
+
+msgid "External PSP · %(rail)s"
+msgstr "External PSP · %(rail)s"
+
+msgid ""
+"External PSP, SMS, email, and AI providers remain your contracts. We "
+"document dependencies clearly and avoid vanity pilot claims."
+msgstr ""
+"External PSP, SMS, email, and AI providers remain your contracts. We "
+"document dependencies clearly and avoid vanity pilot claims."
+
+msgid "External dependencies"
+msgstr "External dependencies"
+
+msgid ""
+"Failed webhook deliveries and platform DLQ rows — retry, resolve, or ignore "
+"with an audit reason."
+msgstr ""
+"Failed webhook deliveries and platform DLQ rows — retry, resolve, or ignore "
+"with an audit reason."
+
+msgid "Faith-based positioning"
+msgstr "Faith-based positioning"
+
+msgid "Fallback only"
+msgstr "Fallback only"
+
+msgid "Family Home"
+msgstr "Family Home"
+
+msgid "Family home"
+msgstr "Family home"
+
+msgid "Family summary"
+msgstr "Family summary"
+
+msgid "First 100 schools"
+msgstr "First 100 schools"
+
+msgid "First 100 schools acquisition tracker"
+msgstr "First 100 schools acquisition tracker"
+
+msgid "First action (observed)"
+msgstr "First action (observed)"
+
+msgid "First action observed"
+msgstr "First action observed"
+
+msgid ""
+"Fixed defects require a linked test id or a documented exception. Defects "
+"are stored in the database when present; use SOT batch on each row for "
+"forward-queue traceability."
+msgstr ""
+"Fixed defects require a linked test id or a documented exception. Defects "
+"are stored in the database when present; use SOT batch on each row for "
+"forward-queue traceability."
+
+msgid "Fixes without proof"
+msgstr "Fixes without proof"
+
+msgid ""
+"Follow the public status page for provider-wide incidents when published."
+msgstr ""
+"Follow the public status page for provider-wide incidents when published."
+
+msgid ""
+"For procurement and InfoSec reviews. Submissions use a dedicated channel "
+"(source: security_packet_request) when webhooks are configured. We do not "
+"use this form to claim certifications — verification is always against your "
+"register and contract."
+msgstr ""
+"For procurement and InfoSec reviews. Submissions use a dedicated channel "
+"(source: security_packet_request) when webhooks are configured. We do not "
+"use this form to claim certifications — verification is always against your "
+"register and contract."
+
+msgid "From daily pain to one operating rhythm"
+msgstr "From daily pain to one operating rhythm"
+
+msgid "Full pipeline"
+msgstr "Full pipeline"
+
+msgid "General contact"
+msgstr "General contact"
+
+msgid "Generate fee invoices"
+msgstr "Generate fee invoices"
+
+msgid "Go-live readiness"
+msgstr "Go-live readiness"
+
+msgid "Governance modules networks standardize on"
+msgstr "Governance modules networks standardize on"
+
+msgid "Grading deadlines"
+msgstr "Grading deadlines"
+
+msgid "Growing networks"
+msgstr "Growing networks"
+
+msgid "Growth and activation"
+msgstr "Growth and activation"
+
+msgid "Growth and retention modules private schools lean on"
+msgstr "Growth and retention modules private schools lean on"
+
+msgid "Honest boundaries"
+msgstr "Honest boundaries"
+
+msgid ""
+"Honest corridor status: metadata-only health checks — no live charges; "
+"CARD/BANK stay external until PSP onboarding."
+msgstr ""
+"Honest corridor status: metadata-only health checks — no live charges; "
+"CARD/BANK stay external until PSP onboarding."
+
+msgid "How teams use it day to day"
+msgstr "How teams use it day to day"
+
+msgid "How the platform composes for your school"
+msgstr "How the platform composes for your school"
+
+msgid ""
+"If validation fails, add a trigger and at least one action path before "
+"simulate or publish."
+msgstr ""
+"If validation fails, add a trigger and at least one action path before "
+"simulate or publish."
+
+msgid "Implementation & operations"
+msgstr "Implementation & operations"
+
+msgid "Implementation assurance"
+msgstr "Implementation assurance"
+
+msgid "Implementation command center"
+msgstr "Implementation command center"
+
+msgid ""
+"Implementation command center (manager host, signed-in) aggregates checklist"
+" status, adoption signals from event logs, and a consolidated blocker list. "
+"JSON blockers API is available for integrations at the same permission "
+"boundary."
+msgstr ""
+"Implementation command center (manager host, signed-in) aggregates checklist"
+" status, adoption signals from event logs, and a consolidated blocker list. "
+"JSON blockers API is available for integrations at the same permission "
+"boundary."
+
+msgid "Implementation overview"
+msgstr "Implementation overview"
+
+msgid "Implementation path"
+msgstr "Implementation path"
+
+msgid "In-product factory"
+msgstr "In-product factory"
+
+msgid "Included"
+msgstr "Included"
+
+msgid ""
+"Inquiry through leadership analytics on one thread: every stage inherits the"
+" same learner, fee, and guardian context."
+msgstr ""
+"Inquiry through leadership analytics on one thread: every stage inherits the"
+" same learner, fee, and guardian context."
+
+msgid "Insights"
+msgstr "Insights"
+
+msgid "Insights Center"
+msgstr "Insights Center"
+
+msgid "Insights Center — governed reports"
+msgstr "Insights Center — governed reports"
+
+msgid "International school positioning"
+msgstr "International school positioning"
+
+msgid "Invoice"
+msgstr "Invoice"
+
+msgid "Invoices, fees, and payments — compliance profile {{ p }} ({{ c }})."
+msgstr "Invoices, fees, and payments — compliance profile {{ p }} ({{ c }})."
+
+msgid "Key hubs"
+msgstr "Key hubs"
+
+msgid "K–12 lifecycle"
+msgstr "K–12 lifecycle"
+
+msgid "K–12 positioning"
+msgstr "K–12 positioning"
+
+msgid ""
+"Lightweight founder pipeline — extend Lead notes with tags like [region:CM] "
+"[type:private] [pilot:yes] [package:growth] [pain:attendance] [blocker:psp]."
+" No CRM replacement."
+msgstr ""
+"Lightweight founder pipeline — extend Lead notes with tags like [region:CM] "
+"[type:private] [pilot:yes] [package:growth] [pain:attendance] [blocker:psp]."
+" No CRM replacement."
+
+msgid ""
+"Live money movement requires your PSP — product ships invoicing and "
+"orchestration UX without faking settlement."
+msgstr ""
+"Live money movement requires your PSP — product ships invoicing and "
+"orchestration UX without faking settlement."
+
+msgid "Loop"
+msgstr "Loop"
+
+msgid "Low-connectivity schools"
+msgstr "Low-connectivity schools"
+
+msgid ""
+"Manual / proof fallback path is allowed for this tenant — use when automated"
+" rails are external or degraded."
+msgstr ""
+"Manual / proof fallback path is allowed for this tenant — use when automated"
+" rails are external or degraded."
+
+msgid ""
+"Map each role to a dashboard template for %(school_name)s. Unassigned roles "
+"fall back to platform defaults until you complete setup."
+msgstr ""
+"Map each role to a dashboard template for %(school_name)s. Unassigned roles "
+"fall back to platform defaults until you complete setup."
+
+msgid "Marks"
+msgstr "Marks"
+
+msgid "Master sheet"
+msgstr "Master sheet"
+
+msgid ""
+"Mechanical verifiers and tests enforce isolation assumptions; production "
+"posture still depends on your deployment and configuration discipline."
+msgstr ""
+"Mechanical verifiers and tests enforce isolation assumptions; production "
+"posture still depends on your deployment and configuration discipline."
+
+msgid "Missing credentials · %(rail)s"
+msgstr "Missing credentials · %(rail)s"
+
+msgid "Mission-driven schools"
+msgstr "Mission-driven schools"
+
+msgid "Money Center"
+msgstr "Money Center"
+
+msgid "Money and marketplace"
+msgstr "Money and marketplace"
+
+msgid "More event tools"
+msgstr "More event tools"
+
+msgid "More insights"
+msgstr "More insights"
+
+msgid "More money actions"
+msgstr "More money actions"
+
+msgid "Most schools still run on fragments."
+msgstr "Most schools still run on fragments."
+
+msgid "Multi-campus command center"
+msgstr "Multi-campus command center"
+
+msgid "Multi-campus positioning"
+msgstr "Multi-campus positioning"
+
+msgid "My Teaching Day"
+msgstr "My Teaching Day"
+
+msgid "NDA status"
+msgstr "NDA status"
+
+msgid "Name or title"
+msgstr "Name or title"
+
+msgid "Needs setup"
+msgstr "Needs setup"
+
+msgid "Next action"
+msgstr "Next action"
+
+msgid "No checklist blockers in missing/partial state for this scope."
+msgstr "No checklist blockers in missing/partial state for this scope."
+
+msgid "No leads yet — create one from the pipeline board."
+msgstr "No leads yet — create one from the pipeline board."
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "Offline Sync"
+msgstr "Offline Sync"
+
+msgid ""
+"Offline capture and conflict resolution exist for supported modules. "
+"Coverage is module-specific — not a blanket guarantee for every integration."
+msgstr ""
+"Offline capture and conflict resolution exist for supported modules. "
+"Coverage is module-specific — not a blanket guarantee for every integration."
+
+msgid "Offline-first posture"
+msgstr "Offline-first posture"
+
+msgid "One student journey—end to end"
+msgstr "One student journey—end to end"
+
+msgid "Open Money Center"
+msgstr "Open Money Center"
+
+msgid "Open assignment hub"
+msgstr "Open assignment hub"
+
+msgid "Open critical"
+msgstr "Open critical"
+
+msgid "Open designer"
+msgstr "Open designer"
+
+msgid "Operational modules for global cohorts"
+msgstr "Operational modules for global cohorts"
+
+msgid "Operations queue"
+msgstr "Operations queue"
+
+msgid "Operator adoption (event log)"
+msgstr "Operator adoption (event log)"
+
+msgid ""
+"Operator-facing playbooks cover import failures, report deadlines, payments "
+"rehearsal, offline conflicts, and more — with expected response-time "
+"guidance where we publish it."
+msgstr ""
+"Operator-facing playbooks cover import failures, report deadlines, payments "
+"rehearsal, offline conflicts, and more — with expected response-time "
+"guidance where we publish it."
+
+msgid "Organization / school group"
+msgstr "Organization / school group"
+
+msgid "Outcome"
+msgstr "Outcome"
+
+msgid "Owner role"
+msgstr "Owner role"
+
+msgid ""
+"Owners, administrators, teachers, parents, finance, and networks each get a "
+"credible home—not a shared login with hidden menus."
+msgstr ""
+"Owners, administrators, teachers, parents, finance, and networks each get a "
+"credible home—not a shared login with hidden menus."
+
+msgid "Pain to solution"
+msgstr "Pain to solution"
+
+msgid "Parents & families"
+msgstr "Parents & families"
+
+msgid "Payment Readiness Center"
+msgstr "Payment Readiness Center"
+
+msgid "Payment readiness"
+msgstr "Payment readiness"
+
+msgid ""
+"Pick the job you need done—each link opens a focused story, not a maze of "
+"modules."
+msgstr ""
+"Pick the job you need done—each link opens a focused story, not a maze of "
+"modules."
+
+msgid "Pilot"
+msgstr "Pilot"
+
+msgid "Pilot defect closure"
+msgstr "Pilot defect closure"
+
+msgid "Pilot discipline"
+msgstr "Pilot discipline"
+
+msgid "Pilot evidence"
+msgstr "Pilot evidence"
+
+msgid ""
+"Pilot evidence and defect dashboards tie fixes to tests or documented "
+"exceptions; durable defect rows support SOT batch tagging for audit."
+msgstr ""
+"Pilot evidence and defect dashboards tie fixes to tests or documented "
+"exceptions; durable defect rows support SOT batch tagging for audit."
+
+msgid "Pilot evidence dashboard"
+msgstr "Pilot evidence dashboard"
+
+msgid "Pilot program"
+msgstr "Pilot program"
+
+msgid "Pilot slot"
+msgstr "Pilot slot"
+
+msgid "Platform Command Center"
+msgstr "Platform Command Center"
+
+msgid "Platform and connectivity status"
+msgstr "Platform and connectivity status"
+
+msgid ""
+"Platform scope: pass school_slug query parameter to focus a tenant "
+"checklist."
+msgstr ""
+"Platform scope: pass school_slug query parameter to focus a tenant "
+"checklist."
+
+msgid "Platform surface map"
+msgstr "Platform surface map"
+
+msgid "Popular solution topics"
+msgstr "Popular solution topics"
+
+msgid ""
+"Practical workflows administrators, teachers, and finance staff run without "
+"switching tools."
+msgstr ""
+"Practical workflows administrators, teachers, and finance staff run without "
+"switching tools."
+
+msgid "Primary next action"
+msgstr "Primary next action"
+
+msgid ""
+"Primary remediation: select rows and use the card actions — bulk retry "
+"applies only to the current filter."
+msgstr ""
+"Primary remediation: select rows and use the card actions — bulk retry "
+"applies only to the current filter."
+
+msgid "Private & independent"
+msgstr "Private & independent"
+
+msgid "Private school positioning"
+msgstr "Private school positioning"
+
+msgid "Procurement checklist"
+msgstr "Procurement checklist"
+
+msgid ""
+"Procurement teams can use the dedicated security packet request flow "
+"(artefact needs + NDA hint). This trust page summarises posture; the packet "
+"carries detail appropriate for your NDA."
+msgstr ""
+"Procurement teams can use the dedicated security packet request flow "
+"(artefact needs + NDA hint). This trust page summarises posture; the packet "
+"carries detail appropriate for your NDA."
+
+msgid "Product surfaces"
+msgstr "Product surfaces"
+
+msgid ""
+"Product-side invoicing, receipt capture, and orchestration ship in-repo. "
+"Live card, wallet, and mobile-money collection requires your PSP merchant "
+"onboarding, production keys, webhooks, and settlement accounts — "
+"intentionally outside this repository’s scope."
+msgstr ""
+"Product-side invoicing, receipt capture, and orchestration ship in-repo. "
+"Live card, wallet, and mobile-money collection requires your PSP merchant "
+"onboarding, production keys, webhooks, and settlement accounts — "
+"intentionally outside this repository’s scope."
+
+msgid ""
+"Public vs tenant vs manager URL contract documented; no path-based tenant "
+"guessing on apex."
+msgstr ""
+"Public vs tenant vs manager URL contract documented; no path-based tenant "
+"guessing on apex."
+
+msgid ""
+"Queued offline mutations for this school — process in order; failures stay "
+"visible for retry or conflict resolution."
+msgstr ""
+"Queued offline mutations for this school — process in order; failures stay "
+"visible for retry or conflict resolution."
+
+msgid "Readiness"
+msgstr "Readiness"
+
+msgid "Receipt/payment"
+msgstr "Receipt/payment"
+
+msgid ""
+"Recent migration runs, execution logs, and published workflow runs. Open the"
+" visual builder to simulate or publish — profiles live in Configuration."
+msgstr ""
+"Recent migration runs, execution logs, and published workflow runs. Open the"
+" visual builder to simulate or publish — profiles live in Configuration."
+
+msgid ""
+"Repeatable launch playbooks, shared blueprints, and measurable "
+"standardization as you add campuses."
+msgstr ""
+"Repeatable launch playbooks, shared blueprints, and measurable "
+"standardization as you add campuses."
+
+msgid "Repeatable modules for every new campus"
+msgstr "Repeatable modules for every new campus"
+
+msgid "Report"
+msgstr "Report"
+
+msgid ""
+"Request a security packet for artefact-level detail under NDA — we do not "
+"claim external certifications from this page alone."
+msgstr ""
+"Request a security packet for artefact-level detail under NDA — we do not "
+"claim external certifications from this page alone."
+
+msgid "Request security packet"
+msgstr "Request security packet"
+
+msgid ""
+"Resolve divergences between your offline edits and the latest server record "
+"— every choice is audited."
+msgstr ""
+"Resolve divergences between your offline edits and the latest server record "
+"— every choice is audited."
+
+msgid "Resolve missing credentials"
+msgstr "Resolve missing credentials"
+
+msgid "Review assignments"
+msgstr "Review assignments"
+
+msgid "Review rails, backup & manual fallback"
+msgstr "Review rails, backup & manual fallback"
+
+msgid "Role dashboard templates"
+msgstr "Role dashboard templates"
+
+msgid ""
+"Role dashboards and layout defaults for %(school_name)s — assign templates "
+"so each role lands on the right widgets."
+msgstr ""
+"Role dashboards and layout defaults for %(school_name)s — assign templates "
+"so each role lands on the right widgets."
+
+msgid ""
+"Roles without assignments rely on platform defaults — review gaps in the "
+"assignment hub."
+msgstr ""
+"Roles without assignments rely on platform defaults — review gaps in the "
+"assignment hub."
+
+msgid ""
+"Route and tenant-isolation verifiers run in CI; production posture still "
+"depends on your config."
+msgstr ""
+"Route and tenant-isolation verifiers run in CI; production posture still "
+"depends on your config."
+
+msgid ""
+"Run Preview to see rows here — then export CSV/JSON or save the definition."
+msgstr ""
+"Run Preview to see rows here — then export CSV/JSON or save the definition."
+
+msgid ""
+"RunMyCampus is the modern operating system that reconnects those fragments "
+"into one governed campus core."
+msgstr ""
+"RunMyCampus is the modern operating system that reconnects those fragments "
+"into one governed campus core."
+
+msgid "RunMyCampus workspace"
+msgstr "RunMyCampus workspace"
+
+msgid "SOT batch"
+msgstr "SOT batch"
+
+msgid "Sample size (events)"
+msgstr "Sample size (events)"
+
+msgid ""
+"Saved governed definition — run via POST to refresh rows; no ad-hoc SQL."
+msgstr ""
+"Saved governed definition — run via POST to refresh rows; no ad-hoc SQL."
+
+msgid "Schema issues:"
+msgstr "Schema issues:"
+
+msgid "School Command Center"
+msgstr "School Command Center"
+
+msgid "School network positioning"
+msgstr "School network positioning"
+
+msgid "School networks"
+msgstr "School networks"
+
+msgid ""
+"School-wide performance and governed reporting — allowlisted queries only."
+msgstr ""
+"School-wide performance and governed reporting — allowlisted queries only."
+
+msgid "School:"
+msgstr "School:"
+
+msgid "Security & isolation"
+msgstr "Security & isolation"
+
+msgid "Security packet"
+msgstr "Security packet"
+
+msgid "See it with your team"
+msgstr "See it with your team"
+
+msgid "Setup effort"
+msgstr "Setup effort"
+
+msgid ""
+"Signed-in implementation command center, support playbooks, and defect "
+"closure surfaces exist for operators."
+msgstr ""
+"Signed-in implementation command center, support playbooks, and defect "
+"closure surfaces exist for operators."
+
+msgid "Simulate (primary)"
+msgstr "Simulate (primary)"
+
+msgid "Six outcomes your buyers feel before we talk architecture."
+msgstr "Six outcomes your buyers feel before we talk architecture."
+
+msgid "Six product surfaces your buyers expect to see"
+msgstr "Six product surfaces your buyers expect to see"
+
+msgid "Solution topic"
+msgstr "Solution topic"
+
+msgid ""
+"Spreadsheets, paper registers, WhatsApp threads, manual fee tracking, "
+"duplicate data entry, and one-off apps mean leaders never see one truthful "
+"picture of enrollment, finance, or learner progress."
+msgstr ""
+"Spreadsheets, paper registers, WhatsApp threads, manual fee tracking, "
+"duplicate data entry, and one-off apps mean leaders never see one truthful "
+"picture of enrollment, finance, or learner progress."
+
+msgid ""
+"Standardize policy and reporting without suffocating campus autonomy—one "
+"operating model, many front doors."
+msgstr ""
+"Standardize policy and reporting without suffocating campus autonomy—one "
+"operating model, many front doors."
+
+msgid ""
+"Start with a focused story—browse the full solutions hub when you need the "
+"complete map."
+msgstr ""
+"Start with a focused story—browse the full solutions hub when you need the "
+"complete map."
+
+msgid "Status page (placeholder link)"
+msgstr "Status page (placeholder link)"
+
+msgid ""
+"Strong defaults for schools that need audit-friendly operations—details and "
+"scope live on the Trust page."
+msgstr ""
+"Strong defaults for schools that need audit-friendly operations—details and "
+"scope live on the Trust page."
+
+msgid ""
+"Structured responses with severity, owner role, escalation, and one primary "
+"action per issue."
+msgstr ""
+"Structured responses with severity, owner role, escalation, and one primary "
+"action per issue."
+
+msgid "Student journey"
+msgstr "Student journey"
+
+msgid ""
+"Subdomain-scoped tenants; dedicated manager host for platform operators."
+msgstr ""
+"Subdomain-scoped tenants; dedicated manager host for platform operators."
+
+msgid "Support & customer success playbooks"
+msgstr "Support & customer success playbooks"
+
+msgid "Support SLA"
+msgstr "Support SLA"
+
+msgid "Support playbooks"
+msgstr "Support playbooks"
+
+msgid "System pulse"
+msgstr "System pulse"
+
+msgid "Targets:"
+msgstr "Targets:"
+
+msgid "Teacher workspace"
+msgstr "Teacher workspace"
+
+msgid "Teachers & academics"
+msgstr "Teachers & academics"
+
+msgid "Teaching plan for today"
+msgstr "Teaching plan for today"
+
+msgid ""
+"Tenant and permission checks apply. Preview is the primary action — validate"
+" before export or save."
+msgstr ""
+"Tenant and permission checks apply. Preview is the primary action — validate"
+" before export or save."
+
+msgid "Tenant isolation"
+msgstr "Tenant isolation"
+
+msgid ""
+"Tenant-scoped data paths, minimised operator access patterns, and documented"
+" retention approaches — see privacy policy and regional supplements."
+msgstr ""
+"Tenant-scoped data paths, minimised operator access patterns, and documented"
+" retention approaches — see privacy policy and regional supplements."
+
+msgid "Testimonial"
+msgstr "Testimonial"
+
+msgid ""
+"Thank you — we received your request. Our team will follow up at the email "
+"you provided."
+msgstr ""
+"Thank you — we received your request. Our team will follow up at the email "
+"you provided."
+
+msgid "The pain"
+msgstr "The pain"
+
+msgid "The promise"
+msgstr "The promise"
+
+msgid "Trial balance"
+msgstr "Trial balance"
+
+msgid "Trust"
+msgstr "Trust"
+
+msgid "Trust-building modules for families and finance"
+msgstr "Trust-building modules for families and finance"
+
+msgid ""
+"Two storage paths: Domain outbox (integrations → webhook deliveries + "
+"internal subscribers via outbox processor) and Platform event log "
+"(bus/workflows/replay). Inspect a row to replay or trace webhook status."
+msgstr ""
+"Two storage paths: Domain outbox (integrations → webhook deliveries + "
+"internal subscribers via outbox processor) and Platform event log "
+"(bus/workflows/replay). Inspect a row to replay or trace webhook status."
+
+msgid ""
+"Use this list for diligence. It mirrors what we verify in-repo (tests and "
+"mechanical gates) and what remains honestly external — PSP merchant "
+"onboarding, carrier uptime, and your deployment choices."
+msgstr ""
+"Use this list for diligence. It mirrors what we verify in-repo (tests and "
+"mechanical gates) and what remains honestly external — PSP merchant "
+"onboarding, carrier uptime, and your deployment choices."
+
+msgid "View all solutions"
+msgstr "View all solutions"
+
+msgid ""
+"Visual graph: trigger → condition → action. Validate before publish; "
+"simulate to dry-run without side effects."
+msgstr ""
+"Visual graph: trigger → condition → action. Validate before publish; "
+"simulate to dry-run without side effects."
+
+msgid ""
+"We could not confirm delivery. If you included an email, we still logged "
+"your intent — please try again or use the general contact page."
+msgstr ""
+"We could not confirm delivery. If you included an email, we still logged "
+"your intent — please try again or use the general contact page."
+
+msgid "Welcome back"
+msgstr "Welcome back"
+
+msgid "What needs attention"
+msgstr "What needs attention"
+
+msgid "What this surface delivers"
+msgstr "What this surface delivers"
+
+msgid ""
+"What you can expect from the product layer: structured onboarding, "
+"checklists with weighted go-live readiness, support playbooks, pilot "
+"evidence capture, and an honest defect loop — not a promise of calendar days"
+" or fabricated references."
+msgstr ""
+"What you can expect from the product layer: structured onboarding, "
+"checklists with weighted go-live readiness, support playbooks, pilot "
+"evidence capture, and an honest defect loop — not a promise of calendar days"
+" or fabricated references."
+
+msgid "Why teams standardize here"
+msgstr "Why teams standardize here"
+
+msgid "Work email"
+msgstr "Work email"
+
+msgid "Workflow / automation"
+msgstr "Workflow / automation"
+
+msgid "Workflow used"
+msgstr "Workflow used"
+
+msgid ""
+"You have {{ counter }} role assignment on file.{% plural %}You have {{ "
+"counter }} role assignments on file."
+msgstr ""
+"You have {{ counter }} role assignment on file.{% plural %}You have {{ "
+"counter }} role assignments on file."
+
+msgid ""
+"Your children, school status, and the next step to take — in one calm view."
+msgstr ""
+"Your children, school status, and the next step to take — in one calm view."
+
+msgid "Your name"
+msgstr "Your name"
+
+msgid "e.g. CIO, DPO, procurement lead"
+msgstr "e.g. CIO, DPO, procurement lead"
+
+msgid "e.g. NDA signed 2026-04-01, or request NDA"
+msgstr "e.g. NDA signed 2026-04-01, or request NDA"
+
+msgid ""
+"e.g. data flow, subprocessors, pen test summary, RLS model, incident "
+"response"
+msgstr ""
+"e.g. data flow, subprocessors, pen test summary, RLS model, incident "
+"response"
+
+msgid "found/resolved"
+msgstr "found/resolved"
+
+msgid ""
+"Diagram: how admissions, daily operations, finance, and governance connect "
+"in RunMyCampus"
+msgstr ""
+"Diagram: how admissions, daily operations, finance, and governance connect "
+"in RunMyCampus"
+
+msgid "Duplicate data entry"
+msgstr "Duplicate data entry"
+
+msgid "Fragmented parent comms"
+msgstr "Fragmented parent comms"
+
+msgid "Manual fee tracking"
+msgstr "Manual fee tracking"
+
+msgid "Paper registers"
+msgstr "Paper registers"
+
+msgid "Pilot defect (platform admin)"
+msgstr "Pilot defect (platform admin)"
+
+msgid ""
+"RunMyCampus reconnects those fragments into one governed operating system "
+"for the whole campus."
+msgstr ""
+"RunMyCampus reconnects those fragments into one governed operating system "
+"for the whole campus."
+
+msgid "Spreadsheets"
+msgstr "Spreadsheets"
+
+msgid ""
+"Spreadsheets, paper registers, manual fee tracking, disconnected parent "
+"communication, duplicate data entry, and one-off apps — leadership never "
+"gets one truthful picture of enrollment, cash, or learner progress."
+msgstr ""
+"Spreadsheets, paper registers, manual fee tracking, disconnected parent "
+"communication, duplicate data entry, and one-off apps — leadership never "
+"gets one truthful picture of enrollment, cash, or learner progress."
+
+msgid "The old way: operations scattered everywhere."
+msgstr "The old way: operations scattered everywhere."
+
+msgid "Weak leadership visibility"
+msgstr "Weak leadership visibility"
+
+msgid ""
+"Accepted students flow into student records, class context, and first "
+"invoice"
+msgstr ""
+"Accepted students flow into student records, class context, and first "
+"invoice"
+
+msgid "Administrators"
+msgstr "Administrators"
+
+msgid ""
+"Admissions is the front door: it should feed the rest of school operations "
+"without re-keying data."
+msgstr ""
+"Admissions is the front door: it should feed the rest of school operations "
+"without re-keying data."
+
+msgid "Admissions team"
+msgstr "Admissions team"
+
+msgid "Attendance & class context"
+msgstr "Attendance & class context"
+
+msgid "Before and after a connected admissions desk"
+msgstr "Before and after a connected admissions desk"
+
+msgid ""
+"Clean path from acceptance to billing and fee visibility in the parent "
+"portal."
+msgstr ""
+"Clean path from acceptance to billing and fee visibility in the parent "
+"portal."
+
+msgid ""
+"Clear status, fewer repeated requests, and a professional enrollment "
+"experience."
+msgstr ""
+"Clear status, fewer repeated requests, and a professional enrollment "
+"experience."
+
+msgid "Connected handoff across the operating system"
+msgstr "Connected handoff across the operating system"
+
+msgid "Delayed parent follow-up and unclear next steps"
+msgstr "Delayed parent follow-up and unclear next steps"
+
+msgid ""
+"Diagram: inquiry through application, document review, interview, decision, "
+"enrollment, and invoice"
+msgstr ""
+"Diagram: inquiry through application, document review, interview, decision, "
+"enrollment, and invoice"
+
+msgid "Document checklists visible to staff and families"
+msgstr "Document checklists visible to staff and families"
+
+msgid ""
+"Each applicant moves through clear stages with documents, reviews, and "
+"decisions visible to the right people—without losing context in email "
+"threads."
+msgstr ""
+"Each applicant moves through clear stages with documents, reviews, and "
+"decisions visible to the right people—without losing context in email "
+"threads."
+
+msgid "Every applicant tracked with ownership and history"
+msgstr "Every applicant tracked with ownership and history"
+
+msgid "Explore platform"
+msgstr "Explore platform"
+
+msgid "Families informed with consistent messaging"
+msgstr "Families informed with consistent messaging"
+
+msgid "Fees & Payments"
+msgstr "Fees & Payments"
+
+msgid "Finance team"
+msgstr "Finance team"
+
+msgid "Funnel and conversion signals without manual rollups across campuses."
+msgstr "Funnel and conversion signals without manual rollups across campuses."
+
+msgid "Highlights"
+msgstr "Highlights"
+
+msgid "Inquiries scattered across email and spreadsheets"
+msgstr "Inquiries scattered across email and spreadsheets"
+
+msgid "Manual enrollment handoff into records and billing"
+msgstr "Manual enrollment handoff into records and billing"
+
+msgid "Missing or duplicate documents hard to spot"
+msgstr "Missing or duplicate documents hard to spot"
+
+msgid "No shared view of application stage"
+msgstr "No shared view of application stage"
+
+msgid ""
+"Operational control over forms, intakes, and handoff into academic "
+"structure."
+msgstr ""
+"Operational control over forms, intakes, and handoff into academic "
+"structure."
+
+msgid "Parent Portal"
+msgstr "Parent Portal"
+
+msgid "Pipeline you can run in the open"
+msgstr "Pipeline you can run in the open"
+
+msgid ""
+"Purpose-built visibility for every stakeholder in the enrollment lifecycle."
+msgstr ""
+"Purpose-built visibility for every stakeholder in the enrollment lifecycle."
+
+msgid ""
+"Queues, checklists, and stage ownership so no applicant falls through the "
+"cracks."
+msgstr ""
+"Queues, checklists, and stage ownership so no applicant falls through the "
+"cracks."
+
+msgid ""
+"Replace fragmented follow-up with one system of record for the enrollment "
+"journey."
+msgstr ""
+"Replace fragmented follow-up with one system of record for the enrollment "
+"journey."
+
+msgid "Review stages and decisions audit-ready"
+msgstr "Review stages and decisions audit-ready"
+
+msgid "Watch product tour"
+msgstr "Watch product tour"
+
+msgid "What this surface emphasizes"
+msgstr "What this surface emphasizes"
+
+msgid "Who benefits"
+msgstr "Who benefits"
+
+msgid ""
+"A better teacher day improves outcomes for students, families, and "
+"leadership—not just the classroom."
+msgstr ""
+"A better teacher day improves outcomes for students, families, and "
+"leadership—not just the classroom."
+
+msgid ""
+"A mobile-first layout for fees, attendance, announcements, assignments, and "
+"report access—so caregivers do not need five different channels to stay "
+"current."
+msgstr ""
+"A mobile-first layout for fees, attendance, announcements, assignments, and "
+"report access—so caregivers do not need five different channels to stay "
+"current."
+
+msgid "Announcements get lost across groups and email"
+msgstr "Announcements get lost across groups and email"
+
+msgid "Arrears surfaced early for structured follow-up"
+msgstr "Arrears surfaced early for structured follow-up"
+
+msgid "Attendance context is unclear between paper and chat"
+msgstr "Attendance context is unclear between paper and chat"
+
+msgid "Attendance is captured in context with the class list"
+msgstr "Attendance is captured in context with the class list"
+
+msgid "Attendance signals are easier to understand at a glance"
+msgstr "Attendance signals are easier to understand at a glance"
+
+msgid "Auditors & governance"
+msgstr "Auditors & governance"
+
+msgid "Balances visible to families through the parent portal"
+msgstr "Balances visible to families through the parent portal"
+
+msgid "Before and after a real daily workspace"
+msgstr "Before and after a real daily workspace"
+
+msgid "Before and after a single family channel"
+msgstr "Before and after a single family channel"
+
+msgid "Before and after centralized school finance"
+msgstr "Before and after centralized school finance"
+
+msgid ""
+"Billing truth in the portal aligns with invoices and receipts in finance."
+msgstr ""
+"Billing truth in the portal aligns with invoices and receipts in finance."
+
+msgid "Clarity on phones and desktops without chasing staff for every update."
+msgstr ""
+"Clarity on phones and desktops without chasing staff for every update."
+
+msgid "Class updates live in chats and ad-hoc documents"
+msgstr "Class updates live in chats and ad-hoc documents"
+
+msgid ""
+"Clear balances and receipts so fee conversations stay factual and calm."
+msgstr ""
+"Clear balances and receipts so fee conversations stay factual and calm."
+
+msgid ""
+"Collection and revenue signals without waiting for month-end "
+"reconstructions."
+msgstr ""
+"Collection and revenue signals without waiting for month-end "
+"reconstructions."
+
+msgid "Communication stays centralized with history you can trust"
+msgstr "Communication stays centralized with history you can trust"
+
+msgid "Communication to families aligns with what the system records"
+msgstr "Communication to families aligns with what the system records"
+
+msgid "Connected across admissions, portals, and governance"
+msgstr "Connected across admissions, portals, and governance"
+
+msgid "Connected to academics, families, and insight"
+msgstr "Connected to academics, families, and insight"
+
+msgid "Connected to daily school operations"
+msgstr "Connected to daily school operations"
+
+msgid ""
+"Consistent patterns across sections without forcing every teacher into the "
+"same rigid form."
+msgstr ""
+"Consistent patterns across sections without forcing every teacher into the "
+"same rigid form."
+
+msgid "Daily tasks stay in one classroom-oriented workspace"
+msgstr "Daily tasks stay in one classroom-oriented workspace"
+
+msgid "Department heads"
+msgstr "Department heads"
+
+msgid ""
+"Designed for families first, with knock-on benefits for staff who answer "
+"fewer repetitive questions."
+msgstr ""
+"Designed for families first, with knock-on benefits for staff who answer "
+"fewer repetitive questions."
+
+msgid ""
+"Diagram: class list, attendance, marks and assignments, lesson coverage, and"
+" student notes"
+msgstr ""
+"Diagram: class list, attendance, marks and assignments, lesson coverage, and"
+" student notes"
+
+msgid ""
+"Diagram: fee collection summary, invoices, receipts, arrears panel, parent "
+"balance, and finance summary"
+msgstr ""
+"Diagram: fee collection summary, invoices, receipts, arrears panel, parent "
+"balance, and finance summary"
+
+msgid ""
+"Diagram: parent mobile portal with child profile, attendance, fee balance, "
+"report card, announcements, and assignments"
+msgstr ""
+"Diagram: parent mobile portal with child profile, attendance, fee balance, "
+"report card, announcements, and assignments"
+
+msgid ""
+"Engagement and communication posture you can stand behind with families."
+msgstr ""
+"Engagement and communication posture you can stand behind with families."
+
+msgid "Fee records scattered across spreadsheets and inboxes"
+msgstr "Fee records scattered across spreadsheets and inboxes"
+
+msgid "Finance questions drop when balances and receipts are visible"
+msgstr "Finance questions drop when balances and receipts are visible"
+
+msgid "Finance reporting delayed or rebuilt by hand"
+msgstr "Finance reporting delayed or rebuilt by hand"
+
+msgid ""
+"Finance should not be an island: billing ties back to enrollment, academic "
+"structure, and how families experience the school."
+msgstr ""
+"Finance should not be an island: billing ties back to enrollment, academic "
+"structure, and how families experience the school."
+
+msgid "Grading & Report Cards"
+msgstr "Grading & Report Cards"
+
+msgid "Invoices and fee structures generated from the same academic context"
+msgstr "Invoices and fee structures generated from the same academic context"
+
+msgid "Late visibility into arrears and follow-up"
+msgstr "Late visibility into arrears and follow-up"
+
+msgid "Leadership can review collection trends without manual rollups"
+msgstr "Leadership can review collection trends without manual rollups"
+
+msgid "Less tab sprawl during prep and during class-adjacent workflows."
+msgstr "Less tab sprawl during prep and during class-adjacent workflows."
+
+msgid "Manual receipts and weak payment status visibility"
+msgstr "Manual receipts and weak payment status visibility"
+
+msgid "Marks and feedback are delayed or inconsistent"
+msgstr "Marks and feedback are delayed or inconsistent"
+
+msgid "Marks flow into reporting with fewer manual bridges"
+msgstr "Marks flow into reporting with fewer manual bridges"
+
+msgid ""
+"Move from fragmented fee records to one auditable flow across campuses and "
+"academic years."
+msgstr ""
+"Move from fragmented fee records to one auditable flow across campuses and "
+"academic years."
+
+msgid "Official channels reduce duplicate inquiries and conflicting messages."
+msgstr ""
+"Official channels reduce duplicate inquiries and conflicting messages."
+
+msgid ""
+"One finance workspace with role-appropriate visibility—not everyone sees the"
+" same ledgers."
+msgstr ""
+"One finance workspace with role-appropriate visibility—not everyone sees the"
+" same ledgers."
+
+msgid "One surface for registers, marks, and class context"
+msgstr "One surface for registers, marks, and class context"
+
+msgid ""
+"Operational adoption and support load improve when the workspace is "
+"coherent."
+msgstr ""
+"Operational adoption and support load improve when the workspace is "
+"coherent."
+
+msgid ""
+"Operational alignment across campuses, currencies, and fee categories "
+"without shadow spreadsheets."
+msgstr ""
+"Operational alignment across campuses, currencies, and fee categories "
+"without shadow spreadsheets."
+
+msgid "Parent balance confusion and repeated finance calls"
+msgstr "Parent balance confusion and repeated finance calls"
+
+msgid "Parents & guardians"
+msgstr "Parents & guardians"
+
+msgid "Parents call the office for balances and due dates"
+msgstr "Parents call the office for balances and due dates"
+
+msgid "Parents see the updates the school marks as official"
+msgstr "Parents see the updates the school marks as official"
+
+msgid "Receipts tracked with clear payment history"
+msgstr "Receipts tracked with clear payment history"
+
+msgid ""
+"Reduce repeated calls and mixed messages by concentrating official school "
+"updates in one portal."
+msgstr ""
+"Reduce repeated calls and mixed messages by concentrating official school "
+"updates in one portal."
+
+msgid ""
+"Replace duplicate entry and scattered class updates with flows built around "
+"the school day."
+msgstr ""
+"Replace duplicate entry and scattered class updates with flows built around "
+"the school day."
+
+msgid "Report cards and key documents live alongside messaging context"
+msgstr "Report cards and key documents live alongside messaging context"
+
+msgid "Report cards and results feel delayed or hard to find"
+msgstr "Report cards and results feel delayed or hard to find"
+
+msgid "Security & Audit"
+msgstr "Security & Audit"
+
+msgid ""
+"See collection health, invoice status, receipts, arrears, and parent-facing "
+"balances in one governed surface—without spreadsheet reconciliation as the "
+"source of truth."
+msgstr ""
+"See collection health, invoice status, receipts, arrears, and parent-facing "
+"balances in one governed surface—without spreadsheet reconciliation as the "
+"source of truth."
+
+msgid ""
+"Share class-appropriate context responsibly from the same system of record."
+msgstr ""
+"Share class-appropriate context responsibly from the same system of record."
+
+msgid "Signals on teaching operations without micromanaging every classroom."
+msgstr "Signals on teaching operations without micromanaging every classroom."
+
+msgid ""
+"Structured invoicing, receipts, arrears queues, and exports that stand up to"
+" review."
+msgstr ""
+"Structured invoicing, receipts, arrears queues, and exports that stand up to"
+" review."
+
+msgid "Student Portal"
+msgstr "Student Portal"
+
+msgid "Student progress and notes are easier to track over time"
+msgstr "Student progress and notes are easier to track over time"
+
+msgid "Syllabus and lesson progress are hard to see as a whole"
+msgstr "Syllabus and lesson progress are hard to see as a whole"
+
+msgid "Teacher Portal"
+msgstr "Teacher Portal"
+
+msgid "Teachers and admin repeat the same updates manually"
+msgstr "Teachers and admin repeat the same updates manually"
+
+msgid ""
+"Teachers move through attendance, marks, assignments, lesson coverage, and "
+"student notes without hopping between disconnected tools."
+msgstr ""
+"Teachers move through attendance, marks, assignments, lesson coverage, and "
+"student notes without hopping between disconnected tools."
+
+msgid "Teachers repeat work across registers and gradebooks"
+msgstr "Teachers repeat work across registers and gradebooks"
+
+msgid ""
+"Teaching sits between attendance, grading, parent communication, and how "
+"leadership understands school health."
+msgstr ""
+"Teaching sits between attendance, grading, parent communication, and how "
+"leadership understands school health."
+
+msgid ""
+"The parent portal reflects the same records teachers and finance teams "
+"maintain—without asking families to learn internal tools."
+msgstr ""
+"The parent portal reflects the same records teachers and finance teams "
+"maintain—without asking families to learn internal tools."
+
+msgid ""
+"Traceable adjustments and permissioned access that respect policy and "
+"separation of duties."
+msgstr ""
+"Traceable adjustments and permissioned access that respect policy and "
+"separation of duties."
+
+msgid ""
+"Updates originate from the same records parents already see in the portal."
+msgstr ""
+"Updates originate from the same records parents already see in the portal."
+
+msgid "What families see on their phones"
+msgstr "What families see on their phones"
+
+msgid "Your finance workspace at a glance"
+msgstr "Your finance workspace at a glance"
+
+msgid "Header primary action: Book demo"
+msgstr "Header primary action: Book demo"

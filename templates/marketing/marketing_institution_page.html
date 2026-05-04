@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-institution-premium.css' %}">
 {% endblock %}
 {% block content %}
-<section class="container py-4 py-lg-5 page-stack mkt-institution-premium">
+<section class="container py-4 py-lg-5 page-stack mkt-institution-premium mkt-inst-audience--{{ institution_segment_slug|default:'segment' }}">
   <header class="mkt-inst-hero mb-4 pb-3 border-bottom border-secondary border-opacity-25">
     <p class="text-uppercase small text-muted mb-2">{% trans "RunMyCampus Solutions" %}</p>
     <h1 class="display-6 fw-bold mb-3">{{ page.headline }}</h1>
@@ -23,6 +23,8 @@
       <a href="{% url 'marketing_solutions' %}" class="btn btn-outline-secondary">{% trans "Solutions overview" %}</a>
     </div>
   </header>
+
+  {% include "marketing/partials/institution_audience_callout.html" %}
 
   {% if page.stock_photo_static %}
   <figure class="mkt-inst-stock rounded overflow-hidden mb-5 border border-secondary border-opacity-25">
@@ -55,7 +57,7 @@
 
   {% if page.recommended_modules %}
   <section class="section-shell" aria-label="{% trans 'Recommended modules' %}">
-    <h2 class="section-heading">{% trans "Recommended platform modules" %}</h2>
+    <h2 class="section-heading">{% if institution_segment_slug == 'international-schools' %}{% trans "Operational modules for global cohorts" %}{% elif institution_segment_slug == 'multi-campus' %}{% trans "Governance modules networks standardize on" %}{% elif institution_segment_slug == 'faith-based-schools' %}{% trans "Trust-building modules for families and finance" %}{% elif institution_segment_slug == 'private-schools' %}{% trans "Growth and retention modules private schools lean on" %}{% elif institution_segment_slug == 'growing-school-networks' %}{% trans "Repeatable modules for every new campus" %}{% elif institution_segment_slug == 'k12-schools' or institution_segment_slug == 'k12' %}{% trans "Day-to-day modules K–12 teams run together" %}{% else %}{% trans "Recommended platform modules" %}{% endif %}</h2>
     <p class="section-lead">{% trans "Each tile opens the matching RunMyCampus capability page." %}</p>
     <div class="row g-3">
       {% for mod in page.recommended_modules %}
@@ -113,7 +115,7 @@
         <p class="small text-muted mb-0">{% trans "See the platform with your roles and campuses in mind." %}</p>
       </div>
       <div class="d-flex flex-wrap gap-2">
-        <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="demo" data-page="institution-footer">{% trans "Request Demo" %}</a>
+        <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="demo" data-page="institution-footer">{% trans "Book demo" %}</a>
         <a href="{% url 'marketing_contact' %}" class="btn btn-outline-secondary">{% trans "Contact us" %}</a>
       </div>
     </div>

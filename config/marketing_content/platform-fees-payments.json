@@ -2,21 +2,21 @@
   "label": "Fees & Payments",
   "seo_title": "Fees & Payments | RunMyCampus",
   "seo_description": "Multi-currency fees, invoices, receipts, discounts, arrears, and finance-ready reporting.",
-  "headline": "Finance grounded in enrollment reality.",
-  "subheadline": "Plans map to academic years and campuses with governance over adjustments.",
+  "headline": "Every invoice, receipt, and balance in one finance workspace.",
+  "subheadline": "Configure fee structures tied to academic context, issue invoices, record payments and receipts, surface arrears, give parents clear billing visibility, and export finance views leadership can use—without reconciling shadow spreadsheets.",
   "schema_type": "WebPage",
   "segments": [
     {
       "title": "Unified balances",
-      "body": "Guardian views and finance dashboards stay aligned."
+      "body": "Guardian views and finance dashboards stay aligned to the same invoices and receipts."
     },
     {
       "title": "Receipt discipline",
-      "body": "Offline receipt capture can sync through governed queues."
+      "body": "Offline receipt capture can sync through governed queues when your deployment supports it."
     },
     {
       "title": "Reporting depth",
-      "body": "Exports that match how leadership reviews revenue and arrears."
+      "body": "Exports and summaries structured for how schools review revenue and arrears."
     }
   ],
   "extras": {
@@ -29,12 +29,9 @@
       "Secure audit trails",
       "Multi-campus support"
     ],
-    "diagram_path": "images/marketing/module-finance.svg",
+    "diagram_path": "images/marketing/platform-fees-payments-dashboard.svg",
     "premium_platform_layout": true,
     "suppress_footer_clusters": true,
-    "stock_photo_url": "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1600&q=75",
-    "stock_photo_alt": "Finance professional reviewing figures on a laptop",
-    "stock_photo_credit": "Photo via Unsplash",
     "problem_section": {
       "title": "Billing confusion strains trust",
       "body": "When invoices, receipts, and balances are fragmented, finance teams reconcile manually and parents call for the same answers. RunMyCampus brings fee setup, invoicing, receipts, and arrears into one auditable flow."
@@ -45,28 +42,42 @@
       "Payment recorded",
       "Receipt generated",
       "Balance updated",
+      "Arrears review",
       "Finance reports"
     ],
     "benefits_by_role": [
       {
         "role": "Finance teams",
         "bullets": [
-          "Structured arrears and discount handling",
-          "Payment history schools can defend in audits"
+          "Structured arrears and adjustment handling with traceability",
+          "Payment history schools can defend in reviews"
         ]
       },
       {
         "role": "Administrators",
         "bullets": [
-          "Operational clarity across campuses",
+          "Operational clarity across campuses and academic years",
           "Configurable currencies and fee categories"
         ]
       },
       {
         "role": "Parents",
         "bullets": [
-          "Transparent balances and receipts",
-          "Fewer surprise bills at renewal time"
+          "Transparent balances and receipts in the portal",
+          "Fewer surprise bills when expectations are visible"
+        ]
+      },
+      {
+        "role": "School leadership",
+        "bullets": [
+          "Collection signals without manual rollups",
+          "Cross-campus posture when your deployment spans tenants"
+        ]
+      },
+      {
+        "role": "Auditors & governance",
+        "bullets": [
+          "Permissioned access and audit-friendly trails where your policy requires them"
         ]
       }
     ],
@@ -74,6 +85,10 @@
       {
         "label": "Parent Portal",
         "path": "/platform/parent-portal/"
+      },
+      {
+        "label": "Admissions",
+        "path": "/platform/admissions/"
       },
       {
         "label": "Analytics",
@@ -84,8 +99,12 @@
         "path": "/platform/student-information-system/"
       },
       {
-        "label": "Workflows",
-        "path": "/platform/workflows/"
+        "label": "Communications",
+        "path": "/platform/communications/"
+      },
+      {
+        "label": "Security",
+        "path": "/platform/security/"
       }
     ]
   }

@@ -1,0 +1,207 @@
+/* Differentiated layout: /platform/fees-payments/ — finance control story */
+
+.mkt-page-platform-fees-payments {
+  --mkt-fees-accent: #f59e0b;
+  --mkt-fees-accent-dim: rgba(245, 158, 11, 0.12);
+  --mkt-fees-danger: #f87171;
+}
+
+.mkt-fees-page {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.mkt-fees-hero {
+  display: grid;
+  grid-template-columns: 1fr minmax(300px, 48%);
+  gap: 2rem;
+  align-items: center;
+  padding: 2rem 0 2.5rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+@media (max-width: 991.98px) {
+  .mkt-fees-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mkt-fees-hero-copy .detail-eyebrow {
+  color: var(--mkt-fees-accent);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.mkt-fees-hero-copy .detail-headline {
+  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+
+.mkt-fees-hero-copy .detail-subheadline {
+  font-size: 1.05rem;
+  color: rgba(226, 232, 240, 0.9);
+  line-height: 1.55;
+  max-width: 38rem;
+}
+
+.mkt-fees-hero-visual {
+  background: linear-gradient(145deg, var(--mkt-fees-accent-dim), rgba(15, 23, 42, 0.65));
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 16px;
+  padding: 0.75rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+}
+
+.mkt-fees-hero-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+.mkt-fees-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.mkt-fees-section {
+  padding: 2.75rem 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.mkt-fees-section:last-of-type {
+  border-bottom: none;
+}
+
+.mkt-fees-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.mkt-fees-section .section-lead {
+  color: rgba(203, 213, 225, 0.95);
+  max-width: 42rem;
+  margin-bottom: 1.5rem;
+}
+
+.mkt-fees-visual-wrap {
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 16px;
+  padding: 1rem;
+  border: 1px solid rgba(71, 85, 105, 0.4);
+  overflow-x: auto;
+}
+
+.mkt-fees-visual-wrap img {
+  min-width: 640px;
+  width: 100%;
+  height: auto;
+}
+
+.mkt-fees-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 767.98px) {
+  .mkt-fees-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mkt-fees-card {
+  background: rgba(30, 41, 59, 0.55);
+  border: 1px solid rgba(100, 116, 139, 0.35);
+  border-radius: 14px;
+  padding: 1.25rem 1.35rem;
+}
+
+.mkt-fees-card h3 {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.mkt-fees-card--before h3 {
+  color: #fca5a5;
+}
+
+.mkt-fees-card--after h3 {
+  color: var(--mkt-fees-accent);
+}
+
+.mkt-fees-card ul {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: rgba(203, 213, 225, 0.92);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.mkt-fees-handoff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.mkt-fees-handoff-grid a {
+  display: block;
+  padding: 0.85rem 1rem;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  border-radius: 10px;
+  color: #e2e8f0;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.mkt-fees-handoff-grid a:hover,
+.mkt-fees-handoff-grid a:focus-visible {
+  border-color: var(--mkt-fees-accent);
+  background: rgba(30, 41, 59, 0.95);
+  color: #fff;
+  outline: none;
+}
+
+.mkt-fees-roles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.mkt-fees-role {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.85));
+  border: 1px solid rgba(71, 85, 105, 0.4);
+  border-radius: 12px;
+  padding: 1.1rem 1.2rem;
+}
+
+.mkt-fees-role h3 {
+  font-size: 0.95rem;
+  color: #f1f5f9;
+  margin-bottom: 0.65rem;
+}
+
+.mkt-fees-role p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: rgba(148, 163, 184, 0.95);
+  line-height: 1.45;
+}
+
+.mkt-fees-cta {
+  text-align: center;
+  padding: 2.5rem 1rem 1rem;
+}
+
+.mkt-fees-cta .btn {
+  margin: 0.35rem;
+}

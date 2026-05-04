@@ -1,0 +1,142 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}">
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-admissions.css' %}">
+{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-admissions mkt-platform-theme--platform-admissions{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-admissions-page" data-mkt-platform-admissions="1">
+  <nav class="marketing-hub-strip small text-muted mb-2 d-flex flex-wrap gap-2 align-items-center" aria-label="{% trans 'Key hubs' %}">
+    <a href="{% url 'marketing_solutions' %}">{% trans "Solutions" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_platform' %}">{% trans "Platform" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_trust_dedicated' %}">{% trans "Trust" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_resources' %}">{% trans "Resources" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_pricing' %}">{% trans "Pricing" %}</a>
+  </nav>
+
+  <header class="mkt-admissions-hero">
+    <div class="mkt-admissions-hero-copy">
+      <p class="detail-eyebrow mb-0">runmycampus.com | {{ page.label }}</p>
+      <h1 class="detail-headline">{{ page.headline }}</h1>
+      <p class="detail-subheadline">{{ page.subheadline }}</p>
+      <div class="hero-cta mt-3">
+        <a href="{% url 'marketing_demo' %}" class="btn btn-light" data-cta="demo" data-page="platform-admissions">{% trans "Request demo" %}</a>
+        <a href="{% url 'marketing_platform' %}" class="btn btn-outline-light" data-cta="secondary" data-page="platform-admissions">{% trans "Explore platform" %}</a>
+        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light">{% trans "Login" %}</a>
+      </div>
+      {% if page_extras.trust_strip %}
+      <div class="mkt-admissions-trust trust-strip">
+        {% for item in page_extras.trust_strip %}
+        <span class="trust-pill">{{ item }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="mkt-admissions-hero-visual" aria-hidden="true">
+      <img src="{% static 'images/marketing/platform-admissions-pipeline.svg' %}" alt="" width="920" height="340" loading="eager" decoding="async" class="img-fluid">
+    </div>
+  </header>
+
+  <section class="mkt-adm-section" aria-labelledby="mkt-adm-pipeline-heading">
+    <h2 id="mkt-adm-pipeline-heading">{% trans "Pipeline you can run in the open" %}</h2>
+    <p class="section-lead">{% trans "Each applicant moves through clear stages with documents, reviews, and decisions visible to the right people—without losing context in email threads." %}</p>
+    <div class="mkt-adm-pipeline-wrap">
+      <img src="{% static 'images/marketing/platform-admissions-pipeline.svg' %}" alt="{% trans 'Diagram: inquiry through application, document review, interview, decision, enrollment, and invoice' %}" width="920" height="340" loading="lazy" decoding="async" data-mkt-admissions-pipeline-visual="1">
+    </div>
+  </section>
+
+  <section class="mkt-adm-section" aria-labelledby="mkt-adm-before-after-heading">
+    <h2 id="mkt-adm-before-after-heading">{% trans "Before and after a connected admissions desk" %}</h2>
+    <p class="section-lead">{% trans "Replace fragmented follow-up with one system of record for the enrollment journey." %}</p>
+    <div class="mkt-adm-split">
+      <div class="mkt-adm-card mkt-adm-card--before">
+        <h3>{% trans "Before" %}</h3>
+        <ul>
+          <li>{% trans "Inquiries scattered across email and spreadsheets" %}</li>
+          <li>{% trans "Missing or duplicate documents hard to spot" %}</li>
+          <li>{% trans "No shared view of application stage" %}</li>
+          <li>{% trans "Delayed parent follow-up and unclear next steps" %}</li>
+          <li>{% trans "Manual enrollment handoff into records and billing" %}</li>
+        </ul>
+      </div>
+      <div class="mkt-adm-card mkt-adm-card--after">
+        <h3>{% trans "After" %}</h3>
+        <ul>
+          <li>{% trans "Every applicant tracked with ownership and history" %}</li>
+          <li>{% trans "Document checklists visible to staff and families" %}</li>
+          <li>{% trans "Review stages and decisions audit-ready" %}</li>
+          <li>{% trans "Families informed with consistent messaging" %}</li>
+          <li>{% trans "Accepted students flow into student records, class context, and first invoice" %}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="mkt-adm-section" aria-labelledby="mkt-adm-handoff-heading">
+    <h2 id="mkt-adm-handoff-heading">{% trans "Connected handoff across the operating system" %}</h2>
+    <p class="section-lead">{% trans "Admissions is the front door: it should feed the rest of school operations without re-keying data." %}</p>
+    <div class="mkt-adm-handoff-grid">
+      <a href="{% url 'marketing_platform_sis' %}">{% trans "Student Information System" %}</a>
+      <a href="{% url 'marketing_platform_attendance' %}">{% trans "Attendance & class context" %}</a>
+      <a href="{% url 'marketing_platform_fees_payments' %}">{% trans "Fees & Payments" %}</a>
+      <a href="{% url 'marketing_platform_parent_portal' %}">{% trans "Parent Portal" %}</a>
+      <a href="{% url 'marketing_platform_communications' %}">{% trans "Communications" %}</a>
+      <a href="{% url 'marketing_platform_analytics' %}">{% trans "Analytics" %}</a>
+    </div>
+  </section>
+
+  <section class="mkt-adm-section" aria-labelledby="mkt-adm-roles-heading">
+    <h2 id="mkt-adm-roles-heading">{% trans "Who benefits" %}</h2>
+    <p class="section-lead">{% trans "Purpose-built visibility for every stakeholder in the enrollment lifecycle." %}</p>
+    <div class="mkt-adm-roles">
+      <div class="mkt-adm-role">
+        <h3>{% trans "Admissions team" %}</h3>
+        <p>{% trans "Queues, checklists, and stage ownership so no applicant falls through the cracks." %}</p>
+      </div>
+      <div class="mkt-adm-role">
+        <h3>{% trans "Administrators" %}</h3>
+        <p>{% trans "Operational control over forms, intakes, and handoff into academic structure." %}</p>
+      </div>
+      <div class="mkt-adm-role">
+        <h3>{% trans "Parents" %}</h3>
+        <p>{% trans "Clear status, fewer repeated requests, and a professional enrollment experience." %}</p>
+      </div>
+      <div class="mkt-adm-role">
+        <h3>{% trans "School leadership" %}</h3>
+        <p>{% trans "Funnel and conversion signals without manual rollups across campuses." %}</p>
+      </div>
+      <div class="mkt-adm-role">
+        <h3>{% trans "Finance team" %}</h3>
+        <p>{% trans "Clean path from acceptance to billing and fee visibility in the parent portal." %}</p>
+      </div>
+    </div>
+  </section>
+
+  {% if page.segments %}
+  <section class="mkt-adm-section" aria-label="{% trans 'Highlights' %}">
+    <h2>{% trans "What this surface emphasizes" %}</h2>
+    <div class="row g-3">
+      {% for seg in page.segments %}
+      <div class="col-md-4">
+        <article class="segment-card h-100">
+          <h3 class="h6">{{ seg.title }}</h3>
+          <p class="mb-0 text-muted small">{{ seg.body }}</p>
+        </article>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <footer class="mkt-adm-cta">
+    <a href="{% url 'marketing_demo' %}" class="btn btn-primary btn-lg">{% trans "Request demo" %}</a>
+    <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-outline-light btn-lg">{% trans "Watch product tour" %}</a>
+  </footer>
+</article>
+{% endblock %}

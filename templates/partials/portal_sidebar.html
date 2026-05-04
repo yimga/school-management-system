@@ -41,7 +41,7 @@
   {% endif %}
 </div>
 
-<nav class="nav flex-column gap-0" data-sidebar-nav="true" data-shell-nav-family="portal" role="navigation" aria-label="{% trans 'Portal navigation' %}" data-preview-label="{% trans 'Sidebar navigation' %}" data-preview-changes="{% trans 'Menu items, order from Site Settings' %}">
+<nav class="nav flex-column gap-0" data-sidebar-nav="true" data-shell-nav-family="portal" data-rmc-os-nav="1" data-rmc-os-role-cluster="{{ rmc_os_shell.role_cluster|default:'school_staff' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %} role="navigation" aria-label="{% trans 'Portal navigation' %}" data-preview-label="{% trans 'Sidebar navigation' %}" data-preview-changes="{% trans 'Menu items, order from Site Settings' %}">
   {% if request.user.is_authenticated %}
     {% comment %}Phase 16: Quick access (pinned) items at top{% endcomment %}
     {% if PINNED_SIDEBAR_ITEMS %}

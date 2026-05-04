@@ -1714,3 +1714,73 @@ class ClickTrackEvent(models.Model):
 
     def __str__(self) -> str:
         return f"{self.kind} {self.task_code} @{self.session_run_id[:8]}"
+
+
+class PilotDefect(models.Model):
+    """
+    Durable pilot / operator defect row (replaces JSON-only registry for scale).
+    No PII: use source_school_slug (tenant slug), not personal data.
+    """
+
+    class Severity(models.TextChoices):
+        CRITICAL = "critical", "Critical"
+        HIGH = "high", "High"
+        MEDIUM = "medium", "Medium"
+        LOW = "low", "Low"
+
+    class Status(models.TextChoices):
+        REPORTED = "reported", "Reported"
+        TRIAGED = "triaged", "Triaged"
+        IN_PROGRESS = "in_progress", "In progress"
+        FIXED = "fixed", "Fixed"
+        VERIFIED = "verified", "Verified"
+        DEFERRED = "deferred", "Deferred"
+
+    title = models.CharField(max_length=240)
+    source_school_slug = models.CharField(
+        max_length=120,
+        blank=True,
+        db_index=True,
+        help_text="Tenant slug or pilot slot label — no personal data.",
+    )
+    severity = models.CharField(
+        max_length=16,
+        choices=Severity.choices,
+        default=Severity.MEDIUM,
+        db_index=True,
+    )
+    module = models.CharField(max_length=64, blank=True, db_index=True)
+    owner = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Owning team or role label.",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.REPORTED,
+        db_index=True,
+    )
+    linked_test = models.CharField(max_length=256, blank=True)
+    sot_batch = models.CharField(
+        max_length=64,
+        blank=True,
+        help_text="SOT forward-queue batch id (e.g. 11.4 batch number).",
+    )
+    root_cause = models.TextField(blank=True)
+    regression_risk = models.CharField(max_length=32, blank=True)
+    documented_exception = models.TextField(
+        blank=True,
+        help_text="When fixed without automated test, document exception here.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        ordering = ["-created_at"]
+        verbose_name = "Pilot defect"
+        verbose_name_plural = "Pilot defects"
+
+    def __str__(self) -> str:
+        return f"{self.title} ({self.status})"

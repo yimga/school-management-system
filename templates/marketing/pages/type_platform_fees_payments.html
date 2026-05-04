@@ -1,0 +1,142 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}">
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-fees-payments.css' %}">
+{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-fees-payments mkt-platform-theme--platform-fees-payments{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-fees-page" data-mkt-platform-fees-payments="1">
+  <nav class="marketing-hub-strip small text-muted mb-2 d-flex flex-wrap gap-2 align-items-center" aria-label="{% trans 'Key hubs' %}">
+    <a href="{% url 'marketing_solutions' %}">{% trans "Solutions" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_platform' %}">{% trans "Platform" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_trust_dedicated' %}">{% trans "Trust" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_resources' %}">{% trans "Resources" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_pricing' %}">{% trans "Pricing" %}</a>
+  </nav>
+
+  <header class="mkt-fees-hero">
+    <div class="mkt-fees-hero-copy">
+      <p class="detail-eyebrow mb-0">runmycampus.com | {{ page.label }}</p>
+      <h1 class="detail-headline">{{ page.headline }}</h1>
+      <p class="detail-subheadline">{{ page.subheadline }}</p>
+      <div class="hero-cta mt-3">
+        <a href="{% url 'marketing_demo' %}" class="btn btn-light" data-cta="demo" data-page="platform-fees-payments">{% trans "Request demo" %}</a>
+        <a href="{% url 'marketing_platform' %}" class="btn btn-outline-light" data-cta="secondary" data-page="platform-fees-payments">{% trans "Explore platform" %}</a>
+        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light">{% trans "Login" %}</a>
+      </div>
+      {% if page_extras.trust_strip %}
+      <div class="mkt-fees-trust trust-strip">
+        {% for item in page_extras.trust_strip %}
+        <span class="trust-pill">{{ item }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="mkt-fees-hero-visual" aria-hidden="true">
+      <img src="{% static 'images/marketing/platform-fees-payments-dashboard.svg' %}" alt="" width="920" height="340" loading="eager" decoding="async" class="img-fluid">
+    </div>
+  </header>
+
+  <section class="mkt-fees-section" aria-labelledby="mkt-fees-visual-heading">
+    <h2 id="mkt-fees-visual-heading">{% trans "Your finance workspace at a glance" %}</h2>
+    <p class="section-lead">{% trans "See collection health, invoice status, receipts, arrears, and parent-facing balances in one governed surface—without spreadsheet reconciliation as the source of truth." %}</p>
+    <div class="mkt-fees-visual-wrap">
+      <img src="{% static 'images/marketing/platform-fees-payments-dashboard.svg' %}" alt="{% trans 'Diagram: fee collection summary, invoices, receipts, arrears panel, parent balance, and finance summary' %}" width="920" height="340" loading="lazy" decoding="async" data-mkt-fees-dashboard-visual="1">
+    </div>
+  </section>
+
+  <section class="mkt-fees-section" aria-labelledby="mkt-fees-before-after-heading">
+    <h2 id="mkt-fees-before-after-heading">{% trans "Before and after centralized school finance" %}</h2>
+    <p class="section-lead">{% trans "Move from fragmented fee records to one auditable flow across campuses and academic years." %}</p>
+    <div class="mkt-fees-split">
+      <div class="mkt-fees-card mkt-fees-card--before">
+        <h3>{% trans "Before" %}</h3>
+        <ul>
+          <li>{% trans "Fee records scattered across spreadsheets and inboxes" %}</li>
+          <li>{% trans "Manual receipts and weak payment status visibility" %}</li>
+          <li>{% trans "Parent balance confusion and repeated finance calls" %}</li>
+          <li>{% trans "Late visibility into arrears and follow-up" %}</li>
+          <li>{% trans "Finance reporting delayed or rebuilt by hand" %}</li>
+        </ul>
+      </div>
+      <div class="mkt-fees-card mkt-fees-card--after">
+        <h3>{% trans "After" %}</h3>
+        <ul>
+          <li>{% trans "Invoices and fee structures generated from the same academic context" %}</li>
+          <li>{% trans "Receipts tracked with clear payment history" %}</li>
+          <li>{% trans "Balances visible to families through the parent portal" %}</li>
+          <li>{% trans "Arrears surfaced early for structured follow-up" %}</li>
+          <li>{% trans "Leadership can review collection trends without manual rollups" %}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="mkt-fees-section" aria-labelledby="mkt-fees-handoff-heading" data-mkt-fees-connected-handoff="1">
+    <h2 id="mkt-fees-handoff-heading">{% trans "Connected across admissions, portals, and governance" %}</h2>
+    <p class="section-lead">{% trans "Finance should not be an island: billing ties back to enrollment, academic structure, and how families experience the school." %}</p>
+    <div class="mkt-fees-handoff-grid">
+      <a href="{% url 'marketing_platform_sis' %}">{% trans "Student Information System" %}</a>
+      <a href="{% url 'marketing_platform_parent_portal' %}">{% trans "Parent Portal" %}</a>
+      <a href="{% url 'marketing_platform_admissions' %}">{% trans "Admissions" %}</a>
+      <a href="{% url 'marketing_platform_analytics' %}">{% trans "Analytics" %}</a>
+      <a href="{% url 'marketing_platform_communications' %}">{% trans "Communications" %}</a>
+      <a href="{% url 'marketing_platform_security' %}">{% trans "Security & Audit" %}</a>
+    </div>
+  </section>
+
+  <section class="mkt-fees-section" aria-labelledby="mkt-fees-roles-heading">
+    <h2 id="mkt-fees-roles-heading">{% trans "Who benefits" %}</h2>
+    <p class="section-lead">{% trans "One finance workspace with role-appropriate visibility—not everyone sees the same ledgers." %}</p>
+    <div class="mkt-fees-roles">
+      <div class="mkt-fees-role">
+        <h3>{% trans "Finance team" %}</h3>
+        <p>{% trans "Structured invoicing, receipts, arrears queues, and exports that stand up to review." %}</p>
+      </div>
+      <div class="mkt-fees-role">
+        <h3>{% trans "Administrators" %}</h3>
+        <p>{% trans "Operational alignment across campuses, currencies, and fee categories without shadow spreadsheets." %}</p>
+      </div>
+      <div class="mkt-fees-role">
+        <h3>{% trans "Parents" %}</h3>
+        <p>{% trans "Clear balances and receipts so fee conversations stay factual and calm." %}</p>
+      </div>
+      <div class="mkt-fees-role">
+        <h3>{% trans "School leadership" %}</h3>
+        <p>{% trans "Collection and revenue signals without waiting for month-end reconstructions." %}</p>
+      </div>
+      <div class="mkt-fees-role">
+        <h3>{% trans "Auditors & governance" %}</h3>
+        <p>{% trans "Traceable adjustments and permissioned access that respect policy and separation of duties." %}</p>
+      </div>
+    </div>
+  </section>
+
+  {% if page.segments %}
+  <section class="mkt-fees-section" aria-label="{% trans 'Highlights' %}">
+    <h2>{% trans "What this surface emphasizes" %}</h2>
+    <div class="row g-3">
+      {% for seg in page.segments %}
+      <div class="col-md-4">
+        <article class="segment-card h-100">
+          <h3 class="h6">{{ seg.title }}</h3>
+          <p class="mb-0 text-muted small">{{ seg.body }}</p>
+        </article>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <footer class="mkt-fees-cta">
+    <a href="{% url 'marketing_demo' %}" class="btn btn-primary btn-lg">{% trans "Request demo" %}</a>
+    <a href="{% url 'marketing_platform' %}" class="btn btn-outline-light btn-lg">{% trans "Explore platform" %}</a>
+  </footer>
+</article>
+{% endblock %}

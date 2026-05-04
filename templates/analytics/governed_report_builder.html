@@ -1,25 +1,15 @@
 {% extends "portal_base.html" %}
+{% block rmc_workspace_os_header %}{% endblock %}
 {% load i18n static %}
-{% block title %}{% trans "Governed report builder" %}{% endblock %}
+{% block title %}{% trans "Insights Center — governed reports" %}{% endblock %}
 {% block content %}
 {% csrf_token %}
-<div class="container-lg py-4" data-rmc-governed-report-builder="1" data-task="governed_report_export" data-task-step="analytics:governed-builder-page">
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h1 class="h4 mb-0">{% trans "Operational report builder" %}</h1>
-    {% if rmc_conversion_single_action_enforced|default:False %}
-    <details class="rmc-conversion-more-actions border rounded px-2 py-1">
-      <summary class="btn btn-sm btn-outline-secondary mb-0">{% trans "More" %}</summary>
-      <div class="pt-2 d-flex flex-wrap gap-2">
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'analytics:decision_intelligence_dashboard' %}" data-action="nav-decision-dashboards" data-task="governed_report_export" data-task-step="analytics:governed-nav-overview">{% trans "Decision dashboards" %}</a>
-      </div>
-    </details>
-    {% else %}
-    <a class="btn btn-sm btn-outline-primary" href="{% url 'analytics:decision_intelligence_dashboard' %}">{% trans "Decision dashboards" %}</a>
-    {% endif %}
-  </div>
+<div class="container-lg py-4" data-rmc-governed-report-builder="1" data-rmc-os-center="insights_builder" data-task="governed_report_export" data-task-step="analytics:governed-builder-page">
+  {% trans "Insights" as gb_eyebrow %}
+  {% trans "Allowlisted datasets only — ORM compilation, preview, save, export. No raw SQL." as gb_purpose %}
+  {% include "components/rmc_os_page_header.html" with os_center_key="insights_builder" center_eyebrow=gb_eyebrow center_title=_("Insights Center — governed reports") center_purpose=gb_purpose %}
   <p class="text-muted small mb-4">
-    {% trans "Allowlisted datasets only — queries compile to Django ORM (no raw SQL). Tenant and permission checks apply." %}
-    <span class="d-block mt-2 text-body-secondary">{% trans "Done-for-you guardrails: only catalog fields compile — preview before export so operators never touch raw SQL." %}</span>
+    {% trans "Tenant and permission checks apply. Preview is the primary action — validate before export or save." %}
   </p>
   {% if not school_id %}
   <div class="alert alert-warning">{% trans "No tenant context — open this page on your school subdomain." %}</div>
@@ -82,18 +72,19 @@
       <h2 class="h6">{% trans "Save report" %}</h2>
       <label class="form-label">{% trans "Report name" %}</label>
       <input id="gr-save-name" type="text" class="form-control form-control-sm mb-2" maxlength="200" placeholder="{% trans 'Monthly roster' %}">
-      <button type="button" id="gr-save" class="btn btn-success btn-sm">{% trans "Save" %}</button>
+      <button type="button" id="gr-save" class="btn btn-outline-success btn-sm" data-action="governed-save-report" data-task="governed_report_export" data-task-step="analytics:governed-save">{% trans "Save" %}</button>
 
       <label class="form-label mt-4">{% trans "Run saved report" %}</label>
       <div class="input-group input-group-sm">
         <select id="gr-saved-list" class="form-select"><option value="">{% trans "Load list…" %}</option></select>
         <button type="button" id="gr-saved-refresh" class="btn btn-outline-secondary">{% trans "Refresh" %}</button>
-        <button type="button" id="gr-saved-run" class="btn btn-primary">{% trans "Run" %}</button>
+        <button type="button" id="gr-saved-run" class="btn btn-outline-primary">{% trans "Run" %}</button>
       </div>
     </div>
     <div class="col-lg-7">
       <label class="form-label">{% trans "Output" %}</label>
-      <pre id="gr-output" class="border rounded p-3 bg-light small mb-0" style="max-height:560px;overflow:auto;"></pre>
+      <p class="small text-body-secondary mb-2" data-rmc-governed-output-empty-hint="1">{% trans "Run Preview to see rows here — then export CSV/JSON or save the definition." %}</p>
+      <pre id="gr-output" class="border rounded p-3 bg-light small mb-0" style="max-height:560px;overflow:auto;" data-task="governed_report_export" data-task-step="analytics:governed-output"></pre>
     </div>
   </div>
 </div>

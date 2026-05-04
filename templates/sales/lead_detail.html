@@ -22,6 +22,19 @@
         <label class="form-label" for="next_follow_up">{% trans "Next follow-up" %} (ISO or YYYY-MM-DD)</label>
         <input class="form-control form-control-sm" name="next_follow_up" id="next_follow_up" value="{% if lead.next_follow_up %}{{ lead.next_follow_up|date:'Y-m-d H:i' }}{% endif %}">
       </div>
+      <div class="col-md-6">
+        <label class="form-label" for="decision_maker">{% trans "Decision maker" %}</label>
+        <input class="form-control form-control-sm" name="decision_maker" id="decision_maker" value="{{ lead.decision_maker }}" maxlength="200" placeholder="{% trans 'Name or title' %}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="deal_owner_id">{% trans "Deal owner" %} (staff)</label>
+        <select class="form-select form-select-sm" name="deal_owner_id" id="deal_owner_id">
+          <option value="">—</option>
+          {% for u in staff_owners %}
+          <option value="{{ u.pk }}" {% if lead.deal_owner_id == u.pk %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
       <div class="col-12">
         <label class="form-label" for="notes">{% trans "Summary notes" %}</label>
         <textarea class="form-control" name="notes" id="notes" rows="2">{{ lead.notes }}</textarea>

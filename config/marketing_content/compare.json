@@ -1,9 +1,9 @@
 {
   "label": "Compare",
   "seo_title": "Compare | RunMyCampus",
-  "seo_description": "Compare tenant architecture, admin controls, and parent/teacher experience before choosing your platform.",
-  "headline": "Compare on architecture, not just feature count.",
-  "subheadline": "Use objective criteria to evaluate tenancy, security, workflow depth, and long-term operational fit.",
+  "seo_description": "Compare isolation, controls, and day-to-day operator experience before choosing your platform.",
+  "headline": "Compare on outcomes and governance—not checklist counts.",
+  "subheadline": "Evaluate tenancy boundaries, security posture, operational depth, and how well the stack fits your rollout—not a flat feature matrix.",
   "schema_type": "WebPage",
   "segments": [
     {"title": "Tenant isolation", "body": "Each school can run on dedicated domain, controls, and policy boundaries."},

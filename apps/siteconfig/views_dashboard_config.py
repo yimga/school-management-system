@@ -60,9 +60,9 @@ def dashboard_hub(request):
             "config_url": config_url,
             "backend_url": backend_url,
             "assignment_count": assignment_count,
-            "page_title": _("Dashboard Hub"),
+            "page_title": _("Configuration Center"),
             "page_subtitle": _(
-                "Dashboards are composed by role via the platform resolver. Assign a template per role to control default layout and widgets for %(school_name)s."
+                "Role dashboards and layout defaults for %(school_name)s — assign templates so each role lands on the right widgets."
             )
             % {"school_name": school.name},
             "action_url": backend_url,
@@ -227,13 +227,13 @@ def dashboard_configuration_hub(request):
             "assignment_rows": assignment_rows,
             "role_choices": role_choices,
             "school": school,
-            "page_title": _("Dashboard Configuration Hub"),
+            "page_title": _("Configuration Center — dashboards by role"),
             "page_subtitle": _(
-                "Assign a dashboard template per role for %(school_name)s. Runtime resolves layout and theme from the assigned template."
+                "Map each role to a dashboard template for %(school_name)s. Unassigned roles fall back to platform defaults until you complete setup."
             )
             % {"school_name": school.name},
             "action_url": dashboard_hub_url,
-            "action_text": _("Back to Dashboard hub"),
+            "action_text": _("Back to Configuration Center home"),
         },
     )
 

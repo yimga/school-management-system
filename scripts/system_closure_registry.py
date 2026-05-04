@@ -198,7 +198,7 @@ PROGRAM_SYSTEMS: list[dict] = [
         "gap_status": "closed",
         "sot_status": "DONE — batch 1162: 22-screen roster registry + experience_control test bundle + mechanical verifier chain (honest repo bar; not a substitute for product QA sign-off)",
         "completion_bar": [
-            "Canonical roster: apps.platform_runtime.tests.experience_control_registry.EXPERIENCE_CONTROL_SCREENS (22) — every mission route reverses under declared urlconf (test_experience_control_closure + thin per-app modules).",
+            "Canonical roster: apps.platform_runtime.tests.experience_control_registry.EXPERIENCE_CONTROL_SCREENS (34) — every mission route reverses under declared urlconf (test_experience_control_closure + thin per-app modules).",
             "Strict single-action posture: founder + backend dashboards + next_action_strip chip contract + governed builder markers + offline sync queue primary process control (CONVERSION_SINGLE_ACTION_ENFORCED where applicable).",
             "Representative tenant HTTP: portal offline sync queue + student 360 + lifecycle dashboard telemetry hooks (principal/staff roles aligned with MODULE_ACCESS_DEFAULTS portal RBAC).",
             "Marketing/public: audited templates avoid dummy href=\"#\" (marketing_templates_avoid_href_hash_dummy); validate_marketing_urls --smoke + marketing_validation ExperienceControl registry reverses.",

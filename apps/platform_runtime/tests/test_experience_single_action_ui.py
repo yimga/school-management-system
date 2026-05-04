@@ -58,6 +58,7 @@ class NextActionStripTemplateTests(SimpleTestCase):
         self.assertEqual(html.count('class="rmc-nas-chip"'), 1)
         self.assertIn("First", html)
         self.assertNotIn("Second", html)
+        self.assertEqual(html.count("data-rmc-primary-action="), 1)
 
     @override_settings(CONVERSION_SINGLE_ACTION_ENFORCED=False)
     def test_relaxed_renders_multiple_chips(self):

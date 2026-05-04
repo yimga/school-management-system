@@ -6,14 +6,14 @@
 <link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
 {% endblock %}
 
-{% block cp_title %}Founder North Star{% endblock %}
+{% block cp_title %}{% trans "Platform Command Center" %}{% endblock %}
 
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
     <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
     <li class="breadcrumb-item"><a href="{{ command_center_url }}">{% trans "Command center" %}</a></li>
-    <li class="breadcrumb-item active" aria-current="page">{% trans "Founder North Star" %}</li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Platform Command Center" %}</li>
   </ol>
 </nav>
 {% endblock %}
@@ -22,10 +22,13 @@
 {% url 'sales:pipeline_board' as sales_pipeline_url %}
 <div class="container-fluid py-4"
      data-rmc-founder-dashboard="1"
+     data-rmc-ux-role-dashboard="founder-command-center"
      data-rmc-self-heal-status="1">
+  <section class="mb-3" data-rmc-ux-section="one-next-action">
   {% include "components/next_action_strip.html" %}
+  </section>
   <header class="mb-4">
-    <h1 class="h3 mb-1">{% trans "Founder North Star dashboard" %}</h1>
+    <h1 class="h3 mb-1">{% trans "Platform Command Center" %}</h1>
     <p class="text-secondary small mb-0">
       {% trans "Metrics are read from the live database; audit and kill-test results are read from generated JSON under docs/generated/ when those scripts have been run." %}
     </p>
@@ -35,16 +38,19 @@
       <details class="rmc-conversion-more-actions border rounded px-2 py-1">
         <summary class="btn btn-sm btn-outline-secondary ds-btn mb-0">{% trans "More" %}</summary>
         <div class="pt-2">
-          <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ command_center_url|default:'#' }}">{% trans "Command center" %}</a>
+          <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ command_center_url }}" data-task="founder" data-task-step="dashboard:command-center">{% trans "Command center" %}</a>
         </div>
       </details>
       {% else %}
-      <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ command_center_url|default:'#' }}">{% trans "Command center" %}</a>
+      <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ command_center_url }}" data-task="founder" data-task-step="dashboard:command-center">{% trans "Command center" %}</a>
       {% endif %}
     </nav>
   </header>
+  <!-- rmc-ux-above-fold-end -->
 
-  <div class="row g-3 mb-4">
+  <section class="mb-4" data-rmc-ux-section="system-pulse" aria-label="{% trans 'System pulse' %}">
+  <h2 class="h6 text-uppercase text-muted mb-3">{% trans "System pulse" %}</h2>
+  <div class="row g-3 mb-2">
     <div class="col-md-4" data-rmc-northstar-score="1">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
@@ -75,7 +81,10 @@
       </div>
     </div>
   </div>
+  </section>
 
+  <section class="mb-4" data-rmc-ux-section="growth-activation">
+  <h2 class="h6 text-uppercase text-muted mb-3">{% trans "Growth and activation" %}</h2>
   <div class="row g-3 mb-4" data-rmc-business-value="1">
     <div class="col-md-3">
       <div class="card border-0 shadow-sm">
@@ -110,10 +119,11 @@
       </div>
     </div>
   </div>
+  </section>
 
-  <section class="mb-4" data-rmc-intelligent-insights="founder" aria-label="{% trans 'Founder decision insights' %}">
+  <section class="mb-4" data-rmc-intelligent-insights="founder" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-      <h2 class="h5 mb-0">{% trans "Founder decision insights" %}</h2>
+      <h2 class="h5 mb-0">{% trans "What needs attention" %}</h2>
       {% if not rmc_conversion_single_action_enforced|default:False %}
       <a class="btn btn-sm btn-outline-primary" href="{{ sales_pipeline_url }}">{% trans "Open sales pipeline" %}</a>
       {% endif %}
@@ -142,9 +152,9 @@
     </div>
   </section>
 
-  <section class="mb-4" data-rmc-marketplace-monetization="1" aria-label="{% trans 'Marketplace monetization' %}">
+  <section class="mb-4" data-rmc-marketplace-monetization="1" data-rmc-ux-section="money-marketplace" aria-label="{% trans 'Money and marketplace' %}">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-      <h2 class="h5 mb-0">{% trans "Marketplace & monetization" %}</h2>
+      <h2 class="h5 mb-0">{% trans "Money and marketplace" %}</h2>
       <span class="badge {% if marketplace_metrics.monetization_verdict == 'REVENUE_READY' %}bg-success{% else %}bg-secondary{% endif %}">
         {{ marketplace_metrics.monetization_verdict|default:"NOT_READY" }}
       </span>
@@ -213,7 +223,9 @@
     </div>
   </section>
 
-  <div class="row g-3 mb-4">
+  <section class="mb-4" data-rmc-ux-section="operations-queue" aria-label="{% trans 'Operations queue' %}">
+  <h2 class="h6 text-uppercase text-muted mb-3">{% trans "Operations queue" %}</h2>
+  <div class="row g-3 mb-2">
     <div class="col-md-3">
       <div class="card border-0 shadow-sm" data-rmc-post-surface-status="1">
         <div class="card-body py-3">
@@ -273,8 +285,9 @@
       </div>
     </div>
   </div>
+  </section>
 
-  <section class="mb-4" aria-labelledby="slice-h">
+  <section class="mb-4" data-rmc-ux-section="latest-proof" aria-labelledby="slice-h">
     <h2 class="h5" id="slice-h">{% trans "North Star slices 15–24 (SOT)" %}</h2>
     <div class="table-responsive">
       <table class="table table-family table-sm table-bordered align-middle">

@@ -14,6 +14,9 @@ from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
 from apps.platform_runtime.models import TenantRetentionPlaybookAction
+from apps.platform_runtime.operator_adoption_metrics import (
+    compute_operator_adoption_metrics,
+)
 from apps.platform_runtime.tenant_lifecycle_state_machine import (
     ALL_LIFECYCLE_STATES,
     STATE_ACTIVATED,
@@ -316,6 +319,8 @@ def build_lifecycle_dashboard_context(
     at_risk_rows = [r for r in rows if r.get("state_key") == STATE_AT_RISK]
     expansion_rows = [r for r in rows if r.get("state_key") == STATE_EXPANSION_READY]
 
+    adoption_metrics = compute_operator_adoption_metrics(id_list)
+
     return {
         "viewer_scope": viewer_scope,
         "rows": rows,
@@ -323,5 +328,6 @@ def build_lifecycle_dashboard_context(
         "metrics": metrics,
         "at_risk_rows": at_risk_rows,
         "expansion_ready_rows": expansion_rows,
+        "adoption_metrics": adoption_metrics,
         "page_marker": "rmc-tenant-lifecycle-dashboard",
     }

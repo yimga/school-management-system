@@ -2,9 +2,15 @@
 {% load i18n static %}
 {% block title %}{{ page_title }}{% endblock %}
 {% block content %}
-<div class="container-fluid py-3" data-page-archetype="operational-workbench" data-rmc-visual-workflow-canvas="1">
-  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=school_automation_url action_text="Classic automation builder" %}
+<div class="container-fluid py-3" data-page-archetype="operational-workbench" data-rmc-visual-workflow-canvas="1" data-rmc-os-center="automation_studio_canvas">
+  {% trans "Automation Studio" as aw_eyebrow %}
+  {% trans "Visual graph: trigger → condition → action. Validate before publish; simulate to dry-run without side effects." as aw_purpose %}
+  {% include "components/rmc_os_page_header.html" with os_center_key="automation_studio_canvas" center_eyebrow=aw_eyebrow center_title=page_title center_purpose=aw_purpose %}
+  <div class="d-flex flex-wrap gap-2 mb-2">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ school_automation_url }}">{% trans "Classic automation builder" %}</a>
+  </div>
   <p class="small text-muted">{% trans "Drag-drop from the palette is supported; keyboard-first operators can use Add node — behaviour matches the same graph model (parity note: native drag parity only where listed)." %}</p>
+  <div class="alert alert-secondary py-2 small mb-3" data-rmc-workflow-invalid-hint="1">{% trans "If validation fails, add a trigger and at least one action path before simulate or publish." %}</div>
   <div class="row g-3">
     <div class="col-lg-3">
       <div class="card shadow-sm">
@@ -49,10 +55,10 @@
           </select>
           <label class="form-label">{% trans "Workflow id (optional)" %}</label>
           <input type="number" class="form-control form-control-sm mb-2" id="wf-id" placeholder="{% trans 'New if empty' %}">
-          <button type="button" class="btn btn-primary btn-sm w-100" id="wf-save">{% trans "Save draft (graph)" %}</button>
-          <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-1" id="wf-validate">{% trans "Validate graph" %}</button>
-          <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-1" id="wf-sim">{% trans "Simulate" %}</button>
-          <button type="button" class="btn btn-success btn-sm w-100 mt-1" id="wf-publish">{% trans "Publish" %}</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="wf-save" data-action="workflow-save-draft" data-task="automation_studio" data-task-step="automation:wf-save">{% trans "Save draft (graph)" %}</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-1" id="wf-validate" data-action="workflow-validate" data-task="automation_studio" data-task-step="automation:wf-validate">{% trans "Validate graph" %}</button>
+          <button type="button" class="btn btn-primary btn-sm w-100 mt-1" id="wf-sim" data-action="workflow-simulate" data-task="automation_studio" data-task-step="automation:wf-simulate">{% trans "Simulate (primary)" %}</button>
+          <button type="button" class="btn btn-success btn-sm w-100 mt-1" id="wf-publish" data-action="workflow-publish" data-task="automation_studio" data-task-step="automation:wf-publish">{% trans "Publish" %}</button>
           <button type="button" class="btn btn-outline-warning btn-sm w-100 mt-1" id="wf-rollback">{% trans "Rollback to draft" %}</button>
         </div>
       </div>

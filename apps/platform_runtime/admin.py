@@ -15,6 +15,7 @@ from .models import (
     EventWebhookDelivery,
     EventWebhookSubscription,
     FleetGovernedChange,
+    PilotDefect,
     PlatformEventLog,
     PlatformIntegrationWebhookEvent,
     PlatformOperatorCommandCenterLink,
@@ -856,3 +857,21 @@ class EventWebhookDeliveryAdmin(ModelAdmin):
 register_platform_admin(PlatformEventLog, PlatformEventLogAdmin)
 register_platform_admin(EventWebhookSubscription, EventWebhookSubscriptionAdmin)
 register_platform_admin(EventWebhookDelivery, EventWebhookDeliveryAdmin)
+
+
+class PilotDefectAdmin(ModelAdmin):
+    list_display = (
+        "title",
+        "status",
+        "severity",
+        "module",
+        "sot_batch",
+        "source_school_slug",
+        "updated_at",
+    )
+    list_filter = ("status", "severity", "module")
+    search_fields = ("title", "source_school_slug", "linked_test", "sot_batch", "owner")
+    ordering = ("-created_at",)
+
+
+register_platform_admin(PilotDefect, PilotDefectAdmin)

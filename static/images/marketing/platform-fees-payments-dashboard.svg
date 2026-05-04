@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 340" width="920" height="340" role="img" aria-labelledby="fees-dash-title fees-dash-desc">
+  <title id="fees-dash-title">Finance workspace: collection, invoices, receipts, arrears</title>
+  <desc id="fees-dash-desc">Stylized dashboard with fee summary, invoice rows, receipt status, arrears, and parent balance panel.</desc>
+  <defs>
+    <linearGradient id="fd-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0c1220"/><stop offset="100%" stop-color="#1c1917"/>
+    </linearGradient>
+    <filter id="fd-s"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.35"/></filter>
+    <style>
+      .p { fill: #1e293b; stroke: #475569; rx: 10; filter: url(#fd-s); }
+      .t { fill: #fef3c7; font: 700 12px ui-sans-serif, system-ui, sans-serif; }
+      .ts { fill: #94a3b8; font: 600 10px ui-sans-serif, system-ui, sans-serif; }
+      .row { fill: #334155; rx: 3; opacity: 0.85; }
+      .hot { fill: #f59e0b; opacity: 0.45; rx: 3; }
+      .ok { fill: #34d399; opacity: 0.35; rx: 3; }
+    </style>
+  </defs>
+  <rect width="920" height="340" fill="url(#fd-bg)"/>
+  <text class="t" x="460" y="28" text-anchor="middle">Finance workspace  collection, invoices, receipts, arrears</text>
+  <rect class="p" x="24" y="48" width="200" height="120"/>
+  <text class="ts" x="40" y="72">Collection summary</text>
+  <rect class="hot" x="40" y="82" width="80" height="36" rx="6"/>
+  <rect class="ok" x="128" y="82" width="80" height="36" rx="6"/>
+  <rect class="row" x="40" y="128" width="168" height="8"/>
+  <rect class="row" x="40" y="142" width="140" height="8"/>
+  <rect class="p" x="240" y="48" width="400" height="120"/>
+  <text class="ts" x="256" y="72">Invoices</text>
+  <rect class="row" x="256" y="84" width="360" height="10"/>
+  <rect class="hot" x="256" y="100" width="100" height="10"/>
+  <rect class="row" x="364" y="100" width="100" height="10"/>
+  <rect class="row" x="472" y="100" width="144" height="10"/>
+  <rect class="row" x="256" y="116" width="360" height="10"/>
+  <rect class="row" x="256" y="132" width="280" height="10"/>
+  <rect class="p" x="656" y="48" width="240" height="120"/>
+  <text class="ts" x="672" y="72">Receipts</text>
+  <rect class="ok" x="672" y="84" width="208" height="28" rx="6"/>
+  <rect class="row" x="672" y="120" width="208" height="10"/>
+  <rect class="row" x="672" y="136" width="160" height="10"/>
+  <rect class="p" x="24" y="184" width="280" height="140"/>
+  <text class="ts" x="40" y="208">Arrears watchlist</text>
+  <rect class="hot" x="40" y="218" width="120" height="40" rx="8"/>
+  <rect class="row" x="168" y="218" width="120" height="40" rx="8"/>
+  <rect class="row" x="40" y="268" width="232" height="8"/>
+  <rect class="row" x="40" y="282" width="200" height="8"/>
+  <rect class="p" x="320" y="184" width="320" height="140"/>
+  <text class="ts" x="336" y="208">Parent balance view</text>
+  <rect class="row" x="336" y="220" width="288" height="12"/>
+  <rect class="hot" x="336" y="242" width="140" height="64" rx="8"/>
+  <rect class="ok" x="484" y="242" width="140" height="64" rx="8"/>
+  <rect class="p" x="656" y="184" width="240" height="140"/>
+  <text class="ts" x="672" y="208">Finance report card</text>
+  <rect class="row" x="672" y="222" width="208" height="10"/>
+  <rect class="row" x="672" y="238" width="208" height="10"/>
+  <rect class="row" x="672" y="254" width="180" height="10"/>
+  <rect class="hot" x="672" y="278" width="100" height="32" rx="6"/>
+</svg>

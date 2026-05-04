@@ -1,0 +1,93 @@
+{% extends "schools/marketing_base.html" %}
+{% load i18n %}
+{% block title %}{{ seo_title }}{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <header class="mb-4">
+    <h1 class="h2">{% trans "Trust center" %}</h1>
+    <p class="lead text-muted mb-0">
+      {% trans "A concise, honest view of how RunMyCampus approaches security posture, tenant isolation, compliance evidence, and external dependencies — without claiming certifications that are not verified on an external register." %}
+    </p>
+  </header>
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <section class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <h2 class="h5">{% trans "Security posture" %}</h2>
+          <p class="small text-muted">{% trans "Defense in depth, audited surfaces in-repo, and operator tooling for route and tenant isolation reviews. Request the security packet for procurement-specific detail." %}</p>
+        </div>
+      </section>
+    </div>
+    <div class="col-md-6">
+      <section class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <h2 class="h5">{% trans "Compliance evidence" %}</h2>
+          <p class="small text-muted">{% trans "Evidence dashboards and exports are designed for institutional review. We do not claim SOC 2 or ISO 9001 unless your verification register shows them as active and in scope." %}</p>
+        </div>
+      </section>
+    </div>
+    <div class="col-md-6">
+      <section class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <h2 class="h5">{% trans "Data privacy" %}</h2>
+          <p class="small text-muted">{% trans "Tenant-scoped data paths, minimised operator access patterns, and documented retention approaches — see privacy policy and regional supplements." %}</p>
+        </div>
+      </section>
+    </div>
+    <div class="col-md-6">
+      <section class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <h2 class="h5">{% trans "Tenant isolation" %}</h2>
+          <p class="small text-muted">{% trans "Mechanical verifiers and tests enforce isolation assumptions; production posture still depends on your deployment and configuration discipline." %}</p>
+        </div>
+      </section>
+    </div>
+    <div class="col-md-6">
+      <section class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <h2 class="h5">{% trans "Offline-first posture" %}</h2>
+          <p class="small text-muted">{% trans "Offline capture and conflict resolution exist for supported modules. Coverage is module-specific — not a blanket guarantee for every integration." %}</p>
+        </div>
+      </section>
+    </div>
+    <div class="col-md-6">
+      <section class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <h2 class="h5">{% trans "External dependencies" %}</h2>
+          <p class="small text-muted">{% trans "Email, SMS, AI, and payment service providers remain external contracts. Uptime and incident comms follow their registers — we provide honesty, not fairy tales." %}</p>
+        </div>
+      </section>
+    </div>
+    <div class="col-md-6">
+      <section class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <h2 class="h5">{% trans "Payment readiness" %}</h2>
+          <p class="small text-muted">{% trans "Product-side invoicing, receipt capture, and orchestration ship in-repo. Live card, wallet, and mobile-money collection requires your PSP merchant onboarding, production keys, webhooks, and settlement accounts — intentionally outside this repository’s scope." %}</p>
+        </div>
+      </section>
+    </div>
+    <div class="col-md-6">
+      <section class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <h2 class="h5">{% trans "Status" %}</h2>
+          <p class="small text-muted mb-2">{% trans "Follow the public status page for provider-wide incidents when published." %}</p>
+          <a class="btn btn-outline-primary btn-sm" href="{{ status_placeholder_url }}" rel="noopener noreferrer">{% trans "Status page (placeholder link)" %}</a>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="alert alert-secondary border-0 mt-4 shadow-sm" role="note">
+    <strong>{% trans "Security packet" %}</strong>
+    {% trans "Procurement teams can use the dedicated security packet request flow (artefact needs + NDA hint). This trust page summarises posture; the packet carries detail appropriate for your NDA." %}
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 mt-3">
+    <a class="btn btn-primary" href="{{ security_packet_anchor }}">{% trans "Request security packet" %}</a>
+    <a class="btn btn-outline-primary" href="{{ procurement_checklist_url }}">{% trans "Procurement checklist" %}</a>
+    <a class="btn btn-outline-primary" href="{{ implementation_assurance_url }}">{% trans "Implementation assurance" %}</a>
+    <a class="btn btn-outline-secondary" href="{{ contact_sales_url }}">{% trans "General contact" %}</a>
+  </div>
+</div>
+{% endblock %}

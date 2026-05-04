@@ -1,0 +1,41 @@
+{% load i18n static %}
+    {% if not page_extras.suppress_footer_clusters %}
+    <section class="section-shell">
+      <h2 class="section-heading">{% trans "Why teams standardize here" %}</h2>
+      <ul class="highlight-list">
+        {% for point in powerhouse_highlights %}
+          <li>{{ point }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="section-shell">
+      <h2 class="section-heading">{% trans "Popular solution topics" %}</h2>
+      <p class="section-lead">{% trans "Start with a focused story—browse the full solutions hub when you need the complete map." %}</p>
+      <div class="row g-2 topic-grid">
+        {% for topic in topical_nav %}
+          <div class="col-md-4">
+            <a href="{{ topic.path }}">
+              <small class="text-uppercase text-muted d-block mb-1">{% trans "Solution topic" %}</small>
+              <strong>{{ topic.label }}</strong>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+      {% if topical_nav_total|default:0 > topical_nav|length %}
+      <p class="text-center mt-3 mb-0">
+        <a href="{% url 'marketing_solutions' %}" class="fw-semibold">{% trans "View all solutions" %}</a>
+      </p>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    <section class="close-cta">
+      <h2 class="h4 mb-2">{% trans "See it with your team" %}</h2>
+      <p>{% trans "Book a guided walkthrough, validate your architecture, and align rollout with the right operating model." %}</p>
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="demo" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "Book demo" %}</a>
+        <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-outline-secondary" data-cta="secondary" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "See product tour" %}</a>
+        <a href="{% url 'global_login_discovery' %}" class="link-secondary small ms-lg-2">{% trans "Login" %}</a>
+      </div>
+    </section>

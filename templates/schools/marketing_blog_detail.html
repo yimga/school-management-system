@@ -9,11 +9,25 @@
 {% block content %}
 <section class="py-2 py-lg-3">
   <div class="page-stack">
+    {% if marketing_show_marketing_nav_chips %}
     <div class="page-nav-scroll">
       {% for item in marketing_nav %}
         <a href="{{ item.path }}" class="btn btn-sm {% if item.slug == active_nav_slug %}btn-primary{% else %}btn-outline-secondary{% endif %}">{{ item.label }}</a>
       {% endfor %}
     </div>
+    {% else %}
+    <nav class="marketing-hub-strip small text-muted mb-2 d-flex flex-wrap gap-2 align-items-center" aria-label="{% trans 'Key hubs' %}">
+      <a href="{% url 'marketing_solutions' %}">{% trans "Solutions" %}</a>
+      <span aria-hidden="true">·</span>
+      <a href="{% url 'marketing_platform' %}">{% trans "Platform" %}</a>
+      <span aria-hidden="true">·</span>
+      <a href="{% url 'marketing_trust_dedicated' %}">{% trans "Trust" %}</a>
+      <span aria-hidden="true">·</span>
+      <a href="{% url 'marketing_resources' %}">{% trans "Resources" %}</a>
+      <span aria-hidden="true">·</span>
+      <a href="{% url 'marketing_pricing' %}">{% trans "Pricing" %}</a>
+    </nav>
+    {% endif %}
     <article class="section-shell">
       <h1 class="section-heading">{{ post.title }}</h1>
       {% if post.published_at %}<p class="text-muted small">{{ post.published_at|date:"F j, Y" }}</p>{% endif %}

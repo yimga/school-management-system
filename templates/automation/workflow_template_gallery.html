@@ -1,0 +1,37 @@
+{% extends "control_plane_base.html" %}
+{% load i18n phase8_tags %}
+{% block cp_title %}{{ page_title }}{% endblock %}
+{% block cp_content %}
+<div class="container-lg py-4" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "automation/workflow_template_gallery.html" %}
+  <h1 class="h3 mb-4">{{ page_title }}</h1>
+  <div class="row g-3">
+    {% for t in templates %}
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body d-flex flex-column">
+          <h2 class="h6">{{ t.title }}</h2>
+          <p class="small mb-1"><strong>{% trans "Trigger" %}:</strong> {{ t.trigger }}</p>
+          <p class="small mb-1"><strong>{% trans "Condition" %}:</strong> {{ t.condition }}</p>
+          <p class="small mb-1"><strong>{% trans "Action" %}:</strong> {{ t.action }}</p>
+          <p class="small mb-1"><strong>{% trans "Owner" %}:</strong> {{ t.owner }}</p>
+          <p class="small mb-1"><strong>{% trans "Outcome" %}:</strong> {{ t.expected_outcome }}</p>
+          <p class="small mb-3"><strong>{% trans "Setup effort" %}:</strong> {{ t.setup_effort }}</p>
+          <div class="mt-auto d-flex flex-wrap gap-2">
+            {% if t.dry_run_url %}
+            <a class="btn btn-sm btn-success" href="{{ t.dry_run_url }}" target="_blank" rel="noopener">{% trans "Dry-run (JSON)" %}</a>
+            {% endif %}
+            {% if t.designer_url %}
+            <a class="btn btn-sm btn-primary" href="{{ t.designer_url }}">{% trans "Open designer" %}</a>
+            {% endif %}
+            {% if t.simulate_url %}
+            <a class="btn btn-sm btn-outline-secondary" href="{{ t.simulate_url }}">{% trans "Automation outcomes" %}</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

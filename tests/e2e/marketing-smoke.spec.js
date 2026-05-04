@@ -41,6 +41,7 @@ const MARKETING_PATHS = [
   '/',
   '/platform/',
   '/pricing/',
+  '/trust/',
   '/contact/',
   '/demo/',
   '/company/',
@@ -48,11 +49,17 @@ const MARKETING_PATHS = [
   '/resources/guides/',
   '/resources/case-studies/',
   '/resources/blog/',
+  '/resources/product-tour/',
+  '/for-private-schools/',
+  '/for-school-networks/',
+  '/offline-first/',
+  '/payments-readiness/',
   '/solutions/k12-schools/',
   '/solutions/private-schools/',
   '/platform/student-information-system/',
   '/platform/fees-payments/',
   '/platform/parent-portal/',
+  '/platform/teacher-portal/',
 ];
 
 async function assertNoWideOverflow(page) {
@@ -103,7 +110,7 @@ test.describe('marketing apex host', () => {
       await page.goto('/marketing/', { waitUntil: 'networkidle', timeout: 45000 });
       await page.locator('#marketingNav .dropdown-toggle').first().click();
       await expect(
-        page.locator('#marketingNav .dropdown-menu .dropdown-item').first(),
+        page.locator('#marketingNav .dropdown-menu a').first(),
       ).toBeVisible({ timeout: 5000 });
     });
 

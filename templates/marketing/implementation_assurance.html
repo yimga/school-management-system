@@ -1,0 +1,62 @@
+{% extends "schools/marketing_base.html" %}
+{% load i18n %}
+{% block title %}{{ seo_title }}{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <header class="mb-4">
+    <h1 class="h2">{% trans "Implementation assurance" %}</h1>
+    <p class="lead text-muted mb-0">
+      {% trans "What you can expect from the product layer: structured onboarding, checklists with weighted go-live readiness, support playbooks, pilot evidence capture, and an honest defect loop — not a promise of calendar days or fabricated references." %}
+    </p>
+  </header>
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <section class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <h2 class="h5">{% trans "In-product factory" %}</h2>
+          <p class="small text-muted mb-0">
+            {% trans "Implementation command center (manager host, signed-in) aggregates checklist status, adoption signals from event logs, and a consolidated blocker list. JSON blockers API is available for integrations at the same permission boundary." %}
+          </p>
+        </div>
+      </section>
+    </div>
+    <div class="col-md-6">
+      <section class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <h2 class="h5">{% trans "Customer success playbooks" %}</h2>
+          <p class="small text-muted mb-0">
+            {% trans "Operator-facing playbooks cover import failures, report deadlines, payments rehearsal, offline conflicts, and more — with expected response-time guidance where we publish it." %}
+          </p>
+        </div>
+      </section>
+    </div>
+    <div class="col-md-6">
+      <section class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <h2 class="h5">{% trans "Pilot discipline" %}</h2>
+          <p class="small text-muted mb-0">
+            {% trans "Pilot evidence and defect dashboards tie fixes to tests or documented exceptions; durable defect rows support SOT batch tagging for audit." %}
+          </p>
+        </div>
+      </section>
+    </div>
+    <div class="col-md-6">
+      <section class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <h2 class="h5">{% trans "Honest boundaries" %}</h2>
+          <p class="small text-muted mb-0">
+            {% trans "External PSP, SMS, email, and AI providers remain your contracts. We document dependencies clearly and avoid vanity pilot claims." %}
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 mt-4">
+    <a class="btn btn-primary" href="{{ procurement_url }}">{% trans "Procurement checklist" %}</a>
+    <a class="btn btn-outline-primary" href="{{ security_packet_url }}">{% trans "Security packet" %}</a>
+    <a class="btn btn-outline-secondary" href="{{ trust_url }}">{% trans "Trust center" %}</a>
+  </div>
+</div>
+{% endblock %}

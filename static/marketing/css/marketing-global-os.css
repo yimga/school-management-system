@@ -98,3 +98,15 @@
     font-size: 0.8rem;
   }
 }
+
+/* Homepage pain grid — buyer-facing story beat */
+.mkt-story-pain .mkt-pain-chip {
+  display: inline-block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(248, 250, 252, 0.92);
+}

@@ -1,0 +1,24 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n static %}
+{% load region_format %}
+{% block body_class %}marketing-surface{% endblock %}
+{% block title %}{{ seo_title|default:"RunMyCampus" }}{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="{{ seo_description|default:'RunMyCampus school management platform.' }}">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+  <script type="application/ld+json">{{ structured_data_json|safe }}</script>
+  {% if organization_schema_json %}<script type="application/ld+json">{{ organization_schema_json|safe }}</script>{% endif %}
+  {% if faq_schema_json %}<script type="application/ld+json">{{ faq_schema_json|safe }}</script>{% endif %}
+  {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
+{% endblock %}
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-global-os.css' %}">
+{% endblock %}
+{% block content %}
+<section class="py-2 py-lg-3">
+  <div class="page-stack{% block marketing_page_stack_class %}{% endblock %}">
+    {% block marketing_page_inner %}{% endblock %}
+  </div>
+</section>
+{% endblock %}

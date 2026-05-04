@@ -1,5 +1,191 @@
 # RunMyCampus autonomous execution log
 
+## Wave — §11.4 batch 1186 UX Factory Reset Integration Certifier full rerun (CERTIFIED Lane 1 — 2026-05-04)
+
+**A. Branch posture:** Requested UX reset branches were checked locally and after **`git fetch origin`**. Only **`feature/ux-marketing-public-story-reset`** exists in this clone; **`feature/ux-shell-navigation-reset`**, **`feature/ux-role-dashboards-reset`**, and **`feature/ux-operational-centers-cta-reset`** are absent as refs, so no Git merges were possible for those branch names. Current tree contains shell/nav, role-dashboard, operational-center, and CTA cleanup work; certification is integrated-tree proof with branch-ref provenance called out.
+
+**B. Fixes:** Restored public story reset copy in **`apps/schools/marketing_views.py`** and **`apps/siteconfig/management/commands/seed_marketing_cms.py`**; added an accessible **Book demo** primary-action marker inside **`templates/marketing/marketing_header.html`** so the audited nav chrome catches the header CTA while preserving the existing visible action.
+
+**C. Regeneration:** **`generate_platform_inventory.py --write`**, **`generate_system_closure_map.py --write`**, **`generate_category_scope_review.py --write --merge-proof-gates docs/generated/category_scope_review.json`**, **`generate_external_dependencies_register.py --write`**, **`sync_i18n_catalog --compile`**, **`verify_i18n_catalog_fresh.py`** → **OK**. A second regeneration ran after the code fixes; **`verify_i18n_catalog_fresh.py`** stayed green.
+
+**D. Targeted UX tests:** Consolidated roster for marketing public story reset, unified shell contract, role dashboards reset, operational centers reset, CTA cleanup, existing marketing validation, experience-control, magic UX, offline sync, and URL aliases → **`Ran 136 tests`**, **`OK`**.
+
+**E. Public/browser QA:** **`python manage.py validate_marketing_urls --smoke`** → **Marketing URL validation passed**. Playwright marketing smoke initially failed when stale/duplicate **8010** listeners and apex-host HTTPS/HSTS behavior interfered with local HTTP. After stopping listeners and running one **`runserver 127.0.0.1:8010 --noreload`** with **`SECURE_SSL_REDIRECT=0`**, **`SKIP_AXE=1 MARKETING_BASE_URL=http://127.0.0.1:8010 npx.cmd playwright test tests/e2e/marketing-smoke.spec.js --workers=1 --reporter=line`** → **`71 passed`**, **`22 skipped`**.
+
+**F. Full suite:** First full run failed on stale platform inventory. After regeneration, **`DJANGO_TEST_DB_FILE=.django_test_dbs/ux_factory_reset.sqlite3 RMC_RELIABLE_TEST_RUNNER=1 python manage.py test --settings=config.settings --noinput --keepdb`** → **`Ran 2816 tests`**, **`OK (skipped=6)`** (**`.django_test_dbs/ux_factory_phase5_full_suite_rerun.log`**).
+
+**G. Verifier stack:** Required Phase 6 stack all **exit 0**: route, luxury UI, SiteSettings Python, security, POST, tenant isolation, raw SQL, subprocess, strict-public Gilead, regional UI, compliance evidence, shell inventory, authenticated shell conformance, design system, doc density, SOT pillar evidence, test module contract, northstar self-heal, northstar audit, kill test (**`.django_test_dbs/ux_factory_phase6_verifier_stack.log`**).
+
+**H. Remaining gaps:** Missing separate branch refs remain a provenance gap, not a runtime failure. Lane 2 live PSP/settlement, staging smoke, and pilot evidence remain open; creative polish remains for analytics/security and broader solution storytelling.
+
+**I. Verdict:** **UX FACTORY RESET CERTIFIED** for Lane 1 integrated-tree mechanics. Full-market category-defining status remains blocked until listed external dependencies are verified live or formally scoped out.
+
+## Wave — Marketing experience excellence tranche 2 (fees / parent / teacher layouts + HTTP smoke + Playwright) (PARTIAL — 2026-05-04)
+
+**A. Scope:** Extend **`platform-admissions`** pattern to **`/platform/fees-payments/`**, **`/platform/parent-portal/`**, **`/platform/teacher-portal/`** (templates, CSS, self-hosted SVG mockups, JSON copy cleanup, **`marketing_views`** template map). Add **`MarketingPageExtrasTests`** assertions for markers, asset paths, CSS, headlines, connected-handoff **`data-mkt-*`**. Document **`static/images/marketing/README.md`** entries.
+
+**B. HTTP investigation:** **`netstat`** showed **multiple** **`LISTENING`** PIDs on **`0.0.0.0:8010`** before probes — **`taskkill`** those PIDs, then **one** **`manage.py runserver … --noreload`** with **`MULTI_TENANT_BASE_DOMAIN=runmycampus.com`**. **`curl -H "Host: runmycampus.com"`** then matches **`django.test.Client`** for admissions markers and **200** on **`/trust/`**, **`/offline-first/`**, **`/for-private-schools/`**; fees page returns **`data-mkt-platform-fees-payments`** + **`marketing-platform-fees-payments.css`**. **Root cause:** stale **duplicate** dev servers / port sharing + **race** when **`curl`** runs before bind completes — **not** a urlconf divergence in this checkout.
+
+**C. Proof:** **`sync_i18n_catalog --compile`**; **`verify_i18n_catalog_fresh`** → **OK**. **`RMC_SQLITE_TEST_MEMORY=1 DJANGO_TEST_DB_FILE=.django_test_dbs/mkt_only.sqlite3`** **`manage.py test`** **`test_marketing_nav_contract`** **`test_marketing_validation`** **`test_marketing_product_page_phase_h`** **`--keepdb`** → **`Ran 39 tests`**, **`OK`**. **`validate_marketing_urls --smoke`** → **passed**. **`audit_route_surface.py`** → **`broken_count: 0`**. **Playwright** **`SKIP_AXE=1`** **`marketing-smoke.spec.js`** (**`MARKETING_BASE_URL=http://runmycampus.com:8010`**) → **`71 passed`**, **`22 skipped`** (includes **`/platform/teacher-portal/`** in **`MARKETING_PATHS`**).
+
+**D. Remaining creative gaps:** platform pages **analytics**, **security**; most **solution** pages still accent-led.
+
+**E. Verdict:** **PARTIAL** — three more buyer-facing platform stories are **intentionally differentiated**; **world-class** bar still open; local browser QA is **reliable** only after **single** runserver on the port.
+
+## Wave — Marketing experience next tranche (hero SVG + admissions layout + Playwright attempt) (PARTIAL — 2026-05-04)
+
+**A. Scope:** Self-hosted **hero** composite refresh (`static/images/marketing/hero-global-os-composite.svg`); new **pipeline** asset (`platform-admissions-pipeline.svg`); dedicated template **`marketing/pages/type_platform_admissions.html`** + **`marketing-platform-admissions.css`**; **`_marketing_page_type_template`** routes **`platform-admissions`**; **`platform-admissions.json`** copy (headline/subhead, no stock photo); tests assert **`mkt-hero-composite-img`** + admissions markers.
+
+**B. Proof:** **`manage.py test`** **`test_marketing_nav_contract`** **`test_marketing_validation`** **`test_marketing_product_page_phase_h`** (**`RMC_SQLITE_TEST_MEMORY=1`**, **`DJANGO_TEST_DB_FILE=.django_test_dbs/mkt_followup.sqlite3`**, **`--keepdb`**) → **`Ran 36 tests`**, **`OK`**. **`validate_marketing_urls --smoke`** → **passed**. **`audit_route_surface.py`** → **`ROUTE SYSTEM CERTIFIED`**, **`broken_count: 0`**. **`sync_i18n_catalog --compile`**; **`verify_i18n_catalog_fresh`** → **OK**.
+
+**C. Browser:** **`curl`** **`/`**, **`/contact/`**, **`/contact/submit/`** (Host `runmycampus.com`) → **200 / 200 / 405** as expected. **Playwright** **`marketing-smoke.spec.js`** (**`SKIP_AXE=1`**, **`MARKETING_BASE_URL=http://runmycampus.com:8010`**) → **53 passed**, **15 failed** (paths such as **`/trust/`**, **`/offline-first/`**, story pages returned **404** on the live **`runserver`** in this session while **`django.test.Client`** **`GET`** those paths returns **200** — treat as **local run / host–urlconf investigation**, not a regression from this tranche). **Django `Client`** confirms **`/platform/admissions/`** includes **`data-mkt-platform-admissions`** and **`marketing-platform-admissions.css`**.
+
+**D. Pattern for other platform pages:** mirror **`platform-admissions`**: add **`type_platform_<slug>.html`**, route in **`_marketing_page_type_template`**, dedicated CSS under **`static/marketing/css/`**, self-hosted diagram under **`static/images/marketing/`**.
+
+**E. Verdict:** **PARTIAL** — creative layout and assets shipped with **green** repo gates; **world-class** bar still open; **browser smoke** inconclusive on this host until runserver/url smoke matches **`Client`** behavior.
+
+## Wave — §11.4 batch 1184 Marketing experience excellence (mega-menu CSS + institution accents + i18n) (PARTIAL — 2026-05-04)
+
+**A. Scope:** Close marketing wave gaps from handoff: mega-menu **clipping** / **focus-visible**, **`statement-header`** + **`header-no-spillage`** **`:has(.mkt-mega-menu.show)`** overflow escape; wider mega panel; per-audience institution hero accent borders; **i18n** sync for new landing trans strings.
+
+**B. Code:** **`static/marketing/css/marketing-shell.css`**, **`static/css/header-no-spillage.css`**, **`static/css/statement-header.css`**, **`static/marketing/css/marketing-institution-premium.css`**.
+
+**C. Proof:** **`manage.py test`** **`test_marketing_nav_contract`** **`test_marketing_validation`** **`test_marketing_product_page_phase_h`** (**`RMC_SQLITE_TEST_MEMORY=1`**, **`DJANGO_TEST_DB_FILE=.django_test_dbs/mkt_followup.sqlite3`**, **`--keepdb`**) → **OK**. **`validate_marketing_urls --smoke`** → **passed**. **`audit_route_surface.py`** → **`ROUTE SYSTEM CERTIFIED`**. **`sync_i18n_catalog --compile`**; **`verify_i18n_catalog_fresh`** → **OK**.
+
+**D. Not done:** Playwright **`marketing-smoke`**; full homepage/platform/solution **visual mockup** differentiation beyond prior templates/CSS themes.
+
+**E. Verdict:** **PARTIAL** — dropdown UX and institution differentiation nudged forward; creative **world-class** bar still open.
+
+## Wave — §11.4 batch 1183 UX Factory Reset Integration Certifier (PARTIAL — 2026-05-04)
+
+**A. Scope:** Certifier mission: merge **four** UX branches (only **`feature/ux-marketing-public-story-reset`** found locally/remotely); Phase **2** generators + i18n; Phase **3** consolidated UX **`manage.py test`** roster (**`Ran 94`**, **`OK`**); Phase **4** **`validate_marketing_urls --smoke`**; Phase **5** full suite on **`ux_factory_reset.sqlite3`** → **`FAILED (failures=11)`**; remediate **Phase 8** declaration gaps, **`PilotDefect`** admin bridge, portal copy assertions; narrow **`Ran 8`**, **`OK`** on **`final_completion_mm.sqlite3`** **`--keepdb`**.
+
+**B. Code:** **`apps/dashboard/phase8_declarations.py`** (+6 templates); **`apps/schools/platform_admin_surface_bridges.py`** (**`platform_runtime_pilotdefect`**); **`apps/portal/tests/test_url_aliases.py`**, **`test_offline_sync_dashboard.py`** (copy aligned to **Family Home** / **No sync conflicts**).
+
+**C. Not done this wave:** Re-run full **`~2812`** suite post-fix; Playwright marketing smoke; Phase **6** full audit/kill/northstar stack.
+
+**D. Verifiers:** **`verify_doc_plan_density_discipline`** **PASS**; **`verify_sot_pillar_evidence`** **OK**.
+
+**E. Honesty:** Full-market category-defining status remains blocked until listed external dependencies are verified live or formally scoped out.
+
+## Wave — §11.4 batch 1182 `verify_phases_3_11_gates` + operational centers regression (2026-05-04)
+
+**A. Scope:** Optional Lane 1 mega-chain after batch **1181** template edits (**`phase7_de`** below fold on **`finance`/`analytics`** dashboards); confirm **no** doc/i18n/shell/program-phase regressions; re-run batch **1178** HTTP/template tests.
+
+**B. Proof:** **`python scripts/verify_phases_3_11_gates.py`** → **`verify_phases_3_11_gates: all non-DB gates passed.`**, **exit 0** (~**17.8m** wall-clock, **`.django_test_dbs/verify_phases_3_11_after_batch1181.log`**). **`RMC_SQLITE_TEST_MEMORY=1 DJANGO_TEST_DB_FILE=.django_test_dbs/final_completion_mm.sqlite3 python manage.py test`** **`apps.platform_runtime.tests.test_ux_factory_operational_centers`** **`apps.platform_runtime.tests.test_ux_factory_cta_cleanup`** **`--settings=config.settings --noinput --keepdb`** → **`Ran 8 tests`**, **`OK`** (**`.django_test_dbs/ux_factory_operational_centers_after1181.log`**).
+
+**C. Optional tail:** **`python scripts/audit_route_surface.py`** → **`ROUTE SYSTEM CERTIFIED`**, **`broken_count: 0`** (**`docs/generated/route_surface_audit.json`**).
+
+**D. Verdict:** Phases **3–11** non-DB stack **green**; operational centers + CTA audit bundle **green** (Insights HTTP path still **`200`** with existing **`_enable_analytics_feature_gate`** complimentary waiver pattern).
+
+## Wave — §11.4 batch 1181 role dashboard UX factory HTTP bundle (2026-05-04)
+
+**A. Scope:** Close **`test_ux_factory_role_dashboards`** failures: **analytics** **`403`** from **`FEATURE_GATE_PATH_MAP`** **`/analytics/`** without **`analytics`** plan entitlement; **`finance`**/**`analytics`** strict **`btn-primary`** fold counts inflated by **`phase7_de`** above fold; **`backend`** test mistakenly used **`_above_fold`** (shell chrome) instead of **`_surface_above_fold`**; fold-marker regex for indented **`<!-- rmc-ux-above-fold-end -->`**; **`get_active_year_and_term`** **`mock`** + **`cache.clear()`** for **`analytics:dashboard`**.
+
+**B. Code:** **`apps/platform_runtime/tests/test_ux_factory_role_dashboards.py`** — **`Plan`** **`update_or_create`** **`ux-factory-tenant-plan`** + **`School.plan`**; **`_surface_above_fold`** slug **`finditer`**; **`test_backend`** uses **`_surface_above_fold`**; **`test_analytics_insights_markers`** patches services + views + clears cache. **`templates/finance/dashboard.html`**, **`templates/analytics/dashboard.html`** — **`phase7_de`** block moved below fold comment.
+
+**C. Proof:** **`RMC_SQLITE_TEST_MEMORY=1 DJANGO_TEST_DB_FILE=.django_test_dbs/final_completion_mm.sqlite3 python manage.py test`** **`apps.platform_runtime.tests.test_ux_factory_role_dashboards`** **`apps.schools.tests.test_founder_dashboard`** **`apps.platform_runtime.tests.test_experience_single_action_ui.GuidedSurfaceSinglePrimaryTests`** **`--settings=config.settings --noinput --keepdb`** → **`Ran 16 tests`**, **`OK`** (**`.django_test_dbs/ux_factory_role_dashboards_bundle_v4.log`**).
+
+**D. Verifiers / generators:** **`verify_design_system_phase2.py`** → **PASS**; **`verify_test_module_contract.py`** → **OK**; **`verify_doc_plan_density_discipline.py`** → **PASS**; **`generate_platform_inventory.py --write`**.
+
+**E. Verdict:** Lane 1 role-dashboard UX factory bundle **green**; extends batch **1178** operational-centers work with full HTTP coverage for analytics where plan entitlement + fixtures align.
+
+## Wave — §11.4 batch 1180 `run_kill_test` keepdb CLI + `northstar_self_heal` (2026-05-04)
+
+**A. Scope:** Extend **`scripts/run_kill_test.py`** with **`--db-file`**, **`--keepdb`**, and **`RMC_KILL_TEST_*`** env so subprocess **`manage.py test`** can reuse a migrated SQLite file (Windows-friendly); enrich **`kill_test_report.json`** metadata.
+
+**B. Proof:** **`RMC_SQLITE_TEST_MEMORY=1 python scripts/run_kill_test.py --db-file .django_test_dbs/final_completion_mm.sqlite3 --keepdb`** → **`PASS`**, **`critical_count`** **`0`** (**`.django_test_dbs/run_kill_keepdb_cli.log`** ~**4m**). **`RMC_SQLITE_TEST_MEMORY=1 RMC_KILL_TEST_DB_FILE=.django_test_dbs/final_completion_mm.sqlite3 RMC_KILL_TEST_KEEPDB=1 python scripts/run_northstar_self_heal.py`** → **`SELF_HEALED_PASS`** (**`.django_test_dbs/northstar_self_heal_keepdb.log`** ~**7.8m**).
+
+**C. Generators:** **`generate_category_scope_review.py --write --merge-proof-gates docs/generated/category_scope_review.json`**; **`generate_system_closure_map.py --write`**.
+
+**D. Verdict:** Lane 1 kill + self-heal **green** on evidence; informational exits **`0`** for nested **`run_kill_test`** / **`run_northstar_audit`**.
+
+## Wave — §11.4 batch 1179 shell `shell_http` + audits + kill parity (2026-05-03)
+
+**A. Scope:** Close batch **1177** optional **`shell_http`** **`Client`** proof; run **`run_northstar_audit`**, **`audit_security_surface`**, **`audit_tenant_isolation`**; kill-test **parity** with **`DJANGO_TEST_DB_FILE=.django_test_dbs/final_completion_mm.sqlite3`** + **`--keepdb`** (canonical **`run_kill_test.py`** hook shipped in batch **1180**).
+
+**B. Code:** **`test_unified_shell_contract_http`**: **`AcademicYear`**/**`Term`** **`setUpTestData`**; regex **`data-rmc-os-primary-action-slot`** for **`portal_base`**.
+
+**C. Tests:** **`shell_http`** **`Ran 4`**, **`OK`** (**`.django_test_dbs/batch1177_shell_http_v2.log`**). Security enforcement trio **`Ran 15`**, **`OK`** (**`.django_test_dbs/kill_security_bundle_keepdb.log`**). **`FounderDashboardTests.test_dashboard_degrades_when_generated_json_missing`** **`Ran 1`**, **`OK`** (**`.django_test_dbs/kill_degraded_keepdb.log`**).
+
+**D. Verifiers:** **`verify_shell_surface_inventory`**, **`verify_phase2_authenticated_shell_conformance`**, **`verify_test_module_contract`** → **PASS/OK**. **`run_northstar_audit.py`** → **75/75 DOMINANT** (**`northstar_audit.json`** **`generated_at`** **`2026-05-04T00:33:46Z`**).
+
+**E. Generators:** **`generate_system_closure_map.py --write`**; **`generate_category_scope_review.py --write --merge-proof-gates docs/generated/category_scope_review.json`**.
+
+**F. Verdict:** Lane 1 **`shell_http`** **green**; canonical **`run_kill_test`** / **`northstar_self_heal`** completed in batch **1180** (keepdb CLI + env).
+
+## Wave — §11.4 batch 1178 — operational centers portal dedupe + CTA/template audit (2026-04-28)
+
+**A. Scope:** **`portal_base.html`** **`rmc_workspace_os_header`** block removes duplicate default OS strip on operational portal centers; **`apps/analytics/views.py`** passes **`school=request.school`** into **`get_active_year_and_term`** on **`dashboard`**, **`master_sheet`**, **`grading_deadlines`**, **`strategic_report`**; **`test_ux_factory_operational_centers`** tenant **`Client`** includes **`analytics:dashboard`** with school-scoped year/term fixtures; **`test_ux_factory_cta_cleanup`** template list + optional **`static/**/*.js`** **`javascript:void(0)`** scan.
+
+**B. Proof:** **`DJANGO_TEST_DB_FILE=.django_test_dbs/ux_final1178.sqlite3 python manage.py test apps.platform_runtime.tests.test_ux_factory_operational_centers apps.platform_runtime.tests.test_ux_factory_cta_cleanup apps.platform_runtime.tests.test_ux_factory_role_dashboards.UxFactoryTenantDashboardTests.test_analytics_insights_markers --settings=config.settings --noinput`** → **`Ran 9 tests`**, **`OK`** (~**13m** wall-clock includes SQLite migrate on cold DB).
+
+**C. Files:** **`templates/portal_base.html`**; portal operational templates; **`apps/platform_runtime/tests/test_ux_factory_operational_centers.py`**; **`apps/platform_runtime/tests/test_ux_factory_cta_cleanup.py`**; **`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`** (**§11.4 batch 1178**).
+
+**D. Verdict:** Operational center shell regression coverage expanded; analytics HTTP case documents fixture coupling (**production view unchanged**).
+
+## Wave — i18n catalog sync unblocks `verify_phases_3_11_gates` (2026-05-03)
+
+**A.** **`python scripts/verify_phases_3_11_gates.py`** failed at **`verify_i18n_catalog_fresh`**: one scanned **`msgid`** missing from **`locale/en/LC_MESSAGES/django.po`** (**`Diagram: how admissions, daily operations, finance, and governance connect in RunMyCampus`**).
+
+**B.** **`python manage.py sync_i18n_catalog --compile --settings=config.settings`** merged **+1** entry into **`en`**, **`fr`**, **`ha`**, **`pid`**, **`sw`**, **`yo`** and rebuilt **`django.mo`** files.
+
+**C.** **`python scripts/verify_i18n_catalog_fresh.py`** → **OK**; **`python scripts/verify_phases_3_11_gates.py`** → **`verify_phases_3_11_gates: all non-DB gates passed.`**, **exit 0** (wall-clock ~**11m** on this host). Completes tail gates **`verify_program_phase10_phase11_gates`**, **`verify_repo_wide_ecosystem_marketing_audit`**, **`verify_ui_wiring_audit`**.
+
+## Wave — §11.4 batch 1176 — `verify_phases_3_11_gates` follow-up (2026-05-03)
+
+**A. Scope:** Close deferred **non-DB** release gate from batch **1176**; unblock **Ruff** **F841** (**unused `u`** after **`User.objects.create_user`**) in **`platform_runtime`** tests; register six **`control_plane_base`** operator dashboards in **`PHASE7_DASHBOARD_TEMPLATES`** with **`data-decision-engine="surface"`** + **`{% phase8_dashboard_declaration %}`** (parity with **`tenant_lifecycle_dashboard`**).
+
+**B. Proof:** **`python scripts/verify_phases_3_11_gates.py`** → **`verify_phases_3_11_gates: all non-DB gates passed.`**, **exit 0** (**`.django_test_dbs/verify_phases_3_11_batch1176_followup_v3.log`**).
+
+**C. Files:** **`apps/dashboard/phase7_dashboard_templates.py`**; **`templates/automation/workflow_template_gallery.html`**; **`templates/platform_runtime/{implementation_command_center,pilot_defect_dashboard,pilot_evidence_dashboard,support_playbook_center}.html`**; **`templates/sales/first_100_dashboard.html`**; **`test_pilot_defect_closure_loop`**, **`test_pilot_evidence`**, **`test_support_playbook_center`**, **`test_unified_shell_contract_fragments`**, **`test_unified_shell_contract_http`**.
+
+**D. Verdict:** Lane 1 **`verify_phases_3_11_gates`** **green**; **OPERATIONAL EXCELLENCE READY** / Lane 2 posture unchanged.
+
+## Wave — Marketing mega menu + regional JSON loader (drift-fix tail, relates to §11.4 batch 1169, 2026-05-03)
+
+**A. Scope:** **`_marketing_navbar_primary`**: add **`mega_columns`** built from existing dropdown children so **`marketing_header.html`** emits **`mkt-mega-menu`** (not only **`mkt-nav-submenu`**). **`marketing_page`**: pass **`_marketing_content_file_params()`** into **`_load_marketing_page_from_file`** so **`MARKETING_CONTENT_REGION`** / variant select **`compare_eu.json`** (and other regional files). **`test_marketing_validation`**: landing visual spine asserts **`product-visualization`** and **`Studio OS`** (replaces removed headline string).
+
+**B. Proof:** **`python scripts/run_sqlite_memory_tests.py`** **`apps.schools.tests.test_marketing_validation.MarketingLandingContextTests.test_landing_nav_has_product_and_solutions_dropdowns`** **`…test_landing_renders_required_visual_assets`** **`apps.schools.tests.test_marketing_validation.MarketingRegionalJsonIntegrationTests.test_compare_page_prefers_region_json`** **`--verbosity=2 --keepdb`** → **`Ran 3 tests`**, **`OK`** (~**4.3s** after migrate). Prior full slice on drift-fix branch: **`test_marketing_validation`** + **`test_marketing_product_page_phase_h`** → **32** tests **`OK`**.
+
+**C. Inventory:** **`marketing_security_packet_submit`** GET smoke remains **`{200, 405}`** via **`iter_marketing_smoke_targets`** / **`_POST_ONLY_MARKETING_NAMES`** — no behavior change.
+
+**D. Verdict:** Drift resolved — failures were missing mega-column wiring, regional loader omission, and stale copy assertions; not marketing route regressions.
+
+## Wave — §11.4 batch 1177 RMC OS shell follow-up (2026-05-03)
+
+**A. Scope:** Shell/navigation reset **follow-ups**: **`audit_security_surface`**, **`audit_tenant_isolation`**, fast fragment tests (avoid SQLite migrate stalls on some Windows hosts), **`verify_doc_plan_density_discipline`**, **`verify_test_module_contract`**, SOT row **1177**.
+
+**B. Tests (fast, no DB):** **`RMC_TEST_LOCAL_SQLITE=1 python manage.py test apps.platform_runtime.tests.test_unified_shell_contract_fragments apps.platform_runtime.tests.test_experience_single_action_ui.NextActionStripTemplateTests --settings=config.settings --noinput`** → **`Ran 9 tests`**, **`OK`**.
+
+**C. HTTP integration:** **`apps/platform_runtime/tests/test_unified_shell_contract_http.py`**, Django tag **`shell_http`** — full **`Client`** proof when test DB migrate completes.
+
+**D. Audits:** **`python scripts/audit_security_surface.py`** → **OK**; **`python scripts/audit_tenant_isolation.py`** → **OK**.
+
+**E. Verifiers:** **`verify_doc_plan_density_discipline`** **PASS**; **`verify_test_module_contract`** **OK**.
+
+**F. Verdict:** **SHELL RESET PARTIAL** — fragments + audits green; **`shell_http`** integration environment-dependent.
+
+## Wave — §11.4 batch 1177 optional verifier + generator bundle (2026-05-04)
+
+**A. Scope:** Optional mechanical gates after shell slice: **`generate_platform_inventory`**, **`verify_design_system_phase2`**, **`audit_luxury_ui_surface`**, **`run_northstar_audit`**, **`generate_system_closure_map`**, **`verify_compliance_evidence`**.
+
+**B. Results:** **`generate_platform_inventory.py --write`** → **`docs/generated/platform_inventory.{json,md}`**, **`scripts/generated/scoped_gravity_trend.json`** (**exit 0**). **`verify_design_system_phase2.py`** → **PASS**. **`audit_luxury_ui_surface.py`** → **15/15 ULTRA-LUXURY**. **`run_northstar_audit.py`** → **75/75 DOMINANT**. **`generate_system_closure_map.py --write`** → **`partial_batches`** includes **`1177`**. **`verify_compliance_evidence.py`** → **OK**.
+
+**C. Not completed this run:** **`run_kill_test.py`** — long-running; on Windows avoid piping to **`tail`** until the script exits (buffering). **`test_unified_shell_contract_http`** — SQLite test DB bootstrap still stalled on this host; run on CI/Linux or dedicated **`DJANGO_TEST_DB_FILE`** per **`docs/deployment/RELEASE_TEST_POLICY.md`**.
+
+**D. Verdict:** Optional bundle **mostly green**; **`kill_test`** + **`shell_http`** deferred to operator/CI time.
+
+## Wave — §11.4 batch 1176 operational dominance follow-ups + mechanical gates (2026-04-29)
+
+**A. Scope:** Close follow-ups from operational-dominance slice: marketing smoke, route audit, test-module contract, doc discipline, SOT pillar evidence, closure-map + category review regeneration; **`ExperienceControlMarketingRegistryTests`** (no DB). Storytelling tweak: pilot-program competitive story lede; first-100 test asserts **`decision_maker`** / owner username.
+
+**B. Verifiers / generators:** `validate_marketing_urls --smoke` → **Marketing URL validation passed.**; `verify_test_module_contract` → **OK**; `verify_doc_plan_density_discipline` → **PASS**; `verify_sot_pillar_evidence` → **OK**; `audit_route_surface` → **ROUTE SYSTEM CERTIFIED**, **broken_count: 0**; `generate_system_closure_map.py --write`; `generate_category_scope_review.py --write --merge-proof-gates docs/generated/category_scope_review.json`.
+
+**C. Tests:** `manage.py test apps.schools.tests.test_marketing_validation.ExperienceControlMarketingRegistryTests` → **Ran 2**, **OK**. **Targeted bundle (batch 1176):** **`RMC_SQLITE_TEST_MEMORY=1`** **`DJANGO_TEST_DB_FILE=.django_test_dbs/final_completion_mm.sqlite3`** **`manage.py test`** (experience_control + implementation + support + pilot + workflow gallery + first_100 + thin experience_control per-app + finance + full **`test_marketing_validation`**) **`--keepdb`** → **`Ran 64`**, **`OK`** (**`.django_test_dbs/bundle1176_v5.log`**). **Hygiene:** **`first_100_dashboard.html`** table body aligned to decision-maker / owner columns; **`First100SchoolsDashboardTests`** uses stable school slug + **`setUp`** **`updated_at`** bump for shared DB.
+
+**D. Verdict:** Lane 1 mechanical subset + **64-test** operational slice **green**; **OPERATIONAL EXCELLENCE READY** still **not** stamped as a product label — full release mega-chain remains operator cadence.
+
 ## Wave — §11.4 batch 1170-dev local deploy + Stripe metadata sanity (2026-05-03)
 
 **A. Scope:** Advance **Lane 2** with **honest** local-only evidence before staging exists: **`manage.py check --deploy`**, **`manage.py check_payment_gateways`** (**metadata**).

@@ -1,11 +1,14 @@
 {% extends "portal_base.html" %}
+{% block rmc_workspace_os_header %}{% endblock %}
 {% load i18n %}
 
 {% block title %}{% trans "Offline sync queue" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
-<div class="container py-4" data-rmc-offline-sync-queue="1" data-task="offline_sync" data-task-step="portal:offline-sync-queue">
-  <h1 class="h4 mb-3">{% trans "Offline sync queue" %}</h1>
+<div class="container py-4" data-rmc-offline-sync-queue="1" data-rmc-os-center="offline_sync_center" data-task="offline_sync" data-task-step="portal:offline-sync-queue">
+  {% trans "Operations" as off_eyebrow %}
+  {% trans "Queued offline mutations for this school — process in order; failures stay visible for retry or conflict resolution." as off_purpose %}
+  {% include "components/rmc_os_page_header.html" with os_center_key="offline_sync_center" center_eyebrow=off_eyebrow center_title=_("Offline Sync Center") center_purpose=off_purpose %}
   <p class="text-body-secondary small mb-4">
     {% trans "Items captured while offline are applied here when you process the queue. Conflicts require an explicit choice — nothing is overwritten silently." %}
     {% if operator_offline_scope %}

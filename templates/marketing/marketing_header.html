@@ -14,12 +14,34 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="marketingNav">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 mkt-nav-primary">
+      <span class="visually-hidden">{% trans "Header primary action: Book demo" %}</span>
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 mkt-nav-primary mkt-nav-primary--mega">
         {% for item in marketing_navbar_primary %}
           {% if forloop.counter <= marketing_navbar_visible_count|default:7 %}
-          <li class="nav-item {% if item.children %}dropdown mkt-nav-dropdown{% endif %}">
+          <li class="nav-item {% if item.children %}dropdown mkt-nav-dropdown{% if item.mega_columns %} mkt-nav-dropdown--mega{% endif %}{% endif %}">
             {% if item.children %}
-            <a class="nav-link px-2 dropdown-toggle" href="{{ item.path }}" id="mktNavDd{{ forloop.counter }}" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-haspopup="true">{{ item.label }}</a>
+            <a class="nav-link px-2 dropdown-toggle" href="{{ item.path }}" id="mktNavDd{{ forloop.counter }}" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-boundary="viewport" data-bs-display="dynamic" data-bs-offset="0,8" aria-expanded="false" aria-haspopup="true">{{ item.label }}</a>
+            {% if item.mega_columns %}
+            <ul class="dropdown-menu dropdown-menu-dark mkt-mega-menu" aria-labelledby="mktNavDd{{ forloop.counter }}">
+              <li class="px-0 py-0">
+                <div class="mkt-mega-inner px-3 py-3">
+                  <div class="row g-3">
+                    {% for col in item.mega_columns %}
+                    <div class="{% if item.mega_columns|length == 2 %}col-md-6{% else %}col-md-4{% endif %}">
+                      <div class="mkt-mega-col-title">{{ col.title }}</div>
+                      {% for link in col.links %}
+                      <a class="mkt-mega-link" href="{{ link.path }}">
+                        <span class="mkt-mega-label">{{ link.label }}</span>
+                        {% if link.blurb %}<span class="mkt-mega-blurb">{{ link.blurb }}</span>{% endif %}
+                      </a>
+                      {% endfor %}
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              </li>
+            </ul>
+            {% else %}
             <ul class="dropdown-menu dropdown-menu-dark mkt-nav-submenu" aria-labelledby="mktNavDd{{ forloop.counter }}">
               {% for child in item.children %}
                 {% if child.is_header %}
@@ -29,6 +51,7 @@
                 {% endif %}
               {% endfor %}
             </ul>
+            {% endif %}
             {% else %}
             <a class="nav-link px-2" href="{{ item.path }}">{{ item.label }}</a>
             {% endif %}
@@ -36,8 +59,29 @@
           {% endif %}
         {% endfor %}
         {% if marketing_navbar_has_more %}
-        <li class="nav-item dropdown mkt-nav-dropdown">
-          <button type="button" class="nav-link px-2 dropdown-toggle btn btn-link text-white text-decoration-none border-0 bg-transparent shadow-none d-inline-flex align-items-center" id="mktNavMore" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">{% trans "More" %}</button>
+        <li class="nav-item dropdown mkt-nav-dropdown{% if marketing_navbar_more_mega_columns %} mkt-nav-dropdown--mega{% endif %}">
+          <button type="button" class="nav-link px-2 dropdown-toggle btn btn-link text-white text-decoration-none border-0 bg-transparent shadow-none d-inline-flex align-items-center" id="mktNavMore" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-boundary="viewport" data-bs-display="dynamic" data-bs-offset="0,8" aria-expanded="false" aria-haspopup="true">{% trans "More" %}</button>
+          {% if marketing_navbar_more_mega_columns %}
+          <ul class="dropdown-menu dropdown-menu-dark mkt-mega-menu" aria-labelledby="mktNavMore">
+            <li class="px-0 py-0">
+              <div class="mkt-mega-inner px-3 py-3">
+                <div class="row g-3">
+                  {% for col in marketing_navbar_more_mega_columns %}
+                  <div class="{% if marketing_navbar_more_mega_columns|length == 2 %}col-md-6{% else %}col-md-4{% endif %}">
+                    <div class="mkt-mega-col-title">{{ col.title }}</div>
+                    {% for link in col.links %}
+                    <a class="mkt-mega-link" href="{{ link.path }}">
+                      <span class="mkt-mega-label">{{ link.label }}</span>
+                      {% if link.blurb %}<span class="mkt-mega-blurb">{{ link.blurb }}</span>{% endif %}
+                    </a>
+                    {% endfor %}
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </li>
+          </ul>
+          {% else %}
           <ul class="dropdown-menu dropdown-menu-dark mkt-nav-submenu" aria-labelledby="mktNavMore">
             {% for item in marketing_navbar_primary %}
               {% if forloop.counter > marketing_navbar_visible_count|default:7 %}
@@ -54,13 +98,13 @@
               {% endif %}
             {% endfor %}
           </ul>
+          {% endif %}
         </li>
         {% endif %}
       </ul>
       <div class="d-flex align-items-center gap-2 flex-shrink-0">
-        <a class="btn btn-outline-light btn-sm" href="{% url 'global_login_discovery' %}">{% trans "Login" %}</a>
-        <a class="btn btn-outline-secondary btn-sm" href="{% url 'signup_school' %}" data-cta="trial" data-page="header">{% trans "Start trial" %}</a>
-        <a class="btn btn-cta-primary btn-sm" href="{% url 'marketing_demo' %}" data-cta="demo" data-page="header">{% trans "Request demo" %}</a>
+        <a class="nav-link text-white-50 py-1 px-2 small" href="{% url 'global_login_discovery' %}">{% trans "Login" %}</a>
+        <a class="btn btn-cta-primary btn-sm" href="{% url 'marketing_demo' %}" data-cta="demo" data-page="header">{% trans "Book demo" %}</a>
       </div>
     </div>
   </div>

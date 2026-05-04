@@ -1,0 +1,65 @@
+{% extends "control_plane_base.html" %}
+{% load i18n phase8_tags %}
+{% block cp_title %}{% trans "First 100 schools" %}{% endblock %}
+{% block cp_content %}
+<div class="container-lg py-4" data-decision-engine="surface" data-rmc-first-100-dashboard="1">
+  {% phase8_dashboard_declaration "sales/first_100_dashboard.html" %}
+  <header class="mb-4 d-flex flex-wrap justify-content-between gap-2">
+    <div>
+      <h1 class="h3 mb-1">{% trans "First 100 schools acquisition tracker" %}</h1>
+      <p class="small text-muted mb-0">{% trans "Lightweight founder pipeline — extend Lead notes with tags like [region:CM] [type:private] [pilot:yes] [package:growth] [pain:attendance] [blocker:psp]. No CRM replacement." %}</p>
+    </div>
+    <a class="btn btn-outline-primary align-self-start" href="{% url 'sales:pipeline_board' %}">{% trans "Full pipeline" %}</a>
+  </header>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6 text-uppercase text-muted">{% trans "Stages" %}</h2>
+      <ul class="list-inline small mb-0">
+        {% for s in stages %}
+        <li class="list-inline-item"><span class="badge bg-light text-dark border">{{ s.label }}</span></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>{% trans "School" %}</th>
+          <th>{% trans "Stage" %}</th>
+          <th>{% trans "Decision maker" %}</th>
+          <th>{% trans "Owner" %}</th>
+          <th>{% trans "Region" %}</th>
+          <th>{% trans "Type" %}</th>
+          <th>{% trans "Readiness" %}</th>
+          <th>{% trans "Package" %}</th>
+          <th>{% trans "Pilot" %}</th>
+          <th>{% trans "Blockers" %}</th>
+          <th>{% trans "Next action" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td>{{ row.lead.school_name }}</td>
+          <td>{{ row.lead.stage.label }}</td>
+          <td class="small">{{ row.lead.decision_maker|default:"—" }}</td>
+          <td class="small">{% if row.lead.deal_owner %}{{ row.lead.deal_owner.get_full_name|default:row.lead.deal_owner.username }}{% else %}—{% endif %}</td>
+          <td>{{ row.region|default:"—" }}</td>
+          <td>{{ row.school_type|default:"—" }}</td>
+          <td>{{ row.readiness_score }}</td>
+          <td>{{ row.recommended_package|default:"—" }}</td>
+          <td>{% if row.pilot_candidate %}<span class="badge bg-info text-dark">{% trans "Pilot" %}</span>{% else %}—{% endif %}</td>
+          <td class="small">{{ row.external_blockers|default:"—" }}</td>
+          <td><a class="btn btn-sm btn-primary" href="{% url 'sales:lead_detail' row.lead.pk %}">{% trans "Open lead" %}</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="11" class="text-muted">{% trans "No leads yet — create one from the pipeline board." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

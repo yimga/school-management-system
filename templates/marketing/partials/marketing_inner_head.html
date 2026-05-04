@@ -1,0 +1,37 @@
+{% load i18n static %}
+    {% if marketing_show_marketing_nav_chips %}
+    <div class="page-nav-scroll">
+      {% for item in marketing_nav %}
+        <a href="{{ item.path }}" class="btn btn-sm {% if item.slug == active_nav_slug %}btn-primary{% else %}btn-outline-secondary{% endif %}">{{ item.label }}</a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <nav class="marketing-hub-strip small text-muted mb-2 d-flex flex-wrap gap-2 align-items-center" aria-label="{% trans 'Key hubs' %}">
+      <a href="{% url 'marketing_solutions' %}">{% trans "Solutions" %}</a>
+      <span aria-hidden="true">·</span>
+      <a href="{% url 'marketing_platform' %}">{% trans "Platform" %}</a>
+      <span aria-hidden="true">·</span>
+      <a href="{% url 'marketing_trust_dedicated' %}">{% trans "Trust" %}</a>
+      <span aria-hidden="true">·</span>
+      <a href="{% url 'marketing_resources' %}">{% trans "Resources" %}</a>
+      <span aria-hidden="true">·</span>
+      <a href="{% url 'marketing_pricing' %}">{% trans "Pricing" %}</a>
+    </nav>
+    {% endif %}
+
+    <section class="detail-hero">
+      <p class="detail-eyebrow">runmycampus.com | {{ page.label }}</p>
+      <h1 class="detail-headline">{{ page.headline }}</h1>
+      <p class="detail-subheadline">{{ page.subheadline }}</p>
+      <div class="hero-cta">
+        <a href="{% url 'marketing_demo' %}" class="btn btn-light" data-cta="demo" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "Book demo" %}</a>
+        <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-outline-light" data-cta="secondary" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "See product tour" %}</a>
+        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light">{% trans "Login" %}</a>
+      </div>
+    </section>
+
+    <div class="trust-strip">
+      {% for item in page_extras.trust_strip|default:trust_badges %}
+        <span class="trust-pill">{{ item }}</span>
+      {% endfor %}
+    </div>

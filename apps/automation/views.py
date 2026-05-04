@@ -43,6 +43,7 @@ def outcomes_console(request):
             .select_related("workflow", "triggered_by")
             .order_by("-created_at")[:30]
         )
+    visual_designer_url = reverse("automation:visual_workflow_designer")
     return render(
         request,
         "automation/outcomes_console.html",
@@ -50,12 +51,13 @@ def outcomes_console(request):
             "recent_runs": recent_runs,
             "recent_logs": recent_logs,
             "recent_visual_runs": recent_visual_runs,
-            "page_title": _("Automation outcomes"),
+            "page_title": _("Automation Studio — outcomes"),
             "page_subtitle": _(
-                "Recent migration runs, automation execution logs, and visual workflow "
-                "run history. Outcomes only; manage profiles and playbooks in Configuration Engine."
+                "Recent migration runs, execution logs, and published workflow runs. "
+                "Open the visual builder to simulate or publish — profiles live in Configuration."
             ),
             "action_url": reverse("studio_os:automation"),
             "action_text": _("Back to Automation"),
+            "visual_designer_url": visual_designer_url,
         },
     )

@@ -1,6 +1,6 @@
 {% extends "portal_base.html" %}
 {% load admin_health evals_extras static region_format i18n phase8_tags %}
-{% block title %}Parent Dashboard{% endblock %}
+{% block title %}{% trans "Family Home" %}{% endblock %}
 {% block body_extra_class %}dashboard-page-parent{% if parent_simplified %} parent-dashboard-simplified{% endif %}{% endblock %}
 
 {% block extrastyle %}
@@ -26,7 +26,7 @@
 
 {% block content %}
 {% with widgets=display_widgets %}
-<div class="parent-dashboard dashboard-clear parent-dashboard-shell ui-premium-surface" data-page-archetype="role-home" data-decision-engine="surface" data-rmc-component-audit="1">
+<div class="parent-dashboard dashboard-clear parent-dashboard-shell ui-premium-surface" data-page-archetype="role-home" data-decision-engine="surface" data-rmc-component-audit="1" data-rmc-ux-role-dashboard="family-home">
   <div class="container-lg py-4">
     {% phase8_dashboard_declaration "parent/dashboard.html" %}
     {% if parent_simplified %}
@@ -106,7 +106,7 @@
       {% endif %}
     </div>
     {% endif %}
-    <div id="parent-dashboard-widgets" class="parent-dashboard-widgets" role="main" aria-label="Parent dashboard content">
+    <div id="parent-dashboard-widgets" class="parent-dashboard-widgets" role="main" aria-label="{% trans 'Family home' %}">
 
     {% if not links %}
     <!-- Onboarding Entry Point -->
@@ -162,9 +162,9 @@
     <header class="parent-dashboard-header" aria-labelledby="parent-dashboard-title" data-decision-zone="headline">
       <div class="dashboard-header">
         <div class="dashboard-title">
-          <span class="dashboard-eyebrow">Parent Portal</span>
-          <h1 id="parent-dashboard-title">Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h1>
-          <p>Here's how your children are doing today.</p>
+          <span class="dashboard-eyebrow">{% trans "Family Home" %}</span>
+          <h1 id="parent-dashboard-title">{% trans "Welcome back" %}{% if request.user %}, {{ request.user.get_full_name|default:request.user.username }}{% endif %}</h1>
+          <p>{% trans "Your children, school status, and the next step to take — in one calm view." %}</p>
         </div>
         <div class="dashboard-actions ds-action-bar d-flex flex-wrap align-items-center gap-2" data-rmc-parent-header-actions="1">
           {% if parent_verified %}
@@ -204,14 +204,15 @@
         </div>
       </div>
     </header>
+    <!-- rmc-ux-above-fold-end -->
 
     {% url 'portal:parent_workflow' as parent_workflow_url %}
     {% url 'portal:parent_finance' as parent_finance_url %}
     {% url 'portal:parent_contact_school' as parent_contact_url %}
     {% url 'portal:claim_invite' as parent_claim_invite_url %}
-    <section class="mb-3" data-rmc-intelligent-insights="parent" aria-label="{% trans 'Parent decision insights' %}">
+    <section class="mb-3" data-rmc-intelligent-insights="parent" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-        <h2 class="h6 mb-0">{% trans "Parent insights" %}</h2>
+        <h2 class="h6 mb-0">{% trans "What needs attention" %}</h2>
         <span class="small text-muted">{% trans "Clear next actions from attendance, academics, and finance signals" %}</span>
       </div>
       <div class="row g-2">
@@ -239,9 +240,9 @@
     </section>
 
     <!-- Today's Overview -->
-    <section class="parent-glance-section" aria-labelledby="glance-heading">
+    <section class="parent-glance-section" aria-labelledby="glance-heading" data-rmc-ux-section="family-summary">
       <div class="section-title d-flex align-items-center justify-content-between gap-2 mb-2">
-        <h2 id="glance-heading" class="h6 mb-0"><i class="bi bi-grid-3x3-gap"></i> Today's Overview</h2>
+        <h2 id="glance-heading" class="h6 mb-0"><i class="bi bi-grid-3x3-gap"></i> {% trans "Family summary" %}</h2>
       </div>
       <div class="parent-glance-grid">
         <a href="{% url 'accounts:user_notifications' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-messages-bg); border-color: var(--parent-glance-messages-border);" aria-label="Messages from School: {{ unread_messages_aggregate|default:0 }} unread">

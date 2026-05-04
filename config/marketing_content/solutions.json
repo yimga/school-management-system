@@ -1,77 +1,89 @@
 {
   "label": "Solutions",
   "seo_title": "Solutions | RunMyCampus",
-  "seo_description": "Purpose-built deployment patterns for private schools, district networks, and multi-campus operators.",
-  "headline": "Solutions aligned to your school model.",
-  "subheadline": "Deploy fast with templates for private schools, district groups, and multi-entity education organizations.",
+  "seo_description": "Outcome-first paths for private schools, networks, low-connectivity campuses, finance teams, teachers, and families.",
+  "headline": "Solutions that match how schools actually operate.",
+  "subheadline": "Pick your segment—each path focuses on outcomes first: calmer operations, clearer families, and honest payment and offline posture.",
   "schema_type": "CollectionPage",
   "segments": [
     {
-      "title": "Single-campus schools",
-      "body": "Launch quickly with ready workflows for onboarding, grading, fee management, and reporting."
+      "title": "Private schools",
+      "body": "Admissions depth, branded family experience, and fee clarity without a pile of disconnected tools."
     },
     {
-      "title": "Multi-campus networks",
-      "body": "Standardize operations while preserving campus-level autonomy and identity."
+      "title": "School networks",
+      "body": "Standards and visibility across campuses without smothering local execution."
     },
     {
-      "title": "Regional operators",
-      "body": "Use localization controls for language, compliance profiles, terms, and grading systems."
+      "title": "Low-connectivity schools",
+      "body": "Offline-first capture and sync queues you can reconcile when connectivity returns."
+    },
+    {
+      "title": "Finance teams",
+      "body": "Invoices, receipts, arrears, and reporting leadership can defend—see payment readiness for rails scope."
+    },
+    {
+      "title": "Teachers & academics",
+      "body": "Attendance, marks, and parent messaging in one workspace instead of shadow channels."
+    },
+    {
+      "title": "Parents & families",
+      "body": "One portal for fees, attendance, announcements, and report cards."
     }
   ],
   "extras": {
     "metrics": [
       {
-        "value": "3",
-        "label": "deployment archetypes",
-        "detail": "Single-campus, multi-campus, and regional operator models."
-      },
-      {
-        "value": "195+",
-        "label": "country-ready design",
-        "detail": "Localization logic aligns terminology and compliance defaults by region."
+        "value": "6",
+        "label": "buyer paths",
+        "detail": "Aligned to the same segments surfaced in global navigation."
       },
       {
         "value": "1",
-        "label": "manager command center",
-        "detail": "Central oversight with school-level autonomy across tenants."
+        "label": "operating model",
+        "detail": "One governed campus core instead of duplicate entry across silos."
+      },
+      {
+        "value": "1",
+        "label": "honest payment stance",
+        "detail": "Regional rails depend on deployment—documented on payment readiness."
       },
       {
         "value": "100%",
-        "label": "subdomain isolation",
-        "detail": "Tenant boundaries remain explicit and secure for every school."
+        "label": "tenant-scoped routing",
+        "detail": "Each school keeps explicit boundaries for data and branding."
       }
     ],
     "execution_blocks": [
       {
-        "title": "Single-campus launch packs",
-        "body": "Pre-configured patterns reduce setup time for school leads and operations teams."
+        "title": "Segment-first evaluation",
+        "body": "Start from the job you need done—not from a flat list of product modules."
       },
       {
-        "title": "Multi-campus governance rails",
-        "body": "Standardize shared policy while preserving school identity, workflows, and ownership."
+        "title": "Pilot-friendly rollout",
+        "body": "Day-one setup, week-one operations, and month-one pilot checkpoints."
       },
       {
-        "title": "Regional adaptation without forks",
-        "body": "Global registry hydration keeps language and compliance variants out of core business logic."
+        "title": "Truthful integrations posture",
+        "body": "Gateways and messaging providers vary by region; integrations pages list what your deployment can support."
       }
     ],
     "faqs": [
       {
-        "question": "What deployment options does RunMyCampus support?",
-        "answer": "Single-campus, multi-campus networks, and regional operator models with templates for each."
+        "question": "How do solutions relate to the platform?",
+        "answer": "The platform is one governed stack; solutions describe the buyer journeys you care about first."
       },
       {
-        "question": "Is RunMyCampus available in our country?",
-        "answer": "RunMyCampus is designed for 195+ country-ready profiles with localization for language, compliance, and terms."
+        "question": "Do you support schools with unreliable internet?",
+        "answer": "Yes—offline-first workflows and sync queues are designed for capture-first operations when links drop."
       },
       {
-        "question": "How does multi-campus governance work?",
-        "answer": "Manager command center provides central oversight while preserving school-level autonomy and identity."
+        "question": "How do multi-campus groups stay aligned?",
+        "answer": "Networks get operator visibility and standards without forcing every campus into the same workflow."
       },
       {
         "question": "Can each school keep its own domain?",
-        "answer": "Yes. Subdomain isolation gives each tenant explicit, secure boundaries and dedicated branding."
+        "answer": "Yes—tenant-scoped routing and branding keep boundaries explicit for each school."
       }
     ]
   }

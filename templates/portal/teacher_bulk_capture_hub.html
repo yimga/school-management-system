@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
+{% url 'portal:teacher_bulk_capture_hub' as bulk_capture_post_url %}
 {% block title %}{% trans "Bulk capture" %}{% endblock %}
 {% block content %}
 <div class="container-fluid py-3 mb-5 pb-5" data-page-archetype="bulk-capture" data-ux-qa-marker="teacher-bulk-capture-hub" style="touch-action: manipulation;">
@@ -26,7 +27,7 @@
     <div class="card-body">
       <h2 class="h6">{% trans "Offline note (quick capture)" %}</h2>
       <p class="small text-muted mb-3">{% trans "When you have no connectivity, queue a short observation here; it syncs like other offline actions. When online, use your usual classroom documentation flows instead." %}</p>
-      <form method="post" action="#" data-rmc-offline-form="notes_report" data-offline-action-type="notes_report" class="row g-2">
+      <form method="post" action="{{ bulk_capture_post_url }}" data-rmc-offline-form="notes_report" data-offline-action-type="notes_report" class="row g-2">
         {% csrf_token %}
         <div class="col-12 col-md-6">
           <label class="form-label small mb-0">{% trans "Title (optional)" %}</label>

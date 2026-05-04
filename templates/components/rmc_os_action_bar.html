@@ -1,0 +1,14 @@
+{% load i18n %}
+{# Primary + optional custom HTML. Strict mode: at most one btn-primary in this bar. #}
+<div class="rmc-os-action-bar d-flex flex-wrap align-items-center gap-2 mb-3" data-rmc-os-action-bar="1" role="toolbar" aria-label="{% trans 'Page actions' %}">
+  {% if primary_url and primary_label %}
+  <a href="{{ primary_url }}"
+     class="btn btn-primary btn-sm ds-btn"
+     data-rmc-os-primary-action="1"
+     {% if primary_data_action %}data-action="{{ primary_data_action }}"{% endif %}
+     {% if primary_task %}data-task="{{ primary_task }}"{% endif %}
+     {% if primary_step %}data-task-step="{{ primary_step }}"{% endif %}
+     {% if rmc_conversion_single_action_enforced|default:False %}data-rmc-os-primary-cta="1"{% endif %}>{{ primary_label }}</a>
+  {% endif %}
+  {% if action_html %}{{ action_html|safe }}{% endif %}
+</div>

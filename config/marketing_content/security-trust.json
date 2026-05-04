@@ -3,7 +3,7 @@
   "seo_title": "Security & Trust | RunMyCampus",
   "seo_description": "Tenant isolation, governance audits, impersonation logging, and export controls — visibility-first security for education operations.",
   "headline": "Security and trust by design.",
-  "subheadline": "Control plane audits, POST governance signals, scope consent, and evidence pages — not security theater.",
+  "subheadline": "Tenant isolation, scoped access, audit-friendly exports, and evidence you can show auditors—without claiming certifications we have not verified for your deployment.",
   "schema_type": "WebPage",
   "segments": [
     {"title": "Tenant isolation", "body": "School-scoped data paths with operator-run isolation audits and review queues."},

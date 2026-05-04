@@ -1,0 +1,52 @@
+{% load i18n static %}
+    {% if active_nav_slug == 'pricing' %}
+    <section class="section-shell">
+      <h2 class="section-heading">{% trans "Plan snapshot" %}</h2>
+      <p class="section-lead">{% trans "Starter through Enterprise mapped to admissions depth, finance sophistication, offline resilience, and governance." %}</p>
+      <div class="pricing-grid">
+        {% for plan in pricing_snapshot %}
+          <article class="pricing-card">
+            <div>
+              <h3>{{ plan.plan }}</h3>
+              <p class="mb-0 text-muted">{{ plan.tagline }}</p>
+            </div>
+            <ul>
+              {% for bullet in plan.highlights %}
+                <li>{{ bullet }}</li>
+              {% endfor %}
+            </ul>
+            <a href="{{ plan.cta_path }}" class="btn btn-sm btn-outline-primary">{{ plan.cta_label }}</a>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if active_nav_slug == 'pricing' and page_extras.pricing_plan_comparison %}
+    <section class="section-shell" aria-label="{% trans 'Pricing comparison' %}">
+      <h2 class="section-heading">{% trans "Capability comparison" %}</h2>
+      <p class="section-lead">{% trans "Summarized packaging—confirm specifics with our team during procurement." %}</p>
+      <div class="compare-table-wrap">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th scope="col">{% trans "Capability" %}</th>
+              {% for plan_label in page_extras.pricing_plan_comparison.plans %}
+              <th scope="col">{{ plan_label }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in page_extras.pricing_plan_comparison.rows %}
+            <tr>
+              <th scope="row">{{ row.feature }}</th>
+              <td>{{ row.starter }}</td>
+              <td>{{ row.growth }}</td>
+              <td>{{ row.enterprise }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    {% endif %}

@@ -1,0 +1,42 @@
+{% extends "control_plane_base.html" %}
+{% load i18n phase8_tags %}
+{% block cp_title %}{% trans "Support & customer success playbooks" %}{% endblock %}
+{% block cp_content %}
+<div class="container-lg py-4" data-decision-engine="surface" data-rmc-support-playbook-center="{{ page_marker }}">
+  {% phase8_dashboard_declaration "platform_runtime/support_playbook_center.html" %}
+  <header class="mb-4">
+    <h1 class="h3">{% trans "Support playbooks" %}</h1>
+    <p class="text-muted small mb-0">{% trans "Structured responses with severity, owner role, escalation, and one primary action per issue." %}</p>
+  </header>
+  <div class="accordion" id="playbookAccordion">
+    {% for p in playbooks %}
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="heading-{{ forloop.counter }}">
+        <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ forloop.counter }}" aria-expanded="{{ forloop.first|yesno:'true,false' }}" aria-controls="collapse-{{ forloop.counter }}">
+          <span class="badge bg-secondary me-2">{{ p.severity }}</span>{{ p.title }}
+        </button>
+      </h2>
+      <div id="collapse-{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading-{{ forloop.counter }}" data-bs-parent="#playbookAccordion">
+        <div class="accordion-body">
+          {% if p.expected_resolution_time %}
+          <p class="small mb-2"><strong>{% trans "Expected resolution (target)" %}:</strong> {{ p.expected_resolution_time }}</p>
+          {% endif %}
+          <p class="small mb-1"><strong>{% trans "Owner role" %}:</strong> {{ p.owner_role }}</p>
+          <p class="small mb-1"><strong>{% trans "Audience" %}:</strong> {{ p.audience }}</p>
+          <ol class="small">
+            {% for s in p.steps %}<li>{{ s }}</li>{% endfor %}
+          </ol>
+          <p class="small"><strong>{% trans "Escalation" %}:</strong> {{ p.escalation }}</p>
+          {% if p.copy_response %}
+          <pre class="small bg-light p-2 border rounded">{{ p.copy_response }}</pre>
+          {% endif %}
+          {% if p.primary_action_url %}
+          <a class="btn btn-sm btn-primary" href="{{ p.primary_action_url }}">{{ p.primary_action.label }}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

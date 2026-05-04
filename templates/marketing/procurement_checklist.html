@@ -1,0 +1,50 @@
+{% extends "schools/marketing_base.html" %}
+{% load i18n %}
+{% block title %}{{ seo_title }}{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <header class="mb-4">
+    <h1 class="h2">{% trans "Buyer procurement checklist" %}</h1>
+    <p class="lead text-muted mb-0">
+      {% trans "Use this list for diligence. It mirrors what we verify in-repo (tests and mechanical gates) and what remains honestly external — PSP merchant onboarding, carrier uptime, and your deployment choices." %}
+    </p>
+  </header>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h5">{% trans "Architecture & tenancy" %}</h2>
+      <ul class="small mb-0">
+        <li>{% trans "Subdomain-scoped tenants; dedicated manager host for platform operators." %}</li>
+        <li>{% trans "Public vs tenant vs manager URL contract documented; no path-based tenant guessing on apex." %}</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h5">{% trans "Security & isolation" %}</h2>
+      <ul class="small mb-0">
+        <li>{% trans "Route and tenant-isolation verifiers run in CI; production posture still depends on your config." %}</li>
+        <li>{% trans "Request a security packet for artefact-level detail under NDA — we do not claim external certifications from this page alone." %}</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h5">{% trans "Implementation & operations" %}</h2>
+      <ul class="small mb-0">
+        <li>{% trans "Signed-in implementation command center, support playbooks, and defect closure surfaces exist for operators." %}</li>
+        <li>{% trans "Live money movement requires your PSP — product ships invoicing and orchestration UX without faking settlement." %}</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-primary" href="{{ security_packet_url }}">{% trans "Request security packet" %}</a>
+    <a class="btn btn-outline-primary" href="{{ implementation_assurance_url }}">{% trans "Implementation assurance" %}</a>
+    <a class="btn btn-outline-secondary" href="{{ trust_url }}">{% trans "Trust center" %}</a>
+    <a class="btn btn-link" href="{{ contact_url }}">{% trans "Contact" %}</a>
+  </div>
+</div>
+{% endblock %}

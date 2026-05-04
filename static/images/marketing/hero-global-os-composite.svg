@@ -1,73 +1,94 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" width="960" height="520" role="img" aria-labelledby="hero-composite-title hero-composite-desc">
-  <title id="hero-composite-title">RunMyCampus product surfaces: leadership analytics, administration, teacher tools, parent mobile, finance, and student portal</title>
-  <desc id="hero-composite-desc">Stylized composite of six school software screens in a dark premium layout.</desc>
+  <title id="hero-composite-title">RunMyCampus: admin command center, teacher workspace, parent mobile portal, student profile, finance, and analytics</title>
+  <desc id="hero-composite-desc">Layered dark-glass dashboard composite showing six school software surfaces plus a mobile parent frame.</desc>
   <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1e293b"/>
-      <stop offset="100%" style="stop-color:#0f172a"/>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0c1220"/>
+      <stop offset="55%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
     </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.35"/>
+    <linearGradient id="glass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.88"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow" x="-8%" y="-8%" width="116%" height="116%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.45"/>
     </filter>
     <style>
-      .frame { fill: url(#g); stroke: #334155; stroke-width: 1.5; rx: 12; filter: url(#shadow); }
-      .accent { stroke: #f59e0b; stroke-width: 2; fill: none; opacity: 0.85; }
-      .bar { fill: #334155; rx: 3; }
-      .bar-hot { fill: #f59e0b; opacity: 0.9; rx: 3; }
-      .lbl { fill: #e2e8f0; font: 600 13px ui-sans-serif, system-ui, sans-serif; }
-      .lbl-sm { fill: #94a3b8; font: 11px ui-sans-serif, system-ui, sans-serif; }
-      .mobile-notch { fill: #020617; rx: 14; stroke: #475569; stroke-width: 1.5; }
+      .panel { fill: url(#glass); stroke: rgba(148,163,184,0.35); stroke-width: 1.2; rx: 14; filter: url(#shadow); }
+      .accent-line { stroke: #f59e0b; stroke-width: 2; fill: none; opacity: 0.9; }
+      .bar { fill: #334155; rx: 4; opacity: 0.85; }
+      .bar-hot { fill: #f59e0b; opacity: 0.75; rx: 4; }
+      .lbl { fill: #f1f5f9; font: 700 12px ui-sans-serif, system-ui, sans-serif; }
+      .lbl-sm { fill: #94a3b8; font: 600 10px ui-sans-serif, system-ui, sans-serif; }
+      .phone { fill: #020617; stroke: rgba(148,163,184,0.5); stroke-width: 1.5; rx: 18; }
+      .shine { fill: url(#glass); opacity: 0.15; }
     </style>
   </defs>
-  <rect width="960" height="520" fill="#020617"/>
-  <text class="lbl" x="480" y="36" text-anchor="middle">Unified school operating system  desktop &amp; mobile</text>
-  <!-- Leadership -->
-  <rect class="frame" x="24" y="56" width="280" height="200"/>
-  <text class="lbl-sm" x="40" y="82">Leadership analytics</text>
-  <rect class="bar-hot" x="40" y="96" width="120" height="8"/>
-  <rect class="bar" x="168" y="96" width="80" height="8"/>
-  <rect class="bar" x="40" y="118" width="240" height="56" opacity="0.65"/>
-  <rect class="bar" x="40" y="182" width="110" height="58"/>
-  <rect class="bar" x="158" y="182" width="122" height="58"/>
-  <!-- Admin -->
-  <rect class="frame" x="320" y="56" width="300" height="200"/>
-  <text class="lbl-sm" x="336" y="82">Administration</text>
-  <rect class="bar" x="336" y="96" width="60" height="8"/>
-  <rect class="bar" x="404" y="96" width="60" height="8"/>
-  <rect class="bar" x="472" y="96" width="60" height="8"/>
-  <rect class="bar" x="336" y="118" width="130" height="70"/>
-  <rect class="bar" x="474" y="118" width="130" height="70"/>
-  <rect class="bar-hot" x="336" y="198" width="268" height="42" opacity="0.5"/>
-  <!-- Teacher -->
-  <rect class="frame" x="636" y="56" width="300" height="200"/>
-  <text class="lbl-sm" x="652" y="82">Teacher workspace</text>
-  <rect class="bar" x="652" y="96" width="268" height="12"/>
-  <rect class="bar-hot" x="652" y="120" width="86" height="120"/>
-  <rect class="bar" x="746" y="120" width="82" height="120"/>
-  <rect class="bar" x="836" y="120" width="84" height="120"/>
-  <!-- Parent mobile -->
-  <rect class="mobile-notch" x="60" y="288" width="200" height="200"/>
-  <rect x="76" y="308" width="168" height="24" rx="6" fill="#1e293b" stroke="#475569"/>
-  <text class="lbl-sm" x="160" y="324" text-anchor="middle">Parent portal</text>
-  <rect class="bar" x="88" y="346" width="144" height="10"/>
-  <rect class="bar-hot" x="88" y="366" width="144" height="72" opacity="0.55"/>
-  <rect class="bar" x="88" y="448" width="64" height="24"/>
-  <rect class="bar" x="160" y="448" width="72" height="24"/>
-  <!-- Finance -->
-  <rect class="frame" x="288" y="288" width="340" height="200"/>
-  <text class="lbl-sm" x="304" y="314">Finance &amp; fees</text>
-  <rect class="bar" x="304" y="328" width="100" height="64"/>
-  <rect class="bar-hot" x="412" y="328" width="100" height="64"/>
-  <rect class="bar" x="520" y="328" width="92" height="64"/>
-  <rect class="bar" x="304" y="402" width="308" height="12"/>
-  <rect class="bar" x="304" y="424" width="308" height="48" opacity="0.7"/>
-  <!-- Student -->
-  <rect class="frame" x="652" y="288" width="284" height="200"/>
-  <text class="lbl-sm" x="668" y="314">Student portal</text>
-  <rect class="bar" x="668" y="328" width="252" height="36"/>
-  <rect class="bar-hot" x="668" y="376" width="120" height="96"/>
-  <rect class="bar" x="796" y="376" width="124" height="44"/>
-  <rect class="bar" x="796" y="428" width="124" height="44"/>
-  <path class="accent" d="M304 276 L476 276 L476 244 M556 244 L556 276 L728 276"/>
+  <rect width="960" height="520" fill="url(#bg)"/>
+  <text class="lbl" x="480" y="34" text-anchor="middle" font-size="13">One operating system — leadership, staff, families, finance, and governance</text>
+
+  <!-- Admin command center -->
+  <rect class="panel" x="20" y="52" width="288" height="198"/>
+  <text class="lbl-sm" x="36" y="76">Admin command center</text>
+  <rect class="bar-hot" x="36" y="86" width="72" height="7"/>
+  <rect class="bar" x="114" y="86" width="72" height="7"/>
+  <rect class="bar" x="192" y="86" width="100" height="7"/>
+  <rect class="bar" x="36" y="102" width="120" height="52" opacity="0.7"/>
+  <rect class="bar" x="164" y="102" width="128" height="52" opacity="0.55"/>
+  <rect class="bar" x="36" y="162" width="256" height="36" opacity="0.65"/>
+  <rect class="bar-hot" x="36" y="206" width="110" height="32" opacity="0.5"/>
+
+  <!-- Teacher workspace -->
+  <rect class="panel" x="322" y="52" width="300" height="198"/>
+  <text class="lbl-sm" x="338" y="76">Teacher workspace</text>
+  <rect class="bar" x="338" y="86" width="268" height="10"/>
+  <rect class="bar-hot" x="338" y="104" width="84" height="118"/>
+  <rect class="bar" x="430" y="104" width="84" height="118"/>
+  <rect class="bar" x="522" y="104" width="84" height="56"/>
+  <rect class="bar" x="522" y="166" width="84" height="56"/>
+
+  <!-- Analytics & governance -->
+  <rect class="panel" x="636" y="52" width="304" height="198"/>
+  <text class="lbl-sm" x="652" y="76">Analytics &amp; governance</text>
+  <rect class="bar-hot" x="652" y="86" width="140" height="64"/>
+  <rect class="bar" x="800" y="86" width="124" height="64"/>
+  <rect class="bar" x="652" y="158" width="272" height="10"/>
+  <rect class="bar" x="652" y="176" width="88" height="62"/>
+  <rect class="bar" x="748" y="176" width="88" height="62"/>
+  <rect class="bar" x="844" y="176" width="80" height="62"/>
+
+  <!-- Parent mobile portal -->
+  <rect class="phone" x="48" y="278" width="188" height="220"/>
+  <rect class="shine" x="58" y="292" width="168" height="28" rx="8"/>
+  <text class="lbl-sm" x="142" y="310" text-anchor="middle">Parent mobile</text>
+  <rect class="bar" x="68" y="328" width="148" height="9"/>
+  <rect class="bar-hot" x="68" y="346" width="148" height="64" opacity="0.55"/>
+  <rect class="bar" x="68" y="418" width="68" height="22"/>
+  <rect class="bar" x="144" y="418" width="72" height="22"/>
+
+  <!-- Finance & payments -->
+  <rect class="panel" x="258" y="278" width="352" height="220"/>
+  <text class="lbl-sm" x="274" y="302">Finance &amp; payments</text>
+  <rect class="bar" x="274" y="314" width="96" height="58"/>
+  <rect class="bar-hot" x="378" y="314" width="96" height="58"/>
+  <rect class="bar" x="482" y="314" width="112" height="58"/>
+  <rect class="bar" x="274" y="380" width="320" height="11"/>
+  <rect class="bar" x="274" y="400" width="320" height="78" opacity="0.7"/>
+
+  <!-- Student profile -->
+  <rect class="panel" x="626" y="278" width="314" height="220"/>
+  <text class="lbl-sm" x="642" y="302">Student profile</text>
+  <rect class="bar" x="642" y="314" width="282" height="34"/>
+  <rect class="bar-hot" x="642" y="358" width="130" height="92"/>
+  <rect class="bar" x="782" y="358" width="142" height="42"/>
+  <rect class="bar" x="782" y="408" width="142" height="42"/>
+
+  <!-- Connector accent -->
+  <path class="accent-line" d="M274 268 L400 268 M520 268 L626 268" filter="url(#glow)"/>
 </svg>

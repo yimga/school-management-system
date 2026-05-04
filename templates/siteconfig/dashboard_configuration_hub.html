@@ -1,7 +1,8 @@
 {% extends "portal_base.html" %}
-{% load static phase8_tags %}
+{% block rmc_workspace_os_header %}{% endblock %}
+{% load static i18n phase8_tags %}
 
-{% block title %}Dashboard Configuration Hub{% endblock %}
+{% block title %}{% trans "Configuration Center — dashboards by role" %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -9,21 +10,24 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4 professional-page" data-decision-engine="surface">
+<div class="container-fluid py-4 professional-page" data-decision-engine="surface" data-rmc-os-center="configuration_center_dashboards">
   {% phase8_dashboard_declaration "siteconfig/dashboard_configuration_hub.html" %}
+  {% url 'siteconfig:dashboard_hub' as cfg_hub_url %}
+  {% trans "Configuration" as cfg_eyebrow %}
+  {% include "components/rmc_os_page_header.html" with os_center_key="configuration_center_dashboards" center_eyebrow=cfg_eyebrow center_title=page_title center_purpose=page_subtitle %}
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ action_url }}">{{ action_text }}</a>
+  </div>
+  {% include "components/rmc_os_action_bar.html" with primary_url=cfg_hub_url primary_label=_("Configuration Center home") primary_data_action="config-back-home" primary_task="configuration_center" primary_step="siteconfig:hub-home" %}
   <div class="card shadow-sm border-0">
-    <div class="card-header bg-light border-bottom py-3 px-4">
-      <h1 class="h5 mb-1 fw-semibold">Dashboard Configuration Hub</h1>
-      <p class="text-muted small mb-0">Assign a dashboard template per role for <strong>{{ school.name }}</strong>. Runtime resolves layout and theme from the assigned template. <a href="{% url 'siteconfig:dashboard_hub' %}">Back to Dashboard hub</a>.</p>
-    </div>
     <div class="card-body p-4">
       {% if not templates %}
-        <p class="text-muted">No dashboard templates defined yet. Create templates from the Dashboard hub.</p>
+        {% include "components/dashboard_empty_state.html" with icon="bi-layout-text-window-reverse" title=_("No dashboard templates yet") message=_("Create or import a dashboard template before you can assign roles.") purpose=_("Finish setup") action_url=cfg_hub_url action_text=_("Return to Configuration Center") empty_primary_task="configuration_center" empty_primary_step="siteconfig:no-templates" %}
       {% else %}
         <form method="post" action="{% url 'siteconfig:dashboard_configuration_hub' %}">
           {% csrf_token %}
           <div class="row mb-3">
-            <label class="form-label col-md-2">Assign template by role</label>
+            <label class="form-label col-md-2">{% trans "Assign template by role" %}</label>
             <div class="col-md-4">
               <select name="role" class="form-select form-select-sm" required>
                 <option value="">— Select role —</option>
