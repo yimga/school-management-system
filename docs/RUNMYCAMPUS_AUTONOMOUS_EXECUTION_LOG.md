@@ -1,5 +1,27 @@
 # RunMyCampus autonomous execution log
 
+## Wave - §11.4 batch 1187 Branch Discovery + Main Merge + Push consolidation (MAIN CONSOLIDATED LOCALLY - 2026-05-04)
+
+**A. Branch inventory:** **`main`** / **`origin/main`** were at **`26354737`** before consolidation; **`feature/ux-marketing-public-story-reset`** matched that tip. Local feature refs for data platform, experience control, global payments, marketplace monetization, offline first, marketplace platform, AI operating layer, blueprint studio, and enterprise/security were already ancestors of **`main`** or duplicate commit refs. The live certified UX work existed as an uncommitted tree and was preserved on **`safety/pre-main-merge-20260504-1227`** at **`977b5051`**.
+
+**B. Branches merged:** **`safety/pre-main-merge-20260504-1227`** merged into **`main`** with **`git merge --no-ff`** and no content conflicts. The final **`git pull --rebase origin main`** replayed the consolidation as linear history: safety commit **`977b5051`** plus proof commit **`6545a405`**.
+
+**C. Branches skipped:** **`origin/codex/add-test-users-with-default-password`** (stale deploy seed/build changes), **`origin/codex/fix-database-column-error-in-admin-evaluation`** (old academic migration numbering risk), **`origin/codex/fix-remaining-seed-workflow-issues`** (combined stale deploy/migration branch), **`origin/cursor/development-environment-setup-d3be`** (old generic **`AGENTS.md`** would conflict with current RunMyCampus agent contract), **`origin/faq_kb`** (old sidebar/KB changes against reset shell), and **`origin/improvements-dlk`** (large stale dashboard/RBAC/layout rewrite) were classified **unsafe_manual_review/stale_skip** and not merged.
+
+**D. Generated artifacts:** **`generate_system_closure_map.py --write`**, **`generate_external_dependencies_register.py --write`**, **`generate_category_scope_review.py --write --merge-proof-gates docs/generated/category_scope_review.json`**, **`generate_platform_inventory.py --write`**, **`sync_i18n_catalog --compile`**, **`verify_i18n_catalog_fresh.py`** -> **OK**.
+
+**E. Targeted tests:** Prompt module **`apps.platform_runtime.tests.test_unified_shell_contract`** remapped to actual modules **`test_unified_shell_contract_fragments`** and **`test_unified_shell_contract_http`**. Bundle: marketing validation, shell contracts, UX factory role dashboards / operational centers / CTA cleanup, experience-control closure, marketplace monetization closure, global payments category closure, enterprise security closure, external dependencies register -> **`Ran 93 tests`**, **`OK`**.
+
+**F. Public/browser QA:** **`python manage.py validate_marketing_urls --smoke`** -> **Marketing URL validation passed**. Single local loopback server with **`SECURE_SSL_REDIRECT=0`**; **`SKIP_AXE=1 MARKETING_BASE_URL=http://127.0.0.1:8010 npx.cmd playwright test tests/e2e/marketing-smoke.spec.js --workers=1 --reporter=line`** -> **`71 passed`**, **`22 skipped`**.
+
+**G. Full suite:** **`DJANGO_TEST_DB_FILE=.django_test_dbs/main_branch_consolidation.sqlite3 RMC_RELIABLE_TEST_RUNNER=1 python manage.py test --settings=config.settings --noinput`** -> **`Ran 2816 tests`**, **`OK (skipped=6)`**.
+
+**H. Verifier stack:** route, luxury UI, SiteSettings Python, security, POST, tenant isolation, raw SQL, subprocess, strict-public Gilead, regional UI, compliance evidence, shell inventory, authenticated shell conformance, design system, doc density, SOT pillar evidence, test-module contract, northstar self-heal, northstar audit -> **exit 0** in **`.django_test_dbs/main_branch_consolidation_verifier_stack.log`**; wrapper timed out while final kill test was running, so **`python scripts/run_kill_test.py`** was rerun directly -> **`Kill test: PASS`**.
+
+**I. Remaining gaps / honesty:** Remote push still depends on GitHub DNS/network availability during final rebase/push. Lane 2 live PSP/settlement, staging smoke, production credentials, and controlled pilot evidence remain external blockers. Full-market category-defining status remains blocked until listed external dependencies are verified live or formally scoped out.
+
+**J. Verdict:** **MAIN CONSOLIDATED LOCALLY** pending final secret/junk check, commit of generated/doc proof, pull/rebase retry, and push.
+
 ## Wave — §11.4 batch 1186 UX Factory Reset Integration Certifier full rerun (CERTIFIED Lane 1 — 2026-05-04)
 
 **A. Branch posture:** Requested UX reset branches were checked locally and after **`git fetch origin`**. Only **`feature/ux-marketing-public-story-reset`** exists in this clone; **`feature/ux-shell-navigation-reset`**, **`feature/ux-role-dashboards-reset`**, and **`feature/ux-operational-centers-cta-reset`** are absent as refs, so no Git merges were possible for those branch names. Current tree contains shell/nav, role-dashboard, operational-center, and CTA cleanup work; certification is integrated-tree proof with branch-ref provenance called out.

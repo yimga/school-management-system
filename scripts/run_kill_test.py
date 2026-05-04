@@ -79,6 +79,14 @@ def _truthy_env(name: str) -> bool:
     return os.environ.get(name, "").strip().lower() in ("1", "true", "yes", "on")
 
 
+def _report_path(path: str) -> str:
+    p = Path(path)
+    try:
+        return p.resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        return str(p)
+
+
 def main(argv: list[str] | None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -224,10 +232,12 @@ def main(argv: list[str] | None) -> int:
         "sqlite_mode": sqlite_mode,
         "django_test_db_file": test_db_security
         if test_db_security == test_db_degraded
-        else {"security": test_db_security, "degraded": test_db_degraded},
+        else {"security": _report_path(test_db_security), "degraded": _report_path(test_db_degraded)},
         "keepdb": use_keepdb,
         "scenarios": scenarios,
     }
+    if isinstance(out["django_test_db_file"], str):
+        out["django_test_db_file"] = _report_path(out["django_test_db_file"])
     gen = ROOT / "docs" / "generated"
     _write(out, gen)
     print(f"Kill test: {out['result']} ({gen / 'kill_test_report.json'})")
