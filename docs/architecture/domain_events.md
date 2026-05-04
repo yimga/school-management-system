@@ -7,8 +7,10 @@ Domain events are emitted from the **service layer only** and written to the tra
 | Event type | Emitted from | Payload (typical) | Consumer use |
 |------------|--------------|-------------------|--------------|
 | `student.created` | `people.signals` (post_save StudentProfile, created=True) | `student_id`, `admission_number`, `school_id` | Sync to search, notify, workflows |
+| `student.updated` | `people.signals` (post_save StudentProfile, created=False) | `student_id`, `school_id` | Sync, workflows, webhooks |
 | `invoice.created` | `finance.services.create_fee_invoices` | `invoice_id`, `student_id`, `reference`, `issued_date` | Notify guardians, reminders |
-| `payment.created` | `finance.services.create_payment_from_receipt` | `payment_id`, `invoice_id`, `student_id`, `amount`, `method`, `reference` | Notify, ledger sync, reporting |
+| `payment.received` | `finance.services.create_payment_from_receipt` | `payment_id`, `invoice_id`, `student_id`, `school_id`, `amount`, `method`, `reference` | Notify, ledger sync, reporting |
+| `grade.published` | `evals` approval path after publish | `school_id`, optional `evaluation_id`, `student_id`, `term`, `published_at` | Parents, reporting, webhooks |
 | `workflow.triggered` | `siteconfig.workflow_engine` (action emit_event) | Config-defined | Webhooks, automation |
 | `enrollment.created` | `academics.signals` (post_save StudentDegreeEnrollment, created=True) | `enrollment_id`, `student_id`, `program_id`, `school_id` | Notify, reporting |
 | `attendance.recorded` | `academics.signals` (post_save Attendance); `people.signals` (post_save TeacherAttendance, created=True) | `attendance_id`/`teacher_attendance_id`, `student_id`/`teacher_id`, `date`, `status`, `school_id` | Dashboards, alerts |

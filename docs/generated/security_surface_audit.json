@@ -9140,7 +9140,7 @@
         "classification": "needs_review",
         "file": "scripts/run_kill_test.py",
         "governance_tier": "controlled",
-        "line": "132",
+        "line": "140",
         "pattern": "subprocess"
       },
       {
@@ -9148,7 +9148,7 @@
         "classification": "needs_review",
         "file": "scripts/run_kill_test.py",
         "governance_tier": "controlled",
-        "line": "190",
+        "line": "198",
         "pattern": "subprocess"
       },
       {
@@ -9513,7 +9513,7 @@
       }
     ]
   },
-  "generated_at": "2026-05-04T17:55:37.348371+00:00",
+  "generated_at": "2026-05-04T20:04:18.558367+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/oneroster_roster_webhook.py",
@@ -18675,7 +18675,7 @@
       "classification": "needs_review",
       "file": "scripts/run_kill_test.py",
       "governance_tier": "controlled",
-      "line": "132",
+      "line": "140",
       "pattern": "subprocess"
     },
     {
@@ -18683,7 +18683,7 @@
       "classification": "needs_review",
       "file": "scripts/run_kill_test.py",
       "governance_tier": "controlled",
-      "line": "190",
+      "line": "198",
       "pattern": "subprocess"
     },
     {

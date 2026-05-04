@@ -73,3 +73,11 @@ export RMC_SQLITE_TEST_USE_MEMORY_NAME=1   # optional; TEST NAME uses shared-mem
 |--------|---------|
 | `bash scripts/smoke_marketing_public_story.sh` | Fast smoke: `validate_marketing_urls --smoke` + JSON tests + nav contract (mostly DB-free). Sets the exports above by default. |
 | `bash scripts/smoke_marketing_public_story_full.sh` | Runs **`test_marketing_public_story_reset`** with the same exports. First run migrates the full schema (long); use `DJANGO_TEST_DB_FILE=.django_test_dbs/marketing_public_story.sqlite3` and **`--keepdb`** on later runs to reuse the migrated file. |
+
+**Pre-migrate the marketing SQLite file (optional, avoids migrate time inside `manage.py test`):** `RMC_TEST_LOCAL_SQLITE` only applies when **`test` is in `sys.argv`**, so `migrate_gate_test_db.py` still sees Postgres if `.env` sets `DATABASE_URL`. For a one-off schema build, clear Postgres for that process only, then migrate:
+
+```bash
+env DATABASE_URL= DJANGO_TEST_DB_FILE=.django_test_dbs/marketing_public_story.sqlite3 python scripts/migrate_gate_test_db.py
+```
+
+Then run the story tests with **`RMC_TEST_LOCAL_SQLITE=1`**, **`RMC_SQLITE_TEST_MEMORY=1`**, **`DJANGO_TEST_DB_FILE`** pointing at the same file, **`unset RMC_SQLITE_TEST_USE_MEMORY_NAME`** (so Django uses the file-backed `TEST` DB), and **`--keepdb`**.

@@ -11,7 +11,7 @@ Internal-first platform: Zone A = internal services and contracts; Zone B = exte
 | Payments (tenant) | `apps.finance.gateways` | `get_gateway(school, method_code)`, gateway `.charge()` etc. | — |
 | Platform billing | `apps.billing.processors` | Processor interface; webhook routing by code | — |
 | Workflow engine | `apps.siteconfig.workflow_engine` | Conditions + actions (notify, emit_event) | workflow.triggered (when configured) |
-| Fee/invoice | `apps.finance.services` | `create_fee_invoices`, `create_payment_from_receipt`, `apply_payment` | invoice.created, payment.created |
+| Fee/invoice | `apps.finance.services` | `create_fee_invoices`, `create_payment_from_receipt`, `apply_payment` | invoice.created, payment.received |
 | People | `apps.people` | Student/teacher/guardian CRUD; signals for critical tag, badges | student.created (signal) |
 | AI orchestration | Single facade (see Phase 7) | One `generate_completion` / `get_embedding` entry point | — |
 | Exchange rate | Finance API | GET `/api/v1/finance/exchange-rate` (required when reporting in multiple currencies) | Implemented; see `apps.api.views_v1.FinanceExchangeRateView`. |

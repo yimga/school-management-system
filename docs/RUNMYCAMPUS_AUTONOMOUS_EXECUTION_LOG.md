@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Wave — §11.4 batch 1188 Domain events replay + webhook DLQ tests (Windows cp1252 + retry clock) (2026-04-29)
+
+**A. Scope:** Close event-bus integration proof gaps: management command stdout safe on Windows; webhook retry test respects **`scheduled_for`** backoff; architecture docs match **`payment.received`** and catalog.
+
+**B. Code / tests:** **`apps/events/management/commands/replay_domain_events.py`** — ASCII arrow in success message. **`apps/events/tests/test_event_bus_integration.py`** — **`timedelta`** advance for second delivery attempt after first failure schedules future **`scheduled_for`**.
+
+**C. Docs:** **`docs/architecture/domain_events.md`** — **`payment.received`**, **`student.updated`**, **`grade.published`** rows; **`docs/architecture/SERVICE_CATALOG.md`** — fee/invoice events column; **`docs/broad_exception_audit.md`** — emit_event label.
+
+**D. Proof:** **`DJANGO_TEST_DB_FILE=.django_test_dbs/events_bus_clean.sqlite3 python manage.py test apps.events.tests.test_event_bus_integration --settings=config.settings --noinput -v 2 --keepdb`** → **`Ran 5 tests`**, **`OK`**.
+
+**E. Operational note:** Long **`manage.py test`** runs on a fixed SQLite file can abort mid-migration; **`--keepdb`** on a fully migrated file avoids repeat migration cost. If **`siteconfig.0162`** errors with missing **`site_name`**, the file is likely partial — delete when not locked or pick a new **`DJANGO_TEST_DB_FILE`**.
+
+**F. Verdict:** **DONE (Lane 1)** for batch **1188** proof slice.
+
 ## Wave - §11.4 batch 1187 Branch Discovery + Main Merge + Push consolidation (MAIN CONSOLIDATED LOCALLY - 2026-05-04)
 
 **A. Branch inventory:** **`main`** / **`origin/main`** were at **`26354737`** before consolidation; **`feature/ux-marketing-public-story-reset`** matched that tip. Local feature refs for data platform, experience control, global payments, marketplace monetization, offline first, marketplace platform, AI operating layer, blueprint studio, and enterprise/security were already ancestors of **`main`** or duplicate commit refs. The live certified UX work existed as an uncommitted tree and was preserved on **`safety/pre-main-merge-20260504-1227`** at **`977b5051`**.
