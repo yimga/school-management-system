@@ -73,8 +73,8 @@
       {% endfor %}
     {% else %}
       <div class="sidebar-section-title">Home</div>
-      <a class="nav-link nav-pill" href="{% url 'accounts:redirect' %}" title="Dashboard">
-        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+      <a class="nav-link nav-pill" href="{% url 'accounts:redirect' %}" title="Command Center">
+        <i class="bi bi-speedometer2 me-2"></i>Command Center
       </a>
       <div class="sidebar-section-title">Account</div>
       <a class="nav-link nav-pill" href="{% url 'accounts:user_profile' %}" title="My Profile">
@@ -119,7 +119,7 @@
         <a class="nav-link nav-pill" href="{% url 'communication:class_announcement_create' %}"><i class="bi bi-journal-text me-2"></i>Class Announcement</a>
         <div class="sidebar-section-title">My Workflow</div>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>My Workflow</a>
-        <div class="sidebar-section-title">Pedagogical Dashboard</div>
+        <div class="sidebar-section-title">Teacher Workspace</div>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_dashboard_alias' %}"><i class="bi bi-grid me-2"></i>Assigned Classes</a>
         <a class="nav-link nav-pill" href="{% url 'academics:teacher_syllabus_hub' %}"><i class="bi bi-journal-richtext me-2"></i>Course Syllabi</a>
         <a class="nav-link nav-pill" href="{% url 'portal:portal_syllabus' %}"><i class="bi bi-journal-bookmark me-2"></i>Syllabus Coverage</a>
@@ -140,7 +140,7 @@
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_pay_history' %}"><i class="bi bi-receipt me-2"></i>Pay History</a>
       {% elif request.user.role == 'PARENT' %}
         <div class="sidebar-section-title">Home</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-house me-2"></i>Parent Home</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-house me-2"></i>Family Home</a>
         <div class="sidebar-section-title">My Workflow</div>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>My Workflow</a>
         <div class="sidebar-section-title">Student Overview</div>
@@ -189,10 +189,10 @@
         <a class="nav-link nav-pill" href="{% url 'reports:publish_term_results' %}"><i class="bi bi-megaphone me-2"></i>Publish Results</a>
         <a class="nav-link nav-pill" href="{% url 'accounts:certification_home' %}"><i class="bi bi-award me-2"></i>Certification &amp; Exams</a>
         <div class="sidebar-section-title">Financial Management</div>
-        <a class="nav-link nav-pill" href="{% url 'finance:dashboard' %}"><i class="bi bi-currency-exchange me-2"></i>Finance Dashboard</a>
+        <a class="nav-link nav-pill" href="{% url 'finance:dashboard' %}"><i class="bi bi-currency-exchange me-2"></i>Money Center</a>
         <a class="nav-link nav-pill" href="{% url 'payroll:dashboard' %}"><i class="bi bi-cash-stack me-2"></i>Payroll</a>
         <div class="sidebar-section-title">Analytics & Reports</div>
-        <a class="nav-link nav-pill" href="{% url 'analytics:dashboard' %}"><i class="bi bi-graph-up-arrow me-2"></i>Analytics</a>
+        <a class="nav-link nav-pill" href="{% url 'analytics:dashboard' %}"><i class="bi bi-graph-up-arrow me-2"></i>Insights Center</a>
         <a class="nav-link nav-pill" href="{% url 'studio_os:output' %}"><i class="bi bi-journal-text me-2"></i>Report Library</a>
         <a class="nav-link nav-pill" href="{% url 'siteconfig:reportcard_builder' %}"><i class="bi bi-file-earmark-richtext me-2"></i>Report Card Builder</a>
         <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>Portal Stats</a>
@@ -202,8 +202,8 @@
           <i class="bi bi-grid-3x3-gap me-2"></i>Dashboard Layout
         </a>
         {% endif %}
-        <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-gear-fill me-2"></i>Backend Console</a>
-        <a class="nav-link nav-pill" href="{% url 'studio_os:workflow_center' %}"><i class="bi bi-diagram-3 me-2"></i>Workflow Center</a>
+        <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-gear-fill me-2"></i>School Command Center</a>
+        <a class="nav-link nav-pill" href="{% url 'studio_os:workflow_center' %}"><i class="bi bi-diagram-3 me-2"></i>Automation Studio</a>
         <a class="nav-link nav-pill" href="{% url 'studio_os:approval_hub' %}"><i class="bi bi-clipboard-check me-2"></i>Approval Hub</a>
         <a class="nav-link nav-pill" href="{% url 'academics:syllabus_approval_queue' %}"><i class="bi bi-journal-check me-2"></i>Syllabus Approvals</a>
         <a class="nav-link nav-pill" href="{% url 'studio_os:import_hub' %}"><i class="bi bi-upload me-2"></i>Import Hub</a>

@@ -71,13 +71,22 @@ def _parse_int(
     return parsed
 
 
-def _parse_decimal(value: str | None, default: Decimal) -> Decimal:
+def _parse_decimal(
+    value: str | None, default: Decimal, fallback: Decimal | str = Decimal("0")
+) -> Decimal:
+    fallback_decimal = Decimal(str(fallback))
     if value is None:
-        return Decimal(str(default))
+        try:
+            return Decimal(str(default))
+        except (InvalidOperation, TypeError, ValueError):
+            return fallback_decimal
     try:
         return Decimal(str(value))
     except (InvalidOperation, TypeError, ValueError):
-        return Decimal(str(default))
+        try:
+            return Decimal(str(default))
+        except (InvalidOperation, TypeError, ValueError):
+            return fallback_decimal
 
 
 def _analytics_request_school(request: HttpRequest):
@@ -141,12 +150,12 @@ def dashboard(request: HttpRequest):
         min_val=1,
         max_val=100,
     )
-    pass_mark = _parse_decimal(request.GET.get("pass_mark"), site.pass_mark)
+    pass_mark = _parse_decimal(request.GET.get("pass_mark"), site.pass_mark, "10")
     weak_threshold = _parse_decimal(
-        request.GET.get("weak_threshold"), site.weak_subject_threshold
+        request.GET.get("weak_threshold"), site.weak_subject_threshold, "10"
     )
     improve_delta = _parse_decimal(
-        request.GET.get("improve_delta"), site.improvement_delta_threshold
+        request.GET.get("improve_delta"), site.improvement_delta_threshold, "1"
     )
     use_promotion_rule = (
         request.GET.get("use_promotion_rule") == "1"

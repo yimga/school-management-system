@@ -24,12 +24,12 @@
     {% for group in CONTROL_PLANE_NAV %}
       {% if group.label %}
         <li class="nav-item">
-          <button type="button" class="nav-link text-uppercase small text-muted opacity-75 mt-2 border-0 bg-transparent text-start w-100 d-flex align-items-center cp-nav-group-toggle" data-bs-toggle="collapse" data-bs-target="#cp-nav-grp-{{ forloop.counter }}" aria-expanded="true">
+          <button type="button" class="nav-link text-uppercase small text-muted opacity-75 mt-2 border-0 bg-transparent text-start w-100 d-flex align-items-center cp-nav-group-toggle" data-bs-toggle="collapse" data-bs-target="#cp-nav-grp-{{ forloop.counter }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
             <i class="bi bi-chevron-down me-1 cp-nav-group-chevron"></i>
             <span class="cp-nav-label">{% trans group.label %}</span>
           </button>
         </li>
-        <li class="nav-item collapse show" id="cp-nav-grp-{{ forloop.counter }}">
+        <li class="nav-item collapse{% if forloop.first %} show{% endif %}" id="cp-nav-grp-{{ forloop.counter }}">
           <ul class="nav flex-column gap-1 ps-2 border-0">
       {% endif %}
       {% for item in group.items %}
@@ -45,7 +45,7 @@
     {% empty %}
       {% comment %}Fallback if CONTROL_PLANE_NAV not set (e.g. wrong urlconf) {% endcomment %}
       <li class="nav-item">
-        <a class="nav-link text-white d-flex align-items-center" href="{% url 'super:dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>{% trans "Dashboard" %}</a>
+        <a class="nav-link text-white d-flex align-items-center" href="{% url 'super:dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>{% trans "Founder Command Center" %}</a>
       </li>
       <li class="nav-item">
         <a class="nav-link text-white d-flex align-items-center" href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-gear-wide-connected me-2"></i>{% trans "Config center" %}</a>

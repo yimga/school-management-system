@@ -1,0 +1,97 @@
+{
+  "generated_at": "2026-05-05",
+  "scope": "code-controlled premium UX audit with live Render observations pending deployment",
+  "verdict": "repo fixes applied; live certification pending deployed recheck",
+  "pages": [
+    {
+      "page": "Homepage",
+      "url_or_template": "templates/schools/marketing_landing.html",
+      "current_issue": "Strong operating-system story exists, but the narrative stack can still feel heavy.",
+      "ux_issue": "Buyer must scan many sections before the product moment is fully clear.",
+      "ui_issue": "Chip and section density should remain under pressure.",
+      "primary_user": "principal, school owner, founder, investor",
+      "primary_action": "Book demo",
+      "too_many_actions": false,
+      "navigation_confusion": false,
+      "mobile_issue": "Needs live viewport recheck after deployment.",
+      "density_issue": true,
+      "external_honesty_issue": false,
+      "priority": "high",
+      "fix_plan": "Keep the hero outcome direct, make Book Demo primary, keep Product Tour secondary, and avoid fake PSP or certification claims."
+    },
+    {
+      "page": "Manager /super/",
+      "url_or_template": "templates/schools/super_dashboard.html",
+      "current_issue": "Historically too dense for a premium control plane.",
+      "ux_issue": "Too many same-weight links/buttons obscure the next action.",
+      "ui_issue": "Long operating board needs progressive disclosure.",
+      "primary_user": "platform operator",
+      "primary_action": "Setup Studio",
+      "too_many_actions": true,
+      "navigation_confusion": true,
+      "mobile_issue": "Sidebar groups must remain collapsed by default.",
+      "density_issue": true,
+      "external_honesty_issue": false,
+      "priority": "critical",
+      "fix_plan": "Keep executive pulse above fold, collapse the detailed operating board, and rely on search/side navigation for secondary tasks."
+    },
+    {
+      "page": "Offline Sync Center",
+      "url_or_template": "templates/platform_runtime/manager_offline_sync_center.html",
+      "current_issue": "Live manager route was previously a 404.",
+      "ux_issue": "Manager users need explanation instead of a dead path.",
+      "ui_issue": "Manager-safe tenant selector action required.",
+      "primary_user": "platform operator",
+      "primary_action": "Select school",
+      "too_many_actions": false,
+      "navigation_confusion": false,
+      "mobile_issue": "No known code issue; live recheck required.",
+      "density_issue": false,
+      "external_honesty_issue": false,
+      "priority": "critical",
+      "fix_plan": "Render an explanatory manager route that preserves tenant isolation and points to school selection."
+    },
+    {
+      "page": "Payment Readiness Center",
+      "url_or_template": "templates/finance/payment_readiness_dashboard.html",
+      "current_issue": "Must stay honest about PSP credentials and settlement proof.",
+      "ux_issue": "Operators need ready/degraded/missing-credentials/external-required states.",
+      "ui_issue": "Status vocabulary must be visible and action-linked.",
+      "primary_user": "finance operator",
+      "primary_action": "Resolve missing credentials",
+      "too_many_actions": false,
+      "navigation_confusion": false,
+      "mobile_issue": "Needs live viewport recheck.",
+      "density_issue": false,
+      "external_honesty_issue": false,
+      "priority": "high",
+      "fix_plan": "Preserve external-required and manual fallback language; do not imply live PSP readiness."
+    }
+  ],
+  "manager_super_density": {
+    "before_live_audit": {
+      "links": 202,
+      "buttons": 217,
+      "card_or_panel_like": 106
+    },
+    "repo_after_above_fold": {
+      "links": 9,
+      "buttons": 0,
+      "card_or_panel_like": 16
+    },
+    "top_5_above_fold_items": [
+      "Platform health/status",
+      "North Star/revenue posture",
+      "Operational risk",
+      "System health",
+      "One primary setup/action"
+    ],
+    "collapsed_into": [
+      "progressive disclosure",
+      "collapsed sidebar groups",
+      "search",
+      "command center links",
+      "action rail"
+    ]
+  }
+}

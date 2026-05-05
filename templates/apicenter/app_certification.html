@@ -6,9 +6,17 @@
 {% block content %}
 <div class="container-fluid py-4">
   <h4 class="mb-3">{% trans "App certification" %}</h4>
-  <p class="text-muted">{% trans "Developer platform (8.1): Submit your app for certification to list in the marketplace. Certification criteria and form coming in a future release." %}</p>
+  <p class="text-muted">{% trans "App review policy and publishing checklist for marketplace readiness. Certification means the app passed RunMyCampus review gates; it is not a SOC2/ISO/PCI certification claim." %}</p>
   <div class="card shadow-sm">
     <div class="card-body">
+      <h5 class="card-title">{% trans "Review gates" %}</h5>
+      <ul class="small text-muted">
+        <li>{% trans "Tenant isolation and scoped API usage." %}</li>
+        <li>{% trans "Support owner and escalation path." %}</li>
+        <li>{% trans "Webhook retry and rollback behavior." %}</li>
+        <li>{% trans "Security review, privacy posture, and kill-switch acceptance." %}</li>
+        <li>{% trans "Revenue-share metadata when monetized; live payouts remain external PSP proof." %}</li>
+      </ul>
       <a href="{% url 'apicenter:dashboard' %}" class="btn btn-outline-primary">{% trans "Back to API Center" %}</a>
     </div>
   </div>

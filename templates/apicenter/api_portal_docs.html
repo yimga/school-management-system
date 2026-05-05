@@ -6,11 +6,17 @@
 {% block content %}
 <div class="container-fluid py-4">
   <h4 class="mb-3">{% trans "API portal" %}</h4>
-  <p class="text-muted">{% trans "Documentation, API keys, and quotas. (Phase 10 — 8.1 developer platform: full portal coming in a future sprint.)" %}</p>
+  <p class="text-muted">{% trans "Developer onboarding guide for API keys, quotas, sandbox use, webhook testing, app review, and marketplace publishing readiness." %}</p>
   <div class="card shadow-sm">
     <div class="card-body">
       <h5 class="card-title">{% trans "API docs" %}</h5>
-      <p class="card-text">{% trans "REST and GraphQL endpoints will be documented here. Keys and quota management will be available from this portal." %}</p>
+      <p class="card-text">{% trans "Use this portal to understand REST/API access, scoped keys, quota expectations, webhook subscriptions, sandbox app testing, app publishing checklist, app review policy, partner badge status, and revenue-share documentation." %}</p>
+      <ul class="small text-muted">
+        <li>{% trans "Sandbox app example: create a non-production integration and test against tenant-scoped data only." %}</li>
+        <li>{% trans "Webhook testing guide: subscribe, verify payloads, rotate secrets, and retry safely." %}</li>
+        <li>{% trans "Publishing checklist: privacy posture, support owner, security review, kill-switch acceptance, and versioning policy." %}</li>
+        <li>{% trans "Marketplace monetization remains honest: revenue share is documented; live settlement depends on external PSP payout proof." %}</li>
+      </ul>
       <a href="{% url 'apicenter:dashboard' %}" class="btn btn-outline-primary">{% trans "Back to API Center" %}</a>
     </div>
   </div>

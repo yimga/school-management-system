@@ -66,16 +66,26 @@ gate_log2.txt
 *.tmp
 /logs/
 /backups/
+/artifacts/db_snapshots/
+/tmp/screenshots/
+/test-results/
 
 # SQLite and DB artifacts (repo hygiene — do not commit)
 db_working.sqlite3
 db_*.sqlite3
+*.sqlite3
+*.sqlite3-journal
 *.sqlite3.malformed
 *.sqlite3.corrupted
 /data/db_live.sqlite3
 db_fresh.sqlite3
 db_buea_seed.sqlite3
 db_step4.sqlite3
+
+# Local generated evidence is kept outside release source archives.
+*.webm
+*.mp4
+*.png
 
 # Merge conflict artifacts (do not commit)
 *_Conflict.py

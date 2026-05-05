@@ -1,0 +1,197 @@
+/**
+ * RunMyCampus Premium OS layer.
+ * Final-pass polish that sits above the older dashboard/theme bundles without
+ * changing routes, permissions, tenant isolation, or PSP readiness behavior.
+ */
+
+:root {
+  --rmc-premium-bg: #f7f9fc;
+  --rmc-premium-ink: #111827;
+  --rmc-premium-muted: #64748b;
+  --rmc-premium-line: rgba(15, 23, 42, 0.1);
+  --rmc-premium-surface: rgba(255, 255, 255, 0.9);
+  --rmc-premium-surface-strong: #ffffff;
+  --rmc-premium-radius: 8px;
+  --rmc-premium-shadow: 0 18px 55px rgba(15, 23, 42, 0.1);
+}
+
+[data-rmc-premium-shell] body,
+body[data-rmc-premium-shell] {
+  color: var(--rmc-premium-ink);
+  letter-spacing: 0;
+}
+
+body.marketing-surface {
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(255, 255, 255, 1) 28%),
+    var(--rmc-premium-bg);
+}
+
+.marketing-surface .mkt-main {
+  overflow-x: clip;
+}
+
+.marketing-surface .mkt-hero {
+  min-height: min(760px, calc(100vh - 4.5rem));
+  display: grid;
+  align-items: center;
+  background:
+    linear-gradient(140deg, rgba(8, 13, 24, 0.96) 0%, rgba(12, 23, 39, 0.94) 52%, rgba(30, 41, 59, 0.94) 100%);
+}
+
+.marketing-surface .mkt-hero-inner {
+  width: min(1180px, calc(100% - 2rem));
+  margin-inline: auto;
+  gap: clamp(1.5rem, 4vw, 4rem);
+}
+
+.marketing-surface .mkt-hero-headline {
+  max-width: 12ch;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.marketing-surface .mkt-hero-subheadline {
+  max-width: 58ch;
+  color: rgba(241, 245, 249, 0.86);
+}
+
+.marketing-surface .mkt-hero-trusted,
+.marketing-surface .mkt-hero-category-claim,
+.marketing-surface .mkt-glob-pill,
+.marketing-surface .badge {
+  letter-spacing: 0;
+}
+
+.marketing-surface .mkt-hero-ctas {
+  gap: 0.75rem;
+}
+
+.marketing-surface .btn,
+.portal-body-with-layout .btn,
+.cp-shell-content .btn {
+  border-radius: var(--rmc-premium-radius);
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+.marketing-surface .btn-primary,
+.portal-body-with-layout .btn-primary,
+.cp-shell-content .btn-primary {
+  box-shadow: 0 14px 34px rgba(37, 99, 235, 0.22);
+}
+
+.marketing-surface .mkt-hero-visual,
+.marketing-surface .mkt-product-demo-visual {
+  border-radius: var(--rmc-premium-radius);
+  border: 1px solid rgba(226, 232, 240, 0.22);
+  box-shadow: var(--rmc-premium-shadow);
+}
+
+.marketing-surface .mkt-section {
+  padding-block: clamp(3rem, 7vw, 5.75rem);
+}
+
+.marketing-surface .mkt-section-heading,
+.marketing-surface h1,
+.marketing-surface h2,
+.portal-body-with-layout h1,
+.portal-body-with-layout h2,
+.cp-shell-content h1,
+.cp-shell-content h2 {
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.marketing-surface [class*="card"],
+.marketing-surface [class*="panel"],
+.marketing-surface .rmc-glass-surface,
+.portal-body-with-layout .card,
+.portal-body-with-layout [class*="panel"],
+.portal-body-with-layout .rmc-glass-surface,
+.cp-shell-content .card,
+.cp-shell-content [class*="panel"],
+.cp-shell-content .rmc-glass-surface {
+  border-radius: var(--rmc-premium-radius);
+  border-color: var(--rmc-premium-line);
+}
+
+.portal-body-with-layout,
+.cp-shell-content {
+  --rmc-os-canvas-gap: 1.15rem;
+}
+
+.portal-body-with-layout .page-wrap,
+.cp-shell-content .cp-layout {
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 34rem),
+    linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.95));
+}
+
+.portal-body-with-layout .portal-main-col,
+.cp-shell-content .cp-main-col {
+  min-width: 0;
+}
+
+.rmc-os-page-header {
+  background: var(--rmc-premium-surface-strong) !important;
+  border: 1px solid var(--rmc-premium-line) !important;
+  border-radius: var(--rmc-premium-radius) !important;
+  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.06);
+}
+
+.rmc-os-page-header__title {
+  font-size: clamp(1.1rem, 1rem + 0.5vw, 1.45rem);
+}
+
+[data-rmc-os-primary-action-slot],
+[data-rmc-primary-action-slot] {
+  min-height: 2.25rem;
+}
+
+.cp-sidebar-inner,
+.portal-sidebar,
+.offcanvas.cp-context-drawer {
+  border-radius: var(--rmc-premium-radius);
+}
+
+.cp-sidebar-nav .nav-link,
+.portal-sidebar .nav-link,
+.portal-sidebar .nav-pill {
+  border-radius: var(--rmc-premium-radius);
+}
+
+.table-responsive {
+  border-radius: var(--rmc-premium-radius);
+  border: 1px solid var(--rmc-premium-line);
+}
+
+.dashboard-empty-state,
+[data-empty-state],
+.empty-state {
+  border-radius: var(--rmc-premium-radius);
+  border: 1px dashed rgba(100, 116, 139, 0.35);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+@media (max-width: 767.98px) {
+  .marketing-surface .mkt-hero {
+    min-height: auto;
+    padding-block: 4rem 3rem;
+  }
+
+  .marketing-surface .mkt-hero-headline {
+    max-width: 13ch;
+  }
+
+  .marketing-surface .mkt-hero-ctas .btn,
+  .marketing-surface .mkt-sticky-cta-bar .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .portal-body-with-layout .page-wrap,
+  .cp-shell-content .cp-layout {
+    padding-inline: 0.75rem !important;
+  }
+}

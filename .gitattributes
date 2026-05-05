@@ -7,3 +7,19 @@ docs/generated/*.json text eol=lf
 scripts/generated/*.json text eol=lf
 .cursor/rules/*.mdc text eol=lf
 
+# Keep production/source archives clean. Evidence bundles should be shipped separately.
+.env* export-ignore
+.django_test_dbs/ export-ignore
+artifacts/db_snapshots/ export-ignore
+backups/ export-ignore
+data/*.sqlite3 export-ignore
+logs/ export-ignore
+node_modules/ export-ignore
+staticfiles/ export-ignore
+test-results/ export-ignore
+tmp/screenshots/ export-ignore
+*.log export-ignore
+*.sqlite3 export-ignore
+*.sqlite3-journal export-ignore
+__pycache__/ export-ignore
+

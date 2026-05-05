@@ -5,10 +5,12 @@
 
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/rmc-os-shell.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-premium-os.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-premium-polish.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="cp-shell-content d-flex flex-column flex-grow-1 min-h-0" data-shell-layout="control-plane" data-rmc-layout-token="{{ rmc_shell.layout_token|default:'control-plane' }}" data-rmc-shell-content-grid="1" data-rmc-os-shell="control-plane" data-rmc-os-role="{{ rmc_os_shell.role_cluster|default:'operator' }}" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}>
+<div class="cp-shell-content d-flex flex-column flex-grow-1 min-h-0" data-shell-layout="control-plane" data-rmc-layout-token="{{ rmc_shell.layout_token|default:'control-plane' }}" data-rmc-premium-shell="control-plane" data-rmc-page-purpose="operator-command-center" data-rmc-shell-content-grid="1" data-rmc-os-shell="control-plane" data-rmc-os-role="{{ rmc_os_shell.role_cluster|default:'operator' }}" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}>
 <nav class="navbar navbar-expand-lg navbar-dark cp-navbar cp-navbar--surface statement-header flex-shrink-0" data-rmc-shell-header="control-plane">
   <div class="container-fluid px-3 d-flex flex-wrap align-items-center gap-2">
     <a class="navbar-brand fw-bold d-flex align-items-center gap-2 text-white statement-logo" href="{% url 'super:dashboard' %}">
@@ -83,7 +85,7 @@
       {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
       {% if request.user.is_authenticated %}
       {% include "components/rmc_os_page_header.html" %}
-      <div class="d-flex flex-wrap justify-content-end gap-2 mb-3" data-rmc-os-primary-action-slot="1">
+      <div class="d-flex flex-wrap justify-content-end gap-2 mb-3" data-rmc-os-primary-action-slot="1" data-rmc-primary-action-slot="1">
         {% block rmc_os_shell_primary_action %}{% endblock %}
       </div>
       {% include "components/rmc_os_status_strip.html" %}

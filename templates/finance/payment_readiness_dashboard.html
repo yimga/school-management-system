@@ -19,6 +19,7 @@
   <div class="alert alert-secondary border-0 shadow-sm mb-4" data-rmc-payment-next-action="1">
     <div class="fw-semibold mb-1">{% trans "Current status & next action" %}</div>
     <p class="mb-0 small">{{ next_action }}</p>
+    <p class="mb-0 small mt-2 text-muted">{% trans "Status vocabulary: ready, degraded, missing credentials, external required, manual fallback." %}</p>
     {% if readiness.manual_offline_proof_allowed %}
     <p class="mb-0 small mt-2 text-muted">{% trans "Manual / proof fallback path is allowed for this tenant — use when automated rails are external or degraded." %}</p>
     {% endif %}

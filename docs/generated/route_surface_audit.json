@@ -1217,7 +1217,7 @@
         },
         {
           "kind": "template_url",
-          "line": 148,
+          "line": 150,
           "name": "accounts:backend_dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:backend_dashboard' as backend_url %}",
@@ -1568,7 +1568,7 @@
         },
         {
           "kind": "template_url",
-          "line": 607,
+          "line": 610,
           "name": "accounts:backend_dashboard",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
@@ -3331,7 +3331,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 162,
+          "line": 166,
           "name": "accounts:login",
           "path": "templates/base.html",
           "raw": "{% url 'accounts:login' %}",
@@ -3340,7 +3340,7 @@
         },
         {
           "kind": "template_url",
-          "line": 56,
+          "line": 58,
           "name": "accounts:login",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'accounts:login' %}",
@@ -3358,7 +3358,7 @@
         },
         {
           "kind": "template_url",
-          "line": 300,
+          "line": 302,
           "name": "accounts:login",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:login' %}",
@@ -3505,7 +3505,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 160,
+          "line": 164,
           "name": "accounts:logout",
           "path": "templates/base.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -3514,7 +3514,7 @@
         },
         {
           "kind": "template_url",
-          "line": 52,
+          "line": 54,
           "name": "accounts:logout",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -3523,7 +3523,7 @@
         },
         {
           "kind": "template_url",
-          "line": 293,
+          "line": 295,
           "name": "accounts:logout",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -4710,7 +4710,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 148,
+          "line": 152,
           "name": "accounts:redirect",
           "path": "templates/base.html",
           "raw": "{% url 'accounts:redirect' %}",
@@ -4719,7 +4719,7 @@
         },
         {
           "kind": "template_url",
-          "line": 157,
+          "line": 159,
           "name": "accounts:redirect",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:redirect' as portal_home_url %}",
@@ -5489,7 +5489,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 246,
+          "line": 248,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -5498,7 +5498,7 @@
         },
         {
           "kind": "template_url",
-          "line": 759,
+          "line": 761,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -5610,7 +5610,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 254,
+          "line": 256,
           "name": "accounts:user_notifications",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -5722,7 +5722,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 47,
+          "line": 49,
           "name": "accounts:user_profile",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -16227,7 +16227,7 @@
         },
         {
           "kind": "template_url",
-          "line": 14,
+          "line": 20,
           "name": "apicenter:dashboard",
           "path": "templates/apicenter/api_portal_docs.html",
           "raw": "{% url 'apicenter:dashboard' %}",
@@ -16236,7 +16236,7 @@
         },
         {
           "kind": "template_url",
-          "line": 12,
+          "line": 20,
           "name": "apicenter:dashboard",
           "path": "templates/apicenter/app_certification.html",
           "raw": "{% url 'apicenter:dashboard' %}",
@@ -16245,7 +16245,7 @@
         },
         {
           "kind": "template_url",
-          "line": 12,
+          "line": 19,
           "name": "apicenter:dashboard",
           "path": "templates/apicenter/partner_sandbox.html",
           "raw": "{% url 'apicenter:dashboard' %}",
@@ -17000,7 +17000,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 139,
+          "line": 143,
           "name": "home",
           "path": "templates/base.html",
           "raw": "{% url 'home' %}",
@@ -17009,7 +17009,7 @@
         },
         {
           "kind": "template_url",
-          "line": 197,
+          "line": 199,
           "name": "home",
           "path": "templates/portal_base.html",
           "raw": "{% url 'home' %}",
@@ -17897,7 +17897,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 158,
+          "line": 160,
           "name": "kb:kb_home",
           "path": "templates/portal_base.html",
           "raw": "{% url 'kb:kb_home' as help_center_url %}",
@@ -18407,7 +18407,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 146,
+          "line": 148,
           "name": "manager_help",
           "path": "templates/portal_base.html",
           "raw": "{% url 'manager_help' as help_center_url %}",
@@ -18678,6 +18678,17 @@
       "view": "config.manager_urls.manager_notifications"
     },
     {
+      "name": "manager_offline_sync_center",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/offline/sync/",
+      "view": "config.manager_urls.manager_offline_sync_center"
+    },
+    {
       "name": "manager_search_api",
       "permission_requirement": "control_plane",
       "reasons": [],
@@ -18719,7 +18730,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 219,
+          "line": 223,
           "name": "marketing_cookie_policy",
           "path": "templates/base.html",
           "raw": "{% url 'marketing_cookie_policy' %}",
@@ -18749,7 +18760,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 215,
+          "line": 219,
           "name": "marketing_privacy",
           "path": "templates/base.html",
           "raw": "{% url 'marketing_privacy' %}",
@@ -18779,7 +18790,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 217,
+          "line": 221,
           "name": "marketing_terms",
           "path": "templates/base.html",
           "raw": "{% url 'marketing_terms' %}",
@@ -18939,7 +18950,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 264,
+          "line": 269,
           "name": "platform_incidents_console",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"platform_incidents_console\")",
@@ -18948,7 +18959,7 @@
         },
         {
           "kind": "reverse",
-          "line": 142,
+          "line": 147,
           "name": "platform_incidents_console",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"platform_incidents_console\")",
@@ -19057,6 +19068,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 31,
+          "name": "platform_runtime:pilot_defect_dashboard",
+          "path": "apps/platform_runtime/tests/test_defect_closure_loop.py",
+          "raw": "reverse(\"platform_runtime:pilot_defect_dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 71,
           "name": "platform_runtime:pilot_defect_dashboard",
           "path": "apps/platform_runtime/tests/test_pilot_defect_closure_loop.py",
@@ -19081,6 +19101,15 @@
           "line": 93,
           "name": "platform_runtime:pilot_evidence_dashboard",
           "path": "apps/platform_runtime/tests/test_pilot_evidence.py",
+          "raw": "reverse(\"platform_runtime:pilot_evidence_dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 21,
+          "name": "platform_runtime:pilot_evidence_dashboard",
+          "path": "apps/platform_runtime/tests/test_pilot_evidence_board.py",
           "raw": "reverse(\"platform_runtime:pilot_evidence_dashboard\")",
           "reason": "",
           "status": "OK"
@@ -19204,6 +19233,15 @@
           "raw": "reverse(\"sales:first_100_schools_dashboard\", urlconf=_MANAGER)",
           "reason": "",
           "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 24,
+          "name": "sales:first_100_schools_dashboard",
+          "path": "apps/platform_runtime/tests/test_first_100_schools_dashboard.py",
+          "raw": "reverse(\n                \"sales:first_100_schools_dashboard\",\n                urlconf=\"config.manager_urls\",\n            )",
+          "reason": "",
+          "status": "OK"
         }
       ],
       "scope": "manager",
@@ -19219,7 +19257,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 106,
+          "line": 108,
           "name": "sales:lead_create",
           "path": "apps/sales/tests/test_pipeline.py",
           "raw": "reverse(\"sales:lead_create\", urlconf=_MANAGER)",
@@ -19259,7 +19297,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 125,
+          "line": 127,
           "name": "sales:lead_detail",
           "path": "apps/sales/tests/test_pipeline.py",
           "raw": "reverse(\"sales:lead_detail\", args=[lead.pk], urlconf=_MANAGER)",
@@ -19326,7 +19364,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 88,
+          "line": 90,
           "name": "sales:pipeline_board",
           "path": "apps/sales/tests/test_pipeline.py",
           "raw": "reverse(\"sales:pipeline_board\", urlconf=_MANAGER)",
@@ -19335,7 +19373,7 @@
         },
         {
           "kind": "reverse",
-          "line": 93,
+          "line": 95,
           "name": "sales:pipeline_board",
           "path": "apps/sales/tests/test_pipeline.py",
           "raw": "reverse(\"sales:pipeline_board\", urlconf=_MANAGER)",
@@ -19344,7 +19382,7 @@
         },
         {
           "kind": "reverse",
-          "line": 155,
+          "line": 157,
           "name": "sales:pipeline_board",
           "path": "apps/sales/tests/test_pipeline.py",
           "raw": "reverse(\"sales:pipeline_board\", urlconf=_MANAGER)",
@@ -19353,7 +19391,7 @@
         },
         {
           "kind": "reverse",
-          "line": 167,
+          "line": 169,
           "name": "sales:pipeline_board",
           "path": "apps/sales/tests/test_pipeline.py",
           "raw": "reverse(\"sales:pipeline_board\", urlconf=_MANAGER)",
@@ -19362,7 +19400,7 @@
         },
         {
           "kind": "reverse",
-          "line": 184,
+          "line": 186,
           "name": "sales:pipeline_board",
           "path": "apps/sales/tests/test_pipeline.py",
           "raw": "reverse(\"sales:pipeline_board\", urlconf=_MANAGER)",
@@ -20015,7 +20053,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 180,
+          "line": 184,
           "name": "siteconfig:clear_preview",
           "path": "templates/base.html",
           "raw": "{% url 'siteconfig:clear_preview' %}",
@@ -20649,7 +20687,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 37,
+          "line": 39,
           "name": "siteconfig:console_domains_hub",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'siteconfig:console_domains_hub' %}",
@@ -20658,7 +20696,7 @@
         },
         {
           "kind": "template_url",
-          "line": 50,
+          "line": 52,
           "name": "siteconfig:console_domains_hub",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'siteconfig:console_domains_hub' %}",
@@ -20667,7 +20705,7 @@
         },
         {
           "kind": "template_url",
-          "line": 200,
+          "line": 202,
           "name": "siteconfig:console_domains_hub",
           "path": "templates/control_plane_base.html",
           "raw": "{% url \"siteconfig:console_domains_hub\" %}",
@@ -20676,7 +20714,7 @@
         },
         {
           "kind": "template_url",
-          "line": 288,
+          "line": 290,
           "name": "siteconfig:console_domains_hub",
           "path": "templates/portal_base.html",
           "raw": "{% url 'siteconfig:console_domains_hub' %}",
@@ -23077,7 +23115,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 334,
+          "line": 339,
           "name": "siteconfig:metadata_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"siteconfig:metadata_operator_hub\")",
@@ -24519,7 +24557,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 182,
+          "line": 186,
           "name": "siteconfig:set_act_as_role",
           "path": "templates/base.html",
           "raw": "{% url 'siteconfig:set_act_as_role' %}",
@@ -25556,7 +25594,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 179,
+          "line": 183,
           "name": "siteconfig:toggle_preview_mode",
           "path": "templates/base.html",
           "raw": "{% url 'siteconfig:toggle_preview_mode' %}",
@@ -25677,7 +25715,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 272,
+          "line": 274,
           "name": "siteconfig:tour_steps_api",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'siteconfig:tour_steps_api' %}",
@@ -25846,7 +25884,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 48,
+          "line": 50,
           "name": "siteconfig:user_preferences",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'siteconfig:user_preferences' %}",
@@ -26720,7 +26758,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 187,
+          "line": 192,
           "name": "studio_os:control",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:control\")",
@@ -27673,7 +27711,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 194,
+          "line": 199,
           "name": "studio_os:launch",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:launch\")",
@@ -27887,7 +27925,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 180,
+          "line": 185,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -27896,7 +27934,7 @@
         },
         {
           "kind": "reverse",
-          "line": 201,
+          "line": 206,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -28834,7 +28872,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 33,
+          "line": 35,
           "name": "studio_os:shell",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'studio_os:shell' %}",
@@ -29469,7 +29507,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 222,
+          "line": 227,
           "name": "super:analytics_overview",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:analytics_overview\")",
@@ -29898,7 +29936,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 257,
+          "line": 262,
           "name": "super:app_catalog",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:app_catalog\")",
@@ -30013,7 +30051,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 299,
+          "line": 304,
           "name": "super:backlog_unlock_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:backlog_unlock_center\")",
@@ -30091,7 +30129,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 236,
+          "line": 241,
           "name": "super:billing_dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:billing_dashboard\")",
@@ -30100,7 +30138,7 @@
         },
         {
           "kind": "reverse",
-          "line": 165,
+          "line": 170,
           "name": "super:billing_dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse('super:billing_dashboard')",
@@ -30167,7 +30205,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 141,
+          "line": 143,
           "name": "super:billing_dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:billing_dashboard' as finance_url %}",
@@ -30248,7 +30286,7 @@
         },
         {
           "kind": "template_url",
-          "line": 259,
+          "line": 262,
           "name": "super:billing_dashboard",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'super:billing_dashboard' %}",
@@ -30266,7 +30304,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 250,
+          "line": 255,
           "name": "super:blueprint_marketplace",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:blueprint_marketplace\")",
@@ -30391,7 +30429,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 229,
+          "line": 234,
           "name": "super:command_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:command_center\")",
@@ -30440,7 +30478,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 139,
+          "line": 141,
           "name": "super:command_center",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:command_center' as teacher_evals_url %}",
@@ -30449,7 +30487,7 @@
         },
         {
           "kind": "template_url",
-          "line": 142,
+          "line": 144,
           "name": "super:command_center",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:command_center' as payroll_url %}",
@@ -30458,7 +30496,7 @@
         },
         {
           "kind": "template_url",
-          "line": 143,
+          "line": 145,
           "name": "super:command_center",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:command_center' as analytics_url %}",
@@ -30467,7 +30505,7 @@
         },
         {
           "kind": "template_url",
-          "line": 144,
+          "line": 146,
           "name": "super:command_center",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:command_center' as compliance_url %}",
@@ -30497,6 +30535,15 @@
           "line": 72,
           "name": "super:command_center",
           "path": "templates/components/global_search.html",
+          "raw": "{% url 'super:command_center' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 37,
+          "name": "super:command_center",
+          "path": "templates/platform_runtime/manager_offline_sync_center.html",
           "raw": "{% url 'super:command_center' %}",
           "reason": "",
           "status": "OK"
@@ -30769,7 +30816,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 271,
+          "line": 276,
           "name": "super:create_school_wizard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:create_school_wizard\")",
@@ -30845,7 +30892,7 @@
         },
         {
           "kind": "template_url",
-          "line": 632,
+          "line": 635,
           "name": "super:create_school_wizard",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'super:create_school_wizard' %}",
@@ -30982,7 +31029,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 208,
+          "line": 213,
           "name": "super:dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -30991,7 +31038,7 @@
         },
         {
           "kind": "reverse",
-          "line": 123,
+          "line": 128,
           "name": "super:dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse('super:dashboard')",
@@ -31693,6 +31740,24 @@
         },
         {
           "kind": "reverse",
+          "line": 33,
+          "name": "super:dashboard",
+          "path": "apps/platform_runtime/tests/test_manager_premium_density.py",
+          "raw": "reverse(\"super:dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 64,
+          "name": "super:dashboard",
+          "path": "apps/platform_runtime/tests/test_manager_premium_density.py",
+          "raw": "reverse(\"super:dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 157,
           "name": "super:dashboard",
           "path": "apps/platform_runtime/tests/test_unified_shell_contract_http.py",
@@ -31724,7 +31789,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 14,
+          "line": 16,
           "name": "super:dashboard",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'super:dashboard' %}",
@@ -31733,7 +31798,7 @@
         },
         {
           "kind": "template_url",
-          "line": 136,
+          "line": 138,
           "name": "super:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:dashboard' as backend_url %}",
@@ -31742,7 +31807,7 @@
         },
         {
           "kind": "template_url",
-          "line": 137,
+          "line": 139,
           "name": "super:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:dashboard' as teacher_url %}",
@@ -31751,7 +31816,7 @@
         },
         {
           "kind": "template_url",
-          "line": 138,
+          "line": 140,
           "name": "super:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:dashboard' as parent_url %}",
@@ -31760,7 +31825,7 @@
         },
         {
           "kind": "template_url",
-          "line": 140,
+          "line": 142,
           "name": "super:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:dashboard' as teacher_alias_url %}",
@@ -31769,7 +31834,7 @@
         },
         {
           "kind": "template_url",
-          "line": 145,
+          "line": 147,
           "name": "super:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:dashboard' as portal_home_url %}",
@@ -31970,6 +32035,15 @@
           "line": 219,
           "name": "super:dashboard",
           "path": "templates/partials/portal_sidebar.html",
+          "raw": "{% url 'super:dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "super:dashboard",
+          "path": "templates/platform_runtime/manager_offline_sync_center.html",
           "raw": "{% url 'super:dashboard' %}",
           "reason": "",
           "status": "OK"
@@ -32522,7 +32596,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 424,
+          "line": 427,
           "name": "super:export_revenue_csv",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'super:export_revenue_csv' %}",
@@ -32553,7 +32627,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 508,
+          "line": 511,
           "name": "super:export_schools_csv",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'super:export_schools_csv' %}",
@@ -32722,7 +32796,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 306,
+          "line": 311,
           "name": "super:fleet_governed_changes",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:fleet_governed_changes\")",
@@ -32827,7 +32901,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 278,
+          "line": 283,
           "name": "super:geography",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:geography\")",
@@ -33195,7 +33269,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 243,
+          "line": 248,
           "name": "super:marketplace_governance",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:marketplace_governance\")",
@@ -33942,7 +34016,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 292,
+          "line": 297,
           "name": "super:operator_policy",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:operator_policy\")",
@@ -34653,7 +34727,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 313,
+          "line": 318,
           "name": "super:platform_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:platform_operator_hub\")",
@@ -34792,7 +34866,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 320,
+          "line": 325,
           "name": "super:playbook_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:playbook_operator_hub\")",
@@ -35397,7 +35471,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 327,
+          "line": 332,
           "name": "super:runtime_truth_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:runtime_truth_hub\")",
@@ -35491,7 +35565,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 215,
+          "line": 220,
           "name": "super:schools_list",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:schools_list\")",
@@ -35583,6 +35657,24 @@
       "scope": "manager",
       "status": "OK",
       "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 16,
+          "name": "super:schools_list",
+          "path": "templates/platform_runtime/manager_offline_sync_center.html",
+          "raw": "{% url 'super:schools_list' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 36,
+          "name": "super:schools_list",
+          "path": "templates/platform_runtime/manager_offline_sync_center.html",
+          "raw": "{% url 'super:schools_list' %}",
+          "reason": "",
+          "status": "OK"
+        },
         {
           "kind": "template_url",
           "line": 12,
@@ -36377,7 +36469,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 604,
+          "line": 607,
           "name": "super:switch_to_tenant",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'super:switch_to_tenant' %}",
@@ -36641,7 +36733,7 @@
         },
         {
           "kind": "template_url",
-          "line": 509,
+          "line": 512,
           "name": "super:tenant_health",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'super:tenant_health' %}",
@@ -36668,7 +36760,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 285,
+          "line": 290,
           "name": "super:trust_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:trust_center\")",
@@ -37054,7 +37146,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 341,
+          "line": 346,
           "name": "super:workflow_simulator",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:workflow_simulator\")",
@@ -38722,7 +38814,7 @@
         },
         {
           "kind": "template_url",
-          "line": 148,
+          "line": 150,
           "name": "accounts:backend_dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:backend_dashboard' as backend_url %}",
@@ -39073,7 +39165,7 @@
         },
         {
           "kind": "template_url",
-          "line": 607,
+          "line": 610,
           "name": "accounts:backend_dashboard",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
@@ -40836,7 +40928,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 162,
+          "line": 166,
           "name": "accounts:login",
           "path": "templates/base.html",
           "raw": "{% url 'accounts:login' %}",
@@ -40845,7 +40937,7 @@
         },
         {
           "kind": "template_url",
-          "line": 56,
+          "line": 58,
           "name": "accounts:login",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'accounts:login' %}",
@@ -40863,7 +40955,7 @@
         },
         {
           "kind": "template_url",
-          "line": 300,
+          "line": 302,
           "name": "accounts:login",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:login' %}",
@@ -41010,7 +41102,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 160,
+          "line": 164,
           "name": "accounts:logout",
           "path": "templates/base.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -41019,7 +41111,7 @@
         },
         {
           "kind": "template_url",
-          "line": 52,
+          "line": 54,
           "name": "accounts:logout",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -41028,7 +41120,7 @@
         },
         {
           "kind": "template_url",
-          "line": 293,
+          "line": 295,
           "name": "accounts:logout",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -42215,7 +42307,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 148,
+          "line": 152,
           "name": "accounts:redirect",
           "path": "templates/base.html",
           "raw": "{% url 'accounts:redirect' %}",
@@ -42224,7 +42316,7 @@
         },
         {
           "kind": "template_url",
-          "line": 157,
+          "line": 159,
           "name": "accounts:redirect",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:redirect' as portal_home_url %}",
@@ -42994,7 +43086,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 246,
+          "line": 248,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -43003,7 +43095,7 @@
         },
         {
           "kind": "template_url",
-          "line": 759,
+          "line": 761,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -43115,7 +43207,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 254,
+          "line": 256,
           "name": "accounts:user_notifications",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -43227,7 +43319,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 47,
+          "line": 49,
           "name": "accounts:user_profile",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -53496,7 +53588,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 129,
+          "line": 133,
           "name": "ai_copilot_query",
           "path": "templates/base.html",
           "raw": "{% url 'ai_copilot_query' as ai_copilot_endpoint %}",
@@ -53514,7 +53606,7 @@
         },
         {
           "kind": "template_url",
-          "line": 126,
+          "line": 128,
           "name": "ai_copilot_query",
           "path": "templates/portal_base.html",
           "raw": "{% url 'ai_copilot_query' as ai_copilot_endpoint %}",
@@ -53561,7 +53653,7 @@
         },
         {
           "kind": "reverse",
-          "line": 780,
+          "line": 789,
           "name": "analytics:at_risk_dashboard",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"analytics:at_risk_dashboard\")",
@@ -53650,7 +53742,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 231,
+          "line": 240,
           "name": "analytics:dashboard",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"analytics:dashboard\")",
@@ -53699,7 +53791,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 155,
+          "line": 157,
           "name": "analytics:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'analytics:dashboard' as analytics_url %}",
@@ -53780,7 +53872,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 243,
+          "line": 252,
           "name": "analytics:deadlines",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"analytics:deadlines\")",
@@ -53789,7 +53881,7 @@
         },
         {
           "kind": "reverse",
-          "line": 358,
+          "line": 367,
           "name": "analytics:deadlines",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"analytics:deadlines\")",
@@ -54023,7 +54115,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 359,
+          "line": 368,
           "name": "analytics:executive_dashboard",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"analytics:executive_dashboard\")",
@@ -54454,7 +54546,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 237,
+          "line": 246,
           "name": "analytics:master_sheet",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"analytics:master_sheet\")",
@@ -54463,7 +54555,7 @@
         },
         {
           "kind": "reverse",
-          "line": 357,
+          "line": 366,
           "name": "analytics:master_sheet",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"analytics:master_sheet\")",
@@ -54692,7 +54784,7 @@
         },
         {
           "kind": "template_url",
-          "line": 137,
+          "line": 140,
           "name": "api:ai-billing-usage-explain",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'api:ai-billing-usage-explain' as api_ai_bill %}",
@@ -54973,7 +55065,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 133,
+          "line": 136,
           "name": "api:ai-observability-assistant",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'api:ai-observability-assistant' as api_ai_obs %}",
@@ -55222,7 +55314,7 @@
         },
         {
           "kind": "template_url",
-          "line": 141,
+          "line": 144,
           "name": "api:ai-trust-compliance-assistant",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'api:ai-trust-compliance-assistant' as api_ai_trust %}",
@@ -61162,7 +61254,7 @@
         },
         {
           "kind": "template_url",
-          "line": 14,
+          "line": 20,
           "name": "apicenter:dashboard",
           "path": "templates/apicenter/api_portal_docs.html",
           "raw": "{% url 'apicenter:dashboard' %}",
@@ -61171,7 +61263,7 @@
         },
         {
           "kind": "template_url",
-          "line": 12,
+          "line": 20,
           "name": "apicenter:dashboard",
           "path": "templates/apicenter/app_certification.html",
           "raw": "{% url 'apicenter:dashboard' %}",
@@ -61180,7 +61272,7 @@
         },
         {
           "kind": "template_url",
-          "line": 12,
+          "line": 19,
           "name": "apicenter:dashboard",
           "path": "templates/apicenter/partner_sandbox.html",
           "raw": "{% url 'apicenter:dashboard' %}",
@@ -62818,7 +62910,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 156,
+          "line": 158,
           "name": "compliance:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'compliance:dashboard' as compliance_url %}",
@@ -63778,7 +63870,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 151,
+          "line": 153,
           "name": "evals:teacher_dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'evals:teacher_dashboard' as teacher_evals_url %}",
@@ -64368,7 +64460,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 153,
+          "line": 155,
           "name": "finance:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'finance:dashboard' as finance_url %}",
@@ -64851,7 +64943,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1285,
+          "line": 1303,
           "name": "finance:invoices",
           "path": "apps/finance/services.py",
           "raw": "reverse(\"finance:invoices\")",
@@ -65089,7 +65181,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 249,
+          "line": 258,
           "name": "finance:notifications",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"finance:notifications\")",
@@ -66238,7 +66330,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 139,
+          "line": 143,
           "name": "home",
           "path": "templates/base.html",
           "raw": "{% url 'home' %}",
@@ -66247,7 +66339,7 @@
         },
         {
           "kind": "template_url",
-          "line": 197,
+          "line": 199,
           "name": "home",
           "path": "templates/portal_base.html",
           "raw": "{% url 'home' %}",
@@ -67275,7 +67367,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 158,
+          "line": 160,
           "name": "kb:kb_home",
           "path": "templates/portal_base.html",
           "raw": "{% url 'kb:kb_home' as help_center_url %}",
@@ -68214,7 +68306,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 146,
+          "line": 148,
           "name": "manager_help",
           "path": "templates/portal_base.html",
           "raw": "{% url 'manager_help' as help_center_url %}",
@@ -68787,7 +68879,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 219,
+          "line": 223,
           "name": "marketing_cookie_policy",
           "path": "templates/base.html",
           "raw": "{% url 'marketing_cookie_policy' %}",
@@ -70175,7 +70267,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 215,
+          "line": 219,
           "name": "marketing_privacy",
           "path": "templates/base.html",
           "raw": "{% url 'marketing_privacy' %}",
@@ -70223,6 +70315,15 @@
           "line": 208,
           "name": "marketing_procurement_checklist",
           "path": "apps/schools/competitive_marketing_views.py",
+          "raw": "reverse(\"marketing_procurement_checklist\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 32,
+          "name": "marketing_procurement_checklist",
+          "path": "apps/schools/tests/test_trust_procurement_surfaces.py",
           "raw": "reverse(\"marketing_procurement_checklist\")",
           "reason": "",
           "status": "OK"
@@ -71062,7 +71163,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 217,
+          "line": 221,
           "name": "marketing_terms",
           "path": "templates/base.html",
           "raw": "{% url 'marketing_terms' %}",
@@ -71779,7 +71880,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 154,
+          "line": 156,
           "name": "payroll:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'payroll:dashboard' as payroll_url %}",
@@ -72044,6 +72145,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 31,
+          "name": "platform_runtime:pilot_defect_dashboard",
+          "path": "apps/platform_runtime/tests/test_defect_closure_loop.py",
+          "raw": "reverse(\"platform_runtime:pilot_defect_dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 71,
           "name": "platform_runtime:pilot_defect_dashboard",
           "path": "apps/platform_runtime/tests/test_pilot_defect_closure_loop.py",
@@ -72068,6 +72178,15 @@
           "line": 93,
           "name": "platform_runtime:pilot_evidence_dashboard",
           "path": "apps/platform_runtime/tests/test_pilot_evidence.py",
+          "raw": "reverse(\"platform_runtime:pilot_evidence_dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 21,
+          "name": "platform_runtime:pilot_evidence_dashboard",
+          "path": "apps/platform_runtime/tests/test_pilot_evidence_board.py",
           "raw": "reverse(\"platform_runtime:pilot_evidence_dashboard\")",
           "reason": "",
           "status": "OK"
@@ -73639,7 +73758,7 @@
         },
         {
           "kind": "template_url",
-          "line": 150,
+          "line": 152,
           "name": "portal:parent_dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'portal:parent_dashboard' as parent_url %}",
@@ -75854,7 +75973,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 149,
+          "line": 151,
           "name": "portal:teacher_dashboard_alias",
           "path": "templates/portal_base.html",
           "raw": "{% url 'portal:teacher_dashboard_alias' as teacher_url %}",
@@ -75863,7 +75982,7 @@
         },
         {
           "kind": "template_url",
-          "line": 152,
+          "line": 154,
           "name": "portal:teacher_dashboard_alias",
           "path": "templates/portal_base.html",
           "raw": "{% url 'portal:teacher_dashboard_alias' as teacher_alias_url %}",
@@ -77242,7 +77361,7 @@
         },
         {
           "kind": "reverse",
-          "line": 258,
+          "line": 267,
           "name": "requests:dashboard",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"requests:dashboard\")",
@@ -78469,7 +78588,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 180,
+          "line": 184,
           "name": "siteconfig:clear_preview",
           "path": "templates/base.html",
           "raw": "{% url 'siteconfig:clear_preview' %}",
@@ -79103,7 +79222,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 37,
+          "line": 39,
           "name": "siteconfig:console_domains_hub",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'siteconfig:console_domains_hub' %}",
@@ -79112,7 +79231,7 @@
         },
         {
           "kind": "template_url",
-          "line": 50,
+          "line": 52,
           "name": "siteconfig:console_domains_hub",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'siteconfig:console_domains_hub' %}",
@@ -79121,7 +79240,7 @@
         },
         {
           "kind": "template_url",
-          "line": 200,
+          "line": 202,
           "name": "siteconfig:console_domains_hub",
           "path": "templates/control_plane_base.html",
           "raw": "{% url \"siteconfig:console_domains_hub\" %}",
@@ -79130,7 +79249,7 @@
         },
         {
           "kind": "template_url",
-          "line": 288,
+          "line": 290,
           "name": "siteconfig:console_domains_hub",
           "path": "templates/portal_base.html",
           "raw": "{% url 'siteconfig:console_domains_hub' %}",
@@ -81531,7 +81650,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 334,
+          "line": 339,
           "name": "siteconfig:metadata_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"siteconfig:metadata_operator_hub\")",
@@ -82973,7 +83092,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 182,
+          "line": 186,
           "name": "siteconfig:set_act_as_role",
           "path": "templates/base.html",
           "raw": "{% url 'siteconfig:set_act_as_role' %}",
@@ -84010,7 +84129,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 179,
+          "line": 183,
           "name": "siteconfig:toggle_preview_mode",
           "path": "templates/base.html",
           "raw": "{% url 'siteconfig:toggle_preview_mode' %}",
@@ -84131,7 +84250,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 272,
+          "line": 274,
           "name": "siteconfig:tour_steps_api",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'siteconfig:tour_steps_api' %}",
@@ -84300,7 +84419,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 48,
+          "line": 50,
           "name": "siteconfig:user_preferences",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'siteconfig:user_preferences' %}",
@@ -85174,7 +85293,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 187,
+          "line": 192,
           "name": "studio_os:control",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:control\")",
@@ -86127,7 +86246,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 194,
+          "line": 199,
           "name": "studio_os:launch",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:launch\")",
@@ -86341,7 +86460,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 180,
+          "line": 185,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -86350,7 +86469,7 @@
         },
         {
           "kind": "reverse",
-          "line": 201,
+          "line": 206,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -87288,7 +87407,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 33,
+          "line": 35,
           "name": "studio_os:shell",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'studio_os:shell' %}",
@@ -87923,7 +88042,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 222,
+          "line": 227,
           "name": "super:analytics_overview",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:analytics_overview\")",
@@ -88352,7 +88471,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 257,
+          "line": 262,
           "name": "super:app_catalog",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:app_catalog\")",
@@ -88467,7 +88586,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 299,
+          "line": 304,
           "name": "super:backlog_unlock_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:backlog_unlock_center\")",
@@ -88545,7 +88664,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 236,
+          "line": 241,
           "name": "super:billing_dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:billing_dashboard\")",
@@ -88554,7 +88673,7 @@
         },
         {
           "kind": "reverse",
-          "line": 165,
+          "line": 170,
           "name": "super:billing_dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse('super:billing_dashboard')",
@@ -88621,7 +88740,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 141,
+          "line": 143,
           "name": "super:billing_dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:billing_dashboard' as finance_url %}",
@@ -88702,7 +88821,7 @@
         },
         {
           "kind": "template_url",
-          "line": 259,
+          "line": 262,
           "name": "super:billing_dashboard",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'super:billing_dashboard' %}",
@@ -88720,7 +88839,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 250,
+          "line": 255,
           "name": "super:blueprint_marketplace",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:blueprint_marketplace\")",
@@ -88845,7 +88964,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 229,
+          "line": 234,
           "name": "super:command_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:command_center\")",
@@ -88894,7 +89013,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 139,
+          "line": 141,
           "name": "super:command_center",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:command_center' as teacher_evals_url %}",
@@ -88903,7 +89022,7 @@
         },
         {
           "kind": "template_url",
-          "line": 142,
+          "line": 144,
           "name": "super:command_center",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:command_center' as payroll_url %}",
@@ -88912,7 +89031,7 @@
         },
         {
           "kind": "template_url",
-          "line": 143,
+          "line": 145,
           "name": "super:command_center",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:command_center' as analytics_url %}",
@@ -88921,7 +89040,7 @@
         },
         {
           "kind": "template_url",
-          "line": 144,
+          "line": 146,
           "name": "super:command_center",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:command_center' as compliance_url %}",
@@ -88951,6 +89070,15 @@
           "line": 72,
           "name": "super:command_center",
           "path": "templates/components/global_search.html",
+          "raw": "{% url 'super:command_center' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 37,
+          "name": "super:command_center",
+          "path": "templates/platform_runtime/manager_offline_sync_center.html",
           "raw": "{% url 'super:command_center' %}",
           "reason": "",
           "status": "OK"
@@ -89223,7 +89351,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 271,
+          "line": 276,
           "name": "super:create_school_wizard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:create_school_wizard\")",
@@ -89299,7 +89427,7 @@
         },
         {
           "kind": "template_url",
-          "line": 632,
+          "line": 635,
           "name": "super:create_school_wizard",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'super:create_school_wizard' %}",
@@ -89436,7 +89564,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 208,
+          "line": 213,
           "name": "super:dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -89445,7 +89573,7 @@
         },
         {
           "kind": "reverse",
-          "line": 123,
+          "line": 128,
           "name": "super:dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse('super:dashboard')",
@@ -90147,6 +90275,24 @@
         },
         {
           "kind": "reverse",
+          "line": 33,
+          "name": "super:dashboard",
+          "path": "apps/platform_runtime/tests/test_manager_premium_density.py",
+          "raw": "reverse(\"super:dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 64,
+          "name": "super:dashboard",
+          "path": "apps/platform_runtime/tests/test_manager_premium_density.py",
+          "raw": "reverse(\"super:dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 157,
           "name": "super:dashboard",
           "path": "apps/platform_runtime/tests/test_unified_shell_contract_http.py",
@@ -90178,7 +90324,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 14,
+          "line": 16,
           "name": "super:dashboard",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'super:dashboard' %}",
@@ -90187,7 +90333,7 @@
         },
         {
           "kind": "template_url",
-          "line": 136,
+          "line": 138,
           "name": "super:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:dashboard' as backend_url %}",
@@ -90196,7 +90342,7 @@
         },
         {
           "kind": "template_url",
-          "line": 137,
+          "line": 139,
           "name": "super:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:dashboard' as teacher_url %}",
@@ -90205,7 +90351,7 @@
         },
         {
           "kind": "template_url",
-          "line": 138,
+          "line": 140,
           "name": "super:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:dashboard' as parent_url %}",
@@ -90214,7 +90360,7 @@
         },
         {
           "kind": "template_url",
-          "line": 140,
+          "line": 142,
           "name": "super:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:dashboard' as teacher_alias_url %}",
@@ -90223,7 +90369,7 @@
         },
         {
           "kind": "template_url",
-          "line": 145,
+          "line": 147,
           "name": "super:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'super:dashboard' as portal_home_url %}",
@@ -90424,6 +90570,15 @@
           "line": 219,
           "name": "super:dashboard",
           "path": "templates/partials/portal_sidebar.html",
+          "raw": "{% url 'super:dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "super:dashboard",
+          "path": "templates/platform_runtime/manager_offline_sync_center.html",
           "raw": "{% url 'super:dashboard' %}",
           "reason": "",
           "status": "OK"
@@ -90976,7 +91131,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 424,
+          "line": 427,
           "name": "super:export_revenue_csv",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'super:export_revenue_csv' %}",
@@ -91007,7 +91162,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 508,
+          "line": 511,
           "name": "super:export_schools_csv",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'super:export_schools_csv' %}",
@@ -91176,7 +91331,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 306,
+          "line": 311,
           "name": "super:fleet_governed_changes",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:fleet_governed_changes\")",
@@ -91281,7 +91436,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 278,
+          "line": 283,
           "name": "super:geography",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:geography\")",
@@ -91649,7 +91804,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 243,
+          "line": 248,
           "name": "super:marketplace_governance",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:marketplace_governance\")",
@@ -92396,7 +92551,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 292,
+          "line": 297,
           "name": "super:operator_policy",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:operator_policy\")",
@@ -93107,7 +93262,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 313,
+          "line": 318,
           "name": "super:platform_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:platform_operator_hub\")",
@@ -93246,7 +93401,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 320,
+          "line": 325,
           "name": "super:playbook_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:playbook_operator_hub\")",
@@ -93851,7 +94006,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 327,
+          "line": 332,
           "name": "super:runtime_truth_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:runtime_truth_hub\")",
@@ -93945,7 +94100,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 215,
+          "line": 220,
           "name": "super:schools_list",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:schools_list\")",
@@ -94037,6 +94192,24 @@
       "scope": "public",
       "status": "OK",
       "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 16,
+          "name": "super:schools_list",
+          "path": "templates/platform_runtime/manager_offline_sync_center.html",
+          "raw": "{% url 'super:schools_list' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 36,
+          "name": "super:schools_list",
+          "path": "templates/platform_runtime/manager_offline_sync_center.html",
+          "raw": "{% url 'super:schools_list' %}",
+          "reason": "",
+          "status": "OK"
+        },
         {
           "kind": "template_url",
           "line": 12,
@@ -94831,7 +95004,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 604,
+          "line": 607,
           "name": "super:switch_to_tenant",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'super:switch_to_tenant' %}",
@@ -95095,7 +95268,7 @@
         },
         {
           "kind": "template_url",
-          "line": 509,
+          "line": 512,
           "name": "super:tenant_health",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'super:tenant_health' %}",
@@ -95122,7 +95295,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 285,
+          "line": 290,
           "name": "super:trust_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:trust_center\")",
@@ -95508,7 +95681,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 341,
+          "line": 346,
           "name": "super:workflow_simulator",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:workflow_simulator\")",
@@ -96794,7 +96967,7 @@
         },
         {
           "kind": "template_url",
-          "line": 148,
+          "line": 150,
           "name": "accounts:backend_dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:backend_dashboard' as backend_url %}",
@@ -97145,7 +97318,7 @@
         },
         {
           "kind": "template_url",
-          "line": 607,
+          "line": 610,
           "name": "accounts:backend_dashboard",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
@@ -98908,7 +99081,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 162,
+          "line": 166,
           "name": "accounts:login",
           "path": "templates/base.html",
           "raw": "{% url 'accounts:login' %}",
@@ -98917,7 +99090,7 @@
         },
         {
           "kind": "template_url",
-          "line": 56,
+          "line": 58,
           "name": "accounts:login",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'accounts:login' %}",
@@ -98935,7 +99108,7 @@
         },
         {
           "kind": "template_url",
-          "line": 300,
+          "line": 302,
           "name": "accounts:login",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:login' %}",
@@ -99082,7 +99255,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 160,
+          "line": 164,
           "name": "accounts:logout",
           "path": "templates/base.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -99091,7 +99264,7 @@
         },
         {
           "kind": "template_url",
-          "line": 52,
+          "line": 54,
           "name": "accounts:logout",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -99100,7 +99273,7 @@
         },
         {
           "kind": "template_url",
-          "line": 293,
+          "line": 295,
           "name": "accounts:logout",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -100287,7 +100460,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 148,
+          "line": 152,
           "name": "accounts:redirect",
           "path": "templates/base.html",
           "raw": "{% url 'accounts:redirect' %}",
@@ -100296,7 +100469,7 @@
         },
         {
           "kind": "template_url",
-          "line": 157,
+          "line": 159,
           "name": "accounts:redirect",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:redirect' as portal_home_url %}",
@@ -101066,7 +101239,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 246,
+          "line": 248,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -101075,7 +101248,7 @@
         },
         {
           "kind": "template_url",
-          "line": 759,
+          "line": 761,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -101187,7 +101360,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 254,
+          "line": 256,
           "name": "accounts:user_notifications",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -101299,7 +101472,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 47,
+          "line": 49,
           "name": "accounts:user_profile",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -102308,7 +102481,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 139,
+          "line": 143,
           "name": "home",
           "path": "templates/base.html",
           "raw": "{% url 'home' %}",
@@ -102317,7 +102490,7 @@
         },
         {
           "kind": "template_url",
-          "line": 197,
+          "line": 199,
           "name": "home",
           "path": "templates/portal_base.html",
           "raw": "{% url 'home' %}",
@@ -103399,7 +103572,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 219,
+          "line": 223,
           "name": "marketing_cookie_policy",
           "path": "templates/base.html",
           "raw": "{% url 'marketing_cookie_policy' %}",
@@ -104842,7 +105015,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 215,
+          "line": 219,
           "name": "marketing_privacy",
           "path": "templates/base.html",
           "raw": "{% url 'marketing_privacy' %}",
@@ -104890,6 +105063,15 @@
           "line": 208,
           "name": "marketing_procurement_checklist",
           "path": "apps/schools/competitive_marketing_views.py",
+          "raw": "reverse(\"marketing_procurement_checklist\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 32,
+          "name": "marketing_procurement_checklist",
+          "path": "apps/schools/tests/test_trust_procurement_surfaces.py",
           "raw": "reverse(\"marketing_procurement_checklist\")",
           "reason": "",
           "status": "OK"
@@ -105751,7 +105933,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 217,
+          "line": 221,
           "name": "marketing_terms",
           "path": "templates/base.html",
           "raw": "{% url 'marketing_terms' %}",
@@ -108389,7 +108571,7 @@
         },
         {
           "kind": "template_url",
-          "line": 148,
+          "line": 150,
           "name": "accounts:backend_dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:backend_dashboard' as backend_url %}",
@@ -108740,7 +108922,7 @@
         },
         {
           "kind": "template_url",
-          "line": 607,
+          "line": 610,
           "name": "accounts:backend_dashboard",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
@@ -110503,7 +110685,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 162,
+          "line": 166,
           "name": "accounts:login",
           "path": "templates/base.html",
           "raw": "{% url 'accounts:login' %}",
@@ -110512,7 +110694,7 @@
         },
         {
           "kind": "template_url",
-          "line": 56,
+          "line": 58,
           "name": "accounts:login",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'accounts:login' %}",
@@ -110530,7 +110712,7 @@
         },
         {
           "kind": "template_url",
-          "line": 300,
+          "line": 302,
           "name": "accounts:login",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:login' %}",
@@ -110677,7 +110859,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 160,
+          "line": 164,
           "name": "accounts:logout",
           "path": "templates/base.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -110686,7 +110868,7 @@
         },
         {
           "kind": "template_url",
-          "line": 52,
+          "line": 54,
           "name": "accounts:logout",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -110695,7 +110877,7 @@
         },
         {
           "kind": "template_url",
-          "line": 293,
+          "line": 295,
           "name": "accounts:logout",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:logout' %}",
@@ -111882,7 +112064,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 148,
+          "line": 152,
           "name": "accounts:redirect",
           "path": "templates/base.html",
           "raw": "{% url 'accounts:redirect' %}",
@@ -111891,7 +112073,7 @@
         },
         {
           "kind": "template_url",
-          "line": 157,
+          "line": 159,
           "name": "accounts:redirect",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:redirect' as portal_home_url %}",
@@ -112661,7 +112843,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 246,
+          "line": 248,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -112670,7 +112852,7 @@
         },
         {
           "kind": "template_url",
-          "line": 759,
+          "line": 761,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -112782,7 +112964,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 254,
+          "line": 256,
           "name": "accounts:user_notifications",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -112894,7 +113076,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 47,
+          "line": 49,
           "name": "accounts:user_profile",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -126521,7 +126703,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 129,
+          "line": 133,
           "name": "ai_copilot_query",
           "path": "templates/base.html",
           "raw": "{% url 'ai_copilot_query' as ai_copilot_endpoint %}",
@@ -126539,7 +126721,7 @@
         },
         {
           "kind": "template_url",
-          "line": 126,
+          "line": 128,
           "name": "ai_copilot_query",
           "path": "templates/portal_base.html",
           "raw": "{% url 'ai_copilot_query' as ai_copilot_endpoint %}",
@@ -126586,7 +126768,7 @@
         },
         {
           "kind": "reverse",
-          "line": 780,
+          "line": 789,
           "name": "analytics:at_risk_dashboard",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"analytics:at_risk_dashboard\")",
@@ -126675,7 +126857,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 231,
+          "line": 240,
           "name": "analytics:dashboard",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"analytics:dashboard\")",
@@ -126724,7 +126906,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 155,
+          "line": 157,
           "name": "analytics:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'analytics:dashboard' as analytics_url %}",
@@ -126805,7 +126987,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 243,
+          "line": 252,
           "name": "analytics:deadlines",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"analytics:deadlines\")",
@@ -126814,7 +126996,7 @@
         },
         {
           "kind": "reverse",
-          "line": 358,
+          "line": 367,
           "name": "analytics:deadlines",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"analytics:deadlines\")",
@@ -127048,7 +127230,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 359,
+          "line": 368,
           "name": "analytics:executive_dashboard",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"analytics:executive_dashboard\")",
@@ -127479,7 +127661,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 237,
+          "line": 246,
           "name": "analytics:master_sheet",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"analytics:master_sheet\")",
@@ -127488,7 +127670,7 @@
         },
         {
           "kind": "reverse",
-          "line": 357,
+          "line": 366,
           "name": "analytics:master_sheet",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"analytics:master_sheet\")",
@@ -127717,7 +127899,7 @@
         },
         {
           "kind": "template_url",
-          "line": 137,
+          "line": 140,
           "name": "api:ai-billing-usage-explain",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'api:ai-billing-usage-explain' as api_ai_bill %}",
@@ -127998,7 +128180,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 133,
+          "line": 136,
           "name": "api:ai-observability-assistant",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'api:ai-observability-assistant' as api_ai_obs %}",
@@ -128247,7 +128429,7 @@
         },
         {
           "kind": "template_url",
-          "line": 141,
+          "line": 144,
           "name": "api:ai-trust-compliance-assistant",
           "path": "templates/schools/super_dashboard.html",
           "raw": "{% url 'api:ai-trust-compliance-assistant' as api_ai_trust %}",
@@ -134176,7 +134358,7 @@
         },
         {
           "kind": "template_url",
-          "line": 14,
+          "line": 20,
           "name": "apicenter:dashboard",
           "path": "templates/apicenter/api_portal_docs.html",
           "raw": "{% url 'apicenter:dashboard' %}",
@@ -134185,7 +134367,7 @@
         },
         {
           "kind": "template_url",
-          "line": 12,
+          "line": 20,
           "name": "apicenter:dashboard",
           "path": "templates/apicenter/app_certification.html",
           "raw": "{% url 'apicenter:dashboard' %}",
@@ -134194,7 +134376,7 @@
         },
         {
           "kind": "template_url",
-          "line": 12,
+          "line": 19,
           "name": "apicenter:dashboard",
           "path": "templates/apicenter/partner_sandbox.html",
           "raw": "{% url 'apicenter:dashboard' %}",
@@ -135832,7 +136014,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 156,
+          "line": 158,
           "name": "compliance:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'compliance:dashboard' as compliance_url %}",
@@ -136922,7 +137104,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 151,
+          "line": 153,
           "name": "evals:teacher_dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'evals:teacher_dashboard' as teacher_evals_url %}",
@@ -137892,7 +138074,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 153,
+          "line": 155,
           "name": "finance:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'finance:dashboard' as finance_url %}",
@@ -138375,7 +138557,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1285,
+          "line": 1303,
           "name": "finance:invoices",
           "path": "apps/finance/services.py",
           "raw": "reverse(\"finance:invoices\")",
@@ -138613,7 +138795,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 249,
+          "line": 258,
           "name": "finance:notifications",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"finance:notifications\")",
@@ -139427,7 +139609,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 139,
+          "line": 143,
           "name": "home",
           "path": "templates/base.html",
           "raw": "{% url 'home' %}",
@@ -139436,7 +139618,7 @@
         },
         {
           "kind": "template_url",
-          "line": 197,
+          "line": 199,
           "name": "home",
           "path": "templates/portal_base.html",
           "raw": "{% url 'home' %}",
@@ -140324,7 +140506,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 158,
+          "line": 160,
           "name": "kb:kb_home",
           "path": "templates/portal_base.html",
           "raw": "{% url 'kb:kb_home' as help_center_url %}",
@@ -140803,7 +140985,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 219,
+          "line": 223,
           "name": "marketing_cookie_policy",
           "path": "templates/base.html",
           "raw": "{% url 'marketing_cookie_policy' %}",
@@ -140833,7 +141015,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 215,
+          "line": 219,
           "name": "marketing_privacy",
           "path": "templates/base.html",
           "raw": "{% url 'marketing_privacy' %}",
@@ -140863,7 +141045,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 217,
+          "line": 221,
           "name": "marketing_terms",
           "path": "templates/base.html",
           "raw": "{% url 'marketing_terms' %}",
@@ -141172,7 +141354,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 154,
+          "line": 156,
           "name": "payroll:dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'payroll:dashboard' as payroll_url %}",
@@ -141437,6 +141619,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 31,
+          "name": "platform_runtime:pilot_defect_dashboard",
+          "path": "apps/platform_runtime/tests/test_defect_closure_loop.py",
+          "raw": "reverse(\"platform_runtime:pilot_defect_dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 71,
           "name": "platform_runtime:pilot_defect_dashboard",
           "path": "apps/platform_runtime/tests/test_pilot_defect_closure_loop.py",
@@ -141461,6 +141652,15 @@
           "line": 93,
           "name": "platform_runtime:pilot_evidence_dashboard",
           "path": "apps/platform_runtime/tests/test_pilot_evidence.py",
+          "raw": "reverse(\"platform_runtime:pilot_evidence_dashboard\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 21,
+          "name": "platform_runtime:pilot_evidence_dashboard",
+          "path": "apps/platform_runtime/tests/test_pilot_evidence_board.py",
           "raw": "reverse(\"platform_runtime:pilot_evidence_dashboard\")",
           "reason": "",
           "status": "OK"
@@ -143032,7 +143232,7 @@
         },
         {
           "kind": "template_url",
-          "line": 150,
+          "line": 152,
           "name": "portal:parent_dashboard",
           "path": "templates/portal_base.html",
           "raw": "{% url 'portal:parent_dashboard' as parent_url %}",
@@ -145247,7 +145447,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 149,
+          "line": 151,
           "name": "portal:teacher_dashboard_alias",
           "path": "templates/portal_base.html",
           "raw": "{% url 'portal:teacher_dashboard_alias' as teacher_url %}",
@@ -145256,7 +145456,7 @@
         },
         {
           "kind": "template_url",
-          "line": 152,
+          "line": 154,
           "name": "portal:teacher_dashboard_alias",
           "path": "templates/portal_base.html",
           "raw": "{% url 'portal:teacher_dashboard_alias' as teacher_alias_url %}",
@@ -146574,7 +146774,7 @@
         },
         {
           "kind": "reverse",
-          "line": 258,
+          "line": 267,
           "name": "requests:dashboard",
           "path": "apps/analytics/views.py",
           "raw": "reverse(\"requests:dashboard\")",
@@ -147469,7 +147669,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 180,
+          "line": 184,
           "name": "siteconfig:clear_preview",
           "path": "templates/base.html",
           "raw": "{% url 'siteconfig:clear_preview' %}",
@@ -148103,7 +148303,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 37,
+          "line": 39,
           "name": "siteconfig:console_domains_hub",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'siteconfig:console_domains_hub' %}",
@@ -148112,7 +148312,7 @@
         },
         {
           "kind": "template_url",
-          "line": 50,
+          "line": 52,
           "name": "siteconfig:console_domains_hub",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'siteconfig:console_domains_hub' %}",
@@ -148121,7 +148321,7 @@
         },
         {
           "kind": "template_url",
-          "line": 200,
+          "line": 202,
           "name": "siteconfig:console_domains_hub",
           "path": "templates/control_plane_base.html",
           "raw": "{% url \"siteconfig:console_domains_hub\" %}",
@@ -148130,7 +148330,7 @@
         },
         {
           "kind": "template_url",
-          "line": 288,
+          "line": 290,
           "name": "siteconfig:console_domains_hub",
           "path": "templates/portal_base.html",
           "raw": "{% url 'siteconfig:console_domains_hub' %}",
@@ -150531,7 +150731,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 334,
+          "line": 339,
           "name": "siteconfig:metadata_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"siteconfig:metadata_operator_hub\")",
@@ -151973,7 +152173,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 182,
+          "line": 186,
           "name": "siteconfig:set_act_as_role",
           "path": "templates/base.html",
           "raw": "{% url 'siteconfig:set_act_as_role' %}",
@@ -153010,7 +153210,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 179,
+          "line": 183,
           "name": "siteconfig:toggle_preview_mode",
           "path": "templates/base.html",
           "raw": "{% url 'siteconfig:toggle_preview_mode' %}",
@@ -153131,7 +153331,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 272,
+          "line": 274,
           "name": "siteconfig:tour_steps_api",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'siteconfig:tour_steps_api' %}",
@@ -153300,7 +153500,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 48,
+          "line": 50,
           "name": "siteconfig:user_preferences",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'siteconfig:user_preferences' %}",
@@ -154174,7 +154374,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 187,
+          "line": 192,
           "name": "studio_os:control",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:control\")",
@@ -155127,7 +155327,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 194,
+          "line": 199,
           "name": "studio_os:launch",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:launch\")",
@@ -155341,7 +155541,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 180,
+          "line": 185,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -155350,7 +155550,7 @@
         },
         {
           "kind": "reverse",
-          "line": 201,
+          "line": 206,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -156288,7 +156488,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 33,
+          "line": 35,
           "name": "studio_os:shell",
           "path": "templates/control_plane_base.html",
           "raw": "{% url 'studio_os:shell' %}",
@@ -157223,12 +157423,12 @@
   ],
   "summary": {
     "broken_count": 0,
-    "reverse_usages": 2274,
+    "reverse_usages": 2281,
     "risk_count": 0,
-    "routes_audited": 5755,
+    "routes_audited": 5756,
     "status": "ROUTE SYSTEM CERTIFIED",
-    "template_href_action_usages": 141,
-    "template_url_usages": 1862
+    "template_href_action_usages": 145,
+    "template_url_usages": 1866
   },
   "urlconfs": {
     "manager": "config.manager_urls",

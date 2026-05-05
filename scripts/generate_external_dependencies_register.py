@@ -55,6 +55,9 @@ def _flatten(source: dict) -> dict:
 
 
 def _render_md(gen: dict) -> str:
+    def cell(value: object) -> str:
+        return str(value or "").replace("|", "\\|").replace("\n", "<br>")
+
     lines = [
         "# External dependencies register",
         "",
@@ -69,12 +72,12 @@ def _render_md(gen: dict) -> str:
     for e in gen["entries_flat"]:
         if str(e.get("section_id")) != "payments_psp_settlement":
             continue
-        rid = str(e.get("id") or "")
-        dep = str(e.get("external_dependency") or "").replace("|", "\\|")[:80]
-        blk = str(e.get("blocking_level") or "")
-        st = str(e.get("status") or "")
-        rr = str(e.get("repo_readiness") or "").replace("|", "\\|")[:60]
-        ea = str(e.get("external_action_needed") or "").replace("|", "\\|")[:80]
+        rid = cell(e.get("id"))
+        dep = cell(e.get("external_dependency"))
+        blk = cell(e.get("blocking_level"))
+        st = cell(e.get("status"))
+        rr = cell(e.get("repo_readiness"))
+        ea = cell(e.get("external_action_needed"))
         lines.append(f"| {rid} | {dep} | {blk} | {st} | {rr} | {ea} |")
     lines.extend(["", "## Systems impacted (aggregate)", "", ", ".join(gen["systems_impacted"]), ""])
     return "\n".join(lines)

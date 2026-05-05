@@ -87,6 +87,13 @@ def _report_path(path: str) -> str:
         return str(p)
 
 
+def _default_keepdb_path(dbs_dir: Path) -> str:
+    migrated = dbs_dir / "ux_factory_reset.sqlite3"
+    if migrated.exists() and migrated.stat().st_size > 0:
+        return migrated.relative_to(ROOT).as_posix()
+    return ".django_test_dbs/kill_test_recovery.sqlite3"
+
+
 def main(argv: list[str] | None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -110,6 +117,12 @@ def main(argv: list[str] | None) -> int:
     dbs_dir.mkdir(parents=True, exist_ok=True)
     shared_raw = (args.db_file or os.environ.get("RMC_KILL_TEST_DB_FILE") or "").strip()
     use_keepdb = bool(args.keepdb) or _truthy_env("RMC_KILL_TEST_KEEPDB")
+    if not shared_raw:
+        # Windows agents repeatedly stalled on two fresh SQLite migrations with
+        # captured subprocess output. Keep the same tests, but default to the
+        # reliable file-backed keepdb path already documented above.
+        shared_raw = _default_keepdb_path(dbs_dir)
+        use_keepdb = True
     if shared_raw:
         p = Path(shared_raw)
         if not p.is_absolute():
@@ -128,6 +141,10 @@ def main(argv: list[str] | None) -> int:
     base_env = os.environ.copy()
     # Tests must use repo SQLite defaults; stray DATABASE_URL can block subprocess on Postgres.
     base_env.pop("DATABASE_URL", None)
+    base_env.setdefault("RMC_TEST_LOCAL_SQLITE", "1")
+    base_env.setdefault("RMC_SQLITE_TEST_MEMORY", "1")
+    base_env.setdefault("RMC_RELIABLE_TEST_RUNNER", "1")
+    base_env.setdefault("PYTHONUNBUFFERED", "1")
 
     extra_test_args: list[str] = []
     if use_keepdb:
@@ -137,6 +154,7 @@ def main(argv: list[str] | None) -> int:
 
     # Security regression bundle (tenant RBAC / surfaces — repo-contained).
     env_sec = {**base_env, "DJANGO_TEST_DB_FILE": test_db_security}
+    print("Kill test: running security enforcement regression...", flush=True)
     proc_sec = subprocess.run(
         [
             exe,
@@ -169,6 +187,7 @@ def main(argv: list[str] | None) -> int:
     critical_failures = sum(1 for s in scenarios if not s["ok"])
 
     route_msgs: list[str] = []
+    print("Kill test: resolving critical routes...", flush=True)
     try:
         _bootstrap_django()
         route_msgs = _reverse_many(
@@ -195,6 +214,7 @@ def main(argv: list[str] | None) -> int:
         critical_failures += 1
 
     env_deg = {**base_env, "DJANGO_TEST_DB_FILE": test_db_degraded}
+    print("Kill test: running degraded founder surface fallback...", flush=True)
     proc_degraded = subprocess.run(
         [
             exe,

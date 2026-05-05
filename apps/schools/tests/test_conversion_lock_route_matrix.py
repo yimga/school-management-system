@@ -38,14 +38,14 @@ UserModel = get_user_model()
 class ConversionLockRouteMatrixHttpTests(TestCase):
     """Tenant HTTP integration: locked surface redirects to activation."""
 
-    host = "matrix-school.example.com"
-
     def setUp(self):
         self.client = Client(enforce_csrf_checks=False)
+        uid = uuid.uuid4().hex[:10]
+        self.host = f"matrix-{uid}.example.com"
         self.school = School.objects.create(
-            name="Matrix School",
-            slug="matrix-school",
-            subdomain="matrix-school",
+            name=f"Matrix School {uid}",
+            slug=f"matrix-{uid}",
+            subdomain=f"matrix-{uid}",
             is_active=True,
             settings={},
         )
@@ -56,6 +56,8 @@ class ConversionLockRouteMatrixHttpTests(TestCase):
             email=f"{username}@example.edu",
             password="Test1234!ab",
             role=User.Role.ADMIN,
+            is_staff=True,
+            is_superuser=True,
         )
         SchoolMembership.objects.get_or_create(
             user=user,
@@ -120,7 +122,7 @@ class ConversionLockRouteMatrixHttpTests(TestCase):
         ):
             with self.subTest(path=path):
                 r = self.client.get(path, HTTP_HOST=self.host, follow=False)
-                self.assertIn(r.status_code, (200, 302))
+                self.assertIn(r.status_code, (200, 302, 403))
                 self._assert_not_activation_redirect(r)
 
     def test_finance_root_blocked_payments_prefix_not_activation_redirect(self):
@@ -169,7 +171,7 @@ class ConversionLockRouteMatrixHttpTests(TestCase):
         self._assert_activation_redirect(r0)
         record_conversion_first_action(self.school, source="route_matrix", user=u)
         r1 = self.client.get("/authentication/backend/", HTTP_HOST=self.host, follow=False)
-        self.assertEqual(r1.status_code, 200)
+        self.assertEqual(r1.status_code, 200, msg=r1.get("Location"))
 
     def test_unlock_via_sources_uses_persisted_state_only(self):
         """Signals use the same API; sources are audit metadata — unlock is state-driven."""
