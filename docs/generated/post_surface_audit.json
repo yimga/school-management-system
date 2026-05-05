@@ -302,7 +302,7 @@
     },
     {
       "file": "apps/analytics/views.py",
-      "line": "506",
+      "line": "515",
       "signal": "export_delivery_hint"
     },
     {
@@ -656,9 +656,9 @@
       "signal": "export_delivery_hint"
     }
   ],
-  "generated_at": "2026-05-04T22:06:45.301424+00:00",
+  "generated_at": "2026-05-05T17:54:06.579873+00:00",
   "post_handler_audit_embed": {
-    "generated_at": "2026-05-04T22:06:38.505403+00:00",
+    "generated_at": "2026-05-05T17:54:03.666008+00:00",
     "summary_by_bucket": {
       "product": 233,
       "scripts": 4
@@ -1275,7 +1275,7 @@
   },
   "schema_version": 2,
   "security_surface_audit_embed": {
-    "generated_at": "2026-05-04T22:06:36.616729+00:00",
+    "generated_at": "2026-05-05T17:54:02.704204+00:00",
     "summary": {
       "allow_any": 28,
       "csrf_exempt": 27,
@@ -1284,15 +1284,15 @@
       "permission_classes": 33,
       "require_http_methods": 325,
       "staff_member_required": 72,
-      "subprocess": 258
+      "subprocess": 259
     },
     "summary_by_classification": {
-      "allowed": 1035,
+      "allowed": 1036,
       "needs_review": 141,
       "unsafe": 11
     },
     "totals": {
-      "hits": 1187
+      "hits": 1188
     }
   },
   "subprocess_hits": [

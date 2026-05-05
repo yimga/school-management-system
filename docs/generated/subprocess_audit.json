@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-04T17:34:00.560213+00:00",
+  "generated_at": "2026-05-05T17:52:27.845500+00:00",
   "hits": [
     {
       "classification": "test_safe",
@@ -257,6 +257,12 @@
       "classification": "test_safe",
       "file": "apps/platform_runtime/tests/test_public_api_lints.py",
       "line": "13",
+      "pattern": "subprocess.run"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/platform_runtime/tests/test_release_hygiene_contract.py",
+      "line": "28",
       "pattern": "subprocess.run"
     },
     {
@@ -1054,13 +1060,13 @@
     {
       "classification": "deployment_script_safe",
       "file": "scripts/run_kill_test.py",
-      "line": "132",
+      "line": "158",
       "pattern": "subprocess.run"
     },
     {
       "classification": "deployment_script_safe",
       "file": "scripts/run_kill_test.py",
-      "line": "190",
+      "line": "218",
       "pattern": "subprocess.run"
     },
     {
@@ -1072,7 +1078,7 @@
     {
       "classification": "deployment_script_safe",
       "file": "scripts/run_sqlite_memory_tests.py",
-      "line": "39",
+      "line": "44",
       "pattern": "subprocess.call"
     },
     {
@@ -1240,6 +1246,6 @@
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 206
+    "hits": 207
   }
 }

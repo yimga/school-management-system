@@ -2,6 +2,8 @@
 <!DOCTYPE html>
 <html lang="{{ request.LANGUAGE_CODE|default:'en' }}"{% if is_rtl %} dir="rtl"{% endif %}
       data-surface="marketing"
+      data-rmc-premium-shell="marketing"
+      data-rmc-page-purpose="public-story"
       data-theme="{% if PUBLIC_BRAND_MODE %}system{% else %}light{% endif %}"
       {% if PUBLIC_BRAND_MODE %}style="--mkt-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:'#0f172a' }}; --mkt-hero-bg: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:'#0f172a' }}; --mkt-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:'#f59e0b' }};"{% endif %}>
 <head>
@@ -45,10 +47,12 @@
   <link rel="stylesheet" href="{% static 'css/platform-fluid-everywhere.css' %}">
   <link rel="stylesheet" href="{% static 'css/accessibility.css' %}">
   <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-premium-os.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-premium-polish.css' %}">
   {% block extrastyle %}{% endblock %}
 </head>
 {# data-cta (primary|demo|secondary) and data-page (page slug or home|footer) on CTAs are for GTM/analytics conversion tracking. #}
-<body class="{% block body_class %}marketing-surface{% endblock %}">
+<body class="{% block body_class %}marketing-surface{% endblock %}" data-rmc-premium-shell="marketing" data-rmc-page-purpose="public-story">
   {# Public marketing surface: tenant PWA/service-worker prompts belong on school subdomains, not this shell (see portal_base vs marketing templates). #}
   <a href="#main-content" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
   {% include 'marketing/marketing_header.html' %}

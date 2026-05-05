@@ -1,0 +1,78 @@
+{
+  "generated_at": "2026-05-05",
+  "claim_policy": "Counts are estimates unless marked measured. No 50% reduction claim is made.",
+  "workflows": [
+    {
+      "workflow": "teacher_attendance",
+      "current_routes": ["/portal/teacher/"],
+      "current_likely_steps": 3,
+      "pain_point": "Teacher needs the next class action immediately.",
+      "proposed_low_click_path": "Teacher Workspace next-action strip opens attendance for the active class.",
+      "primary_action": "Take attendance",
+      "empty_state_behavior": "Show no scheduled class with link to class planner.",
+      "data_hooks": ["data-task=\"teacher_attendance\"", "data-action"],
+      "before_after_estimate": "3 to 1-2",
+      "measurement_status": "hypothesis"
+    },
+    {
+      "workflow": "marks_entry",
+      "current_routes": ["/portal/teacher/"],
+      "current_likely_steps": 3,
+      "pain_point": "Marks entry should be reachable from pending work.",
+      "proposed_low_click_path": "Pending work card links directly to marks grid.",
+      "primary_action": "Enter marks",
+      "empty_state_behavior": "Show no pending marks and next assessment action.",
+      "data_hooks": ["data-task=\"marks_entry\"", "data-action"],
+      "before_after_estimate": "3 to 1-2",
+      "measurement_status": "hypothesis"
+    },
+    {
+      "workflow": "report_generation",
+      "current_routes": ["/analytics/", "/reports/"],
+      "current_likely_steps": 4,
+      "pain_point": "Report generation can split between analytics and report surfaces.",
+      "proposed_low_click_path": "Governed report builder exposes one primary generate/export action.",
+      "primary_action": "Generate report",
+      "empty_state_behavior": "Show missing term/class data blockers.",
+      "data_hooks": ["data-task=\"report_generation\"", "data-action"],
+      "before_after_estimate": "4 to 2",
+      "measurement_status": "hypothesis"
+    },
+    {
+      "workflow": "parent_payment_receipt",
+      "current_routes": ["/finance/"],
+      "current_likely_steps": 4,
+      "pain_point": "Payment must stay honest when PSP is external.",
+      "proposed_low_click_path": "Money Center shows invoice, manual fallback, and receipt capture together.",
+      "primary_action": "Capture receipt",
+      "empty_state_behavior": "Show no invoice due with family summary.",
+      "data_hooks": ["data-task=\"parent_payment_receipt\"", "data-action"],
+      "before_after_estimate": "4 to 2-3",
+      "measurement_status": "hypothesis"
+    },
+    {
+      "workflow": "offline_conflict_resolution",
+      "current_routes": ["/offline/sync/"],
+      "current_likely_steps": 3,
+      "pain_point": "Manager route must not dead-end; tenant queues must remain isolated.",
+      "proposed_low_click_path": "Manager route explains tenant scope and sends operator to school selector.",
+      "primary_action": "Select school",
+      "empty_state_behavior": "Explain tenant-scoped sync when no tenant selected.",
+      "data_hooks": ["data-action=\"offline-sync-select-tenant\""],
+      "before_after_estimate": "404 to 1 explanatory action",
+      "measurement_status": "measured_local_route"
+    },
+    {
+      "workflow": "tenant_onboarding",
+      "current_routes": ["/platform-runtime/implementation/"],
+      "current_likely_steps": 5,
+      "pain_point": "Go-live blockers need one ordered queue.",
+      "proposed_low_click_path": "Implementation Command Center exposes go-live score and primary next action.",
+      "primary_action": "Resolve next blocker",
+      "empty_state_behavior": "Show ready-to-launch confirmation and support playbook link.",
+      "data_hooks": ["data-rmc-implementation-command-center", "data-action"],
+      "before_after_estimate": "5 to 2",
+      "measurement_status": "hypothesis"
+    }
+  ]
+}

@@ -2,23 +2,23 @@
 
 - Installed app modules: `45`
 - Python files: `2920`
-- HTML templates: `789`
+- HTML templates: `788`
 - Markdown files: `1121`
 - Migration files: `747`
 - Management commands: `162` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs (gross scan): `2059`
+- `SiteSettings` refs (gross scan): `2047`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `41`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `7`
 - `get_solo()` refs: `208`
-- `except Exception`: `414`
-- `cursor.execute()` (gross): `381`
+- `except Exception`: `411`
+- `cursor.execute()` (gross): `371`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `32`
 - `csrf_exempt` (substring, gross): `306`
 - `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `38`
 - `AllowAny`: `106`
-- `print()` (gross all `.py`): `1059`
-- `print()` (`apps` product paths): `0`; `scripts/`: `958`
-- `gilead` matches (gross corpus): `16654` across `165` files
+- `print()` (gross all `.py`): `1062`
+- `print()` (`apps` product paths): `0`; `scripts/`: `961`
+- `gilead` matches (gross corpus): `16622` across `164` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).

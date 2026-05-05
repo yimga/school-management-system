@@ -54,3 +54,12 @@ class ExternalDependenciesRegisterTests(SimpleTestCase):
         path = data.get("external_dependency_register_path")
         self.assertEqual(path, "docs/generated/external_dependencies_register.json")
         self.assertIsInstance(data.get("external_blockers_by_blocking_level"), dict)
+
+    def test_generated_markdown_does_not_truncate_command_center_cells(self):
+        root = Path(__file__).resolve().parents[3]
+        md = (
+            root / "docs" / "generated" / "external_dependencies_register.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("metadata health command", md)
+        self.assertIn("without PSP", md)
+        self.assertIn("External action", md)

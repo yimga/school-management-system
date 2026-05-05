@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-04T22:06:38.505403+00:00",
+  "generated_at": "2026-05-05T17:54:03.666008+00:00",
   "rows": [
     {
       "bucket": "product",
@@ -145,7 +145,7 @@
       "bucket": "product",
       "classification": "protected_candidate",
       "file": "apps/analytics/views.py",
-      "line": "762",
+      "line": "771",
       "protective_decorator_nearby": true
     },
     {

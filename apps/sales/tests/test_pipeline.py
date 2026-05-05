@@ -48,7 +48,8 @@ class SalesPipelineViewTests(TestCase):
             ("contacted", "Contacted", 2),
             ("demo", "Demo", 3),
             ("pilot", "Pilot", 4),
-            ("onboarded", "Onboarded", 5),
+            ("decision", "Decision", 5),
+            ("onboarded", "Onboarded", 6),
         ]:
             PipelineStage.objects.get_or_create(
                 key=key, defaults={"label": label, "sort_order": so}
@@ -63,7 +64,8 @@ class SalesPipelineViewTests(TestCase):
             ("contacted", "Contacted", 2),
             ("demo", "Demo", 3),
             ("pilot", "Pilot", 4),
-            ("onboarded", "Onboarded", 5),
+            ("decision", "Decision", 5),
+            ("onboarded", "Onboarded", 6),
         ]:
             _, created = PipelineStage.objects.get_or_create(
                 key=key, defaults={"label": label, "sort_order": so}

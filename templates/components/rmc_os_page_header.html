@@ -4,13 +4,14 @@
 <div class="rmc-os-page-header rmc-os-page-header--operational-center rounded-2 border px-3 py-2 mb-2 bg-body-tertiary bg-opacity-10"
      data-rmc-os-page-header="1"
      {% if os_center_key %}data-rmc-os-center="{{ os_center_key }}"{% endif %}
+     data-rmc-page-purpose="{{ center_title|default:_('Operations') }}"
      data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}">
   <div class="rmc-os-page-header__context min-w-0">
     {% if center_eyebrow %}
     <div class="text-muted text-uppercase small fw-semibold mb-1" style="letter-spacing:0.05em;">{{ center_eyebrow }}</div>
     {% endif %}
     <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-      <div class="fw-semibold text-body rmc-os-page-header__title fs-5 mb-0" data-rmc-os-page-purpose="1">
+      <div class="fw-semibold text-body rmc-os-page-header__title fs-5 mb-0" data-rmc-os-page-purpose="1" data-rmc-page-purpose="1">
         {{ center_title|default:_("Operations") }}
       </div>
       {% if status_badge_text %}
@@ -28,10 +29,10 @@
 </div>
 {% else %}
 {# Default workspace strip (portal / control plane chrome). #}
-<div class="rmc-os-page-header rounded-2 border px-3 py-2 mb-2 bg-body-tertiary bg-opacity-10" data-rmc-os-page-header="1" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}">
+<div class="rmc-os-page-header rounded-2 border px-3 py-2 mb-2 bg-body-tertiary bg-opacity-10" data-rmc-os-page-header="1" data-rmc-page-purpose="{{ rmc_os_header_title|default:page_title|default:_('Operations') }}" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}">
   <div class="rmc-os-page-header__context min-w-0">
     <div class="text-muted text-uppercase small fw-semibold mb-1" style="letter-spacing:0.05em;">{% trans "RunMyCampus workspace" %}</div>
-    <div class="fw-semibold text-body rmc-os-page-header__title" data-rmc-os-page-purpose="1">
+    <div class="fw-semibold text-body rmc-os-page-header__title" data-rmc-os-page-purpose="1" data-rmc-page-purpose="1">
       {{ rmc_os_header_title|default:page_title|default:_("Operations") }}
     </div>
     <div class="small text-muted mt-1">

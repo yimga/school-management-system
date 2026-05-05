@@ -2,18 +2,18 @@
   "baseline_counts": {
     "allow_any": 106,
     "csrf_exempt": 306,
-    "cursor_execute": 381,
-    "except_exception": 414,
+    "cursor_execute": 371,
+    "except_exception": 411,
     "get_solo": 208,
-    "gilead": 16654,
-    "gilead_files": 165,
-    "html_files": 789,
+    "gilead": 16622,
+    "gilead_files": 164,
+    "html_files": 788,
     "management_commands": 162,
     "markdown_files": 1121,
     "migration_files": 747,
-    "print_calls": 1059,
+    "print_calls": 1062,
     "python_files": 2920,
-    "site_settings": 2059
+    "site_settings": 2047
   },
   "doc_drift": {
     "actual_installed_app_count": 45,
@@ -928,7 +928,7 @@
     "cursor_execute_apps_config_py_excl_migrations": 32,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 958,
+    "print_calls_scripts_py": 961,
     "site_settings_refs_apps_py_excl_migrations": 41,
     "site_settings_refs_apps_py_excl_migrations_tests": 7
   },

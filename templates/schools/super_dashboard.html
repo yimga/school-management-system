@@ -119,6 +119,9 @@
   </section>
 
   {{ super_dashboard_section_order|json_script:"cp-section-order-json" }}
+  <details class="cp-progressive-disclosure mb-4" data-rmc-manager-progressive-disclosure="1">
+    <summary class="btn btn-outline-primary btn-sm">{% trans "Open detailed operating board" %}</summary>
+    <div class="pt-3">
   <nav class="cp-section-nav mb-4 d-flex flex-wrap align-items-center gap-2" aria-label="Jump to dashboard section">
     <a href="#cp-action-queue" class="cp-section-link">Action queue</a>
     <a href="#cp-fleet-health" class="cp-section-link">Fleet health</a>
@@ -722,6 +725,8 @@
       </section>
     </div>
   </div>
+    </div>
+  </details>
 </div>
 {% endblock %}
 

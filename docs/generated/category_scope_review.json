@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-05-04",
+  "generated_at": "2026-05-05",
   "review_engine": "Category Scope Review (derived from system_closure_map)",
   "source_closure_map": "docs/generated/system_closure_map.json",
   "external_dependency_register_path": "docs/generated/external_dependencies_register.json",

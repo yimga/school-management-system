@@ -52,6 +52,11 @@ def offline_page(request):
     return render(request, "offline.html", status=200)
 
 
+@require_control_plane_access
+def manager_offline_sync_center(request):
+    return render(request, "platform_runtime/manager_offline_sync_center.html", status=200)
+
+
 def manager_help(request):
     return redirect(build_public_absolute_url(request, "/support/"))
 
@@ -349,6 +354,7 @@ urlpatterns = [
     path("", manager_home, name="home"),
     path("", manager_home, name="manager_home"),
     path("offline/", offline_page, name="offline"),
+    path("offline/sync/", manager_offline_sync_center, name="manager_offline_sync_center"),
     path("help/", manager_help, name="manager_help"),
     path("support/", manager_support_request, name="manager_support_request"),
     path("feedback/", manager_feedback, name="manager_feedback"),

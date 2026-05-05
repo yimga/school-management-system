@@ -19903,3 +19903,130 @@ msgstr ""
 
 msgid "Header primary action: Book demo"
 msgstr ""
+
+msgid ""
+"App review policy and publishing checklist for marketplace readiness. "
+"Certification means the app passed RunMyCampus review gates; it is not a "
+"SOC2/ISO/PCI certification claim."
+msgstr ""
+
+msgid ""
+"Developer onboarding guide for API keys, quotas, sandbox use, webhook "
+"testing, app review, and marketplace publishing readiness."
+msgstr ""
+
+msgid "Document required scopes and data retention before review."
+msgstr ""
+
+msgid "Founder Command Center"
+msgstr ""
+
+msgid ""
+"Marketplace monetization remains honest: revenue share is documented; live "
+"settlement depends on external PSP payout proof."
+msgstr ""
+
+msgid "Never submit production secrets through support channels."
+msgstr ""
+
+msgid "Offline Sync Center"
+msgstr ""
+
+msgid ""
+"Offline sync is tenant-scoped because queues contain tenant data. Select a "
+"school to review its queue, conflicts, and retry posture inside that tenant "
+"boundary."
+msgstr ""
+
+msgid "Open detailed operating board"
+msgstr ""
+
+msgid ""
+"Partner sandbox guidance for testing integrations without production tenant "
+"data. Sandbox access is scope-reviewed and should be used before app review "
+"or marketplace publishing."
+msgstr ""
+
+msgid ""
+"Payment or payout claims require external PSP proof outside sandbox "
+"metadata."
+msgstr ""
+
+msgid ""
+"Publishing checklist: privacy posture, support owner, security review, kill-"
+"switch acceptance, and versioning policy."
+msgstr ""
+
+msgid ""
+"Revenue-share metadata when monetized; live payouts remain external PSP "
+"proof."
+msgstr ""
+
+msgid "Review gates"
+msgstr ""
+
+msgid ""
+"Sandbox app example: create a non-production integration and test against "
+"tenant-scoped data only."
+msgstr ""
+
+msgid "Sandbox expectations"
+msgstr ""
+
+msgid "Security review, privacy posture, and kill-switch acceptance."
+msgstr ""
+
+msgid "Select a school"
+msgstr ""
+
+msgid ""
+"Status vocabulary: ready, degraded, missing credentials, external required, "
+"manual fallback."
+msgstr ""
+
+msgid ""
+"Subscribe to platform events (e.g. student_created, invoice_created). Manage"
+" endpoints below. Production callbacks should be idempotent and must not "
+"assume live payment settlement unless PSP webhooks confirm it."
+msgstr ""
+
+msgid "Support owner and escalation path."
+msgstr ""
+
+msgid "Tenant isolation and scoped API usage."
+msgstr ""
+
+msgid "Tenant scoped"
+msgstr ""
+
+msgid "Tenant-scoped offline sync review"
+msgstr ""
+
+msgid ""
+"This manager route is intentionally explanatory. It prevents a dead 404 "
+"while preserving tenant isolation."
+msgstr ""
+
+msgid "Use test tenants and test webhook endpoints only."
+msgstr ""
+
+msgid ""
+"Use this portal to understand REST/API access, scoped keys, quota "
+"expectations, webhook subscriptions, sandbox app testing, app publishing "
+"checklist, app review policy, partner badge status, and revenue-share "
+"documentation."
+msgstr ""
+
+msgid "Webhook retry and rollback behavior."
+msgstr ""
+
+msgid ""
+"Webhook testing guide for event types, payload schemas, endpoint "
+"subscriptions, retries, and secret rotation. Use sandbox endpoints before "
+"production."
+msgstr ""
+
+msgid ""
+"Webhook testing guide: subscribe, verify payloads, rotate secrets, and retry"
+" safely."
+msgstr ""

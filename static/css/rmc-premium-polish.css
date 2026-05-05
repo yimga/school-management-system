@@ -1,0 +1,133 @@
+/**
+ * RunMyCampus Premium Polish layer.
+ * This is the final visual refinement layer above the RMC OS shell and
+ * premium OS reset. It uses existing tokens and avoids changing routes,
+ * permissions, tenant isolation, or payment-readiness truth.
+ */
+
+:root {
+  --rmc-polish-radius: var(--rmc-premium-radius, 8px);
+  --rmc-polish-line: var(--rmc-premium-line, rgba(15, 23, 42, 0.1));
+  --rmc-polish-shadow-soft: 0 16px 42px rgba(15, 23, 42, 0.08);
+  --rmc-polish-shadow-focus: 0 0 0 0.18rem rgba(37, 99, 235, 0.2);
+  --rmc-polish-surface: rgba(255, 255, 255, 0.92);
+  --rmc-polish-ink: var(--rmc-premium-ink, #111827);
+  --rmc-polish-muted: var(--rmc-premium-muted, #64748b);
+}
+
+body {
+  letter-spacing: 0;
+}
+
+.marketing-surface .mkt-header,
+.cp-shell-content .cp-navbar,
+.portal-body-with-layout .portal-topbar {
+  backdrop-filter: saturate(150%) blur(14px);
+}
+
+.marketing-surface .mkt-nav-link,
+.marketing-surface .dropdown-item,
+.portal-body-with-layout .nav-link,
+.cp-shell-content .nav-link {
+  text-underline-offset: 0.18em;
+}
+
+.marketing-surface .btn:focus-visible,
+.portal-body-with-layout .btn:focus-visible,
+.cp-shell-content .btn:focus-visible,
+.marketing-surface a:focus-visible,
+.portal-body-with-layout a:focus-visible,
+.cp-shell-content a:focus-visible {
+  outline: 0;
+  box-shadow: var(--rmc-polish-shadow-focus);
+}
+
+.marketing-surface .btn,
+.portal-body-with-layout .btn,
+.cp-shell-content .btn {
+  min-height: 2.35rem;
+}
+
+.marketing-surface .badge,
+.marketing-surface [class*="pill"],
+.portal-body-with-layout .badge,
+.portal-body-with-layout [class*="pill"],
+.cp-shell-content .badge,
+.cp-shell-content [class*="pill"] {
+  border-radius: 999px;
+}
+
+.marketing-surface .mkt-section > .container,
+.marketing-surface .mkt-section > .container-fluid {
+  max-width: 1180px;
+}
+
+.marketing-surface .mkt-section p,
+.portal-body-with-layout .rmc-os-page-header__subtitle,
+.cp-shell-content .rmc-os-page-header__subtitle {
+  color: var(--rmc-polish-muted);
+}
+
+.portal-body-with-layout .card,
+.portal-body-with-layout [class*="panel"],
+.cp-shell-content .card,
+.cp-shell-content [class*="panel"],
+.marketing-surface [class*="card"],
+.marketing-surface [class*="panel"] {
+  box-shadow: var(--rmc-polish-shadow-soft);
+}
+
+.portal-body-with-layout .table-responsive,
+.cp-shell-content .table-responsive {
+  background: var(--rmc-polish-surface);
+  overflow: auto;
+}
+
+.portal-body-with-layout table,
+.cp-shell-content table {
+  margin-bottom: 0;
+}
+
+.portal-body-with-layout thead th,
+.cp-shell-content thead th {
+  color: var(--rmc-polish-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.rmc-os-empty-state,
+[data-rmc-empty-state],
+.dashboard-empty-state,
+.empty-state {
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.rmc-os-status-strip,
+[data-rmc-os-status-strip] {
+  border-radius: var(--rmc-polish-radius);
+  border: 1px solid var(--rmc-polish-line);
+}
+
+.cp-progressive-disclosure > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.cp-progressive-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .marketing-surface .mkt-section {
+    padding-block: 2.75rem;
+  }
+
+  .portal-body-with-layout .card,
+  .cp-shell-content .card,
+  .marketing-surface [class*="card"] {
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
+  }
+}

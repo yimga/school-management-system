@@ -1,0 +1,40 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Offline Sync Center" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Founder Command Center" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Offline Sync Center" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block rmc_os_shell_primary_action %}
+<a class="btn btn-primary btn-sm" href="{% url 'super:schools_list' %}" data-rmc-primary-action="1" data-action="select-school-offline-sync">
+  {% trans "Select school" %}
+</a>
+{% endblock %}
+
+{% block cp_content %}
+<section class="cp-panel my-4" data-page-archetype="operational-workbench" data-rmc-os-center="offline_sync_center" data-rmc-page-purpose="{% trans 'Tenant-scoped offline sync review' %}">
+  <div class="cp-panel-header">
+    <div>
+      <span class="cp-panel-eyebrow">{% trans "Tenant scoped" %}</span>
+      <h1 class="cp-panel-title h4 mb-1">{% trans "Offline Sync Center" %}</h1>
+      <p class="text-muted small mb-0">
+        {% trans "Offline sync is tenant-scoped because queues contain tenant data. Select a school to review its queue, conflicts, and retry posture inside that tenant boundary." %}
+      </p>
+    </div>
+  </div>
+  <div class="alert alert-info mb-3" role="status">
+    {% trans "This manager route is intentionally explanatory. It prevents a dead 404 while preserving tenant isolation." %}
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-primary" href="{% url 'super:schools_list' %}" data-rmc-primary-action="1" data-action="offline-sync-select-tenant">{% trans "Select a school" %}</a>
+    <a class="btn btn-outline-secondary" href="{% url 'super:command_center' %}">{% trans "Open command center" %}</a>
+  </div>
+</section>
+{% endblock %}

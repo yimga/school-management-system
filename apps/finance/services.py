@@ -5,7 +5,7 @@ import hmac
 import logging
 from collections import defaultdict
 from datetime import date
-from decimal import Decimal, ROUND_DOWN
+from decimal import Decimal, InvalidOperation, ROUND_DOWN
 from typing import Iterable
 
 from django.conf import settings
@@ -68,6 +68,22 @@ DEFAULT_SIGNATURE_HEADER = "X-Signature"
 
 def _site_settings_for_school(school=None):
     return get_effective_site_settings(school=school)
+
+
+def _decimal_site_setting(site, field_name: str, default: str) -> Decimal:
+    raw_value = getattr(site, field_name, default)
+    if raw_value in (None, ""):
+        raw_value = default
+    try:
+        return Decimal(str(raw_value))
+    except (InvalidOperation, ValueError):
+        logger.warning(
+            "Invalid decimal site setting %s=%r; using default %s",
+            field_name,
+            raw_value,
+            default,
+        )
+        return Decimal(default)
 
 
 def normalize_provider_slug(slug: str | None) -> str:
@@ -895,7 +911,9 @@ def create_payment_from_receipt(
     overpayment_handling = getattr(
         site, "finance_overpayment_handling", "allow_with_refund"
     )
-    tolerance = Decimal(str(getattr(site, "finance_overpayment_tolerance_xaf", "1000")))
+    tolerance = _decimal_site_setting(
+        site, "finance_overpayment_tolerance_xaf", "1000"
+    )
     _currency = (
         getattr(getattr(invoice, "school", None), "currency_code", None)
         or get_platform_defaults(use_db=False)["currency"]
