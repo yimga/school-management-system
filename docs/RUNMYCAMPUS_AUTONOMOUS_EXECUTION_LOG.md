@@ -1,5 +1,71 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Administration model final certification and full suite (2026-05-06)
+
+**A. Branch/status:** Work ran directly on `main`. Existing unrelated marketing/i18n/generated changes were already dirty and were kept separate from the administration-model commit set.
+
+**B. Focused regression:** Administration model targeted bundle -> `Ran 12 tests`, `OK`.
+
+**C. Verifiers:** `manage.py check`, route audit, security audit, tenant isolation audit, test-module contract, design-system Phase 2, shell inventory, North Star audit, kill test, doc-plan density discipline, and SOT pillar evidence all passed. Route audit remained `ROUTE SYSTEM CERTIFIED`; North Star remained `75/75`; kill test passed.
+
+**D. Full-suite first pass:** Full suite found only administration-slice drift failures: the new control-plane templates needed registry handling and platform inventory was stale.
+
+**E. Fixes after full-suite drift:** Registered `platform_runtime/configuration_center.html` in Phase 7 templates, added its Phase 8 declaration, added the required `data-decision-engine="surface"` marker, exempted `platform_runtime/configuration_module_detail.html` as a detail surface, and regenerated platform inventory artifacts.
+
+**F. Targeted drift proof:** Control-plane registry drift, platform inventory check, and Phase 7 marker tests passed after the fixes.
+
+**G. Full suite final:** `DJANGO_TEST_DB_FILE=.django_test_dbs/admin_model_full_green.sqlite3 RMC_RELIABLE_TEST_RUNNER=1 python manage.py test --settings=config.settings --noinput` -> `Ran 2873 tests in 2032.054s`, `OK (skipped=7)`.
+
+**H. Verdict:** **ADMINISTRATION MODEL READY - REPO SCOPE, FULL-SUITE CERTIFIED**. No full-market claim; live PSP/settlement and marketplace monetization proof remain external blockers.
+
+## Slice - Marketing accessibility hardening wave (2026-05-06)
+
+**A. Scope:** Harden the already WORLD-CLASS READY marketing front for accessibility without reopening creative/design implementation.
+
+**B. Fixes:** Added a marketing-only accessibility hardening stylesheet; preserved the current creative pages while improving contrast for primary/outline CTAs, dark hero text, solution-page leads, footer helper text, pricing/table labels, and platform story cards. Removed `aria-hidden` from the visible live-flow sidebar, added keyboard activation for live-flow controls, and made horizontal scroll regions keyboard-focusable with accessible labels.
+
+**C. Tests:** Added `tests/e2e/marketing-accessibility.spec.js` covering the scoped marketing pages across desktop and mobile with axe serious/critical blocking, landmarks, skip link, image alt checks, horizontal overflow checks, mega-menu keyboard reachability, mobile menu reachability, and contact/demo form label/feedback checks.
+
+**D. Browser QA:** Stable local apex-host setup used `MULTI_TENANT_BASE_DOMAIN=runmycampus.com SECURE_SSL_REDIRECT=0 CSRF_COOKIE_SECURE=0 SESSION_COOKIE_SECURE=0 python manage.py runserver 127.0.0.1:8010 --settings=config.settings --noreload`, base URL `http://runmycampus.com:8010`, and Playwright host resolver `MAP runmycampus.com 127.0.0.1`. `collectstatic --noinput` was run so the staticfiles-served QA server picked up the new CSS.
+
+**E. Gates:** Dedicated accessibility spec `npx.cmd playwright test tests/e2e/marketing-accessibility.spec.js --workers=1 --reporter=line` -> **43 passed**. Fast marketing smoke with `SKIP_AXE=1` -> **71 passed / 22 skipped**. Axe-enabled marketing smoke -> **93 passed**. Django marketing tests -> **42 tests OK**. `validate_marketing_urls --smoke` -> **passed**. `audit_route_surface.py` -> **broken_count: 0**. `verify_i18n_catalog_fresh.py` -> **OK**.
+
+**F. Verdict:** **ACCESSIBILITY HARDENED AND READY**. Remaining risk is low runtime/setup hygiene only; no serious/critical axe blockers remain in the dedicated marketing accessibility pass.
+
+## Slice - World-class administration + configuration facade (2026-05-06)
+
+**A. Scope:** Create a world-class administration and configuration model without duplicating existing systems. `/super/` remains the platform operating front; `/configuration/` is the platform configuration facade; tenant schools get a School Configuration Center; `/admin/` remains compatible; `/internal-admin/` becomes an explicit technical fallback alias.
+
+**B. Code:** Added data-first facade catalog and views in `apps/platform_runtime/administration_catalog.py`, `apps/platform_runtime/views_administration.py`, and `apps/platform_runtime/configuration_urls.py`. Added templates `configuration_center.html`, `configuration_module_detail.html`, and `school_configuration_center.html`.
+
+**C. Routing and boundaries:** Manager/root hosts expose `/configuration/`; tenant hosts return 403 for `/configuration/`; tenant hosts expose `/school/settings/` and `/siteconfig/school-configuration/`; `/internal-admin/` redirects to the current host's canonical `/admin/`; manager host middleware allowlists `/configuration/` and `/internal-admin/`.
+
+**D. Facade content:** Modules cover Blueprint Marketplace, App Catalog, Package Rollout, Workflow Packs, Dashboard Packs, Policy Bundles, Metadata Catalog, Registry Center, Runtime + Governance, Migration Center, Integration + API Center, Compliance + Audit Configuration, Security + Trust Configuration, Billing / Subscription / Usage Rules, and UX/UI Experience Configuration. Blueprint and pack facades are preview-first; external payment and marketplace monetization remain `external_required`.
+
+**E. Docs:** Added `docs/generated/administration_surface_map.json`, `docs/generated/administration_surface_map.md`, and `docs/architecture/RUNMYCAMPUS_ADMINISTRATION_MODEL.md`.
+
+**F. Tests:** `python manage.py test apps.platform_runtime.tests.test_administration_model apps.platform_runtime.tests.test_configuration_center apps.platform_runtime.tests.test_internal_admin_alias apps.platform_runtime.tests.test_blueprint_marketplace_foundations apps.platform_runtime.tests.test_pack_libraries apps.platform_runtime.tests.test_registry_center apps.platform_runtime.tests.test_tenant_school_configuration_center --settings=config.settings --noinput --keepdb` -> `Ran 12 tests`, `OK`.
+
+**G. Verifiers:** `manage.py check` OK; `audit_route_surface.py` ROUTE SYSTEM CERTIFIED with `broken_count: 0`; `audit_security_surface.py` OK; `audit_tenant_isolation.py` OK; `verify_test_module_contract.py` OK; `verify_design_system_phase2.py` PASS; `verify_shell_surface_inventory.py` PASS; `run_northstar_audit.py` 75/75 DOMINANT; `run_kill_test.py` PASS.
+
+**H. Verdict:** **ADMINISTRATION MODEL READY - REPO SCOPE**. Full-market category-defining remains blocked by external PSP, settlement, and marketplace monetization proof.
+
+## Slice - Marketing world-class readiness closure documentation (2026-05-06)
+
+**A. Scope:** Documentation-only closure for the RunMyCampus marketing front after stable apex-host browser QA. No marketing implementation was reopened.
+
+**B. Final classification:** **WORLD-CLASS READY**.
+
+**C. Evidence recorded:** Creative differentiation finalized for Admissions, Fees & Payments, Parent Portal, Teacher Portal, Private Schools, Faith-Based Schools, and Growing School Networks. Stable local apex-host HTTP QA used **`MULTI_TENANT_BASE_DOMAIN=runmycampus.com SECURE_SSL_REDIRECT=0 CSRF_COOKIE_SECURE=0 SESSION_COOKIE_SECURE=0 python manage.py runserver 127.0.0.1:8010 --settings=config.settings --noreload`**, base URL **`http://runmycampus.com:8010`**, Playwright host resolver **`MAP runmycampus.com 127.0.0.1`**, and curl **`--resolve runmycampus.com:8010:127.0.0.1 --noproxy '*'`**. Static asset availability passed.
+
+**D. Browser / marker verification:** `/`, `/platform/admissions/`, `/platform/fees-payments/`, `/platform/parent-portal/`, `/platform/teacher-portal/`, `/solutions/private-schools/`, `/solutions/faith-based-schools/`, and `/solutions/growing-school-networks/` returned **200** and verified the expected markers/assets. Browser marker script passed **7/7** pages: Admissions **`data-mkt-admissions-readiness-board`** / **`platform-admissions-readiness-board.svg`**; Fees **`data-mkt-fees-collection-cockpit`** / **`platform-fees-collection-cockpit.svg`**; Parent Portal **`data-mkt-parent-day-in-life`** / **`platform-parent-day-in-life.svg`**; Teacher Portal **`data-mkt-teacher-classroom-desk`** / **`platform-teacher-classroom-desk.svg`**; Private Schools **`data-mkt-solution-private-growth-engine`** / **`solution-private-growth-engine.svg`**; Faith-Based **`data-mkt-solution-faith-community-hub`** / **`solution-faith-community-hub.svg`**; Growing Networks **`data-mkt-solution-growing-network-playbook`** / **`solution-growing-network-playbook.svg`**.
+
+**E. Gates:** Playwright marketing smoke **`npx.cmd playwright test tests/e2e/marketing-smoke.spec.js --workers=1 --reporter=line`** -> **`71 passed, 22 skipped`**; Django marketing tests -> **42 tests OK**; **`validate_marketing_urls --smoke`** -> **passed**; **`audit_route_surface.py`** -> **`broken_count: 0`**; **`verify_i18n_catalog_fresh.py`** -> **OK**.
+
+**F. Notes:** Local HTTP browser QA required **`SECURE_SSL_REDIRECT=0`** and **`CSRF_COOKIE_SECURE=0 SESSION_COOKIE_SECURE=0`**; Playwright required host resolver rules for **`runmycampus.com`**. The stale Playwright Private Schools assertion was updated to the new growth-engine marker/SVG. These are low-risk local runtime setup notes, not product blockers.
+
+**G. Remaining work:** None for marketing world-class readiness closure. A future axe/accessibility-hardening wave may be opened explicitly, but it is not a blocker for this classification.
+
 ## Wave - Product domination certification recovery on `feature/product-domination-premium-ops` (2026-05-05)
 
 **A. Scope:** Certify product-domination branch without new product scope: full-suite recovery, targeted bundle, generated artifacts, full verifier stack, SOT/log update, and cleanliness checks.
@@ -28175,6 +28241,16 @@ Residual external blocker (SOT-compliant):
 
 
 | **F. Follow-ons** | **Batch 18 (181?195)**; split-billing **suspense** / multi-invoice; Phase H standalone shell when shipped; **`0039+`** on next marketplace dict secret. |
+
+## Slice - Marketing final creative differentiation pass (2026-05-06)
+
+**A. Scope:** Final creative pass for the pages still called partial in the marketing report: Admissions, Fees & Payments, Parent Portal, Teacher Portal, Private Schools, Faith-Based Schools, and Growing School Networks. Preserved the prior mega menu, homepage, Analytics, Security, Multi-Campus, and International Schools improvements.
+
+**B. Implementation:** Added page-specific markers and self-hosted mockups: `platform-admissions-readiness-board.svg`, `platform-fees-collection-cockpit.svg`, `platform-parent-day-in-life.svg`, `platform-teacher-classroom-desk.svg`, `solution-private-growth-engine.svg`, `solution-faith-community-hub.svg`, and `solution-growing-network-playbook.svg`. Reworked the four dedicated platform templates into enrollment command board, finance control room, family mobile command center, and daily classroom desk rhythms. Added private-school growth, faith-community, and growing-network playbook panels to solution pages.
+
+**C. Validation:** `RMC_SQLITE_TEST_MEMORY=1 DJANGO_TEST_DB_FILE=.django_test_dbs/mkt_only.sqlite3 python manage.py test apps.schools.tests.test_marketing_nav_contract apps.schools.tests.test_marketing_validation apps.schools.tests.test_marketing_product_page_phase_h --settings=config.settings --noinput --keepdb -v 1` - **42 OK**. `MULTI_TENANT_BASE_DOMAIN=runmycampus.com python manage.py validate_marketing_urls --smoke --settings=config.settings` - **PASS**. `python scripts/audit_route_surface.py` - **broken_count 0**. `python manage.py sync_i18n_catalog --compile --settings=config.settings` then `python scripts/verify_i18n_catalog_fresh.py` - **OK**.
+
+**D. Notes:** Browser smoke remains dependent on clean apex-host local server behavior; document the exact Playwright result in the final report for this pass.
 
 
 

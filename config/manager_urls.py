@@ -15,6 +15,7 @@ from apps.billing import api_views as billing_api_views
 from apps.billing.models import TenantSubscription
 from apps.observability import views as obs_views
 from apps.observability.models import PlatformIncident
+from apps.platform_runtime.views_administration import internal_admin_alias_redirect
 from apps.schools.models import School
 from apps.schools.marketing_views import marketing_page
 from apps.schools.control_plane import (
@@ -361,6 +362,8 @@ urlpatterns = [
     path("feedback/", manager_feedback, name="manager_feedback"),
     path("notifications/", manager_notifications, name="manager_notifications"),
     path("admin/siteconfig/customizer/", admin_siteconfig_customizer_redirect),
+    path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
+    path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
     path("admin/", platform_admin_site.urls),
     path(
         "authentication/",
@@ -378,6 +381,13 @@ urlpatterns = [
     ),
     path(
         "studio/", include(("apps.studio_os.urls", "studio_os"), namespace="studio_os")
+    ),
+    path(
+        "configuration/",
+        include(
+            ("apps.platform_runtime.configuration_urls", "configuration"),
+            namespace="configuration",
+        ),
     ),
     path(
         "automation/",

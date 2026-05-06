@@ -5,15 +5,15 @@
     "cursor_execute": 371,
     "except_exception": 411,
     "get_solo": 208,
-    "gilead": 16622,
+    "gilead": 16623,
     "gilead_files": 164,
-    "html_files": 788,
+    "html_files": 789,
     "management_commands": 162,
-    "markdown_files": 1121,
+    "markdown_files": 1126,
     "migration_files": 747,
     "print_calls": 1062,
-    "python_files": 2920,
-    "site_settings": 2047
+    "python_files": 2938,
+    "site_settings": 2048
   },
   "doc_drift": {
     "actual_installed_app_count": 45,
@@ -23,8 +23,8 @@
   },
   "largest_python_files": [
     {
-      "bytes": 145189,
-      "lines": 3639,
+      "bytes": 145327,
+      "lines": 3641,
       "path": "apps/schools/marketing_views.py"
     },
     {

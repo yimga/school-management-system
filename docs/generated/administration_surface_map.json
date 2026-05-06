@@ -1,0 +1,138 @@
+{
+  "classification": "ADMINISTRATION MODEL READY - REPO SCOPE",
+  "generated_from": "apps.platform_runtime.administration_catalog",
+  "principles": [
+    "Do not duplicate existing SiteConfig, Studio OS, marketplace, metadata, package, automation, billing, compliance, and runtime systems.",
+    "Use /super/ for platform operation.",
+    "Use /configuration/ as the governed platform configuration facade.",
+    "Use tenant school configuration for tenant-scoped setup.",
+    "Keep /admin/ compatible and expose /internal-admin/ as technical fallback alias.",
+    "Keep external payment and marketplace monetization state external_required until provider evidence exists."
+  ],
+  "surfaces": [
+    {
+      "current_route": "/super/",
+      "current_template_view": "apps.schools.super_urls",
+      "current_user": "RunMyCampus platform operator",
+      "belongs_to": "/super",
+      "current_status": "ready",
+      "risk": "navigation density and command grouping",
+      "recommended_action": "remain Platform Command Center",
+      "tests_needed": "existing super HTTP and control-plane boundary tests"
+    },
+    {
+      "current_route": "/configuration/",
+      "current_template_view": "platform_runtime/configuration_center.html",
+      "current_user": "platform configuration operator",
+      "belongs_to": "/configuration",
+      "current_status": "ready",
+      "risk": "facade drift from existing systems",
+      "recommended_action": "governed facade over existing systems",
+      "tests_needed": "configuration center access, module links, tenant blocking"
+    },
+    {
+      "current_route": "/configuration/blueprints/",
+      "current_template_view": "platform_runtime/configuration_module_detail.html",
+      "current_user": "platform configuration operator",
+      "belongs_to": "/configuration",
+      "current_status": "ready",
+      "risk": "blind install without preview, impact analysis, rollback, or audit",
+      "recommended_action": "preview-first blueprint marketplace facade",
+      "tests_needed": "required blueprint names and preview-only posture"
+    },
+    {
+      "current_route": "/configuration/packages/",
+      "current_template_view": "platform_runtime/configuration_module_detail.html",
+      "current_user": "platform configuration operator",
+      "belongs_to": "/configuration",
+      "current_status": "ready",
+      "risk": "package rollout without limits and downgrade posture",
+      "recommended_action": "package library facade linked to rollout governance",
+      "tests_needed": "pack category rendering and non-dummy actions"
+    },
+    {
+      "current_route": "/configuration/workflow-packs/",
+      "current_template_view": "platform_runtime/configuration_module_detail.html",
+      "current_user": "automation/configuration operator",
+      "belongs_to": "/configuration",
+      "current_status": "ready",
+      "risk": "workflow pack without trigger, condition, action, owner, simulation, or deactivation path",
+      "recommended_action": "workflow pack facade with simulation link",
+      "tests_needed": "trigger, condition, action, owner, simulation assertions"
+    },
+    {
+      "current_route": "/configuration/dashboard-packs/",
+      "current_template_view": "platform_runtime/configuration_module_detail.html",
+      "current_user": "experience configuration operator",
+      "belongs_to": "/configuration",
+      "current_status": "ready",
+      "risk": "dashboard pack without role permissions, empty states, or mobile posture",
+      "recommended_action": "dashboard pack facade linked to dashboard registry",
+      "tests_needed": "pack rendering and non-dummy actions"
+    },
+    {
+      "current_route": "/configuration/policy-bundles/",
+      "current_template_view": "platform_runtime/configuration_module_detail.html",
+      "current_user": "policy/compliance operator",
+      "belongs_to": "/configuration",
+      "current_status": "ready",
+      "risk": "policy not explainable, auditable, scoped, or reversible",
+      "recommended_action": "policy bundle facade linked to super policy catalog",
+      "tests_needed": "rules, approvals, audit requirements, tenant scope"
+    },
+    {
+      "current_route": "/configuration/registries/",
+      "current_template_view": "platform_runtime/configuration_module_detail.html",
+      "current_user": "platform runtime operator",
+      "belongs_to": "/configuration",
+      "current_status": "ready",
+      "risk": "registry drift and unclear ownership",
+      "recommended_action": "registry center with owner, scope, proof, drift, and route links",
+      "tests_needed": "registry list includes dashboard, workflow, integration, billing, brand, extension, pack, usage, owned models, external dependency"
+    },
+    {
+      "current_route": "/school/settings/",
+      "current_template_view": "platform_runtime/school_configuration_center.html",
+      "current_user": "tenant school admin",
+      "belongs_to": "/school",
+      "current_status": "ready",
+      "risk": "tenant sees global registries or platform-only configuration",
+      "recommended_action": "tenant-scoped School Configuration Center",
+      "tests_needed": "tenant school admin gets 200 and platform global surfaces are absent"
+    },
+    {
+      "current_route": "/siteconfig/school-configuration/",
+      "current_template_view": "platform_runtime/school_configuration_center.html",
+      "current_user": "tenant school admin",
+      "belongs_to": "/school",
+      "current_status": "ready",
+      "risk": "legacy tenant settings discovery",
+      "recommended_action": "alias to School Configuration Center",
+      "tests_needed": "tenant alias returns 200"
+    },
+    {
+      "current_route": "/internal-admin/",
+      "current_template_view": "apps.platform_runtime.views_administration.internal_admin_alias_redirect",
+      "current_user": "technical admin",
+      "belongs_to": "/internal-admin",
+      "current_status": "ready",
+      "risk": "duplicated admin namespace if mounted twice",
+      "recommended_action": "redirect alias to already split /admin/ mount",
+      "tests_needed": "/admin/ remains compatible; /internal-admin/ resolves on manager and tenant hosts"
+    },
+    {
+      "current_route": "/admin/",
+      "current_template_view": "config.admin platform_admin_site / tenant_admin_site",
+      "current_user": "technical admin",
+      "belongs_to": "/internal-admin",
+      "current_status": "ready",
+      "risk": "raw CRUD mistaken for product UX",
+      "recommended_action": "keep compatible; use only as technical fallback",
+      "tests_needed": "platform and tenant registries remain separated"
+    }
+  ],
+  "external_blockers_remain": [
+    "global_payments",
+    "marketplace_monetization"
+  ]
+}

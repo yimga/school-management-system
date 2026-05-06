@@ -341,6 +341,10 @@ MODULE_ACCESS_DEFAULTS = {
         "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
         "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
     },
+    "configuration": {
+        "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+    },
     "studio_os": {
         "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
         "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},

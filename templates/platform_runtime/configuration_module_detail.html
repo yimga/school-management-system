@@ -1,0 +1,99 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{{ module.title }}{% endblock %}
+
+{% block cp_content %}
+<section class="container-fluid py-3" data-page-archetype="operational-workbench" data-rmc-os-center="platform_configuration_center" data-rmc-configuration-module="{{ module.key }}">
+  <header class="mb-4">
+    <p class="small text-muted mb-1"><a href="{% url 'configuration:center' %}">{% trans "Platform Configuration Center" %}</a></p>
+    <h1 class="h3 mb-2">{{ module.title }}</h1>
+    <p class="text-muted mb-0">{{ module.purpose }}</p>
+  </header>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Owner" %}</div><strong>{{ module.owner }}</strong></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Scope" %}</div><code>{{ module.scope }}</code></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Status" %}</div><strong>{{ module.status }}</strong></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Proof" %}</div><a href="{{ module.proof_url }}">{{ module.proof_label }}</a></div></div></div>
+  </div>
+
+  {% if blueprints %}
+  <div class="row g-3">
+    {% for blueprint in blueprints %}
+    <div class="col-12 col-xl-6">
+      <article class="card border-0 shadow-sm h-100" data-blueprint-card="{{ blueprint.name }}">
+        <div class="card-body">
+          <div class="d-flex justify-content-between gap-2 mb-2">
+            <h2 class="h5 mb-0">{{ blueprint.name }}</h2>
+            <span class="badge bg-light text-dark border">{{ blueprint.status }}</span>
+          </div>
+          <dl class="row small">
+            <dt class="col-sm-4">{% trans "Modules" %}</dt><dd class="col-sm-8">{{ blueprint.modules|join:", " }}</dd>
+            <dt class="col-sm-4">{% trans "Roles" %}</dt><dd class="col-sm-8">{{ blueprint.roles|join:", " }}</dd>
+            <dt class="col-sm-4">{% trans "Dashboard packs" %}</dt><dd class="col-sm-8">{{ blueprint.dashboard_packs|join:", " }}</dd>
+            <dt class="col-sm-4">{% trans "Workflow packs" %}</dt><dd class="col-sm-8">{{ blueprint.workflow_packs|join:", " }}</dd>
+            <dt class="col-sm-4">{% trans "Policy bundles" %}</dt><dd class="col-sm-8">{{ blueprint.policy_bundles|join:", " }}</dd>
+            <dt class="col-sm-4">{% trans "Report templates" %}</dt><dd class="col-sm-8">{{ blueprint.report_templates|join:", " }}</dd>
+            <dt class="col-sm-4">{% trans "Metadata templates" %}</dt><dd class="col-sm-8">{{ blueprint.metadata_templates|join:", " }}</dd>
+            <dt class="col-sm-4">{% trans "Billing defaults" %}</dt><dd class="col-sm-8">{{ blueprint.billing_defaults }}</dd>
+            <dt class="col-sm-4">{% trans "Offline defaults" %}</dt><dd class="col-sm-8">{{ blueprint.offline_defaults }}</dd>
+          </dl>
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-primary btn-sm" href="{{ module.existing_route_url }}">{% trans "Preview" %}</a>
+            <a class="btn btn-outline-secondary btn-sm" href="{{ module.existing_route_url }}">{% trans "Impact analysis" %}</a>
+            <a class="btn btn-outline-secondary btn-sm" href="{{ module.proof_url }}">{% trans "Rollback and audit" %}</a>
+          </div>
+        </div>
+      </article>
+    </div>
+    {% endfor %}
+  </div>
+  {% elif packs %}
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead><tr><th>{% trans "Pack" %}</th><th>{% trans "Target" %}</th><th>{% trans "Included" %}</th><th>{% trans "Owner" %}</th><th>{% trans "Status" %}</th><th>{% trans "Action" %}</th></tr></thead>
+      <tbody>
+      {% for pack in packs %}
+        <tr data-pack-row="{{ pack.name }}">
+          <td><strong>{{ pack.name }}</strong><div class="small text-muted">{{ pack.setup_effort }} setup</div></td>
+          <td>{{ pack.target }}</td>
+          <td class="small">{{ pack.included_items|join:", " }}{% if pack.trigger %}<br>{% trans "Trigger" %}: {{ pack.trigger }}; {% trans "Condition" %}: {{ pack.condition }}; {% trans "Action" %}: {{ pack.action }}; {% trans "Owner" %}: {{ pack.owner }}{% endif %}{% if pack.widgets %}<br>{% trans "Widgets" %}: {{ pack.widgets|join:", " }}; {% trans "Metrics" %}: {{ pack.metrics|join:", " }}; {% trans "Mobile" %}: {{ pack.mobile_status }}{% endif %}{% if pack.rules %}<br>{% trans "Rules" %}: {{ pack.rules|join:", " }}; {% trans "Approvals" %}: {{ pack.approval_flows|join:", " }}; {% trans "Tenant scope" %}: {{ pack.tenant_scope }}{% endif %}</td>
+          <td>{{ pack.owner }}</td>
+          <td><span class="badge bg-light text-dark border">{{ pack.status }}</span></td>
+          <td><a href="{{ pack.preview_url }}">{% trans "Preview" %}</a>{% if pack.simulation_url %}<br><a href="{{ pack.simulation_url }}">{% trans "Simulation" %}</a>{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% elif registries %}
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead><tr><th>{% trans "Registry" %}</th><th>{% trans "Owner" %}</th><th>{% trans "Scope" %}</th><th>{% trans "Generated" %}</th><th>{% trans "Drift" %}</th><th>{% trans "Route" %}</th><th>{% trans "Proof" %}</th></tr></thead>
+      <tbody>
+      {% for registry in registries %}
+        <tr data-registry-row="{{ registry.name }}">
+          <td><strong>{{ registry.name }}</strong></td>
+          <td>{{ registry.owner }}</td>
+          <td><code>{{ registry.scope }}</code></td>
+          <td>{{ registry.last_generated }}</td>
+          <td>{{ registry.drift_status }}</td>
+          <td><a href="{{ registry.route_url }}">{% trans "Open" %}</a></td>
+          <td><a href="{{ registry.proof }}">{{ registry.proof }}</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <h2 class="h5">{% trans "Existing system facade" %}</h2>
+      <p class="text-muted">{% if module.detail %}{{ module.detail }}{% else %}{% trans "This module links directly to the existing governed system and keeps configuration state in its current owner." %}{% endif %}</p>
+      <a class="btn btn-primary btn-sm" href="{{ module.existing_route_url }}">{{ module.primary_action }}</a>
+    </div>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

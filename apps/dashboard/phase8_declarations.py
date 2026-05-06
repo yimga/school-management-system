@@ -236,6 +236,12 @@ PHASE8_DECLARATIONS: dict[str, dict[str, str]] = {
         "main_question": "Which tenants need lifecycle or monetization attention?",
         "main_action": "Open the highest-risk tenant row or run the scheduler playbook.",
     },
+    "platform_runtime/configuration_center.html": {
+        "dashboard_type": "configuration_control_plane",
+        "jtbd": "Configure platform behavior through governed facades over existing systems.",
+        "main_question": "Which platform capability, pack, registry, or runtime rule needs configuration?",
+        "main_action": "Open the relevant configuration module and continue in its existing source system.",
+    },
     "platform_runtime/implementation_command_center.html": {
         "dashboard_type": "implementation_ops",
         "jtbd": "See go-live readiness, blockers, and operator truth without admin detours.",

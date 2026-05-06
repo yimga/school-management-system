@@ -26,6 +26,7 @@ EXEMPT_CONTROL_PLANE_TEMPLATES: frozenset[str] = frozenset(
         "marketplace/blueprint_marketplace.html",
         "marketplace/compatibility_matrix.html",
         # Manager-safe tenant-scoped explainer; not a Phase 7 dashboard surface.
+        "platform_runtime/configuration_module_detail.html",
         "platform_runtime/manager_offline_sync_center.html",
         "schools/super_advancement_hub.html",
         "schools/super_advancement_phase2_placeholder.html",

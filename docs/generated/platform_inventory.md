@@ -1,12 +1,12 @@
 # Platform Inventory
 
 - Installed app modules: `45`
-- Python files: `2920`
-- HTML templates: `788`
-- Markdown files: `1121`
+- Python files: `2938`
+- HTML templates: `789`
+- Markdown files: `1126`
 - Migration files: `747`
 - Management commands: `162` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs (gross scan): `2047`
+- `SiteSettings` refs (gross scan): `2048`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `41`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `7`
 - `get_solo()` refs: `208`
@@ -18,7 +18,7 @@
 - `AllowAny`: `106`
 - `print()` (gross all `.py`): `1062`
 - `print()` (`apps` product paths): `0`; `scripts/`: `961`
-- `gilead` matches (gross corpus): `16622` across `164` files
+- `gilead` matches (gross corpus): `16623` across `164` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -77,7 +77,7 @@ Total: `162` commands. First 25 by app/command:
 
 ## Largest Python Files
 
-- `apps/schools/marketing_views.py`: `3639` lines / `145189` bytes
+- `apps/schools/marketing_views.py`: `3641` lines / `145327` bytes
 - `apps/schools/marketing_page_definitions.py`: `3005` lines / `140810` bytes
 - `apps/api/views_v1.py`: `2856` lines / `118727` bytes
 - `apps/evals/views.py`: `3177` lines / `118357` bytes

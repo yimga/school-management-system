@@ -16,6 +16,7 @@ from apps.platform_runtime.views_click_tracking import (
     click_measurement_dashboard,
     record_click_event,
 )
+from apps.platform_runtime.views_administration import internal_admin_alias_redirect
 from apps.platform_runtime.views_rum import rum_ingest
 
 from apps.observability import views as obs_views
@@ -272,6 +273,8 @@ urlpatterns = [
     path("i18n/setlang/", set_language, name="set_language"),
     # Must be before path("admin/", ...) so the redirect runs (Phase 5 / Studio OS spine).
     path("admin/siteconfig/customizer/", admin_siteconfig_customizer_redirect),
+    path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
+    path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
     # Admin interfaces - /admin/ only for superuser/staff
     path("admin/", platform_admin_site.urls),
     # API schema (RBAC-protected; same as schema UI)
@@ -363,6 +366,13 @@ urlpatterns = [
     ),
     path(
         "studio/", include(("apps.studio_os.urls", "studio_os"), namespace="studio_os")
+    ),
+    path(
+        "configuration/",
+        include(
+            ("apps.platform_runtime.configuration_urls", "configuration"),
+            namespace="configuration",
+        ),
     ),
     path(
         "api-center/",

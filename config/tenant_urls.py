@@ -54,6 +54,11 @@ from apps.platform_runtime.views_click_tracking import (
     click_measurement_dashboard,
     record_click_event,
 )
+from apps.platform_runtime.views_administration import (
+    internal_admin_alias_redirect,
+    school_configuration_center,
+    tenant_configuration_forbidden,
+)
 
 
 def home(request):
@@ -208,7 +213,12 @@ urlpatterns = [
     path("favicon.ico", favicon_redirect),
     # Before path("admin/", …) so legacy customizer hits Studio OS (Phase 5).
     path("admin/siteconfig/customizer/", admin_siteconfig_customizer_redirect),
+    path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
+    path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
     path("admin/", tenant_admin_site.urls),
+    path("configuration/", tenant_configuration_forbidden, name="tenant_configuration_forbidden"),
+    path("configuration/<path:remaining>", tenant_configuration_forbidden),
+    path("school/settings/", school_configuration_center, name="school_configuration_center"),
     path("api/schema/", schema_view, name="api-schema"),
     path("api/schema/ui/", api_schema_ui, name="api-schema-ui"),
     path(
@@ -271,6 +281,11 @@ urlpatterns = [
     ),
     path("api/", include(("apps.api.urls", "api"), namespace="api")),
     path("api/v1/", include(("apps.api.urls_v1", "api_v1"), namespace="api_v1")),
+    path(
+        "siteconfig/school-configuration/",
+        school_configuration_center,
+        name="siteconfig_school_configuration",
+    ),
     path(
         "siteconfig/",
         include(("apps.siteconfig.urls", "siteconfig"), namespace="siteconfig"),
