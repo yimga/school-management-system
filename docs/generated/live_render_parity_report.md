@@ -1,17 +1,18 @@
 # Live Render parity report
 
-**Generated:** 2026-05-05T19:10:00-04:00
+**Generated:** 2026-05-06T07:18:00-04:00
 
-**Target commit:** `e194771fd270a475e18cf7c85e3b6e2cffc85ebc`
+**Repo fix commit pushed:** `942ea069f930cd1d2cff5e63370afb83a435e827`
 
 **Verdict:** `LIVE PARITY PARTIAL`
 
 ## Deployed Commit
 
-The deployed commit SHA is still unverified. Local HEAD is `e194771fd270a475e18cf7c85e3b6e2cffc85ebc`, but current live `/-/version/` does not yet expose JSON commit metadata:
+The deployed commit SHA is still unverified. The repo-side fix commit `942ea069f930cd1d2cff5e63370afb83a435e827` was pushed to `origin/main`, but current live `/-/version/` does not yet expose JSON commit metadata after polling:
 
 - `https://school-management-system-2kzk.onrender.com/-/version/` -> 200 `text/html`
 - `https://manager.runmycampus.com/-/version/` -> 302 `/`
+- `https://runmycampus.com/-/version/` -> 200 `text/html`
 
 Repo-side closure was added for the next deploy:
 
@@ -24,19 +25,23 @@ Repo-side closure was added for the next deploy:
 
 Official public domain:
 
-- `https://runmycampus.com/` still does not resolve from this certifier host.
+- `https://runmycampus.com/` now resolves from this certifier host.
+- Apex DNS returns A records `216.24.57.7` and `216.24.57.251`.
+- Apex homepage returned 200.
+- Apex route smoke: `/resources/product-tour/` -> 200, `/book-demo/` -> 302 `/demo/`, `/pricing-packages/` -> 200, `/solutions/` -> 200, `/resources/` -> 200.
+- `HEAD /trust/` returned 405 with `Allow: GET`; this is not classified as a page failure without a GET browser smoke.
 
 Manager domain DNS:
 
 - `manager.runmycampus.com` resolves as CNAME `school-management-system-2kzk.onrender.com`.
 
-Direct Render service supplementary smoke from the prior run remains the strongest public evidence:
+Direct Render service supplementary smoke:
 
 - `https://school-management-system-2kzk.onrender.com/` -> 200
-- `/resources/product-tour/` -> 200
-- `/book-demo/` -> 200, final `/demo/`
+- `/product-tour/` -> 302 `/resources/product-tour/`
+- `/demo/` -> 200
 - `/trust/` -> 200
-- `/pricing-packages/` -> 200
+- `/pricing/` -> 200
 - `/solutions/` -> 200
 - `/resources/` -> 200
 
@@ -83,9 +88,9 @@ Not run. No Render shell/dashboard access was available from this environment.
 
 ## Local Tests And Verifiers
 
-- `python manage.py test apps.platform_runtime.tests.test_manager_offline_sync_route apps.platform_runtime.tests.test_live_version_endpoint --settings=config.settings --noinput --keepdb -v 1` -> 8 tests OK
+- `python manage.py test apps.platform_runtime.tests.test_live_version_endpoint --settings=config.settings --noinput --keepdb` -> 4 tests OK
 - `python manage.py check --settings=config.settings` -> OK
-- `python manage.py validate_marketing_urls --smoke --settings=config.settings` -> passed
+- `python manage.py validate_marketing_urls --smoke` -> passed
 - `python scripts/audit_route_surface.py` -> `ROUTE SYSTEM CERTIFIED`, `broken_count: 0`
 - `python scripts/verify_test_module_contract.py` -> OK
 - `python scripts/verify_doc_plan_density_discipline.py` -> PASS
@@ -94,10 +99,16 @@ Not run. No Render shell/dashboard access was available from this environment.
 - `python scripts/audit_tenant_isolation.py` -> OK
 - `python scripts/run_kill_test.py` -> PASS
 
+## Commit And Push
+
+- `git commit -m "Add live parity version endpoint and offline sync fallback"` -> `942ea069f930cd1d2cff5e63370afb83a435e827`
+- `git pull --rebase origin main` -> current branch up to date after stashing generated verifier-only outputs
+- `git push origin main` -> pushed `e194771f..942ea069`
+- `git rev-parse main` == `git rev-parse origin/main` immediately after the code-fix push
+
 ## Blockers
 
-- Deployed commit SHA could not be verified as `e194771fd270a475e18cf7c85e3b6e2cffc85ebc` or newer until `/-/version/` is deployed and returns JSON metadata.
-- `https://runmycampus.com/` DNS did not resolve from this certifier host.
+- Deployed commit SHA could not be verified as `942ea069f930cd1d2cff5e63370afb83a435e827` or newer until `/-/version/` is deployed and returns JSON metadata.
 - Tenant/portal flows were not certified without a tenant context.
 - Render shell commands were not available.
 - SOT/log were not updated because the live certification bar was not met.

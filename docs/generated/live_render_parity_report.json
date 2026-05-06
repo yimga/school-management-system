@@ -1,13 +1,14 @@
 {
-  "generated_at": "2026-05-05T19:10:00-04:00",
-  "target_commit": "e194771fd270a475e18cf7c85e3b6e2cffc85ebc",
+  "generated_at": "2026-05-06T07:18:00-04:00",
+  "repo_fix_commit_pushed": "942ea069f930cd1d2cff5e63370afb83a435e827",
   "deployed_commit": {
     "status": "unverified",
     "value": null,
     "notes": [
-      "Local HEAD is e194771fd270a475e18cf7c85e3b6e2cffc85ebc.",
+      "Repo-side fix commit 942ea069f930cd1d2cff5e63370afb83a435e827 was pushed to origin/main.",
       "Current live https://school-management-system-2kzk.onrender.com/-/version/ returns 200 text/html, not JSON commit metadata.",
       "Current live https://manager.runmycampus.com/-/version/ returns 302 /.",
+      "Current live https://runmycampus.com/-/version/ returns 200 text/html, not JSON commit metadata.",
       "Repo-side safe /-/version/ endpoint has been added for the next deploy."
     ],
     "repo_endpoint_added": {
@@ -30,8 +31,17 @@
   "dns": {
     "official_domain": {
       "url": "https://runmycampus.com/",
-      "status": "failed",
-      "issue": "DNS did not resolve from this certifier host."
+      "status": "resolved",
+      "a_records": [
+        "216.24.57.7",
+        "216.24.57.251"
+      ],
+      "homepage_status": 200,
+      "version_endpoint": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "json_commit_verified": false
+      }
     },
     "manager_domain": {
       "host": "manager.runmycampus.com",
@@ -45,10 +55,10 @@
       "status": "partial_pass",
       "routes": {
         "/": 200,
-        "/resources/product-tour/": 200,
-        "/book-demo/": 200,
+        "/product-tour/": 302,
+        "/demo/": 200,
         "/trust/": 200,
-        "/pricing-packages/": 200,
+        "/pricing/": 200,
         "/solutions/": 200,
         "/resources/": 200
       },
@@ -69,6 +79,20 @@
         "console_messages": []
       }
     }
+  },
+  "apex_public_smoke": {
+    "base_url": "https://runmycampus.com/",
+    "routes": {
+      "/": 200,
+      "/resources/product-tour/": 200,
+      "/book-demo/": 302,
+      "/pricing-packages/": 200,
+      "/solutions/": 200,
+      "/resources/": 200
+    },
+    "notes": [
+      "HEAD /trust/ returned 405 with Allow: GET; no GET browser smoke was run, so trust is not classified as failed."
+    ]
   },
   "offline_sync": {
     "live_unauthenticated_manager": {
@@ -133,8 +157,14 @@
     "status": "not_run",
     "notes": "No Render shell/dashboard access was available from this environment. migrate, collectstatic, check --deploy, and live marketing smoke were not run on Render shell."
   },
+  "commit_and_push": {
+    "commit_hash": "942ea069f930cd1d2cff5e63370afb83a435e827",
+    "commit_message": "Add live parity version endpoint and offline sync fallback",
+    "push_result": "pushed origin main e194771f..942ea069",
+    "main_equals_origin_main_after_code_fix_push": true
+  },
   "local_tests_and_verifiers": {
-    "django_targeted_tests": "PASS - 8 tests OK",
+    "django_targeted_tests": "PASS - live version endpoint 4 tests OK",
     "django_check": "PASS",
     "validate_marketing_urls_smoke": "PASS",
     "audit_route_surface": "PASS - ROUTE SYSTEM CERTIFIED, broken_count 0",
@@ -146,8 +176,7 @@
     "run_kill_test": "PASS"
   },
   "blockers": [
-    "Deployed commit SHA could not be verified as e194771fd270a475e18cf7c85e3b6e2cffc85ebc or newer until /-/version/ is deployed and returns JSON metadata.",
-    "https://runmycampus.com/ DNS did not resolve from this certifier host.",
+    "Deployed commit SHA could not be verified as 942ea069f930cd1d2cff5e63370afb83a435e827 or newer until /-/version/ is deployed and returns JSON metadata.",
     "Tenant/portal flows were not certified without a tenant context.",
     "Render shell commands were not available.",
     "SOT/log were not updated because the live certification bar was not met."
