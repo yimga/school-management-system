@@ -355,6 +355,7 @@ urlpatterns = [
     path("", manager_home, name="manager_home"),
     path("offline/", offline_page, name="offline"),
     path("offline/sync/", manager_offline_sync_center, name="manager_offline_sync_center"),
+    path("-/version/", obs_views.public_version, name="public_version"),
     path("help/", manager_help, name="manager_help"),
     path("support/", manager_support_request, name="manager_support_request"),
     path("feedback/", manager_feedback, name="manager_feedback"),

@@ -84,6 +84,7 @@ urlpatterns = [
     # Alias for tooling/checklists that expect marketing_home (same view as home).
     path("", home, name="marketing_home"),
     path("offline/", offline_page, name="offline"),
+    path("-/version/", obs_views.public_version, name="public_version"),
     path(
         "authentication/",
         include(("apps.accounts.urls", "accounts"), namespace="accounts"),

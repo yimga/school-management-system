@@ -1,0 +1,164 @@
+{
+  "generated_at": "2026-05-05T19:10:00-04:00",
+  "target_commit": "e194771fd270a475e18cf7c85e3b6e2cffc85ebc",
+  "deployed_commit": {
+    "status": "unverified",
+    "value": null,
+    "notes": [
+      "Local HEAD is e194771fd270a475e18cf7c85e3b6e2cffc85ebc.",
+      "Current live https://school-management-system-2kzk.onrender.com/-/version/ returns 200 text/html, not JSON commit metadata.",
+      "Current live https://manager.runmycampus.com/-/version/ returns 302 /.",
+      "Repo-side safe /-/version/ endpoint has been added for the next deploy."
+    ],
+    "repo_endpoint_added": {
+      "path": "/-/version/",
+      "urlconfs": [
+        "config.urls",
+        "config.public_urls",
+        "config.manager_urls"
+      ],
+      "fields": [
+        "commit_sha",
+        "build_time",
+        "app_version",
+        "environment"
+      ],
+      "secret_dump": false,
+      "missing_sha_behavior": "unknown"
+    }
+  },
+  "dns": {
+    "official_domain": {
+      "url": "https://runmycampus.com/",
+      "status": "failed",
+      "issue": "DNS did not resolve from this certifier host."
+    },
+    "manager_domain": {
+      "host": "manager.runmycampus.com",
+      "status": "resolved",
+      "cname": "school-management-system-2kzk.onrender.com"
+    }
+  },
+  "public_smoke": {
+    "direct_render_service": {
+      "base_url": "https://school-management-system-2kzk.onrender.com/",
+      "status": "partial_pass",
+      "routes": {
+        "/": 200,
+        "/resources/product-tour/": 200,
+        "/book-demo/": 200,
+        "/trust/": 200,
+        "/pricing-packages/": 200,
+        "/solutions/": 200,
+        "/resources/": 200
+      },
+      "desktop": {
+        "status": 200,
+        "hero_story_visible": true,
+        "book_demo_visible": true,
+        "product_tour_visible": true,
+        "premium_css_link_visible": true,
+        "console_messages": []
+      },
+      "mobile": {
+        "status": 200,
+        "hero_story_visible": true,
+        "book_demo_visible": true,
+        "product_tour_visible": true,
+        "premium_css_link_visible": true,
+        "console_messages": []
+      }
+    }
+  },
+  "offline_sync": {
+    "live_unauthenticated_manager": {
+      "url": "https://manager.runmycampus.com/offline/sync/",
+      "status": 302,
+      "location": "/authentication/login/?next=/offline/sync/",
+      "classification": "acceptable_login_redirect"
+    },
+    "repo_fix": {
+      "root_urlconf_fallback_added": true,
+      "anonymous_behavior": "302 login redirect",
+      "non_control_plane_authenticated_behavior": "403",
+      "control_plane_authenticated_behavior": "200 Offline Sync Center",
+      "tenant_isolation_preserved": true
+    }
+  },
+  "manager_smoke": {
+    "base_url": "https://manager.runmycampus.com/",
+    "authenticated": {
+      "login": "session established with provided admin test credentials in prior smoke; password not stored in this report",
+      "/super/": {
+        "status": 200,
+        "title": "Control Plane",
+        "premium_polish_css_link_visible": true,
+        "premium_os_css_link_visible": true,
+        "premium_polish_css_fetch_status": 200,
+        "premium_os_css_fetch_status": 200,
+        "os_shell_marker": true,
+        "premium_shell_marker": true,
+        "primary_action_marker": true,
+        "action_rail_marker": true,
+        "visible_links": 27,
+        "visible_buttons": 22,
+        "visible_panels": 6,
+        "console_messages": []
+      },
+      "/offline/sync/": {
+        "status": 200,
+        "title": "Offline Sync Center",
+        "page_not_found": false,
+        "tenant_scoped_explainer_visible": true,
+        "premium_polish_css_link_visible": true,
+        "premium_os_css_link_visible": true,
+        "os_shell_marker": true,
+        "premium_shell_marker": true,
+        "primary_action_marker": true,
+        "action_rail_marker": true,
+        "visible_links": 21,
+        "visible_buttons": 22,
+        "visible_panels": 5,
+        "console_messages": []
+      }
+    }
+  },
+  "tenant_portal_smoke": {
+    "status": "not_certified",
+    "notes": [
+      "No specific tenant slug/context was available for School Command Center, Teacher Workspace, Family Home, Money Center, Insights Center, App Marketplace, Payment Readiness Center, Event Timeline, or Configuration Center certification."
+    ]
+  },
+  "render_shell_commands": {
+    "status": "not_run",
+    "notes": "No Render shell/dashboard access was available from this environment. migrate, collectstatic, check --deploy, and live marketing smoke were not run on Render shell."
+  },
+  "local_tests_and_verifiers": {
+    "django_targeted_tests": "PASS - 8 tests OK",
+    "django_check": "PASS",
+    "validate_marketing_urls_smoke": "PASS",
+    "audit_route_surface": "PASS - ROUTE SYSTEM CERTIFIED, broken_count 0",
+    "verify_test_module_contract": "PASS",
+    "verify_doc_plan_density_discipline": "PASS",
+    "verify_sot_pillar_evidence": "PASS",
+    "audit_security_surface": "PASS",
+    "audit_tenant_isolation": "PASS",
+    "run_kill_test": "PASS"
+  },
+  "blockers": [
+    "Deployed commit SHA could not be verified as e194771fd270a475e18cf7c85e3b6e2cffc85ebc or newer until /-/version/ is deployed and returns JSON metadata.",
+    "https://runmycampus.com/ DNS did not resolve from this certifier host.",
+    "Tenant/portal flows were not certified without a tenant context.",
+    "Render shell commands were not available.",
+    "SOT/log were not updated because the live certification bar was not met."
+  ],
+  "external_blockers_preserved": [
+    "PSP onboarding",
+    "production keys/webhooks",
+    "gateway pings",
+    "settlement proof",
+    "live payment corridor proof",
+    "external compliance/partner approvals"
+  ],
+  "verdict": "LIVE PARITY PARTIAL"
+}

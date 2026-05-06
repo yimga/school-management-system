@@ -7,6 +7,7 @@ from django.views.decorators.cache import cache_page
 from django.views.generic.base import RedirectView
 from rest_framework.schemas import get_schema_view
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.views import redirect_to_login
 from django.template.response import TemplateResponse
 from django.http import HttpResponseForbidden
 
@@ -99,6 +100,27 @@ def home(request):
 def offline_page(request):
     """Offline fallback shell served by service-worker navigation fallback."""
     return render(request, "offline.html", status=200)
+
+
+def manager_offline_sync_root_fallback(request):
+    """
+    Root-urlconf safety net for manager /offline/sync/.
+
+    Host switching normally serves this from config.manager_urls. If a proxy,
+    custom-domain cutover, or local smoke hits the root URLConf instead, avoid a
+    raw 404 while preserving control-plane-only access.
+    """
+    if not request.user.is_authenticated:
+        return redirect_to_login(request.get_full_path())
+    from apps.schools.control_plane import user_has_control_plane_access
+
+    if not user_has_control_plane_access(request.user):
+        return HttpResponseForbidden("Control-plane access required.")
+    return render(
+        request,
+        "platform_runtime/manager_offline_sync_center.html",
+        status=200,
+    )
 
 
 def _coerce_request_user_for_error_pages(request):
@@ -240,6 +262,12 @@ urlpatterns = [
     path("", home, name="home"),
     path("", home, name="marketing_home"),
     path("offline/", offline_page, name="offline"),
+    path(
+        "offline/sync/",
+        manager_offline_sync_root_fallback,
+        name="manager_offline_sync_center",
+    ),
+    path("-/version/", obs_views.public_version, name="public_version"),
     # Language switcher (Django i18n; POST language then redirect)
     path("i18n/setlang/", set_language, name="set_language"),
     # Must be before path("admin/", ...) so the redirect runs (Phase 5 / Studio OS spine).

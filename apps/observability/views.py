@@ -5,6 +5,8 @@ Observability endpoints: /healthz and /metrics.
 import json
 import logging
 import math
+import os
+import re
 from datetime import timedelta
 from functools import wraps
 from urllib.parse import urlencode
@@ -334,6 +336,51 @@ def public_health(request):
     DB/cache dependencies so cold starts and platform probes stay reliable.
     """
     return JsonResponse({"status": "healthy"})
+
+
+def _safe_version_value(*names: str, default: str = "unknown") -> str:
+    for name in names:
+        value = (os.getenv(name) or "").strip()
+        if value:
+            return value[:128]
+    return default
+
+
+@require_GET
+def public_version(request):
+    """
+    Safe build metadata for live parity certification.
+
+    This endpoint intentionally exposes only a small allowlisted payload. It does
+    not dump environment variables or include any credentials.
+    """
+    del request
+    commit_sha = _safe_version_value(
+        "RENDER_GIT_COMMIT",
+        "GIT_COMMIT",
+        "SOURCE_VERSION",
+        "COMMIT_SHA",
+    )
+    if commit_sha != "unknown" and not re.fullmatch(r"[0-9a-fA-F]{7,64}", commit_sha):
+        commit_sha = "unknown"
+    build_time = _safe_version_value(
+        "BUILD_TIME",
+        "BUILD_TIMESTAMP",
+        "RENDER_CREATED_AT",
+    )
+    return JsonResponse(
+        {
+            "commit_sha": commit_sha,
+            "build_time": build_time,
+            "app_version": str(getattr(settings, "APP_VERSION", "unknown")),
+            "environment": _safe_version_value(
+                "RENDER_SERVICE_NAME",
+                "DJANGO_ENV",
+                "ENVIRONMENT",
+                default="unknown",
+            ),
+        }
+    )
 
 
 @require_GET

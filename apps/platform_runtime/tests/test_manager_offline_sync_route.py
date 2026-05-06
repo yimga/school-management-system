@@ -18,6 +18,12 @@ class ManagerOfflineSyncRouteTests(TestCase):
             "/offline/sync/"
         )
         self.assertIn(response.status_code, {302, 403})
+        self.assertNotEqual(response.status_code, 404)
+
+    def test_root_urlconf_fallback_for_anonymous_offline_sync_is_not_404(self):
+        response = Client(raise_request_exception=False).get("/offline/sync/")
+        self.assertIn(response.status_code, {302, 403})
+        self.assertNotEqual(response.status_code, 404)
 
     def test_manager_offline_sync_route_returns_explanatory_center(self):
         client = Client(HTTP_HOST=_MGR_HOST, raise_request_exception=False)
@@ -39,3 +45,20 @@ class ManagerOfflineSyncRouteTests(TestCase):
         self.assertIn("Select a school", body)
         self.assertIn('data-rmc-os-center="offline_sync_center"', body)
         self.assertIn("data-rmc-premium-shell=", body)
+
+    def test_root_urlconf_fallback_preserves_control_plane_only_rendering(self):
+        client = Client(raise_request_exception=False)
+        User.objects.create_user(
+            username="root_offline_super",
+            password="x" * 8,
+            role=User.Role.ADMIN,
+            is_staff=True,
+            is_superuser=True,
+        )
+        client.login(username="root_offline_super", password="x" * 8)
+
+        response = client.get("/offline/sync/")
+        self.assertEqual(response.status_code, 200, msg=response.content[:500])
+        body = response.content.decode("utf-8", errors="replace")
+        self.assertIn("Offline Sync Center", body)
+        self.assertIn("tenant-scoped", body)
