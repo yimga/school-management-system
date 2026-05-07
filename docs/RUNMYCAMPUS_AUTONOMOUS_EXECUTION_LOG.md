@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Marketing deep dive operational follow-up closure (2026-05-07)
+
+**A. Scope:** Closed the two remaining marketing operating-system follow-ups without reopening design: i18n freshness and a dedicated marketing accessibility spec.
+
+**B. i18n:** `verify_i18n_catalog_fresh.py` initially exposed the previously reported 80 missing strings. The missing strings were traced to platform/runtime configuration, blueprint, registry, and admin/operator surfaces rather than the marketing analytics/deep-dive changes. Project convention was used: `python manage.py sync_i18n_catalog --compile --settings=config.settings`; final `python scripts/verify_i18n_catalog_fresh.py` -> **OK**.
+
+**C. Accessibility:** Added `tests/e2e/marketing-accessibility.spec.js` covering 17 public marketing routes across desktop `1280x720` and mobile `390x844`. The spec checks page load, visible heading, horizontal overflow, serious/critical axe violations, contact/demo accessible names, and keyboard mega-menu opening. Focusable horizontal homepage strips and marketing-only contrast hardening were corrected; final dedicated spec -> **37 passed**.
+
+**D. Analytics/CRO preservation:** Preserved `static/marketing/js/marketing-analytics.js`, `templates/marketing/partials/marketing_analytics.html`, the page-management tests/docs, event contract, no-op/provider-safe behavior, and no-PII payload guardrails.
+
+**E. Gates:** Focused marketing Django suite -> **46 passed**; `validate_marketing_urls --smoke` -> **passed**; `audit_route_surface.py` -> **broken_count: 0 / ROUTE SYSTEM CERTIFIED**; doc density -> **PASS**; SOT pillar evidence -> **OK**. Browser QA on the stable local apex-host server: fast marketing smoke -> **71 passed / 22 skipped**; axe-enabled smoke -> **93 passed**; dedicated accessibility spec -> **37 passed**.
+
+**F. Verdict:** **CATEGORY-DEFINING MARKETING SYSTEM READY** for the repo/local marketing surface. Remaining non-repo work is provider/staging/live operational hookup only; no fake claims or PII collection were added.
+
 ## Slice - Marketing post-launch CRO / analytics wave (2026-05-06)
 
 **A. Scope:** Add a privacy-safe measurement layer to the already **WORLD-CLASS READY** and **ACCESSIBILITY HARDENED AND READY** marketing front. No marketing redesign work was reopened.
@@ -28410,3 +28424,19 @@ s`** needs a URL **`id`** kwarg ? not suitable for **`reverse()`-only curated ma
 **E. Validation:** Targeted tenant configuration route tests - **4 OK**. Browser evidence artifacts: `docs/generated/tenant_browser_qa_recovery_raw.json`, `docs/generated/live_browser_ux_certification_report.json`, and `docs/generated/live_browser_ux_certification_report.md`.
 
 **F. Verdict:** **LIVE BROWSER UX CERTIFIED - LOCAL**. Render/custom-domain parity remains pending; no full-market category-defining claim is made.
+
+## Slice - Render / Custom Domain Parity Certification Attempt (2026-05-07)
+
+**A. Scope:** Tested hosted parity for the pushed local browser certification commit `0b4ee86e7e7c24dfb1fa8ce3014702656098ea92`. This was a live hosted smoke/certification attempt, not a code-change slice.
+
+**B. Deployed SHA:** **Not verified.** `https://school-management-system-2kzk.onrender.com/-/version/` and `https://runmycampus.com/-/version/` returned marketing HTML instead of JSON with the expected commit SHA. Manager version lookup was DNS-inconsistent in the request context. Render parity cannot be certified without deployed SHA proof.
+
+**C. Public smoke:** Direct Render public routes `/`, `/product-tour/`, `/pricing/`, `/trust/`, `/resources/`, and `/demo/` returned **6/6 200** with clean browser smoke. `https://runmycampus.com` public routes also returned **6/6 200** in browser smoke, but custom-domain parity remains uncertified because version metadata is unavailable.
+
+**D. Manager and tenant:** Unauthenticated manager routes safely rendered login pages/redirects for **15/15** checked routes. Authenticated platform operator QA was not certified because live credentials were unavailable. Tenant live QA was not certified: `xp-tenant.runmycampus.com` did not resolve, and `gilead-school.runmycampus.com/school/settings/` returned a 500 service-interrupted page without tenant authentication.
+
+**E. Render shell:** Not certified; no Render shell/dashboard credentials or CLI context were available, so migrate/collectstatic/check-deploy/live smoke commands were not run on Render.
+
+**F. Evidence:** `docs/generated/render_parity_certification_report.json`, `docs/generated/render_parity_certification_report.md`, and raw `docs/generated/render_parity_certification_report.raw.json`.
+
+**G. Verdict:** **RENDER PARITY PARTIAL**. No Render parity, custom-domain parity, PSP/payment readiness, or full-market category-defining claim is made.

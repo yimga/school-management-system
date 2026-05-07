@@ -16,6 +16,19 @@ Default placeholder SVGs are included so no section 404s. Replace with final art
 - **Customer logos:** `logo-placeholder.svg` – used for each `customer_logos` entry when you don’t set a custom `logo_url`/`image_url`.
 - **Video testimonial thumb:** `testimonial-thumb.svg` – used for the default video testimonial card when `MARKETING_VIDEO_TESTIMONIALS` is unset.
 
+## Asset governance table
+
+| Asset | Used by | Purpose | Alt/source guidance | Status |
+| --- | --- | --- | --- | --- |
+| `hero-global-os-composite.svg` | Homepage and product pages | Product operating-system composite | Use descriptive product-composite alt text | Active |
+| `platform-admissions-pipeline.svg` | `/platform/admissions/` | Admissions workflow proof | Alt should name inquiry through enrollment stages | Active |
+| `platform-fees-payments-dashboard.svg` | `/platform/fees-payments/` | Finance dashboard mockup | Alt should name invoices, receipts, arrears, balances | Active |
+| `platform-parent-mobile-portal.svg` | `/platform/parent-portal/` | Parent mobile visibility mockup | Alt should name child profile, attendance, fees, report cards | Active |
+| `platform-teacher-workspace.svg` | `/platform/teacher-portal/` | Teacher classroom workspace | Alt should name class list, attendance, marks, assignments | Active |
+| `viz-admin.svg` | `/platform/analytics/` and product visuals | Leadership analytics visual | Use dashboard/analytics alt text | Active |
+| `platform-diagram-marketing.svg` | `/platform/security/` and platform pages | Governance/platform diagram | Use governance/security alt text | Active |
+| `setup-studio-flow.svg` | `/platform/offline-first/` and setup storytelling | Offline/setup flow proof | Use setup/workflow alt text | Active |
+
 ## Optional settings (replace placeholders)
 
 - **Hero:** Set `MARKETING_HERO_IMAGE_URL` (and optionally `MARKETING_HERO_VIDEO_URL`, `MARKETING_HERO_VIDEO_POSTER_URL`). For responsive hero image set `MARKETING_HERO_IMAGE_SRCSET` and `MARKETING_HERO_IMAGE_SIZES`.

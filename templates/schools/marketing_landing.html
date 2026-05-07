@@ -323,7 +323,7 @@
         <p class="mkt-section-lead">{% trans "Experience, Automation, Output, Launch, and Control — scroll the product frame while the narrative stays put." %}</p>
         <p class="small text-muted">{% trans "Same chrome as your tenant: command palette, rails, and publish/rollback discipline." %}</p>
       </div>
-      <div class="mkt-product-viz-scroll" role="list">
+      <div class="mkt-product-viz-scroll" role="list" tabindex="0" aria-label="Product visualization slides">
         {% for slide in product_visualization_slides %}
         <div class="mkt-product-viz-slide" role="listitem">
           <div class="mkt-product-viz-frame">
@@ -398,7 +398,7 @@
     <h2 class="mkt-section-heading">{% trans "Built for how each role actually works" %}</h2>
     <p class="mkt-section-lead">{% trans "Owners, administrators, teachers, parents, finance, and networks each get a credible home—not a shared login with hidden menus." %}</p>
     {% if role_preview_images %}
-    <div class="mkt-role-visual-strip" data-phase10-role-visuals>
+    <div class="mkt-role-visual-strip" data-phase10-role-visuals tabindex="0" aria-label="Role preview visuals">
       {% for rp in role_preview_images %}
       <div class="mkt-role-visual-card">
         {% if rp.image_url %}

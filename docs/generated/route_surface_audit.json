@@ -5498,7 +5498,7 @@
         },
         {
           "kind": "template_url",
-          "line": 761,
+          "line": 762,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -43973,7 +43973,7 @@
         },
         {
           "kind": "template_url",
-          "line": 761,
+          "line": 762,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -61456,7 +61456,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3528,
+          "line": 3536,
           "name": "api_v1:platform-integration-context",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"api_v1:platform-integration-context\")",
@@ -61495,7 +61495,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3531,
+          "line": 3539,
           "name": "api_v1:platform-scoped-ping",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"api_v1:platform-scoped-ping\")",
@@ -63470,7 +63470,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 64,
+          "line": 66,
           "name": "compliance:compliance_reporting:anomalies",
           "path": "apps/compliance/views.py",
           "raw": "reverse(\"compliance:compliance_reporting:anomalies\")",
@@ -63501,7 +63501,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 40,
+          "line": 42,
           "name": "compliance:compliance_reporting:audit_trail",
           "path": "apps/compliance/views.py",
           "raw": "reverse(\"compliance:compliance_reporting:audit_trail\")",
@@ -63570,7 +63570,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 46,
+          "line": 48,
           "name": "compliance:compliance_reporting:data_access",
           "path": "apps/compliance/views.py",
           "raw": "reverse(\"compliance:compliance_reporting:data_access\")",
@@ -63686,7 +63686,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 58,
+          "line": 60,
           "name": "compliance:compliance_reporting:integrity_check",
           "path": "apps/compliance/views.py",
           "raw": "reverse(\"compliance:compliance_reporting:integrity_check\")",
@@ -63717,7 +63717,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 52,
+          "line": 54,
           "name": "compliance:compliance_reporting:permissions",
           "path": "apps/compliance/views.py",
           "raw": "reverse(\"compliance:compliance_reporting:permissions\")",
@@ -63748,7 +63748,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 34,
+          "line": 36,
           "name": "compliance:dashboard",
           "path": "apps/compliance/views.py",
           "raw": "reverse(\"compliance:dashboard\")",
@@ -64704,7 +64704,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3491,
+          "line": 3499,
           "name": "developer_console",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_console\")",
@@ -64725,7 +64725,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3521,
+          "line": 3529,
           "name": "developer_hub",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_hub\")",
@@ -64746,7 +64746,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3588,
+          "line": 3596,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -64755,7 +64755,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3561,
+          "line": 3569,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -64764,7 +64764,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3489,
+          "line": 3497,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -64795,7 +64795,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3496,
+          "line": 3504,
           "name": "developer_public_api_docs",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_public_api_docs\")",
@@ -64804,7 +64804,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3534,
+          "line": 3542,
           "name": "developer_public_api_docs",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_public_api_docs\")",
@@ -64825,7 +64825,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3563,
+          "line": 3571,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -64834,7 +64834,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3589,
+          "line": 3597,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -64843,7 +64843,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3494,
+          "line": 3502,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -64864,7 +64864,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3493,
+          "line": 3501,
           "name": "developer_sdk",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sdk\")",
@@ -70516,7 +70516,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2480,
+          "line": 2488,
           "name": "marketing_contact",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_contact\")",
@@ -70673,7 +70673,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2423,
+          "line": 2431,
           "name": "marketing_demo",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_demo\")",
@@ -72568,7 +72568,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2536,
+          "line": 2544,
           "name": "marketing_security_packet_request",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_security_packet_request\")",
@@ -73397,7 +73397,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3523,
+          "line": 3531,
           "name": "oauth:authorize",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"oauth:authorize\")",
@@ -73418,7 +73418,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3525,
+          "line": 3533,
           "name": "oauth:token",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"oauth:token\")",
@@ -103015,7 +103015,7 @@
         },
         {
           "kind": "template_url",
-          "line": 761,
+          "line": 762,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -103593,7 +103593,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3521,
+          "line": 3529,
           "name": "developer_hub",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_hub\")",
@@ -103625,7 +103625,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3588,
+          "line": 3596,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -103634,7 +103634,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3561,
+          "line": 3569,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -103643,7 +103643,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3489,
+          "line": 3497,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -103674,7 +103674,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3563,
+          "line": 3571,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -103683,7 +103683,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3589,
+          "line": 3597,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -103692,7 +103692,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3494,
+          "line": 3502,
           "name": "developer_sandbox",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sandbox\")",
@@ -103713,7 +103713,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3493,
+          "line": 3501,
           "name": "developer_sdk",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_sdk\")",
@@ -105220,7 +105220,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2480,
+          "line": 2488,
           "name": "marketing_contact",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_contact\")",
@@ -105377,7 +105377,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2423,
+          "line": 2431,
           "name": "marketing_demo",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_demo\")",
@@ -107349,7 +107349,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2536,
+          "line": 2544,
           "name": "marketing_security_packet_request",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_security_packet_request\")",
@@ -114630,7 +114630,7 @@
         },
         {
           "kind": "template_url",
-          "line": 761,
+          "line": 762,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -135482,7 +135482,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3528,
+          "line": 3536,
           "name": "api_v1:platform-integration-context",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"api_v1:platform-integration-context\")",
@@ -135521,7 +135521,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3531,
+          "line": 3539,
           "name": "api_v1:platform-scoped-ping",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"api_v1:platform-scoped-ping\")",
@@ -137474,7 +137474,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 64,
+          "line": 66,
           "name": "compliance:compliance_reporting:anomalies",
           "path": "apps/compliance/views.py",
           "raw": "reverse(\"compliance:compliance_reporting:anomalies\")",
@@ -137505,7 +137505,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 40,
+          "line": 42,
           "name": "compliance:compliance_reporting:audit_trail",
           "path": "apps/compliance/views.py",
           "raw": "reverse(\"compliance:compliance_reporting:audit_trail\")",
@@ -137574,7 +137574,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 46,
+          "line": 48,
           "name": "compliance:compliance_reporting:data_access",
           "path": "apps/compliance/views.py",
           "raw": "reverse(\"compliance:compliance_reporting:data_access\")",
@@ -137690,7 +137690,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 58,
+          "line": 60,
           "name": "compliance:compliance_reporting:integrity_check",
           "path": "apps/compliance/views.py",
           "raw": "reverse(\"compliance:compliance_reporting:integrity_check\")",
@@ -137721,7 +137721,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 52,
+          "line": 54,
           "name": "compliance:compliance_reporting:permissions",
           "path": "apps/compliance/views.py",
           "raw": "reverse(\"compliance:compliance_reporting:permissions\")",
@@ -137752,7 +137752,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 34,
+          "line": 36,
           "name": "compliance:dashboard",
           "path": "apps/compliance/views.py",
           "raw": "reverse(\"compliance:dashboard\")",
@@ -148964,6 +148964,17 @@
       "view": "config.tenant_urls.school_surface_redirect"
     },
     {
+      "name": "school_setup_imports",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/school/setup/imports/",
+      "view": "config.tenant_urls.school_surface_redirect"
+    },
+    {
       "name": "school_workflows",
       "permission_requirement": "public",
       "reasons": [],
@@ -159356,7 +159367,7 @@
     "broken_count": 0,
     "reverse_usages": 2282,
     "risk_count": 0,
-    "routes_audited": 5853,
+    "routes_audited": 5854,
     "status": "ROUTE SYSTEM CERTIFIED",
     "template_href_action_usages": 1842,
     "template_url_usages": 1911

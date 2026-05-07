@@ -61,7 +61,7 @@
       {% elif request.GET.error %}
         <div class="alert alert-warning" role="alert">{% trans "Something went wrong. Please retry or email from your workspace if you are already a customer." %}</div>
       {% endif %}
-      <form method="post" action="{% url 'marketing_contact_submit' %}" class="row g-3">
+      <form method="post" action="{% url 'marketing_contact_submit' %}" class="row g-3" data-form-name="contact">
         {% csrf_token %}
         <div class="col-md-6">
           <label for="contact-name" class="form-label">{% trans "Name" %} <span class="text-danger">*</span></label>
@@ -189,7 +189,7 @@
         {% elif request.GET.error %}
           <div class="alert alert-warning" role="alert">{% trans "Something went wrong. Please try again or contact us directly." %}</div>
         {% endif %}
-        <form method="post" action="{% url 'marketing_book_demo_submit' %}" class="row g-3">
+        <form method="post" action="{% url 'marketing_book_demo_submit' %}" class="row g-3" data-form-name="demo">
           {% csrf_token %}
           <div class="col-md-6">
             <label for="demo-name" class="form-label">{% trans "Name" %}</label>

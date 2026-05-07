@@ -4,6 +4,8 @@
       data-surface="marketing"
       data-rmc-premium-shell="marketing"
       data-rmc-page-purpose="public-story"
+      data-rmc-page-type="{{ marketing_page_type|default:'marketing' }}"
+      data-rmc-page-slug="{{ marketing_page_slug|default:'marketing' }}"
       data-theme="{% if PUBLIC_BRAND_MODE %}system{% else %}light{% endif %}"
       {% if PUBLIC_BRAND_MODE %}style="--mkt-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:'#0f172a' }}; --mkt-hero-bg: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:'#0f172a' }}; --mkt-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:'#f59e0b' }};"{% endif %}>
 <head>
@@ -50,6 +52,7 @@
   <link rel="stylesheet" href="{% static 'css/rmc-premium-os.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-premium-polish.css' %}">
   {% block extrastyle %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-accessibility-hardening.css' %}">
 </head>
 {# data-cta (primary|demo|secondary) and data-page (page slug or home|footer) on CTAs are for GTM/analytics conversion tracking. #}
 <body class="{% block body_class %}marketing-surface{% endblock %}" data-rmc-premium-shell="marketing" data-rmc-page-purpose="public-story">
@@ -72,6 +75,7 @@
 
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
   <script src="{% static 'marketing/js/marketing-shell.js' %}" defer></script>
+  {% include 'marketing/partials/marketing_analytics.html' %}
   {% include 'components/rum_beacon.html' %}
   {% block extrajs %}{% endblock %}
 </body>

@@ -1070,6 +1070,9 @@ def _marketing_context(
     marketing_analytics_script_url = (
         getattr(settings, "MARKETING_ANALYTICS_SCRIPT_URL", "") or ""
     )
+    marketing_analytics_endpoint_url = (
+        getattr(settings, "MARKETING_ANALYTICS_ENDPOINT_URL", "") or ""
+    )
     marketing_analytics_preconnect_origin = ""
     if marketing_analytics_script_url:
         try:
@@ -1909,6 +1912,9 @@ def _marketing_context(
             "marketing_newsletter_blurb", language
         ),
         "marketing_analytics_script_url": marketing_analytics_script_url,
+        "marketing_analytics_endpoint_url": marketing_analytics_endpoint_url,
+        "marketing_page_type": "WebSite",
+        "marketing_page_slug": "home",
         "marketing_analytics_preconnect_origin": marketing_analytics_preconnect_origin,
         "SHOW_HEADER_CONTEXT_STRIP": False,
         "marketing_show_chapter_indicator": False,
@@ -2334,6 +2340,8 @@ def marketing_page(request, page_slug: str):
         "page": page_copy,
         "page_extras": page_extras,
         "active_nav_slug": page_slug,
+        "marketing_page_type": page_copy.get("schema_type") or "WebPage",
+        "marketing_page_slug": page_slug,
         "blog_posts": blog_posts,
         "blog_list_intro_html": blog_list_intro_html,
         "powerhouse_highlights": [

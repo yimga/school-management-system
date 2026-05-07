@@ -20,7 +20,7 @@
           {% if forloop.counter <= marketing_navbar_visible_count|default:7 %}
           <li class="nav-item {% if item.children %}dropdown mkt-nav-dropdown{% if item.mega_columns %} mkt-nav-dropdown--mega{% endif %}{% endif %}">
             {% if item.children %}
-            <a class="nav-link px-2 dropdown-toggle" href="{{ item.path }}" id="mktNavDd{{ forloop.counter }}" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-boundary="viewport" data-bs-display="dynamic" data-bs-offset="0,8" aria-expanded="false" aria-haspopup="true">{{ item.label }}</a>
+            <a class="nav-link px-2 dropdown-toggle" href="{{ item.path }}" id="mktNavDd{{ forloop.counter }}" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-boundary="viewport" data-bs-display="dynamic" data-bs-offset="0,8" aria-expanded="false" aria-haspopup="true" data-menu-name="{{ item.label }}">{{ item.label }}</a>
             {% if item.mega_columns %}
             <ul class="dropdown-menu dropdown-menu-dark mkt-mega-menu" aria-labelledby="mktNavDd{{ forloop.counter }}">
               <li class="px-0 py-0">
@@ -30,7 +30,7 @@
                     <div class="{% if item.mega_columns|length == 2 %}col-md-6{% else %}col-md-4{% endif %}">
                       <div class="mkt-mega-col-title">{{ col.title }}</div>
                       {% for link in col.links %}
-                      <a class="mkt-mega-link" href="{{ link.path }}">
+                      <a class="mkt-mega-link" href="{{ link.path }}" data-menu-link="1" data-menu-name="{{ item.label }}" data-link-label="{{ link.label }}" data-link-target="{{ link.path }}">
                         <span class="mkt-mega-label">{{ link.label }}</span>
                         {% if link.blurb %}<span class="mkt-mega-blurb">{{ link.blurb }}</span>{% endif %}
                       </a>
@@ -47,20 +47,20 @@
                 {% if child.is_header %}
               <li><h6 class="dropdown-header text-uppercase small mb-0 mt-1 px-3">{{ child.label }}</h6></li>
                 {% else %}
-              <li><a class="dropdown-item" href="{{ child.path }}">{{ child.label }}</a></li>
+              <li><a class="dropdown-item" href="{{ child.path }}" data-menu-link="1" data-menu-name="{{ item.label }}" data-link-label="{{ child.label }}" data-link-target="{{ child.path }}">{{ child.label }}</a></li>
                 {% endif %}
               {% endfor %}
             </ul>
             {% endif %}
             {% else %}
-            <a class="nav-link px-2" href="{{ item.path }}">{{ item.label }}</a>
+            <a class="nav-link px-2" href="{{ item.path }}" data-menu-link="1" data-menu-name="primary" data-link-label="{{ item.label }}" data-link-target="{{ item.path }}">{{ item.label }}</a>
             {% endif %}
           </li>
           {% endif %}
         {% endfor %}
         {% if marketing_navbar_has_more %}
         <li class="nav-item dropdown mkt-nav-dropdown{% if marketing_navbar_more_mega_columns %} mkt-nav-dropdown--mega{% endif %}">
-          <button type="button" class="nav-link px-2 dropdown-toggle btn btn-link text-white text-decoration-none border-0 bg-transparent shadow-none d-inline-flex align-items-center" id="mktNavMore" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-boundary="viewport" data-bs-display="dynamic" data-bs-offset="0,8" aria-expanded="false" aria-haspopup="true">{% trans "More" %}</button>
+          <button type="button" class="nav-link px-2 dropdown-toggle btn btn-link text-white text-decoration-none border-0 bg-transparent shadow-none d-inline-flex align-items-center" id="mktNavMore" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-boundary="viewport" data-bs-display="dynamic" data-bs-offset="0,8" aria-expanded="false" aria-haspopup="true" data-menu-name="{% trans 'More' %}">{% trans "More" %}</button>
           {% if marketing_navbar_more_mega_columns %}
           <ul class="dropdown-menu dropdown-menu-dark mkt-mega-menu" aria-labelledby="mktNavMore">
             <li class="px-0 py-0">
@@ -70,7 +70,7 @@
                   <div class="{% if marketing_navbar_more_mega_columns|length == 2 %}col-md-6{% else %}col-md-4{% endif %}">
                     <div class="mkt-mega-col-title">{{ col.title }}</div>
                     {% for link in col.links %}
-                    <a class="mkt-mega-link" href="{{ link.path }}">
+                    <a class="mkt-mega-link" href="{{ link.path }}" data-menu-link="1" data-menu-name="{% trans 'More' %}" data-link-label="{{ link.label }}" data-link-target="{{ link.path }}">
                       <span class="mkt-mega-label">{{ link.label }}</span>
                       {% if link.blurb %}<span class="mkt-mega-blurb">{{ link.blurb }}</span>{% endif %}
                     </a>
@@ -89,11 +89,11 @@
               <li><h6 class="dropdown-header text-uppercase small mb-0 mt-1 px-3">{{ item.label }}</h6></li>
                   {% for child in item.children %}
                     {% if not child.is_header %}
-              <li><a class="dropdown-item ps-4" href="{{ child.path }}">{{ child.label }}</a></li>
+              <li><a class="dropdown-item ps-4" href="{{ child.path }}" data-menu-link="1" data-menu-name="{% trans 'More' %}" data-link-label="{{ child.label }}" data-link-target="{{ child.path }}">{{ child.label }}</a></li>
                     {% endif %}
                   {% endfor %}
                 {% else %}
-              <li><a class="dropdown-item" href="{{ item.path }}">{{ item.label }}</a></li>
+              <li><a class="dropdown-item" href="{{ item.path }}" data-menu-link="1" data-menu-name="{% trans 'More' %}" data-link-label="{{ item.label }}" data-link-target="{{ item.path }}">{{ item.label }}</a></li>
                 {% endif %}
               {% endif %}
             {% endfor %}

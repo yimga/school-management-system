@@ -21851,3 +21851,295 @@ msgid ""
 msgstr ""
 "Webhook testing guide: subscribe, verify payloads, rotate secrets, and retry"
 " safely."
+
+msgid ""
+"A governed facade over existing systems. Use this surface to configure "
+"platform behavior without turning raw Django admin into the product "
+"workflow."
+msgstr ""
+"A governed facade over existing systems. Use this surface to configure "
+"platform behavior without turning raw Django admin into the product "
+"workflow."
+
+msgid "Affected roles"
+msgstr "Affected roles"
+
+msgid "Apply Blueprint"
+msgstr "Apply Blueprint"
+
+msgid "Apply confirmation"
+msgstr "Apply confirmation"
+
+msgid ""
+"Apply requires a successful change set and explicit confirmation. High-risk "
+"changes require approval before rollout."
+msgstr ""
+"Apply requires a successful change set and explicit confirmation. High-risk "
+"changes require approval before rollout."
+
+msgid "Approval required"
+msgstr "Approval required"
+
+msgid "Approvals"
+msgstr "Approvals"
+
+msgid "Audit ref"
+msgstr "Audit ref"
+
+msgid "Billing defaults"
+msgstr "Billing defaults"
+
+msgid "Blueprint Impact"
+msgstr "Blueprint Impact"
+
+msgid "Blueprint Installation"
+msgstr "Blueprint Installation"
+
+msgid "Blueprint Installations"
+msgstr "Blueprint Installations"
+
+msgid "Blueprint Preview"
+msgstr "Blueprint Preview"
+
+msgid "Blueprint installation history"
+msgstr "Blueprint installation history"
+
+msgid "Can apply"
+msgstr "Can apply"
+
+msgid "Changes"
+msgstr "Changes"
+
+msgid "Confirm apply"
+msgstr "Confirm apply"
+
+msgid "Confirm rollback"
+msgstr "Confirm rollback"
+
+msgid "Confirm tenant apply"
+msgstr "Confirm tenant apply"
+
+msgid "Confirmation"
+msgstr "Confirmation"
+
+msgid "Drift"
+msgstr "Drift"
+
+msgid "Existing route"
+msgstr "Existing route"
+
+msgid "Existing system facade"
+msgstr "Existing system facade"
+
+msgid "External blockers"
+msgstr "External blockers"
+
+msgid "External dependencies remaining"
+msgstr "External dependencies remaining"
+
+msgid "External readiness"
+msgstr "External readiness"
+
+msgid "External required"
+msgstr "External required"
+
+msgid "Gaps"
+msgstr "Gaps"
+
+msgid "High severity"
+msgstr "High severity"
+
+msgid "Impact analysis"
+msgstr "Impact analysis"
+
+msgid "Implementation checklist"
+msgstr "Implementation checklist"
+
+msgid "Installation detail"
+msgstr "Installation detail"
+
+msgid "Installation history"
+msgstr "Installation history"
+
+msgid "Medium severity"
+msgstr "Medium severity"
+
+msgid "Metadata templates"
+msgstr "Metadata templates"
+
+msgid "Metrics"
+msgstr "Metrics"
+
+msgid "Missing pieces"
+msgstr "Missing pieces"
+
+msgid "Needs review"
+msgstr "Needs review"
+
+msgid "No blueprint installations yet."
+msgstr "No blueprint installations yet."
+
+msgid "Offline defaults"
+msgstr "Offline defaults"
+
+msgid "Open existing system"
+msgstr "Open existing system"
+
+msgid "Operating model"
+msgstr "Operating model"
+
+msgid "Operation"
+msgstr "Operation"
+
+msgid ""
+"Owner, proof, test, route, stale-generation, drift, and external-blocker "
+"posture for platform registries."
+msgstr ""
+"Owner, proof, test, route, stale-generation, drift, and external-blocker "
+"posture for platform registries."
+
+msgid "Packs"
+msgstr "Packs"
+
+msgid "Platform Configuration Center"
+msgstr "Platform Configuration Center"
+
+msgid "Policy bundles"
+msgstr "Policy bundles"
+
+msgid ""
+"Preview is read-only. It computes tenant-scoped changes, blockers, rollback "
+"posture, and audit requirements before apply."
+msgstr ""
+"Preview is read-only. It computes tenant-scoped changes, blockers, rollback "
+"posture, and audit requirements before apply."
+
+msgid ""
+"Preview, impact-analyze, apply, roll back, and audit tenant school operating"
+" models. External PSP and settlement readiness stays explicitly blocked "
+"until proven."
+msgstr ""
+"Preview, impact-analyze, apply, roll back, and audit tenant school operating"
+" models. External PSP and settlement readiness stays explicitly blocked "
+"until proven."
+
+msgid "Proof"
+msgstr "Proof"
+
+msgid "Raw admin remains technical fallback."
+msgstr "Raw admin remains technical fallback."
+
+msgid "Recommended blueprints"
+msgstr "Recommended blueprints"
+
+msgid "Registry Health"
+msgstr "Registry Health"
+
+msgid "Request approval"
+msgstr "Request approval"
+
+msgid "Requires confirmation"
+msgstr "Requires confirmation"
+
+msgid "Review change requests"
+msgstr "Review change requests"
+
+msgid "Risk categories"
+msgstr "Risk categories"
+
+msgid "Rollback Blueprint"
+msgstr "Rollback Blueprint"
+
+msgid "Rollback and audit"
+msgstr "Rollback and audit"
+
+msgid "Rollback confirmation"
+msgstr "Rollback confirmation"
+
+msgid ""
+"Rollback restores the stored settings snapshot and deactivates package "
+"markers. It does not delete school operational data."
+msgstr ""
+"Rollback restores the stored settings snapshot and deactivates package "
+"markers. It does not delete school operational data."
+
+msgid "Rules"
+msgstr "Rules"
+
+msgid "School Blueprint Setup"
+msgstr "School Blueprint Setup"
+
+msgid "School Configuration Center"
+msgstr "School Configuration Center"
+
+msgid "Section"
+msgstr "Section"
+
+msgid ""
+"Shows affected roles, workflows, dashboards, policies, billing posture, "
+"external blockers, and rollback limits."
+msgstr ""
+"Shows affected roles, workflows, dashboards, policies, billing posture, "
+"external blockers, and rollback limits."
+
+msgid "Tenant scope"
+msgstr "Tenant scope"
+
+msgid ""
+"This module links directly to the existing governed system and keeps "
+"configuration state in its current owner."
+msgstr ""
+"This module links directly to the existing governed system and keeps "
+"configuration state in its current owner."
+
+msgid "Upgrade"
+msgstr "Upgrade"
+
+msgid ""
+"Use /super/ for platform operations, /configuration/ for governed platform "
+"configuration, tenant school settings for school-scoped changes, and "
+"/internal-admin/ only for raw model fallback."
+msgstr ""
+"Use /super/ for platform operations, /configuration/ for governed platform "
+"configuration, tenant school settings for school-scoped changes, and "
+"/internal-admin/ only for raw model fallback."
+
+msgid "Widgets"
+msgstr "Widgets"
+
+msgid "external blocker"
+msgstr "external blocker"
+
+msgid "missing owner"
+msgstr "missing owner"
+
+msgid "missing proof"
+msgstr "missing proof"
+
+msgid "missing tests"
+msgstr "missing tests"
+
+msgid "none"
+msgstr "none"
+
+msgid "preview"
+msgstr "preview"
+
+msgid "route drift"
+msgstr "route drift"
+
+msgid ""
+"tenant-safe blueprints only. Platform-only blueprint management remains in "
+"/configuration/."
+msgstr ""
+"tenant-safe blueprints only. Platform-only blueprint management remains in "
+"/configuration/."
+
+msgid ""
+"tenant-scoped settings only. Platform registries, closure maps, global "
+"billing ledgers, and external dependency command surfaces stay in the "
+"control plane."
+msgstr ""
+"tenant-scoped settings only. Platform registries, closure maps, global "
+"billing ledgers, and external dependency command surfaces stay in the "
+"control plane."
