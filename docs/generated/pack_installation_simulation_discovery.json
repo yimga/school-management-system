@@ -1,0 +1,70 @@
+{
+  "slice": "pack_installation_simulation",
+  "generated_for": "repo_scope_pack_installer",
+  "primitives": [
+    {
+      "existing_file_module": "apps/packages/engine.py",
+      "pack_type_supported": "workflow/dashboard/policy/theme/document/experience",
+      "reusable_for_preview_simulation_apply_rollback": "preview/apply/rollback",
+      "missing_behavior": "pack-specific simulation and tenant-safe UI contract",
+      "risk": "duplicate installs if callers bypass idempotency",
+      "recommended_reuse_path": "Pack apply wraps PackageEngine and stores PackInstallation posture"
+    },
+    {
+      "existing_file_module": "apps/siteconfig/models_workflow.py",
+      "pack_type_supported": "workflow_pack",
+      "reusable_for_preview_simulation_apply_rollback": "catalog and tenant assignment primitives",
+      "missing_behavior": "governed simulation/apply lifecycle",
+      "risk": "activating unsafe workflows without confirmation",
+      "recommended_reuse_path": "Pack contract mirrors triggers/conditions/actions and requires simulation for high risk"
+    },
+    {
+      "existing_file_module": "apps/siteconfig/workflow_engine.py",
+      "pack_type_supported": "workflow_pack",
+      "reusable_for_preview_simulation_apply_rollback": "simulation semantics",
+      "missing_behavior": "pack-level installer output",
+      "risk": "live mutation during dry runs",
+      "recommended_reuse_path": "Pack simulation produces dry-run actions without executing workflows"
+    },
+    {
+      "existing_file_module": "apps/siteconfig/models_dashboard.py",
+      "pack_type_supported": "dashboard_pack",
+      "reusable_for_preview_simulation_apply_rollback": "dashboard pack, template, assignment, widget permissions",
+      "missing_behavior": "pack installation history and rollback posture",
+      "risk": "exposing widgets to unauthorized roles",
+      "recommended_reuse_path": "Pack contract carries role visibility and apply stores tenant-scoped marker"
+    },
+    {
+      "existing_file_module": "apps/policies/models.py",
+      "pack_type_supported": "policy_bundle",
+      "reusable_for_preview_simulation_apply_rollback": "PolicyBundle and policy snapshot models",
+      "missing_behavior": "simulated policy decision before install",
+      "risk": "bypassing approval/audit policy",
+      "recommended_reuse_path": "Pack simulation returns allowed/blocked/requires-approval and audit requirements"
+    },
+    {
+      "existing_file_module": "apps/marketplace/pack_registry.py",
+      "pack_type_supported": "workflow_pack/dashboard_pack/theme_pack",
+      "reusable_for_preview_simulation_apply_rollback": "catalog discovery and entitlement hints",
+      "missing_behavior": "installation lifecycle",
+      "risk": "catalog rows mistaken for completed installs",
+      "recommended_reuse_path": "Pack contract stays declarative and installer stores applied state separately"
+    },
+    {
+      "existing_file_module": "apps/platform_runtime/blueprint_contract.py",
+      "pack_type_supported": "workflow_pack/dashboard_pack/policy_bundle references",
+      "reusable_for_preview_simulation_apply_rollback": "blueprint composition",
+      "missing_behavior": "live pack preview/apply integration",
+      "risk": "blueprints remain descriptive only",
+      "recommended_reuse_path": "Blueprint preview/apply now delegates to pack preview/apply and links PackInstallation rows"
+    },
+    {
+      "existing_file_module": "apps/platform_runtime/events.py",
+      "pack_type_supported": "all pack types",
+      "reusable_for_preview_simulation_apply_rollback": "audit/event persistence",
+      "missing_behavior": "pack lifecycle event names",
+      "risk": "untraceable install operations",
+      "recommended_reuse_path": "Add pack_previewed/simulated/impact/apply/rollback events"
+    }
+  ]
+}

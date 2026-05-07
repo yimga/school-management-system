@@ -50,3 +50,23 @@ class TenantSchoolConfigurationCenterTests(TestCase):
         response = client.get("/siteconfig/school-configuration/")
 
         self.assertEqual(response.status_code, 200, msg=response.content[:500])
+
+    def test_school_product_route_aliases_use_tenant_safe_surfaces(self):
+        client = Client(HTTP_HOST="tenant-settings.runmycampus.com", raise_request_exception=False)
+        client.login(username="tenant_settings_admin", password="x" * 8)
+
+        expected = {
+            "/school/apps/": "/settings/app-catalog/",
+            "/school/billing/": "/finance/",
+            "/school/money/": "/finance/",
+            "/school/workflows/": "/studio/automation/",
+            "/school/offline/": "/portal/offline-sync/",
+            "/school/audit/": "/compliance/",
+            "/school/security/": "/compliance/",
+        }
+
+        for path, target in expected.items():
+            with self.subTest(path=path):
+                response = client.get(path)
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(response["Location"], target)

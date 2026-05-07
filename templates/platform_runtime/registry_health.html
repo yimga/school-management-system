@@ -1,0 +1,47 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Registry Health" %}{% endblock %}
+
+{% block cp_content %}
+<section class="container-fluid py-3" data-page-archetype="operational-workbench" data-rmc-os-center="platform_configuration_center" data-page-marker="{{ page_marker }}">
+  <header class="mb-4">
+    <p class="small text-muted mb-1"><a href="{% url 'configuration:center' %}">{% trans "Platform Configuration Center" %}</a></p>
+    <h1 class="h3 mb-2">{% trans "Registry Health" %}</h1>
+    <p class="text-muted mb-0">{% trans "Owner, proof, test, route, stale-generation, drift, and external-blocker posture for platform registries." %}</p>
+  </header>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "High severity" %}</div><strong>{{ health.high_count }}</strong></div></div></div>
+    <div class="col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Medium severity" %}</div><strong>{{ health.medium_count }}</strong></div></div></div>
+    <div class="col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Status" %}</div><strong>{% if health.ok %}{% trans "Healthy" %}{% else %}{% trans "Needs review" %}{% endif %}</strong></div></div></div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr><th>{% trans "Registry" %}</th><th>{% trans "Owner" %}</th><th>{% trans "Scope" %}</th><th>{% trans "Route" %}</th><th>{% trans "Gaps" %}</th><th>{% trans "Severity" %}</th><th>{% trans "Action" %}</th></tr>
+      </thead>
+      <tbody>
+      {% for row in health.rows %}
+        <tr data-registry-health-row="{{ row.registry_name }}">
+          <td><strong>{{ row.registry_name }}</strong></td>
+          <td>{{ row.owner }}</td>
+          <td><code>{{ row.scope }}</code></td>
+          <td>{{ row.route }}</td>
+          <td class="small">
+            {% if row.missing_owner %}{% trans "missing owner" %}; {% endif %}
+            {% if row.missing_proof %}{% trans "missing proof" %}; {% endif %}
+            {% if row.missing_tests %}{% trans "missing tests" %}; {% endif %}
+            {% if row.drift_detected %}{% trans "route drift" %}; {% endif %}
+            {% if row.external_blocker %}{% trans "external blocker" %}; {% endif %}
+          </td>
+          <td>{{ row.severity }}</td>
+          <td>{{ row.primary_action }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

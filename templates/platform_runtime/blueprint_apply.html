@@ -8,7 +8,7 @@
   <header class="mb-4">
     <p class="small text-muted mb-1"><a href="{% url 'configuration:blueprint_preview' preview.blueprint_key %}{% if selected_school %}?school={{ selected_school.slug }}{% endif %}">{% trans "Preview" %}</a></p>
     <h1 class="h3 mb-2">{% trans "Apply confirmation" %}</h1>
-    <p class="text-muted mb-0">{% trans "Apply requires a successful preview and explicit confirmation. External blockers remain required; no live PSP or settlement state is enabled." %}</p>
+    <p class="text-muted mb-0">{% trans "Apply requires a successful change set and explicit confirmation. High-risk changes require approval before rollout." %}</p>
   </header>
   {% if result %}
   <div class="alert {% if result.ok %}alert-success{% else %}alert-warning{% endif %}">{{ result }}</div>
@@ -18,13 +18,20 @@
       <dt class="col-sm-4">{% trans "Blueprint" %}</dt><dd class="col-sm-8">{{ preview.blueprint_name }}</dd>
       <dt class="col-sm-4">{% trans "Tenant" %}</dt><dd class="col-sm-8">{{ preview.tenant_name }}</dd>
       <dt class="col-sm-4">{% trans "Can apply" %}</dt><dd class="col-sm-8">{{ preview.can_apply|yesno:"yes,no" }}</dd>
+      <dt class="col-sm-4">{% trans "Risk" %}</dt><dd class="col-sm-8">{{ change_set.risk_level }}</dd>
+      <dt class="col-sm-4">{% trans "Approval required" %}</dt><dd class="col-sm-8">{{ change_set.requires_approval|yesno:"yes,no" }}</dd>
       <dt class="col-sm-4">{% trans "External required" %}</dt><dd class="col-sm-8">{{ preview.external_required|join:", " }}</dd>
     </dl>
     <form method="post">
       {% csrf_token %}
       <input type="hidden" name="school" value="{{ selected_school.slug }}">
-      <input type="hidden" name="confirm" value="yes">
-      <button class="btn btn-primary btn-sm" type="submit" {% if not preview.can_apply %}disabled{% endif %}>{% trans "Confirm apply" %}</button>
+      {% if change_set.requires_approval %}
+        <label class="form-label small">{% trans "Reason" %}<textarea class="form-control" name="reason" rows="3">Governed rollout request</textarea></label>
+        <button class="btn btn-primary btn-sm" type="submit" name="action" value="request_approval">{% trans "Request approval" %}</button>
+      {% else %}
+        <input type="hidden" name="confirm" value="yes">
+        <button class="btn btn-primary btn-sm" type="submit" {% if not change_set.can_apply %}disabled{% endif %}>{% trans "Confirm apply" %}</button>
+      {% endif %}
     </form>
   </div></div>
 </section>

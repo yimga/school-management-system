@@ -15,6 +15,7 @@ from apps.platform_runtime.blueprint_contract import get_blueprint_or_raise
 from apps.platform_runtime.blueprint_impact import analyze_blueprint_impact
 from apps.platform_runtime.blueprint_preview import preview_blueprint
 from apps.platform_runtime.models import BlueprintInstallation
+from apps.platform_runtime.pack_apply import apply_pack
 
 
 def _snapshot_school(school) -> dict[str, Any]:
@@ -55,6 +56,32 @@ def apply_blueprint(
         result="requested",
         payload={"confirmed": confirmed},
     )
+    impact = analyze_blueprint_impact(
+        blueprint.key,
+        school=school,
+        actor=actor,
+        platform_operator=platform_operator,
+        emit_audit=False,
+    )
+    if not idempotency_key and (
+        blueprint.platform_only
+        or blueprint.requires_platform_operator
+        or any(category in {"destructive"} for category in impact.get("impact_categories", []))
+    ):
+        event = audit_blueprint_event(
+            "blueprint_apply_failed",
+            blueprint_key=blueprint.key,
+            school=school,
+            actor=actor,
+            result="blocked",
+            reason="approval_required",
+        )
+        return {
+            "ok": False,
+            "errors": ["High-risk or platform-only blueprint apply requires an approved change request."],
+            "warnings": preview.get("warnings", []),
+            "audit_id": getattr(event, "pk", None),
+        }
     if not preview.get("can_apply"):
         event = audit_blueprint_event(
             "blueprint_apply_failed",
@@ -71,13 +98,6 @@ def apply_blueprint(
             "warnings": preview.get("warnings", []),
             "audit_id": getattr(event, "pk", None),
         }
-    impact = analyze_blueprint_impact(
-        blueprint.key,
-        school=school,
-        actor=actor,
-        platform_operator=platform_operator,
-        emit_audit=False,
-    )
     if impact["requires_confirmation"] and not confirmed:
         event = audit_blueprint_event(
             "blueprint_apply_failed",
@@ -140,6 +160,8 @@ def apply_blueprint(
             school=school,
             blueprint_key=blueprint.key,
             blueprint_version=blueprint.version,
+            installed_version=blueprint.version,
+            available_version=blueprint.version,
             status=BlueprintInstallation.Status.APPLIED,
             applied_by=actor if getattr(actor, "pk", None) else None,
             applied_at=timezone.now(),
@@ -161,6 +183,43 @@ def apply_blueprint(
         if event:
             installation.audit_ref = str(event.pk)
             installation.save(update_fields=["audit_ref"])
+    pack_install_results: list[dict[str, Any]] = []
+    for pack_preview in preview.get("pack_previews", []):
+        pack_result = apply_pack(
+            pack_preview["pack_key"],
+            pack_type=pack_preview["pack_type"],
+            school=school,
+            actor=actor,
+            confirmed=True,
+            platform_operator=platform_operator,
+            blueprint_installation=installation,
+            idempotency_key=f"{idem}:{pack_preview['pack_type']}:{pack_preview['pack_key']}",
+            skip_dependency_checks=True,
+        )
+        pack_install_results.append(pack_result)
+        if not pack_result.get("ok"):
+            installation.status = BlueprintInstallation.Status.PARTIALLY_APPLIED
+            installation.save(update_fields=["status", "updated_at"])
+            audit_blueprint_event(
+                "blueprint_apply_failed",
+                blueprint_key=blueprint.key,
+                school=school,
+                actor=actor,
+                result="partial",
+                reason="pack_install_failed",
+                installation_id=installation.pk,
+                payload={"pack_result": pack_result},
+            )
+            return {
+                "ok": False,
+                "errors": ["A referenced pack failed to install."],
+                "installation_id": installation.pk,
+                "pack_installations": pack_install_results,
+                "warnings": preview.get("warnings", []),
+                "external_blockers": list(preview.get("external_required") or []),
+                "rollback_available": True,
+                "audit_id": installation.audit_ref,
+            }
 
     return {
         "ok": True,
@@ -172,5 +231,6 @@ def apply_blueprint(
         "rollback_available": blueprint.rollback_available,
         "audit_id": installation.audit_ref,
         "package_result": package_result,
+        "pack_installations": pack_install_results,
         "idempotent": False,
     }

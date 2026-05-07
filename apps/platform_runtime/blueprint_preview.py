@@ -8,6 +8,7 @@ from django.db.models import Count
 
 from apps.platform_runtime.blueprint_audit import audit_blueprint_event
 from apps.platform_runtime.blueprint_contract import BlueprintContract, get_blueprint_or_raise
+from apps.platform_runtime.pack_preview import preview_pack
 
 
 def _change_rows(blueprint: BlueprintContract) -> list[dict[str, Any]]:
@@ -164,6 +165,64 @@ def preview_blueprint(
             }
         },
     }
+    pack_sections = (
+        ("workflow_pack", blueprint.workflow_packs, "workflow_pack"),
+        ("dashboard_pack", blueprint.dashboard_packs, "dashboard_pack"),
+        ("policy_bundle", blueprint.policy_bundles, "policy_bundle"),
+    )
+    pack_previews: list[dict[str, Any]] = []
+    pack_install_blockers: list[dict[str, str]] = []
+    for section, refs, pack_type in pack_sections:
+        for ref in refs:
+            try:
+                pack_preview = preview_pack(
+                    ref,
+                    pack_type=pack_type,
+                    school=school,
+                    actor=actor,
+                    platform_operator=platform_operator,
+                )
+                pack_previews.append(
+                    {
+                        "section": section,
+                        "reference": ref,
+                        "pack_key": pack_preview["pack_key"],
+                        "pack_type": pack_preview["pack_type"],
+                        "can_apply": pack_preview["can_apply"],
+                        "simulation_ready": not pack_preview.get("requires_simulation")
+                        or bool(pack_preview.get("can_apply")),
+                        "impact_targets": len(pack_preview.get("included_changes", [])),
+                        "external_required": pack_preview.get("external_required", []),
+                        "rollback_posture": pack_preview.get("rollback_posture", {}),
+                    }
+                )
+                if not pack_preview["can_apply"]:
+                    pack_install_blockers.extend(pack_preview.get("conflicts", []))
+            except (KeyError, ValueError) as exc:
+                pack_install_blockers.append(
+                    {"code": "pack_not_found", "message": f"{ref}: {exc}"}
+                )
+    result["pack_previews"] = pack_previews
+    result["pack_simulation_readiness"] = [
+        {"pack_key": row["pack_key"], "ready": row["simulation_ready"]}
+        for row in pack_previews
+    ]
+    result["pack_impact_results"] = [
+        {
+            "pack_key": row["pack_key"],
+            "impact_targets": row["impact_targets"],
+            "external_required": row["external_required"],
+        }
+        for row in pack_previews
+    ]
+    result["pack_install_blockers"] = pack_install_blockers
+    result["pack_rollback_posture"] = [
+        {"pack_key": row["pack_key"], "rollback": row["rollback_posture"]}
+        for row in pack_previews
+    ]
+    if pack_install_blockers:
+        result["can_apply"] = False
+        result["conflicts"].extend(pack_install_blockers)
     if emit_audit:
         event = audit_blueprint_event(
             "blueprint_previewed",

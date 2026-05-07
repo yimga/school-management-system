@@ -1,0 +1,24 @@
+{% extends "control_plane_base.html" %}
+{% block cp_title %}{{ pack.name }}{% endblock %}
+{% block cp_content %}
+<section class="cp-page" data-page-marker="rmc-pack-detail">
+  <header class="cp-page-header">
+    <p class="cp-eyebrow">{{ pack.pack_type }}</p>
+    <h1>{{ pack.name }}</h1>
+    <p>{{ pack.description }}</p>
+  </header>
+  <div class="cp-grid cp-grid-2">
+    <article class="cp-card">
+      <h2>Included Items</h2>
+      <ul>{% for item in pack.included_items %}<li>{{ item }}</li>{% endfor %}</ul>
+    </article>
+    <article class="cp-card">
+      <h2>Safety</h2>
+      <p>Status: {{ pack.status }}</p>
+      <p>Safety level: {{ pack.safety_level }}</p>
+      <p>Rollback: {{ pack.rollback_available }}</p>
+      {% if pack.external_dependencies %}<p class="cp-warning">{{ pack.external_dependencies|join:", " }}</p>{% endif %}
+    </article>
+  </div>
+</section>
+{% endblock %}

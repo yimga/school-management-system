@@ -1,0 +1,61 @@
+{% extends "control_plane_base.html" %}
+
+{% block cp_title %}Pack Installation{% endblock %}
+
+{% block cp_content %}
+<section class="cp-page" data-page-marker="rmc-pack-installation-marketplace">
+  <header class="cp-page-header">
+    <p class="cp-eyebrow">Pack installation</p>
+    <h1>{{ pack_type|title }}</h1>
+    <p>Preview, simulate, analyze, apply, audit, deactivate, and roll back installable platform packs.</p>
+  </header>
+
+  <div class="cp-grid cp-grid-3">
+    {% for pack in packs %}
+      <article class="cp-card">
+        <div class="cp-card-header">
+          <h2>{{ pack.name }}</h2>
+          <span class="cp-badge">{{ pack.status }}</span>
+        </div>
+        <p>{{ pack.description }}</p>
+        {% if pack.aliases %}
+          <p class="cp-muted">Also supports: {{ pack.aliases|join:", " }}</p>
+        {% endif %}
+        <dl class="cp-meta-list">
+          <dt>Owner</dt><dd>{{ pack.owner }}</dd>
+          <dt>Roles</dt><dd>{{ pack.target_roles|join:", " }}</dd>
+          <dt>Safety</dt><dd>{{ pack.safety_level }}</dd>
+          {% if pack.pack_type == "workflow_pack" %}
+            <dt>Trigger</dt><dd>{{ pack.triggers|join:", " }}</dd>
+            <dt>Condition</dt><dd>{{ pack.conditions|join:", " }}</dd>
+            <dt>Action</dt><dd>{{ pack.actions|join:", " }}</dd>
+            <dt>Simulation</dt><dd>{{ pack.simulation_available }}</dd>
+          {% endif %}
+        </dl>
+        {% if pack.external_dependencies %}
+          <p class="cp-warning">External blockers: {{ pack.external_dependencies|join:", " }}</p>
+        {% endif %}
+        <div class="cp-action-row">
+          {% if pack_route == "workflow-packs" %}
+            <a class="cp-button" href="{% url 'configuration:workflow_pack_preview' pack.key %}?school={{ selected_school.slug }}">Preview</a>
+            <a class="cp-button" href="{% url 'configuration:workflow_pack_simulation' pack.key %}?school={{ selected_school.slug }}">Simulate</a>
+            <a class="cp-button" href="{% url 'configuration:workflow_pack_impact' pack.key %}?school={{ selected_school.slug }}">Impact</a>
+            <a class="cp-button cp-button-primary" href="{% url 'configuration:workflow_pack_apply' pack.key %}?school={{ selected_school.slug }}">Apply</a>
+          {% elif pack_route == "dashboard-packs" %}
+            <a class="cp-button" href="{% url 'configuration:dashboard_pack_preview' pack.key %}?school={{ selected_school.slug }}">Preview</a>
+            <a class="cp-button" href="{% url 'configuration:dashboard_pack_simulation' pack.key %}?school={{ selected_school.slug }}">Simulate</a>
+            <a class="cp-button" href="{% url 'configuration:dashboard_pack_impact' pack.key %}?school={{ selected_school.slug }}">Impact</a>
+            <a class="cp-button cp-button-primary" href="{% url 'configuration:dashboard_pack_apply' pack.key %}?school={{ selected_school.slug }}">Apply</a>
+          {% else %}
+            <a class="cp-button" href="{% url 'configuration:policy_bundle_preview' pack.key %}?school={{ selected_school.slug }}">Preview</a>
+            <a class="cp-button" href="{% url 'configuration:policy_bundle_simulation' pack.key %}?school={{ selected_school.slug }}">Simulate</a>
+            <a class="cp-button" href="{% url 'configuration:policy_bundle_impact' pack.key %}?school={{ selected_school.slug }}">Impact</a>
+            <a class="cp-button cp-button-primary" href="{% url 'configuration:policy_bundle_apply' pack.key %}?school={{ selected_school.slug }}">Apply</a>
+          {% endif %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+  <p><a class="cp-button" href="{% url 'configuration:pack_installations' %}">Installation history</a></p>
+</section>
+{% endblock %}
