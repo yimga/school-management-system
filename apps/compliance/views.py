@@ -1,5 +1,7 @@
 """Compliance Dashboard Views for Phase 1.2.9"""
 
+import json
+
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views import View
@@ -78,6 +80,10 @@ class ComplianceDashboardView(View):
             "dashboard_layout_url": dashboard_layout_url,
             "available_sidebar_items": available_sidebar_items,
             "widget_meta_json": widget_meta_json,
+            "activity_chart_labels_json": json.dumps([]),
+            "activity_chart_data_json": json.dumps([]),
+            "user_activity_heatmap_hours_json": json.dumps([]),
+            "user_activity_heatmap_data_json": json.dumps([]),
         }
         return render(request, "compliance/dashboard.html", context)
 

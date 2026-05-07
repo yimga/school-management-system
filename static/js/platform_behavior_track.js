@@ -138,13 +138,6 @@
         if (o && o.path && path === o.path) {
           var tc = o.task_code || "";
           var sid = sessionRunIdForTask(tc);
-          postIngest({
-            kind: "ai_task_completed",
-            task_code: tc,
-            session_run_id: sid,
-            phase: phaseLabel(),
-            path: path,
-          });
           emit({ kind: "ai_task_completed", task_code: tc, path: path, ts: Date.now() });
           if (window.rmcClickTaskBoundary) {
             window.rmcClickTaskBoundary("task_complete", tc, {});
@@ -166,13 +159,6 @@
           seen[key] = true;
           var tc = chip.getAttribute("data-task") || "ai:" + key;
           var sid = sessionRunIdForTask(tc);
-          postIngest({
-            kind: "ai_suggestion_shown",
-            task_code: tc,
-            session_run_id: sid,
-            phase: phaseLabel(),
-            path: window.location.pathname || "",
-          });
           emit({ kind: "ai_suggestion_shown", task_code: tc, ts: Date.now() });
         });
       },
@@ -189,17 +175,9 @@
     onDomReadyAiHooks();
   }
 
-  /** One emit per full page load when click ingest is configured (measurement: screen_transition). */
+  /** One local emit per full page load; persisted click rows require task-bound events. */
   function emitScreenTransition() {
-    var url = window.__RMC_CLICK_INGEST;
-    if (!url) return;
     var path = window.location && window.location.pathname ? window.location.pathname : "";
-    postIngest({
-      kind: "screen_transition",
-      path: path,
-      phase: phaseLabel(),
-      ts: Date.now(),
-    });
     emit({ kind: "screen_transition", path: path, ts: Date.now() });
   }
   if (document.readyState === "loading") {

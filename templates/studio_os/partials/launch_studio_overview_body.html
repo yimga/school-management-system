@@ -14,7 +14,8 @@
     {% endif %}
   </div>
 
-  {% if launch_payload.registry_alignment and (launch_payload.registry_alignment.detail or launch_payload.registry_alignment.key_rows) %}
+  {% if launch_payload.registry_alignment %}
+  {% if launch_payload.registry_alignment.detail or launch_payload.registry_alignment.key_rows %}
   <div class="studio-os__card mb-3">
     <h3 class="h6 mb-2">{% trans "Registry alignment" %}</h3>
     {% if launch_payload.registry_alignment.mismatch_count %}
@@ -55,6 +56,7 @@
     <p class="small text-muted mb-0">{{ launch_payload.registry_alignment.detail }}</p>
     {% endif %}
   </div>
+  {% endif %}
   {% endif %}
 
   {% if launch_payload.steps %}

@@ -630,6 +630,9 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv("SECURE_HSTS_INCLUDE_SUBDOMAINS", "1"
 SECURE_HSTS_PRELOAD = os.getenv("SECURE_HSTS_PRELOAD", "1") == "1"
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+_secure_coop = os.getenv("SECURE_CROSS_ORIGIN_OPENER_POLICY", "").strip()
+if _secure_coop:
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = _secure_coop
 SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
 CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
 MANAGER_SESSION_COOKIE_NAME = (
@@ -794,6 +797,9 @@ FIFTY_PCT_REDUCTION_CLAIM_ALLOWED = os.getenv(
 ).strip().lower() in ("1", "true", "yes")
 MARKETING_ANALYTICS_SCRIPT_URL = (
     os.getenv("MARKETING_ANALYTICS_SCRIPT_URL") or ""
+).strip() or ""
+MARKETING_ANALYTICS_ENDPOINT_URL = (
+    os.getenv("MARKETING_ANALYTICS_ENDPOINT_URL") or ""
 ).strip() or ""
 # Optional: regional / campaign JSON layers — compare_eu.json, pricing_us.json, slug_variant.json, etc.
 _mkt_region = (os.getenv("MARKETING_CONTENT_REGION") or "").strip().lower()

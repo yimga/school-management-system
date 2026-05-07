@@ -1,0 +1,406 @@
+{
+  "generated_at": "2026-05-07T18:49:43.768Z",
+  "environment": {
+    "type": "local dev server browser QA",
+    "commit_under_test": "4d179e0f9ba1917d6c9d91e3e7321fd92d4672ed",
+    "db_path": ".django_test_dbs/browser_tenant_qa.sqlite3",
+    "primary_platform_host": "http://manager.runmycampus.com:8022",
+    "primary_tenant_host": "http://xp-tenant.runmycampus.com:8022",
+    "primary_public_host": "http://runmycampus.com:8022",
+    "tenant_slug": "xp-tenant",
+    "tenant_subdomain": "xp-tenant",
+    "secure_ssl_redirect": "0",
+    "csrf_cookie_secure": "0",
+    "session_cookie_secure": "0",
+    "secure_cross_origin_opener_policy": "unsafe-none for local HTTP QA only",
+    "deployed_sha_verified": false,
+    "live_parity_claim": false,
+    "notes": [
+      "Render/custom-domain deployment was not browser-tested.",
+      "Local HTTP QA used real tenant-domain form login after first visiting the login page to obtain a CSRF cookie.",
+      "Ignored artifacts: fresh SQLite QA DB under .django_test_dbs/, local server logs, staticfiles refresh, and screenshots under tmp/screenshots/live_browser_ux_certification_recovery/."
+    ]
+  },
+  "auth": {
+    "platform_operator": "admin/admin on manager.runmycampus.com:8022",
+    "tenant_admin": "tenant_admin/ChangeMe_1234 on xp-tenant.runmycampus.com:8022",
+    "tenant_auth_result": {
+      "get_status": 200,
+      "submit_status": 302,
+      "final_url": "http://xp-tenant.runmycampus.com:8022/authentication/backend/",
+      "csrf_forbidden": false,
+      "login_ok": true
+    },
+    "platform_auth_result": {
+      "get_status": 200,
+      "submit_status": 302,
+      "final_url": "http://manager.runmycampus.com:8022/super/",
+      "csrf_forbidden": false,
+      "login_ok": true
+    }
+  },
+  "platform_operator_browser_qa": {
+    "routes_tested": 14,
+    "status_200": 14,
+    "clean_routes": "14/14",
+    "routes": [
+      "/super/",
+      "/configuration/",
+      "/configuration/blueprints/",
+      "/configuration/workflow-packs/",
+      "/configuration/dashboard-packs/",
+      "/configuration/policy-bundles/",
+      "/configuration/change-requests/",
+      "/configuration/registries/",
+      "/configuration/registries/health/",
+      "/configuration/migrations/",
+      "/configuration/integrations/",
+      "/configuration/billing/",
+      "/configuration/experience/",
+      "/internal-admin/"
+    ]
+  },
+  "tenant_admin_browser_qa": {
+    "verdict": "certified_local",
+    "routes_tested": 10,
+    "status_200": 10,
+    "clean_routes": "10/10",
+    "routes": {
+      "/school/settings/": {
+        "status": 200,
+        "title": "School Configuration Center",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/school/settings/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      },
+      "/school/setup/blueprints/": {
+        "status": 200,
+        "title": "School Blueprint Setup",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/school/setup/blueprints/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      },
+      "/school/setup/packs/": {
+        "status": 200,
+        "title": "School Pack Setup",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/school/setup/packs/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      },
+      "/school/setup/imports/": {
+        "status": 200,
+        "title": "School activation",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/siteconfig/onboarding/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      },
+      "/school/apps/": {
+        "status": 200,
+        "title": "App catalog",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/settings/app-catalog/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      },
+      "/school/money/": {
+        "status": 200,
+        "title": "Money Center",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/finance/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      },
+      "/school/workflows/": {
+        "status": 200,
+        "title": "Automation \u00e2\u20ac\u201c Studio \u00c2\u00b7 XP Tenant Academy",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/studio/automation/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      },
+      "/school/offline/": {
+        "status": 200,
+        "title": "Offline sync queue \u00e2\u20ac\u201d Portal",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/portal/offline/sync-queue/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      },
+      "/school/audit/": {
+        "status": 200,
+        "title": "Compliance Dashboard",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/compliance/dashboard/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      },
+      "/school/security/": {
+        "status": 200,
+        "title": "Compliance Dashboard",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/compliance/dashboard/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      }
+    }
+  },
+  "tenant_mobile_browser_qa": {
+    "routes_tested": 6,
+    "status_200": 6,
+    "clean_routes": "6/6",
+    "routes": {
+      "/school/settings/": {
+        "status": 200,
+        "title": "School Configuration Center",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/school/settings/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      },
+      "/school/setup/blueprints/": {
+        "status": 200,
+        "title": "School Blueprint Setup",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/school/setup/blueprints/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      },
+      "/school/setup/packs/": {
+        "status": 200,
+        "title": "School Pack Setup",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/school/setup/packs/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      },
+      "/school/setup/imports/": {
+        "status": 200,
+        "title": "School activation",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/siteconfig/onboarding/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      },
+      "/school/offline/": {
+        "status": 200,
+        "title": "Offline sync queue \u00e2\u20ac\u201d Portal",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/portal/offline/sync-queue/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      },
+      "/school/security/": {
+        "status": 200,
+        "title": "Compliance Dashboard",
+        "final_url": "http://xp-tenant.runmycampus.com:8022/compliance/dashboard/",
+        "horizontal_overflow": false,
+        "console_errors": 0,
+        "page_errors": 0,
+        "bad_responses": 0
+      }
+    }
+  },
+  "negative_access_qa": {
+    "anonymous": [
+      {
+        "route": "/configuration/",
+        "requested_url": "http://manager.runmycampus.com:8022/configuration/",
+        "status": 200,
+        "final_url": "http://manager.runmycampus.com:8022/authentication/login/?next=/configuration/",
+        "title": "Control plane sign-in \u00e2\u20ac\u201d RunMyCampus Manager",
+        "premiumShellVisible": false,
+        "primaryActionVisible": true,
+        "horizontalOverflow": false,
+        "dummyHrefCount": 0,
+        "platformRegistryExposed": false,
+        "bodySample": "Skip to main content RunMyCampus Manager Control plane sign-in Sign in with your platform operator account. Sign in Username Password Log in Back to public site",
+        "console": [],
+        "pageErrors": [],
+        "badResponses": []
+      },
+      {
+        "route": "/super/",
+        "requested_url": "http://manager.runmycampus.com:8022/super/",
+        "status": 200,
+        "final_url": "http://manager.runmycampus.com:8022/authentication/login/?next=/super/",
+        "title": "Control plane sign-in \u00e2\u20ac\u201d RunMyCampus Manager",
+        "premiumShellVisible": false,
+        "primaryActionVisible": true,
+        "horizontalOverflow": false,
+        "dummyHrefCount": 0,
+        "platformRegistryExposed": false,
+        "bodySample": "Skip to main content RunMyCampus Manager Control plane sign-in Sign in with your platform operator account. Sign in Username Password Log in Back to public site",
+        "console": [],
+        "pageErrors": [],
+        "badResponses": []
+      },
+      {
+        "route": "/internal-admin/",
+        "requested_url": "http://manager.runmycampus.com:8022/internal-admin/",
+        "status": 200,
+        "final_url": "http://manager.runmycampus.com:8022/authentication/login/?next=/super/",
+        "title": "Control plane sign-in \u00e2\u20ac\u201d RunMyCampus Manager",
+        "premiumShellVisible": false,
+        "primaryActionVisible": true,
+        "horizontalOverflow": false,
+        "dummyHrefCount": 0,
+        "platformRegistryExposed": false,
+        "bodySample": "Skip to main content RunMyCampus Manager Control plane sign-in Sign in with your platform operator account. Sign in Username Password Log in Back to public site",
+        "console": [],
+        "pageErrors": [],
+        "badResponses": []
+      },
+      {
+        "route": "/school/settings/",
+        "requested_url": "http://xp-tenant.runmycampus.com:8022/school/settings/",
+        "status": 200,
+        "final_url": "http://xp-tenant.runmycampus.com:8022/authentication/login/?next=/school/settings/",
+        "title": "School portal login",
+        "premiumShellVisible": true,
+        "primaryActionVisible": true,
+        "horizontalOverflow": false,
+        "dummyHrefCount": 0,
+        "platformRegistryExposed": false,
+        "bodySample": "Skip to main content XP Tenant Academy Thu, May 7 | 02:51 PM -- No location selected Finish the important task first. Login Home Authentication Login XP Tenant Academy Knowledge \u00c6\u2019?\u00e2\u20ac\u00ba Technology \u00c6\u2019?\u00e2\u20ac\u00ba Excellence HOME / AUTHENTICATION / LOGIN ST",
+        "console": [],
+        "pageErrors": [],
+        "badResponses": []
+      }
+    ],
+    "tenant_login": {
+      "get_status": 200,
+      "submit_status": 302,
+      "final_url": "http://xp-tenant.runmycampus.com:8022/authentication/backend/",
+      "csrf_forbidden": false,
+      "login_ok": true
+    },
+    "tenant_user": [
+      {
+        "route": "/configuration/",
+        "requested_url": "http://manager.runmycampus.com:8022/configuration/",
+        "status": 200,
+        "final_url": "http://manager.runmycampus.com:8022/authentication/login/?next=/configuration/",
+        "title": "Control plane sign-in \u00e2\u20ac\u201d RunMyCampus Manager",
+        "premiumShellVisible": false,
+        "primaryActionVisible": true,
+        "horizontalOverflow": false,
+        "dummyHrefCount": 0,
+        "platformRegistryExposed": false,
+        "bodySample": "Skip to main content RunMyCampus Manager Control plane sign-in Sign in with your platform operator account. Sign in Username Password Log in Back to public site",
+        "console": [],
+        "pageErrors": [],
+        "badResponses": []
+      },
+      {
+        "route": "/super/",
+        "requested_url": "http://manager.runmycampus.com:8022/super/",
+        "status": 200,
+        "final_url": "http://manager.runmycampus.com:8022/authentication/login/?next=/super/",
+        "title": "Control plane sign-in \u00e2\u20ac\u201d RunMyCampus Manager",
+        "premiumShellVisible": false,
+        "primaryActionVisible": true,
+        "horizontalOverflow": false,
+        "dummyHrefCount": 0,
+        "platformRegistryExposed": false,
+        "bodySample": "Skip to main content RunMyCampus Manager Control plane sign-in Sign in with your platform operator account. Sign in Username Password Log in Back to public site",
+        "console": [],
+        "pageErrors": [],
+        "badResponses": []
+      },
+      {
+        "route": "/configuration/blueprints/",
+        "requested_url": "http://manager.runmycampus.com:8022/configuration/blueprints/",
+        "status": 200,
+        "final_url": "http://manager.runmycampus.com:8022/authentication/login/?next=/configuration/blueprints/",
+        "title": "Control plane sign-in \u00e2\u20ac\u201d RunMyCampus Manager",
+        "premiumShellVisible": false,
+        "primaryActionVisible": true,
+        "horizontalOverflow": false,
+        "dummyHrefCount": 0,
+        "platformRegistryExposed": false,
+        "bodySample": "Skip to main content RunMyCampus Manager Control plane sign-in Sign in with your platform operator account. Sign in Username Password Log in Back to public site",
+        "console": [],
+        "pageErrors": [],
+        "badResponses": []
+      }
+    ],
+    "public_host_no_follow": [
+      {
+        "route": "/super/",
+        "status": 302,
+        "location": "https://manager.runmycampus.com/super/"
+      },
+      {
+        "route": "/internal-admin/",
+        "status": 302,
+        "location": "https://manager.runmycampus.com/internal-admin/"
+      }
+    ]
+  },
+  "issues_fixed": [
+    "CSRF-correct tenant browser login flow: GET login page, submit real form with CSRF cookie/token on tenant host.",
+    "Fresh migrated local browser QA DB replaced stale local DB state.",
+    "Tenant aliases corrected: imports -> /siteconfig/onboarding/, offline -> /portal/offline/sync-queue/, audit/security -> /compliance/dashboard/.",
+    "Launch Studio template conditional fixed to remove invalid Django template syntax.",
+    "Click tracking JS no longer POSTs unsupported screen/AI passive telemetry kinds to the strict task-click endpoint.",
+    "Missing density CSS and invalid React Query vendor placeholder fixed for local static serving.",
+    "Compliance dashboard JSON payloads made safe for chart scripts."
+  ],
+  "remaining_gaps": [
+    "Render/custom-domain parity remains pending.",
+    "This is local certification only; no deployed SHA/live custom-domain browser parity was claimed.",
+    "First School Operating Proof remains the next milestone."
+  ],
+  "verifiers": {
+    "targeted_tenant_route_tests": "PASS - 4/4",
+    "browser_summary": {
+      "tenantLoginPass": true,
+      "mobileLoginPass": true,
+      "platformLoginPass": true,
+      "tenantDesktop": "10/10",
+      "tenantDesktopClean": "10/10",
+      "tenantMobile": "6/6",
+      "tenantMobileClean": "6/6",
+      "platform": "14/14",
+      "platformClean": "14/14"
+    },
+    "stack": {
+      "manage_check": "PASS",
+      "validate_marketing_urls_smoke": "PASS",
+      "audit_route_surface": "PASS",
+      "audit_security_surface": "PASS",
+      "audit_tenant_isolation": "PASS",
+      "verify_test_module_contract": "PASS",
+      "verify_design_system_phase2": "PASS",
+      "verify_shell_surface_inventory": "PASS",
+      "run_northstar_audit": "PASS",
+      "run_kill_test": "PASS",
+      "verify_doc_plan_density_discipline": "PASS",
+      "verify_sot_pillar_evidence": "PASS"
+    }
+  },
+  "screenshots": {
+    "directory": "tmp/screenshots/live_browser_ux_certification_recovery/",
+    "tracked": false
+  },
+  "verdict": "LIVE BROWSER UX CERTIFIED - LOCAL"
+}

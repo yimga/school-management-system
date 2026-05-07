@@ -157,12 +157,13 @@ def legacy_report_library_redirect(request):
 def school_surface_redirect(request, surface: str):
     destinations = {
         "apps": "/settings/app-catalog/",
+        "imports": "/siteconfig/onboarding/",
         "billing": "/finance/",
         "money": "/finance/",
         "workflows": "/studio/automation/",
-        "offline": "/portal/offline-sync/",
-        "audit": "/compliance/",
-        "security": "/compliance/",
+        "offline": "/portal/offline/sync-queue/",
+        "audit": "/compliance/dashboard/",
+        "security": "/compliance/dashboard/",
     }
     return redirect(destinations[surface])
 
@@ -236,6 +237,7 @@ urlpatterns = [
     path("school/settings/", school_configuration_center, name="school_configuration_center"),
     path("school/setup/blueprints/", tenant_blueprint_setup, name="tenant_blueprint_setup"),
     path("school/setup/packs/", tenant_pack_setup, name="tenant_pack_setup"),
+    path("school/setup/imports/", school_surface_redirect, {"surface": "imports"}, name="school_setup_imports"),
     path("school/apps/", school_surface_redirect, {"surface": "apps"}, name="school_apps"),
     path("school/billing/", school_surface_redirect, {"surface": "billing"}, name="school_billing"),
     path("school/money/", school_surface_redirect, {"surface": "money"}, name="school_money"),

@@ -584,6 +584,7 @@
         // Collapsible sidebar: toggle icon-only strip, persist to localStorage
         var sidebarCol = document.getElementById('portal-sidebar-col');
         var collapseKey = 'portal-sidebar-collapsed';
+        var collapseKeys = [collapseKey];
         var collapseButtons = Array.from(document.querySelectorAll('.portal-sidebar-collapse-toggle, .js-sidebar-toggle'));
 
         function updateCollapseButtons(collapsed) {

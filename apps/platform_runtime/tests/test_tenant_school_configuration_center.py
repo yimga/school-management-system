@@ -3,6 +3,7 @@ from __future__ import annotations
 from django.test import Client, TestCase, override_settings
 
 from apps.accounts.models import User
+from apps.finance.models import ComplianceProfile
 from apps.schools.models import School
 
 
@@ -56,13 +57,14 @@ class TenantSchoolConfigurationCenterTests(TestCase):
         client.login(username="tenant_settings_admin", password="x" * 8)
 
         expected = {
+            "/school/setup/imports/": "/siteconfig/onboarding/",
             "/school/apps/": "/settings/app-catalog/",
             "/school/billing/": "/finance/",
             "/school/money/": "/finance/",
             "/school/workflows/": "/studio/automation/",
-            "/school/offline/": "/portal/offline-sync/",
-            "/school/audit/": "/compliance/",
-            "/school/security/": "/compliance/",
+            "/school/offline/": "/portal/offline/sync-queue/",
+            "/school/audit/": "/compliance/dashboard/",
+            "/school/security/": "/compliance/dashboard/",
         }
 
         for path, target in expected.items():
@@ -70,3 +72,25 @@ class TenantSchoolConfigurationCenterTests(TestCase):
                 response = client.get(path)
                 self.assertEqual(response.status_code, 302)
                 self.assertEqual(response["Location"], target)
+
+    def test_school_browser_qa_aliases_resolve_for_tenant_admin(self):
+        ComplianceProfile.objects.create(
+            name="QA Finance Profile",
+            country_code="US",
+            currency_code="USD",
+            currency_symbol="$",
+            is_active=True,
+        )
+        client = Client(HTTP_HOST="tenant-settings.runmycampus.com", raise_request_exception=False)
+        client.login(username="tenant_settings_admin", password="x" * 8)
+
+        for path in (
+            "/school/setup/imports/",
+            "/school/offline/",
+            "/school/audit/",
+            "/school/security/",
+            "/school/money/",
+        ):
+            with self.subTest(path=path):
+                response = client.get(path, follow=True)
+                self.assertEqual(response.status_code, 200, msg=response.content[:500])

@@ -28345,6 +28345,20 @@ s`** needs a URL **`id`** kwarg ? not suitable for **`reverse()`-only curated ma
 
 **E. Risks / notes:** Full platform suite and browser screenshot QA were not run. Future depth remains richer live-registry mutation simulation, finer per-object rollback, operator approval workflow, and production PSP/settlement proof.
 
+## Slice - Live Browser UX Certification partial (2026-05-07)
+
+**A. Scope:** Browser-tested the deep platform/admin/configuration surfaces after main was aligned at `4d179e0f9ba1917d6c9d91e3e7321fd92d4672ed`. This was local browser QA only, not Render/custom-domain live parity.
+
+**B. Environment:** Primary pass used a local Django dev server with `SECURE_SSL_REDIRECT=0` on `127.0.0.1:8021`, host aliases for `manager.runmycampus.com`, `xp-tenant.runmycampus.com`, and `runmycampus.com`, plus seeded local QA users. Local HTTP domain aliases produced COOP browser warnings; those are recorded as environment warnings. The default local SQLite DB was schema-stale: `migrate` failed on a pre-existing marketplace table and tenant runtime logged missing `siteconfig_workflowtemplate.certified`. A fresh SQLite migration attempt timed out, and an alternate file-backed test DB was also stale for browser rendering.
+
+**C. Browser results:** Platform operator routes returned **14/14 200** for `/super/`, `/configuration/`, blueprint/packs/governance/registry/migration/integration/billing/experience routes, and `/internal-admin/`. Public routes returned **6/6 200**. Mobile captured routes returned **8/8 200** with no horizontal overflow detected. No dummy actions were detected in captured platform/public/mobile passes. Tenant admin browser QA is **not certified**: local tenant login hit **403 CSRF cookie not set**, and `/school/setup/imports/`, `/school/offline/`, `/school/audit/`, and `/school/security/` returned **500** in the stale local DB environment. Negative access is **partial**: unauthenticated `/configuration/` redirected to login and tenant-host platform routes returned **403**, while public-host `/super/` and `/internal-admin/` were inconclusive in the local run.
+
+**D. Evidence:** `docs/generated/live_browser_ux_certification_report.json`, `docs/generated/live_browser_ux_certification_report.md`, and screenshot artifacts under `artifacts/live_browser_ux_certification/`.
+
+**E. Validation:** `python manage.py check --settings=config.settings` - **OK**. `python manage.py validate_marketing_urls --smoke` - **PASS**. Route/security/tenant isolation/test contract/design system/shell inventory/North Star/kill-test/doc-density/SOT-evidence verifiers - **PASS**.
+
+**F. Verdict:** **LIVE BROWSER UX PARTIAL**. Required follow-up: rerun browser QA against a fully migrated HTTPS-capable local/staging/Render environment with verified deployed SHA before claiming local or Render browser UX certification.
+
 ## Slice - Configuration Change Governance (2026-05-07)
 
 **A. Scope:** Pushed the Blueprint Marketplace and Pack Installation work from install buttons into governed rollout: request, approval, scheduled rollout, change set/dry-run, apply, monitor, rollback, and audit. This expands SOT batches 1193 and 1194 before commit and remains repo-scope.
@@ -28382,3 +28396,17 @@ s`** needs a URL **`id`** kwarg ? not suitable for **`reverse()`-only curated ma
 **D. Verifiers:** `python manage.py check --settings=config.settings` - **OK**. `python manage.py validate_marketing_urls --smoke --settings=config.settings` - **PASS**. `audit_route_surface.py`, `audit_security_surface.py`, `audit_tenant_isolation.py`, `verify_test_module_contract.py`, `verify_design_system_phase2.py`, `verify_shell_surface_inventory.py`, `run_northstar_audit.py`, `run_kill_test.py`, `verify_doc_plan_density_discipline.py`, and `verify_sot_pillar_evidence.py` - **PASS**.
 
 **E. Risks / notes:** Browser/live QA remains checklist-only, not certified. Full suite remains bounded by timeout. External PSP/settlement/certification/partner proof remains external_required. The new depth is executable contract and governance/service depth, not a claim that every UI workflow is live-polished.
+
+## Slice - Tenant Browser QA Recovery (2026-05-07)
+
+**A. Scope:** Recovered the blocker from the prior live-browser partial: tenant browser auth, tenant admin route 500s, mobile tenant checks, and negative-access proof. This was local browser QA only, not Render/custom-domain live parity.
+
+**B. Environment:** Fresh local DB `.django_test_dbs/browser_tenant_qa.sqlite3`; tenant `xp-tenant`; platform user `admin`; tenant admin `tenant_admin`; hosts `manager.runmycampus.com:8022`, `xp-tenant.runmycampus.com:8022`, and `runmycampus.com:8022`; local-only env `SECURE_SSL_REDIRECT=0`, `CSRF_COOKIE_SECURE=0`, `SESSION_COOKIE_SECURE=0`, `SECURE_CROSS_ORIGIN_OPENER_POLICY=unsafe-none`.
+
+**C. Implementation:** Fixed the QA login flow to perform real form login after fetching the tenant login page and CSRF cookie. Added `/school/setup/imports/`, corrected tenant aliases for offline/audit/security, seeded the local finance compliance profile, fixed Launch Studio template syntax, removed unsupported passive telemetry POSTs from click tracking, restored missing density CSS/React Query static shim, fixed sidebar collapse JS, and made compliance chart JSON safe.
+
+**D. Browser results:** Tenant desktop **10/10 200 clean**; tenant mobile **6/6 200 clean**; platform operator **14/14 200 clean**. Negative checks: anonymous platform/tenant routes redirected to login, tenant user was not granted manager platform access, and public-host `/super/` plus `/internal-admin/` returned manager-host redirects.
+
+**E. Validation:** Targeted tenant configuration route tests - **4 OK**. Browser evidence artifacts: `docs/generated/tenant_browser_qa_recovery_raw.json`, `docs/generated/live_browser_ux_certification_report.json`, and `docs/generated/live_browser_ux_certification_report.md`.
+
+**F. Verdict:** **LIVE BROWSER UX CERTIFIED - LOCAL**. Render/custom-domain parity remains pending; no full-market category-defining claim is made.

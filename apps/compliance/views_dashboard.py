@@ -10,8 +10,9 @@ Provides comprehensive compliance dashboard for administrators:
 - Security summary (failed logins, suspicious activity)
 """
 
-from datetime import timedelta
 from collections import defaultdict, Counter
+from datetime import timedelta
+import json
 
 from django.shortcuts import render
 from django.views import View
@@ -69,6 +70,17 @@ class ComplianceDashboardView(View):
                 "blocked_access": self._get_blocked_access(),
             }
             cache.set(cache_key, context, cache_ttl)
+
+        activity_chart = context.get("activity_chart")
+        if isinstance(activity_chart, dict):
+            activity_chart.setdefault("labels_json", json.dumps(activity_chart.get("labels") or []))
+            activity_chart.setdefault("data_json", json.dumps(activity_chart.get("data") or []))
+            context["activity_chart_labels_json"] = activity_chart["labels_json"]
+            context["activity_chart_data_json"] = activity_chart["data_json"]
+        heatmap = context.get("user_activity_heatmap")
+        if isinstance(heatmap, dict):
+            context["user_activity_heatmap_hours_json"] = json.dumps(heatmap.get("hours") or [])
+            context["user_activity_heatmap_data_json"] = json.dumps(heatmap.get("data") or [])
 
         # Add incident response config (not cached, always fresh)
         incident_cfg = getattr(settings, "INCIDENT_RESPONSE", {})
@@ -170,6 +182,10 @@ class ComplianceDashboardView(View):
             "activity": activity_rows,
         }
 
+        context.setdefault("activity_chart_labels_json", "[]")
+        context.setdefault("activity_chart_data_json", "[]")
+        context.setdefault("user_activity_heatmap_hours_json", "[]")
+        context.setdefault("user_activity_heatmap_data_json", "[]")
         return render(request, "compliance/dashboard.html", context)
 
     def _get_metrics(self):
@@ -244,7 +260,9 @@ class ComplianceDashboardView(View):
 
         return {
             "labels": labels,
+            "labels_json": json.dumps(labels),
             "data": data,
+            "data_json": json.dumps(data),
         }
 
     def _get_user_activity_heatmap(self):
