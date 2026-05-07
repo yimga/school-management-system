@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-05T17:54:03.666008+00:00",
+  "generated_at": "2026-05-07T00:11:12.438405+00:00",
   "rows": [
     {
       "bucket": "product",
@@ -593,14 +593,14 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/observability/views.py",
-      "line": "548",
+      "line": "595",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/observability/views.py",
-      "line": "990",
+      "line": "1037",
       "protective_decorator_nearby": false
     },
     {

@@ -32,6 +32,8 @@ class BlueprintMarketplaceFoundationsTests(TestCase):
             "Low-connectivity School",
         ):
             self.assertIn(label, body)
-        self.assertIn("preview_only", body)
+        self.assertIn("installable", body)
         self.assertIn("Impact analysis", body)
-        self.assertIn("Rollback and audit", body)
+        self.assertIn("Installation history", body)
+        self.assertIn("/configuration/blueprints/private-primary-school/preview/", body)
+        self.assertIn("/configuration/blueprints/installations/", body)

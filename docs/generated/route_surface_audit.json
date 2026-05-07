@@ -16839,6 +16839,314 @@
       "view": "apps.automation.views_workflow_gallery.workflow_template_gallery"
     },
     {
+      "name": "configuration:blueprint_apply",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 30,
+          "name": "configuration:blueprint_apply",
+          "path": "templates/platform_runtime/blueprint_detail.html",
+          "raw": "{% url 'configuration:blueprint_apply' blueprint.key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 40,
+          "name": "configuration:blueprint_apply",
+          "path": "templates/platform_runtime/blueprint_marketplace.html",
+          "raw": "{% url 'configuration:blueprint_apply' blueprint.key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 31,
+          "name": "configuration:blueprint_apply",
+          "path": "templates/platform_runtime/blueprint_preview.html",
+          "raw": "{% url 'configuration:blueprint_apply' preview.blueprint_key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/<slug:key>/apply/",
+      "view": "apps.platform_runtime.views_administration.blueprint_apply_view"
+    },
+    {
+      "name": "configuration:blueprint_detail",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 38,
+          "name": "configuration:blueprint_detail",
+          "path": "templates/platform_runtime/blueprint_marketplace.html",
+          "raw": "{% url 'configuration:blueprint_detail' blueprint.key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/<slug:key>/",
+      "view": "apps.platform_runtime.views_administration.blueprint_detail"
+    },
+    {
+      "name": "configuration:blueprint_impact",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 29,
+          "name": "configuration:blueprint_impact",
+          "path": "templates/platform_runtime/blueprint_detail.html",
+          "raw": "{% url 'configuration:blueprint_impact' blueprint.key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 37,
+          "name": "configuration:blueprint_impact",
+          "path": "templates/platform_runtime/blueprint_marketplace.html",
+          "raw": "{% url 'configuration:blueprint_impact' blueprint.key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 30,
+          "name": "configuration:blueprint_impact",
+          "path": "templates/platform_runtime/blueprint_preview.html",
+          "raw": "{% url 'configuration:blueprint_impact' preview.blueprint_key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/<slug:key>/impact/",
+      "view": "apps.platform_runtime.views_administration.blueprint_impact_view"
+    },
+    {
+      "name": "configuration:blueprint_installation_detail",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 16,
+          "name": "configuration:blueprint_installation_detail",
+          "path": "templates/platform_runtime/blueprint_installations.html",
+          "raw": "{% url 'configuration:blueprint_installation_detail' installation.pk %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:blueprint_installation_detail",
+          "path": "templates/platform_runtime/blueprint_rollback.html",
+          "raw": "{% url 'configuration:blueprint_installation_detail' installation.pk %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/installations/<int:installation_id>/",
+      "view": "apps.platform_runtime.views_administration.blueprint_installation_detail"
+    },
+    {
+      "name": "configuration:blueprint_installations",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:blueprint_installations",
+          "path": "templates/platform_runtime/blueprint_installation_detail.html",
+          "raw": "{% url 'configuration:blueprint_installations' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 15,
+          "name": "configuration:blueprint_installations",
+          "path": "templates/platform_runtime/blueprint_marketplace.html",
+          "raw": "{% url 'configuration:blueprint_installations' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/installations/",
+      "view": "apps.platform_runtime.views_administration.blueprint_installations"
+    },
+    {
+      "name": "configuration:blueprint_marketplace",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:blueprint_marketplace",
+          "path": "templates/platform_runtime/blueprint_detail.html",
+          "raw": "{% url 'configuration:blueprint_marketplace' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:blueprint_marketplace",
+          "path": "templates/platform_runtime/blueprint_impact.html",
+          "raw": "{% url 'configuration:blueprint_marketplace' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:blueprint_marketplace",
+          "path": "templates/platform_runtime/blueprint_installations.html",
+          "raw": "{% url 'configuration:blueprint_marketplace' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:blueprint_marketplace",
+          "path": "templates/platform_runtime/blueprint_preview.html",
+          "raw": "{% url 'configuration:blueprint_marketplace' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/",
+      "view": "apps.platform_runtime.views_administration.blueprint_marketplace"
+    },
+    {
+      "name": "configuration:blueprint_preview",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:blueprint_preview",
+          "path": "templates/platform_runtime/blueprint_apply.html",
+          "raw": "{% url 'configuration:blueprint_preview' preview.blueprint_key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 28,
+          "name": "configuration:blueprint_preview",
+          "path": "templates/platform_runtime/blueprint_detail.html",
+          "raw": "{% url 'configuration:blueprint_preview' blueprint.key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 36,
+          "name": "configuration:blueprint_preview",
+          "path": "templates/platform_runtime/blueprint_marketplace.html",
+          "raw": "{% url 'configuration:blueprint_preview' blueprint.key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/<slug:key>/preview/",
+      "view": "apps.platform_runtime.views_administration.blueprint_preview_view"
+    },
+    {
+      "name": "configuration:blueprint_rollback",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 21,
+          "name": "configuration:blueprint_rollback",
+          "path": "templates/platform_runtime/blueprint_installation_detail.html",
+          "raw": "{% url 'configuration:blueprint_rollback' installation.pk %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/installations/<int:installation_id>/rollback/",
+      "view": "apps.platform_runtime.views_administration.blueprint_rollback_view"
+    },
+    {
+      "name": "configuration:center",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:center",
+          "path": "templates/platform_runtime/blueprint_marketplace.html",
+          "raw": "{% url 'configuration:center' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:center",
+          "path": "templates/platform_runtime/configuration_module_detail.html",
+          "raw": "{% url 'configuration:center' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/",
+      "view": "apps.platform_runtime.views_administration.configuration_center"
+    },
+    {
+      "name": "configuration:module_detail",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/configuration/<slug:module_key>/",
+      "view": "apps.platform_runtime.views_administration.configuration_module_detail"
+    },
+    {
       "name": "health",
       "permission_requirement": "public",
       "reasons": [],
@@ -17055,6 +17363,17 @@
       ],
       "url_path": "/",
       "view": "config.manager_urls.manager_home"
+    },
+    {
+      "name": "internal_admin",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/internal-admin/",
+      "view": "apps.platform_runtime.views_administration.internal_admin_alias_redirect"
     },
     {
       "name": "kb:faq_detail",
@@ -18950,7 +19269,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 269,
+          "line": 270,
           "name": "platform_incidents_console",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"platform_incidents_console\")",
@@ -18959,7 +19278,7 @@
         },
         {
           "kind": "reverse",
-          "line": 147,
+          "line": 148,
           "name": "platform_incidents_console",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"platform_incidents_console\")",
@@ -19189,6 +19508,17 @@
       "template_usage": [],
       "url_path": "/platform-runtime/lifecycle/",
       "view": "apps.platform_runtime.views_tenant_lifecycle.tenant_lifecycle_dashboard"
+    },
+    {
+      "name": "public_version",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/-/version/",
+      "view": "apps.observability.views.public_version"
     },
     {
       "name": "ready",
@@ -23115,7 +23445,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 339,
+          "line": 340,
           "name": "siteconfig:metadata_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"siteconfig:metadata_operator_hub\")",
@@ -26251,7 +26581,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 132,
+          "line": 138,
           "name": "studio_os:automation",
           "path": "config/tenant_urls.py",
           "raw": "reverse(\"studio_os:automation\")",
@@ -26260,7 +26590,7 @@
         },
         {
           "kind": "reverse",
-          "line": 171,
+          "line": 194,
           "name": "studio_os:automation",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:automation\")",
@@ -26758,7 +27088,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 192,
+          "line": 193,
           "name": "studio_os:control",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:control\")",
@@ -26962,7 +27292,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 118,
+          "line": 124,
           "name": "studio_os:experience",
           "path": "config/tenant_urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -26971,7 +27301,7 @@
         },
         {
           "kind": "reverse",
-          "line": 125,
+          "line": 131,
           "name": "studio_os:experience",
           "path": "config/tenant_urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -26980,7 +27310,7 @@
         },
         {
           "kind": "reverse",
-          "line": 166,
+          "line": 189,
           "name": "studio_os:experience",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -26989,7 +27319,7 @@
         },
         {
           "kind": "reverse",
-          "line": 190,
+          "line": 213,
           "name": "studio_os:experience",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -27711,7 +28041,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 199,
+          "line": 200,
           "name": "studio_os:launch",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:launch\")",
@@ -27925,7 +28255,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 185,
+          "line": 186,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -27934,7 +28264,7 @@
         },
         {
           "kind": "reverse",
-          "line": 206,
+          "line": 207,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -27943,7 +28273,7 @@
         },
         {
           "kind": "reverse",
-          "line": 143,
+          "line": 149,
           "name": "studio_os:output",
           "path": "config/tenant_urls.py",
           "raw": "reverse(\"studio_os:output\")",
@@ -27952,7 +28282,7 @@
         },
         {
           "kind": "reverse",
-          "line": 181,
+          "line": 204,
           "name": "studio_os:output",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:output\")",
@@ -29507,7 +29837,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 227,
+          "line": 228,
           "name": "super:analytics_overview",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:analytics_overview\")",
@@ -29936,7 +30266,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 262,
+          "line": 263,
           "name": "super:app_catalog",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:app_catalog\")",
@@ -30051,7 +30381,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 304,
+          "line": 305,
           "name": "super:backlog_unlock_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:backlog_unlock_center\")",
@@ -30129,7 +30459,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 241,
+          "line": 242,
           "name": "super:billing_dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:billing_dashboard\")",
@@ -30138,7 +30468,7 @@
         },
         {
           "kind": "reverse",
-          "line": 170,
+          "line": 171,
           "name": "super:billing_dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse('super:billing_dashboard')",
@@ -30304,7 +30634,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 255,
+          "line": 256,
           "name": "super:blueprint_marketplace",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:blueprint_marketplace\")",
@@ -30429,7 +30759,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 234,
+          "line": 235,
           "name": "super:command_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:command_center\")",
@@ -30816,7 +31146,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 276,
+          "line": 277,
           "name": "super:create_school_wizard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:create_school_wizard\")",
@@ -31029,7 +31359,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 213,
+          "line": 214,
           "name": "super:dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -31038,7 +31368,7 @@
         },
         {
           "kind": "reverse",
-          "line": 128,
+          "line": 129,
           "name": "super:dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse('super:dashboard')",
@@ -31110,7 +31440,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1309,
+          "line": 1356,
           "name": "super:dashboard",
           "path": "apps/observability/views.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -31119,7 +31449,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1017,
+          "line": 1025,
           "name": "super:dashboard",
           "path": "apps/schools/middleware.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32796,7 +33126,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 311,
+          "line": 312,
           "name": "super:fleet_governed_changes",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:fleet_governed_changes\")",
@@ -32901,7 +33231,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 283,
+          "line": 284,
           "name": "super:geography",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:geography\")",
@@ -33269,7 +33599,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 248,
+          "line": 249,
           "name": "super:marketplace_governance",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:marketplace_governance\")",
@@ -34016,7 +34346,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 297,
+          "line": 298,
           "name": "super:operator_policy",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:operator_policy\")",
@@ -34727,7 +35057,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 318,
+          "line": 319,
           "name": "super:platform_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:platform_operator_hub\")",
@@ -34866,7 +35196,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 325,
+          "line": 326,
           "name": "super:playbook_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:playbook_operator_hub\")",
@@ -35471,7 +35801,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 332,
+          "line": 333,
           "name": "super:runtime_truth_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:runtime_truth_hub\")",
@@ -35565,7 +35895,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 220,
+          "line": 221,
           "name": "super:schools_list",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:schools_list\")",
@@ -36760,7 +37090,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 290,
+          "line": 291,
           "name": "super:trust_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:trust_center\")",
@@ -37146,7 +37476,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 346,
+          "line": 347,
           "name": "super:workflow_simulator",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:workflow_simulator\")",
@@ -54651,7 +54981,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 95,
+          "line": 101,
           "name": "api-schema",
           "path": "config/tenant_urls.py",
           "raw": "reverse(\"api-schema\")",
@@ -54660,7 +54990,7 @@
         },
         {
           "kind": "reverse",
-          "line": 143,
+          "line": 166,
           "name": "api-schema",
           "path": "config/urls.py",
           "raw": "reverse(\"api-schema\")",
@@ -62953,6 +63283,314 @@
       "view": "apps.compliance.views_gdpr.erasure_request_view"
     },
     {
+      "name": "configuration:blueprint_apply",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 30,
+          "name": "configuration:blueprint_apply",
+          "path": "templates/platform_runtime/blueprint_detail.html",
+          "raw": "{% url 'configuration:blueprint_apply' blueprint.key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 40,
+          "name": "configuration:blueprint_apply",
+          "path": "templates/platform_runtime/blueprint_marketplace.html",
+          "raw": "{% url 'configuration:blueprint_apply' blueprint.key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 31,
+          "name": "configuration:blueprint_apply",
+          "path": "templates/platform_runtime/blueprint_preview.html",
+          "raw": "{% url 'configuration:blueprint_apply' preview.blueprint_key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/<slug:key>/apply/",
+      "view": "apps.platform_runtime.views_administration.blueprint_apply_view"
+    },
+    {
+      "name": "configuration:blueprint_detail",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 38,
+          "name": "configuration:blueprint_detail",
+          "path": "templates/platform_runtime/blueprint_marketplace.html",
+          "raw": "{% url 'configuration:blueprint_detail' blueprint.key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/<slug:key>/",
+      "view": "apps.platform_runtime.views_administration.blueprint_detail"
+    },
+    {
+      "name": "configuration:blueprint_impact",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 29,
+          "name": "configuration:blueprint_impact",
+          "path": "templates/platform_runtime/blueprint_detail.html",
+          "raw": "{% url 'configuration:blueprint_impact' blueprint.key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 37,
+          "name": "configuration:blueprint_impact",
+          "path": "templates/platform_runtime/blueprint_marketplace.html",
+          "raw": "{% url 'configuration:blueprint_impact' blueprint.key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 30,
+          "name": "configuration:blueprint_impact",
+          "path": "templates/platform_runtime/blueprint_preview.html",
+          "raw": "{% url 'configuration:blueprint_impact' preview.blueprint_key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/<slug:key>/impact/",
+      "view": "apps.platform_runtime.views_administration.blueprint_impact_view"
+    },
+    {
+      "name": "configuration:blueprint_installation_detail",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 16,
+          "name": "configuration:blueprint_installation_detail",
+          "path": "templates/platform_runtime/blueprint_installations.html",
+          "raw": "{% url 'configuration:blueprint_installation_detail' installation.pk %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:blueprint_installation_detail",
+          "path": "templates/platform_runtime/blueprint_rollback.html",
+          "raw": "{% url 'configuration:blueprint_installation_detail' installation.pk %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/installations/<int:installation_id>/",
+      "view": "apps.platform_runtime.views_administration.blueprint_installation_detail"
+    },
+    {
+      "name": "configuration:blueprint_installations",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:blueprint_installations",
+          "path": "templates/platform_runtime/blueprint_installation_detail.html",
+          "raw": "{% url 'configuration:blueprint_installations' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 15,
+          "name": "configuration:blueprint_installations",
+          "path": "templates/platform_runtime/blueprint_marketplace.html",
+          "raw": "{% url 'configuration:blueprint_installations' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/installations/",
+      "view": "apps.platform_runtime.views_administration.blueprint_installations"
+    },
+    {
+      "name": "configuration:blueprint_marketplace",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:blueprint_marketplace",
+          "path": "templates/platform_runtime/blueprint_detail.html",
+          "raw": "{% url 'configuration:blueprint_marketplace' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:blueprint_marketplace",
+          "path": "templates/platform_runtime/blueprint_impact.html",
+          "raw": "{% url 'configuration:blueprint_marketplace' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:blueprint_marketplace",
+          "path": "templates/platform_runtime/blueprint_installations.html",
+          "raw": "{% url 'configuration:blueprint_marketplace' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:blueprint_marketplace",
+          "path": "templates/platform_runtime/blueprint_preview.html",
+          "raw": "{% url 'configuration:blueprint_marketplace' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/",
+      "view": "apps.platform_runtime.views_administration.blueprint_marketplace"
+    },
+    {
+      "name": "configuration:blueprint_preview",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:blueprint_preview",
+          "path": "templates/platform_runtime/blueprint_apply.html",
+          "raw": "{% url 'configuration:blueprint_preview' preview.blueprint_key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 28,
+          "name": "configuration:blueprint_preview",
+          "path": "templates/platform_runtime/blueprint_detail.html",
+          "raw": "{% url 'configuration:blueprint_preview' blueprint.key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 36,
+          "name": "configuration:blueprint_preview",
+          "path": "templates/platform_runtime/blueprint_marketplace.html",
+          "raw": "{% url 'configuration:blueprint_preview' blueprint.key %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/<slug:key>/preview/",
+      "view": "apps.platform_runtime.views_administration.blueprint_preview_view"
+    },
+    {
+      "name": "configuration:blueprint_rollback",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 21,
+          "name": "configuration:blueprint_rollback",
+          "path": "templates/platform_runtime/blueprint_installation_detail.html",
+          "raw": "{% url 'configuration:blueprint_rollback' installation.pk %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/blueprints/installations/<int:installation_id>/rollback/",
+      "view": "apps.platform_runtime.views_administration.blueprint_rollback_view"
+    },
+    {
+      "name": "configuration:center",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:center",
+          "path": "templates/platform_runtime/blueprint_marketplace.html",
+          "raw": "{% url 'configuration:center' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "configuration:center",
+          "path": "templates/platform_runtime/configuration_module_detail.html",
+          "raw": "{% url 'configuration:center' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/configuration/",
+      "view": "apps.platform_runtime.views_administration.configuration_center"
+    },
+    {
+      "name": "configuration:module_detail",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/configuration/<slug:module_key>/",
+      "view": "apps.platform_runtime.views_administration.configuration_module_detail"
+    },
+    {
       "name": "copilot_metrics_json",
       "permission_requirement": "authenticated_or_token",
       "reasons": [],
@@ -66527,6 +67165,17 @@
       "view": "apps.schools.marketing_views.institution_marketing_page"
     },
     {
+      "name": "internal_admin",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/internal-admin/",
+      "view": "apps.platform_runtime.views_administration.internal_admin_alias_redirect"
+    },
+    {
       "name": "kb:faq_detail",
       "permission_requirement": "public",
       "reasons": [],
@@ -68433,6 +69082,17 @@
       ],
       "url_path": "/help/",
       "view": "config.urls.<lambda>"
+    },
+    {
+      "name": "manager_offline_sync_center",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/offline/sync/",
+      "view": "config.urls.manager_offline_sync_root_fallback"
     },
     {
       "name": "marketing_10_reasons",
@@ -76892,6 +77552,17 @@
       "view": "apps.schools.section8_views.public_verify_hub"
     },
     {
+      "name": "public_version",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/-/version/",
+      "view": "apps.observability.views.public_version"
+    },
+    {
       "name": "ready",
       "permission_requirement": "public",
       "reasons": [],
@@ -81650,7 +82321,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 339,
+          "line": 340,
           "name": "siteconfig:metadata_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"siteconfig:metadata_operator_hub\")",
@@ -84786,7 +85457,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 132,
+          "line": 138,
           "name": "studio_os:automation",
           "path": "config/tenant_urls.py",
           "raw": "reverse(\"studio_os:automation\")",
@@ -84795,7 +85466,7 @@
         },
         {
           "kind": "reverse",
-          "line": 171,
+          "line": 194,
           "name": "studio_os:automation",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:automation\")",
@@ -85293,7 +85964,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 192,
+          "line": 193,
           "name": "studio_os:control",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:control\")",
@@ -85497,7 +86168,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 118,
+          "line": 124,
           "name": "studio_os:experience",
           "path": "config/tenant_urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -85506,7 +86177,7 @@
         },
         {
           "kind": "reverse",
-          "line": 125,
+          "line": 131,
           "name": "studio_os:experience",
           "path": "config/tenant_urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -85515,7 +86186,7 @@
         },
         {
           "kind": "reverse",
-          "line": 166,
+          "line": 189,
           "name": "studio_os:experience",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -85524,7 +86195,7 @@
         },
         {
           "kind": "reverse",
-          "line": 190,
+          "line": 213,
           "name": "studio_os:experience",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -86246,7 +86917,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 199,
+          "line": 200,
           "name": "studio_os:launch",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:launch\")",
@@ -86460,7 +87131,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 185,
+          "line": 186,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -86469,7 +87140,7 @@
         },
         {
           "kind": "reverse",
-          "line": 206,
+          "line": 207,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -86478,7 +87149,7 @@
         },
         {
           "kind": "reverse",
-          "line": 143,
+          "line": 149,
           "name": "studio_os:output",
           "path": "config/tenant_urls.py",
           "raw": "reverse(\"studio_os:output\")",
@@ -86487,7 +87158,7 @@
         },
         {
           "kind": "reverse",
-          "line": 181,
+          "line": 204,
           "name": "studio_os:output",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:output\")",
@@ -88042,7 +88713,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 227,
+          "line": 228,
           "name": "super:analytics_overview",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:analytics_overview\")",
@@ -88471,7 +89142,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 262,
+          "line": 263,
           "name": "super:app_catalog",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:app_catalog\")",
@@ -88586,7 +89257,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 304,
+          "line": 305,
           "name": "super:backlog_unlock_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:backlog_unlock_center\")",
@@ -88664,7 +89335,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 241,
+          "line": 242,
           "name": "super:billing_dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:billing_dashboard\")",
@@ -88673,7 +89344,7 @@
         },
         {
           "kind": "reverse",
-          "line": 170,
+          "line": 171,
           "name": "super:billing_dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse('super:billing_dashboard')",
@@ -88839,7 +89510,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 255,
+          "line": 256,
           "name": "super:blueprint_marketplace",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:blueprint_marketplace\")",
@@ -88964,7 +89635,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 234,
+          "line": 235,
           "name": "super:command_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:command_center\")",
@@ -89351,7 +90022,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 276,
+          "line": 277,
           "name": "super:create_school_wizard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:create_school_wizard\")",
@@ -89564,7 +90235,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 213,
+          "line": 214,
           "name": "super:dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -89573,7 +90244,7 @@
         },
         {
           "kind": "reverse",
-          "line": 128,
+          "line": 129,
           "name": "super:dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse('super:dashboard')",
@@ -89645,7 +90316,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1309,
+          "line": 1356,
           "name": "super:dashboard",
           "path": "apps/observability/views.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -89654,7 +90325,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1017,
+          "line": 1025,
           "name": "super:dashboard",
           "path": "apps/schools/middleware.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -91331,7 +92002,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 311,
+          "line": 312,
           "name": "super:fleet_governed_changes",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:fleet_governed_changes\")",
@@ -91436,7 +92107,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 283,
+          "line": 284,
           "name": "super:geography",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:geography\")",
@@ -91804,7 +92475,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 248,
+          "line": 249,
           "name": "super:marketplace_governance",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:marketplace_governance\")",
@@ -92551,7 +93222,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 297,
+          "line": 298,
           "name": "super:operator_policy",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:operator_policy\")",
@@ -93262,7 +93933,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 318,
+          "line": 319,
           "name": "super:platform_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:platform_operator_hub\")",
@@ -93401,7 +94072,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 325,
+          "line": 326,
           "name": "super:playbook_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:playbook_operator_hub\")",
@@ -94006,7 +94677,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 332,
+          "line": 333,
           "name": "super:runtime_truth_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:runtime_truth_hub\")",
@@ -94100,7 +94771,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 220,
+          "line": 221,
           "name": "super:schools_list",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:schools_list\")",
@@ -95295,7 +95966,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 290,
+          "line": 291,
           "name": "super:trust_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:trust_center\")",
@@ -95681,7 +96352,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 346,
+          "line": 347,
           "name": "super:workflow_simulator",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:workflow_simulator\")",
@@ -106513,6 +107184,17 @@
       "template_usage": [],
       "url_path": "/verify/",
       "view": "apps.schools.section8_views.public_verify_hub"
+    },
+    {
+      "name": "public_version",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public_host",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/-/version/",
+      "view": "apps.observability.views.public_version"
     },
     {
       "name": "ready",
@@ -127766,7 +128448,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 95,
+          "line": 101,
           "name": "api-schema",
           "path": "config/tenant_urls.py",
           "raw": "reverse(\"api-schema\")",
@@ -127775,7 +128457,7 @@
         },
         {
           "kind": "reverse",
-          "line": 143,
+          "line": 166,
           "name": "api-schema",
           "path": "config/urls.py",
           "raw": "reverse(\"api-schema\")",
@@ -139666,6 +140348,17 @@
       "view": "config.tenant_urls.home"
     },
     {
+      "name": "internal_admin",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/internal-admin/",
+      "view": "apps.platform_runtime.views_administration.internal_admin_alias_redirect"
+    },
+    {
       "name": "kb:faq_detail",
       "permission_requirement": "public",
       "reasons": [],
@@ -146995,6 +147688,27 @@
       "view": "apps.requests.views.request_module_access"
     },
     {
+      "name": "school_configuration_center",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 9,
+          "name": "school_configuration_center",
+          "path": "templates/platform_runtime/tenant_blueprint_setup.html",
+          "raw": "{% url 'school_configuration_center' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/school/settings/",
+      "view": "apps.platform_runtime.views_administration.school_configuration_center"
+    },
+    {
       "name": "school_events:event_detail",
       "permission_requirement": "public",
       "reasons": [],
@@ -150731,7 +151445,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 339,
+          "line": 340,
           "name": "siteconfig:metadata_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"siteconfig:metadata_operator_hub\")",
@@ -153787,6 +154501,17 @@
       "view": "apps.siteconfig.views_workflow_api.workflow_run_api"
     },
     {
+      "name": "siteconfig_school_configuration",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/siteconfig/school-configuration/",
+      "view": "apps.platform_runtime.views_administration.school_configuration_center"
+    },
+    {
       "name": "status",
       "permission_requirement": "public",
       "reasons": [],
@@ -153867,7 +154592,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 132,
+          "line": 138,
           "name": "studio_os:automation",
           "path": "config/tenant_urls.py",
           "raw": "reverse(\"studio_os:automation\")",
@@ -153876,7 +154601,7 @@
         },
         {
           "kind": "reverse",
-          "line": 171,
+          "line": 194,
           "name": "studio_os:automation",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:automation\")",
@@ -154374,7 +155099,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 192,
+          "line": 193,
           "name": "studio_os:control",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:control\")",
@@ -154578,7 +155303,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 118,
+          "line": 124,
           "name": "studio_os:experience",
           "path": "config/tenant_urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -154587,7 +155312,7 @@
         },
         {
           "kind": "reverse",
-          "line": 125,
+          "line": 131,
           "name": "studio_os:experience",
           "path": "config/tenant_urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -154596,7 +155321,7 @@
         },
         {
           "kind": "reverse",
-          "line": 166,
+          "line": 189,
           "name": "studio_os:experience",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -154605,7 +155330,7 @@
         },
         {
           "kind": "reverse",
-          "line": 190,
+          "line": 213,
           "name": "studio_os:experience",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:experience\")",
@@ -155327,7 +156052,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 199,
+          "line": 200,
           "name": "studio_os:launch",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:launch\")",
@@ -155541,7 +156266,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 185,
+          "line": 186,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -155550,7 +156275,7 @@
         },
         {
           "kind": "reverse",
-          "line": 206,
+          "line": 207,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -155559,7 +156284,7 @@
         },
         {
           "kind": "reverse",
-          "line": 143,
+          "line": 149,
           "name": "studio_os:output",
           "path": "config/tenant_urls.py",
           "raw": "reverse(\"studio_os:output\")",
@@ -155568,7 +156293,7 @@
         },
         {
           "kind": "reverse",
-          "line": 181,
+          "line": 204,
           "name": "studio_os:output",
           "path": "config/urls.py",
           "raw": "reverse(\"studio_os:output\")",
@@ -157139,6 +157864,28 @@
       "view": "apps.marketplace.views.tenant_approve_scope"
     },
     {
+      "name": "tenant_blueprint_setup",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/school/setup/blueprints/",
+      "view": "apps.platform_runtime.views_administration.tenant_blueprint_setup"
+    },
+    {
+      "name": "tenant_configuration_forbidden",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/configuration/",
+      "view": "apps.platform_runtime.views_administration.tenant_configuration_forbidden"
+    },
+    {
       "name": "tenant_install_app",
       "permission_requirement": "public",
       "reasons": [],
@@ -157423,12 +158170,12 @@
   ],
   "summary": {
     "broken_count": 0,
-    "reverse_usages": 2281,
+    "reverse_usages": 2282,
     "risk_count": 0,
-    "routes_audited": 5756,
+    "routes_audited": 5787,
     "status": "ROUTE SYSTEM CERTIFIED",
-    "template_href_action_usages": 145,
-    "template_url_usages": 1866
+    "template_href_action_usages": 1840,
+    "template_url_usages": 1888
   },
   "urlconfs": {
     "manager": "config.manager_urls",

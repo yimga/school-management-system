@@ -1,5 +1,23 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Marketing post-launch CRO / analytics wave (2026-05-06)
+
+**A. Scope:** Add a privacy-safe measurement layer to the already **WORLD-CLASS READY** and **ACCESSIBILITY HARDENED AND READY** marketing front. No marketing redesign work was reopened.
+
+**B. Architecture:** Added a no-op-by-default first-party analytics contract with page metadata on the marketing shell, `templates/marketing/partials/marketing_analytics.html`, and `static/marketing/js/marketing-analytics.js`. Settings are `MARKETING_ANALYTICS_ENABLED` and `MARKETING_ANALYTICS_ENDPOINT`; default endpoint is `/marketing/events/`, default enabled state is false.
+
+**C. Instrumentation:** Tracked public marketing page views, CTA clicks, product-tour clicks, pricing-plan interest, mega-menu opens, mega-menu link clicks, demo/contact form starts, submit attempts, success/error URL states, platform/solution/resource engagement, and scroll-depth milestones. Payloads are restricted to anonymous marketing fields only.
+
+**D. Privacy:** Added disabled-by-default anonymous validation endpoint `marketing_analytics_event` at `/marketing/events/`. It is POST/JSON only when enabled, rejects unknown events, rejects oversized payloads, rejects PII keys and PII-like values, strips unknown non-PII fields, accepts only internal `page_path` / `link_target` values, and does not persist data.
+
+**E. Tests:** Added `apps/schools/tests/test_marketing_analytics.py`. Focused analytics suite -> **12 tests OK**. Combined marketing + analytics suite -> **51 tests OK**.
+
+**F. Browser QA:** Stable local apex-host setup used `MULTI_TENANT_BASE_DOMAIN=runmycampus.com SECURE_SSL_REDIRECT=0 CSRF_COOKIE_SECURE=0 SESSION_COOKIE_SECURE=0 python manage.py runserver 127.0.0.1:8010 --settings=config.settings --noreload`, base URL `http://runmycampus.com:8010`, and Playwright host resolver `MAP runmycampus.com 127.0.0.1`. `collectstatic --noinput` copied the new analytics JS into `staticfiles`; static asset availability passed.
+
+**G. Gates:** `validate_marketing_urls --smoke` -> **passed**; `audit_route_surface.py` -> **broken_count: 0**; `verify_i18n_catalog_fresh.py` -> **OK** after syncing existing platform strings; fast Playwright smoke with `SKIP_AXE=1` -> **71 passed / 22 skipped**; axe-enabled marketing smoke -> **93 passed**. The dedicated `marketing-accessibility.spec.js` was not present in this active checkout, so accessibility preservation was verified through the axe-enabled smoke suite.
+
+**H. Verdict:** **ANALYTICS FOUNDATION READY, PROVIDER HOOKUP PENDING**. The marketing front is measurable and privacy-safe for post-launch CRO; no PII is collected and no provider keys are hardcoded.
+
 ## Slice - Administration model final certification and full suite (2026-05-06)
 
 **A. Branch/status:** Work ran directly on `main`. Existing unrelated marketing/i18n/generated changes were already dirty and were kept separate from the administration-model commit set.
@@ -28302,3 +28320,15 @@ s`** needs a URL **`id`** kwarg ? not suitable for **`reverse()`-only curated ma
 **D. Docs:** SOT 11.4 batch **811**; this log entry.
 
 **E. Risks / notes:** This only changes the Theme Studio boolean-field contract for that one toggle. Other toggle semantics stay unchanged.
+
+## Slice - Blueprint Marketplace depth installer layer (2026-05-06)
+
+**A. Scope:** Expanded the Blueprint Marketplace from a catalog facade into a repo-scope school operating-model installer: preview, impact analysis, apply, rollback posture, tenant setup, and audit. This remains bounded to repository behavior and does not claim PSP/live settlement, live customer proof, or full-market category-defining readiness.
+
+**B. Implementation:** Added the central blueprint contract and eight baseline school blueprints in `apps/platform_runtime/blueprint_contract.py`; preview, impact, apply, rollback, and audit service modules; the `BlueprintInstallation` model and migration; control-plane routes under `/configuration/blueprints/`; tenant-safe setup at `/school/setup/blueprints/`; marketplace/detail/preview/impact/apply/history/rollback templates; generated discovery docs; and `docs/architecture/RUNMYCAMPUS_BLUEPRINT_MARKETPLACE.md`.
+
+**C. Validation:** `python manage.py test apps.platform_runtime.tests.test_blueprint_preview_engine apps.platform_runtime.tests.test_blueprint_impact_analysis apps.platform_runtime.tests.test_blueprint_apply_engine apps.platform_runtime.tests.test_blueprint_rollback_engine apps.platform_runtime.tests.test_blueprint_marketplace_foundations apps.platform_runtime.tests.test_tenant_blueprint_setup apps.platform_runtime.tests.test_blueprint_audit_events --settings=config.settings --noinput --keepdb` - **28 OK**. Administration/configuration regression bundle - **9 OK**. `python manage.py check --settings=config.settings` - **OK**. `python manage.py validate_marketing_urls --smoke` - **PASS**. Route/security/tenant isolation/test contract/design system/shell inventory/North Star/kill-test verifiers - **PASS**. `python manage.py makemigrations --check --dry-run --settings=config.settings` - **No changes detected** after the intentional migration.
+
+**D. Docs:** SOT 11.4 batch **1193**; generated blueprint discovery JSON/Markdown; architecture note for contract, preview, impact, apply, rollback, audit, tenant boundaries, and external dependency honesty.
+
+**E. Risks / notes:** Full platform suite was not run. Future depth remains apply simulation against richer live registries, rollback granularity for per-object mutations, operator approval workflow, and browser screenshot QA.

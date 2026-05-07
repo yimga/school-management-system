@@ -11,6 +11,8 @@ from typing import Iterable
 
 from django.urls import NoReverseMatch, reverse
 
+from apps.platform_runtime.blueprint_contract import list_blueprints
+
 
 @dataclass(frozen=True)
 class SurfaceLink:
@@ -212,112 +214,7 @@ CONFIGURATION_MODULES: tuple[ConfigurationModule, ...] = (
 )
 
 
-BLUEPRINTS: tuple[dict[str, object], ...] = (
-    {
-        "name": "Private Primary School",
-        "status": "preview_only",
-        "modules": ["Admissions", "Attendance", "Fees", "Reports", "Parent portal"],
-        "roles": ["Admin", "Teacher", "Parent", "Student"],
-        "dashboard_packs": ["Primary leadership", "Teacher classroom"],
-        "workflow_packs": ["Admission intake", "Fee reminder", "Term report publish"],
-        "policy_bundles": ["Basic approvals", "Guardian visibility"],
-        "report_templates": ["Term report", "Admission letter"],
-        "metadata_templates": ["Class levels", "Guardian profile"],
-        "billing_defaults": "Subscription plus manual payment fallback",
-        "offline_defaults": "Attendance and report draft sync",
-    },
-    {
-        "name": "Private Secondary School",
-        "status": "preview_only",
-        "modules": ["Academics", "Evaluations", "Discipline", "Fees", "Analytics"],
-        "roles": ["Principal", "Dean", "HOD", "Teacher", "Parent", "Student"],
-        "dashboard_packs": ["Leadership pulse", "Department performance"],
-        "workflow_packs": ["Grade moderation", "Discipline escalation"],
-        "policy_bundles": ["Exam approvals", "Student data guardrails"],
-        "report_templates": ["Transcript", "Terminal report"],
-        "metadata_templates": ["Departments", "Subjects", "Streams"],
-        "billing_defaults": "Plan-gated finance and analytics",
-        "offline_defaults": "Marks and attendance queues",
-    },
-    {
-        "name": "Cameroon GCE School",
-        "status": "preview_only",
-        "modules": ["GCE setup", "Subjects", "Reports", "Fees", "Compliance"],
-        "roles": ["Principal", "Censor", "Teacher", "Bursar"],
-        "dashboard_packs": ["GCE readiness", "Exam operations"],
-        "workflow_packs": ["Exam registration", "Report validation"],
-        "policy_bundles": ["Regional grading", "Exam audit"],
-        "report_templates": ["GCE-style report", "Class list"],
-        "metadata_templates": ["Forms", "Series", "Subject groups"],
-        "billing_defaults": "Regional currency metadata; PSP external_required if live collection is needed",
-        "offline_defaults": "Low-connectivity assessment entry",
-    },
-    {
-        "name": "Bilingual School",
-        "status": "preview_only",
-        "modules": ["Language packs", "Academics", "Reports", "Parent portal"],
-        "roles": ["Admin", "Language coordinator", "Teacher", "Parent"],
-        "dashboard_packs": ["Bilingual operations", "Family communications"],
-        "workflow_packs": ["Language-specific announcements", "Report translation checks"],
-        "policy_bundles": ["Language visibility", "Translation review"],
-        "report_templates": ["Bilingual report", "Parent letter"],
-        "metadata_templates": ["Language preference", "Program track"],
-        "billing_defaults": "Standard plan defaults",
-        "offline_defaults": "Localized portal cache",
-    },
-    {
-        "name": "Boarding School",
-        "status": "preview_only",
-        "modules": ["Hostel", "Attendance", "Discipline", "Fees", "Communication"],
-        "roles": ["Boarding manager", "Admin", "Teacher", "Parent"],
-        "dashboard_packs": ["Boarding operations", "Student welfare"],
-        "workflow_packs": ["Leave request", "Incident escalation"],
-        "policy_bundles": ["Guardian approval", "Incident audit"],
-        "report_templates": ["Boarding statement", "Incident summary"],
-        "metadata_templates": ["Dormitory", "House", "Guardian contacts"],
-        "billing_defaults": "Boarding fee categories",
-        "offline_defaults": "Attendance and welfare notes",
-    },
-    {
-        "name": "International School",
-        "status": "preview_only",
-        "modules": ["Curriculum profiles", "Reports", "Compliance", "Payments"],
-        "roles": ["Leadership", "Registrar", "Teacher", "Parent"],
-        "dashboard_packs": ["International leadership", "Admissions pipeline"],
-        "workflow_packs": ["Document review", "Curriculum transition"],
-        "policy_bundles": ["Residency and retention", "Data export review"],
-        "report_templates": ["International transcript", "Progress report"],
-        "metadata_templates": ["Curriculum", "Nationality metadata", "Language"],
-        "billing_defaults": "Multi-currency metadata; live PSP external_required by region",
-        "offline_defaults": "Portal and document cache",
-    },
-    {
-        "name": "Multi-campus Network",
-        "status": "preview_only",
-        "modules": ["Group analytics", "Tenant lifecycle", "Billing", "Support"],
-        "roles": ["Group admin", "Campus admin", "Finance lead"],
-        "dashboard_packs": ["Network command", "Campus comparison"],
-        "workflow_packs": ["Campus rollout", "Governed change approval"],
-        "policy_bundles": ["Cross-campus governance", "Role delegation"],
-        "report_templates": ["Network summary", "Campus scorecard"],
-        "metadata_templates": ["Campus groups", "Shared policies"],
-        "billing_defaults": "Network subscription and usage posture",
-        "offline_defaults": "Campus-local queues",
-    },
-    {
-        "name": "Low-connectivity School",
-        "status": "preview_only",
-        "modules": ["Offline sync", "Attendance", "Marks", "Reports", "Payments fallback"],
-        "roles": ["Admin", "Teacher", "Finance staff"],
-        "dashboard_packs": ["Offline readiness", "Sync queue"],
-        "workflow_packs": ["Conflict review", "Manual payment reconciliation"],
-        "policy_bundles": ["Sync conflict rules", "Manual audit"],
-        "report_templates": ["Offline-ready report", "Payment receipt"],
-        "metadata_templates": ["Connectivity profile", "Sync owner"],
-        "billing_defaults": "Manual fallback; PSP live state external_required",
-        "offline_defaults": "High offline coverage and sync conflict center",
-    },
-)
+BLUEPRINTS: tuple[dict[str, object], ...] = tuple(list_blueprints())
 
 
 PACK_LIBRARY: dict[str, tuple[dict[str, object], ...]] = {
