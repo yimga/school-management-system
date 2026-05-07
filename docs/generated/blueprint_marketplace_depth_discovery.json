@@ -1,0 +1,106 @@
+{
+  "status": "discovery_complete",
+  "scope": "repo",
+  "finding": "Blueprint Marketplace depth should extend existing runtime_blueprints/package/marketplace/platform_runtime primitives instead of creating a duplicate installer.",
+  "rows": [
+    {
+      "existing_primitive": "runtime_blueprints proxy owner models",
+      "file_module": "apps/runtime_blueprints/models.py",
+      "purpose": "Bounded-context facade over legacy BlueprintPack, TenantBlueprint, dashboard packs, workflow packs, and report templates.",
+      "reusable_for_blueprint_preview_apply_rollback": true,
+      "missing_behavior": "No single preview/apply/rollback contract for school operating-model blueprints.",
+      "risk": "Duplicating blueprint ownership outside the proxy owner surface.",
+      "recommended_reuse_path": "Keep runtime_blueprints as ownership facade; add platform_runtime contract/services as orchestration facade."
+    },
+    {
+      "existing_primitive": "package engine",
+      "file_module": "apps/packages/engine.py",
+      "purpose": "Validate, preview, apply, promote, and rollback package payloads with InstalledPackage and PackageChangeLog evidence.",
+      "reusable_for_blueprint_preview_apply_rollback": true,
+      "missing_behavior": "Blueprint-specific operating-model contract and tenant-safe confirmation gate.",
+      "risk": "Blind install if package apply is exposed directly.",
+      "recommended_reuse_path": "Blueprint apply stores BlueprintInstallation and calls package engine with blueprint payload marker."
+    },
+    {
+      "existing_primitive": "InstalledPackage / PackageChangeLog",
+      "file_module": "apps/packages/models.py",
+      "purpose": "Tenant package lineage, rollback token, dependency snapshot, and change log.",
+      "reusable_for_blueprint_preview_apply_rollback": true,
+      "missing_behavior": "Blueprint-level preview snapshot and rollback settings snapshot.",
+      "risk": "Package logs alone do not explain school operating-model intent.",
+      "recommended_reuse_path": "Use minimal BlueprintInstallation for operating-model state and keep package records as package lineage."
+    },
+    {
+      "existing_primitive": "marketplace platform pack catalog",
+      "file_module": "apps/marketplace/pack_registry.py",
+      "purpose": "Static catalog of workflow, dashboard, theme, policy, and app pack metadata.",
+      "reusable_for_blueprint_preview_apply_rollback": true,
+      "missing_behavior": "Blueprint composition across modules, roles, policies, metadata, billing, and offline defaults.",
+      "risk": "Catalog-only marketplace with no apply safety.",
+      "recommended_reuse_path": "Blueprint contract references packs by stable names and keeps external blockers explicit."
+    },
+    {
+      "existing_primitive": "automation workflow galleries",
+      "file_module": "apps/automation/workflow_template_gallery.py; apps/automation/workflow_playbook_templates.py",
+      "purpose": "Workflow templates and playbook definitions for guided automation.",
+      "reusable_for_blueprint_preview_apply_rollback": true,
+      "missing_behavior": "Blueprint-level impact summary of workflow activation.",
+      "risk": "Activating workflow packs without operator awareness.",
+      "recommended_reuse_path": "Preview and impact engines list workflow packs and require confirmation."
+    },
+    {
+      "existing_primitive": "dashboard and workflow packs",
+      "file_module": "apps/siteconfig models proxied through apps/runtime_blueprints/models.py",
+      "purpose": "Dashboard pack, workflow pack, assignment, and tenant workflow primitives.",
+      "reusable_for_blueprint_preview_apply_rollback": true,
+      "missing_behavior": "Cross-pack blueprint contract and tenant-safe installer.",
+      "risk": "Manual configuration drift across tenants.",
+      "recommended_reuse_path": "BlueprintInstallation records intended pack set; future deep apply can bind assignments."
+    },
+    {
+      "existing_primitive": "metadata usage registry",
+      "file_module": "apps/metadata/usage_registry.py; apps/metadata/services.py",
+      "purpose": "Metadata lineage and blast-radius helpers for packages.",
+      "reusable_for_blueprint_preview_apply_rollback": true,
+      "missing_behavior": "Blueprint metadata-template preview wording.",
+      "risk": "Metadata templates applied without lineage.",
+      "recommended_reuse_path": "Package engine receives blueprint payload so metadata preview/lineage remains reusable."
+    },
+    {
+      "existing_primitive": "PlatformEventLog",
+      "file_module": "apps/platform_runtime/events.py; apps/platform_runtime/models.py",
+      "purpose": "Append-only platform event audit trail with tenant and school context.",
+      "reusable_for_blueprint_preview_apply_rollback": true,
+      "missing_behavior": "Blueprint preview/impact/apply/rollback event catalog entries.",
+      "risk": "Installer actions without auditable actor/tenant context.",
+      "recommended_reuse_path": "Add blueprint_* event types and emit for preview, impact, apply, failure, rollback."
+    },
+    {
+      "existing_primitive": "tenant school settings and SiteConfig",
+      "file_module": "apps/schools/models.py; apps/siteconfig/",
+      "purpose": "Tenant-scoped settings/features storage and configuration hubs.",
+      "reusable_for_blueprint_preview_apply_rollback": true,
+      "missing_behavior": "Safe blueprint marker and rollback snapshot.",
+      "risk": "Cross-tenant or platform-global mutation from tenant setup.",
+      "recommended_reuse_path": "Apply writes only the target school's settings blueprint marker and stores rollback snapshot."
+    },
+    {
+      "existing_primitive": "configuration center facade",
+      "file_module": "apps/platform_runtime/views_administration.py; templates/platform_runtime/",
+      "purpose": "/configuration/ control-plane facade over existing systems.",
+      "reusable_for_blueprint_preview_apply_rollback": true,
+      "missing_behavior": "Dedicated blueprint marketplace depth routes.",
+      "risk": "Dummy links or hidden blind install.",
+      "recommended_reuse_path": "Extend /configuration/blueprints/ with preview, impact, apply, installations, and rollback routes."
+    },
+    {
+      "existing_primitive": "tenant configuration center",
+      "file_module": "config/tenant_urls.py; templates/platform_runtime/school_configuration_center.html",
+      "purpose": "Tenant-scoped /school/settings/ configuration surface.",
+      "reusable_for_blueprint_preview_apply_rollback": true,
+      "missing_behavior": "Tenant-safe blueprint setup entry.",
+      "risk": "Tenant exposure to platform-only registry management.",
+      "recommended_reuse_path": "Add /school/setup/blueprints/ showing tenant-safe blueprints only."
+    }
+  ]
+}

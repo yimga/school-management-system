@@ -322,7 +322,7 @@
       "title": "Dynamic field EAV operator (read-only triage; admin CRUD for definitions/values)"
     }
   ],
-  "generated_at": "2026-05-05T17:54:11.752728+00:00",
+  "generated_at": "2026-05-07T00:11:22.866292+00:00",
   "marketplace_app_admin_line_hits": {
     "apps/accounts/management/commands/ensure_default_tenant_admin.py": [
       111
@@ -332,7 +332,7 @@
       218
     ],
     "apps/accounts/permissions.py": [
-      753
+      757
     ],
     "apps/accounts/views_workflow.py": [
       209,
@@ -590,13 +590,19 @@
       126
     ],
     "apps/observability/views.py": [
-      1327
+      1374
     ],
     "apps/people/views_backend.py": [
       570
     ],
+    "apps/platform_runtime/administration_catalog.py": [
+      372
+    ],
     "apps/platform_runtime/shell_contract.py": [
       116
+    ],
+    "apps/platform_runtime/views_administration.py": [
+      205
     ],
     "apps/schools/admin.py": [
       154,
@@ -609,12 +615,12 @@
     ],
     "apps/schools/middleware.py": [
       29,
-      41,
-      71,
-      688,
-      741,
-      742,
-      1013
+      43,
+      75,
+      696,
+      749,
+      750,
+      1021
     ],
     "apps/schools/middleware_activation_gate.py": [
       74
@@ -923,7 +929,7 @@
     "apps/observability/views.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        1327
+        1374
       ]
     },
     "apps/people/views_backend.py": {
@@ -932,10 +938,22 @@
         570
       ]
     },
+    "apps/platform_runtime/administration_catalog.py": {
+      "category": "redirect_or_link_to_admin",
+      "line_numbers": [
+        372
+      ]
+    },
     "apps/platform_runtime/shell_contract.py": {
       "category": "redirect_or_link_to_admin",
       "line_numbers": [
         116
+      ]
+    },
+    "apps/platform_runtime/views_administration.py": {
+      "category": "redirect_or_link_to_admin",
+      "line_numbers": [
+        205
       ]
     },
     "apps/schools/admin.py": {
@@ -957,12 +975,12 @@
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
         29,
-        41,
-        71,
-        688,
-        741,
-        742,
-        1013
+        43,
+        75,
+        696,
+        749,
+        750,
+        1021
       ]
     },
     "apps/schools/middleware_activation_gate.py": {
@@ -1376,7 +1394,7 @@
     },
     "apps/observability/views.py": {
       "line_numbers": [
-        1327
+        1374
       ],
       "v2": "needs_model_service_support"
     },
@@ -1386,9 +1404,21 @@
       ],
       "v2": "admin_fallback_only"
     },
+    "apps/platform_runtime/administration_catalog.py": {
+      "line_numbers": [
+        372
+      ],
+      "v2": "needs_model_service_support"
+    },
     "apps/platform_runtime/shell_contract.py": {
       "line_numbers": [
         116
+      ],
+      "v2": "needs_model_service_support"
+    },
+    "apps/platform_runtime/views_administration.py": {
+      "line_numbers": [
+        205
       ],
       "v2": "needs_model_service_support"
     },
@@ -1410,12 +1440,12 @@
     "apps/schools/middleware.py": {
       "line_numbers": [
         29,
-        41,
-        71,
-        688,
-        741,
-        742,
-        1013
+        43,
+        75,
+        696,
+        749,
+        750,
+        1021
       ],
       "v2": "needs_model_service_support"
     },
@@ -2104,9 +2134,16 @@
         },
         {
           "lines": [
-            1327
+            1374
           ],
           "path": "apps/observability/views.py",
+          "v2": "needs_model_service_support"
+        },
+        {
+          "lines": [
+            372
+          ],
+          "path": "apps/platform_runtime/administration_catalog.py",
           "v2": "needs_model_service_support"
         },
         {
@@ -2114,6 +2151,13 @@
             116
           ],
           "path": "apps/platform_runtime/shell_contract.py",
+          "v2": "needs_model_service_support"
+        },
+        {
+          "lines": [
+            205
+          ],
+          "path": "apps/platform_runtime/views_administration.py",
           "v2": "needs_model_service_support"
         },
         {
@@ -2136,12 +2180,12 @@
         {
           "lines": [
             29,
-            41,
-            71,
-            688,
-            741,
-            742,
-            1013
+            43,
+            75,
+            696,
+            749,
+            750,
+            1021
           ],
           "path": "apps/schools/middleware.py",
           "v2": "needs_model_service_support"
@@ -2509,7 +2553,7 @@
     "admin_bridge_hits_by_category": {
       "harmless_django_admin_registration": 4,
       "permission_and_admin_or_bridge": 34,
-      "redirect_or_link_to_admin": 21
+      "redirect_or_link_to_admin": 23
     },
     "admin_template_files": 67,
     "admin_url_namespaces_by_app_label_segment": {
@@ -2552,11 +2596,11 @@
       "accounts_security": 7,
       "marketplace": 4,
       "metadata": 17,
-      "other": 26,
+      "other": 28,
       "platform_runtime_fleet": 2,
       "reports_compliance": 3
     },
-    "product_files_mentioning_admin_bridge": 59,
+    "product_files_mentioning_admin_bridge": 61,
     "shipped_category_regression_checks": {
       "backend_classroom_academic_years_before_admin": "pass",
       "backend_student_portal_tabbed_before_admin": "pass",

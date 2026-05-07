@@ -57,6 +57,7 @@ from apps.platform_runtime.views_click_tracking import (
 from apps.platform_runtime.views_administration import (
     internal_admin_alias_redirect,
     school_configuration_center,
+    tenant_blueprint_setup,
     tenant_configuration_forbidden,
 )
 
@@ -219,6 +220,7 @@ urlpatterns = [
     path("configuration/", tenant_configuration_forbidden, name="tenant_configuration_forbidden"),
     path("configuration/<path:remaining>", tenant_configuration_forbidden),
     path("school/settings/", school_configuration_center, name="school_configuration_center"),
+    path("school/setup/blueprints/", tenant_blueprint_setup, name="tenant_blueprint_setup"),
     path("api/schema/", schema_view, name="api-schema"),
     path("api/schema/ui/", api_schema_ui, name="api-schema-ui"),
     path(

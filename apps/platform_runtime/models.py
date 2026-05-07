@@ -1251,6 +1251,65 @@ class PlatformEvent(PlatformEventLog):
         verbose_name_plural = "Platform events"
 
 
+class BlueprintInstallation(models.Model):
+    """Tenant-scoped blueprint installation state and rollback posture."""
+
+    class Status(models.TextChoices):
+        PREVIEWED = "previewed", "Previewed"
+        APPLIED = "applied", "Applied"
+        PARTIALLY_APPLIED = "partially_applied", "Partially applied"
+        FAILED = "failed", "Failed"
+        ROLLED_BACK = "rolled_back", "Rolled back"
+        ROLLBACK_FAILED = "rollback_failed", "Rollback failed"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="blueprint_installations",
+    )
+    blueprint_key = models.CharField(max_length=120, db_index=True)
+    blueprint_version = models.CharField(max_length=80, default="1.0.0")
+    status = models.CharField(
+        max_length=32,
+        choices=Status.choices,
+        default=Status.PREVIEWED,
+        db_index=True,
+    )
+    applied_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    applied_at = models.DateTimeField(null=True, blank=True)
+    preview_snapshot = models.JSONField(default=dict, blank=True)
+    applied_changes = models.JSONField(default=list, blank=True)
+    external_blockers = models.JSONField(default=list, blank=True)
+    rollback_snapshot = models.JSONField(default=dict, blank=True)
+    audit_ref = models.CharField(max_length=128, blank=True, default="")
+    idempotency_key = models.CharField(max_length=160, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_blueprintinstallation"
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "blueprint_key", "idempotency_key"],
+                name="uniq_blueprint_install_idempotency",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["school", "blueprint_key", "status"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.blueprint_key}@{self.blueprint_version} {self.school_id}"
+
+
 class EventWebhookSubscription(models.Model):
     """
     Tenant/integration webhook endpoint subscribed to platform events (POST JSON delivery).

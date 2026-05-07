@@ -1,0 +1,42 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{{ blueprint.name }}{% endblock %}
+
+{% block cp_content %}
+<section class="container-fluid py-3" data-rmc-blueprint-detail="{{ blueprint.key }}">
+  <header class="mb-4">
+    <p class="small text-muted mb-1"><a href="{% url 'configuration:blueprint_marketplace' %}">{% trans "Blueprint Marketplace" %}</a></p>
+    <h1 class="h3 mb-2">{{ blueprint.name }}</h1>
+    <p class="text-muted mb-0">{{ blueprint.description }}</p>
+  </header>
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm"><div class="card-body">
+        <h2 class="h5">{% trans "Operating model" %}</h2>
+        <dl class="row small">
+          <dt class="col-sm-4">{% trans "Status" %}</dt><dd class="col-sm-8">{{ blueprint.status }}</dd>
+          <dt class="col-sm-4">{% trans "Scope" %}</dt><dd class="col-sm-8"><code>{{ blueprint.scope }}</code></dd>
+          <dt class="col-sm-4">{% trans "Modules" %}</dt><dd class="col-sm-8">{{ blueprint.modules|join:", " }}</dd>
+          <dt class="col-sm-4">{% trans "Roles" %}</dt><dd class="col-sm-8">{{ blueprint.roles|join:", " }}</dd>
+          <dt class="col-sm-4">{% trans "Dashboard packs" %}</dt><dd class="col-sm-8">{{ blueprint.dashboard_packs|join:", " }}</dd>
+          <dt class="col-sm-4">{% trans "Workflow packs" %}</dt><dd class="col-sm-8">{{ blueprint.workflow_packs|join:", " }}</dd>
+          <dt class="col-sm-4">{% trans "Policy bundles" %}</dt><dd class="col-sm-8">{{ blueprint.policy_bundles|join:", " }}</dd>
+          <dt class="col-sm-4">{% trans "External readiness" %}</dt><dd class="col-sm-8">{{ blueprint.psp_status }}</dd>
+        </dl>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-primary btn-sm" href="{% url 'configuration:blueprint_preview' blueprint.key %}{% if selected_school %}?school={{ selected_school.slug }}{% endif %}">{% trans "Preview" %}</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'configuration:blueprint_impact' blueprint.key %}{% if selected_school %}?school={{ selected_school.slug }}{% endif %}">{% trans "Impact analysis" %}</a>
+          <a class="btn btn-outline-primary btn-sm" href="{% url 'configuration:blueprint_apply' blueprint.key %}{% if selected_school %}?school={{ selected_school.slug }}{% endif %}">{% trans "Apply confirmation" %}</a>
+        </div>
+      </div></div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm"><div class="card-body">
+        <h2 class="h6">{% trans "Implementation checklist" %}</h2>
+        <ul class="small mb-0">{% for item in blueprint.implementation_checklist %}<li>{{ item }}</li>{% endfor %}</ul>
+      </div></div>
+    </div>
+  </div>
+</section>
+{% endblock %}

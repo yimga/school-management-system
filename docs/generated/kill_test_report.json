@@ -1,7 +1,7 @@
 {
   "critical_count": 0,
   "django_test_db_file": ".django_test_dbs/ux_factory_reset.sqlite3",
-  "generated_at": "2026-05-05T18:37:37.548968+00:00",
+  "generated_at": "2026-05-07T00:11:56.614302+00:00",
   "keepdb": true,
   "result": "PASS",
   "scenarios": [

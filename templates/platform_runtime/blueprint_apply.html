@@ -1,0 +1,31 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Apply Blueprint" %}{% endblock %}
+
+{% block cp_content %}
+<section class="container-fluid py-3" data-rmc-blueprint-apply="{{ preview.blueprint_key }}">
+  <header class="mb-4">
+    <p class="small text-muted mb-1"><a href="{% url 'configuration:blueprint_preview' preview.blueprint_key %}{% if selected_school %}?school={{ selected_school.slug }}{% endif %}">{% trans "Preview" %}</a></p>
+    <h1 class="h3 mb-2">{% trans "Apply confirmation" %}</h1>
+    <p class="text-muted mb-0">{% trans "Apply requires a successful preview and explicit confirmation. External blockers remain required; no live PSP or settlement state is enabled." %}</p>
+  </header>
+  {% if result %}
+  <div class="alert {% if result.ok %}alert-success{% else %}alert-warning{% endif %}">{{ result }}</div>
+  {% endif %}
+  <div class="card border-0 shadow-sm"><div class="card-body">
+    <dl class="row small">
+      <dt class="col-sm-4">{% trans "Blueprint" %}</dt><dd class="col-sm-8">{{ preview.blueprint_name }}</dd>
+      <dt class="col-sm-4">{% trans "Tenant" %}</dt><dd class="col-sm-8">{{ preview.tenant_name }}</dd>
+      <dt class="col-sm-4">{% trans "Can apply" %}</dt><dd class="col-sm-8">{{ preview.can_apply|yesno:"yes,no" }}</dd>
+      <dt class="col-sm-4">{% trans "External required" %}</dt><dd class="col-sm-8">{{ preview.external_required|join:", " }}</dd>
+    </dl>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="school" value="{{ selected_school.slug }}">
+      <input type="hidden" name="confirm" value="yes">
+      <button class="btn btn-primary btn-sm" type="submit" {% if not preview.can_apply %}disabled{% endif %}>{% trans "Confirm apply" %}</button>
+    </form>
+  </div></div>
+</section>
+{% endblock %}

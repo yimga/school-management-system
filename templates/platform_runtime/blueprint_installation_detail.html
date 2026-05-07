@@ -1,0 +1,25 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Blueprint Installation" %}{% endblock %}
+
+{% block cp_content %}
+<section class="container-fluid py-3" data-rmc-blueprint-installation="{{ installation.pk }}">
+  <header class="mb-4">
+    <p class="small text-muted mb-1"><a href="{% url 'configuration:blueprint_installations' %}">{% trans "Installation history" %}</a></p>
+    <h1 class="h3 mb-2">{{ installation.blueprint_key }}</h1>
+  </header>
+  <div class="card border-0 shadow-sm"><div class="card-body">
+    <dl class="row small">
+      <dt class="col-sm-4">{% trans "School" %}</dt><dd class="col-sm-8">{{ installation.school.name }}</dd>
+      <dt class="col-sm-4">{% trans "Status" %}</dt><dd class="col-sm-8">{{ installation.status }}</dd>
+      <dt class="col-sm-4">{% trans "Version" %}</dt><dd class="col-sm-8">{{ installation.blueprint_version }}</dd>
+      <dt class="col-sm-4">{% trans "External blockers" %}</dt><dd class="col-sm-8">{{ installation.external_blockers|join:", " }}</dd>
+      <dt class="col-sm-4">{% trans "Audit ref" %}</dt><dd class="col-sm-8">{{ installation.audit_ref }}</dd>
+    </dl>
+    {% if installation.status == "applied" %}
+    <a class="btn btn-outline-danger btn-sm" href="{% url 'configuration:blueprint_rollback' installation.pk %}">{% trans "Rollback confirmation" %}</a>
+    {% endif %}
+  </div></div>
+</section>
+{% endblock %}

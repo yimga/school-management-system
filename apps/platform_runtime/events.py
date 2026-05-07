@@ -77,6 +77,30 @@ EVENT_CATALOG = {
         "description": "Blueprint applied to tenant",
         "payload": ["blueprint_code", "school_id"],
     },
+    "blueprint_previewed": {
+        "description": "Blueprint marketplace preview generated for a tenant",
+        "payload": ["blueprint_key", "school_id", "actor_id", "result"],
+    },
+    "blueprint_impact_viewed": {
+        "description": "Blueprint marketplace impact analysis viewed",
+        "payload": ["blueprint_key", "school_id", "actor_id", "impact_categories"],
+    },
+    "blueprint_apply_requested": {
+        "description": "Blueprint apply requested before confirmation and commit",
+        "payload": ["blueprint_key", "school_id", "actor_id", "confirmed"],
+    },
+    "blueprint_apply_failed": {
+        "description": "Blueprint apply blocked or failed",
+        "payload": ["blueprint_key", "school_id", "actor_id", "reason"],
+    },
+    "blueprint_rollback_requested": {
+        "description": "Blueprint rollback requested before confirmation and commit",
+        "payload": ["blueprint_key", "school_id", "actor_id", "installation_id"],
+    },
+    "blueprint_rollback_failed": {
+        "description": "Blueprint rollback blocked or failed",
+        "payload": ["blueprint_key", "school_id", "actor_id", "reason"],
+    },
     "blueprint_rolled_back": {
         "description": "Tenant active blueprint bundle changed via control-plane rollback",
         "payload": [

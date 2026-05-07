@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "School Blueprint Setup" %}{% endblock %}
+
+{% block content %}
+<main class="container-fluid py-4" data-rmc-tenant-blueprint-setup="{{ page_marker }}">
+  <header class="mb-4">
+    <p class="small text-muted mb-1"><a href="{% url 'school_configuration_center' %}">{% trans "School Configuration Center" %}</a></p>
+    <h1 class="h3 mb-2">{% trans "School Blueprint Setup" %}</h1>
+    <p class="text-muted mb-0">{{ school.name }} - {% trans "tenant-safe blueprints only. Platform-only blueprint management remains in /configuration/." %}</p>
+  </header>
+  {% if result %}
+  <div class="alert {% if result.ok %}alert-success{% else %}alert-warning{% endif %}">{{ result }}</div>
+  {% endif %}
+  <div class="row g-3">
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm h-100"><div class="card-body">
+        <h2 class="h5">{% trans "Recommended blueprints" %}</h2>
+        <ul class="list-unstyled mb-0">{% for blueprint in blueprints %}
+          <li class="mb-2"><a href="?blueprint={{ blueprint.key }}&preview=1">{{ blueprint.name }}</a><div class="small text-muted">{{ blueprint.target_school_type }} - {{ blueprint.status }}</div></li>
+        {% endfor %}</ul>
+      </div></div>
+    </div>
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm h-100"><div class="card-body">
+        <h2 class="h5">{{ preview.blueprint_name }}</h2>
+        <dl class="row small">
+          <dt class="col-sm-4">{% trans "Can apply" %}</dt><dd class="col-sm-8">{{ preview.can_apply|yesno:"yes,no" }}</dd>
+          <dt class="col-sm-4">{% trans "External blockers" %}</dt><dd class="col-sm-8">{{ preview.external_required|join:", " }}</dd>
+          <dt class="col-sm-4">{% trans "Modules" %}</dt><dd class="col-sm-8">{% for change in preview.changes %}{% if change.section == "module" %}{{ change.target }}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}</dd>
+        </dl>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="blueprint" value="{{ selected_key }}">
+          <input type="hidden" name="confirm" value="yes">
+          <button class="btn btn-primary btn-sm" type="submit" {% if not preview.can_apply %}disabled{% endif %}>{% trans "Confirm tenant apply" %}</button>
+        </form>
+      </div></div>
+    </div>
+  </div>
+</main>
+{% endblock %}
