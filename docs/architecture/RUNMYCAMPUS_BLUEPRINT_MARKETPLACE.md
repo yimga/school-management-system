@@ -67,3 +67,14 @@ Blueprints may declare PSP, settlement, multi-currency, or certification depende
 ## Future Marketplace Path
 
 The current repo-scope slice establishes the installer contract, preview, impact, apply, rollback, audit, and tenant setup. Future depth can bind package payloads to concrete dashboard/workflow/policy assignments, add richer diff visualizations, and connect implementation checklists to onboarding progress.
+# Governance Expansion
+
+Blueprint Marketplace apply now has a formal governance layer:
+
+`preview -> impact -> change set -> request -> approval -> schedule -> apply -> monitor -> rollback -> audit`
+
+Blueprint contracts expose dependency metadata for required packs/modules/roles/features, recommended packs, conflicts, external blockers, plan blockers, and missing setup blockers.
+
+`BlueprintInstallation` now tracks installed version, available version, upgrade availability, upgrade status, previous version, upgrade preview, and upgrade impact. High-risk or platform-only blueprint changes require approval before apply.
+
+Tenant school admins can preview tenant-safe blueprints and submit change requests. Platform operators approve, reject, schedule, cancel, and apply through the configuration change request queue.

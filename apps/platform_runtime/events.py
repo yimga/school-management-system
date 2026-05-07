@@ -130,6 +130,74 @@ EVENT_CATALOG = {
         "description": "Package rollback executed (metadata engine / tenant UI)",
         "payload": ["package_id", "version", "school_id", "actor_id"],
     },
+    "pack_previewed": {
+        "description": "Workflow/dashboard/policy pack preview generated",
+        "payload": ["pack_key", "pack_type", "school_id", "actor_id", "result"],
+    },
+    "pack_simulated": {
+        "description": "Pack simulation generated without live mutation",
+        "payload": ["pack_key", "pack_type", "school_id", "actor_id", "simulation_id"],
+    },
+    "pack_impact_viewed": {
+        "description": "Pack impact analysis viewed",
+        "payload": ["pack_key", "pack_type", "school_id", "actor_id", "impact_categories"],
+    },
+    "pack_apply_requested": {
+        "description": "Pack apply requested before confirmation and commit",
+        "payload": ["pack_key", "pack_type", "school_id", "actor_id", "confirmed"],
+    },
+    "pack_applied": {
+        "description": "Pack applied through governed installation flow",
+        "payload": ["pack_key", "pack_type", "school_id", "actor_id", "installation_id"],
+    },
+    "pack_apply_failed": {
+        "description": "Pack apply blocked or failed",
+        "payload": ["pack_key", "pack_type", "school_id", "actor_id", "reason"],
+    },
+    "pack_deactivated": {
+        "description": "Pack installation deactivated without destructive data deletion",
+        "payload": ["pack_key", "pack_type", "school_id", "actor_id", "installation_id"],
+    },
+    "pack_rollback_requested": {
+        "description": "Pack rollback requested before confirmation",
+        "payload": ["pack_key", "pack_type", "school_id", "actor_id", "installation_id"],
+    },
+    "pack_rolled_back": {
+        "description": "Pack installation rolled back through governed flow",
+        "payload": ["pack_key", "pack_type", "school_id", "actor_id", "installation_id"],
+    },
+    "pack_rollback_failed": {
+        "description": "Pack rollback blocked or failed",
+        "payload": ["pack_key", "pack_type", "school_id", "actor_id", "reason"],
+    },
+    "configuration_change_requested": {
+        "description": "Blueprint or pack change entered governed approval workflow",
+        "payload": ["change_request_id", "request_type", "target_type", "target_key", "actor_id"],
+    },
+    "configuration_change_approved": {
+        "description": "Governed configuration change approved by platform operator",
+        "payload": ["change_request_id", "request_type", "target_type", "target_key", "actor_id"],
+    },
+    "configuration_change_rejected": {
+        "description": "Governed configuration change rejected",
+        "payload": ["change_request_id", "request_type", "target_type", "target_key", "actor_id"],
+    },
+    "configuration_change_cancelled": {
+        "description": "Governed configuration change cancelled",
+        "payload": ["change_request_id", "request_type", "target_type", "target_key", "actor_id"],
+    },
+    "configuration_change_scheduled": {
+        "description": "Governed configuration change scheduled for rollout",
+        "payload": ["change_request_id", "request_type", "target_type", "target_key", "actor_id", "scheduled_at"],
+    },
+    "configuration_change_applied": {
+        "description": "Approved governed configuration change applied",
+        "payload": ["change_request_id", "request_type", "target_type", "target_key", "actor_id", "result"],
+    },
+    "configuration_change_failed": {
+        "description": "Approved governed configuration change failed",
+        "payload": ["change_request_id", "request_type", "target_type", "target_key", "actor_id", "result"],
+    },
     "nl_governed_query_executed": {
         "description": "BR-07 super governed data intent",
         "payload": ["intent", "user_id"],

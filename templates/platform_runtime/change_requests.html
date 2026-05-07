@@ -1,0 +1,29 @@
+{% extends "control_plane_base.html" %}
+{% block cp_title %}Change Requests{% endblock %}
+{% block cp_content %}
+<section class="cp-page" data-page-marker="rmc-configuration-change-requests">
+  <header class="cp-page-header">
+    <p class="cp-eyebrow">Configuration governance</p>
+    <h1>Change requests</h1>
+  </header>
+  <div class="cp-card">
+    <table>
+      <thead><tr><th>Target</th><th>Type</th><th>Risk</th><th>Status</th><th>Tenant</th><th></th></tr></thead>
+      <tbody>
+        {% for row in change_requests %}
+          <tr>
+            <td>{{ row.target_key }}</td>
+            <td>{{ row.request_type }}</td>
+            <td>{{ row.risk_level }}</td>
+            <td>{{ row.status }}</td>
+            <td>{{ row.school }}</td>
+            <td><a href="{% url 'configuration:change_request_detail' row.id %}">View</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6">No change requests yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

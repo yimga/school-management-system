@@ -13,7 +13,9 @@
     <dl class="row small">
       <dt class="col-sm-4">{% trans "School" %}</dt><dd class="col-sm-8">{{ installation.school.name }}</dd>
       <dt class="col-sm-4">{% trans "Status" %}</dt><dd class="col-sm-8">{{ installation.status }}</dd>
+      <dt class="col-sm-4">{% trans "Health" %}</dt><dd class="col-sm-8">{{ health.state }}</dd>
       <dt class="col-sm-4">{% trans "Version" %}</dt><dd class="col-sm-8">{{ installation.blueprint_version }}</dd>
+      <dt class="col-sm-4">{% trans "Upgrade" %}</dt><dd class="col-sm-8">{{ installation.installed_version }} to {{ installation.available_version }}. Available: {{ installation.upgrade_available }}</dd>
       <dt class="col-sm-4">{% trans "External blockers" %}</dt><dd class="col-sm-8">{{ installation.external_blockers|join:", " }}</dd>
       <dt class="col-sm-4">{% trans "Audit ref" %}</dt><dd class="col-sm-8">{{ installation.audit_ref }}</dd>
     </dl>

@@ -1,0 +1,19 @@
+{
+  "generated_for": "RunMyCampus Administration + Configuration Completeness Audit",
+  "checks": [
+    {"check": "Platform-only routes require platform/control-plane access", "evidence": "apps/schools/super_urls.py wraps /super/ routes in require_super_access_with_host; apps/platform_runtime/views_administration.py wraps /configuration/ views in require_control_plane_access.", "status": "pass"},
+    {"check": "Tenant routes require tenant context", "evidence": "school_configuration_center, tenant_blueprint_setup, and tenant_pack_setup require request.school and tenant_operator_hub_eligible.", "status": "pass"},
+    {"check": "Tenant cannot access /configuration/", "evidence": "config/tenant_urls.py maps configuration/ and configuration/<path> to tenant_configuration_forbidden; test_administration_model asserts 403.", "status": "pass"},
+    {"check": "Tenant cannot view global registries", "evidence": "school_configuration_center template is fed TENANT_CONFIGURATION_SECTIONS and test_tenant_school_configuration_center asserts no global registries/system_closure_map strings.", "status": "pass"},
+    {"check": "Tenant cannot access other tenants' installs/requests", "evidence": "tenant_pack_setup filters PackInstallation by school and get_object_or_404 includes school=school for rollback/deactivate.", "status": "pass"},
+    {"check": "/internal-admin remains raw technical fallback", "evidence": "internal_admin_alias_redirect redirects to /admin/ and preserves path/query; administration model test asserts alias behavior.", "status": "pass"},
+    {"check": "/admin compatibility preserved", "evidence": "config/urls.py and config/manager_urls.py use platform_admin_site.urls; config/tenant_urls.py uses tenant_admin_site.urls.", "status": "pass"},
+    {"check": "External dependencies not marked ready without proof", "evidence": "Blueprint/pack preview carries external_required; administration catalog marks billing external_required and links external dependency register.", "status": "pass"},
+    {"check": "Sensitive apply/rollback emits audit", "evidence": "apply_blueprint, apply_pack, rollback_pack_installation, deactivate_pack_installation emit audit events; blueprint/pack audit tests exist.", "status": "pass"},
+    {"check": "School product aliases do not expose platform configuration", "evidence": "/school/apps/, /school/billing/, /school/money/, /school/workflows/, /school/offline/, /school/audit/, /school/security/ redirect only to tenant-safe surfaces.", "status": "pass"}
+  ],
+  "residual_risks": [
+    "Some tenant-safe routes are aliases to existing product surfaces rather than dedicated pages.",
+    "Billing/PSP and settlement readiness remain external_required until live provider proof exists."
+  ]
+}

@@ -39,6 +39,16 @@ class BlueprintContract:
     implementation_checklist: tuple[str, ...]
     integrations: tuple[str, ...] = ()
     external_dependencies: tuple[str, ...] = ()
+    requires_packs: tuple[str, ...] = ()
+    requires_modules: tuple[str, ...] = ()
+    requires_roles: tuple[str, ...] = ()
+    requires_features: tuple[str, ...] = ()
+    recommends_packs: tuple[str, ...] = ()
+    conflicts_with_packs: tuple[str, ...] = ()
+    conflicts_with_blueprints: tuple[str, ...] = ()
+    blocked_by_external: tuple[str, ...] = ()
+    blocked_by_plan: tuple[str, ...] = ()
+    blocked_by_missing_setup: tuple[str, ...] = ()
     preview_available: bool = True
     apply_available: bool = True
     rollback_available: bool = True

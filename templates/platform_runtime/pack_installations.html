@@ -1,0 +1,12 @@
+{% extends "control_plane_base.html" %}
+{% block cp_title %}Pack Installations{% endblock %}
+{% block cp_content %}
+<section class="cp-page" data-page-marker="rmc-pack-installations">
+  <header class="cp-page-header"><p class="cp-eyebrow">Installation history</p><h1>Pack installations</h1></header>
+  <div class="cp-table-wrap"><table class="cp-table"><thead><tr><th>Pack</th><th>Type</th><th>School</th><th>Status</th><th>Applied</th><th></th></tr></thead><tbody>
+    {% for row in installations %}
+      <tr><td>{{ row.pack_key }}</td><td>{{ row.pack_type }}</td><td>{{ row.school.name }}</td><td>{{ row.status }}</td><td>{{ row.applied_at }}</td><td><a href="{% url 'configuration:pack_installation_detail' row.id %}">Open</a></td></tr>
+    {% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

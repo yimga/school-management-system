@@ -1269,6 +1269,11 @@ class BlueprintInstallation(models.Model):
     )
     blueprint_key = models.CharField(max_length=120, db_index=True)
     blueprint_version = models.CharField(max_length=80, default="1.0.0")
+    installed_version = models.CharField(max_length=80, default="1.0.0")
+    available_version = models.CharField(max_length=80, default="1.0.0")
+    upgrade_available = models.BooleanField(default=False, db_index=True)
+    upgrade_status = models.CharField(max_length=40, blank=True, default="")
+    previous_version = models.CharField(max_length=80, blank=True, default="")
     status = models.CharField(
         max_length=32,
         choices=Status.choices,
@@ -1286,6 +1291,8 @@ class BlueprintInstallation(models.Model):
     preview_snapshot = models.JSONField(default=dict, blank=True)
     applied_changes = models.JSONField(default=list, blank=True)
     external_blockers = models.JSONField(default=list, blank=True)
+    upgrade_preview_snapshot = models.JSONField(default=dict, blank=True)
+    upgrade_impact_snapshot = models.JSONField(default=dict, blank=True)
     rollback_snapshot = models.JSONField(default=dict, blank=True)
     audit_ref = models.CharField(max_length=128, blank=True, default="")
     idempotency_key = models.CharField(max_length=160, db_index=True)
@@ -1308,6 +1315,185 @@ class BlueprintInstallation(models.Model):
 
     def __str__(self) -> str:
         return f"{self.blueprint_key}@{self.blueprint_version} {self.school_id}"
+
+
+class PackInstallation(models.Model):
+    """Tenant-scoped workflow/dashboard/policy pack installation state."""
+
+    class Status(models.TextChoices):
+        PREVIEWED = "previewed", "Previewed"
+        SIMULATED = "simulated", "Simulated"
+        APPLIED = "applied", "Applied"
+        PARTIALLY_APPLIED = "partially_applied", "Partially applied"
+        FAILED = "failed", "Failed"
+        DEACTIVATED = "deactivated", "Deactivated"
+        ROLLED_BACK = "rolled_back", "Rolled back"
+        ROLLBACK_FAILED = "rollback_failed", "Rollback failed"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="pack_installations",
+    )
+    blueprint_installation = models.ForeignKey(
+        BlueprintInstallation,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="pack_installations",
+    )
+    pack_key = models.CharField(max_length=120, db_index=True)
+    pack_type = models.CharField(max_length=40, db_index=True)
+    version = models.CharField(max_length=80, default="1.0.0")
+    installed_version = models.CharField(max_length=80, default="1.0.0")
+    available_version = models.CharField(max_length=80, default="1.0.0")
+    upgrade_available = models.BooleanField(default=False, db_index=True)
+    upgrade_status = models.CharField(max_length=40, blank=True, default="")
+    previous_version = models.CharField(max_length=80, blank=True, default="")
+    status = models.CharField(
+        max_length=32,
+        choices=Status.choices,
+        default=Status.PREVIEWED,
+        db_index=True,
+    )
+    applied_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    applied_at = models.DateTimeField(null=True, blank=True)
+    preview_snapshot = models.JSONField(default=dict, blank=True)
+    simulation_snapshot = models.JSONField(default=dict, blank=True)
+    impact_snapshot = models.JSONField(default=dict, blank=True)
+    applied_changes = models.JSONField(default=list, blank=True)
+    rollback_snapshot = models.JSONField(default=dict, blank=True)
+    external_blockers = models.JSONField(default=list, blank=True)
+    upgrade_preview_snapshot = models.JSONField(default=dict, blank=True)
+    upgrade_impact_snapshot = models.JSONField(default=dict, blank=True)
+    audit_ref = models.CharField(max_length=128, blank=True, default="")
+    idempotency_key = models.CharField(max_length=180, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_packinstallation"
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "pack_key", "pack_type", "idempotency_key"],
+                name="uniq_pack_install_idempotency",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["school", "pack_type", "pack_key", "status"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.pack_type}:{self.pack_key}@{self.version} {self.school_id}"
+
+
+class ConfigurationChangeRequest(models.Model):
+    """Governed request/approval envelope for blueprint and pack changes."""
+
+    class RequestType(models.TextChoices):
+        BLUEPRINT_APPLY = "blueprint_apply", "Blueprint apply"
+        BLUEPRINT_ROLLBACK = "blueprint_rollback", "Blueprint rollback"
+        PACK_APPLY = "pack_apply", "Pack apply"
+        PACK_ROLLBACK = "pack_rollback", "Pack rollback"
+        PACK_DEACTIVATE = "pack_deactivate", "Pack deactivate"
+        PACK_UPGRADE = "pack_upgrade", "Pack upgrade"
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        REQUESTED = "requested", "Requested"
+        PENDING_APPROVAL = "pending_approval", "Pending approval"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+        SCHEDULED = "scheduled", "Scheduled"
+        APPLIED = "applied", "Applied"
+        FAILED = "failed", "Failed"
+        CANCELLED = "cancelled", "Cancelled"
+        ROLLED_BACK = "rolled_back", "Rolled back"
+
+    school = models.ForeignKey(
+        "schools.School",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="configuration_change_requests",
+    )
+    request_type = models.CharField(max_length=40, choices=RequestType.choices, db_index=True)
+    target_key = models.CharField(max_length=160, db_index=True)
+    target_type = models.CharField(max_length=60, db_index=True)
+    target_version = models.CharField(max_length=80, blank=True, default="")
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    requested_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    status = models.CharField(
+        max_length=32,
+        choices=Status.choices,
+        default=Status.DRAFT,
+        db_index=True,
+    )
+    risk_level = models.CharField(max_length=32, blank=True, default="")
+    reason = models.TextField(blank=True, default="")
+    preview_snapshot = models.JSONField(default=dict, blank=True)
+    simulation_snapshot = models.JSONField(default=dict, blank=True)
+    impact_snapshot = models.JSONField(default=dict, blank=True)
+    rollback_plan = models.JSONField(default=dict, blank=True)
+    external_blockers = models.JSONField(default=list, blank=True)
+    approval_notes = models.TextField(blank=True, default="")
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
+    rejected_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    rejected_at = models.DateTimeField(null=True, blank=True)
+    scheduled_at = models.DateTimeField(null=True, blank=True)
+    scheduled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    schedule_status = models.CharField(max_length=32, blank=True, default="")
+    execution_window = models.CharField(max_length=120, blank=True, default="")
+    applied_at = models.DateTimeField(null=True, blank=True)
+    audit_ref = models.CharField(max_length=128, blank=True, default="")
+    idempotency_key = models.CharField(max_length=180, blank=True, default="", db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_configurationchangerequest"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["school", "status", "request_type"]),
+            models.Index(fields=["target_type", "target_key", "target_version"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.request_type}:{self.target_type}:{self.target_key} {self.status}"
 
 
 class EventWebhookSubscription(models.Model):

@@ -14,6 +14,7 @@
   <div class="alert alert-secondary border-0 shadow-sm mb-4" role="note">
     <strong>{% trans "Raw admin remains technical fallback." %}</strong>
     {% trans "Use /super/ for platform operations, /configuration/ for governed platform configuration, tenant school settings for school-scoped changes, and /internal-admin/ only for raw model fallback." %}
+    <a class="ms-2" href="{% url 'configuration:change_requests' %}">{% trans "Review change requests" %}</a>
   </div>
 
   <div class="row g-3">

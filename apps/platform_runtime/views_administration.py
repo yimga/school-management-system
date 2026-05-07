@@ -3,6 +3,8 @@ from __future__ import annotations
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from apps.accounts.permissions import tenant_operator_hub_eligible
 from apps.platform_runtime.administration_catalog import (
@@ -18,7 +20,34 @@ from apps.platform_runtime.blueprint_contract import get_blueprint, list_bluepri
 from apps.platform_runtime.blueprint_impact import analyze_blueprint_impact
 from apps.platform_runtime.blueprint_preview import preview_blueprint
 from apps.platform_runtime.blueprint_rollback import rollback_blueprint_installation
-from apps.platform_runtime.models import BlueprintInstallation
+from apps.platform_runtime.configuration_change_requests import (
+    apply_approved_change_request,
+    approve_change_request,
+    cancel_change_request,
+    create_change_request,
+    reject_change_request,
+    schedule_change_request,
+)
+from apps.platform_runtime.configuration_change_set import (
+    generate_blueprint_change_set,
+    generate_pack_change_set,
+)
+from apps.platform_runtime.installation_health import (
+    calculate_blueprint_installation_health,
+    calculate_pack_installation_health,
+)
+from apps.platform_runtime.models import BlueprintInstallation, ConfigurationChangeRequest
+from apps.platform_runtime.models import PackInstallation
+from apps.platform_runtime.pack_apply import apply_pack
+from apps.platform_runtime.pack_contract import get_pack, list_packs
+from apps.platform_runtime.pack_impact import analyze_pack_impact
+from apps.platform_runtime.pack_preview import preview_pack
+from apps.platform_runtime.pack_rollback import (
+    deactivate_pack_installation,
+    rollback_pack_installation,
+)
+from apps.platform_runtime.pack_simulation import simulate_pack
+from apps.platform_runtime.registry_health import evaluate_registry_health
 from apps.schools.control_plane import require_control_plane_access
 from apps.schools.models import School
 
@@ -58,6 +87,25 @@ def configuration_module_detail(request, module_key: str):
     else:
         context["related_modules"] = enriched_modules()
     return render(request, "platform_runtime/configuration_module_detail.html", context)
+
+
+@require_control_plane_access
+def registry_health_view(request):
+    from apps.platform_runtime.administration_catalog import REGISTRIES
+
+    result = evaluate_registry_health(
+        [dict(row) for row in REGISTRIES],
+        route_inventory={str(row.get("route") or "") for row in REGISTRIES},
+    )
+    return render(
+        request,
+        "platform_runtime/registry_health.html",
+        {
+            "health": result,
+            "page_marker": "rmc-registry-health-dashboard",
+            "os_center_key": "platform_configuration_center",
+        },
+    )
 
 
 def _selected_school(request):
@@ -135,22 +183,36 @@ def blueprint_impact_view(request, key: str):
 def blueprint_apply_view(request, key: str):
     school = _selected_school(request)
     preview = preview_blueprint(key, school=school, actor=request.user, platform_operator=True)
+    change_set = generate_blueprint_change_set(key, school=school, actor=request.user, platform_operator=True)
     result = None
+    change_request = None
     if request.method == "POST":
-        result = apply_blueprint(
-            key,
-            school=school,
-            actor=request.user,
-            preview_snapshot=preview,
-            confirmed=request.POST.get("confirm") == "yes",
-            platform_operator=True,
-        )
-        if result.get("ok"):
-            return redirect("configuration:blueprint_installation_detail", installation_id=result["installation_id"])
+        if change_set["requires_approval"] or request.POST.get("action") == "request_approval":
+            change_request = create_change_request(
+                ConfigurationChangeRequest.RequestType.BLUEPRINT_APPLY,
+                target_key=key,
+                target_type="blueprint",
+                school=school,
+                actor=request.user,
+                reason=request.POST.get("reason", ""),
+                platform_operator=True,
+            )
+            return redirect("configuration:change_request_detail", request_id=change_request.pk)
+        else:
+            result = apply_blueprint(
+                key,
+                school=school,
+                actor=request.user,
+                preview_snapshot=preview,
+                confirmed=request.POST.get("confirm") == "yes",
+                platform_operator=True,
+            )
+            if result.get("ok"):
+                return redirect("configuration:blueprint_installation_detail", installation_id=result["installation_id"])
     return render(
         request,
         "platform_runtime/blueprint_apply.html",
-        {"preview": preview, "result": result, "selected_school": school},
+        {"preview": preview, "change_set": change_set, "result": result, "change_request": change_request, "selected_school": school},
     )
 
 
@@ -173,7 +235,7 @@ def blueprint_installation_detail(request, installation_id: int):
     return render(
         request,
         "platform_runtime/blueprint_installation_detail.html",
-        {"installation": installation},
+        {"installation": installation, "health": calculate_blueprint_installation_health(installation)},
     )
 
 
@@ -195,6 +257,140 @@ def blueprint_rollback_view(request, installation_id: int):
         "platform_runtime/blueprint_rollback.html",
         {"installation": installation, "result": result},
     )
+
+
+PACK_ROUTE_TYPES = {
+    "workflow-packs": "workflow_pack",
+    "dashboard-packs": "dashboard_pack",
+    "policy-bundles": "policy_bundle",
+}
+
+
+def _pack_template_prefix(pack_type: str) -> str:
+    return pack_type.replace("_", "-")
+
+
+@require_control_plane_access
+def pack_marketplace(request, pack_route: str):
+    pack_type = PACK_ROUTE_TYPES.get(pack_route)
+    if not pack_type:
+        return HttpResponseForbidden("Unknown pack route.")
+    return render(
+        request,
+        "platform_runtime/pack_marketplace.html",
+        {
+            "packs": list_packs(pack_type=pack_type),
+            "pack_route": pack_route,
+            "pack_type": pack_type,
+            "selected_school": _selected_school(request),
+            "schools": School.objects.filter(is_active=True).order_by("name")[:50],
+        },
+    )
+
+
+@require_control_plane_access
+def pack_detail(request, pack_route: str, key: str):
+    pack_type = PACK_ROUTE_TYPES.get(pack_route)
+    pack = get_pack(key, pack_type=pack_type)
+    if pack is None:
+        return HttpResponseForbidden("Unknown pack.")
+    return render(
+        request,
+        "platform_runtime/pack_detail.html",
+        {
+            "pack": pack.as_dict(),
+            "pack_route": pack_route,
+            "selected_school": _selected_school(request),
+            "change_set": generate_pack_change_set(pack.key, pack_type=pack_type, school=_selected_school(request), actor=request.user, platform_operator=True),
+        },
+    )
+
+
+@require_control_plane_access
+def pack_preview_view(request, pack_route: str, key: str):
+    pack_type = PACK_ROUTE_TYPES.get(pack_route)
+    school = _selected_school(request)
+    result = preview_pack(key, pack_type=pack_type, school=school, actor=request.user, platform_operator=True, emit_audit=True)
+    return render(request, "platform_runtime/pack_preview.html", {"preview": result, "pack_route": pack_route, "selected_school": school})
+
+
+@require_control_plane_access
+def pack_simulation_view(request, pack_route: str, key: str):
+    pack_type = PACK_ROUTE_TYPES.get(pack_route)
+    school = _selected_school(request)
+    result = simulate_pack(key, pack_type=pack_type, school=school, actor=request.user, scenario=request.GET.get("scenario") or "standard", platform_operator=True, emit_audit=True)
+    return render(request, "platform_runtime/pack_simulation.html", {"simulation": result, "pack_route": pack_route, "selected_school": school})
+
+
+@require_control_plane_access
+def pack_impact_view(request, pack_route: str, key: str):
+    pack_type = PACK_ROUTE_TYPES.get(pack_route)
+    school = _selected_school(request)
+    result = analyze_pack_impact(key, pack_type=pack_type, school=school, actor=request.user, platform_operator=True, emit_audit=True)
+    return render(request, "platform_runtime/pack_impact.html", {"impact": result, "pack_route": pack_route, "selected_school": school})
+
+
+@require_control_plane_access
+def pack_apply_view(request, pack_route: str, key: str):
+    pack_type = PACK_ROUTE_TYPES.get(pack_route)
+    school = _selected_school(request)
+    preview = preview_pack(key, pack_type=pack_type, school=school, actor=request.user, platform_operator=True)
+    simulation = simulate_pack(key, pack_type=pack_type, school=school, actor=request.user, platform_operator=True)
+    impact = analyze_pack_impact(key, pack_type=pack_type, school=school, actor=request.user, platform_operator=True)
+    change_set = generate_pack_change_set(key, pack_type=pack_type, school=school, actor=request.user, platform_operator=True)
+    result = None
+    change_request = None
+    if request.method == "POST":
+        if change_set["requires_approval"] or request.POST.get("action") == "request_approval":
+            change_request = create_change_request(
+                ConfigurationChangeRequest.RequestType.PACK_APPLY,
+                target_key=key,
+                target_type=pack_type,
+                school=school,
+                actor=request.user,
+                reason=request.POST.get("reason", ""),
+                platform_operator=True,
+            )
+            return redirect("configuration:change_request_detail", request_id=change_request.pk)
+        else:
+            result = apply_pack(
+                key,
+                pack_type=pack_type,
+                school=school,
+                actor=request.user,
+                preview_snapshot=preview,
+                simulation_snapshot=simulation,
+                impact_snapshot=impact,
+                confirmed=request.POST.get("confirm") == "yes",
+                platform_operator=True,
+            )
+            if result.get("ok"):
+                return redirect("configuration:pack_installation_detail", installation_id=result["installation_id"])
+    return render(request, "platform_runtime/pack_apply.html", {"preview": preview, "simulation": simulation, "impact": impact, "change_set": change_set, "change_request": change_request, "result": result, "pack_route": pack_route, "selected_school": school})
+
+
+@require_control_plane_access
+def pack_installations(request):
+    installations = PackInstallation.objects.select_related("school", "applied_by", "blueprint_installation")[:100]
+    return render(request, "platform_runtime/pack_installations.html", {"installations": installations})
+
+
+@require_control_plane_access
+def pack_installation_detail(request, installation_id: int):
+    installation = get_object_or_404(PackInstallation.objects.select_related("school", "applied_by", "blueprint_installation"), pk=installation_id)
+    return render(request, "platform_runtime/pack_installation_detail.html", {"installation": installation, "health": calculate_pack_installation_health(installation)})
+
+
+@require_control_plane_access
+def pack_rollback_view(request, installation_id: int):
+    installation = get_object_or_404(PackInstallation.objects.select_related("school", "applied_by"), pk=installation_id)
+    result = None
+    if request.method == "POST":
+        if request.POST.get("mode") == "deactivate":
+            result = deactivate_pack_installation(installation, actor=request.user, confirmed=request.POST.get("confirm") == "yes")
+        else:
+            result = rollback_pack_installation(installation, actor=request.user, confirmed=request.POST.get("confirm") == "yes")
+    return render(request, "platform_runtime/pack_rollback.html", {"installation": installation, "result": result})
 
 
 def tenant_configuration_forbidden(request, *args, **kwargs):
@@ -244,13 +440,26 @@ def tenant_blueprint_setup(request):
     )
     result = None
     if request.method == "POST":
-        result = apply_blueprint(
-            selected_key,
-            school=school,
-            actor=request.user,
-            confirmed=request.POST.get("confirm") == "yes",
-            platform_operator=False,
-        )
+        change_set = generate_blueprint_change_set(selected_key, school=school, actor=request.user, platform_operator=False)
+        if change_set["requires_approval"]:
+            change_request = create_change_request(
+                ConfigurationChangeRequest.RequestType.BLUEPRINT_APPLY,
+                target_key=selected_key,
+                target_type="blueprint",
+                school=school,
+                actor=request.user,
+                reason=request.POST.get("reason", "Tenant school setup request"),
+                platform_operator=False,
+            )
+            result = {"ok": True, "change_request_id": change_request.pk, "status": change_request.status}
+        else:
+            result = apply_blueprint(
+                selected_key,
+                school=school,
+                actor=request.user,
+                confirmed=request.POST.get("confirm") == "yes",
+                platform_operator=False,
+            )
     return render(
         request,
         "platform_runtime/tenant_blueprint_setup.html",
@@ -263,3 +472,115 @@ def tenant_blueprint_setup(request):
             "page_marker": "rmc-tenant-blueprint-setup",
         },
     )
+
+
+@login_required
+def tenant_pack_setup(request):
+    school = getattr(request, "school", None)
+    if school is None or not tenant_operator_hub_eligible(request.user):
+        return HttpResponseForbidden("Tenant school configuration access required.")
+    packs = list_packs(tenant_safe_only=True)
+    selected_key = (request.POST.get("pack") or request.GET.get("pack") or packs[0]["key"]).strip()
+    pack_type = request.POST.get("pack_type") or request.GET.get("pack_type") or next((p["pack_type"] for p in packs if p["key"] == selected_key), "workflow_pack")
+    preview = preview_pack(selected_key, pack_type=pack_type, school=school, actor=request.user, platform_operator=False, emit_audit=request.GET.get("preview") == "1")
+    change_set = generate_pack_change_set(selected_key, pack_type=pack_type, school=school, actor=request.user, platform_operator=False)
+    simulation = simulate_pack(selected_key, pack_type=pack_type, school=school, actor=request.user, platform_operator=False) if request.GET.get("simulate") == "1" else None
+    installations = PackInstallation.objects.filter(school=school).order_by("-created_at")[:25]
+    result = None
+    if request.method == "POST":
+        if request.POST.get("installation_id") and request.POST.get("mode") in {"deactivate", "rollback"}:
+            installation = get_object_or_404(PackInstallation, pk=request.POST["installation_id"], school=school)
+            if request.POST["mode"] == "deactivate":
+                result = deactivate_pack_installation(installation, actor=request.user, confirmed=request.POST.get("confirm") == "yes")
+            else:
+                result = rollback_pack_installation(installation, actor=request.user, confirmed=request.POST.get("confirm") == "yes")
+        else:
+            if change_set["requires_approval"]:
+                change_request = create_change_request(
+                    ConfigurationChangeRequest.RequestType.PACK_APPLY,
+                    target_key=selected_key,
+                    target_type=pack_type,
+                    school=school,
+                    actor=request.user,
+                    reason=request.POST.get("reason", "Tenant school setup request"),
+                    platform_operator=False,
+                )
+                result = {"ok": True, "change_request_id": change_request.pk, "status": change_request.status}
+            else:
+                result = apply_pack(
+                    selected_key,
+                    pack_type=pack_type,
+                    school=school,
+                    actor=request.user,
+                    confirmed=request.POST.get("confirm") == "yes",
+                    platform_operator=False,
+                )
+    return render(
+        request,
+        "platform_runtime/tenant_pack_setup.html",
+        {
+            "school": school,
+            "packs": packs,
+            "selected_key": selected_key,
+            "selected_pack_type": pack_type,
+            "preview": preview,
+            "change_set": change_set,
+            "simulation": simulation,
+            "installations": installations,
+            "result": result,
+            "page_marker": "rmc-tenant-pack-setup",
+        },
+    )
+
+
+@require_control_plane_access
+def change_requests(request):
+    rows = ConfigurationChangeRequest.objects.select_related("school", "requested_by")[:200]
+    return render(request, "platform_runtime/change_requests.html", {"change_requests": rows})
+
+
+@require_control_plane_access
+def change_request_detail(request, request_id: int):
+    row = get_object_or_404(ConfigurationChangeRequest.objects.select_related("school", "requested_by", "approved_by"), pk=request_id)
+    return render(request, "platform_runtime/change_request_detail.html", {"change_request": row})
+
+
+@require_control_plane_access
+def change_request_approve(request, request_id: int):
+    row = get_object_or_404(ConfigurationChangeRequest, pk=request_id)
+    if request.method == "POST":
+        approve_change_request(row, actor=request.user, notes=request.POST.get("notes", ""))
+    return redirect("configuration:change_request_detail", request_id=row.pk)
+
+
+@require_control_plane_access
+def change_request_reject(request, request_id: int):
+    row = get_object_or_404(ConfigurationChangeRequest, pk=request_id)
+    if request.method == "POST":
+        reject_change_request(row, actor=request.user, notes=request.POST.get("notes", ""))
+    return redirect("configuration:change_request_detail", request_id=row.pk)
+
+
+@require_control_plane_access
+def change_request_schedule(request, request_id: int):
+    row = get_object_or_404(ConfigurationChangeRequest, pk=request_id)
+    if request.method == "POST":
+        scheduled_at = parse_datetime(request.POST.get("scheduled_at", "")) or timezone.now()
+        schedule_change_request(row, actor=request.user, scheduled_at=scheduled_at, execution_window=request.POST.get("execution_window", ""))
+    return redirect("configuration:change_request_detail", request_id=row.pk)
+
+
+@require_control_plane_access
+def change_request_cancel(request, request_id: int):
+    row = get_object_or_404(ConfigurationChangeRequest, pk=request_id)
+    if request.method == "POST":
+        cancel_change_request(row, actor=request.user, reason=request.POST.get("reason", ""))
+    return redirect("configuration:change_request_detail", request_id=row.pk)
+
+
+@require_control_plane_access
+def change_request_apply(request, request_id: int):
+    row = get_object_or_404(ConfigurationChangeRequest, pk=request_id)
+    if request.method == "POST":
+        apply_approved_change_request(row, actor=request.user)
+    return redirect("configuration:change_request_detail", request_id=row.pk)

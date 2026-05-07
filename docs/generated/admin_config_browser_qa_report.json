@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-05-07",
+  "scope": "repo_local_checklist",
+  "live_render_access": "not_available_in_this_run",
+  "browser_automation_status": "not_executed",
+  "limitation": "This artifact records the browser/live QA contract and route checklist. Live browser screenshots and console inspection remain planned depth because no live target or browser session was exercised in this run.",
+  "checks": [
+    "status code",
+    "auth redirect behavior",
+    "premium shell",
+    "primary action",
+    "no dummy href/action",
+    "no 404/500/502",
+    "mobile layout",
+    "console errors",
+    "tenant boundaries",
+    "external honesty",
+    "density/spacing"
+  ],
+  "routes": [
+    {"path": "/super", "status": "checklist_ready", "notes": "Platform Command Center route remains verifier-covered; browser screenshot not captured."},
+    {"path": "/configuration", "status": "checklist_ready", "notes": "Platform Configuration Center route remains targeted-test and verifier-covered; browser screenshot not captured."},
+    {"path": "/configuration/blueprints", "status": "checklist_ready", "notes": "Blueprint route targeted-test covered."},
+    {"path": "/configuration/workflow-packs", "status": "checklist_ready", "notes": "Pack route targeted-test covered."},
+    {"path": "/configuration/dashboard-packs", "status": "checklist_ready", "notes": "Pack route targeted-test covered."},
+    {"path": "/configuration/policy-bundles", "status": "checklist_ready", "notes": "Pack route targeted-test covered."},
+    {"path": "/configuration/change-requests", "status": "checklist_ready", "notes": "Governance route targeted-test covered."},
+    {"path": "/configuration/registries", "status": "checklist_ready", "notes": "Registry center targeted-test covered."},
+    {"path": "/configuration/registries/health", "status": "new_repo_surface", "notes": "Registry health contract test covered; browser screenshot not captured."},
+    {"path": "/configuration/migrations", "status": "checklist_ready", "notes": "Migration depth contract covered; browser screenshot not captured."},
+    {"path": "/configuration/integrations", "status": "checklist_ready", "notes": "Developer/app catalog contracts covered; browser screenshot not captured."},
+    {"path": "/configuration/billing", "status": "checklist_ready", "notes": "Package/billing impact contracts covered; browser screenshot not captured."},
+    {"path": "/configuration/experience", "status": "checklist_ready", "notes": "Configuration facade remains verifier-covered; browser screenshot not captured."},
+    {"path": "/school/settings", "status": "checklist_ready", "notes": "Tenant configuration targeted-test covered."},
+    {"path": "/school/setup/blueprints", "status": "checklist_ready", "notes": "Tenant blueprint setup targeted-test covered by prior slice."},
+    {"path": "/school/setup/packs", "status": "checklist_ready", "notes": "Tenant pack setup targeted-test covered."},
+    {"path": "/school/setup/imports", "status": "planned_browser_depth", "notes": "Migration contract covered; live tenant import UI QA remains planned depth."},
+    {"path": "/internal-admin", "status": "checklist_ready", "notes": "Internal admin alias targeted-test covered."}
+  ],
+  "verdict": "BROWSER_LIVE_QA_NOT_CERTIFIED_REPO_CHECKLIST_CREATED"
+}

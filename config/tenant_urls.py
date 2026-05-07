@@ -58,6 +58,7 @@ from apps.platform_runtime.views_administration import (
     internal_admin_alias_redirect,
     school_configuration_center,
     tenant_blueprint_setup,
+    tenant_pack_setup,
     tenant_configuration_forbidden,
 )
 
@@ -153,6 +154,19 @@ def legacy_report_library_redirect(request):
     return redirect(f"{base}?{q}" if q else base)
 
 
+def school_surface_redirect(request, surface: str):
+    destinations = {
+        "apps": "/settings/app-catalog/",
+        "billing": "/finance/",
+        "money": "/finance/",
+        "workflows": "/studio/automation/",
+        "offline": "/portal/offline-sync/",
+        "audit": "/compliance/",
+        "security": "/compliance/",
+    }
+    return redirect(destinations[surface])
+
+
 def permission_denied(request, exception):
     is_admin_forbidden = (
         request.path.startswith("/admin")
@@ -221,6 +235,14 @@ urlpatterns = [
     path("configuration/<path:remaining>", tenant_configuration_forbidden),
     path("school/settings/", school_configuration_center, name="school_configuration_center"),
     path("school/setup/blueprints/", tenant_blueprint_setup, name="tenant_blueprint_setup"),
+    path("school/setup/packs/", tenant_pack_setup, name="tenant_pack_setup"),
+    path("school/apps/", school_surface_redirect, {"surface": "apps"}, name="school_apps"),
+    path("school/billing/", school_surface_redirect, {"surface": "billing"}, name="school_billing"),
+    path("school/money/", school_surface_redirect, {"surface": "money"}, name="school_money"),
+    path("school/workflows/", school_surface_redirect, {"surface": "workflows"}, name="school_workflows"),
+    path("school/offline/", school_surface_redirect, {"surface": "offline"}, name="school_offline"),
+    path("school/audit/", school_surface_redirect, {"surface": "audit"}, name="school_audit"),
+    path("school/security/", school_surface_redirect, {"surface": "security"}, name="school_security"),
     path("api/schema/", schema_view, name="api-schema"),
     path("api/schema/ui/", api_schema_ui, name="api-schema-ui"),
     path(
