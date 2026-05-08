@@ -1,0 +1,21 @@
+{% load i18n %}
+<section class="rmc-wcx-hero rmc-wcx-surface" data-world-class-page-hero="1" data-page-purpose="{{ purpose|default:title }}" aria-labelledby="{{ hero_id|default:'world-class-page-title' }}">
+  <div>
+    {% if breadcrumb_label %}<nav aria-label="{% trans 'Breadcrumb' %}" class="small mb-2"><a href="{{ breadcrumb_url }}">{{ breadcrumb_label }}</a></nav>{% endif %}
+    <div class="rmc-wcx-hero__eyebrow">{{ role|default:_("RunMyCampus workspace") }}</div>
+    <h1 id="{{ hero_id|default:'world-class-page-title' }}" class="rmc-wcx-hero__title">{{ title }}</h1>
+    {% if status %}<span class="badge rounded-pill text-bg-secondary" data-world-class-status-pill="1">{{ status }}</span>{% endif %}
+    <p class="rmc-wcx-hero__copy">{{ subtitle }}</p>
+    <div class="rmc-wcx-actions" data-world-class-primary-action-slot="1">
+      {% if primary_url and primary_label %}<a class="btn btn-primary" href="{{ primary_url }}">{{ primary_label }}</a>{% endif %}
+      {% if secondary_url and secondary_label %}<a class="btn btn-outline-primary" href="{{ secondary_url }}">{{ secondary_label }}</a>{% endif %}
+    </div>
+  </div>
+  <div class="rmc-wcx-hero__visual" aria-label="{% trans 'Page readiness summary' %}">
+    <div class="rmc-wcx-visual-panel">
+      <span class="rmc-wcx-icon" aria-hidden="true">{{ icon|default:"*" }}</span>
+      <h2 class="h5 mt-2 mb-1">{{ visual_title|default:_("What happens next") }}</h2>
+      <p class="small text-muted mb-0">{{ visual_body|default:_("Review the readiness signal, clear the top blocker, then continue through the guided action.") }}</p>
+    </div>
+  </div>
+</section>

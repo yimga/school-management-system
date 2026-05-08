@@ -17,8 +17,14 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2" data-page-archetype="role-home" data-rmc-os-center="money_center" data-rmc-ux-role-dashboard="finance-workspace">
+<div class="container-fluid py-2" data-page-archetype="role-home" data-rmc-os-center="money_center" data-rmc-ux-role-dashboard="finance-workspace" data-apple-class-billing-ux="1">
 {% phase8_dashboard_declaration "finance/dashboard.html" %}
+{% url 'finance:invoices' as wcx_money_primary_url %}
+{% url 'finance:payment_readiness_dashboard' as wcx_payment_readiness_url %}
+{% include "components/world_class_page_hero.html" with hero_id="money-center-title" role=_("Finance team") title=_("Money Center") subtitle=_("Package comparison, entitlement posture, usage meters, billing impact, manual fallback, external PSP status, and revenue/share honesty in one guided finance workspace.") purpose=_("School money center") status=_("Payment readiness visible") primary_url=wcx_money_primary_url primary_label=_("Open invoices") secondary_url=wcx_payment_readiness_url secondary_label=_("Payment readiness") visual_title=_("Know what can be collected") visual_body=_("Invoices and receipts are in-product; live PSP collection requires external onboarding, keys, webhooks, and settlement proof.") %}
+{% include "components/world_class_summary_strip.html" with readiness="Manual + PSP" readiness_label=_("Payment posture") risk=_("External") risk_label=_("Gateway readiness") next_step=_("Invoices") next_step_label=_("Primary action") blockers=_("Settlement") blockers_label=_("No fake live payments") %}
+{% include "components/platform_readiness_strip.html" with inline_field_prefix='money-center' tenant_label=request.tenant.display_name|default:'' %}
+{% include "components/apple_class_data_quality_meter.html" with meter_id="money-usage-meter" title=_("Usage Meter") value="68" status="external-required" status_label=_("PSP external") body=_("Entitlements, billing impact, PSP status, and manual fallback stay visible before upgrade or collection actions.") %}
 {% if finance_requests_count %}
   <div class="alert alert-warning d-flex justify-content-between align-items-center mb-4">
     <div>

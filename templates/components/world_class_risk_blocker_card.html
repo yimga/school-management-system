@@ -1,0 +1,15 @@
+{% load i18n %}
+<article class="rmc-wcx-risk-card"
+         data-world-class-risk-blocker="1"
+         data-world-class-risk-blocker-card="1"
+         data-apple-class-risk-card="1"
+         data-severity="{{ severity|default:'medium' }}">
+  <div class="d-flex justify-content-between gap-2">
+    <h3 class="h5">{{ title|default:_("Readiness blocker") }}</h3>
+    <span class="badge rounded-pill text-bg-warning">{{ severity|default:_("medium") }}</span>
+  </div>
+  <p class="small text-muted mb-2">{{ why|default:_("This item is blocked until the owner completes the listed next step.") }}</p>
+  <p class="rmc-wcx-risk-card__meta mb-1"><strong>{% trans "Owner" %}:</strong> {{ owner|default:_("Platform operator") }}</p>
+  <p class="rmc-wcx-risk-card__meta mb-1"><strong>{% trans "Boundary" %}:</strong> {{ boundary|default:_("External vs repository distinction visible") }}</p>
+  <p class="rmc-wcx-risk-card__meta mb-0"><strong>{% trans "Next step" %}:</strong> {{ next_step|default:_("Collect proof, then rerun QA") }}</p>
+</article>

@@ -3,16 +3,16 @@
 {% block cp_title %}Pack Installation{% endblock %}
 
 {% block cp_content %}
-<section class="cp-page" data-page-marker="rmc-pack-installation-marketplace">
-  <header class="cp-page-header">
-    <p class="cp-eyebrow">Pack installation</p>
-    <h1>{{ pack_type|title }}</h1>
-    <p>Preview, simulate, analyze, apply, audit, deactivate, and roll back installable platform packs.</p>
-  </header>
+<section class="cp-page" data-page-marker="rmc-pack-installation-marketplace" data-apple-class-governed-installation="1">
+  {% url 'configuration:pack_installations' as wcx_pack_installations_url %}
+  {% include "components/world_class_page_hero.html" with hero_id="pack-marketplace-title" role="Platform operators" title="Pack installation" subtitle="Preview, simulate, impact-analyze, request approval, schedule, apply, monitor, deactivate, and roll back installable platform packs." purpose="Governed pack installation" status="Tenant boundary visible" primary_url=wcx_pack_installations_url primary_label="Installation history" secondary_url="/configuration/" secondary_label="Configuration center" visual_title="Guided pack flow" visual_body="Preview, simulation, risk, approval state, dependency graph, audit timeline, and health stay visible." %}
+  {% include "components/world_class_guided_stepper.html" %}
+  {% include "components/apple_class_visual_workflow_path.html" %}
+  {% include "components/apple_class_dependency_graph.html" with graph_id="pack-dependency-graph" title="Pack dependency graph" source="Pack" dependency="Prerequisites" target="Runtime installation" %}
 
   <div class="cp-grid cp-grid-3">
     {% for pack in packs %}
-      <article class="cp-card">
+      <article class="cp-card rmc-wcx-surface" data-world-class-governed-install-card="1">
         <div class="cp-card-header">
           <h2>{{ pack.name }}</h2>
           <span class="cp-badge">{{ pack.status }}</span>
@@ -25,6 +25,8 @@
           <dt>Owner</dt><dd>{{ pack.owner }}</dd>
           <dt>Roles</dt><dd>{{ pack.target_roles|join:", " }}</dd>
           <dt>Safety</dt><dd>{{ pack.safety_level }}</dd>
+          <dt>Approval state</dt><dd data-world-class-approval-state="visible">Risk-based approval visible before apply</dd>
+          <dt>Rollback</dt><dd data-world-class-rollback-posture="available">Deactivate and rollback paths available after install</dd>
           {% if pack.pack_type == "workflow_pack" %}
             <dt>Trigger</dt><dd>{{ pack.triggers|join:", " }}</dd>
             <dt>Condition</dt><dd>{{ pack.conditions|join:", " }}</dd>
@@ -56,6 +58,7 @@
       </article>
     {% endfor %}
   </div>
+  {% include "components/world_class_timeline.html" %}
   <p><a class="cp-button" href="{% url 'configuration:pack_installations' %}">Installation history</a></p>
 </section>
 {% endblock %}

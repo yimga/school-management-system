@@ -1,0 +1,145 @@
+{
+  "generated_at": "2026-05-08T15:49:19.430Z",
+  "verdict": "APPLE-CLASS UX READY - LOCAL",
+  "components": [
+    {
+      "name": "glass panel",
+      "marker": "[data-apple-class-glass-panel]",
+      "count": 12,
+      "routes": [
+        "/configuration/",
+        "/configuration/change-requests/",
+        "/school/settings/",
+        "/super/"
+      ],
+      "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
+    },
+    {
+      "name": "command strip",
+      "marker": "[data-apple-class-command-strip]",
+      "count": 2,
+      "routes": [
+        "/super/"
+      ],
+      "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
+    },
+    {
+      "name": "status pill",
+      "marker": "[data-apple-class-status-pill]",
+      "count": 38,
+      "routes": [
+        "/configuration/",
+        "/configuration/billing/",
+        "/configuration/migrations/",
+        "/school/money/",
+        "/school/setup/imports/"
+      ],
+      "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
+    },
+    {
+      "name": "metric card",
+      "marker": "[data-apple-class-metric-card]",
+      "count": 8,
+      "routes": [
+        "/configuration/billing/",
+        "/school/settings/",
+        "/super/"
+      ],
+      "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
+    },
+    {
+      "name": "readiness meter",
+      "marker": "[data-world-class-readiness-meter], [data-apple-class-data-quality-meter]",
+      "count": 70,
+      "routes": [
+        "/configuration/",
+        "/configuration/billing/",
+        "/configuration/migrations/",
+        "/school/money/",
+        "/school/settings/",
+        "/school/setup/blueprints/",
+        "/school/setup/imports/",
+        "/school/setup/packs/"
+      ],
+      "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
+    },
+    {
+      "name": "visual workflow path",
+      "marker": "[data-apple-class-visual-workflow-path]",
+      "count": 18,
+      "routes": [
+        "/configuration/blueprints/",
+        "/configuration/change-requests/",
+        "/configuration/dashboard-packs/",
+        "/configuration/migrations/",
+        "/configuration/policy-bundles/",
+        "/configuration/workflow-packs/",
+        "/school/setup/blueprints/",
+        "/school/setup/imports/",
+        "/school/setup/packs/"
+      ],
+      "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
+    },
+    {
+      "name": "dependency graph",
+      "marker": "[data-apple-class-dependency-graph]",
+      "count": 12,
+      "routes": [
+        "/configuration/blueprints/",
+        "/configuration/change-requests/",
+        "/configuration/dashboard-packs/",
+        "/configuration/policy-bundles/",
+        "/configuration/workflow-packs/",
+        "/school/apps/"
+      ],
+      "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
+    },
+    {
+      "name": "data quality meter",
+      "marker": "[data-apple-class-data-quality-meter]",
+      "count": 38,
+      "routes": [
+        "/configuration/",
+        "/configuration/billing/",
+        "/configuration/migrations/",
+        "/school/money/",
+        "/school/setup/imports/"
+      ],
+      "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
+    },
+    {
+      "name": "risk/blocker card",
+      "marker": "[data-world-class-risk-blocker-card], [data-apple-class-risk-card]",
+      "count": 0,
+      "routes": [],
+      "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
+    },
+    {
+      "name": "quick profile drawer",
+      "marker": "[data-apple-class-quick-profile-drawer]",
+      "count": 6,
+      "routes": [
+        "/configuration/change-requests/",
+        "/school/settings/",
+        "/super/"
+      ],
+      "accessibility_notes": "Static drawer marker verified; active focus-trap test remains future depth until JS-active."
+    },
+    {
+      "name": "inline edit field",
+      "marker": "[data-apple-class-inline-edit-field]",
+      "count": 0,
+      "routes": [],
+      "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
+    },
+    {
+      "name": "empty state",
+      "marker": "[data-world-class-empty-state]",
+      "count": 2,
+      "routes": [
+        "/configuration/change-requests/"
+      ],
+      "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
+    }
+  ]
+}

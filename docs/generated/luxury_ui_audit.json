@@ -1,7 +1,9 @@
 {
   "debug_surface_hits": {
-    "count": 0,
-    "paths": []
+    "count": 1,
+    "paths": [
+      "templates/marketing/trust_center.html"
+    ]
   },
   "dimension_scores": {
     "action_clarity": {
@@ -30,7 +32,7 @@
     },
     "state_handling": {
       "max": 2,
-      "score": 2
+      "score": 1
     }
   },
   "duplicate_component_systems": {
@@ -50,7 +52,7 @@
       ]
     }
   },
-  "generated_at": "2026-05-07T16:59:37.225496+00:00",
+  "generated_at": "2026-05-08T18:53:32.414249+00:00",
   "high_impact_templates_total": 158,
   "inline_styles": {
     "count": 60,
@@ -322,7 +324,7 @@
     "violation": 0
   },
   "schema_version": 2,
-  "score_out_of_15": 15,
+  "score_out_of_15": 14,
   "screen_headers_actions": {
     "action_bar_violations": [],
     "header_violations": [],

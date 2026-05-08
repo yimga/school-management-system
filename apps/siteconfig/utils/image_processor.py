@@ -73,6 +73,18 @@ class ImageProcessor:
                 # File path
                 image = Image.open(image_file)
 
+            # Strip EXIF / metadata (location, camera serial, embedded thumbnails)
+            # before any further processing. Re-encode without ``info`` so PIL
+            # does not write the original metadata block back out.
+            image.info = {}
+            try:
+                # Pillow ≥ 7.2 supports getexif().clear()
+                exif = image.getexif()
+                if exif:
+                    exif.clear()
+            except Exception:
+                pass
+
             # Convert to RGB if necessary (for JPEG compatibility)
             if image.mode in ("RGBA", "LA", "P"):
                 # Create white background for transparent images

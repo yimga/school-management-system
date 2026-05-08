@@ -1,0 +1,48 @@
+{
+  "status": "APPLE-CLASS UX PARTIAL",
+  "generated_at": "2026-05-08",
+  "scope": "local Apple-class UX browser and accessibility route smoke",
+  "environment": {
+    "base_url": "http://127.0.0.1:8000",
+    "server": "Django runserver",
+    "axe": "enabled",
+    "authenticated_platform_tenant": false,
+    "render_live_parity": "not tested"
+  },
+  "summary": {
+    "playwright_tests_total": 38,
+    "playwright_passed": 38,
+    "playwright_failed": 0,
+    "targeted_apple_class_tests": "12 OK",
+    "django_check": "OK",
+    "marketing_url_smoke": "PASS",
+    "verifier_stack": "PASS"
+  },
+  "coverage_notes": [
+    "Public pages were checked for heading visibility, named actions, dummy actions, horizontal overflow, and serious/critical axe violations.",
+    "Protected platform and tenant routes were bounded to unauthenticated access/login behavior in this run.",
+    "Authenticated platform and tenant browser QA is still required before claiming APPLE-CLASS UX READY - LOCAL.",
+    "Render parity and deployed SHA proof were not tested."
+  ],
+  "routes": [
+    {"route": "/marketing/", "desktop": "pass", "mobile": "pass", "accessibility": "axe_pass", "remaining_issues": []},
+    {"route": "/resources/product-tour/", "desktop": "pass", "mobile": "pass", "accessibility": "axe_pass", "remaining_issues": []},
+    {"route": "/pricing/", "desktop": "pass", "mobile": "pass", "accessibility": "axe_pass", "remaining_issues": []},
+    {"route": "/trust/", "desktop": "pass", "mobile": "pass", "accessibility": "axe_pass", "remaining_issues": []},
+    {"route": "/demo/", "desktop": "pass", "mobile": "pass", "accessibility": "axe_pass", "remaining_issues": []},
+    {"route": "/super/", "desktop": "auth_bounded", "mobile": "auth_bounded", "accessibility": "auth_redirect_only", "remaining_issues": ["authenticated product surface browser QA not run"]},
+    {"route": "/configuration/", "desktop": "auth_bounded", "mobile": "auth_bounded", "accessibility": "auth_redirect_only", "remaining_issues": ["authenticated product surface browser QA not run"]},
+    {"route": "/configuration/blueprints/", "desktop": "auth_bounded", "mobile": "auth_bounded", "accessibility": "auth_redirect_only", "remaining_issues": ["authenticated product surface browser QA not run"]},
+    {"route": "/configuration/workflow-packs/", "desktop": "auth_bounded", "mobile": "auth_bounded", "accessibility": "auth_redirect_only", "remaining_issues": ["authenticated product surface browser QA not run"]},
+    {"route": "/configuration/change-requests/", "desktop": "auth_bounded", "mobile": "auth_bounded", "accessibility": "auth_redirect_only", "remaining_issues": ["authenticated product surface browser QA not run"]},
+    {"route": "/configuration/registries/health/", "desktop": "auth_bounded", "mobile": "auth_bounded", "accessibility": "auth_redirect_only", "remaining_issues": ["authenticated product surface browser QA not run"]},
+    {"route": "/school/settings/", "desktop": "auth_bounded", "mobile": "auth_bounded", "accessibility": "auth_redirect_only", "remaining_issues": ["authenticated tenant browser QA not run"]},
+    {"route": "/school/setup/blueprints/", "desktop": "auth_bounded", "mobile": "auth_bounded", "accessibility": "auth_redirect_only", "remaining_issues": ["authenticated tenant browser QA not run"]},
+    {"route": "/school/setup/packs/", "desktop": "auth_bounded", "mobile": "auth_bounded", "accessibility": "auth_redirect_only", "remaining_issues": ["authenticated tenant browser QA not run"]},
+    {"route": "/school/setup/imports/", "desktop": "auth_bounded", "mobile": "auth_bounded", "accessibility": "auth_redirect_only", "remaining_issues": ["authenticated tenant browser QA not run"]},
+    {"route": "/school/money/", "desktop": "auth_bounded", "mobile": "auth_bounded", "accessibility": "auth_redirect_only", "remaining_issues": ["authenticated tenant browser QA not run"]},
+    {"route": "/school/offline/", "desktop": "auth_bounded", "mobile": "auth_bounded", "accessibility": "auth_redirect_only", "remaining_issues": ["authenticated tenant browser QA not run"]},
+    {"route": "/school/audit/", "desktop": "auth_bounded", "mobile": "auth_bounded", "accessibility": "auth_redirect_only", "remaining_issues": ["authenticated tenant browser QA not run"]},
+    {"route": "/school/security/", "desktop": "auth_bounded", "mobile": "auth_bounded", "accessibility": "auth_redirect_only", "remaining_issues": ["authenticated tenant browser QA not run"]}
+  ]
+}

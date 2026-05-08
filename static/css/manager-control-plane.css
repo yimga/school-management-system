@@ -738,14 +738,18 @@ body.control-plane-shell .cp-navbar {
   align-items: stretch;
   flex-wrap: nowrap;
 }
-/* Sidebar: always visible, does not scroll with page; inner scrolls if nav is long */
+/* Sidebar: visible at lg+ desktop only; on mobile, d-none keeps it hidden so main can take full width */
 .cp-sidebar-col {
   min-width: 0;
   flex-shrink: 0;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
   align-self: stretch;
+}
+@media (min-width: 992px) {
+  .cp-sidebar-col {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
 }
 .cp-sidebar-col .cp-sidebar-inner {
   flex: 1 1 auto;

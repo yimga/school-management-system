@@ -14,12 +14,30 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
 {% endblock %}
 
 {% block cp_content %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-dashboard-main">{% trans "Skip to control plane dashboard" %}</a>
-<div id="super-dashboard-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="role-home" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
+<div id="super-dashboard-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="role-home" data-decision-engine="surface" data-apple-class-super-command-center="1"{% include "schools/partials/decision_architecture_attrs.html" %}>
   {% phase8_dashboard_declaration "schools/super_dashboard.html" %}
+  {% url 'super:create_school_wizard' as wcx_create_school_url %}
+  {% url 'configuration:center' as wcx_configuration_url %}
+  {% url 'super:command_center' as wcx_command_center_url %}
+  {% include "components/world_class_page_hero.html" with hero_id="super-command-center-title" role=_("Platform operators") title=_("Platform Command Center") subtitle=_("Operate platform health, tenant risk, implementation pipeline, revenue/payment readiness, marketplace governance, security/compliance, and proof ledger from one premium command center.") purpose=_("Platform command center") status=_("UI/UX transformation active") primary_url=wcx_create_school_url primary_label=_("Setup Studio") secondary_url=wcx_configuration_url secondary_label=_("Configuration center") visual_title=_("Operator confidence") visual_body=_("Top risks, external blockers, queues, and recent proof are above the fold before deep configuration opens.") %}
+  {% include "components/world_class_summary_strip.html" with readiness=north_star_formatted readiness_label=_("North Star") risk=platform_health.overall_status risk_label=_("Platform health") next_step=_("Setup") next_step_label=_("Primary action") blockers=attention_school_count blockers_label=_("Schools needing attention") %}
+  {% include "components/platform_readiness_strip.html" with inline_field_prefix='super-cmd' %}
+  <section class="rmc-wcx-grid mb-4" data-apple-class-command-strip="platform-health schools-needing-attention open-change-requests external-blockers implementation-pipeline">
+    {% include "components/apple_class_metric_card.html" with label=_("Platform Health") value=platform_health.overall_status meta=_("Health first, details behind progressive disclosure") %}
+    {% include "components/apple_class_metric_card.html" with label=_("Schools Needing Attention") value=attention_school_count meta=_("Click through to the filtered queue") %}
+    {% include "components/apple_class_glass_panel.html" with panel_id="super-external-blockers" label=_("External Blockers") title=_("PSP and live proof stay visible") body=_("Payment, settlement, certification, and Render parity claims stay blocked until external evidence exists.") %}
+  </section>
+  {% include "components/apple_class_quick_profile_drawer.html" with drawer_id="super-risk-drawer" role=_("Risk drawer") title=_("Tenant risk quick profile") body=_("Operators can review owner, risk, proof, and next action from a side panel instead of page hopping.") primary_url=command_center_url primary_label=_("Open risk queue") %}
+  <section class="rmc-wcx-grid mb-4" data-world-class-super-sections="platform-pulse tenant-risk implementation-pipeline revenue-payment-readiness marketplace-governance security-compliance proof-ledger">
+    {% include "components/world_class_product_moment_card.html" with title=_("Platform Pulse") outcome=_("Health, incidents, open approvals, and support pressure are visible immediately.") status=platform_health.overall_status action_url=command_center_url action_label=_("Open queues") %}
+    {% include "components/world_class_risk_blocker_card.html" with title=_("External blockers") severity="medium" owner=_("Platform operator") boundary=_("PSP, settlement, and live certification remain external proof") next_step=_("Collect proof before claiming readiness") %}
+    {% include "components/world_class_product_moment_card.html" with title=_("Proof Ledger") outcome=_("Local proof and pending live parity stay separate so buyers see honest readiness.") status=_("Local only") action_url="/docs/generated/live_browser_ux_certification_report.md" action_label=_("View proof") %}
+  </section>
   {% if operator_super_dashboard_links %}
   <div class="card shadow-sm border-0 page-family-content-card mb-3">
     <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
@@ -67,7 +85,7 @@
           </div>
           <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary cp-primary-action">Setup Studio</a>
           <div class="cp-action-row">
-            <a href="{{ command_center_url|default:'#' }}" class="btn btn-outline-light btn-sm">Queues</a>
+            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="btn btn-outline-light btn-sm">Queues</a>
             <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-light btn-sm">Billing</a>
             <a href="{% url 'super:migration_cloud' %}" class="btn btn-outline-light btn-sm">Migration</a>
             <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">Marketplace</a>
@@ -182,14 +200,14 @@
             <h2 class="cp-panel-title">Operator queues</h2>
           </div>
           <div class="cp-panel-header-actions">
-            <a href="{{ command_center_url|default:'#' }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">Pending approvals {{ pending_approval_count }}</a>
-            <a href="{{ command_center_url|default:'#' }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">Support backlog 48h+ {{ command_center.support_backlog_48h_count }}</a>
-            <a href="{{ command_center_url|default:'#' }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">Provisioning breaches {{ command_center.provisioning_sla_breaches }}</a>
+            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">Pending approvals {{ pending_approval_count }}</a>
+            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">Support backlog 48h+ {{ command_center.support_backlog_48h_count }}</a>
+            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">Provisioning breaches {{ command_center.provisioning_sla_breaches }}</a>
           </div>
         </div>
         <div class="cp-queue-grid">
           <article class="cp-queue-card">
-            <a href="{{ command_center_url|default:'#' }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open operational queues' %}">
+            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open operational queues' %}">
               <h3 class="mb-0">Pending approvals</h3>
               <span>{{ pending_approval_count }}</span>
             </a>
@@ -263,7 +281,7 @@
           </article>
 
           <article class="cp-queue-card">
-            <a href="{{ command_center_url|default:'#' }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open operational queues' %}">
+            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open operational queues' %}">
               <h3 class="mb-0">Support and provisioning</h3>
               <span>{{ stale_support_rows|length }} / {{ provisioning_breach_rows|length }}</span>
             </a>
@@ -291,7 +309,7 @@
                 {% endfor %}
               </div>
             </div>
-            <a href="{{ command_center_url|default:'#' }}" class="cp-subtle-link">Open operational queues</a>
+            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-subtle-link">Open operational queues</a>
           </article>
         </div>
       </section>
@@ -652,7 +670,7 @@
         </div>
         <div class="cp-workstream-grid">
           {% for workstream in workstream_cards %}
-          <a href="{{ workstream.url|default:'#' }}" class="cp-workstream-card">
+          <a href="{{ workstream.url|default:wcx_command_center_url }}" class="cp-workstream-card">
             <span class="cp-workstream-title">{{ workstream.title }}</span>
             <strong class="cp-workstream-metric">{{ workstream.metric }}</strong>
             <span class="cp-workstream-meta">{{ workstream.meta }}</span>

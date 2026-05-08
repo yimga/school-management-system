@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-07T16:59:24.870366+00:00",
+  "generated_at": "2026-05-08T18:53:23.899850+00:00",
   "hits": [
     {
       "classification": "tenant_scoped",
@@ -5608,7 +5608,7 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/compliance/views_dashboard.py",
-      "line": "502",
+      "line": "520",
       "preview": "school_id=getattr(self, \"scope_school\", None),"
     },
     {
@@ -22666,13 +22666,13 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/siteconfig/utils/image_processor.py",
-      "line": "148",
+      "line": "160",
       "preview": "school_id=None,"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/siteconfig/utils/image_processor.py",
-      "line": "207",
+      "line": "219",
       "preview": "school_id=None,"
     },
     {
@@ -23800,7 +23800,7 @@
     {
       "classification": "manager_scoped",
       "file": "config/manager_urls.py",
-      "line": "121",
+      "line": "122",
       "preview": "school_matches = School.objects.filter("
     },
     {
@@ -23824,67 +23824,67 @@
     {
       "classification": "manager_scoped",
       "file": "config/settings.py",
-      "line": "72",
+      "line": "83",
       "preview": "os.getenv(\"MANAGER_PLATFORM_BASE_URL\", \"https://manager.runmycampus.com\")"
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "228",
+      "line": "239",
       "preview": "\"apps.schools.middleware.TenantMiddleware\",  # When USE_DJANGO_TENANTS=0: resolve request.school from host"
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "229",
+      "line": "240",
       "preview": "\"apps.schools.middleware.RlsResetOnExceptionMiddleware\",  # RESET app.current_school_id on response or exception"
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "233",
+      "line": "244",
       "preview": "\"apps.schools.middleware.SentryTenantTagMiddleware\",  # Phase H: tag Sentry with school_id"
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "969",
+      "line": "997",
       "preview": "# Phase H: Bento-style admin index; injects school logo/colors when request.school is set"
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "1260",
+      "line": "1288",
       "preview": "# Build handlers list (request_context filter adds request_id, tenant_id, user_id, school_id \u2014 A4)"
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "1306",
+      "line": "1334",
       "preview": "\"user_id=%(user_id)s school_id=%(school_id)s http_method=%(http_method)s \""
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "1327",
+      "line": "1355",
       "preview": "\"school_id=%(school_id)s http_method=%(http_method)s \""
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "1605",
+      "line": "1633",
       "preview": "#     resolve request.tenant/request.school from customers.Domain; tenant tables live in per-tenant schemas."
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "1606",
+      "line": "1634",
       "preview": "#   - USE_DJANGO_TENANTS=0 or non-PostgreSQL: TenantMiddleware resolves request.school from"
     },
     {
       "classification": "tenant_scoped",
       "file": "config/settings.py",
-      "line": "1755",
+      "line": "1783",
       "preview": "# TenantMiddleware is not used; TenantMainMiddleware + TenantSchemaSchoolBridgeMiddleware provide request.school"
     },
     {
@@ -23908,13 +23908,13 @@
     {
       "classification": "manager_scoped",
       "file": "config/urls.py",
-      "line": "252",
+      "line": "258",
       "preview": "if getattr(request, \"public_host_kind\", None) == \"manager\""
     },
     {
       "classification": "manager_scoped",
       "file": "config/urls.py",
-      "line": "1168",
+      "line": "1196",
       "preview": "# Resolve name for templates that link to operator help (manager host uses config.manager_urls; root needs name for tests/shared templates)"
     }
   ],

@@ -1,0 +1,9 @@
+<section class="rmc-acx-dependency-graph" data-apple-class-dependency-graph="1" aria-labelledby="{{ graph_id|default:'apple-dependency-graph-title' }}">
+  <h2 id="{{ graph_id|default:'apple-dependency-graph-title' }}" class="h6 mb-2">{{ title|default:"Dependency graph" }}</h2>
+  <div class="rmc-acx-dependency-graph__nodes">
+    <span>{{ source|default:"Blueprint" }}</span>
+    <span>{{ dependency|default:"Required pack" }}</span>
+    <span>{{ target|default:"Tenant rollout" }}</span>
+  </div>
+  <p class="small text-muted mb-0">{{ body|default:"Dependencies, blockers, and rollout impact are visible before approval." }}</p>
+</section>

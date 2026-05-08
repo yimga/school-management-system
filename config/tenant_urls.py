@@ -5,6 +5,7 @@ Used when request.urlconf is set to this module by UrlConfSwitcherMiddleware.
 
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.shortcuts import redirect
 from django.urls import include, path
 from django.views.decorators.cache import cache_page
@@ -190,9 +191,29 @@ def page_not_found(request, exception):
 
 
 def server_error(request):
-    """Custom 500: pass user so base template and includes render when context processors failed."""
+    """Custom 500 (SOT batch 1218 hardened).
+
+    Two-stage fallback so the 500 page survives context-processor or middleware
+    crashes. Reference incident: `gilead-school.runmycampus.com/school/settings/`
+    returning 500 with no operator-friendly recovery (2026-05-07).
+    """
     context = {"user": getattr(request, "user", None)}
-    return render(request, "errors/500.html", context, status=500)
+    try:
+        return render(request, "errors/500.html", context, status=500)
+    except Exception:
+        from django.http import HttpResponse
+        from django.template.loader import get_template
+        try:
+            html = get_template("errors/500_minimal.html").render({})
+        except Exception:
+            html = (
+                "<!doctype html><meta charset=utf-8>"
+                "<title>Service interrupted</title>"
+                "<h1>500 - service interrupted</h1>"
+                "<p>Retry once. If it persists, contact support.</p>"
+                "<p><a href='/'>Home</a> &middot; <a href='/-/version/'>Version</a></p>"
+            )
+        return HttpResponse(html, status=500, content_type="text/html; charset=utf-8")
 
 
 handler403 = permission_denied
@@ -463,4 +484,5 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
+    urlpatterns += staticfiles_urlpatterns()
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

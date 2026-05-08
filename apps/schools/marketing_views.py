@@ -2361,6 +2361,17 @@ def marketing_page(request, page_slug: str):
     )
 
 
+def _marketing_form_is_bot(request) -> bool:
+    """Honeypot check shared across the marketing form submit views.
+
+    A real browser leaves the hidden ``website_url`` input empty; bots that
+    auto-fill every visible field will populate it. We treat any non-empty
+    value as a silent drop (caller still redirects to the success URL so the
+    bot does not learn the form was rejected).
+    """
+    return bool((request.POST.get("website_url") or "").strip())
+
+
 @require_POST
 @csrf_protect
 def submit_demo_request(request):
@@ -2368,6 +2379,8 @@ def submit_demo_request(request):
     Accept book-a-demo form POST (name, email, school, message, plus optional context fields).
     If MARKETING_DEMO_WEBHOOK_URL is set, POST JSON to it; then redirect to /demo/ with ?submitted=1 or ?error=1.
     """
+    if _marketing_form_is_bot(request):
+        return redirect(reverse("marketing_demo") + "?submitted=1")
     name = (request.POST.get("name") or "").strip()[:256]
     email = (request.POST.get("email") or "").strip()[:256]
     school = (request.POST.get("school") or "").strip()[:256]
@@ -2448,6 +2461,8 @@ def submit_contact_request(request):
 
     Redirects to ``marketing_contact`` with ``?submitted=1`` or ``?error=1``. GET returns 405 (POST-only route).
     """
+    if _marketing_form_is_bot(request):
+        return redirect(reverse("marketing_contact") + "?submitted=1")
     name = (request.POST.get("name") or "").strip()[:256]
     email = (request.POST.get("email") or "").strip()[:256]
     school = (request.POST.get("school") or "").strip()[:256]
@@ -2502,6 +2517,8 @@ def submit_security_packet_request(request):
     Webhook uses same env as contact when unset. Payload ``source`` is
     ``security_packet_request`` for downstream routing.
     """
+    if _marketing_form_is_bot(request):
+        return redirect(reverse("marketing_security_packet_request") + "?submitted=1")
     name = (request.POST.get("name") or "").strip()[:256]
     email = (request.POST.get("email") or "").strip()[:256]
     organization = (request.POST.get("organization") or "").strip()[:256]

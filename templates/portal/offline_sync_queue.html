@@ -26,8 +26,8 @@
     <div class="card-body py-3">
       <form method="get" class="row g-2 align-items-end small">
         <div class="col-md-3">
-          <label class="form-label mb-1">{% trans "Action type" %}</label>
-          <select name="action_type" class="form-select form-select-sm">
+          <label class="form-label mb-1" for="offline-sync-action-type">{% trans "Action type" %}</label>
+          <select id="offline-sync-action-type" name="action_type" class="form-select form-select-sm">
             <option value="">{% trans "All types" %}</option>
             {% for val, label in action_type_choices %}
             <option value="{{ val }}" {% if filter_action_type == val %}selected{% endif %}>{{ label }}</option>
@@ -36,8 +36,8 @@
         </div>
         {% if operator_offline_scope %}
         <div class="col-md-3">
-          <label class="form-label mb-1">{% trans "Submitter" %}</label>
-          <select name="user" class="form-select form-select-sm">
+          <label class="form-label mb-1" for="offline-sync-submitter">{% trans "Submitter" %}</label>
+          <select id="offline-sync-submitter" name="user" class="form-select form-select-sm">
             <option value="">{% trans "All submitters" %}</option>
             {% for s in submitters %}
             <option value="{{ s.id }}" {% if filter_user == s.id|stringformat:"s" %}selected{% endif %}>{{ s.username }}</option>

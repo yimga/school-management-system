@@ -1,6 +1,8 @@
 {
   "generated_at": "2026-05-07",
   "scope": "repo_local_checklist",
+  "superseded_by": "docs/generated/live_browser_ux_certification_report.json for local browser UX certification",
+  "current_truth": "stale checklist only; local browser UX is certified in the later live_browser_ux_certification_report, while Render parity remains partial",
   "live_render_access": "not_available_in_this_run",
   "browser_automation_status": "not_executed",
   "limitation": "This artifact records the browser/live QA contract and route checklist. Live browser screenshots and console inspection remain planned depth because no live target or browser session was exercised in this run.",

@@ -280,12 +280,249 @@ def stripe_secret_tier(cfg: dict[str, Any] | None) -> str:
     return ""
 
 
+def _http_get_json(url: str, headers: dict[str, str], timeout: float = 8.0) -> tuple[int, dict[str, Any] | None]:
+    """Non-charge read-only HTTPS GET. Returns (status_code, parsed_json_or_None).
+
+    Uses stdlib only; never logs Authorization headers or response bodies.
+    """
+    import json as _json
+    import urllib.error
+    import urllib.request
+
+    req = urllib.request.Request(url, headers=headers, method="GET")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — non-charge GET
+            status = int(getattr(resp, "status", 0) or resp.getcode() or 0)
+            body = resp.read(4096) or b""
+            try:
+                parsed = _json.loads(body.decode("utf-8", errors="replace") or "{}")
+            except Exception:
+                parsed = None
+            return status, parsed
+    except urllib.error.HTTPError as exc:
+        return int(getattr(exc, "code", 0) or 0), None
+    except Exception:
+        return 0, None
+
+
+def _resolve_secret(cfg: dict[str, Any], env_names: tuple[str, ...], cfg_keys: tuple[str, ...]) -> str:
+    import os
+
+    for name in env_names:
+        val = os.environ.get(name) or ""
+        if val.strip():
+            return val.strip()
+    for key in cfg_keys:
+        val = cfg.get(key) or ""
+        if isinstance(val, str) and val.strip():
+            return val.strip()
+    return ""
+
+
+def _ping_paystack(cfg: dict[str, Any]) -> dict[str, Any]:
+    """Non-charge read-only probe. Calls https://api.paystack.co/transaction/totals.
+
+    Live keys start with `sk_live_*`; test keys start with `sk_test_*`.
+    """
+    base = {
+        "rail_code": "PAYSTACK",
+        "provider_key": "paystack",
+        "mode": "production_ping",
+        "external_action_needed": "",
+    }
+    secret = _resolve_secret(
+        cfg,
+        env_names=("PAYSTACK_SECRET_KEY", "PAYSTACK_API_KEY"),
+        cfg_keys=("secret_key", "secret", "api_key"),
+    )
+    if not secret:
+        return {
+            **base,
+            "status": GatewayHealthStatus.MISSING_CREDENTIALS,
+            "message": "Paystack secret not present in env or integration config.",
+            "action_required": "Configure PAYSTACK_SECRET_KEY in deployment secrets.",
+        }
+    if not secret.startswith("sk_live_"):
+        return {
+            **base,
+            "status": GatewayHealthStatus.EXTERNAL_REQUIRED,
+            "message": "Production ping requires sk_live_* (test keys are not live proof).",
+            "action_required": "Install Paystack live keys after merchant approval.",
+            "external_action_needed": "Paystack merchant verification + live secret rollout.",
+        }
+    status, _ = _http_get_json(
+        "https://api.paystack.co/transaction/totals?perPage=1",
+        headers={"Authorization": f"Bearer {secret}", "Accept": "application/json"},
+    )
+    if status == 200:
+        return {
+            **base,
+            "status": GatewayHealthStatus.READY,
+            "message": "Paystack /transaction/totals returned 200 (non-charge production ping).",
+            "action_required": "",
+        }
+    if status in (401, 403):
+        return {
+            **base,
+            "status": GatewayHealthStatus.MISSING_CREDENTIALS,
+            "message": f"Paystack rejected credentials (HTTP {status}).",
+            "action_required": "Rotate PAYSTACK_SECRET_KEY; verify merchant is live.",
+        }
+    return {
+        **base,
+        "status": GatewayHealthStatus.DEGRADED,
+        "message": f"Paystack non-charge probe failed (HTTP {status or 'no response'}).",
+        "action_required": "Check network egress and Paystack API status without logging secrets.",
+    }
+
+
+def _ping_flutterwave(cfg: dict[str, Any]) -> dict[str, Any]:
+    """Non-charge read-only probe. Calls https://api.flutterwave.com/v3/balances.
+
+    Live keys start with `FLWSECK-` and end with `-X` (live indicator); test keys end with `-TEST`.
+    """
+    base = {
+        "rail_code": "FLUTTERWAVE",
+        "provider_key": "flutterwave",
+        "mode": "production_ping",
+        "external_action_needed": "",
+    }
+    secret = _resolve_secret(
+        cfg,
+        env_names=("FLUTTERWAVE_SECRET_KEY", "FLW_SECRET_KEY", "FLUTTERWAVE_API_KEY"),
+        cfg_keys=("secret_key", "secret", "api_key"),
+    )
+    if not secret:
+        return {
+            **base,
+            "status": GatewayHealthStatus.MISSING_CREDENTIALS,
+            "message": "Flutterwave secret not present in env or integration config.",
+            "action_required": "Configure FLUTTERWAVE_SECRET_KEY in deployment secrets.",
+        }
+    if "-TEST" in secret.upper() or "FLWSECK_TEST" in secret.upper():
+        return {
+            **base,
+            "status": GatewayHealthStatus.EXTERNAL_REQUIRED,
+            "message": "Production ping requires live Flutterwave secret (test secret detected).",
+            "action_required": "Install Flutterwave live keys after merchant approval.",
+            "external_action_needed": "Flutterwave merchant verification + live secret rollout.",
+        }
+    status, _ = _http_get_json(
+        "https://api.flutterwave.com/v3/balances",
+        headers={"Authorization": f"Bearer {secret}", "Accept": "application/json"},
+    )
+    if status == 200:
+        return {
+            **base,
+            "status": GatewayHealthStatus.READY,
+            "message": "Flutterwave /v3/balances returned 200 (non-charge production ping).",
+            "action_required": "",
+        }
+    if status in (401, 403):
+        return {
+            **base,
+            "status": GatewayHealthStatus.MISSING_CREDENTIALS,
+            "message": f"Flutterwave rejected credentials (HTTP {status}).",
+            "action_required": "Rotate FLUTTERWAVE_SECRET_KEY; verify merchant is live.",
+        }
+    return {
+        **base,
+        "status": GatewayHealthStatus.DEGRADED,
+        "message": f"Flutterwave non-charge probe failed (HTTP {status or 'no response'}).",
+        "action_required": "Check network egress and Flutterwave API status without logging secrets.",
+    }
+
+
+def _ping_stripe(cfg: dict[str, Any]) -> dict[str, Any]:
+    """Stripe Balance.retrieve — non-charge. Prefers stripe SDK; falls back to HTTPS GET."""
+    base = {
+        "rail_code": "STRIPE",
+        "provider_key": "stripe",
+        "mode": "production_ping",
+        "external_action_needed": "",
+    }
+    tier = stripe_secret_tier(cfg)
+    if not tier:
+        return {
+            **base,
+            "status": GatewayHealthStatus.MISSING_CREDENTIALS,
+            "message": "Stripe secret not present in env or integration config metadata.",
+            "action_required": "Configure STRIPE_SECRET_KEY or integration secret fields.",
+        }
+    if tier != "live":
+        return {
+            **base,
+            "status": GatewayHealthStatus.EXTERNAL_REQUIRED,
+            "message": "Production ping requires sk_live_* credentials (test keys are not live proof).",
+            "action_required": "Install live Stripe keys in deployment secrets.",
+            "external_action_needed": "Stripe merchant activation + live secret key rollout.",
+        }
+    secret = _resolve_secret(
+        cfg,
+        env_names=("STRIPE_SECRET_KEY", "STRIPE_API_KEY"),
+        cfg_keys=("secret_key", "secret"),
+    )
+    try:
+        import stripe  # type: ignore
+
+        stripe.api_key = secret
+        stripe.Balance.retrieve()
+        return {
+            **base,
+            "status": GatewayHealthStatus.READY,
+            "message": "Stripe Balance.retrieve succeeded (non-charge production ping).",
+            "action_required": "",
+        }
+    except ImportError:
+        status, _ = _http_get_json(
+            "https://api.stripe.com/v1/balance",
+            headers={"Authorization": f"Bearer {secret}", "Accept": "application/json"},
+        )
+        if status == 200:
+            return {
+                **base,
+                "status": GatewayHealthStatus.READY,
+                "message": "Stripe /v1/balance returned 200 (non-charge HTTPS ping; SDK not installed).",
+                "action_required": "Optionally install stripe SDK for richer telemetry.",
+            }
+        if status in (401, 403):
+            return {
+                **base,
+                "status": GatewayHealthStatus.MISSING_CREDENTIALS,
+                "message": f"Stripe rejected credentials (HTTP {status}).",
+                "action_required": "Rotate STRIPE_SECRET_KEY; verify account is active.",
+            }
+        return {
+            **base,
+            "status": GatewayHealthStatus.DEGRADED,
+            "message": f"Stripe non-charge probe failed (HTTP {status or 'no response'}).",
+            "action_required": "Inspect connectivity without logging secrets.",
+        }
+    except Exception:
+        return {
+            **base,
+            "status": GatewayHealthStatus.DEGRADED,
+            "message": "Stripe Balance.retrieve failed (check network/API reachability).",
+            "action_required": "Inspect Stripe dashboard connectivity without logging secrets.",
+        }
+
+
 def run_safe_production_ping(
     slug: str,
     cfg: dict[str, Any] | None,
 ) -> dict[str, Any]:
     """
-    Non-destructive live probes only where explicitly supported (Stripe Balance.retrieve).
+    Non-destructive live probes for PSPs that expose a read-only balance/totals endpoint.
+
+    Currently supported:
+      - stripe       -> Balance.retrieve (SDK or HTTPS fallback)
+      - paystack     -> /transaction/totals
+      - flutterwave  -> /v3/balances
+
+    Other providers (mtn_momo, orange_momo, card, bank, sepa) remain ``external_required``
+    because they have no documented non-charge production probe — supervised live txn or
+    portal evidence is the only honest proof.
+
     Never prints secrets or raw provider payloads.
     """
     cfg = cfg or {}
@@ -296,70 +533,23 @@ def run_safe_production_ping(
         "mode": "production_ping",
         "external_action_needed": "",
     }
-    if slug_l != "stripe":
-        return {
-            **base,
-            "status": GatewayHealthStatus.EXTERNAL_REQUIRED,
-            "message": (
-                "Production ping not implemented for this provider — collect proof via provider dashboard."
-            ),
-            "action_required": "",
-            "external_action_needed": (
-                "Run provider-supported non-charge production check per docs/payments/PAYMENT_ENVIRONMENT_CONTRACT.md."
-            ),
-        }
+    if slug_l == "stripe":
+        return _ping_stripe(cfg)
+    if slug_l == "paystack":
+        return _ping_paystack(cfg)
+    if slug_l == "flutterwave":
+        return _ping_flutterwave(cfg)
 
-    tier = stripe_secret_tier(cfg)
-    if not tier:
-        return {
-            **base,
-            "status": GatewayHealthStatus.MISSING_CREDENTIALS,
-            "message": "Stripe secret not present in env or integration config metadata.",
-            "action_required": "Configure STRIPE_SECRET_KEY or integration secret fields.",
-            "external_action_needed": "",
-        }
-    if tier != "live":
-        return {
-            **base,
-            "status": GatewayHealthStatus.EXTERNAL_REQUIRED,
-            "message": "Production ping requires sk_live_* credentials (test keys are not live proof).",
-            "action_required": "Install live Stripe keys in deployment secrets.",
-            "external_action_needed": "Stripe merchant activation + live secret key rollout.",
-        }
-
-    import os
-
-    try:
-        import stripe  # type: ignore
-    except ImportError:
-        return {
-            **base,
-            "status": GatewayHealthStatus.EXTERNAL_REQUIRED,
-            "message": "stripe Python package not installed.",
-            "action_required": "Add stripe dependency for Balance.retrieve probes.",
-            "external_action_needed": "Ops dependency install",
-        }
-
-    key = os.environ.get("STRIPE_SECRET_KEY") or os.environ.get("STRIPE_API_KEY") or cfg.get(
-        "secret_key"
-    ) or cfg.get("secret")
-    stripe.api_key = str(key).strip()
-    try:
-        stripe.Balance.retrieve()
-    except Exception:
-        return {
-            **base,
-            "status": GatewayHealthStatus.DEGRADED,
-            "message": "Stripe Balance.retrieve failed (check network/API reachability).",
-            "action_required": "Inspect Stripe dashboard connectivity without logging secrets.",
-            "external_action_needed": "",
-        }
     return {
         **base,
-        "status": GatewayHealthStatus.READY,
-        "message": "Stripe Balance.retrieve succeeded (non-charge production ping).",
+        "status": GatewayHealthStatus.EXTERNAL_REQUIRED,
+        "message": (
+            "Production ping not implemented for this provider — collect proof via provider dashboard."
+        ),
         "action_required": "",
-        "external_action_needed": "",
+        "external_action_needed": (
+            "Run provider-supported non-charge production check per docs/payments/PSP_API_CONNECTION_GUIDE.md."
+        ),
     }
 
 

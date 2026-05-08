@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4 proof-page tenant-app-catalog-wrap ui-premium-surface" data-page-archetype="catalog" data-shell-marketplace="tenant-app-catalog" data-rmc-market-surface="catalog" data-rmc-mkt-catalog-surface="1" data-rmc-component-audit="1">
+<div class="container-fluid py-4 proof-page tenant-app-catalog-wrap ui-premium-surface" data-page-archetype="catalog" data-shell-marketplace="tenant-app-catalog" data-rmc-market-surface="catalog" data-rmc-mkt-catalog-surface="1" data-rmc-component-audit="1" data-apple-class-app-catalog="tenant">
   {% if not school %}
   <div class="proof-panel" data-page-header="1">
     <h1 class="proof-panel-title">{% trans "App catalog" %}</h1>
@@ -21,6 +21,10 @@
     </nav>
   </div>
   {% else %}
+  {% include "components/world_class_page_hero.html" with hero_id="tenant-app-catalog-title" role=_("School administrators") title=_("School App Catalog") subtitle=_("Sandbox-first school app installation with visible scopes, billing model, install impact, webhook health, partner status, and uninstall posture.") purpose=_("Tenant app catalog") status=_("Tenant-safe") primary_url="#tenant-catalog-grid" primary_label=_("Browse apps") secondary_url="/school/settings/" secondary_label=_("School configuration") visual_title=_("Install without surprises") visual_body=_("Paid and plan-gated apps show honest upgrade and external settlement posture before activation.") %}
+  {% include "components/world_class_summary_strip.html" with readiness="Sandbox" readiness_label=_("Preview first") risk=_("Scopes") risk_label=_("Consent required") next_step=_("Browse") next_step_label=_("Low-click install") blockers=_("Billing") blockers_label=_("External PSP honest") %}
+  {% include "components/platform_readiness_strip.html" with inline_field_prefix='tenant-app-catalog' tenant_label=request.tenant.display_name|default:'' %}
+  {% include "components/apple_class_dependency_graph.html" with graph_id="tenant-app-scope-graph" title=_("Permission scope visual") source=_("App") dependency=_("Consent and billing") target=_("School install") %}
   <section class="proof-hero">
     <div class="proof-hero-grid">
       <div>

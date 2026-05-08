@@ -57,12 +57,17 @@
     <section id="contact-form-block" class="section-shell" aria-label="{% trans 'Contact form' %}">
       <h2 class="section-heading">{% trans "Send a message" %}</h2>
       {% if request.GET.submitted %}
-        <div class="alert alert-success" role="alert">{% trans "Thanks—we received your note and will respond as soon as possible." %}</div>
+        <div class="alert alert-success" role="alert" aria-live="polite">{% trans "Thanks—we received your note and will respond as soon as possible." %}</div>
       {% elif request.GET.error %}
-        <div class="alert alert-warning" role="alert">{% trans "Something went wrong. Please retry or email from your workspace if you are already a customer." %}</div>
+        <div class="alert alert-warning" role="alert" aria-live="polite">{% trans "Something went wrong. Please retry or email from your workspace if you are already a customer." %}</div>
       {% endif %}
       <form method="post" action="{% url 'marketing_contact_submit' %}" class="row g-3" data-form-name="contact">
         {% csrf_token %}
+        {# Honeypot — visually hidden, off-tabbing; bots that auto-fill every input get silently dropped server-side. #}
+        <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
+          <label for="contact-website-url">{% trans "Leave this field empty" %}</label>
+          <input type="text" id="contact-website-url" name="website_url" tabindex="-1" autocomplete="off">
+        </div>
         <div class="col-md-6">
           <label for="contact-name" class="form-label">{% trans "Name" %} <span class="text-danger">*</span></label>
           <input type="text" id="contact-name" name="name" class="form-control" maxlength="256" required autocomplete="name">
@@ -185,12 +190,17 @@
         <h2 class="section-heading">{% trans "Request a demo" %}</h2>
         <p class="section-lead">{% trans "Tell us about your school and we'll get back within 24 hours to schedule a walkthrough." %}</p>
         {% if request.GET.submitted %}
-          <div class="alert alert-success" role="alert">{% trans "Thanks! We've received your request and will be in touch soon." %}</div>
+          <div class="alert alert-success" role="alert" aria-live="polite">{% trans "Thanks! We've received your request and will be in touch soon." %}</div>
         {% elif request.GET.error %}
-          <div class="alert alert-warning" role="alert">{% trans "Something went wrong. Please try again or contact us directly." %}</div>
+          <div class="alert alert-warning" role="alert" aria-live="polite">{% trans "Something went wrong. Please try again or contact us directly." %}</div>
         {% endif %}
         <form method="post" action="{% url 'marketing_book_demo_submit' %}" class="row g-3" data-form-name="demo">
           {% csrf_token %}
+          {# Honeypot — visually hidden, off-tabbing; bots that auto-fill every input get silently dropped server-side. #}
+          <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
+            <label for="demo-website-url">{% trans "Leave this field empty" %}</label>
+            <input type="text" id="demo-website-url" name="website_url" tabindex="-1" autocomplete="off">
+          </div>
           <div class="col-md-6">
             <label for="demo-name" class="form-label">{% trans "Name" %}</label>
             <input type="text" id="demo-name" name="name" class="form-control" maxlength="256" required>

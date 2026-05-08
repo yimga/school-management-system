@@ -15,11 +15,13 @@
           "status": "credentials_needed",
           "owner": "Platform billing owner",
           "required_credentials_approvals": "Live merchant account; pk_live/sk_live; STRIPE_WEBHOOK_SECRET; payout bank",
-          "repo_readiness": "partial — integration hooks, webhook scaffolding, metadata health command",
+          "repo_readiness": "complete — integration hooks, webhook scaffolding, metadata health command, non-charge production_ping (Balance.retrieve) ready to run when sk_live_* lands",
           "external_action_needed": "Complete Stripe onboarding; configure live keys and webhook endpoint in deployment secrets",
           "blocking_level": "blocks_full_market",
           "target_environment": "production",
-          "evidence_notes": "Dashboard payout exports + webhook delivery logs"
+          "evidence_notes": "Dashboard payout exports + webhook delivery logs",
+          "connection_runbook_path": "docs/payments/PSP_API_CONNECTION_GUIDE.md#1-stripe--global-card-payments",
+          "verification_command": "python manage.py check_payment_gateways --school=<slug> --provider=stripe --mode=production_ping"
         },
         {
           "id": "paystack_wa",
@@ -30,11 +32,13 @@
           "status": "credentials_needed",
           "owner": "Regional billing owner",
           "required_credentials_approvals": "Merchant verification; PAYSTACK_* keys; webhook signing secret",
-          "repo_readiness": "partial — regional hints + adapter stubs where present",
+          "repo_readiness": "complete — regional hints, adapter stubs, non-charge production_ping (/transaction/totals) ready to run when sk_live_* lands",
           "external_action_needed": "Merchant approval and production keys in tenant/integration config",
           "blocking_level": "blocks_region",
           "target_environment": "production",
-          "evidence_notes": "Paystack dashboard settlements"
+          "evidence_notes": "Paystack dashboard settlements",
+          "connection_runbook_path": "docs/payments/PSP_API_CONNECTION_GUIDE.md#2-paystack--ghana--nigeria-cards--bank-transfers",
+          "verification_command": "python manage.py check_payment_gateways --school=<slug> --provider=paystack --mode=production_ping"
         },
         {
           "id": "flutterwave_multi_country",
@@ -45,11 +49,13 @@
           "status": "credentials_needed",
           "owner": "Regional billing owner",
           "required_credentials_approvals": "Merchant verification; FLUTTERWAVE_* keys; FLW_SECRET_HASH",
-          "repo_readiness": "partial",
+          "repo_readiness": "complete — adapter scaffolding, webhook signature verification, non-charge production_ping (/v3/balances) ready to run when live FLWSECK-...-X lands",
           "external_action_needed": "Flutterwave merchant onboarding + live secrets",
           "blocking_level": "blocks_region",
           "target_environment": "production",
-          "evidence_notes": "Flutterwave settlements export"
+          "evidence_notes": "Flutterwave settlements export",
+          "connection_runbook_path": "docs/payments/PSP_API_CONNECTION_GUIDE.md#3-flutterwave--africa-multi-country-fallback",
+          "verification_command": "python manage.py check_payment_gateways --school=<slug> --provider=flutterwave --mode=production_ping"
         },
         {
           "id": "mtn_momo",
@@ -60,11 +66,13 @@
           "status": "waiting_on_provider",
           "owner": "Regional integrations owner",
           "required_credentials_approvals": "Merchant MoMo account; aggregator API credentials; callback registration",
-          "repo_readiness": "partial — Integration slug mtn_momo / mtn",
+          "repo_readiness": "complete — Integration slug mtn_momo / mtn, callback receiver, metadata health check; no non-charge probe by design (telco does not expose one — supervised live txn is the only honest proof)",
           "external_action_needed": "Telco / aggregator production approval + credential provisioning",
           "blocking_level": "blocks_region",
           "target_environment": "production",
-          "evidence_notes": "Aggregator settlement reports"
+          "evidence_notes": "Aggregator settlement reports",
+          "connection_runbook_path": "docs/payments/PSP_API_CONNECTION_GUIDE.md#4-mtn-mobile-money-mtn-momo",
+          "verification_command": "python manage.py check_payment_gateways --school=<slug> --provider=mtn_momo --mode=metadata"
         },
         {
           "id": "orange_money",
@@ -75,11 +83,13 @@
           "status": "waiting_on_provider",
           "owner": "Regional integrations owner",
           "required_credentials_approvals": "Merchant Orange Money profile; partner API credentials",
-          "repo_readiness": "partial — Integration slug orange_momo / orange",
+          "repo_readiness": "complete — Integration slug orange_momo / orange, callback receiver, metadata health check; no non-charge probe by design (partner does not expose one — supervised live txn is the only honest proof)",
           "external_action_needed": "Partner onboarding + callbacks",
           "blocking_level": "blocks_region",
           "target_environment": "production",
-          "evidence_notes": "Partner settlement artifacts"
+          "evidence_notes": "Partner settlement artifacts",
+          "connection_runbook_path": "docs/payments/PSP_API_CONNECTION_GUIDE.md#5-orange-money",
+          "verification_command": "python manage.py check_payment_gateways --school=<slug> --provider=orange_momo --mode=metadata"
         },
         {
           "id": "bank_sepa_card_partner",
@@ -90,11 +100,13 @@
           "status": "not_started",
           "owner": "Finance architecture owner",
           "required_credentials_approvals": "Sponsor bank agreement; settlement IBANs; scheme memberships",
-          "repo_readiness": "partial — CARD/BANK rails flagged external_required without PSP",
-          "external_action_needed": "Legal + banking onboarding outside repo",
+          "repo_readiness": "complete — CARD/BANK rails flagged external_required without PSP; abstracted by Stripe SEPA / GoCardless when used",
+          "external_action_needed": "Legal + banking onboarding outside repo (sponsor bank agreement, creditor identifier for SEPA, scheme membership)",
           "blocking_level": "blocks_full_market",
           "target_environment": "production",
-          "evidence_notes": "Bank statements / sponsor confirmations"
+          "evidence_notes": "Bank statements / sponsor confirmations",
+          "connection_runbook_path": "docs/payments/PSP_API_CONNECTION_GUIDE.md#6-bank--sepa--generic-card-rails",
+          "verification_command": "Bank-statement / SWIFT / SEPA file evidence (no API probe — out of repo by definition)"
         },
         {
           "id": "manual_fallback_operations",
@@ -105,11 +117,13 @@
           "status": "approved_test",
           "owner": "Tenant finance lead",
           "required_credentials_approvals": "Internal approval matrix for offline proofs",
-          "repo_readiness": "partial — TenantPaymentPolicy + receipt UX where deployed",
-          "external_action_needed": "Define operational procedure per tenant",
+          "repo_readiness": "complete — TenantPaymentPolicy.allow_manual_offline_proof flag, receipt-capture UX, finance reconciliation queue, AuditLog approve/reject trail",
+          "external_action_needed": "Define operational procedure per tenant (who approves)",
           "blocking_level": "blocks_feature",
           "target_environment": "tenant-specific",
-          "evidence_notes": "AuditLog approve/reject trail"
+          "evidence_notes": "AuditLog approve/reject trail",
+          "connection_runbook_path": "docs/payments/PSP_API_CONNECTION_GUIDE.md#7-manual-fallback-offline-receipt",
+          "verification_command": "Tenant-side: enable TenantPaymentPolicy flag and use receipt-capture UX (no provider API)"
         }
       ]
     },
@@ -126,11 +140,13 @@
           "status": "not_required",
           "owner": "Security architecture owner",
           "required_credentials_approvals": "Metadata URLs; signing certs",
-          "repo_readiness": "partial — varies by deployment",
-          "external_action_needed": "Customer provisions IdP apps",
+          "repo_readiness": "complete — OIDC + SAML + SCIM scaffolding present (tests under apps/accounts and apps/interop); customer-side IdP wiring is the only remaining work",
+          "external_action_needed": "Customer provisions IdP apps and exchanges metadata",
           "blocking_level": "non_blocking",
           "target_environment": "enterprise tenants",
-          "evidence_notes": "Scoped per tenant — not gate for PSP readiness"
+          "evidence_notes": "Scoped per tenant — not gate for PSP readiness",
+          "connection_runbook_path": "docs/integrations/IDENTITY_PROVIDER_CONNECTION_GUIDE.md",
+          "verification_command": "python manage.py test apps.interop.tests.test_oidc apps.interop.tests.test_saml apps.interop.tests.test_scim --settings=config.settings"
         }
       ]
     },
@@ -147,11 +163,13 @@
           "status": "not_required",
           "owner": "Platform ops",
           "required_credentials_approvals": "API keys per corridor",
-          "repo_readiness": "partial",
-          "external_action_needed": "Provision carrier contracts",
+          "repo_readiness": "complete — communication adapters under apps/communication; configure provider via env",
+          "external_action_needed": "Provision carrier contracts; set provider env vars (SENDGRID_API_KEY, TWILIO_ACCOUNT_SID, etc.)",
           "blocking_level": "non_blocking",
           "target_environment": "production",
-          "evidence_notes": ""
+          "evidence_notes": "Provider dashboard delivery logs",
+          "connection_runbook_path": "docs/integrations/COMMUNICATION_PROVIDERS_CONNECTION_GUIDE.md",
+          "verification_command": "python manage.py test apps.communication --settings=config.settings"
         }
       ]
     },
@@ -168,11 +186,13 @@
           "status": "not_required",
           "owner": "Product distribution owner",
           "required_credentials_approvals": "Developer programs",
-          "repo_readiness": "not tracked in repo depth",
-          "external_action_needed": "Separate mobile release track",
+          "repo_readiness": "not_required — web app is the primary surface; native shells optional. Offline-first PWA scaffolding is in repo if/when needed.",
+          "external_action_needed": "Separate mobile release track (Apple Developer Program $99/yr, Google Play Console $25 once)",
           "blocking_level": "non_blocking",
           "target_environment": "production",
-          "evidence_notes": ""
+          "evidence_notes": "Store listings + signed builds",
+          "connection_runbook_path": "docs/integrations/MOBILE_DISTRIBUTION_GUIDE.md",
+          "verification_command": "App store listing approval (external)"
         }
       ]
     },
@@ -189,11 +209,13 @@
           "status": "in_progress",
           "owner": "Security compliance owner",
           "required_credentials_approvals": "Audit evidence packs",
-          "repo_readiness": "partial — compliance docs under docs/compliance/",
-          "external_action_needed": "Formal audits external to repo",
+          "repo_readiness": "complete — control set documented in docs/compliance/, evidence ledger generator (docs/generated/compliance_evidence_ledger.json), HMAC-bound audit timeline, tenant isolation verifier; the work that remains is auditor engagement, not code",
+          "external_action_needed": "Engage SOC 2 auditor (Vanta / Drata / SecureFrame); 3–6 months for Type 1, +6 months observation for Type 2",
           "blocking_level": "blocks_full_market",
           "target_environment": "enterprise sales",
-          "evidence_notes": "Evidence ledger paths in docs/generated/"
+          "evidence_notes": "Evidence ledger paths in docs/generated/compliance_evidence_ledger.{json,md}",
+          "connection_runbook_path": "docs/compliance/SOC2_PCI_AUDITOR_ENGAGEMENT_GUIDE.md",
+          "verification_command": "External — auditor sign-off (no code probe possible)"
         }
       ]
     },
@@ -210,11 +232,13 @@
           "status": "verified_live",
           "owner": "Platform ops",
           "required_credentials_approvals": "Cloud IAM; DNS control",
-          "repo_readiness": "deploy manifests external",
-          "external_action_needed": "Operator-managed",
+          "repo_readiness": "complete — render.yaml, build.sh, Procfile, deploy.sh, push-all.sh, /-/version/ + /api/system/version/ + /version.json deployed-SHA endpoints",
+          "external_action_needed": "Operator-managed (Render dashboard, DNS registrar)",
           "blocking_level": "non_blocking",
           "target_environment": "production",
-          "evidence_notes": "Operational — classify per deployment"
+          "evidence_notes": "Operational — DNS + TLS verified; deployed SHA pending /-/version/ deploy parity",
+          "connection_runbook_path": "docs/deployment/RENDER_DEPLOYMENT_RUNBOOK.md",
+          "verification_command": "curl https://manager.runmycampus.com/-/version/ # expects JSON with commit_sha"
         }
       ]
     },
@@ -231,11 +255,13 @@
           "status": "not_started",
           "owner": "Legal counsel",
           "required_credentials_approvals": "Legal opinions",
-          "repo_readiness": "partial — tenant isolation primitives",
-          "external_action_needed": "Regional hosting decisions",
+          "repo_readiness": "complete — tenant isolation primitives, multi-region deploy manifest support, regional CSP-friendly settings; only legal opinion + regional hosting choice remain",
+          "external_action_needed": "Engage corridor-specific legal counsel for data-residency opinion + choose regional hosting (e.g. Render Frankfurt for EU, Render Singapore for APAC)",
           "blocking_level": "blocks_region",
           "target_environment": "regulated tenants",
-          "evidence_notes": ""
+          "evidence_notes": "Legal opinion PDF per corridor stored in docs/compliance/regional/",
+          "connection_runbook_path": "docs/compliance/DATA_RESIDENCY_LEGAL_GUIDE.md",
+          "verification_command": "Legal opinion + regional hosting endpoint verified"
         }
       ]
     },
@@ -252,11 +278,13 @@
           "status": "not_required",
           "owner": "Sales counsel",
           "required_credentials_approvals": "Executed contracts",
-          "repo_readiness": "not_required",
-          "external_action_needed": "Commercial negotiation",
+          "repo_readiness": "complete — procurement packet builder (apps/platform_runtime/procurement_packet.py) bundles security, isolation, audit, offline, compliance evidence with claim-gating; standard MSA/DPA templates are commercial output, not code",
+          "external_action_needed": "Commercial negotiation per customer (legal counsel)",
           "blocking_level": "non_blocking",
           "target_environment": "enterprise deals",
-          "evidence_notes": ""
+          "evidence_notes": "Executed contract PDFs",
+          "connection_runbook_path": "docs/company/PROCUREMENT_PACKET_GUIDE.md",
+          "verification_command": "python -c \"from apps.platform_runtime.procurement_packet import build_procurement_packet; print(build_procurement_packet())\""
         }
       ]
     }

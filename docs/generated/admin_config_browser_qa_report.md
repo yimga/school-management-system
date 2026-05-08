@@ -4,6 +4,10 @@ Generated: 2026-05-07
 
 Scope: repo/local checklist.
 
+Superseded by: `docs/generated/live_browser_ux_certification_report.json` for local browser UX certification.
+
+Current truth: this remains a stale checklist artifact only. Local browser UX is certified in the later live-browser report; Render/custom-domain parity remains partial in `docs/generated/render_parity_certification_report.json`.
+
 Live Render/browser automation status: not executed in this run.
 
 Limitation: no live target or browser session was exercised. This artifact defines the browser/live QA contract and records the route checklist; screenshots, console inspection, and mobile visual review remain planned depth.

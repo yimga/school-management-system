@@ -1,0 +1,22 @@
+from pathlib import Path
+
+from django.test import SimpleTestCase
+
+
+ROOT = Path(__file__).resolve().parents[3]
+
+
+class AppCatalogAppleClassUXTests(SimpleTestCase):
+    def test_platform_and_tenant_catalogs_show_permission_scope_visuals(self):
+        paths = [
+            ROOT / "templates" / "marketplace" / "app_catalog.html",
+            ROOT / "templates" / "marketplace" / "tenant_app_catalog.html",
+        ]
+        for path in paths:
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                self.assertIn("data-apple-class-app-catalog", text)
+                self.assertIn("apple_class_dependency_graph.html", text)
+                self.assertIn("scope", text.lower())
+                self.assertIn("sandbox", text.lower())
+                self.assertNotIn("settlement proof complete", text.lower())

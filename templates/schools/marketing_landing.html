@@ -91,6 +91,31 @@
     </div>
   </section>
 
+  <section class="container py-5" data-world-class-marketing-story="1" aria-labelledby="world-class-product-story-title">
+    <div class="rmc-wcx-hero rmc-wcx-surface">
+      <div>
+        <div class="rmc-wcx-hero__eyebrow">{% trans "Offline-ready education operating system" %}</div>
+        <h2 id="world-class-product-story-title" class="rmc-wcx-hero__title">{% trans "Run every campus from one offline-ready education operating system." %}</h2>
+        <p class="rmc-wcx-hero__copy">{% trans "A visual command center for leaders, a calmer workspace for teachers, a clearer home for families, and honest readiness for payments, blueprints, audit, and offline sync." %}</p>
+        <div class="rmc-wcx-actions" data-world-class-primary-action-slot="1">
+          <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="primary" data-page="home">{% trans "Book demo" %}</a>
+          <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-outline-primary" data-cta="secondary" data-page="home">{% trans "See product tour" %}</a>
+        </div>
+      </div>
+      <div class="rmc-wcx-visual-panel" aria-label="{% trans 'RunMyCampus product visual map' %}">
+        <div class="rmc-wcx-grid" data-world-class-product-visual-map="school-command-center teacher-workspace family-home offline-sync payment-readiness blueprint-marketplace trust-audit">
+          <span>{% trans "School Command Center" %}</span>
+          <span>{% trans "Teacher Workspace" %}</span>
+          <span>{% trans "Family Home" %}</span>
+          <span>{% trans "Offline Sync" %}</span>
+          <span>{% trans "Payment Readiness" %}</span>
+          <span>{% trans "Blueprint Marketplace" %}</span>
+          <span>{% trans "Trust / Audit" %}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   {% if trust_badges %}
   <section class="mkt-section mkt-trust-glob-strip py-4 mkt-glob-strip-dark" aria-label="{% trans 'Global positioning' %}">
     <div class="container">

@@ -18,6 +18,11 @@
 
   <form method="post" action="{{ submit_url }}" class="card border-0 shadow-sm">
     {% csrf_token %}
+    {# Honeypot — visually hidden, off-tabbing; bots that auto-fill every input get silently dropped server-side. #}
+    <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
+      <label for="sp_website_url">{% trans "Leave this field empty" %}</label>
+      <input type="text" id="sp_website_url" name="website_url" tabindex="-1" autocomplete="off">
+    </div>
     <div class="card-body">
       <div class="mb-3">
         <label class="form-label" for="sp_name">{% trans "Your name" %} *</label>

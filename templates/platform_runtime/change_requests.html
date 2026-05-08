@@ -1,13 +1,18 @@
 {% extends "control_plane_base.html" %}
 {% block cp_title %}Change Requests{% endblock %}
 {% block cp_content %}
-<section class="cp-page" data-page-marker="rmc-configuration-change-requests">
-  <header class="cp-page-header">
-    <p class="cp-eyebrow">Configuration governance</p>
-    <h1>Change requests</h1>
-  </header>
+<section class="cp-page" data-page-marker="rmc-configuration-change-requests" data-apple-class-governed-installation="1">
+  {% include "components/world_class_page_hero.html" with hero_id="change-requests-title" role="Platform operators" title="Change requests" subtitle="Approval, scheduling, application, cancellation, audit, and rollback posture for governed configuration changes." purpose="Configuration governance" status="Approval queue" primary_url="/configuration/" primary_label="Configuration center" secondary_url="/configuration/registries/health/" secondary_label="Registry health" visual_title="Governance queue" visual_body="Risk level, approver, tenant scope, and health are visible before changes are applied." %}
+  {% include "components/world_class_guided_stepper.html" %}
+  {% include "components/apple_class_visual_workflow_path.html" %}
+  <div class="rmc-wcx-grid mb-3">
+    {% include "components/apple_class_dependency_graph.html" with graph_id="change-request-dependencies" title="Dependency graph" source="Requested change" dependency="Required approvals" target="Scheduled rollout" %}
+    {% include "components/apple_class_quick_profile_drawer.html" with drawer_id="change-request-drawer" role="Approval drawer" title="Quick approve/reject panel" body="Operators can inspect risk, approver, audit, and rollback posture without losing the queue." primary_url="/configuration/change-requests/" primary_label="Review queue" %}
+    {% include "components/apple_class_glass_panel.html" with panel_id="change-request-health" label="Installation Health" title="Monitor before apply" body="Health, Rollback availability, and external blockers remain visible through the rollout path." %}
+  </div>
   <div class="cp-card">
-    <table>
+    <table data-world-class-table="summarized-first">
+      <caption>Configuration change requests with target, type, risk, status, tenant, and action.</caption>
       <thead><tr><th>Target</th><th>Type</th><th>Risk</th><th>Status</th><th>Tenant</th><th></th></tr></thead>
       <tbody>
         {% for row in change_requests %}
@@ -20,10 +25,11 @@
             <td><a href="{% url 'configuration:change_request_detail' row.id %}">View</a></td>
           </tr>
         {% empty %}
-          <tr><td colspan="6">No change requests yet.</td></tr>
+          <tr><td colspan="6">{% include "components/world_class_empty_state.html" with title="No change requests yet" body="New blueprint and pack requests will appear here with risk, approval, scheduling, and audit state." primary_url="/configuration/" primary_label="Open configuration center" %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+  {% include "components/world_class_timeline.html" %}
 </section>
 {% endblock %}

@@ -1,0 +1,8 @@
+<div class="rmc-acx-inline-edit" data-apple-class-inline-edit-field="1">
+  <label class="form-label small fw-semibold" for="{{ field_id|default:'apple-inline-edit-field' }}">{{ label|default:"Editable field" }}</label>
+  <div class="rmc-acx-inline-edit__control">
+    <input id="{{ field_id|default:'apple-inline-edit-field' }}" class="form-control form-control-sm" value="{{ value|default:'' }}" aria-describedby="{{ field_id|default:'apple-inline-edit-field' }}-hint">
+    <button type="button" class="btn btn-sm btn-primary" aria-label="{{ save_label|default:'Save inline edit' }}">{{ save_text|default:"Save" }}</button>
+  </div>
+  <div id="{{ field_id|default:'apple-inline-edit-field' }}-hint" class="form-text">{{ hint|default:"Edit in place without leaving the workflow." }}</div>
+</div>

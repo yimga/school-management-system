@@ -4,11 +4,20 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
 {% endblock %}
 {% block content %}
-<div class="container py-3" style="max-width: 56rem;" data-page-archetype="operator-report" data-shell-surface="school-activation-onboarding" data-rmc-onboarding="school-activation" data-rmc-onboarding-page="1">
+<div class="container py-3" style="max-width: 56rem;" data-page-archetype="operator-report" data-shell-surface="school-activation-onboarding" data-rmc-onboarding="school-activation" data-rmc-onboarding-page="1" data-apple-class-migration-ux="1">
   <h1 class="h3 mb-2">{% trans "School activation checklist" %}</h1>
   <p class="text-muted small mb-3">{% trans "Items below come from this tenant’s data. Links open real setup or evidence pages—no automated completion without underlying records." %}</p>
+  <div class="row g-3 mb-3" aria-label="{% trans 'Import readiness' %}">
+    <div class="col-lg-6">
+      {% include "components/apple_class_data_quality_meter.html" with meter_id="tenant-import-quality" title=_("Import Data Quality") value=onboarding.percent status="needs-review" status_label=_("Validate before apply") body=_("Use setup steps, migration wizard, and run history to preview, validate, quarantine issues, apply, audit, and preserve rollback posture.") %}
+    </div>
+    <div class="col-lg-6">
+      {% include "components/apple_class_visual_workflow_path.html" with path_id="tenant-import-flow" title=_("Import Flow") %}
+    </div>
+  </div>
   {% if onboarding.persisted_last_step %}
   <p class="small text-muted mb-2" data-rmc-onboarding-last-step="1">{% blocktrans with key=onboarding.persisted_last_step %}Last recorded step: {{ key }}{% endblocktrans %}</p>
   {% endif %}

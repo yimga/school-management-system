@@ -4,7 +4,7 @@
 {% block cp_title %}{{ module.title }}{% endblock %}
 
 {% block cp_content %}
-<section class="container-fluid py-3" data-page-archetype="operational-workbench" data-rmc-os-center="platform_configuration_center" data-rmc-configuration-module="{{ module.key }}">
+<section class="container-fluid py-3" data-page-archetype="operational-workbench" data-rmc-os-center="platform_configuration_center" data-rmc-configuration-module="{{ module.key }}" data-rmc-page-purpose="{{ module.purpose }}"{% if module.key == "migrations" %} data-apple-class-migration-ux="1"{% elif module.key == "billing" %} data-apple-class-billing-ux="1"{% elif module.key == "app-catalog" %} data-apple-class-app-catalog="1"{% endif %}>
   <header class="mb-4">
     <p class="small text-muted mb-1"><a href="{% url 'configuration:center' %}">{% trans "Platform Configuration Center" %}</a></p>
     <h1 class="h3 mb-2">{{ module.title }}</h1>
@@ -68,7 +68,7 @@
     </table>
   </div>
   {% elif registries %}
-  <div class="table-responsive">
+  <div class="table-responsive" tabindex="0" role="region" aria-label="{% trans 'Registry health table' %}">
     <table class="table table-sm align-middle">
       <thead><tr><th>{% trans "Registry" %}</th><th>{% trans "Owner" %}</th><th>{% trans "Scope" %}</th><th>{% trans "Generated" %}</th><th>{% trans "Drift" %}</th><th>{% trans "Route" %}</th><th>{% trans "Proof" %}</th></tr></thead>
       <tbody>
@@ -87,6 +87,25 @@
     </table>
   </div>
   {% else %}
+  {% if module.key == "migrations" %}
+  <div class="row g-3 mb-4" aria-label="{% trans 'Migration readiness' %}">
+    <div class="col-lg-6">
+      {% include "components/apple_class_data_quality_meter.html" with meter_id="configuration-migration-quality" title=_("Data Quality Meter") value="72" status="needs-review" status_label=_("Quarantine review") body=_("Preview, map fields, validate, quarantine invalid rows, and preserve rollback posture before applying migration data.") %}
+    </div>
+    <div class="col-lg-6">
+      {% include "components/apple_class_visual_workflow_path.html" with path_id="configuration-migration-path" title=_("Migration Flow") %}
+    </div>
+  </div>
+  {% elif module.key == "billing" %}
+  <div class="row g-3 mb-4" aria-label="{% trans 'Billing readiness' %}">
+    <div class="col-lg-6">
+      {% include "components/apple_class_metric_card.html" with label=_("PSP status") value=_("External blocked") detail=_("No live PSP or settlement proof is claimed from local QA.") %}
+    </div>
+    <div class="col-lg-6">
+      {% include "components/apple_class_data_quality_meter.html" with meter_id="configuration-billing-readiness" title=_("Billing Impact Preview") value="64" status="external-blocked" status_label=_("Manual fallback") body=_("Package changes show entitlement and billing impact without claiming live payment readiness.") %}
+    </div>
+  </div>
+  {% endif %}
   <div class="card border-0 shadow-sm">
     <div class="card-body">
       <h2 class="h5">{% trans "Existing system facade" %}</h2>

@@ -1,0 +1,35 @@
+{% load i18n %}
+{# ============================================================================
+   Platform Readiness Strip (SOT batch 1203)
+
+   Shared partial that mounts:
+     - 3x world_class_risk_blocker_card (markers: data-world-class-risk-blocker-card,
+       data-apple-class-risk-card)
+     - 2x apple_class_inline_edit_field (marker: data-apple-class-inline-edit-field)
+
+   Include this once per dashboard (super, configuration, billing, migrations,
+   school money, school setup imports, school audit, school security, school
+   settings). This is the source of truth for honest external-blocker visibility
+   and for the Apple-class inline-edit affordance pattern.
+
+   Inputs (all optional):
+     - hide_blockers   (truthy: skip risk/blocker cards)
+     - hide_inline     (truthy: skip inline edit fields)
+     - psp_status_label, soc2_status_label, settlement_status_label
+     - inline_field_prefix (string used to disambiguate field IDs across mounts)
+     - tenant_label
+============================================================================ #}
+<section class="rmc-wcx-grid platform-readiness-strip mt-3 mb-3"
+         data-platform-readiness-strip="1"
+         aria-label="{% trans 'Platform readiness blockers and quick edits' %}">
+  {% if not hide_blockers %}
+    {% include 'components/world_class_risk_blocker_card.html' with title=psp_status_label|default:_('Live PSP credentials pending') severity='high' why=_('Live card and mobile-money settlement requires PSP merchant onboarding, production keys, webhook secrets, and settlement bank accounts. Repo readiness is partial; we do not claim live processing until the credentials and a production gateway ping are evidenced.') owner=_('Platform billing owner') boundary=_('External — not representable inside the repository') next_step=_('Begin Stripe / Paystack / Flutterwave activation; track in external_dependencies_register.json') %}
+    {% include 'components/world_class_risk_blocker_card.html' with title=soc2_status_label|default:_('SOC 2 / PCI attestations in progress') severity='high' why=_('Enterprise sales requires independently audited attestations. Compliance evidence is repo-scope ready; signed audit reports remain external.') owner=_('Security compliance owner') boundary=_('External — independent auditors') next_step=_('Engage auditor; assemble evidence pack; quarter-scale workstream') %}
+    {% include 'components/world_class_risk_blocker_card.html' with title=settlement_status_label|default:_('Live settlement and bank rails') severity='medium' why=_('Sponsor bank, SEPA, and card scheme memberships are required for full-market settlement. Adapters exist; bank contracts do not.') owner=_('Finance architecture owner') boundary=_('External — banking partner') next_step=_('Open sponsor bank conversation; collect IBAN configuration; track in external_dependencies_register.json') %}
+  {% endif %}
+
+  {% if not hide_inline %}
+    {% include 'components/apple_class_inline_edit_field.html' with field_id=inline_field_prefix|default:'platform-readiness'|add:'-tenant-display-name' label=_('Tenant display name') value=tenant_label|default:'' hint=_('Visible to operators and parents in receipts and exports.') save_label=_('Save tenant display name') %}
+    {% include 'components/apple_class_inline_edit_field.html' with field_id=inline_field_prefix|default:'platform-readiness'|add:'-support-contact' label=_('Support contact email') value='' hint=_('Receives operator escalation notices and procurement packet replies.') save_label=_('Save support contact email') %}
+  {% endif %}
+</section>

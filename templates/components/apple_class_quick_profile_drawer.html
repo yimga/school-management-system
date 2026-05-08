@@ -1,0 +1,9 @@
+<aside class="rmc-acx-drawer" data-apple-class-quick-profile-drawer="1" aria-labelledby="{{ drawer_id|default:'apple-quick-profile-title' }}" aria-expanded="false" tabindex="-1">
+  <div class="rmc-acx-drawer__handle" aria-hidden="true"></div>
+  <div class="rmc-acx-drawer__header">
+    <span class="rmc-acx-layer-label">{{ role|default:"Quick profile" }}</span>
+    <h2 id="{{ drawer_id|default:'apple-quick-profile-title' }}" class="h5 mb-0">{{ title|default:"Selected record" }}</h2>
+  </div>
+  <p class="small text-muted">{{ body|default:"Open key context, owner, risk, timeline, and next action without leaving the page." }}</p>
+  <a class="btn btn-primary btn-sm" data-apple-class-primary-action-slot="drawer" href="{{ primary_url|default:'/' }}">{{ primary_label|default:"Open details" }}</a>
+</aside>

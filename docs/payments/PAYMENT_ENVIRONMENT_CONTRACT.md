@@ -16,9 +16,11 @@ Deployment configures **names only** here — **never** paste live secrets into 
 | Mode | Meaning |
 |------|---------|
 | metadata | Structural checks only (integration row, config keys present, rails from regional profile). Default for CI and operators. |
-| production_ping | Optional: non-charge live probe when PSP supports it and deployment policy allows it (Stripe Balance.retrieve only today). |
+| production_ping | Non-charge live probe when PSP supports it and deployment policy allows it. **Currently supported:** Stripe (`Balance.retrieve`), Paystack (`/transaction/totals`), Flutterwave (`/v3/balances`). MTN MoMo / Orange Money / bank rails remain `external_required` because they have no documented non-charge probe. |
 
-Without **`verified_live`** external evidence, production_ping stays **`external_required`** in documentation and tooling.
+Even with `production_ping=ready`, the truthful `verified_live` evidence requires **at least one settled transaction** with provider-side proof (dashboard export or webhook delivery log). The probe alone proves credentials work — not that money has moved.
+
+See `docs/payments/PSP_API_CONNECTION_GUIDE.md` for the operator runbook per provider.
 
 ---
 

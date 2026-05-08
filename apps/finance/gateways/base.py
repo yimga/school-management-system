@@ -44,9 +44,17 @@ class BasePaymentGateway:
         raise NotImplementedError
 
     def parse_webhook(
-        self, payload: dict, headers: Optional[dict] = None
+        self,
+        payload: dict,
+        headers: Optional[dict] = None,
+        raw_body: Optional[bytes] = None,
     ) -> Optional[GatewayResult]:
-        """Parse webhook payload from provider; return GatewayResult or None if not for us. Subclasses must implement."""
+        """Parse webhook payload from provider; return GatewayResult or None if not for us.
+
+        Subclasses must implement. ``raw_body`` is the exact bytes that should be
+        signature-verified — distinct from ``payload`` (the parsed dict) because
+        most signing schemes require the unmodified body.
+        """
         raise NotImplementedError
 
 
@@ -71,6 +79,9 @@ class NoOpPaymentGateway(BasePaymentGateway):
         return GatewayResult(success=False, message="Payment gateway not configured.")
 
     def parse_webhook(
-        self, payload: dict, headers: Optional[dict] = None
+        self,
+        payload: dict,
+        headers: Optional[dict] = None,
+        raw_body: Optional[bytes] = None,
     ) -> Optional[GatewayResult]:
         return None

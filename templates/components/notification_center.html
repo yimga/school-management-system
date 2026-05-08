@@ -37,9 +37,13 @@
       <button type="button" class="notification-tab" data-tab="alerts">Alerts</button>
     </div>
 
-    <div class="notification-body" id="notificationBody">
+    <div class="notification-body" id="notificationBody"
+         role="region"
+         aria-live="polite"
+         aria-atomic="false"
+         aria-label="Notifications">
       <!-- Notifications will be dynamically loaded here -->
-      <div class="notification-loading">
+      <div class="notification-loading" aria-busy="true">
         <div class="spinner-border spinner-border-sm" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
@@ -155,12 +159,27 @@ document.addEventListener('DOMContentLoaded', function() {
     return icons[type] || 'bi-bell';
   }
 
-  // Format time ago
+  // Format time ago. Uses Intl.RelativeTimeFormat (locale-aware) when available;
+  // falls back to short English strings otherwise.
+  const NOTIF_LOCALE = (document.documentElement.lang || navigator.language || 'en');
+  let _RTF = null;
+  try {
+    _RTF = new Intl.RelativeTimeFormat(NOTIF_LOCALE, { numeric: 'auto', style: 'short' });
+  } catch (_e) { _RTF = null; }
+
   function formatTime(dateString) {
     const date = new Date(dateString);
     const now = new Date();
     const diffInSeconds = Math.floor((now - date) / 1000);
 
+    if (_RTF) {
+      if (diffInSeconds < 60) return _RTF.format(-diffInSeconds, 'second');
+      if (diffInSeconds < 3600) return _RTF.format(-Math.floor(diffInSeconds / 60), 'minute');
+      if (diffInSeconds < 86400) return _RTF.format(-Math.floor(diffInSeconds / 3600), 'hour');
+      if (diffInSeconds < 604800) return _RTF.format(-Math.floor(diffInSeconds / 86400), 'day');
+      return date.toLocaleDateString(NOTIF_LOCALE);
+    }
+    // Fallback (very old browsers / Intl unavailable)
     if (diffInSeconds < 60) return 'Just now';
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
@@ -262,8 +281,12 @@ document.addEventListener('DOMContentLoaded', function() {
   function showToast(notification) {
     const toast = document.createElement('div');
     toast.className = 'notification-toast';
+    // Assistive-tech: announce immediately, do not interrupt other live regions.
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
     toast.innerHTML = `
-      <div class="notification-icon ${notification.type}">
+      <div class="notification-icon ${notification.type}" aria-hidden="true">
         <i class="bi ${getIconForType(notification.type)}"></i>
       </div>
       <div class="notification-toast-content">

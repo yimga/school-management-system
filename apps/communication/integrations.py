@@ -118,9 +118,50 @@ class WhatsAppIntegration(IntegrationService):
             return {"success": False, "error": str(e)}
 
     def verify_webhook(self, request):
-        """Verify WhatsApp webhook signature."""
-        # Implementation depends on WhatsApp API version
-        return True
+        """Verify a WhatsApp Cloud API webhook delivery.
+
+        Two flows are supported:
+
+        - GET verification handshake: WhatsApp sends ``hub.mode=subscribe`` plus
+          ``hub.verify_token`` and expects the verify-token configured in the
+          dashboard echoed back. The caller (the view) is responsible for echoing
+          ``hub.challenge`` — this method only confirms the token matches.
+        - POST event delivery: signed with HMAC-SHA256 of the raw body using the
+          *App Secret* from Meta; header ``X-Hub-Signature-256`` is
+          ``sha256={hex}``.
+
+        Returns ``True`` only on successful verification. Never logs the
+        signature header or app secret.
+        """
+        import hashlib
+        import hmac
+
+        method = (getattr(request, "method", "") or "").upper()
+        if method == "GET":
+            verify_token = getattr(settings, "WHATSAPP_VERIFY_TOKEN", "") or ""
+            if not verify_token:
+                return False
+            mode = (request.GET.get("hub.mode") or "").strip()
+            token = (request.GET.get("hub.verify_token") or "").strip()
+            if mode != "subscribe":
+                return False
+            return hmac.compare_digest(token, verify_token)
+
+        app_secret = getattr(settings, "WHATSAPP_APP_SECRET", "") or ""
+        if not app_secret:
+            return False
+        sig_header = (
+            request.headers.get("X-Hub-Signature-256")
+            if hasattr(request, "headers")
+            else None
+        ) or request.META.get("HTTP_X_HUB_SIGNATURE_256", "")
+        sig_header = (sig_header or "").strip()
+        if not sig_header.startswith("sha256="):
+            return False
+        candidate = sig_header.split("=", 1)[1].strip()
+        raw_body = getattr(request, "body", b"") or b""
+        expected = hmac.new(app_secret.encode("utf-8"), raw_body, hashlib.sha256).hexdigest()
+        return hmac.compare_digest(candidate.lower(), expected.lower())
 
     def check_health(self):
         """Check WhatsApp API health."""
@@ -171,12 +212,21 @@ class ZoomIntegration(IntegrationService):
                 "Content-Type": "application/json",
             }
 
+            # Caller may pass an explicit ``timezone`` kwarg (IANA name,
+            # e.g. "Africa/Douala"); otherwise fall back to the deployment's
+            # configured timezone, then UTC as a last resort.
+            meeting_timezone = (
+                kwargs.get("timezone")
+                or getattr(settings, "TIME_ZONE", None)
+                or "UTC"
+            )
+
             # Create meeting
             meeting_data = {
                 "topic": topic,
                 "type": 2,  # Scheduled meeting
                 "duration": duration,
-                "timezone": "UTC",
+                "timezone": meeting_timezone,
                 "settings": {
                     "host_video": True,
                     "participant_video": True,
@@ -217,8 +267,46 @@ class ZoomIntegration(IntegrationService):
         raise NotImplementedError("Use create_meeting instead")
 
     def verify_webhook(self, request):
-        """Verify Zoom webhook."""
-        return True
+        """Verify a Zoom webhook delivery.
+
+        Zoom signs deliveries with the *Webhook Secret Token* configured in the
+        marketplace app:
+
+        - Header ``x-zm-signature`` is ``v0={hex}`` where ``{hex}`` is
+          ``hmac_sha256(secret, "v0:{x-zm-request-timestamp}:{raw_body}")``.
+        - The timestamp must be within 5 minutes of now.
+
+        Returns ``True`` only on successful verification.
+        """
+        import hashlib
+        import hmac
+        import time
+
+        secret = getattr(settings, "ZOOM_WEBHOOK_SECRET_TOKEN", "") or ""
+        if not secret:
+            return False
+        headers = getattr(request, "headers", None)
+        if headers is not None:
+            sig = (headers.get("x-zm-signature") or headers.get("X-Zm-Signature") or "").strip()
+            ts = (headers.get("x-zm-request-timestamp") or headers.get("X-Zm-Request-Timestamp") or "").strip()
+        else:
+            sig = (request.META.get("HTTP_X_ZM_SIGNATURE") or "").strip()
+            ts = (request.META.get("HTTP_X_ZM_REQUEST_TIMESTAMP") or "").strip()
+        if not sig or not ts:
+            return False
+        try:
+            ts_int = int(ts)
+        except (TypeError, ValueError):
+            return False
+        if abs(int(time.time()) - ts_int) > 300:
+            return False
+        if not sig.startswith("v0="):
+            return False
+        candidate = sig.split("=", 1)[1].strip()
+        raw_body = getattr(request, "body", b"") or b""
+        msg = f"v0:{ts}:".encode("utf-8") + raw_body
+        expected = hmac.new(secret.encode("utf-8"), msg, hashlib.sha256).hexdigest()
+        return hmac.compare_digest(candidate.lower(), expected.lower())
 
     def check_health(self):
         """Check Zoom API health."""

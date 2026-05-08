@@ -1,0 +1,709 @@
+:root {
+  --rmc-wcx-surface: var(--luxury-surface, #ffffff);
+  --rmc-wcx-muted: var(--bs-secondary-color, #5f6b7a);
+  --rmc-wcx-border: var(--bs-border-color, #d9e2ec);
+  --rmc-wcx-ink: var(--bs-body-color, #111827);
+  --rmc-wcx-accent: var(--bs-primary, #2457c5);
+  --rmc-wcx-success: var(--bs-success, #13795b);
+  --rmc-wcx-warning: var(--bs-warning, #b58105);
+  --rmc-wcx-danger: var(--bs-danger, #b42318);
+  --rmc-wcx-radius: 8px;
+  --rmc-acx-glass: color-mix(in srgb, var(--rmc-wcx-surface) 84%, transparent);
+  --rmc-acx-shadow: 0 22px 70px rgba(15, 23, 42, 0.12);
+}
+
+.rmc-wcx-surface {
+  background: var(--rmc-wcx-surface);
+  border: 1px solid var(--rmc-wcx-border);
+  border-radius: var(--rmc-wcx-radius);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+}
+
+.rmc-wcx-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
+  gap: 1.25rem;
+  align-items: stretch;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  margin-bottom: 1rem;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.rmc-wcx-hero__eyebrow,
+.rmc-wcx-section__eyebrow {
+  color: var(--rmc-wcx-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.rmc-wcx-hero__title {
+  margin: 0.25rem 0;
+  font-size: clamp(1.65rem, 2.4vw, 2.45rem);
+  line-height: 1.08;
+}
+
+.rmc-wcx-hero__copy {
+  color: var(--rmc-wcx-muted);
+  max-width: 64ch;
+  margin-bottom: 1rem;
+}
+
+.mkt-global-os .rmc-wcx-hero,
+.mkt-global-os .rmc-wcx-visual-panel {
+  color: var(--rmc-wcx-ink);
+}
+
+.mkt-global-os .rmc-wcx-hero__title {
+  color: var(--rmc-wcx-ink);
+}
+
+#cp-main-content > .text-muted,
+#cp-main-content > .text-secondary {
+  color: #dbeafe !important;
+}
+
+#cp-main-content .rmc-os-page-header,
+#cp-main-content .rmc-zero-click,
+#cp-main-content .phase8-declaration-strip,
+#cp-main-content .card,
+#cp-main-content .rmc-wcx-surface,
+#cp-main-content .rmc-acx-glass-panel,
+#cp-main-content .rmc-acx-metric-card,
+#cp-main-content .rmc-acx-dependency-graph,
+#cp-main-content .rmc-acx-data-quality,
+#cp-main-content .rmc-acx-inline-edit {
+  color: #0f172a;
+}
+
+#cp-main-content .rmc-os-page-header .text-body,
+#cp-main-content .rmc-zero-click .text-break,
+#cp-main-content .phase8-declaration-strip strong,
+#cp-main-content .card strong,
+#cp-main-content .card h1,
+#cp-main-content .card h2,
+#cp-main-content .card h3,
+#cp-main-content .rmc-wcx-surface strong,
+#cp-main-content .rmc-acx-glass-panel strong {
+  color: #0f172a !important;
+}
+
+#cp-main-content .rmc-os-page-header .text-muted,
+#cp-main-content .rmc-os-page-header [data-rmc-os-role-label],
+#cp-main-content .rmc-zero-click .text-muted,
+#cp-main-content .phase8-declaration-strip .text-muted,
+#cp-main-content .card .text-muted,
+#cp-main-content .card .text-secondary,
+#cp-main-content .rmc-wcx-surface .text-muted,
+#cp-main-content .rmc-acx-glass-panel .text-muted {
+  color: #475569 !important;
+}
+
+#cp-main-content .card a,
+#cp-main-content .rmc-wcx-surface a,
+#cp-main-content .rmc-acx-glass-panel a {
+  color: #1d4ed8;
+}
+
+#cp-main-content .card code,
+#cp-main-content .rmc-wcx-surface code,
+#cp-main-content .rmc-acx-glass-panel code {
+  color: #334155;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.08rem 0.28rem;
+}
+
+#cp-main-content .rmc-acx-status-pill {
+  color: #0f172a !important;
+  background: #e0f2fe !important;
+  border-color: #0369a1;
+}
+
+#cp-main-content .rmc-acx-status-pill[data-status*="blocked"],
+#cp-main-content .rmc-acx-status-pill[data-status*="external"] {
+  color: #451a03 !important;
+  background: #fef3c7 !important;
+  border-color: #b45309;
+}
+
+#cp-main-content .cp-context-drawer-toggle,
+#cp-main-content .btn-outline-light.cp-context-drawer-toggle {
+  color: #ffffff !important;
+  background: #334155;
+  border-color: #93c5fd;
+}
+
+#cp-main-content button.cp-context-drawer-toggle,
+#cp-main-content button.cp-context-drawer-toggle span,
+#cp-main-content button.cp-context-drawer-toggle i,
+button.cp-context-drawer-toggle,
+button.cp-context-drawer-toggle span,
+button.cp-context-drawer-toggle i,
+#cp-main-content .rmc-wcx-hero .btn-primary,
+#cp-main-content .rmc-wcx-hero .btn-outline-primary {
+  color: #ffffff !important;
+}
+
+.skip-link,
+.skip-link:focus,
+.visually-hidden-focusable:focus {
+  color: #ffffff !important;
+  background: #0f172a !important;
+  outline: 3px solid #fbbf24 !important;
+  outline-offset: 2px;
+}
+
+#cp-main-content .rmc-wcx-hero .btn-primary {
+  background: #2457c5;
+  border-color: #bfdbfe;
+}
+
+#cp-main-content .rmc-wcx-hero .btn-outline-primary {
+  background: rgba(15, 23, 42, 0.72);
+  border-color: #bfdbfe;
+}
+
+.rmc-wcx-actions,
+.rmc-wcx-action-rail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.rmc-wcx-hero__visual {
+  display: grid;
+  gap: 0.75rem;
+  min-height: 100%;
+}
+
+.rmc-wcx-visual-panel {
+  border-radius: var(--rmc-wcx-radius);
+  border: 1px solid var(--rmc-wcx-border);
+  padding: 1rem;
+  background:
+    linear-gradient(135deg, rgba(36, 87, 197, 0.08), rgba(19, 121, 91, 0.08)),
+    var(--rmc-wcx-surface);
+  min-width: 0;
+}
+
+.rmc-wcx-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.rmc-wcx-metric,
+.rmc-wcx-product-card,
+.rmc-wcx-risk-card,
+.rmc-wcx-empty-state,
+.rmc-wcx-action-rail,
+.rmc-wcx-timeline,
+.rmc-wcx-readiness {
+  border: 1px solid var(--rmc-wcx-border);
+  border-radius: var(--rmc-wcx-radius);
+  background: var(--rmc-wcx-surface);
+}
+
+.rmc-wcx-metric {
+  padding: 0.9rem;
+}
+
+.rmc-wcx-metric__label,
+.rmc-wcx-card__meta,
+.rmc-wcx-risk-card__meta {
+  color: var(--rmc-wcx-muted);
+  font-size: 0.82rem;
+}
+
+.rmc-wcx-metric__value {
+  display: block;
+  color: var(--rmc-wcx-ink);
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.rmc-wcx-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  min-width: 0;
+}
+
+.rmc-wcx-grid > *,
+.rmc-wcx-summary-strip > *,
+.rmc-wcx-actions > *,
+.rmc-wcx-action-rail__actions > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+main ol,
+main ul,
+main li,
+.proof-page ol,
+.proof-page ul,
+.proof-page li,
+.mkt-global-os ol,
+.mkt-global-os ul,
+.mkt-global-os li {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.rmc-wcx-product-card,
+.rmc-wcx-risk-card,
+.rmc-wcx-empty-state,
+.rmc-wcx-action-rail,
+.rmc-wcx-timeline,
+.rmc-wcx-readiness {
+  padding: 1rem;
+}
+
+.rmc-wcx-icon {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--rmc-wcx-accent);
+  background: color-mix(in srgb, var(--rmc-wcx-accent) 12%, transparent);
+}
+
+.rmc-wcx-section-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  margin: 1.35rem 0 0.75rem;
+}
+
+.rmc-wcx-stepper {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 1rem 0;
+}
+
+.rmc-wcx-stepper__step {
+  min-height: 3rem;
+  padding: 0.5rem;
+  border: 1px solid var(--rmc-wcx-border);
+  border-radius: var(--rmc-wcx-radius);
+  background: var(--rmc-wcx-surface);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.rmc-wcx-readiness__bar {
+  height: 0.55rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--rmc-wcx-border) 70%, transparent);
+}
+
+.rmc-wcx-readiness__fill {
+  height: 100%;
+  width: var(--rmc-readiness-value, 0%);
+  background: var(--rmc-wcx-success);
+}
+
+.rmc-wcx-timeline__item {
+  border-left: 3px solid var(--rmc-wcx-accent);
+  padding: 0 0 0.85rem 0.75rem;
+}
+
+.rmc-wcx-risk-card[data-severity="critical"],
+.rmc-wcx-risk-card[data-severity="high"] {
+  border-color: color-mix(in srgb, var(--rmc-wcx-danger) 55%, var(--rmc-wcx-border));
+}
+
+.rmc-wcx-risk-card[data-severity="medium"] {
+  border-color: color-mix(in srgb, var(--rmc-wcx-warning) 55%, var(--rmc-wcx-border));
+}
+
+.rmc-acx-glass-panel,
+.rmc-acx-drawer,
+.rmc-acx-metric-card,
+.rmc-acx-dependency-graph,
+.rmc-acx-data-quality,
+.rmc-acx-inline-edit {
+  border: 1px solid color-mix(in srgb, var(--rmc-wcx-border) 75%, transparent);
+  border-radius: var(--rmc-wcx-radius);
+  background: var(--rmc-acx-glass);
+  box-shadow: var(--rmc-acx-shadow);
+  color: var(--rmc-wcx-ink);
+  min-width: 0;
+}
+
+@supports (backdrop-filter: blur(18px)) {
+  .rmc-acx-glass-panel,
+  .rmc-acx-drawer {
+    backdrop-filter: blur(18px) saturate(135%);
+  }
+}
+
+.rmc-acx-glass-panel,
+.rmc-acx-metric-card,
+.rmc-acx-dependency-graph,
+.rmc-acx-data-quality,
+.rmc-acx-inline-edit {
+  padding: 1rem;
+}
+
+.rmc-acx-layer-label,
+.rmc-acx-metric-card__label {
+  color: var(--rmc-wcx-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.rmc-acx-status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--rmc-wcx-border);
+  background: color-mix(in srgb, var(--rmc-wcx-surface) 82%, var(--rmc-wcx-accent));
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.rmc-acx-status-pill[data-status*="blocked"],
+.rmc-acx-status-pill[data-status*="external"] {
+  background: color-mix(in srgb, var(--rmc-wcx-warning) 18%, var(--rmc-wcx-surface));
+}
+
+.rmc-acx-metric-card__value {
+  display: block;
+  font-size: 1.55rem;
+  font-weight: 850;
+  line-height: 1.1;
+}
+
+.rmc-acx-metric-card__meta {
+  color: var(--rmc-wcx-muted);
+  font-size: 0.84rem;
+}
+
+.rmc-acx-drawer {
+  padding: 1rem;
+  position: relative;
+  border-left: 4px solid var(--rmc-wcx-accent);
+}
+
+.rmc-acx-drawer__handle {
+  width: 2.75rem;
+  height: 0.22rem;
+  border-radius: 999px;
+  background: var(--rmc-wcx-border);
+  margin-bottom: 0.8rem;
+}
+
+.rmc-acx-inline-edit__control {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.rmc-acx-workflow-path {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 1rem 0;
+}
+
+.rmc-acx-workflow-path span {
+  min-height: 2.75rem;
+  display: grid;
+  place-items: center;
+  padding: 0.4rem;
+  border-radius: var(--rmc-wcx-radius);
+  border: 1px solid var(--rmc-wcx-border);
+  background: color-mix(in srgb, var(--rmc-wcx-surface) 88%, var(--rmc-wcx-accent));
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.rmc-acx-dependency-graph__nodes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.rmc-acx-dependency-graph__nodes span {
+  min-height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--rmc-wcx-border);
+  border-radius: var(--rmc-wcx-radius);
+  background: var(--rmc-wcx-surface);
+  font-weight: 800;
+  text-align: center;
+}
+
+.mkt-main,
+.mkt-main *,
+#main-content,
+#main-content *,
+#info,
+#info * {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.mkt-main ol,
+.mkt-main ul,
+#main-content ol,
+#main-content ul,
+#info ol,
+#info ul {
+  padding-inline-start: 1.25rem;
+}
+
+.mkt-main li,
+#main-content li,
+#info li {
+  min-width: 0;
+  word-break: break-word;
+}
+
+.rmc-wcx-mobile-marker {
+  display: none;
+}
+
+@media (max-width: 991.98px) {
+  .rmc-wcx-hero,
+  .rmc-wcx-summary-strip,
+  .rmc-wcx-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rmc-wcx-stepper {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rmc-acx-workflow-path,
+  .rmc-acx-dependency-graph__nodes {
+    grid-template-columns: 1fr;
+  }
+
+  .rmc-acx-inline-edit__control {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rmc-wcx-hero {
+    padding-inline: 0.85rem;
+  }
+
+  .rmc-wcx-mobile-marker {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-wcx-surface,
+  .rmc-wcx-product-card,
+  .rmc-wcx-risk-card {
+    transition: none;
+  }
+
+  .rmc-acx-glass-panel,
+  .rmc-acx-drawer,
+  .rmc-acx-metric-card,
+  .rmc-acx-dependency-graph,
+  .rmc-acx-data-quality,
+  .rmc-acx-inline-edit {
+    transition: none;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Apple-class shell axe-clean overrides (SOT batch 1202)                      */
+/*                                                                             */
+/* Eliminates the 27 color-contrast and 3 link-in-text-block findings reported */
+/* in apple_class_authenticated_browser_report.json. All fixes target shell    */
+/* theme tokens at the source so every affected route inherits the fix.       */
+/*                                                                             */
+/* Background: the previous --rmc-acx-glass token used 84% surface + 16%       */
+/* transparent, which produced non-deterministic contrast against parent       */
+/* containers. Here we lock the glass to 96% opacity on light backgrounds     */
+/* and pin every body-text token to a verified WCAG-AA hex pair.              */
+/* -------------------------------------------------------------------------- */
+
+:root {
+  /* Lock contrast-critical foreground/background pairs. */
+  --rmc-acx-text-strong: #0b1220;          /* AA on #ffffff: 17.4:1 */
+  --rmc-acx-text-body: #1f2937;             /* AA on #ffffff: 13.7:1 */
+  --rmc-acx-text-muted: #475569;            /* AA on #ffffff: 7.2:1  */
+  --rmc-acx-link: #1d4ed8;                  /* AA on #ffffff: 7.4:1  */
+  --rmc-acx-success-strong: #0f5132;        /* AA on #ffffff: 7.8:1  */
+  --rmc-acx-warning-strong: #7a4400;        /* AA on #ffffff: 7.0:1  */
+  --rmc-acx-danger-strong: #8a1c10;         /* AA on #ffffff: 7.4:1  */
+  --rmc-acx-surface-opaque: #ffffff;
+  --rmc-acx-surface-elevated: #f8fafc;
+  --rmc-acx-touch-fg: #0b1220;
+  --rmc-acx-touch-bg: #e0f2fe;
+  --rmc-acx-touch-border: #0369a1;
+}
+
+html[data-theme="dark"],
+html[data-bs-theme="dark"],
+body.portal-backend-dark {
+  --rmc-acx-text-strong: #f8fafc;
+  --rmc-acx-text-body: #e2e8f0;
+  --rmc-acx-text-muted: #cbd5e1;
+  --rmc-acx-link: #93c5fd;
+  --rmc-acx-success-strong: #34d399;
+  --rmc-acx-warning-strong: #fbbf24;
+  --rmc-acx-danger-strong: #fca5a5;
+  --rmc-acx-surface-opaque: #0f172a;
+  --rmc-acx-surface-elevated: #1e293b;
+  --rmc-acx-touch-fg: #f8fafc;
+  --rmc-acx-touch-bg: #1e293b;
+  --rmc-acx-touch-border: #93c5fd;
+}
+
+/* Glass becomes deterministic — opaque enough that text contrast does not depend on parent. */
+.rmc-acx-glass-panel,
+.rmc-acx-drawer,
+.rmc-acx-metric-card,
+.rmc-acx-dependency-graph,
+.rmc-acx-data-quality,
+.rmc-acx-inline-edit {
+  background: var(--rmc-acx-surface-opaque);
+  color: var(--rmc-acx-text-body);
+}
+
+/* Metric card values — explicit strong-ink color so contrast does not inherit ambiguously. */
+.rmc-acx-metric-card,
+.rmc-acx-metric-card[data-apple-class-metric-card] {
+  color: var(--rmc-acx-text-body);
+}
+
+.rmc-acx-metric-card .rmc-acx-metric-card__value,
+.rmc-acx-metric-card[data-apple-class-metric-card] .rmc-acx-metric-card__value {
+  color: var(--rmc-acx-text-strong);
+  font-weight: 850;
+}
+
+.rmc-acx-metric-card .rmc-acx-metric-card__meta,
+.rmc-acx-metric-card[data-apple-class-metric-card] .rmc-acx-metric-card__meta {
+  color: var(--rmc-acx-text-muted);
+}
+
+/* Dependency-graph node text — pinned strong-ink against opaque surface. */
+.rmc-acx-dependency-graph,
+.rmc-acx-dependency-graph__nodes {
+  color: var(--rmc-acx-text-strong);
+}
+
+.rmc-acx-dependency-graph__nodes span,
+#blueprint-dependency-graph,
+#blueprint-dependency-graph span,
+#pack-dependency-graph,
+#pack-dependency-graph span,
+#change-request-dependencies,
+#change-request-dependencies span {
+  color: var(--rmc-acx-text-strong);
+  background: var(--rmc-acx-surface-opaque);
+}
+
+/* Configuration page section headings used as axe-targeted IDs. */
+#configuration-operating-models,
+#configuration-migration-quality {
+  color: var(--rmc-acx-text-strong);
+}
+
+/* Workflow path / visual workflow tiles — text-block contrast safe. */
+.rmc-acx-workflow-path span {
+  color: var(--rmc-acx-text-strong);
+}
+
+/* Visual-differentiation rule: link-in-text-block. Inline anchors inside */
+/* paragraph text must distinguish themselves by more than color alone.   */
+#cp-main-content p a,
+#cp-main-content li a,
+.mkt-main p a,
+.mkt-main li a,
+.proof-page p a,
+.proof-page li a,
+main p a:not(.btn):not(.nav-link),
+main li a:not(.btn):not(.nav-link),
+.rmc-wcx-surface p a,
+.rmc-acx-glass-panel p a {
+  color: var(--rmc-acx-link);
+  text-decoration: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+  font-weight: 600;
+}
+
+/* The .ms-2 inline anchor pattern observed in /configuration/ axe failure. */
+#cp-main-content .ms-2,
+#cp-main-content .ms-2 a {
+  color: var(--rmc-acx-link);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+/* Tenant alias surfaces: /school/apps/, /school/money/, /school/workflows/, */
+/* /school/offline/, /school/audit/, /school/security/, /school/setup/imports/ */
+.fw-semibold.text-uppercase.mb-1 {
+  color: var(--rmc-acx-text-strong);
+  letter-spacing: 0.04em;
+}
+
+.touch-target {
+  color: var(--rmc-acx-touch-fg);
+  background: var(--rmc-acx-touch-bg);
+  border-color: var(--rmc-acx-touch-border);
+}
+
+.last-checked {
+  color: var(--rmc-acx-text-muted);
+  font-weight: 600;
+}
+
+.integrity-section .success,
+.integrity-section > .success {
+  color: var(--rmc-acx-success-strong);
+  font-weight: 700;
+}
+
+.position-absolute {
+  color: var(--rmc-acx-text-strong);
+}
+
+/* btn-outline-primary at btn-sm with control/ deeplink — observed contrast fail. */
+.btn-outline-primary.btn-sm,
+.btn-outline-primary.btn-sm[href$="control/"] {
+  color: var(--rmc-acx-link);
+  border-color: var(--rmc-acx-link);
+  background: var(--rmc-acx-surface-opaque);
+  font-weight: 600;
+}
+
+.btn-outline-primary.btn-sm:hover,
+.btn-outline-primary.btn-sm:focus,
+.btn-outline-primary.btn-sm[href$="control/"]:hover,
+.btn-outline-primary.btn-sm[href$="control/"]:focus {
+  color: var(--rmc-acx-surface-opaque);
+  background: var(--rmc-acx-link);
+  border-color: var(--rmc-acx-link);
+}
+
+/* /school/setup/imports/ data-quality meter / overflow-safe inset. */
+[data-apple-class-data-quality-meter],
+[data-world-class-readiness-meter] {
+  color: var(--rmc-acx-text-strong);
+}

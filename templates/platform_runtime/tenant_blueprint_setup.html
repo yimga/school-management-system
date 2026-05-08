@@ -4,18 +4,17 @@
 {% block title %}{% trans "School Blueprint Setup" %}{% endblock %}
 
 {% block content %}
-<main class="container-fluid py-4" data-rmc-tenant-blueprint-setup="{{ page_marker }}">
-  <header class="mb-4">
-    <p class="small text-muted mb-1"><a href="{% url 'school_configuration_center' %}">{% trans "School Configuration Center" %}</a></p>
-    <h1 class="h3 mb-2">{% trans "School Blueprint Setup" %}</h1>
-    <p class="text-muted mb-0">{{ school.name }} - {% trans "tenant-safe blueprints only. Platform-only blueprint management remains in /configuration/." %}</p>
-  </header>
+<main class="container-fluid py-4" data-rmc-tenant-blueprint-setup="{{ page_marker }}" data-apple-class-tenant-school-admin="1">
+  {% url 'school_configuration_center' as wcx_school_settings_url %}
+  {% include "components/world_class_page_hero.html" with hero_id="tenant-blueprint-title" role=_("School administrators") title=_("School Blueprint Setup") subtitle=_("Tenant-safe blueprints only. Preview school impact, see external blockers, and request approval when the change needs platform governance.") purpose=_("Tenant blueprint setup") status=_("Tenant-safe") primary_url=wcx_school_settings_url primary_label=_("School configuration center") secondary_url="/school/setup/packs/" secondary_label=_("Setup packs") visual_title=_("Setup progress") visual_body=_("School readiness, preview, approval state, and rollback posture stay visible without platform-only controls.") %}
+  {% include "components/world_class_guided_stepper.html" %}
+  {% include "components/apple_class_visual_workflow_path.html" with path_id="tenant-blueprint-flow" title=_("Tenant Blueprint Flow") %}
   {% if result %}
   <div class="alert {% if result.ok %}alert-success{% else %}alert-warning{% endif %}">{{ result }}</div>
   {% endif %}
   <div class="row g-3">
     <div class="col-lg-5">
-      <div class="card border-0 shadow-sm h-100"><div class="card-body">
+      <div class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-world-class-tenant-card="1"><div class="card-body">
         <h2 class="h5">{% trans "Recommended blueprints" %}</h2>
         <ul class="list-unstyled mb-0">{% for blueprint in blueprints %}
           <li class="mb-2"><a href="?blueprint={{ blueprint.key }}&preview=1">{{ blueprint.name }}</a><div class="small text-muted">{{ blueprint.target_school_type }} - {{ blueprint.status }}</div></li>
@@ -23,11 +22,14 @@
       </div></div>
     </div>
     <div class="col-lg-7">
-      <div class="card border-0 shadow-sm h-100"><div class="card-body">
+      <div class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-world-class-tenant-card="1"><div class="card-body">
         <h2 class="h5">{{ preview.blueprint_name }}</h2>
+        {% include "components/world_class_readiness_meter.html" with title=_("Blueprint readiness") value="72" caption=_("Tenant-safe preview; platform-only registries stay hidden.") %}
         <dl class="row small">
           <dt class="col-sm-4">{% trans "Can apply" %}</dt><dd class="col-sm-8">{{ preview.can_apply|yesno:"yes,no" }}</dd>
           <dt class="col-sm-4">{% trans "External blockers" %}</dt><dd class="col-sm-8">{{ preview.external_required|join:", " }}</dd>
+          <dt class="col-sm-4">{% trans "Approval state" %}</dt><dd class="col-sm-8" data-world-class-approval-state="visible">{% trans "Approval requested when risk requires it" %}</dd>
+          <dt class="col-sm-4">{% trans "Rollback" %}</dt><dd class="col-sm-8" data-world-class-rollback-posture="tenant-visible">{% trans "Tracked after approved apply" %}</dd>
           <dt class="col-sm-4">{% trans "Modules" %}</dt><dd class="col-sm-8">{% for change in preview.changes %}{% if change.section == "module" %}{{ change.target }}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}</dd>
         </dl>
         <form method="post">

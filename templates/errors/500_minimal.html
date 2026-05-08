@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Service interrupted</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#f8fafc;color:#0b1220;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
+  main{max-width:42rem;margin:4rem auto;padding:2rem;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
+  h1{font-size:1.5rem;margin:0 0 0.75rem;color:#0b1220}
+  p{margin:0 0 1rem;color:#1f2937}
+  .meta{color:#475569;font-size:0.875rem;margin-bottom:1.5rem}
+  .actions{display:flex;flex-wrap:wrap;gap:0.5rem}
+  a,button{display:inline-block;padding:0.5rem 1rem;border-radius:6px;text-decoration:none;font-weight:600;font-family:inherit;font-size:0.95rem;border:1px solid;cursor:pointer}
+  a.primary,button.primary{background:#1d4ed8;border-color:#1d4ed8;color:#ffffff}
+  a.secondary,button.secondary{background:#ffffff;border-color:#1d4ed8;color:#1d4ed8}
+  code{background:#f1f5f9;padding:0.1rem 0.35rem;border-radius:4px;font-size:0.85rem}
+  small{color:#475569}
+  @media (max-width:600px){main{margin:1rem;padding:1.25rem}}
+</style>
+</head>
+<body>
+<main role="main" aria-labelledby="error-title">
+  <p class="meta">500 — service interrupted</p>
+  <h1 id="error-title">We could not complete that page.</h1>
+  <p>This is a server-side fault on our side. Your session and data are safe. The fault has been logged with an incident reference.</p>
+  <p>If this happened during a normal action (login, save, view), please retry once. If it persists, contact your school administrator or RunMyCampus support.</p>
+  <div class="actions">
+    <button class="primary" type="button" onclick="window.location.reload()">Retry</button>
+    <a class="secondary" href="/">Home</a>
+    <a class="secondary" href="/-/version/">Version</a>
+  </div>
+  <p style="margin-top:1.5rem"><small>If you are an operator: check <code>/-/version/</code>, <code>/api/system/version/</code>, and Render logs for the request that produced this response.</small></p>
+</main>
+</body>
+</html>

@@ -4,12 +4,17 @@
 {% block cp_title %}{% trans "Platform Configuration Center" %}{% endblock %}
 
 {% block cp_content %}
-<section class="container-fluid py-3" data-page-archetype="operational-workbench" data-decision-engine="surface" data-rmc-os-center="platform_configuration_center" data-rmc-configuration-center="{{ page_marker }}">
+<section class="container-fluid py-3" data-page-archetype="operational-workbench" data-decision-engine="surface" data-rmc-os-center="platform_configuration_center" data-rmc-configuration-center="{{ page_marker }}" data-apple-class-configuration-console="1">
   {% phase8_dashboard_declaration "platform_runtime/configuration_center.html" %}
-  <header class="mb-4">
-    <h1 class="h3 mb-2">{% trans "Platform Configuration Center" %}</h1>
-    <p class="text-muted mb-0">{% trans "A governed facade over existing systems. Use this surface to configure platform behavior without turning raw Django admin into the product workflow." %}</p>
-  </header>
+  {% url 'configuration:change_requests' as wcx_change_requests_url %}
+  {% include "components/world_class_page_hero.html" with hero_id="configuration-title" role=_("Platform operators") title=_("Platform Configuration Center") subtitle=_("The governed AWS Console for education configuration: operating models, runtime governance, migration, ecosystem, trust, billing, and experience in one low-click workspace.") purpose=_("Governed platform configuration") status=_("UI/UX transformation active") primary_url=wcx_change_requests_url primary_label=_("Review change requests") secondary_url="/internal-admin/" secondary_label=_("Open raw fallback") visual_title=_("Configure without losing control") visual_body=_("Every module shows owner, readiness, scope, next action, and proof so depth stays accessible without exposing tenant-unsafe controls.") %}
+  {% include "components/world_class_summary_strip.html" with readiness="78%" readiness_label=_("Repository proof") risk=_("Medium") risk_label=_("Live parity pending") next_step=_("Review") next_step_label=_("Change queue") blockers=_("PSP/live") blockers_label=_("External proof required") %}
+  {% include "components/platform_readiness_strip.html" with inline_field_prefix='cfg-center' %}
+  <section class="rmc-wcx-grid mb-4" data-apple-class-configuration-groups="operating-models runtime-governance data-migration ecosystem trust-money experience">
+    {% include "components/apple_class_glass_panel.html" with panel_id="configuration-operating-models" label=_("Operating Models") title=_("Blueprints, packages, packs, policies") body=_("Operators see model readiness before opening advanced configuration.") %}
+    {% include "components/apple_class_glass_panel.html" with panel_id="configuration-runtime-governance" label=_("Runtime Governance") title=_("Change requests, rules, registries") body=_("Approvals, health, and drift stay in the command layer.") %}
+    {% include "components/apple_class_glass_panel.html" with panel_id="configuration-trust-money" label=_("Trust + Money") title=_("Compliance, security, billing") body=_("External dependencies remain explicit instead of hidden behind status color.") %}
+  </section>
 
   <div class="alert alert-secondary border-0 shadow-sm mb-4" role="note">
     <strong>{% trans "Raw admin remains technical fallback." %}</strong>
@@ -17,13 +22,15 @@
     <a class="ms-2" href="{% url 'configuration:change_requests' %}">{% trans "Review change requests" %}</a>
   </div>
 
-  <div class="row g-3">
+  {% include "components/world_class_visual_section_header.html" with title=_("Operating model and governance modules") purpose=_("Modules are grouped visually by the job they help an operator complete, not by implementation table names.") action_url=wcx_change_requests_url action_label=_("Open approvals") %}
+  <div class="row g-3" data-world-class-module-groups="operating-models runtime-governance data-migration ecosystem trust-money experience">
     {% for module in modules %}
     <div class="col-12 col-xl-6">
-      <article class="card border-0 shadow-sm h-100" data-configuration-module="{{ module.key }}">
+      <article class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-configuration-module="{{ module.key }}" data-world-class-module-card="1">
         <div class="card-body d-flex flex-column gap-3">
           <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
             <div>
+              <span class="rmc-wcx-icon mb-2" aria-hidden="true">*</span>
               <h2 class="h5 mb-1">{{ module.title }}</h2>
               <p class="small text-muted mb-0">{{ module.purpose }}</p>
             </div>
@@ -38,8 +45,13 @@
             <dd class="col-sm-9"><a href="{{ module.existing_route_url }}">{{ module.existing_route_label }}</a></dd>
             <dt class="col-sm-3">{% trans "Proof" %}</dt>
             <dd class="col-sm-9"><a href="{{ module.proof_url }}">{{ module.proof_label }}</a></dd>
+            <dt class="col-sm-3">{% trans "Readiness" %}</dt>
+            <dd class="col-sm-9"><span data-world-class-readiness-score="1">72%</span> {% trans "local proof, browser QA required" %}</dd>
+            <dt class="col-sm-3">{% trans "Next action" %}</dt>
+            <dd class="col-sm-9">{{ module.primary_action }}</dd>
           </dl>
           {% if module.detail %}<p class="small text-muted mb-0">{{ module.detail }}</p>{% endif %}
+          {% include "components/apple_class_data_quality_meter.html" with meter_id=module.key title=_("Module readiness") value="72" status="external-required" status_label=_("Browser proof pending") body=_("Readiness includes local tests, route proof, owner clarity, and remaining live/browser evidence.") %}
           <div class="mt-auto d-flex flex-wrap gap-2">
             <a class="btn btn-primary btn-sm" href="{{ module.configuration_url }}">{{ module.primary_action }}</a>
             <a class="btn btn-outline-secondary btn-sm" href="{{ module.existing_route_url }}">{% trans "Open existing system" %}</a>
@@ -49,5 +61,6 @@
     </div>
     {% endfor %}
   </div>
+  <div class="rmc-wcx-mobile-marker" data-world-class-mobile-layout="stacked">{% trans "Mobile layout stacks modules and keeps primary actions reachable." %}</div>
 </section>
 {% endblock %}

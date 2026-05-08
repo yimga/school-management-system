@@ -27,6 +27,17 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 _is_render = os.getenv("RENDER", "").lower() == "true"
 _debug_default = "0" if _is_render else "1"
 DEBUG = os.getenv("DEBUG", _debug_default) == "1"
+
+# Incident routing: any 500 in production should email the security/ops team.
+# Comma-separated env var: ADMINS_EMAILS="ops@example.com,security@example.com".
+_admins_raw = (os.getenv("ADMINS_EMAILS") or "").strip()
+ADMINS = [
+    ("Operations", email.strip())
+    for email in _admins_raw.split(",")
+    if email.strip()
+] if _admins_raw else []
+MANAGERS = ADMINS
+SERVER_EMAIL = os.getenv("SERVER_EMAIL", "no-reply@runmycampus.com")
 # Deploy tier: used so staging keeps strict conversion + paid billing even when DEBUG=1 locally on Render.
 _RMC_DEPLOY_ENV = (
     os.getenv("RMC_ENVIRONMENT") or os.getenv("DJANGO_ENV") or ""
@@ -625,14 +636,25 @@ SECURE_REDIRECT_EXEMPT = [
 ]
 SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "1") == "1" and not DEBUG
 CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "1") == "1" and not DEBUG
-SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "60")) if not DEBUG else 0
+# Cookies must not be readable by JavaScript — defense-in-depth for XSS.
+SESSION_COOKIE_HTTPONLY = os.getenv("SESSION_COOKIE_HTTPONLY", "1") == "1"
+CSRF_COOKIE_HTTPONLY = os.getenv("CSRF_COOKIE_HTTPONLY", "1") == "1"
+# HSTS: 60s is too short for any real protection. Default to 1 year in production
+# so a single MITM cannot strip HTTPS within an hour. Leave 0 in DEBUG (local dev).
+SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "31536000")) if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv("SECURE_HSTS_INCLUDE_SUBDOMAINS", "1") == "1"
 SECURE_HSTS_PRELOAD = os.getenv("SECURE_HSTS_PRELOAD", "1") == "1"
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-_secure_coop = os.getenv("SECURE_CROSS_ORIGIN_OPENER_POLICY", "").strip()
-if _secure_coop:
-    SECURE_CROSS_ORIGIN_OPENER_POLICY = _secure_coop
+# Clickjacking + referrer protection. Marketing pages may need SAMEORIGIN
+# (e.g. for embedded demos); operators can override per host.
+X_FRAME_OPTIONS = os.getenv("X_FRAME_OPTIONS", "DENY")
+SECURE_REFERRER_POLICY = os.getenv("SECURE_REFERRER_POLICY", "strict-origin-when-cross-origin")
+_secure_coop = os.getenv("SECURE_CROSS_ORIGIN_OPENER_POLICY", "").strip() or "same-origin"
+SECURE_CROSS_ORIGIN_OPENER_POLICY = _secure_coop
+# Cross-Origin-Resource-Policy mitigates Spectre-class side-channel reads.
+_secure_corp = os.getenv("SECURE_CROSS_ORIGIN_RESOURCE_POLICY", "").strip() or "same-site"
+SECURE_CROSS_ORIGIN_RESOURCE_POLICY = _secure_corp
 SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
 CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
 MANAGER_SESSION_COOKIE_NAME = (

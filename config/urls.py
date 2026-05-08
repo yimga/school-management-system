@@ -244,7 +244,13 @@ def page_not_found(request, exception):
 
 
 def server_error(request):
-    """Custom 500 page. Pass user so base template and includes render when context processors failed."""
+    """Custom 500 page (SOT batch 1218 hardened).
+
+    Two-stage fallback so the 500 page survives context-processor or middleware
+    crashes that could otherwise chain into a raw 500. Reference incident:
+    `gilead-school.runmycampus.com/school/settings/` returning 500 with no
+    operator-friendly recovery (2026-05-07).
+    """
     _coerce_request_user_for_error_pages(request)
     context = {"user": request.user}
     template = (
@@ -252,7 +258,24 @@ def server_error(request):
         if getattr(request, "public_host_kind", None) == "manager"
         else "errors/500.html"
     )
-    return render(request, template, context, status=500)
+    try:
+        return render(request, template, context, status=500)
+    except Exception:
+        # Self-contained minimal fallback: no base.html, no context_processors,
+        # no template-tag chain. Always renders. Operators see /-/version/ hint.
+        from django.http import HttpResponse
+        from django.template.loader import get_template
+        try:
+            html = get_template("errors/500_minimal.html").render({})
+        except Exception:
+            html = (
+                "<!doctype html><meta charset=utf-8>"
+                "<title>Service interrupted</title>"
+                "<h1>500 - service interrupted</h1>"
+                "<p>Retry once. If it persists, contact support.</p>"
+                "<p><a href='/'>Home</a> &middot; <a href='/-/version/'>Version</a></p>"
+            )
+        return HttpResponse(html, status=500, content_type="text/html; charset=utf-8")
 
 
 handler403 = permission_denied
@@ -269,6 +292,11 @@ urlpatterns = [
         name="manager_offline_sync_center",
     ),
     path("-/version/", obs_views.public_version, name="public_version"),
+    # SOT batch 1204: redundant version endpoints so Render parity certifiers can
+    # verify the deployed SHA even if a CDN or static layer captures the
+    # leading-dash path. All three return identical JSON.
+    path("api/system/version/", obs_views.public_version, name="api_system_version"),
+    path("version.json", obs_views.public_version, name="public_version_json"),
     # Language switcher (Django i18n; POST language then redirect)
     path("i18n/setlang/", set_language, name="set_language"),
     # Must be before path("admin/", ...) so the redirect runs (Phase 5 / Studio OS spine).

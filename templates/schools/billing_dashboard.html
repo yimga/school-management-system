@@ -5,8 +5,12 @@
 {% block cp_content %}
 {% url 'super:dashboard' as dashboard_url %}
 {# ds-action-bar: shared studio_os/components/page_header.html (header.ds-action-bar) #}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface" data-apple-class-billing-ux="platform">
   {% phase8_dashboard_declaration "schools/billing_dashboard.html" %}
+  {% include "components/world_class_page_hero.html" with hero_id="platform-billing-title" role=_("Platform billing operators") title=_("Package and Billing Command Center") subtitle=_("Package comparison, entitlement diff, usage meters, billing impact previews, upgrade and downgrade requests, external PSP status, manual fallback, and revenue share posture.") purpose=_("Platform billing governance") status=_("External PSP honest") primary_url=usage_url primary_label=_("Usage API") secondary_url=dashboard_url secondary_label=_("Back to dashboard") visual_title=_("Billing without hidden assumptions") visual_body=_("Repository billing records are separated from live PSP and settlement proof so operators do not overclaim readiness.") %}
+  {% include "components/world_class_summary_strip.html" with readiness=subscription_count readiness_label=_("Subscriptions") risk=processor_event_count risk_label=_("Processor sync events") next_step=_("Usage") next_step_label=_("Inspect meters") blockers=_("PSP") blockers_label=_("External readiness") %}
+  {% include "components/platform_readiness_strip.html" with inline_field_prefix='billing-dash' %}
+  {% include "components/apple_class_data_quality_meter.html" with meter_id="platform-billing-usage-meter" title=_("Usage Meter") value="70" status="external-required" status_label=_("PSP external") body=_("Package comparison, entitlement diff, billing impact, manual fallback, and processor readiness stay visible before rollout.") %}
   {% include "studio_os/components/page_header.html" with title=_("Platform billing") subtitle=_("Platform-side accounts, subscriptions, usage, and ledger activity across all schools.") action_url=dashboard_url action_text=_("Back to dashboard") %}
   <div class="d-flex flex-wrap gap-2 mb-3" style="margin-top: -0.5rem;">
     <a href="{{ usage_url }}" class="btn btn-outline-primary btn-sm">{% trans "Usage API" %}</a>

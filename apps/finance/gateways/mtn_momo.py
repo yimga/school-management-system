@@ -68,7 +68,7 @@ class MTNMoMoGateway(BasePaymentGateway):
         )
 
     def parse_webhook(
-        self, payload: dict, headers: Optional[dict] = None
+        self, payload: dict, headers: Optional[dict] = None, raw_body: Optional[bytes] = None
     ) -> Optional[GatewayResult]:
         if not isinstance(payload, dict) or not payload:
             return None
@@ -76,6 +76,28 @@ class MTNMoMoGateway(BasePaymentGateway):
         provider = str(payload.get("provider") or "").strip().lower()
         if provider and provider not in {"mtn", "mtn_momo", self.code}:
             return None
+
+        signature_cfg = self.config.get("webhook_signature") or {}
+        if signature_cfg.get("required") and headers is not None:
+            from apps.finance.webhooks.signature_verifiers import verify_aggregator_hmac
+
+            ok, reason = verify_aggregator_hmac(
+                headers,
+                raw_body if raw_body is not None else b"",
+                str(signature_cfg.get("secret") or self.config.get("api_key") or ""),
+                header_name=str(signature_cfg.get("header_name") or ""),
+                algorithm=str(signature_cfg.get("algorithm") or "sha256"),
+                timestamp_header=signature_cfg.get("timestamp_header") or None,
+                tolerance_seconds=int(signature_cfg.get("tolerance_seconds") or 300),
+                body_template=str(signature_cfg.get("body_template") or "{body}"),
+            )
+            if not ok:
+                return GatewayResult(
+                    success=False,
+                    transaction_id=None,
+                    message=f"MTN webhook signature failed: {reason}",
+                    raw_response={"signature_failed": True, "reason": reason},
+                )
 
         status = (
             str(

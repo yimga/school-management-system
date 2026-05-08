@@ -30,9 +30,84 @@ def _finance_payment_orchestration_tables_ready() -> bool:
 
 CANONICAL_PAYMENT_ORCHESTRATION_ISO2: Final[frozenset[str]] = frozenset(
     {
-        "CM",  # Cameroon — OHADA / MoMo corridor (seed_finance_defaults Cameroon OHADA)
+        "CM",  # Cameroon — OHADA / MoMo corridor
+        "NG",  # Nigeria — Paystack / Flutterwave dominant
+        "GH",  # Ghana — MTN MoMo / Paystack
+        "KE",  # Kenya — M-Pesa / Flutterwave
+        "UG",  # Uganda — MTN MoMo / Flutterwave
+        "TZ",  # Tanzania — M-Pesa / Tigo / Flutterwave
+        "RW",  # Rwanda — MTN MoMo / Airtel Money
+        "ZA",  # South Africa — Stripe / Flutterwave
+        "CI",  # Côte d'Ivoire — Orange Money / MTN MoMo
+        "SN",  # Senegal — Orange Money / Wave
+        "CD",  # DRC — Orange Money / M-Pesa
     }
 )
+
+
+# Default rail seeds per ISO2 — primary + backup with mobile-money-first ordering
+# where penetration justifies it; cards as fallback in markets where Stripe is live.
+_RAIL_DEFAULTS: Final[dict[str, dict[str, dict[str, str]]]] = {
+    "CM": {
+        "primary": {"code": "cm-mtn", "label": "MTN MoMo", "kind": "MOBILE_MONEY"},
+        "backup": {"code": "cm-orange", "label": "Orange Money", "kind": "MOBILE_MONEY"},
+    },
+    "NG": {
+        "primary": {"code": "ng-paystack", "label": "Paystack", "kind": "CARD"},
+        "backup": {"code": "ng-flutterwave", "label": "Flutterwave", "kind": "CARD"},
+    },
+    "GH": {
+        "primary": {"code": "gh-mtn", "label": "MTN MoMo", "kind": "MOBILE_MONEY"},
+        "backup": {"code": "gh-paystack", "label": "Paystack", "kind": "CARD"},
+    },
+    "KE": {
+        "primary": {"code": "ke-mpesa", "label": "M-Pesa", "kind": "MOBILE_MONEY"},
+        "backup": {"code": "ke-flutterwave", "label": "Flutterwave", "kind": "CARD"},
+    },
+    "UG": {
+        "primary": {"code": "ug-mtn", "label": "MTN MoMo", "kind": "MOBILE_MONEY"},
+        "backup": {"code": "ug-flutterwave", "label": "Flutterwave", "kind": "CARD"},
+    },
+    "TZ": {
+        "primary": {"code": "tz-mpesa", "label": "M-Pesa", "kind": "MOBILE_MONEY"},
+        "backup": {"code": "tz-flutterwave", "label": "Flutterwave", "kind": "CARD"},
+    },
+    "RW": {
+        "primary": {"code": "rw-mtn", "label": "MTN MoMo", "kind": "MOBILE_MONEY"},
+        "backup": {"code": "rw-airtel", "label": "Airtel Money", "kind": "MOBILE_MONEY"},
+    },
+    "ZA": {
+        "primary": {"code": "za-stripe", "label": "Stripe", "kind": "CARD"},
+        "backup": {"code": "za-flutterwave", "label": "Flutterwave", "kind": "CARD"},
+    },
+    "CI": {
+        "primary": {"code": "ci-orange", "label": "Orange Money", "kind": "MOBILE_MONEY"},
+        "backup": {"code": "ci-mtn", "label": "MTN MoMo", "kind": "MOBILE_MONEY"},
+    },
+    "SN": {
+        "primary": {"code": "sn-orange", "label": "Orange Money", "kind": "MOBILE_MONEY"},
+        "backup": {"code": "sn-wave", "label": "Wave", "kind": "MOBILE_MONEY"},
+    },
+    "CD": {
+        "primary": {"code": "cd-orange", "label": "Orange Money", "kind": "MOBILE_MONEY"},
+        "backup": {"code": "cd-mpesa", "label": "M-Pesa", "kind": "MOBILE_MONEY"},
+    },
+}
+
+
+_REGION_NAMES: Final[dict[str, str]] = {
+    "CM": "Cameroon default",
+    "NG": "Nigeria default",
+    "GH": "Ghana default",
+    "KE": "Kenya default",
+    "UG": "Uganda default",
+    "TZ": "Tanzania default",
+    "RW": "Rwanda default",
+    "ZA": "South Africa default",
+    "CI": "Côte d'Ivoire default",
+    "SN": "Senegal default",
+    "CD": "DR Congo default",
+}
 
 
 def iso2_codes_missing_payment_profiles(
@@ -70,32 +145,40 @@ def ensure_canonical_region_payment_profiles() -> dict[str, Any]:
     profiles_created = 0
     rails_created = 0
 
+    rail_kind_map = {
+        "MOBILE_MONEY": PaymentRail.RailKind.MOBILE_MONEY,
+        "CARD": getattr(PaymentRail.RailKind, "CARD", PaymentRail.RailKind.MOBILE_MONEY),
+        "BANK": getattr(PaymentRail.RailKind, "BANK", PaymentRail.RailKind.MOBILE_MONEY),
+    }
+
     for iso2 in sorted(CANONICAL_PAYMENT_ORCHESTRATION_ISO2):
-        if iso2 != "CM":
+        rails = _RAIL_DEFAULTS.get(iso2)
+        if not rails:
             raise NotImplementedError(
-                "Add rail defaults for "
-                f"{iso2!r} in ensure_canonical_region_payment_profiles "
+                f"Add rail defaults for {iso2!r} in _RAIL_DEFAULTS "
                 "(expand alongside CANONICAL_PAYMENT_ORCHESTRATION_ISO2)."
             )
+        primary_spec = rails["primary"]
+        backup_spec = rails["backup"]
         primary, c1 = PaymentRail.objects.get_or_create(
-            code="cm-mtn",
+            code=primary_spec["code"],
             defaults={
-                "label": "MTN MoMo",
-                "kind": PaymentRail.RailKind.MOBILE_MONEY,
+                "label": primary_spec["label"],
+                "kind": rail_kind_map.get(primary_spec["kind"], PaymentRail.RailKind.MOBILE_MONEY),
             },
         )
         backup, c2 = PaymentRail.objects.get_or_create(
-            code="cm-orange",
+            code=backup_spec["code"],
             defaults={
-                "label": "Orange Money",
-                "kind": PaymentRail.RailKind.MOBILE_MONEY,
+                "label": backup_spec["label"],
+                "kind": rail_kind_map.get(backup_spec["kind"], PaymentRail.RailKind.MOBILE_MONEY),
             },
         )
         rails_created += int(c1) + int(c2)
         _, created = RegionPaymentProfile.objects.get_or_create(
-            country_code="CM",
+            country_code=iso2,
             defaults={
-                "name": "Cameroon default",
+                "name": _REGION_NAMES.get(iso2, f"{iso2} default"),
                 "primary_rail": primary,
                 "backup_rail": backup,
             },

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-07T16:59:14.433578+00:00",
+  "generated_at": "2026-05-08T18:53:18.541665+00:00",
   "rows": [
     {
       "bucket": "product",
@@ -1048,21 +1048,21 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2356",
+      "line": "2375",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2431",
+      "line": "2452",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2488",
+      "line": "2511",
       "protective_decorator_nearby": false
     },
     {

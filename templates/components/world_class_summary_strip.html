@@ -1,0 +1,7 @@
+{% load i18n %}
+<section class="rmc-wcx-summary-strip" data-world-class-summary-strip="1" aria-label="{% trans 'Command summary' %}">
+  <article class="rmc-wcx-metric"><span class="rmc-wcx-metric__label">{% trans "Readiness" %}</span><strong class="rmc-wcx-metric__value">{{ readiness|default:"72%" }}</strong><span class="rmc-wcx-card__meta">{{ readiness_label|default:_("Local proof") }}</span></article>
+  <article class="rmc-wcx-metric"><span class="rmc-wcx-metric__label">{% trans "Risk" %}</span><strong class="rmc-wcx-metric__value">{{ risk|default:_("Medium") }}</strong><span class="rmc-wcx-card__meta">{{ risk_label|default:_("Needs QA") }}</span></article>
+  <article class="rmc-wcx-metric"><span class="rmc-wcx-metric__label">{% trans "Next step" %}</span><strong class="rmc-wcx-metric__value">{{ next_step|default:_("Review") }}</strong><span class="rmc-wcx-card__meta">{{ next_step_label|default:_("Primary action") }}</span></article>
+  <article class="rmc-wcx-metric"><span class="rmc-wcx-metric__label">{% trans "External blockers" %}</span><strong class="rmc-wcx-metric__value">{{ blockers|default:_("Visible") }}</strong><span class="rmc-wcx-card__meta">{{ blockers_label|default:_("No fake readiness") }}</span></article>
+</section>
