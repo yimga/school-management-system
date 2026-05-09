@@ -1,0 +1,74 @@
+{% load i18n %}
+{# Reusable section-page scaffold partial.
+   See docs/design/PAGE_AND_DASHBOARD_STANDARDS.md for the full contract.
+
+   Renders the hero region (skip-link, status strip, breadcrumb, h1 + subtitle,
+   action rail). The caller is responsible for wrapping their own content in
+   <main id="main-content" role="main">…</main> AFTER including this partial,
+   so the skip-link target works.
+
+   Context variables (all optional except page_title):
+     - page_title         (str, required)        — page H1
+     - page_subtitle      (str)                  — single-line subtitle below H1
+     - page_archetype     (str)                  — used by audit_page_standards.py
+                                                   ("dashboard" / "list" / "detail" / "form" / "report")
+     - breadcrumbs        (list[{label, href}])  — last item is current page (no href needed)
+     - primary_actions    (list[{label, href, variant, icon, busy_label}])
+                          — at most 3 actions; rendered right-aligned on desktop
+     - status_strip_items (list[{label, tone, title}])
+                          — pinned platform/payment/version status badges
+     - hide_skip_link     (bool, default False)  — set True only when including
+                          this partial inside another page that already provides one.
+#}
+
+{% if not hide_skip_link %}
+  <a href="#main-content" class="visually-hidden-focusable">{% trans "Skip to main content" %}</a>
+{% endif %}
+
+{% if status_strip_items %}
+  {% include "components/rmc_os_status_strip.html" with strip_items=status_strip_items %}
+{% endif %}
+
+<header class="rmc-page-hero" data-page-archetype="{{ page_archetype|default:'standard' }}">
+  <div class="container">
+    {% if breadcrumbs %}
+      <nav class="rmc-page-hero__breadcrumb mb-2" aria-label="{% trans 'Breadcrumb' %}">
+        <ol class="breadcrumb mb-0">
+          {% for crumb in breadcrumbs %}
+            <li class="breadcrumb-item{% if forloop.last %} active{% endif %}"
+                {% if forloop.last %}aria-current="page"{% endif %}>
+              {% if crumb.href and not forloop.last %}
+                <a href="{{ crumb.href }}">{{ crumb.label }}</a>
+              {% else %}
+                {{ crumb.label }}
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ol>
+      </nav>
+    {% endif %}
+
+    <div class="rmc-page-hero__head d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3">
+      <div class="rmc-page-hero__intro">
+        <h1 class="rmc-page-hero__title h2 mb-1">{{ page_title }}</h1>
+        {% if page_subtitle %}
+          <p class="rmc-page-hero__subtitle text-body-secondary mb-0">{{ page_subtitle }}</p>
+        {% endif %}
+      </div>
+
+      {% if primary_actions %}
+        <div class="rmc-page-hero__actions d-flex flex-wrap gap-2 justify-content-lg-end"
+             role="group" aria-label="{% trans 'Page actions' %}">
+          {% for action in primary_actions|slice:":3" %}
+            <a class="btn btn-{{ action.variant|default:'primary' }} rmc-page-hero__action"
+               href="{{ action.href }}"
+               {% if action.busy_label %}data-busy-label="{{ action.busy_label }}"{% endif %}>
+              {% if action.icon %}<i class="bi {{ action.icon }} me-1" aria-hidden="true"></i>{% endif %}
+              {{ action.label }}
+            </a>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</header>

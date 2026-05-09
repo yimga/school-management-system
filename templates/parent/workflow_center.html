@@ -5,11 +5,7 @@
 
 {% block extrastyle %}
 {{ block.super }}
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    document.body.dataset.dashboardPage = 'parent-workflow';
-  });
-</script>
+<script src="{% static '_pages/parent__workflow_center.js' %}"></script>
 
 {% endblock %}
 
@@ -25,7 +21,7 @@
   <section class="workflow-hero" aria-labelledby="workflow-hero-title" aria-describedby="workflow-hero-desc">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
       <div>
-        <h2 id="workflow-hero-title">My Workflow</h2>
+        <h1 id="workflow-hero-title">My Workflow</h1>
         <p id="workflow-hero-desc">What you've done → where you are → what's next. Follow the steps below to stay on top of your children's progress and school tasks.</p>
         <p class="small text-muted mb-0 mt-1">Link children · Results & attendance · Finance · Communication · Documents.</p>
       </div>

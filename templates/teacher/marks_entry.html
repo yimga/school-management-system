@@ -6,7 +6,7 @@
 <div class="rmc-task-scope" data-task="teacher_marks_entry" data-task-step="marks:page">
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
   <div class="d-flex align-items-center gap-2">
-    <h2 class="mb-0">Enter Marks (Bulk)</h2>
+    <h1 class="mb-0">Enter Marks (Bulk)</h1>
     {% include "components/pin_to_quick_access.html" with sidebar_item_id="marks_entry" %}
   </div>
   <div>
@@ -281,29 +281,7 @@
   <script src="{% static 'js/form-draft-save.js' %}"></script>
 {% endif %}
 {% include "components/was_this_helpful.html" with feedback_id="teacher-marks-entry" %}
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    if (window.rmcClickTaskBoundary) {
-      window.rmcClickTaskBoundary('task_start', 'teacher_marks_entry');
-    }
-    var form = document.getElementById('marks-entry-form');
-    if (form && window.FormDraftSave) {
-      FormDraftSave.init(form);
-    }
-    if (window.rmcClickTaskBoundary) {
-      function completeMarksTask() {
-        window.rmcClickTaskBoundary('task_complete', 'teacher_marks_entry');
-      }
-      if (form) {
-        form.addEventListener('submit', completeMarksTask);
-      }
-      var ocrForm = document.getElementById('marks-ocr-apply-form');
-      if (ocrForm) {
-        ocrForm.addEventListener('submit', completeMarksTask);
-      }
-    }
-  });
-</script>
+<script src="{% static '_pages/teacher__marks_entry.js' %}"></script>
 </div>
 {% endblock %}
 

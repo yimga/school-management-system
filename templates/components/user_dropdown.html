@@ -167,64 +167,13 @@
   </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Keyboard shortcuts for dropdown items
-  document.addEventListener('keydown', function(e) {
-    // Check if dropdown is open
-    const dropdown = document.querySelector('.user-dropdown-menu.show');
-    if (!dropdown) return;
-
-    // Handle keyboard shortcuts
-    if (e.altKey) {
-      switch(e.key.toLowerCase()) {
-        case 'p':
-          e.preventDefault();
-          window.location.href = "{% url 'accounts:user_profile' %}";
-          break;
-        case 's':
-          e.preventDefault();
-          window.location.href = "{% url 'siteconfig:user_preferences' %}";
-          break;
-        case 'l':
-          e.preventDefault();
-          window.location.href = "{% url 'accounts:logout' %}";
-          break;
-      }
-    }
-    
-    if (e.key === '?') {
-      e.preventDefault();
-      window.location.href = "{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}";
-    }
-  });
-
-  // Update user status
-  function updateUserStatus() {
-    const indicator = document.querySelector('.user-status-indicator');
-    if (!indicator) return;
-
-    // Check if user is active (you can customize this logic)
-    const lastActivity = Date.now();
-    const idleTime = 5 * 60 * 1000; // 5 minutes
-
-    if (Date.now() - lastActivity < idleTime) {
-      indicator.style.background = '#198754'; // Online (green)
-    } else {
-      indicator.style.background = '#ffc107'; // Away (yellow)
-    }
-  }
-
-  // Update status periodically
-  setInterval(updateUserStatus, 60000); // Every minute
-  updateUserStatus();
-
-  // Track user activity
-  let lastActivityTime = Date.now();
-  ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-    document.addEventListener(event, function() {
-      lastActivityTime = Date.now();
-    }, true);
-  });
-});
-</script>
+{# User-dropdown keyboard shortcuts + idle indicator. URLs sourced from a
+   JSON data island so the inline executable script can be removed
+   (CSP-friendly). Reader: static/js/_pages/components__user_dropdown.js #}
+<script type="application/json" id="user-dropdown-config">{
+  "profileUrl": "{% url 'accounts:user_profile' %}",
+  "preferencesUrl": "{% url 'siteconfig:user_preferences' %}",
+  "logoutUrl": "{% url 'accounts:logout' %}",
+  "helpUrl": "{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}"
+}</script>
+<script src="{% static '_pages/components__user_dropdown.js' %}"></script>

@@ -8,7 +8,7 @@
   <p class="text-muted small d-flex flex-wrap gap-3 align-items-center">{% trans "Stub module: logs sale lines. When Inventory is enabled, link a stock line to prefill the item name." %} <a class="btn btn-sm btn-outline-secondary" href="?export=csv">{% trans "Export CSV (up to 5000 lines)" %}</a> <a class="btn btn-sm btn-outline-secondary" href="?export=json">{% trans "Export JSON summary" %}</a></p>
   <div class="card shadow-sm mb-4">
     <div class="card-body">
-      <h2 class="h6">{% trans "Record sale line" %}</h2>
+      <h1 class="h6">{% trans "Record sale line" %}</h1>
       <form method="post" class="row g-2 align-items-end" id="ops-pos-sale-form" data-draft-key="pos_sale_line_{{ school.id }}" data-draft-max-age-hours="24" data-draft-pending-label="{% trans 'Unsynced sale line' %}">{% csrf_token %}
         {% if inventory_enabled and inventory_items %}
         <div class="col-md-4"><label class="form-label small">{% trans "Inventory item (optional)" %}</label>
@@ -79,23 +79,8 @@
   </div>
 </div>
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-(function() {
-  var f = document.getElementById('ops-pos-sale-form');
-  if (f && window.FormDraftSave) window.FormDraftSave.init(f);
-})();
-</script>
+<script src="{% static '_pages/schoolops__ops_pos.js' %}"></script>
 {% if inventory_enabled and inventory_items %}
-<script>
-(function() {
-  var sel = document.getElementById('pos-inventory-pick');
-  var lab = document.getElementById('pos-item-label');
-  if (!sel || !lab) return;
-  sel.addEventListener('change', function() {
-    var opt = sel.options[sel.selectedIndex];
-    if (opt && opt.value && opt.dataset.label) lab.value = opt.dataset.label;
-  });
-})();
-</script>
+<script src="{% static '_pages/schoolops__ops_pos-2.js' %}"></script>
 {% endif %}
 {% endblock %}

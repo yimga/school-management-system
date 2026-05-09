@@ -8,11 +8,7 @@
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    document.body.dataset.dashboardPage = 'compliance';
-  });
-</script>
+<script src="{% static '_pages/compliance__dashboard.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -366,93 +362,12 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script>
-    (() => {
-        const activityPayload = JSON.parse(document.getElementById('activityData').textContent);
-        const activityCtx = document.getElementById('activityChartCanvas');
-        if (activityCtx && activityPayload) {
-            new Chart(activityCtx, {
-                type: 'line',
-                data: {
-                    labels: activityPayload.labels,
-                    datasets: [{
-                        label: 'Audit Events',
-                        data: activityPayload.data,
-                        fill: false,
-                        borderColor: '#1f78d1',
-                        backgroundColor: 'rgba(31, 120, 209, 0.15)',
-                        tension: 0.25,
-                        pointRadius: 2,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true }
-                    },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
+<script src="{% static '_pages/compliance__dashboard-2.js' %}"></script>
 
-        const heatmapCtx = document.getElementById('heatmapChartCanvas');
-        if (heatmapCtx) {
-            const heatmapPayload = JSON.parse(document.getElementById('heatmapData').textContent);
-            const hours = heatmapPayload.hours || [];
-            const counts = heatmapPayload.data || [];
-            new Chart(heatmapCtx, {
-                type: 'bar',
-                data: {
-                    labels: hours.map(h => `${h}:00`),
-                    datasets: [{
-                        label: 'Logins',
-                        data: counts,
-                        backgroundColor: counts.map(c => `rgba(46, 204, 113, ${Math.min(1, (c || 0) / 10 + 0.1)})`),
-                        borderWidth: 0,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true }
-                    },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-    })();
-</script>
-
-<script>
-// Mute threat detection
-async function muteThreats(duration) {
-    const formData = new FormData();
-    formData.append('duration', duration);
-    
-    try {
-        const response = await fetch("{% url 'compliance:api_mute_threats' %}", {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            }
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            alert(result.message);
-            window.location.reload();
-        } else {
-            alert('Error: ' + result.error);
-        }
-    } catch (error) {
-        alert('Failed to update threat mute status: ' + error.message);
-    }
-}
-</script>
+<script type="application/json" id="page-data-compliance__dashboard-1">{
+  "url_compliance_api_mute_threats": "{% url 'compliance:api_mute_threats' %}",
+  "var_csrf_token": "{{ csrf_token|escapejs }}"
+}</script><script src="{% static '_pages/compliance__dashboard-1.js' %}"></script>
 
 {# AI Copilot Assistant #}
 {% include 'components/ai_copilot.html' %}

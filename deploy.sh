@@ -1,8 +1,6 @@
 #!/bin/bash
-"""
-Phase 8 Deployment Automation Script
-Automated deployment to staging and production environments
-"""
+# Phase 8 Deployment Automation Script
+# Automated deployment to staging and production environments
 
 set -e
 

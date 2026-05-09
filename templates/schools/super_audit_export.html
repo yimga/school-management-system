@@ -46,10 +46,5 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-(function() {
-  var f = document.getElementById('super-audit-export-filter-form');
-  if (f && window.FormDraftSave) window.FormDraftSave.init(f);
-})();
-</script>
+<script src="{% static '_pages/schools__super_audit_export.js' %}"></script>
 {% endblock %}

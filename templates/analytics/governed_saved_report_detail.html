@@ -9,7 +9,7 @@
   {% include "components/rmc_os_page_header.html" with os_center_key="insights_saved_report" center_eyebrow=sv_eyebrow center_title=report.name center_purpose=sv_purpose %}
   {% include "components/rmc_os_action_bar.html" with primary_url=builder_url primary_label=_("Edit in report builder") primary_data_action="governed-back-builder" primary_task="governed_report_export" primary_step="analytics:saved-detail-builder" %}
   <div class="card shadow-sm mb-3">
-    <div class="card-header"><h2 class="h6 mb-0">{% trans "Definition" %}</h2></div>
+    <div class="card-header"><h1 class="h6 mb-0">{% trans "Definition" %}</h1></div>
     <div class="card-body">
       <pre class="small bg-light p-2 rounded mb-0 overflow-auto">{{ definition_json }}</pre>
     </div>

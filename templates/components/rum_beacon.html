@@ -1,5 +1,8 @@
 {% load static %}
 {% if rum_ingest_url and rum_ingest_key %}
-<script>window.__RUM__={u:"{{ rum_ingest_url|escapejs }}",k:"{{ rum_ingest_key|escapejs }}"};</script>
+<script type="application/json" id="page-data-components__rum_beacon-1">{
+  "var_rum_ingest_url_escapejs": "{{ rum_ingest_url|escapejs|escapejs }}",
+  "var_rum_ingest_key_escapejs": "{{ rum_ingest_key|escapejs|escapejs }}"
+}</script><script src="{% static '_pages/components__rum_beacon-1.js' %}"></script>
 <script src="{% static 'js/rum-beacon.js' %}" defer></script>
 {% endif %}

@@ -82,65 +82,9 @@
     </div>
   </div>
 </div>
-<script>
-(function() {
-  var form = document.getElementById('domain-form');
-  var errorEl = document.getElementById('domain-error');
-  if (form) {
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      var fd = new FormData(form);
-      var domain = fd.get('domain');
-      errorEl.style.display = 'none';
-      fetch('{% url "api_domains_list_or_create" %}', {
-        method: 'POST',
-        body: JSON.stringify({ domain: domain }),
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-          'Accept': 'application/json'
-        },
-        credentials: 'same-origin'
-      }).then(function(r) {
-        if (r.ok) { window.location.reload(); return; }
-        return r.json().then(function(d) { throw d; });
-      }).catch(function(err) {
-        errorEl.textContent = err && err.error ? err.error : '{% trans "Request failed" %}';
-        errorEl.style.display = 'block';
-      });
-    });
-  }
-  document.querySelectorAll('.copy-txt').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var t = this.getAttribute('data-txt');
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(t);
-      }
-    });
-  });
-  document.querySelectorAll('.verify-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var id = this.getAttribute('data-id');
-      var self = this;
-      self.disabled = true;
-      fetch('{{ api_domains_url|default:"/api/tenant/domains/" }}'.replace(/\/$/, '') + '/' + id + '/verify/', {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-          'Accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        credentials: 'same-origin',
-        body: 'csrfmiddlewaretoken=' + encodeURIComponent(document.querySelector('[name=csrfmiddlewaretoken]').value)
-      }).then(function(r) {
-        return r.json();
-      }).then(function() {
-        window.location.reload();
-      }).finally(function() {
-        self.disabled = false;
-      });
-    });
-  });
-})();
-</script>
+<script type="application/json" id="page-data-schools__custom_domain_wizard-1">{
+  "url_api_domains_list_or_create": "{% url "api_domains_list_or_create" %}",
+  "trans_request_failed": "{% trans "Request failed" %}",
+  "var_api_domains_url_default_api_tenant_domains": "{{ api_domains_url|default:"/api/tenant/domains/"|escapejs }}"
+}</script><script src="{% static '_pages/schools__custom_domain_wizard-1.js' %}"></script>
 {% endblock %}

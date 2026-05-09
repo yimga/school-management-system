@@ -28,30 +28,8 @@
   <div id="nl-status" class="small text-muted mb-2"></div>
   <pre id="nl-out" class="small p-3 rounded bg-light border" style="max-height:320px;overflow:auto;"></pre>
 </div>
-<script>
-(function(){
-  function csrftoken(){ var m=document.cookie.match(/csrftoken=([^;]+)/); return m?m[1]:""; }
-  var previewUrl="{{ preview_url }}";
-  var executeUrl="{{ execute_url }}";
-  var lastIntent=null;
-  document.getElementById("nl-preview").addEventListener("click", function(){
-    var t=document.getElementById("nl-text").value||"";
-    document.getElementById("nl-status").textContent="";
-    fetch(previewUrl,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRFToken":csrftoken()},body:JSON.stringify({text:t})})
-      .then(function(r){return r.json();})
-      .then(function(j){
-        document.getElementById("nl-out").textContent=JSON.stringify(j,null,2);
-        lastIntent=j.intent_id||null;
-        document.getElementById("nl-run").disabled=!j.supported;
-      }).catch(function(e){document.getElementById("nl-status").textContent=String(e);});
-  });
-  document.getElementById("nl-run").addEventListener("click", function(){
-    if(!lastIntent)return;
-    fetch(executeUrl,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRFToken":csrftoken()},body:JSON.stringify({intent_id:lastIntent,confirm:true})})
-      .then(function(r){return r.json();})
-      .then(function(j){document.getElementById("nl-out").textContent=JSON.stringify(j,null,2);})
-      .catch(function(e){document.getElementById("nl-status").textContent=String(e);});
-  });
-})();
-</script>
+<script type="application/json" id="page-data-analytics__governed_intent_assistant-1">{
+  "var_preview_url": "{{ preview_url|escapejs }}",
+  "var_execute_url": "{{ execute_url|escapejs }}"
+}</script><script src="{% static '_pages/analytics__governed_intent_assistant-1.js' %}"></script>
 {% endblock %}

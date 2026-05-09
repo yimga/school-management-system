@@ -15,16 +15,7 @@
   data-sms-offline-read-cache-key="portal_kb_home"
   tabindex="-1"
 >
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    document.addEventListener('keydown', function (e) {
-      if (e.key === '/' && !/^(input|textarea|select)$/i.test((e.target || {}).tagName) && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        var el = document.getElementById('kb-search-input');
-        if (el) { el.focus(); e.preventDefault(); }
-      }
-    });
-  });
-</script>
+<script src="{% static '_pages/portal__kb_home.js' %}"></script>
 
 <div class="container-fluid py-4 mb-4 rounded-3" style="background: linear-gradient(135deg, var(--school-primary, #0d6efd), var(--school-accent, #198754)); color: #fff;" data-dashboard-column="hero" data-widget-id="kb-hero">
     <div class="container">

@@ -6,11 +6,7 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/workflow-center.css' %}">
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    document.body.dataset.dashboardPage = 'workflow';
-  });
-</script>
+<script src="{% static '_pages/accounts__workflow_center.js' %}"></script>
 {% endblock %}
 
 {% block content %}

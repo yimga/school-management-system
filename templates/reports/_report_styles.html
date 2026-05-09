@@ -1,3 +1,4 @@
+{% load static %}
 <style>
   {% with style=report_style|default_if_none:None %}
   {% with primary=style.primary_color|default:SITE.primary_color|default:'#0d6efd' accent=style.accent_color|default:SITE.accent_color|default:'#198754' %}
@@ -136,30 +137,7 @@
   }
 </style>
 {% if embed_preview and preview_token %}
-<script>
-  (function () {
-    var token = "{{ preview_token|escapejs }}";
-    function notifyReady() {
-      try {
-        if (window.parent && window.parent !== window) {
-          window.parent.postMessage(
-            {
-              type: "reportcard-preview-ready",
-              previewToken: token
-            },
-            window.location.origin
-          );
-        }
-      } catch (error) {
-        // Ignore parent messaging failures in print/PDF contexts.
-      }
-    }
-
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", notifyReady, { once: true });
-      return;
-    }
-    notifyReady();
-  })();
-</script>
+<script type="application/json" id="page-data-reports___report_styles-1">{
+  "var_preview_token_escapejs": "{{ preview_token|escapejs|escapejs }}"
+}</script><script src="{% static '_pages/reports___report_styles-1.js' %}"></script>
 {% endif %}

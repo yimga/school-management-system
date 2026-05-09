@@ -3,6 +3,7 @@
 {% block title %}{% trans "Package rollback" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Installed metadata packages" %}{% endblock %}
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Package rollback" %} — {{ school.name }}</h1>
 <div class="container-fluid py-4" data-page-archetype="operational-workbench">
   <div class="alert alert-light border mb-3" data-phase9-pack-staged-rollout>
     <div class="small fw-semibold mb-1">{% trans "Staged rollout & rollback rules" %}</div>
@@ -125,36 +126,9 @@
 {% block extra_js %}
 {{ block.super }}
 <script src="{% static 'js/package-dependency-graph.js' %}"></script>
-<script>
-(function () {
-  var base = "{{ package_impact_fetch_url|escapejs }}";
-  var schoolId = "{{ school.pk }}";
-  document.querySelectorAll(".rmc-rollback-graph-mount").forEach(function (mount) {
-    var details = mount.closest("details");
-    if (!details) return;
-    details.addEventListener("toggle", function () {
-      if (!details.open || mount.getAttribute("data-loaded") === "1") return;
-      mount.setAttribute("data-loaded", "1");
-      var pid = mount.getAttribute("data-package-id") || "";
-      var sep = base.indexOf("?") >= 0 ? "&" : "?";
-      var url = base + sep + "package_id=" + encodeURIComponent(pid) + "&school_id=" + encodeURIComponent(schoolId);
-      fetch(url, { credentials: "same-origin", headers: { Accept: "application/json" } })
-        .then(function (r) { return r.json(); })
-        .then(function (j) {
-          var dg = j.dependency_graph || {};
-          if (window.RmcPackageDependencyGraph) {
-            window.RmcPackageDependencyGraph.render(mount, {
-              center_id: pid,
-              upstream_package_ids: dg.upstream_package_ids || [],
-              downstream_package_ids: dg.downstream_package_ids || [],
-            });
-          }
-        })
-        .catch(function () {
-          mount.innerHTML = "<p class=\"text-danger small p-2 mb-0\">{% trans 'Could not load graph.' %}</p>";
-        });
-    });
-  });
-})();
-</script>
+<script type="application/json" id="page-data-siteconfig__installed_packages_rollback-1">{
+  "trans_could_not_load_graph": "{% trans 'Could not load graph.' %}",
+  "var_package_impact_fetch_url_escapejs": "{{ package_impact_fetch_url|escapejs|escapejs }}",
+  "var_school_pk": "{{ school.pk|escapejs }}"
+}</script><script src="{% static '_pages/siteconfig__installed_packages_rollback-1.js' %}"></script>
 {% endblock %}

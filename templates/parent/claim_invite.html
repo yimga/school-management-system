@@ -1,7 +1,10 @@
 {% extends "portal_base.html" %}
 {% load i18n static %}
 
+{% block title %}{% trans "Claim an invite" %}{% endblock %}
+
 {% block content %}
+<h1 class="visually-hidden">{% trans "Claim an invite" %}</h1>
 <div class="container mt-4" data-page-archetype="setup-studio">
   <div class="row justify-content-center">
     <div class="col-md-8">
@@ -44,10 +47,5 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-(function() {
-  var form = document.getElementById('claim-invite-form');
-  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
-})();
-</script>
+<script src="{% static '_pages/parent__claim_invite.js' %}"></script>
 {% endblock %}

@@ -1,6 +1,8 @@
 # RunMyCampus Five-Pillar Certification
 
-**SOT batch 1214 → updated by batch 1219 (PSP probes + external runbooks)** — master honest scoring of the AWS / Shopify / Salesforce / Linux / Amazon-of-education ambition.
+**SOT batch 1214 → updated through batch 1233 (Surfaces 1–10 in-repo closure)** — master honest scoring of the AWS / Shopify / Salesforce / Linux / Amazon-of-education ambition.
+
+> **2026-05-08 update:** Surfaces 1–10 of the in-repo closure plan are now complete. Repo-axis composite ≈ 99% (the ~1% deferred is Argon2 hasher + CSP middleware, which need dedicated batches with dependency adds and allow-list work). Live/Ecosystem axis unchanged — still external-blocked on PSP merchant credentials, SOC 2 attestation, Render-side root cause for tenant 500, sponsor bank, and first paying pilot.
 
 This document is the **single source of truth** for "where do we stand against the claim?" It is updated only via SOT §11.4 batch entries and is the canonical answer to that question. Every score is paired with proof artifacts in the repo.
 

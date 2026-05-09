@@ -51,7 +51,7 @@
   {% csrf_token %}
   <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
     <div>
-      <h2 class="mb-0">Invoice {{ invoice.reference|default:invoice.id }}</h2>
+      <h1 class="mb-0">Invoice {{ invoice.reference|default:invoice.id }}</h1>
       <div class="text-muted">{{ invoice.get_invoice_type_display }} → {{ invoice.student|default:invoice.counterparty }}</div>
       {% if finance_access_summary %}
       <div class="small text-muted">Finance-enabled guardians: {{ finance_guardian_count|default:0 }}/{{ guardian_link_count|default:0 }}</div>
@@ -424,26 +424,5 @@
 
 {% block extra_js %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-// Generate idempotency key for receipt upload to prevent duplicate on retry
-(function() {
-  const form = document.getElementById('receipt-upload-form');
-  if (form) {
-    const input = document.getElementById('idempotency_key');
-    if (input && !input.value) {
-      input.value = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        const r = Math.random() * 16 | 0;
-        const v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-      });
-    }
-  }
-})();
-(function() {
-  var main = document.getElementById('invoice-detail-main-form');
-  if (main && window.FormDraftSave) window.FormDraftSave.init(main);
-  var rec = document.getElementById('receipt-upload-form');
-  if (rec && window.FormDraftSave) window.FormDraftSave.init(rec);
-})();
-</script>
+<script src="{% static '_pages/finance__invoice_detail.js' %}"></script>
 {% endblock %}

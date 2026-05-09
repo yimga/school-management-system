@@ -282,6 +282,8 @@ handler403 = permission_denied
 handler404 = page_not_found
 handler500 = server_error
 
+from apps.security.csp_report_view import csp_violation_report  # noqa: E402
+
 urlpatterns = [
     path("", home, name="home"),
     path("", home, name="marketing_home"),
@@ -292,6 +294,8 @@ urlpatterns = [
         name="manager_offline_sync_center",
     ),
     path("-/version/", obs_views.public_version, name="public_version"),
+    # CSP violation report sink (browsers POST here per Content-Security-Policy-Report-Only).
+    path("security/csp-report/", csp_violation_report, name="csp_violation_report"),
     # SOT batch 1204: redundant version endpoints so Render parity certifiers can
     # verify the deployed SHA even if a CDN or static layer captures the
     # leading-dash path. All three return identical JSON.

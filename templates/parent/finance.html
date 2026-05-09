@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Finances" %}</h1>
   <div class="report-card-print-wrapper" data-page-archetype="record-detail" data-task="parent_payment" data-task-step="finance:page">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 no-print" data-rmc-parent-finance-toolbar="1">
     {% if rmc_conversion_single_action_enforced|default:False %}
@@ -243,20 +244,6 @@
   </div>
   </div>
 {% if finance_access_granted %}
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    if (!window.rmcClickTaskBoundary) return;
-    window.rmcClickTaskBoundary('task_start', 'parent_payment');
-    var root = document.querySelector('.report-card-print-wrapper[data-task="parent_payment"]');
-    if (root) {
-      root.addEventListener('click', function (ev) {
-        var a = ev.target.closest && ev.target.closest('a[data-rmc-parent-pay="1"]');
-        if (a) {
-          window.rmcClickTaskBoundary('task_complete', 'parent_payment');
-        }
-      }, true);
-    }
-  });
-</script>
+<script src="{% static '_pages/parent__finance.js' %}"></script>
 {% endif %}
 {% endblock %}

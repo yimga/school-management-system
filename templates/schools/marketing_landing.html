@@ -909,20 +909,5 @@
 <script src="{% static 'marketing/js/mkt-live-flow.js' %}" defer></script>
 <script src="{% static 'marketing/js/marketing-scroll-core.js' %}" defer></script>
 <script src="{% static 'marketing/js/marketing-landing-scroll.js' %}" defer></script>
-<script>
-(function () {
-  var bar = document.getElementById('mkt-sticky-cta-bar');
-  var hero = document.getElementById('hero');
-  if (!bar || !hero) return;
-  var threshold = 350;
-  function update() {
-    var show = window.scrollY > threshold;
-    bar.classList.toggle('is-visible', show);
-    bar.setAttribute('aria-hidden', show ? 'false' : 'true');
-  }
-  window.addEventListener('scroll', function () { requestAnimationFrame(update); }, { passive: true });
-  window.addEventListener('resize', update);
-  update();
-})();
-</script>
+<script src="{% static '_pages/schools__marketing_landing.js' %}"></script>
 {% endblock %}

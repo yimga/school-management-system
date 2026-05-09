@@ -638,16 +638,19 @@ class RequireMFAMiddleware:
             require_all_staff = getattr(site, "require_mfa_all_staff", False)
             required_roles = getattr(site, "require_mfa_roles", None) or []
 
+            # Augment tenant-configured roles with the platform baseline so
+            # privileged roles (finance, super_admin, auditor, …) ALWAYS need
+            # MFA even on tenants that forgot to configure it. See
+            # apps/accounts/mfa_defaults.py.
+            from apps.accounts.mfa_defaults import effective_required_roles
+
             role = get_user_role(user)
             must_have_mfa = False
             if require_all_staff and user.is_staff:
                 must_have_mfa = True
-            elif required_roles:
-                required_normalized = [
-                    r.upper() if isinstance(r, str) else str(r).upper()
-                    for r in required_roles
-                ]
-                if role in required_normalized:
+            else:
+                required_normalized = effective_required_roles(required_roles)
+                if role and str(role).strip().upper() in required_normalized:
                     must_have_mfa = True
 
             try:

@@ -6,29 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% if request.build_absolute_uri %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endif %}
     {% with desc=meta_description|default:SITE.meta_description|default:"" %}{% if desc %}<meta name="description" content="{{ desc|truncatewords:50 }}">{% endif %}{% endwith %}
-    <script>
-      (function(){var k="runmycampus-theme-preference";var s=localStorage.getItem(k);s=s||"light";var r=(s==="system")?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):(s==="dark"?"dark":"light");document.documentElement.setAttribute("data-theme",r);document.documentElement.setAttribute("data-bs-theme",r);})();
-    </script>
+    {# Theme preference must apply before paint to avoid flash-of-wrong-theme.
+       External JS instead of inline keeps the page CSP-friendly. #}
+    <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
-    <script>
-      (function () {
-        // Keep KB route signatures explicit in shell HTML for critical-read wiring.
-        var path = window.location.pathname || "";
-        var kind = "";
-        if (path.indexOf("/kb/article/") !== -1) {
-          kind = "kb-article";
-        } else if (path.indexOf("/kb/search") !== -1) {
-          kind = "kb-search";
-        } else if (path.indexOf("/kb/category/") !== -1) {
-          kind = "kb-category";
-        } else if (path === "/kb" || path === "/kb/") {
-          kind = "kb-home";
-        } else if (path.indexOf("/kb") === 0) {
-          kind = "kb-hub";
-        }
-        window.SMS_CRITICAL_READ_KB_KIND = kind;
-      })();
-    </script>
+    <script src="{% static 'js/kb-route-signature.js' %}"></script>
     <title>{% block title %}{{ rmc_shell.portal_default_document_title|default:"Portal" }}{% endblock %}</title>
     <link rel="icon" href="{% if SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
     {# Wave 6 web: installable surface + home-screen hint (native store apps = external). #}
@@ -421,12 +403,19 @@
     {% block extra_js %}{% endblock %}
     {% block extrajs %}{% endblock %}
 
-    <script>
+    {# Portal shell bootstrap: theme toggle + Ctrl+K search + sidebar resize/collapse.
+       Externalised from portal_base.html so the shell is CSP-friendly. #}
+    <script src="{% static 'js/portal-shell-bootstrap.js' %}" defer></script>
+    {# Legacy inline implementation removed in batch 1239 — see static/js/portal-shell-bootstrap.js #}
+    {# Original 240-line inline block (theme toggle + Ctrl+K search + sidebar resize)
+       was deleted in batch 1239; implementation now lives in
+       static/js/portal-shell-bootstrap.js. #}
+    {% comment %}
       // Theme Toggle: light / dark / system (persisted in localStorage)
       document.addEventListener('DOMContentLoaded', function() {
         const themeToggle = document.getElementById('themeToggle');
         const htmlElement = document.documentElement;
-        
+
         function getSystemTheme() {
           return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
@@ -662,32 +651,35 @@
         }
       });
     </script>
+    {% endcomment %}
 
-    <script>
-      window.SMS_OFFLINE_CONFIG = {
-        enabled: {{ OFFLINE_ENABLED_FOR_CURRENT_SCHOOL|yesno:"true,false" }},
-        pwaEnabled: {{ SITE.backend_feature_flags.enable_portal_pwa|default:"1"|yesno:"true,false" }},
-        formQueueEnabled: {{ SITE.backend_feature_flags.enable_offline_form_queue|default:"1"|yesno:"true,false" }},
-        attendanceSyncEnabled: {{ SITE.backend_feature_flags.enable_offline_attendance_sync|default:"1"|yesno:"true,false" }},
-        gradeSyncEnabled: {{ SITE.backend_feature_flags.enable_offline_grade_sync|default:"1"|yesno:"true,false" }},
-        backgroundSyncEnabled: {{ SITE.backend_feature_flags.enable_offline_background_sync|default:"1"|yesno:"true,false" }},
-        requestPersistentStorage: {{ SITE.backend_feature_flags.request_persistent_browser_storage|default:"1"|yesno:"true,false" }},
-        reachabilityUrl: '{% if SITE.backend_feature_flags.reachability_url %}{{ SITE.backend_feature_flags.reachability_url }}{% else %}/health/{% endif %}',
-        hydrate: true,
-        dripWhenWeak: true,
-        reduceActivityLowPower: {% if SITE.backend_feature_flags.reduce_activity_low_power %}true{% else %}false{% endif %},
-        entitySyncEnabled: {% if SITE.backend_feature_flags.offline_entity_sync == False %}false{% else %}true{% endif %},
-        requestsSyncEnabled: {% if SITE.backend_feature_flags.offline_requests_sync == False %}false{% else %}true{% endif %},
-        apiSyncEnabled: true,
-        paymentSyncEnabled: {{ SITE.backend_feature_flags.enable_offline_payment_sync|default:"1"|yesno:"true,false" }},
-        offlineEnqueueUrl: {% if OFFLINE_API_ENQUEUE_URL %}'{{ OFFLINE_API_ENQUEUE_URL|escapejs }}'{% else %}null{% endif %},
-        offlineProcessUrl: {% if OFFLINE_API_PROCESS_URL %}'{{ OFFLINE_API_PROCESS_URL|escapejs }}'{% else %}null{% endif %},
-        deltaEndpointUrl: '',
-        hubBaseUrl: '{{ SITE.backend_feature_flags.hub_base_url|default:"" }}',
-        prefetchAtHour: {% if SITE.backend_feature_flags.prefetch_at_hour != None %}{{ SITE.backend_feature_flags.prefetch_at_hour }}{% else %}null{% endif %},
-        parentPortalShell: {% if "/portal/parent" in request.path or "/parent/dashboard" in request.path %}true{% else %}false{% endif %}
-      };
-    </script>
+    {# SMS_OFFLINE_CONFIG: emitted as a JSON data island (CSP-safe) and parsed
+       by sms-offline-config-loader.js. Replaces the previous Django-interpolated
+       inline executable script. #}
+    <script type="application/json" id="sms-offline-config">{
+      "enabled": {{ OFFLINE_ENABLED_FOR_CURRENT_SCHOOL|yesno:"true,false" }},
+      "pwaEnabled": {{ SITE.backend_feature_flags.enable_portal_pwa|default:"1"|yesno:"true,false" }},
+      "formQueueEnabled": {{ SITE.backend_feature_flags.enable_offline_form_queue|default:"1"|yesno:"true,false" }},
+      "attendanceSyncEnabled": {{ SITE.backend_feature_flags.enable_offline_attendance_sync|default:"1"|yesno:"true,false" }},
+      "gradeSyncEnabled": {{ SITE.backend_feature_flags.enable_offline_grade_sync|default:"1"|yesno:"true,false" }},
+      "backgroundSyncEnabled": {{ SITE.backend_feature_flags.enable_offline_background_sync|default:"1"|yesno:"true,false" }},
+      "requestPersistentStorage": {{ SITE.backend_feature_flags.request_persistent_browser_storage|default:"1"|yesno:"true,false" }},
+      "reachabilityUrl": "{% if SITE.backend_feature_flags.reachability_url %}{{ SITE.backend_feature_flags.reachability_url|escapejs }}{% else %}/health/{% endif %}",
+      "hydrate": true,
+      "dripWhenWeak": true,
+      "reduceActivityLowPower": {% if SITE.backend_feature_flags.reduce_activity_low_power %}true{% else %}false{% endif %},
+      "entitySyncEnabled": {% if SITE.backend_feature_flags.offline_entity_sync == False %}false{% else %}true{% endif %},
+      "requestsSyncEnabled": {% if SITE.backend_feature_flags.offline_requests_sync == False %}false{% else %}true{% endif %},
+      "apiSyncEnabled": true,
+      "paymentSyncEnabled": {{ SITE.backend_feature_flags.enable_offline_payment_sync|default:"1"|yesno:"true,false" }},
+      "offlineEnqueueUrl": {% if OFFLINE_API_ENQUEUE_URL %}"{{ OFFLINE_API_ENQUEUE_URL|escapejs }}"{% else %}null{% endif %},
+      "offlineProcessUrl": {% if OFFLINE_API_PROCESS_URL %}"{{ OFFLINE_API_PROCESS_URL|escapejs }}"{% else %}null{% endif %},
+      "deltaEndpointUrl": "",
+      "hubBaseUrl": "{{ SITE.backend_feature_flags.hub_base_url|default:""|escapejs }}",
+      "prefetchAtHour": {% if SITE.backend_feature_flags.prefetch_at_hour != None %}{{ SITE.backend_feature_flags.prefetch_at_hour }}{% else %}null{% endif %},
+      "parentPortalShell": {% if "/portal/parent" in request.path or "/parent/dashboard" in request.path %}true{% else %}false{% endif %}
+    }</script>
+    <script src="{% static 'js/sms-offline-config-loader.js' %}"></script>
 
     {% if SHOW_OFFLINE_STATUS_BAR %}
     <link rel="stylesheet" href="{% static 'css/reduce-motion-low-power.css' %}">
@@ -701,58 +693,22 @@
     <script src="{% static 'js/critical-read-degraded.js' %}"></script>
     {% if request.user.is_authenticated %}
     {% if click_tracking_ingest_url %}
-    <script>
-      window.__RMC_CLICK_INGEST = "{{ click_tracking_ingest_url|escapejs }}";
-      window.__RMC_CLICK_PHASE = "{{ click_measurement_phase|default:'current'|escapejs }}";
-    </script>
+    <script type="application/json" id="rmc-click-ingest-config">{
+      "ingestUrl": "{{ click_tracking_ingest_url|escapejs }}",
+      "phase": "{{ click_measurement_phase|default:'current'|escapejs }}"
+    }</script>
+    <script src="{% static 'js/rmc-click-ingest-loader.js' %}"></script>
     {% endif %}
     <script src="{% static 'js/platform_behavior_track.js' %}"></script>
     <script src="{% static 'js/offline-queue-client.js' %}"></script>
     <script src="{% static 'js/rmc-offline-portal-forms.js' %}"></script>
     {% endif %}
-    <!-- PWA Service Worker Registration (full offline bar when enabled; parent portal shell when PWA + parent path) -->
-    <script>
-      (function() {
-        var cfg = window.SMS_OFFLINE_CONFIG || {};
-        var swEligible = cfg.pwaEnabled && (cfg.enabled || cfg.parentPortalShell);
-        if (!('serviceWorker' in navigator) || !swEligible) {
-          return;
-        }
-
-        function pushConfigToWorker(registration) {
-          var payload = { type: 'SET_OFFLINE_CONFIG', payload: cfg };
-          if (registration.active) registration.active.postMessage(payload);
-          if (registration.waiting) registration.waiting.postMessage(payload);
-          if (registration.installing) registration.installing.postMessage(payload);
-        }
-
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('{% static "js/service-worker.js" %}')
-            .then(function(registration) {
-              console.log('Service Worker registered successfully:', registration.scope);
-              pushConfigToWorker(registration);
-
-              if (cfg.requestPersistentStorage && navigator.storage && navigator.storage.persist) {
-                navigator.storage.persist().catch(function() {});
-              }
-
-              registration.addEventListener('updatefound', function() {
-                var newWorker = registration.installing;
-                newWorker.addEventListener('statechange', function() {
-                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    if (confirm('A new version is available. Reload to update?')) {
-                      window.location.reload();
-                    }
-                  }
-                });
-              });
-            })
-            .catch(function(error) {
-              console.log('Service Worker registration failed:', error);
-            });
-        });
-      })();
-    </script>
+    {# PWA Service Worker registration. SW URL is emitted as a JSON data island so
+       the registration JS can be a static, CSP-friendly file. #}
+    <script type="application/json" id="rmc-service-worker-url">{
+      "url": "{% static 'js/service-worker.js' %}"
+    }</script>
+    <script src="{% static 'js/rmc-service-worker-registration.js' %}"></script>
     
     {# Floating Back to top - visible after scrolling down #}
     {% include 'components/back_to_top.html' %}
@@ -780,10 +736,11 @@
 
     {% if SITE and SITE.is_preview %}
     <link rel="stylesheet" href="{% static 'css/preview-highlights.css' %}">
-    <script>
-      window.PREVIEW_DEFAULT_LABEL = '{% trans "Your changes affect this area" %}';
-      window.PREVIEW_DISMISS_LABEL = '{% trans "Dismiss highlights" %}';
-    </script>
+    <script type="application/json" id="rmc-preview-labels">{
+      "default": "{% trans 'Your changes affect this area' %}",
+      "dismiss": "{% trans 'Dismiss highlights' %}"
+    }</script>
+    <script src="{% static 'js/rmc-preview-labels-loader.js' %}"></script>
     <script src="{% static 'js/preview-highlights.js' %}"></script>
     {% endif %}
   </body>

@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Bulk Letters" %} · {{ SITE.site_name|default:"Portal" }}</h1>
   {% url 'studio_os:output' as bulk_letters_report_library_url %}
   {% url 'kb:kb_search' as bulk_letters_kb_url %}
   <div class="container-fluid py-3 cp-evidence-page" style="max-width: 58rem;" data-page-archetype="operator-report" data-shell-surface="bulk-letters" data-cp-evidence-surface="bulk-letters" data-rmc-report-bulk-evidence="1072" data-rmc-operator-evidence-surface="1">
@@ -102,32 +103,6 @@
   {% endif %}
   </div>
   {% if classroom_list %}
-  <script>
-  (function() {
-    var ta = document.getElementById('letter_body');
-    var countEl = document.getElementById('letter-body-count');
-    if (ta && countEl) {
-      function updateCount() {
-        var n = (ta.value || '').length;
-        countEl.textContent = n.toLocaleString() + ' / 100,000';
-        countEl.classList.toggle('text-danger', n > 100000);
-      }
-      ta.addEventListener('input', updateCount);
-      ta.addEventListener('keyup', updateCount);
-      updateCount();
-    }
-    var sel = document.getElementById('classroom_id');
-    var countSpan = document.getElementById('classroom-student-count');
-    if (sel && countSpan) {
-      function updatePreview() {
-        var opt = sel.options[sel.selectedIndex];
-        var n = opt && opt.value ? parseInt(opt.getAttribute('data-count'), 10) : 0;
-        countSpan.textContent = n > 0 ? n + ' letter' + (n !== 1 ? 's' : '') + ' will be generated' : '';
-      }
-      sel.addEventListener('change', updatePreview);
-      updatePreview();
-    }
-  })();
-  </script>
+  <script src="{% static '_pages/siteconfig__bulk_letters.js' %}"></script>
   {% endif %}
 {% endblock %}

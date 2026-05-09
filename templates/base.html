@@ -15,27 +15,7 @@
     {% with desc=meta_description|default:SITE.meta_description|default:"" %}{% if desc %}<meta name="description" content="{{ desc|truncatewords:50 }}">{% endif %}{% endwith %}
     {% load static %}
 
-    <script>
-      // Apply server-stored theme preference early (before CSS paints).
-      (function () {
-        const key = 'runmycampus-theme-preference';
-        const html = document.documentElement;
-        let pref = (html.getAttribute('data-theme') || 'system').toLowerCase();
-        try {
-          var stored = localStorage.getItem(key);
-          if (stored) pref = stored.toLowerCase();
-        } catch (e) {}
-        if (pref === 'system' || pref === 'auto') {
-          html.removeAttribute('data-theme');
-          html.removeAttribute('data-bs-theme');
-          try { localStorage.removeItem(key); } catch (e) {}
-          return;
-        }
-        html.setAttribute('data-theme', pref);
-        html.setAttribute('data-bs-theme', pref);
-        try { localStorage.setItem(key, pref); } catch (e) {}
-      })();
-    </script>
+    <script src="{% static '_pages/base.js' %}"></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
 
     <title>
@@ -256,10 +236,10 @@
     <script src="{% static 'js/statement-header-scroll.js' %}" defer></script>
     {% if SITE and SITE.is_preview %}
     <link rel="stylesheet" href="{% static 'css/preview-highlights.css' %}">
-    <script>
-      window.PREVIEW_DEFAULT_LABEL = '{% trans "Your changes affect this area" %}';
-      window.PREVIEW_DISMISS_LABEL = '{% trans "Dismiss highlights" %}';
-    </script>
+    <script type="application/json" id="page-data-base-1">{
+  "trans_your_changes_affect_this_area": "{% trans "Your changes affect this area" %}",
+  "trans_dismiss_highlights": "{% trans "Dismiss highlights" %}"
+}</script><script src="{% static '_pages/base-1.js' %}"></script>
     <script src="{% static 'js/preview-highlights.js' %}"></script>
     {% endif %}
     </div>

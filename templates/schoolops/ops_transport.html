@@ -7,7 +7,7 @@
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <div class="card shadow-sm mb-4">
     <div class="card-body">
-      <h2 class="h6">{% trans "New route" %}</h2>
+      <h1 class="h6">{% trans "New route" %}</h1>
       <form method="post" class="row g-2 align-items-end">{% csrf_token %}
         <div class="col-md-4"><label class="form-label small">{% trans "Route name" %}</label><input class="form-control" name="name" required maxlength="120"></div>
         <div class="col-md-4"><label class="form-label small">{% trans "First stop (optional)" %}</label><input class="form-control" name="first_stop" maxlength="120"></div>

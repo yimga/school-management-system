@@ -197,41 +197,8 @@
 </div>
 
 <!-- AJAX Vote Script -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const voteBtns = document.querySelectorAll('.vote-btn');
-    
-    voteBtns.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const faqId = this.dataset.faqId;
-            const voteType = this.dataset.vote;
-            const url = `{% url 'kb:faq_vote' %}`;
-            
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                },
-                body: JSON.stringify({
-                    faq_id: faqId,
-                    vote_type: voteType
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    this.classList.add('active');
-                    alert(data.message);
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        });
-    });
-});
-</script>
+<script type="application/json" id="page-data-portal__faq_list-1">{
+  "url_kb_faq_vote": "{% url 'kb:faq_vote' %}"
+}</script><script src="{% static '_pages/portal__faq_list-1.js' %}"></script>
 
 {% endblock %}

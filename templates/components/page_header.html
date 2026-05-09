@@ -6,7 +6,9 @@ Usage:
 {% endcomment %}
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 page-header ui-premium-surface" data-rmc-component="page-header">
   <div>
-    <h2 class="mb-0">{{ title|default:"Page" }}</h2>
+    {# Promoted from h2 to h1 in batch 1240 — this partial is the page's primary heading.
+       Visual size is preserved via the .h2 utility class so existing CSS doesn't shift. #}
+    <h1 class="h2 mb-0">{{ title|default:"Page" }}</h1>
     {% if subtitle %}<div class="text-muted">{{ subtitle }}</div>{% endif %}
   </div>
   {% if action_url and action_text %}

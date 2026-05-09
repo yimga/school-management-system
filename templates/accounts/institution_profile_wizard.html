@@ -1,4 +1,5 @@
 {% extends "backend_base.html" %}
+{% load static %}
 {% load i18n %}
 {% block backend_title %}{% trans "Institution profile" %}{% endblock %}
 {% block content %}
@@ -43,17 +44,8 @@
     {% trans "One-click pack" %}: POST <code>{{ pack_install_url }}</code> JSON <code>{"pack_slug":"evals_rubrics","record_marketplace":true}</code>
   </div>
   <p class="small mt-3"><a href="{% url 'accounts:district_lms_interop' %}">{% trans "District & LMS interop" %}</a></p>
-  <script>
-  (function(){
-    var u = "{{ suggest_url|escapejs }}";
-    document.getElementById("btnInstSuggest").addEventListener("click", function(){
-      fetch(u, {credentials:"same-origin"}).then(function(r){return r.json()}).then(function(d){
-        var o = document.getElementById("instSuggestOut");
-        o.textContent = JSON.stringify(d, null, 2);
-        o.classList.remove("d-none");
-      }).catch(function(e){ alert(e); });
-    });
-  })();
-  </script>
+  <script type="application/json" id="page-data-accounts__institution_profile_wizard-1">{
+  "var_suggest_url_escapejs": "{{ suggest_url|escapejs|escapejs }}"
+}</script><script src="{% static '_pages/accounts__institution_profile_wizard-1.js' %}"></script>
 </div>
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load static %}
 {% load i18n region_format %}
 
 {% block title %}Evaluation Manager{% endblock %}
@@ -8,7 +9,7 @@
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
   <div class="d-flex align-items-center gap-2">
     <div>
-      <h2 class="mb-1">Evaluation Manager</h2>
+      <h1 class="mb-1">Evaluation Manager</h1>
       <div class="text-muted">Create evaluations in bulk and track missing scores.</div>
     </div>
     {% include "components/pin_to_quick_access.html" with sidebar_item_id="eval_admin" %}
@@ -246,29 +247,7 @@
     {% endif %}
   </div>
 </div>
-<script>
-(function() {
-  var key = 'table-density-evaluation_admin';
-  var wrapper = document.querySelector('[data-table-density-key="evaluation_admin"]');
-  if (!wrapper) return;
-  var table = wrapper.querySelector('table');
-  var condensed = localStorage.getItem(key) === 'condensed';
-  function apply() {
-    if (table) table.classList.toggle('table-condensed', condensed);
-    wrapper.querySelectorAll('.table-density-toggle [data-density]').forEach(function(btn) {
-      btn.classList.toggle('active', (btn.getAttribute('data-density') === 'condensed') === condensed);
-    });
-  }
-  apply();
-  wrapper.querySelectorAll('.table-density-toggle [data-density]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      condensed = this.getAttribute('data-density') === 'condensed';
-      localStorage.setItem(key, condensed ? 'condensed' : 'expanded');
-      apply();
-    });
-  });
-})();
-</script>
+<script src="{% static '_pages/evals__evaluation_admin.js' %}"></script>
 {% include "components/was_this_helpful.html" with feedback_id="evaluation-admin" %}
 </div>
 {% endblock %}

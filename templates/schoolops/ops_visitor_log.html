@@ -7,7 +7,7 @@
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <div class="card shadow-sm mb-4">
     <div class="card-body">
-      <h2 class="h6">{% trans "Check in visitor" %}</h2>
+      <h1 class="h6">{% trans "Check in visitor" %}</h1>
       <form method="post" class="row g-2 align-items-end">{% csrf_token %}
         <input type="hidden" name="action" value="checkin">
         <div class="col-md-3"><label class="form-label small">{% trans "Name" %} *</label><input class="form-control" name="visitor_name" required maxlength="255"></div>

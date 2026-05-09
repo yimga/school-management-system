@@ -6,13 +6,10 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/workflow-center.css' %}">
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    document.body.dataset.dashboardPage = 'workflow';
-  });
-</script>
+<script src="{% static '_pages/accounts__workflow_center_embed.js' %}"></script>
 {% endblock %}
 
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Workflow Center" %} · {{ block.super }}</h1>
 {% include "accounts/partials/workflow_center_main.html" %}
 {% endblock %}

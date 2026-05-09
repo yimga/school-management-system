@@ -7,7 +7,7 @@
 <div class="container-fluid">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2 mb-3">
     <div>
-      <h2 class="fw-bold mb-1">{{ session.name }}</h2>
+      <h1 class="fw-bold mb-1">{{ session.name }}</h1>
       <div class="text-muted">
         {{ session.get_board_display }} · {{ session.get_level_display }}
         · Centre #{{ session.exam_centre_number|default:"—" }}

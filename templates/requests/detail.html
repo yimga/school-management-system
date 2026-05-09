@@ -4,6 +4,7 @@
 {% block title %}Request {{ req.reference }}{% endblock %}
 
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">Request {{ req.reference }}</h1>
 <div class="container-fluid py-4" data-page-archetype="record-detail">
   {% url 'requests:dashboard' as back_url %}
   {% include "studio_os/components/page_header.html" with title=req.reference subtitle=req.get_request_type_display action_url=back_url action_text="Back to list" %}
@@ -97,10 +98,5 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-(function() {
-  var form = document.getElementById('request-action-form');
-  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
-})();
-</script>
+<script src="{% static '_pages/requests__detail.js' %}"></script>
 {% endblock %}

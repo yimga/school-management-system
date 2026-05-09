@@ -5,7 +5,7 @@
 {% block content %}
   <div data-page-archetype="setup-studio">
   <div class="mb-4">
-    <h2 class="mb-1">{% trans "Link a Child" %}</h2>
+    <h1 class="mb-1">{% trans "Link a Child" %}</h1>
     <div class="text-muted">{% trans "Use the admission number you received from the school." %}</div>
   </div>
 
@@ -200,10 +200,5 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-(function() {
-  var form = document.getElementById('link-child-legacy-form');
-  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
-})();
-</script>
+<script src="{% static '_pages/parent__link_child.js' %}"></script>
 {% endblock %}

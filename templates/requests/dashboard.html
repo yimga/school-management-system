@@ -7,14 +7,11 @@
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    document.body.dataset.dashboardPage = 'requests';
-  });
-</script>
+<script src="{% static '_pages/requests__dashboard.js' %}"></script>
 {% endblock %}
 
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">Access Requests</h1>
 <div class="container-fluid py-4" data-page-archetype="operational-workbench">
   {% phase8_dashboard_declaration "requests/dashboard.html" %}
   {% if phase7_de %}

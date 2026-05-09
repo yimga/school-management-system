@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -15,8 +16,8 @@
     </div>
   </header>
   <div id="redoc-container" class="wrap"></div>
-  <script>
-    Redoc.init('{{ schema_url }}', {}, document.getElementById('redoc-container'));
-  </script>
+  <script type="application/json" id="page-data-api_schema_ui-1">{
+  "var_schema_url": "{{ schema_url|escapejs }}"
+}</script><script src="{% static '_pages/api_schema_ui-1.js' %}"></script>
 </body>
 </html>

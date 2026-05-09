@@ -144,28 +144,8 @@
   </div>
 </div>
 
-<script>
-async function markAsRead(notifId) {
-  try {
-    const response = await fetch(`/api/notifications/${notifId}/read/`, {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': '{{ csrf_token }}',
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (response.ok) {
-      // Reload page to show updated status
-      window.location.reload();
-    } else {
-      alert('Failed to mark notification as read');
-    }
-  } catch (error) {
-    console.error('Error marking notification as read:', error);
-    alert('An error occurred');
-  }
-}
-</script>
+<script type="application/json" id="page-data-accounts__notifications-1">{
+  "var_csrf_token": "{{ csrf_token|escapejs }}"
+}</script><script src="{% static '_pages/accounts__notifications-1.js' %}"></script>
 {% endblock %}
 

@@ -4,6 +4,7 @@
 {% block backend_title %}{{ page_title }}{% endblock %}
 
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ page_title }}</h1>
 {% trans "Back to event console" as back_console %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=payload_summary action_url=console_url action_text=back_console %}

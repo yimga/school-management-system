@@ -1,0 +1,60 @@
+# Explicit Django test suite — runs as its own PR check so failures are
+# attributed to the test suite directly, not to the broader pre-deploy gate.
+#
+# Complements smoke.yml (which calls pre_deploy_gate.sh): this workflow is
+# faster, has a tighter timeout, and gives a clean signal to PR reviewers.
+
+name: Django tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  django-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Django test suite
+        env:
+          DEBUG: "0"
+          SECRET_KEY: "ci-django-tests-not-for-production-use-64chars___________________________"
+          ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
+          RMC_RELIABLE_TEST_RUNNER: "1"
+          DJANGO_TEST_DB_FILE: ".django_test_dbs/ci_django_tests.sqlite3"
+        run: |
+          mkdir -p .django_test_dbs
+          python manage.py test --settings=config.settings --noinput
+
+  npm-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install JS dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: npm audit (high+ severity blocks)
+        run: npm audit --omit=dev --audit-level=high

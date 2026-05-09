@@ -3,6 +3,7 @@
 {% load i18n %}
 {% block title %}Take teacher attendance{% endblock %}
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">Take teacher attendance</h1>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
   <div class="card mb-3">
     <div class="card-body">
@@ -63,28 +64,9 @@
       <div id="sms-roll-call-teacher-offline" class="d-none alert alert-info small mb-0 mt-2" role="status" aria-live="polite" data-offline-only></div>
     </div>
   </div>
-  <script>
-    (function() {
-      if (navigator.onLine || !window.SMSOfflineDB) return;
-      var el = document.getElementById('sms-roll-call-teacher-offline');
-      if (!el) return;
-      el.classList.remove('d-none');
-      el.textContent = 'Offline. Teacher list will load when you\'re back online. Use student attendance for cached class/student data when offline.';
-    })();
-    var presentVal = '{{ TeacherAttendance.PRESENT }}';
-    document.getElementById('mark-all-present')?.addEventListener('click', function() {
-      document.querySelectorAll('.status-select').forEach(function(s) { s.value = presentVal; });
-    });
-    document.getElementById('save-all-present')?.addEventListener('click', function() {
-      document.querySelectorAll('.status-select').forEach(function(s) { s.value = presentVal; });
-      this.closest('form').submit();
-    });
-  </script>
+  <script type="application/json" id="page-data-portal__roll_call_teacher-1">{
+  "var_teacherattendance_present": "{{ TeacherAttendance.PRESENT|escapejs }}"
+}</script><script src="{% static '_pages/portal__roll_call_teacher-1.js' %}"></script>
   <script src="{% static 'js/form-draft-save.js' %}"></script>
-  <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var f = document.querySelector('form[data-draft-key][method="post"]');
-    if (f && window.FormDraftSave) window.FormDraftSave.init(f);
-  });
-  </script>
+  <script src="{% static '_pages/portal__roll_call_teacher.js' %}"></script>
 {% endblock %}

@@ -1,10 +1,9 @@
 {% extends "marketing/base_marketing.html" %}
 {% load static i18n %}
 {% block body_class %}marketing-surface{% endblock %}
-{% block extrahead %}
-  {{ block.super }}
-  <script>(function(){document.documentElement.setAttribute('data-surface','marketing');})();</script>
-{% endblock %}
+{# data-surface="marketing" is already set on <html> by base_marketing.html
+   (line 4) — the previous inline shim that set it again was redundant and
+   removed in batch 1240 to keep the page CSP-friendly. #}
 {% block extrastyle %}
   {{ block.super }}
 {% endblock %}

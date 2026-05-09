@@ -4,6 +4,7 @@
 {% block title %}Cash Office Closure{% endblock %}
 
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">Cash Office Closure</h1>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench">
 {% url 'finance:payments' as cash_closure_back_url %}
 {% include "studio_os/components/page_header.html" with title="Cash Office Closure" subtitle="Daily reconciliation between cash desk receipts and bank deposit." action_url=cash_closure_back_url action_text="Back to Payments" %}
@@ -117,10 +118,5 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-(function() {
-  var f = document.getElementById('cash-office-closure-form');
-  if (f && window.FormDraftSave) window.FormDraftSave.init(f);
-})();
-</script>
+<script src="{% static '_pages/finance__cash_office_closure.js' %}"></script>
 {% endblock %}

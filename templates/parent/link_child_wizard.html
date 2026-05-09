@@ -9,7 +9,7 @@
 {% block content %}
 <div class="wizard-container" data-page-archetype="setup-studio">
   <div class="mb-4">
-    <h2 class="mb-1">Link a Child</h2>
+    <h1 class="mb-1">Link a Child</h1>
     <div class="text-muted">Follow these simple steps to connect your child's account.</div>
   </div>
 
@@ -365,28 +365,10 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-  // Auto-focus on admission number field in step 1
-  document.addEventListener('DOMContentLoaded', function() {
-    var form = document.getElementById('link-child-wizard-form');
-    if (form && window.FormDraftSave) window.FormDraftSave.init(form);
-    {% if step == 1 %}
-    const admissionField = document.getElementById('{{ form.admission_number.id_for_label }}');
-    if (admissionField) {
-      admissionField.focus();
-    }
-    {% endif %}
-
-    // Prevent form submission on Enter key in textareas
-    const textareas = document.querySelectorAll('textarea');
-    textareas.forEach(function(textarea) {
-      textarea.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && e.ctrlKey) {
-          e.preventDefault();
-          if (form) form.submit();
-        }
-      });
-    });
-  });
-</script>
+{# Wizard config emitted as a JSON data island; reader is _pages/parent__link_child_wizard.js #}
+<script type="application/json" id="link-child-wizard-config">{
+  "step": {{ step|default:0 }},
+  "admissionFieldId": "{{ form.admission_number.id_for_label|default:''|escapejs }}"
+}</script>
+<script src="{% static '_pages/parent__link_child_wizard.js' %}"></script>
 {% endblock %}

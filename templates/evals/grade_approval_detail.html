@@ -6,7 +6,7 @@
 <div class="container-fluid py-2" data-page-archetype="record-detail">
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
-    <h2 class="mb-0">Grade Approval Request</h2>
+    <h1 class="mb-0">Grade Approval Request</h1>
     <p class="text-muted small mb-0">
       Submitted by {{ approval.teacher.user.get_full_name|default:approval.teacher.user.username }} on {{ approval.requested_at|date:"d/m/Y" }} {{ approval.requested_at|time:"H:i" }}.
     </p>

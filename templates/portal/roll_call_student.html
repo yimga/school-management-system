@@ -3,6 +3,7 @@
 {% load i18n %}
 {% block title %}Take student attendance{% endblock %}
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">Take student attendance</h1>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
   <p class="small mb-2 d-flex flex-wrap gap-2">
     <a href="{% url 'portal:teacher_bulk_capture_hub' %}">{% trans "← Bulk capture hub" %}</a>
@@ -83,34 +84,9 @@
     </div>
   </div>
   <div id="sms-roll-call-offline-cache" class="d-none alert alert-info small mb-0 mt-2" role="status" aria-live="polite" data-offline-only></div>
-  <script>
-    var presentVal = '{{ Attendance.PRESENT }}';
-    document.getElementById('mark-all-present')?.addEventListener('click', function() {
-      document.querySelectorAll('.status-select').forEach(function(s) { s.value = presentVal; });
-    });
-    document.getElementById('save-all-present')?.addEventListener('click', function() {
-      document.querySelectorAll('.status-select').forEach(function(s) { s.value = presentVal; });
-      this.closest('form').submit();
-    });
-    (function() {
-      if (navigator.onLine || !window.SMSOfflineDB || !window.SMSOfflineDB.getClassrooms) return;
-      var el = document.getElementById('sms-roll-call-offline-cache');
-      if (!el) return;
-      el.classList.remove('d-none');
-      Promise.all([window.SMSOfflineDB.getClassrooms(), window.SMSOfflineDB.getStudents()]).then(function(res) {
-        var classrooms = res[0] || [];
-        var students = res[1] || [];
-        el.textContent = 'Offline: ' + classrooms.length + ' class(es) and ' + students.length + ' student(s) cached. Choose date and class when back online to take attendance.';
-      }).catch(function() {
-        el.textContent = 'Offline. Cached data may be available after you sync when online.';
-      });
-    })();
-  </script>
+  <script type="application/json" id="page-data-portal__roll_call_student-1">{
+  "var_attendance_present": "{{ Attendance.PRESENT|escapejs }}"
+}</script><script src="{% static '_pages/portal__roll_call_student-1.js' %}"></script>
   <script src="{% static 'js/form-draft-save.js' %}"></script>
-  <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var f = document.querySelector('form[data-draft-key][method="post"]');
-    if (f && window.FormDraftSave) window.FormDraftSave.init(f);
-  });
-  </script>
+  <script src="{% static '_pages/portal__roll_call_student.js' %}"></script>
 {% endblock %}

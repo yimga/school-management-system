@@ -283,7 +283,15 @@ MIDDLEWARE += [
     "apps.observability.middleware.RequestIdLoggingMiddleware",
     "apps.observability.middleware.ObservabilityMiddleware",  # Prometheus request metrics
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Content-Security-Policy (Report-Only by default; flip CSP_ENFORCE=True
+    # once high-traffic surfaces report zero violations). Last in the chain so
+    # it sees the final rendered response and can attach the header.
+    "apps.security.csp_middleware.ContentSecurityPolicyMiddleware",
 ]
+
+# CSP defaults — report-only until the inline-style/script footprint is closed.
+CSP_ENFORCE = os.getenv("CSP_ENFORCE", "0") == "1"
+CSP_REPORT_URI = os.getenv("CSP_REPORT_URI", "/security/csp-report/")
 
 ROOT_URLCONF = "config.urls"
 PUBLIC_SCHEMA_URLCONF = "config.public_urls"
@@ -534,6 +542,18 @@ MARKSHEET_OCR_COMMAND = os.getenv("MARKSHEET_OCR_COMMAND", "")
 
 
 AUTH_USER_MODEL = "accounts.User"
+
+# --- Password hashing ---
+# Argon2 first (memory-hard, OWASP-recommended for new deployments).
+# PBKDF2 + BCrypt remain in the list so existing hashes verify; Django auto-
+# upgrades a user to Argon2 on their next successful login.
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+    "django.contrib.auth.hashers.ScryptPasswordHasher",
+]
 
 # --- Static / Media ---
 STATIC_URL = "/static/"

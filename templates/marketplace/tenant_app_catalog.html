@@ -40,7 +40,7 @@
           </div>
         </div>
         {% endif %}
-        <h1 class="proof-hero-title">{% trans "Install with confidence." %}</h1>
+        <h2 class="proof-hero-title">{% trans "Install with confidence." %}</h2>
         <p class="proof-hero-copy">
           {% trans "Sandbox-first catalog: every install is staged so your team can preview impact, review scopes, and activate deliberately." %}
         </p>
@@ -393,17 +393,9 @@
   {% include "marketplace/partials/install_impact_modal.html" with install_post_url=tenant_install_app_url super_requires_school=False %}
   {% endif %}
   {% if catalog_install_app_id %}
-  <script>
-  (function () {
-    document.addEventListener("DOMContentLoaded", function () {
-      var id = "{{ catalog_install_app_id }}";
-      var btn = document.querySelector("[data-rmc-open-install-impact][data-app-id=\"" + id + "\"]");
-      if (btn && !btn.disabled) {
-        btn.click();
-      }
-    });
-  })();
-  </script>
+  <script type="application/json" id="page-data-marketplace__tenant_app_catalog-1">{
+  "var_catalog_install_app_id": "{{ catalog_install_app_id|escapejs }}"
+}</script><script src="{% static '_pages/marketplace__tenant_app_catalog-1.js' %}"></script>
   {% endif %}
   {% endif %}
 </div>

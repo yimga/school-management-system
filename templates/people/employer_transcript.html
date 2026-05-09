@@ -3,6 +3,7 @@
 {% load region_format %}
 {% block title %}{% trans "Transcript" %} — {{ student.get_full_name }}{% endblock %}
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Transcript" %} — {{ student.get_full_name }}</h1>
 <div class="container-fluid py-4" data-page-archetype="record-detail">
   {% url 'portal:employer_dashboard' as dashboard_url %}
   {% include "studio_os/components/page_header.html" with title=_("Transcript") subtitle=student.get_full_name action_url=dashboard_url action_text=_("Back to dashboard") %}

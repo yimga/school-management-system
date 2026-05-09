@@ -104,15 +104,6 @@
 {{ block.super }}
 {% if impact_graph_json %}
 <script src="{% static 'js/package-dependency-graph.js' %}"></script>
-<script>
-(function () {
-  var mount = document.getElementById("rmc-gallery-graph-mount");
-  var el = document.getElementById("rmc-gallery-graph-json");
-  if (!mount || !el || !window.RmcPackageDependencyGraph) return;
-  try {
-    window.RmcPackageDependencyGraph.render(mount, JSON.parse(el.textContent));
-  } catch (e) {}
-})();
-</script>
+<script src="{% static '_pages/siteconfig__template_gallery.js' %}"></script>
 {% endif %}
 {% endblock %}

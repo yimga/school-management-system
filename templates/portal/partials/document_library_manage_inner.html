@@ -1,3 +1,4 @@
+{% load static %}
 {% load i18n region_format %}
 {# Shared body: full portal page, embed=1 iframe, or Studio Output native (no iframe). #}
 <div class="container-fluid py-2 py-lg-4 doc-library-page{% if studio_output_native %} studio-output-native-documents{% endif %}" data-page-archetype="operational-workbench"{% if studio_output_native %} data-studio-output-native="documents"{% endif %}>
@@ -265,21 +266,6 @@
   </div>
 </div>
 
-<script>
-(function () {
-  var DELETE_URL_TEMPLATE = "{% url 'portal:document_delete' 999999 %}";
-  function confirmDelete(docId, docTitle) {
-    var t = document.getElementById('deleteDocTitle');
-    if (t) t.textContent = docTitle || '';
-    var f = document.getElementById('deleteForm');
-    if (f) f.action = DELETE_URL_TEMPLATE.replace('999999', String(docId));
-    var m = document.getElementById('deleteModal');
-    if (m && window.bootstrap) new bootstrap.Modal(m).show();
-  }
-  document.querySelectorAll('.doc-library-page button[data-doc-id]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      confirmDelete(btn.getAttribute('data-doc-id'), btn.getAttribute('data-doc-title'));
-    });
-  });
-})();
-</script>
+<script type="application/json" id="page-data-portal__partials__document_library_manage_inner-1">{
+  "url_portal_document_delete": "{% url 'portal:document_delete' 999999 %}"
+}</script><script src="{% static '_pages/portal__partials__document_library_manage_inner-1.js' %}"></script>

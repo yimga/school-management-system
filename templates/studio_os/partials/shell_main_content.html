@@ -235,7 +235,13 @@
   </ul>
 </div>
 
-<script>
+{# Studio OS command palette JS (Ctrl+K, filter, focus-trap) was previously
+   inlined and unterminated. Now externalised — see
+   static/js/_pages/studio_os__shell_command_palette.js. #}
+<script src="{% static '_pages/studio_os__shell_command_palette.js' %}" defer></script>
+{% comment %}
+Legacy inline implementation — DELETED in batch 1241. Restore from
+static/js/_pages/studio_os__shell_command_palette.js if needed.
 (function() {
   var btn = document.getElementById('studio-command-palette-btn');
   var backdrop = document.getElementById('studio-cmd-backdrop');
@@ -292,3 +298,4 @@
     if (e.key !== 'Tab' || palette.classList.contains('d-none')) return;
     var focusables = palette.querySelectorAll('input, #studio-cmd-list a[href]'); if (focusables.length < 2) return;
     var first = focusables[0], last = focusables[focusables.length - 1];
+{% endcomment %}

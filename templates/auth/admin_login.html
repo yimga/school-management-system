@@ -9,7 +9,8 @@
 {% endblock %}
 
 {% block content %}
-<section class="admin-login-landing cp-surface cp-ultra-login" id="cp-main-content" aria-label="{% trans 'Configuration Engine sign-in' %}">
+<main class="admin-login-landing cp-surface cp-ultra-login" id="cp-main-content" role="main" aria-label="{% trans 'Configuration Engine sign-in' %}">
+<section aria-labelledby="admin-login-heading">
   <div class="container py-4 mx-auto cp-login-container">
     <div class="admin-login-hero mx-auto">
       <div class="hero-logo" aria-hidden="true">
@@ -30,7 +31,7 @@
       <div class="col-md-10 col-lg-6">
         <div class="card border-0 admin-login-card">
           <div class="card-body p-4">
-            <h2 class="h5 mb-4 text-white" id="admin-login-heading">{% trans "Sign in" %}</h2>
+            <h1 class="h5 mb-4 text-white" id="admin-login-heading">{% trans "Sign in" %}</h1>
 
             {% if form.errors or form.non_field_errors %}
               <div class="alert alert-danger mb-3 admin-login-alert" id="admin-login-errors" role="alert">
@@ -85,4 +86,5 @@
     </div>
   </div>
 </section>
+</main>
 {% endblock %}

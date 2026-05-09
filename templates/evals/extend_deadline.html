@@ -5,6 +5,7 @@
 {% block title %}Extend Deadline{% endblock %}
 
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">Extend Deadline</h1>
 <div class="container mt-4" data-page-archetype="record-detail">
     <div class="row">
         <div class="col-md-6 offset-md-3">
@@ -62,19 +63,7 @@
     </div>
 </div>
 
-<script>
-const currentDeadline = new Date('{{ deadline.deadline_date|date:"c" }}');
-
-function updateNewDeadline() {
-    const daysExtension = parseInt(document.getElementById('daysExtension').value) || 0;
-    const newDate = new Date(currentDeadline);
-    newDate.setDate(newDate.getDate() + daysExtension);
-    
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById('newDeadline').textContent = newDate.toLocaleDateString('en-US', options);
-}
-
-document.getElementById('daysExtension').addEventListener('input', updateNewDeadline);
-window.addEventListener('load', updateNewDeadline);
-</script>
+<script type="application/json" id="page-data-evals__extend_deadline-1">{
+  "var_deadline_deadline_date_date_c": "{{ deadline.deadline_date|date:"c"|escapejs }}"
+}</script><script src="{% static '_pages/evals__extend_deadline-1.js' %}"></script>
 {% endblock %}

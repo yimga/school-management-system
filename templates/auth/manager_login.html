@@ -9,7 +9,8 @@
 {% endblock %}
 
 {% block content %}
-<section class="manager-login-landing cp-surface cp-ultra-login" id="cp-main-content" aria-label="{% trans 'Control plane sign-in' %}">
+<main class="manager-login-landing cp-surface cp-ultra-login" id="cp-main-content" role="main" aria-label="{% trans 'Control plane sign-in' %}">
+<section aria-labelledby="manager-login-heading">
   <div class="container py-4 mx-auto cp-login-container">
     <div class="manager-login-hero mx-auto">
       <div class="hero-logo" aria-hidden="true">
@@ -30,7 +31,7 @@
       <div class="col-md-10 col-lg-6">
         <div class="card border-0 manager-login-card">
           <div class="card-body p-4">
-            <h2 class="h5 mb-4 text-white" id="manager-login-heading">{% trans "Sign in" %}</h2>
+            <h1 class="h5 mb-4 text-white" id="manager-login-heading">{% trans "Sign in" %}</h1>
 
             {% if messages %}
               {% for message in messages %}
@@ -65,4 +66,5 @@
     </div>
   </div>
 </section>
+</main>
 {% endblock %}

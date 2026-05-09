@@ -26,6 +26,10 @@ django-unfold==0.76.0
 django-otp>=1.7.0
 qrcode[pil]>=8.0
 webauthn>=2.0.0
+# Argon2 password hashing — preferred over PBKDF2 for new deployments.
+# Settings.py promotes Argon2PasswordHasher first; PBKDF2 stays as fallback so
+# existing PBKDF2 hashes verify and are upgraded on next login.
+argon2-cffi>=23.1.0
 
 # HTTP & APIs
 requests>=2.31.0

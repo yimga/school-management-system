@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{% load static %}
 {% load i18n %}
 
 {% block cp_title %}{% trans "Upgrade progress" %}{% endblock %}
@@ -21,24 +22,8 @@
       <p class="small text-muted">{% trans "Run ID:" %} {{ run_id }}</p>
     </div>
   </div>
-  <script>
-  (function() {
-    var runId = "{{ run_id|escapejs }}";
-    var progressUrl = "?json=1";
-    function poll() {
-      fetch(window.location.pathname + progressUrl)
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          var total = data.regions_total || 0;
-          var done = data.regions_done !== undefined ? data.regions_done : 0;
-          var status = data.status || "unknown";
-          document.getElementById("progress-text").textContent = status + " — " + done + " / " + total + " regions.";
-          if (status !== "done" && status !== "error") setTimeout(poll, 2000);
-        })
-        .catch(function() { document.getElementById("progress-text").textContent = "Error loading progress."; });
-    }
-    poll();
-  })();
-  </script>
+  <script type="application/json" id="page-data-schools__super_global_ai_version_progress-1">{
+  "var_run_id_escapejs": "{{ run_id|escapejs|escapejs }}"
+}</script><script src="{% static '_pages/schools__super_global_ai_version_progress-1.js' %}"></script>
 </div>
 {% endblock %}

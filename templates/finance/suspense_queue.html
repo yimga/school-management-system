@@ -6,6 +6,7 @@
 {% block title %}Suspense Queue{% endblock %}
 
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">Suspense Queue</h1>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench">
 {% trans "Back to Payments" as back_action %}
 {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
@@ -79,12 +80,5 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-(function() {
-  if (!window.FormDraftSave) return;
-  document.querySelectorAll('form.suspense-claim-form[data-draft-key]').forEach(function(f) {
-    window.FormDraftSave.init(f);
-  });
-})();
-</script>
+<script src="{% static '_pages/finance__suspense_queue.js' %}"></script>
 {% endblock %}

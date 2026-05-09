@@ -1,3 +1,4 @@
+{% load static %}
 {% load i18n %}
 {# §8.0.7 Guided onboarding: role-based first-run "what should I do next?" — show when first_login_tour_show #}
 <div class="onboarding-what-next border rounded-3 p-3 mb-3 bg-light bg-opacity-25" data-onboarding-spotlight="true" role="region" aria-label="{% trans 'What should I do next?' %}">
@@ -24,20 +25,4 @@
     {% endif %}
   </div>
 </div>
-<script>
-(function() {
-  var form = document.querySelector('.js-onboarding-dismiss-form');
-  if (form) {
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      var block = document.querySelector('[data-onboarding-spotlight]');
-      if (block) block.remove();
-      var fd = new FormData(form);
-      var token = form.querySelector('[name=csrfmiddlewaretoken]');
-      if (token) fd.set('csrfmiddlewaretoken', token.value);
-      fetch(form.action, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-        .then(function() {});
-    });
-  }
-})();
-</script>
+<script src="{% static '_pages/partials__onboarding_what_next.js' %}"></script>

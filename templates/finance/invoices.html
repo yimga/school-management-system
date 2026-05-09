@@ -6,6 +6,7 @@
 {% block title %}{% trans "Invoices" %}{% endblock %}
 
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Invoices" %}</h1>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-decision-engine="surface">
 {% phase8_dashboard_declaration "finance/invoices.html" %}
 {% trans "Back to Finance" as back_action %}
@@ -231,39 +232,12 @@
     {% endif %}
   </div>
 </div>
-<script>
-(function() {
-  var key = 'table-density-finance_invoices';
-  var wrapper = document.querySelector('[data-table-density-key="finance_invoices"]');
-  if (!wrapper) return;
-  var table = wrapper.querySelector('table');
-  var condensed = localStorage.getItem(key) === 'condensed';
-  function apply() {
-    if (table) table.classList.toggle('table-condensed', condensed);
-    wrapper.querySelectorAll('.table-density-toggle [data-density]').forEach(function(btn) {
-      btn.classList.toggle('active', (btn.getAttribute('data-density') === 'condensed') === condensed);
-    });
-  }
-  apply();
-  wrapper.querySelectorAll('.table-density-toggle [data-density]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      condensed = this.getAttribute('data-density') === 'condensed';
-      localStorage.setItem(key, condensed ? 'condensed' : 'expanded');
-      apply();
-    });
-  });
-})();
-</script>
+<script src="{% static '_pages/finance__invoices.js' %}"></script>
 {% include "components/was_this_helpful.html" with feedback_id="finance-invoices" %}
 </div>
 {% endblock %}
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-(function() {
-  var f = document.getElementById('finance-invoices-filter-form');
-  if (f && window.FormDraftSave) window.FormDraftSave.init(f);
-})();
-</script>
+<script src="{% static '_pages/finance__invoices-2.js' %}"></script>
 {% endblock %}

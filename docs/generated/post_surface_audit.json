@@ -276,6 +276,16 @@
       "file": "apps/schools/super_views_security_surface.py",
       "line": "96",
       "signal": "csrf_exempt"
+    },
+    {
+      "file": "apps/security/csp_report_view.py",
+      "line": "21",
+      "signal": "csrf_exempt"
+    },
+    {
+      "file": "apps/security/csp_report_view.py",
+      "line": "33",
+      "signal": "csrf_exempt"
     }
   ],
   "cursor_execute_hits": [],
@@ -656,20 +666,20 @@
       "signal": "export_delivery_hint"
     }
   ],
-  "generated_at": "2026-05-08T18:53:21.850699+00:00",
+  "generated_at": "2026-05-09T22:06:00.052054+00:00",
   "post_handler_audit_embed": {
-    "generated_at": "2026-05-08T18:53:18.541665+00:00",
+    "generated_at": "2026-05-09T22:05:56.698055+00:00",
     "summary_by_bucket": {
-      "product": 233,
+      "product": 234,
       "scripts": 4
     },
     "summary_by_classification": {
-      "needs_review": 85,
+      "needs_review": 86,
       "protected_candidate": 148,
       "scripts_cli": 4
     },
     "totals": {
-      "hits": 237
+      "hits": 238
     }
   },
   "post_handler_product_needs_review": [
@@ -1243,6 +1253,13 @@
     {
       "bucket": "product",
       "classification": "needs_review",
+      "file": "apps/security/csp_report_view.py",
+      "line": "34",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
       "file": "apps/siteconfig/views_dashboard_config.py",
       "line": "164",
       "protective_decorator_nearby": false
@@ -1270,29 +1287,29 @@
     }
   ],
   "post_risk": {
-    "product_needs_review_post_handlers": 85,
+    "product_needs_review_post_handlers": 86,
     "product_protected_candidate_post_handlers": 148
   },
   "schema_version": 2,
   "security_surface_audit_embed": {
-    "generated_at": "2026-05-08T18:53:17.284200+00:00",
+    "generated_at": "2026-05-09T22:05:55.414965+00:00",
     "summary": {
       "allow_any": 28,
-      "csrf_exempt": 27,
+      "csrf_exempt": 28,
       "cursor_execute": 2,
       "login_required": 445,
       "permission_classes": 33,
-      "require_http_methods": 325,
+      "require_http_methods": 326,
       "staff_member_required": 72,
       "subprocess": 259
     },
     "summary_by_classification": {
-      "allowed": 1039,
+      "allowed": 1040,
       "needs_review": 141,
-      "unsafe": 11
+      "unsafe": 12
     },
     "totals": {
-      "hits": 1191
+      "hits": 1193
     }
   },
   "subprocess_hits": [
@@ -1404,11 +1421,11 @@
   ],
   "summary": {
     "allow_any_hint_hits": 2,
-    "csrf_exempt_hits_apps": 53,
+    "csrf_exempt_hits_apps": 55,
     "cursor_execute_hits_apps": 0,
     "export_delivery_hint_hits_apps": 75,
-    "product_needs_review": 85,
-    "product_post_handlers": 233,
+    "product_needs_review": 86,
+    "product_post_handlers": 234,
     "product_protected_candidate": 148,
     "subprocess_hits_apps": 21
   }

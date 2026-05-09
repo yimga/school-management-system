@@ -14,7 +14,7 @@
 >
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
-    <h2 class="mb-0" id="support-request-heading">{% trans "Support & Feedback" %}</h2>
+    <h1 class="mb-0" id="support-request-heading">{% trans "Support & Feedback" %}</h1>
     <p class="text-muted small mb-1">
       {% trans "Send a request to the support team or share feedback about the platform." %}
       <a class="ms-1" href="{% url 'portal:support_help_hub' %}">{% trans "Back to help hub" %}</a>
@@ -49,10 +49,5 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-(function() {
-  var form = document.getElementById('support-request-form');
-  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
-})();
-</script>
+<script src="{% static '_pages/portal__support_request.js' %}"></script>
 {% endblock %}

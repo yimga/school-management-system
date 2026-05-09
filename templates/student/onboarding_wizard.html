@@ -9,7 +9,7 @@
 {% block content %}
 <div class="wizard-container">
   <div class="mb-4">
-    <h2 class="mb-1">Student Pre-Registration</h2>
+    <h1 class="mb-1">Student Pre-Registration</h1>
     <div class="text-muted">Complete your registration in a few simple steps.</div>
   </div>
 
@@ -305,13 +305,5 @@
   </div>
 </div>
 
-<script>
-  // Auto-focus on first input
-  document.addEventListener('DOMContentLoaded', function() {
-    const firstInput = document.querySelector('#wizardForm input[type="text"], #wizardForm input[type="email"], #wizardForm select');
-    if (firstInput && !firstInput.value) {
-      firstInput.focus();
-    }
-  });
-</script>
+<script src="{% static '_pages/student__onboarding_wizard.js' %}"></script>
 {% endblock %}

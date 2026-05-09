@@ -221,54 +221,9 @@
 </div>
 
 <!-- Scripts -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const voteBtns = document.querySelectorAll('.vote-btn');
-    
-    voteBtns.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const faqId = this.dataset.faqId;
-            const voteType = this.dataset.vote;
-            const url = `{% url 'kb:faq_vote' %}`;
-            
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                },
-                body: JSON.stringify({
-                    faq_id: faqId,
-                    vote_type: voteType
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    this.classList.add('active');
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        });
-    });
-});
-
-function shareThis() {
-    if (navigator.share) {
-        navigator.share({
-            title: '{{ faq.question }}',
-            text: 'Check out this FAQ on our help center',
-            url: window.location.href
-        });
-    } else {
-        alert('Copy the URL to share: ' + window.location.href);
-    }
-}
-</script>
+<script type="application/json" id="page-data-portal__faq_detail-1">{
+  "url_kb_faq_vote": "{% url 'kb:faq_vote' %}",
+  "var_faq_question": "{{ faq.question|escapejs }}"
+}</script><script src="{% static '_pages/portal__faq_detail-1.js' %}"></script>
 
 {% endblock %}

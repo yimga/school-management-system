@@ -6,6 +6,7 @@
 {% block title %}{% trans "Payments" %}{% endblock %}
 
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Payments" %}</h1>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench">
 {% trans "Back to Finance" as back_action %}
 {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
@@ -97,10 +98,5 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-(function() {
-  var f = document.getElementById('finance-payments-filter-form');
-  if (f && window.FormDraftSave) window.FormDraftSave.init(f);
-})();
-</script>
+<script src="{% static '_pages/finance__payments.js' %}"></script>
 {% endblock %}

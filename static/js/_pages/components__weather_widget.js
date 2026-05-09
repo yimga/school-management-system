@@ -1,0 +1,116 @@
+  (function() {
+    "use strict";
+    var cards = Array.prototype.slice.call(
+      document.querySelectorAll("[data-weather-widget][data-weather-endpoint]")
+    );
+    if (!cards.length) return;
+
+    var weatherIconClasses = {
+      0: "bi-sun-fill", 1: "bi-brightness-high", 2: "bi-cloud-sun", 3: "bi-cloud",
+      45: "bi-cloud-fog2", 48: "bi-cloud-fog2",
+      51: "bi-cloud-drizzle", 53: "bi-cloud-drizzle", 55: "bi-cloud-rain",
+      61: "bi-cloud-rain", 63: "bi-cloud-rain", 65: "bi-cloud-rain-heavy",
+      71: "bi-cloud-snow", 73: "bi-cloud-snow", 75: "bi-cloud-snow",
+      80: "bi-cloud-rain", 81: "bi-cloud-rain", 82: "bi-cloud-rain-heavy",
+      95: "bi-cloud-lightning", 96: "bi-cloud-lightning", 99: "bi-cloud-lightning"
+    };
+
+    var messages = [
+      "\"Great things are done by a series of small things brought together.\" - Vincent Van Gogh",
+      "\"Education is the most powerful weapon which you can use to change the world.\" - Nelson Mandela",
+      "\"The beautiful thing about learning is that no one can take it away from you.\" - B.B. King",
+      "\"Success is not final, failure is not fatal: it is the courage to continue that counts.\" - Winston Churchill",
+      "\"The only way to do great work is to love what you do.\" - Steve Jobs",
+      "\"Believe you can and you are halfway there.\" - Theodore Roosevelt",
+      "\"In the middle of difficulty lies opportunity.\" - Albert Einstein",
+      "\"Quality is not an act, it is a habit.\" - Aristotle",
+      "\"Excellence is not a skill, it is an attitude.\" - Ralph Marston",
+      "\"The expert in anything was once a beginner.\" - Helen Hayes"
+    ];
+
+    function setCardDate(card) {
+      var dateNode = card.querySelector("[data-weather-current-date]");
+      if (!dateNode) return;
+      var now = new Date();
+      dateNode.textContent = now.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+    }
+
+    function setCardMessage(card) {
+      var messageNode = card.querySelector("[data-weather-message]");
+      if (!messageNode) return;
+      var now = new Date();
+      var start = new Date(now.getFullYear(), 0, 0);
+      var dayOfYear = Math.floor((now - start) / 86400000);
+      messageNode.textContent = messages[dayOfYear % messages.length];
+    }
+
+    function setWeatherFallback(card, label) {
+      var iconNode = card.querySelector("[data-weather-icon]");
+      var tempNode = card.querySelector("[data-weather-temp]");
+      var descNode = card.querySelector("[data-weather-desc]");
+      if (iconNode) iconNode.className = "bi bi-cloud weather-widget-card__icon";
+      if (tempNode) tempNode.textContent = "--\u00B0";
+      if (descNode) descNode.textContent = label || "Weather unavailable";
+    }
+
+    function setWeatherFromPayload(card, payload) {
+      var iconNode = card.querySelector("[data-weather-icon]");
+      var tempNode = card.querySelector("[data-weather-temp]");
+      var descNode = card.querySelector("[data-weather-desc]");
+      var weather = payload && payload.weather;
+      if (!weather || payload.enabled === false || !tempNode) {
+        setWeatherFallback(card, payload && payload.label ? payload.label : "Weather unavailable");
+        return;
+      }
+
+      var code = Number(weather.weather_code);
+      var unit = String(payload.temperature_unit || "celsius").toLowerCase() === "fahrenheit" ? "fahrenheit" : "celsius";
+      var unitSymbol = unit === "fahrenheit" ? "F" : "C";
+      var temperature = Math.round(Number(weather.temperature));
+      var description = String(weather.description || "Weather");
+
+      if (iconNode) {
+        var iconClass = weatherIconClasses[code] || "bi-cloud-sun";
+        iconNode.className = "bi " + iconClass + " weather-widget-card__icon";
+      }
+      tempNode.textContent = temperature + "\u00B0" + unitSymbol;
+      if (descNode) descNode.textContent = description;
+    }
+
+    function loadCardWeather(card) {
+      var endpoint = card.getAttribute("data-weather-endpoint");
+      if (!endpoint) {
+        setWeatherFallback(card, "Weather unavailable");
+        return;
+      }
+
+      fetch(endpoint, {
+        method: "GET",
+        credentials: "same-origin",
+        headers: { "Accept": "application/json" }
+      })
+        .then(function(response) { return response.ok ? response.json() : null; })
+        .then(function(payload) {
+          if (!payload) {
+            setWeatherFallback(card, "Weather unavailable");
+            return;
+          }
+          setWeatherFromPayload(card, payload);
+        })
+        .catch(function() {
+          setWeatherFallback(card, "Weather unavailable");
+        });
+    }
+
+    cards.forEach(function(card) {
+      setCardDate(card);
+      setCardMessage(card);
+      loadCardWeather(card);
+      window.setInterval(function() { loadCardWeather(card); }, 15 * 60 * 1000);
+    });
+  })();

@@ -3,6 +3,7 @@
 {% block title %}{% trans "Canteen" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Canteen meals" %}{% endblock %}
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Canteen" %} — {{ school.name }}</h1>
 <div class="container-fluid py-4">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <div class="card shadow-sm mb-4">

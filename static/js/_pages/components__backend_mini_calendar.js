@@ -1,0 +1,30 @@
+(function() {
+  var dowEl = document.getElementById('backendMiniCalDOW');
+  var gridEl = document.getElementById('backendMiniCalGrid');
+  if (!dowEl || !gridEl) return;
+  function render() {
+    var now = new Date();
+    var year = now.getFullYear();
+    var month = now.getMonth();
+    var first = new Date(year, month, 1);
+    var last = new Date(year, month + 1, 0);
+    var startPad = first.getDay();
+    var days = last.getDate();
+    var labels = ['S','M','T','W','T','F','S'];
+    var i, d, cls, gridHtml = '';
+    for (i = 0; i < 7; i++) gridHtml += '<span class="backend-cal-dow-cell">' + labels[i] + '</span>';
+    dowEl.innerHTML = gridHtml;
+    gridHtml = '';
+    for (i = 0; i < startPad; i++) gridHtml += '<span class="backend-cal-cell backend-cal-empty">-</span>';
+    for (d = 1; d <= days; d++) {
+      cls = 'backend-cal-cell' + (d === now.getDate() ? ' backend-cal-today' : '');
+      gridHtml += '<span class="' + cls + '">' + d + '</span>';
+    }
+    gridEl.innerHTML = gridHtml;
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', render);
+  } else {
+    render();
+  }
+})();

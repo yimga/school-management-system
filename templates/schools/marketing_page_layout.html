@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-global-os.css' %}">
 {% endblock %}
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ seo_title|default:"RunMyCampus" }}</h1>
 <section class="py-2 py-lg-3">
   <div class="page-stack{% block marketing_page_stack_class %}{% endblock %}">
     {% block marketing_page_inner %}{% endblock %}

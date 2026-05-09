@@ -5,6 +5,7 @@
 {% block title %}Scan Teller (OCR){% endblock %}
 
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">Scan Teller (OCR)</h1>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench">
 {% url 'finance:payments' as finance_payments_url %}
 {% include "studio_os/components/page_header.html" with title="Scan Teller" subtitle="Upload a teller or payment proof to extract amount/reference and find likely matches." action_url=finance_payments_url action_text="Back to Payments" %}
@@ -147,10 +148,5 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-(function() {
-  var f = document.getElementById('scan-teller-form');
-  if (f && window.FormDraftSave) window.FormDraftSave.init(f);
-})();
-</script>
+<script src="{% static '_pages/finance__scan_teller_placeholder.js' %}"></script>
 {% endblock %}

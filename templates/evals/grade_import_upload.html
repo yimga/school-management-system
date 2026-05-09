@@ -4,7 +4,7 @@
 {% block title %}{% trans "Grade import" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+<main id="main-content" role="main" class="container-fluid py-2" data-page-archetype="operational-workbench">
 <h1>{% trans "Bulk grade import" %}</h1>
 <p class="help">
   {% trans "Upload a CSV using the template headers. You can preview before applying." %}
@@ -90,5 +90,5 @@
 <p class="help mt-2">
   {% trans "Tip: use the CSV template download from the dashboard or /evals/grade-import-template/." %}
 </p>
-</div>
+</main>
 {% endblock %}

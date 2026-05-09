@@ -366,6 +366,14 @@
       {
         "bucket": "product",
         "classification": "unsafe",
+        "file": "apps/security/csp_report_view.py",
+        "governance_tier": "violation",
+        "line": "33",
+        "pattern": "csrf_exempt"
+      },
+      {
+        "bucket": "product",
+        "classification": "unsafe",
         "file": "config/graphql_view.py",
         "governance_tier": "violation",
         "line": "21",
@@ -6238,6 +6246,14 @@
       {
         "bucket": "product",
         "classification": "allowed",
+        "file": "apps/security/csp_report_view.py",
+        "governance_tier": "safe",
+        "line": "34",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
         "file": "apps/siteconfig/dashboard_views.py",
         "governance_tier": "safe",
         "line": "258",
@@ -9545,7 +9561,7 @@
       }
     ]
   },
-  "generated_at": "2026-05-08T18:53:17.284200+00:00",
+  "generated_at": "2026-05-09T22:05:55.414965+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/oneroster_roster_webhook.py",
@@ -9559,27 +9575,27 @@
   "schema_version": 1,
   "summary": {
     "allow_any": 28,
-    "csrf_exempt": 27,
+    "csrf_exempt": 28,
     "cursor_execute": 2,
     "login_required": 445,
     "permission_classes": 33,
-    "require_http_methods": 325,
+    "require_http_methods": 326,
     "staff_member_required": 72,
     "subprocess": 259
   },
   "summary_by_classification": {
-    "allowed": 1039,
+    "allowed": 1040,
     "needs_review": 141,
-    "unsafe": 11
+    "unsafe": 12
   },
   "summary_by_governance_tier": {
     "controlled": 104,
     "needs_review": 38,
-    "safe": 1039,
-    "violation": 10
+    "safe": 1040,
+    "violation": 11
   },
   "totals": {
-    "hits": 1191
+    "hits": 1193
   },
   "unified": [
     {
@@ -9940,6 +9956,14 @@
       "file": "apps/schools/section8_views.py",
       "governance_tier": "safe",
       "line": "943",
+      "pattern": "csrf_exempt"
+    },
+    {
+      "bucket": "product",
+      "classification": "unsafe",
+      "file": "apps/security/csp_report_view.py",
+      "governance_tier": "violation",
+      "line": "33",
       "pattern": "csrf_exempt"
     },
     {
@@ -15804,6 +15828,14 @@
       "file": "apps/schools/views_domains.py",
       "governance_tier": "safe",
       "line": "121",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/security/csp_report_view.py",
+      "governance_tier": "safe",
+      "line": "34",
       "pattern": "require_http_methods"
     },
     {

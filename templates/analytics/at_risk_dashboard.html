@@ -3,6 +3,7 @@
 {% load region_format phase8_tags %}
 {% block title %}At-Risk Dashboard{% endblock %}
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">At-Risk Dashboard</h1>
 <div class="container-fluid" data-page-archetype="operational-workbench" data-decision-engine="surface">
   {% phase8_dashboard_declaration "analytics/at_risk_dashboard.html" %}
   {% url 'analytics:dashboard' as back_url %}

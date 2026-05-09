@@ -79,10 +79,5 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-(function() {
-  var form = document.getElementById('parent-attendance-justification-form');
-  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
-})();
-</script>
+<script src="{% static '_pages/parent__attendance_discipline.js' %}"></script>
 {% endblock %}

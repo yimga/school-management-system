@@ -5,7 +5,7 @@
   {% include "components/world_class_page_hero.html" with hero_id="tenant-pack-title" role="School administrators" title="Pack setup" subtitle="Preview, simulate, request approval, apply approved low-risk changes, deactivate, and roll back tenant-safe packs for the school." purpose="Tenant pack setup" status="Tenant-safe" primary_url="/school/setup/packs/?simulate=1" primary_label="Simulate selected pack" secondary_url="/school/settings/" secondary_label="School configuration" visual_title="Guided school setup" visual_body="Next action, risk, approval, external blockers, and rollback posture stay visible." %}
   {% include "components/world_class_guided_stepper.html" %}
   {% include "components/apple_class_visual_workflow_path.html" with path_id="tenant-pack-flow" title="Tenant Pack Flow" %}
-  {% if result %}<section class="panel"><h2>Result</h2><p>OK: {{ result.ok }}</p><p>{{ result.errors|join:", " }}</p><p>{{ result.status }}</p></section>{% endif %}
+  {% if result %}<section class="panel"><h1>Result</h1><p>OK: {{ result.ok }}</p><p>{{ result.errors|join:", " }}</p><p>{{ result.status }}</p></section>{% endif %}
   <section class="panel">
     <h2>Recommended packs</h2>
     <div class="grid">

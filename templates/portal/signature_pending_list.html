@@ -4,6 +4,7 @@
 {% block title %}Pending Signatures{% endblock %}
 
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">Pending Signatures</h1>
 <div class="container py-4" data-page-archetype="operational-workbench">
   {% url 'portal:parent_dashboard' as dashboard_url %}
   {% include "studio_os/components/page_header.html" with title="Forms Requiring Signature" subtitle="Please review and sign the following forms" action_url=dashboard_url action_text="Back to Dashboard" %}

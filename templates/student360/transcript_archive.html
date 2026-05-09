@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load static %}
 {% load i18n %}
 {% load region_format %}
 {# Section 15.1: Cross-year immutable transcript archive — read-only list by academic year. #}
@@ -67,22 +68,5 @@
     </div>
   </div>
 </div>
-<script>
-(function() {
-  var modal = document.getElementById('freezeModal');
-  if (!modal) return;
-  var form = document.querySelector('form[action*="transcript-freeze"]');
-  var yearSelect = document.getElementById('freeze_year_select');
-  var yearHidden = document.getElementById('freeze_year_id');
-  var submitBtn = document.getElementById('freezeSubmit');
-  if (form && yearSelect && yearHidden && submitBtn) {
-    submitBtn.addEventListener('click', function() {
-      var val = yearSelect.value;
-      if (!val) return;
-      yearHidden.value = val;
-      form.submit();
-    });
-  }
-})();
-</script>
+<script src="{% static '_pages/student360__transcript_archive.js' %}"></script>
 {% endblock %}

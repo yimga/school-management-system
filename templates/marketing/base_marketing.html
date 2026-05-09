@@ -10,18 +10,7 @@
       {% if PUBLIC_BRAND_MODE %}style="--mkt-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:'#0f172a' }}; --mkt-hero-bg: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:'#0f172a' }}; --mkt-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:'#f59e0b' }};"{% endif %}>
 <head>
   <meta charset="utf-8">
-  <script>
-    (function () {
-      var h = document.documentElement;
-      var dt = (h.getAttribute("data-theme") || "light").toLowerCase();
-      if (dt === "system") {
-        var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-        h.setAttribute("data-bs-theme", dark ? "dark" : "light");
-      } else {
-        h.setAttribute("data-bs-theme", dt === "dark" ? "dark" : "light");
-      }
-    })();
-  </script>
+  <script src="{% static '_pages/marketing__base_marketing.js' %}"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
   {% block meta_description %}

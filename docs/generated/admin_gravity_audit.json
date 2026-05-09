@@ -322,7 +322,7 @@
       "title": "Dynamic field EAV operator (read-only triage; admin CRUD for definitions/values)"
     }
   ],
-  "generated_at": "2026-05-08T18:53:30.138777+00:00",
+  "generated_at": "2026-05-09T22:06:07.422386+00:00",
   "marketplace_app_admin_line_hits": {
     "apps/accounts/management/commands/ensure_default_tenant_admin.py": [
       111
@@ -654,6 +654,10 @@
     "apps/schools/super_views_support.py": [
       447,
       448
+    ],
+    "apps/security/csp_middleware.py": [
+      24,
+      82
     ],
     "apps/siteconfig/admin.py": [
       538,
@@ -1035,6 +1039,13 @@
       "line_numbers": [
         447,
         448
+      ]
+    },
+    "apps/security/csp_middleware.py": {
+      "category": "redirect_or_link_to_admin",
+      "line_numbers": [
+        24,
+        82
       ]
     },
     "apps/siteconfig/admin.py": {
@@ -1500,6 +1511,13 @@
       "line_numbers": [
         447,
         448
+      ],
+      "v2": "needs_model_service_support"
+    },
+    "apps/security/csp_middleware.py": {
+      "line_numbers": [
+        24,
+        82
       ],
       "v2": "needs_model_service_support"
     },
@@ -2241,6 +2259,14 @@
           ],
           "path": "apps/schools/super_views_support.py",
           "v2": "needs_model_service_support"
+        },
+        {
+          "lines": [
+            24,
+            82
+          ],
+          "path": "apps/security/csp_middleware.py",
+          "v2": "needs_model_service_support"
         }
       ],
       "templates": [
@@ -2344,28 +2370,11 @@
         },
         {
           "lines": [
-            145,
-            155
-          ],
-          "path": "templates/components/activity_feed.html",
-          "straggler_class": "needs_model_service_support"
-        },
-        {
-          "lines": [
             66,
             82,
             97
           ],
           "path": "templates/components/admin_nav_bridge.html",
-          "straggler_class": "needs_model_service_support"
-        },
-        {
-          "lines": [
-            147,
-            161,
-            175
-          ],
-          "path": "templates/components/keyboard_shortcuts.html",
           "straggler_class": "needs_model_service_support"
         },
         {
@@ -2553,7 +2562,7 @@
     "admin_bridge_hits_by_category": {
       "harmless_django_admin_registration": 4,
       "permission_and_admin_or_bridge": 34,
-      "redirect_or_link_to_admin": 23
+      "redirect_or_link_to_admin": 24
     },
     "admin_template_files": 67,
     "admin_url_namespaces_by_app_label_segment": {
@@ -2596,11 +2605,11 @@
       "accounts_security": 7,
       "marketplace": 4,
       "metadata": 17,
-      "other": 28,
+      "other": 29,
       "platform_runtime_fleet": 2,
       "reports_compliance": 3
     },
-    "product_files_mentioning_admin_bridge": 61,
+    "product_files_mentioning_admin_bridge": 62,
     "shipped_category_regression_checks": {
       "backend_classroom_academic_years_before_admin": "pass",
       "backend_student_portal_tabbed_before_admin": "pass",
@@ -2608,7 +2617,7 @@
       "entity_catalog_template_order": "pass",
       "metadata_console_order": "pass"
     },
-    "template_files_mentioning_admin_url_or_href": 25
+    "template_files_mentioning_admin_url_or_href": 23
   },
   "template_admin_url_reference_hits": {
     "templates/admin/admin_dashboard.html": [
@@ -2669,19 +2678,10 @@
     "templates/admin/sidebar_inner.html": [
       9
     ],
-    "templates/components/activity_feed.html": [
-      145,
-      155
-    ],
     "templates/components/admin_nav_bridge.html": [
       66,
       82,
       97
-    ],
-    "templates/components/keyboard_shortcuts.html": [
-      147,
-      161,
-      175
     ],
     "templates/partials/shell_chrome_backend_ops_strip.html": [
       37

@@ -3,6 +3,7 @@
 {% block title %}{% trans "Clinic log" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Health records" %}{% endblock %}
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Clinic log" %} — {{ school.name }}</h1>
 <div class="container-fluid py-4">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <p class="small text-muted">{% trans "Confidential. Restricted to leadership and staff. Log entries are created from integrated clinic workflows or admin." %}</p>

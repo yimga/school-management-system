@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-08T18:53:18.541665+00:00",
+  "generated_at": "2026-05-09T22:05:56.698055+00:00",
   "rows": [
     {
       "bucket": "product",
@@ -1417,6 +1417,13 @@
     },
     {
       "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/security/csp_report_view.py",
+      "line": "34",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
       "classification": "protected_candidate",
       "file": "apps/siteconfig/dashboard_views.py",
       "line": "258",
@@ -1663,15 +1670,15 @@
   ],
   "schema_version": 1,
   "summary_by_bucket": {
-    "product": 233,
+    "product": 234,
     "scripts": 4
   },
   "summary_by_classification": {
-    "needs_review": 85,
+    "needs_review": 86,
     "protected_candidate": 148,
     "scripts_cli": 4
   },
   "totals": {
-    "hits": 237
+    "hits": 238
   }
 }

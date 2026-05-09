@@ -15,7 +15,7 @@
   <div class="row g-3">
     <div class="col-lg-5">
       <div class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-world-class-tenant-card="1"><div class="card-body">
-        <h2 class="h5">{% trans "Recommended blueprints" %}</h2>
+        <h1 class="h5">{% trans "Recommended blueprints" %}</h1>
         <ul class="list-unstyled mb-0">{% for blueprint in blueprints %}
           <li class="mb-2"><a href="?blueprint={{ blueprint.key }}&preview=1">{{ blueprint.name }}</a><div class="small text-muted">{{ blueprint.target_school_type }} - {{ blueprint.status }}</div></li>
         {% endfor %}</ul>

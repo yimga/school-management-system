@@ -155,22 +155,8 @@
   </div>
 </div>
 
-<script>
-// Show/hide file/link fields based on document type
-document.addEventListener('DOMContentLoaded', function() {
-  const docTypeField = document.getElementById('{{ form.document_type.id_for_label }}');
-  const requiresSigField = document.getElementById('{{ form.requires_signature.id_for_label }}');
-  
-  function updateSignatureField() {
-    const isForm = docTypeField.value === 'FORM';
-    requiresSigField.disabled = !isForm;
-    if (!isForm) {
-      requiresSigField.checked = false;
-    }
-  }
-  
-  docTypeField.addEventListener('change', updateSignatureField);
-  updateSignatureField();
-});
-</script>
+<script type="application/json" id="page-data-portal__document_upload-1">{
+  "var_form_document_type_id_for_label": "{{ form.document_type.id_for_label|escapejs }}",
+  "var_form_requires_signature_id_for_label": "{{ form.requires_signature.id_for_label|escapejs }}"
+}</script><script src="{% static '_pages/portal__document_upload-1.js' %}"></script>
 {% endblock %}

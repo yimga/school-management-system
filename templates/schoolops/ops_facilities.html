@@ -7,7 +7,7 @@
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <div class="card shadow-sm mb-4">
     <div class="card-body">
-      <h2 class="h6">{% trans "New request" %}</h2>
+      <h1 class="h6">{% trans "New request" %}</h1>
       <form method="post" class="row g-2">{% csrf_token %}
         <div class="col-md-4"><label class="form-label small">{% trans "Title" %} *</label><input class="form-control" name="title" required maxlength="200"></div>
         <div class="col-md-4"><label class="form-label small">{% trans "Location" %}</label><input class="form-control" name="location" maxlength="200" placeholder="{% trans 'Building / room' %}"></div>

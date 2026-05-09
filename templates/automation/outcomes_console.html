@@ -5,6 +5,7 @@
 {% block backend_title %}{% trans "Automation outcomes" %}{% endblock %}
 
 {% block content %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Automation outcomes" %}</h1>
 <div class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-os-center="automation_studio_outcomes">
   {% include "components/rmc_os_page_header.html" with os_center_key="automation_studio_outcomes" center_eyebrow=_("Automation") center_title=page_title center_purpose=page_subtitle %}
   <div class="d-flex flex-wrap gap-2 mb-2">
