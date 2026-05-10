@@ -61,9 +61,9 @@ body.admin-manager-shell #nav-sidebar .admin-sidebar-model-link.active, body.adm
 body.admin-manager-shell #nav-sidebar .admin-sidebar-model-link[aria-current="page"], body.admin-premium-shell #nav-sidebar .admin-sidebar-model-link[aria-current="page"],
 body.admin-manager-shell #nav-sidebar-apps .admin-sidebar-link.active, body.admin-premium-shell #nav-sidebar-apps .admin-sidebar-link.active,
 body.admin-manager-shell #nav-sidebar-apps .admin-sidebar-model-link.active , body.admin-premium-shell #nav-sidebar-apps .admin-sidebar-model-link.active {
-  background: rgba(212, 175, 55, 0.15) !important;
-  color: var(--platform-gold, #d4af37) !important;
-  border-left-color: var(--platform-gold, #d4af37) !important;
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: var(--platform-gold, var(--school-accent)) !important;
+  border-left-color: var(--platform-gold, var(--school-accent)) !important;
 }
 
 body.admin-manager-shell #nav-sidebar .admin-sidebar-app-title a, body.admin-premium-shell #nav-sidebar .admin-sidebar-app-title a,
@@ -73,7 +73,7 @@ body.admin-manager-shell #nav-sidebar-apps .admin-sidebar-app-title a , body.adm
 
 body.admin-manager-shell #nav-sidebar .admin-sidebar-app-group.current-app .admin-sidebar-app-title a, body.admin-premium-shell #nav-sidebar .admin-sidebar-app-group.current-app .admin-sidebar-app-title a,
 body.admin-manager-shell #nav-sidebar-apps .admin-sidebar-app-group.current-app .admin-sidebar-app-title a , body.admin-premium-shell #nav-sidebar-apps .admin-sidebar-app-group.current-app .admin-sidebar-app-title a {
-  color: var(--platform-gold, #d4af37) !important;
+  color: var(--platform-gold, var(--school-accent)) !important;
 }
 
 /* Main content area: subtle gradient, same family as control plane */
@@ -102,7 +102,7 @@ body.admin-manager-shell .admin-unfold-header-shell a , body.admin-premium-shell
 
 body.admin-manager-shell #header a:hover, body.admin-premium-shell #header a:hover,
 body.admin-manager-shell .admin-unfold-header-shell a:hover , body.admin-premium-shell .admin-unfold-header-shell a:hover {
-  color: var(--platform-gold, #d4af37) !important;
+  color: var(--platform-gold, var(--school-accent)) !important;
 }
 
 /* Content area: cards and panels */
@@ -131,7 +131,7 @@ body.admin-manager-shell #content a , body.admin-premium-shell #content a {
 }
 
 body.admin-manager-shell #content a:hover , body.admin-premium-shell #content a:hover {
-  color: var(--platform-gold, #d4af37);
+  color: var(--platform-gold, var(--school-accent));
 }
 
 /* Tables */
@@ -157,14 +157,14 @@ body.admin-manager-shell #content td , body.admin-premium-shell #content td {
 body.admin-manager-shell .btn-primary, body.admin-premium-shell .btn-primary,
 body.admin-manager-shell button[type="submit"].primary, body.admin-premium-shell button[type="submit"].primary,
 body.admin-manager-shell a.btn-primary , body.admin-premium-shell a.btn-primary {
-  background: linear-gradient(135deg, #d4af37, #c9a227) !important;
-  border-color: #d4af37 !important;
+  background: linear-gradient(135deg, var(--school-accent), #c9a227) !important;
+  border-color: var(--school-accent) !important;
   color: #0B0E14 !important;
 }
 
 body.admin-manager-shell .btn-primary:hover, body.admin-premium-shell .btn-primary:hover,
 body.admin-manager-shell button[type="submit"].primary:hover , body.admin-premium-shell button[type="submit"].primary:hover {
-  background: linear-gradient(135deg, #e0bc40, #d4af37) !important;
+  background: linear-gradient(135deg, #e0bc40, var(--school-accent)) !important;
   border-color: #e0bc40 !important;
   color: #0B0E14 !important;
 }
@@ -194,7 +194,7 @@ body.admin-manager-shell .preview-cue--ready , body.admin-premium-shell .preview
 /* Breadcrumb: same muted style as control plane */
 body.admin-manager-shell .breadcrumb , body.admin-premium-shell .breadcrumb { background: transparent; padding: 0.5rem 0; }
 body.admin-manager-shell .breadcrumb-item a , body.admin-premium-shell .breadcrumb-item a { color: var(--cp-muted); }
-body.admin-manager-shell .breadcrumb-item a:hover , body.admin-premium-shell .breadcrumb-item a:hover { color: var(--platform-gold, #d4af37); }
+body.admin-manager-shell .breadcrumb-item a:hover , body.admin-premium-shell .breadcrumb-item a:hover { color: var(--platform-gold, var(--school-accent)); }
 body.admin-manager-shell .breadcrumb-item.active , body.admin-premium-shell .breadcrumb-item.active { color: var(--cp-text); }
 
 /* ========== Sidebar: match control plane nav style and spacing ========== */
@@ -233,7 +233,7 @@ body.admin-manager-shell #nav-sidebar .admin-sidebar-model-link , body.admin-pre
 }
 body.admin-manager-shell #nav-sidebar .admin-sidebar-link:hover, body.admin-premium-shell #nav-sidebar .admin-sidebar-link:hover,
 body.admin-manager-shell #nav-sidebar .admin-sidebar-model-link:hover , body.admin-premium-shell #nav-sidebar .admin-sidebar-model-link:hover {
-  background: rgba(212, 175, 55, 0.12) !important;
+  background: rgba(16, 185, 129, 0.12) !important;
   color: #f1f5f9 !important;
 }
 body.admin-manager-shell #nav-sidebar .admin-sidebar-app-title , body.admin-premium-shell #nav-sidebar .admin-sidebar-app-title {
@@ -330,8 +330,8 @@ body.admin-manager-shell #content input:focus, body.admin-premium-shell #content
 body.admin-manager-shell #content select:focus, body.admin-premium-shell #content select:focus,
 body.admin-manager-shell #content textarea:focus , body.admin-premium-shell #content textarea:focus {
   outline: none !important;
-  border-color: var(--platform-gold, #d4af37) !important;
-  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2) !important;
+  border-color: var(--platform-gold, var(--school-accent)) !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
 }
 body.admin-manager-shell #content .submit-row, body.admin-premium-shell #content .submit-row,
 body.admin-manager-shell #content .submit-line , body.admin-premium-shell #content .submit-line {
@@ -370,6 +370,6 @@ body.admin-manager-shell #content .object-tools li , body.admin-premium-shell #c
   font-weight: 500 !important;
 }
 body.admin-manager-shell #content .object-tools a:hover , body.admin-premium-shell #content .object-tools a:hover {
-  background: rgba(212, 175, 55, 0.15) !important;
+  background: rgba(16, 185, 129, 0.15) !important;
   color: var(--platform-gold) !important;
 }

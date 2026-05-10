@@ -1,0 +1,81 @@
+{% load i18n %}
+{# Teacher attendance artifact — morning roll for Year 5B. #}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 340" role="img" aria-labelledby="teacher-attendance-title">
+  <title id="teacher-attendance-title">{% trans "A teacher's morning roll for Year 5B with one absence flagged for follow-up" %}</title>
+
+  {# Window frame #}
+  <rect x="0" y="0" width="520" height="340" rx="14" fill="#FFFFFF" stroke="#E5E1D8"/>
+
+  {# Header bar #}
+  <g>
+    <rect x="0" y="0" width="520" height="44" rx="14" fill="#F2EDE4"/>
+    <rect x="0" y="34" width="520" height="10" fill="#F2EDE4"/>
+    <g transform="translate(20 22)" fill="#9CA3AF">
+      <circle cx="0" cy="0" r="4"/>
+      <circle cx="14" cy="0" r="4"/>
+      <circle cx="28" cy="0" r="4"/>
+    </g>
+    <text x="260" y="27" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" fill="#4B5563" text-anchor="middle">{% trans "Year 5B · Morning roll · Tuesday" %}</text>
+  </g>
+
+  {# Title row #}
+  <g font-family="Inter, system-ui, sans-serif" fill="#1F2937">
+    <text x="28" y="76" font-family="Source Serif 4, Iowan Old Style, serif" font-size="18">{% trans "Marking the register" %}</text>
+    <text x="492" y="76" font-size="11" fill="#6B7280" text-anchor="end">21 / 24</text>
+  </g>
+
+  {# Column headers #}
+  <g font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="500" fill="#6B7280" letter-spacing="0.06em">
+    <text x="28" y="104">{% trans "STUDENT" %}</text>
+    <text x="320" y="104">{% trans "STATUS" %}</text>
+    <text x="430" y="104">{% trans "ARRIVAL" %}</text>
+  </g>
+  <line x1="28" y1="112" x2="492" y2="112" stroke="#E5E1D8"/>
+
+  {# Rows #}
+  <g font-family="Inter, system-ui, sans-serif" font-size="12" fill="#1F2937">
+    <g transform="translate(0 132)">
+      <text x="28">{% trans "Maya Chen" %}</text>
+      <circle cx="324" cy="-4" r="4" fill="#166534"/>
+      <text x="338" y="0" fill="#1F2937">{% trans "Present" %}</text>
+      <text x="430" y="0" fill="#6B7280">8:42</text>
+    </g>
+    <line x1="28" y1="146" x2="492" y2="146" stroke="#F2EDE4"/>
+
+    <g transform="translate(0 166)">
+      <text x="28">{% trans "Daniel Okeke" %}</text>
+      <circle cx="324" cy="-4" r="4" fill="#166534"/>
+      <text x="338" y="0">{% trans "Present" %}</text>
+      <text x="430" y="0" fill="#6B7280">8:38</text>
+    </g>
+    <line x1="28" y1="180" x2="492" y2="180" stroke="#F2EDE4"/>
+
+    <g transform="translate(0 200)">
+      <text x="28">{% trans "Priya Shah" %}</text>
+      <circle cx="324" cy="-4" r="4" fill="#C2410C"/>
+      <text x="338" y="0">{% trans "Late" %}</text>
+      <text x="430" y="0" fill="#6B7280">9:04</text>
+    </g>
+    <line x1="28" y1="214" x2="492" y2="214" stroke="#F2EDE4"/>
+
+    <g transform="translate(0 234)">
+      <text x="28">{% trans "Tom Williams" %}</text>
+      <circle cx="324" cy="-4" r="4" fill="#166534"/>
+      <text x="338" y="0">{% trans "Present" %}</text>
+      <text x="430" y="0" fill="#6B7280">8:31</text>
+    </g>
+    <line x1="28" y1="248" x2="492" y2="248" stroke="#F2EDE4"/>
+
+    {# Highlighted row — absence #}
+    <rect x="14" y="256" width="492" height="28" rx="6" fill="#F2EDE4"/>
+    <g transform="translate(0 274)">
+      <text x="28" font-weight="500">{% trans "Aisha Khan" %}</text>
+      <circle cx="324" cy="-4" r="4" fill="#9CA3AF"/>
+      <text x="338" y="0" fill="#1F2937">{% trans "Absent" %}</text>
+      <text x="430" y="0" font-size="11" fill="#C2410C">{% trans "Notify parent →" %}</text>
+    </g>
+  </g>
+
+  {# Footer #}
+  <text x="28" y="324" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#9CA3AF">{% trans "Saved · 14 seconds ago" %}</text>
+</svg>

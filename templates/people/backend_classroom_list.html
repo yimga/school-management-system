@@ -11,7 +11,7 @@
       {% include "studio_os/components/page_header.html" with title=_("Classrooms") subtitle=_("Classes and sections by year and department.") action_url=add_url action_text=_("Add classroom") %}
       <p class="mb-3"><a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to students" %}</a></p>
 
-      <form method="get" class="card card-body bg-light mb-3" role="search">
+      <form method="get" class="card card-body bg-light mb-3 page-family-filter-row" role="search">
         <div class="row g-2 align-items-end">
           <div class="col-md-3">
             <label for="classroom-q" class="form-label small">{% trans "Search" %}</label>

@@ -4,7 +4,7 @@ Real-time audit logging showing admin actions, student changes, and system event
 
 <div class="activity-feed-container">
   <div class="activity-feed-header">
-    <h3><i class="fas fa-history"></i> Recent Activity</h3>
+    <h3><i class="bi bi-clock-history"></i> Recent Activity</h3>
     <div class="activity-feed-controls">
       <select id="activityFilterType" class="activity-filter-select">
         <option value="">All Events</option>
@@ -14,7 +14,7 @@ Real-time audit logging showing admin actions, student changes, and system event
         <option value="enrollment">Enrollments</option>
       </select>
       <button type="button" id="activityRefreshBtn" class="activity-refresh-btn" title="Refresh activity">
-        <i class="fas fa-sync-alt"></i>
+        <i class="bi bi-arrow-repeat"></i>
       </button>
     </div>
   </div>
@@ -23,7 +23,7 @@ Real-time audit logging showing admin actions, student changes, and system event
     <div id="activityList" class="activity-list">
       <!-- Activities will be loaded here -->
       <div class="activity-loading">
-        <i class="fas fa-spinner fa-spin"></i> Loading activities...
+        <i class="bi bi-arrow-repeat spinning"></i> Loading activities...
       </div>
     </div>
   </div>

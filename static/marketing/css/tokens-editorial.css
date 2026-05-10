@@ -1,0 +1,1033 @@
+/**
+ * Editorial marketing tokens — opt-in palette for the redesigned marketing
+ * surface (cream background, charcoal text, single warm accent, serif display).
+ *
+ * Activation: any ancestor with [data-mkt-edition="editorial"]. The default
+ * (un-attributed) marketing pages keep the existing dark-slate palette from
+ * tokens-marketing.css, so this file is additive and reversible.
+ *
+ * Load order: tokens-marketing.css → this file.
+ */
+
+[data-mkt-edition="editorial"] {
+  /* Palette — warm cream + charcoal + one accent */
+  --mkt-edt-bg: #FAF7F2;
+  --mkt-edt-bg-soft: #F2EDE4;
+  --mkt-edt-ink: #1F2937;
+  --mkt-edt-ink-muted: #4B5563;
+  --mkt-edt-ink-subtle: #6B7280;
+  --mkt-edt-rule: rgba(31, 41, 55, 0.12);
+  --mkt-edt-accent: #C2410C;
+  --mkt-edt-accent-hover: #9A3412;
+  --mkt-edt-on-accent: #FAF7F2;
+
+  /* Override existing --mkt-* tokens so marketing-shell.css inherits the
+   * editorial palette without per-class rewrites. Surfaces that explicitly
+   * draw from --mkt-hero-bg etc. become cream automatically. */
+  --mkt-primary: var(--mkt-edt-ink);
+  --mkt-primary-light: var(--mkt-edt-ink-muted);
+  --mkt-accent: var(--mkt-edt-accent);
+  --mkt-accent-hover: var(--mkt-edt-accent-hover);
+  --mkt-hero-bg: var(--mkt-edt-bg);
+  --mkt-hero-bg-mid: var(--mkt-edt-bg);
+  --mkt-hero-bg-end: var(--mkt-edt-bg-soft);
+  --mkt-text: var(--mkt-edt-ink);
+  --mkt-text-muted: var(--mkt-edt-ink-muted);
+  --mkt-text-inverse: var(--mkt-edt-bg);
+  --mkt-surface: var(--mkt-edt-bg);
+  --mkt-border: var(--mkt-edt-rule);
+  --mkt-on-primary: var(--mkt-edt-bg);
+  --mkt-on-accent: var(--mkt-edt-on-accent);
+
+  /* Typography — serif display, sans body. The serif stack is system-first
+   * so the page renders cleanly before any webfont arrives; swap a webfont
+   * (Spectral / Fraunces / Source Serif 4) into --mkt-edt-font-display once
+   * licensed and self-hosted. */
+  --mkt-edt-font-display: "Source Serif 4", "Spectral", "Iowan Old Style",
+    "Apple Garamond", "Baskerville", "Times New Roman", "Droid Serif", Times,
+    "Source Serif Pro", serif;
+  --mkt-edt-font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  /* Display scale — generous, editorial. rem-based; assumes 16px root. */
+  --mkt-edt-type-hero: clamp(2.5rem, 4.4vw + 1rem, 4.5rem);   /* 40 → 72px */
+  --mkt-edt-type-display: clamp(2rem, 3vw + 1rem, 3rem);      /* 32 → 48px */
+  --mkt-edt-type-section: clamp(1.5rem, 1.6vw + 1rem, 2rem);  /* 24 → 32px */
+  --mkt-edt-type-lead: 1.25rem;                               /* 20px */
+  --mkt-edt-type-body: 1.0625rem;                             /* 17px */
+  --mkt-edt-type-micro: 0.875rem;                             /* 14px */
+
+  /* Line-heights — tighter on display, generous on body */
+  --mkt-edt-leading-display: 1.08;
+  --mkt-edt-leading-section: 1.2;
+  --mkt-edt-leading-body: 1.6;
+
+  /* Letter-spacing — subtly negative on display gives editorial confidence */
+  --mkt-edt-tracking-display: -0.02em;
+  --mkt-edt-tracking-eyebrow: 0.08em;
+
+  /* Spacing scale — editorial sections breathe. Numbers picked to feel
+   * generous on desktop without dwarfing mobile (clamp for hero gap). */
+  --mkt-edt-space-1: 0.5rem;     /*  8px */
+  --mkt-edt-space-2: 1rem;       /* 16px */
+  --mkt-edt-space-3: 1.5rem;     /* 24px */
+  --mkt-edt-space-4: 2.5rem;     /* 40px */
+  --mkt-edt-space-5: 4rem;       /* 64px */
+  --mkt-edt-space-6: 6rem;       /* 96px */
+  --mkt-edt-section-gap: clamp(4rem, 6vw + 2rem, 7.5rem);
+
+  /* Container — wider than Bootstrap default so asymmetric layouts breathe */
+  --mkt-edt-container: 76rem;          /* 1216px */
+  --mkt-edt-container-narrow: 44rem;   /* 704px — for prose-only sections */
+
+  /* Radii — soft, not pill. Editorial avoids rounded chips. */
+  --mkt-edt-radius-sm: 4px;
+  --mkt-edt-radius-md: 8px;
+  --mkt-edt-radius-lg: 14px;
+
+  /* Shadows — almost none. Editorial relies on contrast and rules,
+   * not elevation. One soft shadow reserved for floating artifacts. */
+  --mkt-edt-shadow-artifact: 0 24px 48px -16px rgba(31, 41, 55, 0.18),
+    0 4px 12px -4px rgba(31, 41, 55, 0.08);
+
+  /* Motion — subtle only */
+  --mkt-edt-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --mkt-edt-duration-fast: 120ms;
+  --mkt-edt-duration-base: 240ms;
+}
+
+/* Editorial baseline. Applied to the root element of the editorial surface
+ * (the wrapping <div data-mkt-edition="editorial">). Other pages untouched. */
+[data-mkt-edition="editorial"] {
+  font-family: var(--mkt-edt-font-body);
+  font-size: var(--mkt-edt-type-body);
+  line-height: var(--mkt-edt-leading-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--mkt-edt-ink);
+}
+
+/* Display headings — serif. Apply via class so we don't bulldoze the
+ * existing marketing pages that use h1/h2 with bootstrap classes. */
+[data-mkt-edition="editorial"] .mkt-edt-display,
+[data-mkt-edition="editorial"] .mkt-edt-hero-headline {
+  font-family: var(--mkt-edt-font-display);
+  font-weight: 400;
+  letter-spacing: var(--mkt-edt-tracking-display);
+  line-height: var(--mkt-edt-leading-display);
+  color: var(--mkt-edt-ink);
+  margin: 0;
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-hero-headline {
+  font-size: var(--mkt-edt-type-hero);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-section-headline {
+  font-family: var(--mkt-edt-font-display);
+  font-weight: 400;
+  font-size: var(--mkt-edt-type-display);
+  letter-spacing: var(--mkt-edt-tracking-display);
+  line-height: var(--mkt-edt-leading-section);
+  color: var(--mkt-edt-ink);
+  margin: 0;
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-eyebrow {
+  font-family: var(--mkt-edt-font-body);
+  font-size: var(--mkt-edt-type-micro);
+  font-weight: 500;
+  letter-spacing: var(--mkt-edt-tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--mkt-edt-ink-subtle);
+  margin: 0 0 var(--mkt-edt-space-2);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-lead {
+  font-size: var(--mkt-edt-type-lead);
+  line-height: 1.5;
+  color: var(--mkt-edt-ink-muted);
+  max-width: 36rem;
+  margin: 0;
+}
+
+/* Container helpers */
+[data-mkt-edition="editorial"] .mkt-edt-container {
+  max-width: var(--mkt-edt-container);
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-container-narrow {
+  max-width: var(--mkt-edt-container-narrow);
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-section {
+  padding-block: var(--mkt-edt-section-gap);
+}
+
+/* CTAs — flat, ink-on-cream or accent. No gradient, no shadow. */
+[data-mkt-edition="editorial"] .mkt-edt-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mkt-edt-space-1);
+  padding: 0.875rem 1.5rem;
+  font-family: var(--mkt-edt-font-body);
+  font-size: var(--mkt-edt-type-body);
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  border-radius: var(--mkt-edt-radius-md);
+  border: 1px solid transparent;
+  background: var(--mkt-edt-ink);
+  color: var(--mkt-edt-bg);
+  transition: background var(--mkt-edt-duration-base) var(--mkt-edt-ease),
+    transform var(--mkt-edt-duration-fast) var(--mkt-edt-ease);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-cta:hover {
+  background: #000;
+  transform: translateY(-1px);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-cta:focus-visible {
+  outline: 2px solid var(--mkt-edt-accent);
+  outline-offset: 3px;
+}
+
+/* Tertiary text link — replaces the third hero button */
+[data-mkt-edition="editorial"] .mkt-edt-link {
+  font-family: var(--mkt-edt-font-body);
+  font-size: var(--mkt-edt-type-body);
+  font-weight: 500;
+  color: var(--mkt-edt-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: color var(--mkt-edt-duration-fast) var(--mkt-edt-ease);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-link:hover {
+  color: var(--mkt-edt-accent);
+}
+
+/* Horizontal rule — used between editorial sections instead of card walls */
+[data-mkt-edition="editorial"] .mkt-edt-rule {
+  border: 0;
+  border-top: 1px solid var(--mkt-edt-rule);
+  margin: 0;
+}
+
+/* Reduced motion — kill the lift transform */
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt-edition="editorial"] .mkt-edt-cta {
+    transition: none;
+  }
+  [data-mkt-edition="editorial"] .mkt-edt-cta:hover {
+    transform: none;
+  }
+}
+
+/* ================================================================
+   Phase 2 — propagation to marketing chrome (header, footer, CTAs,
+   mega menu, pricing). Scoped to [data-mkt-edition="editorial"] so
+   dark-slate marketing pages stay untouched.
+   ================================================================ */
+
+/* Body/page background — cream all the way to viewport edges, not just inside containers */
+[data-mkt-edition="editorial"],
+[data-mkt-edition="editorial"] body {
+  background: var(--mkt-edt-bg);
+}
+
+/* ===== Marketing header / navbar =====
+   The navbar markup uses .mkt-navbar.navbar-dark. In editorial mode we override
+   to a cream surface with charcoal links and a hairline bottom rule. */
+[data-mkt-edition="editorial"] .mkt-navbar,
+[data-mkt-edition="editorial"] .statement-header.mkt-navbar,
+[data-mkt-edition="editorial"] .navbar.statement-header {
+  background: var(--mkt-edt-bg) !important;
+  border-bottom: 1px solid var(--mkt-edt-rule);
+  box-shadow: none !important;
+  padding-block: 0.75rem;
+}
+[data-mkt-edition="editorial"] .mkt-navbar .navbar-brand {
+  color: var(--mkt-edt-ink) !important;
+  font-family: var(--mkt-edt-font-display);
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  font-size: 1.0625rem;
+}
+[data-mkt-edition="editorial"] .mkt-navbar .nav-link,
+[data-mkt-edition="editorial"] .mkt-navbar .navbar-nav .nav-link {
+  color: var(--mkt-edt-ink-muted) !important;
+  font-weight: 500;
+  font-size: 0.95rem;
+  letter-spacing: -0.005em;
+  transition: color var(--mkt-edt-duration-fast) var(--mkt-edt-ease);
+}
+[data-mkt-edition="editorial"] .mkt-navbar .nav-link:hover,
+[data-mkt-edition="editorial"] .mkt-navbar .nav-link[aria-expanded="true"] {
+  color: var(--mkt-edt-ink) !important;
+}
+[data-mkt-edition="editorial"] .mkt-navbar .navbar-toggler {
+  border-color: var(--mkt-edt-rule);
+}
+[data-mkt-edition="editorial"] .mkt-navbar .navbar-toggler-icon {
+  /* Use a charcoal hamburger icon, not the white default */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%231F2937' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+/* Header login link — quieter; "Book demo" CTA gets the editorial accent */
+[data-mkt-edition="editorial"] .mkt-navbar .text-white-50 {
+  color: var(--mkt-edt-ink-subtle) !important;
+}
+[data-mkt-edition="editorial"] .mkt-navbar .btn-cta-primary,
+[data-mkt-edition="editorial"] .btn.btn-cta-primary {
+  background: var(--mkt-edt-accent) !important;
+  border-color: var(--mkt-edt-accent) !important;
+  color: var(--mkt-edt-on-accent) !important;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  border-radius: var(--mkt-edt-radius-md);
+  padding: 0.55rem 1.1rem;
+  font-size: 0.9rem;
+  box-shadow: none;
+  transition: background var(--mkt-edt-duration-base) var(--mkt-edt-ease), transform var(--mkt-edt-duration-fast) var(--mkt-edt-ease);
+}
+[data-mkt-edition="editorial"] .mkt-navbar .btn-cta-primary:hover {
+  background: var(--mkt-edt-accent-hover) !important;
+  transform: translateY(-1px);
+}
+
+/* ===== Mega menus (.mkt-mega-menu, .mkt-nav-submenu) =====
+   The dark-themed dropdowns become cream panels with charcoal links. */
+[data-mkt-edition="editorial"] .mkt-navbar .dropdown-menu,
+[data-mkt-edition="editorial"] .mkt-mega-menu,
+[data-mkt-edition="editorial"] .mkt-nav-submenu {
+  background: var(--mkt-edt-bg) !important;
+  color: var(--mkt-edt-ink) !important;
+  border: 1px solid var(--mkt-edt-rule) !important;
+  border-radius: var(--mkt-edt-radius-lg);
+  box-shadow: var(--mkt-edt-shadow-artifact) !important;
+  padding: 0.75rem;
+}
+[data-mkt-edition="editorial"] .mkt-mega-col-title {
+  font-family: var(--mkt-edt-font-body);
+  font-size: var(--mkt-edt-type-micro);
+  font-weight: 600;
+  letter-spacing: var(--mkt-edt-tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--mkt-edt-ink-subtle);
+  margin-bottom: var(--mkt-edt-space-1);
+  padding: 0 0.625rem;
+}
+[data-mkt-edition="editorial"] .mkt-mega-link {
+  display: block;
+  padding: 0.5rem 0.625rem;
+  border-radius: var(--mkt-edt-radius-sm);
+  color: var(--mkt-edt-ink);
+  text-decoration: none;
+  transition: background var(--mkt-edt-duration-fast) var(--mkt-edt-ease);
+}
+[data-mkt-edition="editorial"] .mkt-mega-link:hover,
+[data-mkt-edition="editorial"] .mkt-mega-link:focus-visible {
+  background: var(--mkt-edt-bg-soft);
+  color: var(--mkt-edt-ink);
+}
+[data-mkt-edition="editorial"] .mkt-mega-label {
+  display: block;
+  font-weight: 500;
+  font-size: 0.95rem;
+  letter-spacing: -0.005em;
+}
+[data-mkt-edition="editorial"] .mkt-mega-blurb {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--mkt-edt-ink-subtle);
+  margin-top: 1px;
+  line-height: 1.4;
+}
+[data-mkt-edition="editorial"] .mkt-nav-submenu .dropdown-item {
+  color: var(--mkt-edt-ink);
+  border-radius: var(--mkt-edt-radius-sm);
+  padding: 0.5rem 0.75rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+[data-mkt-edition="editorial"] .mkt-nav-submenu .dropdown-item:hover,
+[data-mkt-edition="editorial"] .mkt-nav-submenu .dropdown-item:focus {
+  background: var(--mkt-edt-bg-soft);
+  color: var(--mkt-edt-ink);
+}
+[data-mkt-edition="editorial"] .mkt-nav-submenu .dropdown-header {
+  color: var(--mkt-edt-ink-subtle);
+  font-weight: 600;
+  letter-spacing: var(--mkt-edt-tracking-eyebrow);
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+/* ===== Marketing footer =====
+   Reads as quiet editorial — cream surface, hairline top rule, refined link styling. */
+[data-mkt-edition="editorial"] .marketing-footer,
+[data-mkt-edition="editorial"] footer.mkt-footer,
+[data-mkt-edition="editorial"] [data-mkt-footer] {
+  background: var(--mkt-edt-bg);
+  color: var(--mkt-edt-ink-muted);
+  border-top: 1px solid var(--mkt-edt-rule);
+  padding-block: var(--mkt-edt-space-5);
+  font-family: var(--mkt-edt-font-body);
+  font-size: 0.9rem;
+  letter-spacing: -0.005em;
+}
+[data-mkt-edition="editorial"] .marketing-footer h4,
+[data-mkt-edition="editorial"] .marketing-footer h5,
+[data-mkt-edition="editorial"] .marketing-footer .footer-col-title,
+[data-mkt-edition="editorial"] [data-mkt-footer] h4,
+[data-mkt-edition="editorial"] [data-mkt-footer] h5 {
+  font-family: var(--mkt-edt-font-body);
+  font-size: var(--mkt-edt-type-micro);
+  font-weight: 600;
+  letter-spacing: var(--mkt-edt-tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--mkt-edt-ink-subtle);
+  margin-bottom: var(--mkt-edt-space-2);
+}
+[data-mkt-edition="editorial"] .marketing-footer a,
+[data-mkt-edition="editorial"] [data-mkt-footer] a {
+  color: var(--mkt-edt-ink-muted);
+  text-decoration: none;
+  transition: color var(--mkt-edt-duration-fast) var(--mkt-edt-ease);
+}
+[data-mkt-edition="editorial"] .marketing-footer a:hover,
+[data-mkt-edition="editorial"] [data-mkt-footer] a:hover {
+  color: var(--mkt-edt-ink);
+}
+[data-mkt-edition="editorial"] .marketing-footer .footer-fineprint,
+[data-mkt-edition="editorial"] [data-mkt-footer] .footer-fineprint {
+  font-size: 0.8125rem;
+  color: var(--mkt-edt-ink-subtle);
+  border-top: 1px solid var(--mkt-edt-rule);
+  margin-top: var(--mkt-edt-space-4);
+  padding-top: var(--mkt-edt-space-3);
+}
+
+/* ===== Pricing chrome =====
+   The pricing-packages template uses Bootstrap cards. In editorial mode they
+   become cream panels with hairline borders, terracotta on the recommended tier. */
+[data-mkt-edition="editorial"] .pricing-card,
+[data-mkt-edition="editorial"] .price-card,
+[data-mkt-edition="editorial"] [data-pricing-card] {
+  background: var(--mkt-edt-bg);
+  border: 1px solid var(--mkt-edt-rule);
+  border-radius: var(--mkt-edt-radius-lg);
+  padding: var(--mkt-edt-space-4);
+  box-shadow: none;
+  transition: border-color var(--mkt-edt-duration-base) var(--mkt-edt-ease),
+              transform var(--mkt-edt-duration-base) var(--mkt-edt-ease);
+}
+[data-mkt-edition="editorial"] .pricing-card:hover,
+[data-mkt-edition="editorial"] .price-card:hover,
+[data-mkt-edition="editorial"] [data-pricing-card]:hover {
+  border-color: rgba(31, 41, 55, 0.24);
+  transform: translateY(-2px);
+}
+[data-mkt-edition="editorial"] .pricing-card.is-recommended,
+[data-mkt-edition="editorial"] .price-card.is-recommended,
+[data-mkt-edition="editorial"] [data-pricing-card][data-recommended="1"] {
+  border-color: var(--mkt-edt-accent);
+  background: var(--mkt-edt-bg-soft);
+  box-shadow: var(--mkt-edt-shadow-artifact);
+}
+[data-mkt-edition="editorial"] .pricing-card .price-amount,
+[data-mkt-edition="editorial"] [data-pricing-card] .price-amount,
+[data-mkt-edition="editorial"] [data-pricing-card] .display-4 {
+  font-family: var(--mkt-edt-font-display);
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-weight: 400;
+  letter-spacing: var(--mkt-edt-tracking-display);
+  color: var(--mkt-edt-ink);
+  line-height: 1.1;
+  margin-bottom: var(--mkt-edt-space-1);
+  font-variant-numeric: tabular-nums;
+}
+[data-mkt-edition="editorial"] .pricing-card .price-period,
+[data-mkt-edition="editorial"] [data-pricing-card] .price-period {
+  font-size: 0.9rem;
+  color: var(--mkt-edt-ink-subtle);
+  font-weight: 500;
+}
+[data-mkt-edition="editorial"] .pricing-card .price-name,
+[data-mkt-edition="editorial"] [data-pricing-card] .price-name,
+[data-mkt-edition="editorial"] [data-pricing-card] h3 {
+  font-family: var(--mkt-edt-font-body);
+  font-size: var(--mkt-edt-type-micro);
+  font-weight: 600;
+  letter-spacing: var(--mkt-edt-tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--mkt-edt-ink-subtle);
+  margin-bottom: var(--mkt-edt-space-1);
+}
+[data-mkt-edition="editorial"] .pricing-card ul,
+[data-mkt-edition="editorial"] [data-pricing-card] ul {
+  list-style: none;
+  padding-left: 0;
+  margin: var(--mkt-edt-space-3) 0;
+}
+[data-mkt-edition="editorial"] .pricing-card ul li,
+[data-mkt-edition="editorial"] [data-pricing-card] ul li {
+  padding: 0.4rem 0;
+  font-size: 0.9rem;
+  color: var(--mkt-edt-ink-muted);
+  line-height: 1.5;
+  position: relative;
+  padding-left: 1.5rem;
+}
+[data-mkt-edition="editorial"] .pricing-card ul li::before,
+[data-mkt-edition="editorial"] [data-pricing-card] ul li::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0.6rem;
+  width: 0.875rem; height: 0.875rem;
+  background: var(--mkt-edt-accent);
+  -webkit-mask: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='currentColor' d='M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 1 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z'/%3e%3c/svg%3e") center/contain no-repeat;
+          mask: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='currentColor' d='M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 1 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z'/%3e%3c/svg%3e") center/contain no-repeat;
+}
+
+/* Bootstrap btn-primary inside editorial — bind to the editorial accent
+   so the existing pricing CTAs flip to terracotta when wrapped in editorial. */
+[data-mkt-edition="editorial"] .btn-primary {
+  background: var(--mkt-edt-ink);
+  border-color: var(--mkt-edt-ink);
+  color: var(--mkt-edt-bg) !important;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  border-radius: var(--mkt-edt-radius-md);
+  padding: 0.7rem 1.4rem;
+  box-shadow: none;
+}
+[data-mkt-edition="editorial"] .btn-primary:hover {
+  background: #000;
+  border-color: #000;
+}
+[data-mkt-edition="editorial"] .btn-outline-primary {
+  border-color: var(--mkt-edt-ink);
+  color: var(--mkt-edt-ink) !important;
+  background: transparent;
+  border-radius: var(--mkt-edt-radius-md);
+  padding: 0.7rem 1.4rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+[data-mkt-edition="editorial"] .btn-outline-primary:hover {
+  background: var(--mkt-edt-ink);
+  color: var(--mkt-edt-bg) !important;
+}
+
+/* ===== Page typography overrides — Bootstrap h1/h2/.display-* in editorial mode ===== */
+[data-mkt-edition="editorial"] h1.display-1,
+[data-mkt-edition="editorial"] h1.display-2,
+[data-mkt-edition="editorial"] h1.display-3,
+[data-mkt-edition="editorial"] .display-1,
+[data-mkt-edition="editorial"] .display-2,
+[data-mkt-edition="editorial"] .display-3 {
+  font-family: var(--mkt-edt-font-display);
+  font-weight: 400;
+  letter-spacing: var(--mkt-edt-tracking-display);
+  line-height: var(--mkt-edt-leading-display);
+  color: var(--mkt-edt-ink);
+}
+[data-mkt-edition="editorial"] .lead {
+  font-family: var(--mkt-edt-font-body);
+  font-size: var(--mkt-edt-type-lead);
+  color: var(--mkt-edt-ink-muted);
+  line-height: 1.5;
+  font-weight: 400;
+}
+[data-mkt-edition="editorial"] .text-muted {
+  color: var(--mkt-edt-ink-subtle) !important;
+}
+
+/* Section padding rhythm for any marketing content area in editorial mode */
+[data-mkt-edition="editorial"] section,
+[data-mkt-edition="editorial"] .mkt-section {
+  padding-block: clamp(3rem, 5vw + 1rem, 5rem);
+}
+
+
+/* ============================================================
+ * Inner-page content classes (detail-hero, segment-card, etc.).
+ * The marketing-static-bundle.css carve-out defines these as dark
+ * Bootstrap surfaces. Editorial mode overrides them with cream
+ * surfaces, charcoal ink, hairline borders, and serif display.
+ *
+ * Specificity is achieved via the [data-mkt-edition="editorial"]
+ * ancestor — no !important needed for most rules.
+ * ============================================================ */
+
+/* ----- Page nav scroll (pill row at top of inner pages) ----- */
+[data-mkt-edition="editorial"] .page-nav-scroll {
+  border-bottom: 1px solid var(--mkt-edt-rule);
+  padding-bottom: var(--mkt-edt-space-2);
+  margin-bottom: var(--mkt-edt-space-3);
+}
+[data-mkt-edition="editorial"] .page-nav-scroll .btn {
+  background: transparent;
+  border: 1px solid var(--mkt-edt-rule);
+  color: var(--mkt-edt-ink-muted);
+  border-radius: var(--mkt-edt-radius-sm);
+  font-weight: 500;
+}
+[data-mkt-edition="editorial"] .page-nav-scroll .btn-primary,
+[data-mkt-edition="editorial"] .page-nav-scroll .btn.btn-primary {
+  background: var(--mkt-edt-ink);
+  border-color: var(--mkt-edt-ink);
+  color: var(--mkt-edt-bg);
+}
+[data-mkt-edition="editorial"] .page-nav-scroll .btn:hover {
+  border-color: var(--mkt-edt-ink);
+  color: var(--mkt-edt-ink);
+}
+
+/* ----- Detail hero (page-level intro card) ----- */
+[data-mkt-edition="editorial"] .detail-hero {
+  background: var(--mkt-edt-bg);
+  color: var(--mkt-edt-ink);
+  box-shadow: none;
+  border-radius: 0;
+  padding: clamp(2rem, 4vw, 3.5rem) 0;
+  border-bottom: 1px solid var(--mkt-edt-rule);
+}
+[data-mkt-edition="editorial"] .detail-eyebrow {
+  color: var(--mkt-edt-ink-subtle);
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  opacity: 1;
+  margin-bottom: var(--mkt-edt-space-2);
+}
+[data-mkt-edition="editorial"] .detail-headline {
+  font-family: var(--mkt-edt-font-display);
+  font-weight: 400;
+  font-size: clamp(2rem, 3.4vw + 0.5rem, 3.5rem);
+  line-height: var(--mkt-edt-leading-display);
+  letter-spacing: var(--mkt-edt-tracking-display);
+  color: var(--mkt-edt-ink);
+  margin-bottom: var(--mkt-edt-space-3);
+  max-width: 32ch;
+}
+[data-mkt-edition="editorial"] .detail-subheadline {
+  color: var(--mkt-edt-ink-muted);
+  font-size: var(--mkt-edt-type-lead);
+  line-height: 1.5;
+  max-width: 56ch;
+  margin-bottom: var(--mkt-edt-space-3);
+}
+[data-mkt-edition="editorial"] .hero-cta {
+  display: flex;
+  gap: var(--mkt-edt-space-3);
+  flex-wrap: wrap;
+  align-items: center;
+}
+[data-mkt-edition="editorial"] .hero-cta .btn-light {
+  background: var(--mkt-edt-ink);
+  border-color: var(--mkt-edt-ink);
+  color: var(--mkt-edt-bg);
+  font-weight: 500;
+}
+[data-mkt-edition="editorial"] .hero-cta .btn-light:hover {
+  background: #000;
+}
+[data-mkt-edition="editorial"] .hero-cta .btn-outline-light {
+  background: transparent;
+  border-color: var(--mkt-edt-ink);
+  color: var(--mkt-edt-ink);
+  font-weight: 500;
+}
+[data-mkt-edition="editorial"] .hero-cta .btn-outline-light:hover {
+  background: var(--mkt-edt-ink);
+  color: var(--mkt-edt-bg);
+}
+
+/* ----- Trust strip (was a row of dark pills) ----- */
+[data-mkt-edition="editorial"] .trust-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mkt-edt-space-3);
+  margin-top: var(--mkt-edt-space-3);
+  padding: 0;
+  background: transparent;
+}
+[data-mkt-edition="editorial"] .trust-pill {
+  background: transparent;
+  color: var(--mkt-edt-ink-muted);
+  border: 0;
+  padding: 0;
+  font-size: var(--mkt-edt-type-micro);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+[data-mkt-edition="editorial"] .trust-pill:not(:last-child)::after {
+  content: " \00b7";
+  color: var(--mkt-edt-ink-subtle);
+  margin-left: var(--mkt-edt-space-2);
+}
+
+/* ----- Section shell + headings ----- */
+[data-mkt-edition="editorial"] .section-shell {
+  padding-block: clamp(2.5rem, 5vw, 4rem);
+  background: transparent;
+}
+[data-mkt-edition="editorial"] .section-heading {
+  font-family: var(--mkt-edt-font-display);
+  font-weight: 400;
+  font-size: var(--mkt-edt-type-display);
+  letter-spacing: var(--mkt-edt-tracking-display);
+  line-height: var(--mkt-edt-leading-section);
+  color: var(--mkt-edt-ink);
+  margin: 0 0 var(--mkt-edt-space-2);
+}
+[data-mkt-edition="editorial"] .section-lead {
+  color: var(--mkt-edt-ink-muted);
+  font-size: var(--mkt-edt-type-lead);
+  line-height: 1.5;
+  max-width: 56ch;
+  margin: 0 0 var(--mkt-edt-space-4);
+}
+
+/* ----- Generic card grid (segment / execution / case) ----- */
+[data-mkt-edition="editorial"] .segment-grid,
+[data-mkt-edition="editorial"] .execution-grid,
+[data-mkt-edition="editorial"] .case-grid,
+[data-mkt-edition="editorial"] .integration-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--mkt-edt-space-3);
+}
+[data-mkt-edition="editorial"] .segment-card,
+[data-mkt-edition="editorial"] .execution-card,
+[data-mkt-edition="editorial"] .case-card,
+[data-mkt-edition="editorial"] .integration-trust-card {
+  background: var(--mkt-edt-bg);
+  color: var(--mkt-edt-ink);
+  border: 1px solid var(--mkt-edt-rule);
+  border-radius: var(--mkt-edt-radius-md);
+  padding: var(--mkt-edt-space-3);
+  box-shadow: none;
+  transition: border-color var(--mkt-edt-duration-base) var(--mkt-edt-ease);
+}
+[data-mkt-edition="editorial"] .segment-card:hover,
+[data-mkt-edition="editorial"] .execution-card:hover,
+[data-mkt-edition="editorial"] .case-card:hover,
+[data-mkt-edition="editorial"] .integration-trust-card:hover {
+  border-color: var(--mkt-edt-ink);
+}
+[data-mkt-edition="editorial"] .segment-card h3,
+[data-mkt-edition="editorial"] .execution-card h3,
+[data-mkt-edition="editorial"] .case-card h3,
+[data-mkt-edition="editorial"] .integration-trust-card h4 {
+  font-family: var(--mkt-edt-font-display);
+  font-weight: 400;
+  font-size: var(--mkt-edt-type-section);
+  letter-spacing: var(--mkt-edt-tracking-display);
+  line-height: 1.25;
+  color: var(--mkt-edt-ink);
+  margin: 0 0 var(--mkt-edt-space-1);
+}
+[data-mkt-edition="editorial"] .segment-card p,
+[data-mkt-edition="editorial"] .execution-card p,
+[data-mkt-edition="editorial"] .case-card p,
+[data-mkt-edition="editorial"] .integration-trust-card p {
+  color: var(--mkt-edt-ink-muted);
+  font-size: var(--mkt-edt-type-body);
+  line-height: 1.55;
+  margin: 0;
+}
+[data-mkt-edition="editorial"] .case-impact {
+  display: inline-block;
+  margin-top: var(--mkt-edt-space-2);
+  padding: 4px 10px;
+  background: var(--mkt-edt-bg-soft);
+  color: var(--mkt-edt-ink);
+  border-radius: var(--mkt-edt-radius-sm);
+  font-size: var(--mkt-edt-type-micro);
+  font-weight: 500;
+}
+
+/* ----- Metric grid (KPI tiles) ----- */
+[data-mkt-edition="editorial"] .metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--mkt-edt-space-3);
+}
+[data-mkt-edition="editorial"] .metric-card {
+  background: var(--mkt-edt-bg);
+  color: var(--mkt-edt-ink);
+  border: 1px solid var(--mkt-edt-rule);
+  border-radius: var(--mkt-edt-radius-md);
+  padding: var(--mkt-edt-space-3);
+  box-shadow: none;
+}
+[data-mkt-edition="editorial"] .metric-card strong {
+  font-family: var(--mkt-edt-font-display);
+  font-weight: 400;
+  font-size: 1.75rem;
+  color: var(--mkt-edt-ink);
+  display: block;
+  margin-bottom: var(--mkt-edt-space-1);
+}
+[data-mkt-edition="editorial"] .metric-card small {
+  color: var(--mkt-edt-ink-subtle);
+  font-size: var(--mkt-edt-type-micro);
+}
+
+/* ----- Timeline phase block ----- */
+[data-mkt-edition="editorial"] .timeline-phase {
+  border-left: 2px solid var(--mkt-edt-rule);
+  padding-left: var(--mkt-edt-space-3);
+  margin-bottom: var(--mkt-edt-space-4);
+}
+[data-mkt-edition="editorial"] .phase-owner {
+  font-size: var(--mkt-edt-type-micro);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mkt-edt-ink-subtle);
+  margin-bottom: var(--mkt-edt-space-1);
+}
+[data-mkt-edition="editorial"] .agenda-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+[data-mkt-edition="editorial"] .agenda-list li {
+  padding-left: var(--mkt-edt-space-3);
+  position: relative;
+  margin-bottom: var(--mkt-edt-space-1);
+  color: var(--mkt-edt-ink-muted);
+  line-height: 1.55;
+}
+[data-mkt-edition="editorial"] .agenda-list li::before {
+  content: "\2014";
+  color: var(--mkt-edt-ink-subtle);
+  position: absolute;
+  left: 0;
+}
+
+/* ----- Highlight list (with check marks) ----- */
+[data-mkt-edition="editorial"] .highlight-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+[data-mkt-edition="editorial"] .highlight-list li {
+  padding-left: var(--mkt-edt-space-3);
+  position: relative;
+  margin-bottom: var(--mkt-edt-space-2);
+  color: var(--mkt-edt-ink);
+  line-height: 1.55;
+}
+[data-mkt-edition="editorial"] .highlight-list li::before {
+  content: "\2713";
+  color: var(--mkt-edt-accent);
+  position: absolute;
+  left: 0;
+  font-weight: 600;
+}
+
+/* ----- Topic grid (solution topic links) ----- */
+[data-mkt-edition="editorial"] .topic-grid a {
+  display: block;
+  padding: var(--mkt-edt-space-3);
+  background: var(--mkt-edt-bg);
+  border: 1px solid var(--mkt-edt-rule);
+  border-radius: var(--mkt-edt-radius-md);
+  color: var(--mkt-edt-ink);
+  text-decoration: none;
+  transition: border-color var(--mkt-edt-duration-base) var(--mkt-edt-ease);
+}
+[data-mkt-edition="editorial"] .topic-grid a:hover {
+  border-color: var(--mkt-edt-ink);
+}
+[data-mkt-edition="editorial"] .topic-grid a small {
+  color: var(--mkt-edt-ink-subtle);
+  font-size: var(--mkt-edt-type-micro);
+}
+[data-mkt-edition="editorial"] .topic-grid a strong {
+  display: block;
+  margin-top: var(--mkt-edt-space-1);
+  font-weight: 500;
+}
+
+/* ----- Comparison table ----- */
+[data-mkt-edition="editorial"] .compare-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--mkt-edt-rule);
+  border-radius: var(--mkt-edt-radius-md);
+}
+[data-mkt-edition="editorial"] .compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--mkt-edt-bg);
+}
+[data-mkt-edition="editorial"] .compare-table th,
+[data-mkt-edition="editorial"] .compare-table td {
+  padding: var(--mkt-edt-space-2) var(--mkt-edt-space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--mkt-edt-rule);
+  color: var(--mkt-edt-ink);
+  font-size: var(--mkt-edt-type-body);
+}
+[data-mkt-edition="editorial"] .compare-table thead th {
+  background: var(--mkt-edt-bg-soft);
+  font-family: var(--mkt-edt-font-body);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--mkt-edt-ink);
+}
+[data-mkt-edition="editorial"] .compare-table tr:last-child td {
+  border-bottom: 0;
+}
+
+/* ----- SLA / uptime block ----- */
+[data-mkt-edition="editorial"] .sla-uptime-block {
+  background: var(--mkt-edt-bg-soft);
+  border: 1px solid var(--mkt-edt-rule);
+  border-radius: var(--mkt-edt-radius-md);
+  padding: var(--mkt-edt-space-3);
+  color: var(--mkt-edt-ink);
+}
+[data-mkt-edition="editorial"] .sla-uptime-block strong {
+  color: var(--mkt-edt-ink);
+}
+
+/* ----- Close CTA section ----- */
+[data-mkt-edition="editorial"] .close-cta {
+  background: var(--mkt-edt-bg-soft);
+  border-top: 1px solid var(--mkt-edt-rule);
+  padding: clamp(2.5rem, 5vw, 4rem) 0;
+  margin-top: var(--mkt-edt-space-5);
+  border-radius: 0;
+}
+[data-mkt-edition="editorial"] .close-cta h2 {
+  font-family: var(--mkt-edt-font-display);
+  font-weight: 400;
+  font-size: var(--mkt-edt-type-display);
+  letter-spacing: var(--mkt-edt-tracking-display);
+  color: var(--mkt-edt-ink);
+  margin-bottom: var(--mkt-edt-space-2);
+}
+[data-mkt-edition="editorial"] .close-cta p {
+  color: var(--mkt-edt-ink-muted);
+  font-size: var(--mkt-edt-type-lead);
+  max-width: 56ch;
+  margin-bottom: var(--mkt-edt-space-3);
+}
+[data-mkt-edition="editorial"] .close-cta .btn-primary {
+  background: var(--mkt-edt-accent);
+  border-color: var(--mkt-edt-accent);
+  color: var(--mkt-edt-on-accent);
+  font-weight: 500;
+}
+[data-mkt-edition="editorial"] .close-cta .btn-outline-secondary {
+  background: transparent;
+  border-color: var(--mkt-edt-ink);
+  color: var(--mkt-edt-ink);
+  font-weight: 500;
+}
+
+/* ----- Bootstrap card + .rmc-wcx-surface (used by pricing-packages, trust) ----- */
+[data-mkt-edition="editorial"] .card,
+[data-mkt-edition="editorial"] .rmc-wcx-surface {
+  background: var(--mkt-edt-bg);
+  color: var(--mkt-edt-ink);
+  border: 1px solid var(--mkt-edt-rule);
+  border-radius: var(--mkt-edt-radius-md);
+  box-shadow: none;
+  transition: border-color var(--mkt-edt-duration-base) var(--mkt-edt-ease);
+}
+[data-mkt-edition="editorial"] .card:hover,
+[data-mkt-edition="editorial"] .rmc-wcx-surface:hover {
+  border-color: var(--mkt-edt-ink);
+}
+[data-mkt-edition="editorial"] .card .card-body {
+  color: var(--mkt-edt-ink);
+}
+[data-mkt-edition="editorial"] .card h1,
+[data-mkt-edition="editorial"] .card h2,
+[data-mkt-edition="editorial"] .card h3,
+[data-mkt-edition="editorial"] .rmc-wcx-surface h1,
+[data-mkt-edition="editorial"] .rmc-wcx-surface h2,
+[data-mkt-edition="editorial"] .rmc-wcx-surface h3 {
+  font-family: var(--mkt-edt-font-display);
+  font-weight: 400;
+  letter-spacing: var(--mkt-edt-tracking-display);
+  color: var(--mkt-edt-ink);
+}
+[data-mkt-edition="editorial"] .card .text-muted,
+[data-mkt-edition="editorial"] .rmc-wcx-surface .text-muted {
+  color: var(--mkt-edt-ink-muted) !important;
+}
+
+/* ----- Bootstrap utility tweaks under editorial scope ----- */
+[data-mkt-edition="editorial"] .text-muted {
+  color: var(--mkt-edt-ink-muted) !important;
+}
+[data-mkt-edition="editorial"] .text-secondary {
+  color: var(--mkt-edt-ink-muted) !important;
+}
+[data-mkt-edition="editorial"] .lead {
+  color: var(--mkt-edt-ink-muted);
+  font-size: var(--mkt-edt-type-lead);
+  font-weight: 400;
+  line-height: 1.5;
+}
+[data-mkt-edition="editorial"] .alert {
+  background: var(--mkt-edt-bg-soft);
+  border: 1px solid var(--mkt-edt-rule);
+  color: var(--mkt-edt-ink);
+  border-radius: var(--mkt-edt-radius-md);
+}
+[data-mkt-edition="editorial"] .alert-success {
+  border-color: rgba(22, 101, 52, 0.4);
+  background: rgba(22, 101, 52, 0.06);
+}
+[data-mkt-edition="editorial"] .alert-warning {
+  border-color: rgba(194, 65, 12, 0.4);
+  background: rgba(194, 65, 12, 0.06);
+}
+[data-mkt-edition="editorial"] .badge {
+  background: var(--mkt-edt-bg-soft);
+  color: var(--mkt-edt-ink);
+  border: 1px solid var(--mkt-edt-rule);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+[data-mkt-edition="editorial"] .table {
+  --bs-table-bg: var(--mkt-edt-bg);
+  --bs-table-color: var(--mkt-edt-ink);
+  --bs-table-border-color: var(--mkt-edt-rule);
+  color: var(--mkt-edt-ink);
+}
+
+/* ----- Forms (contact / demo) ----- */
+[data-mkt-edition="editorial"] .form-control,
+[data-mkt-edition="editorial"] .form-select {
+  background: var(--mkt-edt-bg);
+  border: 1px solid var(--mkt-edt-rule);
+  color: var(--mkt-edt-ink);
+  border-radius: var(--mkt-edt-radius-md);
+  padding: 0.625rem 0.875rem;
+}
+[data-mkt-edition="editorial"] .form-control:focus,
+[data-mkt-edition="editorial"] .form-select:focus {
+  border-color: var(--mkt-edt-ink);
+  box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.08);
+  outline: 0;
+}
+[data-mkt-edition="editorial"] .form-label {
+  color: var(--mkt-edt-ink);
+  font-weight: 500;
+  font-size: var(--mkt-edt-type-body);
+}

@@ -13,9 +13,9 @@
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1><i class="fas fa-tasks"></i> Import Job Monitor</h1>
+                <h1><i class="bi bi-list-task"></i> Import Job Monitor</h1>
                 <button type="button" class="btn btn-primary" id="refreshBtn" onclick="refreshJobList()">
-                    <i class="fas fa-sync refresh-btn stopped"></i> Refresh
+                    <i class="bi bi-arrow-repeat refresh-btn stopped"></i> Refresh
                 </button>
             </div>
         </div>
@@ -95,7 +95,7 @@
                                     Job #{{ job.id }}
                                     {% if job.status == 'processing' %}
                                         <span class="badge badge-info">
-                                            <i class="fas fa-spinner fa-spin"></i> Processing
+                                            <i class="bi bi-arrow-repeat spinning"></i> Processing
                                         </span>
                                     {% elif job.status == 'completed' %}
                                         <span class="badge badge-success">✓ Completed</span>
@@ -111,7 +111,7 @@
                                 </small>
                             </div>
                             <button type="button" class="btn btn-sm btn-outline-primary" onclick="toggleJobDetails(this)">
-                                <i class="fas fa-chevron-down"></i>
+                                <i class="bi bi-chevron-down"></i>
                             </button>
                         </div>
                     </div>
@@ -179,18 +179,18 @@
                         <div class="mt-4">
                             {% if job.status == 'processing' %}
                                 <button type="button" class="btn btn-sm btn-info" onclick="pollJobStatus({{ job.id }})">
-                                    <i class="fas fa-sync"></i> Check Status
+                                    <i class="bi bi-arrow-repeat"></i> Check Status
                                 </button>
                             {% elif job.status == 'completed' %}
                                 <a href="{% url 'evals:compliance_dashboard' %}" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-chart-line"></i> View Compliance Dashboard
+                                    <i class="bi bi-bar-chart"></i> View Compliance Dashboard
                                 </a>
                                 <button type="button" class="btn btn-sm btn-secondary" onclick="exportJobResults({{ job.id }})">
-                                    <i class="fas fa-download"></i> Export Results
+                                    <i class="bi bi-download"></i> Export Results
                                 </button>
                             {% else %}
                                 <button type="button" class="btn btn-sm btn-warning" onclick="retryJob({{ job.id }})">
-                                    <i class="fas fa-redo"></i> Retry
+                                    <i class="bi bi-arrow-clockwise"></i> Retry
                                 </button>
                             {% endif %}
                         </div>
@@ -199,7 +199,7 @@
                 {% endfor %}
             {% else %}
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> No import jobs found
+                    <i class="bi bi-info-circle"></i> No import jobs found
                 </div>
             {% endif %}
         </div>

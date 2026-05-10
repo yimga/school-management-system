@@ -1,15 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Support ticket update</title>
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.5; color: #222;">
-  <p>Hello{% if ticket.user %} {{ ticket.user.get_short_name|default:ticket.user.username }}{% endif %},</p>
-  <p>There is a <strong>new reply</strong> on your support ticket at <strong>{{ school.name }}</strong>.</p>
-  <p><strong>{{ ticket.subject }}</strong><br>
-  <span style="color:#555;">Ticket ID: {{ ticket.pk }}</span></p>
-  <div style="background:#f4f4f5; padding:12px 16px; border-radius:6px; white-space:pre-wrap;">{{ reply_body }}</div>
-  <p style="margin-top:20px;">Open your portal <strong>Help &amp; support</strong> hub to view the full thread.</p>
-</body>
-</html>
+{% extends "emails/base_branded.html" %}
+{% comment %}Support ticket reply notification. Inherits Apple-tier base.{% endcomment %}
+{% load i18n %}
+
+{% block email_subject_suffix %} · {% trans "New reply on your support ticket" %}{% endblock %}
+
+{% block email_preheader %}{% blocktrans with subject=ticket.subject %}New reply on "{{ subject }}". Open the ticket to view the full thread.{% endblocktrans %}{% endblock %}
+
+{% block email_header_subtitle %}
+<div style="margin-top:6px;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#64748b;">{% trans "Support ticket update" %}</div>
+{% endblock %}
+
+{% block email_content %}
+<p style="margin:0 0 18px 0;">{% blocktrans with name=ticket.user.get_short_name|default:ticket.user.username %}Hello {{ name }},{% endblocktrans %}</p>
+
+<p style="margin:0 0 24px 0;">{% blocktrans with school=school.name %}There is a <strong>new reply</strong> on your support ticket at <strong>{{ school }}</strong>.{% endblocktrans %}</p>
+
+<!-- Ticket meta block -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin:0 0 14px 0;">
+  <tr>
+    <td style="background:#f8fafc;border-left:3px solid {{ primary_color|default:'#4f46e5' }};border-radius:6px;padding:14px 18px;">
+      <div style="font-size:14.5px;font-weight:600;color:#0f172a;letter-spacing:-0.005em;line-height:1.4;">{{ ticket.subject }}</div>
+      <div style="font-size:12px;color:#64748b;margin-top:4px;font-variant-numeric:tabular-nums;">{% trans "Ticket" %} #{{ ticket.pk }}</div>
+    </td>
+  </tr>
+</table>
+
+<!-- The reply body itself -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin:0 0 24px 0;">
+  <tr>
+    <td style="background:#ffffff;border:1px solid rgba(15,23,42,0.08);border-radius:10px;padding:16px 20px;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#64748b;margin-bottom:8px;">{% trans "Latest reply" %}</div>
+      <div style="font-size:14.5px;line-height:1.6;color:#334155;white-space:pre-wrap;">{{ reply_body }}</div>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:0 0 24px 0;">{% trans "Open the full thread to reply or close the ticket:" %}</p>
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+  <tr>
+    <td style="background:{{ primary_color|default:'#4f46e5' }};border-radius:10px;box-shadow:0 1px 2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.14);">
+      <a href="{{ ticket_url|default:'#' }}" class="em-button" style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:600;letter-spacing:-0.005em;color:#ffffff;text-decoration:none;border-radius:10px;font-family:'Inter','Helvetica Neue',Arial,sans-serif;">{% trans "Open ticket" %} →</a>
+    </td>
+  </tr>
+</table>
+{% endblock %}

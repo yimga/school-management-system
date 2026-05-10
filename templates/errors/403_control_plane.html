@@ -1,34 +1,24 @@
 {% extends "control_plane_skeleton.html" %}
 {% load static i18n %}
 
-{% block title %}Access denied – RunMyCampus Manager{% endblock %}
+{% block title %}{% trans "Access denied" %} – RunMyCampus Manager{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-      <div class="card shadow-sm border-secondary" style="background: var(--cp-panel-bg, rgba(8,16,30,0.9)); border-color: var(--cp-panel-border) !important;">
-        <div class="card-body text-center py-5 text-white">
-          <div class="mb-4">
-            <i class="bi bi-shield-lock text-warning" style="font-size: 4rem;"></i>
-          </div>
-          <h1 class="h4 mb-2">Access denied</h1>
-          {% if is_admin_forbidden %}
-          <p class="text-secondary mb-4">
-            {% trans "This area is restricted to superusers. Use the control plane and Configuration Control Center for your daily operations." %}
-          </p>
-          <a class="btn btn-primary" href="{% url 'super:dashboard' %}" style="background: var(--platform-gold, #d4af37); border-color: var(--platform-gold); color: #0B0E14;">
-            <i class="bi bi-speedometer2 me-2"></i>{% trans "Control Plane" %}
-          </a>
-          {% else %}
-          <p class="text-secondary mb-4">You don't have permission to access this page. If you think you should, contact a platform operator.</p>
-          <a class="btn btn-primary" href="{% url 'super:dashboard' %}" style="background: var(--platform-gold, #d4af37); border-color: var(--platform-gold); color: #0B0E14;">
-            <i class="bi bi-house me-2"></i>{% trans "Back to Manager" %}
-          </a>
-          {% endif %}
-        </div>
+<section class="error-page" aria-labelledby="cp-error-title">
+  <div>
+    <div class="error-code-display" aria-hidden="true">403</div>
+    <h1 id="cp-error-title" class="error-title">{% trans "Access denied." %}</h1>
+    {% if is_admin_forbidden %}
+      <p class="error-message">{% trans "This area is restricted to superusers. Use the control plane and Configuration Control Center for your daily operations." %}</p>
+      <div class="error-actions">
+        <a class="btn btn-primary" href="{% url 'super:dashboard' %}"><i class="bi bi-speedometer2 me-1"></i>{% trans "Control Plane" %}</a>
       </div>
-    </div>
+    {% else %}
+      <p class="error-message">{% trans "You don't have permission to access this page. If you think you should, contact a platform operator." %}</p>
+      <div class="error-actions">
+        <a class="btn btn-primary" href="{% url 'super:dashboard' %}"><i class="bi bi-house me-1"></i>{% trans "Back to Manager" %}</a>
+      </div>
+    {% endif %}
   </div>
-</div>
+</section>
 {% endblock %}

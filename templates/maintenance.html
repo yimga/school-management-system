@@ -1,15 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Maintenance{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Scheduled maintenance" %}{% endblock %}
 
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Maintenance</h1>
-<div class="card rounded-4 shadow-sm">
-  <div class="card-body p-4">
-    <h3 class="mb-2">We’ll be right back</h3>
-    <p class="text-muted mb-0">
-      The system is currently undergoing maintenance. Please check again soon.
-    </p>
+<h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Maintenance" %}</h1>
+<section class="error-page" aria-labelledby="maint-title">
+  <div>
+    <div class="kpi-icon" style="width:64px;height:64px;border-radius:18px;font-size:1.6rem;margin-bottom:18px;display:inline-flex" aria-hidden="true">
+      <i class="bi bi-tools"></i>
+    </div>
+    <h1 id="maint-title" class="error-title">{% trans "We'll be right back." %}</h1>
+    <p class="error-message">{% trans "The system is undergoing scheduled maintenance. Your data is safe — please check back in a few minutes." %}</p>
+    <div class="error-actions">
+      <button class="btn btn-primary" type="button" onclick="window.location.reload()"><i class="bi bi-arrow-clockwise me-1"></i>{% trans "Try again" %}</button>
+    </div>
   </div>
-</div>
+</section>
 {% endblock %}
-

@@ -1,6 +1,6 @@
 :root {
-  --tdm-primary: var(--school-primary, #0d6efd);
-  --tdm-accent: var(--school-accent, #198754);
+  --tdm-primary: var(--school-primary);
+  --tdm-accent: var(--school-accent);
   --tdm-bg: linear-gradient(
     135deg,
     color-mix(in srgb, #eef4ff 84%, var(--tdm-primary) 16%),
@@ -836,9 +836,9 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 .org-chart-card-self {
-  box-shadow: 0 0 0 2px var(--tdm-primary, #0d6efd);
-  background: color-mix(in srgb, var(--tdm-primary, #0d6efd) 6%, white);
-  border-color: var(--tdm-primary, #0d6efd);
+  box-shadow: 0 0 0 2px var(--tdm-primary);
+  background: color-mix(in srgb, var(--tdm-primary) 6%, white);
+  border-color: var(--tdm-primary);
 }
 .org-chart-photo-wrap {
   width: 100%;

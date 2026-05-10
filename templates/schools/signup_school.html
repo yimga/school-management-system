@@ -1,68 +1,74 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}Sign up your school{% endblock %}
+{% block title %}{% trans "Start your school workspace" %}{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <h1 class="h3 mb-4">{% trans "Sign up your school" %}</h1>
-      <p class="text-muted">Create your school on RunMyCampus. We'll send a verification link to your email.</p>
-      {% if signup_ref == 'demo' %}
-      <div class="alert alert-success small mb-3" role="status">
-        {% trans "You opened signup from the demo. Fields below may be prefilled; submit when ready." %}
-      </div>
-      {% endif %}
-      {% if signup_region_hint %}
-      <div class="alert alert-info small mb-3" role="status">
-        {% trans "Region preset" %}: <strong>{{ signup_region_hint }}</strong>{% if curriculum_hint %} — {{ curriculum_hint }}{% endif %}
-        <span class="d-block text-muted mt-1">{% trans "Deep link" %}: <code>?region=…&amp;country_code=…&amp;term_preset=UK&amp;curriculum=…</code></span>
-      </div>
-      {% endif %}
-      {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-      {% endfor %}
-      <form method="post" action="{% url 'signup_school' %}">
-        {% csrf_token %}
-        {% if signup_ref == 'demo' %}
-        <input type="hidden" name="signup_ref" value="demo" data-rmc-signup-ref-preserve="1">
-        {% endif %}
-        <div class="mb-3">
-          <label for="name" class="form-label">{% trans "School name" %}</label>
-          <input type="text" name="name" id="name" class="form-control" value="{{ name|default:'' }}" required placeholder="My School">
-        </div>
-        <div class="mb-3">
-          <label for="slug" class="form-label">{% trans "URL (subdomain)" %}</label>
-          <input type="text" name="slug" id="slug" class="form-control" value="{{ slug|default:'' }}" placeholder="my-school">
-          <div class="form-text">Your school will be at: your-school.runmycampus.com</div>
-        </div>
-        <div class="mb-3">
-          <label for="email" class="form-label">{% trans "Admin email" %}</label>
-          <input type="email" name="email" id="email" class="form-control" value="{{ email|default:'' }}" required placeholder="admin@school.edu">
-        </div>
-        <div class="mb-3">
-          <label for="country_code" class="form-label">{% trans "Country (optional)" %}</label>
-          <input type="text" name="country_code" id="country_code" class="form-control" value="{{ country_code|default:'' }}" maxlength="2" placeholder="US">
-        </div>
-        <div class="mb-3">
-          <label for="term_preset" class="form-label">{% trans "Academic calendar (optional)" %}</label>
-          <select name="term_preset" id="term_preset" class="form-select">
-            <option value="">{% trans "Default" %}</option>
-            <option value="UK" {% if term_preset == 'UK' %}selected{% endif %}>{% trans "UK / British (Michaelmas, Lent, Trinity)" %}</option>
-          </select>
-          <div class="form-text">{% trans "Choose UK for British/international school terms." %}</div>
-        </div>
-        <button type="submit" class="btn btn-primary">{% trans "Create school" %}</button>
-      </form>
-      <p class="mt-4 small text-muted">
-        <a href="{% url 'global_login_discovery' %}">Find your school</a> — Already have an account?
-      </p>
+<section class="auth-shell" aria-labelledby="signup-title">
+  <div class="auth-card" style="max-width:480px">
+    <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--school-primary),color-mix(in oklab,var(--school-primary) 70%, var(--school-accent)));color:#fff;display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px;" aria-hidden="true">
+      <i class="bi bi-buildings" style="font-size:1.25rem"></i>
     </div>
+    <h1 id="signup-title">{% trans "Start your school workspace" %}</h1>
+    <p class="auth-sub">{% trans "Create your school on RunMyCampus. We'll send a verification link to your email — usually within a minute." %}</p>
+
+    {% if signup_ref == 'demo' %}
+      <div class="alert alert-success mb-3" role="status"><i class="bi bi-info-circle me-1"></i>{% trans "You opened signup from the demo. Fields below may be prefilled; submit when ready." %}</div>
+    {% endif %}
+    {% if signup_region_hint %}
+      <div class="alert alert-info mb-3" role="status">
+        <strong>{% trans "Region preset" %}:</strong> {{ signup_region_hint }}{% if curriculum_hint %} — {{ curriculum_hint }}{% endif %}
+        <div style="font-size:0.78rem;margin-top:4px;color:var(--admin-content-text-muted)">{% trans "Deep link" %}: <code>?region=…&country_code=…&term_preset=UK&curriculum=…</code></div>
+      </div>
+    {% endif %}
+    {% for message in messages %}<div class="alert alert-{{ message.tags|default:'info' }} mb-3">{{ message }}</div>{% endfor %}
+
+    <form method="post" action="{% url 'signup_school' %}">
+      {% csrf_token %}
+      {% if signup_ref == 'demo' %}<input type="hidden" name="signup_ref" value="demo" data-rmc-signup-ref-preserve="1">{% endif %}
+
+      <div class="mb-3">
+        <label for="name" class="form-label">{% trans "School name" %}</label>
+        <input type="text" name="name" id="name" class="form-control" value="{{ name|default:'' }}" required placeholder="St. Catherine's Secondary School" autofocus>
+      </div>
+      <div class="mb-3">
+        <label for="slug" class="form-label">{% trans "Web address" %}</label>
+        <div class="input-group">
+          <input type="text" name="slug" id="slug" class="form-control" value="{{ slug|default:'' }}" placeholder="stcatherines">
+          <span class="input-group-text">.runmycampus.com</span>
+        </div>
+        <div style="font-size:0.82rem;color:var(--admin-content-text-muted);margin-top:6px">{% trans "Your school workspace lives at this URL. You can connect a custom domain later." %}</div>
+      </div>
+      <div class="mb-3">
+        <label for="email" class="form-label">{% trans "Admin email" %}</label>
+        <input type="email" name="email" id="email" class="form-control" value="{{ email|default:'' }}" required placeholder="admin@school.ac.ke" autocomplete="email">
+        <div style="font-size:0.82rem;color:var(--admin-content-text-muted);margin-top:6px">{% trans "We'll send a verification link here. This becomes your sign-in." %}</div>
+      </div>
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6">
+          <label for="country_code" class="form-label">{% trans "Country" %} <span style="color:var(--admin-content-text-muted);font-weight:400">({% trans "optional" %})</span></label>
+          <input type="text" name="country_code" id="country_code" class="form-control" value="{{ country_code|default:'' }}" maxlength="2" placeholder="KE" style="text-transform:uppercase">
+        </div>
+        <div class="col-sm-6">
+          <label for="term_preset" class="form-label">{% trans "Calendar" %} <span style="color:var(--admin-content-text-muted);font-weight:400">({% trans "optional" %})</span></label>
+          <select name="term_preset" id="term_preset" class="form-select">
+            <option value="">{% trans "Default (3 terms)" %}</option>
+            <option value="UK" {% if term_preset == 'UK' %}selected{% endif %}>{% trans "UK / British" %}</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:11px 14px"><i class="bi bi-rocket-takeoff me-1"></i>{% trans "Create my school workspace" %}</button>
+    </form>
+    <p style="font-size:0.85rem;color:var(--admin-content-text-muted);text-align:center;margin:18px 0 0;border-top:1px solid var(--admin-content-border);padding-top:14px">
+      {% trans "Already have an account?" %} <a href="{% url 'global_login_discovery' %}" style="color:var(--school-primary);font-weight:500;text-decoration:none">{% trans "Find your school" %}</a>
+    </p>
   </div>
-</div>
+</section>
+
 {% if signup_ref == 'demo' and marketing_demo_tenant_url %}
-<div class="position-fixed bottom-0 start-0 end-0 py-2 px-3 bg-dark text-white text-center small shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-2" style="z-index: 1030;" role="complementary" data-rmc-signup-demo-return-bar="1">
-  <span>{% trans "Exploring the demo?" %}</span>
-  <a class="btn btn-sm btn-light" href="{{ marketing_demo_tenant_url }}">{% trans "Return to demo tenant" %}</a>
+<div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px;background:var(--color-base-900);color:#fff;text-align:center;font-size:0.88rem;box-shadow:var(--apple-elev-3);display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px;z-index:1030;" role="complementary" data-rmc-signup-demo-return-bar="1">
+  <span><i class="bi bi-eye me-1"></i>{% trans "Exploring the demo?" %}</span>
+  <a class="btn btn-sm btn-light" href="{{ marketing_demo_tenant_url }}"><i class="bi bi-arrow-left me-1"></i>{% trans "Return to demo tenant" %}</a>
 </div>
 {% endif %}
 {% endblock %}

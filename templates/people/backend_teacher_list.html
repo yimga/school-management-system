@@ -9,7 +9,7 @@
       {% url 'accounts:backend_teacher_create' as create_url %}
       {% include "studio_os/components/page_header.html" with title="Teachers" subtitle="Manage teacher records" action_url=create_url action_text="Add Teacher" %}
 
-      <form method="get" class="card card-body bg-light mb-3" role="search">
+      <form method="get" class="card card-body bg-light mb-3 page-family-filter-row" role="search">
         <div class="row g-2 align-items-end">
           <div class="col-md-4">
             <label for="teacher-q" class="form-label small">Search</label>

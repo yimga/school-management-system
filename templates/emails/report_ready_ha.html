@@ -1,54 +1,48 @@
-{% comment %}Hausa email template for report card ready notification{% endcomment %}
+{% extends "emails/base_branded.html" %}
+{% comment %}Hausa — report card ready notification. Inherits Apple-tier base.{% endcomment %}
 {% load i18n %}
 
-<!DOCTYPE html>
-<html lang="ha">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #2c3e50; color: white; padding: 20px; border-radius: 5px; }
-        .content { padding: 20px; background-color: #ecf0f1; margin: 20px 0; border-radius: 5px; }
-        .button { display: inline-block; background-color: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
-        .footer { text-align: center; font-size: 12px; color: #7f8c8d; margin-top: 20px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>{{ school_name }}</h1>
-            <p>Ilhabar Jerin Kudi</p>
-        </div>
-        
-        <div class="content">
-            <p>Sannu {{ parent_name }},</p>
-            
-            <p>Jerin kudi na <strong>{{ student_name }}</strong> na {{ academic_year }} {{ term_name }} ya shiryatu.</p>
-            
-            <h3>Bayani na Jerin Kudi:</h3>
-            <ul>
-                <li><strong>Dalibi:</strong> {{ student_name }}</li>
-                <li><strong>Ajiya:</strong> {{ class_name }}</li>
-                <li><strong>Shekarar Ilimi:</strong> {{ academic_year }}</li>
-                <li><strong>Lokacin Shekara:</strong> {{ term_name }}</li>
-                <li><strong>Matsakaici:</strong> {{ average_score }}</li>
-                <li><strong>Matsayi:</strong> {{ class_rank }}</li>
-            </ul>
-            
-            <p>Kza yin duba da saukar jerin kudi mai cikakke ta hanyar na'ura ican aka aiki:</p>
-            
-            <p style="text-align: center;">
-                <a href="{{ report_url }}" class="button">Duba Jerin Kudi</a>
-            </p>
-        </div>
-        
-        <div class="footer">
-            <p>Wannan jiya ce ta atomatik. Da fatan za a bai da amsa ga jiya.</p>
-            <p>Yi tunani da gida ta ilimi idan kana da tambaya.</p>
-            <p>&copy; {{ current_year }} {{ school_name }}. Duk hakka na karjika.</p>
-        </div>
-    </div>
-</body>
-</html>
+{% block email_subject_suffix %} · Sakamako ya shirya{% endblock %}
+
+{% block email_preheader %}Sakamakon {{ student_name }} na {{ term_name }} ya shirya don gani.{% endblock %}
+
+{% block email_header_subtitle %}
+<div style="margin-top:6px;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#64748b;">Ilhabari na sakamako</div>
+{% endblock %}
+
+{% block email_content %}
+<p style="margin:0 0 18px 0;">Sannu {{ parent_name }},</p>
+
+<p style="margin:0 0 24px 0;">Sakamako na <strong>{{ student_name }}</strong> na {{ academic_year }} {{ term_name }} ya shirya yanzu.</p>
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin:0 0 24px 0;">
+  <tr>
+    <td class="em-data-card" style="background:#f8fafc;border-left:3px solid {{ primary_color|default:'#4f46e5' }};border-radius:6px;padding:18px 20px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;font-size:14.5px;line-height:1.7;">
+        <tr><td class="em-muted" style="color:#64748b;width:38%;padding-right:8px;">Dalibi</td><td class="em-data" style="color:#0f172a;font-weight:600;">{{ student_name }}</td></tr>
+        <tr><td class="em-muted" style="color:#64748b;padding-right:8px;">Aji</td><td class="em-data" style="color:#0f172a;font-weight:600;">{{ class_name }}</td></tr>
+        <tr><td class="em-muted" style="color:#64748b;padding-right:8px;">Shekarar Ilimi</td><td class="em-data" style="color:#0f172a;font-weight:500;">{{ academic_year }}</td></tr>
+        <tr><td class="em-muted" style="color:#64748b;padding-right:8px;">Lokacin Shekara</td><td class="em-data" style="color:#0f172a;font-weight:500;">{{ term_name }}</td></tr>
+        <tr><td class="em-muted" style="color:#64748b;padding-right:8px;padding-top:6px;border-top:1px solid rgba(15,23,42,0.06);">Matsakaici</td><td class="em-data" style="color:#0f172a;font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;padding-top:6px;border-top:1px solid rgba(15,23,42,0.06);">{{ average_score }}</td></tr>
+        <tr><td class="em-muted" style="color:#64748b;padding-right:8px;">Matsayi</td><td class="em-data" style="color:#0f172a;font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;">{{ class_rank }}</td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:0 0 24px 0;">Duba sakamako mai cikakke da bayanin malami:</p>
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 8px 0;">
+  <tr>
+    <td style="background:{{ primary_color|default:'#4f46e5' }};border-radius:10px;box-shadow:0 1px 2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.14);">
+      <a href="{{ report_url }}" class="em-button" style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:600;letter-spacing:-0.005em;color:#ffffff;text-decoration:none;border-radius:10px;font-family:'Inter','Helvetica Neue',Arial,sans-serif;">Duba Sakamako →</a>
+    </td>
+  </tr>
+</table>
+
+<p class="em-muted" style="margin:18px 0 0 0;font-size:13px;color:#64748b;">Ko kwafi wannan hanyar haɗi: <a href="{{ report_url }}" style="color:{{ primary_color|default:'#4f46e5' }};text-decoration:underline;word-break:break-all;">{{ report_url }}</a></p>
+{% endblock %}
+
+{% block email_footer_intro %}Wannan saƙo ne na atomatik. Don Allah kada ku amsa wannan saƙon.{% endblock %}
+{% block email_footer_contact %}Tuntuɓi ofishin gudanarwar makaranta don kowace tambaya.{% endblock %}
+{% block email_footer_rights %}Duk haƙƙoƙi sun tabbata.{% endblock %}

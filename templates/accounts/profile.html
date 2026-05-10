@@ -10,55 +10,55 @@
 
 {% block content %}
   <div class="container py-4 profile-shell">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 profile-header">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:24px">
       <div>
-        <h1 class="h4 mb-1">My Profile</h1>
-        <div class="text-muted small">Account overview and shortcuts</div>
+        <div class="eyebrow">{% trans "Account" %}</div>
+        <h1 style="font-size:clamp(1.5rem, 2.5vw, 2rem);font-weight:700;letter-spacing:var(--tracking-display);margin:2px 0 4px">{% trans "My profile" %}</h1>
+        <div class="text-muted">{% trans "Account overview and shortcuts" %}</div>
         {% if profile_completion and profile_completion.percent < 100 %}
-          <div class="mt-2 small">
-            <div class="d-flex align-items-center gap-2">
-              <div class="progress flex-grow-1" style="height: 6px; max-width: 120px;">
-                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ profile_completion.percent }}%;" aria-valuenow="{{ profile_completion.percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+          <div class="mt-3" style="max-width:380px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+              <div class="progress" style="flex:1;height:6px">
+                <div class="progress-bar" role="progressbar" style="width: {{ profile_completion.percent }}%;" aria-valuenow="{{ profile_completion.percent }}" aria-valuemin="0" aria-valuemax="100"></div>
               </div>
-              <span class="text-muted">Profile {{ profile_completion.percent }}% complete</span>
+              <span style="font-size:.82rem;font-weight:600;color:var(--admin-content-text);font-variant-numeric:tabular-nums">{{ profile_completion.percent }}%</span>
             </div>
-            <a class="text-decoration-none small" href="{% url 'accounts:profile_edit' %}">Add {{ profile_completion.missing|join:", " }} -></a>
+            <a class="text-decoration-none" style="font-size:.82rem;color:var(--school-primary);font-weight:500" href="{% url 'accounts:profile_edit' %}">{% trans "Add" %} {{ profile_completion.missing|join:", " }} <i class="bi bi-arrow-right ms-1"></i></a>
           </div>
         {% endif %}
       </div>
       <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:profile_edit' %}">Edit profile</a>
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:password_change' %}">Change password</a>
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:user_preferences' %}">Preferences</a>
-        <a class="btn btn-sm btn-primary" href="{% url 'accounts:redirect' %}">Go to dashboard</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:profile_edit' %}"><i class="bi bi-pencil me-1"></i>{% trans "Edit profile" %}</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:password_change' %}"><i class="bi bi-key me-1"></i>{% trans "Change password" %}</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:user_preferences' %}"><i class="bi bi-sliders me-1"></i>{% trans "Preferences" %}</a>
+        <a class="btn btn-sm btn-primary" href="{% url 'accounts:redirect' %}"><i class="bi bi-house me-1"></i>{% trans "Dashboard" %}</a>
       </div>
     </div>
 
     <div class="row g-3">
       <div class="col-lg-5">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <div class="d-flex align-items-center gap-3">
-              <div class="profile-avatar-wrap">
-                {% if request.user.profile_photo %}
-                  <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.get_full_name }}" width="56" height="56" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;">
-                {% else %}
-                  <strong style="font-size:18px;">
-                    {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
-                  </strong>
-                {% endif %}
-              </div>
-              <div>
-                <div class="fw-semibold">{{ request.user.get_full_name|default:request.user.username }}</div>
-                <div class="text-muted small">{{ request.user.username }}</div>
-              </div>
+        <div class="content-card" style="padding:20px 22px">
+          <div class="d-flex align-items-center gap-3">
+            <div class="avatar avatar-lg profile-avatar-wrap" style="overflow:hidden">
+              {% if request.user.profile_photo %}
+                <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.get_full_name }}" width="56" height="56" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+                {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+              {% endif %}
             </div>
-            <hr>
-            <div class="small">
-              <div class="d-flex justify-content-between"><span class="text-muted">Role</span><span class="fw-semibold">{{ request.user.role }}</span></div>
-              <div class="d-flex justify-content-between"><span class="text-muted">Email</span><span class="fw-semibold">{{ request.user.email|default:"-" }}</span></div>
-              <div class="d-flex justify-content-between"><span class="text-muted">Last login</span><span class="fw-semibold">{% if request.user.last_login %}{{ request.user.last_login }}{% else %}-{% endif %}</span></div>
-              <div class="d-flex justify-content-between"><span class="text-muted">Member since</span><span class="fw-semibold">{{ request.user.date_joined|date }}</span></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:1.05rem;letter-spacing:-0.01em;line-height:1.25">{{ request.user.get_full_name|default:request.user.username }}</div>
+              <div style="color:var(--admin-content-text-muted);font-size:.85rem;margin-top:2px">{{ request.user.username }}{% if request.user.role %} · <span class="badge" data-tone="soft-primary" style="font-size:.7rem;padding:1px 8px">{{ request.user.role|title }}</span>{% endif %}</div>
+            </div>
+          </div>
+          <hr>
+          <dl class="data-list" style="font-size:.88rem">
+            <dt>{% trans "Email" %}</dt><dd>{{ request.user.email|default:"—" }}</dd>
+            <dt>{% trans "Last login" %}</dt><dd>{% if request.user.last_login %}{{ request.user.last_login }}{% else %}—{% endif %}</dd>
+            <dt>{% trans "Member since" %}</dt><dd>{{ request.user.date_joined|date }}</dd>
+          </dl>
+          <div class="small">
+            <div class="d-flex justify-content-between" style="display:none"><span class="text-muted">Role</span><span class="fw-semibold">{{ request.user.role }}</span></div>
               {% if request.user.role == 'TEACHER' %}
                 {% if staff_id %}
                   <div class="d-flex justify-content-between align-items-center gap-2">

@@ -9,7 +9,7 @@
     <div class="row mb-4">
         <div class="col-lg-10 mx-auto">
             <h1 class="h2 mb-2">
-                <i class="fas fa-chart-bar"></i> My Contributions
+                <i class="bi bi-bar-chart"></i> My Contributions
             </h1>
             <p class="text-muted">Track your FAQ submissions, KB articles, and earn points!</p>
         </div>
@@ -24,7 +24,7 @@
                         <div class="card-body">
                             <h3 class="text-primary mb-1">{{ total_points }}</h3>
                             <p class="text-muted small mb-0">
-                                <i class="fas fa-star"></i> Total Points
+                                <i class="bi bi-star"></i> Total Points
                             </p>
                         </div>
                     </div>
@@ -34,7 +34,7 @@
                         <div class="card-body">
                             <h3 class="text-success mb-1">{{ approved_faqs }}</h3>
                             <p class="text-muted small mb-0">
-                                <i class="fas fa-check-circle"></i> FAQs Approved
+                                <i class="bi bi-check2-circle"></i> FAQs Approved
                             </p>
                         </div>
                     </div>
@@ -44,7 +44,7 @@
                         <div class="card-body">
                             <h3 class="text-info mb-1">{{ approved_articles }}</h3>
                             <p class="text-muted small mb-0">
-                                <i class="fas fa-book"></i> Articles Approved
+                                <i class="bi bi-book"></i> Articles Approved
                             </p>
                         </div>
                     </div>
@@ -54,7 +54,7 @@
                         <div class="card-body">
                             <h3 class="text-warning mb-1">{{ pending_count }}</h3>
                             <p class="text-muted small mb-0">
-                                <i class="fas fa-clock"></i> Pending Review
+                                <i class="bi bi-clock"></i> Pending Review
                             </p>
                         </div>
                     </div>
@@ -67,17 +67,17 @@
                     <ul class="nav nav-tabs card-header-tabs" role="tablist">
                         <li class="nav-item">
                             <a class="nav-link active" data-bs-toggle="tab" href="#faqs" role="tab">
-                                <i class="fas fa-question-circle"></i> My FAQs ({{ faq_count }})
+                                <i class="bi bi-question-circle"></i> My FAQs ({{ faq_count }})
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="tab" href="#articles" role="tab">
-                                <i class="fas fa-book"></i> My Articles ({{ article_count }})
+                                <i class="bi bi-book"></i> My Articles ({{ article_count }})
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="tab" href="#stats" role="tab">
-                                <i class="fas fa-chart-line"></i> Statistics
+                                <i class="bi bi-bar-chart"></i> Statistics
                             </a>
                         </li>
                     </ul>
@@ -108,19 +108,19 @@
                                         <td>
                                             {% if faq.status == 'APPROVED' %}
                                             <span class="badge badge-success">
-                                                <i class="fas fa-check"></i> Approved
+                                                <i class="bi bi-check2"></i> Approved
                                             </span>
                                             {% elif faq.status == 'PENDING' %}
                                             <span class="badge badge-warning">
-                                                <i class="fas fa-clock"></i> Pending
+                                                <i class="bi bi-clock"></i> Pending
                                             </span>
                                             {% elif faq.status == 'DRAFT' %}
                                             <span class="badge badge-secondary">
-                                                <i class="fas fa-pencil-alt"></i> Draft
+                                                <i class="bi bi-pencil"></i> Draft
                                             </span>
                                             {% elif faq.status == 'REJECTED' %}
                                             <span class="badge badge-danger">
-                                                <i class="fas fa-times"></i> Rejected
+                                                <i class="bi bi-x-lg"></i> Rejected
                                             </span>
                                             {% else %}
                                             <span class="badge badge-light">{{ faq.get_status_display }}</span>
@@ -135,14 +135,14 @@
                                         <td>
                                             <a href="{% url 'kb:faq_detail' faq.id %}" 
                                                class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i> View
+                                                <i class="bi bi-eye"></i> View
                                             </a>
                                         </td>
                                     </tr>
                                     {% empty %}
                                     <tr>
                                         <td colspan="6" class="text-center text-muted py-4">
-                                            <i class="fas fa-inbox"></i> No FAQ submissions yet
+                                            <i class="bi bi-inbox"></i> No FAQ submissions yet
                                             <br>
                                             <a href="{% url 'kb:faq_submit' %}">Submit your first question!</a>
                                         </td>
@@ -176,19 +176,19 @@
                                         <td>
                                             {% if article.status == 'APPROVED' %}
                                             <span class="badge badge-success">
-                                                <i class="fas fa-check"></i> Approved
+                                                <i class="bi bi-check2"></i> Approved
                                             </span>
                                             {% elif article.status == 'PENDING' %}
                                             <span class="badge badge-warning">
-                                                <i class="fas fa-clock"></i> Pending
+                                                <i class="bi bi-clock"></i> Pending
                                             </span>
                                             {% elif article.status == 'DRAFT' %}
                                             <span class="badge badge-secondary">
-                                                <i class="fas fa-pencil-alt"></i> Draft
+                                                <i class="bi bi-pencil"></i> Draft
                                             </span>
                                             {% elif article.status == 'REJECTED' %}
                                             <span class="badge badge-danger">
-                                                <i class="fas fa-times"></i> Rejected
+                                                <i class="bi bi-x-lg"></i> Rejected
                                             </span>
                                             {% else %}
                                             <span class="badge badge-light">{{ article.get_status_display }}</span>
@@ -200,14 +200,14 @@
                                         <td>
                                             <a href="{% url 'kb:kb_article' article.slug %}" 
                                                class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i> View
+                                                <i class="bi bi-eye"></i> View
                                             </a>
                                         </td>
                                     </tr>
                                     {% empty %}
                                     <tr>
                                         <td colspan="6" class="text-center text-muted py-4">
-                                            <i class="fas fa-inbox"></i> No article submissions yet
+                                            <i class="bi bi-inbox"></i> No article submissions yet
                                             <br>
                                             <a href="{% url 'kb:kb_article_submit' %}">Write your first article!</a>
                                         </td>
@@ -251,19 +251,19 @@
                                     <h6 class="mb-3">Engagement Metrics</h6>
                                     <ul class="list-unstyled">
                                         <li class="mb-2">
-                                            <i class="fas fa-eye"></i>
+                                            <i class="bi bi-eye"></i>
                                             <strong>Total Views:</strong> {{ total_views }}
                                         </li>
                                         <li class="mb-2">
-                                            <i class="fas fa-thumbs-up"></i>
+                                            <i class="bi bi-hand-thumbs-up"></i>
                                             <strong>Total Helpful Votes:</strong> {{ total_helpful }}
                                         </li>
                                         <li class="mb-2">
-                                            <i class="fas fa-star"></i>
+                                            <i class="bi bi-star"></i>
                                             <strong>Featured Items:</strong> {{ featured_count }}
                                         </li>
                                         <li>
-                                            <i class="fas fa-level-up-alt"></i>
+                                            <i class="bi bi-arrow-up-right"></i>
                                             <strong>Contribution Rank:</strong> 
                                             <span class="badge badge-success">{{ user_rank }}</span>
                                         </li>
@@ -302,12 +302,12 @@
             <div class="row mt-4">
                 <div class="col-md-6">
                     <a href="{% url 'kb:faq_submit' %}" class="btn btn-primary btn-block">
-                        <i class="fas fa-plus"></i> Submit a Question
+                        <i class="bi bi-plus-lg"></i> Submit a Question
                     </a>
                 </div>
                 <div class="col-md-6">
                     <a href="{% url 'kb:kb_article_submit' %}" class="btn btn-success btn-block">
-                        <i class="fas fa-pen"></i> Write an Article
+                        <i class="bi bi-pencil"></i> Write an Article
                     </a>
                 </div>
             </div>

@@ -24,8 +24,8 @@ body.portal-backend-light[data-bs-theme="light"] {
   --admin-surface: #ffffff;
   --admin-surface-alt: #f1f5f9;
   --admin-border: rgba(148, 163, 184, 0.25);
-  --brand-primary: var(--school-primary, #0d6efd);
-  --brand-accent: var(--school-accent, #198754);
+  --brand-primary: var(--school-primary);
+  --brand-accent: var(--school-accent);
   --brand-success: var(--school-success, #22c55e);
   --brand-danger: var(--school-danger, #ef4444);
   --focus-ring-color: var(--brand-primary);

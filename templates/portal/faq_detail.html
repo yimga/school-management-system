@@ -33,7 +33,7 @@
                     <!-- Meta Info -->
                     <div class="mb-3 pb-3 border-bottom">
                         <small class="text-muted">
-                            <i class="fas fa-folder"></i> 
+                            <i class="bi bi-folder"></i> 
                             {% if faq.category %}
                             <a href="{% url 'kb:faq_list' %}?category={{ faq.category.slug }}">
                                 {{ faq.category.name }}
@@ -44,11 +44,11 @@
                         </small>
                         <br>
                         <small class="text-muted">
-                            <i class="fas fa-eye"></i> {{ faq.views }} views
+                            <i class="bi bi-eye"></i> {{ faq.views }} views
                         </small>
                         {% if faq.is_featured %}
                         <span class="badge badge-success ml-2">
-                            <i class="fas fa-star"></i> Featured
+                            <i class="bi bi-star"></i> Featured
                         </span>
                         {% endif %}
                     </div>
@@ -81,26 +81,26 @@
                                             class="btn btn-outline-success vote-btn" 
                                             data-faq-id="{{ faq.id }}" 
                                             data-vote="helpful">
-                                        <i class="fas fa-thumbs-up"></i> Yes ({{ faq.helpful_count }})
+                                        <i class="bi bi-hand-thumbs-up"></i> Yes ({{ faq.helpful_count }})
                                     </button>
                                     <button type="button" 
                                             class="btn btn-outline-danger vote-btn" 
                                             data-faq-id="{{ faq.id }}" 
                                             data-vote="unhelpful">
-                                        <i class="fas fa-thumbs-down"></i> No ({{ faq.unhelpful_count }})
+                                        <i class="bi bi-hand-thumbs-down"></i> No ({{ faq.unhelpful_count }})
                                     </button>
                                 </div>
                                 {% else %}
                                 <a href="{% url 'accounts:login' %}?next={% url 'kb:faq_detail' faq.id %}" 
                                    class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-sign-in-alt"></i> Login to vote
+                                    <i class="bi bi-box-arrow-in-right"></i> Login to vote
                                 </a>
                                 {% endif %}
                             </div>
                             <div class="col-md-6 text-right">
                                 <button type="button" class="btn btn-outline-secondary btn-sm" 
                                         onclick="shareThis()">
-                                    <i class="fas fa-share-alt"></i> Share
+                                    <i class="bi bi-share"></i> Share
                                 </button>
                             </div>
                         </div>
@@ -113,7 +113,7 @@
             <div class="card shadow-sm">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="fas fa-link"></i> Related Questions
+                        <i class="bi bi-link-45deg"></i> Related Questions
                     </h5>
                 </div>
                 <div class="list-group list-group-flush">
@@ -135,7 +135,7 @@
             <div class="card shadow-sm mb-3">
                 <div class="card-header bg-info text-white">
                     <h6 class="mb-0">
-                        <i class="fas fa-lightbulb"></i> Need More Help?
+                        <i class="bi bi-lightbulb"></i> Need More Help?
                     </h6>
                 </div>
                 <div class="card-body">
@@ -143,7 +143,7 @@
                         Browse our Knowledge Base for detailed guides and tutorials.
                     </p>
                     <a href="{% url 'kb:kb_home' %}" class="btn btn-info btn-sm btn-block">
-                        <i class="fas fa-book"></i> Knowledge Base
+                        <i class="bi bi-book"></i> Knowledge Base
                     </a>
                 </div>
             </div>
@@ -152,7 +152,7 @@
             <div class="card shadow-sm mb-3">
                 <div class="card-header bg-warning">
                     <h6 class="mb-0">
-                        <i class="fas fa-exclamation-triangle"></i> Found an Issue?
+                        <i class="bi bi-exclamation-triangle"></i> Found an Issue?
                     </h6>
                 </div>
                 <div class="card-body">
@@ -160,7 +160,7 @@
                         Help us improve by reporting errors or suggesting updates.
                     </p>
                     <button type="button" class="btn btn-warning btn-sm btn-block" data-bs-toggle="modal" data-bs-target="#reportModal">
-                        <i class="fas fa-flag"></i> Report Problem
+                        <i class="bi bi-flag"></i> Report Problem
                     </button>
                 </div>
             </div>
@@ -170,7 +170,7 @@
             <div class="card shadow-sm">
                 <div class="card-header">
                     <h6 class="mb-0">
-                        <i class="fas fa-folder"></i> {{ faq.category.name }}
+                        <i class="bi bi-folder"></i> {{ faq.category.name }}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -212,7 +212,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-warning">
-                        <i class="fas fa-flag"></i> Submit Report
+                        <i class="bi bi-flag"></i> Submit Report
                     </button>
                 </div>
             </form>

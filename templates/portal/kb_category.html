@@ -28,13 +28,13 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-folder"></i> Categories
+                        <i class="bi bi-folder"></i> Categories
                     </h5>
                 </div>
                 <div class="list-group list-group-flush">
                     <a href="{% url 'kb:kb_home' %}" 
                        class="list-group-item list-group-item-action">
-                        <i class="fas fa-home"></i> Home
+                        <i class="bi bi-house"></i> Home
                     </a>
                     {% for cat in all_categories %}
                     <a href="{% url 'kb:kb_category' cat.slug %}" 
@@ -45,7 +45,7 @@
                     {% for subcat in cat.children.all %}
                     <a href="{% url 'kb:kb_category' subcat.slug %}" 
                        class="list-group-item list-group-item-action pl-5 {% if category.slug == subcat.slug %}active{% endif %}">
-                        <i class="fas fa-angle-right"></i> {{ subcat.name }}
+                        <i class="bi bi-chevron-right"></i> {{ subcat.name }}
                         <span class="badge badge-secondary float-right">{{ subcat.article_count }}</span>
                     </a>
                     {% endfor %}
@@ -57,7 +57,7 @@
             <div class="card shadow-sm">
                 <div class="card-header">
                     <h6 class="mb-0">
-                        <i class="fas fa-sliders-h"></i> Filter
+                        <i class="bi bi-sliders"></i> Filter
                     </h6>
                 </div>
                 <div class="card-body">
@@ -115,11 +115,11 @@
                                 <div class="col-lg-9">
                                     <h5 class="card-title">
                                         <a href="{% url 'kb:kb_article' article.slug %}" class="text-primary">
-                                            <i class="fas fa-file-alt"></i> {{ article.title }}
+                                            <i class="bi bi-file-earmark-text"></i> {{ article.title }}
                                         </a>
                                         {% if article.is_featured %}
                                         <span class="badge badge-success">
-                                            <i class="fas fa-star"></i> Featured
+                                            <i class="bi bi-star"></i> Featured
                                         </span>
                                         {% endif %}
                                     </h5>
@@ -136,22 +136,22 @@
                                         </span>
                                         {% endif %}
                                         <small class="text-muted ml-2">
-                                            <i class="fas fa-clock"></i> {{ article.read_time }} min read
+                                            <i class="bi bi-clock"></i> {{ article.read_time }} min read
                                         </small>
                                         <small class="text-muted ml-2">
-                                            <i class="fas fa-eye"></i> {{ article.views }} views
+                                            <i class="bi bi-eye"></i> {{ article.views }} views
                                         </small>
                                     </div>
                                 </div>
                                 <div class="col-lg-3 text-right">
                                     {% if article.attachments.count %}
                                     <span class="badge badge-info">
-                                        <i class="fas fa-images"></i> {{ article.attachments.count }}
+                                        <i class="bi bi-images"></i> {{ article.attachments.count }}
                                     </span>
                                     {% endif %}
                                     <a href="{% url 'kb:kb_article' article.slug %}" 
                                        class="btn btn-sm btn-outline-primary mt-2">
-                                        Read <i class="fas fa-arrow-right"></i>
+                                        Read <i class="bi bi-arrow-right"></i>
                                     </a>
                                 </div>
                             </div>
@@ -166,7 +166,7 @@
                 {% endif %}
             {% else %}
                 <div class="alert alert-info" role="alert">
-                    <i class="fas fa-info-circle"></i>
+                    <i class="bi bi-info-circle"></i>
                     <strong>No articles found</strong> in this category yet.
                     Check back soon for more content!
                 </div>
@@ -175,16 +175,16 @@
             <!-- CTA: Contribute -->
             <div class="alert alert-light border border-primary mt-4">
                 <h6 class="alert-heading">
-                    <i class="fas fa-lightbulb text-primary"></i> Ready to Contribute?
+                    <i class="bi bi-lightbulb text-primary"></i> Ready to Contribute?
                 </h6>
                 <p>Share your knowledge by writing an article for this category!</p>
                 {% if user.is_authenticated %}
                 <a href="{% url 'kb:kb_article_submit' %}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-pen"></i> Write an Article
+                    <i class="bi bi-pencil"></i> Write an Article
                 </a>
                 {% else %}
                 <a href="{% url 'accounts:login' %}?next={% url 'kb:kb_article_submit' %}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-sign-in-alt"></i> Login & Contribute
+                    <i class="bi bi-box-arrow-in-right"></i> Login & Contribute
                 </a>
                 {% endif %}
             </div>

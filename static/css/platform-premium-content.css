@@ -88,7 +88,7 @@
 }
 
 #main-content .page-wrap .table tbody tr:hover td {
-  background: color-mix(in srgb, var(--school-primary, #0d6efd) 4%, transparent);
+  background: color-mix(in srgb, var(--school-primary) 4%, transparent);
 }
 
 #main-content .page-wrap .table-bordered {
@@ -148,7 +148,7 @@
 #main-content .page-wrap .form-control:focus,
 #main-content .page-wrap .form-select:focus {
   border-color: var(--school-primary, var(--color-primary));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--school-primary, #0d6efd) 18%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--school-primary) 18%, transparent);
 }
 
 #main-content .page-wrap .form-label {

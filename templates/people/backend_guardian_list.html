@@ -9,7 +9,7 @@
       {% url 'accounts:backend_student_list' as back_url %}
       {% include "studio_os/components/page_header.html" with title="Guardians" subtitle="Parent and guardian links to students" action_url=back_url action_text="Back to students" %}
 
-      <form method="get" class="card card-body bg-light mb-3" role="search">
+      <form method="get" class="card card-body bg-light mb-3 page-family-filter-row" role="search">
         <div class="row g-2 align-items-end">
           <div class="col-md-4">
             <label for="guardian-q" class="form-label small">Search</label>

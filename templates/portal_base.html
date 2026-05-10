@@ -28,7 +28,11 @@
     <link rel="stylesheet" href="{% static 'css/toggle-colors.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-tables-forms.css' %}">
-    <link rel="stylesheet" href="{% static 'css/portal_theme.css' %}">
+    {# portal_theme.css RETIRED 2026-05-10 — its hardcoded sunset gradients overrode --portal-bg
+       and conflicted with the token system. Tenant brand cascade now works correctly.
+       The file still exists on disk for service-worker cache manifest reasons; deleting it
+       requires bumping the SW version + updating apps/siteconfig/tests/test_theme_visibility_matrix.py.
+       See memory: reference_css_retirement_audit.md #}
     <link rel="stylesheet" href="{% static 'css/portal-theme-modes.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-fluid-everywhere.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
@@ -109,6 +113,7 @@
 
   <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
+    <div class="htmx-progress-bar" aria-hidden="true"></div>
     {% include "partials/shell_chrome_site_preview_banner_top.html" %}
     <nav id="portalHeader" class="navbar navbar-expand-lg navbar-dark topbar topbar-sticky statement-header" role="navigation" aria-label="Main navigation" data-rmc-shell-header="portal">
       <div class="container-fluid px-3" id="preview-header-bar" data-preview-label="{% trans 'Header bar (background & colors)' %}">

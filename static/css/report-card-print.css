@@ -16,15 +16,28 @@
   [data-print-hide],
   header[role="banner"] .nav,
   .skip-link,
-  .toast-container {
+  .htmx-progress-bar,
+  .toast-container,
+  .toast-container-x,
+  .progress-x,
+  .ai-copilot-fab,
+  #ai-copilot,
+  [data-ai-copilot] {
     display: none !important;
   }
 
-  /* Full width content, no sidebar offset */
+  /* Full width content, no sidebar offset.
+     Inter is loaded via vendor/inter.css; honor it on print so output matches the digital
+     report-card style. font-feature-settings enables slashed zero (cv11) for clean numerals. */
   body {
     background: #fff;
+    color: #0f172a;
     font-size: 11pt;
-    color: #111;
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-feature-settings: "cv11", "tnum";
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    letter-spacing: -0.005em;
   }
   main,
   .main-content,
@@ -40,20 +53,271 @@
     size: A4;
     margin: 14mm 12mm;
   }
+  @page :first {
+    margin-top: 12mm;
+  }
+
+  /* Apple-tier report card polish. Targets either:
+     - .report-card-print-wrapper (existing wrapper class)
+     - .report-card-paper (the new paper-style class shipped in aesthetic_preview)
+     The school primary/accent fall back to indigo+emerald if the tenant hasn't set them. */
+  .report-card-print-wrapper,
+  .report-card-paper {
+    --rc-primary: var(--school-primary, #4f46e5);
+    --rc-accent: var(--school-accent, #10b981);
+    --rc-ink: #0f172a;
+    --rc-muted: #475569;
+    --rc-hairline: #e2e8f0;
+    --rc-soft-bg: #f8fafc;
+    color: var(--rc-ink);
+    box-shadow: none !important;
+    background: #fff !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    letter-spacing: -0.005em;
+  }
+
+  /* Branded hairline at the top of every report-card page (subtle, ~1.5pt;
+     uses gradient via box-shadow trick because @page can't use brand vars). */
+  .report-card-print-wrapper::before,
+  .report-card-paper::before {
+    content: "";
+    display: block;
+    height: 4pt;
+    margin: 0 0 18pt;
+    background: linear-gradient(90deg, var(--rc-primary), var(--rc-accent));
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* Heading hierarchy — display tracking, optical balance */
+  .report-card-print-wrapper h1,
+  .report-card-paper h1,
+  .report-card-paper h2 {
+    letter-spacing: -0.022em;
+    font-weight: 700;
+    color: var(--rc-ink);
+  }
+  .report-card-print-wrapper .eyebrow,
+  .report-card-paper .eyebrow,
+  .report-card-paper .meta,
+  .report-card-print-wrapper .addr {
+    color: var(--rc-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 8.5pt;
+    font-weight: 600;
+  }
+
+  /* Tables — refined hairlines, tabular nums, subtle row tone */
+  .report-card-print-wrapper table,
+  .report-card-paper .report-grades,
+  .grade-breakdown,
+  .term-grades table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 14pt 0;
+    page-break-inside: auto;
+  }
+  .report-card-print-wrapper thead th,
+  .report-card-paper .report-grades thead th,
+  .grade-breakdown thead th {
+    background: transparent !important;
+    color: var(--rc-muted) !important;
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    padding: 8pt 6pt !important;
+    border: none !important;
+    border-bottom: 0.75pt solid var(--rc-ink) !important;
+    text-align: left;
+  }
+  .report-card-print-wrapper thead th.num,
+  .report-card-paper .report-grades thead th.num,
+  .grade-breakdown thead th[data-numeric] {
+    text-align: right;
+  }
+  .report-card-print-wrapper tbody td,
+  .report-card-paper .report-grades tbody td,
+  .grade-breakdown tbody td {
+    padding: 9pt 6pt !important;
+    border: none !important;
+    border-bottom: 0.5pt solid var(--rc-hairline) !important;
+    font-size: 10.5pt;
+    vertical-align: top;
+  }
+  .report-card-print-wrapper tbody td.num,
+  .report-card-paper .report-grades tbody td.num,
+  .grade-breakdown tbody td[data-numeric] {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum", "cv11";
+  }
+  .report-card-paper .report-grades tbody tr:last-child td {
+    border-bottom: 0.75pt solid var(--rc-ink) !important;
+  }
+  .report-card-paper .report-grades tbody td.subject,
+  .report-card-print-wrapper .grade-subject {
+    font-weight: 600;
+    color: var(--rc-ink);
+  }
+  .report-card-paper .report-grades tbody td.teacher,
+  .report-card-print-wrapper .grade-teacher {
+    color: var(--rc-muted);
+    font-size: 9.5pt;
+  }
+
+  /* Comments — soft tonal block, no harsh borders */
+  .report-card-print-wrapper .comment-block,
+  .report-card-paper .report-comments {
+    background: var(--rc-soft-bg) !important;
+    border: none !important;
+    border-left: 2pt solid var(--rc-primary) !important;
+    padding: 12pt 14pt !important;
+    margin: 16pt 0 !important;
+    page-break-inside: avoid;
+    border-radius: 0 !important;
+  }
+  .report-card-paper .report-comments h3,
+  .report-card-print-wrapper .comment-block h3 {
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--rc-muted);
+    margin: 0 0 6pt;
+    font-weight: 600;
+  }
+  .report-card-paper .report-comments .signoff {
+    font-style: italic;
+    color: var(--rc-muted);
+    font-size: 9pt;
+    margin-top: 8pt;
+  }
+
+  /* Footer — verification URL + page numbers */
+  .report-card-print-wrapper .report-footer,
+  .report-card-paper .report-footer {
+    margin-top: 20pt;
+    padding-top: 10pt;
+    border-top: 0.5pt solid var(--rc-hairline);
+    font-size: 8pt;
+    color: var(--rc-muted);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* Student card / hero */
+  .report-card-paper .report-student,
+  .report-card-print-wrapper .student-row {
+    display: grid;
+    grid-template-columns: 64pt 1fr auto;
+    gap: 14pt;
+    align-items: center;
+    padding: 12pt 0;
+    border-bottom: 0.5pt solid var(--rc-hairline);
+  }
+  .report-card-paper .report-student .av {
+    width: 64pt; height: 64pt;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--rc-primary), var(--rc-accent));
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 18pt;
+  }
+  .report-card-paper .report-student .stat .v {
+    font-size: 24pt;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    font-variant-numeric: tabular-nums;
+  }
+  .report-card-paper .report-student .stat .l {
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--rc-muted);
+    font-weight: 600;
+  }
+
+  /* Header — school identity */
+  .report-card-paper .report-header,
+  .report-card-print-wrapper .letterhead {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20pt;
+    padding-bottom: 12pt;
+    border-bottom: 0.5pt solid var(--rc-hairline);
+  }
+  .report-card-paper .report-header .school-mark {
+    width: 42pt; height: 42pt;
+    border-radius: 10pt;
+    background: linear-gradient(135deg, var(--rc-primary), var(--rc-accent));
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 14pt;
+  }
+  .report-card-paper .report-header h1,
+  .report-card-print-wrapper .letterhead .school-name {
+    font-size: 16pt;
+    margin: 0;
+    letter-spacing: -0.018em;
+  }
+  .report-card-paper .report-header .term strong {
+    font-size: 11pt;
+    letter-spacing: -0.01em;
+  }
 
   /* Avoid breaking report card sections across pages */
   .letterhead,
   .report-card-print-wrapper .grid,
   .report-card-print-wrapper .box,
-  .report-card-print-wrapper table {
+  .report-card-print-wrapper table,
+  .report-card-paper .report-header,
+  .report-card-paper .report-student,
+  .report-card-paper .report-comments {
     page-break-inside: avoid;
   }
-  .report-card-print-wrapper thead {
+  .report-card-print-wrapper thead,
+  .report-card-paper thead {
     display: table-header-group;
   }
 
-  /* Links: show URL for audit */
+  /* Multi-student print: each report card on its own page */
+  .report-card-paper + .report-card-paper,
+  .report-card-print-wrapper + .report-card-print-wrapper {
+    page-break-before: always;
+  }
+
+  /* Links: do not append URLs in body (the footer already has the verify URL) */
   a[href]::after {
     content: none;
+  }
+
+  /* Watermark for draft / preview / void states — refined letter-spacing,
+     subtler opacity than print.css default. */
+  body.draft .report-card-paper::after,
+  body.draft .report-card-print-wrapper::after,
+  .report-card-paper[data-watermark]::after,
+  .report-card-print-wrapper[data-watermark]::after {
+    content: attr(data-watermark);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-22deg);
+    font-size: 84pt;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: rgba(15, 23, 42, 0.06);
+    z-index: -1;
+    pointer-events: none;
+    text-transform: uppercase;
+  }
+  body.draft .report-card-paper::after,
+  body.draft .report-card-print-wrapper::after {
+    content: "DRAFT";
   }
 }

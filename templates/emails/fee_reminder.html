@@ -1,0 +1,89 @@
+{% extends "emails/base_branded.html" %}
+{% comment %}
+Fee reminder email — sent to a guardian when a student has an outstanding balance.
+
+Required context:
+  - school_name, primary_color, accent_color, branded_domain (from base)
+  - parent_name            (recipient)
+  - student_name
+  - class_name
+  - term_name              (e.g. "Term 2 · 2025/2026")
+  - balance_amount         (e.g. "32,000")
+  - currency               (e.g. "KES")
+  - due_date               (formatted; e.g. "15 May 2026")
+  - days_remaining         (integer; positive = until due, negative = overdue)
+  - invoice_number         (optional; for receipts)
+  - pay_url                (online payment link)
+  - statement_url          (full fees statement link)
+  - school_phone, school_email (optional)
+{% endcomment %}
+{% load i18n %}
+
+{% block email_subject_suffix %}{% if days_remaining < 0 %} · {% trans "Fees overdue" %}{% else %} · {% trans "Fee reminder" %}{% endif %}{% endblock %}
+
+{% block email_preheader %}{% blocktrans with name=student_name term=term_name amount=balance_amount cur=currency %}{{ name }} has an outstanding balance of {{ cur }} {{ amount }} for {{ term }}.{% endblocktrans %}{% endblock %}
+
+{% block email_header_subtitle %}
+<div style="margin-top:6px;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#64748b;">{% if days_remaining < 0 %}{% trans "Fees overdue" %}{% else %}{% trans "Fee reminder" %}{% endif %}</div>
+{% endblock %}
+
+{% block email_content %}
+<p style="margin:0 0 18px 0;">{% blocktrans with name=parent_name %}Dear {{ name }},{% endblocktrans %}</p>
+
+<p style="margin:0 0 24px 0;">
+  {% if days_remaining < 0 %}
+    {% blocktrans with name=student_name term=term_name %}<strong>{{ name }}</strong>'s {{ term }} fees are now overdue. Please settle the balance below to avoid any disruption to your child's schooling.{% endblocktrans %}
+  {% elif days_remaining == 0 %}
+    {% blocktrans with name=student_name term=term_name %}<strong>{{ name }}</strong>'s {{ term }} fees are due <strong>today</strong>.{% endblocktrans %}
+  {% elif days_remaining <= 7 %}
+    {% blocktrans with name=student_name term=term_name days=days_remaining %}<strong>{{ name }}</strong>'s {{ term }} fees are due in <strong>{{ days }} day(s)</strong>.{% endblocktrans %}
+  {% else %}
+    {% blocktrans with name=student_name term=term_name %}This is a friendly reminder that <strong>{{ name }}</strong>'s {{ term }} fees are due soon.{% endblocktrans %}
+  {% endif %}
+</p>
+
+<!-- Balance card — large, scannable, color-coded by urgency -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin:0 0 24px 0;">
+  <tr>
+    <td style="background:{% if days_remaining < 0 %}rgba(220,38,38,0.04){% else %}#f8fafc{% endif %};border-left:3px solid {% if days_remaining < 0 %}#dc2626{% else %}{{ primary_color|default:'#4f46e5' }}{% endif %};border-radius:6px;padding:20px 22px;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#64748b;margin-bottom:6px;">{% trans "Outstanding balance" %}</div>
+      <div style="font-size:32px;font-weight:700;color:{% if days_remaining < 0 %}#dc2626{% else %}#0f172a{% endif %};letter-spacing:-0.025em;font-variant-numeric:tabular-nums;line-height:1.1;">{{ currency }} {{ balance_amount }}</div>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;font-size:14px;line-height:1.7;margin-top:14px;border-top:1px solid rgba(15,23,42,0.06);padding-top:12px;">
+        <tr><td style="color:#64748b;width:35%;padding-right:8px;padding-top:6px;">{% trans "Student" %}</td><td style="color:#0f172a;font-weight:600;padding-top:6px;">{{ student_name }}</td></tr>
+        <tr><td style="color:#64748b;padding-right:8px;">{% trans "Class" %}</td><td style="color:#0f172a;font-weight:500;">{{ class_name }}</td></tr>
+        <tr><td style="color:#64748b;padding-right:8px;">{% trans "Term" %}</td><td style="color:#0f172a;font-weight:500;">{{ term_name }}</td></tr>
+        <tr><td style="color:#64748b;padding-right:8px;">{% trans "Due date" %}</td><td style="color:{% if days_remaining < 0 %}#dc2626{% else %}#0f172a{% endif %};font-weight:600;">{{ due_date }}{% if days_remaining < 0 %} · <span style="color:#dc2626;font-size:13px;">{% blocktrans with d=days_remaining|stringformat:"d" %}{{ d }} days overdue{% endblocktrans %}</span>{% endif %}</td></tr>
+        {% if invoice_number %}<tr><td style="color:#64748b;padding-right:8px;">{% trans "Invoice" %}</td><td style="color:#0f172a;font-family:ui-monospace,'SF Mono',monospace;font-size:13px;">{{ invoice_number }}</td></tr>{% endif %}
+      </table>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:0 0 18px 0;">{% trans "Pay securely online — Mpesa, card, or bank transfer:" %}</p>
+
+<!-- Two-button row: primary (pay) + secondary (view statement) -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 8px 0;">
+  <tr>
+    <td style="background:{{ primary_color|default:'#4f46e5' }};border-radius:10px;box-shadow:0 1px 2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.14);">
+      <a href="{{ pay_url }}" class="em-button" style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:600;letter-spacing:-0.005em;color:#ffffff;text-decoration:none;border-radius:10px;font-family:'Inter','Helvetica Neue',Arial,sans-serif;">{% trans "Pay now" %} →</a>
+    </td>
+    {% if statement_url %}
+    <td style="padding-left:10px;">
+      <a href="{{ statement_url }}" style="display:inline-block;padding:13px 22px;font-size:15px;font-weight:600;letter-spacing:-0.005em;color:{{ primary_color|default:'#4f46e5' }};text-decoration:none;border-radius:10px;border:1px solid rgba(15,23,42,0.10);font-family:'Inter','Helvetica Neue',Arial,sans-serif;">{% trans "View statement" %}</a>
+    </td>
+    {% endif %}
+  </tr>
+</table>
+
+<p style="margin:18px 0 0 0;font-size:13px;color:#64748b;">
+  {% trans "Or copy this payment link:" %} <a href="{{ pay_url }}" style="color:{{ primary_color|default:'#4f46e5' }};text-decoration:underline;word-break:break-all;">{{ pay_url }}</a>
+</p>
+
+{% if school_phone or school_email %}
+<p style="margin:24px 0 0 0;font-size:13.5px;color:#475569;line-height:1.6;border-top:1px solid rgba(15,23,42,0.06);padding-top:18px;">
+  <strong style="color:#0f172a;">{% trans "Need to discuss?" %}</strong>&nbsp;
+  {% trans "We're glad to help — flexible payment plans are available on request." %}<br>
+  {% if school_phone %}<a href="tel:{{ school_phone }}" style="color:{{ primary_color|default:'#4f46e5' }};text-decoration:none;">{{ school_phone }}</a>{% endif %}{% if school_phone and school_email %} &middot; {% endif %}{% if school_email %}<a href="mailto:{{ school_email }}" style="color:{{ primary_color|default:'#4f46e5' }};text-decoration:none;">{{ school_email }}</a>{% endif %}
+</p>
+{% endif %}
+{% endblock %}

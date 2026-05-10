@@ -1,203 +1,158 @@
 {% extends "base.html" %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}MFA Setup - {{ block.super }}{% endblock %}
+{% block title %}{% trans "Multi-factor authentication" %}{% endblock %}
 
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">MFA Setup - {{ block.super }}</h1>
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-shield-alt"></i> Multi-Factor Authentication (MFA)
-                    </h4>
-                </div>
-                <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+<h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Multi-factor authentication" %}</h1>
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
 
-                    {% if not has_mfa and not qr_code %}
-                        <!-- MFA Not Enabled -->
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> 
-                            <strong>MFA is currently disabled</strong> for your account.
-                        </div>
-                        
-                        <p>Multi-Factor Authentication adds an extra layer of security to your account by requiring a one-time code from your mobile device in addition to your password.</p>
-                        
-                        <h5 class="mt-4">How it works:</h5>
-                        <ol>
-                            <li>Install an authenticator app (Google Authenticator, Authy, Microsoft Authenticator)</li>
-                            <li>Click "Enable MFA" below to generate a QR code</li>
-                            <li>Scan the QR code with your authenticator app</li>
-                            <li>Enter the 6-digit code to verify</li>
-                        </ol>
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'Close' %}"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
 
-                        <form method="post" class="mt-4 d-inline">
-                            {% csrf_token %}
-                            {% if next_url %}
-                            <input type="hidden" name="next" value="{{ next_url }}">
-                            {% endif %}
-                            <button type="submit" name="enable_mfa" class="btn btn-success btn-lg">
-                                <i class="fas fa-lock"></i> Enable MFA (authenticator app)
-                            </button>
-                        </form>
-                        {% if use_passkey %}
-                        <span class="ms-2">or</span>
-                        <button type="button" id="btn-add-passkey-first" class="btn btn-outline-primary btn-lg ms-2">
-                            <i class="fas fa-fingerprint"></i> Add passkey instead
-                        </button>
-                        <div id="passkey-message-first" class="mt-2 small"></div>
-                        {% endif %}
-
-                    {% elif qr_code %}
-                        <!-- QR Code Display -->
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <strong>Important:</strong> Save your secret key in a secure location. You'll need it if you lose access to your authenticator app.
-                        </div>
-
-                        <h5 class="mb-3">Step 1: Scan this QR code</h5>
-                        <div class="text-center mb-4">
-                            <img src="data:image/png;base64,{{ qr_code }}" alt="MFA QR Code" class="img-fluid" width="300" height="300" decoding="async" style="max-width: 300px; height: auto; object-fit: contain;">
-                        </div>
-
-                        <h5>Step 2: Manual entry code (if needed)</h5>
-                        <div class="card bg-light mb-4">
-                            <div class="card-body">
-                                <code class="fs-5">{{ secret_key }}</code>
-                                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="navigator.clipboard.writeText('{{ secret_key }}')">
-                                    <i class="fas fa-copy"></i> Copy
-                                </button>
-                            </div>
-                        </div>
-
-                        <h5>Step 3: Verify with a token</h5>
-                        <form method="post" class="mb-3">
-                            {% csrf_token %}
-                            <input type="hidden" name="device_id" value="{{ device_id }}">
-                            {% if next_url %}
-                            <input type="hidden" name="next" value="{{ next_url }}">
-                            {% endif %}
-                            <div class="input-group mb-3">
-                                <input type="text" name="token" class="form-control form-control-lg" 
-                                       placeholder="Enter 6-digit code" maxlength="6" pattern="\d{6}" required 
-                                       autocomplete="off">
-                                <button type="submit" name="verify_token" class="btn btn-primary">
-                                    <i class="fas fa-check"></i> Verify & Enable
-                                </button>
-                            </div>
-                        </form>
-
-                        <div class="text-muted">
-                            <small>
-                                <i class="fas fa-lightbulb"></i> 
-                                Enter the 6-digit code from your authenticator app to complete setup.
-                            </small>
-                        </div>
-
-                    {% else %}
-                        <!-- MFA Already Enabled -->
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle"></i>
-                            <strong>MFA is enabled</strong> and protecting your account.
-                        </div>
-
-                        <p>Your account is protected with Multi-Factor Authentication. You'll need to enter a code from your authenticator app every time you log in.</p>
-
-                        <div class="card bg-light mb-4">
-                            <div class="card-body">
-                                <h6>Status</h6>
-                                <ul class="mb-0">
-                                    <li>MFA Type: <strong>Time-based One-Time Password (TOTP)</strong></li>
-                                    <li>Authenticator: <strong>Configured</strong></li>
-                                    <li>Last Verified: <strong>This session</strong></li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        {% if backup_tokens %}
-                        <div class="card bg-light mb-4">
-                            <div class="card-body">
-                                <h6>Backup Codes</h6>
-                                <p class="text-muted small mb-2">Store these in a safe place. Each code can be used once.</p>
-                                <div class="d-flex flex-wrap gap-2">
-                                    {% for code in backup_tokens %}
-                                        <span class="badge bg-secondary text-white">{{ code }}</span>
-                                    {% endfor %}
-                                </div>
-                                <form method="post" class="mt-3">
-                                    {% csrf_token %}
-                                    {% if next_url %}
-                                    <input type="hidden" name="next" value="{{ next_url }}">
-                                    {% endif %}
-                                    <button type="submit" name="regen_backup" class="btn btn-outline-secondary btn-sm">
-                                        <i class="fas fa-sync"></i> Regenerate backup codes
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        {% if use_passkey %}
-                        <hr class="my-4">
-                        <h5><i class="fas fa-fingerprint"></i> Passkeys</h5>
-                        <p class="text-muted small">Sign in with your device (Face ID, Touch ID, or security key) instead of a code.</p>
-                        {% if passkeys %}
-                        <ul class="list-group mb-3">
-                            {% for pk in passkeys %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                {{ pk.name|default:"Passkey" }} <span class="badge bg-secondary">{{ pk.created_at }}</span>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                        <button type="button" id="btn-add-passkey" class="btn btn-outline-primary">
-                            <i class="fas fa-plus"></i> Add passkey
-                        </button>
-                        <div id="passkey-message" class="mt-2 small"></div>
-                        {% endif %}
-
-                        <h5 class="text-danger mt-4">Disable MFA</h5>
-                        <p class="text-muted">
-                            <i class="fas fa-exclamation-circle"></i>
-                            Disabling MFA will remove the extra security layer from your account. Only do this if absolutely necessary.
-                        </p>
-                        
-                        <form method="post">
-                            {% csrf_token %}
-                            {% if next_url %}
-                            <input type="hidden" name="next" value="{{ next_url }}">
-                            {% endif %}
-                            <button type="submit" name="disable_mfa" class="btn btn-danger" 
-                                    onclick="return confirm('Are you sure you want to disable MFA? This will make your account less secure.')">
-                                <i class="fas fa-unlock"></i> Disable MFA
-                            </button>
-                        </form>
-                    {% endif %}
-                </div>
-                <div class="card-footer text-muted">
-                    <small>
-                        <i class="fas fa-question-circle"></i>
-                        Need help? Contact IT support or refer to the <a href="/docs/security/">security documentation</a>.
-                    </small>
-                </div>
-            </div>
-
-            <div class="text-center mt-3 d-flex flex-wrap justify-content-center gap-2">
-                <a href="{% url 'accounts:user_profile' %}" class="btn btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to My Profile</a>
-                <a href="{% url 'accounts:redirect' %}" class="btn btn-link btn-back-primary">Back to Dashboard</a>
-            </div>
+      <div class="content-card" style="padding:0;overflow:hidden">
+        {# Header — refined hairline + brand-tinted icon, replaces card-header bg-primary #}
+        <div style="padding:22px 26px 18px;border-bottom:1px solid var(--admin-content-border);display:flex;gap:14px;align-items:center">
+          <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--school-primary),color-mix(in oklab,var(--school-primary) 70%, var(--school-accent)));color:#fff;display:inline-flex;align-items:center;justify-content:center" aria-hidden="true">
+            <i class="bi bi-shield-lock" style="font-size:1.25rem"></i>
+          </div>
+          <div>
+            <div class="eyebrow" style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--admin-content-text-muted)">{% trans "Account security" %}</div>
+            <h1 style="font-size:1.25rem;font-weight:700;letter-spacing:-0.015em;margin:2px 0 0">{% trans "Multi-factor authentication" %}</h1>
+          </div>
         </div>
+
+        <div style="padding:24px 26px">
+          {% if not has_mfa and not qr_code %}
+            {# State 1: MFA disabled #}
+            <div class="alert alert-info mb-3"><i class="bi bi-info-circle me-1"></i><strong>{% trans "MFA is currently disabled" %}</strong> {% trans "for your account." %}</div>
+            <p>{% trans "Multi-factor authentication adds a second layer of security — a one-time code from your phone — on top of your password." %}</p>
+
+            <h2 class="h6 mt-4 mb-3" style="font-weight:600;letter-spacing:-0.01em">{% trans "How it works" %}</h2>
+            <ol style="line-height:1.8;color:var(--admin-content-text-muted);padding-left:20px;margin-bottom:24px">
+              <li>{% trans "Install an authenticator app (Google Authenticator, Authy, 1Password, Microsoft Authenticator)." %}</li>
+              <li>{% trans 'Click "Enable MFA" below to generate a QR code.' %}</li>
+              <li>{% trans "Scan the QR code with your authenticator app." %}</li>
+              <li>{% trans "Enter the 6-digit code to verify and finish setup." %}</li>
+            </ol>
+
+            <div class="d-flex flex-wrap gap-2">
+              <form method="post" class="d-inline">
+                {% csrf_token %}
+                {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+                <button type="submit" name="enable_mfa" class="btn btn-primary btn-lg"><i class="bi bi-lock me-1"></i>{% trans "Enable MFA (authenticator app)" %}</button>
+              </form>
+              {% if use_passkey %}
+                <span class="text-muted align-self-center mx-1" style="font-size:0.9rem">{% trans "or" %}</span>
+                <button type="button" id="btn-add-passkey-first" class="btn btn-outline-primary btn-lg"><i class="bi bi-fingerprint me-1"></i>{% trans "Add a passkey instead" %}</button>
+              {% endif %}
+            </div>
+            {% if use_passkey %}<div id="passkey-message-first" class="mt-2 small" style="color:var(--admin-content-text-muted)"></div>{% endif %}
+
+          {% elif qr_code %}
+            {# State 2: QR display + verification #}
+            <div class="alert alert-warning mb-3"><i class="bi bi-exclamation-triangle me-1"></i><strong>{% trans "Important." %}</strong> {% trans "Save your secret key in a secure place. You'll need it if you lose access to your authenticator app." %}</div>
+
+            <h2 class="h6 mt-2 mb-3" style="font-weight:600;letter-spacing:-0.01em">{% trans "Step 1 — Scan this QR code" %}</h2>
+            <div style="text-align:center;padding:18px;background:var(--surface-bg-subtle);border-radius:var(--token-radius-md);margin-bottom:22px">
+              <img src="data:image/png;base64,{{ qr_code }}" alt="{% trans 'MFA QR code' %}" class="img-fluid" width="240" height="240" decoding="async" style="max-width:240px;height:auto;object-fit:contain;border-radius:8px;background:#fff;padding:12px">
+            </div>
+
+            <h2 class="h6 mb-2" style="font-weight:600;letter-spacing:-0.01em">{% trans "Step 2 — Manual entry code (if needed)" %}</h2>
+            <div style="background:var(--surface-bg-subtle);padding:14px 16px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px">
+              <code style="font-size:1.05rem;font-weight:600;background:transparent;border:none;padding:0;letter-spacing:0.04em;color:var(--admin-content-text)">{{ secret_key }}</code>
+              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="navigator.clipboard.writeText('{{ secret_key }}');this.innerHTML='<i class=&quot;bi bi-check2 me-1&quot;></i>{% trans 'Copied' %}'"><i class="bi bi-clipboard me-1"></i>{% trans "Copy" %}</button>
+            </div>
+
+            <h2 class="h6 mb-2" style="font-weight:600;letter-spacing:-0.01em">{% trans "Step 3 — Verify with a code" %}</h2>
+            <form method="post" class="mb-3">
+              {% csrf_token %}
+              <input type="hidden" name="device_id" value="{{ device_id }}">
+              {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+              <div class="input-group">
+                <input type="text" name="token" class="form-control form-control-lg" inputmode="numeric" placeholder="{% trans 'Enter 6-digit code' %}" maxlength="6" pattern="\d{6}" required autocomplete="off" style="font-variant-numeric:tabular-nums;letter-spacing:0.15em;font-weight:600">
+                <button type="submit" name="verify_token" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>{% trans "Verify & enable" %}</button>
+              </div>
+            </form>
+            <div style="font-size:0.85rem;color:var(--admin-content-text-muted)"><i class="bi bi-lightbulb me-1"></i>{% trans "Enter the 6-digit code from your authenticator app to complete setup." %}</div>
+
+          {% else %}
+            {# State 3: MFA already enabled #}
+            <div class="alert alert-success mb-3"><i class="bi bi-check2-circle me-1"></i><strong>{% trans "MFA is enabled" %}</strong> {% trans "and protecting your account." %}</div>
+            <p>{% trans "Your account is protected with Multi-factor authentication. You'll enter a code from your authenticator app every time you sign in from a new device." %}</p>
+
+            <dl class="data-list" style="margin:18px 0 22px">
+              <dt>{% trans "MFA type" %}</dt><dd>{% trans "Time-based One-Time Password (TOTP)" %}</dd>
+              <dt>{% trans "Authenticator" %}</dt><dd>{% trans "Configured" %}</dd>
+              <dt>{% trans "Last verified" %}</dt><dd>{% trans "This session" %}</dd>
+            </dl>
+
+            {% if backup_tokens %}
+            <div class="content-card" style="background:var(--surface-bg-subtle);box-shadow:none;margin-bottom:22px">
+              <div class="eyebrow" style="margin-bottom:6px">{% trans "Backup codes" %}</div>
+              <h3 style="font-size:0.95rem;font-weight:600;margin:0 0 6px">{% trans "Store these securely." %}</h3>
+              <p style="font-size:0.85rem;color:var(--admin-content-text-muted);margin-bottom:12px">{% trans "Each code can be used once if you lose access to your authenticator." %}</p>
+              <div class="d-flex flex-wrap gap-2">
+                {% for code in backup_tokens %}
+                  <span class="badge" data-tone="soft-primary" style="font-family:ui-monospace,'SF Mono','Cascadia Code',monospace;font-size:0.85rem;letter-spacing:0.05em">{{ code }}</span>
+                {% endfor %}
+              </div>
+              <form method="post" class="mt-3">
+                {% csrf_token %}
+                {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+                <button type="submit" name="regen_backup" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-repeat me-1"></i>{% trans "Regenerate backup codes" %}</button>
+              </form>
+            </div>
+            {% endif %}
+
+            {% if use_passkey %}
+            <hr>
+            <h2 class="h6 mt-4 mb-2" style="font-weight:600;letter-spacing:-0.01em"><i class="bi bi-fingerprint me-1"></i>{% trans "Passkeys" %}</h2>
+            <p style="color:var(--admin-content-text-muted);font-size:0.9rem;margin-bottom:14px">{% trans "Sign in with your device (Face ID, Touch ID, or a security key) instead of a code." %}</p>
+            {% if passkeys %}
+            <div class="list-group mb-3">
+              {% for pk in passkeys %}
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-key me-2 text-muted"></i>{{ pk.name|default:_("Passkey") }}</span>
+                <span class="badge" data-tone="soft-primary" style="font-size:0.75rem">{{ pk.created_at }}</span>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+            <button type="button" id="btn-add-passkey" class="btn btn-outline-primary"><i class="bi bi-plus-lg me-1"></i>{% trans "Add passkey" %}</button>
+            <div id="passkey-message" class="mt-2 small" style="color:var(--admin-content-text-muted)"></div>
+            {% endif %}
+
+            <hr style="margin:28px 0 18px">
+            <h2 class="h6" style="font-weight:600;color:var(--ds-danger);letter-spacing:-0.01em"><i class="bi bi-exclamation-circle me-1"></i>{% trans "Disable MFA" %}</h2>
+            <p style="color:var(--admin-content-text-muted);font-size:0.9rem;margin-bottom:14px">{% trans "Disabling MFA removes the second layer of security from your account. Only do this if absolutely necessary." %}</p>
+            <form method="post">
+              {% csrf_token %}
+              {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+              <button type="submit" name="disable_mfa" class="btn btn-outline-danger" onclick="return confirm('{% trans "Are you sure you want to disable MFA? This will make your account less secure." %}')"><i class="bi bi-unlock me-1"></i>{% trans "Disable MFA" %}</button>
+            </form>
+          {% endif %}
+        </div>
+
+        <div style="padding:14px 26px;border-top:1px solid var(--admin-content-border);background:var(--surface-bg-subtle);font-size:0.82rem;color:var(--admin-content-text-muted)">
+          <i class="bi bi-question-circle me-1"></i>{% trans "Need help?" %} {% trans "Contact IT support or refer to the" %} <a href="/docs/security/">{% trans "security documentation" %}</a>.
+        </div>
+      </div>
+
+      <div class="text-center mt-3 d-flex flex-wrap justify-content-center gap-2">
+        <a href="{% url 'accounts:user_profile' %}" class="btn btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to my profile" %}</a>
+        <a href="{% url 'accounts:redirect' %}" class="btn btn-link btn-back-primary">{% trans "Back to dashboard" %}</a>
+      </div>
     </div>
+  </div>
 </div>
 
 {% if use_passkey %}

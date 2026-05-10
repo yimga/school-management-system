@@ -1,11 +1,110 @@
-<!doctype html>
-<html>
+{% load i18n %}<!doctype html>
+{# Standalone — must render when the full base templates can't render.
+   Self-contained Apple-tier polish, no external CSS dependency. #}
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
 <head>
-  <title>Maintenance</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{% trans "Maintenance" %} · RunMyCampus</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --primary: #4f46e5;
+      --accent: #10b981;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --ink: #0f172a;
+      --muted: #475569;
+      --subtle: #94a3b8;
+      --rule: rgba(15, 23, 42, 0.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #0b1120; --surface: #1e293b; --ink: #f1f5f9; --muted: #cbd5e1; --subtle: #94a3b8; --rule: rgba(148, 163, 184, 0.16); }
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse 80% 40% at 50% 0%, color-mix(in oklab, var(--primary) 8%, transparent), transparent 70%),
+        var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-feature-settings: 'cv11';
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.005em;
+      line-height: 1.55;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    main {
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+    }
+    .icon {
+      width: 72px; height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 70%, var(--accent)));
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 22px;
+      box-shadow: 0 0 0 1px var(--rule), 0 12px 32px -4px rgba(15,23,42,0.15);
+    }
+    h1 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      margin: 0 0 10px;
+      line-height: 1.2;
+    }
+    p {
+      color: var(--muted);
+      margin: 0 0 24px;
+      font-size: 1.05rem;
+      max-width: 32rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 22px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: -0.005em;
+      cursor: pointer;
+      font-family: inherit;
+      transition: filter 150ms ease, transform 100ms ease;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.14);
+    }
+    button:hover { filter: brightness(1.04); }
+    button:active { transform: scale(0.98); }
+  </style>
 </head>
-<body style="text-align:center;padding:50px;">
-  <h1>🚧 Maintenance Mode</h1>
-  <p>We’ll be back shortly.</p>
+<body>
+  <main role="main">
+    <div class="icon" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.121 2.121 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+      </svg>
+    </div>
+    <h1>{% trans "We'll be right back." %}</h1>
+    <p>{% trans "RunMyCampus is undergoing scheduled maintenance. Your data is safe — please check back in a few minutes." %}</p>
+    <button type="button" onclick="window.location.reload()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      {% trans "Try again" %}
+    </button>
+  </main>
 </body>
 </html>
-

@@ -44,7 +44,7 @@ MARKETING_CONTENT_DIR = os.path.join(
     getattr(settings, "BASE_DIR", os.getcwd()), "config", "marketing_content"
 )
 # Single source of truth: how many primary nav items show in the bar before "More" dropdown (IMPROVEMENTS_RUNBOOK 3.1).
-MARKETING_NAVBAR_VISIBLE_COUNT = 6
+MARKETING_NAVBAR_VISIBLE_COUNT = 4
 
 _MARKETING_PAGE_TYPE_TEMPLATES: dict[str, str] = {
     "pricing": "marketing/pages/type_pricing.html",
@@ -503,9 +503,7 @@ def _marketing_navbar_primary() -> list[dict]:
             _res_seen.add(x["path"])
             resources_children.append({"label": x["label"], "path": x["path"]})
 
-    why_path = p("marketing_10_reasons", "/10-reasons/")
     pricing_path = p("marketing_pricing", "/pricing/")
-    trust_path = p("marketing_trust_dedicated", "/trust/")
 
     return [
         {
@@ -520,9 +518,7 @@ def _marketing_navbar_primary() -> list[dict]:
             "children": solutions_children,
             "mega_columns": solutions_mega_columns,
         },
-        {"label": "Why RunMyCampus", "path": why_path},
         {"label": "Pricing", "path": pricing_path},
-        {"label": "Trust", "path": trust_path},
         {
             "label": "Resources",
             "path": resources_path,
@@ -1596,9 +1592,9 @@ def _marketing_context(
         "Replace legacy SIS pain with one modern platform.",
         "Easier onboarding: Setup Studio gets you live in days, not months.",
         "Better family experience: one portal for attendance, grades, and payments.",
-        "Stronger district governance: control plane for multi-school operators.",
+        "Stronger district governance: one view across multi-school operators.",
         "Safer migration: mapping, validation, and rollback before go-live.",
-        "Richer extensibility: marketplace, blueprints, and workflow packs.",
+        "Richer extensibility: marketplace, ready-made setups, and pre-built workflows.",
         "Lower-click workflows: command palette and role-native homes.",
     ]
 
@@ -2167,7 +2163,10 @@ def _marketing_base_context(request) -> dict:
 
 @require_GET
 def marketing_landing(request):
-    """Global marketing landing with geo-personalized copy."""
+    """Public marketing homepage. Renders the editorial v2 template (validated
+    on /v2/ 2026-05-10). The legacy 40-section schools/marketing_landing.html
+    template is preserved on disk but no longer routed; remove once the
+    editorial direction is fully proven in production."""
     from apps.schools.funnel_events import record_marketing_funnel_event
 
     record_marketing_funnel_event("visit", request)
@@ -2178,7 +2177,7 @@ def marketing_landing(request):
         language_code=(getattr(request, "LANGUAGE_CODE", "") or "en"),
         regional=False,
     )
-    return render(request, "schools/marketing_landing.html", ctx)
+    return render(request, "schools/marketing_landing_v2.html", ctx)
 
 
 def _get_blog_posts(limit: int = 20):
@@ -3202,7 +3201,7 @@ MARKETPLACE_PAGE_DEFINITIONS = {
         "integrations_copy": "",
         "templates_copy": "",
         "blueprints_copy": "",
-        "policy_packs_copy": "Policy bundles and compliance packs. Apply across tenants from the control plane.",
+        "policy_packs_copy": "Policy bundles and compliance packs. Apply across schools from one place.",
         "partners_copy": "",
     },
     "partners": {

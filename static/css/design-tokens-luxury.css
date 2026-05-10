@@ -61,7 +61,9 @@
   --lux-color-border-strong: rgba(15, 23, 42, 0.2);
   --lux-color-accent: #0f172a;
   --lux-color-accent-contrast: #ffffff;
-  --lux-color-highlight: #d4af37;
+  /* Highlight follows tenant accent (was hardcoded gold #d4af37 — single-tenant residue).
+     Keep a fallback that works on white surfaces if --school-accent is unset. */
+  --lux-color-highlight: var(--school-accent, #10b981);
 
   /* -------------------------------------------------------------------------- */
   /* Legacy aliases (compatibility bridge)                                      */

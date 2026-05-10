@@ -241,7 +241,7 @@ html[data-theme="light"] .dash-widget-row select {
   transition: color 0.15s ease, background 0.15s ease;
 }
 .dashboard-widget-grip:hover {
-  color: var(--bs-primary, #0d6efd);
+  color: var(--bs-primary, var(--school-primary));
   background: rgba(102, 126, 234, 0.08);
 }
 .dashboard-widget-grip:active {
@@ -294,7 +294,7 @@ html[data-theme="light"] .dash-widget-row select {
   background: rgba(255,255,255,0.9);
   border-radius: 4px;
   cursor: pointer;
-  color: var(--bs-primary, #0d6efd);
+  color: var(--bs-primary, var(--school-primary));
 }
 .dash-widget-move-btn:hover {
   background: rgba(102, 126, 234, 0.1);

@@ -4,10 +4,13 @@
  * Depends on design-tokens.css (color-base scale).
  */
 html[data-surface="control-plane"] {
-  --school-primary: var(--color-base-900, #0b0e14);
-  --school-accent: #d4af37;
+  /* Operator/control-plane surface: dark navy ground + indigo accent (was navy + gold).
+     We DO NOT override --school-primary here anymore — the operator inherits the platform
+     indigo (which auto-brightens to #818cf8 in dark mode via design-tokens.css), so brand
+     buttons, links, and active states look like the rest of the platform.
+     --platform-navy stays as the operator's signature dark ground. */
   --platform-navy: var(--color-base-900, #0b0e14);
-  --platform-gold: #d4af37;
+  --platform-gold: var(--school-primary); /* legacy alias — anywhere using --platform-gold now gets indigo */
   --rmc-shell-max-width: 1440px;
   --rmc-shell-gutter: clamp(0.75rem, 1.2vw, 1.25rem);
   --rmc-shell-rhythm-y: clamp(0.75rem, 1.5vw, 1.25rem);

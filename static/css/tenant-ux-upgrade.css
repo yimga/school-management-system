@@ -68,7 +68,7 @@ html[data-surface="tenant"] .portal-main-col .table tbody td {
 }
 html[data-surface="tenant"] #main-content .table tbody tr:hover td,
 html[data-surface="tenant"] .portal-main-col .table tbody tr:hover td {
-  background: color-mix(in srgb, var(--school-primary, #0d6efd) 6%, transparent);
+  background: color-mix(in srgb, var(--school-primary) 6%, transparent);
 }
 
 /* Forms: inputs and focus */
@@ -85,8 +85,8 @@ html[data-surface="tenant"] #main-content .form-control:focus,
 html[data-surface="tenant"] #main-content .form-select:focus,
 html[data-surface="tenant"] .portal-main-col .form-control:focus,
 html[data-surface="tenant"] .portal-main-col .form-select:focus {
-  border-color: var(--school-primary, #0d6efd);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--school-primary, #0d6efd) 18%, transparent);
+  border-color: var(--school-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--school-primary) 18%, transparent);
 }
 html[data-surface="tenant"] #main-content .form-label,
 html[data-surface="tenant"] .portal-main-col .form-label {
@@ -100,8 +100,8 @@ html[data-surface="tenant"] .portal-main-col .btn-primary {
   border-radius: 999px;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  background: var(--school-primary, #0d6efd);
-  border-color: var(--school-primary, #0d6efd);
+  background: var(--school-primary);
+  border-color: var(--school-primary);
 }
 html[data-surface="tenant"] #main-content .btn-primary:hover,
 html[data-surface="tenant"] .portal-main-col .btn-primary:hover {
@@ -168,6 +168,6 @@ html[data-surface="tenant"] .dropdown-menu {
   border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
 }
 html[data-surface="tenant"] .dropdown-item:hover {
-  background: color-mix(in srgb, var(--school-primary, #0d6efd) 10%, transparent);
-  color: var(--school-primary, #0d6efd);
+  background: color-mix(in srgb, var(--school-primary) 10%, transparent);
+  color: var(--school-primary);
 }

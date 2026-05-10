@@ -320,7 +320,7 @@ body.backend-shell .page-wrap {
 .communication-link {
   border-radius: 12px;
   min-width: 170px;
-  box-shadow: 0 8px 18px var(--portal-communication-link-shadow, rgba(13, 110, 253, 0.12));
+  box-shadow: 0 8px 18px var(--portal-communication-link-shadow, rgba(79, 70, 229, 0.12));
 }
 
 .widget-title {
@@ -397,7 +397,7 @@ body.backend-shell .page-wrap {
   }
   .portal-resize-handle:hover::after,
   .portal-resize-handle:active::after {
-    background: var(--school-primary, #0d6efd);
+    background: var(--school-primary);
   }
   .portal-main-col {
     flex: 1 1 0;

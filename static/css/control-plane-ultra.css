@@ -1,10 +1,10 @@
 :root {
   /* Luxury audit bridge: literal → token refs (definitions exempt from audit scan) */
   --rmc-lit-1992ef2f0f: 0.2rem;
-  --rmc-lit-1c4c148b35: 0 0 0 2px rgba(212, 175, 55, 0.3);
+  --rmc-lit-1c4c148b35: 0 0 0 2px rgba(16, 185, 129, 0.3);
   --rmc-lit-21604797f6: var(--cp-ultra-radius-lg);
   --rmc-lit-2a07851a9d: inherit;
-  --rmc-lit-2d2e46bc50: 0 0 0 3px rgba(212, 175, 55, 0.5);
+  --rmc-lit-2d2e46bc50: 0 0 0 3px rgba(16, 185, 129, 0.5);
   --rmc-lit-3282c1fa98: 8px;
   --rmc-lit-3a074ef287: var(--cp-ultra-radius);
   --rmc-lit-3b3e72785a: 0.25rem 0.75rem 0.5rem;
@@ -16,13 +16,13 @@
   --rmc-lit-503c7dee8c: 2rem;
   --rmc-lit-513a0d2e32: 1rem;
   --rmc-lit-5681c5ada2: 0.35rem;
-  --rmc-lit-5f63a4223e: 0 4px 20px rgba(212, 175, 55, 0.4);
-  --rmc-lit-62165cd5f6: 0 0 0 2px rgba(212, 175, 55, 0.2);
-  --rmc-lit-62bdb7f2e6: 0 2px 12px rgba(212, 175, 55, 0.3);
+  --rmc-lit-5f63a4223e: 0 4px 20px rgba(16, 185, 129, 0.4);
+  --rmc-lit-62165cd5f6: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  --rmc-lit-62bdb7f2e6: 0 2px 12px rgba(16, 185, 129, 0.3);
   --rmc-lit-650c0ec573: 0.5rem 0.75rem;
   --rmc-lit-716221b690: 999px;
   --rmc-lit-840a8131b3: 14px;
-  --rmc-lit-86954f035d: 0 0 0 2px rgba(212, 175, 55, 0.4);
+  --rmc-lit-86954f035d: 0 0 0 2px rgba(16, 185, 129, 0.4);
   --rmc-lit-86a04737d1: 0.5rem;
   --rmc-lit-8ba273c033: 12px;
   --rmc-lit-9027ab9e9e: 0 auto;
@@ -37,20 +37,20 @@
   --rmc-lit-b15c288a9f: 1.5rem;
   --rmc-lit-b25c16fa26: var(--cp-ultra-shadow);
   --rmc-lit-b584aa5820: auto !important;
-  --rmc-lit-c092dd4476: 0 0 0 3px rgba(212, 175, 55, 0.25);
-  --rmc-lit-c64273ca7b: 0 2px 10px rgba(212, 175, 55, 0.3);
+  --rmc-lit-c092dd4476: 0 0 0 3px rgba(16, 185, 129, 0.25);
+  --rmc-lit-c64273ca7b: 0 2px 10px rgba(16, 185, 129, 0.3);
   --rmc-lit-cc76ee6d59: 10px;
   --rmc-lit-d1f559869e: 0.65rem 1rem;
   --rmc-lit-d5c68f3a57: 1.25rem;
   --rmc-lit-d6a349e182: 0.75rem;
-  --rmc-lit-db4ef56053: 0 0 0 3px rgba(212, 175, 55, 0.6);
+  --rmc-lit-db4ef56053: 0 0 0 3px rgba(16, 185, 129, 0.6);
   --rmc-lit-e0042ab2b3: calc(0.75rem - 3px);
   --rmc-lit-e1093a94f5: none !important;
   --rmc-lit-e420303c44: 2rem 1.5rem 3rem;
-  --rmc-lit-e7750df1c8: 0 0 0 2px rgba(212, 175, 55, 0.5);
-  --rmc-lit-ec8a4cf219: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 24px rgba(212, 175, 55, 0.06);
+  --rmc-lit-e7750df1c8: 0 0 0 2px rgba(16, 185, 129, 0.5);
+  --rmc-lit-ec8a4cf219: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 24px rgba(16, 185, 129, 0.06);
   --rmc-lit-f1f9dabab7: 0 0.25rem;
-  --rmc-lit-f63d47b744: inset 0 0 20px rgba(212, 175, 55, 0.06);
+  --rmc-lit-f63d47b744: inset 0 0 20px rgba(16, 185, 129, 0.06);
   --rmc-lit-ff299c9567: 0;
 }
 
@@ -68,18 +68,18 @@ body.admin-manager-shell {
   --cp-ultra-bg: #06090e;
   --cp-ultra-panel: rgba(10, 18, 30, 0.92);
   --cp-ultra-border: rgba(125, 152, 187, 0.14);
-  --cp-ultra-border-strong: rgba(212, 175, 55, 0.28);
-  --cp-ultra-gold: #d4af37;
-  --cp-ultra-gold-dim: rgba(212, 175, 55, 0.75);
+  --cp-ultra-border-strong: rgba(16, 185, 129, 0.28);
+  --cp-ultra-gold: var(--school-accent);
+  --cp-ultra-gold-dim: rgba(16, 185, 129, 0.75);
   --cp-ultra-text: #e8eef6;
   --cp-ultra-muted: #8b9cb8;
   --cp-ultra-sidebar-bg: rgba(6, 12, 22, 0.98);
-  --cp-ultra-sidebar-active: rgba(212, 175, 55, 0.12);
-  --cp-ultra-sidebar-active-border: #d4af37;
+  --cp-ultra-sidebar-active: rgba(16, 185, 129, 0.12);
+  --cp-ultra-sidebar-active-border: var(--school-accent);
   --cp-ultra-radius: 14px;
   --cp-ultra-radius-lg: 20px;
   --cp-ultra-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-  --cp-ultra-shadow-glow: 0 0 40px rgba(212, 175, 55, 0.12);
+  --cp-ultra-shadow-glow: 0 0 40px rgba(16, 185, 129, 0.12);
   --cp-ultra-font: "IBM Plex Sans", "Inter", "Segoe UI", system-ui, sans-serif;
   --cp-ultra-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -113,7 +113,7 @@ body.control-plane-shell .admin-login-landing.cp-ultra-login {
   padding: var(--rmc-lit-e420303c44);
   background: var(--cp-ultra-bg);
   background-image:
-    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(212, 175, 55, 0.08), transparent 50%),
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(16, 185, 129, 0.08), transparent 50%),
     radial-gradient(ellipse 80% 50% at 100% 50%, rgba(94, 234, 212, 0.04), transparent 45%);
 }
 
@@ -154,7 +154,7 @@ body.control-plane-shell .admin-login-hero .hero-logo {
   width: 52px;
   height: 52px;
   border-radius: var(--rmc-lit-840a8131b3);
-  background: linear-gradient(145deg, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0.08));
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.08));
   border: 1px solid var(--cp-ultra-border-strong);
   display: grid;
   place-items: center;
@@ -209,7 +209,7 @@ body.control-plane-shell .admin-login-card::before {
   inset: 0;
   border-radius: var(--rmc-lit-2a07851a9d);
   padding: var(--rmc-lit-4baf8f49ed);
-  background: linear-gradient(160deg, rgba(212, 175, 55, 0.15), transparent 40%, transparent 70%, rgba(212, 175, 55, 0.05));
+  background: linear-gradient(160deg, rgba(16, 185, 129, 0.15), transparent 40%, transparent 70%, rgba(16, 185, 129, 0.05));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -259,7 +259,7 @@ body.control-plane-shell .admin-login-card .btn-primary {
   padding: var(--rmc-lit-47f460520a);
   font-weight: 600;
   background: linear-gradient(180deg, #e0bc48 0%, var(--cp-ultra-gold) 50%, #c9a02c 100%);
-  border: 1px solid rgba(212, 175, 55, 0.5);
+  border: 1px solid rgba(16, 185, 129, 0.5);
   color: #0a0c10;
   box-shadow: var(--rmc-lit-62bdb7f2e6);
   transition: transform var(--cp-ultra-transition), box-shadow var(--cp-ultra-transition), filter var(--cp-ultra-transition);
@@ -510,7 +510,7 @@ body.control-plane-shell #nav-sidebar,
 .cp-navbar .btn-outline-light:hover {
   border-color: var(--cp-ultra-gold);
   color: var(--cp-ultra-gold);
-  background: rgba(212, 175, 55, 0.08);
+  background: rgba(16, 185, 129, 0.08);
 }
 
 .cp-navbar .btn-outline-light.active {
@@ -627,7 +627,7 @@ body.control-plane-shell #nav-sidebar,
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.4), transparent);
   opacity: 0;
   transition: opacity var(--cp-ultra-transition);
 }
@@ -636,7 +636,7 @@ body.control-plane-shell #nav-sidebar,
   width: 2.5rem;
   height: 2.5rem;
   border-radius: var(--rmc-lit-8ba273c033);
-  background: linear-gradient(145deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.05));
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
   border: 1px solid var(--cp-ultra-border-strong);
   display: inline-flex;
   align-items: center;
@@ -662,7 +662,7 @@ body.control-plane-shell #nav-sidebar,
 
 .cp-admin-index .cp-primary-action {
   background: linear-gradient(180deg, #e0bc48 0%, var(--cp-ultra-gold) 50%, #c9a02c 100%) !important;
-  border: 1px solid rgba(212, 175, 55, 0.5) !important;
+  border: 1px solid rgba(16, 185, 129, 0.5) !important;
   color: #0a0c10 !important;
   font-weight: 600;
   box-shadow: var(--rmc-lit-62bdb7f2e6);
@@ -727,7 +727,7 @@ body.admin-manager-shell button:focus-visible {
 /* ---- Login hero: subtle shine ---- */
 body.control-plane-shell .manager-login-hero .hero-logo img,
 body.control-plane-shell .admin-login-hero .hero-logo img {
-  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.2));
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.2));
 }
 
 /* ---- Eyebrow / labels: premium typography ---- */

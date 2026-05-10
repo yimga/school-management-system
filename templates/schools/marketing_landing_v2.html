@@ -1,0 +1,244 @@
+{% extends "schools/marketing_base.html" %}
+{% load static i18n %}
+
+{% block title %}RunMyCampus · Run your school the way your school actually runs{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'marketing/css/tokens-editorial.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-landing-v2.css' %}">
+{% endblock %}
+
+{% block extrahead %}
+  <meta name="description" content="One quiet system, behind everything your school does. Admissions, fees, classrooms, parent messages — handled.">
+  {% if v2_preview %}<meta name="robots" content="noindex, nofollow">{% endif %}
+{% endblock %}
+
+{# Flip body into editorial mode so the inherited marketing nav, mega menus,
+   and footer (defined in marketing/marketing_header.html and marketing_footer.html)
+   pick up the cream/serif/terracotta restyle from tokens-editorial.css. Without
+   this, [data-mkt-edition="editorial"] is on a deep div and the chrome rules
+   never match. #}
+{% block body_extra_attrs %} data-mkt-edition="editorial"{% endblock %}
+
+{% block marketing_main_extra_classes %}container-fluid px-0 py-0{% endblock %}
+
+{% block content %}
+<div data-mkt-edition="editorial" class="mkt-edt-root" id="mkt-edt-root">
+
+  {# Inherited marketing_header.html and marketing_footer.html now carry the
+     editorial restyle via tokens-editorial.css (cream surface, charcoal links,
+     terracotta CTA). The Phase 1 minimal top bar / bottom strip that lived
+     here are removed — they were Phase 1 fallback chrome, redundant once
+     editorial mode flips the inherited shell. #}
+
+  {# ───────── 1. HERO ───────── #}
+  <section class="mkt-edt-section mkt-edt-hero" aria-labelledby="hero-headline">
+    <div class="mkt-edt-container mkt-edt-hero__grid">
+      <div class="mkt-edt-hero__copy">
+        <p class="mkt-edt-eyebrow">{% trans "RunMyCampus" %}</p>
+        <h1 id="hero-headline" class="mkt-edt-hero-headline">
+          {% trans "Run your school the way your school actually runs." %}
+        </h1>
+        <p class="mkt-edt-lead mkt-edt-hero__lead">
+          {% trans "One quiet system behind admissions, classrooms, fees, and the message you send a parent at 8:14 a.m." %}
+        </p>
+        <div class="mkt-edt-hero__ctas">
+          <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo" data-page="home-v2">
+            {% trans "Book a demo" %}
+          </a>
+          <a href="{% url 'marketing_resources_product_tour' %}" class="mkt-edt-link">
+            {% trans "See it live →" %}
+          </a>
+        </div>
+        <p class="mkt-edt-hero__trust">
+          {% trans "Built for K–12, international schools, and growing networks." %}
+        </p>
+      </div>
+
+      <div class="mkt-edt-hero__artifact" aria-hidden="true">
+        {% include "schools/_v2/_artifact_parent_phone.svg.html" %}
+      </div>
+    </div>
+  </section>
+
+  <hr class="mkt-edt-rule">
+
+  {# ───────── 2. FIVE JOBS ───────── #}
+  <section class="mkt-edt-section" aria-labelledby="jobs-headline">
+    <div class="mkt-edt-container">
+      <header class="mkt-edt-jobs__intro">
+        <p class="mkt-edt-eyebrow">{% trans "What people actually do here" %}</p>
+        <h2 id="jobs-headline" class="mkt-edt-section-headline">
+          {% trans "Five people. One quiet system." %}
+        </h2>
+        <p class="mkt-edt-lead">
+          {% trans "Every role gets the surface they need — and nothing they don't." %}
+        </p>
+      </header>
+
+      <ol class="mkt-edt-jobs">
+
+        <li class="mkt-edt-job mkt-edt-job--reverse">
+          <div class="mkt-edt-job__copy">
+            <p class="mkt-edt-eyebrow">{% trans "School leaders" %}</p>
+            <h3 class="mkt-edt-section-headline">
+              {% trans "See the whole school in one view." %}
+            </h3>
+            <p class="mkt-edt-lead">
+              {% trans "Attendance, fees, behaviour, staffing — one honest summary, refreshed quietly while you make tea." %}
+            </p>
+          </div>
+          <div class="mkt-edt-job__artifact" aria-hidden="true">
+            {% include "schools/_v2/_artifact_leader_overview.svg.html" %}
+          </div>
+        </li>
+
+        <li class="mkt-edt-job">
+          <div class="mkt-edt-job__copy">
+            <p class="mkt-edt-eyebrow">{% trans "Teachers" %}</p>
+            <h3 class="mkt-edt-section-headline">
+              {% trans "Spend less time on admin." %}
+            </h3>
+            <p class="mkt-edt-lead">
+              {% trans "Roll calls, marks, comments, and the message home — done in the gaps between lessons." %}
+            </p>
+          </div>
+          <div class="mkt-edt-job__artifact" aria-hidden="true">
+            {% include "schools/_v2/_artifact_teacher_attendance.svg.html" %}
+          </div>
+        </li>
+
+        <li class="mkt-edt-job mkt-edt-job--reverse">
+          <div class="mkt-edt-job__copy">
+            <p class="mkt-edt-eyebrow">{% trans "Parents" %}</p>
+            <h3 class="mkt-edt-section-headline">
+              {% trans "Stay close without another app." %}
+            </h3>
+            <p class="mkt-edt-lead">
+              {% trans "Today's pickup time, tomorrow's permission slip, and Term 2's invoice — in the place a parent already looks." %}
+            </p>
+          </div>
+          <div class="mkt-edt-job__artifact mkt-edt-job__artifact--phone" aria-hidden="true">
+            {% include "schools/_v2/_artifact_parent_phone_compact.svg.html" %}
+          </div>
+        </li>
+
+        <li class="mkt-edt-job">
+          <div class="mkt-edt-job__copy">
+            <p class="mkt-edt-eyebrow">{% trans "Finance" %}</p>
+            <h3 class="mkt-edt-section-headline">
+              {% trans "Fees, payments, reports — done." %}
+            </h3>
+            <p class="mkt-edt-lead">
+              {% trans "Reconciliation that ties out at month-end, with the right reminder to the right family at the right time." %}
+            </p>
+          </div>
+          <div class="mkt-edt-job__artifact" aria-hidden="true">
+            {% include "schools/_v2/_artifact_finance_dashboard.svg.html" %}
+          </div>
+        </li>
+
+        <li class="mkt-edt-job mkt-edt-job--reverse">
+          <div class="mkt-edt-job__copy">
+            <p class="mkt-edt-eyebrow">{% trans "IT &amp; operations" %}</p>
+            <h3 class="mkt-edt-section-headline">
+              {% trans "One platform. Nothing to babysit." %}
+            </h3>
+            <p class="mkt-edt-lead">
+              {% trans "Single sign-on, audit trails, and integrations that stay green — so your team can stop firefighting." %}
+            </p>
+          </div>
+          <div class="mkt-edt-job__artifact" aria-hidden="true">
+            {% include "schools/_v2/_artifact_it_health.svg.html" %}
+          </div>
+        </li>
+
+      </ol>
+    </div>
+  </section>
+
+  <hr class="mkt-edt-rule">
+
+  {# ───────── 3. SWITCHING MOMENT ───────── #}
+  <section class="mkt-edt-section mkt-edt-switching" aria-labelledby="switching-headline">
+    <div class="mkt-edt-container-narrow mkt-edt-switching__inner">
+      <p class="mkt-edt-eyebrow">{% trans "Coming from somewhere else?" %}</p>
+      <h2 id="switching-headline" class="mkt-edt-section-headline mkt-edt-switching__headline">
+        {% trans "We've moved schools off PowerSchool, Blackbaud, Infinite Campus, and a folder full of spreadsheets." %}
+      </h2>
+      <p class="mkt-edt-lead mkt-edt-switching__lead">
+        {% trans "We map the data, dry-run it, and bring you across in phases — so the staffroom doesn't notice the day it switched." %}
+      </p>
+      <a href="{% url 'marketing_platform_migration_cloud' %}" class="mkt-edt-link">
+        {% trans "How a migration actually goes →" %}
+      </a>
+    </div>
+  </section>
+
+  <hr class="mkt-edt-rule">
+
+  {# ───────── 4. PRICING TEASER ───────── #}
+  <section class="mkt-edt-section" aria-labelledby="pricing-headline">
+    <div class="mkt-edt-container">
+      <header class="mkt-edt-pricing__intro">
+        <p class="mkt-edt-eyebrow">{% trans "Pricing" %}</p>
+        <h2 id="pricing-headline" class="mkt-edt-section-headline">
+          {% trans "Three plans. No surprises." %}
+        </h2>
+      </header>
+
+      <div class="mkt-edt-pricing">
+        <article class="mkt-edt-plan">
+          <h3 class="mkt-edt-plan__name">{% trans "Starter" %}</h3>
+          <p class="mkt-edt-plan__line">
+            {% trans "One school, the essentials, ready in days." %}
+          </p>
+        </article>
+        <article class="mkt-edt-plan mkt-edt-plan--featured">
+          <h3 class="mkt-edt-plan__name">{% trans "Growth" %}</h3>
+          <p class="mkt-edt-plan__line">
+            {% trans "Admissions, fees, communications, and the workflows you've been wanting." %}
+          </p>
+        </article>
+        <article class="mkt-edt-plan">
+          <h3 class="mkt-edt-plan__name">{% trans "Enterprise" %}</h3>
+          <p class="mkt-edt-plan__line">
+            {% trans "Networks, districts, and schools that answer to a board." %}
+          </p>
+        </article>
+      </div>
+
+      <p class="mkt-edt-pricing__cta">
+        <a href="{% url 'marketing_pricing' %}" class="mkt-edt-link">
+          {% trans "See full pricing →" %}
+        </a>
+      </p>
+    </div>
+  </section>
+
+  <hr class="mkt-edt-rule">
+
+  {# ───────── 5. CLOSE CTA ───────── #}
+  <section class="mkt-edt-section mkt-edt-close" aria-labelledby="close-headline">
+    <div class="mkt-edt-container-narrow mkt-edt-close__inner">
+      <h2 id="close-headline" class="mkt-edt-section-headline mkt-edt-close__headline">
+        {% trans "Less software. More school." %}
+      </h2>
+      <div class="mkt-edt-close__ctas">
+        <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo" data-page="home-v2-close">
+          {% trans "Book a demo" %}
+        </a>
+        <a href="{% url 'marketing_contact' %}" class="mkt-edt-link">
+          {% trans "Talk to a human →" %}
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {# Inherited marketing_footer.html (4-column dieted footer + thin legal strip,
+     restyled by tokens-editorial.css) renders below — no per-page footer
+     needed here. #}
+
+</div>
+{% endblock %}

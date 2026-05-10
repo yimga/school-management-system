@@ -311,7 +311,7 @@ textarea {
   top: 0.5rem;
   left: 0.5rem;
   padding: var(--rmc-lit-9ef378ee07);
-  background: var(--color-primary, #0d6efd);
+  background: var(--color-primary, var(--school-primary));
   color: #fff;
   text-decoration: none;
   outline: 2px solid #fff;
@@ -715,13 +715,13 @@ html[data-bs-theme="dark"] ::selection {
         .btn-back-outline = back to admin/config
    ============================================ */
 .btn-back-primary {
-  color: var(--color-primary, #0d6efd);
-  border-color: var(--color-primary, #0d6efd);
+  color: var(--color-primary, var(--school-primary));
+  border-color: var(--color-primary, var(--school-primary));
 }
 .btn-back-primary:hover {
-  background-color: color-mix(in srgb, var(--color-primary, #0d6efd) 14%, transparent);
-  color: var(--color-primary, #0d6efd);
-  border-color: var(--color-primary, #0d6efd);
+  background-color: color-mix(in srgb, var(--color-primary, var(--school-primary)) 14%, transparent);
+  color: var(--color-primary, var(--school-primary));
+  border-color: var(--color-primary, var(--school-primary));
 }
 .btn-back-secondary {
   color: var(--color-text-muted, #6b7280);
@@ -865,5 +865,5 @@ html[data-bs-theme="dark"] .table-zebra tbody tr:nth-of-type(even) {
 }
 
 .insight-card[data-rmc-insight-tone="neutral"] {
-  border-left-color: var(--color-primary, #0d6efd);
+  border-left-color: var(--color-primary, var(--school-primary));
 }

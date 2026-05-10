@@ -215,15 +215,15 @@ body[data-dashboard-page="backend"] .backend-intent-pill {
 
 body[data-dashboard-page="backend"] .backend-intent-pill:hover,
 body[data-dashboard-page="backend"] .backend-intent-pill:focus-visible {
-  background: color-mix(in srgb, var(--brand-primary, #0d6efd) 10%, var(--admin-surface, #fff) 90%);
+  background: color-mix(in srgb, var(--brand-primary, var(--school-primary)) 10%, var(--admin-surface, #fff) 90%);
   color: var(--admin-text, #0f172a);
-  border-color: color-mix(in srgb, var(--brand-primary, #0d6efd) 40%, var(--admin-border, #cbd5e1) 60%);
+  border-color: color-mix(in srgb, var(--brand-primary, var(--school-primary)) 40%, var(--admin-border, #cbd5e1) 60%);
 }
 
 body[data-dashboard-page="backend"] .backend-intent-pill.active {
-  background: var(--brand-primary, var(--dashboard-theme-primary, #0d6efd));
+  background: var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary)));
   color: #fff;
-  border-color: var(--brand-primary, var(--dashboard-theme-primary, #0d6efd));
+  border-color: var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary)));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-ctas {
@@ -241,9 +241,9 @@ body[data-dashboard-page="backend"] .backend-v2-cta {
   border-radius: 999px;
   padding: var(--dash-pad-chip-lg);
   font-weight: 700;
-  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 28%, var(--admin-border, #cbd5e1) 72%);
+  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 28%, var(--admin-border, #cbd5e1) 72%);
   color: var(--admin-text, #0f172a);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 8%, var(--admin-surface, #fff) 92%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 8%, var(--admin-surface, #fff) 92%);
   text-decoration: none;
   transition: all 0.18s ease;
 }
@@ -251,8 +251,8 @@ body[data-dashboard-page="backend"] .backend-v2-cta {
 body[data-dashboard-page="backend"] .backend-v2-cta:hover,
 body[data-dashboard-page="backend"] .backend-v2-cta:focus-visible {
   color: #fff;
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 75%, #0f172a 25%);
-  background: linear-gradient(135deg, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)), var(--brand-accent, var(--dashboard-theme-accent, #198754)));
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 75%, #0f172a 25%);
+  background: linear-gradient(135deg, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))), var(--brand-accent, var(--dashboard-theme-accent, var(--school-accent))));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-metrics {
@@ -269,12 +269,12 @@ body[data-dashboard-page="backend"] .backend-v2-kpi-strip {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-kpi {
-  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 24%, var(--admin-border, #cbd5e1) 76%);
+  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 24%, var(--admin-border, #cbd5e1) 76%);
   border-radius: 12px;
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 8%, var(--admin-surface, #fff) 92%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 8%, var(--admin-surface, #fff) 92%);
   padding: var(--dash-pad-cta);
   min-width: 0;
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 14%, transparent);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 14%, transparent);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-kpi-head {
@@ -317,12 +317,12 @@ body[data-dashboard-page="backend"] .backend-v2-kpi.is-danger .backend-v2-kpi-va
 }
 
 body[data-dashboard-page="backend"] .backend-v2-metric {
-  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 28%, var(--admin-border, #cbd5e1) 72%);
+  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 28%, var(--admin-border, #cbd5e1) 72%);
   border-radius: 12px;
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 10%, var(--admin-surface, #fff) 90%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 10%, var(--admin-surface, #fff) 90%);
   padding: var(--dash-pad-cta);
   min-width: 0;
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 15%, transparent);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 15%, transparent);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-metric-title {
@@ -417,7 +417,7 @@ body[data-dashboard-page="backend"] .backend-v2-chip {
   border-radius: 999px;
   padding: var(--dash-pad-chip);
   border: 1px solid var(--admin-border, #cbd5e1);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 6%, var(--admin-surface, #fff) 94%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 6%, var(--admin-surface, #fff) 94%);
   color: var(--admin-text, #0f172a);
   text-decoration: none;
   font-size: 0.8rem;
@@ -426,8 +426,8 @@ body[data-dashboard-page="backend"] .backend-v2-chip {
 
 body[data-dashboard-page="backend"] .backend-v2-chip:hover,
 body[data-dashboard-page="backend"] .backend-v2-chip:focus-visible {
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 48%, var(--admin-border, #cbd5e1) 52%);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 14%, var(--admin-surface, #fff) 86%);
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 48%, var(--admin-border, #cbd5e1) 52%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 14%, var(--admin-surface, #fff) 86%);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-action-grid {
@@ -446,7 +446,7 @@ body[data-dashboard-page="backend"] .backend-v2-action {
   border-radius: 8px;
   padding: var(--dash-pad-chip-sm);
   border: 1px solid var(--admin-border, #cbd5e1);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 5%, var(--admin-surface, #fff) 95%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 5%, var(--admin-surface, #fff) 95%);
   color: var(--admin-text, #0f172a);
   text-decoration: none;
   font-size: 0.78rem;
@@ -457,8 +457,8 @@ body[data-dashboard-page="backend"] .backend-v2-action {
 body[data-dashboard-page="backend"] .backend-v2-action:hover,
 body[data-dashboard-page="backend"] .backend-v2-action:focus-visible {
   color: #fff;
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 65%, #0f172a 35%);
-  background: linear-gradient(135deg, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)), var(--brand-accent, var(--dashboard-theme-accent, #198754)));
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 65%, #0f172a 35%);
+  background: linear-gradient(135deg, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))), var(--brand-accent, var(--dashboard-theme-accent, var(--school-accent))));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-side-card {
@@ -577,7 +577,7 @@ body[data-dashboard-page="backend"] .backend-v2-mini {
   border: 1px solid var(--admin-border, #cbd5e1);
   border-radius: 10px;
   padding: var(--dash-pad-mini);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 5%, var(--admin-surface, #fff) 95%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 5%, var(--admin-surface, #fff) 95%);
   min-width: 0;
 }
 
@@ -615,7 +615,7 @@ body[data-dashboard-page="backend"] .backend-ops-item {
   border: 1px solid var(--admin-border, #cbd5e1);
   border-radius: 12px;
   padding: var(--dash-pad-list);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 4%, var(--admin-surface, #fff) 96%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 4%, var(--admin-surface, #fff) 96%);
 }
 
 body[data-dashboard-page="backend"] .backend-ops-item-left {
@@ -685,7 +685,7 @@ body[data-dashboard-page="backend"] .backend-quick-link {
   border-radius: 12px;
   min-width: 0;
   padding: var(--dash-pad-tight);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 4%, var(--admin-surface, #fff) 96%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 4%, var(--admin-surface, #fff) 96%);
   color: var(--admin-text, #0f172a);
   text-decoration: none;
   font-weight: 600;
@@ -701,7 +701,7 @@ body[data-dashboard-page="backend"] .backend-quick-link > span:first-child {
 
 body[data-dashboard-page="backend"] .backend-quick-link:hover,
 body[data-dashboard-page="backend"] .backend-quick-link:focus-visible {
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 45%, var(--admin-border, #cbd5e1) 55%);
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 45%, var(--admin-border, #cbd5e1) 55%);
 }
 
 body[data-dashboard-page="backend"] .backend-cmd-palette {
@@ -762,20 +762,20 @@ body[data-dashboard-page="backend"] .backend-cmd-item {
   padding: var(--dash-gap) var(--dash-block-spacing);
   text-decoration: none;
   color: var(--admin-text, #0f172a);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 4%, var(--admin-surface, #fff) 96%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 4%, var(--admin-surface, #fff) 96%);
 }
 
 body[data-dashboard-page="backend"] .backend-cmd-item:hover,
 body[data-dashboard-page="backend"] .backend-cmd-item:focus-visible {
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 45%, var(--admin-border, #cbd5e1) 55%);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 10%, var(--admin-surface, #fff) 90%);
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 45%, var(--admin-border, #cbd5e1) 55%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 10%, var(--admin-surface, #fff) 90%);
 }
 
 body[data-dashboard-page="backend"] .backend-cmd-item.backend-cmd-item--selected,
 body[data-dashboard-page="backend"] .backend-cmd-item.backend-cmd-item--selected:hover,
 body[data-dashboard-page="backend"] .backend-cmd-item.backend-cmd-item--selected:focus-visible {
-  border-color: var(--brand-primary, var(--dashboard-theme-primary, #0d6efd));
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 18%, var(--admin-surface, #fff) 82%);
+  border-color: var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary)));
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 18%, var(--admin-surface, #fff) 82%);
 }
 
 body[data-dashboard-page="backend"] .backend-cmd-item kbd {

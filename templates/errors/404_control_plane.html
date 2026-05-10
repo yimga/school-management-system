@@ -1,25 +1,17 @@
 {% extends "control_plane_skeleton.html" %}
 {% load static i18n %}
 
-{% block title %}Page not found – RunMyCampus Manager{% endblock %}
+{% block title %}{% trans "Page not found" %} – RunMyCampus Manager{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-      <div class="card shadow-sm border-secondary" style="background: var(--cp-panel-bg, rgba(8,16,30,0.9)); border-color: var(--cp-panel-border) !important;">
-        <div class="card-body text-center py-5 text-white">
-          <div class="mb-4">
-            <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
-          </div>
-          <h1 class="h4 mb-2">Page not found</h1>
-          <p class="text-secondary mb-4">We couldn't find that page. It may have been moved or removed, or the link might be incorrect.</p>
-          <a class="btn btn-primary" href="{% url 'super:dashboard' %}" style="background: var(--platform-gold, #d4af37); border-color: var(--platform-gold); color: #0B0E14;">
-            <i class="bi bi-house me-2"></i>{% trans "Back to Manager" %}
-          </a>
-        </div>
-      </div>
+<section class="error-page" aria-labelledby="cp-error-title">
+  <div>
+    <div class="error-code-display" aria-hidden="true">404</div>
+    <h1 id="cp-error-title" class="error-title">{% trans "We couldn't find that page." %}</h1>
+    <p class="error-message">{% trans "It may have been moved or removed, or the link might be incorrect. Use the operator dashboard as a stable entry point." %}</p>
+    <div class="error-actions">
+      <a class="btn btn-primary" href="{% url 'super:dashboard' %}"><i class="bi bi-house me-1"></i>{% trans "Back to Manager" %}</a>
     </div>
   </div>
-</div>
+</section>
 {% endblock %}

@@ -31,6 +31,7 @@
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">
     <link rel="stylesheet" href="{% static 'css/accessibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/statement-header.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
@@ -113,6 +114,8 @@
 
   <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}" data-rmc-premium-shell="{% if PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}" data-rmc-page-purpose="{% if PUBLIC_BRAND_MODE %}public-story{% else %}tenant-workspace{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
     <a href="#main-content" class="skip-link" aria-label="Skip to main content">Skip to main content</a>
+    {# Page-level HTMX progress bar — appears during htmx requests via body.htmx-request CSS rule. #}
+    <div class="htmx-progress-bar" aria-hidden="true"></div>
     <!--
       .app-container wraps all content for background logo/video/svg effect.
       If you need to support users with reduced motion or contrast, consider a toggle in user preferences.

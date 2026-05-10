@@ -42,35 +42,35 @@
     {% else %}
     <div class="quick-actions-grid">
       <a href="{% url 'accounts:rbac' %}" class="quick-action-item">
-        <div class="quick-action-icon bg-primary"><i class="fas fa-user-plus"></i></div>
+        <div class="quick-action-icon bg-primary"><i class="bi bi-person-plus"></i></div>
         <div class="quick-action-content">
           <div class="quick-action-title">Add User</div>
           <div class="quick-action-desc">RBAC &amp; access control</div>
         </div>
       </a>
       <a href="{% url 'accounts:backend_student_create' %}" class="quick-action-item">
-        <div class="quick-action-icon bg-success"><i class="fas fa-user-graduate"></i></div>
+        <div class="quick-action-icon bg-success"><i class="bi bi-mortarboard"></i></div>
         <div class="quick-action-content">
           <div class="quick-action-title">Add Student</div>
           <div class="quick-action-desc">New enrollment</div>
         </div>
       </a>
       <a href="{% url 'accounts:backend_teacher_create' %}" class="quick-action-item">
-        <div class="quick-action-icon bg-info"><i class="fas fa-chalkboard-teacher"></i></div>
+        <div class="quick-action-icon bg-info"><i class="bi bi-easel"></i></div>
         <div class="quick-action-content">
           <div class="quick-action-title">Add Teacher</div>
           <div class="quick-action-desc">New staff member</div>
         </div>
       </a>
       <a href="{% url 'finance:dashboard' %}" class="quick-action-item">
-        <div class="quick-action-icon bg-warning"><i class="fas fa-file-invoice-dollar"></i></div>
+        <div class="quick-action-icon bg-warning"><i class="bi bi-receipt"></i></div>
         <div class="quick-action-content">
           <div class="quick-action-title">Create Invoice</div>
           <div class="quick-action-desc">New billing</div>
         </div>
       </a>
       <a href="{% url 'studio_os:output' %}" class="quick-action-item">
-        <div class="quick-action-icon bg-secondary"><i class="fas fa-file-alt"></i></div>
+        <div class="quick-action-icon bg-secondary"><i class="bi bi-file-earmark-text"></i></div>
         <div class="quick-action-content">
           <div class="quick-action-title">View Reports</div>
           <div class="quick-action-desc">Report library</div>
@@ -81,13 +81,13 @@
   </div>
   <div class="card-footer bg-light text-center">
     {% if is_backend_context %}
-    <a href="{% url 'accounts:backend_dashboard' %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-th"></i> Backend Console</a>
+    <a href="{% url 'accounts:backend_dashboard' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-grid"></i> Backend Console</a>
     {% if request.user.is_superuser %}
-    <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-gear"></i> {% trans "Config center" %}</a>
+    <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-gear"></i> {% trans "Config center" %}</a>
     {% endif %}
     {% else %}
-    <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-th"></i> {% trans "Config center" %}</a>
+    <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-grid"></i> {% trans "Config center" %}</a>
     {% endif %}
-    <a href="{% url 'accounts:rbac' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-users-cog"></i> RBAC</a>
+    <a href="{% url 'accounts:rbac' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-people-fill"></i> RBAC</a>
   </div>
 </div>

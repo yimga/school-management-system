@@ -27,7 +27,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #0d6efd, #198754);
+  background: linear-gradient(135deg, var(--school-primary), var(--school-accent));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -69,13 +69,13 @@
 
 .nav-link.nav-pill:hover {
   background: var(--portal-nav-pill-bg-hover);
-  color: var(--portal-nav-pill-hover, #0d6efd);
+  color: var(--portal-nav-pill-hover, var(--school-primary));
 }
 
 .nav-link.nav-pill.active,
 .nav-link.nav-pill[aria-current="page"] {
   background: var(--portal-nav-pill-bg-active);
-  color: var(--portal-nav-pill-hover, #0d6efd);
+  color: var(--portal-nav-pill-hover, var(--school-primary));
   font-weight: 600;
 }
 
@@ -108,20 +108,20 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.72rem;
-  background: rgba(13, 110, 253, 0.08);
+  background: rgba(79, 70, 229, 0.08);
   border-radius: 8px;
   cursor: pointer;
   user-select: none;
 }
 
 .sidebar-collapsible-header:hover {
-  background: rgba(13, 110, 253, 0.12);
+  background: rgba(79, 70, 229, 0.12);
 }
 
 .sidebar-collapsible-header span {
   font-weight: 600;
   font-size: 0.86rem;
-  color: var(--school-primary, #0d6efd);
+  color: var(--school-primary);
 }
 
 .sidebar-collapsible-header i {

@@ -24,13 +24,25 @@
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
+  {# bootstrap-theme-bridge.css intentionally NOT loaded on marketing — marketing has its
+     own design system (tokens-marketing.css + tokens-editorial.css + marketing-shell.css)
+     and does not want platform indigo/emerald bleeding into its cream/serif/terracotta
+     editorial direction. Portal/admin/control-plane DO load the bridge. #}
   <link rel="stylesheet" href="{% static 'css/statement-header.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/tokens-marketing.css' %}">
+  {# tokens-editorial.css — additive, opt-in via [data-mkt-edition="editorial"] ancestor.
+     Loaded globally so Phase 2 chrome (header, footer, pricing, mega menu) can flip
+     surfaces to the editorial palette page-by-page without per-template includes.
+     Rules with no editorial ancestor cost nothing. Memory: project_marketing_aesthetic.md #}
+  <link rel="stylesheet" href="{% static 'marketing/css/tokens-editorial.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-shell.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/proof-pages.css' %}">
   <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
-  <link rel="stylesheet" href="{% static 'css/phase2-static-templates-bundle.css' %}">
+  {# Replaced 109 KB phase2-static-templates-bundle.css (which was 95% portal/admin/CP rules)
+     with a 9 KB carve-out of just the marketing template blocks. The full bundle is still
+     loaded by portal_base.html, control_plane_skeleton.html, base.html, and admin/base_site.html. #}
+  <link rel="stylesheet" href="{% static 'css/marketing-static-bundle.css' %}">
   <link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
   {# Public brand CSS variables on html[style] when PUBLIC_BRAND_MODE (Phase 2). #}
   <!-- §8.0.11 platform-wide: responsive and fluid layout on every page -->
@@ -45,7 +57,7 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-accessibility-hardening.css' %}">
 </head>
 {# data-cta (primary|demo|secondary) and data-page (page slug or home|footer) on CTAs are for GTM/analytics conversion tracking. #}
-<body class="{% block body_class %}marketing-surface{% endblock %}" data-rmc-premium-shell="marketing" data-rmc-page-purpose="public-story">
+<body class="{% block body_class %}marketing-surface{% endblock %}" data-rmc-premium-shell="marketing" data-rmc-page-purpose="public-story"{% block body_extra_attrs %} data-mkt-edition="editorial"{% endblock %}>
   {# Public marketing surface: tenant PWA/service-worker prompts belong on school subdomains, not this shell (see portal_base vs marketing templates). #}
   <a href="#main-content" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
   {% include 'marketing/marketing_header.html' %}

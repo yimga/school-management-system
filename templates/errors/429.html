@@ -1,23 +1,18 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Rate Limit Exceeded{% endblock %}
+{% block title %}{% trans "Too many requests" %}{% endblock %}
 
 {% block content %}
-<div class="error-page">
-    <div class="error-container">
-        <h1>⏱️ Too Many Requests</h1>
-        <div class="error-code">429</div>
-        <p class="error-message">{{ message|default:"You've made too many requests. Please wait a moment and try again." }}</p>
-        <div class="error-actions">
-            <a href="javascript:history.back()" class="btn">← Go Back</a>
-            <a href="{% url 'accounts:redirect' %}" class="btn btn-primary">Go to Dashboard</a>
-        </div>
-        <div class="error-details">
-            <p><strong>Why am I seeing this?</strong></p>
-            <p>To protect our systems and ensure fair access for all users, we limit the number of requests from a single user or IP address.</p>
-            <p>Please wait 60 seconds before trying again.</p>
-        </div>
+<section class="error-page" aria-labelledby="error-429-title">
+  <div>
+    <div class="error-code-display" aria-hidden="true">429</div>
+    <h1 id="error-429-title" class="error-title">{% trans "Slow down for a moment." %}</h1>
+    <p class="error-message">{{ message|default:_("You've made too many requests in a short window. Please wait about a minute, then try again — this protects fair access for everyone.") }}</p>
+    <div class="error-actions">
+      <a href="javascript:history.back()" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{% trans "Go back" %}</a>
+      <a href="{% url 'accounts:redirect' %}" class="btn btn-primary"><i class="bi bi-house me-1"></i>{% trans "Go to dashboard" %}</a>
     </div>
-</div>
-
+  </div>
+</section>
 {% endblock %}

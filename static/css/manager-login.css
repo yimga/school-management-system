@@ -1,6 +1,6 @@
 /**
  * Shared high-end login styles for manager (control plane) and admin (Configuration Engine).
- * Dark theme, gold accent (#d4af37), hero strip + card. Used by auth/manager_login.html and auth/admin_login.html.
+ * Dark theme, school-accent (emerald) hero strip + card. Used by auth/manager_login.html and auth/admin_login.html.
  * Optimized for all viewports: desktop gets a proper wide layout, not a narrow mobile strip.
  */
 body { background: #0B0E14; }
@@ -55,14 +55,14 @@ body { background: #0B0E14; }
   color: white;
   margin-bottom: 1.5rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .manager-login-hero .hero-logo,
 .admin-login-hero .hero-logo {
   width: 48px; height: 48px; border-radius: 12px;
-  background: rgba(212, 175, 55, 0.2);
-  display: grid; place-items: center; font-size: 1.4rem; font-weight: 700; color: #d4af37;
+  background: rgba(16, 185, 129, 0.2);
+  display: grid; place-items: center; font-size: 1.4rem; font-weight: 700; color: var(--school-accent);
   flex-shrink: 0;
 }
 
@@ -104,7 +104,7 @@ body { background: #0B0E14; }
 .admin-login-card .form-label { color: var(--cp-muted, #9fb1cb); }
 
 .manager-login-card .btn-primary,
-.admin-login-card .btn-primary { background: #d4af37; border-color: #d4af37; color: #0B0E14; }
+.admin-login-card .btn-primary { background: var(--school-accent); border-color: var(--school-accent); color: #0B0E14; }
 
 .manager-login-card .btn-primary:hover,
 .admin-login-card .btn-primary:hover { background: #e0bc48; border-color: #e0bc48; color: #0B0E14; }
@@ -116,7 +116,7 @@ body { background: #0B0E14; }
 .admin-login-footer a { color: #9fb1cb; text-decoration: none; }
 
 .manager-login-footer a:hover,
-.admin-login-footer a:hover { color: #d4af37; }
+.admin-login-footer a:hover { color: var(--school-accent); }
 
 /* Admin-only: validation and error display */
 .admin-login-card .form-control.is-invalid { border-color: #dc3545; }
@@ -135,8 +135,8 @@ body { background: #0B0E14; }
 }
 .admin-login-card .alert-warning,
 .manager-login-card .alert-warning {
-  background: rgba(212, 175, 55, 0.2);
-  border-color: rgba(212, 175, 55, 0.5);
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.5);
   color: #fcd34d;
 }
 
@@ -148,6 +148,6 @@ body { background: #0B0E14; }
 }
 .admin-login-reset a:hover,
 .admin-login-card .admin-login-reset a:hover {
-  color: #d4af37;
+  color: var(--school-accent);
   text-decoration: underline;
 }

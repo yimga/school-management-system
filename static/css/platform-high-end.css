@@ -82,13 +82,13 @@ body.portal-backend-dark {
 /* ========== Premium polish – selection, focus, motion ========== */
 /* Refined text selection (all surfaces) */
 ::selection {
-  background: rgba(13, 110, 253, 0.2);
+  background: rgba(79, 70, 229, 0.2);
   color: inherit;
 }
 .control-plane-shell ::selection,
 body.portal-backend-dark ::selection,
 html[data-theme="dark"] ::selection {
-  background: rgba(212, 175, 55, 0.25);
+  background: rgba(16, 185, 129, 0.25);
   color: inherit;
 }
 /* Consistent focus-visible: high contrast, never clip */
@@ -150,11 +150,11 @@ body.portal-backend-dark .portal-sidebar-col .sidebar {
   transition: background var(--lux-motion-fast, 140ms ease), color var(--lux-motion-fast, 140ms ease), padding-left var(--lux-motion-fast, 140ms ease);
 }
 .cp-sidebar-nav .nav-link:hover {
-  background: rgba(212, 175, 55, 0.12);
+  background: rgba(16, 185, 129, 0.12);
   color: #f1f5f9;
 }
 .cp-sidebar-nav .nav-link:focus-visible {
-  outline: 2px solid var(--platform-gold, #d4af37);
+  outline: 2px solid var(--platform-gold, var(--school-accent));
   outline-offset: 2px;
 }
 .control-plane-shell .cp-sidebar-nav .nav-item .border-top {
@@ -249,7 +249,7 @@ body.portal-backend-dark .dashboard-chart-wrapper {
 }
 .cp-overview-card:hover {
   box-shadow:var(--rmc-lit-ef1608ba77);
-  border-color: rgba(212, 175, 55, 0.35);
+  border-color: rgba(16, 185, 129, 0.35);
 }
 
 /* Admin index and tenant dashboard headers */

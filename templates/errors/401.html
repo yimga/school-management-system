@@ -4,25 +4,14 @@
 {% block title %}{% trans "Sign in to continue" %}{% endblock %}
 
 {% block content %}
-<section class="container py-5" aria-labelledby="error-401-title">
-  <div class="row justify-content-center">
-    <div class="col-lg-7 col-xl-6">
-      <div class="border rounded-3 bg-white shadow-sm p-4 p-md-5">
-        <p class="text-uppercase text-muted small fw-semibold mb-2">401</p>
-        <h1 id="error-401-title" class="h3 mb-3">{% trans "Sign in to continue" %}</h1>
-        <p class="text-muted mb-4">
-          {% trans "Your session expired or you signed out. Sign in again to pick up where you left off — your in-progress work is preserved." %}
-        </p>
-        <div class="d-flex flex-wrap gap-2">
-          <a class="btn btn-primary"
-             href="{% url 'accounts:login' %}{% if request.path %}?next={{ request.path|urlencode }}{% endif %}">
-            {% trans "Sign in" %}
-          </a>
-          <a class="btn btn-outline-secondary" href="{% url 'marketing_home' %}">
-            {% trans "Return to homepage" %}
-          </a>
-        </div>
-      </div>
+<section class="error-page" aria-labelledby="error-401-title">
+  <div>
+    <div class="error-code-display" aria-hidden="true">401</div>
+    <h1 id="error-401-title" class="error-title">{% trans "Sign in to continue." %}</h1>
+    <p class="error-message">{% trans "Your session expired or you signed out. Sign in again to pick up where you left off — your in-progress work is preserved." %}</p>
+    <div class="error-actions">
+      <a class="btn btn-primary" href="{% url 'accounts:login' %}{% if request.path %}?next={{ request.path|urlencode }}{% endif %}"><i class="bi bi-box-arrow-in-right me-1"></i>{% trans "Sign in" %}</a>
+      <a class="btn btn-outline-secondary" href="{% url 'marketing_home' %}"><i class="bi bi-house me-1"></i>{% trans "Return to homepage" %}</a>
     </div>
   </div>
 </section>

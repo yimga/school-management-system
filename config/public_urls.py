@@ -69,6 +69,7 @@ from apps.schools.signup_views import (
     brand_import_api,
 )
 from apps.siteconfig.views_verify import verify_student_id
+from apps.schools.marketing_views_v2 import marketing_landing_v2
 
 
 def home(request):
@@ -83,6 +84,7 @@ urlpatterns = [
     path("", home, name="home"),
     # Alias for tooling/checklists that expect marketing_home (same view as home).
     path("", home, name="marketing_home"),
+    path("v2/", marketing_landing_v2, name="marketing_landing_v2"),
     path("offline/", offline_page, name="offline"),
     path("-/version/", obs_views.public_version, name="public_version"),
     path(

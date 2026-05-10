@@ -3,8 +3,8 @@
   --school-warning: #f59e0b;
   --school-danger: #ef4444;
 
-  --dashboard-theme-primary: var(--school-primary, #0d6efd);
-  --dashboard-theme-accent: var(--school-accent, #198754);
+  --dashboard-theme-primary: var(--school-primary);
+  --dashboard-theme-accent: var(--school-accent);
   --dashboard-theme-success: var(--school-success, #22c55e);
   --dashboard-theme-warning: var(--school-warning, #f59e0b);
   --dashboard-theme-danger: var(--school-danger, #ef4444);

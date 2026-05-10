@@ -1,15 +1,20 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}Check your email{% endblock %}
+
+{% block title %}{% trans "Check your email" %}{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <h1 class="h3 mb-4">{% trans "Check your email" %}</h1>
-      <p class="text-muted">We sent a verification link to <strong>{{ email }}</strong>. Click the link to activate your school.</p>
-      <p class="small text-muted">The link is valid for 2 days. If you don't see the email, check your spam folder.</p>
-      <p class="mt-4"><a href="{% url 'global_login_discovery' %}" class="btn btn-outline-primary">{% trans "Back to login" %}</a></p>
+<section class="auth-shell" aria-labelledby="signup-done-title">
+  <div class="auth-card" style="text-align:center">
+    <div style="width:56px;height:56px;border-radius:16px;background:color-mix(in oklab, var(--ds-success) 14%, transparent);color:var(--ds-success);display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px;" aria-hidden="true">
+      <i class="bi bi-envelope-check" style="font-size:1.6rem"></i>
     </div>
+    <h1 id="signup-done-title">{% trans "Check your email." %}</h1>
+    <p class="auth-sub">{% blocktrans %}We sent a verification link to <strong>{{ email }}</strong>. Click the link to activate your school workspace.{% endblocktrans %}</p>
+    <div style="background:var(--surface-bg-subtle);border-radius:8px;padding:12px 16px;margin:18px 0;text-align:left;font-size:0.85rem;color:var(--admin-content-text-muted);line-height:1.55">
+      <i class="bi bi-info-circle me-1" style="color:var(--school-primary)"></i> {% trans "The link is valid for 2 days. If you don't see the email within a couple of minutes, check your spam folder." %}
+    </div>
+    <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-secondary" style="width:100%"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to sign in" %}</a>
   </div>
-</div>
+</section>
 {% endblock %}

@@ -1,0 +1,86 @@
+{% extends "emails/base_branded.html" %}
+{% comment %}
+Welcome email — sent to a new user (parent / teacher / staff) after their account is created.
+
+Required context:
+  - school_name, primary_color, accent_color, branded_domain (from base)
+  - user_name              (recipient's first name or full name)
+  - user_role              ("parent" / "teacher" / "staff" / "admin" — used to tailor the message)
+  - login_url              (sign-in URL for the tenant)
+  - school_phone, school_email (optional contact lines)
+  - cta_text               (override default "Sign in to your account" if needed)
+{% endcomment %}
+{% load i18n %}
+
+{% block email_subject_suffix %} · {% trans "Welcome" %}{% endblock %}
+
+{% block email_preheader %}{% blocktrans with school=school_name %}Your {{ school }} account is ready. Sign in to get started.{% endblocktrans %}{% endblock %}
+
+{% block email_header_subtitle %}
+<div style="margin-top:6px;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#64748b;">{% trans "Welcome" %}</div>
+{% endblock %}
+
+{% block email_content %}
+<!-- Hero greeting — slightly larger than body to feel like a "welcome" -->
+<p style="margin:0 0 14px 0;font-size:22px;font-weight:700;letter-spacing:-0.022em;color:#0f172a;line-height:1.25;">
+  {% blocktrans with name=user_name %}Welcome, {{ name }}.{% endblocktrans %}
+</p>
+
+<p style="margin:0 0 22px 0;">
+  {% if user_role == "parent" %}
+    {% blocktrans with school=school_name %}Your <strong>{{ school }}</strong> family account is ready. From your portal you can view your children's grades, attendance, and fees, and message their teachers directly.{% endblocktrans %}
+  {% elif user_role == "teacher" %}
+    {% blocktrans with school=school_name %}Welcome to <strong>{{ school }}</strong>. Your teaching workspace is ready — enter marks, take attendance, message guardians, and plan lessons from a single screen.{% endblocktrans %}
+  {% elif user_role == "staff" or user_role == "admin" %}
+    {% blocktrans with school=school_name %}Welcome to <strong>{{ school }}</strong>. Your staff workspace is ready. Sign in to manage students, classes, finance, and reports.{% endblocktrans %}
+  {% else %}
+    {% blocktrans with school=school_name %}Your <strong>{{ school }}</strong> account is ready. Sign in to get started.{% endblocktrans %}
+  {% endif %}
+</p>
+
+<!-- What's-included data card -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin:0 0 28px 0;">
+  <tr>
+    <td style="background:#f8fafc;border-left:3px solid {{ accent_color|default:'#10b981' }};border-radius:6px;padding:18px 20px;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#64748b;margin-bottom:10px;">{% trans "What you can do" %}</div>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;font-size:14.5px;line-height:1.7;">
+        {% if user_role == "parent" %}
+        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "View live grades, attendance, and term reports" %}</td></tr>
+        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Track fee balances and pay online" %}</td></tr>
+        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Message teachers and the school office" %}</td></tr>
+        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Get notified instantly when grades are published" %}</td></tr>
+        {% elif user_role == "teacher" %}
+        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Enter marks for any class with auto-save" %}</td></tr>
+        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Take attendance in seconds, on phone or laptop" %}</td></tr>
+        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Message guardians directly from a student's profile" %}</td></tr>
+        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Plan lessons and track syllabus progress" %}</td></tr>
+        {% else %}
+        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Manage students, classes, and academics" %}</td></tr>
+        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Track finance and compliance in one dashboard" %}</td></tr>
+        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Generate term reports and export to Ministry format" %}</td></tr>
+        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Communicate with parents and staff at scale" %}</td></tr>
+        {% endif %}
+      </table>
+    </td>
+  </tr>
+</table>
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 8px 0;">
+  <tr>
+    <td style="background:{{ primary_color|default:'#4f46e5' }};border-radius:10px;box-shadow:0 1px 2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.14);">
+      <a href="{{ login_url }}" class="em-button" style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:600;letter-spacing:-0.005em;color:#ffffff;text-decoration:none;border-radius:10px;font-family:'Inter','Helvetica Neue',Arial,sans-serif;">{{ cta_text|default:_("Sign in to your account") }} →</a>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:18px 0 0 0;font-size:13px;color:#64748b;">
+  {% trans "Or copy this link:" %} <a href="{{ login_url }}" style="color:{{ primary_color|default:'#4f46e5' }};text-decoration:underline;word-break:break-all;">{{ login_url }}</a>
+</p>
+
+{% if school_phone or school_email %}
+<p style="margin:24px 0 0 0;font-size:13.5px;color:#475569;line-height:1.6;border-top:1px solid rgba(15,23,42,0.06);padding-top:18px;">
+  <strong style="color:#0f172a;">{% trans "Need help?" %}</strong><br>
+  {% if school_phone %}{% trans "Call" %} <a href="tel:{{ school_phone }}" style="color:{{ primary_color|default:'#4f46e5' }};text-decoration:none;">{{ school_phone }}</a>{% endif %}{% if school_phone and school_email %} &middot; {% endif %}{% if school_email %}{% trans "email" %} <a href="mailto:{{ school_email }}" style="color:{{ primary_color|default:'#4f46e5' }};text-decoration:none;">{{ school_email }}</a>{% endif %}
+</p>
+{% endif %}
+{% endblock %}

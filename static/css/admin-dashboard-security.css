@@ -518,11 +518,11 @@
 }
 
 .preview-status-card__chip--primary {
-  background: var(--admin-preview-primary, #0d6efd);
+  background: var(--admin-preview-primary, var(--school-primary));
 }
 
 .preview-status-card__chip--accent {
-  background: var(--admin-preview-accent, #198754);
+  background: var(--admin-preview-accent, var(--school-accent));
 }
 
 .admin-weather-marquee {

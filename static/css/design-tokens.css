@@ -14,11 +14,12 @@
 
 :root {
   /* Brand (overridden by SITE.primary_color / accent_color in base/portal/backend templates).
-     Phase 5.2: Default Navy/Slate-friendly primary; use for buttons, links, active states. */
-  --school-primary: #0d6efd;
-  --school-accent: #198754;
-  --school-primary-light: rgba(13, 110, 253, 0.15);
-  --school-accent-light: rgba(25, 135, 84, 0.1);
+     Platform default: indigo + emerald — recessive enough to not fight tenant brand overrides,
+     vibrant enough to feel modern. Tenants set their own via SITE_PRIMARY_COLOR / SITE_ACCENT_COLOR. */
+  --school-primary: #4f46e5;
+  --school-accent: #10b981;
+  --school-primary-light: rgba(79, 70, 229, 0.14);
+  --school-accent-light: rgba(16, 185, 129, 0.12);
 
   /* Admin content area (forms, lists). Overridden in #content by admin-content-readability.css
      and in dark theme by admin-dark-readability.css. Refined dark uses softer slate, not navy. */
@@ -37,8 +38,8 @@
   /* Admin surface (overridden by SITE.admin_sidebar_* in admin base_site).
      Defaults tuned for WCAG-friendly readability; admin_sidebar_enhanced.css
      applies theme-specific overrides (light/dark). */
-  --admin-accent: #0d6efd;
-  --admin-accent-light: rgba(13, 110, 253, 0.12);
+  --admin-accent: var(--school-primary);
+  --admin-accent-light: var(--school-primary-light);
   --admin-sidebar-bg: #0f172a;
   --admin-sidebar-surface: #1e293b;
   --admin-sidebar-border: #334155;
@@ -64,9 +65,9 @@
   --portal-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
   --portal-shadow-hover: 0 20px 40px rgba(15, 23, 42, 0.2);
   --portal-nav-pill: #495057;
-  --portal-nav-pill-hover: #0d6efd;
-  --portal-nav-pill-bg-hover: rgba(13, 110, 253, 0.1);
-  --portal-nav-pill-bg-active: rgba(13, 110, 253, 0.15);
+  --portal-nav-pill-hover: var(--school-primary);
+  --portal-nav-pill-bg-hover: rgba(79, 70, 229, 0.08);
+  --portal-nav-pill-bg-active: var(--school-primary-light);
 
   /* Backend console (theme files override) */
   --backend-surface: #1a1f2e;
@@ -162,8 +163,8 @@
   --teacher-warning-alt-border: #c2410c;
 
   /* Parent dashboard Today at a Glance card tints (optional) */
-  --parent-glance-messages-bg: rgba(13, 110, 253, 0.08);
-  --parent-glance-messages-border: rgba(13, 110, 253, 0.2);
+  --parent-glance-messages-bg: rgba(79, 70, 229, 0.08);
+  --parent-glance-messages-border: rgba(79, 70, 229, 0.22);
   --parent-glance-followup-bg: rgba(253, 126, 20, 0.1);
   --parent-glance-followup-border: rgba(253, 126, 20, 0.25);
   --parent-glance-outstanding-bg: rgba(220, 53, 69, 0.08);
@@ -264,7 +265,7 @@
   --bp-max: 1280px;
 
   /* Focus ring: high-contrast in both themes (override in theme files if needed) */
-  --focus-ring-color: #0d6efd;
+  --focus-ring-color: var(--school-primary);
   --focus-ring-offset: 2px;
 
   /* Overlay / surface text: ensure readable on both themes when used in modals, dropdowns */
@@ -412,4 +413,2551 @@ a:focus-visible {
 }
 .table-border-color {
   border-color: var(--admin-content-border);
+}
+
+/* ============================================
+   APPLE-TIER POLISH (platform-wide)
+   Layered shadows, motion easing, micro-interactions, refined focus rings,
+   typographic refinements (tabular numerals, optical letter-spacing). One
+   place, opt-in via standard tags/classes. Tokens here are additive — they
+   do not replace existing --shell-elevation / --motion-* tokens.
+   ============================================ */
+:root {
+  /* Easing curves
+     - apple: ease-out-quart, the workhorse for most enter/exit and hover transitions
+     - apple-in: for elements leaving the screen
+     - apple-spring: gentle overshoot for affordances that should feel tactile
+     - apple-snap: short and sharp for press-down/release */
+  --ease-apple:        cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-apple-in:     cubic-bezier(0.4, 0, 1, 1);
+  --ease-apple-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-apple-snap:   cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Duration scale — three speeds; never longer for chrome (decorative may go to 600ms via --ds-motion-decorative). */
+  --dur-fast: 150ms;
+  --dur-base: 240ms;
+  --dur-slow: 400ms;
+
+  /* Layered shadow elevation. Each layer combines a hairline + a soft drop.
+     Use these on cards, popovers, dropdowns, modals — NOT on form inputs. */
+  --apple-hairline:       0 0 0 1px rgba(15, 23, 42, 0.05);
+  --apple-elev-1:         0 0 0 1px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --apple-elev-2:         0 0 0 1px rgba(15, 23, 42, 0.05), 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.04);
+  --apple-elev-3:         0 0 0 1px rgba(15, 23, 42, 0.06), 0 12px 32px -4px rgba(15, 23, 42, 0.10), 0 4px 8px -2px rgba(15, 23, 42, 0.05);
+  --apple-elev-4:         0 0 0 1px rgba(15, 23, 42, 0.06), 0 24px 48px -8px rgba(15, 23, 42, 0.16), 0 8px 16px -4px rgba(15, 23, 42, 0.06);
+  --apple-elev-modal:     0 0 0 1px rgba(15, 23, 42, 0.08), 0 32px 64px -12px rgba(15, 23, 42, 0.25), 0 12px 24px -8px rgba(15, 23, 42, 0.10);
+
+  /* Focus ring — Apple uses a colored outline with a soft glow halo.
+     Single token reused for buttons, inputs, links, custom widgets. */
+  --apple-focus-ring: 0 0 0 2px var(--surface-bg-base, #fff), 0 0 0 4px color-mix(in oklab, var(--school-primary) 60%, transparent), 0 0 0 7px color-mix(in oklab, var(--school-primary) 18%, transparent);
+
+  /* Material — frosted/glass surface for popovers and floating bars (light mode). */
+  --apple-material:       saturate(180%) blur(20px);
+  --apple-material-bg:    rgba(255, 255, 255, 0.72);
+  --apple-material-border:rgba(15, 23, 42, 0.08);
+
+  /* Letter-spacing scale — tighter on display, looser on uppercase chips/eyebrows. */
+  --tracking-display: -0.025em;
+  --tracking-heading: -0.015em;
+  --tracking-body:    -0.005em;
+  --tracking-eyebrow: 0.06em;
+  --tracking-mono:    0;
+}
+
+html[data-theme="dark"],
+html[data-bs-theme="dark"],
+body.portal-backend-dark {
+  --apple-hairline:       0 0 0 1px rgba(148, 163, 184, 0.16);
+  --apple-elev-1:         0 0 0 1px rgba(148, 163, 184, 0.14), 0 1px 2px rgba(0, 0, 0, 0.30);
+  --apple-elev-2:         0 0 0 1px rgba(148, 163, 184, 0.16), 0 4px 12px -2px rgba(0, 0, 0, 0.40), 0 2px 4px -1px rgba(0, 0, 0, 0.30);
+  --apple-elev-3:         0 0 0 1px rgba(148, 163, 184, 0.20), 0 12px 32px -4px rgba(0, 0, 0, 0.45), 0 4px 8px -2px rgba(0, 0, 0, 0.30);
+  --apple-elev-4:         0 0 0 1px rgba(148, 163, 184, 0.22), 0 24px 48px -8px rgba(0, 0, 0, 0.55), 0 8px 16px -4px rgba(0, 0, 0, 0.35);
+  --apple-elev-modal:     0 0 0 1px rgba(148, 163, 184, 0.28), 0 32px 64px -12px rgba(0, 0, 0, 0.65), 0 12px 24px -8px rgba(0, 0, 0, 0.40);
+  --apple-focus-ring:     0 0 0 2px #0f172a, 0 0 0 4px color-mix(in oklab, var(--school-primary) 70%, transparent), 0 0 0 7px color-mix(in oklab, var(--school-primary) 22%, transparent);
+  --apple-material-bg:    rgba(15, 23, 42, 0.72);
+  --apple-material-border:rgba(148, 163, 184, 0.16);
+}
+
+/* Body baseline — antialiased text + Inter font features (cv11 = slashed zero, ss03 = stylistic set). */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv11", "ss03", "cv02";
+  letter-spacing: var(--tracking-body);
+  text-rendering: optimizeLegibility;
+}
+
+/* Display headings: tighter tracking, optical sharpness. Bootstrap h1/h2 already heavy; we just tune tracking. */
+h1, .h1, .display-1, .display-2, .display-3 { letter-spacing: var(--tracking-display); }
+h2, .h2 { letter-spacing: var(--tracking-heading); }
+h3, .h3, h4, .h4 { letter-spacing: var(--tracking-heading); }
+
+/* Tabular numerals on data surfaces — aligned columns for KPIs, tables, metrics. */
+.table td, .table th,
+[data-numeric], .ds-metric, .kpi-value, .stat-value {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "cv11";
+}
+
+/* Eyebrow / chip / overline helper grammar (does not override; opt-in via class). */
+.eyebrow, .ds-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-content-text-muted);
+}
+
+/* Buttons — Apple-tier micro-interactions. Applies to .btn (Bootstrap) and bare <button>. */
+.btn,
+button:not(.btn-link):not(.btn-close):not([class*="btn-outline-light"]):not([data-no-polish]) {
+  transition:
+    background-color var(--dur-fast) var(--ease-apple),
+    border-color var(--dur-fast) var(--ease-apple),
+    color var(--dur-fast) var(--ease-apple),
+    box-shadow var(--dur-base) var(--ease-apple),
+    transform var(--dur-fast) var(--ease-apple-snap),
+    filter var(--dur-fast) var(--ease-apple);
+}
+.btn:hover,
+button:not(.btn-link):not(.btn-close):not([data-no-polish]):hover {
+  filter: brightness(1.04) saturate(1.03);
+}
+.btn:active,
+button:not(.btn-link):not(.btn-close):not([data-no-polish]):active {
+  transform: scale(0.98);
+  filter: brightness(0.98);
+  transition-duration: 80ms;
+}
+.btn:disabled,
+.btn.disabled,
+button:disabled {
+  filter: none;
+  transform: none;
+  opacity: 0.55;
+}
+
+/* Primary button: layered shadow + slightly stronger lift on hover. */
+.btn-primary,
+.btn-success,
+.btn-danger,
+.btn-warning,
+.btn-info {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  border-color: transparent;
+}
+.btn-primary:hover,
+.btn-success:hover,
+.btn-danger:hover,
+.btn-warning:hover,
+.btn-info:hover {
+  box-shadow: 0 6px 16px -2px color-mix(in oklab, var(--bs-primary, var(--school-primary)) 35%, transparent), 0 2px 4px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+/* Cards — hairline + soft elevation, breathable padding by default.
+   Bootstrap .card already gets these via Bootstrap theme; we layer Apple polish. */
+.card,
+.ds-card,
+.dashboard-card,
+[data-card] {
+  border-color: transparent;
+  box-shadow: var(--apple-elev-1);
+  transition: box-shadow var(--dur-base) var(--ease-apple), transform var(--dur-base) var(--ease-apple);
+}
+.card[data-interactive="1"]:hover,
+.ds-card[data-interactive="1"]:hover,
+.dashboard-card[data-interactive="1"]:hover,
+[data-card][data-interactive="1"]:hover {
+  box-shadow: var(--apple-elev-3);
+  transform: translateY(-1px);
+}
+
+/* Dropdowns, popovers, modals — material elevation. */
+.dropdown-menu {
+  border: none;
+  box-shadow: var(--apple-elev-3);
+  border-radius: var(--token-radius-md);
+}
+.modal-content {
+  border: none;
+  box-shadow: var(--apple-elev-modal);
+  border-radius: var(--token-radius-lg);
+}
+.popover, .tooltip-inner {
+  box-shadow: var(--apple-elev-2);
+}
+
+/* Inputs — quiet focus state, refined hairline. */
+.form-control,
+.form-select {
+  transition: border-color var(--dur-fast) var(--ease-apple), box-shadow var(--dur-fast) var(--ease-apple), background-color var(--dur-fast) var(--ease-apple);
+}
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+  border-color: color-mix(in oklab, var(--school-primary) 60%, var(--admin-content-border));
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--school-primary) 18%, transparent);
+}
+
+/* Refined platform-wide focus ring (overrides the simple 2px solid above with the layered glow). */
+*:focus-visible {
+  outline: none;
+  box-shadow: var(--apple-focus-ring);
+  border-radius: inherit;
+}
+.form-control:focus-visible,
+.form-select:focus-visible {
+  /* Inputs already have an internal focus state; don't double-ring. */
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--school-primary) 18%, transparent);
+}
+
+/* Links — quiet underline-on-hover, brand color. */
+a:not(.btn):not(.nav-link):not(.dropdown-item) {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition: color var(--dur-fast) var(--ease-apple);
+}
+a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
+  color: color-mix(in oklab, var(--school-primary) 78%, #000);
+}
+
+/* Reduced motion — honor OS preference. */
+@media (prefers-reduced-motion: reduce) {
+  .btn, .card, .dashboard-card, .form-control, .form-select, .dropdown-menu, .modal-content, a:not(.btn) {
+    transition: none !important;
+    animation: none !important;
+  }
+  .btn:active { transform: none !important; }
+}
+
+/* Skip link — Apple-style: hidden until focus, then floats with material. */
+.skip-link {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--apple-material-bg);
+  color: var(--admin-content-text);
+  border: 1px solid var(--apple-material-border);
+  border-radius: var(--token-radius-md);
+  padding: 8px 14px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transform: translateY(-150%);
+  opacity: 0;
+  transition: transform var(--dur-base) var(--ease-apple-spring), opacity var(--dur-fast) var(--ease-apple);
+  backdrop-filter: var(--apple-material);
+  -webkit-backdrop-filter: var(--apple-material);
+  z-index: 9999;
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ============================================
+   NAVIGATION & FLOW POLISH
+   Wayfinding components — breadcrumbs, sidebar nav, page header, skeletons,
+   empty states, toasts, tooltips, HTMX progress, page transitions, modal.
+   Layered onto existing partials' classes so component files don't need edits.
+   ============================================ */
+
+/* Breadcrumbs — chevron separators + refined hierarchy. Targets
+   templates/partials/breadcrumbs.html (.breadcrumb / .breadcrumb-item). */
+.breadcrumb {
+  --bs-breadcrumb-divider: '';
+  font-size: 0.875rem;
+  letter-spacing: var(--tracking-body);
+  padding: 0;
+  margin: 0;
+}
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  color: var(--admin-content-text-muted);
+}
+.breadcrumb-item + .breadcrumb-item { padding-left: 0; }
+.breadcrumb-item + .breadcrumb-item::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin: 0 8px;
+  background-color: var(--admin-content-text-muted);
+  opacity: 0.5;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='currentColor' d='M9 6l6 6-6 6'/></svg>") center / contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='currentColor' d='M9 6l6 6-6 6'/></svg>") center / contain no-repeat;
+  padding: 0;
+}
+.breadcrumb-item a {
+  color: var(--admin-content-text-muted);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-apple);
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+.breadcrumb-item a:hover {
+  color: var(--school-primary);
+}
+.breadcrumb-item.active {
+  color: var(--admin-content-text);
+  font-weight: 600;
+}
+
+/* Sidebar nav — works for portal sidebar, control plane sidebar, generic .nav-pills.
+   Active state uses a sliding accent rail instead of just background. Shared by
+   templates/partials/portal_sidebar.html and templates/partials/control_plane_sidebar.html. */
+.portal-sidebar .nav-link,
+.control-plane-sidebar .nav-link,
+[data-rmc-shell-root="portal"] .nav-pills .nav-link,
+[data-rmc-shell-root="control-plane-skeleton"] .nav-pills .nav-link,
+[data-shell-layout] aside .nav-link {
+  position: relative;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-weight: 500;
+  letter-spacing: var(--tracking-body);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition:
+    background-color var(--dur-fast) var(--ease-apple),
+    color var(--dur-fast) var(--ease-apple),
+    transform var(--dur-fast) var(--ease-apple-snap);
+}
+.portal-sidebar .nav-link::before,
+.control-plane-sidebar .nav-link::before,
+[data-rmc-shell-root="portal"] .nav-pills .nav-link::before,
+[data-rmc-shell-root="control-plane-skeleton"] .nav-pills .nav-link::before,
+[data-shell-layout] aside .nav-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 0;
+  width: 3px;
+  background: var(--school-primary);
+  border-radius: 0 3px 3px 0;
+  transform: translateY(-50%);
+  transition: height var(--dur-base) var(--ease-apple);
+}
+.portal-sidebar .nav-link:hover,
+.control-plane-sidebar .nav-link:hover,
+[data-rmc-shell-root="portal"] .nav-pills .nav-link:hover,
+[data-shell-layout] aside .nav-link:hover {
+  background: color-mix(in oklab, var(--school-primary) 6%, transparent);
+}
+.portal-sidebar .nav-link:active,
+.control-plane-sidebar .nav-link:active,
+[data-shell-layout] aside .nav-link:active {
+  transform: scale(0.98);
+}
+.portal-sidebar .nav-link.active,
+.control-plane-sidebar .nav-link.active,
+[data-rmc-shell-root="portal"] .nav-pills .nav-link.active,
+[data-rmc-shell-root="control-plane-skeleton"] .nav-pills .nav-link.active,
+[data-shell-layout] aside .nav-link.active {
+  background: var(--school-primary-light);
+  color: var(--school-primary);
+  font-weight: 600;
+}
+.portal-sidebar .nav-link.active::before,
+.control-plane-sidebar .nav-link.active::before,
+[data-rmc-shell-root="portal"] .nav-pills .nav-link.active::before,
+[data-rmc-shell-root="control-plane-skeleton"] .nav-pills .nav-link.active::before,
+[data-shell-layout] aside .nav-link.active::before {
+  height: 60%;
+}
+
+/* Sidebar section eyebrows (collapsible group headings) */
+.portal-sidebar .nav-section-title,
+.control-plane-sidebar .nav-section-title,
+[data-shell-layout] aside .nav-section-title {
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--admin-content-text-muted);
+  padding: 16px 14px 6px;
+  margin: 0;
+}
+
+/* Page header — stronger hierarchy. Targets templates/components/page_header.html (.page-header). */
+.page-header {
+  padding-bottom: 18px;
+  margin-bottom: 24px !important;
+  border-bottom: 1px solid var(--admin-content-border);
+}
+.page-header > div:first-child h1,
+.page-header > div:first-child .h1,
+.page-header > div:first-child .h2 {
+  letter-spacing: var(--tracking-display);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.page-header .text-muted {
+  font-size: 0.95rem;
+  letter-spacing: var(--tracking-body);
+}
+
+/* Skeleton loader — Apple shimmer (gradient sweep, not opacity pulse).
+   Targets templates/components/skeleton_loader.html (.skeleton, .skeleton-text). */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--admin-content-border) 30%, transparent) 25%,
+    color-mix(in oklab, var(--admin-content-border) 60%, transparent) 50%,
+    color-mix(in oklab, var(--admin-content-border) 30%, transparent) 75%
+  );
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: skeletonShimmer 1.6s var(--ease-apple) infinite;
+}
+.skeleton-text {
+  height: 12px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+.skeleton-text.short { width: 60%; }
+.skeleton-circle { border-radius: 50%; }
+.skeleton-block { height: 80px; border-radius: var(--token-radius-md); }
+@keyframes skeletonShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton-loader {
+  padding: 4px 0;
+}
+
+/* Empty state — refined hierarchy. Targets templates/partials/page_families/empty_state.html. */
+.page-family-empty-state {
+  padding: 56px 24px !important;
+}
+.page-family-empty-state .display-4 {
+  color: var(--admin-content-text-muted);
+  opacity: 0.5;
+  margin-bottom: 16px !important;
+  display: inline-flex;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--school-primary) 6%, transparent);
+  color: var(--school-primary) !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem !important;
+  opacity: 1;
+}
+.page-family-empty-state p {
+  font-size: 1rem;
+  color: var(--admin-content-text-muted);
+  letter-spacing: var(--tracking-body);
+  max-width: 42ch;
+  margin: 0 auto !important;
+  line-height: 1.55;
+}
+
+/* Toast container — top-right, frosted material, slide-in.
+   Targets templates/components/toast_notifications.html (#toast-container, .toast). */
+.toast-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1080;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  max-width: min(420px, calc(100vw - 32px));
+}
+.toast-container .toast,
+.toast-container > * {
+  pointer-events: auto;
+  background: var(--apple-material-bg);
+  -webkit-backdrop-filter: var(--apple-material);
+          backdrop-filter: var(--apple-material);
+  border: 1px solid var(--apple-material-border);
+  border-radius: var(--token-radius-md);
+  box-shadow: var(--apple-elev-3);
+  color: var(--admin-content-text);
+  padding: 12px 14px;
+  animation: toastSlideIn 360ms var(--ease-apple-spring) both;
+  font-size: 0.9rem;
+  letter-spacing: var(--tracking-body);
+}
+@keyframes toastSlideIn {
+  from { transform: translateX(110%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.toast.hiding,
+.toast-container > .hiding {
+  animation: toastSlideOut 220ms var(--ease-apple-in) forwards;
+}
+@keyframes toastSlideOut {
+  to { transform: translateX(110%); opacity: 0; }
+}
+
+/* Tooltip refinement — frosted material instead of flat fill. Targets [data-tooltip]
+   and Bootstrap .tooltip. The custom system in tooltips.css already provides core. */
+[data-tooltip]::after,
+.runmycampus-tooltip-bubble {
+  background: var(--apple-material-bg) !important;
+  -webkit-backdrop-filter: var(--apple-material);
+          backdrop-filter: var(--apple-material);
+  border: 1px solid var(--apple-material-border) !important;
+  box-shadow: var(--apple-elev-2) !important;
+  font-weight: 500;
+  letter-spacing: var(--tracking-body);
+  color: var(--admin-content-text) !important;
+}
+.tooltip-inner {
+  background: var(--admin-content-text);
+  color: var(--admin-content-bg);
+  font-weight: 500;
+  letter-spacing: var(--tracking-body);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+}
+.bs-tooltip-top .tooltip-arrow::before { border-top-color: var(--admin-content-text); }
+.bs-tooltip-bottom .tooltip-arrow::before { border-bottom-color: var(--admin-content-text); }
+.bs-tooltip-start .tooltip-arrow::before { border-left-color: var(--admin-content-text); }
+.bs-tooltip-end .tooltip-arrow::before { border-right-color: var(--admin-content-text); }
+
+/* HTMX progress indicator — thin gradient bar at top of viewport during loads.
+   Use class .htmx-progress (auto-applied by htmx during requests) on the body, OR
+   render a fixed bar via the [data-htmx-progress] element. */
+.htmx-progress-bar,
+[data-htmx-progress] {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--school-primary), color-mix(in oklab, var(--school-primary) 70%, var(--school-accent)), transparent);
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  z-index: 9998;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity var(--dur-fast) var(--ease-apple), transform var(--dur-fast) var(--ease-apple);
+  pointer-events: none;
+}
+.htmx-request .htmx-progress-bar,
+.htmx-request[data-htmx-progress],
+body.htmx-request .htmx-progress-bar,
+[data-htmx-progress].active {
+  opacity: 1;
+  transform: translateY(0);
+  animation: htmxProgressSlide 1.2s var(--ease-apple) infinite;
+}
+@keyframes htmxProgressSlide {
+  0%   { background-position: -50% 0; }
+  100% { background-position: 150% 0; }
+}
+
+/* HTMX inline indicator (per-element spinner inside button etc.) — Apple-style fade. */
+.htmx-indicator {
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-apple);
+}
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+  opacity: 1;
+}
+
+/* Page transition — subtle fade-in for main content area on every page load.
+   Targets [data-rmc-shell-main], main#main-content, .page-wrap. Lightweight; respects
+   reduced motion. */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+[data-rmc-shell-main],
+main#main-content > .page-wrap,
+.rmc-shell-content-grid {
+  animation: pageEnter 320ms var(--ease-apple) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-rmc-shell-main],
+  main#main-content > .page-wrap,
+  .rmc-shell-content-grid,
+  .skeleton,
+  .toast-container .toast {
+    animation: none !important;
+  }
+}
+
+/* Command palette modal polish — Apple Spotlight feel. Targets the JS-driven palette
+   from static/js/command-palette.js. The script renders an overlay with these IDs. */
+#command-palette-overlay,
+.command-palette-overlay,
+[data-rmc-command-palette-overlay] {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in oklab, var(--color-base-900) 28%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+          backdrop-filter: blur(8px);
+  z-index: 1090;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  animation: cpOverlayIn var(--dur-base) var(--ease-apple) both;
+}
+@keyframes cpOverlayIn { from { opacity: 0; } to { opacity: 1; } }
+#command-palette-modal,
+.command-palette-modal,
+[data-rmc-command-palette-modal] {
+  width: min(640px, calc(100vw - 32px));
+  background: var(--admin-content-bg);
+  border-radius: 18px;
+  box-shadow: var(--apple-elev-modal);
+  overflow: hidden;
+  animation: cpModalIn 280ms var(--ease-apple-spring) both;
+}
+@keyframes cpModalIn {
+  from { transform: translateY(-12px) scale(0.97); opacity: 0; }
+  to   { transform: translateY(0) scale(1);        opacity: 1; }
+}
+.command-palette-input,
+[data-rmc-command-palette-input] {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 18px 22px;
+  font-size: 1.0625rem;
+  letter-spacing: var(--tracking-body);
+  outline: none;
+  border-bottom: 1px solid var(--admin-content-border);
+}
+.command-palette-input:focus,
+[data-rmc-command-palette-input]:focus { box-shadow: none; }
+.command-palette-results,
+[data-rmc-command-palette-results] {
+  max-height: 56vh;
+  overflow-y: auto;
+  padding: 6px;
+}
+.command-palette-results .result-item,
+.command-palette-results > a,
+.command-palette-results > button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: var(--admin-content-text);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-apple);
+  font-weight: 500;
+}
+.command-palette-results .result-item:hover,
+.command-palette-results .result-item.is-selected,
+.command-palette-results > a.is-selected,
+.command-palette-results > button.is-selected {
+  background: color-mix(in oklab, var(--school-primary) 8%, transparent);
+}
+.command-palette-results .result-item.is-selected {
+  color: var(--school-primary);
+}
+.command-palette-footer {
+  border-top: 1px solid var(--admin-content-border);
+  padding: 10px 16px;
+  font-size: 0.8125rem;
+  color: var(--admin-content-text-muted);
+  display: flex;
+  justify-content: space-between;
+  letter-spacing: var(--tracking-body);
+}
+
+/* <kbd> styling — refined keycap for shortcut hints. */
+kbd, .kbd {
+  background: var(--admin-content-thead-bg);
+  color: var(--admin-content-text);
+  border: 1px solid var(--admin-content-border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 2px 6px;
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+  font-size: 0.78em;
+  font-weight: 600;
+  line-height: 1;
+  vertical-align: middle;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+}
+
+/* Modal backdrop — frosted blur (was solid black). */
+.modal-backdrop.show {
+  background: color-mix(in oklab, var(--color-base-900) 36%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
+  opacity: 1;
+}
+
+/* Offcanvas (drawers) — same elevation language as modals. */
+.offcanvas {
+  border: none;
+  box-shadow: var(--apple-elev-modal);
+}
+.offcanvas-start, .offcanvas-end { border-radius: 0; }
+.offcanvas-header { border-bottom: 1px solid var(--admin-content-border); padding: 18px 22px; }
+.offcanvas-header .offcanvas-title { font-weight: 700; letter-spacing: var(--tracking-heading); }
+
+/* Statement header (top app bar) — slightly elevated, smooth scroll-aware shadow.
+   Adds depth on scroll; main statement-header.css has the base. */
+.statement-header {
+  transition: box-shadow var(--dur-base) var(--ease-apple), backdrop-filter var(--dur-base) var(--ease-apple);
+}
+.statement-header.is-scrolled,
+body.is-scrolled .statement-header {
+  box-shadow: var(--apple-elev-2);
+}
+
+/* ============================================
+   WIZARD / ONBOARDING POLISH
+   First-impression surfaces — schools/onboard_wizard.html, teacher/student
+   onboarding_wizard.html, siteconfig/onboarding.html. Layers Apple-tier polish
+   onto existing class hooks (.wizard-step, .wizard-progress-bar,
+   [data-shell-page="onboarding-wizard"], [data-rmc-onboarding-hint]).
+   ============================================ */
+
+/* Wizard root — generous max-width, breathable padding */
+.wizard-container,
+[data-shell-page="onboarding-wizard"],
+[data-rmc-onboarding-page="1"] {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+/* Step indicator — horizontal track with numbered circles + connecting line */
+.wizard-progress {
+  margin: 0 0 32px;
+}
+.wizard-steps {
+  display: flex;
+  gap: 0;
+  align-items: flex-start;
+  position: relative;
+  margin: 0 0 18px;
+}
+.wizard-steps::before {
+  /* Connecting hairline behind the circles (full-width, behind everything) */
+  content: '';
+  position: absolute;
+  top: 16px;
+  left: calc(100% / var(--wizard-step-count, 4) / 2);
+  right: calc(100% / var(--wizard-step-count, 4) / 2);
+  height: 1px;
+  background: var(--admin-content-border);
+  z-index: 0;
+}
+.wizard-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  cursor: default;
+}
+.wizard-step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface-bg-base);
+  color: var(--admin-content-text-muted);
+  border: 1px solid var(--admin-content-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 8px;
+  transition:
+    background var(--dur-base) var(--ease-apple),
+    color var(--dur-base) var(--ease-apple),
+    border-color var(--dur-base) var(--ease-apple),
+    transform var(--dur-base) var(--ease-apple-spring),
+    box-shadow var(--dur-base) var(--ease-apple);
+}
+.wizard-step.active .wizard-step-number {
+  background: var(--school-primary);
+  color: #fff;
+  border-color: var(--school-primary);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--school-primary) 18%, transparent);
+}
+.wizard-step.completed .wizard-step-number {
+  background: var(--school-accent);
+  color: #fff;
+  border-color: var(--school-accent);
+}
+.wizard-step.completed .wizard-step-number i {
+  font-size: 1rem;
+}
+.wizard-step-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--admin-content-text-muted);
+  letter-spacing: var(--tracking-body);
+  transition: color var(--dur-fast) var(--ease-apple);
+  max-width: 11ch;
+}
+.wizard-step.active .wizard-step-label,
+.wizard-step.completed .wizard-step-label {
+  color: var(--admin-content-text);
+  font-weight: 600;
+}
+
+/* Progress bar — slim, brand-gradient fill, smooth animation */
+.wizard-progress-bar {
+  height: 4px;
+  background: var(--admin-content-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.wizard-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--school-primary), color-mix(in oklab, var(--school-primary) 70%, var(--school-accent)));
+  border-radius: 999px;
+  transition: width 600ms var(--ease-apple);
+}
+
+/* Step content — card with hairline + soft elevation */
+.wizard-step-content {
+  background: var(--admin-content-bg);
+  border-radius: var(--token-radius-lg);
+  padding: 28px 32px;
+  box-shadow: var(--apple-elev-1);
+  margin-top: 24px;
+}
+.wizard-step-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-display);
+  margin: 0 0 6px;
+  color: var(--admin-content-text);
+}
+.wizard-step-description {
+  font-size: 1rem;
+  color: var(--admin-content-text-muted);
+  margin: 0 0 24px;
+  line-height: 1.55;
+  letter-spacing: var(--tracking-body);
+  max-width: 60ch;
+}
+
+/* Onboarding hint banner — refined "guided tip" with brand-tinted left rule */
+.alert.alert-light[data-rmc-onboarding-hint],
+[data-rmc-onboarding-hint] {
+  background: color-mix(in oklab, var(--school-primary) 4%, var(--admin-content-bg));
+  border: none;
+  border-left: 3px solid var(--school-primary);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--admin-content-text);
+  letter-spacing: var(--tracking-body);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.alert.alert-light[data-rmc-onboarding-hint] strong,
+[data-rmc-onboarding-hint] strong {
+  color: var(--school-primary);
+  font-weight: 600;
+}
+
+/* Schools onboard wizard step pill — replace flat .badge.bg-secondary with refined chip */
+[data-shell-page="onboarding-wizard"] .badge.bg-secondary {
+  background: var(--school-primary-light) !important;
+  color: var(--school-primary) !important;
+  font-weight: 600;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+/* Onboarding hero typography — titles slightly larger, tighter */
+[data-shell-page="onboarding-wizard"] h1,
+[data-rmc-onboarding-page="1"] h1,
+.wizard-container h1 {
+  font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: var(--tracking-display);
+  margin-bottom: 8px;
+}
+[data-shell-page="onboarding-wizard"] h1 + .text-muted,
+[data-rmc-onboarding-page="1"] h1 + .text-muted,
+.wizard-container h1 + .text-muted {
+  font-size: 1rem;
+  letter-spacing: var(--tracking-body);
+  max-width: 60ch;
+}
+
+/* Apple-class data-quality meter (used in siteconfig/onboarding.html) — refined hairline + radius */
+.apple-class-data-quality-meter,
+[id^="meter-"] {
+  border-radius: var(--token-radius-lg);
+  box-shadow: var(--apple-elev-1);
+  border: none;
+}
+
+/* Wizard form field labels — proper hierarchy */
+.wizard-step-content .form-label,
+[data-shell-page="onboarding-wizard"] .form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-body);
+  margin-bottom: 6px;
+  color: var(--admin-content-text);
+}
+
+/* Wizard footer action row — sticky-feeling button cluster with spacing */
+.wizard-step-content .d-flex.flex-wrap.gap-2,
+[data-shell-page="onboarding-wizard"] form > .d-flex {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--admin-content-border);
+}
+.wizard-step-content .btn-primary,
+[data-shell-page="onboarding-wizard"] .btn-primary {
+  padding: 10px 22px;
+  font-weight: 600;
+}
+
+/* ============================================
+   PLATFORM-WIDE COMPONENT GRAMMAR
+   Apple-tier polish for every remaining Bootstrap + bespoke RMC pattern
+   that hasn't been addressed above. This is the catch-all layer that
+   ensures pages outside the polished base shells still inherit the system.
+   Targets exact class names from Bootstrap 5 and common RMC bespoke patterns.
+   ============================================ */
+
+/* ----- LIST GROUPS ----- */
+.list-group {
+  border-radius: var(--token-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--admin-content-border);
+  background: var(--admin-content-bg);
+}
+.list-group-item {
+  border: none;
+  border-bottom: 1px solid var(--admin-content-border);
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  letter-spacing: var(--tracking-body);
+  background: transparent;
+  color: var(--admin-content-text);
+  transition: background var(--dur-fast) var(--ease-apple);
+}
+.list-group-item:last-child { border-bottom: none; }
+.list-group-item-action:hover,
+.list-group-item-action:focus {
+  background: color-mix(in oklab, var(--school-primary) 4%, transparent);
+  color: var(--admin-content-text);
+}
+.list-group-item.active {
+  background: var(--school-primary-light);
+  color: var(--school-primary);
+  border-color: transparent;
+  font-weight: 600;
+}
+.list-group-flush .list-group-item {
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+}
+.list-group-flush .list-group-item:first-child { border-top: 0; }
+.list-group-flush .list-group-item:last-child { border-bottom: 0; }
+
+/* ----- NAV TABS / PILLS (refined; sliding underline on tabs) ----- */
+.nav-tabs {
+  border-bottom: 1px solid var(--admin-content-border);
+  gap: 4px;
+}
+.nav-tabs .nav-link {
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 8px 8px 0 0;
+  padding: 10px 16px;
+  font-weight: 500;
+  letter-spacing: var(--tracking-body);
+  color: var(--admin-content-text-muted);
+  transition: color var(--dur-fast) var(--ease-apple), border-color var(--dur-base) var(--ease-apple), background var(--dur-fast) var(--ease-apple);
+  margin-bottom: -1px;
+}
+.nav-tabs .nav-link:hover {
+  background: color-mix(in oklab, var(--school-primary) 4%, transparent);
+  color: var(--admin-content-text);
+  border-color: transparent;
+}
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-item.show .nav-link {
+  background: transparent;
+  color: var(--school-primary);
+  border-bottom-color: var(--school-primary);
+  font-weight: 600;
+}
+
+.nav-pills .nav-link {
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 500;
+  color: var(--admin-content-text-muted);
+  transition: background var(--dur-fast) var(--ease-apple), color var(--dur-fast) var(--ease-apple), transform var(--dur-fast) var(--ease-apple-snap);
+}
+.nav-pills .nav-link:hover { background: color-mix(in oklab, var(--school-primary) 6%, transparent); color: var(--admin-content-text); }
+.nav-pills .nav-link:active { transform: scale(0.98); }
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+  background: var(--school-primary);
+  color: #fff;
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--school-primary) 30%, transparent);
+}
+
+/* ----- ALERTS (all variants) ----- */
+.alert {
+  border: none;
+  border-left: 3px solid currentColor;
+  border-radius: var(--token-radius-md);
+  padding: 14px 16px;
+  font-size: 0.92rem;
+  letter-spacing: var(--tracking-body);
+  line-height: 1.55;
+}
+.alert-primary    { background: color-mix(in oklab, var(--school-primary) 6%, var(--admin-content-bg)); color: var(--admin-content-text); border-left-color: var(--school-primary); }
+.alert-success    { background: color-mix(in oklab, var(--ds-success) 8%, var(--admin-content-bg));   color: var(--admin-content-text); border-left-color: var(--ds-success); }
+.alert-warning    { background: color-mix(in oklab, var(--ds-warning) 8%, var(--admin-content-bg));   color: var(--admin-content-text); border-left-color: var(--ds-warning); }
+.alert-danger     { background: color-mix(in oklab, var(--ds-danger) 6%, var(--admin-content-bg));    color: var(--admin-content-text); border-left-color: var(--ds-danger); }
+.alert-info       { background: color-mix(in oklab, var(--ds-info) 6%, var(--admin-content-bg));      color: var(--admin-content-text); border-left-color: var(--ds-info); }
+.alert-light      { background: var(--surface-bg-subtle);                                              color: var(--admin-content-text); border-left-color: var(--admin-content-border); }
+.alert-dark       { background: var(--color-base-900);                                                 color: #fff;                       border-left-color: var(--color-base-800); }
+.alert-secondary  { background: var(--color-base-100);                                                 color: var(--admin-content-text); border-left-color: var(--color-base-400); }
+.alert .alert-link { font-weight: 600; color: inherit; text-decoration: underline; }
+
+/* ----- BADGES (all variants — refined pill, slightly more padding) ----- */
+.badge,
+.text-bg-primary, .text-bg-success, .text-bg-warning, .text-bg-danger,
+.text-bg-info, .text-bg-light, .text-bg-dark, .text-bg-secondary {
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.badge.bg-primary,   .badge.text-bg-primary   { background: var(--school-primary) !important; color: #fff; }
+.badge.bg-success,   .badge.text-bg-success   { background: var(--ds-success) !important;    color: #fff; }
+.badge.bg-warning,   .badge.text-bg-warning   { background: var(--ds-warning) !important;    color: #fff; }
+.badge.bg-danger,    .badge.text-bg-danger    { background: var(--ds-danger) !important;     color: #fff; }
+.badge.bg-info,      .badge.text-bg-info      { background: var(--ds-info) !important;       color: #fff; }
+.badge.bg-secondary, .badge.text-bg-secondary { background: var(--color-base-500) !important; color: #fff; }
+/* Soft badge variants (data-tone) — for less-shouty status chips */
+.badge[data-tone="soft-primary"] { background: var(--school-primary-light); color: var(--school-primary); }
+.badge[data-tone="soft-success"] { background: color-mix(in oklab, var(--ds-success) 14%, transparent); color: var(--ds-success); }
+.badge[data-tone="soft-warning"] { background: color-mix(in oklab, var(--ds-warning) 14%, transparent); color: var(--ds-warning); }
+.badge[data-tone="soft-danger"]  { background: color-mix(in oklab, var(--ds-danger) 14%, transparent);  color: var(--ds-danger); }
+.badge[data-tone="soft-info"]    { background: color-mix(in oklab, var(--ds-info) 14%, transparent);    color: var(--ds-info); }
+
+/* ----- PROGRESS (refined bar w/ brand fill) ----- */
+.progress {
+  height: 6px;
+  background: var(--admin-content-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-bar {
+  background: linear-gradient(90deg, var(--school-primary), color-mix(in oklab, var(--school-primary) 70%, var(--school-accent)));
+  transition: width 600ms var(--ease-apple);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--school-primary) 30%, transparent) inset;
+}
+.progress-bar.bg-success { background: var(--ds-success); }
+.progress-bar.bg-warning { background: var(--ds-warning); }
+.progress-bar.bg-danger  { background: var(--ds-danger); }
+
+/* ----- ACCORDION (refined chrome) ----- */
+.accordion-item {
+  border: 1px solid var(--admin-content-border);
+  background: var(--admin-content-bg);
+  border-radius: var(--token-radius-md);
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+.accordion-button {
+  background: transparent;
+  color: var(--admin-content-text);
+  font-weight: 600;
+  letter-spacing: var(--tracking-body);
+  padding: 14px 16px;
+  border: none;
+  box-shadow: none !important;
+  transition: background var(--dur-fast) var(--ease-apple);
+}
+.accordion-button:hover { background: color-mix(in oklab, var(--school-primary) 4%, transparent); }
+.accordion-button:not(.collapsed) {
+  background: color-mix(in oklab, var(--school-primary) 6%, transparent);
+  color: var(--school-primary);
+}
+.accordion-button::after {
+  width: 14px; height: 14px;
+  background-size: 14px;
+  transition: transform var(--dur-base) var(--ease-apple);
+}
+.accordion-body {
+  padding: 14px 16px 18px;
+  color: var(--admin-content-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  letter-spacing: var(--tracking-body);
+}
+
+/* ----- INPUT GROUP (refined with focus ring across the whole group) ----- */
+.input-group { border-radius: 10px; }
+.input-group > .form-control,
+.input-group > .form-select {
+  border-color: var(--admin-content-border);
+}
+.input-group-text {
+  background: var(--surface-bg-subtle);
+  border-color: var(--admin-content-border);
+  color: var(--admin-content-text-muted);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+.input-group:focus-within {
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--school-primary) 18%, transparent);
+  border-radius: 10px;
+}
+.input-group:focus-within > .form-control,
+.input-group:focus-within > .form-select {
+  border-color: color-mix(in oklab, var(--school-primary) 60%, var(--admin-content-border));
+  box-shadow: none;
+}
+
+/* ----- PAGINATION ----- */
+.pagination { gap: 4px; }
+.page-item { margin: 0; }
+.page-link {
+  border: 1px solid var(--admin-content-border);
+  border-radius: 8px !important;
+  color: var(--admin-content-text);
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 6px 12px;
+  background: var(--admin-content-bg);
+  transition: background var(--dur-fast) var(--ease-apple), color var(--dur-fast) var(--ease-apple), border-color var(--dur-fast) var(--ease-apple);
+}
+.page-link:hover {
+  background: color-mix(in oklab, var(--school-primary) 6%, transparent);
+  color: var(--school-primary);
+  border-color: color-mix(in oklab, var(--school-primary) 40%, var(--admin-content-border));
+}
+.page-item.active .page-link {
+  background: var(--school-primary);
+  border-color: var(--school-primary);
+  color: #fff;
+}
+.page-item.disabled .page-link {
+  opacity: 0.5;
+  background: transparent;
+  border-color: var(--admin-content-border);
+}
+
+/* ----- FORM SWITCHES, CHECKS, FLOATING LABELS, RANGE ----- */
+.form-check-input {
+  border-color: var(--admin-content-border);
+  width: 1.1em; height: 1.1em;
+  transition: background-color var(--dur-fast) var(--ease-apple), border-color var(--dur-fast) var(--ease-apple), box-shadow var(--dur-fast) var(--ease-apple);
+}
+.form-check-input:checked {
+  background-color: var(--school-primary);
+  border-color: var(--school-primary);
+}
+.form-check-input:focus { box-shadow: 0 0 0 4px color-mix(in oklab, var(--school-primary) 18%, transparent); }
+
+.form-switch .form-check-input {
+  width: 2.4em; height: 1.3em;
+  background-color: var(--color-base-300);
+  border: none;
+}
+.form-switch .form-check-input:checked {
+  background-color: var(--school-primary);
+}
+
+.form-floating > label {
+  color: var(--admin-content-text-muted);
+  letter-spacing: var(--tracking-body);
+  padding: 14px 14px;
+}
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label,
+.form-floating > .form-select ~ label {
+  color: var(--school-primary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  transform: scale(1) translateY(-0.5rem) translateX(0.15rem);
+  opacity: 1;
+  background: var(--admin-content-bg);
+  padding: 0 6px;
+  height: auto;
+}
+
+.form-range::-webkit-slider-thumb {
+  background: var(--school-primary);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.15), 0 0 0 4px color-mix(in oklab, var(--school-primary) 20%, transparent);
+}
+.form-range::-moz-range-thumb {
+  background: var(--school-primary);
+}
+
+/* ----- BUTTON GROUPS ----- */
+.btn-group .btn { border-radius: 10px; }
+.btn-group > .btn:not(:last-child):not(.dropdown-toggle),
+.btn-group > .btn-group:not(:last-child) > .btn {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.btn-group > .btn:not(:first-child),
+.btn-group > .btn-group:not(:first-child) > .btn {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin-left: -1px;
+}
+
+/* ----- SPINNERS ----- */
+.spinner-border {
+  border-color: color-mix(in oklab, var(--school-primary) 28%, transparent);
+  border-right-color: var(--school-primary);
+  width: 1.25rem; height: 1.25rem;
+  border-width: 0.18em;
+}
+.spinner-border-sm { width: 1rem; height: 1rem; border-width: 0.16em; }
+.spinner-grow { background: var(--school-primary); }
+
+/* Bootstrap-Icon spinner — `.bi.spinning` rotates an icon, replacing FA's `fa-spin`.
+   Use on any icon: `<i class="bi bi-arrow-repeat spinning"></i>`. */
+.bi.spinning,
+i.spinning,
+[class*="bi-"].spinning {
+  display: inline-block;
+  animation: rmcSpin 1s linear infinite;
+}
+@keyframes rmcSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bi.spinning, i.spinning, [class*="bi-"].spinning { animation: none; }
+}
+
+/* ----- BOOTSTRAP PLACEHOLDER (loading) — match our skeleton shimmer ----- */
+.placeholder {
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--admin-content-border) 30%, transparent) 25%,
+    color-mix(in oklab, var(--admin-content-border) 60%, transparent) 50%,
+    color-mix(in oklab, var(--admin-content-border) 30%, transparent) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.6s var(--ease-apple) infinite;
+  border-radius: 4px;
+  opacity: 1;
+}
+
+/* ----- BESPOKE RMC CARDS — common patterns across the codebase ----- */
+.stat-card,
+.metric-card,
+.info-card,
+.profile-card,
+.summary-card,
+.kpi-card,
+.action-card,
+.feature-card,
+.tile-card {
+  background: var(--admin-content-bg);
+  border-radius: var(--token-radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--apple-elev-1);
+  transition: box-shadow var(--dur-base) var(--ease-apple), transform var(--dur-base) var(--ease-apple);
+  border: none;
+}
+.stat-card[data-interactive="1"]:hover,
+.metric-card[data-interactive="1"]:hover,
+.info-card[data-interactive="1"]:hover,
+.profile-card[data-interactive="1"]:hover,
+.summary-card[data-interactive="1"]:hover,
+.action-card[data-interactive="1"]:hover,
+.feature-card[data-interactive="1"]:hover,
+.tile-card[data-interactive="1"]:hover {
+  box-shadow: var(--apple-elev-3);
+  transform: translateY(-1px);
+}
+
+/* Stat / KPI value + label hierarchy */
+.stat-value, .metric-value, .kpi-value {
+  font-size: 1.85rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-display);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.stat-label, .metric-label, .kpi-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  color: var(--admin-content-text-muted);
+}
+
+/* ----- LIST UTILITY: data list (dt/dd) ----- */
+dl.data-list,
+.data-list dl {
+  display: grid;
+  grid-template-columns: minmax(8rem, 30%) 1fr;
+  gap: 6px 14px;
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+dl.data-list dt,
+.data-list dt {
+  color: var(--admin-content-text-muted);
+  font-weight: 500;
+  letter-spacing: var(--tracking-body);
+}
+dl.data-list dd,
+.data-list dd {
+  color: var(--admin-content-text);
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ----- HORIZONTAL RULES, BLOCKQUOTES, CODE ----- */
+hr {
+  border: none;
+  border-top: 1px solid var(--admin-content-border);
+  margin: 18px 0;
+  opacity: 1;
+}
+blockquote {
+  border-left: 3px solid var(--school-primary);
+  padding: 6px 16px;
+  margin: 14px 0;
+  color: var(--admin-content-text);
+  font-style: italic;
+  background: color-mix(in oklab, var(--school-primary) 3%, transparent);
+  border-radius: 0 8px 8px 0;
+}
+code:not(pre code) {
+  background: var(--surface-bg-subtle);
+  color: var(--admin-content-text);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+  border: 1px solid var(--admin-content-border);
+}
+pre {
+  background: var(--surface-bg-subtle);
+  border: 1px solid var(--admin-content-border);
+  border-radius: var(--token-radius-md);
+  padding: 14px 16px;
+  font-size: 0.85em;
+  line-height: 1.55;
+  color: var(--admin-content-text);
+  overflow-x: auto;
+}
+
+/* ----- DETAILS / SUMMARY (collapsibles) ----- */
+details {
+  border: 1px solid var(--admin-content-border);
+  border-radius: var(--token-radius-md);
+  background: var(--admin-content-bg);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+details > summary {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: var(--tracking-body);
+  color: var(--admin-content-text);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background var(--dur-fast) var(--ease-apple);
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::after {
+  content: '';
+  width: 14px; height: 14px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='currentColor' d='M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z'/%3e%3c/svg%3e") center/contain no-repeat;
+          mask: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='currentColor' d='M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z'/%3e%3c/svg%3e") center/contain no-repeat;
+  opacity: 0.6;
+  transition: transform var(--dur-base) var(--ease-apple);
+}
+details[open] > summary::after { transform: rotate(180deg); }
+details > summary:hover { background: color-mix(in oklab, var(--school-primary) 4%, transparent); }
+details > div,
+details > p,
+details > ul,
+details > ol { padding: 0 16px 14px; margin-top: 0; }
+
+/* ----- AUTH SHELL -----
+   Targets every auth template pattern in this codebase: .auth-shell, .auth-landing,
+   .login-page, .signup-page, .login-split, [data-shell-page="auth"], body.auth-page. */
+.auth-shell,
+.auth-landing,
+.login-page,
+.signup-page,
+body.auth-page,
+[data-shell-page="auth"] {
+  min-height: 100vh;
+  padding: 32px 20px;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, color-mix(in oklab, var(--school-primary) 8%, transparent), transparent 60%),
+    var(--surface-bg-subtle);
+}
+/* Two-pane wallpaper variant (auth/login.html .login-split) */
+.login-split {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 900px) {
+  .login-split { grid-template-columns: 1fr; }
+  .login-split__left { display: none; }
+}
+.login-split__left {
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+.login-split__left::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, color-mix(in oklab, var(--school-primary) 32%, transparent) 0%, transparent 70%);
+}
+.login-split__right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background: var(--surface-bg-subtle);
+}
+
+/* Hero brand cluster (logo + name + subtext) — used in auth/login.html */
+.auth-hero {
+  max-width: 980px;
+  margin: 0 auto 28px;
+  padding: 0 8px;
+}
+.hero-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.hero-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--school-primary), color-mix(in oklab, var(--school-primary) 70%, var(--school-accent)));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  box-shadow: var(--apple-elev-1);
+}
+.hero-brand strong {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-heading);
+  display: block;
+  line-height: 1.25;
+}
+.hero-brand small {
+  display: block;
+  color: var(--admin-content-text-muted);
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+.auth-breadcrumb {
+  max-width: 980px;
+  margin: 0 auto 14px;
+  padding: 0 8px;
+}
+
+/* Card variants — login-card, signup-card, info-card, admin-login-card */
+.auth-card,
+.login-card,
+.signup-card,
+.info-card,
+.admin-login-card,
+[data-shell-page="auth"] .card {
+  background: var(--admin-content-bg);
+  border-radius: var(--token-radius-lg);
+  box-shadow: var(--apple-elev-2);
+  padding: 32px 28px;
+  border: none;
+}
+.admin-login-card {
+  max-width: 420px;
+  margin: 0 auto;
+}
+.auth-card h1,
+.auth-card .h1,
+.login-card h1,
+.signup-card h1,
+.admin-login-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-display);
+  margin: 0 0 6px;
+}
+.admin-login-subtitle,
+.auth-card .auth-sub,
+.login-card .text-muted:first-of-type {
+  font-size: 0.95rem;
+  color: var(--admin-content-text-muted);
+  margin-bottom: 22px;
+  line-height: 1.55;
+}
+.admin-login-brand .brand-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-heading);
+  margin-bottom: 18px;
+}
+.auth-card .btn-primary,
+.login-card .btn-primary,
+.signup-card .btn-primary,
+.admin-login-card .btn-primary {
+  width: 100%;
+  padding: 11px 14px;
+  font-weight: 600;
+}
+
+/* Quick-link chips on the family/admin info side (auth/login.html .quick-link) */
+.quick-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--school-primary) 8%, transparent);
+  color: var(--school-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  letter-spacing: var(--tracking-body);
+  transition: background var(--dur-fast) var(--ease-apple), color var(--dur-fast) var(--ease-apple);
+}
+.quick-link:hover {
+  background: var(--school-primary);
+  color: #fff;
+}
+.quick-link.quick-link-muted {
+  background: var(--surface-bg-subtle);
+  color: var(--admin-content-text-muted);
+}
+.quick-link.quick-link-muted:hover {
+  background: var(--admin-content-text-muted);
+  color: #fff;
+}
+
+/* ----- ERROR PAGE SHELL -----
+   Targets: 404.html, 500.html, 403.html, errors/*.html — common .error-page hooks. */
+.error-page,
+[data-shell-page="error"],
+body.error-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, color-mix(in oklab, var(--school-primary) 6%, transparent), transparent 60%),
+    var(--surface-bg-subtle);
+}
+.error-page .error-code,
+.error-code-display {
+  font-size: clamp(4rem, 12vw, 7rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--school-primary);
+  line-height: 1;
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(135deg, var(--school-primary), color-mix(in oklab, var(--school-primary) 65%, var(--school-accent)));
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.error-page h1,
+.error-page .error-title {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 700;
+  letter-spacing: var(--tracking-display);
+  margin: 4px 0 8px;
+}
+.error-page p,
+.error-page .error-message {
+  color: var(--admin-content-text-muted);
+  max-width: 56ch;
+  margin: 0 auto 20px;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+.error-page .error-actions {
+  display: inline-flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ----- HTMX content swap fade — every htmx-driven panel transitions cleanly ----- */
+[hx-swap-oob="true"],
+[data-hx-swap-oob],
+.htmx-swapping,
+.htmx-settling {
+  transition: opacity var(--dur-fast) var(--ease-apple);
+}
+.htmx-swapping { opacity: 0.6; }
+.htmx-added { animation: pageEnter 280ms var(--ease-apple) both; }
+
+/* ----- SCROLLBARS (refined; respects dark mode) ----- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--admin-content-text-muted) 30%, transparent) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--admin-content-text-muted) 28%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--admin-content-text-muted) 50%, transparent);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+/* ----- SELECTION (text highlight) ----- */
+::selection {
+  background: color-mix(in oklab, var(--school-primary) 22%, transparent);
+  color: var(--admin-content-text);
+}
+
+/* ----- TEXT-* utility colors bound to tokens (so .text-primary etc. follow brand) ----- */
+.text-primary    { color: var(--school-primary) !important; }
+.text-success    { color: var(--ds-success) !important; }
+.text-warning    { color: var(--ds-warning) !important; }
+.text-danger     { color: var(--ds-danger) !important; }
+.text-info       { color: var(--ds-info) !important; }
+.text-muted      { color: var(--admin-content-text-muted) !important; }
+.bg-primary      { background-color: var(--school-primary) !important; }
+.bg-primary-subtle { background-color: var(--school-primary-light) !important; }
+.bg-success-subtle { background-color: color-mix(in oklab, var(--ds-success) 10%, transparent) !important; }
+.bg-warning-subtle { background-color: color-mix(in oklab, var(--ds-warning) 10%, transparent) !important; }
+.bg-danger-subtle  { background-color: color-mix(in oklab, var(--ds-danger) 8%, transparent) !important; }
+.border-primary  { border-color: var(--school-primary) !important; }
+
+/* ----- IMAGE / AVATAR PRIMITIVES (.avatar / .av classes) ----- */
+.avatar,
+.av {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--school-primary), color-mix(in oklab, var(--school-primary) 70%, var(--school-accent)));
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+  letter-spacing: 0;
+}
+.avatar-sm { width: 28px; height: 28px; font-size: 0.72rem; }
+.avatar-lg { width: 56px; height: 56px; font-size: 1.1rem; }
+.avatar-xl { width: 80px; height: 80px; font-size: 1.5rem; }
+
+/* ----- CONFIRM DIALOG (bespoke .confirm-dialog pattern) ----- */
+.confirm-dialog,
+[data-rmc-confirm-dialog] {
+  background: var(--admin-content-bg);
+  border-radius: var(--token-radius-lg);
+  box-shadow: var(--apple-elev-modal);
+  padding: 24px 28px;
+  max-width: 440px;
+  border: none;
+}
+.confirm-dialog h3,
+.confirm-dialog .confirm-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-heading);
+  margin: 0 0 6px;
+}
+.confirm-dialog p,
+.confirm-dialog .confirm-message {
+  color: var(--admin-content-text-muted);
+  font-size: 0.95rem;
+  margin: 0 0 18px;
+  line-height: 1.55;
+}
+.confirm-dialog .confirm-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ----- CHARTS: ensure default chart colors derive from tokens ---
+   (chart-rules.css governs chart-specific visuals; these provide token defaults
+   for libraries that read from CSS-vars or inline style.)
+   Bound to school cascade so Chart.js (`buildThemePalette` reads `getComputedStyle`)
+   and any other chart library picks up tenant brand automatically. */
+:root {
+  --chart-color-1: var(--school-primary);
+  --chart-color-2: var(--school-accent);
+  --chart-color-3: #38bdf8; /* sky */
+  --chart-color-4: #a78bfa; /* violet */
+  --chart-color-5: var(--ds-warning);
+  --chart-color-6: var(--ds-danger);
+  --chart-color-7: #14b8a6; /* teal */
+  --chart-color-8: #ec4899; /* pink */
+  --chart-grid:    var(--admin-content-border);
+  --chart-axis:    var(--admin-content-text-muted);
+
+  /* Dashboard chart tokens — read by static/js/dashboard-charts-shared.js
+     (buildThemePalette). Previously had hardcoded fallbacks; now bound to school cascade. */
+  --dashboard-theme-primary: var(--school-primary);
+  --dashboard-theme-accent:  var(--school-accent);
+  --brand-primary:           var(--school-primary);
+  --brand-accent:            var(--school-accent);
+  --brand-success:           var(--ds-success);
+  --brand-warning:           var(--ds-warning);
+  --brand-danger:            var(--ds-danger);
+  --brand-info:              var(--ds-info);
+}
+
+/* ----- FILE INPUT (refined) ----- */
+.form-control[type="file"] {
+  padding: 6px 10px;
+  font-size: 0.9rem;
+}
+.form-control[type="file"]::file-selector-button {
+  background: var(--surface-bg-subtle);
+  color: var(--admin-content-text);
+  border: 1px solid var(--admin-content-border);
+  border-radius: 6px;
+  padding: 4px 12px;
+  margin-right: 12px;
+  font-weight: 500;
+  transition: background var(--dur-fast) var(--ease-apple), color var(--dur-fast) var(--ease-apple);
+}
+.form-control[type="file"]::file-selector-button:hover {
+  background: var(--school-primary);
+  color: #fff;
+  border-color: var(--school-primary);
+}
+
+/* ----- TIMELINE PATTERN (.timeline / .activity-feed extension) ----- */
+.timeline,
+.activity-feed {
+  position: relative;
+}
+.timeline > .timeline-item,
+.activity-feed > .item {
+  position: relative;
+  padding-left: 28px;
+}
+.timeline > .timeline-item::before,
+.activity-feed > .item::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 28px;
+  bottom: -12px;
+  width: 1px;
+  background: var(--admin-content-border);
+}
+.timeline > .timeline-item:last-child::before,
+.activity-feed > .item:last-child::before { display: none; }
+
+/* ----- MAINTENANCE / OFFLINE PAGE ----- */
+.maintenance-shell,
+.offline-shell,
+[data-shell-page="maintenance"],
+[data-shell-page="offline"] {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
+  background: var(--surface-bg-subtle);
+}
+.maintenance-shell .maint-mark,
+.offline-shell .maint-mark {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: var(--school-primary-light);
+  color: var(--school-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  margin-bottom: 18px;
+}
+
+/* ============================================
+   GLOBAL .card POLISH (Bootstrap default + .shadow-sm/.shadow variants)
+   Highest-leverage rule in the entire system: polishes hundreds of existing
+   `.card.shadow-sm` / `.card.shadow` / `.card border-0 shadow-sm` usages.
+   Template authors don't need to change anything — every Bootstrap card in
+   the codebase becomes Apple-tier automatically.
+   ============================================ */
+.card,
+.card.shadow-sm,
+.card.shadow {
+  background: var(--admin-content-bg);
+  border: 1px solid var(--admin-content-border);
+  border-radius: var(--token-radius-md);
+  box-shadow: var(--apple-elev-1);
+  transition: box-shadow var(--dur-base) var(--ease-apple), transform var(--dur-base) var(--ease-apple);
+}
+.card.shadow-sm { box-shadow: var(--apple-elev-1); }
+.card.shadow    { box-shadow: var(--apple-elev-2); }
+.card.shadow-lg { box-shadow: var(--apple-elev-3); }
+.card.border-0  { border: none !important; }
+
+.card[data-interactive="1"]:hover,
+.card.is-interactive:hover,
+a.card:hover {
+  box-shadow: var(--apple-elev-3);
+  transform: translateY(-1px);
+}
+.card-header {
+  background: var(--admin-content-bg);
+  border-bottom: 1px solid var(--admin-content-border);
+  padding: 14px 18px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-body);
+}
+.card-header.bg-transparent {
+  background: transparent;
+  border-bottom: 1px solid var(--admin-content-border);
+}
+/* Old Bootstrap `card-header bg-primary text-white` patterns — soften so they don't
+   look like 2018 dashboards. Branded background but desaturated. */
+.card-header.bg-primary,
+.card-header.bg-success,
+.card-header.bg-warning,
+.card-header.bg-danger,
+.card-header.bg-info {
+  border-bottom: none;
+  border-radius: var(--token-radius-md) var(--token-radius-md) 0 0;
+}
+.card-body { padding: 18px 20px; }
+.card-footer {
+  background: var(--surface-bg-subtle);
+  border-top: 1px solid var(--admin-content-border);
+  padding: 12px 18px;
+  font-size: 0.88rem;
+  color: var(--admin-content-text-muted);
+}
+
+/* ============================================
+   HIGH-FREQUENCY BESPOKE CLASS COVERAGE
+   Catches the top RMC class names used across the codebase that don't
+   already inherit from `.card` / `.kpi` / Bootstrap. This is the single
+   highest-leverage layer — polishes 500+ existing template usages with
+   no template changes. Names + counts from the platform audit (top 60).
+   ============================================ */
+
+/* Universal panel surface — cp-panel (129×), proof-panel (62×), v2-panel (31×),
+   tdm-panel (14×), de-panel (9×), security-panel (6×), pinned-panel (6×),
+   bento-panel (5×), studio-panel (5×), cp-panel-stat (5×). */
+.cp-panel,
+.proof-panel,
+.v2-panel,
+.tdm-panel,
+.de-panel,
+.security-panel,
+.pinned-panel,
+.bento-panel,
+.studio-panel,
+.cp-panel-stat {
+  background: var(--admin-content-bg);
+  border-radius: var(--token-radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--apple-elev-1);
+  border: none;
+  transition: box-shadow var(--dur-base) var(--ease-apple), transform var(--dur-base) var(--ease-apple);
+}
+.cp-panel[data-interactive="1"]:hover,
+.proof-panel[data-interactive="1"]:hover,
+.v2-panel[data-interactive="1"]:hover,
+.tdm-panel[data-interactive="1"]:hover {
+  box-shadow: var(--apple-elev-3);
+  transform: translateY(-1px);
+}
+
+/* Universal card surface — content-card (49×), overview-card (38×), strip-card (36×),
+   dashboard-card (33×), cp-card (30×), summary-card (22×), proof-card (21×),
+   ds-card (20×), segment-card (16×), app-card (13×), hub-card (12×),
+   health-card (10×), queue-card (9×), rail-card (7×), preview-card (7×),
+   chart-card (6×), action-card (6×), footer-card (6×), data-card (6×),
+   security-card (×), table-card (×), platform-card (×), module-card (×),
+   accordion-card (×), workflow-card (×), user-card (×), parent-glance-card (×).
+   Pulls from the same .card-x pattern. */
+.content-card,
+.overview-card,
+.strip-card,
+.dashboard-card,
+.cp-card,
+.summary-card,
+.proof-card,
+.ds-card,
+.segment-card,
+.app-card,
+.hub-card,
+.health-card,
+.queue-card,
+.rail-card,
+.preview-card,
+.chart-card,
+.action-card,
+.footer-card,
+.data-card,
+.security-card,
+.table-card,
+.platform-card,
+.module-card,
+.accordion-card,
+.workflow-card,
+.user-card,
+.glance-card,
+.parent-glance-card,
+.glance-cell,
+.fees-card,
+.adm-card,
+.product-metric,
+.results-summary-card,
+.list-card,
+.hub-action-card,
+.org-chart-card,
+.module-card,
+.footprint-card,
+.cp-footprint-card,
+.cp-stack-card,
+.cp-table-card,
+.cp-search-results-panel {
+  background: var(--admin-content-bg);
+  border-radius: var(--token-radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--apple-elev-1);
+  border: none;
+  transition: box-shadow var(--dur-base) var(--ease-apple), transform var(--dur-base) var(--ease-apple);
+}
+.content-card[data-interactive="1"]:hover,
+.overview-card[data-interactive="1"]:hover,
+.dashboard-card[data-interactive="1"]:hover,
+.cp-card[data-interactive="1"]:hover,
+.summary-card[data-interactive="1"]:hover,
+.proof-card[data-interactive="1"]:hover,
+.app-card[data-interactive="1"]:hover,
+.hub-card[data-interactive="1"]:hover,
+.health-card[data-interactive="1"]:hover,
+.action-card[data-interactive="1"]:hover {
+  box-shadow: var(--apple-elev-3);
+  transform: translateY(-1px);
+}
+
+/* Universal chip / pill — proof-chip (39×), cp-chip (37×), status-chip (29×),
+   nas-chip (15×), pack-pill (8×), pain-chip (6×), preview-chip (4×),
+   nav-pill (81× — but excluded; nav pills are sidebar-handled), summary-chip (×),
+   telemetry-chip (×), trust-pill (×), status-pill (×), intent-pill (×), metric-pill (×),
+   cpoh-tile (×), cp-outcome-pill (×), backend-intent-pill (×). */
+.proof-chip,
+.cp-chip,
+.status-chip,
+.nas-chip,
+.pack-pill,
+.pain-chip,
+.preview-chip,
+.summary-chip,
+.telemetry-chip,
+.trust-pill,
+.status-pill,
+.intent-pill,
+.metric-pill,
+.cpoh-tile,
+.cp-outcome-pill,
+.backend-intent-pill,
+.admin-telemetry-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  background: var(--surface-bg-subtle);
+  color: var(--admin-content-text);
+  border: 1px solid var(--admin-content-border);
+  transition: background var(--dur-fast) var(--ease-apple), color var(--dur-fast) var(--ease-apple);
+}
+.proof-chip[data-tone="primary"],
+.cp-chip[data-tone="primary"],
+.status-chip[data-tone="primary"],
+.status-pill[data-tone="primary"] {
+  background: var(--school-primary-light);
+  color: var(--school-primary);
+  border-color: transparent;
+}
+.proof-chip[data-tone="success"],
+.cp-chip[data-tone="success"],
+.status-chip[data-tone="success"],
+.status-pill[data-tone="success"] {
+  background: color-mix(in oklab, var(--ds-success) 14%, transparent);
+  color: var(--ds-success);
+  border-color: transparent;
+}
+.proof-chip[data-tone="warning"],
+.cp-chip[data-tone="warning"],
+.status-chip[data-tone="warning"],
+.status-pill[data-tone="warning"] {
+  background: color-mix(in oklab, var(--ds-warning) 14%, transparent);
+  color: var(--ds-warning);
+  border-color: transparent;
+}
+.proof-chip[data-tone="danger"],
+.cp-chip[data-tone="danger"],
+.status-chip[data-tone="danger"],
+.status-pill[data-tone="danger"] {
+  background: color-mix(in oklab, var(--ds-danger) 14%, transparent);
+  color: var(--ds-danger);
+  border-color: transparent;
+}
+
+/* Universal stat tile — tdm-stat (16×), hero-stat (12×), admin-stat (7×),
+   security-stat (6×), wcx-metric (4×), rmc-wcx-metric (4×), cp-panel-stat,
+   global-stat, child-metric, etc. */
+.tdm-stat,
+.hero-stat,
+.admin-stat,
+.security-stat,
+.wcx-metric,
+.rmc-wcx-metric,
+.proof-metric,
+.product-metric,
+.acx-metric,
+.rmc-acx-metric,
+.global-stat,
+.child-metric,
+.de-metric,
+.v2-metric,
+.cp-stack-metric,
+.mkt-global-stat {
+  background: var(--admin-content-bg);
+  border-radius: var(--token-radius-md);
+  padding: 16px 18px;
+  box-shadow: var(--apple-elev-1);
+  border: none;
+}
+.tdm-stat .stat-value,
+.hero-stat .stat-value,
+.admin-stat .stat-value,
+.security-stat .stat-value,
+.tdm-stat strong,
+.hero-stat strong,
+.admin-stat strong,
+.security-stat strong {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-display);
+  font-variant-numeric: tabular-nums;
+  display: block;
+  line-height: 1.1;
+  color: var(--admin-content-text);
+}
+
+/* Universal row layouts — list-row (18×), md-row (17×), stack-row (10×),
+   action-row (6×), cp-action-row (5×), meta-row (5×). */
+.list-row,
+.md-row,
+.stack-row,
+.action-row,
+.cp-action-row,
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: background var(--dur-fast) var(--ease-apple);
+}
+.list-row:hover,
+.md-row:hover,
+.stack-row:hover { background: color-mix(in oklab, var(--school-primary) 4%, transparent); }
+.list-row + .list-row,
+.md-row + .md-row,
+.stack-row + .stack-row { border-top: 1px solid var(--admin-content-border); }
+
+/* Tile / weather-widget / glance — visible bg, restrained shadow */
+.weather-widget,
+.badge-tile {
+  background: var(--admin-content-bg);
+  border-radius: var(--token-radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--apple-elev-1);
+  border: none;
+}
+
+/* Filter row (page-family-filter-row + plain card.bg-light variants) — refined chrome */
+.page-family-filter-row,
+.card.card-body.bg-light {
+  background: var(--surface-bg-subtle) !important;
+  border: none !important;
+  border-radius: var(--token-radius-md);
+  padding: 12px 14px !important;
+  margin-bottom: 14px;
+  box-shadow: 0 0 0 1px var(--admin-content-border);
+}
+
+/* Table extensions — table-zebra, table-sticky-head (custom Bootstrap extensions) */
+.table-zebra tbody tr:nth-child(even) td {
+  background: color-mix(in oklab, var(--admin-content-text) 2%, transparent);
+}
+.table-sticky-head thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-bg-subtle);
+  box-shadow: 0 1px 0 var(--admin-content-border);
+}
+
+/* Step indicator (used in evals/grade_import wizard) — fixes the broken bare classes.
+   Uses CSS counters so numbering works whether or not the template provides data-step. */
+.step-indicator {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin: 12px 0 28px;
+  position: relative;
+  counter-reset: step;
+}
+.step-indicator .step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  counter-increment: step;
+  padding: 0 6px;
+}
+.step-indicator .step::before {
+  content: counter(step);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--admin-content-bg);
+  border: 1px solid var(--admin-content-border);
+  color: var(--admin-content-text-muted);
+  font-weight: 600;
+  font-size: 0.88rem;
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+  position: relative;
+  z-index: 1;
+  transition:
+    background var(--dur-base) var(--ease-apple),
+    color var(--dur-base) var(--ease-apple),
+    border-color var(--dur-base) var(--ease-apple),
+    box-shadow var(--dur-base) var(--ease-apple-spring);
+}
+.step-indicator .step[data-step]::before { content: attr(data-step); }
+.step-indicator .step.is-active::before,
+.step-indicator .step.active::before {
+  background: var(--school-primary);
+  color: #fff;
+  border-color: var(--school-primary);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--school-primary) 18%, transparent);
+}
+.step-indicator .step.is-complete::before,
+.step-indicator .step.completed::before {
+  background: var(--school-accent);
+  color: #fff;
+  border-color: var(--school-accent);
+  content: '✓';
+}
+.step-indicator .step + .step::after {
+  content: '';
+  position: absolute;
+  top: 16px;
+  right: 50%;
+  width: 100%;
+  height: 1px;
+  background: var(--admin-content-border);
+  z-index: 0;
+}
+.step-indicator .step.is-complete + .step::after,
+.step-indicator .step.completed + .step::after {
+  background: var(--school-accent);
+}
+/* Step labels — Apple typography */
+.step-indicator .step h6,
+.step-indicator .step .step-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0 0 2px;
+  letter-spacing: var(--tracking-body);
+  color: var(--admin-content-text);
+}
+.step-indicator .step.active h6,
+.step-indicator .step.is-active h6,
+.step-indicator .step.active .step-title,
+.step-indicator .step.is-active .step-title {
+  color: var(--school-primary);
+}
+.step-indicator .step small,
+.step-indicator .step .step-sub {
+  font-size: 0.75rem;
+  color: var(--admin-content-text-muted);
+}
+
+/* Dropzone (cdn-loaded library used in evals/grade_import_upload_v2.html) — Apple-tier polish */
+.dropzone {
+  background: var(--admin-content-bg) !important;
+  border: 2px dashed var(--admin-content-border) !important;
+  border-radius: var(--token-radius-md) !important;
+  min-height: 200px !important;
+  padding: 32px !important;
+  transition: border-color var(--dur-base) var(--ease-apple), background var(--dur-base) var(--ease-apple);
+}
+.dropzone.dz-drag-hover {
+  border-color: var(--school-primary) !important;
+  background: color-mix(in oklab, var(--school-primary) 4%, var(--admin-content-bg)) !important;
+}
+.dropzone .dz-message {
+  color: var(--admin-content-text-muted) !important;
+  font-size: 0.95rem !important;
+  letter-spacing: var(--tracking-body);
+}
+.dropzone .dz-preview .dz-image {
+  border-radius: var(--token-radius-sm) !important;
+}
+.dropzone .dz-preview {
+  margin: 8px !important;
+}
+
+/* Drawers — Apple-class quick-profile drawer + cp-context-drawer */
+.rmc-acx-drawer,
+.cp-context-drawer {
+  background: var(--admin-content-bg);
+  box-shadow: var(--apple-elev-modal);
+  border: none;
+}
+.rmc-acx-drawer__handle {
+  width: 36px;
+  height: 4px;
+  background: var(--admin-content-border);
+  border-radius: 2px;
+  margin: 8px auto;
+}
+.rmc-acx-drawer__header,
+.cp-context-drawer .offcanvas-header {
+  border-bottom: 1px solid var(--admin-content-border);
+  padding: 16px 20px;
+}
+
+/* "Apple-class" / "World-class" / "RMC-OS" surface — three parallel namespaces;
+   bind to one shared surface to remove duplicate styling (visual unification). */
+.rmc-wcx-surface,
+.rmc-acx-surface,
+.world-class-surface,
+.apple-class-surface,
+.rmc-os-surface,
+[data-world-class-trust-page="1"] .rmc-wcx-surface,
+[data-apple-class-trust-page="1"] .rmc-wcx-surface {
+  background: var(--admin-content-bg);
+  border-radius: var(--token-radius-lg);
+  box-shadow: var(--apple-elev-1);
+  border: none;
+}
+
+/* Three-namespace consolidation: matching subcomponents.
+   Components (page hero, summary strip, status strip, glass panel, metric card,
+   product moment, risk blocker, status pill, page header) all share styling. */
+.world-class-page-hero,
+.apple-class-page-hero,
+.rmc-os-page-header {
+  padding: 28px 32px;
+  background: var(--admin-content-bg);
+  border-radius: var(--token-radius-lg);
+  box-shadow: var(--apple-elev-1);
+  margin-bottom: 24px;
+}
+.world-class-summary-strip,
+.apple-class-summary-strip,
+.rmc-os-status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--surface-bg-subtle);
+  border-radius: var(--token-radius-md);
+  border: 1px solid var(--admin-content-border);
+  font-size: 0.9rem;
+  letter-spacing: var(--tracking-body);
+}
+.apple-class-glass-panel,
+.world-class-glass-panel {
+  background: var(--apple-material-bg);
+  -webkit-backdrop-filter: var(--apple-material);
+          backdrop-filter: var(--apple-material);
+  border: 1px solid var(--apple-material-border);
+  border-radius: var(--token-radius-lg);
+  box-shadow: var(--apple-elev-2);
+  padding: 20px;
+}
+.apple-class-metric-card,
+.world-class-metric-card,
+.world-class-product-moment-card,
+.world-class-risk-blocker-card {
+  background: var(--admin-content-bg);
+  border-radius: var(--token-radius-md);
+  box-shadow: var(--apple-elev-1);
+  padding: 18px 20px;
+  border: none;
+  transition: box-shadow var(--dur-base) var(--ease-apple), transform var(--dur-base) var(--ease-apple);
+}
+.world-class-product-moment-card:hover,
+.world-class-risk-blocker-card:hover,
+.apple-class-metric-card[data-interactive="1"]:hover {
+  box-shadow: var(--apple-elev-3);
+  transform: translateY(-1px);
+}
+.apple-class-status-pill,
+.world-class-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  background: var(--surface-bg-subtle);
+  color: var(--admin-content-text);
+  border: 1px solid var(--admin-content-border);
+}
+.apple-class-data-quality-meter {
+  background: var(--admin-content-bg);
+  border-radius: var(--token-radius-md);
+  padding: 16px 18px;
+  box-shadow: var(--apple-elev-1);
+  border: none;
+}
+
+/* ============================================
+   MOBILE / TOUCH POLISH
+   Better touch targets, mobile-specific spacing, sidebar offcanvas refinement,
+   table-on-mobile readability. Activates on narrow widths.
+   ============================================ */
+
+/* Touch target minimum 44px on coarse pointer (touch devices) */
+@media (pointer: coarse) {
+  .btn:not(.btn-link):not(.btn-sm):not(.btn-close),
+  .nav-link,
+  .dropdown-item,
+  .form-check-input,
+  a.list-group-item-action,
+  .pagination .page-link {
+    min-height: 44px;
+  }
+  .form-control,
+  .form-select { min-height: 44px; }
+  .btn-sm { min-height: 36px; }
+  /* Increase tap area on icon-only buttons via padding */
+  button[aria-label]:not(.btn-close),
+  .btn[aria-label]:not(.btn-close):not(.btn-sm) {
+    padding: 0.55rem 0.75rem;
+  }
+}
+
+/* Mobile spacing — content padding reduced, gap tightened */
+@media (max-width: 640px) {
+  .preview-section,
+  .card-x,
+  .content-card,
+  .cp-panel,
+  .cp-card,
+  .proof-panel,
+  .dashboard-card,
+  .summary-card { padding: 14px 16px; border-radius: var(--token-radius-md); }
+  .auth-card,
+  .login-card,
+  .signup-card,
+  .admin-login-card { padding: 24px 20px; border-radius: var(--token-radius-md); }
+  .page-header { padding-bottom: 12px; margin-bottom: 16px !important; }
+  main.main { padding: 16px; }
+  .modal-dialog { margin: 10px; }
+  .modal-content { border-radius: var(--token-radius-lg); }
+}
+
+/* Mobile tables — wrap in scrolling container; cells more breathable */
+@media (max-width: 700px) {
+  .table-responsive {
+    border-radius: var(--token-radius-md);
+    background: var(--admin-content-bg);
+    box-shadow: var(--apple-elev-1);
+  }
+  .table thead th { font-size: 0.7rem; padding: 8px 10px; }
+  .table tbody td { font-size: 0.88rem; padding: 10px; }
+}
+
+/* Mobile-specific KPI grid — 2 col instead of 4, refined value sizing */
+@media (max-width: 640px) {
+  .kpi { padding: 14px; }
+  .kpi .value { font-size: 1.4rem; }
+}
+
+/* Mobile sidebar (offcanvas) — full-width drawer with refined header */
+@media (max-width: 991px) {
+  .offcanvas-start, .offcanvas-end {
+    max-width: 320px;
+    width: 88vw;
+  }
+}
+
+/* Mobile auth — full-width card on small screens */
+@media (max-width: 480px) {
+  .auth-shell, .login-page, .signup-page, .auth-landing { padding: 16px; }
+  .auth-card, .login-card, .signup-card, .admin-login-card { box-shadow: none; padding: 22px 18px; }
+}
+
+/* Mobile error pages — tighter */
+@media (max-width: 640px) {
+  .error-page { padding: 20px; }
+  .error-code-display { font-size: clamp(3.5rem, 18vw, 5rem); }
+}
+
+/* ============================================
+   ACCESSIBILITY DEEP PASS
+   Focus order helpers, skip links, reduced motion enforcement, contrast helpers.
+   ============================================ */
+
+/* Skip-link visible on focus — already exists, but reinforce stacking + text */
+.skip-link:focus,
+.mkt-skip-link:focus,
+[class*="skip-link"]:focus {
+  z-index: 10000 !important;
+  clip: auto !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  position: fixed !important;
+  top: 12px !important;
+  left: 12px !important;
+}
+
+/* Reduced motion — kill all decorative motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .skeleton, .placeholder { animation: none !important; }
+  .htmx-progress-bar, [data-htmx-progress] { animation: none !important; }
+}
+
+/* High contrast mode (Windows) — preserve outlines + button borders */
+@media (forced-colors: active) {
+  .btn { border: 1px solid ButtonBorder !important; }
+  .card-x, .cp-panel, .content-card, .dashboard-card { border: 1px solid CanvasText; }
+  .badge { border: 1px solid currentColor; }
+}
+
+/* Visible focus on interactive cards (keyboard nav into card stack) */
+.card[tabindex],
+.card-x[tabindex],
+.content-card[tabindex],
+.cp-panel[tabindex],
+[data-interactive="1"][tabindex] {
+  cursor: pointer;
+}
+.card[tabindex]:focus-visible,
+.card-x[tabindex]:focus-visible,
+.content-card[tabindex]:focus-visible,
+.cp-panel[tabindex]:focus-visible,
+[data-interactive="1"][tabindex]:focus-visible {
+  outline: none;
+  box-shadow: var(--apple-focus-ring);
+}
+
+/* Aria-busy: visually indicate during async loads */
+[aria-busy="true"] {
+  pointer-events: none;
+  opacity: 0.7;
+  transition: opacity var(--dur-base) var(--ease-apple);
+}
+
+/* Visually-hidden — accessible-only text. Use Bootstrap's .visually-hidden too;
+   this is a defensive copy. */
+.visually-hidden,
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Required-field marker via aria-required */
+[aria-required="true"] + .form-label::after,
+.form-label[data-required]::after {
+  content: '*';
+  color: var(--ds-danger);
+  margin-left: 4px;
+  font-weight: 700;
+}
+
+/* Disabled fields — clear visual signal */
+:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
 }

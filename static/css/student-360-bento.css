@@ -5,7 +5,7 @@
   border-radius: 1.25rem;
   background: linear-gradient(
     145deg,
-    color-mix(in srgb, var(--bs-primary, #0d6efd) 6%, #fff) 0%,
+    color-mix(in srgb, var(--bs-primary, var(--school-primary)) 6%, #fff) 0%,
     #fff 48%
   );
   box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);

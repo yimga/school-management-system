@@ -1,10 +1,32 @@
 /* ============================================
    BOOTSTRAP THEME COMPATIBILITY BRIDGE
    Syncs data-theme and data-bs-theme attributes.
-   Aligns Bootstrap semantic vars with design system in dark mode.
+   Maps Bootstrap semantic vars to school design tokens so .btn-primary,
+   .text-primary, .bg-primary, .btn-outline-primary, link colors, focus rings,
+   etc. follow the tenant brand instead of Bootstrap's hardcoded defaults.
    ============================================ */
 
-/* When data-theme is set, sync data-bs-theme for Bootstrap compatibility */
+/* Bind Bootstrap's semantic vars to the school tokens at the document root.
+   This affects every Bootstrap-styled element platform-wide. Tenant overrides
+   to --school-primary / --school-accent flow through automatically. */
+:root {
+  --bs-primary: var(--school-primary);
+  --bs-primary-rgb: 79, 70, 229; /* indigo default; tenants override via CSS-var or rule below */
+  --bs-success: var(--school-accent, #10b981);
+  --bs-success-rgb: 16, 185, 129;
+  --bs-link-color: var(--school-primary);
+  --bs-link-color-rgb: 79, 70, 229;
+  --bs-link-hover-color: var(--school-primary);
+  --bs-focus-ring-color: rgba(79, 70, 229, 0.25);
+}
+
+/* When a tenant supplies brand colors via TENANT_BRANDING_CSS_VARS, the inline
+   :root block in base.html overrides --school-primary BEFORE this file loads.
+   Bootstrap's *-rgb pairs can't auto-derive from a hex var, so tenants that
+   need pixel-perfect rgba() backgrounds (.bg-primary-subtle) should also set
+   --bs-primary-rgb / --bs-success-rgb in their custom_css. The color (non-rgba)
+   variants work without that. */
+
 html[data-theme="light"] {
   /* Bootstrap 5 will read data-bs-theme="light" */
 }

@@ -1,0 +1,78 @@
+{% load i18n %}
+{# Compact parent-phone artifact — used in the "parents" job row, smaller than the hero version. #}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 520" role="img" aria-labelledby="parent-phone-compact-title">
+  <title id="parent-phone-compact-title">{% trans "A parent's phone with a school message and fee reminder" %}</title>
+
+  <defs>
+    <clipPath id="phone-screen-clip-c">
+      <rect x="16" y="16" width="248" height="488" rx="28"/>
+    </clipPath>
+  </defs>
+
+  <rect x="6" y="6" width="268" height="508" rx="36" fill="#1F2937"/>
+  <rect x="16" y="16" width="248" height="488" rx="28" fill="#FAF7F2"/>
+
+  <g clip-path="url(#phone-screen-clip-c)" font-family="Inter, system-ui, sans-serif" fill="#1F2937">
+
+    <text x="36" y="42" font-size="11" font-weight="600">8:14</text>
+
+    {# App header #}
+    <g transform="translate(36 76)">
+      <circle cx="0" cy="0" r="12" fill="#C2410C"/>
+      <text x="-4" y="4" font-size="11" font-weight="600" fill="#FAF7F2" font-family="Source Serif 4, Iowan Old Style, serif">C</text>
+      <text x="20" y="-1" font-size="10" font-weight="500" fill="#6B7280" letter-spacing="0.04em">CEDAR RIDGE ACADEMY</text>
+      <text x="20" y="14" font-size="13" font-weight="500" fill="#1F2937">{% trans "Good morning, Imani" %}</text>
+    </g>
+
+    <text x="36" y="124" font-size="10" font-weight="500" fill="#6B7280" letter-spacing="0.06em">{% trans "TODAY" %}</text>
+
+    {# Card 1 #}
+    <g transform="translate(28 138)">
+      <rect width="224" height="100" rx="12" fill="#FFFFFF" stroke="#E5E1D8"/>
+      <text x="18" y="30" font-size="10" font-weight="500" fill="#6B7280" letter-spacing="0.04em">{% trans "MESSAGE" %}</text>
+      <text x="18" y="52" font-size="14" font-weight="500" fill="#1F2937" font-family="Source Serif 4, Iowan Old Style, serif">{% trans "Year 5 field trip" %}</text>
+      <text x="18" y="70" font-size="11" fill="#4B5563">{% trans "Permission slip — by Friday." %}</text>
+      <rect x="18" y="80" width="56" height="13" rx="6.5" fill="#1F2937"/>
+      <text x="46" y="89" font-size="9" font-weight="500" fill="#FAF7F2" text-anchor="middle">{% trans "Sign" %}</text>
+    </g>
+
+    {# Card 2 #}
+    <g transform="translate(28 254)">
+      <rect width="224" height="76" rx="12" fill="#FFFFFF" stroke="#E5E1D8"/>
+      <text x="18" y="28" font-size="10" font-weight="500" fill="#6B7280" letter-spacing="0.04em">{% trans "MAYA · YEAR 5B" %}</text>
+      <circle cx="24" cy="50" r="3.5" fill="#166534"/>
+      <text x="34" y="54" font-size="12" fill="#1F2937">{% trans "Present at 8:42" %}</text>
+    </g>
+
+    {# Card 3 — fees #}
+    <g transform="translate(28 346)">
+      <rect width="224" height="100" rx="12" fill="#FFFFFF" stroke="#E5E1D8"/>
+      <text x="18" y="30" font-size="10" font-weight="500" fill="#6B7280" letter-spacing="0.04em">{% trans "FEES" %}</text>
+      <text x="18" y="52" font-size="14" font-weight="500" fill="#1F2937" font-family="Source Serif 4, Iowan Old Style, serif">{% trans "Term 2" %}</text>
+      <text x="18" y="70" font-size="11" fill="#4B5563">£445 · {% trans "due 24 Mar" %}</text>
+      <rect x="18" y="80" width="50" height="13" rx="6.5" fill="#C2410C"/>
+      <text x="43" y="89" font-size="9" font-weight="500" fill="#FAF7F2" text-anchor="middle">{% trans "Pay" %}</text>
+    </g>
+
+    {# Bottom tab strip — minimal #}
+    <line x1="16" y1="468" x2="264" y2="468" stroke="#E5E1D8"/>
+    <g font-size="8" fill="#9CA3AF" text-anchor="middle" font-weight="500">
+      <g transform="translate(70 488)" fill="#1F2937">
+        <circle cx="0" cy="-8" r="2.5" fill="#1F2937"/>
+        <text>{% trans "Home" %}</text>
+      </g>
+      <g transform="translate(120 488)">
+        <circle cx="0" cy="-8" r="2.5" fill="#9CA3AF"/>
+        <text>{% trans "Messages" %}</text>
+      </g>
+      <g transform="translate(170 488)">
+        <circle cx="0" cy="-8" r="2.5" fill="#9CA3AF"/>
+        <text>{% trans "Pay" %}</text>
+      </g>
+      <g transform="translate(220 488)">
+        <circle cx="0" cy="-8" r="2.5" fill="#9CA3AF"/>
+        <text>{% trans "Profile" %}</text>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,266 @@
+/**
+ * Marketing landing v2 — editorial layout.
+ * Scoped under [data-mkt-edition="editorial"] so it never touches existing
+ * marketing pages. Pairs with tokens-editorial.css.
+ */
+
+/* Suppress inherited "world-class" decorations the marketing-landing.html
+ * shell tries to inject (sticky CTA bar, scroll-progress indicator, chapter
+ * dots). Editorial mode reads quietly; these belong to the legacy narrative
+ * page only. */
+[data-mkt-edition="editorial"] .mkt-sticky-cta-bar,
+[data-mkt-edition="editorial"] .mkt-scroll-progress,
+[data-mkt-edition="editorial"] .mkt-chapter-indicator {
+  display: none !important;
+}
+
+/* Skip-link from the base shell points to #main-content. Keep functional,
+ * but restyle so the focus state matches the cream surface. */
+body[data-mkt-edition="editorial"] .mkt-skip-link:focus {
+  background: var(--mkt-edt-ink, #1F2937);
+  color: var(--mkt-edt-bg, #FAF7F2);
+}
+
+/* The editorial root paints cream end-to-end. body and main inherit it
+ * so any thin strip behind the main element matches the page. */
+body[data-mkt-edition="editorial"],
+body[data-mkt-edition="editorial"] main {
+  background: var(--mkt-edt-bg, #FAF7F2);
+}
+
+[data-mkt-edition="editorial"].mkt-edt-root {
+  background: var(--mkt-edt-bg);
+  color: var(--mkt-edt-ink);
+}
+
+/* ───────── HERO ───────── */
+[data-mkt-edition="editorial"] .mkt-edt-hero {
+  padding-block: clamp(4rem, 8vw, 7rem);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-hero__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--mkt-edt-space-5);
+  align-items: center;
+}
+
+@media (min-width: 64rem) {
+  [data-mkt-edition="editorial"] .mkt-edt-hero__grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: var(--mkt-edt-space-6);
+  }
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-hero__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mkt-edt-space-3);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-hero__lead {
+  max-width: 32rem;
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-hero__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mkt-edt-space-3);
+  margin-top: var(--mkt-edt-space-2);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-hero__trust {
+  margin: var(--mkt-edt-space-3) 0 0;
+  font-size: var(--mkt-edt-type-micro);
+  color: var(--mkt-edt-ink-subtle);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-hero__artifact {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-hero__artifact svg {
+  width: 100%;
+  max-width: 22rem;
+  height: auto;
+  filter: drop-shadow(0 24px 48px rgba(31, 41, 55, 0.18))
+    drop-shadow(0 4px 12px rgba(31, 41, 55, 0.08));
+}
+
+/* ───────── JOBS ───────── */
+[data-mkt-edition="editorial"] .mkt-edt-jobs__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mkt-edt-space-2);
+  margin-bottom: var(--mkt-edt-space-5);
+  max-width: 36rem;
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-jobs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3.5rem, 6vw, 6rem);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-job {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--mkt-edt-space-4);
+  align-items: center;
+}
+
+@media (min-width: 64rem) {
+  [data-mkt-edition="editorial"] .mkt-edt-job {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--mkt-edt-space-6);
+  }
+  [data-mkt-edition="editorial"] .mkt-edt-job--reverse .mkt-edt-job__copy {
+    order: 2;
+  }
+  [data-mkt-edition="editorial"] .mkt-edt-job--reverse .mkt-edt-job__artifact {
+    order: 1;
+  }
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-job__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mkt-edt-space-2);
+  max-width: 28rem;
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-job__artifact {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-job__artifact svg {
+  width: 100%;
+  max-width: 32rem;
+  height: auto;
+  filter: drop-shadow(0 18px 36px rgba(31, 41, 55, 0.14))
+    drop-shadow(0 4px 10px rgba(31, 41, 55, 0.06));
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-job__artifact--phone svg {
+  max-width: 18rem;
+}
+
+/* ───────── SWITCHING ───────── */
+[data-mkt-edition="editorial"] .mkt-edt-switching__inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mkt-edt-space-3);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-switching__headline {
+  max-width: 38rem;
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-switching__lead {
+  max-width: 36rem;
+}
+
+/* ───────── PRICING TEASER ───────── */
+[data-mkt-edition="editorial"] .mkt-edt-pricing__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mkt-edt-space-2);
+  margin-bottom: var(--mkt-edt-space-4);
+  max-width: 36rem;
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-pricing {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--mkt-edt-space-3);
+}
+
+@media (min-width: 48rem) {
+  [data-mkt-edition="editorial"] .mkt-edt-pricing {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mkt-edt-space-2);
+  padding: var(--mkt-edt-space-4) var(--mkt-edt-space-3);
+  border: 1px solid var(--mkt-edt-rule);
+  border-radius: var(--mkt-edt-radius-md);
+  background: var(--mkt-edt-bg);
+  transition: border-color var(--mkt-edt-duration-base) var(--mkt-edt-ease);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-plan:hover {
+  border-color: var(--mkt-edt-ink);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-plan--featured {
+  background: var(--mkt-edt-bg-soft);
+  border-color: var(--mkt-edt-ink);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-plan__name {
+  font-family: var(--mkt-edt-font-display);
+  font-weight: 400;
+  font-size: var(--mkt-edt-type-section);
+  letter-spacing: var(--mkt-edt-tracking-display);
+  margin: 0;
+  color: var(--mkt-edt-ink);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-plan__line {
+  margin: 0;
+  font-size: var(--mkt-edt-type-body);
+  line-height: 1.5;
+  color: var(--mkt-edt-ink-muted);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-pricing__cta {
+  margin: var(--mkt-edt-space-4) 0 0;
+  text-align: center;
+}
+
+/* ───────── CLOSE ───────── */
+[data-mkt-edition="editorial"] .mkt-edt-close {
+  background: var(--mkt-edt-bg-soft);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-close__inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mkt-edt-space-4);
+  text-align: center;
+  align-items: center;
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-close__headline {
+  max-width: 28rem;
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-close__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--mkt-edt-space-3);
+}
+
+/* ───────── HORIZONTAL RULES ───────── */
+[data-mkt-edition="editorial"] .mkt-edt-rule {
+  border: 0;
+  border-top: 1px solid var(--mkt-edt-rule);
+  margin: 0;
+  max-width: var(--mkt-edt-container);
+  margin-inline: auto;
+}
+

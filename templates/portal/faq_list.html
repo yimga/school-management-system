@@ -11,13 +11,13 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-list"></i> Categories
+                        <i class="bi bi-list-ul"></i> Categories
                     </h5>
                 </div>
                 <div class="list-group list-group-flush">
                     <a href="{% url 'kb:faq_list' %}" 
                        class="list-group-item list-group-item-action {% if not category %}active{% endif %}">
-                        <i class="fas fa-question-circle"></i> All FAQs
+                        <i class="bi bi-question-circle"></i> All FAQs
                         <span class="badge badge-primary float-right">{{ all_count }}</span>
                     </a>
                     {% for cat in categories %}
@@ -51,7 +51,7 @@
             <div class="card shadow-sm mt-3 bg-light">
                 <div class="card-body">
                     <h6 class="card-title">
-                        <i class="fas fa-lightbulb text-warning"></i> Tips
+                        <i class="bi bi-lightbulb text-warning"></i> Tips
                     </h6>
                     <ul class="small">
                         <li>Browse by category</li>
@@ -68,7 +68,7 @@
             <!-- Header -->
             <div class="mb-4">
                 <h1 class="h3 mb-2">
-                    <i class="fas fa-question-circle text-primary"></i> 
+                    <i class="bi bi-question-circle text-primary"></i>
                     Frequently Asked Questions
                 </h1>
                 {% if category %}
@@ -97,11 +97,11 @@
                                         data-bs-toggle="collapse" 
                                         data-bs-target="#collapse{{ faq.id }}" 
                                         aria-expanded="false">
-                                    <i class="fas fa-chevron-down"></i>
+                                    <i class="bi bi-chevron-down"></i>
                                     {{ faq.question }}
                                     {% if faq.is_featured %}
                                     <span class="badge badge-success ml-2">
-                                        <i class="fas fa-star"></i> Featured
+                                        <i class="bi bi-star"></i> Featured
                                     </span>
                                     {% endif %}
                                 </button>
@@ -121,7 +121,7 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <small class="text-muted">
-                                                <i class="fas fa-eye"></i> {{ faq.views }} views
+                                                <i class="bi bi-eye"></i> {{ faq.views }} views
                                             </small>
                                         </div>
                                         <div class="col-md-6 text-right">
@@ -132,14 +132,14 @@
                                                         data-faq-id="{{ faq.id }}" 
                                                         data-vote="helpful"
                                                         title="Mark as helpful">
-                                                    <i class="fas fa-thumbs-up"></i> Helpful ({{ faq.helpful_count }})
+                                                    <i class="bi bi-hand-thumbs-up"></i> Helpful ({{ faq.helpful_count }})
                                                 </button>
                                                 <button type="button" 
                                                         class="btn btn-outline-danger vote-btn" 
                                                         data-faq-id="{{ faq.id }}" 
                                                         data-vote="unhelpful"
                                                         title="Mark as unhelpful">
-                                                    <i class="fas fa-thumbs-down"></i> Unhelpful ({{ faq.unhelpful_count }})
+                                                    <i class="bi bi-hand-thumbs-down"></i> Unhelpful ({{ faq.unhelpful_count }})
                                                 </button>
                                             </div>
                                             {% else %}
@@ -170,7 +170,7 @@
                 {% endif %}
             {% else %}
                 <div class="alert alert-info" role="alert">
-                    <i class="fas fa-info-circle"></i>
+                    <i class="bi bi-info-circle"></i>
                     <strong>No FAQs found.</strong>
                     Try adjusting your search or browse other categories.
                 </div>
@@ -179,16 +179,16 @@
             <!-- CTA: Submit FAQ -->
             <div class="alert alert-light border border-primary mt-4">
                 <h6 class="alert-heading">
-                    <i class="fas fa-plus-circle text-primary"></i> Couldn't find your answer?
+                    <i class="bi bi-plus-circle text-primary"></i> Couldn't find your answer?
                 </h6>
                 <p>Submit your question and our team will add it to the FAQ!</p>
                 {% if user.is_authenticated %}
                 <a href="{% url 'kb:faq_submit' %}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus"></i> Submit a Question
+                    <i class="bi bi-plus-lg"></i> Submit a Question
                 </a>
                 {% else %}
                 <a href="{% url 'accounts:login' %}?next={% url 'kb:faq_submit' %}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-sign-in-alt"></i> Login & Submit
+                    <i class="bi bi-box-arrow-in-right"></i> Login & Submit
                 </a>
                 {% endif %}
             </div>

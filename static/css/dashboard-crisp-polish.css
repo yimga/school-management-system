@@ -237,9 +237,9 @@ body.portal-backend-dark .badge.bg-secondary,
 :root:not([data-theme="dark"]) .sidebar .nav-link.nav-pill.active,
 html[data-bs-theme="light"] .sidebar .nav-link.nav-pill.active,
 body.portal-backend-light .sidebar .nav-link.nav-pill.active {
-  background: rgba(13, 110, 253, 0.12) !important;
-  color: #0d6efd !important;
-  border-left: 3px solid #0d6efd;
+  background: rgba(79, 70, 229, 0.12) !important;
+  color: var(--school-primary) !important;
+  border-left: 3px solid var(--school-primary);
   padding-left: calc(0.875rem - 3px) !important;
 }
 [data-theme="dark"] .sidebar .nav-link.nav-pill.active,
@@ -263,8 +263,8 @@ body.portal-backend-dark .sidebar .nav-link.nav-pill.active {
 }
 :root:not([data-theme="dark"]) .nav-tabs .nav-link.active,
 html[data-bs-theme="light"] .nav-tabs .nav-link.active {
-  color: #0d6efd;
-  border-bottom-color: #0d6efd;
+  color: var(--school-primary);
+  border-bottom-color: var(--school-primary);
 }
 [data-theme="dark"] .nav-tabs .nav-link.active,
 html[data-bs-theme="dark"] .nav-tabs .nav-link.active,

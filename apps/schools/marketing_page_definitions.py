@@ -6,21 +6,21 @@ MARKETING_PAGE_DEFINITIONS = {
     "education-operating-system": {
         "label": "Education Operating System",
         "seo_title": "Education Operating System | RunMyCampus - The Platform for Modern Schools",
-        "seo_description": "RunMyCampus is the education operating system: Education OS, Control Plane, Marketplace, Migration Cloud, Tenant Runtime, and Analytics. One platform for school operations, district governance, and ecosystem.",
+        "seo_description": "RunMyCampus runs every part of school operations in one platform: daily operations, multi-school view, configuration, marketplace, migration, and analytics — for individual schools, districts, and networks.",
         "headline": "The Operating System for Modern Education",
         "subheadline": "RunMyCampus combines school operations, district governance, migration, apps, analytics, and integrations in one platform.",
         "schema_type": "WebPage",
         "segments": [
             {
-                "title": "Education OS",
+                "title": "Daily operations",
                 "body": "Run every part of school operations in one platform: admissions, academics, attendance, finance, communication, workflows, reports, and Student 360.",
             },
             {
-                "title": "Control Plane",
+                "title": "Multi-school view",
                 "body": "Govern one school or one thousand from one command center. Multi-school oversight, policies, health monitoring, and usage.",
             },
             {
-                "title": "Tenant Runtime",
+                "title": "Configured for your school",
                 "body": "One platform core, configured for your institution. Country, language, education model, branding, workflow packs, and dashboard packs.",
             },
             {
@@ -28,7 +28,7 @@ MARKETING_PAGE_DEFINITIONS = {
                 "body": "Extend the platform without rebuilding your system. Apps, integrations, workflow packs, dashboard packs, blueprint packs, and templates.",
             },
             {
-                "title": "Migration Cloud",
+                "title": "Migration",
                 "body": "Switch from legacy systems without chaos. Imports, field mapping, validation, dry-runs, and migration run portfolio.",
             },
             {
@@ -39,22 +39,22 @@ MARKETING_PAGE_DEFINITIONS = {
     },
     "platform": {
         "label": "Platform",
-        "seo_title": "RunMyCampus Platform - Education OS, Control Plane, Marketplace",
-        "seo_description": "Platform architecture: Education OS, Control Plane, Tenant Runtime, Marketplace, Migration Cloud, and Analytics. Built for modern schools and districts.",
-        "headline": "One platform. Six pillars.",
-        "subheadline": "Education OS, Control Plane, Tenant Runtime, Marketplace, Migration Cloud, and Analytics & Integrations.",
+        "seo_title": "RunMyCampus Platform — One platform, every school operation",
+        "seo_description": "One platform for daily operations, multi-school oversight, configuration, marketplace apps, migration, and analytics. Built for schools and districts.",
+        "headline": "One platform. Every school operation.",
+        "subheadline": "Daily operations, multi-school view, configuration, marketplace, migration, and analytics — built to work the way schools actually run.",
         "schema_type": "WebPage",
         "segments": [
             {
-                "title": "Education OS",
+                "title": "Daily operations",
                 "body": "Run every part of school operations: admissions, academics, attendance, finance, communication, workflows, reports, Student 360.",
             },
             {
-                "title": "Control Plane",
+                "title": "Multi-school view",
                 "body": "Govern schools, districts, and networks from one command center. Policies, health, usage.",
             },
             {
-                "title": "Tenant Runtime",
+                "title": "Configured for your school",
                 "body": "One platform core, configured for your institution. Country, language, branding, workflow and dashboard packs.",
             },
             {
@@ -62,7 +62,7 @@ MARKETING_PAGE_DEFINITIONS = {
                 "body": "Apps, integrations, workflow packs, dashboard packs, blueprint packs, templates.",
             },
             {
-                "title": "Migration Cloud",
+                "title": "Migration",
                 "body": "Import, map, validate, and switch from legacy systems safely.",
             },
             {
@@ -72,10 +72,10 @@ MARKETING_PAGE_DEFINITIONS = {
         ],
     },
     "platform-education-os": {
-        "label": "Education OS",
-        "seo_title": "Education OS | RunMyCampus - School Operations Platform",
+        "label": "Daily operations",
+        "seo_title": "Daily operations | RunMyCampus — One platform for the whole school",
         "seo_description": "Run every part of school operations in one platform: admissions, academics, attendance, finance, communication, workflows, reports, Student 360.",
-        "headline": "Education OS",
+        "headline": "Daily operations",
         "subheadline": "Run every part of school operations in one platform.",
         "schema_type": "WebPage",
         "segments": [
@@ -106,10 +106,10 @@ MARKETING_PAGE_DEFINITIONS = {
         ],
     },
     "platform-control-plane": {
-        "label": "Control Plane",
-        "seo_title": "Control Plane | RunMyCampus - Multi-School Governance",
+        "label": "Multi-school view",
+        "seo_title": "Multi-school view | RunMyCampus — Govern many schools from one place",
         "seo_description": "Govern one school or one thousand from one command center. Tenant management, policies, health monitoring, usage.",
-        "headline": "Control Plane",
+        "headline": "Multi-school view",
         "subheadline": "Govern one school or one thousand from one command center.",
         "schema_type": "WebPage",
         "segments": [
@@ -126,7 +126,7 @@ MARKETING_PAGE_DEFINITIONS = {
                 "body": "Monitor tenant health, usage, and compliance from one dashboard.",
             },
             {
-                "title": "Marketplace governance",
+                "title": "Marketplace controls",
                 "body": "Control which apps and integrations are available per tenant or network.",
             },
             {
@@ -166,10 +166,10 @@ MARKETING_PAGE_DEFINITIONS = {
         ],
     },
     "platform-migration-cloud": {
-        "label": "Migration Cloud",
-        "seo_title": "Migration Cloud | RunMyCampus - Switch from Legacy Systems",
+        "label": "Migration",
+        "seo_title": "Migration | RunMyCampus — Move off your old system, safely",
         "seo_description": "Import, map, validate, and switch from legacy SIS and spreadsheets. Field mapping, dry-runs, validation tools.",
-        "headline": "Migration Cloud",
+        "headline": "Migration",
         "subheadline": "Switch from legacy systems without chaos.",
         "schema_type": "WebPage",
         "segments": [
@@ -192,10 +192,10 @@ MARKETING_PAGE_DEFINITIONS = {
         ],
     },
     "platform-runtime": {
-        "label": "Tenant Runtime",
-        "seo_title": "Tenant Runtime | RunMyCampus - Configure Once, Run Everywhere",
+        "label": "Configured for your school",
+        "seo_title": "Configured for your school | RunMyCampus — Country, language, branding, workflows",
         "seo_description": "One platform core, configured for your institution. Country, language, education model, branding, workflow and dashboard packs.",
-        "headline": "Tenant Runtime",
+        "headline": "Configured for your school",
         "subheadline": "One platform core, configured for your institution.",
         "schema_type": "WebPage",
         "segments": [
@@ -1277,7 +1277,7 @@ MARKETING_PAGE_DEFINITIONS = {
         "schema_type": "ItemList",
         "segments": [
             {
-                "title": "Blueprint packs",
+                "title": "Ready-made setups",
                 "body": "Pre-built policy and workflow bundles for faster setup and best practices.",
             },
             {
@@ -2389,7 +2389,7 @@ INSTITUTION_LANDING_DEFINITIONS = {
         "workflow_examples": [
             {
                 "title": "Repeatable onboarding",
-                "body": "Blueprint packs accelerate setup for each new member school.",
+                "body": "Ready-made setups accelerate launch for each new member school.",
             },
             {
                 "title": "Automation",

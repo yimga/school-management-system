@@ -1,40 +1,122 @@
-{% load static %}
-<!doctype html>
-<html lang="en">
+{% load static i18n %}<!doctype html>
+{# Standalone — must render when CSS/JS bundles aren't reachable. All styles inline.
+   Self-contained Apple-tier polish: branded gradient hairline, layered elevation,
+   refined typography, indigo CTA. #}
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Offline | RunMyCampus</title>
+  <meta name="color-scheme" content="light dark">
+  <title>{% trans "Offline" %} · RunMyCampus</title>
   <style>
-    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f6f7f9; color: #172033; }
-    main { width: min(92vw, 620px); background: #fff; border: 1px solid #dde2ea; border-radius: 12px; box-shadow: 0 18px 50px rgba(23, 32, 51, 0.08); padding: 32px; }
-    .eyebrow { margin: 0 0 8px; color: #667085; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-    h1 { margin: 0 0 12px; font-size: clamp(28px, 5vw, 40px); line-height: 1.05; }
-    p, li { color: #4b5565; line-height: 1.6; }
-    ul { padding-left: 20px; margin: 18px 0 24px; }
-    .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-    button, a { border-radius: 8px; min-height: 42px; padding: 10px 16px; font-weight: 700; text-decoration: none; }
-    button { border: 0; background: #1f5eff; color: #fff; cursor: pointer; }
-    a { border: 1px solid #c8d0dc; color: #172033; display: inline-flex; align-items: center; }
-    .status { color: #667085; font-size: 14px; }
-    .online { color: #087443; font-weight: 700; }
+    :root {
+      color-scheme: light dark;
+      --primary: #4f46e5;
+      --accent: #10b981;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --ink: #0f172a;
+      --muted: #475569;
+      --subtle: #94a3b8;
+      --rule: rgba(15, 23, 42, 0.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #0b1120; --surface: #1e293b; --ink: #f1f5f9; --muted: #cbd5e1; --subtle: #94a3b8; --rule: rgba(148, 163, 184, 0.16); }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(ellipse 80% 40% at 50% 0%, color-mix(in oklab, var(--primary) 8%, transparent), transparent 70%),
+        var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-feature-settings: 'cv11', 'ss03';
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.005em;
+      line-height: 1.55;
+    }
+    main {
+      width: min(92vw, 540px);
+      background: var(--surface);
+      border-radius: 16px;
+      box-shadow: 0 0 0 1px var(--rule), 0 12px 32px -4px rgba(15,23,42,0.10), 0 4px 8px -2px rgba(15,23,42,0.05);
+      padding: 0;
+      overflow: hidden;
+    }
+    .rule {
+      height: 4px; line-height: 0; font-size: 0;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+    .body { padding: 36px 36px 28px; }
+    .eyebrow { margin: 0 0 10px; color: var(--subtle); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+    h1 { margin: 0 0 12px; font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; }
+    p { color: var(--muted); margin: 0 0 12px; font-size: 1rem; }
+    ul { padding-left: 20px; margin: 14px 0 22px; color: var(--muted); }
+    li { margin-bottom: 6px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 4px; padding-top: 18px; border-top: 1px solid var(--rule); }
+    button, a.btn {
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: -0.005em;
+      text-decoration: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: filter 150ms ease, transform 100ms ease, box-shadow 240ms ease;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    button {
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.14);
+    }
+    button:hover { filter: brightness(1.04); }
+    button:active { transform: scale(0.98); }
+    a.btn {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--rule);
+    }
+    a.btn:hover { background: color-mix(in oklab, var(--primary) 6%, transparent); color: var(--primary); border-color: color-mix(in oklab, var(--primary) 40%, var(--rule)); }
+    .status {
+      margin-left: auto;
+      color: var(--subtle);
+      font-size: 0.85rem;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .status::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--subtle); }
+    .status.is-online::before { background: var(--accent); }
+    .status.is-online { color: var(--accent); font-weight: 600; }
+    @media (max-width: 480px) {
+      .body { padding: 28px 22px 22px; }
+      .actions { padding-top: 14px; }
+    }
   </style>
 </head>
 <body>
   <main role="main" aria-live="polite">
-    <p class="eyebrow">Offline</p>
-    <h1>You are not connected right now</h1>
-    <p>Cached pages remain available. Queued form work will retry once the network is reachable again.</p>
-    <ul>
-      <li>Retry this page when your connection returns.</li>
-      <li>Keep already-open pages available until sync completes.</li>
-      <li>Return to a known entry point if the page was opened from an old link.</li>
-    </ul>
-    <div class="actions">
-      <button type="button" onclick="window.location.reload()">Retry connection</button>
-      <a href="/">Home</a>
-      <span id="netState" class="status">Checking network status...</span>
+    <div class="rule" aria-hidden="true"></div>
+    <div class="body">
+      <p class="eyebrow">{% trans "Offline" %}</p>
+      <h1>{% trans "You're not connected right now." %}</h1>
+      <p>{% trans "Cached pages remain available. Any form work you've started will retry automatically once your network returns." %}</p>
+      <ul>
+        <li>{% trans "Retry this page when your connection comes back." %}</li>
+        <li>{% trans "Keep already-open pages available until sync completes." %}</li>
+        <li>{% trans "Return to a stable entry point if you arrived from an old link." %}</li>
+      </ul>
+      <div class="actions">
+        <button type="button" onclick="window.location.reload()">{% trans "Retry connection" %}</button>
+        <a class="btn" href="/">{% trans "Home" %}</a>
+        <span id="netState" class="status">{% trans "Checking network status…" %}</span>
+      </div>
     </div>
   </main>
   <script src="{% static '_pages/errors__offline.js' %}"></script>

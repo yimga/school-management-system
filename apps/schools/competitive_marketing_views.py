@@ -103,7 +103,7 @@ _STORIES = {
         "lede": "Networks need per-campus isolation with group-level reporting patterns. The architecture is tenant-first; group rollups depend on your deployment choices and contracts.",
         "bullets": [
             "Campus tenants with policy inheritance patterns.",
-            "Marketplace governance for network-approved apps.",
+            "Marketplace controls for network-approved apps.",
             "Expansion-ready lifecycle signals — not vanity metrics.",
         ],
         "ctas": [

@@ -4,22 +4,18 @@
 {% block title %}{% trans "Service interrupted" %}{% endblock %}
 
 {% block content %}
-<section class="container py-5" aria-labelledby="error-title">
-  <div class="row justify-content-center">
-    <div class="col-lg-7 col-xl-6">
-      <div class="border rounded-3 bg-white shadow-sm p-4 p-md-5">
-        <p class="text-uppercase text-muted small fw-semibold mb-2">500</p>
-        <h1 id="error-title" class="h3 mb-3">{% trans "Service interrupted" %}</h1>
-        <p class="text-muted mb-4">{% trans "The page did not complete successfully. Your session is still safe; retry or return to a stable workspace." %}</p>
-        <div class="d-flex flex-wrap gap-2">
-          <button class="btn btn-primary" type="button" onclick="window.location.reload()">{% trans "Retry" %}</button>
-          {% if PUBLIC_BRAND_MODE %}
-            <a class="btn btn-outline-secondary" href="{% url 'public_support_hub' %}">{% trans "Contact support" %}</a>
-          {% else %}
-            <a class="btn btn-outline-secondary" href="{% url 'accounts:redirect' %}">{% trans "Go to dashboard" %}</a>
-          {% endif %}
-        </div>
-      </div>
+<section class="error-page" aria-labelledby="error-title">
+  <div>
+    <div class="error-code-display" aria-hidden="true">500</div>
+    <h1 id="error-title" class="error-title">{% trans "Service interrupted." %}</h1>
+    <p class="error-message">{% trans "The page didn't complete successfully. Your session is still safe — retry, or return to a stable workspace." %}</p>
+    <div class="error-actions">
+      <button class="btn btn-primary" type="button" onclick="window.location.reload()"><i class="bi bi-arrow-clockwise me-1"></i>{% trans "Retry" %}</button>
+      {% if PUBLIC_BRAND_MODE %}
+        <a class="btn btn-outline-secondary" href="{% url 'public_support_hub' %}"><i class="bi bi-life-preserver me-1"></i>{% trans "Contact support" %}</a>
+      {% else %}
+        <a class="btn btn-outline-secondary" href="{% url 'accounts:redirect' %}"><i class="bi bi-house me-1"></i>{% trans "Go to dashboard" %}</a>
+      {% endif %}
     </div>
   </div>
 </section>

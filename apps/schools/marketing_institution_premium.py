@@ -102,7 +102,7 @@ INSTITUTION_PREMIUM_LAYER: dict[str, dict] = {
         "stock_photo_static": "images/marketing/ecosystem-diagram.svg",
         "stock_photo_alt": "Diagram-style illustration of coordinated multi-campus governance and analytics",
         "workflow_diagram_static": "images/marketing/viz-admin.svg",
-        "global_config_note": "Blueprint packs, policies, and portals propagate network-wide while campuses retain operational autonomy.",
+        "global_config_note": "Ready-made setups, policies, and portals propagate network-wide while campuses retain operational autonomy.",
     },
     "faith-based-schools": {
         "problem_section": {

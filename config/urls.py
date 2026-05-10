@@ -283,10 +283,12 @@ handler404 = page_not_found
 handler500 = server_error
 
 from apps.security.csp_report_view import csp_violation_report  # noqa: E402
+from apps.schools.marketing_views_v2 import marketing_landing_v2  # noqa: E402
 
 urlpatterns = [
     path("", home, name="home"),
     path("", home, name="marketing_home"),
+    path("v2/", marketing_landing_v2, name="marketing_landing_v2"),
     path("offline/", offline_page, name="offline"),
     path(
         "offline/sync/",

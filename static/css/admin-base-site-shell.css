@@ -4,12 +4,16 @@
  */
 
 :root {
+  /* Operator/admin shell: dark navy ground + indigo accent (was navy + gold).
+     The dark ground is the operator's visual signature (vs tenants' light ground),
+     but the brand color now matches the platform indigo so the operator surface
+     reads as "RunMyCampus admin" not "prep-school prestige". */
   --platform-navy: #0b0e14;
-  --platform-gold: #d4af37;
-  --brand-primary: #d4af37;
-  --brand-accent: #d4af37;
+  --platform-gold: var(--school-primary); /* legacy alias kept; anywhere using --platform-gold now gets indigo */
+  --brand-primary: var(--school-primary);
+  --brand-accent: var(--school-accent);
   --surface-deep: #0b0e14;
-  --admin-sidebar-active-border: #d4af37;
+  --admin-sidebar-active-border: var(--school-primary);
 }
 
 body,

@@ -310,7 +310,7 @@ html[data-bs-theme="dark"] .tooltip-inner {
 /* Hover overlays on cards: ensure text stays readable */
 .card .card-title a:hover,
 .card a:hover {
-  color: var(--portal-nav-pill-hover, #0d6efd);
+  color: var(--portal-nav-pill-hover, var(--school-primary));
 }
 html[data-bs-theme="dark"] .card .card-title a:hover,
 html[data-bs-theme="dark"] .card a:hover {
@@ -333,8 +333,8 @@ html[data-bs-theme="light"] .dropdown-item {
 }
 html[data-bs-theme="light"] .dropdown-item:hover,
 html[data-bs-theme="light"] .dropdown-item:focus {
-  background: rgba(13, 110, 253, 0.08) !important;
-  color: #0d6efd !important;
+  background: rgba(79, 70, 229, 0.08) !important;
+  color: var(--school-primary) !important;
 }
 
 html[data-bs-theme="light"] .card,

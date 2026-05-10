@@ -53,7 +53,7 @@
                             {% endif %}
                             {% if article.is_featured %}
                             <span class="badge badge-warning ml-2">
-                                <i class="fas fa-star"></i> Featured
+                                <i class="bi bi-star"></i> Featured
                             </span>
                             {% endif %}
                         </div>
@@ -80,17 +80,17 @@
                     <!-- Meta Info -->
                     <div class="row small text-muted py-2 border-top border-bottom">
                         <div class="col-md-6">
-                            <i class="fas fa-calendar"></i> 
+                            <i class="bi bi-calendar"></i>
                             {{ article.updated_at|format_date }}
                         </div>
                         <div class="col-md-6 text-right">
-                            <i class="fas fa-clock"></i> {{ article.read_time }} min read
+                            <i class="bi bi-clock"></i> {{ article.read_time }} min read
                         </div>
                         <div class="col-md-6 mt-2">
-                            <i class="fas fa-eye"></i> {{ article.views }} views
+                            <i class="bi bi-eye"></i> {{ article.views }} views
                         </div>
                         <div class="col-md-6 mt-2 text-right">
-                            <i class="fas fa-user"></i> By {{ article.author.get_full_name|default:article.author.username }}
+                            <i class="bi bi-person"></i> By {{ article.author.get_full_name|default:article.author.username }}
                         </div>
                     </div>
                 </div>
@@ -169,7 +169,7 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="fas fa-link"></i> Related Articles
+                        <i class="bi bi-link-45deg"></i> Related Articles
                     </h5>
                 </div>
                 <div class="list-group list-group-flush">
@@ -178,7 +178,7 @@
                        class="list-group-item list-group-item-action">
                         <h6 class="mb-1">{{ related.title }}</h6>
                         <small class="text-muted">
-                            <i class="fas fa-clock"></i> {{ related.read_time }} min read
+                            <i class="bi bi-clock"></i> {{ related.read_time }} min read
                         </small>
                     </a>
                     {% endfor %}
@@ -190,7 +190,7 @@
             <div id="comments" class="card shadow-sm">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="fas fa-comments"></i> Comments ({{ article.comments.count }})
+                        <i class="bi bi-chat-dots"></i> Comments ({{ article.comments.count }})
                     </h5>
                 </div>
                 <div class="card-body">
@@ -204,7 +204,7 @@
                                       placeholder="Share your thoughts or questions..." required></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary btn-sm">
-                            <i class="fas fa-comment"></i> Post Comment
+                            <i class="bi bi-chat-dots"></i> Post Comment
                         </button>
                     </form>
                     {% else %}
@@ -224,12 +224,12 @@
                                 <div>
                                     <strong>{{ comment.user.get_full_name|default:comment.user.username }}</strong>
                                     <small class="text-muted ml-2">
-                                        <i class="fas fa-calendar"></i> {{ comment.created_at|format_date }} {{ comment.created_at|time:"H:i" }}
+                                        <i class="bi bi-calendar"></i> {{ comment.created_at|format_date }} {{ comment.created_at|time:"H:i" }}
                                     </small>
                                 </div>
                                 {% if comment.is_helpful %}
                                 <span class="badge badge-success">
-                                    <i class="fas fa-check"></i> Helpful
+                                    <i class="bi bi-check2"></i> Helpful
                                 </span>
                                 {% endif %}
                             </div>
@@ -237,7 +237,7 @@
                             {% if user.is_authenticated and not comment.is_helpful %}
                             <button type="button" class="btn btn-sm btn-outline-success mark-helpful-btn" 
                                     data-comment-id="{{ comment.id }}">
-                                <i class="fas fa-thumbs-up"></i> Mark as helpful
+                                <i class="bi bi-hand-thumbs-up"></i> Mark as helpful
                             </button>
                             {% endif %}
                         </div>
@@ -256,7 +256,7 @@
             <div class="card shadow-sm mb-3">
                 <div class="card-header">
                     <h6 class="mb-0">
-                        <i class="fas fa-user"></i> Article Info
+                        <i class="bi bi-person"></i> Article Info
                     </h6>
                 </div>
                 <div class="card-body">
@@ -281,7 +281,7 @@
             <div class="card shadow-sm mb-3">
                 <div class="card-header">
                     <h6 class="mb-0">
-                        <i class="fas fa-chart-bar"></i> Engagement
+                        <i class="bi bi-bar-chart"></i> Engagement
                     </h6>
                 </div>
                 <div class="card-body">
@@ -306,7 +306,7 @@
             <div class="card shadow-sm mb-3">
                 <div class="card-header">
                     <h6 class="mb-0">
-                        <i class="fas fa-book"></i> Knowledge Base
+                        <i class="bi bi-book"></i> Knowledge Base
                     </h6>
                 </div>
                 <div class="card-body">
@@ -323,7 +323,7 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-info text-white">
                     <h6 class="mb-0">
-                        <i class="fas fa-question-circle"></i> Quick Answers
+                        <i class="bi bi-question-circle"></i> Quick Answers
                     </h6>
                 </div>
                 <div class="card-body">
@@ -355,19 +355,19 @@
                         <input type="text" class="form-control" id="articleUrl" 
                                value="{{ request.build_absolute_uri }}" readonly aria-describedby="copyUrlBtn">
                         <button type="button" class="btn btn-outline-secondary" id="copyUrlBtn" onclick="copyUrl()" aria-label="Copy URL to clipboard">
-                            <i class="fas fa-copy"></i> Copy
+                            <i class="bi bi-clipboard"></i> Copy
                         </button>
                     </div>
                 </div>
                 <div class="social-share">
                     <button type="button" onclick="shareOn('twitter')" class="btn btn-info btn-sm">
-                        <i class="fab fa-twitter"></i> Twitter
+                        <i class="bi bi-twitter-x"></i> Twitter
                     </button>
                     <button type="button" onclick="shareOn('facebook')" class="btn btn-primary btn-sm">
-                        <i class="fab fa-facebook"></i> Facebook
+                        <i class="bi bi-facebook"></i> Facebook
                     </button>
                     <button type="button" onclick="shareOn('linkedin')" class="btn btn-info btn-sm">
-                        <i class="fab fa-linkedin"></i> LinkedIn
+                        <i class="bi bi-linkedin"></i> LinkedIn
                     </button>
                 </div>
             </div>

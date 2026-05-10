@@ -92,12 +92,12 @@ textarea:focus-visible,
 .btn:focus-visible,
 .nav-link:focus-visible,
 .dropdown-item:focus-visible {
-  outline: 2px solid var(--bs-primary, #0d6efd);
+  outline: 2px solid var(--bs-primary, var(--school-primary));
   outline-offset: 2px;
 }
 .control-plane-shell .btn:focus-visible,
 .control-plane-shell .nav-link:focus-visible {
-  outline-color: var(--platform-gold, #d4af37);
+  outline-color: var(--platform-gold, var(--school-accent));
 }
 
 /* ========== Responsive containers ========== */
