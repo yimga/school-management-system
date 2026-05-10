@@ -123,7 +123,7 @@
           <div class="card-body">
             <div class="d-flex flex-wrap gap-2" role="list" aria-label="Your badges">
               {% for b in staff_badges %}
-              <span class="px-2 py-1 rounded-pill small" style="background: var(--school-primary, #6f42c1); color: var(--school-primary-inverse, #fff);" role="listitem">{{ b.badge_type.label }}</span>
+              <span class="px-2 py-1 rounded-pill small" style="background: var(--school-primary); color: #fff;" role="listitem">{{ b.badge_type.label }}</span>
               {% endfor %}
             </div>
           </div>

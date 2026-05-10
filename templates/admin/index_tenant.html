@@ -5,7 +5,7 @@
 {{ block.super }}
 {% with theme=SITE_ADMIN_THEME|default:SITE_THEME %}
 <style>
-  .tenant-admin-index { --tai-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }}); --tai-accent: var(--school-accent, {{ theme.accent_color|default:"#198754" }}); --tai-surface: {{ theme.background_color|default:"#f8fafc" }}; --tai-card: #ffffff; --tai-border: #e2e8f0; --tai-text: #1e293b; --tai-muted: #64748b; }
+  .tenant-admin-index { --tai-primary: var(--school-primary, {{ theme.primary_color|default:"#4f46e5" }}); --tai-accent: var(--school-accent, {{ theme.accent_color|default:"#10b981" }}); --tai-surface: {{ theme.background_color|default:"#f8fafc" }}; --tai-card: #ffffff; --tai-border: #e2e8f0; --tai-text: #1e293b; --tai-muted: #64748b; }
   body.control-plane-shell .tenant-admin-index { --tai-surface: #0f172a; --tai-card: #1e293b; --tai-border: rgba(148, 163, 184, 0.25); --tai-text: #f1f5f9; --tai-muted: #94a3b8; }
   .tenant-admin-index { max-width: 100%; padding: 24px; min-height: 100vh; background: var(--tai-surface); }
   #content-main .tenant-admin-index, #content .tenant-admin-index { background: var(--tai-surface); }

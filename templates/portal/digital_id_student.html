@@ -10,7 +10,7 @@
     <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">{% trans "Back to dashboard" %}</a>
   </div>
   <div class="card shadow-sm mx-auto" style="max-width: 22rem; border-radius: 12px; overflow: hidden;" aria-label="{% trans 'Student digital ID card' %}">
-    <div class="card-header text-white text-center py-2" style="background: var(--school-primary, #0d6efd);">
+    <div class="card-header text-white text-center py-2" style="background: var(--school-primary, #4f46e5);">
       <strong>{{ site_name }}</strong>
     </div>
     <div class="card-body p-3 text-center">
@@ -22,7 +22,7 @@
         </div>
       {% endif %}
       <h1 class="h5 mb-1">{{ name }}</h1>
-      <p class="badge rounded-pill mb-2" style="background: var(--school-accent, #198754); color: #fff;">{{ grade_label }}</p>
+      <p class="badge rounded-pill mb-2" style="background: var(--school-accent, #10b981); color: #fff;">{{ grade_label }}</p>
       <div class="small text-muted border-top border-bottom py-2 my-2">STUDENT ID</div>
       <img src="{{ qr_image_url }}" alt="{% trans 'Scan to verify' %}" width="120" height="120" class="d-block mx-auto">
       <p class="small text-muted mt-2 mb-0">{% trans "Scan or visit to verify" %}</p>

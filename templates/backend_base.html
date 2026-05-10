@@ -14,16 +14,17 @@
 {% endblock %}
 {% block body_extra_class %}backend-shell{% endblock %}
 
-{# Staff theme: /backend uses same ThemePack as /admin (admin_theme_pack). Platform (manager) uses navy/gold. #}
+{# Staff theme: /backend uses same ThemePack as /admin. Operator/platform uses dark navy ground
+   + indigo accent (was gold #d4af37 — Gilead-era residue, retired 2026-05-10). #}
 {% block theme_root_variables %}
 {% if PUBLIC_BRAND_MODE %}
 :root {
   --obsidian-bg: #0B0E14;
-  --school-primary: #0B0E14;
-  --school-accent: #d4af37;
+  --school-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:'#4f46e5' }};
+  --school-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:'#10b981' }};
   --platform-navy: #0B0E14;
   --platform-navy-dark: #070a0e;
-  --platform-gold: #d4af37;
+  --platform-gold: var(--school-primary); /* legacy alias — anywhere using --platform-gold now gets indigo */
   --platform-gold-fg: #f1f5f9;
   --portal-bg: #0B0E14;
   --portal-font: Inter, system-ui, sans-serif;

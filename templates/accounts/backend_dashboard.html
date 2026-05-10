@@ -26,19 +26,19 @@ backend-shell dashboard-page-backend
   {# ThemePack (admin_theme_pack) colors - single source for dashboard so it uses the active theme #}
   {% with theme=SITE_ADMIN_THEME|default:SITE_THEME %}
   :root {
-    --brand-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }});
-    --brand-accent: var(--school-accent, {{ theme.accent_color|default:"#198754" }});
+    --brand-primary: var(--school-primary, {{ theme.primary_color|default:"#4f46e5" }});
+    --brand-accent: var(--school-accent, {{ theme.accent_color|default:"#10b981" }});
     --brand-success: var(--school-success, {{ SITE.success_color|default:"#22c55e" }});
     --brand-warning: var(--school-warning, {{ SITE.warning_color|default:"#fbbf24" }});
     --brand-danger: var(--school-danger, {{ SITE.danger_color|default:"#ef4444" }});
-    --dashboard-theme-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }});
-    --dashboard-theme-accent: var(--school-accent, {{ theme.accent_color|default:"#198754" }});
+    --dashboard-theme-primary: var(--school-primary, {{ theme.primary_color|default:"#4f46e5" }});
+    --dashboard-theme-accent: var(--school-accent, {{ theme.accent_color|default:"#10b981" }});
   }
   body[data-dashboard-page="backend"] {
-    --brand-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }});
-    --brand-accent: var(--school-accent, {{ theme.accent_color|default:"#198754" }});
-    --dashboard-theme-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }});
-    --dashboard-theme-accent: var(--school-accent, {{ theme.accent_color|default:"#198754" }});
+    --brand-primary: var(--school-primary, {{ theme.primary_color|default:"#4f46e5" }});
+    --brand-accent: var(--school-accent, {{ theme.accent_color|default:"#10b981" }});
+    --dashboard-theme-primary: var(--school-primary, {{ theme.primary_color|default:"#4f46e5" }});
+    --dashboard-theme-accent: var(--school-accent, {{ theme.accent_color|default:"#10b981" }});
     --chart-color-1: var(--brand-primary);
     --chart-color-2: var(--brand-accent);
   }

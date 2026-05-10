@@ -4,6 +4,7 @@ User-friendly forms for /backend interface (separate from Django Admin)
 """
 
 from django import forms
+from django.utils.translation import gettext_lazy as _
 from .models import StudentProfile, TeacherProfile, Applicant
 from apps.academics.models import AcademicYear, Classroom, Specialty, Department
 
@@ -15,7 +16,7 @@ class StudentCreateForm(forms.ModelForm):
     parent_email = forms.EmailField(
         required=False,
         widget=forms.EmailInput(
-            attrs={"class": "form-control", "placeholder": "parent@example.com"}
+            attrs={"class": "form-control", "placeholder": _("parent@example.com")}
         ),
         label="Parent email (optional)",
         help_text="If provided, a parent account will be created and linked.",
@@ -39,15 +40,15 @@ class StudentCreateForm(forms.ModelForm):
         ]
         widgets = {
             "first_name": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Enter first name"}
+                attrs={"class": "form-control", "placeholder": _("Enter first name")}
             ),
             "last_name": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Enter last name"}
+                attrs={"class": "form-control", "placeholder": _("Enter last name")}
             ),
             "admission_number": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "placeholder": "Auto-generated if left blank",
+                    "placeholder": _("Auto-generated if left blank"),
                 }
             ),
             "gender": forms.Select(attrs={"class": "form-select"}),
@@ -55,17 +56,17 @@ class StudentCreateForm(forms.ModelForm):
                 attrs={"class": "form-control", "type": "date"}
             ),
             "place_of_birth": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "City, Country"}
+                attrs={"class": "form-control", "placeholder": _("City, Country")}
             ),
             "status": forms.Select(attrs={"class": "form-select"}),
             "academic_year": forms.Select(attrs={"class": "form-select"}),
             "classroom": forms.Select(attrs={"class": "form-select"}),
             "specialty": forms.Select(attrs={"class": "form-select"}),
             "parent_phone": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "+237 6XX XXX XXX"}
+                attrs={"class": "form-control", "placeholder": _("+237 6XX XXX XXX")}
             ),
             "parent_email": forms.EmailInput(
-                attrs={"class": "form-control", "placeholder": "parent@example.com"}
+                attrs={"class": "form-control", "placeholder": _("parent@example.com")}
             ),
             "profile_photo": forms.FileInput(
                 attrs={
@@ -110,21 +111,21 @@ class TeacherCreateForm(forms.ModelForm):
     email = forms.EmailField(
         required=True,
         widget=forms.EmailInput(
-            attrs={"class": "form-control", "placeholder": "teacher@example.com"}
+            attrs={"class": "form-control", "placeholder": _("teacher@example.com")}
         ),
         help_text="Used as username for login",
     )
     username = forms.CharField(
         required=False,
         widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Auto-generated from email"}
+            attrs={"class": "form-control", "placeholder": _("Auto-generated from email")}
         ),
         help_text="Leave blank to auto-generate from email",
     )
     password = forms.CharField(
         required=True,
         widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": "Enter password"}
+            attrs={"class": "form-control", "placeholder": _("Enter password")}
         ),
         help_text="Temporary password (user should change on first login)",
     )
@@ -145,7 +146,7 @@ class TeacherCreateForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": "e.g., STAFF001"}
             ),
             "phone": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "+237 6XX XXX XXX"}
+                attrs={"class": "form-control", "placeholder": _("+237 6XX XXX XXX")}
             ),
             "position_title": forms.TextInput(
                 attrs={
@@ -222,10 +223,10 @@ class ApplicantCreateForm(forms.ModelForm):
         fields = ["first_name", "last_name", "email", "lead_source", "stage"]
         widgets = {
             "first_name": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "First name"}
+                attrs={"class": "form-control", "placeholder": _("First name")}
             ),
             "last_name": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Last name"}
+                attrs={"class": "form-control", "placeholder": _("Last name")}
             ),
             "email": forms.EmailInput(
                 attrs={"class": "form-control", "placeholder": "email@example.com"}

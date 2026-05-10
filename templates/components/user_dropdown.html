@@ -7,7 +7,7 @@
         {% if request.user.profile_photo %}
           <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.get_full_name }}" width="40" height="40" decoding="async" loading="lazy">
         {% else %}
-          <div class="avatar-placeholder" style="background: linear-gradient(135deg, var(--school-primary, #0d6efd) 0%, var(--school-accent, #198754) 100%);">
+          <div class="avatar-placeholder" style="background: linear-gradient(135deg, var(--school-primary, #4f46e5) 0%, var(--school-accent, #10b981) 100%);">
             {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
           </div>
         {% endif %}

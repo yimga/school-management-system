@@ -2931,7 +2931,7 @@ def login_view(request):
 
             context["public_site_url"] = build_public_absolute_url(request, "/")
         except ACCOUNTS_SOFT_FAILURES:
-            context["public_site_url"] = "https://runmycampus.com"
+            context["public_site_url"] = settings.PUBLIC_SITE_URL
     else:
         context["public_site_url"] = None
     template = (

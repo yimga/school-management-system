@@ -1,7 +1,7 @@
 {% load static %}
 <style>
   {% with style=report_style|default_if_none:None %}
-  {% with primary=style.primary_color|default:SITE.primary_color|default:'#0d6efd' accent=style.accent_color|default:SITE.accent_color|default:'#198754' %}
+  {% with primary=style.primary_color|default:SITE.primary_color|default:'#4f46e5' accent=style.accent_color|default:SITE.accent_color|default:'#10b981' %}
   :root {
     --report-primary: {{ primary }};
     --report-accent: {{ accent }};
@@ -120,7 +120,7 @@
   h3 { margin: 0 0 6px; font-size: 12pt; }
   .text-end { text-align: right; }
   .ms-auto { margin-left: auto; }
-  .badge-good { background: rgba(25,135,84,.12); color: #198754; padding:3px 8px; border-radius: 999px; font-weight:700; font-size: 10pt; }
+  .badge-good { background: rgba(25,135,84,.12); color: #10b981; padding:3px 8px; border-radius: 999px; font-weight:700; font-size: 10pt; }
   .badge-warn { background: rgba(255,193,7,.18); color: #b58100; padding:3px 8px; border-radius: 999px; font-weight:700; font-size: 10pt; }
   .footer { margin-top: 14px; font-size: 9.5pt; color: var(--report-text-muted, #555); display:flex; justify-content: space-between; }
 

@@ -9,6 +9,7 @@ import logging
 
 from apps.dashboard.admin_context import build_admin_dashboard_context
 
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
@@ -61,7 +62,7 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
 
                 context["public_site_url"] = build_public_absolute_url(request, "/")
             except _ADMIN_CONTEXT_FALLBACK_ERRORS:
-                context["public_site_url"] = "https://runmycampus.com"
+                context["public_site_url"] = settings.PUBLIC_SITE_URL
         else:
             context["public_site_url"] = None
         try:
@@ -120,7 +121,7 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
 
             extra_context["public_site_url"] = build_public_absolute_url(request, "/")
         except _ADMIN_CONTEXT_FALLBACK_ERRORS:
-            extra_context["public_site_url"] = "https://runmycampus.com"
+            extra_context["public_site_url"] = settings.PUBLIC_SITE_URL
         return super().login(request, extra_context=extra_context)
 
     def index(self, request, extra_context=None):

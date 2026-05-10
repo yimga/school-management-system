@@ -939,10 +939,15 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
             context.update(term_ctx)
             context.update({"year": year, "term": term})
         else:
+            # Preview fallback — compute current academic year label dynamically
+            # so reports don't show stale "2025/2026" forever. Term label is
+            # translatable (Django i18n picks up the active locale).
+            _today = timezone.localdate()
+            _year_label = f"{_today.year}/{_today.year + 1}"
             context.update(
                 {
-                    "year": SimpleNamespace(name="2025/2026"),
-                    "term": _PreviewTerm(name="First Term"),
+                    "year": SimpleNamespace(name=_year_label),
+                    "term": _PreviewTerm(name=_("First Term")),
                     "rows": [],
                     "summary": {
                         "average": None,
@@ -1012,7 +1017,8 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
             }
         )
         context.update(annual_ctx)
-        context.update({"year": year or SimpleNamespace(name="2025/2026")})
+        _t = timezone.localdate()
+        context.update({"year": year or SimpleNamespace(name=f"{_t.year}/{_t.year + 1}")})
     return context
 
 
@@ -1039,8 +1045,9 @@ def reportcard_style_preview(request, slug: str):
     else:
         student_obj = _mock_preview_student()
         student_name = f"{student_obj.last_name} {student_obj.first_name}"
-        year_obj = SimpleNamespace(name="2025/2026")
-        term_obj = _PreviewTerm(name="First Term")
+        _t = timezone.localdate()
+        year_obj = SimpleNamespace(name=f"{_t.year}/{_t.year + 1}")
+        term_obj = _PreviewTerm(name=_("First Term"))
         rows = [
             {
                 "subject": "English",

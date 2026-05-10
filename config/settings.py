@@ -84,6 +84,13 @@ MANAGER_PLATFORM_BASE_URL = (
     .strip()
     .rstrip("/")
 )
+# Public marketing site URL — env-driven so the platform brand domain is configurable
+# per environment (staging vs prod) and never hardcoded in views/templates.
+# Read in templates as `{{ public_site_url }}` (via context processor) or as
+# `settings.PUBLIC_SITE_URL` in Python.
+PUBLIC_SITE_URL = (
+    os.getenv("PUBLIC_SITE_URL", "https://runmycampus.com").strip().rstrip("/")
+)
 STUDIO_APPROVAL_HUB_TENANT_BASE_URL = (
     os.getenv("STUDIO_APPROVAL_HUB_TENANT_BASE_URL", "").strip().rstrip("/")
 )

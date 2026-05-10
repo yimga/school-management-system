@@ -1,7 +1,7 @@
 {% load region_format %}
 <div class="dashboard-card-grid dashboard-card-grid--dense mb-4">
   {% with summary=summary %}
-    <div class="card bg-gradient border-0 text-white" data-widget-id="finance-summary-receivables" style="background:linear-gradient(135deg,#0d6efd,#198754);">
+    <div class="card bg-gradient border-0 text-white" data-widget-id="finance-summary-receivables" style="background:linear-gradient(135deg,var(--school-primary),var(--school-accent));">
       <div class="card-body">
         <div class="text-white-50 small">Accounts receivable</div>
         <div class="display-6 fw-bold">{{ summary.receivables|format_currency|default:"No data" }}</div>

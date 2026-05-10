@@ -111,7 +111,7 @@
                 {% trans "New parents can claim an invite" %} <a href="{% url 'accounts:claim_invite' %}">{% trans "here" %}</a>.
               </p>
               <p class="small text-muted mt-3 mb-0 text-center">
-                <a href="https://runmycampus.com" target="_blank" rel="noopener noreferrer" class="text-muted">Powered by RunMyCampus</a>
+                <a href="{{ public_site_url|default:'https://runmycampus.com' }}" target="_blank" rel="noopener noreferrer" class="text-muted">{% blocktrans with brand=PUBLIC_BRAND_NAME|default:'RunMyCampus' %}Powered by {{ brand }}{% endblocktrans %}</a>
               </p>
             </div>
           </div>
@@ -136,7 +136,7 @@
                 {% endif %}
               </p>
               {% if is_manager_host %}
-                <a class="btn btn-outline-primary" href="https://runmycampus.com/discover/">{% trans "Find your school" %}</a>
+                <a class="btn btn-outline-primary" href="{{ public_site_url|default:'https://runmycampus.com' }}/discover/">{% trans "Find your school" %}</a>
               {% else %}
                 <a class="btn btn-outline-primary" href="{% url 'portal:link_child' %}">{% trans "Claim an invite" %}</a>
               {% endif %}

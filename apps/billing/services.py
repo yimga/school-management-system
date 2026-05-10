@@ -287,13 +287,15 @@ def convert_quote_to_contract(quote: Quote):
 def ensure_billing_account_for_school(school):
     from apps.policies.policy_registry import get_effective_policy
 
+    from django.conf import settings as _dj_settings
     policy = get_effective_policy(school)
     contact_email = str((policy.get("contact_email") or "") or "").strip()
-    currency_code = "USD"
+    platform_default = getattr(_dj_settings, "PLATFORM_DEFAULT_CURRENCY", "USD")
+    currency_code = platform_default
     default_region = getattr(school, "default_region", None)
     if default_region and getattr(default_region, "default_currency", None):
         currency_code = (
-            str(default_region.default_currency).strip().upper()[:3] or "USD"
+            str(default_region.default_currency).strip().upper()[:3] or platform_default
         )
     account, created = BillingAccount.objects.get_or_create(
         school=school,
@@ -895,10 +897,12 @@ def finalize_marketplace_addon_payment(
             locked.addons = merged
             locked.save(update_fields=["addons", "updated_at"])
 
+    from django.conf import settings as _dj_settings
+    _platform_curr = getattr(_dj_settings, "PLATFORM_DEFAULT_CURRENCY", "USD")
     curr = str(snapshot.get("currency_code") or "").strip().upper()
     if len(curr) != 3:
         acct_row = BillingAccount.objects.filter(school_id=school.pk).first()
-        curr = str(getattr(acct_row, "currency_code", None) or "USD").strip().upper()[:3]
+        curr = str(getattr(acct_row, "currency_code", None) or _platform_curr).strip().upper()[:3]
 
     publisher_share_recorded = False
     if rev_pct > 0 and pub and amt > 0 and session_ref:
@@ -1123,13 +1127,17 @@ def schedule_revenue_share_payout(
     payee_ref: str = "",
     processor_code: str = "",
     external_payout_ref: str = "",
-    currency_code: str = "USD",
+    currency_code: str | None = None,
     source_school=None,
     period_start: date | None = None,
     period_end: date | None = None,
     scheduled_for: datetime | None = None,
     metadata: dict | None = None,
 ):
+    # Resolve currency at call time from PLATFORM_DEFAULT_CURRENCY setting (was hardcoded "USD").
+    if not currency_code:
+        from django.conf import settings as _dj_settings
+        currency_code = getattr(_dj_settings, "PLATFORM_DEFAULT_CURRENCY", "USD")
     gross_amount = Decimal(str(gross_amount))
     fee_amount = Decimal(str(fee_amount))
     net_amount = gross_amount - fee_amount
