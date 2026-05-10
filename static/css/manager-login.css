@@ -1,82 +1,111 @@
 /**
- * Shared high-end login styles for manager (control plane) and admin (Configuration Engine).
- * Dark theme, school-accent (emerald) hero strip + card. Used by auth/manager_login.html and auth/admin_login.html.
- * Optimized for all viewports: desktop gets a proper wide layout, not a narrow mobile strip.
+ * Manager + Admin (Configuration Engine) login styles.
+ * Dark navy ground (operator distinction) + indigo accents via school tokens.
+ * Used by auth/manager_login.html and auth/admin_login.html.
+ * Refreshed 2026-05-10: gold hover (#e0bc48) replaced with school-primary cascade.
  */
-body { background: #0B0E14; }
+
+body {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in oklab, var(--school-primary) 18%, transparent), transparent 60%),
+    var(--platform-navy, #0B0E14);
+  min-height: 100vh;
+}
 
 .manager-login-landing,
-.admin-login-landing { min-height: 100vh; padding: 2rem 0 4rem; }
+.admin-login-landing {
+  min-height: 100vh;
+  padding: 2rem 0 4rem;
+}
 
 /* Desktop: use full container width so layout doesn't look like mobile */
 @media (min-width: 992px) {
   .manager-login-landing .container,
-  .admin-login-landing .container {
-    max-width: 720px;
-  }
+  .admin-login-landing .container { max-width: 720px; }
   .manager-login-hero,
-  .admin-login-hero {
-    padding: 2rem 2.5rem;
-  }
+  .admin-login-hero { padding: 2rem 2.5rem; }
   .manager-login-hero .hero-logo,
   .admin-login-hero .hero-logo {
-    width: 56px;
-    height: 56px;
-    font-size: 1.6rem;
+    width: 56px; height: 56px; font-size: 1.6rem;
   }
   .manager-login-hero strong,
   .admin-login-hero strong { font-size: 1.35rem; }
   .manager-login-card,
-  .admin-login-card {
-    max-width: 440px;
-    min-width: 380px;
-  }
+  .admin-login-card { max-width: 440px; min-width: 380px; }
 }
 
 @media (min-width: 1200px) {
   .manager-login-landing .container,
-  .admin-login-landing .container {
-    max-width: 560px;
-  }
+  .admin-login-landing .container { max-width: 560px; }
   .manager-login-card,
-  .admin-login-card {
-    max-width: 460px;
-  }
+  .admin-login-card { max-width: 460px; }
 }
 
+/* Hero strip — branded gradient hairline at the top, refined */
 .manager-login-hero,
 .admin-login-hero {
-  border-radius: 0 0 18px 18px;
-  padding: 1.5rem 2rem;
+  border-radius: 16px;
+  padding: 1.75rem 2rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: linear-gradient(135deg, #0B0E14, #1a2332);
-  color: white;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.4));
+  -webkit-backdrop-filter: saturate(160%) blur(20px);
+          backdrop-filter: saturate(160%) blur(20px);
+  color: #f1f5f9;
   margin-bottom: 1.5rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.14), 0 12px 32px -4px rgba(0, 0, 0, 0.35);
+  position: relative;
+  overflow: hidden;
+}
+.manager-login-hero::before,
+.admin-login-hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--school-primary), var(--school-accent));
 }
 
 .manager-login-hero .hero-logo,
 .admin-login-hero .hero-logo {
   width: 48px; height: 48px; border-radius: 12px;
-  background: rgba(16, 185, 129, 0.2);
-  display: grid; place-items: center; font-size: 1.4rem; font-weight: 700; color: var(--school-accent);
+  background: linear-gradient(135deg, var(--school-primary), color-mix(in oklab, var(--school-primary) 70%, var(--school-accent)));
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
   flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .manager-login-hero strong,
-.admin-login-hero strong { font-size: 1.15rem; }
+.admin-login-hero strong {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  display: block;
+}
 
 .manager-login-hero small,
-.admin-login-hero small { display: block; color: rgba(255,255,255,0.8); font-size: 0.85rem; margin-top: 0.25rem; }
+.admin-login-hero small {
+  display: block;
+  color: rgba(241, 245, 249, 0.78);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  letter-spacing: -0.005em;
+}
 
+/* Card — refined glass on dark navy */
 .manager-login-card,
 .admin-login-card {
-  border-radius: 18px;
-  border: 1px solid rgba(125, 152, 187, 0.18);
-  background: rgba(8, 16, 30, 0.92);
+  border-radius: 16px !important;
+  border: 1px solid rgba(148, 163, 184, 0.18) !important;
+  background: rgba(11, 17, 32, 0.78) !important;
+  -webkit-backdrop-filter: saturate(160%) blur(20px);
+          backdrop-filter: saturate(160%) blur(20px);
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.10), 0 18px 48px -8px rgba(0, 0, 0, 0.45) !important;
   max-width: 100%;
   width: 100%;
   margin: 0 auto;
@@ -84,70 +113,124 @@ body { background: #0B0E14; }
 
 @media (max-width: 991.98px) {
   .manager-login-card,
-  .admin-login-card {
-    max-width: 420px;
-  }
+  .admin-login-card { max-width: 420px; }
 }
 
+.manager-login-card .card-body,
+.admin-login-card .card-body {
+  background: transparent !important;
+}
+
+.manager-login-card h1,
+.admin-login-card h1 {
+  letter-spacing: -0.022em;
+  font-weight: 700;
+}
+
+/* Form inputs — dark glass with indigo focus */
 .manager-login-card .form-control,
 .admin-login-card .form-control {
-  border-radius: 12px;
+  border-radius: 10px;
   background: rgba(15, 23, 42, 0.6);
-  border-color: rgba(125, 152, 187, 0.25);
+  border-color: rgba(148, 163, 184, 0.22);
   color: #e7eefc;
+  letter-spacing: -0.005em;
+  font-weight: 500;
+  padding: 10px 14px;
+  transition: border-color var(--dur-fast, 150ms) ease, box-shadow var(--dur-fast, 150ms) ease, background var(--dur-fast, 150ms) ease;
 }
-
 .manager-login-card .form-control::placeholder,
 .admin-login-card .form-control::placeholder { color: rgba(231, 238, 252, 0.5); }
+.manager-login-card .form-control:focus,
+.admin-login-card .form-control:focus {
+  background: rgba(15, 23, 42, 0.85);
+  border-color: color-mix(in oklab, var(--school-primary) 70%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--school-primary) 22%, transparent);
+}
 
 .manager-login-card .form-label,
-.admin-login-card .form-label { color: var(--cp-muted, #9fb1cb); }
+.admin-login-card .form-label {
+  color: rgba(241, 245, 249, 0.82);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  margin-bottom: 6px;
+}
 
+/* Primary button — indigo (was gold #e0bc48) */
 .manager-login-card .btn-primary,
-.admin-login-card .btn-primary { background: var(--school-accent); border-color: var(--school-accent); color: #0B0E14; }
-
+.admin-login-card .btn-primary {
+  background: var(--school-primary) !important;
+  border: none !important;
+  color: #fff !important;
+  font-weight: 600;
+  padding: 11px 14px;
+  border-radius: 10px;
+  letter-spacing: -0.005em;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  transition: filter 150ms ease, transform 100ms ease, box-shadow 240ms ease;
+}
 .manager-login-card .btn-primary:hover,
-.admin-login-card .btn-primary:hover { background: #e0bc48; border-color: #e0bc48; color: #0B0E14; }
+.admin-login-card .btn-primary:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 6px 18px -2px color-mix(in oklab, var(--school-primary) 45%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+.manager-login-card .btn-primary:active,
+.admin-login-card .btn-primary:active {
+  transform: scale(0.98);
+}
 
+/* Footer link */
 .manager-login-footer,
-.admin-login-footer { margin-top: 1.5rem; text-align: center; }
-
+.admin-login-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+}
 .manager-login-footer a,
-.admin-login-footer a { color: #9fb1cb; text-decoration: none; }
-
+.admin-login-footer a {
+  color: rgba(148, 163, 184, 0.9);
+  text-decoration: none;
+  font-size: 0.88rem;
+  transition: color 150ms ease;
+}
 .manager-login-footer a:hover,
-.admin-login-footer a:hover { color: var(--school-accent); }
+.admin-login-footer a:hover {
+  color: var(--school-primary);
+}
 
-/* Admin-only: validation and error display */
-.admin-login-card .form-control.is-invalid { border-color: #dc3545; }
-.admin-login-card .invalid-feedback { color: #f87171; }
+/* Validation + alerts on dark card */
+.admin-login-card .form-control.is-invalid {
+  border-color: rgba(248, 113, 113, 0.7);
+}
+.admin-login-card .invalid-feedback { color: #fca5a5; }
 
-/* Alerts on dark card: visible and readable */
 .admin-login-card .admin-login-alert,
 .manager-login-card .manager-login-alert,
 .admin-login-card .alert-danger,
 .admin-login-card .alert-warning,
 .manager-login-card .alert-danger,
 .manager-login-card .alert-warning {
-  background: rgba(220, 53, 69, 0.2);
-  border: 1px solid rgba(248, 113, 113, 0.5);
+  background: rgba(220, 38, 38, 0.14);
+  border: 1px solid rgba(248, 113, 113, 0.36);
   color: #fca5a5;
+  border-radius: 10px;
 }
 .admin-login-card .alert-warning,
 .manager-login-card .alert-warning {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.5);
-  color: #fcd34d;
+  background: color-mix(in oklab, var(--school-accent) 14%, transparent);
+  border-color: color-mix(in oklab, var(--school-accent) 36%, transparent);
+  color: color-mix(in oklab, var(--school-accent) 85%, #fff);
 }
 
-/* Password reset link: visible, gold on hover */
+/* Password reset link */
 .admin-login-reset a,
 .admin-login-card .admin-login-reset a {
-  color: #9fb1cb;
+  color: rgba(148, 163, 184, 0.9);
   text-decoration: none;
+  font-size: 0.88rem;
 }
 .admin-login-reset a:hover,
 .admin-login-card .admin-login-reset a:hover {
-  color: var(--school-accent);
+  color: var(--school-primary);
   text-decoration: underline;
 }

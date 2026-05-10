@@ -1,5 +1,6 @@
 // Service worker for portal PWA + offline write-behind queue.
-const CACHE_VERSION = "sms-v1.4.2";
+// Bumped 2026-05-10: invalidates cached CSS so Apple-tier polish lands on next page load.
+const CACHE_VERSION = "sms-v1.5.0-apple-tier";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
