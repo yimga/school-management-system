@@ -146,10 +146,10 @@
 
         <div class="base-topbar-actions text-white d-flex align-items-center gap-2 ms-lg-auto order-2 order-lg-3 justify-content-end">
           {% if request.user.is_authenticated %}
-            <span class="small d-none d-md-inline topbar-username">Logged in as {{ request.user.username }}</span>
-            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:logout' %}">Logout</a>
+            <span class="small d-none d-md-inline topbar-username">{% blocktrans with name=request.user.username %}Logged in as {{ name }}{% endblocktrans %}</span>
+            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:logout' %}">{% trans "Logout" %}</a>
           {% else %}
-            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">Login</a>
+            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
           {% endif %}
         </div>
       </div>

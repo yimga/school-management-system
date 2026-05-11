@@ -4,6 +4,7 @@ Implements class ranking engine, mock exam management, and performance analysis.
 §2.4: Typed exception tuple for import_grades_with_conflict_resolution (no broad except).
 """
 
+from django.conf import settings
 from django.utils import timezone
 from django.db.models import Avg
 from django.db.utils import IntegrityError, DatabaseError, OperationalError
@@ -12,6 +13,20 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from apps.platform_runtime.structured_logging import log_exception_with_context
 
 import statistics
+
+
+def _pass_threshold():
+    """Return the pass threshold for analytics aggregations.
+
+    Defaults to 50/100 (the platform-neutral median). Override per-environment
+    with `PASS_THRESHOLD_DEFAULT` env var, or per-tenant by passing the
+    SiteSettings value into specific call sites (see callers).
+
+    Cameroon GCE uses 10/20 (~50/100). Kenya CBE uses 50. UK uses different
+    thresholds entirely. The previous hardcoded `>= 40` was wrong for most
+    regions; this fallback at least matches the median.
+    """
+    return int(getattr(settings, "PASS_THRESHOLD_DEFAULT", 50))
 
 # §2.4: Typed tuple for grade import row (get_or_create/save).
 _EVALS_ADVANCED_IMPORT_ROW_ERRORS = (
@@ -141,7 +156,7 @@ class MockExamManager:
             "median": statistics.median(scores),
             "std_dev": round(statistics.stdev(scores), 2) if len(scores) > 1 else 0,
             "pass_rate": round(
-                len([s for s in scores if s >= 40]) / len(scores) * 100, 2
+                len([s for s in scores if s >= _pass_threshold()]) / len(scores) * 100, 2
             ),
             "min_score": min(scores),
             "max_score": max(scores),

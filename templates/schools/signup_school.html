@@ -28,12 +28,12 @@
 
       <div class="mb-3">
         <label for="name" class="form-label">{% trans "School name" %}</label>
-        <input type="text" name="name" id="name" class="form-control" value="{{ name|default:'' }}" required placeholder="St. Catherine's Secondary School" autofocus>
+        <input type="text" name="name" id="name" class="form-control" value="{{ name|default:'' }}" required placeholder="{% trans 'e.g. Greenfield Secondary School' %}" autofocus>
       </div>
       <div class="mb-3">
         <label for="slug" class="form-label">{% trans "Web address" %}</label>
         <div class="input-group">
-          <input type="text" name="slug" id="slug" class="form-control" value="{{ slug|default:'' }}" placeholder="stcatherines">
+          <input type="text" name="slug" id="slug" class="form-control" value="{{ slug|default:'' }}" placeholder="{% trans 'greenfield' %}">
           <span class="input-group-text">.runmycampus.com</span>
         </div>
         <div style="font-size:0.82rem;color:var(--admin-content-text-muted);margin-top:6px">{% trans "Your school workspace lives at this URL. You can connect a custom domain later." %}</div>

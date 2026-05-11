@@ -231,16 +231,25 @@ def ensure_region_for_country(
         return region
 
     defaults = GlobalGeoCatalog.country_defaults(normalized)
+    # Academic year start month: prefer the catalog if it has one for this country;
+    # otherwise fall back to a hemisphere-aware default. Southern-hemisphere
+    # countries (AU, NZ, ZA, etc.) start their year in Jan/Feb, not September.
+    _SOUTHERN_HEMISPHERE_CODES = {
+        "AU", "NZ", "ZA", "AR", "CL", "UY", "PY", "BO", "PE", "ZW", "ZM",
+        "MZ", "MG", "NA", "BW", "SZ", "LS",
+    }
+    fallback_start_month = 1 if normalized in _SOUTHERN_HEMISPHERE_CODES else 9
+    catalog_start = (defaults.get("academic_year_start_month") if isinstance(defaults, dict) else None)
     return RegionConfig.objects.create(
         code=normalized,
         name=defaults["country_name"],
         default_language=defaults["default_language"],
         timezone=defaults["timezone"] or timezone_hint or "UTC",
-        date_format="DD/MM/YYYY",
-        grading_scale="0-100",
+        date_format=defaults.get("date_format", "DD/MM/YYYY") if isinstance(defaults, dict) else "DD/MM/YYYY",
+        grading_scale=defaults.get("grading_scale", "0-100") if isinstance(defaults, dict) else "0-100",
         default_currency=defaults["currency"],
-        academic_year_start_month=9,
-        term_count_per_year=3,
+        academic_year_start_month=catalog_start or fallback_start_month,
+        term_count_per_year=defaults.get("term_count_per_year", 3) if isinstance(defaults, dict) else 3,
     )
 
 

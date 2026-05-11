@@ -317,11 +317,15 @@ class NotificationService:
                 if approval_request.academic_year
                 else "Academic Year"
             )
+            _school_signoff = (
+                getattr(self.site_settings, "site_name", None)
+                or "School Management System"
+            )
             body = (
                 f"Hello {approver.get_full_name() or approver.username},\n\n"
                 f"{teacher_name} has submitted marks for {approval_request.subject_assignment} "
                 f"in {term_label} ({year_label}). Review the submission here: {link}\n\n"
-                "Thank you,\nSchool Management System"
+                f"Thank you,\n{_school_signoff}"
             )
 
             send_mail(
@@ -365,12 +369,16 @@ class NotificationService:
             subject = (
                 f"Grade Approval {status_label} · {approval_request.subject_assignment}"
             )
+            _school_signoff = (
+                getattr(self.site_settings, "site_name", None)
+                or "School Management System"
+            )
             body = (
                 f"Hello {teacher_user.get_full_name() or teacher_user.username},\n\n"
                 f"Your grade submission for {approval_request.subject_assignment} ({approval_request.term.label if approval_request.term else 'Term'}) "
                 f"has been marked as {status_label}.\n\n"
                 "Check the approval list for details.\n\n"
-                "School Management System"
+                f"{_school_signoff}"
             )
             _send_email(
                 [teacher_user.email],
