@@ -1,4 +1,4 @@
-"""Pass offline-foundational closeout: flip PlatformSiteSettings.enable_offline_mode
+"""Pass offline-foundational closeout: flip RuntimeDefaults.enable_offline_mode
 default from null to True so the SW outbox / delta-sync / replay pipeline is live
 out of the box. Existing rows are untouched; tenants who explicitly set False or
 left null stay as-is.
@@ -15,15 +15,15 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name="platformsitesettings",
+            model_name="runtimedefaults",
             name="enable_offline_mode",
             field=models.BooleanField(
                 blank=True,
                 default=True,
                 help_text=(
-                    "Default offline mode toggle. Defaults True so the SW outbox / "
-                    "delta-sync / replay pipeline is live out of the box; tenants with "
-                    "regulatory or bandwidth constraints can flip to False per-school."
+                    "Default offline mode toggle. Defaults True (Pass offline-foundational closeout) "
+                    "so the SW outbox / delta-sync / replay pipeline is live out of the box; tenants "
+                    "with regulatory or bandwidth constraints can flip to False per-school."
                 ),
                 null=True,
             ),
