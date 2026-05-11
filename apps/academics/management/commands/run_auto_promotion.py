@@ -12,6 +12,7 @@ from django.db import transaction
 
 from apps.academics.models import AcademicYear, ClassroomPromotionMapping
 from apps.people.models import StudentProfile
+from apps.schools.rls_context import rls_bypass, rls_school
 
 
 class Command(BaseCommand):
@@ -43,6 +44,14 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        school_id = options.get("school")
+        # FORCE RLS (schools 0048): pin to one school when --school is given;
+        # otherwise bypass so an operator-initiated cross-tenant run can proceed.
+        ctx = rls_school(school_id) if school_id else rls_bypass()
+        with ctx:
+            self._run(options)
+
+    def _run(self, options):
         from_name = (options["from_year"] or "").strip()
         to_name = (options["to_year"] or "").strip()
         school_id = options.get("school")

@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.academics.models import AcademicYear, Term
+from apps.schools.rls_context import rls_bypass
 
 
 class Command(BaseCommand):
@@ -20,6 +21,12 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        # Cross-tenant maintenance command: bypass FORCE RLS (schools 0048) so the
+        # operator can fix term positions across every school in one run.
+        with rls_bypass():
+            self._run(options)
+
+    def _run(self, options):
         dry_run = options.get("dry_run", False)
         year_name = options.get("year")
 

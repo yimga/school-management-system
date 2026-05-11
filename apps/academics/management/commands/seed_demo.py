@@ -18,6 +18,7 @@ from apps.academics.models import (
 )
 from apps.evals.models import Evaluation, TeacherAssignment
 from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
+from apps.schools.rls_context import rls_bypass
 from apps.schools.school_cli_resolution import resolve_school_arg as _resolve_school
 
 
@@ -351,20 +352,22 @@ class Command(BaseCommand):
             )
 
     def _reset_domain_data(self):
-        # Keep superusers, remove other users
-        User.objects.filter(is_superuser=False).delete()
+        # Cross-tenant delete: needs bypass under FORCE RLS (schools 0048).
+        with rls_bypass():
+            # Keep superusers, remove other users
+            User.objects.filter(is_superuser=False).delete()
 
-        # Clear domain tables
-        Evaluation.objects.all().delete()
-        TeacherAssignment.objects.all().delete()
-        SubjectAssignment.objects.all().delete()
+            # Clear domain tables
+            Evaluation.objects.all().delete()
+            TeacherAssignment.objects.all().delete()
+            SubjectAssignment.objects.all().delete()
 
-        StudentGuardian.objects.all().delete()
-        StudentProfile.objects.all().delete()
-        TeacherProfile.objects.all().delete()
-        Classroom.objects.all().delete()
-        Specialty.objects.all().delete()
-        Subject.objects.all().delete()
-        Department.objects.all().delete()
-        Term.objects.all().delete()
-        AcademicYear.objects.all().delete()
+            StudentGuardian.objects.all().delete()
+            StudentProfile.objects.all().delete()
+            TeacherProfile.objects.all().delete()
+            Classroom.objects.all().delete()
+            Specialty.objects.all().delete()
+            Subject.objects.all().delete()
+            Department.objects.all().delete()
+            Term.objects.all().delete()
+            AcademicYear.objects.all().delete()
