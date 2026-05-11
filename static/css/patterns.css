@@ -423,7 +423,12 @@
 /* ==========================================================================
    9. BUTTON POLISH — Bootstrap .btn variants
    ========================================================================== */
+/* Pass 10: WCAG 2.5.8 minimum target size (24×24 CSS px) on all viewports.
+   .btn-sm participants opt into the floor without losing their visual size by
+   pairing min-height/min-width with their compact padding. */
 [data-rmc-aesthetic="v2"] .btn {
+  min-height: 24px;
+  min-width: 24px;
   border-radius: 10px;
   font-weight: 500;
   letter-spacing: -0.005em;

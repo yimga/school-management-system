@@ -116,7 +116,9 @@
     <link rel="apple-touch-icon" href="{% static 'images/icon-192.png' %}">
   </head>
 
-  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
+  {# Pass 8 UX consistency: activate `.form-system` globally so the design system's
+     focus rings / hover borders / button polish actually render on every portal form. #}
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     <div class="htmx-progress-bar" aria-hidden="true"></div>
     {% include "partials/shell_chrome_site_preview_banner_top.html" %}
@@ -304,8 +306,22 @@
             {% include "partials/portal_sidebar.html" %}
           </div>
         </div>
-        <!-- Resize handle (desktop only; hidden when sidebar collapsed) -->
-        <div class="portal-resize-handle d-none d-lg-flex" aria-label="{% trans 'Resize sidebar' %}" role="separator" title="{% trans 'Drag to resize sidebar' %}"></div>
+        <!-- Resize handle (desktop only; hidden when sidebar collapsed).
+             Pass 10: WCAG 2.1.1 keyboard equivalence — separator is focusable
+             via Tab and resizes the sidebar with ArrowLeft/ArrowRight (32px step)
+             and Home/End (jump to min/max). The init script is loaded near the
+             bottom of this file. -->
+        <div class="portal-resize-handle d-none d-lg-flex"
+             aria-label="{% trans 'Resize sidebar' %}"
+             role="separator"
+             aria-orientation="vertical"
+             aria-controls="portal-sidebar-col"
+             aria-valuemin="200"
+             aria-valuemax="480"
+             aria-valuenow="280"
+             tabindex="0"
+             title="{% trans 'Drag, or focus and use arrow keys, to resize the sidebar' %}"
+             data-portal-resize-handle="1"></div>
 
         <!-- Sidebar (mobile) -->
         <div class="offcanvas offcanvas-start" tabindex="-1" id="portalSidebar" aria-labelledby="portalSidebarLabel" data-shell-sidebar="portal" data-shell-sidebar-mount="offcanvas">
@@ -399,6 +415,7 @@
     <script src="{% static 'js/statement-header-scroll.js' %}" defer></script>
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>
     <script src="{% static 'js/portal-sidebar.js' %}"></script>
+    <script src="{% static 'js/portal-resize-keyboard.js' %}" defer></script>
     
     <!-- React and TanStack Query (self-hosted, no CDN) -->
     {% block react_libs %}

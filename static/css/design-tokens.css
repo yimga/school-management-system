@@ -80,11 +80,16 @@
      Footer: use --footer-bg, --footer-text, --footer-border.
      Admin sidebar logo: --admin-sidebar-logo-bg ensures logo has contrasting container. */
   --header-brand-bg: linear-gradient(90deg, var(--school-primary), var(--school-accent));
-  --header-brand-fg: #ffffff;
+  /* Pass 10: gradient ends on #10b981 (emerald-500); pure white drops to ~3.5:1.
+     Slate-700 + a subtle overlay backdrop gives ≥4.5:1 across the gradient.
+     The accompanying overlay is applied by the header rule in patterns.css. */
+  --header-brand-fg: #f8fafc;
+  --header-brand-overlay: rgba(15, 23, 42, 0.25);
   --header-brand-logo-bg: rgba(255, 255, 255, 0.2);
   --footer-bg: linear-gradient(180deg, rgba(6, 12, 34, 0.92), rgba(4, 10, 28, 0.95));
   --footer-text: #e2e8f0;
-  --footer-text-muted: #94a3b8;
+  /* Pass 10: slate-400 → slate-500 for AA contrast (4.5:1) on light footer surfaces. */
+  --footer-text-muted: #64748b;
   --footer-border: rgba(148, 163, 184, 0.2);
   --admin-sidebar-logo-bg: rgba(0, 0, 0, 0.25);
   --admin-sidebar-logo-fg: #ffffff;
@@ -243,7 +248,8 @@
   /* Chart tokens */
   --chart-stroke-default: 1.5px;
   --chart-legend-text: var(--text-sm);
-  --chart-axis-muted: #94a3b8;
+  /* Pass 10: chart axes render on light surfaces; slate-500 meets AA. */
+  --chart-axis-muted: #64748b;
 
   /* Motion */
   --motion-fast: 150ms ease;
@@ -321,7 +327,8 @@ body.portal-backend-dark {
   --admin-content-bg: #0f172a;
   --admin-content-surface: #1e293b;
   --admin-content-text: #f1f5f9;
-  --admin-content-text-muted: #94a3b8;
+  /* Pass 10: backend content panels are light-surface; slate-500 for AA. */
+  --admin-content-text-muted: #64748b;
   --admin-content-border: rgba(148, 163, 184, 0.25);
   --admin-content-card-bg: #1e293b;
   --admin-content-thead-bg: #334155;
@@ -331,7 +338,8 @@ body.portal-backend-dark {
   /* Portal */
   --portal-bg: #0f172a;
   --portal-text: #e2e8f0;
-  --portal-text-muted: #94a3b8;
+  /* Pass 10: portal text is on light surfaces; slate-500 meets AA. */
+  --portal-text-muted: #64748b;
   --portal-border: rgba(148, 163, 184, 0.2);
   --portal-border-strong: rgba(148, 163, 184, 0.35);
 
