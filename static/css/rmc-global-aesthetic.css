@@ -1,0 +1,321 @@
+/**
+ * Global aesthetic discipline — Pass B.
+ *
+ * Goal: world-class baseline across every authenticated surface (manager,
+ * portal, backend admin) so users don't experience a different visual
+ * grammar on every page. Companion to manager-aesthetic-polish.css which
+ * targets the manager-specific shell.
+ *
+ * Loaded from base templates AFTER design-tokens + Bootstrap + premium-os
+ * stacks so it wins on specificity.
+ *
+ * What this file does:
+ *   1. Empty-state hygiene — hide skeleton boxes that render with no content
+ *   2. Card grammar — consistent radius / shadow / border / surface
+ *   3. Typography rhythm — clean h1/h2/h3 scale, lead text, captions
+ *   4. Spacing scale — `1rem` rhythm between siblings on canvas
+ *   5. Section header — uppercase eyebrow + readable title
+ *   6. Table polish — readable rows, subtle zebra, proper caption
+ *   7. Form input polish — focus rings, padding, label hierarchy
+ *   8. Button consistency — minimum 36px height, proper focus
+ */
+
+/* === 1. Empty-state hygiene ============================================= */
+
+/* Common pattern: a card/strip/section is rendered with no actual content
+ * (server didn't populate context). Hide them rather than show empty boxes. */
+.rmc-empty-on-blank:empty,
+[data-rmc-empty-hide]:empty,
+[data-rmc-ai-out]:empty,
+.rmc-os-status-stack:empty,
+.rmc-os-payment-readiness-slot:empty {
+  display: none !important;
+}
+
+/* Empty cards inside a container shouldn't take up vertical rhythm */
+.card:empty,
+.alert:empty {
+  display: none !important;
+}
+
+/* Progress / status pills shown with no content */
+.progress:not([data-rmc-progress-populated]):empty,
+.rmc-os-status-strip:empty {
+  display: none !important;
+}
+
+/* === 2. Card grammar ==================================================== */
+
+:root {
+  --rmc-card-radius: 12px;
+  --rmc-card-border: 1px solid rgba(15, 23, 42, 0.08);
+  --rmc-card-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.02);
+  --rmc-card-shadow-hover: 0 8px 24px -8px rgba(15, 23, 42, 0.12), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --rmc-card-pad: clamp(0.875rem, 1vw + 0.5rem, 1.25rem);
+  --rmc-canvas-bg: #f6f7fb;
+  --rmc-canvas-ink: #0f172a;
+  --rmc-canvas-muted: rgba(15, 23, 42, 0.65);
+}
+
+/* Apply the card grammar broadly. Bootstrap default `.card` gets the
+ * platform polish; opt-out by adding `.card-unstyled`. */
+.card:not(.card-unstyled) {
+  border-radius: var(--rmc-card-radius);
+  border: var(--rmc-card-border);
+  box-shadow: var(--rmc-card-shadow);
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+.card:not(.card-unstyled):hover {
+  box-shadow: var(--rmc-card-shadow-hover);
+}
+
+/* Don't animate cards inside tables or tight grids — over-stimulating */
+.table .card:hover,
+.dropdown .card:hover,
+.modal .card:hover {
+  transform: none;
+  box-shadow: var(--rmc-card-shadow);
+}
+
+.card-header:not(.card-unstyled .card-header) {
+  border-bottom: var(--rmc-card-border);
+  background: rgba(15, 23, 42, 0.02);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.card-body {
+  padding: var(--rmc-card-pad);
+}
+
+.card-footer {
+  background: rgba(15, 23, 42, 0.02);
+  border-top: var(--rmc-card-border);
+}
+
+/* === 3. Typography rhythm =============================================== */
+
+.page-h1,
+.rmc-page-h1 {
+  font-size: clamp(1.5rem, 1.5rem + 0.5vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0 0 0.5rem;
+  color: var(--rmc-canvas-ink);
+}
+
+.section-heading,
+.rmc-section-heading,
+.card-header h2,
+.card-header h3,
+.card-header .h6 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  margin: 0;
+}
+
+.section-lead,
+.rmc-section-lead {
+  color: var(--rmc-canvas-muted);
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+
+.eyebrow,
+.rmc-eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(15, 23, 42, 0.55);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+/* === 4. Spacing scale =================================================== */
+
+.section-shell + .section-shell,
+.card + .card,
+.alert + .card,
+.alert + .alert {
+  margin-top: 1rem;
+}
+
+main > * + *,
+.cp-main-col > * + *,
+.portal-main-col > * + * {
+  margin-top: 1rem;
+}
+
+/* Override the default page-stack class to use rhythm */
+.page-stack > * + * {
+  margin-top: 1rem;
+}
+
+/* === 5. Section header pattern ========================================= */
+
+.rmc-section-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.rmc-section-header .section-heading {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--rmc-canvas-ink);
+}
+
+/* === 6. Table polish =================================================== */
+
+.table {
+  --bs-table-bg: transparent;
+  margin-bottom: 0;
+}
+
+.table > thead {
+  background: rgba(15, 23, 42, 0.03);
+}
+
+.table > thead th {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--rmc-canvas-muted);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 0.625rem 0.75rem;
+}
+
+.table > tbody > tr:hover > * {
+  background: rgba(79, 70, 229, 0.03);
+}
+
+.table caption {
+  caption-side: top;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--rmc-canvas-muted);
+}
+
+/* === 7. Form input polish =============================================== */
+
+.form-control,
+.form-select {
+  border-color: rgba(15, 23, 42, 0.15);
+  border-radius: 8px;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--school-primary, #4f46e5);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: var(--rmc-canvas-ink);
+}
+
+/* === 8. Button consistency ============================================= */
+
+.btn:not(.btn-link):not(.btn-close):not(.btn-sm):not(.btn-lg) {
+  min-height: 36px;
+}
+
+.btn-sm {
+  min-height: 30px;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--school-primary, #4f46e5);
+  outline-offset: 2px;
+}
+
+/* === 9. Badge polish =================================================== */
+
+.badge {
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  padding: 0.3em 0.55em;
+  border-radius: 999px;
+}
+
+.badge.text-bg-secondary,
+.badge.bg-secondary {
+  background: rgba(15, 23, 42, 0.08) !important;
+  color: rgba(15, 23, 42, 0.75) !important;
+}
+
+/* === 10. Breadcrumb polish ============================================= */
+
+.breadcrumb {
+  background: transparent;
+  padding: 0;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.breadcrumb-item {
+  color: var(--rmc-canvas-muted);
+}
+
+.breadcrumb-item.active {
+  color: var(--rmc-canvas-ink);
+  font-weight: 500;
+}
+
+.breadcrumb-item a {
+  color: var(--rmc-canvas-muted);
+  text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+  color: var(--school-primary, #4f46e5);
+  text-decoration: underline;
+}
+
+/* === 11. Reduce visual noise =========================================== */
+
+/* Bootstrap's hard rules between dropdown items are too aggressive */
+.dropdown-menu {
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.18);
+  padding: 0.35rem;
+}
+
+.dropdown-item {
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.92rem;
+}
+
+/* === 12. Alert polish ================================================== */
+
+.alert {
+  border-radius: 10px;
+  border-left-width: 3px;
+  padding: 0.75rem 1rem;
+}
+
+/* === 13. Skeleton hide-empty rules for layout components =============== */
+
+/* These component classes are commonly rendered empty when context is missing. */
+.platform-readiness-strip:empty,
+.rmc-os-summary-strip:empty,
+.cp-page-header:empty,
+.cp-overview-grid:empty,
+.cp-health-grid:empty,
+.cp-hero-actions:empty {
+  display: none !important;
+}
