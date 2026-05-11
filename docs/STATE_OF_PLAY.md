@@ -1,0 +1,146 @@
+# State of Play
+
+**Last updated:** 2026-05-11
+**Maintained by:** Hycinth Yimga + Claude (Opus 4.7) collaboration sessions
+
+This is the canonical project source-of-truth. If you're picking up the project
+after a break or in a new session, **start here**.
+
+---
+
+## TL;DR
+
+RunMyCampus is a multi-tenant school-management SaaS being built to compete with
+PowerSchool / Veracross / Schoology globally, with the longer-horizon ambition to
+become the "AWS / Shopify / Salesforce of education" (developer-loved API, app
+marketplace, partner ecosystem).
+
+The product is **globally shippable today** to African / European / international-
+private markets (passes 1-5 closed all the multi-tenant residue gaps). The
+enterprise-readiness program (US K-12 public, district sales, SOC 2, accessibility
+finish, AI parity, marketplace) is sequenced as **passes 6-14** in
+[`COMPETITIVE_PARITY_ROADMAP.md`](COMPETITIVE_PARITY_ROADMAP.md).
+
+---
+
+## Passes shipped (committed to `main`)
+
+| # | Commit | Date | Scope | Diff |
+|---|---|---|---|---|
+| 1 | `4f680d57` and earlier waves | 2026-05-10 | Aesthetic foundation (indigo+emerald+Inter, design-tokens.css ~100KB), config service, brand cascade | — |
+| 2 | `cde27eed` | 2026-05-10 | runtime_constants.py, TenantPaginationMixin, 60 role-string sites → `User.Role.*` enum, 46 pagination magic-numbers → settings refs, email_palette.py + 11 email templates | — |
+| 3 | `4b43ebb7` | 2026-05-10 | `fa_to_bi` icon templatetag, exam-pack BlueprintPack accessor, `/sw-asset-manifest.json` endpoint, grade-weight env vars | — |
+| 3.5 | `b02ebdc1` | 2026-05-10 | Multi-tenant safety pass: pass threshold via settings, hemisphere-aware academic year, email signoff via site_settings, neutral signup example | — |
+| 4 | `c4d3ba72` | 2026-05-10 | Multi-tenant blocker remediation (17 files, +617/−87): parent-dashboard `$`, certificate `get_grade_letter` tenant-aware, payment-gateway whitelists fixed, RegionConfig defaults XAF→USD, Certification Board enum +9 entries, ComplianceProfile labor defaults zeroed, +237 placeholders neutralized, OCR currency regex, tax_engine 40+ jurisdictions, RiskFactor.band tenant-aware | +617/−87 |
+| 5 | `8800b237` | 2026-05-11 | Global-tenant residue (19 files, +253/−131): 3 hardcoded `$` template literals, 3 DD/MM/YYYY fallback defaults, RISK_BAND/PAYMENT_MAX_AMOUNT settings, Ed-Fi/CEDS adapter grade-thresholds, seed_finance_defaults neutralized, Gender enum +NON_BINARY/PREFER_NOT_TO_SAY, 80 flash messages wrapped in `_()` | +253/−131 |
+| 6 | `fc82e1f0` | 2026-05-11 | Enterprise-readiness kickoff (13 files, +847/−22): 4 strategy docs (SECURITY/OBSERVABILITY/ECOSYSTEM_STRATEGY/COMPETITIVE_PARITY_ROADMAP) + 6 code quick wins (login audit signals, flash ARIA, duplicate h1 removed, login labels, admin index keyboard access, drf-spectacular wired with `/api/openapi.json` `/api/docs/` `/api/redoc/`) | +847/−22 |
+
+**Aggregate (passes 4-6):** 49 files, +1,717/−240, 4 new migrations, 4 strategy docs.
+
+---
+
+## Passes pending (queued in `COMPETITIVE_PARITY_ROADMAP.md`)
+
+Sequenced in priority order. Effort estimates are realistic engineering weeks.
+
+| # | Pass | Effort | What it unblocks |
+|---|---|---|---|
+| **7** | Onboarding showstoppers — magic-link at `verify_signup`, DNS automation, marketing CTAs through wizard, blueprint pack picker, sample-data toggle | 1-2 wk | Self-serve <30 min signup |
+| **8** | Importer rebuild — teachers/parents/roster/fees/payments/attendance, Excel/XLSX, async + progress + error CSV, one-click PowerSchool | 3-4 wk | Schools migrating from competitor SIS |
+| **9** | Audit-log UI — 5 missing compliance report templates, per-record drill-down, PII-VIEW decorator, ExportJob/EraseRequest queue, FerpaDisclosure model | 1 wk | SOC 2 audit + US K-12 public unlock |
+| **10** | Accessibility finish — table captions, contrast tokens, header gradient text, touch-target 24×24 floor, axe-selenium in CI | 2-3 wk | US public-district sales (Section 508) |
+| **11** | Observability finish — `CeleryIntegration` in `sentry_sdk.init`, SW errors → Sentry-Browser, SLOs in code, RUM | 1-2 wk | Enterprise SLAs |
+| **12** | API maturity — CORS, Idempotency-Key middleware, RFC 7807 errors, webhook event catalog, SDK PyPI/npm publish | 3-4 wk | First external integrators; marketplace foundation |
+| **13** | AI differentiation — real ML risk + LLM explanation, teacher comms assistant, policy/handbook RAG, report-card AI, Anthropic Claude direct integration | Multi-quarter | 2026 ed-tech AI parity (Schoology, MagicSchool) |
+| **14** | Marketplace + partner program — MarketplaceApp models, OAuth scopes, Stripe Connect revenue share, partners.runmycampus.com | Multi-quarter | "AWS-of-education" positioning |
+
+Also from [`MULTI_TENANT_GLOBAL_ROADMAP.md`](MULTI_TENANT_GLOBAL_ROADMAP.md):
+- **Offline foundational** (4-6 weeks): SMSOfflineDB read-binding (currently dead code), POST `/api/attendance/` endpoint, grades in SW write list, fresh-CSRF-on-replay, installable PWA icons.
+- **Education-system rebuild** (multi-quarter): De-Cameroonize `evals.Evaluation`, `SpecialEducationPlan` + `FerpaDisclosureLog`, `Assignment` + `Submission` LMS spine, admissions pipeline upgrade, populate empty country policy_snapshots (WAEC/KCSE/CBSE/ACARA/IGCSE/IB are bare slugs today).
+
+---
+
+## Canonical docs map
+
+| File | Purpose |
+|---|---|
+| [`STATE_OF_PLAY.md`](STATE_OF_PLAY.md) | This file — start here in any new session |
+| [`COMPETITIVE_PARITY_ROADMAP.md`](COMPETITIVE_PARITY_ROADMAP.md) | Synthesis of 6 audits; sequences passes 7-14 |
+| [`MULTI_TENANT_GLOBAL_ROADMAP.md`](MULTI_TENANT_GLOBAL_ROADMAP.md) | Offline foundational + education-system rebuild |
+| [`SECURITY.md`](SECURITY.md) | SOC 2 / ISO 27001 / PCI-DSS / FERPA / GDPR posture |
+| [`OBSERVABILITY.md`](OBSERVABILITY.md) | Sentry + Prometheus + JSON logs + SLO targets |
+| [`ECOSYSTEM_STRATEGY.md`](ECOSYSTEM_STRATEGY.md) | 5-phase 18-month marketplace + dev portal plan |
+| [`CONFIGURABILITY.md`](CONFIGURABILITY.md) | 7-layer config decision tree |
+| [`ACCESSIBILITY_WCAG.md`](ACCESSIBILITY_WCAG.md) | Pre-existing a11y status doc (a11y audit findings supplement it) |
+
+---
+
+## Push status
+
+As of 2026-05-11, **5 commits are ahead of `origin/main`** and have not been
+deployed to manager.runmycampus.com:
+
+- `fc82e1f0` — pass 6 (enterprise-readiness kickoff)
+- `0ccd0de2` — fix: template comment leak (backend_base.html)
+- `fc7e2308` — fix: stop leaking multi-line `{# #}` comments
+- `a5f5dc95` — docs: pass 6 + 7 roadmap
+- `8800b237` — pass 5 (global-tenant residue)
+
+Claude Code's auto-mode classifier blocks `git push origin main` directly
+(treats it as bypassing PR review). To deploy:
+1. Run `git push origin main` manually, OR
+2. Add `Bash(git push origin main)` permission rule in `.claude/settings.json`, OR
+3. Switch to a PR-based workflow (feature branch + `gh pr create`).
+
+---
+
+## Architecture quick facts
+
+- **Stack:** Django 5.x, DRF, Celery + Redis, Postgres with RLS, WhiteNoise, django-tenants (optional schema-per-tenant via `USE_DJANGO_TENANTS=1`), GraphQL via graphene-django, Sentry, Prometheus, drf-spectacular (as of pass 6).
+- **Active code lives in:** `beta/school-management-system/`. The top-level `Live Code/` folder is empty (legacy).
+- **Multi-tenant resolution:** by host (subdomain) or session; tenant scope enforced at middleware + ORM + Postgres RLS (`apps/siteconfig/migrations/0129_rls_policy_default_deny.py`).
+- **Deployment:** Render, single region (Oregon default; EU on request). Cross-region backup is a known SOC 2 pre-audit gap.
+- **MFA:** django-otp TOTP + WebAuthn passkeys. Argon2 password hashing.
+- **AI:** services/ai_gateway.py (771 lines) fronts Ollama → vLLM → LiteLLM → rules fallback. No direct Anthropic/OpenAI integration today (planned in pass 13).
+- **Offline:** SW + IndexedDB outbox exist; read-side mirror is dead code (templates don't call `SMSOfflineDB`). `enable_offline_mode` defaults `null` per tenant.
+- **Onboarding wizard:** `/onboard/` 3-step flow + `setup_studio` 8-step post-signup checklist. Two showstopper bugs in current flow (see pass 7).
+
+---
+
+## Conventions
+
+- **No hardcoded values:** Per [`CONFIGURABILITY.md`](CONFIGURABILITY.md), every value must resolve through one of: tenant config (SiteSettings) / env var (settings.py) / user prefs (UserPreferences) / Django i18n / feature flag / DB fixture / platform constant.
+- **No multi-tenant residue:** No Cameroon-, XAF-, FCFA-, `+237`-, DD/MM/YYYY-, or "Gilead"-specific assumptions in code paths. See passes 4 and 5 for the cleanup history.
+- **Commits:** Conventional pass naming (`pass N: <scope>` or `refactor(config): pass N — <scope>`). Co-authored-by Claude in the commit body.
+- **Style:** ruff via pre-commit. Tabs/spaces match existing files. No emoji in code or docs unless explicitly requested.
+- **i18n:** All user-facing strings wrapped in `{% trans %}` / `gettext` / `gettext_lazy`. ~340 strings still pending wrap (see configurability contract memory).
+- **A11y:** WCAG 2.2 AA targets. Skip-links + landmarks + focus-visible already in place; finish work in pass 10.
+
+---
+
+## Where to look if you need to ...
+
+| ... | Path |
+|---|---|
+| Add a new currency | `apps/registries/currency.py` (symbol table); `settings.PLATFORM_DEFAULT_CURRENCY` |
+| Add a new country/region | `RegionConfig` model + `seed_global_regions` mgmt command; `apps/siteconfig/education_profile_engine.py` for academic-year hemisphere logic |
+| Add a new grading scale | `apps/evals/grading.py` `GRADING_SCALES` + `RegionConfig.GRADING_SCALE_CHOICES` |
+| Add a new education system / board | `Certification.Board` enum in `apps/academics/models.py:345` + populated `policy_snapshot` in `seed_blueprint_policy_packs.py` |
+| Touch the brand cascade | `static/css/design-tokens.css` (canonical foundation, ~100KB) |
+| Wire a new audit-logged action | `AuditLog.Action` enum in `apps/compliance/models_audit.py:22` + signal/decorator |
+| Wire a new webhook event | `WebhookSubscription.event_types` + `DomainEvent` emit in the relevant service |
+| Add an API endpoint | `apps/api/urls_v1.py` (versioned) — drf-spectacular auto-generates OpenAPI |
+| Read the multi-tenant config contract | `docs/CONFIGURABILITY.md` |
+| Read the security posture | `docs/SECURITY.md` |
+| Read the next-step roadmap | `docs/COMPETITIVE_PARITY_ROADMAP.md` |
+
+---
+
+## How to update this file
+
+After each major commit or pass, append a row to the "Passes shipped" table with
+the commit hash, date, and a 1-line scope summary. After each completed pass that
+was in "Passes pending", move it to "Passes shipped" and re-rank what's next.
+
+Keep this file under 250 lines; if it grows, factor specifics into the matching
+roadmap doc and keep this as the index/orientation.
