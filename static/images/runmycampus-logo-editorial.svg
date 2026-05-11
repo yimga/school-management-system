@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" role="img" aria-label="RunMyCampus">
+  <title>RunMyCampus</title>
+  <defs>
+    <linearGradient id="rmc-mark-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1F2937"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <radialGradient id="rmc-mark-glow" cx="0.3" cy="0.25" r="0.6">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.08)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+  </defs>
+  <!-- Soft rounded square — feels like a stamped seal -->
+  <rect x="0" y="0" width="40" height="40" rx="10" fill="url(#rmc-mark-bg)"/>
+  <rect x="0" y="0" width="40" height="40" rx="10" fill="url(#rmc-mark-glow)"/>
+  <!-- Hairline inner ring for editorial polish -->
+  <rect x="1.5" y="1.5" width="37" height="37" rx="8.5" fill="none" stroke="rgba(250,247,242,0.06)" stroke-width="0.75"/>
+
+  <!-- Serif "C" — cream on ink. font-family is system-fallback safe; visual is the shape, not the typeface. -->
+  <text x="20" y="29" font-family="'Source Serif 4', 'Iowan Old Style', 'Baskerville', Georgia, serif"
+        font-size="26" font-weight="500" fill="#FAF7F2" text-anchor="middle" letter-spacing="-0.02em">C</text>
+
+  <!-- Tiny terracotta seal dot — the "heart of the school" accent -->
+  <circle cx="29" cy="13" r="2.6" fill="#EA580C"/>
+  <circle cx="29" cy="13" r="2.6" fill="none" stroke="#FAF7F2" stroke-width="0.75" opacity="0.5"/>
+</svg>

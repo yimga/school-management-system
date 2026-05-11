@@ -2,10 +2,7 @@
 {% load i18n %}
 {% block title %}{{ seo_title }}{% endblock %}
 {% block content %}
-{# SOT batch 1206: defensive mobile-overflow guard. The world-class browser
-   smoke previously caught a Django-debug 404 surfacing here on mobile (130px
-   horizontal overflow). The trust template itself is fine; this wrapper
-   prevents any stray overflow from the surrounding shell. #}
+{# Defensive mobile-overflow guard for the trust page wrapper. #}
 <div class="container py-5" style="overflow-x:clip; min-width:0;"
      data-world-class-trust-page="1"
      data-apple-class-trust-page="1">

@@ -1,64 +1,106 @@
 {% load i18n %}
 {# Finance dashboard artifact — fees this week. #}
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 340" role="img" aria-labelledby="finance-dashboard-title">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" role="img" aria-labelledby="finance-dashboard-title">
   <title id="finance-dashboard-title">{% trans "Finance team's view of fees this week, with one overdue account ready to nudge" %}</title>
 
-  <rect x="0" y="0" width="520" height="340" rx="14" fill="#FFFFFF" stroke="#E5E1D8"/>
+  <defs>
+    <linearGradient id="fd-window-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FDFCF9"/>
+    </linearGradient>
+    <linearGradient id="fd-header-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F5F1E8"/>
+      <stop offset="100%" stop-color="#F2EDE4"/>
+    </linearGradient>
+    <linearGradient id="fd-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#EA580C"/>
+      <stop offset="100%" stop-color="#C2410C"/>
+    </linearGradient>
+    <filter id="fd-shadow" x="-2%" y="-2%" width="104%" height="106%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.05"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
 
-  {# Header #}
-  <g>
-    <rect x="0" y="0" width="520" height="44" rx="14" fill="#F2EDE4"/>
-    <rect x="0" y="34" width="520" height="10" fill="#F2EDE4"/>
-    <g transform="translate(20 22)" fill="#9CA3AF">
-      <circle cx="0" cy="0" r="4"/>
-      <circle cx="14" cy="0" r="4"/>
-      <circle cx="28" cy="0" r="4"/>
-    </g>
-    <text x="260" y="27" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" fill="#4B5563" text-anchor="middle">{% trans "Fees · This week" %}</text>
+  <rect x="0" y="0" width="560" height="360" rx="16" fill="url(#fd-window-grad)" stroke="#E5E1D8"/>
+  <rect x="0" y="0" width="560" height="44" rx="16" fill="url(#fd-header-grad)"/>
+  <rect x="0" y="34" width="560" height="10" fill="url(#fd-header-grad)"/>
+  <line x1="0" y1="44" x2="560" y2="44" stroke="#E5E1D8"/>
+  <g transform="translate(20 22)">
+    <circle cx="0"  cy="0" r="5" fill="#F87171"/>
+    <circle cx="14" cy="0" r="5" fill="#FBBF24"/>
+    <circle cx="28" cy="0" r="5" fill="#34D399"/>
   </g>
+  <text x="280" y="28" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" fill="#4B5563" text-anchor="middle">Fees · This week</text>
 
   {# Title #}
   <g font-family="Inter, system-ui, sans-serif" fill="#1F2937">
-    <text x="28" y="80" font-family="Source Serif 4, Iowan Old Style, serif" font-size="20">{% trans "Where the term stands" %}</text>
-    <text x="28" y="100" font-size="12" fill="#6B7280">{% trans "Mon 11 Mar – Sun 17 Mar" %}</text>
+    <text x="28" y="84" font-family="Source Serif 4, Iowan Old Style, serif" font-size="24" font-weight="500" letter-spacing="-0.015em">{% trans "Where Term 2 stands" %}</text>
+    <text x="28" y="104" font-size="11" fill="#6B7280">{% trans "Mon 11 — Sun 17 Mar · auto-reconciles every hour" %}</text>
   </g>
 
   {# 3 KPI tiles #}
   <g font-family="Inter, system-ui, sans-serif">
-    <g transform="translate(28 124)">
-      <rect width="148" height="84" rx="10" fill="#FAF7F2" stroke="#E5E1D8"/>
-      <text x="14" y="24" font-size="10" font-weight="500" fill="#6B7280" letter-spacing="0.06em">{% trans "COLLECTED" %}</text>
-      <text x="14" y="58" font-family="Source Serif 4, Iowan Old Style, serif" font-size="22" fill="#1F2937">£12,450</text>
-      <text x="134" y="58" font-size="10" fill="#166534" text-anchor="end">▲ 8%</text>
-      <text x="14" y="74" font-size="10" fill="#6B7280">{% trans "vs. last week" %}</text>
+    <g transform="translate(28 130)" filter="url(#fd-shadow)">
+      <rect width="160" height="100" rx="12" fill="#FFFFFF" stroke="#E5E1D8"/>
+      <text x="16" y="24" font-size="10" font-weight="600" fill="#6B7280" letter-spacing="0.06em">COLLECTED</text>
+      <text x="16" y="56" font-family="Source Serif 4, Iowan Old Style, serif" font-size="26" font-weight="500" fill="#1F2937" letter-spacing="-0.02em">£12,450</text>
+      <g transform="translate(112 36)">
+        <path d="M 0 8 L 4 0 L 8 4" fill="none" stroke="#166534" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="14" y="6" font-size="10" font-weight="500" fill="#166534">+8%</text>
+      </g>
+      {# Sparkline #}
+      <g transform="translate(16 72)">
+        <path d="M 0 14 L 16 12 L 32 16 L 48 8 L 64 10 L 80 4 L 96 6 L 112 0" stroke="#1F2937" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="112" cy="0" r="2.5" fill="#1F2937"/>
+      </g>
     </g>
 
-    <g transform="translate(186 124)">
-      <rect width="148" height="84" rx="10" fill="#FAF7F2" stroke="#E5E1D8"/>
-      <text x="14" y="24" font-size="10" font-weight="500" fill="#6B7280" letter-spacing="0.06em">{% trans "OUTSTANDING" %}</text>
-      <text x="14" y="58" font-family="Source Serif 4, Iowan Old Style, serif" font-size="22" fill="#1F2937">£3,200</text>
-      <text x="14" y="74" font-size="10" fill="#6B7280">{% trans "5 families · 7 days+" %}</text>
+    <g transform="translate(200 130)" filter="url(#fd-shadow)">
+      <rect width="160" height="100" rx="12" fill="#FFFFFF" stroke="#E5E1D8"/>
+      <text x="16" y="24" font-size="10" font-weight="600" fill="#6B7280" letter-spacing="0.06em">OUTSTANDING</text>
+      <text x="16" y="56" font-family="Source Serif 4, Iowan Old Style, serif" font-size="26" font-weight="500" fill="#1F2937" letter-spacing="-0.02em">£3,200</text>
+      <text x="16" y="74" font-size="11" fill="#6B7280">{% trans "5 families · 7d+" %}</text>
+      <g transform="translate(16 84)">
+        <rect width="128" height="3" rx="1.5" fill="#E5E1D8"/>
+        <rect width="48" height="3" rx="1.5" fill="url(#fd-accent)"/>
+      </g>
     </g>
 
-    <g transform="translate(344 124)">
-      <rect width="148" height="84" rx="10" fill="#FAF7F2" stroke="#E5E1D8"/>
-      <text x="14" y="24" font-size="10" font-weight="500" fill="#6B7280" letter-spacing="0.06em">{% trans "PAID" %}</text>
-      <text x="14" y="58" font-family="Source Serif 4, Iowan Old Style, serif" font-size="22" fill="#1F2937">87 / 92</text>
-      {# progress bar #}
-      <rect x="14" y="64" width="120" height="4" rx="2" fill="#E5E1D8"/>
-      <rect x="14" y="64" width="113" height="4" rx="2" fill="#1F2937"/>
+    <g transform="translate(372 130)" filter="url(#fd-shadow)">
+      <rect width="160" height="100" rx="12" fill="#FFFFFF" stroke="#E5E1D8"/>
+      <text x="16" y="24" font-size="10" font-weight="600" fill="#6B7280" letter-spacing="0.06em">PAID THIS WEEK</text>
+      <text x="16" y="56" font-family="Source Serif 4, Iowan Old Style, serif" font-size="26" font-weight="500" fill="#1F2937" letter-spacing="-0.02em">87 / 92</text>
+      <text x="16" y="74" font-size="11" fill="#6B7280">{% trans "95% collection rate" %}</text>
+      <g transform="translate(16 84)">
+        <rect width="128" height="3" rx="1.5" fill="#E5E1D8"/>
+        <rect width="121" height="3" rx="1.5" fill="#166534"/>
+      </g>
     </g>
   </g>
 
-  {# Overdue row — primary action #}
-  <g transform="translate(28 232)" font-family="Inter, system-ui, sans-serif">
-    <rect width="464" height="68" rx="10" fill="#FAF7F2" stroke="#E5E1D8"/>
-    <text x="20" y="24" font-size="10" font-weight="500" fill="#6B7280" letter-spacing="0.06em">{% trans "READY TO NUDGE" %}</text>
-    <text x="20" y="48" font-size="13" font-weight="500" fill="#1F2937">{% trans "Aisha Khan · Year 5B" %}</text>
-    <text x="20" y="62" font-size="11" fill="#4B5563">£445 · {% trans "7 days overdue · 2 reminders sent" %}</text>
-    <rect x="346" y="20" width="100" height="28" rx="6" fill="#1F2937"/>
-    <text x="396" y="38" font-size="11" font-weight="500" fill="#FAF7F2" text-anchor="middle">{% trans "Send reminder" %}</text>
+  {# Ready-to-nudge row #}
+  <g transform="translate(28 250)" filter="url(#fd-shadow)">
+    <rect width="504" height="84" rx="12" fill="#FAF7F2" stroke="#E5E1D8"/>
+    <g transform="translate(20 18)">
+      <text font-size="10" font-weight="600" fill="#6B7280" letter-spacing="0.06em">READY TO NUDGE</text>
+      <g transform="translate(0 14)">
+        <circle cx="14" cy="14" r="14" fill="#FED7AA"/>
+        <text x="14" y="18" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" fill="#9A3412" text-anchor="middle">AK</text>
+        <text x="36" y="14" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="500" fill="#1F2937">{% trans "Aisha Khan · Year 5B" %}</text>
+        <text x="36" y="30" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#6B7280">£445 · {% trans "7 days overdue · 2 reminders sent" %}</text>
+      </g>
+      {# Right-side stacked actions #}
+      <g transform="translate(310 14)">
+        <rect width="74" height="26" rx="13" fill="#FFFFFF" stroke="#E5E1D8"/>
+        <text x="37" y="17" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="500" fill="#1F2937" text-anchor="middle">{% trans "View invoice" %}</text>
+      </g>
+      <g transform="translate(392 14)">
+        <rect width="92" height="26" rx="13" fill="#1F2937"/>
+        <text x="46" y="17" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="500" fill="#FAF7F2" text-anchor="middle">{% trans "Send reminder" %}</text>
+      </g>
+    </g>
   </g>
-
-  <text x="28" y="324" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#9CA3AF">{% trans "Reconciles to ledger · last sync 3 min ago" %}</text>
 </svg>

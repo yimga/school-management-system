@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n static %}
 <footer class="mkt-footer" role="contentinfo">
   <div class="container">
     <div class="row g-4">
@@ -88,9 +88,18 @@
       </div>
     </div>
 
-    {# Legal strip — what used to be a full column collapses into one quiet row. #}
-    <div class="mkt-footer-legal mt-4 pt-3 border-top d-flex flex-wrap gap-3 align-items-center justify-content-between">
-      <div class="mkt-footer-brand">{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}</div>
+    {# Brand seal moment — large editorial wordmark over the legal strip. #}
+    <div class="mkt-footer-seal mt-5 pt-4 border-top">
+      <div class="mkt-footer-seal__mark">
+        <img src="{% static 'images/runmycampus-logo-editorial.svg' %}" alt="" width="40" height="40" decoding="async" loading="lazy">
+        <span class="mkt-footer-seal__wordmark">{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}</span>
+      </div>
+      <p class="mkt-footer-seal__tagline">{% trans "One quiet system, behind everything your school does." %}</p>
+    </div>
+
+    {# Legal strip — quiet bottom row. #}
+    <div class="mkt-footer-legal mt-3 pt-3 border-top d-flex flex-wrap gap-3 align-items-center justify-content-between">
+      <div class="mkt-footer-copy">© <span data-mkt-year>{% now "Y" %}</span> {% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}. {% trans "All rights reserved." %}</div>
       <ul class="mkt-footer-legal-links list-unstyled d-flex flex-wrap gap-3 m-0 small">
         <li><a href="{% url 'marketing_security_compliance' %}">{% trans "Security" %}</a></li>
         <li><a href="{% url 'marketing_trust_center' %}">{% trans "Trust Center" %}</a></li>

@@ -18,33 +18,30 @@
   {% endblock %}
   <title>{% block title %}{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}{% endblock %}</title>
   <link rel="icon" href="{% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
+
+  {# Source Serif 4 — editorial display face. Preconnect first so the font request fires in parallel with CSS. #}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&display=swap">
+
   {% block extrahead %}{% endblock %}
 
   <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
-  {# bootstrap-theme-bridge.css intentionally NOT loaded on marketing — marketing has its
-     own design system (tokens-marketing.css + tokens-editorial.css + marketing-shell.css)
-     and does not want platform indigo/emerald bleeding into its cream/serif/terracotta
-     editorial direction. Portal/admin/control-plane DO load the bridge. #}
+  {# Marketing surface intentionally does not load bootstrap-theme-bridge.css — keeps editorial palette from being overridden by platform indigo/emerald. #}
   <link rel="stylesheet" href="{% static 'css/statement-header.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/tokens-marketing.css' %}">
-  {# tokens-editorial.css — additive, opt-in via [data-mkt-edition="editorial"] ancestor.
-     Loaded globally so Phase 2 chrome (header, footer, pricing, mega menu) can flip
-     surfaces to the editorial palette page-by-page without per-template includes.
-     Rules with no editorial ancestor cost nothing. Memory: project_marketing_aesthetic.md #}
+  {# tokens-editorial.css activates via [data-mkt-edition="editorial"] on body — additive, opt-in. #}
   <link rel="stylesheet" href="{% static 'marketing/css/tokens-editorial.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-shell.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/proof-pages.css' %}">
   <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
-  <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
-  {# Replaced 109 KB phase2-static-templates-bundle.css (which was 95% portal/admin/CP rules)
-     with a 9 KB carve-out of just the marketing template blocks. The full bundle is still
-     loaded by portal_base.html, control_plane_skeleton.html, base.html, and admin/base_site.html. #}
+  {# design-system-phase2-enforcement.css dropped from marketing — its .ds-*/Bootstrap-overlap rules are not used on the editorial surface (Bootstrap alone covers .alert / .card / .btn-*). ~8 KB shaved. #}
+  {# marketing-static-bundle.css = 9 KB carve-out of phase2-static-templates-bundle.css covering only marketing template blocks. #}
   <link rel="stylesheet" href="{% static 'css/marketing-static-bundle.css' %}">
   <link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
-  {# Public brand CSS variables on html[style] when PUBLIC_BRAND_MODE (Phase 2). #}
   <!-- §8.0.11 platform-wide: responsive and fluid layout on every page -->
   <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
   <link rel="stylesheet" href="{% static 'css/platform-fluid-everywhere.css' %}">
@@ -57,7 +54,7 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-accessibility-hardening.css' %}">
 </head>
 {# data-cta (primary|demo|secondary) and data-page (page slug or home|footer) on CTAs are for GTM/analytics conversion tracking. #}
-<body class="{% block body_class %}marketing-surface{% endblock %}" data-rmc-premium-shell="marketing" data-rmc-page-purpose="public-story"{% block body_extra_attrs %} data-mkt-edition="editorial"{% endblock %}>
+<body class="{% block body_class %}marketing-surface{% endblock %}" data-rmc-premium-shell="marketing" data-rmc-page-purpose="public-story"{% block body_extra_attrs %} data-mkt-edition="editorial" data-mkt-section="{% with s=marketing_page_slug|default:'platform' %}{% if 'platform' in s or 'sis' in s or 'admissions' in s or 'attendance' in s or 'fees' in s or 'grading' in s or 'parent-portal' in s or 'teacher-portal' in s or 'student-portal' in s or 'communications' in s or 'analytics' in s or 'workflows' in s or 'offline' in s or 'security' in s %}platform{% elif 'solutions' in s or 'for-private' in s or 'for-school' in s or 'k12' in s or 'international' in s or 'multi-campus' in s or 'faith' in s or 'payments-readiness' in s %}solutions{% elif 'pricing' in s %}pricing{% elif 'resources' in s or 'developer' in s or 'blog' in s or 'guides' in s or 'case-studies' in s or 'help-center' in s or 'product-tour' in s %}resources{% elif 'trust' in s or 'compliance' in s %}trust{% elif 'migrate' in s or 'migration' in s %}migrate{% elif 'compare' in s %}compare{% elif 'company' in s or 'about' in s or 'contact' in s or 'demo' in s %}company{% else %}platform{% endif %}{% endwith %}"{% endblock %}>
   {# Public marketing surface: tenant PWA/service-worker prompts belong on school subdomains, not this shell (see portal_base vs marketing templates). #}
   <a href="#main-content" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
   {% include 'marketing/marketing_header.html' %}
@@ -77,6 +74,7 @@
 
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
   <script src="{% static 'marketing/js/marketing-shell.js' %}" defer></script>
+  <script src="{% static 'marketing/js/marketing-motion.js' %}" defer></script>
   {% include 'marketing/partials/marketing_analytics.html' %}
   {% include 'components/rum_beacon.html' %}
   {% block extrajs %}{% endblock %}

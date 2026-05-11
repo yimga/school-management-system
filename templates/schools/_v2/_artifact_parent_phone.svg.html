@@ -1,97 +1,168 @@
 {% load i18n %}
 {# Hero artifact — parent's phone showing today's school summary. Decorative; the parent <div> sets aria-hidden. #}
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 680" role="img" aria-labelledby="parent-phone-title">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 720" role="img" aria-labelledby="parent-phone-title">
   <title id="parent-phone-title">{% trans "A parent's phone showing today's permission slip, attendance, and fee reminder for Cedar Ridge Academy" %}</title>
 
   <defs>
+    <linearGradient id="bezel-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1F2937"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="screen-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FAF7F2"/>
+    </linearGradient>
+    <linearGradient id="card-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FDFCF9"/>
+    </linearGradient>
+    <linearGradient id="accent-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#EA580C"/>
+      <stop offset="100%" stop-color="#C2410C"/>
+    </linearGradient>
+    <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.06"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
     <clipPath id="phone-screen-clip">
-      <rect x="20" y="20" width="300" height="640" rx="34"/>
+      <rect x="22" y="22" width="316" height="676" rx="38"/>
     </clipPath>
   </defs>
 
   {# Phone bezel #}
-  <rect x="8" y="8" width="324" height="664" rx="42" fill="#1F2937"/>
+  <rect x="8" y="8" width="344" height="704" rx="46" fill="url(#bezel-grad)"/>
+  <rect x="10" y="10" width="340" height="700" rx="44" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
   {# Screen #}
-  <rect x="20" y="20" width="300" height="640" rx="34" fill="#FAF7F2"/>
+  <rect x="22" y="22" width="316" height="676" rx="38" fill="url(#screen-grad)"/>
 
   <g clip-path="url(#phone-screen-clip)" font-family="Inter, system-ui, sans-serif" fill="#1F2937">
 
     {# Status bar #}
-    <text x="42" y="48" font-size="13" font-weight="600" fill="#1F2937">8:14</text>
-    <g transform="translate(258 38)" fill="#1F2937">
-      <rect x="0" y="0" width="4" height="10" rx="1"/>
-      <rect x="6" y="-2" width="4" height="12" rx="1"/>
-      <rect x="12" y="-4" width="4" height="14" rx="1"/>
-      <rect x="22" y="-2" width="20" height="10" rx="2" fill="none" stroke="#1F2937" stroke-width="1.2"/>
-      <rect x="24" y="0" width="14" height="6" rx="1"/>
+    <text x="44" y="50" font-size="13" font-weight="600" fill="#1F2937" letter-spacing="-0.02em">9:41</text>
+    {# Signal bars #}
+    <g transform="translate(258 44)" fill="#1F2937">
+      <rect x="0"  y="4" width="3" height="6" rx="0.5"/>
+      <rect x="5"  y="2" width="3" height="8" rx="0.5"/>
+      <rect x="10" y="0" width="3" height="10" rx="0.5"/>
+      <rect x="15" y="-2" width="3" height="12" rx="0.5"/>
+    </g>
+    {# Wifi icon #}
+    <g transform="translate(284 48)" fill="none" stroke="#1F2937" stroke-width="1.4" stroke-linecap="round">
+      <path d="M0 0 a 8 8 0 0 1 12 0" />
+      <path d="M2 3 a 5 5 0 0 1 8 0" />
+      <circle cx="6" cy="7" r="1" fill="#1F2937" stroke="none"/>
+    </g>
+    {# Battery #}
+    <g transform="translate(304 42)">
+      <rect x="0" y="0" width="22" height="11" rx="2.5" fill="none" stroke="#1F2937" stroke-width="1"/>
+      <rect x="23" y="3.5" width="2" height="4" rx="0.5" fill="#1F2937"/>
+      <rect x="2" y="2" width="17" height="7" rx="1" fill="#1F2937"/>
     </g>
 
-    {# App header — school name + greeting #}
-    <g transform="translate(42 86)">
-      <circle cx="0" cy="0" r="14" fill="#C2410C"/>
-      <text x="-5" y="5" font-size="13" font-weight="600" fill="#FAF7F2" font-family="Source Serif 4, Iowan Old Style, serif">C</text>
-      <text x="22" y="-2" font-size="11" font-weight="500" fill="#6B7280" letter-spacing="0.04em">CEDAR RIDGE ACADEMY</text>
-      <text x="22" y="14" font-size="14" font-weight="500" fill="#1F2937">{% trans "Good morning, Imani" %}</text>
+    {# App header — brand row #}
+    <g transform="translate(44 96)">
+      <rect width="28" height="28" rx="9" fill="url(#accent-grad)"/>
+      <text x="14" y="19" font-size="14" font-weight="600" fill="#FAF7F2" font-family="Source Serif 4, Iowan Old Style, serif" text-anchor="middle">C</text>
+      <text x="38" y="9" font-size="10" font-weight="500" fill="#9CA3AF" letter-spacing="0.06em">CEDAR RIDGE ACADEMY</text>
+      <text x="38" y="24" font-size="15" font-weight="600" fill="#1F2937" letter-spacing="-0.01em">{% trans "Hi, Imani" %}</text>
+      {# Notification bell with red dot #}
+      <g transform="translate(244 13)">
+        <path d="M 0 -2 L 0 6 A 6 6 0 0 0 12 6 L 12 -2 A 6 6 0 0 0 0 -2 Z" fill="none" stroke="#4B5563" stroke-width="1.4" stroke-linejoin="round"/>
+        <line x1="-2" y1="6" x2="14" y2="6" stroke="#4B5563" stroke-width="1.4" stroke-linecap="round"/>
+        <circle cx="11" cy="-2" r="3" fill="#C2410C"/>
+      </g>
     </g>
 
-    {# Section label #}
-    <text x="42" y="138" font-size="11" font-weight="500" fill="#6B7280" letter-spacing="0.06em">{% trans "TODAY" %}</text>
+    {# Section eyebrow #}
+    <text x="44" y="158" font-size="10" font-weight="600" fill="#6B7280" letter-spacing="0.1em">{% trans "TODAY · TUE 18 MAR" %}</text>
 
-    {# Card 1 — Today's message #}
-    <g transform="translate(34 152)">
-      <rect width="272" height="108" rx="14" fill="#FFFFFF" stroke="#E5E1D8"/>
-      <text x="20" y="32" font-size="11" font-weight="500" fill="#6B7280" letter-spacing="0.04em">{% trans "MESSAGE" %}</text>
-      <text x="20" y="56" font-size="16" font-weight="500" fill="#1F2937" font-family="Source Serif 4, Iowan Old Style, serif">{% trans "Year 5 field trip" %}</text>
-      <text x="20" y="76" font-size="12" fill="#4B5563">{% trans "Permission slip — by Friday." %}</text>
-      <rect x="20" y="86" width="64" height="14" rx="7" fill="#1F2937"/>
-      <text x="52" y="96" font-size="10" font-weight="500" fill="#FAF7F2" text-anchor="middle">{% trans "Sign" %}</text>
-    </g>
-
-    {# Card 2 — Maya's attendance #}
-    <g transform="translate(34 280)">
-      <rect width="272" height="80" rx="14" fill="#FFFFFF" stroke="#E5E1D8"/>
-      <text x="20" y="30" font-size="11" font-weight="500" fill="#6B7280" letter-spacing="0.04em">{% trans "MAYA · YEAR 5B" %}</text>
-      <circle cx="26" cy="52" r="4" fill="#166534"/>
-      <text x="38" y="56" font-size="13" fill="#1F2937">{% trans "Present at 8:42" %}</text>
-      <text x="252" y="56" font-size="11" fill="#6B7280" text-anchor="end">{% trans "Tap to view" %} ›</text>
-    </g>
-
-    {# Card 3 — Pay reminder #}
-    <g transform="translate(34 380)">
-      <rect width="272" height="108" rx="14" fill="#FFFFFF" stroke="#E5E1D8"/>
-      <text x="20" y="32" font-size="11" font-weight="500" fill="#6B7280" letter-spacing="0.04em">{% trans "FEES" %}</text>
-      <text x="20" y="56" font-size="16" font-weight="500" fill="#1F2937" font-family="Source Serif 4, Iowan Old Style, serif">{% trans "Term 2" %}</text>
-      <text x="20" y="76" font-size="12" fill="#4B5563">£445 · {% trans "due Mon 24 Mar" %}</text>
-      <rect x="20" y="86" width="56" height="14" rx="7" fill="#C2410C"/>
-      <text x="48" y="96" font-size="10" font-weight="500" fill="#FAF7F2" text-anchor="middle">{% trans "Pay" %}</text>
-    </g>
-
-    {# Card 4 — Quiet update #}
-    <g transform="translate(34 508)">
-      <rect width="272" height="68" rx="14" fill="#F2EDE4"/>
-      <text x="20" y="30" font-size="11" font-weight="500" fill="#6B7280" letter-spacing="0.04em">{% trans "FROM SCHOOL" %}</text>
-      <text x="20" y="50" font-size="12" fill="#1F2937">{% trans "Parents' evening: 26 March, 5–8 p.m." %}</text>
-    </g>
-
-    {# Bottom tab bar #}
-    <g transform="translate(0 600)">
-      <line x1="20" y1="0" x2="320" y2="0" stroke="#E5E1D8"/>
-      <g font-size="9" font-weight="500" fill="#1F2937" text-anchor="middle">
-        <g transform="translate(80 28)">
-          <circle cx="0" cy="-8" r="3" fill="#1F2937"/>
-          <text>{% trans "Home" %}</text>
+    {# Card 1 — Permission slip (most prominent) #}
+    <g transform="translate(32 172)" filter="url(#card-shadow)">
+      <rect width="296" height="124" rx="16" fill="url(#card-grad)" stroke="#E5E1D8" stroke-width="0.75"/>
+      <g transform="translate(20 22)">
+        <rect width="28" height="28" rx="8" fill="#FEF3E7"/>
+        <path d="M 8 8 L 8 20 M 8 8 L 18 8 M 8 14 L 16 14 M 8 20 L 14 20" stroke="#C2410C" stroke-width="1.6" stroke-linecap="round"/>
+        <text x="42" y="11" font-size="10" font-weight="600" fill="#C2410C" letter-spacing="0.06em">PERMISSION SLIP</text>
+        <text x="42" y="30" font-size="16" font-weight="600" fill="#1F2937" font-family="Source Serif 4, Iowan Old Style, serif" letter-spacing="-0.01em">{% trans "Year 5 trip — Science museum" %}</text>
+        <text x="42" y="48" font-size="11" fill="#6B7280">{% trans "Sign by Friday 5 p.m. · Bus leaves 9:15" %}</text>
+        <g transform="translate(42 60)">
+          <rect width="72" height="26" rx="13" fill="#1F2937"/>
+          <text x="36" y="17" font-size="11" font-weight="500" fill="#FAF7F2" text-anchor="middle">{% trans "Review &amp; sign" %}</text>
         </g>
-        <g transform="translate(140 28)" fill="#9CA3AF">
-          <circle cx="0" cy="-8" r="3" fill="#9CA3AF"/>
-          <text>{% trans "Messages" %}</text>
+        <text x="124" y="76" font-size="11" fill="#9CA3AF">{% trans "Maya, Year 5B" %}</text>
+      </g>
+    </g>
+
+    {# Card 2 — Attendance check-in (compact) #}
+    <g transform="translate(32 312)" filter="url(#card-shadow)">
+      <rect width="296" height="78" rx="16" fill="url(#card-grad)" stroke="#E5E1D8" stroke-width="0.75"/>
+      <g transform="translate(20 22)">
+        <rect width="28" height="28" rx="8" fill="#ECFDF5"/>
+        <path d="M 8 14 L 12 18 L 20 10" stroke="#166534" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <text x="42" y="11" font-size="10" font-weight="600" fill="#166534" letter-spacing="0.06em">ARRIVED</text>
+        <text x="42" y="28" font-size="14" font-weight="500" fill="#1F2937">{% trans "Maya · in at 8:42" %}</text>
+        <text x="42" y="44" font-size="11" fill="#6B7280">{% trans "Morning roll marked · Year 5B" %}</text>
+      </g>
+    </g>
+
+    {# Card 3 — Fee due (with accent CTA) #}
+    <g transform="translate(32 406)" filter="url(#card-shadow)">
+      <rect width="296" height="124" rx="16" fill="url(#card-grad)" stroke="#E5E1D8" stroke-width="0.75"/>
+      <g transform="translate(20 22)">
+        <rect width="28" height="28" rx="8" fill="#F2EDE4"/>
+        <text x="14" y="20" font-size="13" font-weight="600" fill="#1F2937" text-anchor="middle">£</text>
+        <text x="42" y="11" font-size="10" font-weight="600" fill="#6B7280" letter-spacing="0.06em">FEES · TERM 2</text>
+        <text x="42" y="32" font-size="22" font-weight="600" fill="#1F2937" font-family="Source Serif 4, Iowan Old Style, serif" letter-spacing="-0.02em">£445.00</text>
+        <text x="42" y="50" font-size="11" fill="#6B7280">{% trans "Due Mon 24 Mar · invoice INV-2403" %}</text>
+        {# Mini progress bar #}
+        <g transform="translate(42 60)">
+          <rect width="200" height="4" rx="2" fill="#E5E1D8"/>
+          <rect width="124" height="4" rx="2" fill="url(#accent-grad)"/>
         </g>
-        <g transform="translate(200 28)" fill="#9CA3AF">
-          <circle cx="0" cy="-8" r="3" fill="#9CA3AF"/>
-          <text>{% trans "Pay" %}</text>
+        <text x="42" y="80" font-size="10" fill="#9CA3AF">{% trans "2 of 3 instalments cleared" %}</text>
+        <g transform="translate(180 -8)">
+          <rect width="62" height="26" rx="13" fill="url(#accent-grad)"/>
+          <text x="31" y="17" font-size="11" font-weight="500" fill="#FAF7F2" text-anchor="middle">{% trans "Pay now" %}</text>
         </g>
-        <g transform="translate(260 28)" fill="#9CA3AF">
-          <circle cx="0" cy="-8" r="3" fill="#9CA3AF"/>
-          <text>{% trans "Profile" %}</text>
+      </g>
+    </g>
+
+    {# Card 4 — Quiet update / event #}
+    <g transform="translate(32 546)" filter="url(#card-shadow)">
+      <rect width="296" height="64" rx="16" fill="#F2EDE4" stroke="#E5E1D8" stroke-width="0.75"/>
+      <g transform="translate(20 22)">
+        <text x="0" y="2" font-size="10" font-weight="600" fill="#6B7280" letter-spacing="0.06em">FROM SCHOOL</text>
+        <text x="0" y="22" font-size="12" fill="#1F2937">{% trans "Parents' evening · 26 March, 5–8 p.m." %}</text>
+      </g>
+    </g>
+
+    {# Bottom tab bar — refined with simple icons #}
+    <g transform="translate(0 640)">
+      <line x1="22" y1="0" x2="338" y2="0" stroke="#E5E1D8"/>
+      <g font-size="9" font-weight="500" text-anchor="middle">
+        {# Home (active) #}
+        <g transform="translate(80 30)">
+          <path d="M -7 4 L 0 -3 L 7 4 L 7 8 L -7 8 Z" fill="none" stroke="#1F2937" stroke-width="1.4" stroke-linejoin="round"/>
+          <text y="22" fill="#1F2937">{% trans "Home" %}</text>
+        </g>
+        {# Messages #}
+        <g transform="translate(146 30)">
+          <path d="M -8 -3 L 8 -3 L 8 5 L 1 5 L -2 8 L -2 5 L -8 5 Z" fill="none" stroke="#9CA3AF" stroke-width="1.3" stroke-linejoin="round"/>
+          <text y="22" fill="#9CA3AF">{% trans "Inbox" %}</text>
+        </g>
+        {# Pay #}
+        <g transform="translate(212 30)">
+          <rect x="-8" y="-3" width="16" height="11" rx="2" fill="none" stroke="#9CA3AF" stroke-width="1.3"/>
+          <line x1="-8" y1="0" x2="8" y2="0" stroke="#9CA3AF" stroke-width="1.3"/>
+          <text y="22" fill="#9CA3AF">{% trans "Pay" %}</text>
+        </g>
+        {# Profile #}
+        <g transform="translate(278 30)">
+          <circle cx="0" cy="-3" r="3" fill="none" stroke="#9CA3AF" stroke-width="1.3"/>
+          <path d="M -6 8 A 6 5 0 0 1 6 8" fill="none" stroke="#9CA3AF" stroke-width="1.3"/>
+          <text y="22" fill="#9CA3AF">{% trans "You" %}</text>
         </g>
       </g>
     </g>
