@@ -353,6 +353,63 @@ def healthz(request):
     )
 
 
+@require_POST
+def client_event_capture(request):
+    """
+    Pass 11.B: server-side bridge for browser + service-worker errors.
+
+    Accepts a small JSON payload from the frontend (`message`, `level`, `url`,
+    `line`, `col`, `stack`, `source` ∈ {"window", "sw", "unhandled_rejection"}).
+    Sanitizes + forwards via the server-side sentry_sdk so we never need a
+    CDN-loaded Sentry-Browser SDK on the page.
+
+    Returns 204 on success; the call is fire-and-forget for the frontend.
+    """
+    try:
+        payload = json.loads(request.body.decode("utf-8") or "{}")
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return JsonResponse({"ok": False, "error": "invalid_json"}, status=400)
+
+    message = str(payload.get("message") or "")[:500]
+    if not message:
+        return JsonResponse({"ok": False, "error": "missing_message"}, status=400)
+
+    level = str(payload.get("level") or "error").lower()
+    if level not in {"info", "warning", "error", "fatal"}:
+        level = "error"
+
+    source = str(payload.get("source") or "window")[:24]
+    if source not in {"window", "sw", "unhandled_rejection"}:
+        source = "window"
+
+    # PII / size guard: drop stack frames past 4kB total.
+    stack = str(payload.get("stack") or "")[:4000]
+    url = str(payload.get("url") or "")[:500]
+    line = payload.get("line")
+    col = payload.get("col")
+    user_agent = (request.META.get("HTTP_USER_AGENT") or "")[:300]
+
+    try:
+        import sentry_sdk
+
+        with sentry_sdk.push_scope() as scope:
+            scope.set_tag("source", source)
+            scope.set_tag("client_capture", "1")
+            scope.set_extra("url", url)
+            scope.set_extra("line", line)
+            scope.set_extra("col", col)
+            scope.set_extra("stack", stack)
+            scope.set_extra("user_agent", user_agent)
+            user = getattr(request, "user", None)
+            if user is not None and getattr(user, "is_authenticated", False):
+                scope.user = {"id": str(user.pk), "username": user.username}
+            sentry_sdk.capture_message(message, level=level)
+    except (ImportError, AttributeError, TypeError, ValueError):
+        logger.warning("client_event_capture: sentry_sdk forward failed: %s", message)
+
+    return HttpResponse(status=204)
+
+
 @require_GET
 def public_health(request):
     """Public health endpoint for load balancers and uptime checks.

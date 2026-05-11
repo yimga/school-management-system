@@ -16,6 +16,41 @@ const BACKOFF_MAX_MS = 15 * 60 * 1000;
 /** Base delay for first retry (ms). */
 const BACKOFF_BASE_MS = 2000;
 
+// Pass 11.B: forward SW errors to controlled clients so the in-page Sentry
+// bridge (static/js/sentry-browser-bridge.js) can POST them to the observability
+// endpoint. Wrapped in a try/catch because clients.matchAll() rejects when there
+// are no controlled clients yet (very early SW startup).
+function _broadcastSwError(payload) {
+  try {
+    self.clients.matchAll({ includeUncontrolled: false, type: "window" }).then(function (clients) {
+      clients.forEach(function (client) {
+        try {
+          client.postMessage(Object.assign({ type: "sw-error" }, payload));
+        } catch (_) { /* one bad client must not block the rest */ }
+      });
+    }).catch(function () { /* no clients = no-op */ });
+  } catch (_) { /* defensive: never crash on telemetry */ }
+}
+
+self.addEventListener("error", function (event) {
+  _broadcastSwError({
+    level: "error",
+    message: String((event && (event.message || (event.error && event.error.message))) || "SW error"),
+    url: String((event && event.filename) || ""),
+    stack: String((event && event.error && event.error.stack) || "")
+  });
+});
+
+self.addEventListener("unhandledrejection", function (event) {
+  var reason = (event && event.reason) || {};
+  _broadcastSwError({
+    level: "error",
+    message: String(reason.message || reason || "SW unhandled rejection"),
+    url: "",
+    stack: String(reason.stack || "")
+  });
+});
+
 let OFFLINE_CONFIG = {
   enabled: true,
   formQueueEnabled: true,

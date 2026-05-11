@@ -24,6 +24,12 @@ urlpatterns = [
     path("ready/", obs_views.public_health, name="ready"),
     path("status/", obs_views.public_health, name="status"),
     path("api/health/", obs_views.api_health, name="api_health"),
+    # Pass 11.B: server-side bridge for browser / SW error capture (CDN-free).
+    path(
+        "api/observability/client-event/",
+        obs_views.client_event_capture,
+        name="client_event_capture",
+    ),
     path("api/", include(("apps.api.urls", "api"), namespace="api")),
     path("api/v1/", include(("apps.api.urls_v1", "api_v1"), namespace="api_v1")),
 ]

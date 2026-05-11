@@ -416,7 +416,9 @@
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>
     <script src="{% static 'js/portal-sidebar.js' %}"></script>
     <script src="{% static 'js/portal-resize-keyboard.js' %}" defer></script>
-    
+    {# Pass 11.B: forward uncaught errors + SW errors to /api/observability/client-event/. #}
+    <script src="{% static 'js/sentry-browser-bridge.js' %}" defer></script>
+
     <!-- React and TanStack Query (self-hosted, no CDN) -->
     {% block react_libs %}
     <script src="{% static 'vendor/react/react.production.min.js' %}"></script>
