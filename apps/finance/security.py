@@ -281,8 +281,24 @@ class PaymentValidator:
         if amount_decimal <= 0:
             return False, f"Amount must be positive, got {amount_decimal}"
 
-        # Practical limit: 1 billion XAF (~1.6M USD)
-        if amount_decimal > Decimal("1000000000"):
+        # Practical sanity cap on a single payment amount expressed in the smallest
+        # tenant currency unit. The default (100 billion minor units) accommodates
+        # low-denomination currencies like IDR, VND, and IRR while still catching
+        # obvious data-entry errors. Override per deployment via
+        # settings.PAYMENT_MAX_AMOUNT (Decimal-coercible) when stricter limits apply.
+        try:
+            from django.conf import settings
+
+            max_amount_raw = getattr(settings, "PAYMENT_MAX_AMOUNT", None)
+            max_amount = (
+                Decimal(str(max_amount_raw))
+                if max_amount_raw is not None
+                else Decimal("100000000000")
+            )
+        except (ImportError, ValueError, TypeError):
+            max_amount = Decimal("100000000000")
+
+        if amount_decimal > max_amount:
             return False, f"Amount exceeds maximum limit: {amount_decimal}"
 
         return True, None

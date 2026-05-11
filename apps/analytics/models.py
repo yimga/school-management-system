@@ -160,11 +160,27 @@ class RiskFactor(models.Model):
 
     @property
     def band(self):
-        """Red / Amber / Green for heat map."""
+        """Red / Amber / Green for heat map, using the school's RiskThresholds when defined.
+
+        Falls back to 80 / 50 if no per-tenant thresholds have been set so the heat map
+        continues to render rather than silently flatlining to green.
+        """
         s = float(self.score)
-        if s >= 80:
+        red_min = 80.0
+        amber_min = 50.0
+        try:
+            thresholds = getattr(self.school, "risk_thresholds", None)
+        except (AttributeError, ValueError):
+            thresholds = None
+        if thresholds is not None:
+            try:
+                red_min = float(getattr(thresholds, "red_min", red_min))
+                amber_min = float(getattr(thresholds, "amber_min", amber_min))
+            except (TypeError, ValueError):
+                pass
+        if s >= red_min:
             return "red"
-        if s >= 50:
+        if s >= amber_min:
             return "amber"
         return "green"
 

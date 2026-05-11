@@ -202,16 +202,25 @@ class ReceiptVerificationService:
         if not text:
             return None
 
-        # Common patterns for amounts
+        # Currency token regex covers ISO 4217 codes plus common informal aliases
+        # (FCFA, CFA, KSh, Ksh, ₦, ₵, $, £, €, ¥, ₹, ৳, R, Rs, NT$, HK$, etc.).
+        # We deliberately match 2-5 alphanumeric ISO-style codes OR a small set of
+        # informal symbols/aliases so receipts in any tenant's currency are parsed.
+        _currency_token = (
+            r"(?:[A-Z]{3,4}|FCFA|CFA|KSh|Ksh|Sh|Rs\.?|R|RM|kr|"
+            r"₦|₵|₣|₪|₩|₫|₱|₴|₸|₺|₼|₿|৳|฿|﷼|"
+            r"\$|US\$|HK\$|NT\$|S\$|R\$|A\$|C\$|NZ\$|"
+            r"£|€|¥|₹)"
+        )
         patterns = [
             # Currency + amount patterns
-            r"(\d{1,3}(?:[,\s]\d{3})*(?:\.\d{2})?)\s*(?:XAF|FCFA|CFA|USD|EUR)",
-            r"(?:XAF|FCFA|CFA|USD|EUR)\s*(\d{1,3}(?:[,\s]\d{3})*(?:\.\d{2})?)",
+            rf"(\d{{1,3}}(?:[,\s]\d{{3}})*(?:[.,]\d{{2,4}})?)\s*{_currency_token}",
+            rf"{_currency_token}\s*(\d{{1,3}}(?:[,\s]\d{{3}})*(?:[.,]\d{{2,4}})?)",
             # Label + amount patterns
-            r"(?:Amount|Total|Paid|Payment)[:\s]+(\d{1,3}(?:[,\s]\d{3})*(?:\.\d{2})?)",
-            r"(\d{1,3}(?:[,\s]\d{3})*(?:\.\d{2})?)\s*(?:XAF|FCFA|CFA)",
+            r"(?:Amount|Total|Paid|Payment|Montant|Subtotal|Grand Total)[:\s]+"
+            r"(\d{1,3}(?:[,\s]\d{3})*(?:[.,]\d{2,4})?)",
             # Simple number patterns (large numbers likely to be amounts)
-            r"\b(\d{4,}(?:[,\s]\d{3})*(?:\.\d{2})?)\b",
+            r"\b(\d{4,}(?:[,\s]\d{3})*(?:[.,]\d{2,4})?)\b",
         ]
 
         for pattern in patterns:

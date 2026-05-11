@@ -57,7 +57,11 @@ from django.utils import translation
 from apps.global_registries.models import RegionConfig
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 from apps.siteconfig.translations import Regionalizer, SUPPORTED_LANGUAGES
-from apps.evals.grading import convert_score, format_score
+from apps.evals.grading import (
+    convert_score,
+    format_score,
+    get_grade_letter as _grading_get_grade_letter,
+)
 from typing import Optional, Dict, Any
 
 
@@ -246,29 +250,55 @@ class CertificateLocalizer:
         except (TypeError, ValueError):
             return f"{score:.2f}"
 
+    def _resolve_scale(self) -> str:
+        """Resolve the grading scale id from the region, falling back to platform default.
+
+        Uses RegionConfig.grading_scale when available (e.g. "0-20" for Cameroon,
+        "0-100" for US/UK, "a-f", "gpa", "0-10"). Falls back to PLATFORM_DEFAULT_GRADING_SCALE
+        so certificates never assume a US 0-100 scale by default.
+        """
+        scale = getattr(self.region, "grading_scale", None)
+        if scale:
+            return scale
+        try:
+            from django.conf import settings as _settings
+
+            return getattr(_settings, "PLATFORM_DEFAULT_GRADING_SCALE", "0-100")
+        except (ImportError, AttributeError):
+            return "0-100"
+
     def get_grade_letter(self, score: float) -> str:
-        """Get letter grade for score using standard A-F scale."""
-        score_val = float(score)
-        if score_val >= 80:
-            return "A"
-        elif score_val >= 70:
-            return "B"
-        elif score_val >= 60:
-            return "C"
-        elif score_val >= 50:
-            return "D"
-        else:
+        """Get letter grade for score using the tenant's grading scale.
+
+        Routes through apps.evals.grading.get_grade_letter so IGCSE (1-9), IB (1-7),
+        German (1-6), French (0-20), and other scales are honored — not hardcoded A-F at 80/70/60/50.
+        """
+        scale = self._resolve_scale()
+        try:
+            return _grading_get_grade_letter(float(score), scale=scale)
+        except (TypeError, ValueError, KeyError):
             return "F"
 
+    def _percent_for_comment(self, score: float) -> float:
+        """Normalize a score onto a 0-100 scale for the qualitative comment thresholds."""
+        scale = self._resolve_scale()
+        try:
+            return float(
+                convert_score(score=float(score), from_scale=scale, to_scale="0-100")
+            )
+        except (TypeError, ValueError, KeyError):
+            return float(score)
+
     def get_performance_comment(self, score: float) -> str:
-        """Get performance comment in regional language."""
-        if score >= 80:
+        """Get performance comment in regional language, normalizing to a 0-100 scale first."""
+        percent = self._percent_for_comment(score)
+        if percent >= 80:
             return self.translate("excellent")
-        elif score >= 70:
+        elif percent >= 70:
             return self.translate("good")
-        elif score >= 60:
+        elif percent >= 60:
             return self.translate("average_perf")
-        elif score >= 50:
+        elif percent >= 50:
             return self.translate("satisfactory")
         else:
             return self.translate("needs_improvement")

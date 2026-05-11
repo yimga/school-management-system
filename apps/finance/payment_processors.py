@@ -10,10 +10,16 @@ logger = logging.getLogger(__name__)
 
 
 class StripeProcessor:
-    """Stripe payment processor"""
+    """Stripe payment processor.
+
+    Stripe accepts 135+ currencies — the authoritative list is maintained by Stripe and
+    can change over time. We do not pre-restrict at this layer: the gateway returns a
+    clear error if a currency is not supported for a given account/region. Keep `SUPPORTED_CURRENCIES`
+    empty here to signal "no whitelist", and let Stripe own the source of truth.
+    """
 
     API_VERSION = "v1"
-    SUPPORTED_CURRENCIES = ["NGN", "KES", "USD"]
+    SUPPORTED_CURRENCIES: list[str] = []  # No whitelist — Stripe accepts 135+ currencies.
 
     def __init__(self, api_key):
         self.api_key = api_key
@@ -129,10 +135,18 @@ class PayPalProcessor:
 
 
 class FlutterwaveProcessor:
-    """Flutterwave payment processor (Africa-focused)"""
+    """Flutterwave payment processor (Africa-focused, plus USD/EUR/GBP for global card payments).
+
+    Flutterwave officially supports 30+ currencies across Africa and major international
+    settlement currencies. The whitelist below is informational; the gateway returns a
+    clear error if a currency is not active for the merchant account.
+    """
 
     API_VERSION = "v3"
-    SUPPORTED_CURRENCIES = ["NGN", "KES", "ZAR", "RWF", "GHS"]
+    SUPPORTED_CURRENCIES = [
+        "NGN", "KES", "ZAR", "RWF", "GHS", "UGX", "TZS", "XAF", "XOF",
+        "ZMW", "MWK", "EGP", "ETB", "USD", "EUR", "GBP",
+    ]
 
     def __init__(self, secret_key, public_key):
         self.secret_key = secret_key
@@ -192,10 +206,15 @@ class FlutterwaveProcessor:
 
 
 class PaystackProcessor:
-    """Paystack payment processor (Africa-focused)"""
+    """Paystack payment processor (Africa-focused, plus USD for card payments).
+
+    Paystack supports several African currencies plus USD/EUR for card payments and
+    cross-border merchants. The whitelist below is informational; the gateway returns
+    a clear error if a currency is not active for the merchant account.
+    """
 
     API_VERSION = "v1"
-    SUPPORTED_CURRENCIES = ["NGN", "GHS", "ZAR", "KES"]
+    SUPPORTED_CURRENCIES = ["NGN", "GHS", "ZAR", "KES", "USD", "EUR", "EGP", "XOF"]
 
     def __init__(self, secret_key, public_key):
         self.secret_key = secret_key

@@ -63,7 +63,7 @@ class StudentCreateForm(forms.ModelForm):
             "classroom": forms.Select(attrs={"class": "form-select"}),
             "specialty": forms.Select(attrs={"class": "form-select"}),
             "parent_phone": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": _("+237 6XX XXX XXX")}
+                attrs={"class": "form-control", "placeholder": _("+CC NNN NNN NNNN")}
             ),
             "parent_email": forms.EmailInput(
                 attrs={"class": "form-control", "placeholder": _("parent@example.com")}
@@ -146,7 +146,7 @@ class TeacherCreateForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": "e.g., STAFF001"}
             ),
             "phone": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": _("+237 6XX XXX XXX")}
+                attrs={"class": "form-control", "placeholder": _("+CC NNN NNN NNNN")}
             ),
             "position_title": forms.TextInput(
                 attrs={

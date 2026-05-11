@@ -343,14 +343,24 @@ class CertificationExamSession(models.Model):
     )
 
     class Board(models.TextChoices):
-        GCE_BOARD = "GCE_BOARD", "GCE Board"
+        GCE_BOARD = "GCE_BOARD", "GCE Board (Cameroon)"
         OBC = "OBC", "Office du Baccalauréat du Cameroun (OBC)"
+        WAEC = "WAEC", "WAEC (West Africa)"
+        NECO = "NECO", "NECO (Nigeria)"
+        KCSE = "KCSE", "KCSE (Kenya)"
+        IGCSE_CIE = "IGCSE_CIE", "Cambridge IGCSE"
+        IB = "IB", "International Baccalaureate (IB)"
+        AP_CB = "AP_CB", "College Board (AP/SAT)"
+        BAC_FR = "BAC_FR", "Baccalauréat (France)"
+        ABITUR_DE = "ABITUR_DE", "Abitur (Germany)"
+        STATE_BOARD = "STATE_BOARD", "State/Provincial Board"
         OTHER = "OTHER", "Other"
 
     class Level(models.TextChoices):
-        O_LEVEL = "O_LEVEL", "GCE O-Level"
-        A_LEVEL = "A_LEVEL", "GCE A-Level"
-        TECHNICAL = "TECHNICAL", "Technical (CAP/Probatoire/Bac)"
+        O_LEVEL = "O_LEVEL", "O-Level / IGCSE"
+        A_LEVEL = "A_LEVEL", "A-Level / Advanced"
+        TECHNICAL = "TECHNICAL", "Technical / Vocational"
+        DIPLOMA = "DIPLOMA", "Diploma"
         OTHER = "OTHER", "Other"
 
     academic_year = models.ForeignKey(
@@ -382,11 +392,12 @@ class CertificationExamSession(models.Model):
         help_text="Optional document checklist for this session (overrides preset default if set).",
     )
     board = models.CharField(
-        max_length=20, choices=Board.choices, default=Board.GCE_BOARD
+        max_length=20, choices=Board.choices, default=Board.OTHER
     )
     level = models.CharField(max_length=20, choices=Level.choices, default=Level.OTHER)
     name = models.CharField(
-        max_length=120, help_text="e.g., 'GCE Registration 2026 - O Level'"
+        max_length=120,
+        help_text="e.g., 'GCE Registration 2026 - O Level', 'IGCSE May/June 2026', 'WAEC SSCE 2026'",
     )
     exam_centre_name = models.CharField(max_length=200, blank=True)
     exam_centre_number = models.CharField(
@@ -534,10 +545,15 @@ class CertificationCandidate(models.Model):
     payment_transaction_id = models.CharField(
         max_length=120,
         blank=True,
-        help_text="MTN Mobile Money transaction/payment ID used for validation.",
+        help_text="Payment gateway transaction/reference id used for validation (Stripe, MTN MoMo, Paystack, etc.).",
     )
     payment_amount_fcfa = models.PositiveIntegerField(
-        default=0, help_text="Amount paid (FCFA)."
+        default=0,
+        help_text=(
+            "Amount paid in the tenant's fee-template currency (legacy column name retained for "
+            "backwards compatibility — value is not assumed to be in FCFA). Use the linked "
+            "CertificationFeeTemplate.currency for display."
+        ),
     )
     validated_at = models.DateTimeField(null=True, blank=True)
     ca_uploaded_at = models.DateTimeField(null=True, blank=True)
@@ -593,23 +609,33 @@ class CertificationExamPreset(models.Model):
     )
 
     class Board(models.TextChoices):
-        GCE_BOARD = "GCE_BOARD", "GCE Board"
+        GCE_BOARD = "GCE_BOARD", "GCE Board (Cameroon)"
         OBC = "OBC", "Office du Baccalauréat du Cameroun (OBC)"
+        WAEC = "WAEC", "WAEC (West Africa)"
+        NECO = "NECO", "NECO (Nigeria)"
+        KCSE = "KCSE", "KCSE (Kenya)"
+        IGCSE_CIE = "IGCSE_CIE", "Cambridge IGCSE"
+        IB = "IB", "International Baccalaureate (IB)"
+        AP_CB = "AP_CB", "College Board (AP/SAT)"
+        BAC_FR = "BAC_FR", "Baccalauréat (France)"
+        ABITUR_DE = "ABITUR_DE", "Abitur (Germany)"
+        STATE_BOARD = "STATE_BOARD", "State/Provincial Board"
         OTHER = "OTHER", "Other"
 
     class Level(models.TextChoices):
-        O_LEVEL = "O_LEVEL", "GCE O-Level"
-        A_LEVEL = "A_LEVEL", "GCE A-Level"
-        TECHNICAL = "TECHNICAL", "Technical (CAP/Probatoire/Bac)"
+        O_LEVEL = "O_LEVEL", "O-Level / IGCSE"
+        A_LEVEL = "A_LEVEL", "A-Level / Advanced"
+        TECHNICAL = "TECHNICAL", "Technical / Vocational"
+        DIPLOMA = "DIPLOMA", "Diploma"
         OTHER = "OTHER", "Other"
 
     code = models.CharField(
         max_length=40,
-        help_text="Short code, e.g. GCE_OLEVEL_2026, GCE_ALEVEL, OBC_BAC.",
+        help_text="Short code, e.g. GCE_OLEVEL_2026, IGCSE_2026, WAEC_SSCE, BAC_FR_2026.",
     )
     name = models.CharField(max_length=160)
     board = models.CharField(
-        max_length=20, choices=Board.choices, default=Board.GCE_BOARD
+        max_length=20, choices=Board.choices, default=Board.OTHER
     )
     level = models.CharField(max_length=20, choices=Level.choices, default=Level.OTHER)
     description = models.TextField(blank=True)
@@ -695,7 +721,13 @@ class CertificationFeeLine(models.Model):
     fee_type = models.CharField(
         max_length=20, choices=FeeType.choices, default=FeeType.OTHER
     )
-    amount_fcfa = models.PositiveIntegerField(default=0)
+    amount_fcfa = models.PositiveIntegerField(
+        default=0,
+        help_text=(
+            "Fee amount in the parent template's currency (legacy column name kept for "
+            "backwards compatibility — the value is NOT assumed to be FCFA)."
+        ),
+    )
 
     # If true, this line is multiplied by the candidate's subject count (later: subject selection model).
     applies_per_subject = models.BooleanField(
@@ -709,7 +741,12 @@ class CertificationFeeLine(models.Model):
         ordering = ["display_order", "id"]
 
     def __str__(self):
-        return f"{self.label} ({self.amount_fcfa} FCFA)"
+        currency = ""
+        try:
+            currency = getattr(self.template, "currency", "") or ""
+        except (AttributeError, ValueError):
+            currency = ""
+        return f"{self.label} ({self.amount_fcfa} {currency})".rstrip()
 
 
 class CertificationDocumentChecklist(models.Model):

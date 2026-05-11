@@ -202,7 +202,7 @@ class LinkChildForm(forms.Form):
         self.fields["phone"].widget.attrs.update(
             {
                 "class": "form-control",
-                "placeholder": "e.g., +237 6XX XXX XXX",
+                "placeholder": "e.g., +CC NNN NNN NNNN",
             }
         )
         self.fields["preferred_contact"].widget.attrs.update(
@@ -261,7 +261,7 @@ class LinkChildForm(forms.Form):
         self.fields["parent_whatsapp"].widget.attrs.update(
             {
                 "class": "form-control",
-                "placeholder": "e.g., +237 6XX XXX XXX",
+                "placeholder": "e.g., +CC NNN NNN NNNN",
             }
         )
         self.fields["parent_address"].widget.attrs.update(
@@ -449,7 +449,7 @@ class TeacherOnboardingForm(forms.Form):
     phone = forms.CharField(
         label=_("Phone number"),
         max_length=50,
-        help_text=_("e.g., +237 6XX XXX XXX"),
+        help_text=_("e.g., +CC NNN NNN NNNN"),
         required=False,
     )
 
@@ -607,7 +607,7 @@ class StudentOnboardingForm(forms.Form):
         label=_("Parent/Guardian phone"),
         max_length=50,
         required=False,
-        help_text=_("e.g., +237 6XX XXX XXX"),
+        help_text=_("e.g., +CC NNN NNN NNNN"),
     )
     parent_whatsapp = forms.CharField(
         label=_("Parent/Guardian WhatsApp"),

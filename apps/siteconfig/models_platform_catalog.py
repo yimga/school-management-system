@@ -60,16 +60,16 @@ class RegionConfig(models.Model):
     grading_scale = models.CharField(
         max_length=20,
         choices=GRADING_SCALE_CHOICES,
-        default="0-20",
+        default="0-100",
     )
     default_currency = models.CharField(
         max_length=3,
-        default="XAF",
-        help_text="ISO currency code (XAF, USD, EUR, GBP, KES, NGN, etc.)",
+        default="USD",
+        help_text="ISO currency code (USD, EUR, GBP, XAF, KES, NGN, etc.). Set per-country during onboarding; USD is the neutral fallback.",
     )
     academic_year_start_month = models.IntegerField(
         default=9,
-        help_text="Month when academic year starts (1-12, usually 9=September)",
+        help_text="Month when academic year starts (1-12). Northern hemisphere typically uses 9 (September); the region engine overrides to 1 (January) for Southern hemisphere countries during onboarding.",
     )
     term_count_per_year = models.IntegerField(
         default=3,

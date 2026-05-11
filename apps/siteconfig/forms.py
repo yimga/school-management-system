@@ -548,10 +548,10 @@ class TenantSettingsForm(forms.ModelForm):
             "footer_support_hours": forms.TextInput(attrs={"class": "form-control"}),
             "footer_whatsapp_url": forms.URLInput(attrs={"class": "form-control"}),
             "whatsapp_support_number": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "+2376XXXXXXX"}
+                attrs={"class": "form-control", "placeholder": "+CC NNN NNN NNNN"}
             ),
             "whatsapp_admissions_number": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "+2376XXXXXXX"}
+                attrs={"class": "form-control", "placeholder": "+CC NNN NNN NNNN"}
             ),
             "footer_status_text": forms.TextInput(attrs={"class": "form-control"}),
             "footer_badges": forms.Textarea(attrs={"class": "form-control", "rows": 3}),

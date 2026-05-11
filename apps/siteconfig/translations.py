@@ -79,15 +79,20 @@ class LocalizationService:
 
     @staticmethod
     def format_date(dt, lang=None, region=None):
-        """Format date. If region has date_format, use it; else use lang (en -> DD/MM/YYYY)."""
+        """Format date. Prefers region.date_format; otherwise falls back to ISO 8601.
+
+        Note: do NOT assume "en" means DD/MM/YYYY — that's a UK/EU convention; US English
+        uses MM/DD/YYYY. When no region is provided we return ISO 8601 (YYYY-MM-DD),
+        which is unambiguous across locales.
+        """
         if dt is None:
             return ""
         try:
             if region is not None:
-                pattern = getattr(region, "date_format", None) or "DD/MM/YYYY"
+                pattern = getattr(region, "date_format", None) or "YYYY-MM-DD"
                 fmt = _date_format_to_strftime(pattern)
                 return dt.strftime(fmt)
-            return dt.strftime("%d/%m/%Y") if lang == "en" else dt.isoformat()
+            return dt.isoformat()
         except _SITECONFIG_TRANSLATIONS_DATE_ERRORS as e:
             log_exception_with_context(
                 "LocalizationService.format_date failed",
@@ -105,8 +110,20 @@ class LocalizationService:
             amt = float(amount)
         except (TypeError, ValueError):
             return str(amount)
+        def _platform_default_currency() -> str:
+            try:
+                from django.conf import settings as _settings
+
+                return getattr(_settings, "PLATFORM_DEFAULT_CURRENCY", "USD") or "USD"
+            except (ImportError, AttributeError):
+                return "USD"
+
         if region is not None:
-            cur = getattr(region, "default_currency", None) or currency or "XAF"
+            cur = (
+                getattr(region, "default_currency", None)
+                or currency
+                or _platform_default_currency()
+            )
             dec_sep = getattr(region, "decimal_separator", None) or "."
             thousands_sep = getattr(region, "thousands_separator", None) or ","
             symbol = get_currency_symbol(cur)
@@ -116,7 +133,7 @@ class LocalizationService:
             if dec_sep != ".":
                 s = s.replace(".", dec_sep)
             return f"{symbol}{s}"
-        currency = currency or "XAF"
+        currency = currency or _platform_default_currency()
         symbol = get_currency_symbol(currency)
         return f"{symbol}{amt:,.2f}"
 

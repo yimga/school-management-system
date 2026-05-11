@@ -400,11 +400,39 @@ def dashboard_context(request):
             )
             if attendance_for_stat is None:
                 attendance_for_stat = context.get("parent_avg_attendance", 0)
+
+            # Resolve tenant currency symbol so the Balance card never assumes USD.
+            tenant_currency_code = ""
+            try:
+                site_obj = get_effective_site_settings(request=request)
+                tenant_currency_code = (
+                    getattr(site_obj, "default_currency", "")
+                    or getattr(
+                        getattr(site_obj, "region", None), "default_currency", ""
+                    )
+                    or ""
+                )
+            except CONTEXT_SOFT_FAILURES:
+                tenant_currency_code = ""
+            if not tenant_currency_code:
+                tenant_currency_code = getattr(
+                    settings, "PLATFORM_DEFAULT_CURRENCY", "USD"
+                )
+            try:
+                from apps.registries.currency import get_currency_symbol
+
+                tenant_currency_symbol = get_currency_symbol(tenant_currency_code)
+            except ImportError:
+                tenant_currency_symbol = tenant_currency_code
+
             context["dashboard_stats_cards"] = [
                 stat_card("Children", context.get("parent_children_count", 0), "blue"),
                 stat_card("Attendance", attendance_for_stat, "green", suffix="%"),
                 stat_card(
-                    "Balance", context.get("parent_balance", 0), "pink", prefix="$"
+                    "Balance",
+                    context.get("parent_balance", 0),
+                    "pink",
+                    prefix=tenant_currency_symbol,
                 ),
                 stat_card("Notifications", notifications_unread, "red"),
             ]

@@ -76,15 +76,47 @@ class ComplianceProfile(models.Model):
         help_text="When set, reports show amounts in this currency (e.g. AED). Leave blank to use currency_code.",
     )
 
-    min_wage = models.DecimalField(max_digits=12, decimal_places=2, default=60000)
+    # Labor defaults are deliberately zero so the column does not silently encode a
+    # country-specific assumption (the previous 60000/40/21/84 defaults reflected Cameroon
+    # labor law). Per-tenant values are set at onboarding from the country compliance preset.
+    min_wage = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text=(
+            "Statutory minimum wage in this profile's currency. Set per-country at onboarding. "
+            "Zero means 'not configured' and downstream code should treat it as unset."
+        ),
+    )
     default_hours_per_week = models.DecimalField(
-        max_digits=6, decimal_places=2, default=40
+        max_digits=6,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text=(
+            "Standard working hours per week. Set per-country at onboarding (e.g. 35 in France, "
+            "40 in many other jurisdictions). Zero means 'not configured'."
+        ),
     )
     overtime_multiplier = models.DecimalField(
-        max_digits=6, decimal_places=2, default=1.5
+        max_digits=6,
+        decimal_places=2,
+        default=Decimal("1.5"),
+        help_text="Pay multiplier for overtime hours (e.g. 1.5 for time-and-a-half).",
     )
-    annual_leave_days = models.PositiveSmallIntegerField(default=21)
-    maternity_leave_days = models.PositiveSmallIntegerField(default=84)
+    annual_leave_days = models.PositiveSmallIntegerField(
+        default=0,
+        help_text=(
+            "Statutory paid annual leave days. Set per-country at onboarding (varies widely; "
+            "e.g. 10 in the US, 20+ in EU, 21 in Cameroon). Zero means 'not configured'."
+        ),
+    )
+    maternity_leave_days = models.PositiveSmallIntegerField(
+        default=0,
+        help_text=(
+            "Statutory paid maternity leave days. Set per-country at onboarding. "
+            "Zero means 'not configured'."
+        ),
+    )
 
     is_active = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
