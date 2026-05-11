@@ -205,3 +205,183 @@
 #cp-main-content .card + .card {
   margin-top: 1rem;
 }
+
+/* === Pass D: chrome polish (navbar, primary nav, sidebar) ================ */
+
+/* Top navbar — make the brand text + chips coherent */
+.cp-navbar.statement-header {
+  background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-block: 0.5rem;
+}
+
+.cp-navbar .navbar-brand,
+.cp-navbar [data-rmc-shell-title] {
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Search input in top navbar — clearer focus contract */
+.cp-navbar input.form-control,
+.cp-navbar input[type="search"] {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.cp-navbar input.form-control::placeholder,
+.cp-navbar input[type="search"]::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.cp-navbar input.form-control:focus,
+.cp-navbar input[type="search"]:focus {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(129, 140, 248, 0.65);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
+  color: #ffffff;
+}
+
+/* Chip buttons in top navbar (Shortcuts / Studio / Config center / admin) */
+.cp-navbar .btn,
+.cp-navbar .dropdown-toggle {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.92);
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.cp-navbar .btn:hover,
+.cp-navbar .dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+/* === Primary nav pills (Home / Operations / Marketplace / …) ============= */
+
+.cp-primary-nav {
+  background: rgba(11, 18, 32, 0.85) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.cp-primary-nav__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(241, 245, 249, 0.85);
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease,
+    box-shadow 140ms ease, transform 80ms ease;
+}
+
+.cp-primary-nav__pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.cp-primary-nav__pill:active {
+  transform: translateY(1px);
+}
+
+.cp-primary-nav__pill--active,
+.cp-primary-nav__pill[aria-current="page"] {
+  background: linear-gradient(135deg, var(--school-primary, #4f46e5), var(--school-accent, #10b981));
+  border-color: transparent;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 6px 16px -6px rgba(79, 70, 229, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.12) inset;
+}
+
+.cp-primary-nav__pill--active:hover {
+  filter: brightness(1.06);
+  color: #ffffff;
+}
+
+.cp-primary-nav__pill i {
+  font-size: 0.95em;
+  opacity: 0.92;
+}
+
+/* === Sidebar typography rhythm =========================================== */
+
+.cp-sidebar-col .cp-sidebar-inner > * + * {
+  margin-top: 0.125rem;
+}
+
+.cp-sidebar-col .cp-sidebar-inner .nav-link i,
+.cp-sidebar-col .cp-sidebar-inner a i {
+  width: 1.1rem;
+  margin-right: 0.5rem;
+  opacity: 0.75;
+}
+
+/* Sidebar pin icon (used on the pinned items per the screenshot) */
+.cp-sidebar-col .cp-sidebar-inner [data-cp-pin],
+.cp-sidebar-col .cp-sidebar-inner .cp-pin {
+  opacity: 0.55;
+  transition: opacity 120ms ease;
+}
+
+.cp-sidebar-col .cp-sidebar-inner [data-cp-pin]:hover,
+.cp-sidebar-col .cp-sidebar-inner .cp-pin:hover {
+  opacity: 1;
+}
+
+/* Sidebar collapsible category chevrons */
+.cp-sidebar-col .cp-sidebar-inner details summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  color: rgba(148, 163, 184, 0.85);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.cp-sidebar-col .cp-sidebar-inner details summary:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* === Breadcrumb in the page-header area =================================== */
+
+#cp-main-content .cp-page-header,
+#cp-main-content .breadcrumb {
+  background: transparent;
+  margin: 0 0 0.5rem;
+}
+
+#cp-main-content .breadcrumb .breadcrumb-item {
+  color: rgba(15, 23, 42, 0.6);
+  font-size: 0.85rem;
+}
+
+#cp-main-content .breadcrumb .breadcrumb-item a {
+  color: rgba(15, 23, 42, 0.6);
+  text-decoration: none;
+}
+
+#cp-main-content .breadcrumb .breadcrumb-item a:hover {
+  color: var(--school-primary, #4f46e5);
+  text-decoration: underline;
+}
+
+#cp-main-content .breadcrumb .breadcrumb-item.active {
+  color: rgba(15, 23, 42, 0.85);
+  font-weight: 500;
+}
