@@ -13,7 +13,35 @@ from .models import (
     RegionFeatureCompliance,
     ConsentRequest,
     ConsentRecord,
+    FerpaDisclosure,
 )
+
+
+# Pass 9.B: FERPA disclosure admin — US K-12 audit-window requirement.
+@admin.register(FerpaDisclosure)
+class FerpaDisclosureAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "school",
+        "student",
+        "recipient_name",
+        "purpose",
+        "parent_consent_obtained",
+        "disclosed_at",
+        "disclosed_by",
+    )
+    list_filter = ("purpose", "parent_consent_obtained", "disclosed_at")
+    search_fields = (
+        "recipient_name",
+        "recipient_org",
+        "notes",
+        "student__first_name",
+        "student__last_name",
+        "student__student_code",
+    )
+    date_hierarchy = "disclosed_at"
+    autocomplete_fields = ("school", "student", "disclosed_by")
+    readonly_fields = ("created_at", "updated_at")
 
 # Phase 4: Import and register audit models
 

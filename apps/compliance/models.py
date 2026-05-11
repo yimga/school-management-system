@@ -580,6 +580,83 @@ class EraseRequest(models.Model):
         return f"Erase {self.subject_user_id} ({self.status})"
 
 
+class FerpaDisclosure(models.Model):
+    """
+    Pass 9.B: FERPA §99.32 disclosure log. US K-12 schools must record every
+    release of personally-identifiable student record information to anyone
+    outside the school. Required fields: who released, what records, to whom,
+    why, when, and whether parental consent (or a specific exception) applied.
+    """
+
+    class Purpose(models.TextChoices):
+        CONSENT = "consent", "Parent or student consent"
+        DIRECTORY = "directory_info", "Directory information release"
+        SCHOOL_OFFICIAL = "school_official", "School official with legitimate interest"
+        TRANSFER = "transfer", "Transfer to another school"
+        AUDIT = "audit", "Audit / evaluation of education program"
+        FINANCIAL_AID = "financial_aid", "Financial aid"
+        ACCREDITATION = "accreditation", "Accreditation"
+        JUDICIAL = "judicial_order", "Judicial order or subpoena"
+        EMERGENCY = "health_safety", "Health or safety emergency"
+        RESEARCH = "research", "Research approved by school"
+        OTHER = "other", "Other (note required)"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="ferpa_disclosures",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="ferpa_disclosures",
+    )
+    disclosed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ferpa_disclosures_logged",
+        help_text="School official who recorded this disclosure.",
+    )
+    recipient_name = models.CharField(
+        max_length=255,
+        help_text="Person who received the records (full name).",
+    )
+    recipient_org = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Organization or agency, when applicable.",
+    )
+    purpose = models.CharField(max_length=32, choices=Purpose.choices)
+    parent_consent_obtained = models.BooleanField(
+        default=False,
+        help_text="True only when written consent is on file before disclosure.",
+    )
+    record_types_disclosed = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of record categories released (transcripts, attendance, disciplinary, …).",
+    )
+    disclosed_at = models.DateTimeField(default=timezone.now)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-disclosed_at"]
+        indexes = [
+            models.Index(fields=["school", "-disclosed_at"]),
+            models.Index(fields=["student", "-disclosed_at"]),
+            models.Index(fields=["purpose"]),
+        ]
+        verbose_name = "FERPA Disclosure"
+        verbose_name_plural = "FERPA Disclosures"
+
+    def __str__(self):
+        return f"FERPA disclosure {self.id} — student {self.student_id} → {self.recipient_name}"
+
+
 # ============================================
 # Phase 4: Audit & Monitoring Models
 # ============================================
