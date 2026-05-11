@@ -97,6 +97,9 @@ class TaskType(str, Enum):
     BILLING_USAGE_EXPLAIN = "billing_usage_explain"
     TRUST_COMPLIANCE_ASSISTANT = "trust_compliance_assistant"
     STUDIO_OS_ASSISTANT = "studio_os_assistant"
+    # Pass 13: explain why a student was flagged at-risk. Default tier list
+    # routes to Anthropic first (premium tenants), then Ollama, then rules.
+    RISK_EXPLAIN = "risk_explain"
 
 
 # Default tier per task: Ollama (self-hosted) then rules for every product task.
@@ -124,6 +127,10 @@ DEFAULT_TASK_TIERS: dict[str, list[str]] = {
     TaskType.BILLING_USAGE_EXPLAIN: list(_DEFAULT_OLLAMA_RULES),
     TaskType.TRUST_COMPLIANCE_ASSISTANT: list(_DEFAULT_OLLAMA_RULES),
     TaskType.STUDIO_OS_ASSISTANT: list(_DEFAULT_OLLAMA_RULES),
+    # Pass 13: risk_explain prefers Anthropic when ANTHROPIC_API_KEY is set,
+    # falls back to Ollama then rules. The premium gate in invoke() drops
+    # "anthropic" automatically when the tenant data tier disallows premium.
+    TaskType.RISK_EXPLAIN: ["anthropic", "ollama", "rules"],
 }
 
 
@@ -164,7 +171,7 @@ def _cost_class_for_tier(tier: str | None) -> str:
         return "no_cost"
     if tier_name in {"ollama", "vllm"}:
         return "self_hosted"
-    if tier_name == "litellm":
+    if tier_name in {"litellm", "anthropic"}:
         return "premium"
     return "unclassified"
 
@@ -394,6 +401,64 @@ def _call_litellm(prompt: str, metadata: dict[str, Any] | None = None, model_key
         return None, {"provider": "litellm", "error": "invalid_response"}
     except TimeoutError:
         return None, {"provider": "litellm", "error": "timeout"}
+
+
+def _call_anthropic(
+    prompt: str,
+    metadata: dict[str, Any] | None = None,
+    model_key: str | None = None,
+    timeout_sec: int | None = None,
+) -> tuple[str | None, dict[str, Any]]:
+    """
+    Pass 13: Anthropic Claude provider. Default-off — only fires when
+    ANTHROPIC_API_KEY is set in env or settings. Uses the official `anthropic`
+    SDK (declared optional in requirements.txt). Falls back transparently when
+    the SDK is not installed or the key is unset.
+    """
+    api_key = (
+        (getattr(settings, "ANTHROPIC_API_KEY", None) or os.environ.get("ANTHROPIC_API_KEY") or "")
+        .strip()
+    )
+    if not api_key:
+        return None, {"provider": "anthropic", "error": "ANTHROPIC_API_KEY not set"}
+    model = (
+        model_key
+        or getattr(settings, "ANTHROPIC_MODEL", None)
+        or os.environ.get("ANTHROPIC_MODEL")
+        or "claude-haiku-4-5-20251001"
+    ).strip()
+    try:
+        from anthropic import Anthropic
+    except ImportError:
+        return None, {"provider": "anthropic", "error": "anthropic SDK not installed"}
+
+    timeout = timeout_sec if timeout_sec is not None else _request_timeout(metadata)
+    try:
+        client = Anthropic(api_key=api_key, timeout=timeout)
+        response = client.messages.create(
+            model=model,
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        # response.content is a list of content blocks; the SDK returns text
+        # blocks for non-tool-use calls. Concatenate the .text fields.
+        parts: list[str] = []
+        for block in getattr(response, "content", None) or []:
+            text_value = getattr(block, "text", None)
+            if isinstance(text_value, str):
+                parts.append(text_value)
+        text = "".join(parts).strip()
+        return text or None, {
+            "provider": "anthropic",
+            "tier": "anthropic",
+            "model": model,
+            "stop_reason": getattr(response, "stop_reason", None),
+        }
+    except TimeoutError:
+        return None, {"provider": "anthropic", "error": "timeout"}
+    except Exception as exc:  # noqa: BLE001 - SDK exceptions vary by version; one path is fine
+        logger.warning("Anthropic call failed: %s", exc)
+        return None, {"provider": "anthropic", "error": str(exc)[:200]}
 
 
 def _rules_fallback(user_query: str) -> str:
@@ -647,7 +712,7 @@ def invoke(
     start = time.perf_counter()
 
     for tier in backends:
-        if tier == "litellm":
+        if tier in ("litellm", "anthropic"):
             if not allow_premium:
                 errors[tier] = "data_tier_disallowed"
                 continue
@@ -655,6 +720,8 @@ def invoke(
         meta: dict[str, Any] = {}
         if tier == "ollama":
             text, meta = _call_ollama(prompt, metadata=md)
+        elif tier == "anthropic":
+            text, meta = _call_anthropic(prompt, metadata=md, timeout_sec=timeout_sec)
         elif tier == "vllm":
             text, meta = _call_vllm(
                 prompt,

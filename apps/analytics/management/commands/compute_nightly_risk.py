@@ -69,6 +69,11 @@ class Command(BaseCommand):
             )
             self.stderr.write(self.style.ERROR(f"School {school.id}: {e}"))
             return 0
+
+        # Pass 13: entitlement gate — only run LLM-explained reasons for tenants
+        # that opted in to AI features. Otherwise the canned heuristic text is fine.
+        ai_explain_enabled = _is_ai_risk_explain_enabled(school)
+
         count = 0
         for student, score, reason, model_version in results:
             if dry_run:
@@ -77,15 +82,59 @@ class Command(BaseCommand):
                 )
                 count += 1
                 continue
+            final_reason = reason
+            if ai_explain_enabled:
+                final_reason = _llm_explained_reason(
+                    school=school, student=student, score=score, reason=reason
+                )
             RiskFactor.objects.update_or_create(
                 school=school,
                 student=student,
                 defaults={
                     "score": score,
-                    "reason_summary": reason,
+                    "reason_summary": final_reason,
                     "model_version": model_version or "",
                     "computed_at": timezone.now(),
                 },
             )
             count += 1
         return count
+
+
+def _is_ai_risk_explain_enabled(school) -> bool:
+    """
+    Pass 13: gated on tenant entitlement so only opted-in schools incur the
+    Anthropic API spend. Falls back to False on any error.
+    """
+    try:
+        from apps.billing.entitlements import can
+
+        return bool(can(school, "AI_RISK_EXPLAIN"))
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return False
+
+
+def _llm_explained_reason(*, school, student, score, reason: str) -> str:
+    """
+    Pass 13: returns an LLM-generated 1-2 sentence reason when available; falls
+    back to the heuristic `reason` string on any failure. Never raises.
+    """
+    try:
+        from services.risk_explanation import explain_risk
+
+        explanation, _meta = explain_risk(
+            school=school,
+            student=student,
+            score=float(score),
+            heuristic_reason=reason,
+        )
+        return explanation or reason
+    except _COMPUTE_NIGHTLY_RISK_ERRORS:
+        log_exception_with_context(
+            "compute_nightly_risk: llm explain failed",
+            school_id=str(getattr(school, "id", "")),
+            extra={"student_id": str(getattr(student, "id", ""))},
+        )
+        return reason
+    except Exception:  # noqa: BLE001 - nightly batch must never fail on AI error
+        return reason

@@ -39,6 +39,10 @@ djangorestframework>=3.14.0
 djangorestframework-simplejwt>=5.3.0
 # Pass 12: cross-origin support for the public API + future marketplace integrations.
 django-cors-headers>=4.3.1
+# Pass 13: Anthropic Claude SDK for premium-tenant AI tasks (risk explanations,
+# teacher comms drafts, report-card AI). Optional dep — gateway falls back to
+# Ollama + rules when ANTHROPIC_API_KEY is unset.
+anthropic>=0.39.0
 PyYAML>=6.0.1
 inflection>=0.5.1
 uritemplate>=4.1.1
