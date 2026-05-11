@@ -118,6 +118,9 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: rgba(248, 250, 252, 0.75);
+  /* Cap line length so a long feature-list (e.g. "MULTI-LANGUAGE, MULTI-CURRENCY, ...")
+     wraps inside the left column instead of bleeding under the right-column composite SVG. */
+  max-width: 48ch;
 }
 .marketing-home .mkt-hero-ctas {
   display: flex;

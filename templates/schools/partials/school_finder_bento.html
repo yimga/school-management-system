@@ -23,6 +23,9 @@
     >
       <label class="form-label fw-semibold" for="{{ input_dom_id }}">{% trans "School search" %}</label>
       <div class="input-group input-group-lg">
+        {# Password managers (1Password, Bitwarden, Chrome built-in) sometimes ignore plain
+           autocomplete="off" and try to autofill saved tenant logins into this slug search.
+           data-1p-ignore + data-lpignore + the explicit autocomplete token disable that. #}
         <input
           id="{{ input_dom_id }}"
           name="q"
@@ -31,6 +34,9 @@
           class="form-control rounded-3"
           placeholder="{% trans 'e.g. St Marys or st-marys' %}"
           autocomplete="off"
+          data-1p-ignore="true"
+          data-lpignore="true"
+          data-form-type="other"
           hx-get="{% url 'find_school' %}"
           hx-target="#{{ finder_dom_id }}"
           hx-trigger="keyup changed delay:250ms, search"

@@ -21,12 +21,12 @@
   <rect class="box" x="24" y="92" width="140" height="72" />
   <text class="text-box" x="94" y="112" text-anchor="middle" font-weight="600">Education OS</text>
   <text class="text-small" x="94" y="128" text-anchor="middle">Admissions</text>
-  <text class="text-small" x="94" y="140" text-anchor="middle">Academics · Finance</text>
+  <text class="text-small" x="94" y="140" text-anchor="middle">Academics Â·Finance</text>
   <text class="text-small" x="94" y="152" text-anchor="middle">Communication</text>
   <rect class="box" x="190" y="92" width="140" height="72" />
   <text class="text-box" x="260" y="112" text-anchor="middle" font-weight="600">Control Plane</text>
   <text class="text-small" x="260" y="128" text-anchor="middle">Multi-school</text>
-  <text class="text-small" x="260" y="140" text-anchor="middle">Governance · Policies</text>
+  <text class="text-small" x="260" y="140" text-anchor="middle">Governance Â·Policies</text>
   <text class="text-small" x="260" y="152" text-anchor="middle">Health &amp; Usage</text>
   <rect class="box" x="356" y="92" width="140" height="72" />
   <text class="text-box" x="426" y="112" text-anchor="middle" font-weight="600">Marketplace</text>
@@ -51,5 +51,5 @@
   <rect class="box" x="300" y="204" width="140" height="72" />
   <text class="text-box" x="370" y="224" text-anchor="middle" font-weight="600">Analytics &amp;</text>
   <text class="text-box" x="370" y="238" text-anchor="middle">Integrations</text>
-  <text class="text-small" x="370" y="252" text-anchor="middle">Insights · Connectors</text>
+  <text class="text-small" x="370" y="252" text-anchor="middle">Insights Â·Connectors</text>
 </svg>

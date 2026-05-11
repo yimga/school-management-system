@@ -63,7 +63,9 @@
       {% for mod in page.recommended_modules %}
       <div class="col-sm-6 col-lg-4">
         <a href="{{ mod.path }}" class="text-decoration-none d-block segment-card h-100 mkt-inst-module-card">
-          <span class="fw-semibold text-white">{{ mod.label }}</span>
+          {# Title color inherits from the card (.segment-card → --admin-content-bg + dark ink on editorial cream).
+             Previously hardcoded `text-white`, which rendered invisible on the cream editorial background. #}
+          <span class="fw-semibold mkt-inst-module-card__title">{{ mod.label }}</span>
           <span class="small text-muted d-block mt-2">{% trans "Explore capability" %} →</span>
         </a>
       </div>

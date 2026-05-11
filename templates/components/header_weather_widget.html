@@ -1,6 +1,9 @@
 {% load static %}
+{# Operational chrome strip (datetime + weather + motivational quote) — only shows for
+   authenticated users. The /find/, /access/, login, and marketing surfaces would otherwise
+   leak this teacher/admin-context strip into anonymous public views. #}
 {% with show_strip=SHOW_HEADER_CONTEXT_STRIP|default:True show_datetime=SHOW_HEADER_CONTEXT_DATETIME|default:True show_weather=SHOW_HEADER_CONTEXT_WEATHER|default:True show_quote=SHOW_HEADER_CONTEXT_QUOTE|default:True %}
-{% if show_strip %}
+{% if request.user.is_authenticated and show_strip %}
 {% if show_datetime or show_weather or show_quote %}
 
 <div
