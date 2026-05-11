@@ -17,6 +17,8 @@ from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import render, redirect
 from django.urls import reverse
+
+from apps.compliance.decorators import audit_pii_view
 from django.utils import timezone
 
 from apps.accounts.decorators import parent_portal_required, role_required
@@ -557,6 +559,7 @@ def parent_attendance_discipline(request: HttpRequest):
 
 @parent_portal_required
 @role_required(User.Role.PARENT)
+@audit_pii_view(model_name="StudentProfile", object_id_kwarg="student_id", sensitivity="HIGH", reason="Parent viewing child results")
 def parent_child_results(request: HttpRequest, student_id: int):
     year, term = get_active_year_and_term()
     if not year or not term:

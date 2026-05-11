@@ -362,9 +362,14 @@ class RuntimeDefaults(models.Model):
         help_text="Default concurrent mark-upload toggle.",
     )
     enable_offline_mode = models.BooleanField(
+        default=True,
         null=True,
         blank=True,
-        help_text="Default offline mode toggle.",
+        help_text=(
+            "Default offline mode toggle. Defaults True (Pass offline-foundational closeout) "
+            "so the SW outbox / delta-sync / replay pipeline is live out of the box; tenants "
+            "with regulatory or bandwidth constraints can flip to False per-school."
+        ),
     )
     maintenance_mode = models.BooleanField(
         null=True,

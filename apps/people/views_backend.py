@@ -21,6 +21,7 @@ from django.http import HttpResponse, Http404
 from django.utils import timezone
 
 from apps.platform_runtime.structured_logging import log_view_exception
+from apps.compliance.decorators import audit_pii_view
 from .models import StudentProfile, TeacherProfile, StudentGuardian, Applicant
 from .forms_backend import (
     StudentCreateForm,
@@ -594,8 +595,14 @@ def _student_360_link_urls(request, student, record):
 
 @login_required
 @permission_required("people.view_studentprofile", raise_exception=True)
+@audit_pii_view(model_name="StudentProfile", object_id_kwarg="student_id", sensitivity="HIGH", reason="Student 360 record view")
 def backend_student_detail(request, student_id):
-    """Student 360 — one-record view across academics, finance, attendance, communications."""
+    """Student 360 — one-record view across academics, finance, attendance, communications.
+
+    Pass 9.B closeout: now emits an AuditLog.Action.VIEW row on every 2xx GET so FERPA
+    read-access tracking is complete. Decorator is fail-safe — audit errors never block
+    the request.
+    """
     school = getattr(request, "school", None)
     if not school:
         return redirect("accounts:backend_dashboard")
@@ -624,8 +631,12 @@ def backend_student_detail(request, student_id):
 
 @login_required
 @permission_required("people.view_teacherprofile", raise_exception=True)
+@audit_pii_view(model_name="TeacherProfile", object_id_kwarg="teacher_id", sensitivity="HIGH", reason="Teacher record view")
 def backend_teacher_detail(request, teacher_id):
-    """Teacher record hub — quick context + links (sidebar rail matches this URL)."""
+    """Teacher record hub — quick context + links (sidebar rail matches this URL).
+
+    Pass 9.B closeout: AuditLog.Action.VIEW emitted on 2xx GETs (FERPA read-access).
+    """
     school = getattr(request, "school", None)
     if not school:
         return redirect("accounts:backend_dashboard")

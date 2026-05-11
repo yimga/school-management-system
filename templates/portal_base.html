@@ -729,6 +729,11 @@
     {# Pass 8 Wave 2: wire components/confirm_modal.html — replaces 4 sites that
        used the jarring native confirm() dialog with a themed Bootstrap modal. #}
     <script src="{% static 'js/confirm-modal.js' %}" defer></script>
+    {# Pass 11.B closeout: forward Service Worker errors to Sentry-Browser (or RUM
+       beacon, or console — see static/js/sw-error-sentry-bridge.js for the priority
+       chain). The SW already broadcasts errors via postMessage; this script is the
+       missing client-side listener. #}
+    <script src="{% static 'js/sw-error-sentry-bridge.js' %}" defer></script>
     {% if request.user.is_authenticated %}
     {% if click_tracking_ingest_url %}
     <script type="application/json" id="rmc-click-ingest-config">{

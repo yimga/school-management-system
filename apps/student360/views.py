@@ -10,6 +10,8 @@ from django.db import DatabaseError
 from django.http import HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
+from apps.compliance.decorators import audit_pii_view
+
 from .services import (
     get_student_360_summary,
     get_student_timeline_feed,
@@ -158,10 +160,13 @@ def student_360_export(request, student_id):
 
 
 @login_required
+@audit_pii_view(model_name="ImmutableTranscript", object_id_kwarg="student_id", sensitivity="HIGH", reason="Transcript archive list view")
 def transcript_archive(request, student_id):
     """
     Cross-year archive view: list immutable transcripts for this student (Section 15.1).
     Permission: same as student 360 view (view student data).
+
+    Pass 9.B closeout: AuditLog.Action.VIEW emitted on 2xx GETs (FERPA read-access).
     """
     school = getattr(request, "school", None)
     if not school:

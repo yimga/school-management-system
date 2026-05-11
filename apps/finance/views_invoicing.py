@@ -28,6 +28,8 @@ from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.template.loader import render_to_string
 
+from apps.compliance.decorators import audit_pii_view
+
 from apps.academics.models import AcademicYear
 from apps.siteconfig.config_service import get_effective_site_settings
 
@@ -336,10 +338,14 @@ def notify_guardians_new_invoices(request: HttpRequest):
 
 
 @login_required
+@audit_pii_view(model_name="Invoice", object_id_kwarg="invoice_id", sensitivity="CRITICAL", reason="Invoice detail view")
 def invoice_detail(request: HttpRequest, invoice_id: int):
     """
     Invoice detail view with object-level permission check.
     Staff can view all invoices; parents can only view their children's invoices.
+
+    Pass 9.B closeout: AuditLog.Action.VIEW emitted on 2xx GETs. CRITICAL sensitivity
+    since invoices expose payment + balance info.
     """
     from apps.accounts.permissions import can_view_invoice
     from apps.accounts.models import User

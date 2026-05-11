@@ -1,6 +1,7 @@
 """Django admin configuration for compliance management."""
 
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.utils import timezone
 from config.admin import register_tenant_admin
 from .models import (
     ComplianceRule,
@@ -14,6 +15,8 @@ from .models import (
     ConsentRequest,
     ConsentRecord,
     FerpaDisclosure,
+    ExportJob,
+    EraseRequest,
 )
 
 
@@ -129,6 +132,103 @@ class ConsentRecordAdmin(admin.ModelAdmin):
 
 register_tenant_admin(ConsentRequest, ConsentRequestAdmin)
 register_tenant_admin(ConsentRecord, ConsentRecordAdmin)
+
+
+# Pass 9.B closeout: DSR (Data Subject Request) queue admin — GDPR Art. 15 (portability)
+# + Art. 17 (erasure). Tenant admins can triage exports and erasures from a single page,
+# with approve/reject/complete bulk actions and SLA visibility via the requested_at field.
+@admin.action(description="Mark selected exports as RUNNING (queued for processing)")
+def _exportjob_mark_running(modeladmin, request, queryset):
+    updated = queryset.filter(status=ExportJob.Status.PENDING).update(
+        status=ExportJob.Status.RUNNING
+    )
+    messages.success(request, f"{updated} export job(s) moved to RUNNING.")
+
+
+@admin.action(description="Mark selected exports as COMPLETED")
+def _exportjob_mark_completed(modeladmin, request, queryset):
+    now = timezone.now()
+    updated = queryset.exclude(status=ExportJob.Status.COMPLETED).update(
+        status=ExportJob.Status.COMPLETED, completed_at=now
+    )
+    messages.success(request, f"{updated} export job(s) marked COMPLETED.")
+
+
+@admin.action(description="Mark selected exports as FAILED")
+def _exportjob_mark_failed(modeladmin, request, queryset):
+    updated = queryset.exclude(status=ExportJob.Status.FAILED).update(
+        status=ExportJob.Status.FAILED, completed_at=timezone.now()
+    )
+    messages.warning(request, f"{updated} export job(s) marked FAILED.")
+
+
+class ExportJobAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "school",
+        "scope",
+        "scope_id",
+        "status",
+        "requested_by",
+        "created_at",
+        "completed_at",
+    )
+    list_filter = ("status", "scope", "school")
+    search_fields = ("scope_id", "requested_by__username", "requested_by__email")
+    date_hierarchy = "created_at"
+    readonly_fields = ("created_at", "completed_at")
+    actions = [_exportjob_mark_running, _exportjob_mark_completed, _exportjob_mark_failed]
+    list_per_page = 50
+
+
+@admin.action(description="Approve selected erasure requests (subject can be erased)")
+def _erase_mark_approved(modeladmin, request, queryset):
+    updated = queryset.filter(status=EraseRequest.Status.PENDING).update(
+        status=EraseRequest.Status.APPROVED
+    )
+    messages.success(request, f"{updated} erasure request(s) APPROVED.")
+
+
+@admin.action(description="Reject selected erasure requests")
+def _erase_mark_rejected(modeladmin, request, queryset):
+    updated = queryset.filter(status=EraseRequest.Status.PENDING).update(
+        status=EraseRequest.Status.REJECTED
+    )
+    messages.warning(request, f"{updated} erasure request(s) REJECTED.")
+
+
+@admin.action(description="Mark selected erasure requests as COMPLETED")
+def _erase_mark_completed(modeladmin, request, queryset):
+    updated = queryset.filter(status=EraseRequest.Status.APPROVED).update(
+        status=EraseRequest.Status.COMPLETED, completed_at=timezone.now()
+    )
+    messages.success(request, f"{updated} erasure request(s) marked COMPLETED.")
+
+
+class EraseRequestAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "school",
+        "subject_user",
+        "status",
+        "requested_by",
+        "created_at",
+        "completed_at",
+    )
+    list_filter = ("status", "school")
+    search_fields = (
+        "subject_user__username",
+        "subject_user__email",
+        "requested_by__username",
+    )
+    date_hierarchy = "created_at"
+    readonly_fields = ("created_at", "completed_at")
+    actions = [_erase_mark_approved, _erase_mark_rejected, _erase_mark_completed]
+    list_per_page = 50
+
+
+register_tenant_admin(ExportJob, ExportJobAdmin)
+register_tenant_admin(EraseRequest, EraseRequestAdmin)
 
 # Registers AuditLog (platform + tenant via admin_audit), AccessLog, UserActivitySession, etc.
 from . import admin_audit  # noqa: F401
