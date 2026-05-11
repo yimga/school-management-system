@@ -7,6 +7,10 @@ from django.urls import path
 from apps.api import views_v1, views_v1_intervention, views_v1_platform
 from apps.api.api_v1_manifest import api_v1_manifest
 from apps.api.views_webhook_catalog import WebhookEventTypesView
+from apps.api.views_marketplace_catalog import (
+    MarketplaceAppsListView,
+    MarketplaceScopesListView,
+)
 
 app_name = "api_v1"
 
@@ -17,6 +21,17 @@ urlpatterns = [
         "webhooks/event-types/",
         WebhookEventTypesView.as_view(),
         name="webhooks-event-types",
+    ),
+    # Pass 14: public marketplace catalog (apps + scope vocabulary).
+    path(
+        "marketplace/apps/",
+        MarketplaceAppsListView.as_view(),
+        name="marketplace-apps",
+    ),
+    path(
+        "marketplace/scopes/",
+        MarketplaceScopesListView.as_view(),
+        name="marketplace-scopes",
     ),
     path(
         "platform/integration-context/",

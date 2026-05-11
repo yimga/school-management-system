@@ -1512,6 +1512,8 @@ SPECTACULAR_SETTINGS = {
         {"name": "Finance"},
         {"name": "Reports"},
         {"name": "Webhooks"},
+        # Pass 14: marketplace public catalog (apps + scopes).
+        {"name": "Marketplace"},
     ],
     # Group endpoints by URL prefix for navigability.
     "POSTPROCESSING_HOOKS": [
