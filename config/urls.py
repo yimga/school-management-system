@@ -357,9 +357,51 @@ urlpatterns = [
     path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
     # Admin interfaces - /admin/ only for superuser/staff
     path("admin/", platform_admin_site.urls),
-    # API schema (RBAC-protected; same as schema UI)
+    # API schema (RBAC-protected; same as schema UI) — legacy DRF schema view.
     path("api/schema/", schema_view, name="api-schema"),
     path("api/schema/ui/", api_schema_ui, name="api-schema-ui"),
+    # drf-spectacular OpenAPI 3.0 surfaces — public developer documentation.
+    # /api/openapi.json + /api/openapi.yaml: raw OpenAPI spec (machine-readable).
+    # /api/docs/: Swagger UI for interactive exploration.
+    # /api/redoc/: Redoc for a cleaner reference look.
+    # These are intentionally unauthenticated — they describe the API surface, not the data.
+    # Per-endpoint auth requirements are documented in the spec.
+    path(
+        "api/openapi.json",
+        __import__(
+            "drf_spectacular.views", fromlist=["SpectacularAPIView"]
+        ).SpectacularAPIView.as_view(permission_classes=[]),
+        name="openapi-schema",
+    ),
+    path(
+        "api/openapi.yaml",
+        __import__(
+            "drf_spectacular.views", fromlist=["SpectacularAPIView"]
+        ).SpectacularAPIView.as_view(permission_classes=[], renderer_classes=[
+            __import__(
+                "drf_spectacular.renderers", fromlist=["OpenApiYamlRenderer"]
+            ).OpenApiYamlRenderer
+        ]),
+        name="openapi-schema-yaml",
+    ),
+    path(
+        "api/docs/",
+        __import__(
+            "drf_spectacular.views", fromlist=["SpectacularSwaggerView"]
+        ).SpectacularSwaggerView.as_view(
+            url_name="openapi-schema", permission_classes=[]
+        ),
+        name="openapi-swagger-ui",
+    ),
+    path(
+        "api/redoc/",
+        __import__(
+            "drf_spectacular.views", fromlist=["SpectacularRedocView"]
+        ).SpectacularRedocView.as_view(
+            url_name="openapi-schema", permission_classes=[]
+        ),
+        name="openapi-redoc",
+    ),
     # Part F 16.3: GraphQL gateway
     path(
         "graphql/",

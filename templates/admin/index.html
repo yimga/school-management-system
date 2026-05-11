@@ -287,11 +287,11 @@
 {% endblock %}
 
 {% block content %}
-<!-- Theme Toggle -->
-<div class="theme-toggle" onclick="toggleTheme()">
-  <span id="theme-icon">🌙</span>
+<!-- Theme Toggle (WCAG 2.1.1 / 4.1.2: use a real <button> so keyboard + screen-reader users can activate) -->
+<button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+  <span id="theme-icon" aria-hidden="true">🌙</span>
   <span class="theme-toggle-label" id="theme-label">Dark</span>
-</div>
+</button>
 
 <div class="dashboard-container">
   {% if PREVIEW_MODE_ENABLED %}
@@ -402,7 +402,7 @@
       <span class="app-count">{{ app_list|length|default_if_none:0 }} Apps</span>
     </div>
     <div class="app-grid">
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'accounts' %}'">
+      <div class="app-card">
         <span class="app-icon">👤</span>
         <h3 class="app-title">People & Access Controls</h3>
         <p class="app-meta">Users, roles, authentication, and entity orchestration</p>
@@ -417,7 +417,7 @@
         </div>
       </div>
 
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'people' %}'">
+      <div class="app-card">
         <span class="app-icon">👥</span>
         <h3 class="app-title">People Management</h3>
         <p class="app-meta">Students, teachers, guardians</p>
@@ -428,7 +428,7 @@
         </div>
       </div>
 
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'academics' %}'">
+      <div class="app-card">
         <span class="app-icon">🎓</span>
         <h3 class="app-title">Academic Structure</h3>
         <p class="app-meta">7 sections</p>
@@ -437,7 +437,7 @@
         </div>
       </div>
 
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'evals' %}'">
+      <div class="app-card">
         <span class="app-icon">📊</span>
         <h3 class="app-title">Evaluations & Grading</h3>
         <p class="app-meta">6 sections</p>
@@ -446,7 +446,7 @@
         </div>
       </div>
 
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'reports' %}'">
+      <div class="app-card">
         <span class="app-icon">📄</span>
         <h3 class="app-title">Reports & Transcripts</h3>
         <p class="app-meta">3 sections</p>
@@ -455,7 +455,7 @@
         </div>
       </div>
 
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'finance' %}'">
+      <div class="app-card">
         <span class="app-icon">💰</span>
         <h3 class="app-title">Finance & Billing</h3>
         <p class="app-meta">20 sections</p>
@@ -464,7 +464,7 @@
         </div>
       </div>
 
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'payroll' %}'">
+      <div class="app-card">
         <span class="app-icon">💵</span>
         <h3 class="app-title">Payroll & Leave</h3>
         <p class="app-meta">7 sections</p>
@@ -473,7 +473,7 @@
         </div>
       </div>
 
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'portal' %}'">
+      <div class="app-card">
         <span class="app-icon">📢</span>
         <h3 class="app-title">Portal & Communication</h3>
         <p class="app-meta">Portal content & notices</p>
@@ -482,7 +482,7 @@
         </div>
       </div>
 
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'analytics' %}'">
+      <div class="app-card">
         <span class="app-icon">📈</span>
         <h3 class="app-title">Analytics & Insights</h3>
         <p class="app-meta">1 sections</p>
@@ -491,7 +491,7 @@
         </div>
       </div>
 
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'compliance' %}'">
+      <div class="app-card">
         <span class="app-icon">🔒</span>
         <h3 class="app-title">Compliance & Audit</h3>
         <p class="app-meta">7 sections</p>
@@ -501,7 +501,7 @@
       </div>
 
       {% if request.user.is_superuser or request.user.role == 'ADMIN' %}
-      <div class="app-card" onclick="window.location='{% url 'siteconfig:console_domains_hub' %}'">
+      <div class="app-card">
         <span class="app-icon">⚙️</span>
         <h3 class="app-title">{% trans "Configuration Control Center" %}</h3>
         <p class="app-meta">{% trans "Outcomes, domains, platform settings" %}</p>

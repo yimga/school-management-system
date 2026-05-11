@@ -11,7 +11,11 @@
 {% endblock %}
 
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ rmc_shell.control_plane_product_title|default:"RunMyCampus Manager" }}</h1>
+{% comment %}
+  WCAG 1.3.1 / 2.4.10: child pages own the page h1 (.page-h1 grammar). Injecting a
+  hidden product-title h1 here would create duplicate top-level headings on every
+  control-plane page.
+{% endcomment %}
 <div class="cp-shell-content d-flex flex-column flex-grow-1 min-h-0" data-shell-layout="control-plane" data-rmc-layout-token="{{ rmc_shell.layout_token|default:'control-plane' }}" data-rmc-premium-shell="control-plane" data-rmc-page-purpose="operator-command-center" data-rmc-shell-content-grid="1" data-rmc-os-shell="control-plane" data-rmc-os-role="{{ rmc_os_shell.role_cluster|default:'operator' }}" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}>
 <nav class="navbar navbar-expand-lg navbar-dark cp-navbar cp-navbar--surface statement-header flex-shrink-0" data-rmc-shell-header="control-plane">
   <div class="container-fluid px-3 d-flex flex-wrap align-items-center gap-2">

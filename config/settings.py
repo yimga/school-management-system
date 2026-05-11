@@ -177,6 +177,9 @@ INSTALLED_APPS = [
     # REST Framework
     "rest_framework",
     "rest_framework_simplejwt",
+    # OpenAPI / Swagger UI / Redoc auto-generation from DRF code.
+    # Exposed at /api/schema/, /api/docs/ (Swagger UI), /api/redoc/.
+    "drf_spectacular",
     # GraphQL
     "graphene_django",
     # Project apps
@@ -1443,6 +1446,55 @@ COMPLIANCE_ALERTS = {
         e for e in os.getenv("COMPLIANCE_REPORT_RECIPIENTS", "").split(",") if e
     ],
     "report_email_enabled": os.getenv("COMPLIANCE_REPORT_EMAIL_ENABLED", "1") == "1",
+}
+
+# --- DRF + OpenAPI (drf-spectacular) ---
+# Public API surface auto-documented at /api/schema/ (raw OpenAPI 3.0 JSON/YAML),
+# /api/docs/ (Swagger UI), and /api/redoc/ (Redoc).
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # Authentication classes default to session + simplejwt; keep ordering so
+    # browser sessions still work and API clients can use Bearer tokens.
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "RunMyCampus API",
+    "DESCRIPTION": (
+        "Public REST API for RunMyCampus. Multi-tenant school management SaaS. "
+        "Each endpoint is tenant-scoped — your API key / session determines which "
+        "school's data you can read or write."
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,  # Don't include the /schema route itself in the schema
+    "CONTACT": {"email": "developers@runmycampus.com"},
+    "LICENSE": {"name": "Proprietary"},
+    "SERVERS": [
+        {"url": "https://api.runmycampus.com", "description": "Production"},
+        {"url": "https://api.staging.runmycampus.com", "description": "Staging"},
+    ],
+    "TAGS": [
+        {"name": "Students"},
+        {"name": "Teachers"},
+        {"name": "Guardians"},
+        {"name": "Attendance"},
+        {"name": "Grades"},
+        {"name": "Finance"},
+        {"name": "Reports"},
+        {"name": "Webhooks"},
+    ],
+    # Group endpoints by URL prefix for navigability.
+    "POSTPROCESSING_HOOKS": [
+        "drf_spectacular.hooks.postprocess_schema_enums",
+    ],
+    # Hide internal/non-stable endpoints from the public docs by excluding them with
+    # the `extend_schema(exclude=True)` decorator on the view.
 }
 
 # --- Sentry (error and performance monitoring) ---

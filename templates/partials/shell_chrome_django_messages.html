@@ -10,10 +10,18 @@
     {% include "components/announcement_banner.html" %}
   {% endif %}
   {% for message in messages %}
+    {% comment %}
+      WCAG 4.1.3 / Section 508: error/warning flashes need role="alert" (assertive announce);
+      success/info flashes use role="status" (polite announce). Without this, screen-reader
+      users never hear permission-denial / save-success messages.
+    {% endcomment %}
     <div
       class="alert alert-{{ message.tags|default:'info' }} mb-2"
       data-shell-chrome="django-message"
       data-django-message-tags="{{ message.tags|default:'info' }}"
+      role="{% if message.tags == 'error' or message.tags == 'warning' %}alert{% else %}status{% endif %}"
+      aria-live="{% if message.tags == 'error' or message.tags == 'warning' %}assertive{% else %}polite{% endif %}"
+      aria-atomic="true"
     >
       {{ message }}
       {% if shell_chrome_messages_error_help and message.tags == 'error' %}

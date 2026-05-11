@@ -204,3 +204,106 @@ from apps.compliance.models_audit import IPAccessRule, CountryAccessRule
 def refresh_access_rules_cache(sender, instance, **kwargs):
     """Called when an access rule is created/updated/deleted to invalidate cached checks."""
     _bump_rules_version()
+
+
+# ---------------------------------------------------------------------------
+# Authentication audit signals (SOC 2 CC6 / CC7, ISO 27001 A.12.4, FERPA access log).
+# Without these, AuditLog.Action.LOGIN / LOGOUT / ACCESS_DENIED enum values are
+# never written and the audit-log UI's "Recent logins" view is silent.
+# ---------------------------------------------------------------------------
+
+from django.contrib.auth.signals import (
+    user_logged_in,
+    user_logged_out,
+    user_login_failed,
+)
+
+
+def _client_ip(request) -> str | None:
+    """Best-effort client IP extraction honoring X-Forwarded-For."""
+    if request is None:
+        return None
+    xff = request.META.get("HTTP_X_FORWARDED_FOR", "") if hasattr(request, "META") else ""
+    if xff:
+        return xff.split(",")[0].strip() or None
+    return request.META.get("REMOTE_ADDR") if hasattr(request, "META") else None
+
+
+def _client_user_agent(request) -> str:
+    if request is None or not hasattr(request, "META"):
+        return ""
+    return (request.META.get("HTTP_USER_AGENT") or "")[:500]
+
+
+@receiver(user_logged_in)
+def log_user_login(sender, request, user, **kwargs):
+    """Audit successful login. SOC 2 CC6.1 logical access tracking."""
+    try:
+        AuditLog.objects.create(
+            user=user,
+            ip_address=_client_ip(request),
+            user_agent=_client_user_agent(request),
+            action=AuditLog.Action.LOGIN,
+            model_name="User",
+            object_id=str(getattr(user, "pk", "")),
+            object_repr=(getattr(user, "get_username", lambda: "")() or "")[:500],
+            app_label="accounts",
+            sensitivity=AuditLog.Sensitivity.HIGH,
+            new_values={
+                "mfa_verified": bool(getattr(user, "is_verified", lambda: False)())
+                if hasattr(user, "is_verified")
+                else None,
+            },
+        )
+    except (ValueError, TypeError, AttributeError):
+        # Never block login on audit-write failure.
+        pass
+
+
+@receiver(user_logged_out)
+def log_user_logout(sender, request, user, **kwargs):
+    """Audit explicit logout."""
+    if user is None:
+        return
+    try:
+        AuditLog.objects.create(
+            user=user,
+            ip_address=_client_ip(request),
+            user_agent=_client_user_agent(request),
+            action=AuditLog.Action.LOGOUT,
+            model_name="User",
+            object_id=str(getattr(user, "pk", "")),
+            object_repr=(getattr(user, "get_username", lambda: "")() or "")[:500],
+            app_label="accounts",
+            sensitivity=AuditLog.Sensitivity.MEDIUM,
+        )
+    except (ValueError, TypeError, AttributeError):
+        pass
+
+
+@receiver(user_login_failed)
+def log_user_login_failed(sender, credentials, request=None, **kwargs):
+    """Audit failed login. ACCESS_DENIED is the closest semantic for SOC 2 brute-force evidence."""
+    try:
+        attempted_username = ""
+        if isinstance(credentials, dict):
+            attempted_username = (
+                credentials.get("username")
+                or credentials.get("email")
+                or credentials.get("login")
+                or ""
+            )
+        AuditLog.objects.create(
+            user=None,
+            ip_address=_client_ip(request),
+            user_agent=_client_user_agent(request),
+            action=AuditLog.Action.ACCESS_DENIED,
+            model_name="User",
+            object_id="",
+            object_repr=str(attempted_username)[:500],
+            app_label="accounts",
+            sensitivity=AuditLog.Sensitivity.HIGH,
+            reason="Failed login attempt",
+        )
+    except (ValueError, TypeError, AttributeError):
+        pass

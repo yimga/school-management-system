@@ -40,6 +40,8 @@ djangorestframework-simplejwt>=5.3.0
 PyYAML>=6.0.1
 inflection>=0.5.1
 uritemplate>=4.1.1
+# OpenAPI / Swagger UI / Redoc — public API self-service docs at /api/schema/, /api/docs/, /api/redoc/
+drf-spectacular>=0.27.0
 
 # GraphQL (full schema + introspection)
 graphene-django>=3.2.0

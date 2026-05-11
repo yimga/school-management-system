@@ -4,7 +4,11 @@
 {% block title %}{% block backend_title %}Backend{% endblock %}{% endblock %}
 
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Backend</h1>
+{% comment %}
+  WCAG 1.3.1 / 2.4.10: do NOT inject a hidden generic "Backend" h1 here. Each child
+  page owns its own descriptive h1 via .page-h1 grammar. Injecting a duplicate
+  pollutes the heading outline and gives screen-reader users a meaningless first heading.
+{% endcomment %}
 {# Impersonation strip: portal_base page-wrap (1025) so all portal/backend children inherit without duplicating blocks. #}
 {{ block.super }}
 {% endblock %}
