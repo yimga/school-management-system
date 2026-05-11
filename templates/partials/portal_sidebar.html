@@ -277,6 +277,27 @@
 {% endwith %}
 {% endif %}
 
+{% if not PORTAL_SIDEBAR_ITEMS and request.user.is_authenticated %}
+<div class="sidebar-section-title mt-4">Help &amp; Support</div>
+<div class="nav flex-column gap-0">
+  <a class="nav-link nav-pill" href="{% url 'kb:kb_home' %}">
+    <i class="bi bi-book me-2"></i>Knowledge Base
+  </a>
+  <a class="nav-link nav-pill" href="{% url 'kb:faq_list' %}">
+    <i class="bi bi-question-circle me-2"></i>FAQs
+  </a>
+  <a class="nav-link nav-pill" href="{% url 'kb:kb_search' %}">
+    <i class="bi bi-search me-2"></i>Search Help
+  </a>
+  <a class="nav-link nav-pill" href="{% url 'kb:user_contributions' %}">
+    <i class="bi bi-trophy me-2"></i>My Contributions
+  </a>
+  {% if request.user.is_staff %}
+    <a class="nav-link nav-pill" href="/admin/"><i class="bi bi-shield-lock me-2"></i>Open Admin</a>
+  {% endif %}
+</div>
+{% endif %}
+
 <!-- Portal Stats for teachers (static sidebar); staff get it under Analytics & Reports. -->
 {% if not PORTAL_SIDEBAR_ITEMS and request.user.is_authenticated and request.user.role == 'TEACHER' %}
 <div class="sidebar-section-title mt-4">Settings</div>
