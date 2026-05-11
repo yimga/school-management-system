@@ -540,6 +540,67 @@ def _budget_limit_per_tenant_per_day() -> int:
         return 0
 
 
+def _premium_budget_limit_per_tenant_per_day(tenant_id: Any) -> int:
+    """
+    Pass 13.C: per-tenant cap on PREMIUM-tier calls (Anthropic + LiteLLM) per
+    day. Resolution order:
+      1. school.settings["ai_premium_daily_cap"] — tenant-self-managed.
+      2. settings.AI_PREMIUM_DAILY_CAP_PER_TENANT — platform default.
+      3. env AI_PREMIUM_DAILY_CAP_PER_TENANT.
+      0 / unset → disabled.
+    """
+    try:
+        from apps.schools.models import School
+
+        if tenant_id:
+            school = School.objects.filter(id=tenant_id).only("settings").first()
+            tenant_settings = getattr(school, "settings", None) or {}
+            override = tenant_settings.get("ai_premium_daily_cap")
+            if override is not None:
+                try:
+                    parsed = int(override)
+                    if parsed >= 0:
+                        return parsed
+                except (TypeError, ValueError):
+                    pass
+    except (ImportError, DatabaseError, AttributeError, TypeError, ValueError):
+        pass
+    raw = (
+        getattr(settings, "AI_PREMIUM_DAILY_CAP_PER_TENANT", None)
+        or os.environ.get("AI_PREMIUM_DAILY_CAP_PER_TENANT")
+        or "0"
+    )
+    try:
+        return max(0, int(raw))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _check_and_consume_premium_budget(tenant_id: Any) -> tuple[bool, dict[str, Any]]:
+    """Pass 13.C: gate Anthropic/LiteLLM specifically (separate from request budget)."""
+    limit = _premium_budget_limit_per_tenant_per_day(tenant_id)
+    if limit <= 0:
+        return True, {}
+    key_tenant = str(tenant_id) if tenant_id is not None else "global"
+    today = date.today().isoformat()
+    cache_key = f"ai:premium_budget:requests:{key_tenant}:{today}"
+    try:
+        current = cache.get(cache_key, 0) or 0
+        if current >= limit:
+            return False, {
+                "premium_budget_exceeded": True,
+                "limit": limit,
+                "period": "day",
+            }
+        if current == 0:
+            cache.set(cache_key, 1, timeout=86400 * 2)
+        else:
+            cache.incr(cache_key)
+    except _CACHE_METRIC_ERRORS:
+        return True, {}
+    return True, {"premium_budget_remaining": max(0, limit - current - 1)}
+
+
 def _check_and_consume_budget(tenant_id: Any) -> tuple[bool, dict[str, Any]]:
     """
     Check per-tenant daily request budget; if under limit, increment and return (True, {}).
@@ -724,6 +785,12 @@ def invoke(
         if tier in ("litellm", "anthropic"):
             if not allow_premium:
                 errors[tier] = "data_tier_disallowed"
+                continue
+            # Pass 13.C: per-tenant premium spend cap. Skip the tier and try the
+            # next one (Ollama) when the daily cap is exhausted.
+            premium_ok, premium_meta = _check_and_consume_premium_budget(tenant_id)
+            if not premium_ok:
+                errors[tier] = "premium_budget_exceeded"
                 continue
         text = None
         meta: dict[str, Any] = {}
