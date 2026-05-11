@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Anomaly Detection" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-page="compliance-anomaly-detection">
+  <nav aria-label="breadcrumb" class="small mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'compliance:dashboard' %}">{% trans "Compliance" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans "Anomaly detection" %}</li>
+    </ol>
+  </nav>
+
+  <header class="d-flex flex-wrap gap-2 justify-content-between align-items-end mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Anomaly detection report" %}</h1>
+      <p class="text-muted mb-0">
+        {% blocktrans with d=days %}Unusual access patterns and suspicious sessions detected over the last {{ d }} days.{% endblocktrans %}
+      </p>
+    </div>
+    <form method="get" class="d-flex gap-2 align-items-end" role="search">
+      <div>
+        <label for="days" class="form-label small mb-1">{% trans "Days" %}</label>
+        <input type="number" min="1" max="90" name="days" id="days" value="{{ days }}" class="form-control form-control-sm" style="width: 6rem;">
+      </div>
+      <button type="submit" class="btn btn-sm btn-primary">{% trans "Apply" %}</button>
+    </form>
+  </header>
+
+  <div class="card mb-3">
+    <div class="card-body d-flex flex-wrap gap-3 align-items-center">
+      <span class="badge bg-secondary me-2">{% trans "Total anomalies" %}: {{ total_anomalies|default:0 }}</span>
+      {% if total_anomalies == 0 %}<span class="text-success small">{% trans "No anomalies detected — all activity within expected patterns." %}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body p-0">
+      <table class="table table-sm align-middle mb-0">
+        <caption class="visually-hidden">{% trans "Detected anomalies with type, user, severity, and a short description." %}</caption>
+        <thead class="table-light">
+          <tr>
+            <th>{% trans "Type" %}</th>
+            <th>{% trans "User" %}</th>
+            <th>{% trans "Severity" %}</th>
+            <th>{% trans "Description" %}</th>
+            <th class="text-end">{% trans "Value" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in anomalies %}
+          <tr>
+            <td><code class="small">{{ a.type }}</code></td>
+            <td>{{ a.user|default:"—" }}</td>
+            <td>
+              <span class="badge {% if a.severity == 'CRITICAL' %}bg-danger{% elif a.severity == 'HIGH' %}bg-warning text-dark{% elif a.severity == 'MEDIUM' %}bg-info text-dark{% else %}bg-light text-muted{% endif %}">{{ a.severity }}</span>
+            </td>
+            <td class="small">{{ a.description }}</td>
+            <td class="text-end">{{ a.value }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-muted text-center py-4">{% trans "Nothing to flag." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

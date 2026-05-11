@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load region_format static %}
+{% load region_format static compliance_tags %}
 
 {% block title %}Invoice Detail{% endblock %}
 
@@ -419,6 +419,9 @@
   </div>
 </form>
 {% endif %}
+
+{# Pass 9: per-record audit drill-down — SOC 2 + FERPA financial-access traceability. #}
+{% if invoice %}{% recent_activity_for "Invoice" invoice.pk %}{% endif %}
 </div>
 {% endblock %}
 

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Data Access Report" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-page="compliance-data-access">
+  <nav aria-label="breadcrumb" class="small mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'compliance:dashboard' %}">{% trans "Compliance" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans "Data access" %}</li>
+    </ol>
+  </nav>
+
+  <header class="d-flex flex-wrap gap-2 justify-content-between align-items-end mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Data access report" %}</h1>
+      <p class="text-muted mb-0">{% blocktrans with d=days %}Access patterns over the last {{ d }} days.{% endblocktrans %}</p>
+    </div>
+    <form method="get" class="d-flex gap-2 align-items-end" role="search">
+      <div>
+        <label for="days" class="form-label small mb-1">{% trans "Days" %}</label>
+        <input type="number" min="1" max="365" name="days" id="days" value="{{ days }}" class="form-control form-control-sm" style="width: 6rem;">
+      </div>
+      <button type="submit" class="btn btn-sm btn-primary">{% trans "Apply" %}</button>
+    </form>
+  </header>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card"><div class="card-body">
+        <p class="text-muted small mb-1">{% trans "Total accesses" %}</p>
+        <p class="h3 mb-0">{{ total_access|default:0 }}</p>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-success-subtle"><div class="card-body">
+        <p class="text-muted small mb-1">{% trans "Successful" %}</p>
+        <p class="h3 mb-0 text-success">{{ successful|default:0 }}</p>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-danger-subtle"><div class="card-body">
+        <p class="text-muted small mb-1">{% trans "Failed" %}</p>
+        <p class="h3 mb-0 text-danger">{{ failed|default:0 }}</p>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card"><div class="card-body">
+        <p class="text-muted small mb-1">{% trans "Success rate" %}</p>
+        <p class="h3 mb-0">{{ success_rate }}</p>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header"><h2 class="h6 mb-0">{% trans "By user" %}</h2></div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <caption class="visually-hidden">{% trans "Access counts grouped by username." %}</caption>
+            <thead class="table-light"><tr><th>{% trans "User" %}</th><th class="text-end">{% trans "Accesses" %}</th><th class="text-end">{% trans "Avg ms" %}</th></tr></thead>
+            <tbody>
+              {% for entry in by_user %}
+              <tr>
+                <td>{{ entry.user__username|default:"—" }}</td>
+                <td class="text-end">{{ entry.count }}</td>
+                <td class="text-end small text-muted">{{ entry.avg_response_time|default_if_none:"—" }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-muted text-center py-3">{% trans "No data." %}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header"><h2 class="h6 mb-0">{% trans "By access type" %}</h2></div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <caption class="visually-hidden">{% trans "Access counts grouped by access type." %}</caption>
+            <thead class="table-light"><tr><th>{% trans "Type" %}</th><th class="text-end">{% trans "Count" %}</th></tr></thead>
+            <tbody>
+              {% for entry in by_type %}
+              <tr><td>{{ entry.access_type|default:"—" }}</td><td class="text-end">{{ entry.count }}</td></tr>
+              {% empty %}
+              <tr><td colspan="2" class="text-muted text-center py-3">{% trans "No data." %}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-3">
+    <div class="card-header"><h2 class="h6 mb-0">{% trans "Top resources (top 20)" %}</h2></div>
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0">
+        <caption class="visually-hidden">{% trans "Most-accessed resource paths with success and failure counts." %}</caption>
+        <thead class="table-light"><tr><th>{% trans "Resource" %}</th><th class="text-end">{% trans "Accesses" %}</th><th class="text-end">{% trans "Failures" %}</th></tr></thead>
+        <tbody>
+          {% for entry in by_resource %}
+          <tr>
+            <td class="small"><code>{{ entry.resource|truncatechars:80 }}</code></td>
+            <td class="text-end">{{ entry.count }}</td>
+            <td class="text-end {% if entry.failures %}text-danger{% else %}text-muted{% endif %}">{{ entry.failures|default:0 }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-muted text-center py-3">{% trans "No data." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

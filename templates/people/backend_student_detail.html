@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load i18n static region_format %}
+{% load i18n static region_format compliance_tags %}
 {% block backend_title %}{% trans "Student 360" %} — {{ student.first_name }} {{ student.last_name }}{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
@@ -116,5 +116,8 @@
     </div>
     {% endwith %}
   </div>
+
+  {# Pass 9: per-record audit drill-down for FERPA read-access traceability. #}
+  {% recent_activity_for "StudentProfile" student.pk %}
 </div>
 {% endblock %}

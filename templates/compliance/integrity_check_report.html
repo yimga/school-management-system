@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Integrity Check Report" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-page="compliance-integrity">
+  <nav aria-label="breadcrumb" class="small mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'compliance:dashboard' %}">{% trans "Compliance" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans "Integrity check" %}</li>
+    </ol>
+  </nav>
+
+  <header class="mb-3">
+    <h1 class="h3 mb-1">{% trans "Data integrity check" %}</h1>
+    <p class="text-muted mb-0">{% trans "Automated consistency checks: orphaned references, missing audit trails, and suspicious sessions." %}</p>
+  </header>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <div class="card"><div class="card-body">
+        <p class="text-muted small mb-1">{% trans "Total issues" %}</p>
+        <p class="h3 mb-0">{{ total_issues|default:0 }}</p>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-danger-subtle"><div class="card-body">
+        <p class="text-muted small mb-1">{% trans "Critical" %}</p>
+        <p class="h3 mb-0 text-danger">{{ critical_count|default:0 }}</p>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-warning-subtle"><div class="card-body">
+        <p class="text-muted small mb-1">{% trans "High severity" %}</p>
+        <p class="h3 mb-0 text-warning">{{ high_count|default:0 }}</p>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0">
+        <caption class="visually-hidden">{% trans "Detected integrity issues with type, severity, and count." %}</caption>
+        <thead class="table-light">
+          <tr>
+            <th>{% trans "Issue type" %}</th>
+            <th>{% trans "Description" %}</th>
+            <th>{% trans "Severity" %}</th>
+            <th class="text-end">{% trans "Count" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for issue in issues %}
+          <tr>
+            <td><code class="small">{{ issue.type }}</code></td>
+            <td>{{ issue.description }}</td>
+            <td>
+              <span class="badge {% if issue.severity == 'CRITICAL' %}bg-danger{% elif issue.severity == 'HIGH' %}bg-warning text-dark{% elif issue.severity == 'MEDIUM' %}bg-info text-dark{% else %}bg-light text-muted{% endif %}">{{ issue.severity }}</span>
+            </td>
+            <td class="text-end">{{ issue.count }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-success text-center py-4">
+            <strong>{% trans "All integrity checks passed." %}</strong>
+            <span class="d-block small text-muted">{% trans "No orphaned references or audit gaps detected." %}</span>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
