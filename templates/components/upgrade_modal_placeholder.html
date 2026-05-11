@@ -1,6 +1,8 @@
-{# Phase D: Upgrade Modal placeholder — include when a feature is gated.
-   Usage: {% load feature_control %} {% feature_enabled "design_studio" as has_ds %}
-   {% if not has_ds %}{% include "components/upgrade_modal_placeholder.html" %}{% else %}...content...{% endif %} #}
+{% comment %}
+Phase D: Upgrade Modal placeholder — include when a feature is gated.
+Usage: {% load feature_control %} {% feature_enabled "design_studio" as has_ds %}
+{% if not has_ds %}{% include "components/upgrade_modal_placeholder.html" %}{% else %}...content...{% endif %}
+{% endcomment %}
 <div class="upgrade-modal-placeholder border rounded-3 p-4 p-lg-5 text-center bg-light" data-upgrade-placeholder="true">
   <p class="mb-2 fw-semibold">This feature is not included in your current plan.</p>
   <p class="text-muted small mb-3">Upgrade your subscription to access this module. Contact your administrator or the platform support to change your plan.</p>

@@ -6,8 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% if request.build_absolute_uri %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endif %}
     {% with desc=meta_description|default:SITE.meta_description|default:"" %}{% if desc %}<meta name="description" content="{{ desc|truncatewords:50 }}">{% endif %}{% endwith %}
-    {# Theme preference must apply before paint to avoid flash-of-wrong-theme.
-       External JS instead of inline keeps the page CSP-friendly. #}
+    {% comment %}
+    Theme preference must apply before paint to avoid flash-of-wrong-theme.
+    External JS instead of inline keeps the page CSP-friendly.
+    {% endcomment %}
     <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
     <script src="{% static 'js/kb-route-signature.js' %}"></script>
@@ -29,11 +31,13 @@
     <link rel="stylesheet" href="{% static 'css/toggle-colors.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-tables-forms.css' %}">
-    {# portal_theme.css RETIRED 2026-05-10 — its hardcoded sunset gradients overrode --portal-bg
-       and conflicted with the token system. Tenant brand cascade now works correctly.
-       The file still exists on disk for service-worker cache manifest reasons; deleting it
-       requires bumping the SW version + updating apps/siteconfig/tests/test_theme_visibility_matrix.py.
-       See memory: reference_css_retirement_audit.md #}
+    {% comment %}
+    portal_theme.css RETIRED 2026-05-10 — its hardcoded sunset gradients overrode --portal-bg
+    and conflicted with the token system. Tenant brand cascade now works correctly.
+    The file still exists on disk for service-worker cache manifest reasons; deleting it
+    requires bumping the SW version + updating apps/siteconfig/tests/test_theme_visibility_matrix.py.
+    See memory: reference_css_retirement_audit.md
+    {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/portal-theme-modes.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-fluid-everywhere.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
@@ -409,13 +413,17 @@
     {% block extra_js %}{% endblock %}
     {% block extrajs %}{% endblock %}
 
-    {# Portal shell bootstrap: theme toggle + Ctrl+K search + sidebar resize/collapse.
-       Externalised from portal_base.html so the shell is CSP-friendly. #}
+    {% comment %}
+    Portal shell bootstrap: theme toggle + Ctrl+K search + sidebar resize/collapse.
+    Externalised from portal_base.html so the shell is CSP-friendly.
+    {% endcomment %}
     <script src="{% static 'js/portal-shell-bootstrap.js' %}" defer></script>
     {# Legacy inline implementation removed in batch 1239 — see static/js/portal-shell-bootstrap.js #}
-    {# Original 240-line inline block (theme toggle + Ctrl+K search + sidebar resize)
-       was deleted in batch 1239; implementation now lives in
-       static/js/portal-shell-bootstrap.js. #}
+    {% comment %}
+    Original 240-line inline block (theme toggle + Ctrl+K search + sidebar resize)
+    was deleted in batch 1239; implementation now lives in
+    static/js/portal-shell-bootstrap.js.
+    {% endcomment %}
     {% comment %}
       // Theme Toggle: light / dark / system (persisted in localStorage)
       document.addEventListener('DOMContentLoaded', function() {
@@ -659,9 +667,11 @@
     </script>
     {% endcomment %}
 
-    {# SMS_OFFLINE_CONFIG: emitted as a JSON data island (CSP-safe) and parsed
-       by sms-offline-config-loader.js. Replaces the previous Django-interpolated
-       inline executable script. #}
+    {% comment %}
+    SMS_OFFLINE_CONFIG: emitted as a JSON data island (CSP-safe) and parsed
+    by sms-offline-config-loader.js. Replaces the previous Django-interpolated
+    inline executable script.
+    {% endcomment %}
     <script type="application/json" id="sms-offline-config">{
       "enabled": {{ OFFLINE_ENABLED_FOR_CURRENT_SCHOOL|yesno:"true,false" }},
       "pwaEnabled": {{ SITE.backend_feature_flags.enable_portal_pwa|default:"1"|yesno:"true,false" }},
@@ -709,8 +719,10 @@
     <script src="{% static 'js/offline-queue-client.js' %}"></script>
     <script src="{% static 'js/rmc-offline-portal-forms.js' %}"></script>
     {% endif %}
-    {# PWA Service Worker registration. SW URL is emitted as a JSON data island so
-       the registration JS can be a static, CSP-friendly file. #}
+    {% comment %}
+    PWA Service Worker registration. SW URL is emitted as a JSON data island so
+    the registration JS can be a static, CSP-friendly file.
+    {% endcomment %}
     <script type="application/json" id="rmc-service-worker-url">{
       "url": "{% static 'js/service-worker.js' %}"
     }</script>

@@ -1,24 +1,26 @@
 {% load i18n %}
-{# ============================================================================
-   Platform Readiness Strip (SOT batch 1203)
+{% comment %}
+============================================================================
+Platform Readiness Strip (SOT batch 1203)
 
-   Shared partial that mounts:
-     - 3x world_class_risk_blocker_card (markers: data-world-class-risk-blocker-card,
-       data-apple-class-risk-card)
-     - 2x apple_class_inline_edit_field (marker: data-apple-class-inline-edit-field)
+Shared partial that mounts:
+  - 3x world_class_risk_blocker_card (markers: data-world-class-risk-blocker-card,
+    data-apple-class-risk-card)
+  - 2x apple_class_inline_edit_field (marker: data-apple-class-inline-edit-field)
 
-   Include this once per dashboard (super, configuration, billing, migrations,
-   school money, school setup imports, school audit, school security, school
-   settings). This is the source of truth for honest external-blocker visibility
-   and for the Apple-class inline-edit affordance pattern.
+Include this once per dashboard (super, configuration, billing, migrations,
+school money, school setup imports, school audit, school security, school
+settings). This is the source of truth for honest external-blocker visibility
+and for the Apple-class inline-edit affordance pattern.
 
-   Inputs (all optional):
-     - hide_blockers   (truthy: skip risk/blocker cards)
-     - hide_inline     (truthy: skip inline edit fields)
-     - psp_status_label, soc2_status_label, settlement_status_label
-     - inline_field_prefix (string used to disambiguate field IDs across mounts)
-     - tenant_label
-============================================================================ #}
+Inputs (all optional):
+  - hide_blockers   (truthy: skip risk/blocker cards)
+  - hide_inline     (truthy: skip inline edit fields)
+  - psp_status_label, soc2_status_label, settlement_status_label
+  - inline_field_prefix (string used to disambiguate field IDs across mounts)
+  - tenant_label
+============================================================================
+{% endcomment %}
 <section class="rmc-wcx-grid platform-readiness-strip mt-3 mb-3"
          data-platform-readiness-strip="1"
          aria-label="{% trans 'Platform readiness blockers and quick edits' %}">

@@ -1,6 +1,8 @@
 {% load static i18n %}
-{# Skeleton loader — announces busy state to assistive tech.
-   Replace with the loaded content + set aria-busy="false" when ready. #}
+{% comment %}
+Skeleton loader — announces busy state to assistive tech.
+Replace with the loaded content + set aria-busy="false" when ready.
+{% endcomment %}
 
 <div class="skeleton-loader" role="status" aria-busy="true" aria-live="polite" aria-label="{% trans 'Loading…' %}">
   <span class="visually-hidden">{% trans "Loading…" %}</span>

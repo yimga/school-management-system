@@ -17,8 +17,10 @@ API is backwards-compatible: existing callers (without eyebrow) keep working.
 <div class="d-flex flex-wrap align-items-end justify-content-between mb-3 page-header ui-premium-surface" data-rmc-component="page-header">
   <div>
     {% if eyebrow %}<div class="eyebrow mb-1">{{ eyebrow }}</div>{% endif %}
-    {# Promoted from h2 to h1 in batch 1240 — this partial is the page's primary heading.
-       Visual size is preserved via the .h2 utility class so existing CSS doesn't shift. #}
+    {% comment %}
+    Promoted from h2 to h1 in batch 1240 — this partial is the page's primary heading.
+    Visual size is preserved via the .h2 utility class so existing CSS doesn't shift.
+    {% endcomment %}
     <h1 class="page-h1 h2 mb-0">{{ title|default:"Page" }}</h1>
     {% if subtitle %}<div class="page-sub text-muted">{{ subtitle }}</div>{% endif %}
   </div>

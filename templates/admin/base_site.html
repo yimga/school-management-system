@@ -8,9 +8,11 @@
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
   {% endif %}
   <!-- Admin-only design tokens + platform super ultra high-end -->
-  {# Set aesthetic-v2 flag on <html> so patterns.css scopes apply. Inline script
-     runs synchronously in <head>, before paint, so no FOUC. The Unfold skeleton
-     template owns the <html> tag (third-party), so we toggle the attribute here. #}
+  {% comment %}
+  Set aesthetic-v2 flag on <html> so patterns.css scopes apply. Inline script
+  runs synchronously in <head>, before paint, so no FOUC. The Unfold skeleton
+  template owns the <html> tag (third-party), so we toggle the attribute here.
+  {% endcomment %}
   <script>document.documentElement.setAttribute('data-rmc-aesthetic','v2');</script>
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">

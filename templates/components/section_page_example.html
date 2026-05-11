@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{# REFERENCE IMPLEMENTATION of the section-page contract.
-   Use this template as the copy-paste starting point for a new page.
-   Mirror the structure exactly; replace the placeholder content.
-   Audited by scripts/audit_page_standards.py.
-#}
+{% comment %}
+REFERENCE IMPLEMENTATION of the section-page contract.
+Use this template as the copy-paste starting point for a new page.
+Mirror the structure exactly; replace the placeholder content.
+Audited by scripts/audit_page_standards.py.
+{% endcomment %}
 
 {% block title %}{{ page_title }} — {% trans "RunMyCampus" %}{% endblock %}
 
@@ -16,8 +17,10 @@
   {# 2. Main landmark — the skip-link target. Required. #}
   <main id="main-content" role="main" class="container py-4">
 
-    {# 3. Server-rendered alerts (success / error feedback). aria-live makes
-         screen readers announce them on page load. #}
+    {% comment %}
+    3. Server-rendered alerts (success / error feedback). aria-live makes
+    screen readers announce them on page load.
+    {% endcomment %}
     {% if request.GET.submitted %}
       <div class="alert alert-success" role="alert" aria-live="polite">
         {% trans "Action saved." %}

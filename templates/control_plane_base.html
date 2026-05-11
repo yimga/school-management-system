@@ -63,8 +63,10 @@
   </div>
 </nav>
 
-{# Skip-link must come before the main nav so keyboard users hit it first.
-   Targets the existing #cp-main-content landmark (line ~76 below). #}
+{% comment %}
+Skip-link must come before the main nav so keyboard users hit it first.
+Targets the existing #cp-main-content landmark (line ~76 below).
+{% endcomment %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded"
    href="#cp-main-content"
    aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>

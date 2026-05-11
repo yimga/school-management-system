@@ -1,6 +1,8 @@
 {% load i18n %}
-{# Use a real <section> landmark instead of <div role="region"> per ARIA 1.2 SC4.1.2:
-   semantic elements are preferred when an equivalent role exists. #}
+{% comment %}
+Use a real <section> landmark instead of <div role="region"> per ARIA 1.2 SC4.1.2:
+semantic elements are preferred when an equivalent role exists.
+{% endcomment %}
 <section class="rmc-os-status-stack" data-rmc-os-status-strip="1" aria-label="{% trans 'Platform and connectivity status' %}">
   {% if strip_items %}
   <div class="d-flex flex-wrap gap-2 mb-2" data-rmc-os-strip-items="1" role="list">

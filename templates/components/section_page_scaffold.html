@@ -1,25 +1,26 @@
 {% load i18n %}
-{# Reusable section-page scaffold partial.
-   See docs/design/PAGE_AND_DASHBOARD_STANDARDS.md for the full contract.
+{% comment %}
+Reusable section-page scaffold partial.
+See docs/design/PAGE_AND_DASHBOARD_STANDARDS.md for the full contract.
 
-   Renders the hero region (skip-link, status strip, breadcrumb, h1 + subtitle,
-   action rail). The caller is responsible for wrapping their own content in
-   <main id="main-content" role="main">…</main> AFTER including this partial,
-   so the skip-link target works.
+Renders the hero region (skip-link, status strip, breadcrumb, h1 + subtitle,
+action rail). The caller is responsible for wrapping their own content in
+<main id="main-content" role="main">…</main> AFTER including this partial,
+so the skip-link target works.
 
-   Context variables (all optional except page_title):
-     - page_title         (str, required)        — page H1
-     - page_subtitle      (str)                  — single-line subtitle below H1
-     - page_archetype     (str)                  — used by audit_page_standards.py
-                                                   ("dashboard" / "list" / "detail" / "form" / "report")
-     - breadcrumbs        (list[{label, href}])  — last item is current page (no href needed)
-     - primary_actions    (list[{label, href, variant, icon, busy_label}])
-                          — at most 3 actions; rendered right-aligned on desktop
-     - status_strip_items (list[{label, tone, title}])
-                          — pinned platform/payment/version status badges
-     - hide_skip_link     (bool, default False)  — set True only when including
-                          this partial inside another page that already provides one.
-#}
+Context variables (all optional except page_title):
+  - page_title         (str, required)        — page H1
+  - page_subtitle      (str)                  — single-line subtitle below H1
+  - page_archetype     (str)                  — used by audit_page_standards.py
+                                                ("dashboard" / "list" / "detail" / "form" / "report")
+  - breadcrumbs        (list[{label, href}])  — last item is current page (no href needed)
+  - primary_actions    (list[{label, href, variant, icon, busy_label}])
+                       — at most 3 actions; rendered right-aligned on desktop
+  - status_strip_items (list[{label, tone, title}])
+                       — pinned platform/payment/version status badges
+  - hide_skip_link     (bool, default False)  — set True only when including
+                       this partial inside another page that already provides one.
+{% endcomment %}
 
 {% if not hide_skip_link %}
   <a href="#main-content" class="visually-hidden-focusable">{% trans "Skip to main content" %}</a>

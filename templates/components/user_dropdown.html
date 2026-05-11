@@ -167,9 +167,11 @@
   </div>
 </div>
 
-{# User-dropdown keyboard shortcuts + idle indicator. URLs sourced from a
-   JSON data island so the inline executable script can be removed
-   (CSP-friendly). Reader: static/js/_pages/components__user_dropdown.js #}
+{% comment %}
+User-dropdown keyboard shortcuts + idle indicator. URLs sourced from a
+JSON data island so the inline executable script can be removed
+(CSP-friendly). Reader: static/js/_pages/components__user_dropdown.js
+{% endcomment %}
 <script type="application/json" id="user-dropdown-config">{
   "profileUrl": "{% url 'accounts:user_profile' %}",
   "preferencesUrl": "{% url 'siteconfig:user_preferences' %}",
