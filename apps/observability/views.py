@@ -318,8 +318,6 @@ def _check_cache_liveness() -> dict:
 
 
 @require_GET
-@observability_auth_required
-@require_GET
 def csrf_token_refresh(request):
     """Offline foundational: return a freshly-rotated CSRF token.
 
@@ -327,6 +325,11 @@ def csrf_token_refresh(request):
     so the X-CSRFToken header matches the current csrftoken cookie. The
     response is uncacheable; ensure_csrf_cookie rotates the cookie when the
     user's session is older than CSRF_COOKIE_AGE.
+
+    This view is intentionally NOT gated by `observability_auth_required` —
+    the SW replays POSTs on behalf of parents/students whose original requests
+    were queued offline, so any authenticated user must be able to refresh
+    the token. CSRF tokens are not secret; rotation is the entire point.
     """
     from django.middleware.csrf import get_token
     from django.views.decorators.csrf import ensure_csrf_cookie

@@ -415,6 +415,11 @@ urlpatterns = [
     ),
     # Health and metrics
     path("healthz/", obs_views.healthz, name="healthz"),
+    # Offline foundational: fresh CSRF token endpoint for SW replay (cookie may
+    # have rotated while POSTs were queued in IndexedDB). Auth-required so we
+    # never leak rotation timing to anonymous probes, but NOT gated by
+    # observability_auth_required — the SW serves parents/students.
+    path("api/csrf-token/", obs_views.csrf_token_refresh, name="api_csrf_token"),
     # Public health endpoint for load balancers
     path("health/", obs_views.public_health, name="health"),
     path("ready/", obs_views.public_health, name="ready"),
