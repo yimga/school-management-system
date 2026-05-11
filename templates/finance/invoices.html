@@ -10,7 +10,7 @@
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-decision-engine="surface">
 {% phase8_dashboard_declaration "finance/invoices.html" %}
 {% trans "Back to Finance" as back_action %}
-{% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
+{% include "studio_os/components/page_header.html" with eyebrow="Finance · invoices" title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
 
 {% if finance_access_required and not finance_access_granted %}
 <div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert">

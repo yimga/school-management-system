@@ -7,7 +7,8 @@
 {% block content %}
 <div class="container py-3" data-page-archetype="operational-workbench">
   {% trans "Back to dashboard" as back_action %}
-  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
+  {% trans "My settings" as prefs_eyebrow %}
+  {% include "studio_os/components/page_header.html" with eyebrow=prefs_eyebrow title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
   <div class="row justify-content-center">
     <div class="col-lg-8 col-xl-7">
       {% trans "Personalize your portal." as prefs_banner_title %}

@@ -1508,6 +1508,72 @@
   background: transparent;
 }
 
+/* --- 24.10 Bootstrap nav-tabs (used on messages, settings, etc.) --------- */
+[data-rmc-aesthetic="v2"] .nav-tabs {
+  border-bottom: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  gap: 2px;
+}
+[data-rmc-aesthetic="v2"] .nav-tabs .nav-link {
+  border: none;
+  border-radius: 8px 8px 0 0;
+  padding: 8px 14px;
+  color: var(--color-base-600, #475569);
+  font-weight: 500;
+  font-size: .9rem;
+  transition: background var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)), color var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+}
+[data-rmc-aesthetic="v2"] .nav-tabs .nav-link:hover {
+  background: color-mix(in oklab, var(--school-primary) 6%, transparent);
+  color: var(--school-primary);
+  border: none;
+}
+[data-rmc-aesthetic="v2"] .nav-tabs .nav-link.active {
+  background: transparent;
+  color: var(--school-primary);
+  font-weight: 600;
+  border: none;
+  border-bottom: 2px solid var(--school-primary);
+}
+
+/* --- 24.11 Bootstrap list-group (used on calendar, message threads) ----- */
+[data-rmc-aesthetic="v2"] .list-group-flush > .list-group-item {
+  padding: 12px 0;
+  border-color: var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  transition: background var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+/* --- 24.12 Dropdown button-groups (used in report card actions) --------- */
+[data-rmc-aesthetic="v2"] .btn-group .dropdown-toggle,
+[data-rmc-aesthetic="v2"] .btn-group .btn {
+  border-radius: 10px;
+}
+[data-rmc-aesthetic="v2"] .btn-group .btn:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+[data-rmc-aesthetic="v2"] .btn-group .btn:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin-left: -1px;
+}
+
+/* --- 24.13 The .rmc-page-header wrapper used by Wave 1 surgical edits ---- */
+/* Just gives the v2 page-header block a clean stacking context. */
+[data-rmc-aesthetic="v2"] .rmc-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* --- 24.14 Backwards-compat: legacy .h2.mb-0 inside page-header partial -- */
+/* The shared page_header.html partials use `<h1 class="page-h1 h2">` for
+   backwards compat with .h2 utility sizing. Make sure .page-h1 wins. */
+[data-rmc-aesthetic="v2"] .page-header h1.page-h1.h2,
+[data-rmc-aesthetic="v2"] .page-header h1.page-h1.h4,
+[data-rmc-aesthetic="v2"] .studio-os-topbar h1.page-h1.h4 {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+}
+
 
 /* ==========================================================================
    25. REDUCED-MOTION FALLBACKS

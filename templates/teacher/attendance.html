@@ -6,9 +6,14 @@
 {% block content %}
 <div data-task="teacher_attendance" data-task-step="teacher:attendance-session">
   {% include "widgets/dashboard_hero.html" with hero=hero %}
-  <div data-page-header="1" class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 d-print-none">
-    <h1 class="visually-hidden">{% trans "Teacher attendance" %}</h1>
-    <nav class="ds-action-bar ms-auto d-flex flex-wrap gap-2" role="toolbar" aria-label="{% trans 'Exports' %}" data-rmc-teacher-attendance-actions="1">
+  <div data-page-header="1" class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3 d-print-none">
+    <div>
+      {# Aesthetic-v2 page-header grammar. Styled by patterns.css. #}
+      <div class="eyebrow">{% trans "Daily attendance" %}</div>
+      <h1 class="page-h1 mb-0">{% trans "Teacher attendance" %}</h1>
+      <p class="page-sub mb-0">{% trans "Mark today's roll and review trends." %}</p>
+    </div>
+    <nav class="ds-action-bar d-flex flex-wrap gap-2" role="toolbar" aria-label="{% trans 'Exports' %}" data-rmc-teacher-attendance-actions="1">
       {% if rmc_conversion_single_action_enforced|default:False %}
       <a class="btn btn-sm btn-primary ds-btn" href="{{ export_url }}" data-action="csv-export" data-task="attendance_export" data-task-step="attendance_export:csv-primary">{% trans "Export CSV" %}</a>
       {% else %}

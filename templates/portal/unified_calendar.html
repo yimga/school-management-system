@@ -3,15 +3,19 @@
 {% block title %}{% trans "Calendar" %} – {{ site.site_name|default:"Portal" }}{% endblock %}
 {% block content %}
 <div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <h1 class="h4 mb-0" id="calendar-heading">{% trans "Calendar" %}</h1>
+  <div class="d-flex justify-content-between align-items-end mb-3 flex-wrap gap-2">
+    <div>
+      {# Aesthetic-v2 page-header grammar. Styled by patterns.css. #}
+      <div class="eyebrow">{% trans "School calendar" %}</div>
+      <h1 class="page-h1 h4 mb-0" id="calendar-heading">{% trans "Calendar" %}</h1>
+      <p class="page-sub mb-0">{% trans "School events and upcoming deadlines in one place." %}</p>
+    </div>
     <nav aria-label="{% trans 'Portal navigation' %}">
       {% if is_parent %}<a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">{% trans "Back to dashboard" %}</a>{% endif %}
       {% if is_teacher %}<a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:teacher_dashboard_alias' %}">{% trans "Back to Teacher hub" %}</a>{% endif %}
       {% if not is_parent and not is_teacher %}<a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">{% trans "Parent dashboard" %}</a><a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:teacher_dashboard_alias' %}">{% trans "Teacher hub" %}</a>{% endif %}
     </nav>
   </div>
-  <p class="text-muted small">{% trans "School events and upcoming deadlines in one place." %}</p>
   <div class="card border-0 shadow-sm">
     <div class="card-body">
       {% if events %}
