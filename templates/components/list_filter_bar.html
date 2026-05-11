@@ -1,0 +1,102 @@
+{% load i18n %}
+{% comment %}
+  Pass 8 Wave 2 — canonical list filter bar.
+
+  Usage:
+    {% include "components/list_filter_bar.html" with action_url=request.path search_value=request.GET.q %}
+      {% block list_filter_fields %}
+        <!-- additional <select>/<input> facets go here -->
+      {% endblock %}
+    {% endinclude %}
+
+  Or simpler (no extra facets):
+    {% include "components/list_filter_bar.html" with action_url=request.path search_value=request.GET.q search_placeholder=_("Search students...") %}
+
+  Required context vars:
+    action_url       — form action URL (usually request.path)
+
+  Optional context vars:
+    search_name      — query string name (default: "q")
+    search_value     — current search value (usually request.GET.q)
+    search_placeholder — placeholder text (default: "Search")
+    search_label     — visually-hidden label (default: "Search")
+    clear_url        — URL to clear all filters (renders a "Clear" button)
+    method           — form method (default: "get")
+    extra_classes    — extra wrapper classes (e.g. "mb-3")
+    show_density_toggle — true → render Compact/Expanded toggle that POSTs to a data-density endpoint
+
+  What it standardizes (Lists-audit item #2 — fragmented filter pattern):
+    - Single .filter-bar visual treatment: card-bg-light wrapper, search left,
+      facets middle, Submit/Clear right
+    - Same micro-label rhythm (.form-system--dense .form-label small)
+    - Same submit affordance (Filter button) and clear pattern
+    - Same gap, padding, vertical rhythm
+
+  Replaces the 5+ ad-hoc <div class="card card-body bg-light"> filter rows across
+  backend_student_list, finance/invoices, signature_requests_manage, etc.
+{% endcomment %}
+
+<form method="{{ method|default:'get' }}"
+      action="{{ action_url }}"
+      class="list-filter-bar form-system form-system--dense {{ extra_classes|default:'mb-3' }}"
+      role="search"
+      aria-label="{{ search_label|default:_('Filter') }}"
+      data-list-filter-bar>
+  <div class="card bg-light border-0 shadow-sm">
+    <div class="card-body py-2 px-3">
+      <div class="row g-2 align-items-end">
+
+        {# Search input — always present unless explicitly disabled with hide_search=True #}
+        {% if not hide_search %}
+        <div class="col-12 col-md">
+          <label class="form-label small fw-semibold mb-1" for="list-filter-search">
+            {{ search_label|default:_("Search") }}
+          </label>
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-white border-end-0" aria-hidden="true">
+              <i class="bi bi-search"></i>
+            </span>
+            <input id="list-filter-search"
+                   type="search"
+                   name="{{ search_name|default:'q' }}"
+                   value="{{ search_value|default:'' }}"
+                   class="form-control form-control-sm border-start-0"
+                   placeholder="{{ search_placeholder|default:_('Search') }}"
+                   autocomplete="off">
+          </div>
+        </div>
+        {% endif %}
+
+        {# Slot for caller-provided facets (selects, date pickers, etc.).
+           The caller passes facet markup via the `filter_facets_html` context var
+           (pre-rendered HTML) since Django {% include %} doesn't support body content. #}
+        {% if filter_facets_html %}
+          {{ filter_facets_html|safe }}
+        {% endif %}
+
+        {# Action column — Submit + Clear (and optional density toggle) #}
+        <div class="col-12 col-md-auto d-flex flex-wrap gap-2 align-items-end">
+          <button type="submit" class="btn btn-sm btn-primary ds-btn" data-list-filter-submit>
+            <i class="bi bi-funnel me-1" aria-hidden="true"></i>{% trans "Filter" %}
+          </button>
+          {% if clear_url %}
+            <a href="{{ clear_url }}" class="btn btn-sm btn-outline-secondary ds-btn" data-list-filter-clear>
+              {% trans "Clear" %}
+            </a>
+          {% endif %}
+          {% if show_density_toggle %}
+            <div class="btn-group btn-group-sm ms-md-2" role="group" aria-label="{% trans 'List density' %}" data-list-density-toggle>
+              <button type="button" class="btn btn-outline-secondary ds-btn" data-density="compact" title="{% trans 'Compact view' %}">
+                <i class="bi bi-list" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="btn btn-outline-secondary ds-btn" data-density="comfortable" title="{% trans 'Comfortable view' %}">
+                <i class="bi bi-list-task" aria-hidden="true"></i>
+              </button>
+            </div>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+</form>

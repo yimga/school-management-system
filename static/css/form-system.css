@@ -174,3 +174,29 @@
 .form-field.has-error .form-check-input {
   border-color: var(--form-error-color, var(--ds-danger, #dc2626));
 }
+
+/* Pass 8 Wave 2 — canonical list filter bar (used by components/list_filter_bar.html
+   AND by inline filter rows tagged with [data-list-filter-bar]). Lists-audit item #2:
+   five visual treatments of filter rows across the product → one. */
+.list-filter-bar.card,
+[data-list-filter-bar].card {
+  border: 0;
+  background: var(--ds-surface-muted, #f5f5f7);
+}
+.list-filter-bar.card .card-body,
+[data-list-filter-bar].card .card-body {
+  padding-block: 0.6rem;
+  padding-inline: 0.9rem;
+}
+.list-filter-bar .form-label,
+[data-list-filter-bar] .form-label {
+  font-size: var(--type-micro, 0.75rem);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--portal-text-muted, rgba(15, 23, 42, 0.6));
+  font-weight: 600;
+}
+.list-filter-bar .input-group-text,
+[data-list-filter-bar] .input-group-text {
+  background-color: var(--ds-surface, #ffffff);
+}

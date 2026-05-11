@@ -1,91 +1,50 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Create Signature Request{% endblock %}
+{% block title %}{% trans "Create signature request" %}{% endblock %}
 
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Create Signature Request</h1>
+{# Pass 8 Wave 2: migrated to components/form_field + form_actions partials. 5
+   hand-rolled <div class="col-*"> field blocks replaced with form_field includes.
+   Removed visually-hidden injected h1 (page_header partial owns the H1). #}
 <div class="container py-4" data-page-archetype="record-detail">
   <div class="row justify-content-center">
     <div class="col-lg-8">
       {% url 'portal:signature_requests_manage' as list_url %}
-      {% include "studio_os/components/page_header.html" with title="Create Signature Request" subtitle="Request a parent to sign a form electronically" action_url=list_url action_text="Back to list" %}
+      {% include "studio_os/components/page_header.html" with title=_("Create signature request") subtitle=_("Request a parent to sign a form electronically.") action_url=list_url action_text=_("Back to list") %}
 
       <div class="card shadow-sm">
         <div class="card-body">
           <form method="post">
             {% csrf_token %}
-            
+
             {% if form.non_field_errors %}
-              <div class="alert alert-danger">
+              <div class="alert alert-danger" role="alert" aria-live="polite">
                 {{ form.non_field_errors }}
               </div>
             {% endif %}
 
-            <div class="row g-3">
-              <!-- Form Document -->
-              <div class="col-12">
-                <label class="form-label fw-semibold">Form Document <span class="text-danger">*</span></label>
-                {{ form.form_document }}
-                {% if form.form_document.errors %}
-                  <div class="text-danger small">{{ form.form_document.errors }}</div>
-                {% endif %}
-                <div class="form-text">Select the form that requires signature</div>
-              </div>
+            {% include "components/form_field.html" with field=form.form_document %}
 
-              <!-- Student -->
+            <div class="row">
               <div class="col-md-6">
-                <label class="form-label fw-semibold">Student <span class="text-danger">*</span></label>
-                {{ form.student }}
-                {% if form.student.errors %}
-                  <div class="text-danger small">{{ form.student.errors }}</div>
-                {% endif %}
-                <div class="form-text">Student this form is for</div>
+                {% include "components/form_field.html" with field=form.student %}
               </div>
-
-              <!-- Parent -->
               <div class="col-md-6">
-                <label class="form-label fw-semibold">Parent/Guardian <span class="text-danger">*</span></label>
-                {{ form.parent }}
-                {% if form.parent.errors %}
-                  <div class="text-danger small">{{ form.parent.errors }}</div>
-                {% endif %}
-                <div class="form-text">Parent who will sign the form</div>
-              </div>
-
-              <!-- Expires At -->
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Expires At</label>
-                {{ form.expires_at }}
-                {% if form.expires_at.errors %}
-                  <div class="text-danger small">{{ form.expires_at.errors }}</div>
-                {% endif %}
-                <div class="form-text">When this signature request expires (default: 30 days)</div>
-              </div>
-
-              <!-- Notes -->
-              <div class="col-12">
-                <label class="form-label fw-semibold">Notes</label>
-                {{ form.notes }}
-                {% if form.notes.errors %}
-                  <div class="text-danger small">{{ form.notes.errors }}</div>
-                {% endif %}
-                <div class="form-text">Optional notes for the parent</div>
-              </div>
-
-              <!-- Submit Buttons -->
-              <div class="col-12">
-                <hr>
-                <div class="d-flex gap-2 justify-content-end">
-                  <a href="{% url 'portal:signature_requests_manage' %}" class="btn btn-outline-secondary">
-                    Cancel
-                  </a>
-                  <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-circle me-1"></i>Create Request
-                  </button>
-                </div>
+                {% include "components/form_field.html" with field=form.parent %}
               </div>
             </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                {% include "components/form_field.html" with field=form.expires_at %}
+              </div>
+            </div>
+
+            {% include "components/form_field.html" with field=form.notes %}
+
+            {% url 'portal:signature_requests_manage' as cancel_url %}
+            {% include "components/form_actions.html" with submit_label=_("Create request") cancel_url=cancel_url %}
           </form>
         </div>
       </div>

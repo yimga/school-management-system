@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static region_format %}
+{% load static region_format i18n %}
 
 {% block title %}Signature Requests Management{% endblock %}
 
@@ -77,29 +77,34 @@
     </div>
   </div>
 
-  <!-- Filter -->
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <form method="get" class="row g-3">
-        <div class="col-md-10">
-          <label class="form-label">Status</label>
-          <select name="status" class="form-select">
-            <option value="">All Statuses</option>
+  {# Pass 8 Wave 2: switched filter wrapper from `card shadow-sm` to the canonical
+     `list-filter-bar card bg-light` pattern + form-system--dense + data hook. Now
+     visually matches backend_student_list / finance/invoices filter rows. Right-aligned
+     the submit button (was full-width). #}
+  <form method="get"
+        class="list-filter-bar form-system form-system--dense card bg-light border-0 shadow-sm mb-4"
+        role="search"
+        aria-label="{% trans 'Filter signature requests' %}"
+        data-list-filter-bar>
+    <div class="card-body py-2 px-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md">
+          <label class="form-label small fw-semibold mb-1" for="signature-status">{% trans "Status" %}</label>
+          <select name="status" id="signature-status" class="form-select form-select-sm">
+            <option value="">{% trans "All statuses" %}</option>
             {% for status_code, status_label in status_choices %}
-              <option value="{{ status_code }}" {% if current_status == status_code %}selected{% endif %}>
-                {{ status_label }}
-              </option>
+              <option value="{{ status_code }}" {% if current_status == status_code %}selected{% endif %}>{{ status_label }}</option>
             {% endfor %}
           </select>
         </div>
-        <div class="col-md-2 d-flex align-items-end">
-          <button type="submit" class="btn btn-primary w-100">
-            <i class="bi bi-filter me-1"></i>Filter
+        <div class="col-12 col-md-auto">
+          <button type="submit" class="btn btn-sm btn-primary ds-btn" data-list-filter-submit>
+            <i class="bi bi-funnel me-1" aria-hidden="true"></i>{% trans "Filter" %}
           </button>
         </div>
-      </form>
+      </div>
     </div>
-  </div>
+  </form>
 
   <!-- Requests Table -->
   <div class="card shadow-sm">

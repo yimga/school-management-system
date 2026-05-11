@@ -29,20 +29,24 @@
   {% endif %}
   <div class="card">
     <div class="card-body">
-      <form method="post" class="row g-2 align-items-end" id="generate-fees-form" data-draft-key="generate_fees_{{ request.user.id }}" data-draft-max-age-hours="24" data-draft-pending-label="{% trans 'Unsynced fee generation' %}">
+      {# Pass 8 Wave 2: was a full-width submit + no Cancel; added a Cancel link to
+         match the platform action-bar grammar (Cancel-left + Primary-right) and
+         wrapped in form_actions-style div for visual consistency. #}
+      <form method="post" id="generate-fees-form" data-draft-key="generate_fees_{{ request.user.id }}" data-draft-max-age-hours="24" data-draft-pending-label="{% trans 'Unsynced fee generation' %}">
         {% csrf_token %}
-        <div class="col-md-8">
-          <label class="form-label small">Fee plan</label>
-          <select class="form-select" name="plan_id" required>
-            <option value="">Select a plan</option>
-            {% for plan in plans %}
-              <option value="{{ plan.id }}">{{ plan.name }} - {{ plan.classroom.name }} / {{ plan.specialty.name }}</option>
-            {% endfor %}
-          </select>
+        <div class="row g-2 align-items-end">
+          <div class="col-md-12">
+            <label class="form-label small fw-semibold" for="generate-fees-plan">{% trans "Fee plan" %} <span class="form-required-marker text-danger" aria-hidden="true">*</span></label>
+            <select class="form-select" id="generate-fees-plan" name="plan_id" required aria-required="true">
+              <option value="">{% trans "Select a plan" %}</option>
+              {% for plan in plans %}
+                <option value="{{ plan.id }}">{{ plan.name }} - {{ plan.classroom.name }} / {{ plan.specialty.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
-        <div class="col-md-4 d-grid">
-          <button class="btn btn-primary" type="submit">Generate Invoices</button>
-        </div>
+        {% url 'finance:dashboard' as cancel_url %}
+        {% include "components/form_actions.html" with submit_label=_("Generate invoices") cancel_url=cancel_url %}
       </form>
     </div>
   </div>
