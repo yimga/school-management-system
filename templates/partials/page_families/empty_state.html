@@ -1,7 +1,14 @@
 {% load i18n %}
-{# Page family: empty state. Expects: message (optional), icon (optional, Bootstrap Icon class). #}
-<div class="page-family-empty-state text-center py-5 px-3">
-  {% if icon %}<i class="bi {{ icon }} display-4 text-muted mb-2"></i>{% endif %}
-  <p class="text-muted mb-0">{% if message %}{{ message }}{% else %}{% trans "No items to show." %}{% endif %}</p>
+{# Page family: empty state. Used in 57 templates.
+   Expects: message (optional), icon (optional, Bootstrap Icon class), eyebrow (optional).
+   Aesthetic-v2 blank-slate grammar — styled by patterns.css. #}
+<div class="page-family-empty-state rmc-empty-state text-center py-5 px-3" data-rmc-aesthetic-empty-state="1">
+  {% if icon %}
+  <div class="rmc-empty-icon mx-auto mb-3" aria-hidden="true">
+    <i class="bi {{ icon }} fs-2"></i>
+  </div>
+  {% endif %}
+  {% if eyebrow %}<div class="eyebrow mb-1">{{ eyebrow }}</div>{% endif %}
+  <p class="rmc-empty-message text-muted mb-2">{% if message %}{{ message }}{% else %}{% trans "Nothing here yet." %}{% endif %}</p>
   {% block empty_state_actions %}{% endblock %}
 </div>
