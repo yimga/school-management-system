@@ -1,28 +1,33 @@
-{% load region_format %}
+{% load region_format i18n %}
+{# Pass 8 UX consistency: previously each stat rendered the bare string "No data"
+   when the summary was empty. That's a flat dead-end that gives the admin nothing
+   to do. Use a typographic em-dash ("—") inline for unknown values; the headline
+   row stays scannable instead of repeating "No data" four times.
+   English label strings are now wrapped in {% trans %} for i18n parity. #}
 <div class="dashboard-card-grid dashboard-card-grid--dense mb-4">
   {% with summary=summary %}
     <div class="card bg-gradient border-0 text-white" data-widget-id="finance-summary-receivables" style="background:linear-gradient(135deg,var(--school-primary),var(--school-accent));">
       <div class="card-body">
-        <div class="text-white-50 small">Accounts receivable</div>
-        <div class="display-6 fw-bold">{{ summary.receivables|format_currency|default:"No data" }}</div>
+        <div class="text-white-50 small">{% trans "Accounts receivable" %}</div>
+        <div class="display-6 fw-bold">{{ summary.receivables|format_currency|default:"—" }}</div>
       </div>
     </div>
     <div class="card bg-light border-0 shadow-sm" data-widget-id="finance-summary-payables">
       <div class="card-body">
-        <div class="text-muted small">Accounts payable</div>
-        <div class="display-6 fw-semibold">{{ summary.payables|format_currency|default:"No data" }}</div>
+        <div class="text-muted small">{% trans "Accounts payable" %}</div>
+        <div class="display-6 fw-semibold">{{ summary.payables|format_currency|default:"—" }}</div>
       </div>
     </div>
     <div class="card bg-light border-0 shadow-sm" data-widget-id="finance-summary-paid">
       <div class="card-body">
-        <div class="text-muted small">Paid (YTD)</div>
-        <div class="display-6 fw-semibold">{{ summary.paid|format_currency|default:"No data" }}</div>
+        <div class="text-muted small">{% trans "Paid (YTD)" %}</div>
+        <div class="display-6 fw-semibold">{{ summary.paid|format_currency|default:"—" }}</div>
       </div>
     </div>
     <div class="card bg-light border-0 shadow-sm" data-widget-id="finance-summary-overdue">
       <div class="card-body">
-        <div class="text-muted small">Overdue invoices</div>
-        <div class="display-6 fw-semibold">{{ summary.overdue|default_if_none:"No data" }}</div>
+        <div class="text-muted small">{% trans "Overdue invoices" %}</div>
+        <div class="display-6 fw-semibold">{{ summary.overdue|default_if_none:"—" }}</div>
       </div>
     </div>
   {% endwith %}
@@ -30,9 +35,9 @@
 
 <div class="dashboard-card-grid dashboard-card-grid--charts mb-4">
   <div data-widget-id="finance-status-counts">
-    {% include "components/dashboard_chart.html" with chart_id="financeInvoiceStatusChart" chart_type="doughnut" chart_title="Invoice status" chart_data=chart_status_donut_json aria_label="Invoice status distribution" %}
+    {% include "components/dashboard_chart.html" with chart_id="financeInvoiceStatusChart" chart_type="doughnut" chart_title=_("Invoice status") chart_data=chart_status_donut_json aria_label=_("Invoice status distribution") %}
   </div>
   <div data-widget-id="finance-invoice-trend">
-    {% include "components/dashboard_chart.html" with chart_id="financeInvoiceTrendChart" chart_type="line" chart_title="Invoice trend (4 months)" chart_data=chart_trend_area_json aria_label="Invoice total amount over the last 4 months" %}
+    {% include "components/dashboard_chart.html" with chart_id="financeInvoiceTrendChart" chart_type="line" chart_title=_("Invoice trend (4 months)") chart_data=chart_trend_area_json aria_label=_("Invoice total amount over the last 4 months") %}
   </div>
 </div>

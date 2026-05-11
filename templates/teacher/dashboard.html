@@ -20,12 +20,9 @@
 <div class="tdm-bg" data-decision-engine="surface">
   {% phase8_dashboard_declaration "teacher/dashboard.html" %}
   <div class="tdm-shell" data-rmc-ux-role-dashboard="teacher-workspace">
-    {# Aesthetic-v2 page header (eyebrow + page-h1 + page-sub). Styled by patterns.css. #}
-    <header class="rmc-page-header mb-3" data-rmc-aesthetic-page-header="teacher">
-      <div class="eyebrow">{% blocktrans with term=current_term|default:_("This term") %}{{ term }}{% endblocktrans %}</div>
-      <h1 class="page-h1">{% blocktrans with name=request.user.first_name|default:request.user.username %}Welcome back, {{ name }}.{% endblocktrans %}</h1>
-      <p class="page-sub">{% trans "Here's what your classes need today." %}</p>
-    </header>
+    {# Pass 8 UX consistency: removed v2 rmc-page-header — the tdm-hero below
+       (line 88) is the single H1 for this page. It also owns the chip rail and
+       the "today's classes" decision zone. #}
     {% if teacher_fast_workflows %}
     <section class="card border-0 shadow-sm mb-3 p-3" data-teacher-fast-workflows="1" aria-label="{% trans 'Fast workflows' %}">
       {% if rmc_conversion_single_action_enforced|default:False %}
@@ -88,7 +85,10 @@
     <section class="tdm-hero card-glass" data-decision-zone="headline" data-rmc-ux-section="today-plan" aria-label="{% trans 'Teaching plan for today' %}">
       <div class="tdm-hero__text">
         <p class="tdm-eyebrow">{% trans "Teacher workspace" %}</p>
-        <h1>{% trans "Good afternoon" %}{% if request.user %}, {{ request.user.get_full_name|default:request.user.username }}{% endif %}</h1>
+        {# Pass 8: previously hardcoded "Good afternoon" regardless of the user's local time.
+           Use the same neutral "Welcome back" greeting as parent/admin dashboards until a
+           time-of-day greeting helper is wired through the context processor. #}
+        <h1>{% blocktrans with name=request.user.get_full_name|default:request.user.username|default:"" %}Welcome back, {{ name }}.{% endblocktrans %}</h1>
         <p class="tdm-subtitle">{% trans "Here's an overview of your classes for today." %}</p>
         <div class="tdm-hero__chips">
           {% if acting_role_label %}<span class="chip">{{ acting_role_label }} (proxy)</span>{% endif %}
@@ -228,7 +228,10 @@
           </div>
           <div class="tdm-insight-grid">
             <div class="tdm-insight-card">
-              <div class="tdm-donut" style="--value: {{ widget_data.completion_pct|default:0 }}%;">
+              {# Pass 8: --value is a plain number; dashboard-charts.css applies the % unit
+                 itself. Previously "{{ ... }}%" emitted "12%" into the variable, causing
+                 the donut to compute "12% * 1%" and never render correctly. #}
+              <div class="tdm-donut" style="--value: {{ widget_data.completion_pct|default:0 }};">
                 <span>{{ widget_data.completion_pct|default:0 }}%</span>
               </div>
               <div class="tdm-insight-meta">

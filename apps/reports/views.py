@@ -127,13 +127,17 @@ def _sample_student(school=None):
     student = qs.first()
     if student:
         return student
+    # Pass 8: previously returned "Sample Learner / 00SAMPLE / Form One / Carpentry"
+    # which leaked into live report-card previews for tenants without students. Replaced
+    # with neutral angle-bracket placeholders so the preview reads as "fill this in"
+    # rather than as fake student data the tenant might mistake for real.
     return SimpleNamespace(
         id=0,
-        last_name="Sample",
-        first_name="Learner",
-        student_code="00SAMPLE",
-        classroom=SimpleNamespace(name="Form One"),
-        specialty=SimpleNamespace(name="Carpentry"),
+        last_name="<Last name>",
+        first_name="<First name>",
+        student_code="<Student code>",
+        classroom=SimpleNamespace(name="<Classroom>"),
+        specialty=SimpleNamespace(name="<Specialty>"),
     )
 
 

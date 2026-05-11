@@ -55,7 +55,11 @@
     <div class="cp-hero-grid">
       <div>
         <div class="cp-eyebrow">RunMyCampus Platform</div>
-        <h1 class="cp-hero-title">Control Plane</h1>
+        {# Pass 8 UX consistency: was h1; the world_class_page_hero partial (line 27)
+           already provides the single page H1 ("Platform Command Center"). Demoting to
+           h2 keeps the visual prominence (cp-hero-title styling) but fixes the duplicate
+           heading-outline a screen reader would otherwise announce. #}
+        <h2 class="cp-hero-title">Control Plane</h2>
         <p class="cp-hero-copy">
           Operate the platform from one place: provisioning, billing, incidents,
           readiness, branding, and global rollout. The command center for every school.

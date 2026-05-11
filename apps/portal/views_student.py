@@ -223,16 +223,20 @@ def preview_communication_test(request: HttpRequest):
         .select_related("classroom")
         .first()
     )
+    # Pass 8: previously substituted hardcoded "Sample Learner / Sample Classroom /
+    # General Studies" when no student record existed. Those strings then appeared in
+    # real previews for tenants pre-roster. Use neutral angle-bracket placeholders that
+    # read as "fill this in" rather than as fake student data.
     tokens = {
         "Student Name": f"{student.first_name} {student.last_name}"
         if student
-        else "Sample Learner",
+        else "<Student name>",
         "Classroom": student.classroom.name
         if student and hasattr(student, "classroom")
-        else "Sample Classroom",
+        else "<Classroom>",
         "Specialty": student.specialty.name
         if student and hasattr(student, "specialty")
-        else "General Studies",
+        else "<Specialty>",
     }
 
     def fill_template(text):

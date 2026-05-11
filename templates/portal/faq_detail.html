@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block title %}{{ faq.question }} - FAQ{% endblock %}
 
@@ -188,31 +188,30 @@
     </div>
 </div>
 
+{# Pass 8 UX consistency: migrated from Bootstrap 4 grammar (data-dismiss, .close, .form-group)
+   to Bootstrap 5 (data-bs-dismiss, .btn-close, .mb-3). The BS4 close button rendered fine
+   visually but silently failed to dismiss the modal on a BS5 bundle. #}
 <!-- Report Modal -->
-<div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel">
+<div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="reportModalLabel">Report an Issue</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <h5 class="modal-title" id="reportModalLabel">{% trans "Report an Issue" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
             </div>
             <form method="post" action="{% url 'kb:faq_detail' faq.id %}">
                 {% csrf_token %}
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label>What's the issue?</label>
-                        <textarea class="form-control" name="issue_description" rows="4" required></textarea>
-                        <small class="form-text text-muted">
-                            Be specific so we can help better
-                        </small>
+                    <div class="mb-3">
+                        <label class="form-label" for="faq-issue-description">{% trans "What's the issue?" %}</label>
+                        <textarea id="faq-issue-description" class="form-control" name="issue_description" rows="4" required></textarea>
+                        <div class="form-text">{% trans "Be specific so we can help better." %}</div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-warning">
-                        <i class="bi bi-flag"></i> Submit Report
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-flag me-1" aria-hidden="true"></i>{% trans "Submit Report" %}
                     </button>
                 </div>
             </form>

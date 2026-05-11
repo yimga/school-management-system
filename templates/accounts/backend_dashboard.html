@@ -304,7 +304,10 @@ backend-shell dashboard-page-backend
 
   <section class="mb-3" data-rmc-intelligent-insights="backend" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-      <h1 class="h6 mb-0">{% trans "What needs attention" %}</h1>
+      {# Pass 8 UX consistency: was <h1 class="h6">; the luxury_major_audit_contract partial
+         on line 302 already provides the page H1. Demoting to h2 keeps the heading outline
+         clean while preserving the existing visual size via .h6 class. #}
+      <h2 class="h6 mb-0">{% trans "What needs attention" %}</h2>
       <span class="small text-muted">{% trans "3-5 actions based on live operations data" %}</span>
     </div>
     <div class="row g-2">
@@ -563,7 +566,10 @@ backend-shell dashboard-page-backend
           </div>
           <script src="{% static 'js/backend-bento-drill.js' %}" defer></script>
           {% else %}
-          <p class="text-muted small mb-3">{% trans "Overview metrics will appear here when configured." %}</p>
+          {# Pass 8: previous copy ("Overview metrics will appear here when configured") was
+             admin-talking-to-themselves. Use the shared empty-state component which gives a
+             friendly explanation + a clear next-step CTA. #}
+          {% include "components/dashboard_empty_state.html" with icon="bi-graph-up-arrow" title=_("No overview data yet") message=_("Once attendance, fees, and grades are entered, your headline metrics appear here.") action_url=backend_onboarding_url action_text=_("Open setup checklist") %}
           {% endif %}
           {% if kpi_strip_cards and overview_cards %}
           <div class="backend-v2-kpi-strip mt-3" data-widget-id="backend-overview-kpis" data-bento-tier="trend">
@@ -735,14 +741,10 @@ backend-shell dashboard-page-backend
         </div>
         {% endif %}
 
-        {% if not backend_module_visibility.overview and not backend_module_visibility.welcome %}
-        <article class="card backend-v2-panel backend-v2-panel--empty" data-widget-id="backend-v2-main-empty">
-          <div class="card-body">
-            <h5 class="backend-v2-panel-title mb-1">{% trans "Dashboard Intro Modules Hidden" %}</h5>
-            <p class="small text-muted mb-0">{% trans "Enable Overview or Welcome in Feature Control to restore the top workspace blocks." %}</p>
-          </div>
-        </article>
-        {% endif %}
+        {# Pass 8: previous empty-state ("Dashboard Intro Modules Hidden — Enable Overview
+           or Welcome in Feature Control") was operator-config talking-to-itself. When
+           both intro modules are explicitly disabled, we render nothing rather than a
+           self-referential card the admin already chose to hide. #}
 
       </section>
 

@@ -58,7 +58,10 @@
   {% if page.recommended_modules %}
   <section class="section-shell" aria-label="{% trans 'Recommended modules' %}">
     <h2 class="section-heading">{% if institution_segment_slug == 'international-schools' %}{% trans "Operational modules for global cohorts" %}{% elif institution_segment_slug == 'multi-campus' %}{% trans "Governance modules networks standardize on" %}{% elif institution_segment_slug == 'faith-based-schools' %}{% trans "Trust-building modules for families and finance" %}{% elif institution_segment_slug == 'private-schools' %}{% trans "Growth and retention modules private schools lean on" %}{% elif institution_segment_slug == 'growing-school-networks' %}{% trans "Repeatable modules for every new campus" %}{% elif institution_segment_slug == 'k12-schools' or institution_segment_slug == 'k12' %}{% trans "Day-to-day modules K–12 teams run together" %}{% else %}{% trans "Recommended platform modules" %}{% endif %}</h2>
-    <p class="section-lead">{% trans "Each tile opens the matching RunMyCampus capability page." %}</p>
+    {# Pass 8 UX consistency: removed the meta caption "Each tile opens the matching
+       RunMyCampus capability page." It described the navigation pattern in the second
+       person (instructions to the prospect about our own site) — drop it; the cards
+       speak for themselves. Tile CTA copy generalized below. #}
     <div class="row g-3">
       {% for mod in page.recommended_modules %}
       <div class="col-sm-6 col-lg-4">
@@ -66,7 +69,9 @@
           {# Title color inherits from the card (.segment-card → --admin-content-bg + dark ink on editorial cream).
              Previously hardcoded `text-white`, which rendered invisible on the cream editorial background. #}
           <span class="fw-semibold mkt-inst-module-card__title">{{ mod.label }}</span>
-          <span class="small text-muted d-block mt-2">{% trans "Explore capability" %} →</span>
+          {# Pass 8: tile CTA reads "See {{ module label }}" so the action verb is module-specific
+             instead of the generic "Explore capability →" repeated on every card. #}
+          <span class="small text-muted d-block mt-2">{% blocktrans with name=mod.label %}See {{ name }}{% endblocktrans %} →</span>
         </a>
       </div>
       {% endfor %}
