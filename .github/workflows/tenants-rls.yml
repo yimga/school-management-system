@@ -1,0 +1,89 @@
+# Single-schema RLS isolation gate: spins up Postgres, applies RLS policy migrations,
+# and runs the @tag("tenants_rls") Django test suite.
+#
+# Why this workflow exists:
+# - django-tests.yml uses SQLite, so RLS-tagged tests are skipped (skipIf vendor != postgresql).
+# - playwright-tenant-postgres.yml uses USE_DJANGO_TENANTS=1 (schema mode), which the
+#   tenants_rls tests explicitly override to False — so they skip there too.
+# - Without this gate, the RLS default-deny policies are never exercised in CI.
+#
+# Local parity (Docker, same DB name as CI):
+#   docker run -d --rm --name pg-tenants-rls -e POSTGRES_PASSWORD=postgres \
+#     -e POSTGRES_DB=ci_tenants_rls -p 5432:5432 postgres:15
+#   export SECRET_KEY=local-dev-only-not-for-production-64chars_____________________
+#   export DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/ci_tenants_rls
+#   export USE_DJANGO_TENANTS=0
+#   python manage.py migrate --noinput
+#   python manage.py test --tag=tenants_rls --settings=config.settings --noinput
+name: Tenants RLS (Postgres)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/tenancy/**"
+      - "apps/schools/rls.py"
+      - "apps/schools/rls_context.py"
+      - "apps/schools/models.py"
+      - "apps/schools/middleware.py"
+      - "apps/schools/tests/test_tenant_isolation_rls_mode.py"
+      - "apps/*/migrations/**rls**.py"
+      - "config/settings.py"
+      - ".github/workflows/tenants-rls.yml"
+      - "requirements.txt"
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tenants-rls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ci_tenants_rls
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ci_tenants_rls"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      PGCONNECT_TIMEOUT: "15"
+      SECRET_KEY: "ci-tenants-rls-not-for-production-64chars________________________________"
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ci_tenants_rls
+      USE_DJANGO_TENANTS: "0"
+      DEBUG: "0"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com"
+      MULTI_TENANT_BASE_DOMAIN: runmycampus.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Apply migrations (incl. RLS policy migrations)
+        run: |
+          python manage.py migrate --noinput --settings=config.settings
+
+      - name: Run @tag("tenants_rls") Django tests
+        run: |
+          python manage.py test --tag=tenants_rls --settings=config.settings --noinput -v 2

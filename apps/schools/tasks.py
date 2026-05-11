@@ -17,6 +17,7 @@ from apps.schools.domain_sync import (
     ensure_tenant_client_for_school,
     sync_school_domains_to_runtime,
 )
+from apps.schools.rls_context import rls_school
 
 logger = logging.getLogger(__name__)
 
@@ -419,8 +420,9 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         ):
             logger.exception("Failed syncing domains for school %s", school.id)
 
-    # Tenant-scoped creation: run inside tenant_context when using schema-per-tenant
-    with _optional_tenant_context(tenant_client):
+    # Tenant-scoped creation: schema mode uses tenant_context(client); RLS mode pins
+    # app.current_school_id to the new school so FORCE'd WITH CHECK clauses pass.
+    with _optional_tenant_context(tenant_client), rls_school(school.id):
         # Phase B: Tenant Provisioning Engine — create TenantSystem rows from wizard selection (multi-system)
         # Use policy for provisioning config (no direct school.settings read per blueprint)
         provisioning = _policy.get("provisioning") or {}

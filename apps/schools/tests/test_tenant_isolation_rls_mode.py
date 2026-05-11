@@ -62,12 +62,14 @@ class TenantIsolationRlsModeTests(TestCase):
         from apps.accounts.models import User
 
         user = User.objects.create_user(username="rlsuser", password="test")
-        SchoolMembership.objects.create(
-            user=user, school=self.school_a, role=User.Role.ADMIN, is_primary=True
-        )
-        SchoolMembership.objects.create(
-            user=user, school=self.school_b, role=User.Role.ADMIN, is_primary=False
-        )
+        # FORCE RLS (schools 0048) rejects cross-tenant inserts without bypass.
+        with self.rls_bypass():
+            SchoolMembership.objects.create(
+                user=user, school=self.school_a, role=User.Role.ADMIN, is_primary=True
+            )
+            SchoolMembership.objects.create(
+                user=user, school=self.school_b, role=User.Role.ADMIN, is_primary=False
+            )
 
         with self.rls_school(self.school_a.id):
             ids = list(SchoolMembership.objects.values_list("id", flat=True))
@@ -85,13 +87,13 @@ class TenantIsolationRlsModeTests(TestCase):
         from apps.accounts.models import User
 
         user = User.objects.create_user(username="rlsbypass", password="test")
-        SchoolMembership.objects.create(
-            user=user, school=self.school_a, role=User.Role.ADMIN, is_primary=True
-        )
-        SchoolMembership.objects.create(
-            user=user, school=self.school_b, role=User.Role.ADMIN, is_primary=False
-        )
-
         with self.rls_bypass():
+            SchoolMembership.objects.create(
+                user=user, school=self.school_a, role=User.Role.ADMIN, is_primary=True
+            )
+            SchoolMembership.objects.create(
+                user=user, school=self.school_b, role=User.Role.ADMIN, is_primary=False
+            )
+
             count = SchoolMembership.objects.count()
             self.assertGreaterEqual(count, 2)
