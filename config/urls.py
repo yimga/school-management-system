@@ -103,6 +103,51 @@ def offline_page(request):
     return render(request, "offline.html", status=200)
 
 
+def service_worker_asset_manifest(request):
+    """Return the SW pre-cache asset manifest as JSON with `static()`-resolved
+    URLs. Lets the service worker pre-cache against the *actual* STATIC_URL
+    (CDN, hashed-filename manifest, etc.) rather than hardcoded `/static/...`.
+
+    Schema: `{ "version": str, "assets": [str, ...] }`. The version is taken
+    from the SW CACHE_VERSION via env so SW + manifest stay in lockstep.
+
+    See `docs/CONFIGURABILITY.md` (Layer B) + `reference_configurability_contract.md`.
+    """
+    from django.http import JsonResponse
+    from django.templatetags.static import static as _static
+    import os as _os
+
+    paths = [
+        "css/design-tokens.css",
+        "css/dashboard-responsive.css",
+        "css/reduce-motion-low-power.css",
+        "js/command-palette.js",
+        "js/dashboard-layout.js",
+        "js/vendor/dexie.min.js",
+        "js/offline-db.js",
+        "js/form-draft-save.js",
+        "js/sync-manager.js",
+        "js/low-power.js",
+        "js/offline-status-bar.js",
+        "js/auto-pilot.js",
+        "images/logo.png",
+        "manifest.json",
+    ]
+    assets = ["/offline/"]
+    for p in paths:
+        try:
+            assets.append(_static(p))
+        except Exception:
+            # collectstatic may not have run; fall through to raw /static/ path
+            assets.append(f"/static/{p}")
+    return JsonResponse(
+        {
+            "version": _os.getenv("SW_MANIFEST_VERSION", "sms-v1.5.0-apple-tier"),
+            "assets": assets,
+        }
+    )
+
+
 def manager_offline_sync_root_fallback(request):
     """
     Root-urlconf safety net for manager /offline/sync/.
@@ -290,6 +335,7 @@ urlpatterns = [
     path("", home, name="marketing_home"),
     path("v2/", marketing_landing_v2, name="marketing_landing_v2"),
     path("offline/", offline_page, name="offline"),
+    path("sw-asset-manifest.json", service_worker_asset_manifest, name="sw_asset_manifest"),
     path(
         "offline/sync/",
         manager_offline_sync_root_fallback,

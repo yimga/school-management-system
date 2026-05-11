@@ -85,3 +85,31 @@ MAX_DOCUMENT_UPLOAD_BYTES = _env_int(
     "MAX_DOCUMENT_UPLOAD_BYTES", 20 * 1024 * 1024
 )  # 20 MB
 MAX_CSV_IMPORT_BYTES = _env_int("MAX_CSV_IMPORT_BYTES", 5 * 1024 * 1024)  # 5 MB
+
+# ---------------------------------------------------------------------------
+# Report card grade weighting (assessment percentages summing to 100)
+# Cameroon-default: sequence 1 (20%) + sequence 2 (20%) + exam (60%) + mock (0%) + practical (0%).
+# UK / 3-term defaults differ. Override per environment via env vars below, or
+# per-tenant via SiteSettings.report_grade_weights JSON at view-time.
+# Used as the FALLBACK in preview / unconfigured paths.
+# ---------------------------------------------------------------------------
+GRADE_WEIGHT_SEQ1 = _env_int("GRADE_WEIGHT_SEQ1", 20)
+GRADE_WEIGHT_SEQ2 = _env_int("GRADE_WEIGHT_SEQ2", 20)
+GRADE_WEIGHT_EXAM = _env_int("GRADE_WEIGHT_EXAM", 60)
+GRADE_WEIGHT_MOCK = _env_int("GRADE_WEIGHT_MOCK", 0)
+GRADE_WEIGHT_PRACTICAL = _env_int("GRADE_WEIGHT_PRACTICAL", 0)
+
+
+def default_grade_weights() -> dict[str, int]:
+    """Return the platform-default grade weight dict.
+
+    Callers should prefer tenant-specific weights from SiteSettings /
+    EvalsConfig if available and fall back to this helper.
+    """
+    return {
+        "seq1": GRADE_WEIGHT_SEQ1,
+        "seq2": GRADE_WEIGHT_SEQ2,
+        "exam": GRADE_WEIGHT_EXAM,
+        "mock": GRADE_WEIGHT_MOCK,
+        "practical": GRADE_WEIGHT_PRACTICAL,
+    }

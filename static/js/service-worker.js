@@ -54,13 +54,34 @@ const STATIC_ASSETS = [
   "/static/manifest.json",
 ];
 
+// Resolve pre-cache asset list at install time. Tries /sw-asset-manifest.json
+// (Django view that emits `{% static %}`-resolved URLs respecting STATIC_URL +
+// WhiteNoise content hashes); falls back to the hardcoded STATIC_ASSETS array
+// if the endpoint is unreachable (e.g. fresh install offline).
+async function _resolveAssetList() {
+  try {
+    const resp = await fetch("/sw-asset-manifest.json", {
+      cache: "no-store",
+      credentials: "same-origin",
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data && Array.isArray(data.assets) && data.assets.length) {
+        return data.assets;
+      }
+    }
+  } catch (_err) {}
+  return STATIC_ASSETS;
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(STATIC_CACHE);
+      const assets = await _resolveAssetList();
       // Cache each asset independently so one missing file does not break install.
       await Promise.all(
-        STATIC_ASSETS.map(async (asset) => {
+        assets.map(async (asset) => {
           try {
             await cache.add(asset);
           } catch (_err) {}

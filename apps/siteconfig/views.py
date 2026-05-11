@@ -963,12 +963,14 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
                         "promotion_status": "PENDING",
                         "teacher_remark": "Pending results.",
                     },
+                    # Default grade weights from settings (env-overridable).
+                    # Tenants can override via SiteSettings.report_grade_weights JSON.
                     "weights": SimpleNamespace(
-                        seq1_weight=20,
-                        seq2_weight=20,
-                        exam_weight=60,
-                        mock_weight=0,
-                        practical_weight=0,
+                        seq1_weight=getattr(settings, "GRADE_WEIGHT_SEQ1", 20),
+                        seq2_weight=getattr(settings, "GRADE_WEIGHT_SEQ2", 20),
+                        exam_weight=getattr(settings, "GRADE_WEIGHT_EXAM", 60),
+                        mock_weight=getattr(settings, "GRADE_WEIGHT_MOCK", 0),
+                        practical_weight=getattr(settings, "GRADE_WEIGHT_PRACTICAL", 0),
                     ),
                     "sequence_cues": [
                         {
@@ -1133,12 +1135,14 @@ def reportcard_style_preview(request, slug: str):
             "promotion_status": "PROMOTED",
             "teacher_remark": "Consistent dedication.",
         }
+        # Default grade weights from settings (env-overridable).
+        # Tenants can override via SiteSettings.report_grade_weights JSON.
         weights = SimpleNamespace(
-            seq1_weight=20,
-            seq2_weight=20,
-            exam_weight=60,
-            mock_weight=0,
-            practical_weight=0,
+            seq1_weight=getattr(settings, "GRADE_WEIGHT_SEQ1", 20),
+            seq2_weight=getattr(settings, "GRADE_WEIGHT_SEQ2", 20),
+            exam_weight=getattr(settings, "GRADE_WEIGHT_EXAM", 60),
+            mock_weight=getattr(settings, "GRADE_WEIGHT_MOCK", 0),
+            practical_weight=getattr(settings, "GRADE_WEIGHT_PRACTICAL", 0),
         )
         labels = resolve_report_labels(student=student_obj)
         sequence_cues = [

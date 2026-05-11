@@ -10,6 +10,18 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from django.conf import settings
+
+
+def _sim_currency() -> str:
+    """Currency for simulated trigger payloads.
+
+    Reads `settings.PLATFORM_DEFAULT_CURRENCY` (env-overridable) so the
+    workflow simulator shows the operator's local currency, not a hardcoded
+    XAF leftover from the original Cameroon-focused build.
+    """
+    return getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD")
+
 # Narrow slice proven in ``test_workflow_studio_closure_slice`` (Section 11.4 workflow_engine).
 CLOSURE_SLICE_TRIGGER_KEYS: tuple[str, str, str] = (
     "attendance_saved",
@@ -144,14 +156,14 @@ def sample_payload_for_trigger(school_id: str, trigger_key: str) -> dict[str, An
             **base,
             "invoice_id": "inv-sim-001",
             "amount_cents": 2500,
-            "currency": "XAF",
+            "currency": _sim_currency(),
         }
     if trigger_key == "payment_failed":
         return {
             **base,
             "invoice_id": "inv-sim-fail-001",
             "amount_cents": 2500,
-            "currency": "XAF",
+            "currency": _sim_currency(),
             "failure_reason": "card_declined",
             "retry_count": 2,
         }

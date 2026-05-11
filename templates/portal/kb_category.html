@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static icon_compat %}
 
 {% block page_archetype %}kb-category{% endblock %}
 
@@ -39,7 +39,7 @@
                     {% for cat in all_categories %}
                     <a href="{% url 'kb:kb_category' cat.slug %}" 
                        class="list-group-item list-group-item-action {% if category.slug == cat.slug %}active{% endif %}">
-                        <i class="fas {{ cat.icon }}"></i> {{ cat.name }}
+                        <i class="{{ cat.icon|fa_to_bi }}"></i> {{ cat.name }}
                         <span class="badge badge-secondary float-right">{{ cat.article_count }}</span>
                     </a>
                     {% for subcat in cat.children.all %}
@@ -97,7 +97,7 @@
             <!-- Header -->
             <div class="mb-4">
                 <h1 class="h2 mb-2" id="kb-category-heading">
-                    <i class="fas {{ category.icon }}"></i> {{ category.name }}
+                    <i class="{{ category.icon|fa_to_bi }}"></i> {{ category.name }}
                 </h1>
                 <p class="text-muted">{{ category.description }}</p>
                 <div class="badge badge-info">

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static region_format %}
+{% load static region_format icon_compat %}
 
 {% block title %}My Contributions - Knowledge Base{% endblock %}
 
@@ -278,7 +278,7 @@
                                     {% for activity in recent_activities %}
                                     <div class="timeline-item mb-3">
                                         <div class="timeline-marker">
-                                            <i class="fas {{ activity.icon }} fa-lg"></i>
+                                            <i class="{{ activity.icon|fa_to_bi }}" style="font-size:1.25rem;"></i>
                                         </div>
                                         <div class="timeline-content">
                                             <p class="mb-0">

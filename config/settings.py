@@ -1853,4 +1853,10 @@ from config.runtime_constants import (  # noqa: E402
     MAX_PHOTO_UPLOAD_BYTES,
     MAX_DOCUMENT_UPLOAD_BYTES,
     MAX_CSV_IMPORT_BYTES,
+    GRADE_WEIGHT_SEQ1,
+    GRADE_WEIGHT_SEQ2,
+    GRADE_WEIGHT_EXAM,
+    GRADE_WEIGHT_MOCK,
+    GRADE_WEIGHT_PRACTICAL,
+    default_grade_weights,
 )

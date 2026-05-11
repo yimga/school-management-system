@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static icon_compat %}
 
 {% block title %}FAQ - Help Center{% endblock %}
 
@@ -23,7 +23,7 @@
                     {% for cat in categories %}
                     <a href="?category={{ cat.slug }}" 
                        class="list-group-item list-group-item-action {% if category.slug == cat.slug %}active{% endif %}">
-                        <i class="fas {{ cat.icon }}"></i> {{ cat.name }}
+                        <i class="{{ cat.icon|fa_to_bi }}"></i> {{ cat.name }}
                         <span class="badge badge-secondary float-right">{{ cat.faq_count }}</span>
                     </a>
                     {% endfor %}

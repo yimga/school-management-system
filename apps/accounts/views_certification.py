@@ -467,27 +467,18 @@ def certification_export_zip(request, session_id: int):
 
                 checklist_writer.writerow(row)
 
-    # TODO(config): this README is the Cameroon GCE/BAC variant of an exams
-    # registration pack. Other regions (KCSE, WAEC, IGCSE) need their own
-    # README — wire to apps.policies.BlueprintPack so the text comes from a
-    # tenant-resolved policy instead of being hardcoded per export.
-    # For now, the country name is sourced from the session/policy so the
-    # title isn't a single hardcoded "Cameroon".
-    readme_lines = [
-        f"{(getattr(year, 'country_name', None) or 'National')} Exams Registration Pack",
-        "",
-        "This pack is designed to help your centre follow the official 3-phase flow:",
-        "1) Pre-registration & data entry (board e-registration software generates CIN)",
-        "2) Candidate payment via mobile money / bank transfer using the issued CIN",
-        "3) Validation using Transaction ID + printing timetables/receipts",
-        "",
-        "Useful references:",
-        "- E-REG user manual (2026): https://camgceb.org/wp-content/uploads/2025/10/2026-E-Reg-user-manual.pdf",
-        "- Data submission page: https://camgceb.org/submit-reg-data/",
-        "",
-        "Files included:",
-        "- candidates.csv: your internal list with UID (matricule), CIN, payment transaction ID tracking",
-    ]
+    # Pack content is now resolved from BlueprintPack.policy_snapshot
+    # (per-tenant override) -> regional preset by country code -> neutral
+    # generic default. See apps/policies/exam_pack_content.py.
+    from apps.policies.exam_pack_content import (
+        resolve_exam_registration_pack,
+        format_pack_as_readme_lines,
+    )
+    _pack = resolve_exam_registration_pack(
+        school=getattr(request, "school", None) or getattr(request, "current_school", None),
+        year=year,
+    )
+    readme_lines = format_pack_as_readme_lines(_pack)
 
     if use_ca_export:
         readme_lines.extend(
