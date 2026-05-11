@@ -453,7 +453,7 @@ def profile_edit(request):
         form = UserProfileEditForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             form.save()
-            messages.success(request, "Profile updated.")
+            messages.success(request, _("Profile updated."))
             return redirect("accounts:user_profile")
     else:
         form = UserProfileEditForm(instance=user)
@@ -677,14 +677,14 @@ def direct_thread(request, user_id):
             conv.closed_at = timezone.now()
             conv.save(update_fields=["closed_at"])
             messages.success(
-                request, "Conversation closed. Parent can no longer reply."
+                request, _("Conversation closed. Parent can no longer reply.")
             )
             return redirect("accounts:user_messages")
         body = (request.POST.get("body") or "").strip()
         subject = (request.POST.get("subject") or "").strip() or "Direct message"
         if body:
             if conv and conv.closed_at:
-                messages.error(request, "This conversation is closed.")
+                messages.error(request, _("This conversation is closed."))
             else:
                 from apps.communication.comms_locale import locale_target_for_user
 
@@ -750,7 +750,7 @@ def direct_compose(request):
         body = (request.POST.get("body") or "").strip()
         subject = (request.POST.get("subject") or "").strip() or "Direct message"
         if not body or not recipient_id:
-            messages.error(request, "Select a recipient and enter a message.")
+            messages.error(request, _("Select a recipient and enter a message."))
             return redirect("accounts:direct_compose")
         recipient = (
             User.objects.filter(pk=recipient_id, is_active=True)
@@ -758,7 +758,7 @@ def direct_compose(request):
             .first()
         )
         if not recipient:
-            messages.error(request, "Selected recipient is not available.")
+            messages.error(request, _("Selected recipient is not available."))
             return redirect("accounts:direct_compose")
         from apps.communication.models import DirectConversation
 
@@ -1142,13 +1142,13 @@ def rbac_dashboard(request):
             role_form = RoleForm(request.POST, prefix="role")
             if role_form.is_valid():
                 role_form.save()
-                messages.success(request, "Role created successfully.")
+                messages.success(request, _("Role created successfully."))
                 return redirect("accounts:rbac")
         elif form_type == "permission":
             permission_form = PermissionForm(request.POST, prefix="permission")
             if permission_form.is_valid():
                 permission_form.save()
-                messages.success(request, "Permission created successfully.")
+                messages.success(request, _("Permission created successfully."))
                 return redirect("accounts:rbac")
         elif form_type == "user_roles":
             user_role_form = UserRoleForm(request.POST, prefix="user_role")
@@ -2770,7 +2770,7 @@ def login_view(request):
                         and (getattr(user, "role", "") or "").upper() != User.Role.SUPERADMIN
                     ):
                         messages.warning(
-                            request, "You do not have access to this school."
+                            request, _("You do not have access to this school.")
                         )
                         return redirect(reverse("accounts:school_picker"))
             else:
@@ -2817,7 +2817,7 @@ def login_view(request):
                         next_url, allowed_hosts={request.get_host()}
                     ):
                         request.session["password_change_next"] = next_url
-                messages.warning(request, "You must set a new password to continue.")
+                messages.warning(request, _("You must set a new password to continue."))
                 return redirect(password_change_url)
 
             # MFA enforcement: if required or configured, route to setup/verify first.
@@ -2920,7 +2920,7 @@ def login_view(request):
                 return redirect(next_url)
             return redirect(reverse("accounts:redirect"))
 
-        messages.error(request, "Invalid username or password.")
+        messages.error(request, _("Invalid username or password."))
     context = {
         "LOGIN_SSO_INTEGRATIONS": _get_login_sso_integrations(request),
         "is_manager_host": getattr(request, "public_host_kind", None) == "manager",
@@ -2986,7 +2986,7 @@ def school_picker(request):
                 ):
                     return redirect(next_url)
                 return redirect("accounts:redirect")
-        messages.warning(request, "Invalid school.")
+        messages.warning(request, _("Invalid school."))
     context = {"memberships": memberships}
     if not memberships:
         return render(request, "auth/school_picker.html", context)
@@ -2999,7 +2999,7 @@ def claim_invite(request):
 
     if not getattr(request, "school", None):
         messages.info(
-            request, "Claim invite is available only inside a school workspace."
+            request, _("Claim invite is available only inside a school workspace.")
         )
         return redirect("global_login_discovery")
 
@@ -3052,7 +3052,7 @@ def request_waiver(request):
 
     school = getattr(request, "school", None)
     if not school:
-        messages.warning(request, "Select a school first.")
+        messages.warning(request, _("Select a school first."))
         return redirect(reverse("accounts:backend_dashboard"))
     if request.method == "POST":
         form = RequestWaiverForm(request.POST, request.FILES)
@@ -3066,7 +3066,7 @@ def request_waiver(request):
             )
             messages.success(
                 request,
-                "Your waiver request has been submitted. Platform support will review it and notify you.",
+                _("Your waiver request has been submitted. Platform support will review it and notify you."),
             )
             return redirect("accounts:backend_dashboard")
     else:

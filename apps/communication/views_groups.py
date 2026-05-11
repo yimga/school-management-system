@@ -4,6 +4,7 @@ Views for message thread/group management.
 
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponseForbidden
 from django.db.models import Q, Count
@@ -233,7 +234,7 @@ def group_detail(request: HttpRequest, thread_id: int):
                 locale_target=locale_target or "",
             )
             thread.touch_last_message()
-            messages.success(request, "Message sent.")
+            messages.success(request, _("Message sent."))
             return redirect("communication:group_detail", thread_id=thread.id)
 
     context = {
@@ -284,7 +285,7 @@ def group_manage(request: HttpRequest, thread_id: int):
         if form.is_valid():
             form.save()
             form.save_m2m()  # Save members
-            messages.success(request, "Group updated successfully.")
+            messages.success(request, _("Group updated successfully."))
             return redirect("communication:group_detail", thread_id=thread.id)
     else:
         form = MessageThreadUpdateForm(
@@ -330,7 +331,7 @@ def group_join(request: HttpRequest, thread_id: int):
         thread.members.add(request.user)
         messages.success(request, f'You joined "{thread.title}".')
     else:
-        messages.info(request, "You are already a member of this group.")
+        messages.info(request, _("You are already a member of this group."))
 
     return redirect("communication:group_detail", thread_id=thread.id)
 
@@ -348,6 +349,6 @@ def group_leave(request: HttpRequest, thread_id: int):
         thread.members.remove(request.user)
         messages.success(request, f'You left "{thread.title}".')
     else:
-        messages.info(request, "You are not a member of this group.")
+        messages.info(request, _("You are not a member of this group."))
 
     return redirect("communication:group_list")

@@ -1578,6 +1578,18 @@ PLATFORM_DEFAULT_GRADING_SCALE = (
     os.getenv("PLATFORM_DEFAULT_GRADING_SCALE", "") or DEFAULT_GRADING_SCALE or "0-100"
 )
 
+# Risk-band fallback thresholds (used by apps.analytics.get_risk_band_for_school and
+# RiskFactor.band when a tenant has not configured RiskThresholds). The defaults assume
+# the platform PLATFORM_DEFAULT_GRADING_SCALE; tenants on alternate scales (0-20, GPA,
+# letter) should configure RiskThresholds per-school rather than rely on these.
+RISK_BAND_RED_MIN = float(os.getenv("RISK_BAND_RED_MIN", "80"))
+RISK_BAND_AMBER_MIN = float(os.getenv("RISK_BAND_AMBER_MIN", "50"))
+
+# Optional global cap on a single payment amount in the smallest currency unit.
+# Default 100 billion minor units accommodates low-denomination currencies (IDR, VND, IRR).
+# Override per deployment when stricter limits apply.
+PAYMENT_MAX_AMOUNT = int(os.getenv("PAYMENT_MAX_AMOUNT", "100000000000"))
+
 # Global grading scales (imported from apps.evals.grading module at runtime)
 # Reference: GRADING_SCALES, CURRENCY_SYMBOLS defined in apps/evals/grading.py
 

@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_protect
 
 from django.contrib import messages
 
+from django.utils.translation import gettext as _
 from apps.integrations_marketplace.models import Integration
 from apps.platform_runtime.helpers import get_effective_flags
 from apps.schools.control_plane import user_has_control_plane_access
@@ -185,7 +186,7 @@ def api_center_toggle(request, slug):
     reason = (request.POST.get("reason") or "").strip()
     if not reason:
         messages.error(
-            request, "A reason is required when enabling or disabling an integration."
+            request, _("A reason is required when enabling or disabling an integration.")
         )
         return redirect("apicenter:dashboard")
     new_enabled = not integration.enabled
@@ -286,7 +287,7 @@ def api_key_create(request):
         return HttpResponseForbidden("School context required.")
     name = (request.POST.get("name") or "").strip()
     if not name:
-        messages.error(request, "Key name is required.")
+        messages.error(request, _("Key name is required."))
         return redirect("apicenter:api_keys")
     key_prefix, raw_secret = APIKey.generate_key_pair()
     key = APIKey.objects.create(
@@ -302,7 +303,7 @@ def api_key_create(request):
         "key_prefix": key.key_prefix,
     }
     messages.success(
-        request, "API key created. Copy the key below; it will not be shown again."
+        request, _("API key created. Copy the key below; it will not be shown again.")
     )
     return redirect("apicenter:api_keys")
 
@@ -322,7 +323,7 @@ def api_key_revoke(request, key_id):
         qs = qs.filter(Q(school__isnull=True) | Q(school=school))
     key = get_object_or_404(qs, pk=key_id)
     if key.revoked_at:
-        messages.warning(request, "This key is already revoked.")
+        messages.warning(request, _("This key is already revoked."))
     else:
         key.revoked_at = timezone.now()
         key.save(update_fields=["revoked_at"])
@@ -352,7 +353,7 @@ def webhook_subscription_create(request):
     if request.method == "POST":
         url = (request.POST.get("url") or "").strip()
         if not url:
-            messages.error(request, "URL is required.")
+            messages.error(request, _("URL is required."))
             return redirect("apicenter:webhook_subscription_create")
         event_types_raw = (request.POST.get("event_types") or "").strip()
         event_types = (
@@ -370,7 +371,7 @@ def webhook_subscription_create(request):
             secret=secret[:255] if secret else "",
             is_active=True,
         )
-        messages.success(request, "Webhook subscription created.")
+        messages.success(request, _("Webhook subscription created."))
         return redirect("apicenter:webhook_docs")
     return render(
         request,
@@ -411,7 +412,7 @@ def webhook_subscription_edit(request, pk: int):
             or request.POST.get("is_active") == "1"
         )
         subscription.save()
-        messages.success(request, "Webhook subscription updated.")
+        messages.success(request, _("Webhook subscription updated."))
         return redirect("apicenter:webhook_docs")
     return render(
         request,
@@ -437,7 +438,7 @@ def webhook_subscription_delete(request, pk: int):
         qs = qs.filter(school_id=getattr(school, "id", None))
     sub = get_object_or_404(qs, pk=pk)
     sub.delete()
-    messages.success(request, "Webhook subscription deleted.")
+    messages.success(request, _("Webhook subscription deleted."))
     return redirect("apicenter:webhook_docs")
 
 

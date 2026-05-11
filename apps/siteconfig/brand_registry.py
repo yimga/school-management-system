@@ -36,7 +36,9 @@ DEFAULT_COMPLIANCE_CONFIG = {
 }
 
 DEFAULT_UI_CONFIG = {
-    "date_format": "DD/MM/YYYY",
+    # ISO 8601 is the only locale-neutral default: a US tenant onboarded without
+    # a country pack should not silently inherit UK/EU DD/MM/YYYY ordering.
+    "date_format": "YYYY-MM-DD",
     "number_decimal_separator": ".",
     "number_thousands_separator": ",",
     "is_rtl": False,
@@ -160,7 +162,8 @@ def resolve_global_brand_context(
         "ui_config": _deep_merge_dict(
             DEFAULT_UI_CONFIG,
             {
-                "date_format": "DD/MM/YYYY",
+                # Mirror DEFAULT_UI_CONFIG — ISO 8601 stays neutral until a country pack overrides.
+                "date_format": defaults.get("date_format") or "YYYY-MM-DD",
                 "timezone": defaults.get("timezone") or "UTC",
                 "locale": primary_language,
             },

@@ -6,6 +6,7 @@ Provides TOTP setup, QR code generation, and verification
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.conf import settings
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from django_otp.plugins.otp_static.models import StaticDevice, StaticToken
@@ -120,25 +121,25 @@ def mfa_setup(request):
                     device.confirmed = True
                     device.save()
                     request.session["mfa_verified"] = True
-                    messages.success(request, "MFA has been successfully enabled!")
+                    messages.success(request, _("MFA has been successfully enabled!"))
                     if next_url:
                         return redirect(next_url)
                     return redirect("accounts:mfa_setup")
                 else:
-                    messages.error(request, "Invalid token. Please try again.")
+                    messages.error(request, _("Invalid token. Please try again."))
             except TOTPDevice.DoesNotExist:
-                messages.error(request, "Device not found.")
+                messages.error(request, _("Device not found."))
 
         elif "disable_mfa" in request.POST:
             # Delete all TOTP devices for user
             TOTPDevice.objects.filter(user=request.user).delete()
             StaticDevice.objects.filter(user=request.user).delete()
-            messages.success(request, "MFA has been disabled.")
+            messages.success(request, _("MFA has been disabled."))
             return redirect("accounts:mfa_setup")
         elif "regen_backup" in request.POST:
             backup_device, _ = _get_or_create_backup_device(request.user)
             backup_tokens = _generate_backup_tokens(backup_device, count=10)
-            messages.success(request, "Backup codes regenerated.")
+            messages.success(request, _("Backup codes regenerated."))
 
     from .views_passkey import _webauthn_available
     from .models import UserPasskey
@@ -212,7 +213,7 @@ def mfa_verify(request):
                 if remember:
                     until = timezone.now() + timedelta(days=14)
                     request.session["mfa_verified_until"] = until.isoformat()
-                messages.success(request, "MFA verification successful!")
+                messages.success(request, _("MFA verification successful!"))
                 request.session.pop("mfa_next", None)
                 if next_url:
                     return redirect(next_url)
@@ -235,13 +236,13 @@ def mfa_verify(request):
                 if remember:
                     until = timezone.now() + timedelta(days=14)
                     request.session["mfa_verified_until"] = until.isoformat()
-                messages.success(request, "Backup code accepted. MFA verified.")
+                messages.success(request, _("Backup code accepted. MFA verified."))
                 request.session.pop("mfa_next", None)
                 if next_url:
                     return redirect(next_url)
                 return redirect("accounts:redirect")
 
-        messages.error(request, "Invalid MFA token. Please try again.")
+        messages.error(request, _("Invalid MFA token. Please try again."))
 
     from .views_passkey import _webauthn_available
     from .models import UserPasskey
@@ -293,7 +294,7 @@ def mfa_required(view_func):
             or UserPasskey.objects.filter(user=request.user).exists()
         )
         if has_mfa and not _session_has_valid_mfa(request):
-            messages.warning(request, "Please verify your MFA token.")
+            messages.warning(request, _("Please verify your MFA token."))
             return redirect("accounts:mfa_verify")
         return view_func(request, *args, **kwargs)
 

@@ -4,6 +4,7 @@ Uses workflow_resolver.get_approval_workflow(school, "syllabus_approval") and lo
 """
 
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError, IntegrityError
@@ -134,7 +135,7 @@ def syllabus_builder(request, subject_assignment_id: int):
     ):
         messages.info(
             request,
-            "This syllabus is not in draft state; you can still edit builder data.",
+            _("This syllabus is not in draft state; you can still edit builder data."),
         )
     if request.method == "POST":
         import json
@@ -165,7 +166,7 @@ def syllabus_builder(request, subject_assignment_id: int):
                     )
             except (ValueError, TypeError):
                 pass
-        messages.success(request, "Syllabus draft saved.")
+        messages.success(request, _("Syllabus draft saved."))
         return redirect("academics:teacher_syllabus_hub")
     import json
 
@@ -248,7 +249,7 @@ def syllabus_upload(request, subject_assignment_id: int):
         syllabus.status = CourseSyllabus.Status.DRAFT
         syllabus.save()
         messages.success(
-            request, "File uploaded. You can submit for approval when ready."
+            request, _("File uploaded. You can submit for approval when ready.")
         )
         return redirect("academics:teacher_syllabus_hub")
     return render(
@@ -273,13 +274,13 @@ def syllabus_submit(request, subject_assignment_id: int):
         CourseSyllabus.Status.DRAFT,
         CourseSyllabus.Status.NEEDS_REVISION,
     ):
-        messages.warning(request, "Syllabus is already submitted or approved.")
+        messages.warning(request, _("Syllabus is already submitted or approved."))
         return redirect("academics:teacher_syllabus_hub")
     if request.method == "POST":
         syllabus.status = CourseSyllabus.Status.PENDING
         syllabus.submitted_at = timezone.now()
         syllabus.save()
-        messages.success(request, "Syllabus submitted for approval.")
+        messages.success(request, _("Syllabus submitted for approval."))
         return redirect("academics:teacher_syllabus_hub")
     return redirect("academics:teacher_syllabus_hub")
 
@@ -356,7 +357,7 @@ def syllabus_approve(request, subject_assignment_id: int):
     sa = get_object_or_404(SubjectAssignment, pk=subject_assignment_id)
     syllabus = get_object_or_404(CourseSyllabus, subject_assignment=sa)
     if syllabus.status != CourseSyllabus.Status.PENDING:
-        messages.warning(request, "Syllabus is not pending.")
+        messages.warning(request, _("Syllabus is not pending."))
         return redirect("academics:syllabus_approval_queue")
     _wf = workflow_get_approval(getattr(request, "school", None), "syllabus_approval")
     approver_ids = _wf.get("approver_ids") or []
@@ -438,7 +439,7 @@ def syllabus_approve(request, subject_assignment_id: int):
                     "error": str(e),
                 },
             )
-        messages.success(request, "Syllabus approved.")
+        messages.success(request, _("Syllabus approved."))
         return redirect("academics:syllabus_approval_queue")
     return redirect("academics:syllabus_approval_queue")
 
@@ -457,7 +458,7 @@ def syllabus_reject(request, subject_assignment_id: int):
     sa = get_object_or_404(SubjectAssignment, pk=subject_assignment_id)
     syllabus = get_object_or_404(CourseSyllabus, subject_assignment=sa)
     if syllabus.status != CourseSyllabus.Status.PENDING:
-        messages.warning(request, "Syllabus is not pending.")
+        messages.warning(request, _("Syllabus is not pending."))
         return redirect("academics:syllabus_approval_queue")
     _wf = workflow_get_approval(getattr(request, "school", None), "syllabus_approval")
     approver_ids = _wf.get("approver_ids") or []
@@ -479,7 +480,7 @@ def syllabus_reject(request, subject_assignment_id: int):
                 object_id=syllabus.pk,
                 metadata={"subject_assignment_id": sa.pk},
             )
-        messages.success(request, "Syllabus returned for revision.")
+        messages.success(request, _("Syllabus returned for revision."))
         return redirect("academics:syllabus_approval_queue")
     return redirect("academics:syllabus_approval_queue")
 

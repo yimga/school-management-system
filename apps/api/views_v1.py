@@ -295,7 +295,7 @@ class EducationDNAView(View):
                         else None
                     ),
                     "timezone": locale.get("timezone", "UTC"),
-                    "date_format": locale.get("date_format", "DD/MM/YYYY"),
+                    "date_format": locale.get("date_format", "YYYY-MM-DD"),
                     "report_platform_bundle_slug": report_platform_bundle_slug,
                     "effective_report_platform_bundle": get_effective_report_platform_bundle_slug_for_school(
                         school, operator_default_slug=operator_bundle_slug

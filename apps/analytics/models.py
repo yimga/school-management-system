@@ -219,22 +219,28 @@ class RiskThresholds(models.Model):
 
 
 def get_risk_band_for_school(score, school):
-    """Return 'red' | 'amber' | 'green' using school's RiskThresholds if set, else defaults 50/80."""
+    """Return 'red' | 'amber' | 'green' using school's RiskThresholds if set, else platform defaults.
+
+    The fallback thresholds live in settings.RISK_BAND_RED_MIN / RISK_BAND_AMBER_MIN so
+    they can be tuned per deployment without code changes (and so a tenant on a 0-20
+    grading scale can switch the platform default rather than getting every student
+    flagged red).
+    """
+    s = float(score)
     try:
         th = RiskThresholds.objects.get(school=school)
-        s = float(score)
-        if s >= float(th.red_min):
-            return "red"
-        if s >= float(th.amber_min):
-            return "amber"
-        return "green"
+        red_min = float(th.red_min)
+        amber_min = float(th.amber_min)
     except RiskThresholds.DoesNotExist:
-        s = float(score)
-        if s >= 80:
-            return "red"
-        if s >= 50:
-            return "amber"
-        return "green"
+        from django.conf import settings as _settings
+
+        red_min = float(getattr(_settings, "RISK_BAND_RED_MIN", 80))
+        amber_min = float(getattr(_settings, "RISK_BAND_AMBER_MIN", 50))
+    if s >= red_min:
+        return "red"
+    if s >= amber_min:
+        return "amber"
+    return "green"
 
 
 class InterventionLog(models.Model):

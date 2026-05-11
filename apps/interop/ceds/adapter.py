@@ -72,17 +72,31 @@ def grade_to_ceds(evaluation: Any, school: Any) -> dict[str, Any]:
         "K12StudentId": str(student.pk),
         "SectionId": str(subject_assignment.pk) if subject_assignment else None,
         "NumericGrade": numeric,
-        "LetterGrade": _numeric_to_letter(numeric) if numeric is not None else None,
+        "LetterGrade": _numeric_to_letter(numeric, school=school)
+        if numeric is not None
+        else None,
     }
 
 
-def _numeric_to_letter(numeric: float) -> str:
-    if numeric >= 18:
-        return "A"
-    if numeric >= 16:
-        return "B"
-    if numeric >= 14:
-        return "C"
-    if numeric >= 12:
-        return "D"
-    return "F"
+def _numeric_to_letter(numeric: float, school: Any = None) -> str:
+    """Convert numeric grade to letter using the tenant's grading scale.
+
+    CEDS exports for a US district (0-100 scale) require A=90+, B=80-89, etc., not
+    the 0-20 thresholds. Routes through apps.evals.grading.get_grade_letter and falls
+    back to the legacy 0-20 mapping only when the scale can't be resolved.
+    """
+    try:
+        from apps.evals.grading import get_grade_letter, get_scale_for_school
+
+        scale = get_scale_for_school(school) if school is not None else "0-20"
+        return get_grade_letter(numeric, scale=scale)
+    except (ImportError, AttributeError, KeyError, TypeError, ValueError):
+        if numeric >= 18:
+            return "A"
+        if numeric >= 16:
+            return "B"
+        if numeric >= 14:
+            return "C"
+        if numeric >= 12:
+            return "D"
+        return "F"

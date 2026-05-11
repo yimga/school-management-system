@@ -94,8 +94,8 @@
               <th scope="col">{% trans "Specialty" %}</th>
               <th scope="col">{% trans "UID (matricule)" %}</th>
               <th scope="col">{% trans "Official CIN" %}</th>
-              <th scope="col">{% trans "MTN Txn ID" %}</th>
-              <th scope="col" class="text-end">{% trans "Paid (FCFA)" %}</th>
+              <th scope="col">{% trans "Payment Txn ID" %}</th>
+              <th scope="col" class="text-end">{% trans "Paid" %}</th>
               <th scope="col">{% trans "Status" %}</th>
             </tr>
           </thead>
@@ -108,7 +108,7 @@
               <td>{{ c.unique_identifier|default:"—" }}</td>
               <td>{{ c.official_cin|default:"—" }}</td>
               <td>{{ c.payment_transaction_id|default:"—" }}</td>
-              <td class="text-end">{{ c.payment_amount_fcfa|default:0 }}</td>
+              <td class="text-end">{{ c.payment_amount_fcfa|default:0|format_currency }}</td>
               <td>
                 <span class="badge bg-light text-dark">{{ c.get_status_display }}</span>
               </td>

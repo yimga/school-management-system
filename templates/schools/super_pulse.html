@@ -23,8 +23,8 @@
       <div class="col-md-4">
         <div class="card shadow-sm border-0 h-100">
           <div class="card-body">
-            <div class="text-muted small">Total revenue (this month)</div>
-            <div class="h4 text-success mb-0">${{ total_revenue|floatformat:2|default:"0.00" }}</div>
+            <div class="text-muted small">{% trans "Total revenue (this month, platform reporting currency)" %}</div>
+            <div class="h4 text-success mb-0">{{ total_revenue|floatformat:2|default:"0.00"|format_currency }}</div>
           </div>
         </div>
       </div>

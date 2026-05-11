@@ -371,7 +371,9 @@ class StudentProfile(models.Model):
     class Gender(models.TextChoices):
         MALE = "MALE", "Male"
         FEMALE = "FEMALE", "Female"
+        NON_BINARY = "NON_BINARY", "Non-binary"
         OTHER = "OTHER", "Other"
+        PREFER_NOT_TO_SAY = "PREFER_NOT_TO_SAY", "Prefer not to say"
 
     class Status(models.TextChoices):
         NEW = "NEW", "New"
@@ -379,7 +381,7 @@ class StudentProfile(models.Model):
         PROBATION = "PROBATION", "Probation"
         ALUMNI = "ALUMNI", "Alumni"
 
-    gender = models.CharField(max_length=10, choices=Gender.choices, blank=True)
+    gender = models.CharField(max_length=20, choices=Gender.choices, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     place_of_birth = models.CharField(max_length=120, blank=True)
     status = models.CharField(max_length=20, blank=True, choices=Status.choices)

@@ -9,6 +9,7 @@ Views for announcement management with tiered permissions:
 
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
 from django.shortcuts import render, redirect, get_object_or_404
@@ -191,16 +192,16 @@ def announcement_create(request: HttpRequest):
         if form.is_valid():
             announcement = form.save(submit_action=submit_action)
             if submit_action == SUBMIT_ACTION_PUBLISH:
-                messages.success(request, "Announcement published successfully.")
+                messages.success(request, _("Announcement published successfully."))
             elif submit_action == SUBMIT_ACTION_SUBMIT_FOR_APPROVAL:
                 messages.success(
                     request,
-                    "Announcement submitted for approval. It will be visible after an administrator approves it.",
+                    _("Announcement submitted for approval. It will be visible after an administrator approves it."),
                 )
             else:
                 messages.success(
                     request,
-                    "Draft saved. You can edit and publish or submit for approval later.",
+                    _("Draft saved. You can edit and publish or submit for approval later."),
                 )
             if form.cleaned_data.get("send_to_department"):
                 messages.info(
@@ -387,7 +388,7 @@ def announcement_edit(request: HttpRequest, announcement_id: int):
                 log_announcement_audit(
                     announcement, request.user, AnnouncementAuditLog.Action.DEACTIVATED
                 )
-            messages.success(request, "Announcement updated successfully.")
+            messages.success(request, _("Announcement updated successfully."))
             return redirect(
                 "communication:announcement_detail", announcement_id=announcement.id
             )
@@ -447,7 +448,7 @@ def announcement_approve(request: HttpRequest, announcement_id: int):
         _announcement_queryset(request), id=announcement_id
     )
     if announcement.status != Announcement.Status.PENDING_APPROVAL:
-        messages.warning(request, "This announcement is not pending approval.")
+        messages.warning(request, _("This announcement is not pending approval."))
         return redirect(
             "communication:announcement_detail", announcement_id=announcement.id
         )

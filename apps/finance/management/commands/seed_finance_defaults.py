@@ -37,7 +37,9 @@ OHADA_ACCOUNTS = [
 
 class Command(BaseCommand):
     help = (
-        "Seed finance defaults (Cameroon OHADA compliance profile + chart of accounts)."
+        "Seed finance defaults. By default seeds only the neutral 'Generic Global' "
+        "ComplianceProfile and wires it as the platform RuntimeDefaults. Pass --include-cameroon "
+        "(or --regions CM,...) to additionally seed regional presets like Cameroon OHADA."
     )
 
     def add_arguments(self, parser):
@@ -46,32 +48,28 @@ class Command(BaseCommand):
             action="store_true",
             help="Show what would be created without writing.",
         )
+        parser.add_argument(
+            "--include-cameroon",
+            action="store_true",
+            help=(
+                "Also seed the Cameroon OHADA ComplianceProfile (chart of accounts, CNPS, "
+                "income-tax brackets, FCFA labor defaults). Off by default so US/UK/IN/AE "
+                "tenants don't inherit a Cameroon profile."
+            ),
+        )
 
     @transaction.atomic
     def handle(self, *args, **options):
+        include_cameroon = options.get("include_cameroon", False)
         if options.get("dry_run"):
+            extras = "+ Cameroon OHADA preset" if include_cameroon else "(no regional presets)"
             self.stdout.write(
                 self.style.SUCCESS(
-                    "Dry run: would ensure Cameroon OHADA, Generic Global, tax brackets, contributions, chart of accounts."
+                    f"Dry run: would ensure Generic Global ComplianceProfile {extras}, "
+                    "wire RuntimeDefaults to Generic Global."
                 )
             )
             return
-        cameroon, _ = ComplianceProfile.objects.get_or_create(
-            name="Cameroon OHADA",
-            country_code="CM",
-            defaults={
-                "currency_code": "XAF",
-                "currency_symbol": "XAF",
-                "timezone": "Africa/Douala",
-                "chart_template": ComplianceProfile.ChartTemplate.OHADA,
-                "min_wage": Decimal("60000"),
-                "default_hours_per_week": Decimal("40"),
-                "overtime_multiplier": Decimal("1.5"),
-                "annual_leave_days": 21,
-                "maternity_leave_days": 84,
-                "is_active": True,
-            },
-        )
 
         generic, _ = ComplianceProfile.objects.get_or_create(
             name="Generic Global",
@@ -82,18 +80,36 @@ class Command(BaseCommand):
                 "timezone": "UTC",
                 "chart_template": ComplianceProfile.ChartTemplate.GENERIC,
                 "min_wage": Decimal("0"),
-                "default_hours_per_week": Decimal("40"),
+                "default_hours_per_week": Decimal("0"),
                 "overtime_multiplier": Decimal("1.5"),
-                "annual_leave_days": 21,
-                "maternity_leave_days": 84,
+                "annual_leave_days": 0,
+                "maternity_leave_days": 0,
                 "is_active": True,
             },
         )
-
-        self._seed_tax_brackets(cameroon)
-        self._seed_contributions(cameroon)
-        self._seed_accounts(cameroon)
         self._seed_accounts(generic)
+
+        cameroon = None
+        if include_cameroon:
+            cameroon, _ = ComplianceProfile.objects.get_or_create(
+                name="Cameroon OHADA",
+                country_code="CM",
+                defaults={
+                    "currency_code": "XAF",
+                    "currency_symbol": "XAF",
+                    "timezone": "Africa/Douala",
+                    "chart_template": ComplianceProfile.ChartTemplate.OHADA,
+                    "min_wage": Decimal("60000"),
+                    "default_hours_per_week": Decimal("40"),
+                    "overtime_multiplier": Decimal("1.5"),
+                    "annual_leave_days": 21,
+                    "maternity_leave_days": 84,
+                    "is_active": True,
+                },
+            )
+            self._seed_tax_brackets(cameroon)
+            self._seed_contributions(cameroon)
+            self._seed_accounts(cameroon)
 
         region_seed = ensure_canonical_region_payment_profiles()
         if region_seed.get("skipped"):
@@ -105,6 +121,8 @@ class Command(BaseCommand):
                 )
             )
 
+        # Wire platform RuntimeDefaults to the neutral 'Generic Global' profile rather than
+        # Cameroon — this is the profile a fresh tenant inherits, so it MUST be country-neutral.
         site = get_platform_site_settings_record(create=True)
         if site is not None:
             from apps.platform_runtime.models import RuntimeDefaults
@@ -116,11 +134,13 @@ class Command(BaseCommand):
             )
             if rd is None or not rd.compliance_profile_id:
                 site.apply_feature_control_state(
-                    field_updates={"compliance_profile_id": cameroon.pk},
+                    field_updates={"compliance_profile_id": generic.pk},
                 )
                 invalidate_effective_site_settings_cache()
 
-        self.stdout.write(self.style.SUCCESS("Finance defaults seeded."))
+        self.stdout.write(self.style.SUCCESS("Finance defaults seeded (Generic Global)."))
+        if include_cameroon and cameroon is not None:
+            self.stdout.write(self.style.SUCCESS("Cameroon OHADA preset also seeded."))
 
     def _seed_tax_brackets(self, profile: ComplianceProfile) -> None:
         brackets = [

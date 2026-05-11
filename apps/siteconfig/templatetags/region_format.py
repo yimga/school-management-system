@@ -28,17 +28,26 @@ def _resolve_currency_context(context):
             return symbol or "", dec_sep or ".", thousands_sep or ","
     from apps.siteconfig.currency import get_currency_symbol
 
-    currency = getattr(settings, "DEFAULT_CURRENCY", "XAF")
+    currency = (
+        getattr(settings, "PLATFORM_DEFAULT_CURRENCY", None)
+        or getattr(settings, "DEFAULT_CURRENCY", None)
+        or "USD"
+    )
     symbol = get_currency_symbol(currency)
     return symbol, ".", ","
 
 
 def _date_format_to_django(pattern: str) -> str:
-    """Convert placeholder pattern (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD) to Django date format (d, m, Y)."""
+    """Convert placeholder pattern (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD) to Django date format (d, m, Y).
+
+    Falls back to ISO 8601 (Y-m-d) when no pattern is supplied — ISO is the only locale-neutral
+    format that's unambiguous worldwide. Do NOT assume DD/MM/YYYY: that's a UK/EU convention
+    and would render incorrectly for US, Japan, China, and other tenants.
+    """
     if not pattern:
-        return "d/m/Y"
+        return "Y-m-d"
     if not isinstance(pattern, str):
-        return "d/m/Y"
+        return "Y-m-d"
     s = pattern.replace("YYYY", "Y").replace("DD", "d").replace("MM", "m")
     return s
 
@@ -61,15 +70,19 @@ def format_date(value, date_format_pattern=None):
 
     Unit tests and PDF-style renderers may call ``format_date(locale_ctx, dt)`` where *locale_ctx*
     is a dict with ``date_format`` (same keys as the region_settings context processor).
+
+    Defaults to ISO 8601 (YYYY-MM-DD) when no pattern is supplied; this is the only
+    locale-neutral default that does not silently mis-render dates for tenants in the US,
+    Japan, China, or other non-DD/MM/YYYY conventions.
     """
     if isinstance(value, dict):
         ctx = value
         inner = date_format_pattern
         if inner is None:
             return ""
-        pattern = ctx.get("date_format") or "DD/MM/YYYY"
+        pattern = ctx.get("date_format") or "YYYY-MM-DD"
         return _format_date_value(inner, pattern)
-    return _format_date_value(value, date_format_pattern or "DD/MM/YYYY")
+    return _format_date_value(value, date_format_pattern or "YYYY-MM-DD")
 
 
 @register.filter
@@ -101,7 +114,8 @@ def format_date_tenant(context, value):
     except (ImportError, AttributeError, TypeError, ValueError, KeyError):
         from django.utils import dateformat
 
-        return dateformat.format(value, "d/m/Y") if value else ""
+        # ISO 8601 fallback when tenant locale resolution fails — unambiguous worldwide.
+        return dateformat.format(value, "Y-m-d") if value else ""
 
 
 @register.simple_tag(takes_context=True)

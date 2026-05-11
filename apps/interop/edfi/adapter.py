@@ -83,7 +83,7 @@ def evaluation_to_edfi_grade(evaluation: Any, school: Any) -> dict[str, Any]:
     return {
         "studentReference": {"studentUniqueId": str(unique_id)},
         "sectionReference": {"sectionIdentifier": section_id},
-        "letterGradeEarned": _numeric_to_letter(numeric)
+        "letterGradeEarned": _numeric_to_letter(numeric, school=school)
         if numeric is not None
         else None,
         "numericGradeEarned": numeric,
@@ -125,13 +125,26 @@ def _section_to_grade_descriptor(section: str) -> str:
     return "uri://ed-fi.org/GradeLevelDescriptor#Ungraded"
 
 
-def _numeric_to_letter(numeric: float) -> str:
-    if numeric >= 18:
-        return "A"
-    if numeric >= 16:
-        return "B"
-    if numeric >= 14:
-        return "C"
-    if numeric >= 12:
-        return "D"
-    return "F"
+def _numeric_to_letter(numeric: float, school: Any = None) -> str:
+    """Convert a numeric grade to a letter, honoring the tenant's grading scale.
+
+    Routes through apps.evals.grading.get_grade_letter so an export from a US K-12 school
+    (0-100 scale) does not get F for every score below 18, and a French school (0-20 scale)
+    gets A for 18 rather than for 80. Falls back to a 0-20 lookup if the scale can't be
+    resolved (preserves pre-existing behavior on legacy callers that don't pass a school).
+    """
+    try:
+        from apps.evals.grading import get_grade_letter, get_scale_for_school
+
+        scale = get_scale_for_school(school) if school is not None else "0-20"
+        return get_grade_letter(numeric, scale=scale)
+    except (ImportError, AttributeError, KeyError, TypeError, ValueError):
+        if numeric >= 18:
+            return "A"
+        if numeric >= 16:
+            return "B"
+        if numeric >= 14:
+            return "C"
+        if numeric >= 12:
+            return "D"
+        return "F"
