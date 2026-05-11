@@ -352,7 +352,10 @@ body.backend-shell .page-wrap {
 
 /* Resizable sidebar: CSS variable + flex on desktop */
 :root {
-  --rmc-shell-max-width: 1320px;
+  /* UX fix: portal shell was capped at 1320px which left dead margins on wide
+     monitors. Default to fluid; operators who want a centered max can override
+     via tenant CSS. Matches the same fix applied to control-plane-skeleton-root.css. */
+  --rmc-shell-max-width: none;
   --rmc-shell-gutter: clamp(0.75rem, 1.2vw, 1.25rem);
   --rmc-shell-rhythm-y: clamp(0.75rem, 1.5vw, 1.25rem);
   --portal-sidebar-width: 280px;

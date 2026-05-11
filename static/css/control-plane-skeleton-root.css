@@ -11,7 +11,12 @@ html[data-surface="control-plane"] {
      --platform-navy stays as the operator's signature dark ground. */
   --platform-navy: var(--color-base-900, #0b0e14);
   --platform-gold: var(--school-primary); /* legacy alias — anywhere using --platform-gold now gets indigo */
-  --rmc-shell-max-width: 1440px;
+  /* UX fix: manager shell was capped at 1440px which left huge dead margins
+     on wide monitors (every menu / sidebar / page showed the same narrow
+     content strip surrounded by empty light space). Default to fluid (`none`)
+     so the layout fills the viewport; operators who want a centered max
+     can override via tenant CSS. */
+  --rmc-shell-max-width: none;
   --rmc-shell-gutter: clamp(0.75rem, 1.2vw, 1.25rem);
   --rmc-shell-rhythm-y: clamp(0.75rem, 1.5vw, 1.25rem);
 }
