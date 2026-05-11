@@ -34,7 +34,7 @@ finish, AI parity, marketplace) is sequenced as **passes 6-14** in
 | 4 | `c4d3ba72` | 2026-05-10 | Multi-tenant blocker remediation (17 files, +617/−87): parent-dashboard `$`, certificate `get_grade_letter` tenant-aware, payment-gateway whitelists fixed, RegionConfig defaults XAF→USD, Certification Board enum +9 entries, ComplianceProfile labor defaults zeroed, +237 placeholders neutralized, OCR currency regex, tax_engine 40+ jurisdictions, RiskFactor.band tenant-aware | +617/−87 |
 | 5 | `8800b237` | 2026-05-11 | Global-tenant residue (19 files, +253/−131): 3 hardcoded `$` template literals, 3 DD/MM/YYYY fallback defaults, RISK_BAND/PAYMENT_MAX_AMOUNT settings, Ed-Fi/CEDS adapter grade-thresholds, seed_finance_defaults neutralized, Gender enum +NON_BINARY/PREFER_NOT_TO_SAY, 80 flash messages wrapped in `_()` | +253/−131 |
 | 6 | `fc82e1f0` | 2026-05-11 | Enterprise-readiness kickoff (13 files, +847/−22): 4 strategy docs (SECURITY/OBSERVABILITY/ECOSYSTEM_STRATEGY/COMPETITIVE_PARITY_ROADMAP) + 6 code quick wins (login audit signals, flash ARIA, duplicate h1 removed, login labels, admin index keyboard access, drf-spectacular wired with `/api/openapi.json` `/api/docs/` `/api/redoc/`) | +847/−22 |
-| 7 | (pending push) | 2026-05-11 | Onboarding showstoppers — magic-link auto-login at `verify_signup` (no more password trap on `set_unusable_password()` admins) routes to `studio_os:launch`; DNS auto-provision via Cloudflare/Route53 providers (`apps/schools/dns_providers/{base,cloudflare,route53}.py`, opt-in by `DNS_PROVIDER` setting) called from `_do_provision`, reachability verified through `dns_verification.hostname_resolves`; 8 marketing CTAs rerouted from `signup_school` → `onboard_wizard`; BlueprintPack picker added as wizard step 1.5 (ranked by country relevance, applied through `apply_blueprint_pack` post-provision); "Start with sample data" toggle in step 3 seeds demo.admin/teacher/parent via `seed_demo_users_for_school` | pending |
+| 7 | `7b0fb960` | 2026-05-11 | Onboarding showstoppers — magic-link auto-login at `verify_signup` (no more password trap on `set_unusable_password()` admins) routes to `studio_os:launch`; DNS auto-provision via Cloudflare/Route53 providers (`apps/schools/dns_providers/{base,cloudflare,route53}.py`, opt-in by `DNS_PROVIDER` setting) called from `_do_provision`, reachability verified through `dns_verification.hostname_resolves`; 8 marketing CTAs rerouted from `signup_school` → `onboard_wizard`; BlueprintPack picker added as wizard step 1.5 (ranked by country relevance, applied through `apply_blueprint_pack` post-provision); "Start with sample data" toggle in step 3 seeds demo.admin/teacher/parent via `seed_demo_users_for_school` | pending |
 
 **Aggregate (passes 4-7):** ~60 files, ~+2,100/−260, 4 new migrations, 4 strategy docs.
 
@@ -79,8 +79,8 @@ Also from [`MULTI_TENANT_GLOBAL_ROADMAP.md`](MULTI_TENANT_GLOBAL_ROADMAP.md):
 
 As of 2026-05-11 (post-pass-7), passes 5 + 6 plus subsequent template fixes have
 been pushed to `origin/main` (HEAD was at `9f3e9a1a` immediately before pass 7).
-Pass 7's commit is **1 ahead of `origin/main`** and has not been deployed to
-manager.runmycampus.com.
+Pass 7's commit (`7b0fb960`) is **1 ahead of `origin/main`** and has not been
+deployed to manager.runmycampus.com.
 
 Claude Code's auto-mode classifier blocks `git push origin main` directly
 (treats it as bypassing PR review). To deploy:
