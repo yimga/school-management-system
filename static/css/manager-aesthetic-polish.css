@@ -1,0 +1,207 @@
+/**
+ * Manager surface aesthetic polish — Pass A.
+ *
+ * Addresses the most visible aesthetic bugs surfaced by a user screenshot:
+ *   - Cards on the dark `#cp-main-content` had ambiguous backgrounds (text was
+ *     re-coloured dark slate but the surface was sometimes left translucent,
+ *     producing a "dark text on dark background" mush).
+ *   - The Studio toolbar floated the page title to the trailing edge with
+ *     `ms-auto`, visually disconnecting it from its content.
+ *   - The Studio mode rail ("Overview / Experience / Automation / …") had a
+ *     weak active state and inconsistent typographic rhythm.
+ *   - The dark cp-main-col stopped abruptly with a light page background
+ *     bleeding through below the content (no continuity).
+ *
+ * Load order: appended to control_plane_base.html `extrastyle` block so it
+ * follows `rmc-world-class-experience.css` and wins specificity-wise without
+ * relying on `!important` everywhere.
+ */
+
+/* === Card surfaces on the manager content area =========================== */
+
+/* Every card-like component inside the manager's main column gets an
+ * unambiguous light surface. The existing rmc-world-class-experience.css
+ * sets the text colour; this rule guarantees the background actually
+ * contrasts with that text. */
+#cp-main-content .card,
+#cp-main-content .rmc-zero-click,
+#cp-main-content .rmc-os-page-header,
+#cp-main-content .rmc-wcx-surface,
+#cp-main-content .rmc-acx-glass-panel,
+#cp-main-content .rmc-acx-metric-card,
+#cp-main-content .studio-os__card {
+  background-color: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+#cp-main-content .card-header {
+  background-color: rgba(15, 23, 42, 0.03);
+  border-bottom-color: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
+/* === Studio toolbar (top of the canvas) ================================== */
+
+.studio-os__toolbar {
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.studio-os__page-title {
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: #0f172a;
+  margin: 0;
+}
+
+.studio-os__toolbar .form-control-sm,
+.studio-os__toolbar .btn-sm {
+  border-color: rgba(15, 23, 42, 0.18);
+}
+
+/* === Studio mode rail ==================================================== */
+
+#cp-main-content .studio-os__rail {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#cp-main-content .studio-os__rail .studio-os__home,
+#cp-main-content #studio-rail-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(15, 23, 42, 0.55);
+  padding: 0.5rem 0.75rem 0.25rem;
+}
+
+#cp-main-content .studio-os__rail a {
+  display: block;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  color: #1f2937;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+#cp-main-content .studio-os__rail a:hover {
+  background: rgba(79, 70, 229, 0.08);
+  color: #1f2937;
+}
+
+#cp-main-content .studio-os__rail a.active {
+  background: linear-gradient(135deg, var(--school-primary, #4f46e5), var(--school-accent, #10b981));
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 6px 14px -4px rgba(79, 70, 229, 0.35);
+}
+
+/* === Studio canvas + content background continuity ======================= */
+
+/* The dark cp-main-col should NOT bleed white below the content. Force the
+ * canvas itself to a clean off-white surface so cards land on it without a
+ * "hard cut" between dark and light. */
+#cp-main-content {
+  background-color: #f6f7fb;
+}
+
+#cp-main-content .studio-os__canvas,
+#cp-main-content .studio-os {
+  background-color: transparent;
+}
+
+/* === Sidebar polish (less of a black hole, clearer hierarchy) ============ */
+
+.cp-sidebar-col .cp-sidebar-inner {
+  background: #0b1220;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cp-sidebar-col .cp-sidebar-inner .nav-link,
+.cp-sidebar-col .cp-sidebar-inner a {
+  color: rgba(241, 245, 249, 0.82);
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+}
+
+.cp-sidebar-col .cp-sidebar-inner .nav-link:hover,
+.cp-sidebar-col .cp-sidebar-inner a:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+.cp-sidebar-col .cp-sidebar-inner .nav-link.active,
+.cp-sidebar-col .cp-sidebar-inner a[aria-current="page"] {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.85), rgba(16, 185, 129, 0.85));
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Section labels inside the sidebar — let them breathe and be readable */
+.cp-sidebar-col .cp-sidebar-inner .cp-sidebar-section-label,
+.cp-sidebar-col .cp-sidebar-inner .small.text-uppercase,
+.cp-sidebar-col .cp-sidebar-inner .text-uppercase {
+  font-size: 0.68rem !important;
+  letter-spacing: 0.1em;
+  color: rgba(148, 163, 184, 0.7) !important;
+  margin-top: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+/* === Empty state hygiene ================================================= */
+
+/* Hide AI guided-assistant output box until the JS un-hides it after a real
+ * response. The template already adds `hidden`; this is the belt-and-suspenders
+ * CSS for legacy partials that don't have the attribute. */
+[data-rmc-ai-out]:empty {
+  display: none;
+}
+
+/* Empty <pre> / <code> blocks inside cards never render as a styled box. */
+#cp-main-content pre:empty,
+#cp-main-content code:empty {
+  display: none;
+}
+
+/* === Page header polish ================================================== */
+
+#cp-main-content .rmc-os-page-header {
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+#cp-main-content .rmc-os-page-header .text-uppercase {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: rgba(15, 23, 42, 0.55) !important;
+}
+
+#cp-main-content .rmc-os-page-header__title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: #0f172a !important;
+}
+
+/* === Spacing rhythm ====================================================== */
+
+#cp-main-content > * + * {
+  margin-top: 1rem;
+}
+
+#cp-main-content .row.g-3 + .row.g-3,
+#cp-main-content .card + .card {
+  margin-top: 1rem;
+}

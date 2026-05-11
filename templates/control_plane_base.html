@@ -8,6 +8,9 @@
 <link rel="stylesheet" href="{% static 'css/rmc-premium-os.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-premium-polish.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
+{# Pass A aesthetic polish: card surfaces, studio toolbar, rail, sidebar, empty states.
+   Loaded last so it wins specificity ties without needing !important everywhere. #}
+<link rel="stylesheet" href="{% static 'css/manager-aesthetic-polish.css' %}">
 {% endblock %}
 
 {% block content %}

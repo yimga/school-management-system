@@ -30,17 +30,23 @@
     var ta = card.querySelector("[data-rmc-ai-query]");
     var btn = card.querySelector("[data-rmc-ai-run]");
     if (!url || !btn) return;
+    function _showOut(content) {
+      if (!out) return;
+      out.textContent = content;
+      out.hidden = false;
+      out.classList.remove("d-none");
+    }
     btn.addEventListener("click", function () {
       var q = (ta && ta.value) ? ta.value.trim() : "";
       if (!q) {
-        if (out) out.textContent = "Enter a question.";
+        _showOut("Enter a question.");
         return;
       }
       var payload = { query: q };
       var mode = card.getAttribute("data-studio-mode");
       if (mode) payload.studio_mode = mode;
       btn.disabled = true;
-      if (out) out.textContent = "…";
+      _showOut("…");
       fetch(url, {
         method: "POST",
         credentials: "same-origin",
@@ -60,7 +66,7 @@
           btn.disabled = false;
           if (!out) return;
           if (!res.ok || !res.data.success) {
-            out.textContent = JSON.stringify(res.data, null, 2);
+            _showOut(JSON.stringify(res.data, null, 2));
             return;
           }
           var g = res.data.guided || {};
@@ -87,11 +93,11 @@
           (g.references || []).forEach(function (r) {
             lines.push("ref: " + r);
           });
-          out.textContent = lines.join("\n");
+          _showOut(lines.join("\n"));
         })
         .catch(function (err) {
           btn.disabled = false;
-          if (out) out.textContent = String(err);
+          _showOut(String(err));
         });
     });
   }
