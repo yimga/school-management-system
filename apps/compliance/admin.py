@@ -43,7 +43,7 @@ class FerpaDisclosureAdmin(admin.ModelAdmin):
         "student__student_code",
     )
     date_hierarchy = "disclosed_at"
-    autocomplete_fields = ("school", "student", "disclosed_by")
+    raw_id_fields = ("school", "student", "disclosed_by")
     readonly_fields = ("created_at", "updated_at")
 
 # Phase 4: Import and register audit models

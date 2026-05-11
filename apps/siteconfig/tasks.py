@@ -378,3 +378,55 @@ def ai_quality_scorecard_beat() -> str:
     call_command("aggregate_ai_metrics", stdout=out, stderr=err)
     call_command("ai_quality_scorecard", "--days", "7", stdout=out, stderr=err)
     return (out.getvalue() + err.getvalue())[-4000:]
+
+
+@shared_task(name="siteconfig.ingest_policy_documents_all_tenants")
+def ingest_policy_documents_all_tenants() -> dict:
+    """
+    Pass 13.E: nightly per-tenant policy / handbook ingestion into AIEmbeddingStore.
+
+    Iterates every active School that has `settings["policy_doc_root"]` set
+    and calls the existing `ingest_policy_documents` mgmt command for each.
+    A failure on one school does not halt the rest. Cheap when no tenants
+    opt in — the path check exits before any embedding work.
+    """
+    from io import StringIO
+
+    from django.core.management import call_command
+
+    try:
+        from apps.schools.models import School
+    except ImportError:
+        return {"processed": 0, "skipped": 0, "errors": 0, "reason": "schools unavailable"}
+
+    processed = 0
+    skipped = 0
+    errors = 0
+    schools = School.objects.filter(is_active=True).only("id", "settings")
+    for school in schools.iterator(chunk_size=100):
+        settings_dict = getattr(school, "settings", None) or {}
+        path = (settings_dict.get("policy_doc_root") or "").strip()
+        if not path:
+            skipped += 1
+            continue
+        try:
+            out = StringIO()
+            err = StringIO()
+            call_command(
+                "ingest_policy_documents",
+                "--school",
+                str(school.id),
+                "--path",
+                path,
+                stdout=out,
+                stderr=err,
+            )
+            processed += 1
+        except Exception as exc:  # noqa: BLE001 - beat must not crash on one bad tenant
+            errors += 1
+            log_exception_with_context(
+                "ingest_policy_documents_all_tenants: school batch failed",
+                school_id=str(school.id),
+                extra={"error": str(exc)[:200]},
+            )
+    return {"processed": processed, "skipped": skipped, "errors": errors}

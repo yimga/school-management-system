@@ -425,6 +425,12 @@ urlpatterns = [
         obs_views.copilot_metrics_json,
         name="copilot_metrics_json",
     ),
+    # Pass 11.B: server-side bridge for browser / SW error capture (CDN-free).
+    path(
+        "api/observability/client-event/",
+        obs_views.client_event_capture,
+        name="client_event_capture",
+    ),
     path(
         "api/observability/slo-dashboard/",
         obs_views.api_operational_slo_dashboard,

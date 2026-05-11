@@ -1145,6 +1145,18 @@ if RUNNING_TESTS:
 # Celery Beat schedule for periodic tasks
 # Optional tasks (requests reminder, deadline reminder) respect Site Settings: 0 = no-op
 CELERY_BEAT_SCHEDULE = {
+    "compliance-mark-sla-breaches": {
+        "task": "compliance.mark_sla_breaches",
+        "schedule": 3600.0,  # Hourly — GDPR Art. 12(3) one-month SLA, hourly granularity is fine
+        "options": {"expires": 300},
+    },
+    # Pass 13.E: nightly per-tenant policy/handbook RAG ingestion. No-op for
+    # tenants that haven't set `school.settings["policy_doc_root"]`.
+    "siteconfig-ingest-policy-documents": {
+        "task": "siteconfig.ingest_policy_documents_all_tenants",
+        "schedule": 86400.0,  # Daily
+        "options": {"expires": 3600},
+    },
     "send-payment-reminders": {
         "task": "finance.send_payment_reminders",
         "schedule": 3600.0,  # Every hour

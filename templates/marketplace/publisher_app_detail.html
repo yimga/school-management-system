@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ app.name }} — {% trans "Publisher" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-page="marketplace-publisher-app-detail">
+  <nav aria-label="breadcrumb" class="small mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'marketplace:publisher_dashboard' %}">{% trans "Publisher" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ app.name }}</li>
+    </ol>
+  </nav>
+
+  <header class="mb-3">
+    <h1 class="h3 mb-1">{{ app.name }}</h1>
+    <p class="text-muted mb-0"><code>{{ app.slug }}</code> · {% trans "version" %} {{ app.version }} · {{ app.get_kind_display }}</p>
+  </header>
+
+  {% if listing %}
+  <div class="row g-3 mb-3">
+    <div class="col-md-3">
+      <div class="card"><div class="card-body">
+        <p class="small text-muted mb-1">{% trans "Listing status" %}</p>
+        <p class="h6 mb-0">{{ listing.status }}</p>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card"><div class="card-body">
+        <p class="small text-muted mb-1">{% trans "Security review" %}</p>
+        <p class="h6 mb-0">{{ listing.security_review_status }}</p>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card"><div class="card-body">
+        <p class="small text-muted mb-1">{% trans "Certification" %}</p>
+        <p class="h6 mb-0">{{ listing.certification_status }}</p>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card"><div class="card-body">
+        <p class="small text-muted mb-1">{% trans "Revenue share" %}</p>
+        <p class="h6 mb-0">{{ listing.revenue_share_percent }}%</p>
+      </div></div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if app.description %}
+  <section class="mb-4">
+    <h2 class="h6">{% trans "Description" %}</h2>
+    <p>{{ app.description }}</p>
+  </section>
+  {% endif %}
+
+  <section class="mb-4">
+    <h2 class="h6">{% trans "Manifest" %}</h2>
+    <pre class="bg-light p-3 small rounded" style="max-height: 400px; overflow:auto;">{{ app.manifest|pprint }}</pre>
+  </section>
+
+  <section class="mb-4">
+    <h2 class="h6">{% trans "Update via API" %}</h2>
+    <p class="small text-muted">{% trans "POST a new manifest to" %} <code>/api/v1/marketplace/submissions/</code> {% trans "with this slug to push a new version." %}</p>
+  </section>
+</div>
+{% endblock %}

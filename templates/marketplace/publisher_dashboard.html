@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Publisher Dashboard" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-page="marketplace-publisher-dashboard">
+  <nav aria-label="breadcrumb" class="small mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item active" aria-current="page">{% trans "Publisher" %}</li>
+    </ol>
+  </nav>
+
+  <header class="d-flex flex-wrap justify-content-between align-items-end mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Publisher dashboard" %}</h1>
+      <p class="text-muted mb-0">
+        {% if publisher %}{% blocktrans with name=publisher.name %}Apps published by {{ name }}.{% endblocktrans %}
+        {% else %}{% trans "You don't have a publisher account yet. Submit your first app to create one." %}{% endif %}
+      </p>
+    </div>
+    <div>
+      <a href="https://docs.runmycampus.com/marketplace/submission/" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener">{% trans "How to submit" %}</a>
+    </div>
+  </header>
+
+  {% if no_publisher %}
+  <div class="alert alert-info">
+    {% trans "POST a draft manifest to " %}<code>/api/v1/marketplace/submissions/</code>{% trans " to create your first app — your publisher record is provisioned automatically on first submission." %}
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-body p-0">
+      <table class="table table-sm align-middle mb-0">
+        <caption class="visually-hidden">{% trans "Apps belonging to this publisher with status and version." %}</caption>
+        <thead class="table-light">
+          <tr>
+            <th>{% trans "App" %}</th>
+            <th>{% trans "Version" %}</th>
+            <th>{% trans "Kind" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th>{% trans "Security review" %}</th>
+            <th>{% trans "Updated" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app in apps %}
+          <tr>
+            <td>
+              <a href="{% url 'marketplace:publisher_app_detail' app.slug %}"><strong>{{ app.name }}</strong></a>
+              <span class="small text-muted d-block"><code>{{ app.slug }}</code></span>
+            </td>
+            <td class="small">{{ app.version }}</td>
+            <td><span class="badge bg-light text-muted">{{ app.get_kind_display }}</span></td>
+            <td>{% if app.listing %}<span class="badge bg-secondary">{{ app.listing.status }}</span>{% else %}<span class="text-muted small">{% trans "no listing" %}</span>{% endif %}</td>
+            <td>{% if app.listing %}<span class="badge bg-light text-muted">{{ app.listing.security_review_status }}</span>{% else %}—{% endif %}</td>
+            <td class="small text-muted">{{ app.updated_at|date:"Y-m-d" }}</td>
+            <td><a href="{% url 'marketplace:publisher_app_detail' app.slug %}" class="btn btn-sm btn-outline-secondary">{% trans "Open" %}</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-muted text-center py-4">{% trans "No apps yet. Submit your first draft via the API." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
