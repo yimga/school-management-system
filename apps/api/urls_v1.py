@@ -11,6 +11,7 @@ from apps.api.views_marketplace_catalog import (
     MarketplaceAppsListView,
     MarketplaceScopesListView,
 )
+from apps.api.views_marketplace_submissions import MarketplaceSubmissionView
 from apps.api.views_migration_jobs import MigrationJobStatusView
 
 app_name = "api_v1"
@@ -33,6 +34,12 @@ urlpatterns = [
         "marketplace/scopes/",
         MarketplaceScopesListView.as_view(),
         name="marketplace-scopes",
+    ),
+    # Pass 14.C: publisher-facing app submission endpoint.
+    path(
+        "marketplace/submissions/",
+        MarketplaceSubmissionView.as_view(),
+        name="marketplace-submissions",
     ),
     # Pass 8.B: live progress snapshot for an async migration job.
     path(
