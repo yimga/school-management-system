@@ -100,6 +100,11 @@ class TaskType(str, Enum):
     # Pass 13: explain why a student was flagged at-risk. Default tier list
     # routes to Anthropic first (premium tenants), then Ollama, then rules.
     RISK_EXPLAIN = "risk_explain"
+    # Pass 13.B: draft a parent-facing message from a short brief. Always
+    # produced as a draft — humans approve before sending.
+    TEACHER_COMMS_DRAFT = "teacher_comms_draft"
+    # Pass 13.B: report-card narrative comment for one student × one term.
+    REPORT_CARD_COMMENT = "report_card_comment"
 
 
 # Default tier per task: Ollama (self-hosted) then rules for every product task.
@@ -131,6 +136,10 @@ DEFAULT_TASK_TIERS: dict[str, list[str]] = {
     # falls back to Ollama then rules. The premium gate in invoke() drops
     # "anthropic" automatically when the tenant data tier disallows premium.
     TaskType.RISK_EXPLAIN: ["anthropic", "ollama", "rules"],
+    # Pass 13.B: teacher comms drafts and report-card comments — same tier
+    # policy as risk_explain (premium-first, on-prem fallback, rules as last resort).
+    TaskType.TEACHER_COMMS_DRAFT: ["anthropic", "ollama", "rules"],
+    TaskType.REPORT_CARD_COMMENT: ["anthropic", "ollama", "rules"],
 }
 
 
