@@ -232,12 +232,17 @@ INSTALLED_APPS = [
     # Celery result/beat (optional: used when REDIS_URL is set for background tasks)
     "django_celery_results",
     "django_celery_beat",
+    # Pass 12: CORS middleware app registration.
+    "corsheaders",
 ]
 if _channels_installed:
     INSTALLED_APPS += ["channels", "channels_redis"]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Pass 12: CORS middleware must precede SessionMiddleware + CommonMiddleware per
+    # django-cors-headers docs so preflight OPTIONS responses include the right headers.
+    "corsheaders.middleware.CorsMiddleware",
     "config.middleware.BlockScannerPathsMiddleware",  # 404 for .git, terraform, wp-config, etc.
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "apps.accounts.middleware.ManagerCookieIsolationMiddleware",  # Manager host gets separate session/csrf cookie names
@@ -1462,7 +1467,26 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    # Pass 12: cursor pagination is opaque (clients can't skip pages or guess IDs)
+    # and stable under inserts — better default for our high-write tenant tables.
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.CursorPagination",
+    "PAGE_SIZE": int(os.getenv("API_DEFAULT_PAGE_SIZE", "50")),
+    # Pass 12: RFC 7807 problem+json envelope on every error response.
+    "EXCEPTION_HANDLER": "apps.api.exception_handler.rfc7807_exception_handler",
 }
+
+# Pass 12: CORS allowlist. Strict by default; SiteConfig can extend per tenant
+# at request time via a middleware (django-cors-headers honors the dynamic list
+# through CORS_ALLOWED_ORIGINS_REGEXES at startup).
+CORS_ALLOWED_ORIGINS = [
+    o.strip()
+    for o in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+    if o.strip()
+]
+CORS_ALLOW_CREDENTIALS = os.getenv("CORS_ALLOW_CREDENTIALS", "0") == "1"
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://[a-z0-9-]+\.runmycampus\.com$",
+]
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "RunMyCampus API",
@@ -1506,9 +1530,20 @@ if SENTRY_DSN:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
 
+    # Pass 11: CeleryIntegration is critical — without it, every error inside a
+    # background task is invisible to Sentry. Imported lazily so non-Celery
+    # deployments (e.g. tests, ad-hoc scripts) don't pay the import cost.
+    _sentry_integrations = [DjangoIntegration()]
+    try:
+        from sentry_sdk.integrations.celery import CeleryIntegration
+
+        _sentry_integrations.append(CeleryIntegration())
+    except ImportError:
+        pass
+
     sentry_sdk.init(
         dsn=SENTRY_DSN,
-        integrations=[DjangoIntegration()],
+        integrations=_sentry_integrations,
         traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
         profiles_sample_rate=SENTRY_PROFILES_SAMPLE_RATE,
         send_default_pii=False,

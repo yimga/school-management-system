@@ -1,0 +1,136 @@
+# Pass 11: Sentry alert rules for RunMyCampus production observability.
+#
+# These rules are intended to be imported via Sentry's "Import from YAML" admin
+# panel, or applied programmatically through the Sentry API. They define the
+# minimum bar for on-call paging on the manager.runmycampus.com deployment.
+#
+# Conventions:
+#   - Severity tiers: P1 (page on-call within 5 min), P2 (Slack #oncall),
+#     P3 (email digest, no page).
+#   - Burn-rate windows align with the SLOs in docs/OBSERVABILITY.md.
+#   - Owner team must be configured per project in Sentry; alerts inherit it.
+#
+# Rules below cover the four highest-traffic surfaces:
+#   1. The web tier (Django request errors)
+#   2. The Celery tier (background task failures)
+#   3. The browser tier (frontend exceptions)
+#   4. The synthetic uptime tier (healthz endpoint)
+
+version: 1
+project: runmycampus-platform
+
+rules:
+  - name: "P1 — Web 5xx burn rate (1h fast burn)"
+    description: >
+      Page when Django returns 5xx for more than 5% of requests over a rolling
+      1-hour window. This is the SLO fast-burn threshold from OBSERVABILITY.md.
+    conditions:
+      - event_type: error
+        platform: python
+        transaction: "*"
+      - level: ">= error"
+    threshold:
+      type: percent_failed
+      window_minutes: 60
+      value_percent: 5
+    actions:
+      - type: pagerduty
+        severity: P1
+      - type: slack
+        channel: "#runmycampus-oncall"
+
+  - name: "P2 — Web 5xx burn rate (6h slow burn)"
+    description: >
+      Notify when the SLO error budget is being burned slowly but steadily over
+      6 hours (≥2% errors). Catches "death by a thousand cuts" regressions.
+    threshold:
+      type: percent_failed
+      window_minutes: 360
+      value_percent: 2
+    actions:
+      - type: slack
+        channel: "#runmycampus-oncall"
+
+  - name: "P1 — Celery task failures (any task, 15-min spike)"
+    description: >
+      Page when any Celery task throws an exception more than 10 times in 15
+      minutes. Catches stuck migrations, provisioning failures, payment retries.
+    conditions:
+      - platform: python
+        transaction: "celery.task.*"
+      - level: ">= error"
+    threshold:
+      type: count
+      window_minutes: 15
+      value_count: 10
+    actions:
+      - type: pagerduty
+        severity: P1
+
+  - name: "P2 — Browser JS errors (1h spike)"
+    description: >
+      Slack when frontend JS exceptions exceed 50 in 1 hour (any page). Often
+      the first signal of a broken release before the web tier notices.
+    conditions:
+      - platform: javascript
+        level: ">= error"
+    threshold:
+      type: count
+      window_minutes: 60
+      value_count: 50
+    actions:
+      - type: slack
+        channel: "#runmycampus-oncall"
+
+  - name: "P1 — /healthz/ failing"
+    description: >
+      Page if the synthetic healthz check fails twice consecutively (Postgres
+      or Redis unreachable). This is the canary for full-platform outages.
+    conditions:
+      - transaction: "GET /healthz/"
+      - http.status_code: ">= 500"
+    threshold:
+      type: count
+      window_minutes: 5
+      value_count: 2
+    actions:
+      - type: pagerduty
+        severity: P1
+      - type: slack
+        channel: "#runmycampus-oncall"
+
+  - name: "P3 — Provisioning failures (daily digest)"
+    description: >
+      Email digest when school provisioning emits FAILED events. Low urgency
+      because each failure is handled in-app by the operator, but should be
+      reviewed daily.
+    conditions:
+      - transaction: "*provision*"
+      - level: warning
+    threshold:
+      type: count
+      window_minutes: 1440
+      value_count: 1
+    actions:
+      - type: email
+        recipients: ["oncall@runmycampus.com"]
+
+# SLOs encoded as alert envelopes (Sentry "Metric Alert" type).
+slos:
+  - name: "Web availability"
+    target_percent: 99.5
+    window_days: 30
+    metric: "transaction.http.duration"
+    failure_condition: "status_code >= 500"
+
+  - name: "Web latency p95 < 800ms"
+    target_percent: 95
+    window_days: 30
+    metric: "transaction.http.duration"
+    failure_condition: "duration > 800"
+
+  - name: "Background job success"
+    target_percent: 99.0
+    window_days: 30
+    metric: "transaction.celery.task"
+    failure_condition: "status == failure"

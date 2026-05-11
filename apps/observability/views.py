@@ -305,16 +305,32 @@ def observability_auth_required(view_func):
     return _wrapped
 
 
+def _check_cache_liveness() -> dict:
+    """Pass 11: best-effort cache (Redis) liveness for /healthz/. Never throws."""
+    try:
+        from django.core.cache import cache
+
+        token = "healthz:cache:ping"
+        cache.set(token, "1", timeout=5)
+        return {"status": "ok" if cache.get(token) == "1" else "degraded"}
+    except Exception as exc:  # noqa: BLE001 - liveness check must never crash the probe
+        return {"status": "degraded", "error": str(exc)[:120]}
+
+
 @require_GET
 @observability_auth_required
 def healthz(request):
-    """Internal health check including DB connectivity (RBAC/API-key protected)."""
+    """Internal health check including DB + cache connectivity (RBAC/API-key protected)."""
     try:
         result = check_db_liveness()
-        status = "ok" if result.get("status") == "healthy" else "error"
-        if status != "ok":
+        db_status = "ok" if result.get("status") == "healthy" else "error"
+        if db_status != "ok":
             return JsonResponse(
-                {"status": "error", "error": result.get("error", "db check failed")},
+                {
+                    "status": "error",
+                    "database": "error",
+                    "error": result.get("error", "db check failed"),
+                },
                 status=500,
             )
     except (ValueError, TypeError, KeyError) as exc:
@@ -325,7 +341,16 @@ def healthz(request):
         )
         return JsonResponse({"status": "error", "error": str(exc)}, status=500)
 
-    return JsonResponse({"status": status})
+    # Cache (Redis) is best-effort: degraded does not fail the healthz response.
+    cache_result = _check_cache_liveness()
+
+    return JsonResponse(
+        {
+            "status": "ok",
+            "database": "ok",
+            "cache": cache_result.get("status", "unknown"),
+        }
+    )
 
 
 @require_GET

@@ -6,11 +6,18 @@ Mount under path('api/v1/', include('apps.api.urls_v1')).
 from django.urls import path
 from apps.api import views_v1, views_v1_intervention, views_v1_platform
 from apps.api.api_v1_manifest import api_v1_manifest
+from apps.api.views_webhook_catalog import WebhookEventTypesView
 
 app_name = "api_v1"
 
 urlpatterns = [
     path("manifest.json", api_v1_manifest, name="manifest"),
+    # Pass 12: public webhook event-type catalog backed by apps.events.catalog.
+    path(
+        "webhooks/event-types/",
+        WebhookEventTypesView.as_view(),
+        name="webhooks-event-types",
+    ),
     path(
         "platform/integration-context/",
         views_v1_platform.IntegrationContextView.as_view(),
