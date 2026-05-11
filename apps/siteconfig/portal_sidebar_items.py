@@ -1385,7 +1385,6 @@ def build_portal_sidebar_items(request, site):
         items = [it for it in items if _item_visible(it)]
     elif school:
         from apps.schools.models import is_feature_enabled
-from apps.accounts.models import User  # role enum
 
         items = [
             it

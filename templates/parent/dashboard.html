@@ -384,14 +384,14 @@
             <div class="col-12">
               <div class="alert alert-info d-flex align-items-center flex-wrap gap-2">
                 <i class="bi bi-info-circle me-2"></i>
-                <span>No children linked yet. Add one using your invite code from the school.</span>
-                <a href="{% url 'portal:claim_invite' %}" class="btn btn-sm btn-primary">Add a child</a>
+                <span>{% trans "No children linked yet. Add one using your invite code from the school." %}</span>
+                <a href="{% url 'portal:claim_invite' %}" class="btn btn-sm btn-primary">{% trans "Add a child" %}</a>
               </div>
             </div>
             {% endfor %}
             {% if child_cards|length > 2 %}
             <div class="col-12 text-center py-2">
-              <a href="{% url 'portal:parent_workflow' %}" class="btn btn-sm btn-outline-primary">View all children</a>
+              <a href="{% url 'portal:parent_workflow' %}" class="btn btn-sm btn-outline-primary">{% trans "View all children" %}</a>
             </div>
             {% endif %}
             {% if child_cards|length == 1 %}
@@ -401,27 +401,27 @@
                 <div class="card-body">
                   <div class="child-fill-section">
                     <h3 class="child-fill-head">
-                      <span><i class="bi bi-activity me-1"></i>At-risk follow-up</span>
+                      <span><i class="bi bi-activity me-1"></i>{% trans "At-risk follow-up" %}</span>
                       {% if focus_child.missing_work or has_fees_due or focus_child.attendance < 80 %}
-                      <span class="badge text-bg-warning">Action</span>
+                      <span class="badge text-bg-warning">{% trans "Action" %}</span>
                       {% else %}
-                      <span class="badge text-bg-success">Stable</span>
+                      <span class="badge text-bg-success">{% trans "Stable" %}</span>
                       {% endif %}
                     </h3>
                     <ul class="child-fill-list">
-                      <li><span>Attendance</span><strong>{{ focus_child.attendance|default:0 }}%</strong></li>
-                      <li><span>Missing work</span><strong>{{ focus_child.missing_work|default:0 }}</strong></li>
-                      <li><span>Fee status</span><strong>{% if can_view_finance %}{% if focus_child.finance_balance and focus_child.finance_balance > 0 %}Pending{% else %}Cleared{% endif %}{% else %}Hidden{% endif %}</strong></li>
-                      <li><span>Unread messages</span><strong>{{ unread_messages_aggregate|default:0 }}</strong></li>
+                      <li><span>{% trans "Attendance" %}</span><strong>{{ focus_child.attendance|default:0 }}%</strong></li>
+                      <li><span>{% trans "Missing work" %}</span><strong>{{ focus_child.missing_work|default:0 }}</strong></li>
+                      <li><span>{% trans "Fee status" %}</span><strong>{% if can_view_finance %}{% if focus_child.finance_balance and focus_child.finance_balance > 0 %}{% trans "Pending" %}{% else %}{% trans "Cleared" %}{% endif %}{% else %}{% trans "Hidden" %}{% endif %}</strong></li>
+                      <li><span>{% trans "Unread messages" %}</span><strong>{{ unread_messages_aggregate|default:0 }}</strong></li>
                     </ul>
                     <div class="child-fill-actions">
-                      <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_contact_school' %}">Message school</a>
-                      <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:parent_child_results' focus_child.link.student.id %}">Open results</a>
+                      <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_contact_school' %}">{% trans "Message school" %}</a>
+                      <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:parent_child_results' focus_child.link.student.id %}">{% trans "Open results" %}</a>
                     </div>
                   </div>
                   <div class="child-fill-section">
                     <h3 class="child-fill-head">
-                      <span><i class="bi bi-calendar-week me-1"></i>This week deadlines</span>
+                      <span><i class="bi bi-calendar-week me-1"></i>{% trans "This week deadlines" %}</span>
                       <span class="badge text-bg-light">{{ widget_data.events|length|default:0 }}</span>
                     </h3>
                     {% if widget_data.events %}
@@ -429,19 +429,19 @@
                       {% for item in widget_data.events|slice:":3" %}
                       <li>
                         <div>
-                          <strong>{{ item.title|default:"Upcoming item"|truncatechars:34 }}</strong>
-                          <small>{{ item.when|default:"This week" }}</small>
+                          <strong>{{ item.title|default:_("Upcoming item")|truncatechars:34 }}</strong>
+                          <small>{{ item.when|default:_("This week") }}</small>
                         </div>
                         <span class="badge rounded-pill text-bg-secondary">{{ forloop.counter }}</span>
                       </li>
                       {% endfor %}
                     </ul>
                     {% else %}
-                    <p class="small text-muted mb-0">No pending deadlines this week.</p>
+                    <p class="small text-muted mb-0">{% trans "No pending deadlines this week." %}</p>
                     {% endif %}
                     <div class="child-fill-actions">
-                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:parent_workflow' %}">Open workflow</a>
-                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:unified_calendar' %}">View calendar</a>
+                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:parent_workflow' %}">{% trans "Open workflow" %}</a>
+                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:unified_calendar' %}">{% trans "View calendar" %}</a>
                     </div>
                   </div>
                 </div>
@@ -455,8 +455,8 @@
         <!-- Homework & Upcoming -->
         <section class="metrics-section mt-0" id="next-up" role="region" aria-labelledby="next-up-heading">
           <div class="section-title d-flex flex-wrap align-items-center justify-content-between gap-2">
-            <h2 id="next-up-heading" class="h6 mb-0">Homework & Upcoming</h2>
-            <a href="{% url 'portal:unified_calendar' %}" class="btn btn-sm btn-outline-primary">See all</a>
+            <h2 id="next-up-heading" class="h6 mb-0">{% trans "Homework & Upcoming" %}</h2>
+            <a href="{% url 'portal:unified_calendar' %}" class="btn btn-sm btn-outline-primary">{% trans "See all" %}</a>
           </div>
           <div class="card border-0 shadow-sm">
             <div class="card-body py-2">
@@ -466,7 +466,7 @@
                 <li class="list-group-item d-flex align-items-center gap-2 px-0 py-2 small">
                   <i class="bi bi-circle-fill text-muted" style="font-size: 0.4rem;" aria-hidden="true"></i>
                   <span class="flex-grow-1">{{ item.title }}</span>
-                  <span class="badge bg-secondary">{% if item.when %}{{ item.when }}{% else %}Upcoming{% endif %}</span>
+                  <span class="badge bg-secondary">{% if item.when %}{{ item.when }}{% else %}{% trans "Upcoming" %}{% endif %}</span>
                 </li>
                 {% endfor %}
               </ul>
@@ -476,12 +476,12 @@
                 <li class="list-group-item d-flex align-items-center gap-2 px-0 py-2 small">
                   <i class="bi bi-circle-fill text-muted" style="font-size: 0.4rem;" aria-hidden="true"></i>
                   <span class="flex-grow-1">{{ item.title }}</span>
-                  <span class="badge bg-secondary">{{ item.when|default:"Upcoming" }}</span>
+                  <span class="badge bg-secondary">{{ item.when|default:_("Upcoming") }}</span>
                 </li>
                 {% endfor %}
               </ul>
               {% else %}
-              <p class="text-muted small mb-0">No upcoming items. <a href="{% url 'portal:unified_calendar' %}">View calendar</a></p>
+              <p class="text-muted small mb-0">{% trans "No upcoming items." %} <a href="{% url 'portal:unified_calendar' %}">{% trans "View calendar" %}</a></p>
               {% endif %}
             </div>
           </div>
@@ -490,37 +490,37 @@
       </div>
 
       <!-- Right Column - Sidebar (compressed to 3 stacked modules) -->
-      <aside class="col-lg-4 parent-sidebar-col" aria-label="Dashboard sidebar">
+      <aside class="col-lg-4 parent-sidebar-col" aria-label="{% trans 'Dashboard sidebar' %}">
         <div class="sidebar-sticky parent-sidebar-cards">
           <div class="card parent-sidebar-card mb-2" data-widget-id="parent-contact-and-messages">
             <div class="card-body">
-              <h2 class="h6 card-title mb-2"><i class="bi bi-telephone text-primary" aria-hidden="true"></i> Direct Contact</h2>
-              <p class="small text-muted mb-2">Reach the school quickly and see the latest class messages.</p>
+              <h2 class="h6 card-title mb-2"><i class="bi bi-telephone text-primary" aria-hidden="true"></i> {% trans "Direct Contact" %}</h2>
+              <p class="small text-muted mb-2">{% trans "Reach the school quickly and see the latest class messages." %}</p>
               {% if class_threads %}
               <ul class="parent-rail-list mb-2">
                 {% for thread in class_threads|slice:":2" %}
                 <li class="parent-rail-item">
                   <div>
-                    <strong>{{ thread.title|default:"Class thread"|truncatechars:34 }}</strong>
-                    <small>{{ thread.snippet|default:thread.description|default:"No new summary."|truncatechars:72 }}</small>
+                    <strong>{{ thread.title|default:_("Class thread")|truncatechars:34 }}</strong>
+                    <small>{{ thread.snippet|default:thread.description|default:_("No new summary.")|truncatechars:72 }}</small>
                   </div>
                   <span class="badge {% if thread.unread_count %}bg-primary{% else %}bg-light text-muted{% endif %} rounded-pill">{{ thread.unread_count|default:0 }}</span>
                 </li>
                 {% endfor %}
               </ul>
               {% else %}
-              <p class="text-muted small mb-2">No active class threads.</p>
+              <p class="text-muted small mb-2">{% trans "No active class threads." %}</p>
               {% endif %}
               <div class="d-grid gap-2">
-                <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-primary"><i class="bi bi-envelope me-2"></i>Message school</a>
-                <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-outline-primary">Open message center</a>
+                <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-primary"><i class="bi bi-envelope me-2"></i>{% trans "Message school" %}</a>
+                <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-outline-primary">{% trans "Open message center" %}</a>
               </div>
             </div>
           </div>
 
           <div class="card parent-sidebar-card mb-2" data-widget-id="parent-school-feed">
             <div class="card-body">
-              <h2 class="h6 card-title mb-2"><i class="bi bi-megaphone text-primary" aria-hidden="true"></i> School Feed</h2>
+              <h2 class="h6 card-title mb-2"><i class="bi bi-megaphone text-primary" aria-hidden="true"></i> {% trans "School Feed" %}</h2>
               {% if class_announcements or portal_announcements %}
               <ul class="list-unstyled mb-2 small">
                 {% for ann in class_announcements|slice:":2" %}
@@ -538,34 +538,34 @@
                 {% endfor %}
               </ul>
               {% else %}
-              <p class="text-muted small mb-2">No announcements right now.</p>
+              <p class="text-muted small mb-2">{% trans "No announcements right now." %}</p>
               {% endif %}
               <div class="parent-rail-kpis mb-2">
                 <div class="parent-rail-metric">
-                  <span>Pending signatures</span>
+                  <span>{% trans "Pending signatures" %}</span>
                   <strong>{{ signature_stats.pending|default:0 }}</strong>
                 </div>
                 <div class="parent-rail-metric">
-                  <span>Signed</span>
+                  <span>{% trans "Signed" %}</span>
                   <strong>{{ signature_stats.signed|default:0 }}</strong>
                 </div>
               </div>
               <div class="d-grid gap-2">
-                <a href="{% url 'portal:signature_pending_list' %}" class="btn btn-sm btn-outline-primary">Review signatures</a>
-                <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-outline-primary">See all announcements</a>
+                <a href="{% url 'portal:signature_pending_list' %}" class="btn btn-sm btn-outline-primary">{% trans "Review signatures" %}</a>
+                <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-outline-primary">{% trans "See all announcements" %}</a>
               </div>
             </div>
           </div>
 
           <div class="card parent-sidebar-card mb-2" data-widget-id="parent-finance-docs">
             <div class="card-body">
-              <h2 class="h6 card-title mb-2"><i class="bi bi-wallet2 text-primary" aria-hidden="true"></i> Finance & Documents</h2>
+              <h2 class="h6 card-title mb-2"><i class="bi bi-wallet2 text-primary" aria-hidden="true"></i> {% trans "Finance & Documents" %}</h2>
               {% if recent_payments %}
               <ul class="parent-rail-list mb-2">
                 {% for payment in recent_payments|slice:":2" %}
                 <li class="parent-rail-item">
                   <div>
-                    <strong>{{ payment.invoice.student.get_full_name|default:"Student" }}</strong>
+                    <strong>{{ payment.invoice.student.get_full_name|default:_("Student") }}</strong>
                     <small>{{ payment.paid_at|date:"M j, Y" }}</small>
                   </div>
                   <span class="badge bg-success-subtle text-success-emphasis border">${{ payment.amount|default:"0.00" }}</span>
@@ -573,11 +573,11 @@
                 {% endfor %}
               </ul>
               {% else %}
-              <p class="text-muted small mb-2">No recent payments recorded.</p>
+              <p class="text-muted small mb-2">{% trans "No recent payments recorded." %}</p>
               {% endif %}
               <div class="d-grid gap-2">
-                <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary">Payment history</a>
-                <a href="{% url 'portal:parent_workflow' %}" class="btn btn-sm btn-outline-primary">Document library</a>
+                <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary">{% trans "Payment history" %}</a>
+                <a href="{% url 'portal:parent_workflow' %}" class="btn btn-sm btn-outline-primary">{% trans "Document library" %}</a>
               </div>
             </div>
           </div>

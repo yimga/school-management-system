@@ -20,6 +20,7 @@ from django.db import DatabaseError, IntegrityError
 from apps.api.permissions import IsAdminUser
 from apps.accounts.permissions import api_user_has_any_role
 from apps.platform_runtime.structured_logging import log_exception_with_context
+User = get_user_model()  # role enum (was function-local)
 
 
 def _school_user_queryset(school):
@@ -656,7 +657,6 @@ class CommunicationAnalyticsAPI(APIView):
     def get(self, request):
         """Get communication analytics"""
         from apps.communication.models import Message, Announcement
-from apps.accounts.models import User  # role enum
 
         school, error = _tenant_school_or_response(request)
         if error is not None:

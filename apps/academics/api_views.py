@@ -16,6 +16,7 @@ from rest_framework.views import APIView
 
 from apps.api.serializers import AttendanceSerializer
 from apps.accounts.permissions import can_view_student_data, can_edit_student_grades
+from apps.accounts.models import User
 
 
 class AttendanceViewSet(viewsets.ModelViewSet):
@@ -857,7 +858,6 @@ class ScheduleConflictsAPI(APIView):
 
     def get(self, request, schedule_id):
         from apps.academics.scheduling import Schedule, TimetableGenerator
-from apps.accounts.models import User  # role enum
 
         school = getattr(request, "school", None)
         if not school:

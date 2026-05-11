@@ -15,6 +15,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_GET, require_http_methods
 
+from apps.accounts.models import User
 from apps.accounts.utils import get_user_role
 from apps.compliance.models import AuditLog
 from django.core.cache import cache
@@ -510,7 +511,6 @@ def ai_copilot_config(request):
             break
     try:
         from apps.platform_runtime.helpers import log_ai_action
-from apps.accounts.models import User  # role enum
 
         school = getattr(request, "school", None)
         log_ai_action(

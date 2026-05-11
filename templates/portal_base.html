@@ -11,7 +11,7 @@
     <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
     <script src="{% static 'js/kb-route-signature.js' %}"></script>
-    <title>{% block title %}{{ rmc_shell.portal_default_document_title|default:"Portal" }}{% endblock %}</title>
+    <title>{% block title %}{{ rmc_shell.portal_default_document_title|default:_("Portal") }}{% endblock %}</title>
     <link rel="icon" href="{% if SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
     {# Wave 6 web: installable surface + home-screen hint (native store apps = external). #}
     {% if "/portal/" in request.path %}<link rel="manifest" href="{% static 'manifest-portal.json' %}"><meta name="theme-color" content="{{ SITE.primary_color|default:'#4f46e5' }}"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">{% endif %}
@@ -115,9 +115,9 @@
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     <div class="htmx-progress-bar" aria-hidden="true"></div>
     {% include "partials/shell_chrome_site_preview_banner_top.html" %}
-    <nav id="portalHeader" class="navbar navbar-expand-lg navbar-dark topbar topbar-sticky statement-header" role="navigation" aria-label="Main navigation" data-rmc-shell-header="portal">
+    <nav id="portalHeader" class="navbar navbar-expand-lg navbar-dark topbar topbar-sticky statement-header" role="navigation" aria-label="{% trans 'Main navigation' %}" data-rmc-shell-header="portal">
       <div class="container-fluid px-3" id="preview-header-bar" data-preview-label="{% trans 'Header bar (background & colors)' %}">
-        <button class="btn btn-sm btn-outline-light d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#portalSidebar" aria-controls="portalSidebar" aria-label="Open sidebar menu">
+        <button class="btn btn-sm btn-outline-light d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#portalSidebar" aria-controls="portalSidebar" aria-label="{% trans 'Open sidebar menu' %}">
           <i class="bi bi-list" aria-hidden="true"></i>
         </button>
 
@@ -148,31 +148,31 @@
         {% endif %}
         <div id="preview-header-brand" class="d-inline-flex align-items-center" data-preview-label="{% trans 'Logo & site name' %}">
         {% if request.user.role == 'ADMIN' or request.user.is_staff %}
-          <a class="navbar-brand d-flex align-items-center gap-2" href="{{ backend_url }}" title="Back to your home dashboard">
+          <a class="navbar-brand d-flex align-items-center gap-2" href="{{ backend_url }}" title="{% trans 'Back to your home dashboard' %}">
           {% if SITE_LOGO_URL %}
-            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="{% trans 'Logo' %}" width="34" height="34" fetchpriority="high" decoding="async">
           {% else %}
-            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="{% trans 'Logo' %}" width="34" height="34" fetchpriority="high" decoding="async">
           {% endif %}
-          <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
+          <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}{% trans "School System" %}{% endif %}</span>
         </a>
         {% elif request.user.role == 'TEACHER' %}
-          <a class="navbar-brand d-flex align-items-center gap-2" href="{{ teacher_url }}" title="Back to your home dashboard">
+          <a class="navbar-brand d-flex align-items-center gap-2" href="{{ teacher_url }}" title="{% trans 'Back to your home dashboard' %}">
           {% if SITE_LOGO_URL %}
-            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="{% trans 'Logo' %}" width="34" height="34" fetchpriority="high" decoding="async">
           {% else %}
-            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="{% trans 'Logo' %}" width="34" height="34" fetchpriority="high" decoding="async">
           {% endif %}
-          <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
+          <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}{% trans "School System" %}{% endif %}</span>
         </a>
         {% elif request.user.role == 'PARENT' %}
-          <a class="navbar-brand d-flex align-items-center gap-2" href="{{ parent_url }}" title="Back to your home dashboard">
+          <a class="navbar-brand d-flex align-items-center gap-2" href="{{ parent_url }}" title="{% trans 'Back to your home dashboard' %}">
           {% if SITE_LOGO_URL %}
-            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="{% trans 'Logo' %}" width="34" height="34" fetchpriority="high" decoding="async">
           {% else %}
-            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="{% trans 'Logo' %}" width="34" height="34" fetchpriority="high" decoding="async">
           {% endif %}
-          <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
+          <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}{% trans "School System" %}{% endif %}</span>
         </a>
         {% endif %}
         </div>
@@ -232,7 +232,7 @@
               {% include "partials/language_switcher.html" %}
               {% endif %}
               {% if request.user.is_authenticated %}
-              <a class="btn btn-link text-white p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_messages' %}" title="Messages" aria-label="Open Messages">
+              <a class="btn btn-link text-white p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_messages' %}" title="{% trans 'Messages' %}" aria-label="{% trans 'Open Messages' %}">
                 <i class="bi bi-chat-dots-fill"></i>
                 {% if messages_unread_count %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger topbar-icon-badge">{{ messages_unread_count }}</span>
@@ -240,7 +240,7 @@
               </a>
               {% endif %}
               {% if SHOW_HEADER_NOTIFICATIONS %}
-              <a class="btn btn-link text-white p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_notifications' %}" title="Notifications" aria-label="View notifications">
+              <a class="btn btn-link text-white p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_notifications' %}" title="{% trans 'Notifications' %}" aria-label="{% trans 'View notifications' %}">
                 <i class="bi bi-bell"></i>
                 {% if NOTIFICATIONS_UNREAD_COUNT %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger topbar-icon-badge">{{ NOTIFICATIONS_UNREAD_COUNT }}</span>
@@ -249,12 +249,12 @@
               {% endif %}
               <a class="btn btn-link text-white p-0 topbar-icon-btn" href="{{ help_center_url }}" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
               {% if SHOW_HEADER_THEME_TOGGLE %}
-              <button 
+              <button
                 type="button"
-                class="btn btn-link text-white p-0 topbar-icon-btn" 
-                id="themeToggle" 
-                title="Toggle Dark/Light Theme"
-                aria-label="Toggle Dark/Light Theme"
+                class="btn btn-link text-white p-0 topbar-icon-btn"
+                id="themeToggle"
+                title="{% trans 'Toggle Dark/Light Theme' %}"
+                aria-label="{% trans 'Toggle Dark/Light Theme' %}"
               >
                 <i class="bi bi-moon-stars" aria-hidden="true"></i>
               </button>
@@ -262,14 +262,14 @@
 
               {% if SHOW_HEADER_PROFILE_MENU %}
               <div class="dropdown">
-                <button 
-                  class="btn btn-link text-white p-0 dropdown-toggle topbar-icon-btn" 
-                  type="button" 
-                  id="adminMenuDropdown" 
-                  data-bs-toggle="dropdown" 
+                <button
+                  class="btn btn-link text-white p-0 dropdown-toggle topbar-icon-btn"
+                  type="button"
+                  id="adminMenuDropdown"
+                  data-bs-toggle="dropdown"
                   aria-expanded="false"
-                  title="Admin Menu"
-                  aria-label="Admin menu"
+                  title="{% trans 'Admin Menu' %}"
+                  aria-label="{% trans 'Admin menu' %}"
                 >
                   <i class="bi bi-gear" aria-hidden="true"></i>
                 </button>
@@ -281,12 +281,12 @@
               <span class="small opacity-75 d-none d-md-inline topbar-username">{{ request.user.username }}</span>
               <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1" href="{% url 'accounts:logout' %}">
                 <i class="bi bi-box-arrow-right"></i>
-                <span class="d-none d-sm-inline">Logout</span>
+                <span class="d-none d-sm-inline">{% trans "Logout" %}</span>
               </a>
               {% endif %}
             </div>
           {% else %}
-            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">Login</a>
+            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
           {% endif %}
         </div>
       </div>
@@ -300,13 +300,13 @@
           </div>
         </div>
         <!-- Resize handle (desktop only; hidden when sidebar collapsed) -->
-        <div class="portal-resize-handle d-none d-lg-flex" aria-label="Resize sidebar" role="separator" title="Drag to resize sidebar"></div>
+        <div class="portal-resize-handle d-none d-lg-flex" aria-label="{% trans 'Resize sidebar' %}" role="separator" title="{% trans 'Drag to resize sidebar' %}"></div>
 
         <!-- Sidebar (mobile) -->
         <div class="offcanvas offcanvas-start" tabindex="-1" id="portalSidebar" aria-labelledby="portalSidebarLabel" data-shell-sidebar="portal" data-shell-sidebar-mount="offcanvas">
           <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="portalSidebarLabel">Menu</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            <h5 class="offcanvas-title" id="portalSidebarLabel">{% trans "Menu" %}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="{% trans 'Close' %}"></button>
           </div>
           <div class="offcanvas-body">
           {% include "partials/portal_sidebar.html" %}
@@ -357,7 +357,7 @@
               <div class="mb-3">
                 <div class="section-title">
                   <i class="bi bi-graph-up-arrow"></i>
-                  <span>Dashboard Stats</span>
+                  <span>{% trans "Dashboard Stats" %}</span>
                 </div>
                 <div class="row g-2">
                   {% for stat in dashboard_stats_cards %}
@@ -720,7 +720,7 @@
 
     {# Messages chathead: staff/teacher only (RBAC); parents use Contact School #}
     {% if request.user.is_authenticated and request.user.role != 'PARENT' %}
-    <a href="{% url 'accounts:user_messages' %}" class="portal-chathead" aria-label="Open Messages" title="Messages">
+    <a href="{% url 'accounts:user_messages' %}" class="portal-chathead" aria-label="{% trans 'Open Messages' %}" title="{% trans 'Messages' %}">
       <i class="bi bi-chat-dots-fill"></i>
       {% if messages_unread_count %}<span class="portal-chathead-badge">{{ messages_unread_count }}</span>{% endif %}
     </a>

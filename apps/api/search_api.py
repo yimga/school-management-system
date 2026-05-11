@@ -16,6 +16,7 @@ from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from django.views.decorators.http import require_http_methods
 from django.urls import reverse, NoReverseMatch
 import logging
+from apps.accounts.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -469,7 +470,6 @@ class SearchSuggestionsAPI(View):
     def get(self, request):
         from django.core.cache import cache
         from apps.siteconfig.cache_utils import tenant_cache_key
-from apps.accounts.models import User  # role enum
 
         key = tenant_cache_key(f"search_history_{request.user.id}", request)
         history = cache.get(key, [])
