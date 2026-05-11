@@ -243,6 +243,11 @@ MIDDLEWARE = [
     # Pass 12: CORS middleware must precede SessionMiddleware + CommonMiddleware per
     # django-cors-headers docs so preflight OPTIONS responses include the right headers.
     "corsheaders.middleware.CorsMiddleware",
+    # Pass 12.B: global Idempotency-Key dedupe for /api/v1/ writes; opt-in via
+    # the Idempotency-Key header (Stripe / GitHub / Twilio semantics). Placed
+    # after CORS so preflights aren't impacted, before everything that could
+    # mutate the response.
+    "apps.api.middleware_idempotency.IdempotencyKeyMiddleware",
     "config.middleware.BlockScannerPathsMiddleware",  # 404 for .git, terraform, wp-config, etc.
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "apps.accounts.middleware.ManagerCookieIsolationMiddleware",  # Manager host gets separate session/csrf cookie names
