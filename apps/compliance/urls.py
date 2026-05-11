@@ -14,12 +14,25 @@ from apps.compliance.views import (
 )
 from apps.compliance.views_api import mute_threats
 from apps.compliance.views_gdpr import data_portability_export, erasure_request_view
+from apps.compliance.views_queue import (
+    approve_erase,
+    complete_erase,
+    complete_export,
+    data_rights_queue,
+    reject_erase,
+)
 
 app_name = "compliance"
 
 urlpatterns = [
     # Dashboard view
     path("dashboard/", ComplianceDashboardView.as_view(), name="dashboard"),
+    # Pass 9.C: operator-facing GDPR/FERPA queue with SLA tracking.
+    path("data-rights/queue/", data_rights_queue, name="data_rights_queue"),
+    path("data-rights/erase/<int:pk>/approve/", approve_erase, name="erase_approve"),
+    path("data-rights/erase/<int:pk>/reject/", reject_erase, name="erase_reject"),
+    path("data-rights/erase/<int:pk>/complete/", complete_erase, name="erase_complete"),
+    path("data-rights/export/<int:pk>/complete/", complete_export, name="export_complete"),
     # API endpoints
     path("api/overview/", ComplianceOverviewAPI.as_view(), name="api_overview"),
     path(

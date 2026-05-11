@@ -530,6 +530,11 @@ class ExportJob(models.Model):
     file_path = models.CharField(max_length=512, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    # Pass 9.C: SLA tracking. GDPR Art. 12(3) sets one month; SOC 2 audits sample
+    # against per-tenant due_at. breach_at is auto-populated when due_at passes
+    # without completion (see compliance.tasks.mark_sla_breaches).
+    due_at = models.DateTimeField(null=True, blank=True)
+    sla_breach_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -570,6 +575,9 @@ class EraseRequest(models.Model):
     reason = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    # Pass 9.C: SLA tracking. See ExportJob.due_at / sla_breach_at.
+    due_at = models.DateTimeField(null=True, blank=True)
+    sla_breach_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
