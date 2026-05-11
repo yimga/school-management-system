@@ -7,6 +7,7 @@ import csv
 import io
 import json
 
+from django.conf import settings
 from django.db import DatabaseError
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
@@ -18,6 +19,90 @@ from django.views.decorators.http import require_http_methods
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import User
 from apps.marketplace.ecosystem_links import build_phase9_ecosystem_links
+
+
+# Pass 8: tunable upload row cap. Default 10000 instead of the previous hardcoded
+# 500. Schools doing real PowerSchool/Veracross migrations routinely have 2k-8k
+# student rows; the old cap silently truncated them.
+def _import_max_rows() -> int:
+    try:
+        value = int(getattr(settings, "IMPORT_MAX_ROWS", 10000))
+    except (TypeError, ValueError):
+        value = 10000
+    return max(100, min(value, 100000))
+
+
+# Pass 8: parse CSV or XLSX from the uploaded file. Branches on filename
+# extension (and trusts a `.xls` magic-bytes hint for old binary files).
+# openpyxl is already in requirements.txt; xlrd is not, so .xls falls back to
+# a clear error rather than a silent failure.
+def _read_uploaded_table(file_obj) -> tuple[list[str], list[dict], str]:
+    """
+    Return (headers, rows, fmt) where fmt is one of {"csv", "xlsx"}.
+    Raises ValueError with a user-readable message on parse failure.
+    """
+    name = (getattr(file_obj, "name", "") or "").strip().lower()
+    if name.endswith(".xlsx") or name.endswith(".xlsm"):
+        try:
+            from openpyxl import load_workbook
+        except ImportError as exc:
+            raise ValueError(
+                "XLSX support requires openpyxl. Save the file as CSV (UTF-8) and re-upload."
+            ) from exc
+        try:
+            file_obj.seek(0)
+            wb = load_workbook(file_obj, read_only=True, data_only=True)
+            ws = wb.active
+            rows_iter = ws.iter_rows(values_only=True)
+            try:
+                header_row = next(rows_iter)
+            except StopIteration:
+                return [], [], "xlsx"
+            headers = [str(c).strip() if c is not None else "" for c in header_row]
+            max_rows = _import_max_rows()
+            rows: list[dict] = []
+            for row in rows_iter:
+                if len(rows) >= max_rows:
+                    break
+                if row is None:
+                    continue
+                if not any(cell not in (None, "") for cell in row):
+                    continue
+                record = {}
+                for idx, cell in enumerate(row):
+                    if idx >= len(headers):
+                        break
+                    key = headers[idx]
+                    if not key:
+                        continue
+                    record[key] = "" if cell is None else str(cell)
+                rows.append(record)
+            return headers, rows, "xlsx"
+        except (ValueError, TypeError, KeyError, OSError) as exc:
+            raise ValueError(f"Could not read the XLSX file. Details: {exc}") from exc
+    if name.endswith(".xls"):
+        raise ValueError(
+            "Legacy .xls (Excel 97-2003) is not supported. Save the file as .xlsx or .csv and re-upload."
+        )
+    # Default: CSV
+    try:
+        content = file_obj.read().decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise ValueError(
+            "Could not decode the CSV file. Use UTF-8 encoding and re-upload."
+        ) from exc
+    try:
+        reader = csv.DictReader(io.StringIO(content))
+        headers = list(reader.fieldnames or [])
+        max_rows = _import_max_rows()
+        rows = []
+        for row in reader:
+            if len(rows) >= max_rows:
+                break
+            rows.append(row)
+        return headers, rows, "csv"
+    except (csv.Error, TypeError, KeyError, ValueError) as exc:
+        raise ValueError(f"Could not read the CSV file. Details: {exc}") from exc
 
 
 def _is_admin_user(user):
@@ -60,6 +145,86 @@ MIGRATION_TYPES = {
             "remarks",
         ],
         "required": ["student_code", "subject_assignment_id", "term_id"],
+    },
+    # Pass 8: new import types unlocking competitor SIS migration.
+    "teachers": {
+        "label": "Teachers",
+        "target_fields": [
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "phone",
+            "subject_specialty",
+            "employment_status",
+        ],
+        "required": ["email", "first_name", "last_name"],
+    },
+    "guardians": {
+        "label": "Parents / Guardians",
+        "target_fields": [
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "phone",
+            "relationship",
+            "student_codes",
+        ],
+        "required": ["email", "first_name", "last_name", "student_codes"],
+    },
+    "roster": {
+        "label": "Roster (classrooms + subjects + assignments)",
+        "target_fields": [
+            "classroom_name",
+            "subject_code",
+            "subject_name",
+            "term_name",
+            "teacher_username",
+            "academic_year",
+        ],
+        "required": ["classroom_name", "subject_code"],
+    },
+    "attendance": {
+        "label": "Attendance",
+        "target_fields": [
+            "student_code",
+            "date",
+            "status",
+            "session",
+            "remarks",
+            "recorded_by_username",
+        ],
+        "required": ["student_code", "date", "status"],
+    },
+    "fees": {
+        "label": "Fees / invoices",
+        "target_fields": [
+            "invoice_number",
+            "student_code",
+            "amount",
+            "currency",
+            "due_date",
+            "status",
+            "fee_type",
+            "academic_year",
+            "term_name",
+        ],
+        "required": ["student_code", "amount"],
+    },
+    "payments": {
+        "label": "Payments",
+        "target_fields": [
+            "payment_reference",
+            "student_code",
+            "amount",
+            "currency",
+            "paid_at",
+            "method",
+            "invoice_number",
+            "notes",
+        ],
+        "required": ["student_code", "amount", "paid_at"],
     },
 }
 
@@ -107,7 +272,13 @@ def migration_wizard(request):
                     slug=profile_slug, is_active=True
                 ).first()
                 if profile:
-                    migration_type = profile.domain
+                    # Pass 8: a profile.config may override profile.domain when the
+                    # wizard's migration_type doesn't map 1:1 (e.g. roster, teachers,
+                    # guardians don't have first-class Domain enum entries yet).
+                    config = profile.config if isinstance(profile.config, dict) else {}
+                    migration_type = (
+                        (config.get("migration_type") or "").strip() or profile.domain
+                    )
                 else:
                     migration_type = request.POST.get("migration_type") or "students"
                     profile_slug = None
@@ -119,25 +290,12 @@ def migration_wizard(request):
                 return redirect("accounts:migration_wizard")
             file_obj = request.FILES.get("file")
             if not file_obj:
-                messages.error(request, "Please upload a CSV file.")
+                messages.error(request, "Please upload a CSV or XLSX file.")
                 return redirect("accounts:migration_wizard")
             try:
-                content = file_obj.read().decode("utf-8-sig")
-                reader = csv.DictReader(io.StringIO(content))
-                headers = list(reader.fieldnames or [])
-                rows = list(reader)[:500]
-            except (
-                UnicodeDecodeError,
-                csv.Error,
-                TypeError,
-                ValueError,
-                KeyError,
-                OSError,
-            ) as e:
-                messages.error(
-                    request,
-                    f"Could not read the CSV file. Use UTF-8 encoding and check the file is not corrupted. Details: {e}",
-                )
+                headers, rows, source_fmt = _read_uploaded_table(file_obj)
+            except ValueError as e:
+                messages.error(request, str(e))
                 return redirect("accounts:migration_wizard")
             from apps.accounts.migration_services import detect_source_system_from_headers
 
@@ -158,6 +316,36 @@ def migration_wizard(request):
                         "You can change this in step 1 if it is wrong."
                     ),
                 )
+
+            # Pass 8: one-click vendor auto-detect — when the schema_fingerprint
+            # match is ≥0.8 confidence, snap the wizard to that profile so the
+            # user lands on the preview/mapping screen with everything filled in.
+            auto_applied_profile = None
+            if not profile_slug:
+                try:
+                    from apps.automation.schema_fingerprint import suggest_profiles_from_headers
+
+                    suggestions = suggest_profiles_from_headers(
+                        headers,
+                        domain=migration_type if migration_type in (
+                            "students", "grades", "attendance", "fees", "finance"
+                        ) else None,
+                        min_confidence=0.8,
+                    )
+                    if suggestions:
+                        top_profile, top_confidence = suggestions[0]
+                        profile_slug = top_profile.slug
+                        auto_applied_profile = (top_profile.name, top_confidence)
+                        messages.success(
+                            request,
+                            (
+                                f"Auto-applied vendor profile '{top_profile.name}' "
+                                f"({top_confidence:.0%} confidence). You can change it in step 1."
+                            ),
+                        )
+                except (TypeError, ValueError, AttributeError, DatabaseError, ImportError):
+                    pass
+
             request.session[session_key] = {
                 "source_system": chosen_source,
                 "migration_type": migration_type,
@@ -165,7 +353,9 @@ def migration_wizard(request):
                 "headers": headers,
                 "rows": rows,
                 "row_count": len(rows),
+                "source_format": source_fmt,
                 "header_source_detection": detection,
+                "auto_applied_profile": auto_applied_profile,
             }
             return redirect("accounts:migration_wizard")
 
@@ -338,6 +528,64 @@ def migration_wizard(request):
                         result["errors"] = [str(e)]
                         run_migration_finish(run, result)
                         messages.error(request, f"Grade import failed. Details: {e}")
+            elif migration_type in (
+                "teachers",
+                "guardians",
+                "roster",
+                "attendance",
+                "fees",
+                "payments",
+            ):
+                # Pass 8: dispatch to the new importer module.
+                try:
+                    from apps.accounts.migration_importers import run_importer
+
+                    importer_result = run_importer(
+                        migration_type, school, transformed, actor=request.user
+                    )
+                    result["created"] = importer_result.get("created", 0)
+                    result["updated"] = importer_result.get("updated", 0)
+                    result["error_count"] = importer_result.get("error_count", 0)
+                    result["errors"] = importer_result.get("errors", [])
+                    result["rollback_snapshot"] = importer_result.get(
+                        "rollback_snapshot", {}
+                    )
+                    skipped = importer_result.get("skipped", 0)
+                    run_migration_finish(run, result)
+                    if result["error_count"] == 0 and skipped == 0:
+                        messages.success(
+                            request,
+                            f"{MIGRATION_TYPES[migration_type]['label']}: "
+                            f"created {result['created']}, updated {result['updated']}.",
+                        )
+                    elif result["created"] or result["updated"]:
+                        messages.warning(
+                            request,
+                            f"{MIGRATION_TYPES[migration_type]['label']}: "
+                            f"created {result['created']}, updated {result['updated']}, "
+                            f"errors {result['error_count']}, skipped {skipped}.",
+                        )
+                    else:
+                        messages.error(
+                            request,
+                            f"{MIGRATION_TYPES[migration_type]['label']} import did not "
+                            f"persist any rows (errors {result['error_count']}, skipped {skipped}).",
+                        )
+                except (
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    ImportError,
+                    AttributeError,
+                    RuntimeError,
+                    DatabaseError,
+                ) as e:
+                    result["error_count"] = len(transformed)
+                    result["errors"] = [str(e)]
+                    run_migration_finish(run, result)
+                    messages.error(
+                        request, f"{migration_type} import failed. Details: {e}"
+                    )
             else:
                 run_migration_finish(run, result)
             request.session.pop(session_key, None)
@@ -350,11 +598,11 @@ def migration_wizard(request):
     from apps.automation.models import MigrationProfile
 
     source_system = wizard_data.get("source_system") or "other"
+    # Pass 8: surface all generic + vendor profiles, not just students/grades.
     if source_system == "other":
         profiles = list(
             MigrationProfile.objects.filter(
                 is_active=True,
-                slug__in=("students", "grades"),
                 source_system__isnull=True,
             ).order_by("sort_order", "slug")
         )
@@ -367,8 +615,8 @@ def migration_wizard(request):
     if not profiles:
         profiles = list(
             MigrationProfile.objects.filter(
-                is_active=True, slug__in=("students", "grades")
-            ).order_by("sort_order")[:2]
+                is_active=True,
+            ).order_by("sort_order", "slug")[:12]
         )
     profile_choices = [(p.slug, p.name) for p in profiles]
     has_data = bool(wizard_data.get("rows"))
