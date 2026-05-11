@@ -242,6 +242,11 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     # Pass 12: CORS middleware must precede SessionMiddleware + CommonMiddleware per
     # django-cors-headers docs so preflight OPTIONS responses include the right headers.
+    # Pass 12.C: TenantCorsAllowlistMiddleware merges per-tenant origins from
+    # `school.settings["cors_allowed_origins"]` BEFORE the upstream CorsMiddleware
+    # consumes the allowlist, so marketplace integrators can be added without a
+    # redeploy.
+    "apps.api.middleware_tenant_cors.TenantCorsAllowlistMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     # Pass 12.B: global Idempotency-Key dedupe for /api/v1/ writes; opt-in via
     # the Idempotency-Key header (Stripe / GitHub / Twilio semantics). Placed
