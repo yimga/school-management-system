@@ -19,44 +19,27 @@
       {% endif %}
       <div class="card shadow-sm">
         <div class="card-body">
+          {# Pass 8 Wave 3: migrated to components/form_field. Custom 3-button footer
+             (Cancel + Save draft + Submit) kept inline since form_actions only handles
+             1 primary + 1 secondary — Save draft is conditionally rendered. #}
           <form method="post" novalidate id="backend-applicant-create-form">
             {% csrf_token %}
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label for="{{ form.first_name.id_for_label }}" class="form-label">{% trans "First name" %} <span class="text-danger">*</span></label>
-                {{ form.first_name }}
-                {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
-              </div>
-              <div class="col-md-6">
-                <label for="{{ form.last_name.id_for_label }}" class="form-label">{% trans "Last name" %} <span class="text-danger">*</span></label>
-                {{ form.last_name }}
-                {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
-              </div>
-              <div class="col-md-6">
-                <label for="{{ form.email.id_for_label }}" class="form-label">{% trans "Email" %} <span class="text-danger">*</span></label>
-                {{ form.email }}
-                {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
-              </div>
-              <div class="col-md-6">
-                <label for="{{ form.lead_source.id_for_label }}" class="form-label">{% trans "Lead source" %}</label>
-                {{ form.lead_source }}
-                {% if form.lead_source.errors %}<div class="text-danger small">{{ form.lead_source.errors }}</div>{% endif %}
-              </div>
-              <div class="col-md-6">
-                <label for="{{ form.stage.id_for_label }}" class="form-label">{% trans "Stage" %}</label>
-                {{ form.stage }}
-                {% if form.stage.errors %}<div class="text-danger small">{{ form.stage.errors }}</div>{% endif %}
-              </div>
+            <div class="row">
+              <div class="col-md-6">{% include "components/form_field.html" with field=form.first_name %}</div>
+              <div class="col-md-6">{% include "components/form_field.html" with field=form.last_name %}</div>
+              <div class="col-md-6">{% include "components/form_field.html" with field=form.email %}</div>
+              <div class="col-md-6">{% include "components/form_field.html" with field=form.lead_source %}</div>
+              <div class="col-md-6">{% include "components/form_field.html" with field=form.stage %}</div>
             </div>
-            <div class="d-flex justify-content-end gap-2 mt-4">
-              <a href="{% url 'accounts:backend_applicant_list' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+            <div class="form-actions d-flex flex-wrap align-items-center mt-4 gap-2 justify-content-end">
+              <a href="{% url 'accounts:backend_applicant_list' %}" class="btn btn-outline-secondary ds-btn">{% trans "Cancel" %}</a>
               {% if form_draft_url %}
-              <button type="button" class="btn btn-outline-secondary" id="form-draft-save" data-form-draft-url="{{ form_draft_url }}">
-                <i class="bi bi-cloud-arrow-up me-2"></i>{% trans "Save draft" %}
+              <button type="button" class="btn btn-outline-secondary ds-btn" id="form-draft-save" data-form-draft-url="{{ form_draft_url }}">
+                <i class="bi bi-cloud-arrow-up me-2" aria-hidden="true"></i>{% trans "Save draft" %}
               </button>
               {% endif %}
-              <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-circle me-2"></i>{% trans "Add applicant" %}
+              <button type="submit" class="btn btn-primary ds-btn">
+                <i class="bi bi-check-circle me-2" aria-hidden="true"></i>{% trans "Add applicant" %}
               </button>
             </div>
           </form>

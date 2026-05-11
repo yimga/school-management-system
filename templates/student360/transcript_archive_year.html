@@ -18,7 +18,7 @@
 
   <div class="card">
     <div class="card-body">
-      <table class="table table-sm" aria-label="{% trans 'Transcript snapshot summary' %}">
+      <table class="table table-sm table-family align-middle" aria-label="{% trans 'Transcript snapshot summary' %}">
         <tbody>
           <tr><th scope="row" class="text-muted" style="width:12rem;">{% trans "Student" %}</th><td>{{ snapshot.student_name|default:student.get_full_name }}</td></tr>
           <tr><th scope="row" class="text-muted">{% trans "Academic year" %}</th><td>{{ snapshot.academic_year_name|default:transcript.academic_year.name }}</td></tr>

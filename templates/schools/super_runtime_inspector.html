@@ -241,7 +241,7 @@
       {% if inspection.feature_toggles %}
       <p class="small text-secondary mb-2">{% trans "Active overrides with owner/expiry/source/scope from capability registry. Source: school = tenant override, global = platform override." %}</p>
       <div class="table-responsive">
-        <table class="table table-sm mb-0">
+        <table class="table table-sm mb-0 table-family align-middle">
           <thead><tr><th>{% trans "Key" %}</th><th>{% trans "On" %}</th><th>{% trans "Source" %}</th><th>{% trans "Expires" %}</th><th>{% trans "Owner" %}</th><th>{% trans "Def. source" %}</th><th>{% trans "Scope" %}</th></tr></thead>
           <tbody>
             {% for t in inspection.feature_toggles %}

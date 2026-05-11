@@ -34,7 +34,7 @@
   <div class="card border-0 shadow-sm mb-4">
     <div class="card-header">{% trans "By month" %}</div>
     <div class="card-body p-0 table-responsive">
-      <table class="table table-sm mb-0">
+      <table class="table table-sm mb-0 table-family align-middle">
         <thead><tr><th>{% trans "Month" %}</th><th>{% trans "Avg score" %}</th><th>{% trans "Count" %}</th></tr></thead>
         <tbody>
           {% for row in by_month %}
@@ -53,7 +53,7 @@
   <div class="card border-0 shadow-sm">
     <div class="card-header">{% trans "Recent responses" %}</div>
     <div class="card-body p-0 table-responsive">
-      <table class="table table-sm mb-0">
+      <table class="table table-sm mb-0 table-family align-middle">
         <thead><tr><th>{% trans "Submitted" %}</th><th>{% trans "School" %}</th><th>{% trans "Score" %}</th><th>{% trans "Subject" %}</th></tr></thead>
         <tbody>
           {% for t in recent %}

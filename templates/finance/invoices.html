@@ -102,7 +102,7 @@
     </div>
     <div class="table-responsive" data-table-density-key="finance_invoices">
       {% if invoices %}
-      <table class="table table-sm align-middle table-sticky-head table-zebra" aria-label="Invoices list: reference, type, status, due date, student, total, balance, and actions">
+      <table class="table table-sm align-middle table-sticky-head table-zebra table-family" aria-label="Invoices list: reference, type, status, due date, student, total, balance, and actions">
         <thead class="table-light">
           <tr>
             <th scope="col">Reference</th>
@@ -204,7 +204,7 @@
          on confirm, so each row sends its own student_id. #}
       {% include "components/confirm_modal.html" with modal_id="grantAccessConfirm" icon="bi-people" title=_("Grant finance access to this student's guardians?") body=_("All guardians linked to the student will be granted access to invoices and payment history. They will be notified by email when finance notifications are enabled.") confirm_label=_("Grant access") confirm_class="btn-primary" %}
       {% elif finance_access_required and not finance_access_granted %}
-      <table class="table table-sm align-middle" aria-label="Invoices list (no results)">
+      <table class="table table-sm align-middle table-family" aria-label="Invoices list (no results)">
         <thead class="table-light">
           <tr>
             <th scope="col">Reference</th>

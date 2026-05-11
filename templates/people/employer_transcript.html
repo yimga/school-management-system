@@ -15,7 +15,7 @@
       <p class="mb-2"><strong>{% trans "Annual average" %}:</strong> {{ context.annual_average|floatformat:2|default:"—" }}</p>
       <p class="mb-2"><strong>{% trans "Promotion status" %}:</strong> {{ context.promotion_status|default:"—" }}</p>
       {% if context.term_rows %}
-      <table class="table table-sm">
+      <table class="table table-sm table-family align-middle">
         <thead><tr><th>{% trans "Term" %}</th><th>{% trans "Average" %}</th></tr></thead>
         <tbody>
           {% for row in context.term_rows %}

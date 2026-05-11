@@ -68,7 +68,7 @@
       <h6 class="mb-2">{% trans "EWS signals (portal-linked students)" %}</h6>
       <p class="small text-muted mb-2">{% trans "Synced from nightly risk scores for students with portal accounts. Status updates when you log or resolve interventions." %}</p>
       <div class="table-responsive">
-        <table class="table table-sm">
+        <table class="table table-sm table-family align-middle">
           <thead><tr><th>{% trans "Student user" %}</th><th>{% trans "Score" %}</th><th>{% trans "Status" %}</th><th>{% trans "Factors" %}</th></tr></thead>
           <tbody>
             {% for s in ews_signals %}
@@ -90,7 +90,7 @@
     <div class="card-body">
       <h6 class="mb-3">{% trans "Ongoing interventions" %}</h6>
       <div class="table-responsive">
-        <table class="table table-sm">
+        <table class="table table-sm table-family align-middle">
           <thead><tr><th>{% trans "Student" %}</th><th>{% trans "Action" %}</th><th>{% trans "Trigger" %}</th><th></th></tr></thead>
           <tbody>
             {% for i in interventions %}

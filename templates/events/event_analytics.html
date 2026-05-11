@@ -93,7 +93,7 @@
     <div class="card-header"><h5 class="mb-0">{% trans "Domain volume by type" %} {% if filter_event_type %}<span class="badge bg-secondary">{{ filter_event_type }}</span>{% endif %}</h5></div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family">
+        <table class="table table-sm mb-0 table-family align-middle">
           <thead class="table-light"><tr><th>{% trans "Type" %}</th><th>{% trans "Count" %}</th></tr></thead>
           <tbody>
             {% for row in domain_by_type %}
@@ -111,7 +111,7 @@
     <div class="card-header"><h5 class="mb-0">{% trans "Domain status distribution (tenant)" %}</h5></div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family">
+        <table class="table table-sm mb-0 table-family align-middle">
           <thead class="table-light"><tr><th>{% trans "Status" %}</th><th>{% trans "Count" %}</th></tr></thead>
           <tbody>
             {% for row in domain_by_status %}
@@ -129,7 +129,7 @@
     <div class="card-header"><h5 class="mb-0">{% trans "Platform volume by type" %}</h5></div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family">
+        <table class="table table-sm mb-0 table-family align-middle">
           <thead class="table-light"><tr><th>{% trans "Type" %}</th><th>{% trans "Count" %}</th></tr></thead>
           <tbody>
             {% for row in platform_by_type %}
@@ -147,7 +147,7 @@
     <div class="card-header"><h5 class="mb-0">{% trans "Newest domain events" %} (≤ {{ newest_limit }})</h5></div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family">
+        <table class="table table-sm mb-0 table-family align-middle">
           <thead class="table-light"><tr><th>{% trans "Type" %}</th><th>{% trans "Status" %}</th><th>{% trans "Created" %}</th></tr></thead>
           <tbody>
             {% for ev in recent_domain %}
@@ -165,7 +165,7 @@
     <div class="card-header"><h5 class="mb-0">{% trans "Newest platform events" %} (≤ {{ newest_limit }})</h5></div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family">
+        <table class="table table-sm mb-0 table-family align-middle">
           <thead class="table-light"><tr><th>{% trans "Type" %}</th><th>{% trans "ID" %}</th><th>{% trans "Created" %}</th></tr></thead>
           <tbody>
             {% for ev in recent_platform %}

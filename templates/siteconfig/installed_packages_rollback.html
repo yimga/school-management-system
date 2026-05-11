@@ -32,7 +32,7 @@
     <div class="card-header">{% trans "Active installs" %}</div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm mb-0">
+        <table class="table table-sm mb-0 table-family align-middle">
           <thead><tr><th>{% trans "Package" %}</th><th>{% trans "Version" %}</th><th>{% trans "Type" %}</th><th>{% trans "Stage" %}</th><th>{% trans "Reconciliation" %}</th><th>{% trans "Dependencies (snapshot)" %}</th><th>{% trans "Applied" %}</th><th>{% trans "Graph" %}</th><th></th></tr></thead>
           <tbody>
             {% for p in active_packages %}
@@ -76,7 +76,7 @@
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm table-hover mb-0 small">
+        <table class="table table-sm table-hover mb-0 small table-family align-middle">
           <thead>
             <tr>
               <th>{% trans "When" %}</th>

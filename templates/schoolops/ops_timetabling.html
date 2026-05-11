@@ -7,7 +7,7 @@
 <div class="container-fluid py-4">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <p class="small text-muted">{% trans "Draft and published master schedules. Generate or validate via API (scheduler) from integrations." %}</p>
-  <table class="table table-sm">
+  <table class="table table-sm table-family align-middle">
     <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Year" %}</th><th>{% trans "Term" %}</th><th>{% trans "Status" %}</th><th>{% trans "Generated" %}</th></tr></thead>
     <tbody>
       {% for s in schedules %}

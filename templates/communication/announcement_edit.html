@@ -1,66 +1,55 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Edit announcement{% endblock %}
+{% block title %}{% trans "Edit announcement" %}{% endblock %}
 
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Edit announcement</h1>
+{# Pass 8 Wave 3: migrated to components/form_field + form_actions partials. #}
 <div class="container-fluid">
   <div class="row justify-content-center">
     <div class="col-lg-8">
       <div class="card shadow-sm">
         <div class="card-header">
-          <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Edit announcement</h4>
+          <h1 class="h4 mb-0"><i class="bi bi-pencil-square me-2" aria-hidden="true"></i>{% trans "Edit announcement" %}</h1>
         </div>
         <div class="card-body">
           <form method="post">
             {% csrf_token %}
-            <div class="mb-3">
-              <label for="{{ form.title.id_for_label }}" class="form-label">Title *</label>
-              {{ form.title }}
-              {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors }}</div>{% endif %}
-            </div>
-            <div class="mb-3">
-              <label for="{{ form.content.id_for_label }}" class="form-label">Content *</label>
-              {{ form.content }}
-              {% if form.content.errors %}<div class="text-danger small">{{ form.content.errors }}</div>{% endif %}
-            </div>
+
+            {% include "components/form_field.html" with field=form.title %}
+            {% include "components/form_field.html" with field=form.content %}
+
             <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="{{ form.announcement_type.id_for_label }}" class="form-label">Type</label>
-                {{ form.announcement_type }}
+              <div class="col-md-6">
+                {% include "components/form_field.html" with field=form.announcement_type %}
               </div>
-              <div class="col-md-6 mb-3">
-                <label for="{{ form.audience.id_for_label }}" class="form-label">Audience</label>
-                {{ form.audience }}
+              <div class="col-md-6">
+                {% include "components/form_field.html" with field=form.audience %}
               </div>
             </div>
-            <div class="mb-3">
-              <label for="{{ form.send_to_department.id_for_label }}" class="form-label">Send to Department</label>
-              {{ form.send_to_department }}
-            </div>
+
+            {% include "components/form_field.html" with field=form.send_to_department %}
+
             <div class="row">
               <div class="col-md-4 mb-3">
                 <div class="form-check">
                   {{ form.is_urgent }}
-                  <label class="form-check-label" for="{{ form.is_urgent.id_for_label }}">Urgent</label>
+                  <label class="form-check-label" for="{{ form.is_urgent.id_for_label }}">{% trans "Urgent" %}</label>
                 </div>
               </div>
               <div class="col-md-4 mb-3">
                 <div class="form-check">
                   {{ form.is_active }}
-                  <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Active</label>
+                  <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{% trans "Active" %}</label>
                 </div>
               </div>
-              <div class="col-md-4 mb-3">
-                <label for="{{ form.expiry_date.id_for_label }}" class="form-label">Expiry</label>
-                {{ form.expiry_date }}
+              <div class="col-md-4">
+                {% include "components/form_field.html" with field=form.expiry_date %}
               </div>
             </div>
-            <div class="d-flex gap-2">
-              <button type="submit" class="btn btn-primary">Save changes</button>
-              <a href="{% url 'communication:announcement_detail' announcement_id=announcement.id %}" class="btn btn-outline-secondary">Cancel</a>
-            </div>
+
+            {% url 'communication:announcement_detail' announcement_id=announcement.id as cancel_url %}
+            {% include "components/form_actions.html" with submit_label=_("Save changes") cancel_url=cancel_url %}
           </form>
         </div>
       </div>
