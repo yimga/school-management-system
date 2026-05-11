@@ -11,6 +11,7 @@ from apps.api.views_marketplace_catalog import (
     MarketplaceAppsListView,
     MarketplaceScopesListView,
 )
+from apps.api.views_migration_jobs import MigrationJobStatusView
 
 app_name = "api_v1"
 
@@ -32,6 +33,12 @@ urlpatterns = [
         "marketplace/scopes/",
         MarketplaceScopesListView.as_view(),
         name="marketplace-scopes",
+    ),
+    # Pass 8.B: live progress snapshot for an async migration job.
+    path(
+        "migration-jobs/<str:job_id>/",
+        MigrationJobStatusView.as_view(),
+        name="migration-job-status",
     ),
     path(
         "platform/integration-context/",
