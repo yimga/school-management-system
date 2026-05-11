@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.conf import settings
 from config.admin import register_both, register_platform_admin, register_tenant_admin
 
 from unfold.admin import ModelAdmin
@@ -2765,7 +2766,7 @@ try:
             "created_at",
         )
         date_hierarchy = "created_at"
-        list_per_page = 25
+        list_per_page = settings.DEFAULT_PAGE_SIZE
         actions = ["resolve_keep_server", "resolve_keep_client", "resolve_discard"]
 
         def has_add_permission(self, request):

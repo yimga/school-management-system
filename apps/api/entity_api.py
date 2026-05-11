@@ -112,7 +112,7 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
         if _is_admin_like(user):
             return base
 
-        if role == "TEACHER":
+        if role == User.Role.TEACHER:
             from apps.evals.models import TeacherAssignment
 
             teacher = getattr(user, "teacher_profile", None)
@@ -123,7 +123,7 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
             ).values_list("subject_assignment__classroom_id", flat=True)
             return base.filter(classroom_id__in=classroom_ids)
 
-        if role == "PARENT":
+        if role == User.Role.PARENT:
             child_ids = StudentGuardian.objects.filter(
                 guardian_user=user, can_view_results=True
             ).values_list("student_id", flat=True)
@@ -323,7 +323,7 @@ class TeacherProfileViewSet(viewsets.ModelViewSet):
         if _is_admin_like(user):
             return base
 
-        if role == "TEACHER":
+        if role == User.Role.TEACHER:
             profile = getattr(user, "teacher_profile", None)
             if profile:
                 return base.filter(id=profile.id)
@@ -554,7 +554,7 @@ class TeacherRosterView(APIView):
         admin_like = _is_admin_like(user)
         teacher_profile = getattr(user, "teacher_profile", None)
 
-        if not admin_like and role != "TEACHER":
+        if not admin_like and role != User.Role.TEACHER:
             return Response(
                 {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
             )

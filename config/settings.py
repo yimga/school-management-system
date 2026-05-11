@@ -326,6 +326,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.i18n",
                 "apps.siteconfig.context_processors.site_settings",
+                "apps.siteconfig.email_palette.brand_email_processor",  # `brand_email` palette for emails/PDF (inline hex)
                 "apps.siteconfig.breadcrumb_context.breadcrumbs_context",
                 "apps.siteconfig.breadcrumb_context.page_metadata_context",
                 "apps.siteconfig.context_processors.region_settings",
@@ -1821,4 +1822,35 @@ TENANT_LIFECYCLE_ONBOARDING_STALL_DAYS = int(
 )
 TENANT_LIFECYCLE_FIRST_ACTION_STALL_DAYS = int(
     os.getenv("TENANT_LIFECYCLE_FIRST_ACTION_STALL_DAYS", "14")
+)
+
+# ---------------------------------------------------------------------------
+# Runtime constants — pulled from config/runtime_constants.py so app code can
+# use settings.HTTP_OUTBOUND_TIMEOUT_STANDARD, settings.DEFAULT_PAGE_SIZE, etc.
+# See docs/CONFIGURABILITY.md (Layer B).
+# ---------------------------------------------------------------------------
+from config.runtime_constants import (  # noqa: E402
+    HTTP_OUTBOUND_TIMEOUT_SHORT,
+    HTTP_OUTBOUND_TIMEOUT_STANDARD,
+    HTTP_OUTBOUND_TIMEOUT_LONG,
+    HTTP_OUTBOUND_TIMEOUT_BATCH,
+    DEFAULT_TASK_MAX_RETRIES,
+    DEFAULT_TASK_RETRY_BACKOFF_SECONDS,
+    WELCOME_EMAIL_MAX_RETRIES,
+    OFFLINE_SYNC_MAX_RETRIES,
+    CACHE_TTL_SHORT,
+    CACHE_TTL_MEDIUM,
+    CACHE_TTL_LONG,
+    CACHE_TTL_DAY,
+    CACHE_TTL_WEEK,
+    CACHE_TTL_MONTH,
+    CACHE_TTL_QUARTER,
+    CACHE_TTL_YEAR,
+    DEFAULT_ADMIN_PAGE_SIZE,
+    DEFAULT_AUDIT_PAGE_SIZE,
+    DEFAULT_PAGE_SIZE,
+    DEFAULT_WIDGET_PAGE_SIZE,
+    MAX_PHOTO_UPLOAD_BYTES,
+    MAX_DOCUMENT_UPLOAD_BYTES,
+    MAX_CSV_IMPORT_BYTES,
 )

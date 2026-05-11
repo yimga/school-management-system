@@ -73,7 +73,7 @@ def _can_message_user(sender, recipient, school=None):
     role = (getattr(sender, "role", None) or "").upper()
     recipient_role = (getattr(recipient, "role", None) or "").upper()
     # Parent can message teachers (of their children) and other parents in same context - allow teacher/parent
-    if role == "PARENT":
+    if role == User.Role.PARENT:
         if recipient_role in (
             "TEACHER",
             "ADMIN",
@@ -85,7 +85,7 @@ def _can_message_user(sender, recipient, school=None):
             "ACADEMICS_STAFF",
         ):
             return True
-        if recipient_role == "PARENT":
+        if recipient_role == User.Role.PARENT:
             from apps.people.models import StudentGuardian
 
             sender_children = set(
@@ -113,7 +113,7 @@ def _can_message_user(sender, recipient, school=None):
             "DEAN",
         ):
             return True
-        if recipient_role == "PARENT":
+        if recipient_role == User.Role.PARENT:
             from apps.people.models import StudentGuardian
             from apps.evals.models import TeacherAssignment
 
@@ -149,7 +149,7 @@ def _can_message_user(sender, recipient, school=None):
                 return True
         return False
     # Student: allow messaging teachers/staff only
-    if role == "STUDENT":
+    if role == User.Role.STUDENT:
         return recipient_role in (
             "TEACHER",
             "ADMIN",
@@ -511,15 +511,15 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
             self.get_queryset().filter(expiry_date__gte=now).order_by("-created_at")
         )
 
-        if user.role == "STUDENT":
+        if user.role == User.Role.STUDENT:
             announcements = announcements.filter(
                 Q(audience="all") | Q(audience="students")
             )
-        elif user.role == "PARENT":
+        elif user.role == User.Role.PARENT:
             announcements = announcements.filter(
                 Q(audience="all") | Q(audience="all_parents")
             )
-        elif user.role == "TEACHER":
+        elif user.role == User.Role.TEACHER:
             announcements = announcements.filter(
                 Q(audience="all") | Q(audience="staff") | Q(audience="teachers")
             )
@@ -656,6 +656,7 @@ class CommunicationAnalyticsAPI(APIView):
     def get(self, request):
         """Get communication analytics"""
         from apps.communication.models import Message, Announcement
+from apps.accounts.models import User  # role enum
 
         school, error = _tenant_school_or_response(request)
         if error is not None:

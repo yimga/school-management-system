@@ -71,7 +71,7 @@ def _sidebar_badge_counts(user, role, staff_like):
     finance_pending = None
     signatures_pending = None
 
-    if role == "TEACHER":
+    if role == User.Role.TEACHER:
         try:
             from django.db.models import Q
             from apps.people.models import TeacherProfile, TeacherLeaveRequest
@@ -100,7 +100,7 @@ def _sidebar_badge_counts(user, role, staff_like):
             workflow_pending = None
         return workflow_pending, finance_pending, signatures_pending
 
-    if role == "PARENT":
+    if role == User.Role.PARENT:
         try:
             from apps.portal.models import FormSignature
             from apps.portal.services import (
@@ -318,7 +318,7 @@ def build_portal_sidebar_items(request, site):
     )
 
     # --- Communication (role-dependent) ---
-    if role == "TEACHER":
+    if role == User.Role.TEACHER:
         items.append(
             {
                 "id": "messages",
@@ -339,7 +339,7 @@ def build_portal_sidebar_items(request, site):
                 "badge": None,
             }
         )
-    elif role == "PARENT":
+    elif role == User.Role.PARENT:
         items.append(
             {
                 "id": "contact_school",
@@ -350,7 +350,7 @@ def build_portal_sidebar_items(request, site):
                 "badge": None,
             }
         )
-    elif role == "STUDENT":
+    elif role == User.Role.STUDENT:
         items.append(
             {
                 "id": "messages",
@@ -438,7 +438,7 @@ def build_portal_sidebar_items(request, site):
             pass
 
     # --- Teacher ---
-    if role == "TEACHER":
+    if role == User.Role.TEACHER:
         items.append(
             {
                 "id": "class_announcement",
@@ -576,7 +576,7 @@ def build_portal_sidebar_items(request, site):
         )
 
     # --- Parent ---
-    if role == "PARENT":
+    if role == User.Role.PARENT:
         items.append(
             {
                 "id": "parent_workflow",
@@ -712,7 +712,7 @@ def build_portal_sidebar_items(request, site):
             "PROPRIETOR",
             "DISCIPLINE_MASTER",
         )
-    ) and role != "TEACHER"
+    ) and role != User.Role.TEACHER
     if (
         portal_cfg.get("documents")
         and getattr(user, "has_feature_permission", lambda _: False)("portal.documents")
@@ -736,7 +736,7 @@ def build_portal_sidebar_items(request, site):
         getattr(user, "has_feature_permission", lambda _: False)("settings.manage")
         or is_superuser
     )
-    if staff_like and role != "TEACHER":
+    if staff_like and role != User.Role.TEACHER:
         # Support, Content & Documents, People & Access, Academic, Financial, Analytics first; Admin Panel last
         if staff_like:
             items.append(
@@ -1385,6 +1385,7 @@ def build_portal_sidebar_items(request, site):
         items = [it for it in items if _item_visible(it)]
     elif school:
         from apps.schools.models import is_feature_enabled
+from apps.accounts.models import User  # role enum
 
         items = [
             it

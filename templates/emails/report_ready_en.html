@@ -7,7 +7,7 @@
 {% block email_preheader %}{% blocktrans %}{{ student_name }}'s {{ term_name }} report card is ready to view.{% endblocktrans %}{% endblock %}
 
 {% block email_header_subtitle %}
-<div class="em-muted" style="margin-top:6px;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#64748b;">{% trans "Report card ready" %}</div>
+<div class="em-muted" style="margin-top:6px;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:{{ brand_email.ink_subtle }};">{% trans "Report card ready" %}</div>
 {% endblock %}
 
 {% block email_content %}
@@ -18,31 +18,31 @@
 <!-- Branded data card — left rule in tenant primary, soft cream surface -->
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin:0 0 24px 0;">
   <tr>
-    <td class="em-data-card" style="background:#f8fafc;border-left:3px solid {{ primary_color|default:'#4f46e5' }};border-radius:6px;padding:18px 20px;">
+    <td class="em-data-card" style="background:{{ brand_email.bg_soft }};border-left:3px solid {{ brand_email.primary }};border-radius:6px;padding:18px 20px;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;font-size:14.5px;line-height:1.7;">
         <tr>
-          <td class="em-muted" style="color:#64748b;width:38%;padding-right:8px;">{% trans "Student" %}</td>
-          <td class="em-data" style="color:#0f172a;font-weight:600;">{{ student_name }}</td>
+          <td class="em-muted" style="color:{{ brand_email.ink_subtle }};width:38%;padding-right:8px;">{% trans "Student" %}</td>
+          <td class="em-data" style="color:{{ brand_email.ink }};font-weight:600;">{{ student_name }}</td>
         </tr>
         <tr>
-          <td class="em-muted" style="color:#64748b;padding-right:8px;">{% trans "Class" %}</td>
-          <td class="em-data" style="color:#0f172a;font-weight:600;">{{ class_name }}</td>
+          <td class="em-muted" style="color:{{ brand_email.ink_subtle }};padding-right:8px;">{% trans "Class" %}</td>
+          <td class="em-data" style="color:{{ brand_email.ink }};font-weight:600;">{{ class_name }}</td>
         </tr>
         <tr>
-          <td class="em-muted" style="color:#64748b;padding-right:8px;">{% trans "Academic year" %}</td>
-          <td class="em-data" style="color:#0f172a;font-weight:500;">{{ academic_year }}</td>
+          <td class="em-muted" style="color:{{ brand_email.ink_subtle }};padding-right:8px;">{% trans "Academic year" %}</td>
+          <td class="em-data" style="color:{{ brand_email.ink }};font-weight:500;">{{ academic_year }}</td>
         </tr>
         <tr>
-          <td class="em-muted" style="color:#64748b;padding-right:8px;">{% trans "Term" %}</td>
-          <td class="em-data" style="color:#0f172a;font-weight:500;">{{ term_name }}</td>
+          <td class="em-muted" style="color:{{ brand_email.ink_subtle }};padding-right:8px;">{% trans "Term" %}</td>
+          <td class="em-data" style="color:{{ brand_email.ink }};font-weight:500;">{{ term_name }}</td>
         </tr>
         <tr>
-          <td class="em-muted" style="color:#64748b;padding-right:8px;padding-top:6px;border-top:1px solid rgba(15,23,42,0.06);">{% trans "Average score" %}</td>
-          <td class="em-data" style="color:#0f172a;font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;padding-top:6px;border-top:1px solid rgba(15,23,42,0.06);">{{ average_score }}</td>
+          <td class="em-muted" style="color:{{ brand_email.ink_subtle }};padding-right:8px;padding-top:6px;border-top:1px solid {{ brand_email.rule }};">{% trans "Average score" %}</td>
+          <td class="em-data" style="color:{{ brand_email.ink }};font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;padding-top:6px;border-top:1px solid {{ brand_email.rule }};">{{ average_score }}</td>
         </tr>
         <tr>
-          <td class="em-muted" style="color:#64748b;padding-right:8px;">{% trans "Class rank" %}</td>
-          <td class="em-data" style="color:#0f172a;font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;">{{ class_rank }}</td>
+          <td class="em-muted" style="color:{{ brand_email.ink_subtle }};padding-right:8px;">{% trans "Class rank" %}</td>
+          <td class="em-data" style="color:{{ brand_email.ink }};font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;">{{ class_rank }}</td>
         </tr>
       </table>
     </td>
@@ -54,11 +54,11 @@
 <!-- Apple-tier button: tenant primary fill, subtle inset highlight, generous padding, pill radius -->
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 8px 0;">
   <tr>
-    <td style="background:{{ primary_color|default:'#4f46e5' }};border-radius:10px;box-shadow:0 1px 2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.14);">
-      <a href="{{ report_url }}" class="em-button" style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:600;letter-spacing:-0.005em;color:#ffffff;text-decoration:none;border-radius:10px;font-family:'Inter','Helvetica Neue',Arial,sans-serif;">{% trans "View report card" %} →</a>
+    <td style="background:{{ brand_email.primary }};border-radius:10px;box-shadow:0 1px 2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.14);">
+      <a href="{{ report_url }}" class="em-button" style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:600;letter-spacing:-0.005em;color:{{ brand_email.bg }};text-decoration:none;border-radius:10px;font-family:'Inter','Helvetica Neue',Arial,sans-serif;">{% trans "View report card" %} →</a>
     </td>
   </tr>
 </table>
 
-<p class="em-muted" style="margin:18px 0 0 0;font-size:13px;color:#64748b;">{% trans "Or copy this link:" %} <a href="{{ report_url }}" style="color:{{ primary_color|default:'#4f46e5' }};text-decoration:underline;word-break:break-all;">{{ report_url }}</a></p>
+<p class="em-muted" style="margin:18px 0 0 0;font-size:13px;color:{{ brand_email.ink_subtle }};">{% trans "Or copy this link:" %} <a href="{{ report_url }}" style="color:{{ brand_email.primary }};text-decoration:underline;word-break:break-all;">{{ report_url }}</a></p>
 {% endblock %}

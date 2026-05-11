@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, IntegrityError
+from django.conf import settings
 from config.admin import register_tenant_admin
 from apps.siteconfig.config_service import get_effective_site_settings
 
@@ -64,7 +65,7 @@ class ComplianceProfileAdmin(ModelAdmin):
         "is_active",
     )
     list_filter = ("country_code", "chart_template", "is_active")
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = ("name", "country_code")
     fieldsets = (
@@ -84,7 +85,7 @@ class ComplianceProfileAdmin(ModelAdmin):
 class TaxBracketAdmin(ModelAdmin):
     list_display = ("profile", "lower_bound", "upper_bound", "rate")
     list_filter = ("profile",)
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
 
 
@@ -98,7 +99,7 @@ class ContributionRuleAdmin(ModelAdmin):
         "cap_amount",
     )
     list_filter = ("profile",)
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = ("code", "name")
 
@@ -106,7 +107,7 @@ class ContributionRuleAdmin(ModelAdmin):
 class LedgerAccountAdmin(ModelAdmin):
     list_display = ("profile", "code", "name", "account_type", "is_active")
     list_filter = ("profile", "account_type", "is_active")
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = ("code", "name")
 
@@ -119,7 +120,7 @@ class JournalLineInline(admin.TabularInline):
 class JournalEntryAdmin(ModelAdmin):
     list_display = ("entry_date", "reference", "profile", "posted_at")
     list_filter = ("profile",)
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = ("reference", "memo")
     inlines = [JournalLineInline]
@@ -128,7 +129,7 @@ class JournalEntryAdmin(ModelAdmin):
 class CounterpartyAdmin(ModelAdmin):
     list_display = ("name", "counterparty_type", "student", "user")
     list_filter = ("counterparty_type",)
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = ("name", "email", "phone")
 
@@ -141,7 +142,7 @@ class FeeItemInline(admin.TabularInline):
 class FeePlanAdmin(ModelAdmin):
     list_display = ("name", "academic_year", "classroom", "specialty", "is_active")
     list_filter = ("academic_year", "classroom", "specialty", "is_active")
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = ("name",)
     inlines = [FeeItemInline]
@@ -226,7 +227,7 @@ class FeePlanAdmin(ModelAdmin):
 class FeeInstallmentAdmin(ModelAdmin):
     list_display = ("fee_item", "installment_number", "amount", "due_date")
     list_filter = ("fee_item",)
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
 
 
@@ -247,7 +248,7 @@ class InvoiceAdmin(ModelAdmin):
         "attachment",
     )
     list_filter = ("invoice_type", "status", "issued_date")
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = ("reference", "student__student_code", "counterparty__name")
     inlines = [InvoiceLineInline]
@@ -303,7 +304,7 @@ class PaymentAdmin(ModelAdmin):
         "receipt_file",
     )
     list_filter = ("method", "paid_at")
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = ("reference", "receipt_number")
 
@@ -318,7 +319,7 @@ class PaymentReminderAdmin(ModelAdmin):
         "reminder_history_link",
     )
     list_filter = ("is_active",)
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = ("invoice__reference", "invoice__student__student_code")
     readonly_fields = ("reminder_history", "last_sent_at", "next_send_at")
@@ -444,34 +445,34 @@ class PaymentReminderAdmin(ModelAdmin):
 class PaymentReminderLogAdmin(ModelAdmin):
     list_display = ("reminder", "sent_at", "status")
     list_filter = ("status",)
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
 
 
 class BudgetAdmin(ModelAdmin):
     list_display = ("name", "academic_year", "department", "total_amount")
     list_filter = ("academic_year", "department")
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
 
 
 class BudgetLineAdmin(ModelAdmin):
     list_display = ("budget", "account", "amount")
     list_filter = ("budget",)
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
 
 
 class AssetCategoryAdmin(ModelAdmin):
     list_display = ("name",)
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
 
 
 class AssetAdmin(ModelAdmin):
     list_display = ("name", "category", "status", "purchase_cost")
     list_filter = ("status", "category")
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = ("name", "asset_tag")
 
@@ -483,7 +484,7 @@ class GrantAllocationInline(admin.TabularInline):
 
 class GrantAdmin(ModelAdmin):
     list_display = ("name", "funder", "amount", "start_date", "end_date")
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = ("name", "funder")
     inlines = [GrantAllocationInline]
@@ -499,7 +500,7 @@ class NotificationAdmin(ModelAdmin):
         "created_by",
     )
     list_filter = ("severity", "is_read")
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = ("title", "message", "created_by__username", "recipient__username")
 
@@ -507,7 +508,7 @@ class NotificationAdmin(ModelAdmin):
 class FinanceRequestAuditAdmin(ModelAdmin):
     list_display = ("notification", "user", "action", "created_at")
     list_filter = ("action",)
-    list_per_page = 50
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE
     show_full_result_count = False
     search_fields = ("notification__title", "user__username")
 
@@ -515,7 +516,7 @@ class FinanceRequestAuditAdmin(ModelAdmin):
 class ReportRequestAdmin(ModelAdmin):
     list_display = ("report_type", "requested_by", "status", "created_at")
     list_filter = ("report_type", "status")
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = ("requested_by__username", "description")
 
@@ -554,7 +555,7 @@ class ReferralRewardAdmin(ModelAdmin):
         "created_at",
     )
     list_filter = ("status",)
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = (
         "student__student_code",
@@ -1064,7 +1065,7 @@ class AwardSourceAdmin(ModelAdmin):
     )
     list_filter = ("school", "is_active", "currency")
     search_fields = ("name",)
-    list_per_page = 50
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE
 
 
 class ScholarshipAdmin(ModelAdmin):
@@ -1078,7 +1079,7 @@ class ScholarshipAdmin(ModelAdmin):
     )
     list_filter = ("school", "is_active")
     search_fields = ("title",)
-    list_per_page = 50
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE
     raw_id_fields = ("source",)
 
 
@@ -1093,7 +1094,7 @@ class FinancialAidApplicationAdmin(ModelAdmin):
     )
     list_filter = ("school", "status")
     search_fields = ("student__first_name", "student__last_name", "scholarship__title")
-    list_per_page = 50
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE
     raw_id_fields = ("student", "scholarship", "dispute_link")
     readonly_fields = ("disbursed_at", "created_at", "updated_at")
 
@@ -1109,7 +1110,7 @@ class AidAuditLogAdmin(ModelAdmin):
     )
     list_filter = ("school", "action")
     search_fields = ("reason",)
-    list_per_page = 50
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE
     readonly_fields = (
         "school",
         "source",

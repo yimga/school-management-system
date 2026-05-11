@@ -30,9 +30,15 @@ let OFFLINE_CONFIG = {
   hubBaseUrl: "",
 };
 
+// Cache manifest — WhiteNoise (CompressedManifestStaticFilesStorage) serves both
+// hashed and unhashed paths, so /static/css/foo.css resolves whether collectstatic
+// produced foo.HASH.css or foo.css. To make this truly path-independent (CDN
+// migration, STATIC_URL change), serve service-worker.js via a Django-rendered
+// view that injects {% static %} tags. Tracked in reference_configurability_contract.md.
+// portal_theme.css removed 2026-05-10: retired, conflicts with token system.
 const STATIC_ASSETS = [
   "/offline/",
-  "/static/css/portal_theme.css",
+  "/static/css/design-tokens.css",
   "/static/css/dashboard-responsive.css",
   "/static/css/reduce-motion-low-power.css",
   "/static/js/command-palette.js",

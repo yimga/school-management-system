@@ -13,6 +13,7 @@ from datetime import datetime
 from apps.academics.models import AcademicYear, Term
 from apps.people.models import StudentProfile
 from apps.siteconfig.config_service import get_effective_site_settings
+from apps.siteconfig.email_palette import resolve_email_palette
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.reports.localization import (
     get_certificate_localizer,
@@ -296,6 +297,8 @@ class Command(BaseCommand):
             "logo_url": logo_url,
             "branded_domain": getattr(site, "branded_domain", "") or "",
             "current_year": datetime.now().year,
+            # Branded inline-hex palette for email templates (no request → no context processor).
+            "brand_email": resolve_email_palette(site=site),
         }
 
         try:

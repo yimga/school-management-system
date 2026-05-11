@@ -186,7 +186,7 @@ def get_ai_permissions(user):
                 "scope": "finance",
             }
         )
-    elif role == "TEACHER":
+    elif role == User.Role.TEACHER:
         permissions.update(
             {
                 "can_access_grades": True,
@@ -194,7 +194,7 @@ def get_ai_permissions(user):
                 "scope": "teacher",
             }
         )
-    elif role == "PARENT":
+    elif role == User.Role.PARENT:
         permissions.update(
             {
                 "can_access_grades": True,  # Only their child's grades
@@ -510,6 +510,7 @@ def ai_copilot_config(request):
             break
     try:
         from apps.platform_runtime.helpers import log_ai_action
+from apps.accounts.models import User  # role enum
 
         school = getattr(request, "school", None)
         log_ai_action(
@@ -601,12 +602,12 @@ def build_contextual_prompt(user, user_message: str) -> str:
             f"The user is a finance officer named {user_name}. "
             "Help with fee collection, invoice status, payment reconciliation, and finance reporting. "
         )
-    elif role == "TEACHER":
+    elif role == User.Role.TEACHER:
         context += (
             f"The user is a teacher named {user_name}. "
             "Help with grade entry, class roster information, attendance tracking, student performance insights, and lesson planning. "
         )
-    elif role == "PARENT":
+    elif role == User.Role.PARENT:
         context += (
             f"The user is a parent named {user_name}. "
             "Focus responses on their child's information only, including progress, fee payment status, communication with teachers, and school events. "

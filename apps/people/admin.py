@@ -3,6 +3,7 @@ from django.contrib import admin, messages
 from django.db.models import Q
 from django import forms
 from django.utils.translation import gettext_lazy as _
+from django.conf import settings
 from unfold.admin import ModelAdmin
 from apps.portal.models import PendingGuardianInvite
 from apps.finance.models import ReferralReward
@@ -129,7 +130,7 @@ class TeacherProfileAdmin(ModelAdmin):
         "allow_leave_approvals",
         "allow_finance_panel",
     )
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     fieldsets = (
         (
@@ -262,7 +263,7 @@ class StudentProfileAdmin(ModelAdmin):
         "is_active",
         "uses_transport",
     )
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = ("student_code", "admission_number", "first_name", "last_name")
     readonly_fields = ("parent_completeness",)
@@ -476,7 +477,7 @@ class StudentGuardianAdmin(ModelAdmin):
         "can_view_finance",
         ("can_view_finance", admin.BooleanFieldListFilter),
     )
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = (
         "guardian_user__username",
@@ -602,7 +603,7 @@ class TeacherPayRecordAdmin(ModelAdmin):
         "created_at",
     )
     list_filter = ("record_type", "effective_date")
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = (
         "teacher__user__username",
@@ -623,7 +624,7 @@ class TeacherLeaveRequestAdmin(ModelAdmin):
         "decided_at",
     )
     list_filter = ("status", "start_date", "end_date")
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = (
         "teacher__user__username",
@@ -637,7 +638,7 @@ class TeacherLeaveRequestAdmin(ModelAdmin):
 class TeacherAttendanceAdmin(ModelAdmin):
     list_display = ("teacher", "date", "status", "check_in", "check_out")
     list_filter = ("status", "date")
-    list_per_page = 50  # PERFORMANCE: Add pagination
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = (
         "teacher__user__username",

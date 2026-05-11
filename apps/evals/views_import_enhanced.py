@@ -155,7 +155,7 @@ def grade_import_job_detail(request, job_id):
 
     # Pagination
     page = int(request.GET.get("page", 1))
-    per_page = 50
+    per_page = settings.DEFAULT_ADMIN_PAGE_SIZE
     total_pages = (row_logs.count() + per_page - 1) // per_page
 
     start = (page - 1) * per_page
@@ -292,7 +292,7 @@ def grade_import_job_list(request):
 
     # Pagination
     page = int(request.GET.get("page", 1))
-    per_page = 25
+    per_page = settings.DEFAULT_PAGE_SIZE
     total_count = jobs.count()
     total_pages = (total_count + per_page - 1) // per_page
 

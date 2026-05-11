@@ -54,7 +54,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         if user.is_staff or role in admin_roles:
             return base
 
-        if role == "TEACHER":
+        if role == User.Role.TEACHER:
             from apps.evals.models import TeacherAssignment
 
             teacher = getattr(user, "teacher_profile", None)
@@ -76,7 +76,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         if student_profile:
             return base.filter(student=student_profile)
 
-        if role == "PARENT":
+        if role == User.Role.PARENT:
             from apps.people.models import StudentGuardian
 
             child_ids = StudentGuardian.objects.filter(
@@ -171,7 +171,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         }
         """
         user_role = (getattr(request.user, "role", "") or "").upper()
-        if not (user_role == "TEACHER" or request.user.is_staff):
+        if not (user_role == User.Role.TEACHER or request.user.is_staff):
             return Response(
                 {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
             )
@@ -195,7 +195,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if user_role == "TEACHER":
+        if user_role == User.Role.TEACHER:
             from apps.evals.models import TeacherAssignment
 
             teacher = getattr(request.user, "teacher_profile", None)
@@ -421,7 +421,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             return Response(
                 {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
             )
-        if user_role == "TEACHER" and not request.user.is_staff:
+        if user_role == User.Role.TEACHER and not request.user.is_staff:
             from apps.evals.models import TeacherAssignment
 
             teacher = getattr(request.user, "teacher_profile", None)
@@ -509,7 +509,7 @@ class GradeViewSet(viewsets.ModelViewSet):
         if user.is_staff or role in admin_roles:
             return Grade.objects.all().select_related("student__user", "subject")
 
-        if role == "TEACHER":
+        if role == User.Role.TEACHER:
             from apps.evals.models import TeacherAssignment
 
             teacher = getattr(user, "teacher_profile", None)
@@ -543,7 +543,7 @@ class GradeViewSet(viewsets.ModelViewSet):
                 "student__user", "subject"
             )
 
-        if role == "PARENT":
+        if role == User.Role.PARENT:
             from apps.people.models import StudentGuardian
 
             child_ids = StudentGuardian.objects.filter(
@@ -572,7 +572,7 @@ class GradeViewSet(viewsets.ModelViewSet):
         }
         """
         user_role = (getattr(request.user, "role", "") or "").upper()
-        if not (user_role == "TEACHER" or request.user.is_staff):
+        if not (user_role == User.Role.TEACHER or request.user.is_staff):
             return Response(
                 {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
             )
@@ -580,7 +580,7 @@ class GradeViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        if user_role == "TEACHER" and not request.user.is_staff:
+        if user_role == User.Role.TEACHER and not request.user.is_staff:
             student_obj = serializer.validated_data.get("student")
             subject_obj = serializer.validated_data.get("subject")
             if not student_obj or not subject_obj:
@@ -675,7 +675,7 @@ class GradeViewSet(viewsets.ModelViewSet):
             return Response(
                 {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
             )
-        if user_role == "TEACHER" and not request.user.is_staff:
+        if user_role == User.Role.TEACHER and not request.user.is_staff:
             from apps.evals.models import TeacherAssignment
 
             teacher = getattr(request.user, "teacher_profile", None)
@@ -765,7 +765,7 @@ class AssessmentResultsAPI(APIView):
 
         if user.is_staff or role in admin_roles:
             queryset = Grade.objects.all()
-        elif role == "TEACHER":
+        elif role == User.Role.TEACHER:
             teacher = getattr(user, "teacher_profile", None)
             if not teacher:
                 return Response(
@@ -857,6 +857,7 @@ class ScheduleConflictsAPI(APIView):
 
     def get(self, request, schedule_id):
         from apps.academics.scheduling import Schedule, TimetableGenerator
+from apps.accounts.models import User  # role enum
 
         school = getattr(request, "school", None)
         if not school:

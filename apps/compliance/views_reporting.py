@@ -53,7 +53,7 @@ class AuditTrailReportView(ListView):
     model = AuditLog
     template_name = "compliance/audit_trail_report.html"
     context_object_name = "audit_logs"
-    paginate_by = 50
+    paginate_by = settings.DEFAULT_ADMIN_PAGE_SIZE
 
     def get_queryset(self):
         """Filter audit logs based on request parameters."""

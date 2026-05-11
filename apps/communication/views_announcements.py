@@ -245,9 +245,9 @@ def announcement_detail(request: HttpRequest, announcement_id: int):
     can_view = (
         request.user.is_staff
         or audience == "all"
-        or (user_role == "STUDENT" and audience == "students")
-        or (user_role == "PARENT" and audience == "all_parents")
-        or (user_role == "TEACHER" and audience in ["teachers", "staff"])
+        or (user_role == User.Role.STUDENT and audience == "students")
+        or (user_role == User.Role.PARENT and audience == "all_parents")
+        or (user_role == User.Role.TEACHER and audience in ["teachers", "staff"])
         or (user_role in ["ADMIN", "LEADERSHIP"] and audience == "staff")
     )
     if not can_view:

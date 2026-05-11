@@ -333,7 +333,7 @@ def user_profile(request):
     )
     if teacher_profile:
         context["org_chain"] = get_org_chain_to_staff(teacher_profile)
-    if role == "TEACHER" and teacher_profile:
+    if role == User.Role.TEACHER and teacher_profile:
         context["teacher_org_tree"] = _teacher_org_tree(request.user)
         context["staff_id"] = getattr(teacher_profile, "staff_id", None) or (
             f"Staff #{request.user.pk}" if teacher_profile else None
@@ -355,7 +355,7 @@ def user_profile(request):
             .select_related("badge_type")
             .order_by("-issued_at")[:20]
         )
-    if role == "PARENT":
+    if role == User.Role.PARENT:
         context["parent_children_tree"] = _parent_children_tree(request.user)
     admin_ctx = _admin_context(request.user, request)
     if admin_ctx:
@@ -903,7 +903,7 @@ def redirect_view(request):
         )
 
         if intent == "student":
-            if (getattr(user, "role", "") or "").upper() == "STUDENT":
+            if (getattr(user, "role", "") or "").upper() == User.Role.STUDENT:
                 return _redirect_with_params("portal:student_portal_grades")
         elif intent == "parent":
             if has_parent_hat(user):
@@ -959,11 +959,11 @@ def redirect_view(request):
             return _redirect_with_params("studio_os:workflow_center")
         return _redirect_with_params("accounts:backend_dashboard")
 
-    if role == "TEACHER":
+    if role == User.Role.TEACHER:
         if dash_view == "WORKFLOW":
             return _redirect_with_params("portal:teacher_workflow")
         return _redirect_with_params("evals:teacher_dashboard")
-    if role == "PARENT":
+    if role == User.Role.PARENT:
         if dash_view == "WORKFLOW":
             return _redirect_with_params("portal:parent_workflow")
         if dash_view == "FINANCE":
@@ -994,9 +994,9 @@ def switch_portal_role(request):
     role = (request.GET.get("role") or request.POST.get("role") or "").strip().upper()
     if role not in ALLOWED_PORTAL_ROLES:
         return redirect(reverse("accounts:redirect"))
-    if role == "TEACHER" and not has_teacher_hat(request.user):
+    if role == User.Role.TEACHER and not has_teacher_hat(request.user):
         return redirect(reverse("accounts:redirect"))
-    if role == "PARENT" and not has_parent_hat(request.user):
+    if role == User.Role.PARENT and not has_parent_hat(request.user):
         return redirect(reverse("accounts:redirect"))
     request.session[ACTIVE_PORTAL_ROLE_KEY] = role
     try:
@@ -2767,7 +2767,7 @@ def login_view(request):
                     request.session.pop("school_id", None)
                     if (
                         not getattr(user, "is_superuser", False)
-                        and (getattr(user, "role", "") or "").upper() != "SUPERADMIN"
+                        and (getattr(user, "role", "") or "").upper() != User.Role.SUPERADMIN
                     ):
                         messages.warning(
                             request, "You do not have access to this school."

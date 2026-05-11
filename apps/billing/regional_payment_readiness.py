@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.utils.translation import gettext_lazy as _
+
 from apps.finance.models import ComplianceProfile, TenantPaymentPolicy
 from apps.finance.payment_fallback import select_fallback_chain
 from apps.finance.payment_fallback_engine import MANUAL_FALLBACK_CODE, select_effective_rail
@@ -53,7 +55,9 @@ def compute_payment_readiness(
             "id": "country",
             "label": "School country on finance profile",
             "done": bool(cc),
-            "detail": cc or "Choose Cameroon, Ghana, Nigeria, Kenya, US, GB, or EU.",
+            # TODO(config): country list should come from CountryRegistry.objects.filter(is_active=True)
+            # rather than a hardcoded sample. Translatable for the time being.
+            "detail": cc or str(_("Choose your country (e.g. Cameroon, Ghana, Nigeria, Kenya, US, GB, EU).")),
         }
     )
 

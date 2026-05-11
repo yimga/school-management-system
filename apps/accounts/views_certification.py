@@ -467,12 +467,18 @@ def certification_export_zip(request, session_id: int):
 
                 checklist_writer.writerow(row)
 
+    # TODO(config): this README is the Cameroon GCE/BAC variant of an exams
+    # registration pack. Other regions (KCSE, WAEC, IGCSE) need their own
+    # README — wire to apps.policies.BlueprintPack so the text comes from a
+    # tenant-resolved policy instead of being hardcoded per export.
+    # For now, the country name is sourced from the session/policy so the
+    # title isn't a single hardcoded "Cameroon".
     readme_lines = [
-        "Cameroon Exams Registration Pack",
+        f"{(getattr(year, 'country_name', None) or 'National')} Exams Registration Pack",
         "",
         "This pack is designed to help your centre follow the official 3-phase flow:",
         "1) Pre-registration & data entry (board e-registration software generates CIN)",
-        "2) Candidate payment via MTN Mobile Money using CIN",
+        "2) Candidate payment via mobile money / bank transfer using the issued CIN",
         "3) Validation using Transaction ID + printing timetables/receipts",
         "",
         "Useful references:",

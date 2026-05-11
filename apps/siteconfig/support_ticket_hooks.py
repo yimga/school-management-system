@@ -291,10 +291,14 @@ def run_support_ticket_reply_hooks(
         to_addr = (getattr(submitter, "email", None) or "").strip()
         if to_addr:
             try:
+                from apps.siteconfig.email_palette import resolve_email_palette
+
                 ctx = {
                     "ticket": ticket,
                     "reply_body": body_text[:8000],
                     "school": ticket.school,
+                    # Branded inline-hex palette (no request here — supply explicitly).
+                    "brand_email": resolve_email_palette(site=ticket.school),
                 }
                 plain = render_to_string("emails/support_ticket_reply_visible.txt", ctx)
                 html = render_to_string("emails/support_ticket_reply_visible.html", ctx)

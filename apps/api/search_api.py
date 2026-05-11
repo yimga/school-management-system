@@ -133,9 +133,9 @@ class GlobalSearchAPI(View):
                 "admin:people_studentprofile_change", args=[student.id]
             )
 
-        if role == "PARENT":
+        if role == User.Role.PARENT:
             return self._safe_reverse("portal:parent_child_results", args=[student.id])
-        if role == "TEACHER":
+        if role == User.Role.TEACHER:
             base = self._safe_reverse("evals:teacher_marks_list")
             if base == "#":
                 return base
@@ -242,9 +242,9 @@ class GlobalSearchAPI(View):
         from apps.portal.one_record import build_student_story_preview
 
         role = (getattr(user, "role", None) or "").upper()
-        if role == "TEACHER":
+        if role == User.Role.TEACHER:
             inc_fin, inc_comm = False, False
-        elif role == "PARENT":
+        elif role == User.Role.PARENT:
             inc_fin, inc_comm = False, True
         else:
             inc_fin = bool(
@@ -296,7 +296,7 @@ class GlobalSearchAPI(View):
                 base = base.filter(school=school)
             if user.is_staff or user.is_superuser or role in self.ELEVATED_ROLES:
                 items = base[:limit]
-            elif role == "TEACHER":
+            elif role == User.Role.TEACHER:
                 from apps.evals.models import TeacherAssignment
 
                 teacher = getattr(user, "teacher_profile", None)
@@ -315,7 +315,7 @@ class GlobalSearchAPI(View):
                     is_active=True,
                     classroom_id__in=classroom_ids,
                 )[:limit]
-            elif role == "PARENT":
+            elif role == User.Role.PARENT:
                 from apps.people.models import StudentGuardian
 
                 student_ids = StudentGuardian.objects.filter(
@@ -327,7 +327,7 @@ class GlobalSearchAPI(View):
                     is_active=True,
                     id__in=student_ids,
                 )[:limit]
-            elif role == "STUDENT":
+            elif role == User.Role.STUDENT:
                 try:
                     StudentProfile._meta.get_field("user")
                     items = StudentProfile.objects.filter(
@@ -420,7 +420,7 @@ class GlobalSearchAPI(View):
                 base = base.filter(school=school)
             if user.is_staff or user.is_superuser or role in self.FINANCE_ROLES:
                 items = base[:limit]
-            elif role == "PARENT":
+            elif role == User.Role.PARENT:
                 from apps.people.models import StudentGuardian
 
                 student_ids = StudentGuardian.objects.filter(
@@ -428,7 +428,7 @@ class GlobalSearchAPI(View):
                     can_view_finance=True,
                 ).values_list("student_id", flat=True)
                 items = base.filter(student_id__in=student_ids)[:limit]
-            elif role == "STUDENT":
+            elif role == User.Role.STUDENT:
                 try:
                     from apps.people.models import StudentProfile
 
@@ -469,6 +469,7 @@ class SearchSuggestionsAPI(View):
     def get(self, request):
         from django.core.cache import cache
         from apps.siteconfig.cache_utils import tenant_cache_key
+from apps.accounts.models import User  # role enum
 
         key = tenant_cache_key(f"search_history_{request.user.id}", request)
         history = cache.get(key, [])

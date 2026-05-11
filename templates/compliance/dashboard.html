@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n static region_format phase8_tags %}
 
-{% block title %}Compliance Dashboard{% endblock %}
+{% block title %}{% trans "Compliance Dashboard" %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -17,24 +17,24 @@
 {% if phase7_de %}
 {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
 {% endif %}
-    <h1>📊 Compliance & Audit Dashboard</h1>
-    
+    <h1>📊 {% trans "Compliance & Audit Dashboard" %}</h1>
+
     <!-- Incident Response & Playbook Links -->
     <div class="alert-banner info">
         <div class="alert-content">
             <span class="alert-icon">📋</span>
             <div class="alert-text">
-                <strong>Incident Response Resources</strong>
+                <strong>{% trans "Incident Response Resources" %}</strong>
                 <p>
                     {% if playbook_url %}
                         <a href="{{ playbook_url }}" target="_blank" rel="noopener noreferrer" class="playbook-link">
-                            📖 View Security Playbook & Runbooks
+                            📖 {% trans "View Security Playbook & Runbooks" %}
                         </a>
                     {% else %}
-                        Security playbook not configured (set INCIDENT_PLAYBOOK_URL)
+                        {% trans "Security playbook not configured (set INCIDENT_PLAYBOOK_URL)" %}
                     {% endif %}
                     {% if oncall_emails %}
-                        | 🚨 On-call team: {{ oncall_emails|join:", " }}
+                        | 🚨 {% blocktrans with emails=oncall_emails|join:", " %}On-call team: {{ emails }}{% endblocktrans %}
                     {% endif %}
                 </p>
             </div>
@@ -46,37 +46,37 @@
     <summary>{% trans "Expand full metrics grid" %}</summary>
     <div class="metrics-grid">
         <div class="metric-card">
-            <h3>Active Users (Week)</h3>
+            <h3>{% trans "Active Users (Week)" %}</h3>
             <div class="metric-value">{{ metrics.active_week }} / {{ metrics.total_users }}</div>
-            <div class="metric-label">{{ metrics.activity_rate }} Activity Rate</div>
+            <div class="metric-label">{% blocktrans with rate=metrics.activity_rate %}{{ rate }} Activity Rate{% endblocktrans %}</div>
         </div>
-        
+
         <div class="metric-card">
-            <h3>Logins (Month)</h3>
+            <h3>{% trans "Logins (Month)" %}</h3>
             <div class="metric-value">{{ metrics.logins_month }}</div>
-            <div class="metric-label">Total Sessions</div>
+            <div class="metric-label">{% trans "Total Sessions" %}</div>
         </div>
-        
+
         <div class="metric-card">
-            <h3>Audit Events (Month)</h3>
+            <h3>{% trans "Audit Events (Month)" %}</h3>
             <div class="metric-value">{{ metrics.audits_month }}</div>
-            <div class="metric-label">Total Recorded</div>
+            <div class="metric-label">{% trans "Total Recorded" %}</div>
         </div>
-        
+
         <div class="metric-card {% if metrics.failed_accesses > 10 %}alert{% endif %}">
-            <h3>Failed Accesses (Week)</h3>
+            <h3>{% trans "Failed Accesses (Week)" %}</h3>
             <div class="metric-value">{{ metrics.failed_accesses }}</div>
-            <div class="metric-label">Access Denied</div>
+            <div class="metric-label">{% trans "Access Denied" %}</div>
         </div>
-        
+
         <div class="metric-card {% if metrics.suspicious_sessions > 0 %}warning{% endif %}">
-            <h3>Suspicious Sessions</h3>
+            <h3>{% trans "Suspicious Sessions" %}</h3>
             <div class="metric-value">{{ metrics.suspicious_sessions }}</div>
-            <div class="metric-label">Flagged Activity</div>
+            <div class="metric-label">{% trans "Flagged Activity" %}</div>
         </div>
-        
+
         <div class="metric-card">
-            <h3>Integrity Score</h3>
+            <h3>{% trans "Integrity Score" %}</h3>
             <div class="metric-value">{{ integrity_status.score }}%</div>
             <div class="metric-label status-{{ integrity_status.status|lower }}">{{ integrity_status.status }}</div>
         </div>
@@ -86,7 +86,7 @@
     <!-- Activity Chart -->
     <div class="chart-section">
         <div class="chart-header">
-            <h2>Audit Activity Trend (30 Days)</h2>
+            <h2>{% trans "Audit Activity Trend (30 Days)" %}</h2>
             <div class="chart-actions">
                 <a class="chip" href="{% url 'compliance:compliance_reporting:audit_trail' %}?days=7">7d</a>
                 <a class="chip" href="{% url 'compliance:compliance_reporting:audit_trail' %}?days=30">30d</a>
@@ -107,7 +107,7 @@
     <!-- User Activity Heatmap -->
     <div class="chart-section">
         <div class="chart-header">
-            <h2>Login Activity Heatmap ({{ user_activity_heatmap.period }})</h2>
+            <h2>{% blocktrans with period=user_activity_heatmap.period %}Login Activity Heatmap ({{ period }}){% endblocktrans %}</h2>
             <div class="chart-actions">
                 <a class="chip" href="{% url 'compliance:compliance_reporting:data_access' %}?days=7">7d</a>
                 <a class="chip" href="{% url 'compliance:compliance_reporting:data_access' %}?days=30">30d</a>
@@ -127,15 +127,15 @@
     <!-- Model Changes Summary -->
     <div class="section-two-col">
         <div class="section">
-            <h2>Model Changes (Last 7 Days)</h2>
+            <h2>{% trans "Model Changes (Last 7 Days)" %}</h2>
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Model</th>
-                        <th>Creates</th>
-                        <th>Updates</th>
-                        <th>Deletes</th>
-                        <th>Total</th>
+                        <th>{% trans "Model" %}</th>
+                        <th>{% trans "Creates" %}</th>
+                        <th>{% trans "Updates" %}</th>
+                        <th>{% trans "Deletes" %}</th>
+                        <th>{% trans "Total" %}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -148,7 +148,7 @@
                             <td><strong>{{ stats.total }}</strong></td>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="5" class="empty">No changes recorded</td></tr>
+                        <tr><td colspan="5" class="empty">{% trans "No changes recorded" %}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -156,13 +156,13 @@
 
         <!-- Permission Overview -->
         <div class="section">
-            <h2>Permission Overview</h2>
+            <h2>{% trans "Permission Overview" %}</h2>
             <div class="permission-card">
-                <h3>Users by Role</h3>
+                <h3>{% trans "Users by Role" %}</h3>
                 {% for role_data in permission_overview.users_by_role %}
                     <div class="role-row">
                         <span class="role-name">{{ role_data.role }}</span>
-                        <span class="role-count">{{ role_data.count }} users</span>
+                        <span class="role-count">{% blocktrans count counter=role_data.count %}{{ counter }} user{% plural %}{{ counter }} users{% endblocktrans %}</span>
                     </div>
                 {% endfor %}
             </div>
@@ -171,30 +171,30 @@
 
     <!-- Recent Audit Logs -->
     <div class="section">
-        <h2>Recent Audit Activity</h2>
+        <h2>{% trans "Recent Audit Activity" %}</h2>
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Time</th>
-                    <th>User</th>
-                    <th>Action</th>
-                    <th>Model</th>
-                    <th>Object</th>
-                    <th>Sensitivity</th>
+                    <th>{% trans "Time" %}</th>
+                    <th>{% trans "User" %}</th>
+                    <th>{% trans "Action" %}</th>
+                    <th>{% trans "Model" %}</th>
+                    <th>{% trans "Object" %}</th>
+                    <th>{% trans "Sensitivity" %}</th>
                 </tr>
             </thead>
             <tbody>
                 {% for audit in recent_audits %}
                     <tr class="severity-{{ audit.sensitivity|lower }}">
                         <td>{{ audit.timestamp|format_date }} {{ audit.timestamp|time:"H:i:s" }}</td>
-                        <td>{{ audit.user__username|default:"System" }}</td>
+                        <td>{{ audit.user__username|default:_("System") }}</td>
                         <td><span class="action-badge">{{ audit.action }}</span></td>
                         <td>{{ audit.model_name }}</td>
                         <td class="truncate">{{ audit.object_repr }}</td>
                         <td><span class="sensitivity-badge {{ audit.sensitivity|lower }}">{{ audit.sensitivity }}</span></td>
                     </tr>
                 {% empty %}
-                    <tr><td colspan="6" class="empty">No audit logs available</td></tr>
+                    <tr><td colspan="6" class="empty">{% trans "No audit logs available" %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -203,22 +203,22 @@
     <!-- Security Summary -->
     <div class="section-two-col">
         <div class="section">
-            <h2>Security Summary</h2>
+            <h2>{% trans "Security Summary" %}</h2>
             <div class="security-metrics">
                 <div class="security-item {% if security_summary.failed_accesses > 10 %}warning{% endif %}">
-                    <span class="label">Failed Accesses (Week)</span>
+                    <span class="label">{% trans "Failed Accesses (Week)" %}</span>
                     <span class="value">{{ security_summary.failed_accesses }}</span>
                 </div>
                 <div class="security-item {% if security_summary.suspicious_sessions > 0 %}warning{% endif %}">
-                    <span class="label">Suspicious Sessions</span>
+                    <span class="label">{% trans "Suspicious Sessions" %}</span>
                     <span class="value">{{ security_summary.suspicious_sessions }}</span>
                 </div>
                 <div class="security-item">
-                    <span class="label">Permission Denials (Week)</span>
+                    <span class="label">{% trans "Permission Denials (Week)" %}</span>
                     <span class="value">{{ security_summary.permission_denials }}</span>
                 </div>
                 <div class="security-score">
-                    <span class="label">Security Score</span>
+                    <span class="label">{% trans "Security Score" %}</span>
                     <div class="score-bar" style="--score-width: {{ security_summary.security_score|format_number:0 }}%;">
                         <span>{{ security_summary.security_score|format_number:0 }}/100</span>
                     </div>
@@ -228,7 +228,7 @@
 
         <!-- Data Integrity -->
         <div class="section">
-            <h2>Data Integrity Status</h2>
+            <h2>{% trans "Data Integrity Status" %}</h2>
             <div class="integrity-section">
                 <div class="integrity-score status-{{ integrity_status.status|lower }}">
                     <strong>{{ integrity_status.score }}%</strong>
@@ -236,7 +236,7 @@
                 </div>
                 {% if integrity_status.issues %}
                     <div class="issues-list">
-                        <h4>Issues Found:</h4>
+                        <h4>{% trans "Issues Found:" %}</h4>
                         {% for issue in integrity_status.issues %}
                             <div class="issue-item severity-{{ issue.severity|lower }}">
                                 <span class="issue-type">{{ issue.type }}</span>
@@ -245,7 +245,7 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="success">✓ No integrity issues detected</p>
+                    <p class="success">✓ {% trans "No integrity issues detected" %}</p>
                 {% endif %}
             </div>
         </div>
@@ -254,42 +254,42 @@
     <!-- Threat Detection & Blocked Access -->
     <div class="section-two-col">
         <div class="section">
-            <h2>🔍 Threat Detection (24h)</h2>
+            <h2>🔍 {% trans "Threat Detection (24h)" %}</h2>
             <div class="threat-metrics">
                 {% if threat_metrics.is_muted %}
                     <div class="alert-banner warning">
                         <span class="alert-icon">🔇</span>
                         <div class="alert-text">
-                            <strong>Detection Muted</strong>
-                            <p>Until: {{ threat_metrics.mute_until|format_date }} {{ threat_metrics.mute_until|time:"H:i" }}</p>
+                            <strong>{% trans "Detection Muted" %}</strong>
+                            <p>{% blocktrans with day=threat_metrics.mute_until|format_date time=threat_metrics.mute_until|time:"H:i" %}Until: {{ day }} {{ time }}{% endblocktrans %}</p>
                         </div>
                     </div>
                 {% endif %}
                 <div class="security-item {% if threat_metrics.total_findings > 0 %}warning{% endif %}">
-                    <span class="label">Total Findings</span>
+                    <span class="label">{% trans "Total Findings" %}</span>
                     <span class="value">{{ threat_metrics.total_findings }}</span>
                 </div>
                 <div class="security-item">
-                    <span class="label">Brute Force (User)</span>
+                    <span class="label">{% trans "Brute Force (User)" %}</span>
                     <span class="value">{{ threat_metrics.brute_force_user }}</span>
                 </div>
                 <div class="security-item">
-                    <span class="label">Brute Force (IP)</span>
+                    <span class="label">{% trans "Brute Force (IP)" %}</span>
                     <span class="value">{{ threat_metrics.brute_force_ip }}</span>
                 </div>
                 <div class="security-item">
-                    <span class="label">After Hours Access</span>
+                    <span class="label">{% trans "After Hours Access" %}</span>
                     <span class="value">{{ threat_metrics.after_hours }}</span>
                 </div>
                 <div class="threat-actions">
-                    <p class="last-checked">Last checked: {{ threat_metrics.last_checked|format_date }} {{ threat_metrics.last_checked|time:"H:i" }}</p>
+                    <p class="last-checked">{% blocktrans with day=threat_metrics.last_checked|format_date time=threat_metrics.last_checked|time:"H:i" %}Last checked: {{ day }} {{ time }}{% endblocktrans %}</p>
                     <div class="button-group">
                         {% if threat_metrics.is_muted %}
-                            <button type="button" class="btn btn-sm" onclick="muteThreats('clear')">🔔 Unmute</button>
+                            <button type="button" class="btn btn-sm" onclick="muteThreats('clear')">🔔 {% trans "Unmute" %}</button>
                         {% else %}
-                            <button type="button" class="btn btn-sm" onclick="muteThreats('1h')">Mute 1h</button>
-                            <button type="button" class="btn btn-sm" onclick="muteThreats('4h')">Mute 4h</button>
-                            <button type="button" class="btn btn-sm" onclick="muteThreats('24h')">Mute 24h</button>
+                            <button type="button" class="btn btn-sm" onclick="muteThreats('1h')">{% trans "Mute 1h" %}</button>
+                            <button type="button" class="btn btn-sm" onclick="muteThreats('4h')">{% trans "Mute 4h" %}</button>
+                            <button type="button" class="btn btn-sm" onclick="muteThreats('24h')">{% trans "Mute 24h" %}</button>
                         {% endif %}
                     </div>
                 </div>
@@ -298,35 +298,35 @@
 
         <!-- Blocked Access -->
         <div class="section">
-            <h2>🚫 Blocked Access (24h)</h2>
+            <h2>🚫 {% trans "Blocked Access (24h)" %}</h2>
             <div class="blocked-metrics">
                 <div class="security-item">
-                    <span class="label">Total Blocked</span>
+                    <span class="label">{% trans "Total Blocked" %}</span>
                     <span class="value">{{ blocked_access.total_blocked }}</span>
                 </div>
                 <div class="security-item">
-                    <span class="label">Unique IPs</span>
+                    <span class="label">{% trans "Unique IPs" %}</span>
                     <span class="value">{{ blocked_access.unique_ips }}</span>
                 </div>
                 {% if blocked_access.top_ips %}
                     <div class="blocked-list">
-                        <h4>Top Blocked IPs:</h4>
+                        <h4>{% trans "Top Blocked IPs:" %}</h4>
                         <ul>
                             {% for item in blocked_access.top_ips|slice:":5" %}
                                 <li>
-                                    <strong>{{ item.ip }}</strong> 
+                                    <strong>{{ item.ip }}</strong>
                                     <span class="badge">{{ item.count }}x</span>
-                                    <br><small>Last: {{ item.last_seen|format_date }} {{ item.last_seen|time:"H:i" }}</small>
+                                    <br><small>{% blocktrans with day=item.last_seen|format_date time=item.last_seen|time:"H:i" %}Last: {{ day }} {{ time }}{% endblocktrans %}</small>
                                 </li>
                             {% endfor %}
                         </ul>
                     </div>
                 {% else %}
-                    <p class="success">✓ No blocked access attempts</p>
+                    <p class="success">✓ {% trans "No blocked access attempts" %}</p>
                 {% endif %}
                 {% if blocked_access.top_countries %}
                     <div class="blocked-list">
-                        <h4>Top Blocked Countries:</h4>
+                        <h4>{% trans "Top Blocked Countries:" %}</h4>
                         <ul>
                             {% for item in blocked_access.top_countries|slice:":5" %}
                                 <li>
@@ -343,20 +343,20 @@
 
     <!-- Quick Links -->
     <div class="section quick-links">
-        <h2>Quick Links</h2>
+        <h2>{% trans "Quick Links" %}</h2>
         <div class="link-grid">
-            <a href="{% url 'compliance:compliance_reporting:audit_trail' %}" class="link-btn">📋 Audit Trail</a>
-            <a href="{% url 'compliance:compliance_reporting:data_access' %}" class="link-btn">📊 Data Access</a>
-            <a href="{% url 'compliance:compliance_reporting:permissions' %}" class="link-btn">🔐 Permissions</a>
-            <a href="{% url 'compliance:compliance_reporting:integrity_check' %}" class="link-btn">✓ Integrity Check</a>
-            <a href="{% url 'compliance:compliance_reporting:anomalies' %}" class="link-btn">⚠️ Anomalies</a>
+            <a href="{% url 'compliance:compliance_reporting:audit_trail' %}" class="link-btn">📋 {% trans "Audit Trail" %}</a>
+            <a href="{% url 'compliance:compliance_reporting:data_access' %}" class="link-btn">📊 {% trans "Data Access" %}</a>
+            <a href="{% url 'compliance:compliance_reporting:permissions' %}" class="link-btn">🔐 {% trans "Permissions" %}</a>
+            <a href="{% url 'compliance:compliance_reporting:integrity_check' %}" class="link-btn">✓ {% trans "Integrity Check" %}</a>
+            <a href="{% url 'compliance:compliance_reporting:anomalies' %}" class="link-btn">⚠️ {% trans "Anomalies" %}</a>
             <a href="{% url 'siteconfig:console_domains_hub' %}" class="link-btn">⚙️ {% trans "Config center" %}</a>
         </div>
         <div class="export-links">
-            <span class="export-label">Export shortcuts:</span>
-            <a href="{% url 'compliance:compliance_reporting:export' %}?type=audit_trail&format=csv&days=30" class="chip">Audit CSV</a>
-            <a href="{% url 'compliance:compliance_reporting:export' %}?type=access_log&format=csv&days=30" class="chip">Access CSV</a>
-            <a href="{% url 'compliance:compliance_reporting:export' %}?type=audit_trail&format=pdf&days=30" class="chip">Audit PDF</a>
+            <span class="export-label">{% trans "Export shortcuts:" %}</span>
+            <a href="{% url 'compliance:compliance_reporting:export' %}?type=audit_trail&format=csv&days=30" class="chip">{% trans "Audit CSV" %}</a>
+            <a href="{% url 'compliance:compliance_reporting:export' %}?type=access_log&format=csv&days=30" class="chip">{% trans "Access CSV" %}</a>
+            <a href="{% url 'compliance:compliance_reporting:export' %}?type=audit_trail&format=pdf&days=30" class="chip">{% trans "Audit PDF" %}</a>
         </div>
     </div>
 </div>

@@ -2086,7 +2086,7 @@ def class_ranking_view(request: HttpRequest):
         try:
             per_page = min(100, max(20, int(request.GET.get("page_size", 50))))
         except (TypeError, ValueError):
-            per_page = 50
+            per_page = settings.DEFAULT_ADMIN_PAGE_SIZE
         paginator = Paginator(rows, per_page)
         page_number = request.GET.get("page", 1)
         try:
@@ -2165,7 +2165,7 @@ def school_ranking_view(request: HttpRequest):
     try:
         per_page = min(100, max(20, int(request.GET.get("page_size", 50))))
     except (TypeError, ValueError):
-        per_page = 50
+        per_page = settings.DEFAULT_ADMIN_PAGE_SIZE
     paginator = Paginator(rows, per_page)
     page_number = request.GET.get("page", 1)
     try:
@@ -2526,51 +2526,18 @@ class GradeImportUploadForm(forms.Form):
 
 
 @staff_member_required(login_url=settings.LOGIN_URL)
+@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def grade_import_upload_view(request: HttpRequest):
     """
-    Staff-facing CSV upload with preview + apply.
+    Staff-facing bulk grade import wizard. Renders the dropzone-based 4-step UI;
+    actual upload + apply are handled client-side via grade_import_preview_api /
+    grade_import_apply_api.
     """
-    form = GradeImportUploadForm(request.POST or None, request.FILES or None)
-    preview = None
-    result = None
     active_year, _ = get_active_year_and_term()
-    if request.method == "POST" and form.is_valid():
-        upload = form.cleaned_data["file"]
-        try:
-            reader = csv.DictReader(io.TextIOWrapper(upload, encoding="utf-8"))
-            preview = preview_import(reader)
-        except EVALS_SOFT_FAILURES:  # pragma: no cover - defensive
-            logger.exception("Grade import: failed to read CSV")
-            messages.error(
-                request,
-                "We couldn't read your CSV. Check that the file is UTF-8 and that column headers match the template.",
-            )
-        else:
-            if preview.errors:
-                messages.error(request, "Please fix the errors below before applying.")
-            elif request.POST.get("action") == "apply":
-                if not active_year:
-                    messages.error(request, "No active academic year found.")
-                else:
-                    try:
-                        result = apply_import(preview, active_year)
-                        messages.success(
-                            request,
-                            f"Imported grades (created: {result['created']}, updated: {result['updated']}).",
-                        )
-                    except EVALS_SOFT_FAILURES:
-                        logger.exception("Grade import: apply failed")
-                        messages.error(
-                            request,
-                            "Import failed while saving grades. Check your data matches the template (student codes, subject assignment and term IDs).",
-                        )
     return render(
         request,
-        "evals/grade_import_upload.html",
+        "evals/grade_import_upload_v2.html",
         {
-            "form": form,
-            "preview": preview,
-            "result": result,
             "template_headers": build_template_headers(),
             "active_year": active_year,
         },

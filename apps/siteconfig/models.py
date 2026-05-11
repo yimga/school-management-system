@@ -1849,7 +1849,7 @@ class SiteSettings(models.Model):
         selection_ids = self.get_theme_selection_ids()
         teacher_theme_pack_id = selection_ids.get("teacher_theme_pack_id")
         parent_theme_pack_id = selection_ids.get("parent_theme_pack_id")
-        if role == "TEACHER" and teacher_theme_pack_id:
+        if role == User.Role.TEACHER and teacher_theme_pack_id:
             staged_teacher_pack = self._resolve_staged_theme_pack(
                 "teacher_theme_pack",
                 teacher_theme_pack_id,
@@ -1864,7 +1864,7 @@ class SiteSettings(models.Model):
                     return pack
             except (OperationalError, DatabaseError):
                 pass
-        if role == "PARENT" and parent_theme_pack_id:
+        if role == User.Role.PARENT and parent_theme_pack_id:
             staged_parent_pack = self._resolve_staged_theme_pack(
                 "parent_theme_pack",
                 parent_theme_pack_id,
@@ -1948,6 +1948,7 @@ from .models_feature_controls import (  # noqa: F401
 # Re-export for admin/forms: models live in academics (moved in 0146 / tenant_runtime).
 from apps.academics.models import ReportCardStyleAssignment  # noqa: F401
 from apps.academics.models_tenant_runtime import HolidayCalendar  # noqa: F401
+from apps.accounts.models import User  # role enum
 from .models_platform_catalog import TenantAdmissionNumberPolicy  # noqa: F401
 from .models_ai import (  # noqa: F401
     AIGatewayMetric,

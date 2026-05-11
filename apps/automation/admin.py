@@ -4,6 +4,7 @@ Admin configuration for automation models.
 
 from django.contrib import admin
 from django.db.models import Count
+from django.conf import settings
 from config.admin import platform_admin_site
 from unfold.admin import ModelAdmin
 from .models import (
@@ -33,7 +34,7 @@ class AutomationExecutionLogAdmin(ModelAdmin):
     date_hierarchy = "started_at"
     search_fields = ("task_name", "schema_name", "error_message")
     readonly_fields = ("started_at", "completed_at", "execution_summary")
-    list_per_page = 50
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE
     show_full_result_count = False
 
     fieldsets = (
@@ -80,7 +81,7 @@ class AutomationApprovalQueueAdmin(ModelAdmin):
     list_filter = ("school", "automation_type", "status", "created_at")
     search_fields = ("automation_type", "schema_name", "rejection_reason")
     readonly_fields = ("created_at", "execution_summary", "execution_log")
-    list_per_page = 50
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE
     show_full_result_count = False
 
     fieldsets = (
@@ -176,7 +177,7 @@ class MigrationQuarantineRecordAdmin(ModelAdmin):
     search_fields = ("issue_class", "migration_run__migration_type")
     raw_id_fields = ("migration_run",)
     readonly_fields = ("created_at",)
-    list_per_page = 50
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE
 
 
 @admin.register(MigrationRun, site=platform_admin_site)
@@ -207,7 +208,7 @@ class MigrationRunAdmin(ModelAdmin):
         "rollback_snapshot",
         "rolled_back_by_run",
     )
-    list_per_page = 50
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE
     actions = ["trigger_rollback_action"]
 
     def get_queryset(self, request):

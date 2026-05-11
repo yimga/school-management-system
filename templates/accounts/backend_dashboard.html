@@ -358,7 +358,7 @@ backend-shell dashboard-page-backend
         <div class="backend-v2-overview" data-widget-id="backend-v2-overview">
           <div class="backend-v2-overview-head">
             <div>
-              <h2>Overview</h2>
+              <h2>{% trans "Overview" %}</h2>
               <p class="backend-v2-overview-sub">{% trans "Operator-first school operating system — live pulse of academics, people, attendance, and finance." %}</p>
               <nav class="backend-intent-switcher mt-2" aria-label="{% trans 'Dashboard view' %}">
                 {% url 'accounts:backend_dashboard' as base_url %}
@@ -607,10 +607,10 @@ backend-shell dashboard-page-backend
                 <h3 class="backend-role-home-title">{{ role_home.title }}</h3>
                 <p class="backend-role-home-sub">{{ role_home.purpose }}</p>
                 <div class="backend-role-home-contract">
-                  <span class="backend-role-home-contract-item"><i class="bi bi-bullseye"></i> 1 dominant purpose</span>
-                  <span class="backend-role-home-contract-item"><i class="bi bi-grid-1x2"></i> {{ dashboard_contract.metric_count }} metrics</span>
-                  <span class="backend-role-home-contract-item"><i class="bi bi-command"></i> Search-first navigation</span>
-                  <span class="backend-role-home-contract-item"><i class="bi bi-lightning"></i> {{ dashboard_priority_queue|length }} priority items</span>
+                  <span class="backend-role-home-contract-item"><i class="bi bi-bullseye"></i> {% trans "1 dominant purpose" %}</span>
+                  <span class="backend-role-home-contract-item"><i class="bi bi-grid-1x2"></i> {% blocktrans with count=dashboard_contract.metric_count %}{{ count }} metrics{% endblocktrans %}</span>
+                  <span class="backend-role-home-contract-item"><i class="bi bi-command"></i> {% trans "Search-first navigation" %}</span>
+                  <span class="backend-role-home-contract-item"><i class="bi bi-lightning"></i> {% blocktrans with count=dashboard_priority_queue|length %}{{ count }} priority items{% endblocktrans %}</span>
                 </div>
                 {% if role_home_focus_areas %}
                 <div class="backend-role-home-focus">
@@ -738,8 +738,8 @@ backend-shell dashboard-page-backend
         {% if not backend_module_visibility.overview and not backend_module_visibility.welcome %}
         <article class="card backend-v2-panel backend-v2-panel--empty" data-widget-id="backend-v2-main-empty">
           <div class="card-body">
-            <h5 class="backend-v2-panel-title mb-1">Dashboard Intro Modules Hidden</h5>
-            <p class="small text-muted mb-0">Enable Overview or Welcome in Feature Control to restore the top workspace blocks.</p>
+            <h5 class="backend-v2-panel-title mb-1">{% trans "Dashboard Intro Modules Hidden" %}</h5>
+            <p class="small text-muted mb-0">{% trans "Enable Overview or Welcome in Feature Control to restore the top workspace blocks." %}</p>
           </div>
         </article>
         {% endif %}
@@ -750,13 +750,13 @@ backend-shell dashboard-page-backend
       <aside class="backend-v2-side">
         <div class="backend-v2-side-card" data-widget-id="backend-v2-admin-portal">
           <div class="backend-v2-side-head">
-            <h3 class="backend-v2-side-title">Admin Portal</h3>
+            <h3 class="backend-v2-side-title">{% trans "Admin Portal" %}</h3>
             <a class="backend-v2-chip" href="{% url 'studio_os:workflow_center' %}">
               <i class="bi bi-diagram-3"></i>
-              <span>Workflow</span>
+              <span>{% trans "Workflow" %}</span>
             </a>
           </div>
-          <p class="backend-v2-side-meta">Snapshots, systems, and workflows</p>
+          <p class="backend-v2-side-meta">{% trans "Snapshots, systems, and workflows" %}</p>
 
           <div class="backend-dtw-and-calendar">
             <div class="backend-dtw-and-calendar__dtw">
@@ -770,19 +770,19 @@ backend-shell dashboard-page-backend
           <div class="backend-v2-side-grid">
             {% for item in admin_portal.academics %}
             <div class="backend-v2-mini">
-              <span>Academics - {{ item.label }}</span>
+              <span>{% blocktrans with label=item.label %}Academics - {{ label }}{% endblocktrans %}</span>
               <strong>{{ item.value }}</strong>
             </div>
             {% endfor %}
             {% for item in admin_portal.accounts %}
             <div class="backend-v2-mini">
-              <span>Accounts - {{ item.label }}</span>
+              <span>{% blocktrans with label=item.label %}Accounts - {{ label }}{% endblocktrans %}</span>
               <strong>{{ item.value }}</strong>
             </div>
             {% endfor %}
             {% for item in admin_portal.finance %}
             <div class="backend-v2-mini">
-              <span>Finance - {{ item.label }}</span>
+              <span>{% blocktrans with label=item.label %}Finance - {{ label }}{% endblocktrans %}</span>
               <strong>{{ item.value }}</strong>
             </div>
             {% endfor %}
@@ -824,9 +824,9 @@ backend-shell dashboard-page-backend
           {% else %}
           <article class="card backend-v2-panel backend-v2-panel--empty">
             <div class="card-body">
-              <h5 class="backend-v2-panel-title mb-1">Outstanding Fees</h5>
-              <p class="small text-muted mb-0">No fee status data yet. Create invoices to see breakdown here.</p>
-              <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'finance:dashboard' %}">Open finance console</a>
+              <h5 class="backend-v2-panel-title mb-1">{% trans "Outstanding Fees" %}</h5>
+              <p class="small text-muted mb-0">{% trans "No fee status data yet. Create invoices to see breakdown here." %}</p>
+              <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'finance:dashboard' %}">{% trans "Open finance console" %}</a>
             </div>
           </article>
           {% endif %}
@@ -837,7 +837,7 @@ backend-shell dashboard-page-backend
         <article class="card backend-v2-panel {% if not at_risk_students %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-at-risk-students">
           <div class="card-body">
             <div class="backend-v2-panel-head">
-              <h5 class="backend-v2-panel-title mb-0">At-Risk Students</h5>
+              <h5 class="backend-v2-panel-title mb-0">{% trans "At-Risk Students" %}</h5>
               <span class="badge text-bg-light">{{ at_risk_students|length }}</span>
             </div>
             {% if backend_visual_settings.show_progress_rings %}
@@ -845,7 +845,7 @@ backend-shell dashboard-page-backend
               <div class="backend-v2-progress-ring" style="--ring-pct: {{ at_risk_ratio_pct|default:0 }};">
                 <span>{{ at_risk_ratio_pct|default:0 }}%</span>
               </div>
-              <small class="text-muted">Share of tracked students flagged</small>
+              <small class="text-muted">{% trans "Share of tracked students flagged" %}</small>
             </div>
             {% endif %}
             <div class="dashboard-card-scroll">
@@ -860,8 +860,8 @@ backend-shell dashboard-page-backend
                 </div>
                 {% empty %}
                 <div>
-                  <p class="small text-muted mb-0">No at-risk learners detected.</p>
-                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'studio_os:workflow_center' %}">Review intervention workflow</a>
+                  <p class="small text-muted mb-0">{% trans "No at-risk learners detected." %}</p>
+                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'studio_os:workflow_center' %}">{% trans "Review intervention workflow" %}</a>
                 </div>
                 {% endfor %}
               </div>
@@ -877,9 +877,9 @@ backend-shell dashboard-page-backend
           {% else %}
           <article class="card backend-v2-panel backend-v2-panel--empty">
             <div class="card-body">
-              <h5 class="backend-v2-panel-title mb-1">Enrollment Trends</h5>
-              <p class="small text-muted mb-0">No enrollment trend data yet. Add students with join dates to see trends.</p>
-              <a class="backend-empty-quick-action mt-2 d-inline-block" href="{{ quick_student_create_url }}">Add student roster</a>
+              <h5 class="backend-v2-panel-title mb-1">{% trans "Enrollment Trends" %}</h5>
+              <p class="small text-muted mb-0">{% trans "No enrollment trend data yet. Add students with join dates to see trends." %}</p>
+              <a class="backend-empty-quick-action mt-2 d-inline-block" href="{{ quick_student_create_url }}">{% trans "Add student roster" %}</a>
             </div>
           </article>
           {% endif %}
@@ -890,8 +890,8 @@ backend-shell dashboard-page-backend
         <article class="card backend-v2-panel" data-widget-id="backend-recent-admissions">
           <div class="card-body">
             <div class="backend-v2-panel-head">
-              <h5 class="backend-v2-panel-title mb-0">Recent Admissions</h5>
-              <a href="{{ quick_student_create_url }}" class="btn btn-sm btn-outline-primary">Add student</a>
+              <h5 class="backend-v2-panel-title mb-0">{% trans "Recent Admissions" %}</h5>
+              <a href="{{ quick_student_create_url }}" class="btn btn-sm btn-outline-primary">{% trans "Add student" %}</a>
             </div>
             <div class="dashboard-card-scroll">
               <div class="backend-v2-list">
@@ -908,8 +908,8 @@ backend-shell dashboard-page-backend
                 </div>
                 {% empty %}
                 <div>
-                  <div class="small text-muted">No recent admissions yet.</div>
-                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{{ quick_student_create_url }}">Start admissions</a>
+                  <div class="small text-muted">{% trans "No recent admissions yet." %}</div>
+                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{{ quick_student_create_url }}">{% trans "Start admissions" %}</a>
                 </div>
                 {% endfor %}
               </div>
@@ -922,8 +922,8 @@ backend-shell dashboard-page-backend
         <article class="card backend-v2-panel" data-widget-id="backend-recent-activity">
           <div class="card-body">
             <div class="backend-v2-panel-head">
-              <h5 class="backend-v2-panel-title mb-0">Recent Activity</h5>
-              <span class="badge text-bg-light">Live feed</span>
+              <h5 class="backend-v2-panel-title mb-0">{% trans "Recent Activity" %}</h5>
+              <span class="badge text-bg-light">{% trans "Live feed" %}</span>
             </div>
             <div class="dashboard-card-scroll">
               <div class="backend-v2-list">
@@ -937,8 +937,8 @@ backend-shell dashboard-page-backend
                 </div>
                 {% empty %}
                 <div>
-                  <div class="small text-muted">No recent activity available.</div>
-                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'studio_os:workflow_center' %}">Open workflow center</a>
+                  <div class="small text-muted">{% trans "No recent activity available." %}</div>
+                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'studio_os:workflow_center' %}">{% trans "Open workflow center" %}</a>
                 </div>
                 {% endfor %}
               </div>
@@ -951,8 +951,8 @@ backend-shell dashboard-page-backend
         <article class="card backend-v2-panel" data-widget-id="backend-top-performing">
           <div class="card-body">
             <div class="backend-v2-panel-head">
-              <h5 class="backend-v2-panel-title mb-0">Top-Performing</h5>
-              <span class="badge text-bg-light">This term</span>
+              <h5 class="backend-v2-panel-title mb-0">{% trans "Top-Performing" %}</h5>
+              <span class="badge text-bg-light">{% trans "This term" %}</span>
             </div>
             <div class="dashboard-card-scroll">
               <div class="backend-v2-list">
@@ -969,8 +969,8 @@ backend-shell dashboard-page-backend
                 </div>
                 {% empty %}
                 <div>
-                  <div class="small text-muted">Top-performing metrics will appear once marks are entered.</div>
-                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'reports:publish_term_results' %}">Open academic workbench</a>
+                  <div class="small text-muted">{% trans "Top-performing metrics will appear once marks are entered." %}</div>
+                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'reports:publish_term_results' %}">{% trans "Open academic workbench" %}</a>
                 </div>
                 {% endfor %}
               </div>
@@ -983,17 +983,17 @@ backend-shell dashboard-page-backend
         <article class="card backend-v2-panel backend-v2-panel--attendance" data-widget-id="backend-attendance-today">
           <div class="card-body">
             <div class="backend-v2-panel-head">
-              <h5 class="backend-v2-panel-title mb-0">Attendance</h5>
-              <span class="badge text-bg-light">Staff</span>
+              <h5 class="backend-v2-panel-title mb-0">{% trans "Attendance" %}</h5>
+              <span class="badge text-bg-light">{% trans "Staff" %}</span>
             </div>
             <div class="backend-attendance-pulse">
               <div class="backend-attendance-pulse-row">
                 <span class="backend-attendance-pulse-value">{{ attended_today|default:0 }}</span>
-                <span class="backend-attendance-pulse-label">Present today</span>
+                <span class="backend-attendance-pulse-label">{% trans "Present today" %}</span>
               </div>
               {% if attendance_trend_total is not None %}
               <div class="backend-attendance-pulse-row backend-attendance-pulse-meta">
-                <span class="small text-muted">This week: {{ attendance_trend_total }} present total</span>
+                <span class="small text-muted">{% blocktrans with total=attendance_trend_total %}This week: {{ total }} present total{% endblocktrans %}</span>
               </div>
               {% endif %}
             </div>
@@ -1008,8 +1008,8 @@ backend-shell dashboard-page-backend
         {% if backend_main_module_count == 0 %}
         <article class="card backend-v2-panel backend-v2-panel--empty" data-widget-id="backend-modules-disabled">
           <div class="card-body">
-            <h5 class="backend-v2-panel-title mb-1">Dashboard Modules Hidden</h5>
-            <p class="small text-muted mb-0">Enable backend modules in Feature Control to populate this workspace.</p>
+            <h5 class="backend-v2-panel-title mb-1">{% trans "Dashboard Modules Hidden" %}</h5>
+            <p class="small text-muted mb-0">{% trans "Enable backend modules in Feature Control to populate this workspace." %}</p>
           </div>
         </article>
         {% endif %}
@@ -1035,8 +1035,8 @@ backend-shell dashboard-page-backend
       <div class="card mb-3 backend-ops-watch-card backend-v2-rail-card backend-v2-rail-card--ops" data-widget-id="backend-ops-watch">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="mb-0">Operations watch</h6>
-            <span class="badge bg-light text-dark" id="backendOpsWatchUpdatedAt">Live - {{ local_time|date:"h:i A" }}</span>
+            <h6 class="mb-0">{% trans "Operations watch" %}</h6>
+            <span class="badge bg-light text-dark" id="backendOpsWatchUpdatedAt">{% blocktrans with time=local_time|date:"h:i A" %}Live - {{ time }}{% endblocktrans %}</span>
           </div>
           <div class="d-grid gap-2 mb-3 small js-ops-watch-list" data-refresh-url="{{ ops_watch_refresh_url }}" data-finance-url="{{ finance_request_link }}">
             {% for item in operations_watch|slice:backend_max_items_slice %}
@@ -1054,7 +1054,7 @@ backend-shell dashboard-page-backend
               <div class="backend-ops-item-left">
                 <span class="backend-ops-dot"></span>
                 <a href="{{ finance_request_link }}">
-                  <i class="bi bi-wallet2 me-1"></i>Finance requests
+                  <i class="bi bi-wallet2 me-1"></i>{% trans "Finance requests" %}
                 </a>
               </div>
               <strong>{{ ops_watch_finance_requests|default:0 }}</strong>
@@ -1068,8 +1068,8 @@ backend-shell dashboard-page-backend
       <div class="card mb-3 backend-quick-links-card backend-v2-rail-card backend-v2-rail-card--links {% if not quick_links %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-quick-links">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="mb-0">Role destinations</h6>
-            <span class="badge bg-light text-dark">Top 5</span>
+            <h6 class="mb-0">{% trans "Role destinations" %}</h6>
+            <span class="badge bg-light text-dark">{% trans "Top 5" %}</span>
           </div>
           <div class="backend-quick-links-list">
             {% for quick in quick_links|slice:backend_max_items_slice %}
@@ -1078,8 +1078,8 @@ backend-shell dashboard-page-backend
               <i class="bi bi-chevron-right small"></i>
             </a>
             {% empty %}
-            <p class="small text-muted mb-1">No shortcuts for your role.</p>
-            <a class="backend-empty-quick-action" href="{% url 'siteconfig:user_preferences' %}"><i class="bi bi-sliders me-1"></i>Add in Preferences</a>
+            <p class="small text-muted mb-1">{% trans "No shortcuts for your role." %}</p>
+            <a class="backend-empty-quick-action" href="{% url 'siteconfig:user_preferences' %}"><i class="bi bi-sliders me-1"></i>{% trans "Add in Preferences" %}</a>
             {% endfor %}
           </div>
         </div>
@@ -1090,13 +1090,13 @@ backend-shell dashboard-page-backend
       <div class="card mb-3 backend-quick-links-card backend-v2-planner-card backend-v2-rail-card backend-v2-rail-card--planner {% if not upcoming_events and not recommended_next_steps %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-planner" data-backend-widget-surface="planner-rail" data-backend-widget-role="operational-rollup">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="mb-0">Planner</h6>
-            <a class="badge bg-light text-dark text-decoration-none" href="{% url 'portal:unified_calendar' %}">View calendar</a>
+            <h6 class="mb-0">{% trans "Planner" %}</h6>
+            <a class="badge bg-light text-dark text-decoration-none" href="{% url 'portal:unified_calendar' %}">{% trans "View calendar" %}</a>
           </div>
           <div class="backend-planner-sections">
             <section class="backend-planner-section">
               <div class="backend-planner-section-head">
-                <span class="small fw-semibold text-muted">Upcoming events</span>
+                <span class="small fw-semibold text-muted">{% trans "Upcoming events" %}</span>
               </div>
               <div class="backend-planner-list backend-planner-events">
                 {% for item in upcoming_events|slice:backend_max_items_slice %}
@@ -1108,13 +1108,13 @@ backend-shell dashboard-page-backend
                   </div>
                 </div>
                 {% empty %}
-                <p class="small text-muted mb-1">No upcoming events.</p>
+                <p class="small text-muted mb-1">{% trans "No upcoming events." %}</p>
                 {% endfor %}
               </div>
             </section>
             {% include "partials/shell_chrome_backend_planner_recommended_next_strip.html" %}
             <a href="{% url 'studio_os:workflow_center' %}" class="backend-quick-link d-flex align-items-center gap-2 text-decoration-none small text-muted">
-              <span>View all workflow steps</span>
+              <span>{% trans "View all workflow steps" %}</span>
               <i class="bi bi-arrow-right ms-auto"></i>
             </a>
           </div>
@@ -1129,8 +1129,8 @@ backend-shell dashboard-page-backend
   <div id="backendCommandPalette" class="backend-cmd-palette" aria-hidden="true">
     <div class="backend-cmd-overlay" data-cmd-close></div>
     <div class="backend-cmd-box" role="dialog" aria-modal="true" aria-labelledby="backendCommandPaletteLabel">
-      <label id="backendCommandPaletteLabel" class="visually-hidden" for="backendCommandInput">Command center</label>
-      <input id="backendCommandInput" class="backend-cmd-input" type="text" placeholder="Type a command..." autocomplete="off" />
+      <label id="backendCommandPaletteLabel" class="visually-hidden" for="backendCommandInput">{% trans "Command center" %}</label>
+      <input id="backendCommandInput" class="backend-cmd-input" type="text" placeholder="{% trans 'Type a command...' %}" autocomplete="off" />
       <div id="backendCommandResults" class="backend-cmd-results"></div>
     </div>
   </div>

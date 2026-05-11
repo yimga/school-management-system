@@ -680,7 +680,7 @@ def api_activities(request):
         from django.contrib.admin.models import LogEntry
 
         page = int(request.GET.get("page", 1))
-        per_page = 10
+        per_page = settings.DEFAULT_WIDGET_PAGE_SIZE
 
         logs = LogEntry.objects.select_related("user", "content_type").order_by(
             "-action_time"

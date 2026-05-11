@@ -463,7 +463,9 @@ def workflow_center(request):
             "step_key": "certification",
             "icon": "bi-award",
             "progress_label": "Enabled" if gce_enabled else "Enable in Academic Year",
-            "tip": "Designed for Cameroon general and technical education; adapt sessions to your subsystem (GCE, BAC, BEPC, CAP).",
+            # TODO(config): copy bound to Cameroon GCE/BAC pack — should live in apps/policies/BlueprintPack
+            # so other regions (KCSE, WAEC, IGCSE etc.) plug in their own tip without code edits.
+            "tip": _("Tune sessions to your local exam subsystem (GCE/BAC/BEPC/CAP/KCSE/WAEC/IGCSE — whatever your country requires)."),
             "links": _filter_links(certification_links),
         },
         {

@@ -8,6 +8,7 @@ import csv
 from django.contrib import admin
 from django.http import HttpResponse
 from django.utils import timezone
+from django.conf import settings
 from unfold.admin import ModelAdmin
 from config.admin import register_both, tenant_admin_site
 from .models_audit import (
@@ -58,7 +59,7 @@ class AuditLogAdmin(ModelAdmin):
         "new_values",
         "changed_fields",
     )
-    list_per_page = 100
+    list_per_page = settings.DEFAULT_AUDIT_PAGE_SIZE
     show_full_result_count = False
     date_hierarchy = "timestamp"
     actions = ["export_audit_log_csv", "export_audit_log_json"]
@@ -158,7 +159,7 @@ class UserActivitySessionAdmin(ModelAdmin):
         "logout_timestamp",
         "last_activity",
     )
-    list_per_page = 100
+    list_per_page = settings.DEFAULT_AUDIT_PAGE_SIZE
     show_full_result_count = False
     date_hierarchy = "login_timestamp"
 
@@ -195,7 +196,7 @@ class AccessLogAdmin(ModelAdmin):
     list_filter = ("access_type", "status", "request_method", "timestamp")
     search_fields = ("user__username", "resource", "ip_address")
     readonly_fields = ("timestamp", "response_time_ms")
-    list_per_page = 100
+    list_per_page = settings.DEFAULT_AUDIT_PAGE_SIZE
     show_full_result_count = False
     date_hierarchy = "timestamp"
 
@@ -220,7 +221,7 @@ class ComplianceReportAdmin(ModelAdmin):
     list_filter = ("report_type", "generated_at")
     search_fields = ("generated_by__username",)
     readonly_fields = ("generated_at", "summary", "details", "issues", "export_formats")
-    list_per_page = 50
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE
     show_full_result_count = False
     date_hierarchy = "generated_at"
     actions = ["export_as_json", "export_as_csv", "export_as_pdf"]

@@ -69,11 +69,11 @@
     {% if PREVIEW_MODE_ENABLED %}
     <div class="alert alert-warning rounded-3 mb-3 py-2 d-flex flex-wrap align-items-center justify-content-between gap-2">
       <div class="small">
-        <strong class="text-uppercase">Preview mode</strong> - {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Changes are staged and will not persist until preview is cleared." }}
+        <strong class="text-uppercase">{% trans "Preview mode" %}</strong> - {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:_("Changes are staged and will not persist until preview is cleared.") }}
       </div>
       <div class="d-flex gap-2">
-        <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle preview</a>
-        <a class="btn btn-sm btn-outline-light" href="{% url 'siteconfig:clear_preview' %}">Clear preview</a>
+        <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{% trans "Toggle preview" %}</a>
+        <a class="btn btn-sm btn-outline-light" href="{% url 'siteconfig:clear_preview' %}">{% trans "Clear preview" %}</a>
       </div>
     </div>
     {% endif %}
@@ -105,20 +105,20 @@
         <div class="mb-3">
           <i class="bi bi-rocket-takeoff text-primary" style="font-size: 3rem;"></i>
         </div>
-        <h3 class="card-title mb-2">Get Started</h3>
+        <h3 class="card-title mb-2">{% trans "Get Started" %}</h3>
         <p class="text-muted mb-4">
-          Link your child's account to view their progress, attendance, and school updates.
+          {% trans "Link your child's account to view their progress, attendance, and school updates." %}
         </p>
         {% if rmc_conversion_single_action_enforced|default:False %}
         <div class="d-flex flex-column flex-md-row gap-3 justify-content-center align-items-center">
           <a href="{% url 'portal:claim_invite' %}" class="btn btn-primary btn-lg" data-rmc-parent-onboarding-primary="1">
-            <i class="bi bi-envelope-check me-2"></i>I have an invite code
+            <i class="bi bi-envelope-check me-2"></i>{% trans "I have an invite code" %}
           </a>
           <details class="rmc-conversion-more-actions text-start">
             <summary class="btn btn-outline-primary btn-lg">{% trans "More ways to link" %}</summary>
             <div class="pt-3">
               <a href="{% url 'portal:link_child' %}" class="btn btn-outline-primary w-100">
-                <i class="bi bi-link-45deg me-2"></i>I have an admission number
+                <i class="bi bi-link-45deg me-2"></i>{% trans "I have an admission number" %}
               </a>
             </div>
           </details>
@@ -126,15 +126,15 @@
         {% else %}
         <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
           <a href="{% url 'portal:claim_invite' %}" class="btn btn-primary btn-lg">
-            <i class="bi bi-envelope-check me-2"></i>I have an invite code
+            <i class="bi bi-envelope-check me-2"></i>{% trans "I have an invite code" %}
           </a>
           <a href="{% url 'portal:link_child' %}" class="btn btn-outline-primary btn-lg">
-            <i class="bi bi-link-45deg me-2"></i>I have an admission number
+            <i class="bi bi-link-45deg me-2"></i>{% trans "I have an admission number" %}
           </a>
         </div>
         {% endif %}
         <p class="small text-muted mt-3 mb-0">
-          Don't have either? <a href="mailto:{{ site.company_email|default:'support@school.local' }}">Contact the school</a> to get started.
+          {% blocktrans with email=site.company_email|default:'support@school.local' %}Don't have either? <a href="mailto:{{ email }}">Contact the school</a> to get started.{% endblocktrans %}
         </p>
       </div>
     </div>
@@ -143,7 +143,7 @@
     <div class="alert alert-warning d-flex align-items-center gap-2 mb-3" role="alert">
       <i class="bi bi-shield-lock"></i>
       <div>
-        Finance access is not enabled for your account yet. If you need to view invoices or make payments, please contact the school admin to enable finance access for your linked students.
+        {% trans "Finance access is not enabled for your account yet. If you need to view invoices or make payments, please contact the school admin to enable finance access for your linked students." %}
       </div>
     </div>
     {% endif %}
@@ -158,17 +158,17 @@
         </div>
         <div class="dashboard-actions ds-action-bar d-flex flex-wrap align-items-center gap-2" data-rmc-parent-header-actions="1">
           {% if parent_verified %}
-          <span class="px-3 py-1 rounded-pill small text-nowrap bg-primary bg-opacity-25 text-primary" role="status" aria-label="Verified Parent"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>Verified Parent</span>
+          <span class="px-3 py-1 rounded-pill small text-nowrap bg-primary bg-opacity-25 text-primary" role="status" aria-label="{% trans 'Verified Parent' %}"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>{% trans "Verified Parent" %}</span>
           {% endif %}
-          <a class="btn btn-sm btn-primary ds-btn" href="{% url 'portal:parent_workflow' %}" data-rmc-parent-primary-header-cta="1"><i class="bi bi-diagram-3 me-1"></i>My Workflow</a>
+          <a class="btn btn-sm btn-primary ds-btn" href="{% url 'portal:parent_workflow' %}" data-rmc-parent-primary-header-cta="1"><i class="bi bi-diagram-3 me-1"></i>{% trans "My Workflow" %}</a>
           {% if not rmc_conversion_single_action_enforced|default:False %}
-          <a class="btn btn-sm btn-outline-secondary ds-btn" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-chat-dots me-1"></i>Contact School</a>
+          <a class="btn btn-sm btn-outline-secondary ds-btn" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-chat-dots me-1"></i>{% trans "Contact School" %}</a>
           {% endif %}
           {% if links %}
-          <select class="form-select form-select-sm" onchange="if(this.value){ window.location=this.value; }" aria-label="Switch child">
-            <option selected disabled>Switch child</option>
+          <select class="form-select form-select-sm" onchange="if(this.value){ window.location=this.value; }" aria-label="{% trans 'Switch child' %}">
+            <option selected disabled>{% trans "Switch child" %}</option>
             {% for child in links %}
-              <option value="{{ child.url|default:'#' }}">{{ child.label|default:'Child' }}</option>
+              <option value="{{ child.url|default:'#' }}">{{ child.label|default:_("Child") }}</option>
             {% endfor %}
           </select>
           {% endif %}
@@ -235,33 +235,33 @@
         <h2 id="glance-heading" class="h6 mb-0"><i class="bi bi-grid-3x3-gap"></i> {% trans "Family summary" %}</h2>
       </div>
       <div class="parent-glance-grid">
-        <a href="{% url 'accounts:user_notifications' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-messages-bg); border-color: var(--parent-glance-messages-border);" aria-label="Messages from School: {{ unread_messages_aggregate|default:0 }} unread">
+        <a href="{% url 'accounts:user_notifications' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-messages-bg); border-color: var(--parent-glance-messages-border);" aria-label="{% blocktrans with count=unread_messages_aggregate|default:0 %}Messages from School: {{ count }} unread{% endblocktrans %}">
           <div class="d-flex align-items-center gap-2 mb-1">
             <i class="bi bi-envelope text-primary" aria-hidden="true"></i>
             <span class="fw-bold text-primary">{{ unread_messages_aggregate|default:0 }}</span>
           </div>
-          <div class="small text-muted">Messages from School</div>
+          <div class="small text-muted">{% trans "Messages from School" %}</div>
         </a>
-        <a href="{% url 'portal:parent_workflow' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-followup-bg); border-color: var(--parent-glance-followup-border);" aria-label="Items to Follow Up: {{ missing_work_count|default:0 }} due">
+        <a href="{% url 'portal:parent_workflow' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-followup-bg); border-color: var(--parent-glance-followup-border);" aria-label="{% blocktrans with count=missing_work_count|default:0 %}Items to Follow Up: {{ count }} due{% endblocktrans %}">
           <div class="d-flex align-items-center gap-2 mb-1">
             <i class="bi bi-journal-check text-warning" aria-hidden="true"></i>
             <span class="fw-bold">{{ missing_work_count|default:0 }}</span>
           </div>
-          <div class="small text-muted">Items to Follow Up</div>
+          <div class="small text-muted">{% trans "Items to Follow Up" %}</div>
         </a>
-        <a href="{% url 'portal:parent_finance' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-outstanding-bg); border-color: var(--parent-glance-outstanding-border);" aria-label="Outstanding: ${{ widget_data.finance.balance|default:'0.00' }} due">
+        <a href="{% url 'portal:parent_finance' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-outstanding-bg); border-color: var(--parent-glance-outstanding-border);" aria-label="{% blocktrans with amount=widget_data.finance.balance|default:'0.00' %}Outstanding: ${{ amount }} due{% endblocktrans %}">
           <div class="d-flex align-items-center gap-2 mb-1">
             <i class="bi bi-currency-dollar text-danger" aria-hidden="true"></i>
             <span class="fw-bold text-danger">${{ widget_data.finance.balance|default:"0.00" }}</span>
           </div>
-          <div class="small text-muted">Outstanding</div>
+          <div class="small text-muted">{% trans "Outstanding" %}</div>
         </a>
-        <a href="{% url 'portal:portal_stats' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-good-bg); border-color: var(--parent-glance-good-border);" aria-label="Attendance: {{ widget_data.attendance.overall|default:0 }}%">
+        <a href="{% url 'portal:portal_stats' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-good-bg); border-color: var(--parent-glance-good-border);" aria-label="{% blocktrans with pct=widget_data.attendance.overall|default:0 %}Attendance: {{ pct }}%{% endblocktrans %}">
           <div class="d-flex align-items-center gap-2 mb-1">
             <i class="bi bi-graph-up-arrow text-success" aria-hidden="true"></i>
             <span class="fw-bold text-success">{{ widget_data.attendance.overall|default:0 }}%</span>
           </div>
-          <div class="small text-muted">Good (Attendance)</div>
+          <div class="small text-muted">{% trans "Good (Attendance)" %}</div>
         </a>
       </div>
     </section>
@@ -270,14 +270,14 @@
     <section class="card parent-workflow-strip" aria-labelledby="workflow-focus-heading">
       <div class="card-body">
         <div class="parent-workflow-head">
-          <h2 id="workflow-focus-heading"><i class="bi bi-diagram-3 me-1"></i> Workflow Focus</h2>
+          <h2 id="workflow-focus-heading"><i class="bi bi-diagram-3 me-1"></i> {% trans "Workflow Focus" %}</h2>
           <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'portal:parent_workflow' %}">
-            <i class="bi bi-pin-angle me-1"></i> Use Workflow as default
+            <i class="bi bi-pin-angle me-1"></i> {% trans "Use Workflow as default" %}
           </a>
         </div>
         <div class="parent-workflow-progress">
           <div class="meta">
-            <span>{{ workflow_summary.done_steps|default:0 }}/{{ workflow_summary.total_steps|default:0 }} complete</span>
+            <span>{% blocktrans with done=workflow_summary.done_steps|default:0 total=workflow_summary.total_steps|default:0 %}{{ done }}/{{ total }} complete{% endblocktrans %}</span>
             <strong>{{ workflow_summary.completion_pct|default:0 }}%</strong>
           </div>
           <div class="track">
@@ -294,7 +294,7 @@
           {% for action in workflow_summary.next_actions %}
           <a class="btn {% if forloop.first %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm" href="{{ action.url }}">{{ action.label }}</a>
           {% empty %}
-          <a class="btn btn-primary btn-sm" href="{% url 'portal:parent_workflow' %}">Open workflow</a>
+          <a class="btn btn-primary btn-sm" href="{% url 'portal:parent_workflow' %}">{% trans "Open workflow" %}</a>
           {% endfor %}
         </div>
       </div>
@@ -329,15 +329,15 @@
         <section class="metrics-section dashboard-clear parent-children-section" id="children" aria-labelledby="children-heading" {% if is_rtl %}dir="rtl"{% endif %}>
           {% if guardian_students_for_switcher|length > 1 %}
           <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-            <span class="small text-muted">Focus:</span>
+            <span class="small text-muted">{% trans "Focus:" %}</span>
             {% for s in guardian_students_for_switcher %}
             <a href="{% url 'portal:parent_set_active_child' s.id %}" class="btn btn-sm {% if active_child_id == s.id %}btn-primary{% else %}btn-outline-secondary{% endif %}">{{ s.display_name }}</a>
             {% endfor %}
           </div>
           {% endif %}
           <div class="section-title d-flex flex-wrap align-items-center justify-content-between gap-2">
-            <h2 id="children-heading" class="h6 mb-0"><i class="bi bi-people-fill"></i> My Children {% if links %}({{ links|length }}){% endif %}</h2>
-            <a href="{% url 'portal:parent_medal_case' %}" class="btn btn-sm btn-outline-primary">Medal case</a>
+            <h2 id="children-heading" class="h6 mb-0"><i class="bi bi-people-fill"></i> {% trans "My Children" %} {% if links %}({{ links|length }}){% endif %}</h2>
+            <a href="{% url 'portal:parent_medal_case' %}" class="btn btn-sm btn-outline-primary">{% trans "Medal case" %}</a>
           </div>
           <div class="parent-children-grid row g-3">
             {% for card in child_cards %}
@@ -351,9 +351,9 @@
                     </div>
                     <div class="child-info flex-grow-1">
                       <h3 class="h6 mb-0">{{ card.link.student.get_full_name }}</h3>
-                      <p class="small text-muted mb-0">{{ card.link.student.grade|default:"N/A" }} - {{ card.link.student.section|default:"N/A" }}</p>
+                      <p class="small text-muted mb-0">{{ card.link.student.grade|default:_("N/A") }} - {{ card.link.student.section|default:_("N/A") }}</p>
                       {% if card.badges %}
-                      <div class="d-flex flex-wrap gap-1 mt-1" role="list" aria-label="Student badges">
+                      <div class="d-flex flex-wrap gap-1 mt-1" role="list" aria-label="{% trans 'Student badges' %}">
                         {% for b in card.badges %}
                         <span class="badge rounded-pill" style="background: var(--school-primary); color: #fff;" role="listitem">{{ b.badge_type.label }}</span>
                         {% endfor %}
@@ -363,19 +363,19 @@
                   </div>
                   <div class="child-metrics-grid text-center mb-3">
                     <div>
-                      <div class="child-metric-label">Attendance</div>
-                      <div class="child-metric-value {% if card.attendance != None and card.attendance >= 80 %}text-success{% else %}text-warning{% endif %}">{% if can_view_results %}{% if card.attendance != None and card.attendance >= 80 %}Good{% else %}Needs Attention{% endif %} ({{ card.attendance|default:0 }}%){% else %}--{% endif %}</div>
+                      <div class="child-metric-label">{% trans "Attendance" %}</div>
+                      <div class="child-metric-value {% if card.attendance != None and card.attendance >= 80 %}text-success{% else %}text-warning{% endif %}">{% if can_view_results %}{% if card.attendance != None and card.attendance >= 80 %}{% trans "Good" %}{% else %}{% trans "Needs Attention" %}{% endif %} ({{ card.attendance|default:0 }}%){% else %}--{% endif %}</div>
                     </div>
                     <div>
-                      <div class="child-metric-label">Academics</div>
-                      <div class="child-metric-value text-primary">{% if can_view_results %}On Track{% else %}--{% endif %}</div>
+                      <div class="child-metric-label">{% trans "Academics" %}</div>
+                      <div class="child-metric-value text-primary">{% if can_view_results %}{% trans "On Track" %}{% else %}--{% endif %}</div>
                     </div>
                     <div>
-                      <div class="child-metric-label">Fees</div>
-                      <div class="child-metric-value {% if card.finance_balance and card.finance_balance > 0 %}text-danger{% else %}text-success{% endif %}">{% if can_view_finance %}{% if card.finance_balance and card.finance_balance > 0 %}Pending{% else %}Cleared{% endif %}{% else %}--{% endif %}</div>
+                      <div class="child-metric-label">{% trans "Fees" %}</div>
+                      <div class="child-metric-value {% if card.finance_balance and card.finance_balance > 0 %}text-danger{% else %}text-success{% endif %}">{% if can_view_finance %}{% if card.finance_balance and card.finance_balance > 0 %}{% trans "Pending" %}{% else %}{% trans "Cleared" %}{% endif %}{% else %}--{% endif %}</div>
                     </div>
                   </div>
-                  <a href="{% url 'portal:parent_child_results' card.link.student.id %}" class="btn btn-sm btn-primary w-100">View details</a>
+                  <a href="{% url 'portal:parent_child_results' card.link.student.id %}" class="btn btn-sm btn-primary w-100">{% trans "View details" %}</a>
                 </div>
               </div>
             </div>

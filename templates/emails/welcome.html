@@ -17,12 +17,12 @@ Required context:
 {% block email_preheader %}{% blocktrans with school=school_name %}Your {{ school }} account is ready. Sign in to get started.{% endblocktrans %}{% endblock %}
 
 {% block email_header_subtitle %}
-<div style="margin-top:6px;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#64748b;">{% trans "Welcome" %}</div>
+<div style="margin-top:6px;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:{{ brand_email.ink_subtle }};">{% trans "Welcome" %}</div>
 {% endblock %}
 
 {% block email_content %}
 <!-- Hero greeting — slightly larger than body to feel like a "welcome" -->
-<p style="margin:0 0 14px 0;font-size:22px;font-weight:700;letter-spacing:-0.022em;color:#0f172a;line-height:1.25;">
+<p style="margin:0 0 14px 0;font-size:22px;font-weight:700;letter-spacing:-0.022em;color:{{ brand_email.ink }};line-height:1.25;">
   {% blocktrans with name=user_name %}Welcome, {{ name }}.{% endblocktrans %}
 </p>
 
@@ -41,24 +41,24 @@ Required context:
 <!-- What's-included data card -->
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin:0 0 28px 0;">
   <tr>
-    <td style="background:#f8fafc;border-left:3px solid {{ accent_color|default:'#10b981' }};border-radius:6px;padding:18px 20px;">
-      <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#64748b;margin-bottom:10px;">{% trans "What you can do" %}</div>
+    <td style="background:{{ brand_email.bg_soft }};border-left:3px solid {{ brand_email.accent }};border-radius:6px;padding:18px 20px;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:{{ brand_email.ink_subtle }};margin-bottom:10px;">{% trans "What you can do" %}</div>
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;font-size:14.5px;line-height:1.7;">
         {% if user_role == "parent" %}
-        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "View live grades, attendance, and term reports" %}</td></tr>
-        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Track fee balances and pay online" %}</td></tr>
-        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Message teachers and the school office" %}</td></tr>
-        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Get notified instantly when grades are published" %}</td></tr>
+        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "View live grades, attendance, and term reports" %}</td></tr>
+        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Track fee balances and pay online" %}</td></tr>
+        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Message teachers and the school office" %}</td></tr>
+        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Get notified instantly when grades are published" %}</td></tr>
         {% elif user_role == "teacher" %}
-        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Enter marks for any class with auto-save" %}</td></tr>
-        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Take attendance in seconds, on phone or laptop" %}</td></tr>
-        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Message guardians directly from a student's profile" %}</td></tr>
-        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Plan lessons and track syllabus progress" %}</td></tr>
+        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Enter marks for any class with auto-save" %}</td></tr>
+        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Take attendance in seconds, on phone or laptop" %}</td></tr>
+        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Message guardians directly from a student's profile" %}</td></tr>
+        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Plan lessons and track syllabus progress" %}</td></tr>
         {% else %}
-        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Manage students, classes, and academics" %}</td></tr>
-        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Track finance and compliance in one dashboard" %}</td></tr>
-        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Generate term reports and export to Ministry format" %}</td></tr>
-        <tr><td style="color:#0f172a;padding:3px 0;"><span style="color:{{ accent_color|default:'#10b981' }};font-weight:700;">·</span>&nbsp; {% trans "Communicate with parents and staff at scale" %}</td></tr>
+        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Manage students, classes, and academics" %}</td></tr>
+        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Track finance and compliance in one dashboard" %}</td></tr>
+        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Generate term reports and export to Ministry format" %}</td></tr>
+        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Communicate with parents and staff at scale" %}</td></tr>
         {% endif %}
       </table>
     </td>
@@ -67,20 +67,20 @@ Required context:
 
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 8px 0;">
   <tr>
-    <td style="background:{{ primary_color|default:'#4f46e5' }};border-radius:10px;box-shadow:0 1px 2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.14);">
-      <a href="{{ login_url }}" class="em-button" style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:600;letter-spacing:-0.005em;color:#ffffff;text-decoration:none;border-radius:10px;font-family:'Inter','Helvetica Neue',Arial,sans-serif;">{{ cta_text|default:_("Sign in to your account") }} →</a>
+    <td style="background:{{ brand_email.primary }};border-radius:10px;box-shadow:0 1px 2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.14);">
+      <a href="{{ login_url }}" class="em-button" style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:600;letter-spacing:-0.005em;color:{{ brand_email.bg }};text-decoration:none;border-radius:10px;font-family:'Inter','Helvetica Neue',Arial,sans-serif;">{{ cta_text|default:_("Sign in to your account") }} →</a>
     </td>
   </tr>
 </table>
 
-<p style="margin:18px 0 0 0;font-size:13px;color:#64748b;">
-  {% trans "Or copy this link:" %} <a href="{{ login_url }}" style="color:{{ primary_color|default:'#4f46e5' }};text-decoration:underline;word-break:break-all;">{{ login_url }}</a>
+<p style="margin:18px 0 0 0;font-size:13px;color:{{ brand_email.ink_subtle }};">
+  {% trans "Or copy this link:" %} <a href="{{ login_url }}" style="color:{{ brand_email.primary }};text-decoration:underline;word-break:break-all;">{{ login_url }}</a>
 </p>
 
 {% if school_phone or school_email %}
-<p style="margin:24px 0 0 0;font-size:13.5px;color:#475569;line-height:1.6;border-top:1px solid rgba(15,23,42,0.06);padding-top:18px;">
-  <strong style="color:#0f172a;">{% trans "Need help?" %}</strong><br>
-  {% if school_phone %}{% trans "Call" %} <a href="tel:{{ school_phone }}" style="color:{{ primary_color|default:'#4f46e5' }};text-decoration:none;">{{ school_phone }}</a>{% endif %}{% if school_phone and school_email %} &middot; {% endif %}{% if school_email %}{% trans "email" %} <a href="mailto:{{ school_email }}" style="color:{{ primary_color|default:'#4f46e5' }};text-decoration:none;">{{ school_email }}</a>{% endif %}
+<p style="margin:24px 0 0 0;font-size:13.5px;color:{{ brand_email.ink_muted }};line-height:1.6;border-top:1px solid {{ brand_email.rule }};padding-top:18px;">
+  <strong style="color:{{ brand_email.ink }};">{% trans "Need help?" %}</strong><br>
+  {% if school_phone %}{% trans "Call" %} <a href="tel:{{ school_phone }}" style="color:{{ brand_email.primary }};text-decoration:none;">{{ school_phone }}</a>{% endif %}{% if school_phone and school_email %} &middot; {% endif %}{% if school_email %}{% trans "email" %} <a href="mailto:{{ school_email }}" style="color:{{ brand_email.primary }};text-decoration:none;">{{ school_email }}</a>{% endif %}
 </p>
 {% endif %}
 {% endblock %}

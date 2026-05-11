@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 
 from apps.platform_runtime.helpers import get_effective_offline_runtime_settings
 from apps.siteconfig.cache_utils import tenant_cache_key
+from apps.accounts.models import User  # role enum
 
 QUEUE_METRICS_CACHE_KEY = "sms_offline_queue_metrics"
 QUEUE_METRICS_CACHE_TIMEOUT = 86400
@@ -176,7 +177,7 @@ class PrefetchUrlsAPI(APIView):
         role = (getattr(request.user, "role", "") or "").upper()
         base = request.build_absolute_uri("/").rstrip("/")
         urls = []
-        if role == "TEACHER":
+        if role == User.Role.TEACHER:
             urls = [
                 base + "/api/dashboard/teacher/",
                 base + "/api/entities/students/",
@@ -203,9 +204,9 @@ class PrefetchUrlsAPI(APIView):
                 base + "/api/entities/classrooms/",
                 base + "/portal/calendar/",
             ]
-        elif role == "PARENT":
+        elif role == User.Role.PARENT:
             urls = [base + "/api/dashboard/parent/"]
-        elif role == "STUDENT":
+        elif role == User.Role.STUDENT:
             urls = [base + "/api/dashboard/student/"]
         else:
             urls = []
