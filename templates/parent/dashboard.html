@@ -19,6 +19,12 @@
 <div class="parent-dashboard dashboard-clear parent-dashboard-shell ui-premium-surface" data-page-archetype="role-home" data-decision-engine="surface" data-rmc-component-audit="1" data-rmc-ux-role-dashboard="family-home">
   <div class="container-lg py-4">
     {% phase8_dashboard_declaration "parent/dashboard.html" %}
+    {# Aesthetic-v2 page header (eyebrow + page-h1 + page-sub). Styled by patterns.css. #}
+    <header class="rmc-page-header mb-3" data-rmc-aesthetic-page-header="parent">
+      <div class="eyebrow">{% trans "Family workspace" %}</div>
+      <h1 class="page-h1">{% blocktrans with name=request.user.first_name|default:request.user.username %}Welcome, {{ name }}.{% endblocktrans %}</h1>
+      <p class="page-sub">{% trans "Your child's school in one place." %}</p>
+    </header>
     {% if parent_simplified %}
     <div class="alert alert-info border-0 shadow-sm rounded-4 mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2" role="region" aria-label="{% trans 'Simplified home' %}" data-parent-simplified="1">
       <div>

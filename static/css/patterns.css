@@ -1366,7 +1366,151 @@
 
 
 /* ==========================================================================
-   24. REDUCED-MOTION FALLBACKS
+   24. COMPAT SHIMS — auto-upgrade existing Bootstrap patterns
+   ==========================================================================
+   These shims target idioms already used across the 250-template codebase
+   so that pages get the mockup look WITHOUT requiring per-template markup
+   changes. Every shim is scoped under [data-rmc-aesthetic="v2"] so removing
+   the attribute from any surface reverts to legacy Bootstrap.
+
+   Design constraint: shims add visual polish (radius, shadow, typography)
+   but never change LAYOUT (no padding/margin changes that would break flow).
+   ========================================================================== */
+
+/* --- 24.1 Card variants -------------------------------------------------- */
+/* The .card.border-0.shadow-sm idiom is used ~280+ times across the codebase
+   to signal "elevated content card". Give it the .card-x look. We don't
+   touch padding because Bootstrap's .card-body already controls inner space. */
+[data-rmc-aesthetic="v2"] .card.border-0.shadow-sm,
+[data-rmc-aesthetic="v2"] .card.shadow-sm,
+[data-rmc-aesthetic="v2"] .card.shadow,
+[data-rmc-aesthetic="v2"] .card.card-elevated {
+  border-radius: 14px;
+  box-shadow: var(--apple-elev-1);
+  border: none;
+  transition: box-shadow var(--dur-base, 240ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+}
+[data-rmc-aesthetic="v2"][data-bs-theme="dark"] .card.border-0.shadow-sm,
+[data-rmc-aesthetic="v2"][data-bs-theme="dark"] .card.shadow-sm,
+[data-rmc-aesthetic="v2"][data-bs-theme="dark"] .card.shadow {
+  background: #1e293b;
+}
+[data-rmc-aesthetic="v2"] .card.card-elevated:hover {
+  box-shadow: var(--apple-elev-3);
+}
+
+/* Card headers — match the eyebrow/title grammar inside cards. */
+[data-rmc-aesthetic="v2"] .card .card-header {
+  background: transparent;
+  border-bottom: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding: 14px 20px;
+}
+
+/* --- 24.2 Alert polish --------------------------------------------------- */
+[data-rmc-aesthetic="v2"] .alert.border-0.shadow-sm,
+[data-rmc-aesthetic="v2"] .alert.rounded-4,
+[data-rmc-aesthetic="v2"] .alert.rounded-3 {
+  border-radius: 14px;
+  box-shadow: var(--apple-elev-1);
+}
+
+/* --- 24.3 Existing "eyebrow" idiom --------------------------------------- */
+/* Templates often use .text-uppercase.small.text-muted as a label/eyebrow.
+   Promote it to the mockup eyebrow grammar. */
+[data-rmc-aesthetic="v2"] .text-uppercase.small.text-muted,
+[data-rmc-aesthetic="v2"] .text-uppercase.text-muted.small,
+[data-rmc-aesthetic="v2"] .small.text-uppercase.text-muted {
+  letter-spacing: var(--tracking-eyebrow, 0.06em);
+  font-weight: 600;
+  font-size: .72rem;
+}
+
+/* --- 24.4 Dashboard role-home wrapper ------------------------------------ */
+/* Pages with data-page-archetype="role-home" or .dashboard-page-* body class
+   are the high-traffic dashboards (teacher, parent, student, super, admin).
+   Tighten their max-width and apply the mockup's main padding rhythm. */
+[data-rmc-aesthetic="v2"] body[class*="dashboard-page-"] > .container-lg,
+[data-rmc-aesthetic="v2"] body[class*="dashboard-page-"] > .container-xl,
+[data-rmc-aesthetic="v2"] [data-page-archetype="role-home"] > .container-lg,
+[data-rmc-aesthetic="v2"] [data-page-archetype="role-home"] > .container-fluid {
+  max-width: 1400px;
+}
+
+/* --- 24.5 Login card polish ---------------------------------------------- */
+[data-rmc-aesthetic="v2"] .card.login-card,
+[data-rmc-aesthetic="v2"] .login-card {
+  border-radius: 18px;
+  box-shadow: var(--apple-elev-3);
+  border: none;
+}
+[data-rmc-aesthetic="v2"] .auth-hero .hero-logo {
+  border-radius: 14px;
+  box-shadow: 0 8px 24px -8px color-mix(in oklab, var(--school-primary) 40%, transparent);
+}
+
+/* --- 24.6 Topbar (existing #portalHeader / .navbar.topbar) --------------- */
+/* The portal_base.html topbar is a Bootstrap navbar. We bump its blur +
+   border-bottom to match the mockup's material-bar look, without changing
+   its layout/links (which are role-aware). */
+[data-rmc-aesthetic="v2"] nav#portalHeader.topbar-sticky,
+[data-rmc-aesthetic="v2"] nav.navbar.topbar-sticky {
+  border-bottom: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+          backdrop-filter: saturate(180%) blur(20px);
+}
+
+/* --- 24.7 Table polish (matching the mockup gradebook + report-grades) --- */
+/* Bootstrap .table inside a .card.border-0.shadow-sm gets gradebook-table feel. */
+[data-rmc-aesthetic="v2"] .card .table {
+  margin-bottom: 0;
+}
+[data-rmc-aesthetic="v2"] .card .table > thead > tr > th {
+  background: var(--color-base-50, #f8fafc);
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow, 0.06em);
+  color: var(--color-base-500, #64748b);
+  border-bottom: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+}
+[data-rmc-aesthetic="v2"][data-bs-theme="dark"] .card .table > thead > tr > th {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-base-400, #94a3b8);
+}
+[data-rmc-aesthetic="v2"] .card .table > tbody > tr > td {
+  font-size: .9rem;
+}
+[data-rmc-aesthetic="v2"] .card .table.table-hover > tbody > tr:hover > td {
+  background: color-mix(in oklab, var(--school-primary) 4%, transparent);
+}
+
+/* --- 24.8 Badge softening ------------------------------------------------- */
+/* Bootstrap .badge.bg-* keep their colors but get the pill radius (already
+   in section 11), this just softens .text-bg-* utility variants too. */
+[data-rmc-aesthetic="v2"] .badge.text-bg-success,
+[data-rmc-aesthetic="v2"] .badge.text-bg-warning,
+[data-rmc-aesthetic="v2"] .badge.text-bg-danger,
+[data-rmc-aesthetic="v2"] .badge.text-bg-primary,
+[data-rmc-aesthetic="v2"] .badge.text-bg-secondary,
+[data-rmc-aesthetic="v2"] .badge.text-bg-info {
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+/* --- 24.9 Tdm-bg / parent-dashboard root wrappers ------------------------ */
+/* Teacher and parent dashboards use custom wrapper classes. Give the inner
+   surface the soft canvas feel of the mockup. */
+[data-rmc-aesthetic="v2"] .tdm-bg,
+[data-rmc-aesthetic="v2"] .parent-dashboard.parent-dashboard-shell {
+  background: transparent;
+}
+
+
+/* ==========================================================================
+   25. REDUCED-MOTION FALLBACKS
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
   [data-rmc-aesthetic="v2"] .card-x.interactive,

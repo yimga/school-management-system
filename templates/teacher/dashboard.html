@@ -20,6 +20,12 @@
 <div class="tdm-bg" data-decision-engine="surface">
   {% phase8_dashboard_declaration "teacher/dashboard.html" %}
   <div class="tdm-shell" data-rmc-ux-role-dashboard="teacher-workspace">
+    {# Aesthetic-v2 page header (eyebrow + page-h1 + page-sub). Styled by patterns.css. #}
+    <header class="rmc-page-header mb-3" data-rmc-aesthetic-page-header="teacher">
+      <div class="eyebrow">{% blocktrans with term=current_term|default:_("This term") %}{{ term }}{% endblocktrans %}</div>
+      <h1 class="page-h1">{% blocktrans with name=request.user.first_name|default:request.user.username %}Welcome back, {{ name }}.{% endblocktrans %}</h1>
+      <p class="page-sub">{% trans "Here's what your classes need today." %}</p>
+    </header>
     {% if teacher_fast_workflows %}
     <section class="card border-0 shadow-sm mb-3 p-3" data-teacher-fast-workflows="1" aria-label="{% trans 'Fast workflows' %}">
       {% if rmc_conversion_single_action_enforced|default:False %}

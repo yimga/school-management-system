@@ -36,6 +36,12 @@
 {% phase8_dashboard_declaration "admin/admin_dashboard.html" %}
 <div class="admin-dash" data-decision-engine="surface" data-health-endpoint="{% url 'api_health' %}" data-weather-endpoint="{% url 'api_admin_weather' %}">
   <div class="admin-dash__inner">
+    {# Aesthetic-v2 page header (eyebrow + page-h1 + page-sub). Styled by patterns.css. #}
+    <header class="rmc-page-header mb-3" data-rmc-aesthetic-page-header="admin">
+      <div class="eyebrow">{% trans "School operations" %}</div>
+      <h1 class="page-h1">{% blocktrans with school=SITE.site_name|default:_("Your school") %}{{ school }} · admin{% endblocktrans %}</h1>
+      <p class="page-sub">{% trans "Compliance, health, intake, fees, and outreach at a glance." %}</p>
+    </header>
 
     {# === Preview Status === #}
     {% if preview_data %}

@@ -7,9 +7,14 @@
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 {% endblock %}
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Student home" %}</h1>
 <div class="container-lg py-3" data-page-archetype="role-home" data-rmc-student-learning-home="1" data-task="student_home" data-task-step="student:dashboard">
   {% phase8_dashboard_declaration "student/learning_home.html" %}
+  {# Aesthetic-v2 page header (eyebrow + page-h1 + page-sub). Styled by patterns.css. #}
+  <header class="rmc-page-header mb-3" data-rmc-aesthetic-page-header="student">
+    <div class="eyebrow">{% trans "My learning" %}</div>
+    <h1 class="page-h1" data-rmc-injected-h1="1">{% blocktrans with name=request.user.first_name|default:_("Student") %}Hi {{ name }}.{% endblocktrans %}</h1>
+    <p class="page-sub">{% trans "Your priorities for today." %}</p>
+  </header>
   {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
   <p class="text-muted small mb-2" role="note">{% trans "Your highest-priority next steps appear in the strip above when your school assigns work or announcements." %}</p>
   <p class="text-muted small mb-0">{% trans "Need the family view?" %} <a href="{% url 'accounts:logout' %}?next={% url 'accounts:login' %}" data-task-step="student:switch-account">{% trans "Switch account" %}</a></p>
