@@ -72,6 +72,10 @@ fi
 # Always run seed_render_users: ensures super-admin admin/admin. Tenant demo users (teacher1, Parent1, principal1) are created only when ADMIN_PASSWORD is set.
 run "${PYTHON_BIN}" manage.py seed_render_users
 
+if [[ "${SEED_DEMO:-0}" == "1" ]]; then
+  run "${PYTHON_BIN}" manage.py seed_demo --reset
+fi
+
 # Optional: bootstrap platform catalogs so Manager surfaces are populated (idempotent).
 # Default when RUN_BOOTSTRAP_PLATFORM_CATALOG=1: full bootstrap (--all). Set RUN_MINIMAL_BOOTSTRAP=1 for blueprint+marketplace only.
 if [[ "${RUN_BOOTSTRAP_PLATFORM_CATALOG:-0}" == "1" ]]; then

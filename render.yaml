@@ -49,6 +49,8 @@ services:
       # Seed marketplace/catalog/Studio on every deploy so changes appear after deploy (see docs/CHANGES_NOT_VISIBLE_AFTER_DEPLOY.md)
       - key: RUN_BOOTSTRAP_PLATFORM_CATALOG
         value: "1"
+      - key: SEED_DEMO
+        value: "1"
       - key: COLLABORA_BASE_URL
         value: ""
       - key: WOPI_SHARED_SECRET
