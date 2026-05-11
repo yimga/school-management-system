@@ -11,6 +11,7 @@ import uuid
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import get_user_model, login as auth_login
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.http import HttpRequest, JsonResponse
@@ -197,6 +198,10 @@ def signup_school(request: HttpRequest):
             or None,
             "trial": bool(request.session.get("onboarding_trial", False)),
             "first_value_action_required": True,
+            # Pass 7: carry pack picker + sample-data choice into provisioning.
+            "pack_slug": (request.session.get("onboarding_pack_slug") or "").strip()
+            or None,
+            "sample_data": bool(request.session.get("onboarding_sample_data", False)),
         }
         if request.session.get("onboarding_import_site_name"):
             rmc_ob["brand_import"] = {
@@ -355,6 +360,37 @@ def _default_template_slug(templates) -> str | None:
     return getattr(templates[0], "slug", None) or None
 
 
+def _get_blueprint_packs_for_onboarding(country_code: str):
+    """
+    Pass 7: surface a short list of BlueprintPacks for the wizard step-2 picker.
+
+    Ranks packs by country relevance: an exact country_code match goes first,
+    then packs whose supported_country_scope is empty (= global), then the rest.
+    Caps at 12 to keep the picker scannable.
+    """
+    try:
+        from apps.policies.models import BlueprintPack
+    except (ImportError, ModuleNotFoundError):
+        return []
+    try:
+        qs = list(BlueprintPack.objects.filter(is_active=True).order_by("category", "name")[:60])
+    except Exception:
+        return []
+    cc = (country_code or "").strip().upper()
+    primary, global_packs, rest = [], [], []
+    for pack in qs:
+        pack_cc = (getattr(pack, "country_code", "") or "").strip().upper()
+        scope = getattr(pack, "supported_country_scope", None) or []
+        if cc and (pack_cc == cc or cc in [str(s).upper() for s in scope if s]):
+            primary.append(pack)
+        elif not scope and not pack_cc:
+            global_packs.append(pack)
+        else:
+            rest.append(pack)
+    ranked = primary + global_packs + rest
+    return ranked[:12]
+
+
 def _apply_onboarding_region_defaults(session, plans, templates, country_code: str) -> None:
     if not session.get("onboarding_plan_slug"):
         ps = _default_plan_slug(plans, country_code)
@@ -431,6 +467,9 @@ def onboarding_wizard(request: HttpRequest):
 
     plans = _get_plans_for_onboarding()
     templates = _get_templates_for_onboarding()
+    blueprint_packs = _get_blueprint_packs_for_onboarding(
+        session.get("onboarding_country_code") or ""
+    )
 
     if request.method == "POST":
         if step == 1:
@@ -475,9 +514,28 @@ def onboarding_wizard(request: HttpRequest):
             session["onboarding_template_slug"] = (
                 request.POST.get("template_slug") or ""
             ).strip() or None
+            # Pass 7: blueprint pack picker — persist the chosen pack slug so it
+            # can be applied during provisioning (apply_blueprint_pack).
+            session["onboarding_pack_slug"] = (
+                request.POST.get("pack_slug") or ""
+            ).strip() or None
             session["onboarding_step"] = 3
             session.modified = True
             return redirect(reverse("onboard_wizard") + "?step=3")
+        if step == 3:
+            # Pass 7: sample-data toggle — persist the choice and forward to the
+            # signup form (which carries it into school.settings.rmc_public_onboarding).
+            session["onboarding_sample_data"] = request.POST.get("sample_data") in (
+                "1",
+                "true",
+                "on",
+            )
+            session.modified = True
+            signup_target = reverse("signup_school")
+            cid = session.get("onboarding_correlation_id")
+            if cid:
+                signup_target += f"?ob={str(cid)[:12]}"
+            return redirect(signup_target)
 
     if session.get("onboarding_country_code"):
         _apply_onboarding_region_defaults(
@@ -514,6 +572,7 @@ def onboarding_wizard(request: HttpRequest):
             "default_country_code": default_country,
             "plans": plans,
             "templates": templates,
+            "blueprint_packs": blueprint_packs,
             "onboarding_country_code": session.get("onboarding_country_code"),
             "onboarding_school_flavor": session.get(
                 "onboarding_school_flavor", "general"
@@ -521,6 +580,8 @@ def onboarding_wizard(request: HttpRequest):
             "onboarding_plan_slug": session.get("onboarding_plan_slug"),
             "onboarding_trial": session.get("onboarding_trial", False),
             "onboarding_template_slug": session.get("onboarding_template_slug"),
+            "onboarding_pack_slug": session.get("onboarding_pack_slug"),
+            "onboarding_sample_data": session.get("onboarding_sample_data", False),
             "website_import_doc_url": "#",
             "onboarding_import_primary_color": session.get(
                 "onboarding_import_primary_color"
@@ -600,8 +661,30 @@ def verify_signup(request: HttpRequest):
     except (ImportError, AttributeError, TypeError, ValueError, OSError):
         pass
 
+    # Pass 7: magic-link login — verifying the email proves ownership, so log the
+    # newly-provisioned admin in directly instead of bouncing through a password
+    # form they cannot satisfy (admin user is created with set_unusable_password
+    # in apps/schools/tasks.py). Falls back to the legacy login redirect when the
+    # admin user cannot be resolved.
+    User = get_user_model()
+    admin_user = (
+        User.objects.filter(email__iexact=verification.email).order_by("id").first()
+    )
+    if admin_user is not None and admin_user.is_active:
+        try:
+            auth_login(request, admin_user)
+        except (ValueError, TypeError, AttributeError):
+            admin_user = None
+
+    if admin_user is not None and admin_user.is_active:
+        for url_name in ("studio_os:launch", "accounts:backend_dashboard"):
+            try:
+                return redirect(reverse(url_name))
+            except NoReverseMatch:
+                continue
+        return redirect("/")
+
     login_url = (settings.LOGIN_URL or "/authentication/login/").lstrip("/")
-    # Optional: send new school admin to backend dashboard after first login
     try:
         next_path = reverse("accounts:backend_dashboard")
     except NoReverseMatch:

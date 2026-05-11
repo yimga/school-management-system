@@ -18,7 +18,7 @@
     <h1 class="display-6 fw-bold mb-3">{{ page.headline }}</h1>
     <p class="lead text-muted mb-0">{{ page.subheadline }}</p>
     <div class="d-flex flex-wrap gap-2 mt-4">
-      <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="primary" data-page="institution">{{ page.cta_primary }}</a>
+      <a href="{% url 'onboard_wizard' %}" class="btn btn-primary" data-cta="primary" data-page="institution">{{ page.cta_primary }}</a>
       <a href="{% url 'marketing_demo' %}" class="btn btn-outline-primary" data-cta="demo" data-page="institution">{{ page.cta_secondary }}</a>
       <a href="{% url 'marketing_solutions' %}" class="btn btn-outline-secondary">{% trans "Solutions overview" %}</a>
     </div>

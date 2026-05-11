@@ -58,6 +58,46 @@ def verify_domain_txt(domain: str, expected_token: str) -> bool:
         return False
 
 
+def hostname_resolves(hostname: str, *, timeout: float = 5.0) -> bool:
+    """
+    Return True if hostname resolves to any A/AAAA/CNAME record.
+
+    Used post-provisioning to confirm a newly-created subdomain is reachable
+    before surfacing the tenant URL to the user. Eventual-consistency aware:
+    a False result early on is not a permanent failure — the resolver may
+    succeed minutes later.
+    """
+    if not hostname:
+        return False
+    try:
+        import dns.exception
+        import dns.resolver
+
+        resolver = dns.resolver.Resolver()
+        resolver.lifetime = timeout
+        for rtype in ("A", "AAAA", "CNAME"):
+            try:
+                resolver.resolve(hostname, rtype)
+                return True
+            except dns.resolver.NoAnswer:
+                continue
+            except dns.resolver.NXDOMAIN:
+                return False
+            except (dns.resolver.NoNameservers, dns.exception.Timeout):
+                return False
+        return False
+    except (
+        ImportError,
+        OSError,
+        ConnectionError,
+        TimeoutError,
+        AttributeError,
+        TypeError,
+        ValueError,
+    ):
+        return False
+
+
 def verify_and_activate_schooldomain(school_domain) -> bool:
     """
     Check TXT for the given SchoolDomain instance; if runmycampus-verify=<dns_token>

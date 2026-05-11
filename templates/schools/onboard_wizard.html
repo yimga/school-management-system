@@ -71,6 +71,27 @@
           <form method="post" action="{% url 'onboard_wizard' %}?step=2" id="onboard-plan-look-form">
             {% csrf_token %}
             <input type="hidden" name="step" value="2">
+            {% if blueprint_packs %}
+            <p class="small text-muted mb-2">{% trans "Pick a starter blueprint pack. This sets curriculum, grading scale, and policy defaults so your school works on day one." %}</p>
+            <div class="row g-2 mb-4">
+              <div class="col-12">
+                <label class="d-block border rounded-2 p-2 cursor-pointer">
+                  <input type="radio" name="pack_slug" value="" {% if not onboarding_pack_slug %}checked{% endif %} class="me-2">
+                  <span class="small">{% trans "No pack — I'll configure from scratch" %}</span>
+                </label>
+              </div>
+              {% for pack in blueprint_packs %}
+              <div class="col-md-6 col-lg-4">
+                <label class="d-block border rounded-2 p-3 cursor-pointer pack-option {% if onboarding_pack_slug == pack.slug %}border-primary bg-white{% endif %}" style="cursor:pointer;">
+                  <input type="radio" name="pack_slug" value="{{ pack.slug }}" {% if onboarding_pack_slug == pack.slug %}checked{% endif %} class="me-2">
+                  <strong>{{ pack.name }}</strong>
+                  {% if pack.category %}<br><span class="badge bg-light text-muted small">{{ pack.category }}</span>{% endif %}
+                  {% if pack.description %}<br><span class="text-muted small">{{ pack.description|truncatewords:14 }}</span>{% endif %}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
             {% include "schools/partials/plan_comparison.html" with plans=plans selected_plan_slug=onboarding_plan_slug onboarding_trial=onboarding_trial %}
             <p class="small text-muted mb-2 mt-4">{% trans "Pick a template. You can change it and add your logo in Theme & Experience after signup." %}</p>
             <div class="row g-2 mb-3">
@@ -122,14 +143,26 @@
             <li><strong>{% trans "Plan" %}:</strong> {{ onboarding_plan_slug|default:"—" }}</li>
             <li><strong>{% trans "Trial" %}:</strong> {% if onboarding_trial %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</li>
             <li><strong>{% trans "Template" %}:</strong> {{ onboarding_template_slug|default:"—" }}</li>
+            <li><strong>{% trans "Blueprint pack" %}:</strong> {{ onboarding_pack_slug|default:"—" }}</li>
             {% if onboarding_correlation_id %}<li class="text-muted"><strong>{% trans "Session ref" %}:</strong> {{ onboarding_correlation_id|truncatechars:14 }}…</li>{% endif %}
           </ul>
           <p class="mb-4">{% trans "You've chosen your region, plan, and look. Create your account to activate your school—we'll steer you to one fast win on the dashboard." %}</p>
-          <div class="d-flex flex-wrap gap-2">
-            <a href="{{ signup_url }}" class="btn btn-primary">{% trans "Create account" %}</a>
-            <a href="{% url 'onboard_wizard' %}?step=2" class="btn btn-outline-secondary">{% trans "Back" %}</a>
-            <a href="{% url 'marketing_landing' %}" class="btn btn-outline-secondary">{% trans "Back to Marketing" %}</a>
-          </div>
+          <form method="post" action="{% url 'onboard_wizard' %}?step=3">
+            {% csrf_token %}
+            <input type="hidden" name="step" value="3">
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" name="sample_data" id="sample_data" value="1" {% if onboarding_sample_data %}checked{% endif %}>
+              <label class="form-check-label" for="sample_data">
+                <strong>{% trans "Start with sample data" %}</strong>
+                <span class="d-block text-muted small">{% trans "Seed demo teachers, students, classes, and attendance so you can explore a populated school immediately. Easy to clear later." %}</span>
+              </label>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="submit" class="btn btn-primary">{% trans "Create account" %}</button>
+              <a href="{% url 'onboard_wizard' %}?step=2" class="btn btn-outline-secondary">{% trans "Back" %}</a>
+              <a href="{% url 'marketing_landing' %}" class="btn btn-outline-secondary">{% trans "Back to Marketing" %}</a>
+            </div>
+          </form>
           {% endif %}
         </div>
       </div>

@@ -134,6 +134,219 @@ def _record_school_event_by_id(
         )
 
 
+def _provision_dns_record(school):
+    """
+    Pass 7: auto-create the tenant subdomain DNS record through the configured
+    provider (Cloudflare / Route53) and verify reachability via dnspython.
+
+    No-op when DNS_PROVIDER is unset (self-hosted deployments manage DNS out of
+    band). Always logs a provisioning event so operators can see what happened
+    even when the provider call fails — DNS issues are eventually-consistent
+    and should not block the rest of the provisioning pipeline.
+    """
+    if school is None:
+        return
+    try:
+        from django.conf import settings as _settings
+
+        from apps.schools.dns_providers import get_dns_provider
+        from apps.schools.dns_verification import hostname_resolves
+        from apps.schools.domain_sync import school_subdomain_fqdn
+    except (ImportError, AttributeError):
+        return
+
+    fqdn = school_subdomain_fqdn(school)
+    if not fqdn:
+        return
+
+    target = (getattr(_settings, "DNS_CNAME_TARGET", "") or "").strip()
+    provider = get_dns_provider()
+    if provider.name == "null":
+        # Self-hosted / manual DNS; nothing to do but record the skip for audit.
+        _record_school_event(
+            school,
+            event_type="DNS_RECORD_SKIPPED",
+            status="INFO",
+            message="DNS automation disabled (DNS_PROVIDER unset).",
+            payload={"fqdn": fqdn},
+        )
+        return
+    if not target:
+        _record_school_event(
+            school,
+            event_type="DNS_RECORD_FAILED",
+            status="WARNING",
+            message="DNS_CNAME_TARGET not configured.",
+            payload={"fqdn": fqdn, "provider": provider.name},
+        )
+        return
+
+    result = provider.create_record(subdomain=fqdn, target=target)
+    if result.ok:
+        _record_school_event(
+            school,
+            event_type="DNS_RECORD_CREATED",
+            status="SUCCESS",
+            message=f"{provider.name} record created for {fqdn}.",
+            payload={
+                "fqdn": fqdn,
+                "target": target,
+                "provider": provider.name,
+                "record_id": result.record_id,
+            },
+        )
+    else:
+        _record_school_event(
+            school,
+            event_type="DNS_RECORD_FAILED",
+            status="ERROR",
+            message=f"{provider.name} record creation failed for {fqdn}.",
+            payload={
+                "fqdn": fqdn,
+                "target": target,
+                "provider": provider.name,
+                "error": result.error,
+            },
+        )
+        # Don't run reachability if create failed — the negative result is misleading.
+        return
+
+    reachable = hostname_resolves(fqdn, timeout=4.0)
+    _record_school_event(
+        school,
+        event_type="DNS_REACHABLE" if reachable else "DNS_NOT_REACHABLE",
+        status="SUCCESS" if reachable else "WARNING",
+        message=(
+            f"{fqdn} resolves."
+            if reachable
+            else f"{fqdn} did not resolve yet (DNS propagation in progress)."
+        ),
+        payload={"fqdn": fqdn, "provider": provider.name},
+    )
+
+
+def _onboarding_settings(school) -> dict:
+    """Pull the rmc_public_onboarding dict (recorded by signup_school) off the school."""
+    settings_dict = getattr(school, "settings", None) or {}
+    rmc = settings_dict.get("rmc_public_onboarding")
+    return rmc if isinstance(rmc, dict) else {}
+
+
+def _maybe_apply_onboarding_blueprint_pack(school, actor=None) -> None:
+    """
+    Pass 7: apply the BlueprintPack the user selected in the onboarding wizard.
+
+    Runs once during provisioning; no-op when the user picked "No pack". A failed
+    apply is recorded but does not abort provisioning — the user can re-apply
+    from Studio later.
+    """
+    if school is None:
+        return
+    pack_slug = (_onboarding_settings(school).get("pack_slug") or "").strip()
+    if not pack_slug:
+        return
+    try:
+        from apps.policies.blueprint_registry import apply_blueprint_pack
+        from apps.policies.models import BlueprintPack
+    except (ImportError, ModuleNotFoundError):
+        return
+    try:
+        pack = BlueprintPack.objects.filter(slug=pack_slug, is_active=True).first()
+    except (DatabaseError, AttributeError, TypeError, ValueError):
+        pack = None
+    if pack is None:
+        _record_school_event(
+            school,
+            event_type="BLUEPRINT_TEMPLATE_RECORDED",
+            status="WARNING",
+            message=f"Blueprint pack '{pack_slug}' not found or inactive; skipped.",
+            payload={"pack_slug": pack_slug},
+        )
+        return
+    try:
+        apply_blueprint_pack(school, pack, applied_by=actor)
+    except (DatabaseError, IntegrityError, AttributeError, TypeError, ValueError):
+        log_exception_with_context(
+            "schools.tasks: apply_blueprint_pack failed",
+            school_id=getattr(school, "id", None),
+            extra={"pack_slug": pack_slug},
+        )
+        _record_school_event(
+            school,
+            event_type="BLUEPRINT_TEMPLATE_RECORDED",
+            status="ERROR",
+            message=f"Failed to apply blueprint pack '{pack_slug}'.",
+            payload={"pack_slug": pack_slug},
+        )
+        return
+    _record_school_event(
+        school,
+        event_type="BLUEPRINT_TEMPLATE_RECORDED",
+        status="SUCCESS",
+        message=f"Applied onboarding blueprint pack '{pack_slug}'.",
+        payload={"pack_slug": pack_slug, "pack_name": pack.name, "version": pack.version},
+    )
+
+
+class _NullStyle:
+    """Shim mimicking django.core.management.color_style for non-command callers."""
+
+    def __getattr__(self, _name):
+        return lambda message="": message
+
+
+def _maybe_seed_onboarding_sample_data(school) -> None:
+    """
+    Pass 7: when the user toggled "Start with sample data", seed demo users
+    (teachers, students, parents) so the admin lands on a populated tenant.
+    No-op when the flag is false or the seeder is unavailable.
+    """
+    if school is None:
+        return
+    if not bool(_onboarding_settings(school).get("sample_data", False)):
+        return
+    try:
+        import io
+
+        from apps.schools.demo_user_seeding import seed_demo_users_for_school
+    except (ImportError, ModuleNotFoundError):
+        return
+    try:
+        seed_demo_users_for_school(
+            school,
+            password="Test1234",
+            username_prefix="demo",
+            stdout=io.StringIO(),
+            style=_NullStyle(),
+        )
+    except (
+        DatabaseError,
+        IntegrityError,
+        AttributeError,
+        TypeError,
+        ValueError,
+        RuntimeError,
+    ):
+        log_exception_with_context(
+            "schools.tasks: seed_demo_users_for_school failed",
+            school_id=getattr(school, "id", None),
+        )
+        _record_school_event(
+            school,
+            event_type="SAMPLE_DATA_READY",
+            status="ERROR",
+            message="Sample data seeding failed.",
+        )
+        return
+    _record_school_event(
+        school,
+        event_type="SAMPLE_DATA_READY",
+        status="SUCCESS",
+        message="Sample data seeded (demo.admin, demo.teacher, demo.parent).",
+        payload={"username_prefix": "demo"},
+    )
+
+
 # Exception types that may be raised during provisioning (catch, log, re-raise or retry).
 _PROVISIONING_FAILURES = (
     DatabaseError,
@@ -420,6 +633,20 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         ):
             logger.exception("Failed syncing domains for school %s", school.id)
 
+    # Pass 7: auto-create the tenant subdomain via the configured DNS provider.
+    # No-op when DNS_PROVIDER is unset; logs success/failure as a provisioning event.
+    try:
+        _provision_dns_record(school)
+    except (
+        OSError,
+        ConnectionError,
+        DatabaseError,
+        AttributeError,
+        TypeError,
+        ValueError,
+    ):
+        logger.exception("DNS auto-provision raised for school %s", school.id)
+
     # Tenant-scoped creation: schema mode uses tenant_context(client); RLS mode pins
     # app.current_school_id to the new school so FORCE'd WITH CHECK clauses pass.
     with _optional_tenant_context(tenant_client), rls_school(school.id):
@@ -695,6 +922,12 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             RuntimeError,
         ):
             logger.debug("sync_experience_pack_install_from_school skipped", exc_info=True)
+
+        # Pass 7: apply the blueprint pack chosen in the onboarding wizard.
+        _maybe_apply_onboarding_blueprint_pack(school, admin_user)
+
+        # Pass 7: seed demo users + a populated sample class when the user opted in.
+        _maybe_seed_onboarding_sample_data(school)
 
         school.is_active = True
         school.save(update_fields=["is_active", "settings", "updated_at"])
