@@ -20,6 +20,7 @@ from django.core.exceptions import ValidationError
 
 from apps.accounts.decorators import role_required, teacher_portal_required
 from apps.accounts.models import User
+from apps.observability.tracing import trace_view
 from apps.academics.models import (
     SubjectAssignment,
     Classroom,
@@ -2601,6 +2602,7 @@ def grade_approval_list(request: HttpRequest):
 
 
 @staff_member_required(login_url=settings.LOGIN_URL)
+@trace_view("grade.approval.detail", op="view.hot_path")
 def grade_approval_detail(request: HttpRequest, request_id):
     from apps.evals.runtime_helpers import get_policy_for_request
 

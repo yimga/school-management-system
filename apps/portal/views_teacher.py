@@ -20,6 +20,7 @@ from django.views.decorators.http import require_POST
 from apps.accounts.decorators import role_required, teacher_portal_required
 from apps.accounts.models import User
 from apps.accounts.utils import get_user_role
+from apps.observability.tracing import trace_view
 from apps.academics.models import (
     Attendance,
     Classroom,
@@ -273,6 +274,7 @@ def teacher_leave(request: HttpRequest):
 
 @teacher_portal_required
 @role_required(User.Role.TEACHER)
+@trace_view("teacher.attendance.view", op="view.hot_path")
 def teacher_attendance_view(request: HttpRequest):
     """Teacher attendance summary and logs."""
     profile = getattr(request.user, "teacher_profile", None)

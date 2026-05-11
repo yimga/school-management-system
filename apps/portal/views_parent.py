@@ -23,6 +23,7 @@ from django.utils import timezone
 
 from apps.accounts.decorators import parent_portal_required, role_required
 from apps.accounts.models import User
+from apps.observability.tracing import trace_view
 from apps.accounts.utils import get_user_role, get_dashboard_context
 from apps.people.models import (
     StudentGuardian,
@@ -632,6 +633,7 @@ def parent_child_results(request: HttpRequest, student_id: int):
 
 @parent_portal_required
 @role_required(User.Role.PARENT)
+@trace_view("parent.dashboard.render", op="view.hot_path")
 def parent_dashboard(request: HttpRequest):
     """
     Parent dashboard with optimized query loading.
