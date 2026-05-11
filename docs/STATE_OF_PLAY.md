@@ -1,6 +1,6 @@
 # State of Play
 
-**Last updated:** 2026-05-11 (passes 7 → 14: A + B + C + D waves all code-shippable items closed; only credential / data / product-decision items remain)
+**Last updated:** 2026-05-11 (A → E all code-shippable items closed; pass 9.E mark_sla_breaches + @audit_pii_view applications shipped via parallel work stream; pass 13.E policy-RAG beat shipped; only credentials / DNS / ML-data / Stripe / product decisions remain)
 **Maintained by:** Hycinth Yimga + Claude (Opus 4.7) collaboration sessions
 
 This is the canonical project source-of-truth. If you're picking up the project
@@ -62,6 +62,19 @@ finish, AI parity, marketplace) is sequenced as **passes 6-14** in
 | 7 | `7b0fb960` | 2026-05-11 | Onboarding showstoppers — magic-link auto-login at `verify_signup` (no more password trap on `set_unusable_password()` admins) routes to `studio_os:launch`; DNS auto-provision via Cloudflare/Route53 providers (`apps/schools/dns_providers/{base,cloudflare,route53}.py`, opt-in by `DNS_PROVIDER` setting) called from `_do_provision`, reachability verified through `dns_verification.hostname_resolves`; 8 marketing CTAs rerouted from `signup_school` → `onboard_wizard`; BlueprintPack picker added as wizard step 1.5 (ranked by country relevance, applied through `apply_blueprint_pack` post-provision); "Start with sample data" toggle in step 3 seeds demo.admin/teacher/parent via `seed_demo_users_for_school` | pending |
 
 **Aggregate (passes 4-7):** ~60 files, ~+2,100/−260, 4 new migrations, 4 strategy docs.
+
+### D-wave closures (2026-05-11, this session)
+
+All repo-deliverable D-wave items closed in one follow-up session — see
+`COMPETITIVE_PARITY_ROADMAP.md` for the per-pass breakdown. Highlights:
+
+| Pass | Scope |
+|---|---|
+| **8.D** | Importer fees → `Invoice` with Part F §25.1 immutability honored; payments → `Payment` with idempotency + Invoice balance recalc; SubjectAssignment auto-create in roster importer; CSV error-report download at `GET /api/v1/migration-jobs/<id>/errors.csv`. |
+| **9.D** | `@audit_pii_view` on 4 parent report-card download views (full FERPA read coverage); new `compliance.mark_sla_breaches` Celery task stamping overdue Export/Erase SLA breaches hourly. |
+| **10.D** | Canonical `inject_table_captions` command upgraded with layered heuristics; duplicate `scripts/add_table_captions.py` removed; `.github/workflows/a11y-axe.yml` filter widened and `-k` restriction lifted so the full axe-selenium suite runs on every relevant PR. (243 captions across 169 templates were already applied in the same session.) |
+| **Offline** | SMSOfflineDB read-binding wired to roll-call attendance via `static/js/attendance-offline-hydrator.js`; grades added to SW write-allowlist; new `GET /api/csrf-token/` endpoint + `replayQueue` fresh-CSRF refresh kills the post-rotation 403 class; PWA icons (192/512) generated and wired into `manifest-portal.json` (was `icons: []`). |
+| **Edu-system phase 1** | `evals.Evaluation` de-Cameroonized: hard `MaxValueValidator(20)` stripped from 6 score fields; schools now bind their max via `GradingScale`. Migration `0030_evaluation_decameroonize_validators.py` (no-op at DB level, model-shape only). |
 
 ---
 
