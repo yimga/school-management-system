@@ -14,8 +14,10 @@
 {% endblock %}
 {% block body_extra_class %}backend-shell{% endblock %}
 
-{# Staff theme: /backend uses same ThemePack as /admin. Operator/platform uses dark navy ground
-   + indigo accent (was gold #d4af37 — Gilead-era residue, retired 2026-05-10). #}
+{% comment %}
+Staff theme: /backend uses same ThemePack as /admin. Operator/platform uses dark navy ground
++ indigo accent (was gold #d4af37 — Gilead-era residue, retired 2026-05-10).
+{% endcomment %}
 {% block theme_root_variables %}
 {% if PUBLIC_BRAND_MODE %}
 :root {
