@@ -5,6 +5,7 @@
       data-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif PUBLIC_BRAND_MODE %}system{% else %}{{ USER_THEME_PREFERENCE|default:SITE.theme_brightness|default:'system'|lower }}{% endif %}"
       data-rmc-premium-shell="{% if PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}"
       data-rmc-page-purpose="{% if PUBLIC_BRAND_MODE %}public-story{% else %}tenant-workspace{% endif %}"
+      data-rmc-aesthetic="{% if PUBLIC_BRAND_MODE %}marketing{% else %}v2{% endif %}"
       data-admin-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif PUBLIC_BRAND_MODE %}system{% else %}{{ SITE.theme_brightness|default:'system'|lower }}{% endif %}"
       data-simple-mode="{% if simple_mode %}true{% else %}false{% endif %}"
       data-surface="{% if request and request.path|slice:':14' == '/setup-studio/' or request and request.path|slice:':9' == '/onboard/' or request and request.path|slice:':8' == '/onboard' %}onboarding{% elif PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
@@ -31,6 +32,7 @@
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
+    <link rel="stylesheet" href="{% static 'css/patterns.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">
     <link rel="stylesheet" href="{% static 'css/accessibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/statement-header.css' %}">

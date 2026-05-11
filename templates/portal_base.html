@@ -1,6 +1,6 @@
 {% load static i18n accounts_extras control_console %}
 <!doctype html>
-<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-regional-ui="1" data-surface="tenant" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-regional-ui="1" data-surface="tenant" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
+    <link rel="stylesheet" href="{% static 'css/patterns.css' %}">
     <link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
     <link rel="stylesheet" href="{% static 'css/statement-header.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
