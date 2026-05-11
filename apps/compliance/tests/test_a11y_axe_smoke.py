@@ -80,3 +80,32 @@ class HomepageAxeSmokeTests(LiveServerTestCase):
                 "axe-core found serious/critical violations on /:\n"
                 + json.dumps(severe, indent=2)[:4000]
             )
+
+    # Pass 10.B: widened scan. These routes are unauthenticated entry points
+    # — they don't need fixtures and they hit the headers / footers / forms
+    # most prone to a11y regressions. Authenticated coverage (portal_base,
+    # backend_base, finance/invoices, evals/evaluation_admin) lands when a
+    # fixture-based session helper is wired up — separate change.
+    PUBLIC_ROUTES = [
+        "/onboard/",
+        "/marketing/",
+        "/authentication/login/",
+        "/healthz/",
+    ]
+
+    def test_public_routes_have_no_severe_violations(self):
+        failures = []
+        for path in self.PUBLIC_ROUTES:
+            try:
+                results = self._axe_scan(path)
+            except Exception as exc:  # noqa: BLE001 - route may 404; record + continue
+                failures.append((path, f"scan_failed: {exc}"))
+                continue
+            severe = self._filter_severe(results)
+            if severe:
+                failures.append((path, json.dumps(severe, indent=2)[:2000]))
+        if failures:
+            self.fail(
+                "axe-core flagged severe violations on:\n\n"
+                + "\n\n".join(f"-- {path} --\n{detail}" for path, detail in failures)
+            )
