@@ -1,93 +1,80 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Create Announcement{% endblock %}
+{% block title %}{% trans "Create announcement" %}{% endblock %}
 
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Create Announcement</h1>
+{# Pass 8 Wave 2: migrated to components/form_field. The multi-action footer
+   (Publish / Submit for approval / Save as draft / Cancel) keeps its custom
+   layout since form_actions.html supports only one primary + one secondary —
+   announcement_create has 4 buttons by design (Publish OR Submit-for-approval,
+   Save as draft, Cancel). #}
 <div class="container-fluid">
   <div class="row justify-content-center">
     <div class="col-lg-8">
       <div class="card shadow-sm">
         <div class="card-header">
-          <h4 class="mb-0"><i class="bi bi-megaphone me-2"></i>Create Announcement</h4>
+          <h1 class="h4 mb-0"><i class="bi bi-megaphone me-2" aria-hidden="true"></i>{% trans "Create announcement" %}</h1>
         </div>
         <div class="card-body">
           {% if can_submit_for_approval and not can_publish %}
-          <div class="alert alert-info">
-            <i class="bi bi-info-circle me-2"></i>
-            Your announcement will be submitted for approval. An administrator will review and publish it before it is visible to the audience.
+          <div class="alert alert-info" role="status" aria-live="polite">
+            <i class="bi bi-info-circle me-2" aria-hidden="true"></i>
+            {% trans "Your announcement will be submitted for approval. An administrator will review and publish it before it is visible to the audience." %}
           </div>
           {% endif %}
 
           <form method="post">
             {% csrf_token %}
-            
-            <div class="mb-3">
-              <label for="{{ form.title.id_for_label }}" class="form-label">Title *</label>
-              {{ form.title }}
-              {% if form.title.errors %}
-              <div class="text-danger small">{{ form.title.errors }}</div>
-              {% endif %}
-            </div>
 
-            <div class="mb-3">
-              <label for="{{ form.content.id_for_label }}" class="form-label">Content *</label>
-              {{ form.content }}
-              {% if form.content.errors %}
-              <div class="text-danger small">{{ form.content.errors }}</div>
-              {% endif %}
-            </div>
+            {% include "components/form_field.html" with field=form.title %}
+            {% include "components/form_field.html" with field=form.content %}
 
             <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="{{ form.announcement_type.id_for_label }}" class="form-label">Type</label>
-                {{ form.announcement_type }}
+              <div class="col-md-6">
+                {% include "components/form_field.html" with field=form.announcement_type %}
               </div>
-              <div class="col-md-6 mb-3">
-                <label for="{{ form.audience.id_for_label }}" class="form-label">Audience</label>
-                {{ form.audience }}
+              <div class="col-md-6">
+                {% include "components/form_field.html" with field=form.audience %}
               </div>
             </div>
 
-            <div class="mb-3">
-              <label for="{{ form.send_to_department.id_for_label }}" class="form-label">Send to Department</label>
-              {{ form.send_to_department }}
-              <div class="form-text">{{ form.send_to_department.help_text }}</div>
-            </div>
+            {% include "components/form_field.html" with field=form.send_to_department %}
 
             <div class="row">
               <div class="col-md-6 mb-3">
                 <div class="form-check">
                   {{ form.is_urgent }}
                   <label class="form-check-label" for="{{ form.is_urgent.id_for_label }}">
-                    Mark as urgent
+                    {% trans "Mark as urgent" %}
                   </label>
                 </div>
               </div>
-              <div class="col-md-6 mb-3">
-                <label for="{{ form.expiry_date.id_for_label }}" class="form-label">Expiry Date</label>
-                {{ form.expiry_date }}
+              <div class="col-md-6">
+                {% include "components/form_field.html" with field=form.expiry_date %}
               </div>
             </div>
 
-            <div class="d-flex flex-wrap gap-2 align-items-center">
-              {% if can_publish %}
-              <button type="submit" name="submit_action" value="publish" class="btn btn-primary">
-                <i class="bi bi-check-circle me-2"></i>Publish
+            {# Multi-action footer kept custom; form_actions.html partial assumes
+               a single primary + optional secondary. Layout mirrors form_actions
+               for consistency (right-aligned, gap-2). #}
+            <div class="form-actions d-flex flex-wrap align-items-center mt-4 gap-2 justify-content-end">
+              <a href="{% url 'portal:teacher_dashboard_alias' %}" class="btn btn-outline-secondary ds-btn">{% trans "Cancel" %}</a>
+              {% if can_publish or can_submit_for_approval %}
+              <button type="submit" name="submit_action" value="draft" class="btn btn-outline-secondary ds-btn">
+                <i class="bi bi-save me-2" aria-hidden="true"></i>{% trans "Save as draft" %}
               </button>
               {% endif %}
               {% if can_submit_for_approval and not can_publish %}
-              <button type="submit" name="submit_action" value="submit_for_approval" class="btn btn-primary">
-                <i class="bi bi-send me-2"></i>Submit for approval
+              <button type="submit" name="submit_action" value="submit_for_approval" class="btn btn-primary ds-btn">
+                <i class="bi bi-send me-2" aria-hidden="true"></i>{% trans "Submit for approval" %}
               </button>
               {% endif %}
-              {% if can_publish or can_submit_for_approval %}
-              <button type="submit" name="submit_action" value="draft" class="btn btn-outline-secondary">
-                <i class="bi bi-save me-2"></i>Save as draft
+              {% if can_publish %}
+              <button type="submit" name="submit_action" value="publish" class="btn btn-primary ds-btn">
+                <i class="bi bi-check-circle me-2" aria-hidden="true"></i>{% trans "Publish" %}
               </button>
               {% endif %}
-              <a href="{% url 'portal:teacher_dashboard_alias' %}" class="btn btn-outline-secondary">Cancel</a>
             </div>
           </form>
         </div>

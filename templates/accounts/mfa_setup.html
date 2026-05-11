@@ -134,10 +134,16 @@
             <hr style="margin:28px 0 18px">
             <h2 class="h6" style="font-weight:600;color:var(--ds-danger);letter-spacing:-0.01em"><i class="bi bi-exclamation-circle me-1"></i>{% trans "Disable MFA" %}</h2>
             <p style="color:var(--admin-content-text-muted);font-size:0.9rem;margin-bottom:14px">{% trans "Disabling MFA removes the second layer of security from your account. Only do this if absolutely necessary." %}</p>
+            {# Pass 8 Wave 2: replaced jarring native onclick="return confirm(...)" with
+               components/confirm_modal.html — themed, ESC-dismissable, role="alertdialog"
+               so screen readers treat the disable-MFA action as a security decision. #}
             <form method="post">
               {% csrf_token %}
               {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
-              <button type="submit" name="disable_mfa" class="btn btn-outline-danger" onclick="return confirm('{% trans "Are you sure you want to disable MFA? This will make your account less secure." %}')"><i class="bi bi-unlock me-1"></i>{% trans "Disable MFA" %}</button>
+              <button type="button" name="disable_mfa" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#disableMfaConfirm">
+                <i class="bi bi-unlock me-1" aria-hidden="true"></i>{% trans "Disable MFA" %}
+              </button>
+              {% include "components/confirm_modal.html" with modal_id="disableMfaConfirm" icon="bi-shield-exclamation" title=_("Disable MFA?") body=_("This removes the second layer of security from your account. Anyone who has your password will be able to sign in without a second factor.") confirm_label=_("Disable MFA") confirm_class="btn-danger" static_backdrop=True %}
             </form>
           {% endif %}
         </div>

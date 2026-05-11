@@ -106,16 +106,19 @@
     <div class="card-body">
       {% if requests %}
         <div class="table-responsive">
-          <table class="table table-hover align-middle" aria-label="Signature requests: form, student, parent, status, dates, and actions">
-            <thead>
+          {# Pass 8 Wave 2: standardized to design-system table grammar
+             (.table-family .table-sticky-head .table-zebra). Right-aligned the
+             three date columns for column-type consistency with finance/invoices. #}
+          <table class="table table-family table-sticky-head table-zebra table-hover align-middle" aria-label="Signature requests: form, student, parent, status, dates, and actions">
+            <thead class="table-light">
               <tr>
                 <th scope="col">Form</th>
                 <th scope="col">Student</th>
                 <th scope="col">Parent</th>
                 <th scope="col">Status</th>
-                <th scope="col">Created</th>
-                <th scope="col">Expires</th>
-                <th scope="col">Signed</th>
+                <th scope="col" class="text-end">Created</th>
+                <th scope="col" class="text-end">Expires</th>
+                <th scope="col" class="text-end">Signed</th>
                 <th scope="col" class="text-end">Actions</th>
               </tr>
             </thead>

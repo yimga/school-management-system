@@ -4,39 +4,37 @@
 {% block title %}{% if is_edit %}Edit delegation{% else %}Add delegation{% endif %} - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block content %}
+{# Pass 8 Wave 2: migrated to components/form_field + form_actions partials. The
+   custom scope-checkbox block is kept as-is since it iterates widget.choices
+   directly (form_field assumes a single widget); only the surrounding label+help+errors
+   chrome was moved into form-system grammar. #}
   <div class="container py-4">
     <div class="row justify-content-center">
       <div class="col-lg-8">
         <div class="card shadow-sm">
           <div class="card-body">
-            <h1 class="h4 mb-3">{% if is_edit %}Edit delegation{% else %}Add delegation{% endif %}</h1>
+            <h1 class="h4 mb-3">{% if is_edit %}{% trans "Edit delegation" %}{% else %}{% trans "Add delegation" %}{% endif %}</h1>
             <form method="post" action="">
               {% csrf_token %}
               {% if form.non_field_errors %}
-                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                <div class="alert alert-danger" role="alert" aria-live="polite">{{ form.non_field_errors }}</div>
               {% endif %}
-              <div class="mb-3">
-                <label for="id_delegate" class="form-label">{{ form.delegate.label }}</label>
-                {{ form.delegate }}
-                {% if form.delegate.help_text %}<div class="form-text">{{ form.delegate.help_text }}</div>{% endif %}
-                {% if form.delegate.errors %}<div class="invalid-feedback d-block">{{ form.delegate.errors.0 }}</div>{% endif %}
-              </div>
+
+              {% include "components/form_field.html" with field=form.delegate %}
+
               <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="id_start_date" class="form-label">{{ form.start_date.label }}</label>
-                  {{ form.start_date }}
-                  {% if form.start_date.help_text %}<div class="form-text">{{ form.start_date.help_text }}</div>{% endif %}
-                  {% if form.start_date.errors %}<div class="invalid-feedback d-block">{{ form.start_date.errors.0 }}</div>{% endif %}
+                <div class="col-md-6">
+                  {% include "components/form_field.html" with field=form.start_date %}
                 </div>
-                <div class="col-md-6 mb-3">
-                  <label for="id_end_date" class="form-label">{{ form.end_date.label }}</label>
-                  {{ form.end_date }}
-                  {% if form.end_date.help_text %}<div class="form-text">{{ form.end_date.help_text }}</div>{% endif %}
-                  {% if form.end_date.errors %}<div class="invalid-feedback d-block">{{ form.end_date.errors.0 }}</div>{% endif %}
+                <div class="col-md-6">
+                  {% include "components/form_field.html" with field=form.end_date %}
                 </div>
               </div>
-              <div class="mb-3">
-                <label class="form-label">Scope (leave empty for all)</label>
+
+              {# Custom checkbox group — form_field handles single widgets only.
+                 Wrapped in .form-field for consistent error styling via CSS. #}
+              <div class="mb-3 form-field{% if form.scope.errors %} has-error{% endif %}">
+                <label class="form-label">{% trans "Scope" %} <span class="form-text-inline">{% trans "(leave empty for all)" %}</span></label>
                 {% for choice in form.scope.field.widget.choices %}
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="scope" value="{{ choice.0 }}" id="scope_{{ choice.0 }}"
@@ -46,22 +44,18 @@
                   </div>
                 {% endfor %}
                 {% if form.scope.help_text %}<div class="form-text">{{ form.scope.help_text }}</div>{% endif %}
-                {% if form.scope.errors %}<div class="invalid-feedback d-block">{{ form.scope.errors.0 }}</div>{% endif %}
+                {% if form.scope.errors %}<div class="invalid-feedback d-block" role="alert">{{ form.scope.errors.0 }}</div>{% endif %}
               </div>
-              <div class="mb-3">
-                <label for="id_reason" class="form-label">{{ form.reason.label }}</label>
-                {{ form.reason }}
-                {% if form.reason.errors %}<div class="invalid-feedback d-block">{{ form.reason.errors.0 }}</div>{% endif %}
-              </div>
-              <div class="mb-3">
-                <label for="id_notes" class="form-label">{{ form.notes.label }}</label>
-                {{ form.notes }}
-                {% if form.notes.errors %}<div class="invalid-feedback d-block">{{ form.notes.errors.0 }}</div>{% endif %}
-              </div>
-              <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">{% if is_edit %}Save changes{% else %}Create delegation{% endif %}</button>
-                <a class="btn btn-outline-secondary js-return-to-origin" href="{% url 'accounts:my_delegations' %}" data-fallback="{% url 'accounts:my_delegations' %}">Cancel</a>
-              </div>
+
+              {% include "components/form_field.html" with field=form.reason %}
+              {% include "components/form_field.html" with field=form.notes %}
+
+              {% url 'accounts:my_delegations' as cancel_url %}
+              {% if is_edit %}
+                {% include "components/form_actions.html" with submit_label=_("Save changes") cancel_url=cancel_url %}
+              {% else %}
+                {% include "components/form_actions.html" with submit_label=_("Create delegation") cancel_url=cancel_url %}
+              {% endif %}
             </form>
           </div>
         </div>

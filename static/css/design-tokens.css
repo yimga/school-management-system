@@ -144,6 +144,15 @@
   --ds-danger-bg: rgba(239, 68, 68, 0.12);
   --ds-info: #2563eb;
   --ds-info-bg: rgba(59, 130, 246, 0.12);
+  /* Pass 8 Wave 2 — canonical form tokens. Used by components/form_field.html and the
+     `.form-system` body class. Previously every template re-rolled `text-danger small`
+     (118 sites), `text-muted small` (54 sites), and hardcoded asterisk markers — the
+     audit's three form inconsistencies all flowed from missing tokens here. */
+  --form-required-color: var(--ds-danger);
+  --form-error-color: var(--ds-danger);
+  --form-error-bg: var(--ds-danger-bg);
+  --form-help-color: rgba(15, 23, 42, 0.6);
+  --form-section-rule-color: rgba(15, 23, 42, 0.08);
   --ds-motion-content: var(--motion-normal);
   /* Decorative motion: luxury sheet may override --luxury-motion-* after load */
   --ds-motion-decorative: 600ms ease-out;

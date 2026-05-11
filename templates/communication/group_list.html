@@ -61,12 +61,14 @@
     </div>
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-hover">
-          <thead>
+        {# Pass 8 Wave 2: standardized to design-system table grammar (.table-family .table-sticky-head
+           .table-zebra .align-middle) so this list matches signature_requests_manage / invoices / etc. #}
+        <table class="table table-family table-sticky-head table-zebra table-hover align-middle">
+          <thead class="table-light">
             <tr>
-              <th>Group Name</th>
-              <th>Scope</th>
-              <th>Members</th>
+              <th scope="col">Group Name</th>
+              <th scope="col">Scope</th>
+              <th scope="col" class="text-end">Members</th>
               <th>Last Activity</th>
               <th>Actions</th>
             </tr>

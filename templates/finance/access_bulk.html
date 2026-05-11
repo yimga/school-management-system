@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block title %}Finance Access Bulk{% endblock %}
 
@@ -38,10 +38,14 @@
         </select>
       </div>
       <div class="col-md-4 d-grid">
-        <button class="btn btn-primary" type="submit" onclick="return confirm('Grant finance access to all matching guardians?');">Grant finance access</button>
+        {# Pass 8 Wave 2: native confirm() → themed Bootstrap modal. The trigger is now
+           type="button" + data-bs-toggle="modal"; the modal's confirm button submits
+           the parent form via confirm-modal.js. #}
+        <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#grantFinanceAccessConfirm">{% trans "Grant finance access" %}</button>
       </div>
     </div>
   </div>
+  {% include "components/confirm_modal.html" with modal_id="grantFinanceAccessConfirm" icon="bi-cash-coin" title=_("Grant finance access to all matching guardians?") body=_("Every guardian linked to the selected scope will be granted access to invoices and payment history. They will be notified by email when finance notifications are enabled.") confirm_label=_("Grant access") confirm_class="btn-primary" %}
 </form>
 
 <div class="card">

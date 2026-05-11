@@ -183,10 +183,14 @@
                     <a class="btn btn-sm btn-primary" href="{% url 'finance:invoice_detail' inv.id %}#pay">Pay now</a>
                   {% endif %}
                   {% if user.is_staff or user.is_superuser and inv.student %}
+                  {# Pass 8 Wave 2: native confirm() → shared themed modal at end of table.
+                     Each row's button targets the same #grantAccessConfirm modal; the JS
+                     hook (confirm-modal.js) submits the trigger's parent <form> so each
+                     row sends its own student_id. #}
                   <form method="post" action="{% url 'finance:finance_request_access' %}" class="d-inline">
                     {% csrf_token %}
                     <input type="hidden" name="student_id" value="{{ inv.student.id }}">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="return confirm('Grant finance access to guardians for {{ inv.student }}?');">Grant guardian access</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#grantAccessConfirm">{% trans "Grant guardian access" %}</button>
                   </form>
                   {% endif %}
                 </div>
@@ -195,6 +199,10 @@
           {% endfor %}
         </tbody>
       </table>
+      {# Pass 8 Wave 2: single shared confirm modal for all "Grant guardian access" buttons
+         in the rows above. confirm-modal.js submits the trigger button's parent <form>
+         on confirm, so each row sends its own student_id. #}
+      {% include "components/confirm_modal.html" with modal_id="grantAccessConfirm" icon="bi-people" title=_("Grant finance access to this student's guardians?") body=_("All guardians linked to the student will be granted access to invoices and payment history. They will be notified by email when finance notifications are enabled.") confirm_label=_("Grant access") confirm_class="btn-primary" %}
       {% elif finance_access_required and not finance_access_granted %}
       <table class="table table-sm align-middle" aria-label="Invoices list (no results)">
         <thead class="table-light">

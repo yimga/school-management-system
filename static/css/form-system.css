@@ -145,3 +145,32 @@
   border-top: 1px solid var(--ds-border);
   background: var(--ds-surface);
 }
+
+/* Pass 8 Wave 2 — canonical bits used by components/form_field.html and form_actions.html.
+   These were ad-hoc inline styles or repeated utility-class permutations across 8+ forms;
+   centralizing them here so future forms render identically without re-rolling. */
+.form-required-marker {
+  color: var(--form-required-color, var(--ds-danger, #dc2626));
+  font-weight: 700;
+  margin-inline-start: 0.15em;
+}
+.form-text-inline {
+  display: inline-block;
+  margin-inline-start: 0.4rem;
+  font-size: var(--type-micro, 0.75rem);
+  color: var(--form-help-color, rgba(15, 23, 42, 0.6));
+}
+.form-system .form-text {
+  color: var(--form-help-color, rgba(15, 23, 42, 0.6));
+  font-size: var(--type-micro, 0.75rem);
+}
+.form-system .invalid-feedback {
+  /* Already styled above; reinforce that error text uses the canonical form-error-color
+     token so theme packs that swap --form-error-color flow through without re-edit. */
+  color: var(--form-error-color, var(--admin-content-danger, #dc2626));
+}
+.form-field.has-error .form-control,
+.form-field.has-error .form-select,
+.form-field.has-error .form-check-input {
+  border-color: var(--form-error-color, var(--ds-danger, #dc2626));
+}

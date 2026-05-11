@@ -1,0 +1,58 @@
+{% load i18n %}
+{% comment %}
+  Pass 8 Wave 2 — canonical field renderer.
+
+  Usage:
+    {% include "components/form_field.html" with field=form.email %}
+    {% include "components/form_field.html" with field=form.email autofocus=True %}
+    {% include "components/form_field.html" with field=form.notes help_text=_("Up to 500 characters") %}
+
+  Optional context vars:
+    autofocus       — boolean; adds autofocus attribute
+    help_text       — override field.help_text
+    placeholder     — override field.field.widget.attrs.placeholder
+    label_class     — extra classes on <label>
+    field_class     — extra classes on the input/select/textarea
+    show_label      — set False to hide label (still rendered for screen readers via aria-label)
+    show_required   — set False to suppress the asterisk for optional cosmetic reasons
+    inline_help     — set True for compact help (form-text-inline)
+    autocomplete    — override autocomplete= attribute (e.g. "off", "current-password")
+
+  What it standardizes:
+    - Single label location (above field)
+    - Single required-marker style (red asterisk with aria-hidden)
+    - Single help-text style (.form-text, ≠ <small>)
+    - Single error treatment (.invalid-feedback d-block with role="alert")
+    - .form-control / .form-select picked automatically by widget class on the field
+    - .is-invalid auto-applied when field.errors is non-empty
+
+  Closes Forms-audit items #2 (error pattern), #3 (required marker), #5 (help text).
+{% endcomment %}
+
+{% with widget_type=field.field.widget.__class__.__name__ %}
+<div class="mb-3 form-field{% if field.errors %} has-error{% endif %}" data-form-field="{{ field.name }}">
+  {% if show_label|default_if_none:True %}
+    <label class="form-label {{ label_class|default:'' }}" for="{{ field.id_for_label }}">
+      {{ field.label }}{% if field.field.required and show_required|default_if_none:True %}<span class="form-required-marker text-danger ms-1" aria-hidden="true">*</span><span class="visually-hidden"> ({% trans "required" %})</span>{% endif %}
+    </label>
+  {% endif %}
+
+  {# Render the field. Django picks the right widget (form-control, form-select,
+     form-check-input, etc.) based on the widget class assigned on the form.
+     Error styling is added to the parent .form-field.has-error via CSS in
+     form-system.css so we don't need to rewrite widget attrs here. #}
+  {{ field }}
+
+  {% if help_text %}
+    <div class="form-text {% if inline_help %}form-text-inline{% endif %}" id="{{ field.id_for_label }}_help">{{ help_text }}</div>
+  {% elif field.help_text %}
+    <div class="form-text {% if inline_help %}form-text-inline{% endif %}" id="{{ field.id_for_label }}_help">{{ field.help_text }}</div>
+  {% endif %}
+
+  {% if field.errors %}
+    <div class="invalid-feedback d-block" role="alert" aria-live="polite" id="{{ field.id_for_label }}_errors">
+      {% for error in field.errors %}<div>{{ error }}</div>{% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% endwith %}

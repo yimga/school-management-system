@@ -1,0 +1,60 @@
+{% load i18n %}
+{% comment %}
+  Pass 8 Wave 2 — canonical form action bar.
+
+  Usage:
+    {% include "components/form_actions.html" with submit_label=_("Save changes") cancel_url=back_url %}
+    {% include "components/form_actions.html" with submit_label=_("Create student") cancel_url=back_url submit_class="btn-primary" loading_label=_("Saving…") %}
+
+  Optional context vars:
+    submit_label    — primary button text (default: "Save")
+    submit_class    — btn variant (default: "btn-primary")
+    submit_name     — name attribute on the submit button (for multi-action forms)
+    submit_value    — value attribute on the submit button
+    submit_disabled — boolean
+    cancel_url      — if provided, renders a Cancel <a> link to the LEFT of submit
+    cancel_label    — Cancel link text (default: "Cancel")
+    loading_label   — replaces submit text via JS when form submits (data-loading-label)
+    align           — "end" (default) | "between" | "start"
+    secondary_label — optional third button text (e.g. "Save and add another")
+    secondary_class — variant for secondary (default: "btn-outline-secondary")
+    secondary_name  — name attribute on secondary button
+
+  What it standardizes (Forms-audit item #4 — action-bar order):
+    - Cancel on LEFT, Primary on RIGHT (right-aligned by default)
+    - Same gap, same vertical rhythm (mt-4, gap-2)
+    - Single submission affordance (no duplicate save buttons)
+    - data-loading-label hook for inline loading indicator on submit
+    - All buttons honor design-system .ds-btn polish via .form-system body class
+
+  Replaces the 8+ ad-hoc <div class="d-flex justify-content-end gap-2 mt-4"> patterns
+  across backend_student_create, backend_teacher_create, announcement_create, etc.
+{% endcomment %}
+
+<div class="form-actions d-flex flex-wrap align-items-center mt-4 gap-2 {% if align == 'between' %}justify-content-between{% elif align == 'start' %}justify-content-start{% else %}justify-content-end{% endif %}" data-form-actions>
+  {% if cancel_url %}
+    <a href="{{ cancel_url }}" class="btn btn-outline-secondary ds-btn" data-form-action="cancel">
+      {{ cancel_label|default:_("Cancel") }}
+    </a>
+  {% endif %}
+
+  {% if secondary_label %}
+    <button type="submit"
+            class="btn {{ secondary_class|default:'btn-outline-secondary' }} ds-btn ms-auto"
+            {% if secondary_name %}name="{{ secondary_name }}"{% endif %}
+            {% if secondary_value %}value="{{ secondary_value }}"{% endif %}
+            data-form-action="secondary">
+      {{ secondary_label }}
+    </button>
+  {% endif %}
+
+  <button type="submit"
+          class="btn {{ submit_class|default:'btn-primary' }} ds-btn"
+          {% if submit_name %}name="{{ submit_name }}"{% endif %}
+          {% if submit_value %}value="{{ submit_value }}"{% endif %}
+          {% if submit_disabled %}disabled{% endif %}
+          {% if loading_label %}data-loading-label="{{ loading_label }}"{% endif %}
+          data-form-action="submit">
+    {{ submit_label|default:_("Save") }}
+  </button>
+</div>

@@ -1,0 +1,79 @@
+{% load i18n %}
+{% comment %}
+  Pass 8 Wave 2 — canonical confirmation modal partial (Bootstrap 5).
+
+  Replaces 4+ jarring `onclick="return confirm('...')"` browser-native dialogs
+  (Forms-audit Modal #3) with a consistent, themed, screen-reader-friendly modal.
+
+  Usage (two patterns):
+
+  PATTERN 1 — Form submission with confirmation:
+    <form method="post" action="{% url '...' %}" data-confirm-target="#myConfirm">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#myConfirm" data-prevent-submit>
+        {% trans "Delete student" %}
+      </button>
+      {% include "components/confirm_modal.html" with modal_id="myConfirm" title=_("Delete student?") body=_("This will archive {{ student.full_name }} and remove portal access.") confirm_label=_("Delete") confirm_class="btn-danger" %}
+    </form>
+
+  PATTERN 2 — Link confirmation (data-confirm-href):
+    <a href="{% url '...' %}" data-bs-toggle="modal" data-bs-target="#myConfirm" data-confirm-href="{% url '...' %}">
+      {% trans "Revoke access" %}
+    </a>
+    {% include "components/confirm_modal.html" with modal_id="myConfirm" title=_("Revoke access?") body=_("The user will be signed out and cannot access this tenant.") confirm_label=_("Revoke") confirm_class="btn-warning" %}
+
+  Required context vars:
+    modal_id        — unique DOM id; data-bs-target points to this
+    title           — modal heading
+    body            — modal body text (or HTML if marked safe)
+
+  Optional context vars:
+    confirm_label   — primary button text (default: "Confirm")
+    confirm_class   — primary button variant (default: "btn-danger")
+    cancel_label    — cancel button text (default: "Cancel")
+    extra_body_html — extra <p>/<ul> markup after body
+    icon            — bi-icon class for the title row (e.g. "bi-trash")
+    static_backdrop — true → modal can't be dismissed by clicking outside (force decision)
+
+  Behavior:
+    - data-bs-dismiss="modal" on cancel
+    - confirm button submits the surrounding form (via JS hook) or follows data-confirm-href
+    - role="alertdialog" so screen readers treat it as a decision
+    - Focus trapped inside; ESC closes; focus returns to opener on close (BS5 defaults)
+{% endcomment %}
+
+<div class="modal fade"
+     id="{{ modal_id }}"
+     tabindex="-1"
+     aria-labelledby="{{ modal_id }}-title"
+     aria-describedby="{{ modal_id }}-body"
+     aria-hidden="true"
+     role="alertdialog"
+     {% if static_backdrop %}data-bs-backdrop="static" data-bs-keyboard="false"{% endif %}>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title d-flex align-items-center gap-2" id="{{ modal_id }}-title">
+          {% if icon %}<i class="bi {{ icon }}" aria-hidden="true"></i>{% endif %}
+          {{ title }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+      </div>
+      <div class="modal-body" id="{{ modal_id }}-body">
+        <p class="mb-0">{{ body }}</p>
+        {% if extra_body_html %}{{ extra_body_html|safe }}{% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary ds-btn" data-bs-dismiss="modal">
+          {{ cancel_label|default:_("Cancel") }}
+        </button>
+        <button type="button"
+                class="btn {{ confirm_class|default:'btn-danger' }} ds-btn"
+                data-confirm-action
+                data-modal-id="{{ modal_id }}">
+          {{ confirm_label|default:_("Confirm") }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
