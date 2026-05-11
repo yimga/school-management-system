@@ -319,6 +319,28 @@ def _check_cache_liveness() -> dict:
 
 @require_GET
 @observability_auth_required
+@require_GET
+def csrf_token_refresh(request):
+    """Offline foundational: return a freshly-rotated CSRF token.
+
+    The service worker calls this immediately before replaying queued POSTs
+    so the X-CSRFToken header matches the current csrftoken cookie. The
+    response is uncacheable; ensure_csrf_cookie rotates the cookie when the
+    user's session is older than CSRF_COOKIE_AGE.
+    """
+    from django.middleware.csrf import get_token
+    from django.views.decorators.csrf import ensure_csrf_cookie
+
+    @ensure_csrf_cookie
+    def _emit(req):
+        return JsonResponse(
+            {"csrf_token": get_token(req)},
+            headers={"Cache-Control": "no-store"},
+        )
+
+    return _emit(request)
+
+
 def healthz(request):
     """Internal health check including DB + cache connectivity (RBAC/API-key protected)."""
     try:

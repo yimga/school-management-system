@@ -25,6 +25,7 @@
   {% if headers %}
   <div class="table-responsive">
     <table class="table table-sm table-striped table-family align-middle">
+      <caption class="visually-hidden">{% trans "Read-only legacy CSV preview" %}</caption>
       <thead><tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
       <tbody>{% for vals in row_values %}<tr>{% for v in vals %}<td>{{ v }}</td>{% endfor %}</tr>{% endfor %}</tbody>
     </table>

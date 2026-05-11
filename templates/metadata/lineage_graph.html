@@ -73,6 +73,7 @@
         <div class="card-header py-2 small fw-semibold">{% trans "Downstream" %} ({{ summary.consumer_count }})</div>
         <div class="card-body p-0">
           <table class="table table-sm table-hover mb-0 table-family align-middle">
+            <caption class="visually-hidden">{% trans "Downstream" %} ({{ summary.consumer_count }})</caption>
             <thead>
               <tr>
                 <th>{% trans "Type" %}</th>
@@ -113,6 +114,7 @@
         <div class="card-header py-2 small fw-semibold">{% trans "Packages" %} ({{ packages|length }})</div>
         <div class="card-body p-0">
           <table class="table table-sm table-hover mb-0 table-family align-middle">
+            <caption class="visually-hidden">{% trans "Packages" %} ({{ packages|length }})</caption>
             <thead>
               <tr>
                 <th>{% trans "Package" %}</th>

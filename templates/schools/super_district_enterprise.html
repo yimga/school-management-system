@@ -26,6 +26,7 @@
     <p class="small text-white-50 mb-2">{% trans "Cross-tenant aggregates for operators (no student-level rows). Pairs with tenant statutory JSON and government aggregate API." %}</p>
     <div class="table-responsive">
       <table class="table table-dark table-sm w-auto">
+        <caption class="visually-hidden">{% trans "Live platform rollups" %}</caption>
         <tbody class="small">
           <tr><th scope="row" class="text-white-50">{% trans "Active schools" %}</th><td>{{ platform_rollups.active_schools }}</td></tr>
           <tr><th scope="row" class="text-white-50">{% trans "Students" %}</th><td>{{ platform_rollups.active_students }}</td></tr>
@@ -57,6 +58,7 @@
     {% if erp_coexistence_patterns %}
     <div class="table-responsive mb-3">
       <table class="table table-dark table-sm">
+        <caption class="visually-hidden">{% trans "Customer ERP coexistence" %}</caption>
         <thead><tr><th>{% trans "Pattern" %}</th><th>{% trans "Motion" %}</th><th>{% trans "Webhook events" %}</th></tr></thead>
         <tbody class="small">
           {% for p in erp_coexistence_patterns %}

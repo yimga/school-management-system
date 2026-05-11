@@ -38,6 +38,7 @@
       {% if interop_access_recent %}
       <div class="table-responsive">
         <table class="table table-sm table-hover mb-0 small table-family align-middle">
+          <caption class="visually-hidden">{% trans "Interop workbench (Phase 9)" %}</caption>
           <thead><tr><th>{% trans "When" %}</th><th>{% trans "Service" %}</th><th>{% trans "Endpoint" %}</th><th>{% trans "IP" %}</th><th>{% trans "Token" %}</th></tr></thead>
           <tbody>
             {% for row in interop_access_recent %}
@@ -103,6 +104,7 @@
       {% if federation_sso_rows %}
       <div class="table-responsive">
         <table class="table table-sm table-borderless mb-0 table-family align-middle">
+          <caption class="visually-hidden">{% trans "SSO / IdP login health" %} {% trans "Wedge 45" %}</caption>
           <thead><tr><th>{% trans "Integration" %}</th><th>{% trans "Last OK" %}</th><th>{% trans "Last fail" %}</th><th>{% trans "Fails" %}</th><th>{% trans "Last error" %}</th></tr></thead>
           <tbody>
             {% for row in federation_sso_rows %}

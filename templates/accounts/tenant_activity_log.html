@@ -8,6 +8,7 @@
   <p class="text-muted small mb-3">{% trans "Recent catalog events recorded for this tenant. Used for audits and operational awareness (N24 partial)." %}</p>
   <div class="table-responsive">
     <table class="table table-sm table-family align-middle">
+      <caption class="visually-hidden">{% trans "Activity log" %} — {{ school.name }}</caption>
       <thead><tr><th>{% trans "When" %}</th><th>{% trans "Type" %}</th><th>{% trans "Payload keys" %}</th></tr></thead>
       <tbody>
         {% for e in events %}

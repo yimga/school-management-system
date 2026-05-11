@@ -16,6 +16,7 @@
     </div>
   </div>
   <table class="table table-sm table-family align-middle"><thead><tr><th>{% trans "Meal" %}</th><th>{% trans "Price" %}</th></tr></thead>
+    <caption class="visually-hidden">{% trans "Canteen" %} — {{ school.name }}</caption>
     <tbody>{% for m in meals %}<tr><td>{{ m.name }}</td><td>{{ m.price }}</td></tr>{% empty %}<tr><td colspan="2">{% trans "No meals." %}</td></tr>{% endfor %}</tbody>
   </table>
 </div>

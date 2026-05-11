@@ -28,6 +28,7 @@
                         </div>
                         <div class="card-body">
                             <table class="table table-sm table-family align-middle">
+                              <caption class="visually-hidden">{% trans "Resolve Offline Conflict" %}</caption>
                                 <tr>
                                     <th>Seq 1:</th>
                                     <td>{{ offline_entry.seq1_score }}</td>
@@ -85,6 +86,7 @@
                         <div class="card-body">
                             {% if online_entry %}
                             <table class="table table-sm table-family align-middle">
+                              <caption class="visually-hidden">{% trans "Resolve Offline Conflict" %}</caption>
                                 <tr>
                                     <th>Seq 1:</th>
                                     <td>{{ online_entry.seq1_score }}</td>

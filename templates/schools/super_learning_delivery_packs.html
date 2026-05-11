@@ -31,6 +31,7 @@
   <h2 class="h6 text-white mb-2">{% trans "Learning delivery modes" %}</h2>
   <div class="table-responsive mb-4">
     <table class="table table-dark table-sm table-striped">
+      <caption class="visually-hidden">{% trans "Learning delivery modes" %}</caption>
       <thead><tr><th>#</th><th>{% trans "Code" %}</th><th>{% trans "Label" %}</th><th>{% trans "Pack slugs" %}</th><th>{% trans "Notes" %}</th></tr></thead>
       <tbody>
         {% for row in delivery_modes %}
@@ -49,6 +50,7 @@
   <h2 class="h6 text-white mb-2">{% trans "Institution types → packs" %}</h2>
   <div class="table-responsive">
     <table class="table table-dark table-sm table-striped">
+      <caption class="visually-hidden">{% trans "Institution types → packs" %}</caption>
       <thead><tr><th>#</th><th>{% trans "Code" %}</th><th>{% trans "Label" %}</th><th>{% trans "Pack slugs" %}</th></tr></thead>
       <tbody>
         {% for row in institution_types %}

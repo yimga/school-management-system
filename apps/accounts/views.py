@@ -785,7 +785,24 @@ def direct_compose(request):
         .order_by("first_name", "last_name")
         .values("id", "first_name", "last_name", "username")[:500]
     )
-    context = {"recipients": list(recipients)}
+    # Pass 13.D: surface AI draft entitlement to the template so the inline
+    # partial only renders for tenants who own the AI_TEACHER_COMMS capability.
+    school = getattr(request, "school", None)
+    ai_teacher_comms_enabled = False
+    if school is not None:
+        try:
+            from apps.billing.entitlements import can as _entitlement_can
+            ai_teacher_comms_enabled = bool(
+                _entitlement_can(school, "AI_TEACHER_COMMS")
+            )
+        except Exception:  # noqa: BLE001 - fail closed
+            ai_teacher_comms_enabled = False
+    context = {
+        "recipients": list(recipients),
+        "ai_teacher_comms_enabled": ai_teacher_comms_enabled,
+        "ai_teacher_comms_endpoint": reverse("portal:ai_draft_parent_message"),
+        "ai_teacher_comms_intent": "parent_message",
+    }
     return render(request, "accounts/direct_compose.html", context)
 
 

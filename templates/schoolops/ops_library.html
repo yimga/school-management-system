@@ -19,6 +19,7 @@
   </div>
   <div class="table-responsive">
     <table class="table table-sm table-family align-middle">
+      <caption class="visually-hidden">{% trans "Add title" %}</caption>
       <thead><tr><th>{% trans "Title" %}</th><th>{% trans "Author" %}</th><th>{% trans "Copies" %}</th></tr></thead>
       <tbody>
         {% for it in items %}<tr><td>{{ it.title }}</td><td>{{ it.author|default:"—" }}</td><td>{{ it.copies_total }}</td></tr>

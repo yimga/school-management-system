@@ -15,6 +15,7 @@
       <p class="card-text">{% trans "Subscribe to platform events (e.g. student_created, invoice_created). Manage endpoints below. Production callbacks should be idempotent and must not assume live payment settlement unless PSP webhooks confirm it." %}</p>
       <p><a href="{% url 'apicenter:webhook_subscription_create' %}" class="btn btn-sm btn-primary">{% trans "Create subscription" %}</a></p>
       <table class="table table-sm table-family align-middle">
+        <caption class="visually-hidden">{% trans "Subscriptions" %}</caption>
         <thead><tr><th>URL</th><th>{% trans "Events" %}</th><th>{% trans "Active" %}</th><th>{% trans "Updated" %}</th><th></th></tr></thead>
         <tbody>
           {% for sub in subscriptions %}

@@ -17,6 +17,7 @@
     </div>
   </div>
   <table class="table table-sm table-family align-middle"><thead><tr><th>{% trans "Name" %}</th><th>{% trans "Qty" %}</th><th>{% trans "Location" %}</th></tr></thead>
+    <caption class="visually-hidden">{% trans "Inventory" %} — {{ school.name }}</caption>
     <tbody>{% for it in items %}<tr><td>{{ it.name }}</td><td>{{ it.quantity }}</td><td>{{ it.location|default:"—" }}</td></tr>{% empty %}<tr><td colspan="3">{% trans "Empty." %}</td></tr>{% endfor %}</tbody>
   </table>
 </div>

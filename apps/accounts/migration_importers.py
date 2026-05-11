@@ -14,10 +14,11 @@ a result dict shaped like the existing student/grade flow:
         "rollback_snapshot": {...},
     }
 
-Importers that are scaffolded-only (fees / payments — Invoice/Payment models
-have complex required FKs and audit constraints out of scope for pass 8.A)
-return error_count == row_count with a clear "not yet implemented" message and
-leave the model untouched. Pass 8.B will fill those in.
+Pass 8.D (2026-05-11): fees + payments now persist to Invoice + Payment
+respectively. Idempotency keyed on reference (invoice_number /
+payment_reference); Part F 25.1 invoice immutability honored — ISSUED rows
+are skipped on re-import. Currency normalized to ISO 4217 with school
+default as fallback.
 """
 
 from __future__ import annotations
@@ -270,7 +271,9 @@ def import_roster(school, rows: Iterable[dict], *, actor=None) -> dict:
         AcademicYear,
         Classroom,
         Department,
+        Specialty,
         Subject,
+        SubjectAssignment,
         Term,
     )
 
@@ -278,6 +281,7 @@ def import_roster(school, rows: Iterable[dict], *, actor=None) -> dict:
     created_classrooms: list[int] = []
     created_subjects: list[int] = []
     created_terms: list[int] = []
+    created_assignments: list[int] = []
 
     # Resolve a default academic year and department once per call.
     active_year = (
@@ -339,6 +343,51 @@ def import_roster(school, rows: Iterable[dict], *, actor=None) -> dict:
                     )
                     if term_created:
                         created_terms.append(term.pk)
+                else:
+                    term = (
+                        Term.objects.filter(school=school, academic_year=active_year)
+                        .order_by("position", "id")
+                        .first()
+                    )
+
+                # Auto-create SubjectAssignment (classroom × subject × term × specialty)
+                # so freshly-imported roster rows are immediately usable by
+                # evaluations / grading. The wizard previously deferred this to
+                # the Academics admin — pass 8.D closes that gap.
+                specialty_code = _normalize(row.get("specialty_code")) or _normalize(
+                    row.get("specialty")
+                )
+                specialty_name = (
+                    _normalize(row.get("specialty_name")) or specialty_code or "General"
+                )
+                specialty_code = (
+                    specialty_code or f"{school.slug or 'sch'}-GEN"
+                )[:30]
+                specialty, _ = Specialty.objects.get_or_create(
+                    code=specialty_code,
+                    defaults={
+                        "school": school,
+                        "department": department,
+                        "name": specialty_name[:120],
+                    },
+                )
+                if term is not None:
+                    assignment, assignment_created = (
+                        SubjectAssignment.objects.get_or_create(
+                            academic_year=active_year,
+                            term=term,
+                            classroom=classroom,
+                            specialty=specialty,
+                            subject=subject,
+                            defaults={
+                                "school": school,
+                                "coefficient": _parse_decimal(row.get("coefficient"))
+                                or 1,
+                            },
+                        )
+                    )
+                    if assignment_created:
+                        created_assignments.append(assignment.pk)
                 result["created"] += 1
         except (DatabaseError, IntegrityError, ValueError, TypeError) as exc:
             result["error_count"] += 1
@@ -349,11 +398,8 @@ def import_roster(school, rows: Iterable[dict], *, actor=None) -> dict:
         "created_classroom_ids": created_classrooms,
         "created_subject_ids": created_subjects,
         "created_term_ids": created_terms,
+        "created_assignment_ids": created_assignments,
     }
-    result["errors"].append(
-        "Note: SubjectAssignment rows (linking classroom × subject × term × specialty × teacher) "
-        "are not yet auto-created by this importer; create them via the Academics admin or wait for pass 8.B."
-    )
     return result
 
 
@@ -439,35 +485,291 @@ def import_attendance(school, rows: Iterable[dict], *, actor=None) -> dict:
 # ---------------------------------------------------------------------------
 
 
+def _parse_decimal(value):
+    """Cast '1,234.50' / '1234.5' / Decimal to Decimal, or None."""
+    from decimal import Decimal, InvalidOperation
+
+    raw = _normalize(value)
+    if not raw:
+        return None
+    cleaned = raw.replace(",", "").replace(" ", "")
+    try:
+        return Decimal(cleaned)
+    except (InvalidOperation, ValueError):
+        return None
+
+
+def _normalize_currency(value, fallback: str = "") -> str:
+    """ISO 4217 3-letter code, upper. Falls back when value is junk."""
+    raw = _normalize(value).upper()
+    if len(raw) == 3 and raw.isalpha():
+        return raw
+    return fallback.upper()
+
+
+def _resolve_school_currency(school) -> str:
+    """Get the school's effective default currency from RegionConfig / settings."""
+    try:
+        region = getattr(school, "region", None) or getattr(school, "default_region", None)
+        if region and getattr(region, "currency_code", None):
+            return str(region.currency_code).upper()
+    except Exception:  # noqa: BLE001 - best-effort lookup
+        pass
+    try:
+        from django.conf import settings
+
+        return str(getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD")).upper()
+    except Exception:  # noqa: BLE001
+        return "USD"
+
+
+def _resolve_compliance_profile(school):
+    """Get the active ComplianceProfile, preferring one bound to the school's country."""
+    from apps.billing.models import ComplianceProfile
+
+    country = getattr(school, "country_code", None) or getattr(school, "country", None)
+    qs = ComplianceProfile.objects.filter(is_active=True)
+    if country:
+        scoped = qs.filter(country_code=str(country).upper()).first()
+        if scoped:
+            return scoped
+    return qs.first()
+
+
 def import_fees(school, rows: Iterable[dict], *, actor=None) -> dict:
     """
-    Pass 8.A: row-count audit only. The Invoice model has audit / FK / immutability
-    constraints (Part F 25.1) that demand a dedicated service; that lands in 8.B.
+    Pass 8.D: persist Fee rows to Invoice.
+
+    Idempotency: keyed on (school, reference=invoice_number). Re-importing the
+    same invoice_number updates only the still-DRAFT row; ISSUED/PAID invoices
+    are read-only (Part F 25.1) and report as skipped without raising.
+
+    Currency: coerced to ISO 4217 (3-letter, upper). When the row has no
+    `currency` column, the school's default region currency is used. The
+    Invoice model itself doesn't carry a currency column — it inherits from
+    the bound ComplianceProfile — but the imported currency is recorded in
+    the row's `notes` field for the audit trail.
     """
+    from apps.finance.models import Invoice
+    from apps.people.models import StudentProfile
+
     result = _empty_result()
-    row_list = list(rows)
-    result["skipped"] = len(row_list)
-    result["errors"].append(
-        "Fee imports are recorded in the migration audit log but not yet persisted to "
-        "Invoice; the dedicated FeeImportService lands in pass 8.B."
-    )
-    result["rollback_snapshot"] = {"deferred_row_count": len(row_list)}
+    created_ids: list[int] = []
+    updated_ids: list[int] = []
+    school_currency = _resolve_school_currency(school)
+    profile = _resolve_compliance_profile(school)
+    if profile is None:
+        result["error_count"] = sum(1 for _ in rows) if isinstance(rows, list) else 0
+        result["errors"].append(
+            "No active ComplianceProfile available for this school — "
+            "create one in Site Settings before importing fees."
+        )
+        return result
+
+    for idx, row in enumerate(rows, start=1):
+        student_code = _normalize(row.get("student_code"))
+        amount = _parse_decimal(row.get("amount"))
+        invoice_number = _normalize(row.get("invoice_number"))
+        if not student_code or amount is None or amount <= 0:
+            result["error_count"] += 1
+            result["errors"].append(
+                f"Row {idx}: student_code and positive amount are required."
+            )
+            continue
+        student = (
+            StudentProfile.objects.filter(school=school, student_code=student_code)
+            .only("id", "school_id")
+            .first()
+        )
+        if student is None:
+            result["error_count"] += 1
+            result["errors"].append(
+                f"Row {idx}: student_code '{student_code}' not found for this school."
+            )
+            continue
+        currency_code = _normalize_currency(row.get("currency"), fallback=school_currency)
+        due_date = _parse_date(_normalize(row.get("due_date")))
+        fee_type = _normalize(row.get("fee_type"))[:80]
+        notes_parts = [
+            f"Imported via migration importer; original currency={currency_code}.",
+        ]
+        if fee_type:
+            notes_parts.append(f"fee_type={fee_type}")
+        if _normalize(row.get("academic_year")):
+            notes_parts.append(f"academic_year={_normalize(row.get('academic_year'))}")
+        if _normalize(row.get("term_name")):
+            notes_parts.append(f"term={_normalize(row.get('term_name'))}")
+        notes = " ".join(notes_parts)
+
+        defaults = {
+            "school": school,
+            "profile": profile,
+            "student": student,
+            "total_amount": amount,
+            "balance_amount": amount,
+            "status": Invoice.Status.ISSUED,
+            "notes": notes[:2000],
+        }
+        if due_date:
+            defaults["due_date"] = due_date
+
+        try:
+            if invoice_number:
+                existing = (
+                    Invoice.objects.filter(school=school, reference=invoice_number)
+                    .order_by("id")
+                    .first()
+                )
+                if existing is None:
+                    invoice = Invoice(reference=invoice_number, **defaults)
+                    invoice.save()
+                    result["created"] += 1
+                    created_ids.append(invoice.pk)
+                elif existing.status == Invoice.Status.DRAFT:
+                    for k, v in defaults.items():
+                        setattr(existing, k, v)
+                    existing.save()
+                    result["updated"] += 1
+                    updated_ids.append(existing.pk)
+                else:
+                    result["skipped"] += 1
+                    result["errors"].append(
+                        f"Row {idx}: invoice '{invoice_number}' already ISSUED — "
+                        "skipped per Part F 25.1 immutability."
+                    )
+            else:
+                invoice = Invoice(**defaults)
+                invoice.save()
+                result["created"] += 1
+                created_ids.append(invoice.pk)
+        except (DatabaseError, IntegrityError, ValueError, TypeError) as exc:
+            result["error_count"] += 1
+            result["errors"].append(f"Row {idx} ({student_code}): {exc}")
+            continue
+
+    result["rollback_snapshot"] = {
+        "created_invoice_ids": created_ids,
+        "updated_invoice_ids": updated_ids,
+    }
     return result
 
 
 def import_payments(school, rows: Iterable[dict], *, actor=None) -> dict:
     """
-    Pass 8.A: row-count audit only. Payment writes need Invoice resolution +
-    currency normalization + balance recalculation; deferred to 8.B.
+    Pass 8.D: persist Payment rows.
+
+    Idempotency: keyed on (school, reference_number=payment_reference). A
+    duplicate `payment_reference` is treated as already-imported (skipped).
+
+    Invoice resolution: when `invoice_number` is present we attempt to bind
+    the Payment to the matching Invoice for the same student; on mismatch
+    the Payment is still recorded (orphaned) and the warning is logged.
+
+    Currency: coerced to ISO 4217. The Payment model stores currency_code
+    directly, so the imported value is preserved verbatim.
     """
+    from apps.finance.models import Invoice, Payment
+    from apps.people.models import StudentProfile
+
     result = _empty_result()
-    row_list = list(rows)
-    result["skipped"] = len(row_list)
-    result["errors"].append(
-        "Payment imports are recorded in the migration audit log but not yet persisted to "
-        "Payment; the dedicated PaymentImportService lands in pass 8.B."
-    )
-    result["rollback_snapshot"] = {"deferred_row_count": len(row_list)}
+    created_ids: list[int] = []
+    school_currency = _resolve_school_currency(school)
+
+    for idx, row in enumerate(rows, start=1):
+        student_code = _normalize(row.get("student_code"))
+        amount = _parse_decimal(row.get("amount"))
+        paid_at_date = _parse_date(_normalize(row.get("paid_at")))
+        if not student_code or amount is None or amount <= 0:
+            result["error_count"] += 1
+            result["errors"].append(
+                f"Row {idx}: student_code and positive amount are required."
+            )
+            continue
+        if paid_at_date is None:
+            result["error_count"] += 1
+            result["errors"].append(
+                f"Row {idx}: paid_at must be a valid date (YYYY-MM-DD)."
+            )
+            continue
+        student = (
+            StudentProfile.objects.filter(school=school, student_code=student_code)
+            .only("id", "school_id")
+            .first()
+        )
+        if student is None:
+            result["error_count"] += 1
+            result["errors"].append(
+                f"Row {idx}: student_code '{student_code}' not found for this school."
+            )
+            continue
+
+        reference_number = _normalize(row.get("payment_reference"))[:50] or None
+        if reference_number and Payment.objects.filter(
+            reference_number=reference_number
+        ).exists():
+            result["skipped"] += 1
+            continue
+
+        invoice = None
+        invoice_number = _normalize(row.get("invoice_number"))
+        if invoice_number:
+            invoice = (
+                Invoice.objects.filter(school=school, reference=invoice_number)
+                .order_by("id")
+                .first()
+            )
+            if invoice and invoice.student_id and invoice.student_id != student.pk:
+                result["errors"].append(
+                    f"Row {idx}: invoice '{invoice_number}' is bound to a different "
+                    "student; payment recorded against the row's student instead."
+                )
+                invoice = None
+
+        currency_code = _normalize_currency(
+            row.get("currency"), fallback=school_currency
+        )
+        paid_at_dt = timezone.make_aware(
+            datetime.combine(paid_at_date, datetime.min.time())
+        )
+
+        try:
+            payment = Payment.objects.create(
+                school=school,
+                student=student,
+                invoice=invoice,
+                amount=amount,
+                currency_code=currency_code,
+                paid_at=paid_at_dt,
+                reference_number=reference_number,
+                reference=reference_number or "",
+                description=_normalize(row.get("notes"))[:255],
+                method=_normalize(row.get("method"))[:20],
+            )
+        except (DatabaseError, IntegrityError, ValueError, TypeError) as exc:
+            result["error_count"] += 1
+            result["errors"].append(f"Row {idx} ({student_code}): {exc}")
+            continue
+        result["created"] += 1
+        created_ids.append(payment.pk)
+
+        # Best-effort balance recalc — never block the row on this.
+        if invoice is not None:
+            try:
+                remaining = invoice.balance_amount - amount
+                invoice.balance_amount = max(remaining, type(amount)("0.00"))
+                invoice._recalculating = True  # bypass Part F 25.1 immutability
+                if invoice.balance_amount <= type(amount)("0.00"):
+                    invoice.status = Invoice.Status.PAID
+                elif invoice.balance_amount < invoice.total_amount:
+                    invoice.status = Invoice.Status.PARTIAL
+                invoice.save()
+            except Exception:  # noqa: BLE001
+                logger.debug(
+                    "import_payments: invoice balance recalc failed",
+                    exc_info=True,
+                )
+
+    result["rollback_snapshot"] = {"created_payment_ids": created_ids}
     return result
 
 

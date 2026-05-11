@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "FERPA disclosure" %} #{{ disclosure.id }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-page="compliance-ferpa-disclosure-detail">
+  <nav aria-label="breadcrumb" class="small mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'compliance:dashboard' %}">{% trans "Compliance" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans "FERPA disclosure" %} #{{ disclosure.id }}</li>
+    </ol>
+  </nav>
+
+  <header class="mb-4">
+    <h1 class="h3 mb-1">{% trans "FERPA §99.32 disclosure record" %}</h1>
+    <p class="text-muted mb-0">
+      {% blocktrans with id=disclosure.id %}Disclosure #{{ id }}{% endblocktrans %}
+      &middot; <time datetime="{{ disclosure.disclosed_at|date:'c' }}">{{ disclosure.disclosed_at|date:"DATETIME_FORMAT" }}</time>
+    </p>
+  </header>
+
+  <div class="row g-3">
+    <div class="col-lg-7">
+      <div class="card mb-3">
+        <div class="card-header"><h2 class="h6 mb-0">{% trans "Who & when" %}</h2></div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-4">{% trans "Student" %}</dt>
+            <dd class="col-sm-8">
+              {{ disclosure.student.last_name }}, {{ disclosure.student.first_name }}
+              <span class="text-muted small">({{ disclosure.student.student_code|default:"—" }})</span>
+            </dd>
+
+            <dt class="col-sm-4">{% trans "Disclosed by" %}</dt>
+            <dd class="col-sm-8">
+              {% if disclosure.disclosed_by %}
+                {{ disclosure.disclosed_by.get_full_name|default:disclosure.disclosed_by.username }}
+              {% else %}
+                <span class="text-muted">{% trans "(user deleted)" %}</span>
+              {% endif %}
+            </dd>
+
+            <dt class="col-sm-4">{% trans "Recipient" %}</dt>
+            <dd class="col-sm-8">
+              <strong>{{ disclosure.recipient_name }}</strong>
+              {% if disclosure.recipient_org %}<div class="small text-muted">{{ disclosure.recipient_org }}</div>{% endif %}
+            </dd>
+
+            <dt class="col-sm-4">{% trans "When" %}</dt>
+            <dd class="col-sm-8"><time datetime="{{ disclosure.disclosed_at|date:'c' }}">{{ disclosure.disclosed_at|date:"DATETIME_FORMAT" }}</time></dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header"><h2 class="h6 mb-0">{% trans "Records released" %}</h2></div>
+        <div class="card-body p-0">
+          {% if record_types %}
+            <ul class="list-group list-group-flush mb-0">
+              {% for r in record_types %}
+                <li class="list-group-item">{{ r }}</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted small mb-0 p-3">{% trans "No record categories captured (review with operator)." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card mb-3">
+        <div class="card-header"><h2 class="h6 mb-0">{% trans "Legal basis" %}</h2></div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-5">{% trans "Purpose" %}</dt>
+            <dd class="col-sm-7">{{ disclosure.get_purpose_display }}</dd>
+
+            <dt class="col-sm-5">{% trans "Parent consent on file" %}</dt>
+            <dd class="col-sm-7">
+              {% if disclosure.parent_consent_obtained %}
+                <span class="badge bg-success">{% trans "Yes" %}</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">{% trans "No (exception applies)" %}</span>
+              {% endif %}
+            </dd>
+          </dl>
+        </div>
+      </div>
+
+      {% if disclosure.notes %}
+      <div class="card">
+        <div class="card-header"><h2 class="h6 mb-0">{% trans "Notes" %}</h2></div>
+        <div class="card-body">
+          <p class="mb-0">{{ disclosure.notes|linebreaksbr }}</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <p class="small text-muted mt-3">
+    {% blocktrans %}This view is audit-logged. Each load creates an AuditLog.VIEW row keyed to your user account so the FERPA evidence trail covers reads as well as writes.{% endblocktrans %}
+  </p>
+</div>
+{% endblock %}

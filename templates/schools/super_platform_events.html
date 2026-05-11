@@ -19,6 +19,7 @@
   <p class="text-secondary small">{% trans "emit_platform_event persistence (pack apply, rollback, etc.). Limit query: ?limit=100" %}</p>
   <div class="table-responsive">
     <table class="table table-sm table-striped table-family align-middle">
+      <caption class="visually-hidden">{% trans "Platform event log" %}</caption>
       <thead><tr><th>{% trans "When" %}</th><th>{% trans "Type" %}</th><th>{% trans "Tenant" %}</th><th>{% trans "School" %}</th><th>{% trans "Payload" %}</th></tr></thead>
       <tbody>
         {% for e in events %}

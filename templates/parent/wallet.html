@@ -32,6 +32,7 @@
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-sm mb-0 table-family align-middle">
+          <caption class="visually-hidden">{% trans "Recent transactions" %}</caption>
           <thead class="table-light"><tr><th>{% trans "Date" %}</th><th>{% trans "Type" %}</th><th>{% trans "Amount" %}</th><th>{% trans "Balance after" %}</th></tr></thead>
           <tbody>
             {% for tx in transactions %}

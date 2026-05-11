@@ -52,6 +52,7 @@
   {% elif packs %}
   <div class="table-responsive">
     <table class="table table-sm align-middle table-family">
+      <caption class="visually-hidden">{{ blueprint.name }}</caption>
       <thead><tr><th>{% trans "Pack" %}</th><th>{% trans "Target" %}</th><th>{% trans "Included" %}</th><th>{% trans "Owner" %}</th><th>{% trans "Status" %}</th><th>{% trans "Action" %}</th></tr></thead>
       <tbody>
       {% for pack in packs %}
@@ -70,6 +71,7 @@
   {% elif registries %}
   <div class="table-responsive" tabindex="0" role="region" aria-label="{% trans 'Registry health table' %}">
     <table class="table table-sm align-middle table-family">
+      <caption class="visually-hidden">{{ module.title }}</caption>
       <thead><tr><th>{% trans "Registry" %}</th><th>{% trans "Owner" %}</th><th>{% trans "Scope" %}</th><th>{% trans "Generated" %}</th><th>{% trans "Drift" %}</th><th>{% trans "Route" %}</th><th>{% trans "Proof" %}</th></tr></thead>
       <tbody>
       {% for registry in registries %}

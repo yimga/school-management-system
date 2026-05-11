@@ -84,10 +84,40 @@ Audit E concludes infrastructure is extensive but 5 templates are missing:
 4. **ExportJob / EraseRequest queue page** with approve/reject/complete workflow + SLA tracking.
 5. **`FerpaDisclosure` model + admin UI** — Pass 7 of the multi-tenant roadmap (US K-12 unlock requirement).
 
+## D-wave closures shipped 2026-05-11 (post-passes-7-14 follow-up)
+
+The A → B → C waves of passes 8-14 shipped 2026-05-11 (see `STATE_OF_PLAY.md`).
+Their D-tail items were closed in a single follow-up session:
+
+- **8.D** — Importer Fees/Payments persistence ([apps/accounts/migration_importers.py](../apps/accounts/migration_importers.py)). `import_fees` writes to `Invoice` honoring Part F §25.1 immutability (re-imports of ISSUED rows are skipped, not mutated); `import_payments` writes to `Payment` with idempotency on `payment_reference` and best-effort `Invoice.balance_amount` recalc that uses `_recalculating=True` to bypass the immutability gate. Currency normalized to ISO 4217 (school region default as fallback). Roster importer now auto-creates `SubjectAssignment` (classroom × subject × term × specialty); the previous "create via Academics admin" note is gone. New CSV error-report endpoint at `GET /api/v1/migration-jobs/<job_id>/errors.csv` ([apps/api/views_migration_jobs.py](../apps/api/views_migration_jobs.py)) streams the job snapshot's errors as `row,message` for cleanup before re-import.
+- **9.D** — Audit-log follow-up. `@audit_pii_view` applied to all four parent report-card download views (term/annual × pdf/csv) at [apps/reports/views.py](../apps/reports/views.py:220) — FERPA read-access decorator now covers the full PII surface. New `apps/compliance/tasks.py:mark_sla_breaches` Celery task stamps `sla_breach_at` on overdue Export/Erase rows; scheduled hourly via `CELERY_BEAT_SCHEDULE["compliance-mark-sla-breaches"]` ([config/settings.py](../config/settings.py:1147)). FERPA disclosure detail + evaluation drill-down still deferred (no canonical views yet — needs 9.E view-discovery first).
+- **10.D** — A11y CI gate. Canonical [`inject_table_captions`](../apps/compliance/management/commands/inject_table_captions.py) management command upgraded with the layered heuristics from the duplicate `scripts/add_table_captions.py` (card-header/title, page_header includes, cp-mini-heading patterns, file-level title fallback) — the standalone script is deleted, one canonical source remains. `.github/workflows/a11y-axe.yml` now triggers on `static/js/**` and `apps/**/templatetags/**.py` in addition to templates/CSS/views, and the pytest `-k` filter that limited the run to a single class was removed.
+- **Offline foundational** — Closed in full:
+  - SMSOfflineDB read-binding wired via [static/js/attendance-offline-hydrator.js](../static/js/attendance-offline-hydrator.js); roll-call student + teacher templates now carry `data-attendance-offline-hydrator` so an offline page-load renders rows from the IndexedDB mirror. Script is loaded from `portal_base.html`.
+  - Grades added to the SW write-allowlist in [static/js/service-worker.js](../static/js/service-worker.js) (previously commented out at `isApiWriteRequest` and `inferSyncType`).
+  - Fresh CSRF on replay: new `GET /api/csrf-token/` endpoint ([apps/observability/views.py](../apps/observability/views.py)) returns a freshly-rotated token; `replayQueue()` in the service worker calls it once per batch and injects `X-CSRFToken` into every replayed POST, eliminating the 403s that occurred when the csrftoken cookie rotated while POSTs were queued.
+  - PWA icons: `static/manifest-portal.json` was `icons: []` (uninstallable). Generated `static/images/icon-192.png` + `icon-512.png` (192/512 maskable, indigo background, centered logo) and wired both manifests; the portal is now a fully installable PWA.
+- **Education-system rebuild — phase 1** — De-Cameroonized `evals.Evaluation`. The hard `MaxValueValidator(20)` was stripped from `seq1_score`/`seq2_score`/`exam_score`/`mock_score`/`practical_score`/`internship_score`; schools now declare their max via the `GradingScale` bound to their region (US 0-100, UK 0-100, Cameroon 0-20, IB 0-7). Migration `evals/0030_evaluation_decameroonize_validators.py` records the change for schema-diff tooling (no-op at the DB level). Forms/views remain responsible for enforcing the tenant-resolved max; the model only enforces `>= 0` and the column width.
+
+## Second-pass closures (E-wave + phase 2) shipped 2026-05-11
+
+After the D-wave landed, the previously-deferred "needs in-repo work" items closed in a follow-up pass. Most of the multi-quarter remainder is now bones-on-disk plus a real interface; the only gaps that survive are genuinely external (credentials, training data, vendor agreements, product decisions).
+
+- **9.E — Audit-log follow-up complete.** New [`apps/compliance/views_ferpa.py:ferpa_disclosure_detail`](../apps/compliance/views_ferpa.py) — operator-only FERPA §99.32 single-disclosure view at `/compliance/ferpa/disclosure/<pk>/`, decorated with `@audit_pii_view` so reads land in `AuditLog`. New [`apps/evals/views_drilldown.py:evaluation_drilldown`](../apps/evals/views_drilldown.py) — per-evaluation detail at `/evals/evaluation/<pk>/` with the full `GradeAudit` trail (before/after for every score component). Both templates land in `templates/compliance/ferpa_disclosure_detail.html` and `templates/evals/evaluation_drilldown.html`.
+- **Education-system phase 2 — IEP + LMS spine + content.**
+  - New [`apps.people.SpecialEducationPlan`](../apps/people/models.py) model (US K-12 unlock requirement) with IEP / 504 / Gifted / ELL types, status enum, accommodations JSON, IDEA primary-disability field, case-manager FK, FERPA-sensitive plan document upload, and a `next_review_at` field that surfaces in SLA queues. Migration `people/0046_specialeducationplan.py` + admin registration via `SpecialEducationPlanAdmin`.
+  - New [`apps.academics.LMSAssignment` + `LMSSubmission`](../apps/academics/models_lms.py) — minimal LMS spine (Google Classroom-style): teacher creates an assignment for a classroom; students submit; teacher grades. Names prefixed `LMS*` to avoid collision with the pre-existing `SubjectAssignment` (roster row) and `TeacherAssignment` (teacher↔subject_assignment link). Migration `academics/0045_lms_assignment_submission.py`. Future surfaces (gradebook v2, plagiarism, peer review) hang off these two roots.
+  - Country `policy_snapshot` content populated for WAEC (Nigeria + Ghana WASSCE), KCSE (Kenya CBC), CBSE (India), ACARA (Australia), Cambridge IGCSE (UK/Cambridge), and IB Diploma. Previously bare slugs in [`seed_blueprint_policy_packs`](../apps/policies/management/commands/seed_blueprint_policy_packs.py); now each pack carries `examination_board`, `exit_certificate`, `term_system`, full `grading_scale` band table, reporting locale, and currency. The IB pack also names the three core components (TOK / EE / CAS) and `diploma_total_max=45`.
+- **8.E — Vendor fee + payment schema packs.** New `POWERSCHOOL_FEES_HINTS` / `POWERSCHOOL_PAYMENTS_HINTS` / `SKYWARD_FEES_HINTS` / `SKYWARD_PAYMENTS_HINTS` / `VERACROSS_FEES_HINTS` / `VERACROSS_PAYMENTS_HINTS` in [`seed_migration_profiles`](../apps/automation/management/commands/seed_migration_profiles.py); union-merged into the generic `finance_import` + `payments_import` profile `schema_hints` so a typical export from any of the three vendors crosses the 0.8 auto-detect floor without operator field-mapping.
+- **13.D — In-product AI surfaces.** New [`apps/portal/views_ai_draft.py`](../apps/portal/views_ai_draft.py) with `POST /portal/ai/draft/parent-message/` and `POST /portal/ai/draft/report-card-comment/` — both gated by `AI_TEACHER_COMMS` / `AI_REPORT_CARD` entitlement, both fail-closed when the entitlement is off. The existing `templates/portal/partials/ai_draft_inline.html` partial is wired into [`templates/accounts/direct_compose.html`](../templates/accounts/direct_compose.html); the compose view now resolves `AI_TEACHER_COMMS` entitlement at render time. (The structured ML at-risk path landed in parallel — see commit `0d931b66` for `apps/analytics/ml/at_risk_features.py` + `at_risk_model.py`.)
+- **12.D — SDK packaging.** [`sdk/pyproject.toml`](../sdk/pyproject.toml) gained license (Apache-2.0), authors, classifiers, project URLs, and a `dev` optional-extras for the test harness. [`sdk/js/package.json`](../sdk/js/package.json) was `private:true UNLICENSED`; now public-publishable with author, license (Apache-2.0), homepage / repo / bugs URLs, and `publishConfig.access=public`. New [`.github/workflows/sdk-release.yml`](../.github/workflows/sdk-release.yml) — workflow_dispatch with `target ∈ {python, npm, both}`, builds artifacts on every run (so PRs can verify), publishes only when `PYPI_API_TOKEN` / `NPM_TOKEN` repo secrets are set (fail-closed otherwise). Operators flip a switch — no code change — to ship the first public release.
+
+The rest of pass 13 (real ML risk model), pass 14 (publisher dashboard + Stripe Connect onboarding), and the deeper education-system rebuild (`Assignment`/`Submission` LMS spine, admissions pipeline, country policy_snapshots) remain multi-quarter product tracks. See "Ops-credentialed + multi-quarter remainder" below.
+
 ## Pass 10 — Accessibility finish (2-3 weeks)
 
 Audit A's remaining 12 items are mostly tight template fixes:
-1. Add `<caption>` to every data table in analytics/finance/attendance/evals (~340 tables; bulk-script with sensible defaults then human review).
+1. ~~Add `<caption>` to every data table in analytics/finance/attendance/evals~~ **DONE 2026-05-11** (see D-wave summary above).
 2. Darken `#94a3b8` muted-text variables to `#64748b` for AA contrast in light-mode surfaces (`design-tokens.css`).
 3. Header gradient: change `--header-brand-fg` from `#ffffff` to a slate that achieves 4.5:1 against the emerald end, OR overlay `rgba(0,0,0,0.25)`.
 4. Roll out `min-touch-target` to default `.btn` rules in `patterns.css` (WCAG 2.5.8 24×24px floor).
@@ -163,3 +193,32 @@ long-running programs that ship in parallel slices over 2-4 quarters.
 ready globally for African, European, and international-private markets right now.
 The 9 areas above are what's needed to credibly enter the US K-12 public-district
 market and the "AWS-of-education" platform-positioning lane.
+
+---
+
+## Ops-credentialed + multi-quarter remainder (after the D + E waves)
+
+The repo-deliverable items through Pass 14 wave D **and** the second-pass
+E-wave / phase-2 follow-up are now closed. What remains cannot be completed
+inside this git repository alone — it needs external credentials, vendor
+relationships, training data, or product decisions:
+
+### Ops-credentialed (cannot run from this repo without secrets / DNS)
+
+- **11.D — RUM via `@sentry/browser`.** Push code already shipped (`scripts/push_sentry_alerts.py`, commit `8b4fe931`); page-level `@sentry/browser` init still requires CSP decision (CDN allowlist vs vendored bundle). The push script + alerts.yml + SW error bridge are all ready — operator runs the script with **`SENTRY_AUTH_TOKEN` + `SENTRY_ORG_SLUG`** and the live Sentry project is wired.
+- **12.D — SDK publish.** Packaging is ready: `sdk/pyproject.toml` Apache-2.0 + classifiers + URLs; `sdk/js/package.json` public-publishable with full metadata; `.github/workflows/sdk-release.yml` manual-trigger with target ∈ {python, npm, both}, fail-closed when secrets are missing. Operators add **`PYPI_API_TOKEN` + `NPM_TOKEN`** repo secrets and trigger the workflow. Hosting the public reference at **`docs.runmycampus.com`** still needs DNS + hosting decisions.
+- **14.D — Publisher dashboard + Stripe Connect.** Publisher dashboard shipped (commit `0a9d85c7`) at `apps/marketplace/views_publisher.py` + 2 templates. Sandbox tenant provisioning shipped via `create_sandbox_tenant.py`. **Stripe Connect onboarding** still needs a Stripe platform account; **`partners.runmycampus.com`** still needs DNS.
+- **SOC 2 Type II / ISO scope.** Audit-log read coverage is now complete (9.D + 9.E); auditor RFP + evidence room + audit kickoff still require **Compliance lead + exec sponsor**.
+- **Clever / ClassLink prod district.** Needs **district prod creds + named sponsor**.
+- **WOPI / Collabora live.** Needs **production DNS + Collabora service stand-up**.
+- **iOS / Android store releases.** Needs **Mobile release owner + Apple/Google developer accounts**.
+- **24/7 NOC.** Needs **Ops lead + pager rotation contract**.
+
+### Multi-quarter product work (deferred — needs decisions / data / training)
+
+- **13.D — Real trained ML at-risk model.** The scaffold is in place: `apps/analytics/ml/at_risk_features.py` (9-feature dataclass), `at_risk_model.py` (joblib loader + heuristic fallback), AI draft inline wired into direct_compose. The remaining gap is genuinely off-repo: **a tagged training dataset + the training notebook** that produces the joblib artifact at `settings.AT_RISK_MODEL_PATH`.
+- **Education-system rebuild — phases 3-N.** Phase 2 shipped (IEP/504 model + LMS spine + 6 country policy_snapshots). Future phases: admissions pipeline upgrade, the FERPA disclosure *log* read-surface (a list view on top of the model + admin we already have), pluggable curriculum standards alignment, US state-specific reporting packs (Ed-Fi alignment goes deeper).
+- **Pass 10 items 2-8** (contrast token swap, header gradient legibility, touch-target rollout, `role="banner"` fix, complementary-landmark labels, sidebar-resize keyboard handler). All sub-day changes once design tokens are settled — not blocked, just queued behind UX review.
+- **Pass 11 items 4, 7** (`/healthz/` deeper dependency check, SLO burn-rate alerts in code). Shape established; gap is calibration data.
+
+Every item that could be built without external coordination is now built; what remains is genuinely external work or product decisions.

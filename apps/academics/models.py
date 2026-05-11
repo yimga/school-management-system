@@ -1495,3 +1495,5 @@ from .models_tenant_runtime import (  # noqa: E402,F401
     RolloverProposal,
     RolloverProposalItem,
 )
+# Education-system phase 2: minimal LMS spine (Assignment + Submission).
+from .models_lms import LMSAssignment, LMSSubmission  # noqa: E402,F401

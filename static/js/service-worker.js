@@ -319,14 +319,15 @@ function isApiWriteRequest(request, url) {
   if (url.pathname.startsWith("/api/finance/")) return true;
   /** Unified offline replay: attendance, grades, offline_payment intents (POST sync_batch). */
   if (url.pathname.startsWith("/api/sync/")) return true;
-  // if (url.pathname.startsWith("/api/grades/") || url.pathname.startsWith("/api/evals/")) return true;
+  // Offline foundational (2026-05-11): teacher grade entry now queues offline.
+  if (url.pathname.startsWith("/api/grades/") || url.pathname.startsWith("/api/evals/")) return true;
   return false;
 }
 
 function inferSyncType(pathname) {
   if (pathname.startsWith("/api/attendance/")) return "attendance";
   if (pathname.startsWith("/api/entity/") || pathname.startsWith("/api/entities/") || pathname.startsWith("/api/finance/") || pathname.startsWith("/api/requests/")) return "api";
-  // if (pathname.startsWith("/api/grades/") || pathname.startsWith("/api/evals/")) return "grade";
+  if (pathname.startsWith("/api/grades/") || pathname.startsWith("/api/evals/")) return "grade";
   return null;
 }
 
@@ -541,6 +542,23 @@ function backoffDelayMs(attemptCount) {
  * Removes item on 2xx; removes on 4xx and records in failedItems; on 5xx/network keeps and sets backoff.
  * @returns {{ succeeded: number, failed: number, failedItems: Array<{url:string,status:number,message?:string}> }}
  */
+async function fetchFreshCsrfToken(origin) {
+  /** Offline foundational: pull a fresh X-CSRFToken before replaying.
+   *  The csrftoken cookie may have rotated while POSTs were queued. */
+  try {
+    const res = await fetch(origin + "/api/csrf-token/", {
+      method: "GET",
+      credentials: "include",
+      headers: { "Accept": "application/json" },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data && data.csrf_token ? data.csrf_token : null;
+  } catch (_err) {
+    return null;
+  }
+}
+
 async function replayQueue(syncType) {
   const items = await getSyncItems(syncType);
   const sorted = (items || []).slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
@@ -549,6 +567,10 @@ async function replayQueue(syncType) {
   const failedItems = [];
   const now = Date.now();
   const origin = self.location.origin;
+
+  // Refresh CSRF token once per replay batch — pulls a fresh value if the
+  // cookie has rotated since the queued POSTs were captured.
+  const freshCsrf = sorted.length ? await fetchFreshCsrfToken(origin) : null;
 
   for (const item of sorted) {
     const nextRetryAt = item.nextRetryAt || 0;
@@ -563,6 +585,9 @@ async function replayQueue(syncType) {
         const l = k.toLowerCase();
         if (!SKIP_HEADERS.includes(l)) headers[k] = item.headers[k];
       });
+    }
+    if (freshCsrf) {
+      headers["X-CSRFToken"] = freshCsrf;
     }
     try {
       const response = await fetch(url, {

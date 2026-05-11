@@ -1379,3 +1379,106 @@ class TenantAuditLog(models.Model):
 
 # North Star SLICE 13 — auxiliary passport models (canonical StudentPassport is defined above)
 from .student_passport_models import StudentPassportMembership, TranscriptVaultItem  # noqa: E402,F401
+
+
+class SpecialEducationPlan(models.Model):
+    """Education-system phase 2 (2026-05-11): per-student IEP / 504 plan record.
+
+    US K-12 unlock requirement. Schools that take public-district contracts
+    must surface a Special Education plan for every student who has one, with
+    primary disability code, accommodations, and review schedule. This is the
+    canonical row; the full IEP document (PDF) is attached separately.
+
+    Privacy: tenant-scoped via ForeignKey to school; admin + downstream views
+    are gated to staff with ``people.view_specialeducationplan`` (separate
+    permission from regular StudentProfile read).
+    """
+
+    class PlanType(models.TextChoices):
+        IEP = "IEP", _("IEP (Individualized Education Plan)")
+        FIVE_OH_FOUR = "504", _("504 Plan")
+        GIFTED = "GIFTED", _("Gifted / advanced learner plan")
+        ELL = "ELL", _("English-language learner plan")
+        OTHER = "OTHER", _("Other (note required)")
+
+    class Status(models.TextChoices):
+        DRAFT = "DRAFT", _("Draft")
+        ACTIVE = "ACTIVE", _("Active")
+        UNDER_REVIEW = "UNDER_REVIEW", _("Under review")
+        EXPIRED = "EXPIRED", _("Expired")
+        WITHDRAWN = "WITHDRAWN", _("Withdrawn")
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="special_education_plans",
+    )
+    student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.CASCADE,
+        related_name="special_education_plans",
+    )
+    plan_type = models.CharField(max_length=16, choices=PlanType.choices, default=PlanType.IEP)
+    status = models.CharField(
+        max_length=16, choices=Status.choices, default=Status.DRAFT
+    )
+    primary_disability = models.CharField(
+        max_length=128,
+        blank=True,
+        help_text=_("IDEA primary disability category, where applicable."),
+    )
+    accommodations = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=_("Free-text accommodations list (extra time, scribe, etc.)."),
+    )
+    goals = models.TextField(
+        blank=True,
+        help_text=_("Measurable annual goals — kept brief; full plan PDF attached separately."),
+    )
+    effective_from = models.DateField(null=True, blank=True)
+    effective_to = models.DateField(null=True, blank=True)
+    next_review_at = models.DateField(
+        null=True,
+        blank=True,
+        help_text=_("Statutory review deadline; surfaces in SLA queues."),
+    )
+    case_manager = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="special_education_plans_managed",
+        help_text=_("Special-ed coordinator or counselor owning this plan."),
+    )
+    plan_document = models.FileField(
+        upload_to=_people_tenant_upload_to("special_education_plans"),
+        null=True,
+        blank=True,
+        help_text=_("Signed IEP / 504 PDF (FERPA-sensitive)."),
+    )
+    parent_consent_on_file = models.BooleanField(default=False)
+    notes = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="special_education_plans_created",
+    )
+
+    class Meta:
+        ordering = ["-effective_from", "-id"]
+        verbose_name = _("Special Education plan")
+        verbose_name_plural = _("Special Education plans")
+        indexes = [
+            models.Index(fields=["school", "status"]),
+            models.Index(fields=["student", "-effective_from"]),
+            models.Index(fields=["next_review_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.get_plan_type_display()} — {self.student_id}"

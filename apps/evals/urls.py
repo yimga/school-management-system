@@ -23,8 +23,11 @@ from .views import (
     grade_approval_detail,
     rosetta_grade_preview_api,
 )
+from .views_drilldown import evaluation_drilldown
 
 urlpatterns = [
+    # Pass 9.E: per-evaluation drill-down with GradeAudit trail.
+    path("evaluation/<int:pk>/", evaluation_drilldown, name="evaluation_drilldown"),
     path("teacher/", teacher_dashboard, name="teacher_dashboard"),
     path("teacher/workflow/", teacher_workflow_center, name="teacher_workflow"),
     path("teacher/marks/entry/", teacher_marks_entry, name="teacher_marks_entry"),

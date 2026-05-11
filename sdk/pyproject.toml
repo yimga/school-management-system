@@ -8,10 +8,33 @@ version = "0.2.0"
 description = "RunMyCampus API client: Bearer auth, retries, webhook signature helpers"
 readme = "README.md"
 requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+    { name = "RunMyCampus", email = "developers@runmycampus.com" }
+]
+keywords = ["education", "sis", "school-management", "runmycampus"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Education",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = ["requests>=2.28"]
 
+[project.urls]
+Homepage = "https://runmycampus.com"
+Documentation = "https://docs.runmycampus.com"
+Repository = "https://github.com/runmycampus/runmycampus"
+Issues = "https://github.com/runmycampus/runmycampus/issues"
+
 [project.optional-dependencies]
-dev = []
+dev = ["pytest>=7", "responses>=0.23"]
 
 [tool.setuptools.packages.find]
 where = ["."]

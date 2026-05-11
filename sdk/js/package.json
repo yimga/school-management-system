@@ -1,15 +1,44 @@
 {
-  "name": "@runmycampus/sdk-client",
+  "name": "@runmycampus/sdk",
   "version": "0.1.0",
-  "description": "Minimal JavaScript client for RunMyCampus tenant APIs (ESM)",
+  "description": "JavaScript / TypeScript client for the RunMyCampus tenant API (Bearer auth, retries, webhook signature helpers)",
   "type": "module",
   "main": "./runmycampus-client.mjs",
+  "module": "./runmycampus-client.mjs",
   "exports": {
     ".": "./runmycampus-client.mjs"
+  },
+  "files": [
+    "runmycampus-client.mjs",
+    "index.mjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test"
   },
   "engines": {
     "node": ">=18"
   },
-  "license": "UNLICENSED",
-  "private": true
+  "keywords": [
+    "education",
+    "sis",
+    "school-management",
+    "runmycampus",
+    "api-client"
+  ],
+  "author": "RunMyCampus <developers@runmycampus.com>",
+  "license": "Apache-2.0",
+  "homepage": "https://runmycampus.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/runmycampus/runmycampus.git",
+    "directory": "beta/school-management-system/sdk/js"
+  },
+  "bugs": {
+    "url": "https://github.com/runmycampus/runmycampus/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

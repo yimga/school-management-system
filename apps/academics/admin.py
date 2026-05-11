@@ -504,3 +504,53 @@ class WorkflowConfigAdmin(ModelAdmin):
 
 
 register_tenant_admin(WorkflowConfig, WorkflowConfigAdmin)
+
+
+# Education-system phase 2 (2026-05-11): LMS spine admin.
+from .models_lms import LMSAssignment, LMSSubmission  # noqa: E402
+
+
+class LMSAssignmentAdmin(ModelAdmin):
+    list_display = (
+        "title",
+        "classroom",
+        "subject",
+        "teacher",
+        "term",
+        "status",
+        "due_at",
+        "points_possible",
+        "school",
+    )
+    list_filter = ("status", "assignment_type", "school")
+    search_fields = ("title", "instructions")
+    raw_id_fields = ("school", "classroom", "subject", "term", "teacher")
+    date_hierarchy = "due_at"
+    ordering = ["-due_at", "-id"]
+
+
+class LMSSubmissionAdmin(ModelAdmin):
+    list_display = (
+        "assignment",
+        "student",
+        "status",
+        "submitted_at",
+        "score",
+        "graded_at",
+        "graded_by",
+        "school",
+    )
+    list_filter = ("status", "school")
+    search_fields = (
+        "student__first_name",
+        "student__last_name",
+        "student__student_code",
+        "assignment__title",
+    )
+    raw_id_fields = ("school", "assignment", "student", "graded_by")
+    date_hierarchy = "submitted_at"
+    ordering = ["-submitted_at", "-id"]
+
+
+register_tenant_admin(LMSAssignment, LMSAssignmentAdmin)
+register_tenant_admin(LMSSubmission, LMSSubmissionAdmin)

@@ -125,6 +125,128 @@ ALMA_STUDENT_HINTS = {
     "enrollment_status": "status",
 }
 
+# -----------------------------------------------------------------------------
+# Pass 8.E (2026-05-11): Fees + Payments schema hints for vendor one-click imports.
+# Mirrors the student-hint pattern: vendor column name -> canonical target_field
+# in the fees / payments target_field lists. When the schema_fingerprint hits
+# >= 0.8 confidence the wizard auto-applies the profile without operator mapping.
+# -----------------------------------------------------------------------------
+
+POWERSCHOOL_FEES_HINTS = {
+    "fee_id": "invoice_number",
+    "invoiceno": "invoice_number",
+    "invoice_number": "invoice_number",
+    "student_number": "student_code",
+    "studentnumber": "student_code",
+    "student_id": "student_code",
+    "amount_due": "amount",
+    "balance": "amount",
+    "amount": "amount",
+    "currency": "currency",
+    "duedate": "due_date",
+    "due_date": "due_date",
+    "fee_type": "fee_type",
+    "fee_category": "fee_type",
+    "feegroup": "fee_type",
+    "status": "status",
+    "term": "term_name",
+    "schoolyear": "academic_year",
+    "school_year": "academic_year",
+}
+POWERSCHOOL_PAYMENTS_HINTS = {
+    "payment_id": "payment_reference",
+    "receipt_number": "payment_reference",
+    "transaction_id": "payment_reference",
+    "student_number": "student_code",
+    "studentnumber": "student_code",
+    "student_id": "student_code",
+    "amount_paid": "amount",
+    "amount": "amount",
+    "currency": "currency",
+    "payment_date": "paid_at",
+    "paiddate": "paid_at",
+    "paid_at": "paid_at",
+    "method": "method",
+    "payment_method": "method",
+    "tender_type": "method",
+    "invoice_number": "invoice_number",
+    "fee_id": "invoice_number",
+    "comment": "notes",
+    "memo": "notes",
+}
+
+SKYWARD_FEES_HINTS = {
+    "fee no": "invoice_number",
+    "fee_no": "invoice_number",
+    "fee number": "invoice_number",
+    "charge_id": "invoice_number",
+    "other_id": "student_code",
+    "student_number": "student_code",
+    "other id": "student_code",
+    "alpha_key": "student_code",
+    "charge_amount": "amount",
+    "balance": "amount",
+    "amount_due": "amount",
+    "amount": "amount",
+    "due date": "due_date",
+    "duedate": "due_date",
+    "fee category": "fee_type",
+    "fee_category": "fee_type",
+    "fee description": "fee_type",
+    "currency": "currency",
+    "status": "status",
+    "schoolyear": "academic_year",
+}
+SKYWARD_PAYMENTS_HINTS = {
+    "receipt_no": "payment_reference",
+    "receipt no": "payment_reference",
+    "transaction_id": "payment_reference",
+    "other_id": "student_code",
+    "other id": "student_code",
+    "alpha_key": "student_code",
+    "amount_paid": "amount",
+    "amount": "amount",
+    "currency": "currency",
+    "payment_date": "paid_at",
+    "tender": "method",
+    "tender_type": "method",
+    "method": "method",
+    "fee_no": "invoice_number",
+    "fee number": "invoice_number",
+    "comment": "notes",
+    "memo": "notes",
+}
+
+VERACROSS_FEES_HINTS = {
+    "charge_id": "invoice_number",
+    "charge_number": "invoice_number",
+    "person_id": "student_code",
+    "student_id": "student_code",
+    "amount": "amount",
+    "balance": "amount",
+    "amount_owed": "amount",
+    "currency": "currency",
+    "due_date": "due_date",
+    "charge_type": "fee_type",
+    "charge_description": "fee_type",
+    "status": "status",
+    "school_year": "academic_year",
+    "term": "term_name",
+}
+VERACROSS_PAYMENTS_HINTS = {
+    "payment_id": "payment_reference",
+    "receipt_number": "payment_reference",
+    "person_id": "student_code",
+    "student_id": "student_code",
+    "amount": "amount",
+    "currency": "currency",
+    "payment_date": "paid_at",
+    "method": "method",
+    "tender_type": "method",
+    "charge_id": "invoice_number",
+    "memo": "notes",
+}
+
 # Official starter migration profiles (audit pack + Phase A competitor adapters)
 MIGRATION_PROFILES = [
     # Generic / Other (no source_system)
@@ -180,7 +302,7 @@ MIGRATION_PROFILES = [
     {
         "slug": "finance_import",
         "name": "Fees / invoices import",
-        "description": "Import fee structures or invoices from CSV or XLSX. (Persistence to the Invoice model lands in pass 8.B.)",
+        "description": "Import fee structures or invoices from CSV or XLSX. Persists to the Invoice model with Part F 25.1 immutability respected.",
         "format": MigrationProfile.Format.CSV,
         "domain": MigrationProfile.Domain.FINANCE,
         "source_system": None,
@@ -199,13 +321,21 @@ MIGRATION_PROFILES = [
                 "term_name",
             ],
             "required": ["student_code", "amount"],
+            # Pass 8.E: union of vendor hints so the generic profile auto-detects
+            # PowerSchool / Skyward / Veracross fee exports without selecting a
+            # vendor-specific profile.
+            "schema_hints": {
+                **POWERSCHOOL_FEES_HINTS,
+                **SKYWARD_FEES_HINTS,
+                **VERACROSS_FEES_HINTS,
+            },
         },
         "sort_order": 30,
     },
     {
         "slug": "payments_import",
         "name": "Payments import",
-        "description": "Import payment records from CSV or XLSX. (Persistence to the Payment model lands in pass 8.B.)",
+        "description": "Import payment records from CSV or XLSX. Persists to the Payment model with idempotency on payment_reference and best-effort Invoice balance recalc.",
         "format": MigrationProfile.Format.CSV,
         "domain": MigrationProfile.Domain.FINANCE,
         "source_system": None,
@@ -223,6 +353,12 @@ MIGRATION_PROFILES = [
                 "notes",
             ],
             "required": ["student_code", "amount", "paid_at"],
+            # Pass 8.E: vendor schema hints for payments — same pattern as fees.
+            "schema_hints": {
+                **POWERSCHOOL_PAYMENTS_HINTS,
+                **SKYWARD_PAYMENTS_HINTS,
+                **VERACROSS_PAYMENTS_HINTS,
+            },
         },
         "sort_order": 31,
     },

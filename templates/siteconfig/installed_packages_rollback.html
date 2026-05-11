@@ -33,6 +33,7 @@
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-sm mb-0 table-family align-middle">
+          <caption class="visually-hidden">{% trans "Active installs" %}</caption>
           <thead><tr><th>{% trans "Package" %}</th><th>{% trans "Version" %}</th><th>{% trans "Type" %}</th><th>{% trans "Stage" %}</th><th>{% trans "Reconciliation" %}</th><th>{% trans "Dependencies (snapshot)" %}</th><th>{% trans "Applied" %}</th><th>{% trans "Graph" %}</th><th></th></tr></thead>
           <tbody>
             {% for p in active_packages %}
@@ -77,6 +78,7 @@
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-sm table-hover mb-0 small table-family align-middle">
+          <caption class="visually-hidden">{% trans "Package rollback" %} — {{ school.name }}</caption>
           <thead>
             <tr>
               <th>{% trans "When" %}</th>

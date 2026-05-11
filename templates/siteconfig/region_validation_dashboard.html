@@ -43,6 +43,7 @@
     </div>
     <div class="table-responsive">
       <table class="table table-sm table-dark table-bordered mb-2">
+        <caption class="visually-hidden">{{ row.region.name }} ({{ row.region.code }})</caption>
         <tbody>
           <tr><th scope="row" class="w-25">{% trans "Grading scales" %}</th><td>{{ row.grading_scales }}</td></tr>
           <tr><th scope="row">{% trans "Holidays (rows)" %}</th><td>{{ row.holidays }}</td></tr>

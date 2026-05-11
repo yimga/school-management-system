@@ -724,6 +724,10 @@
     <script src="{% static 'js/low-power.js' %}"></script>
     <script src="{% static 'js/offline-status-bar.js' %}"></script>
     <script src="{% static 'js/auto-pilot.js' %}"></script>
+    {# Offline foundational: bind SMSOfflineDB.getStudents() / teachers to
+       the attendance roll-call form when the page loads offline. Only
+       activates on pages that opt in via data-attendance-offline-hydrator. #}
+    <script src="{% static 'js/attendance-offline-hydrator.js' %}"></script>
     {% endif %}
     <script src="{% static 'js/critical-read-degraded.js' %}"></script>
     {# Pass 8 Wave 2: wire components/confirm_modal.html — replaces 4 sites that

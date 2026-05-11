@@ -38,6 +38,7 @@
           <p class="small text-secondary mb-1">{% trans "Key preview (types only; first 48 keys)" %}</p>
           <div class="table-responsive">
             <table class="table table-sm table-bordered mb-0">
+              <caption class="visually-hidden">{% trans "RuntimeDefaults (pk=1)" %}</caption>
               <thead><tr><th>{% trans "Key" %}</th><th>{% trans "Kind" %}</th><th>{% trans "Detail" %}</th></tr></thead>
               <tbody>
                 {% for row in payload_preview %}

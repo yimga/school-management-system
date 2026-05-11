@@ -8,6 +8,7 @@
   <p class="text-muted small mb-3">Run #{{ run.id }} — {{ run.migration_type }} ({{ run.started_at|date:"SHORT_DATETIME_FORMAT" }}).</p>
   <div class="table-responsive">
     <table class="table table-sm table-bordered">
+      <caption class="visually-hidden">{% trans "Legacy data (read-only)" %}</caption>
       <thead>
         <tr>
           {% for h in headers %}

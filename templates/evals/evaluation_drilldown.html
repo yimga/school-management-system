@@ -1,0 +1,122 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Evaluation drill-down" %} #{{ evaluation.id }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-page="evals-drilldown">
+  <nav aria-label="breadcrumb" class="small mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans "Evaluation" %} #{{ evaluation.id }}</li>
+    </ol>
+  </nav>
+
+  <header class="mb-3">
+    <h1 class="h3 mb-1">{% trans "Evaluation drill-down" %}</h1>
+    <p class="text-muted mb-0">
+      {{ evaluation.student.last_name }}, {{ evaluation.student.first_name }}
+      &middot;
+      {{ evaluation.subject_assignment.subject.name }}
+      &middot;
+      {{ evaluation.term.label|default:evaluation.term.name }} / {{ evaluation.academic_year.name }}
+    </p>
+  </header>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header"><h2 class="h6 mb-0">{% trans "Current scores" %}</h2></div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-5">{% trans "Sequence 1" %}</dt>
+            <dd class="col-sm-7">{{ evaluation.seq1_score|default:"—" }}</dd>
+            <dt class="col-sm-5">{% trans "Sequence 2" %}</dt>
+            <dd class="col-sm-7">{{ evaluation.seq2_score|default:"—" }}</dd>
+            <dt class="col-sm-5">{% trans "Exam" %}</dt>
+            <dd class="col-sm-7">{{ evaluation.exam_score|default:"—" }}</dd>
+            <dt class="col-sm-5">{% trans "Mock" %}</dt>
+            <dd class="col-sm-7">{{ evaluation.mock_score|default:"—" }}</dd>
+            <dt class="col-sm-5">{% trans "Practical" %}</dt>
+            <dd class="col-sm-7">{{ evaluation.practical_score|default:"—" }}</dd>
+            <dt class="col-sm-5">{% trans "Internship" %}</dt>
+            <dd class="col-sm-7">{{ evaluation.internship_score|default:"—" }}</dd>
+            {% if evaluation.letter_grade %}
+            <dt class="col-sm-5">{% trans "Letter grade" %}</dt>
+            <dd class="col-sm-7"><span class="badge bg-secondary">{{ evaluation.letter_grade }}</span></dd>
+            {% endif %}
+          </dl>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header"><h2 class="h6 mb-0">{% trans "Context" %}</h2></div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-5">{% trans "Classroom" %}</dt>
+            <dd class="col-sm-7">{{ evaluation.subject_assignment.classroom.name }}</dd>
+            <dt class="col-sm-5">{% trans "Teacher" %}</dt>
+            <dd class="col-sm-7">
+              {% with t_user=evaluation.teacher.user %}
+                {% if t_user %}{{ t_user.get_full_name|default:t_user.username }}{% else %}{{ evaluation.teacher.position_title|default:"—" }}{% endif %}
+              {% endwith %}
+            </dd>
+            <dt class="col-sm-5">{% trans "Coefficient" %}</dt>
+            <dd class="col-sm-7">{{ evaluation.subject_assignment.coefficient }}</dd>
+            {% if evaluation.remarks %}
+            <dt class="col-sm-5">{% trans "Remarks" %}</dt>
+            <dd class="col-sm-7">{{ evaluation.remarks }}</dd>
+            {% endif %}
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2 class="h6 mb-0">{% trans "Audit trail" %}</h2></div>
+    <div class="card-body p-0">
+      {% if audit_trail %}
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <caption class="visually-hidden">{% trans "Per-component before/after audit trail for this evaluation" %}</caption>
+          <thead class="table-light">
+            <tr>
+              <th>{% trans "When" %}</th>
+              <th>{% trans "By" %}</th>
+              <th>{% trans "Type" %}</th>
+              <th>{% trans "Seq 1" %}</th>
+              <th>{% trans "Seq 2" %}</th>
+              <th>{% trans "Exam" %}</th>
+              <th>{% trans "Mock" %}</th>
+              <th>{% trans "Practical" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in audit_trail %}
+            <tr>
+              <td><time datetime="{{ row.changed_at|date:'c' }}">{{ row.changed_at|date:"SHORT_DATETIME_FORMAT" }}</time></td>
+              <td>{% if row.changed_by %}{{ row.changed_by.get_full_name|default:row.changed_by.username }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+              <td><span class="badge bg-light text-dark">{{ row.get_change_type_display }}</span></td>
+              <td class="small">{{ row.seq1_before|default_if_none:"—" }} &rarr; <strong>{{ row.seq1_after|default_if_none:"—" }}</strong></td>
+              <td class="small">{{ row.seq2_before|default_if_none:"—" }} &rarr; <strong>{{ row.seq2_after|default_if_none:"—" }}</strong></td>
+              <td class="small">{{ row.exam_before|default_if_none:"—" }} &rarr; <strong>{{ row.exam_after|default_if_none:"—" }}</strong></td>
+              <td class="small">{{ row.mock_before|default_if_none:"—" }} &rarr; <strong>{{ row.mock_after|default_if_none:"—" }}</strong></td>
+              <td class="small">{{ row.practical_before|default_if_none:"—" }} &rarr; <strong>{{ row.practical_after|default_if_none:"—" }}</strong></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted small mb-0 p-3">{% trans "No audit rows recorded yet for this evaluation." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <p class="small text-muted mt-3">
+    {% blocktrans %}Each load of this page also creates an AuditLog.VIEW row keyed to your user account, so the FERPA evidence trail covers grade reads as well as writes.{% endblocktrans %}
+  </p>
+</div>
+{% endblock %}

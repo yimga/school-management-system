@@ -34,8 +34,12 @@
               <button type="button" class="btn btn-sm btn-success" id="save-all-present">Save all present</button>
             </div>
           </div>
-          <div class="table-responsive">
+          <div class="table-responsive"
+               data-attendance-offline-hydrator="1"
+               data-attendance-scope="teacher"
+               data-attendance-status-choices='{{ status_choices_json|default:"[]" }}'>
             <table class="table table-sm align-middle table-family">
+              <caption class="visually-hidden">Teachers – {{ date_value }}</caption>
               <thead class="table-light">
                 <tr>
                   <th scope="col">{% trans "Teacher" %}</th>

@@ -23,6 +23,7 @@ from .models import (
     EmployerProfile,
     TenantAuditLog,
     Applicant,
+    SpecialEducationPlan,
 )
 
 
@@ -829,3 +830,33 @@ class ApplicantAdmin(ModelAdmin):
 
 
 register_tenant_admin(Applicant, ApplicantAdmin)
+
+
+class SpecialEducationPlanAdmin(ModelAdmin):
+    """Education-system phase 2: IEP / 504 plan admin."""
+
+    list_display = (
+        "student",
+        "plan_type",
+        "status",
+        "primary_disability",
+        "effective_from",
+        "effective_to",
+        "next_review_at",
+        "parent_consent_on_file",
+        "school",
+    )
+    list_filter = ("plan_type", "status", "parent_consent_on_file", "school")
+    search_fields = (
+        "student__user__first_name",
+        "student__user__last_name",
+        "student__student_code",
+        "primary_disability",
+        "notes",
+    )
+    raw_id_fields = ("school", "student", "case_manager", "created_by")
+    date_hierarchy = "effective_from"
+    ordering = ["-effective_from", "-id"]
+
+
+register_tenant_admin(SpecialEducationPlan, SpecialEducationPlanAdmin)

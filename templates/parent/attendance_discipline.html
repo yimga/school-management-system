@@ -22,6 +22,7 @@
       {% if absences %}
         <div class="table-responsive">
           <table class="table table-sm table-family align-middle">
+            <caption class="visually-hidden">{% trans "Absences & tardies" %}</caption>
             <thead><tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans "Student" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Remarks" %}</th></tr></thead>
             <tbody>
               {% for a in absences %}

@@ -43,6 +43,7 @@
       {% if domain_rows %}
       <div class="table-responsive">
         <table class="table table-hover mb-0 table-family align-middle">
+          <caption class="visually-hidden">{% trans "Domain webhook DLQ" %}</caption>
           <thead class="table-light">
             <tr>
               <th></th>
@@ -77,6 +78,7 @@
       {% if platform_rows %}
       <div class="table-responsive">
         <table class="table table-hover mb-0 table-family align-middle">
+          <caption class="visually-hidden">{% trans "Platform webhook DLQ" %}</caption>
           <thead class="table-light">
             <tr>
               <th></th>
@@ -123,6 +125,7 @@
       {% if audit_rows %}
       <div class="table-responsive">
         <table class="table table-sm mb-0 table-family align-middle">
+          <caption class="visually-hidden">{% trans "Recent remediation audit" %}</caption>
           <thead class="table-light">
             <tr>
               <th>{% trans "When" %}</th>

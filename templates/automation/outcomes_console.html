@@ -20,6 +20,7 @@
       {% if recent_runs %}
       <div class="table-responsive">
         <table class="table table-hover mb-0 table-family align-middle">
+          <caption class="visually-hidden">{% trans "Recent migration runs" %}</caption>
           <thead class="table-light">
             <tr>
               <th>{% trans "Type" %}</th>
@@ -67,6 +68,7 @@
       {% if recent_visual_runs %}
       <div class="table-responsive">
         <table class="table table-hover mb-0 table-family align-middle">
+          <caption class="visually-hidden">{% trans "Visual workflow runs (published flows)" %}</caption>
           <thead class="table-light">
             <tr>
               <th>{% trans "Workflow" %}</th>
@@ -108,6 +110,7 @@
       {% if recent_logs %}
       <div class="table-responsive">
         <table class="table table-hover mb-0 table-family align-middle">
+          <caption class="visually-hidden">{% trans "Recent execution logs" %}</caption>
           <thead class="table-light">
             <tr>
               <th>{% trans "Task" %}</th>

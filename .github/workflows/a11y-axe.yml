@@ -19,7 +19,9 @@ on:
     paths:
       - "templates/**"
       - "static/css/**"
+      - "static/js/**"
       - "apps/**/views*.py"
+      - "apps/**/templatetags/**.py"
       - "apps/compliance/tests/test_a11y_axe_smoke.py"
       - ".github/workflows/a11y-axe.yml"
   workflow_dispatch: {}
@@ -77,5 +79,4 @@ jobs:
         run: |
           python -m pytest \
             apps/compliance/tests/test_a11y_axe_smoke.py \
-            -v --tb=short \
-            -k "HomepageAxeSmokeTests"
+            -v --tb=short

@@ -9,6 +9,7 @@
     {% if entries %}
     <div class="table-responsive">
       <table class="table table-sm table-family align-middle">
+        <caption class="visually-hidden">{% trans "Submitted entries" %}</caption>
         <thead><tr><th>Date</th><th>Teacher</th><th>Class / Subject</th><th>Title</th><th>Actions</th></tr></thead>
         <tbody>
           {% for e in entries %}

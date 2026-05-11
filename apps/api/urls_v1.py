@@ -12,7 +12,10 @@ from apps.api.views_marketplace_catalog import (
     MarketplaceScopesListView,
 )
 from apps.api.views_marketplace_submissions import MarketplaceSubmissionView
-from apps.api.views_migration_jobs import MigrationJobStatusView
+from apps.api.views_migration_jobs import (
+    MigrationJobErrorsCsvView,
+    MigrationJobStatusView,
+)
 
 app_name = "api_v1"
 
@@ -46,6 +49,12 @@ urlpatterns = [
         "migration-jobs/<str:job_id>/",
         MigrationJobStatusView.as_view(),
         name="migration-job-status",
+    ),
+    # Pass 8.D: CSV error-report download for the same migration job snapshot.
+    path(
+        "migration-jobs/<str:job_id>/errors.csv",
+        MigrationJobErrorsCsvView.as_view(),
+        name="migration-job-errors-csv",
     ),
     path(
         "platform/integration-context/",

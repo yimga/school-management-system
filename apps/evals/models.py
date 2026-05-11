@@ -385,15 +385,18 @@ class Evaluation(models.Model):
     test1 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     test2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
-    # Expanded components (Cameroon English sub-system + technical schools)
-    # Validators: 0-20 scale for Cameroon. Override if using different scale.
+    # Pass 8.D (2026-05-11): per-component scores. The hard MaxValueValidator(20)
+    # was removed — schools now declare their max via the GradingScale they bind
+    # to their region (US 0-100, UK 0-100, Cameroon 0-20, IB 0-7, etc.).
+    # Forms / views enforce the tenant-resolved max; the model itself only
+    # enforces the lower bound and the column's max_digits=5,decimal_places=2.
     seq1_score = models.DecimalField(
         "Seq 1",
         max_digits=5,
         decimal_places=2,
         null=True,
         blank=True,
-        validators=[MinValueValidator(0), MaxValueValidator(20)],
+        validators=[MinValueValidator(0)],
     )
     seq2_score = models.DecimalField(
         "Seq 2",
@@ -401,7 +404,7 @@ class Evaluation(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
-        validators=[MinValueValidator(0), MaxValueValidator(20)],
+        validators=[MinValueValidator(0)],
     )
     exam_score = models.DecimalField(
         "Exam",
@@ -409,7 +412,7 @@ class Evaluation(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
-        validators=[MinValueValidator(0), MaxValueValidator(20)],
+        validators=[MinValueValidator(0)],
     )
     mock_score = models.DecimalField(
         "Mock",
@@ -417,7 +420,7 @@ class Evaluation(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
-        validators=[MinValueValidator(0), MaxValueValidator(20)],
+        validators=[MinValueValidator(0)],
     )
     practical_score = models.DecimalField(
         "Practical",
@@ -425,7 +428,7 @@ class Evaluation(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
-        validators=[MinValueValidator(0), MaxValueValidator(20)],
+        validators=[MinValueValidator(0)],
     )
     internship_score = models.DecimalField(
         "Industrial attachment / Internship",
@@ -433,7 +436,7 @@ class Evaluation(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
-        validators=[MinValueValidator(0), MaxValueValidator(20)],
+        validators=[MinValueValidator(0)],
         help_text="Industrial attachment (Paper 3) or internship mark; may sync to sequence.",
     )
     remarks = models.CharField(max_length=255, blank=True)

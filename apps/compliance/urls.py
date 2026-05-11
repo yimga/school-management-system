@@ -21,6 +21,7 @@ from apps.compliance.views_queue import (
     data_rights_queue,
     reject_erase,
 )
+from apps.compliance.views_ferpa import ferpa_disclosure_detail
 
 app_name = "compliance"
 
@@ -29,6 +30,12 @@ urlpatterns = [
     path("dashboard/", ComplianceDashboardView.as_view(), name="dashboard"),
     # Pass 9.C: operator-facing GDPR/FERPA queue with SLA tracking.
     path("data-rights/queue/", data_rights_queue, name="data_rights_queue"),
+    # Pass 9.E: single-disclosure detail view for FERPA §99.32 evidence trail.
+    path(
+        "ferpa/disclosure/<int:pk>/",
+        ferpa_disclosure_detail,
+        name="ferpa_disclosure_detail",
+    ),
     path("data-rights/erase/<int:pk>/approve/", approve_erase, name="erase_approve"),
     path("data-rights/erase/<int:pk>/reject/", reject_erase, name="erase_reject"),
     path("data-rights/erase/<int:pk>/complete/", complete_erase, name="erase_complete"),

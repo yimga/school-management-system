@@ -29,6 +29,10 @@ def run_risk_inference(
     """
     Run risk scoring. Returns (score 0-100, reason_summary, model_version).
     If no model in registry, falls back to rule-based (AdvancedAnalyticsService).
+
+    Note: the structured per-student ML path lives at
+    `apps.analytics.ml.at_risk_model.predict_at_risk(student)`. This batch-style
+    function will be migrated to that path in a later pass.
     """
     model_version = None
     if model:

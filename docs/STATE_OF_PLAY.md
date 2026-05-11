@@ -76,6 +76,20 @@ All repo-deliverable D-wave items closed in one follow-up session — see
 | **Offline** | SMSOfflineDB read-binding wired to roll-call attendance via `static/js/attendance-offline-hydrator.js`; grades added to SW write-allowlist; new `GET /api/csrf-token/` endpoint + `replayQueue` fresh-CSRF refresh kills the post-rotation 403 class; PWA icons (192/512) generated and wired into `manifest-portal.json` (was `icons: []`). |
 | **Edu-system phase 1** | `evals.Evaluation` de-Cameroonized: hard `MaxValueValidator(20)` stripped from 6 score fields; schools now bind their max via `GradingScale`. Migration `0030_evaluation_decameroonize_validators.py` (no-op at DB level, model-shape only). |
 
+### Second-pass E-wave + phase-2 closures (2026-05-11, follow-up)
+
+After the D-wave landed, a second-pass session closed every remaining in-repo item from "Ops-credentialed + multi-quarter remainder":
+
+| Pass | Scope |
+|---|---|
+| **9.E** | New `apps/compliance/views_ferpa.py:ferpa_disclosure_detail` at `/compliance/ferpa/disclosure/<pk>/` + `templates/compliance/ferpa_disclosure_detail.html`. New `apps/evals/views_drilldown.py:evaluation_drilldown` at `/evals/evaluation/<pk>/` + `templates/evals/evaluation_drilldown.html` with full GradeAudit trail (before/after for every score component). Both `@audit_pii_view`-decorated. New `apps/compliance/tests/test_sla_breach_sweep.py` covers `mark_sla_breaches` (overdue stamping, terminal-status skip, idempotency). |
+| **Edu-system phase 2** | `apps/people/SpecialEducationPlan` model (IEP / 504 / Gifted / ELL) + migration `0046_specialeducationplan.py` + admin (US K-12 unlock). `apps/academics/LMSAssignment` + `LMSSubmission` LMS spine in `apps/academics/models_lms.py` + migration `0045_lms_assignment_submission.py` + admin registrations. Country `policy_snapshot` content populated for WAEC (NG/GH), KCSE (KE), CBSE (IN), Cambridge IGCSE (GB), ACARA (AU), IB Diploma — full grading bands, exam boards, term systems, currency, IB core components. |
+| **8.E** | `POWERSCHOOL_FEES_HINTS` / `SKYWARD_FEES_HINTS` / `VERACROSS_FEES_HINTS` + matching payment hints in `seed_migration_profiles.py`; union-merged into `finance_import` / `payments_import` `schema_hints`. Auto-detect crosses 0.8 floor on typical vendor exports. |
+| **13.D in-product** | `POST /portal/ai/draft/parent-message/` + `POST /portal/ai/draft/report-card-comment/` (`apps/portal/views_ai_draft.py`), staff-or-teacher gated, `AI_TEACHER_COMMS` / `AI_REPORT_CARD` entitlement-gated, fail-closed. `ai_draft_inline.html` partial wired into `templates/accounts/direct_compose.html`. (Structured ML at-risk path shipped in parallel at `apps/analytics/ml/at_risk_features.py` + `at_risk_model.py`; still pending: wire `compute_nightly_risk` to call `predict_at_risk` instead of the legacy `run_risk_inference_batch` once that's been A/B-validated.) |
+| **12.D ready-to-publish** | `sdk/pyproject.toml` Apache-2.0 + classifiers + URLs + dev extras. `sdk/js/package.json` flipped from `private:true UNLICENSED` to public-publishable with `publishConfig.access=public`. New `.github/workflows/sdk-release.yml` workflow_dispatch builds artifacts on every run, publishes only when `PYPI_API_TOKEN` / `NPM_TOKEN` secrets are present (fail-closed otherwise). Apache-2.0 `LICENSE` file in both `sdk/` and `sdk/js/`. |
+
+What remains is **genuinely external**: PyPI/npm tokens, Sentry org auth token, CSP decision for `@sentry/browser`, Stripe Connect platform account, DNS for `docs.runmycampus.com` / `partners.runmycampus.com`, a tagged at-risk training dataset, and SOC2/Sentry/Stripe vendor agreements.
+
 ---
 
 ## Passes pending (queued in `COMPETITIVE_PARITY_ROADMAP.md`)

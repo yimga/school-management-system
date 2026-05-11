@@ -19,6 +19,7 @@ from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Term
 from apps.academics.services import get_active_year_and_term
 from apps.api.rate_limit import throttle_ip_request
+from apps.compliance.decorators import audit_pii_view
 from apps.people.models import StudentGuardian, StudentProfile
 from apps.reports.models import (
     ReportCard,
@@ -217,6 +218,7 @@ def _record_report_hash(user: User, report_card: ReportCard, pdf_bytes: bytes):
 
 @parent_portal_required
 @role_required(User.Role.PARENT)
+@audit_pii_view(model_name="ReportCard", object_id_kwarg="student_id", sensitivity="HIGH", reason="Parent term report PDF download")
 def parent_download_term_report(request: HttpRequest, student_id: int):
     if not _reports_enabled(request):
         return HttpResponseForbidden("Report downloads are disabled by the school.")
@@ -302,6 +304,7 @@ def _csv_response(filename: str, headers: list[str], rows: list[list]):
 
 @parent_portal_required
 @role_required(User.Role.PARENT)
+@audit_pii_view(model_name="ReportCard", object_id_kwarg="student_id", sensitivity="HIGH", reason="Parent term report CSV download")
 def parent_download_term_report_csv(request: HttpRequest, student_id: int):
     """CSV export of the active term report."""
     if not _reports_enabled(request):
@@ -383,6 +386,7 @@ def parent_download_term_report_csv(request: HttpRequest, student_id: int):
 
 @parent_portal_required
 @role_required(User.Role.PARENT)
+@audit_pii_view(model_name="ReportCard", object_id_kwarg="student_id", sensitivity="HIGH", reason="Parent annual report PDF download")
 def parent_download_annual_report(request: HttpRequest, student_id: int):
     if not _reports_enabled(request):
         return HttpResponseForbidden("Report downloads are disabled by the school.")
@@ -512,6 +516,7 @@ def verify_report_hash(request: HttpRequest):
 
 @parent_portal_required
 @role_required(User.Role.PARENT)
+@audit_pii_view(model_name="ReportCard", object_id_kwarg="student_id", sensitivity="HIGH", reason="Parent annual report CSV download")
 def parent_download_annual_report_csv(request: HttpRequest, student_id: int):
     """CSV export of annual report (all terms)."""
     if not _reports_enabled(request):

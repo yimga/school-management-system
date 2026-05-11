@@ -42,6 +42,7 @@
     <p class="small text-white-50 mb-0">{% trans "Per-entity value row counts include only keys matching this entity type." %}</p>
     <div class="table-responsive mt-2">
       <table class="table table-sm table-dark table-bordered">
+        <caption class="visually-hidden">{{ section.entity_type }} {% trans "Value rows" %}: {{ section.value_row_count }}</caption>
         <thead>
           <tr>
             <th scope="col">{% trans "Field key" %}</th>

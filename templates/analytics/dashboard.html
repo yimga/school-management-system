@@ -328,6 +328,7 @@
       <div class="text-muted small mb-2">{{ selected_classroom.name }} - {{ term.get_name_display }}</div>
       <div class="table-responsive">
         <table class="table table-sm align-middle table-family">
+          <caption class="visually-hidden">{% trans "Ranking per class" %}</caption>
           <thead>
             <tr>
               <th scope="col" style="width:80px;">{% trans "Rank" %}</th>
@@ -360,6 +361,7 @@
         {% if selected_classroom %}
           <div class="table-responsive">
             <table class="table table-sm align-middle table-family">
+              <caption class="visually-hidden">{% trans "Top students (class, term)" %}</caption>
               <thead>
                 <tr>
                   <th scope="col" style="width:80px;">{% trans "Rank" %}</th>
@@ -392,6 +394,7 @@
         <h5 class="mb-2">{% trans "Top students (school, term)" %}</h5>
         <div class="table-responsive">
           <table class="table table-sm align-middle table-family">
+            <caption class="visually-hidden">{% trans "Top students (school, term)" %}</caption>
             <thead>
               <tr>
                 <th scope="col" style="width:80px;">{% trans "Rank" %}</th>
@@ -425,6 +428,7 @@
         {% if selected_classroom %}
           <div class="table-responsive">
             <table class="table table-sm align-middle table-family">
+              <caption class="visually-hidden">{% trans "Top students (class, annual)" %}</caption>
               <thead>
                 <tr>
                   <th scope="col" style="width:80px;">{% trans "Rank" %}</th>
@@ -457,6 +461,7 @@
         <h5 class="mb-2">{% trans "Top students (school, annual)" %}</h5>
         <div class="table-responsive">
           <table class="table table-sm align-middle table-family">
+            <caption class="visually-hidden">{% trans "Top students (school, annual)" %}</caption>
             <thead>
               <tr>
                 <th scope="col" style="width:80px;">{% trans "Rank" %}</th>
@@ -490,6 +495,7 @@
         <div class="text-muted small mb-2">{% trans "Subjects below the selected threshold." %}</div>
         <div class="table-responsive">
           <table class="table table-sm align-middle table-family">
+            <caption class="visually-hidden">{% trans "Weak subject focus" %}</caption>
             <thead>
               <tr>
                 <th scope="col">{% trans "Subject" %}</th>
@@ -520,6 +526,7 @@
         <div class="text-muted small mb-2">{% trans "Students whose averages improved between terms." %}</div>
         <div class="table-responsive">
           <table class="table table-sm align-middle table-family">
+            <caption class="visually-hidden">{% trans "Student improvement list" %}</caption>
             <thead>
               <tr>
                 <th scope="col">{% trans "Student" %}</th>
@@ -555,6 +562,7 @@
         <div class="text-muted small mb-2">{% trans "Based on selected deadline mode." %}</div>
         <div class="table-responsive">
           <table class="table table-sm align-middle table-family">
+            <caption class="visually-hidden">{% trans "Teacher deadline compliance" %}</caption>
             <thead>
               <tr>
                 <th scope="col">{% trans "Teacher" %}</th>
@@ -590,6 +598,7 @@
         <h5 class="mb-2">{% trans "Specialty pass rates" %}</h5>
         <div class="table-responsive">
           <table class="table table-sm align-middle table-family">
+            <caption class="visually-hidden">{% trans "Specialty pass rates" %}</caption>
             <thead>
               <tr>
                 <th scope="col">{% trans "Specialty" %}</th>

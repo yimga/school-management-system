@@ -116,9 +116,17 @@ except ImportError:
         signature_sign
     ) = None
 
+from .views_ai_draft import (
+    ai_draft_parent_message,
+    ai_draft_report_card_comment,
+)
+
 app_name = "portal"
 
 urlpatterns = [
+    # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).
+    path("ai/draft/parent-message/", ai_draft_parent_message, name="ai_draft_parent_message"),
+    path("ai/draft/report-card-comment/", ai_draft_report_card_comment, name="ai_draft_report_card_comment"),
     # Home and portal entry
     path("", parent_dashboard, name="home"),
     path("home/", parent_dashboard, name="portal_home"),
