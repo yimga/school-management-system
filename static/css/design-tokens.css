@@ -372,7 +372,7 @@
 
   /* Unified content surface: use for cards, panels, dropdowns (alias for admin-content-bg when same) */
   --admin-surface: #ffffff;
-  /* Aliases used by theme-everywhere-dark and components for text/border on main content */
+  /* Aliases for components for text/border on main content (theme-everywhere-dark.css retired 2026-05-12 — was a temporary bridge) */
   --admin-text: #0f172a;
   --admin-border: rgba(15, 23, 42, 0.12);
 

@@ -799,7 +799,7 @@
 
 /*
  * Full-bleed vs readable width
- * - Sections / grids / media strips: use full width (containers already fluid via platform-fluid-everywhere.css).
+ * - Sections / grids / media strips: use full width (containers already fluid via design-tokens.css clamp() typography).
  * - Long-form copy: keep comfortable measure with .mkt-read or existing per-component ch limits:
  *   .mkt-hero-subheadline (42ch), .mkt-section-lead (60ch), .mkt-security-copy (55ch).
  */

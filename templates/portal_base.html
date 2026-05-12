@@ -40,17 +40,18 @@
     See memory: reference_css_retirement_audit.md
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/portal-theme-modes.css' %}">
-    <link rel="stylesheet" href="{% static 'css/platform-fluid-everywhere.css' %}">
+    {# Retired 2026-05-12 (pass 2 css cleanup):
+       - platform-fluid-everywhere.css: clamp() typography now in design-tokens.css
+       - responsive-performance.css: same — duplicate fluid typography
+       - ui-alignment-improvements.css: duplicate --spacing-* aliasing --token-space-*
+       - no-watermark.css: pure defensive override
+       - topbar-header-polish.css: covered by header-no-spillage.css + statement-header.css #}
     <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
-    <link rel="stylesheet" href="{% static 'css/responsive-performance.css' %}">
-    <link rel="stylesheet" href="{% static 'css/ui-alignment-improvements.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-layout-professional.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-premium-content.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
-    <link rel="stylesheet" href="{% static 'css/no-watermark.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
-    <link rel="stylesheet" href="{% static 'css/topbar-header-polish.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-high-contrast.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-crisp-polish.css' %}">
@@ -63,7 +64,7 @@
     <link rel="stylesheet" href="{% static 'css/card-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
     <link rel="stylesheet" href="{% static 'css/chart-rules.css' %}">
-    <link rel="stylesheet" href="{% static 'css/theme-everywhere-dark.css' %}">
+    {# theme-everywhere-dark.css retired 2026-05-12 — author labeled "temporary bridge"; replaced by theme-visibility-guard.css #}
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
     <link rel="stylesheet" href="{% static 'css/tooltips.css' %}">
@@ -788,7 +789,7 @@
     {% include 'components/rum_beacon.html' %}
 
     {% if SITE and SITE.is_preview %}
-    <link rel="stylesheet" href="{% static 'css/preview-highlights.css' %}">
+    {# preview-highlights.css retired 2026-05-12 (pass 2 css cleanup); rules folded into design-system-unified.css #}
     <script type="application/json" id="rmc-preview-labels">{
       "default": "{% trans 'Your changes affect this area' %}",
       "dismiss": "{% trans 'Dismiss highlights' %}"
