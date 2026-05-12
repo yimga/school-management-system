@@ -4,14 +4,14 @@
  */
 
 :root {
-  --vis-surface: var(--admin-surface, var(--admin-content-surface, #ffffff));
-  --vis-surface-muted: color-mix(in srgb, var(--vis-surface) 90%, #0f172a 10%);
-  --vis-text: var(--admin-text, var(--admin-content-text, #0f172a));
-  --vis-text-muted: var(--admin-content-text-muted, #475569);
+  --vis-surface: var(--admin-surface, var(--admin-content-surface, var(--color-base-0)));
+  --vis-surface-muted: color-mix(in srgb, var(--vis-surface) 90%, var(--color-base-900) 10%);
+  --vis-text: var(--admin-text, var(--admin-content-text, var(--color-base-900)));
+  --vis-text-muted: var(--admin-content-text-muted, var(--color-base-600));
   --vis-border: var(--admin-border, var(--admin-content-border, rgba(15, 23, 42, 0.14)));
-  --vis-heading: color-mix(in srgb, var(--vis-text) 92%, #0f172a 8%);
-  --vis-heading-strong: color-mix(in srgb, var(--vis-text) 96%, #0f172a 4%);
-  --vis-link: color-mix(in srgb, var(--school-primary, #3b82f6) 72%, var(--vis-text) 28%);
+  --vis-heading: color-mix(in srgb, var(--vis-text) 92%, var(--color-base-900) 8%);
+  --vis-heading-strong: color-mix(in srgb, var(--vis-text) 96%, var(--color-base-900) 4%);
+  --vis-link: color-mix(in srgb, var(--school-primary, var(--color-indigo-500)) 72%, var(--vis-text) 28%);
 }
 
 html[data-theme="dark"],
@@ -22,14 +22,14 @@ body.portal-backend-ink,
 body.portal-backend-onyx,
 body.portal-backend-charcoal,
 body.portal-backend-midnight {
-  --vis-surface: var(--admin-surface, var(--admin-content-surface, #1e293b));
-  --vis-surface-muted: color-mix(in srgb, var(--vis-surface) 88%, #f8fafc 12%);
-  --vis-text: var(--admin-text, var(--admin-content-text, #f1f5f9));
-  --vis-text-muted: var(--admin-content-text-muted, #94a3b8);
+  --vis-surface: var(--admin-surface, var(--admin-content-surface, var(--color-base-800)));
+  --vis-surface-muted: color-mix(in srgb, var(--vis-surface) 88%, var(--color-base-50) 12%);
+  --vis-text: var(--admin-text, var(--admin-content-text, var(--color-base-100)));
+  --vis-text-muted: var(--admin-content-text-muted, var(--color-base-400));
   --vis-border: var(--admin-border, var(--admin-content-border, rgba(148, 163, 184, 0.28)));
-  --vis-heading: color-mix(in srgb, var(--vis-text) 94%, #f8fafc 6%);
-  --vis-heading-strong: color-mix(in srgb, var(--vis-text) 97%, #f8fafc 3%);
-  --vis-link: color-mix(in srgb, var(--school-primary, #60a5fa) 62%, #f8fafc 38%);
+  --vis-heading: color-mix(in srgb, var(--vis-text) 94%, var(--color-base-50) 6%);
+  --vis-heading-strong: color-mix(in srgb, var(--vis-text) 97%, var(--color-base-50) 3%);
+  --vis-link: color-mix(in srgb, var(--school-primary, var(--color-indigo-400)) 62%, var(--color-base-50) 38%);
 }
 
 /* Site Settings / Theme pack catalog hardening */
@@ -64,7 +64,7 @@ body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .admin-da
 
 body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .admin-dashboard-palette-card:hover,
 body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .admin-dashboard-palette-card.selected {
-  border-color: color-mix(in srgb, var(--school-primary, #3b82f6) 55%, var(--vis-border) 45%) !important;
+  border-color: color-mix(in srgb, var(--school-primary, var(--color-indigo-500)) 55%, var(--vis-border) 45%) !important;
 }
 
 body.app-siteconfig.model-sitesettings.change-form .theme-pack-filter-row .form-control,
@@ -228,7 +228,7 @@ body.app-siteconfig.model-sitesettings.change-form h6 {
 
 .theme-experience-page .theme-pack-catalog .admin-dashboard-palette-card:hover,
 .theme-experience-page .theme-pack-catalog .admin-dashboard-palette-card.selected {
-  border-color: color-mix(in srgb, var(--school-primary, #3b82f6) 55%, var(--vis-border) 45%) !important;
+  border-color: color-mix(in srgb, var(--school-primary, var(--color-indigo-500)) 55%, var(--vis-border) 45%) !important;
 }
 
 .theme-experience-page .theme-pack-filter-row .form-control {

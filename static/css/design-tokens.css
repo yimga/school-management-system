@@ -430,6 +430,24 @@
   /* Pass 10: chart axes render on light surfaces; slate-500 meets AA. */
   --chart-axis-muted: #64748b;
 
+  /* Graph node badges (consumed by package-dependency-graph.js for SVG node fills) */
+  --graph-node-info-bg: var(--color-sky-50, #e0f2fe);
+  --graph-node-info-border: var(--color-sky-600, #0284c7);
+  --graph-node-warning-bg: var(--color-amber-100, #fef3c7);
+  --graph-node-warning-border: var(--color-amber-600, #d97706);
+  --graph-node-success-bg: var(--color-emerald-50, #ecfdf5);
+  --graph-node-success-border: var(--color-emerald-600, #059669);
+
+  /* Keyboard hint chips (kbd element style injected by keyboard_shortcuts-1.js) */
+  --kbd-color: var(--color-base-900);
+  --kbd-bg: var(--color-base-50);
+  --kbd-border: var(--color-base-300);
+  --kbd-border-bottom: var(--color-base-400);
+
+  /* Signature pad (portal__signature_sign.js) — overridable for dark-mode signature surfaces */
+  --signature-canvas-bg: var(--color-base-0);
+  --signature-canvas-ink: var(--color-base-900);
+
   /* Motion */
   --motion-fast: 150ms ease;
   --motion-normal: 250ms ease;

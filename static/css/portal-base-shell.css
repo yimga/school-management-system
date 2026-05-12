@@ -7,7 +7,7 @@ body {
   font-family: var(--portal-font), system-ui, sans-serif;
   font-size: var(--base-font-size, 1rem);
   background: var(--portal-bg);
-  color: var(--portal-text, #111827);
+  color: var(--portal-text, var(--color-base-900));
   min-height: 100vh;
 }
 
@@ -29,7 +29,7 @@ body {
   width: 34px;
   border-radius: 10px;
   object-fit: cover;
-  background: color-mix(in srgb, var(--header-brand-fg, #ffffff) 16%, transparent);
+  background: color-mix(in srgb, var(--header-brand-fg, var(--color-base-0)) 16%, transparent);
   padding: 4px;
 }
 
@@ -43,7 +43,7 @@ body {
 }
 
 .search-bar-wrapper input {
-  color: var(--portal-search-input-fg, #fff) !important;
+  color: var(--portal-search-input-fg, var(--color-base-0)) !important;
 }
 
 .search-bar-wrapper input:focus {
@@ -111,13 +111,13 @@ body {
 }
 .header-search-dropdown .search-result-item:hover,
 .header-search-dropdown .search-result-item:focus {
-  background: color-mix(in srgb, var(--brand-primary, #3b82f6) 18%, transparent);
-  color: var(--header-brand-fg, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary, var(--color-indigo-500)) 18%, transparent);
+  color: var(--header-brand-fg, var(--color-base-0));
 }
 .header-search-dropdown .search-result-item:last-child { border-bottom: none; }
-.header-search-dropdown .search-result-muted { font-size: 0.8rem; color: color-mix(in srgb, var(--admin-content-text, #cbd5e1) 72%, transparent); }
+.header-search-dropdown .search-result-muted { font-size: 0.8rem; color: color-mix(in srgb, var(--admin-content-text, var(--color-base-300)) 72%, transparent); }
 .header-search-dropdown .search-result-empty,
-.header-search-dropdown .search-result-error { padding: 0.75rem; color: color-mix(in srgb, var(--admin-content-text, #cbd5e1) 72%, transparent); font-size: 0.9rem; }
+.header-search-dropdown .search-result-error { padding: 0.75rem; color: color-mix(in srgb, var(--admin-content-text, var(--color-base-300)) 72%, transparent); font-size: 0.9rem; }
 
 .topbar-actions.d-flex {
   display: grid !important;
@@ -261,7 +261,7 @@ body.backend-shell .page-wrap {
 
 #themeToggle:hover {
   transform: rotate(20deg);
-  color: var(--portal-theme-toggle-hover-fg, #ffc107) !important;
+  color: var(--portal-theme-toggle-hover-fg, var(--color-amber-500)) !important;
 }
 
 /* Admin Dropdown Menu – theme-aware border/shadow */
@@ -661,7 +661,7 @@ body.backend-shell .page-wrap {
   border-radius: 18px;
   padding: 1.75rem;
   background: linear-gradient(135deg, var(--school-primary), var(--school-accent));
-  color: var(--portal-dashboard-hero-fg, #fff);
+  color: var(--portal-dashboard-hero-fg, var(--color-base-0));
   box-shadow: 0 12px 30px var(--portal-dashboard-hero-shadow, rgba(0, 0, 0, 0.25));
 }
 
@@ -700,7 +700,7 @@ body.backend-shell .page-wrap {
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, var(--school-primary), var(--school-accent));
-  color: var(--portal-chathead-fg, #fff);
+  color: var(--portal-chathead-fg, var(--color-base-0));
   box-shadow: 0 4px 14px color-mix(in srgb, var(--school-primary) 46%, transparent);
   text-decoration: none;
   font-size: 1.2rem;
@@ -708,7 +708,7 @@ body.backend-shell .page-wrap {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .portal-chathead:hover {
-  color: var(--portal-chathead-hover-fg, #fff);
+  color: var(--portal-chathead-hover-fg, var(--color-base-0));
   transform: scale(1.08);
   box-shadow: 0 6px 18px color-mix(in srgb, var(--school-primary) 56%, transparent);
 }
@@ -723,10 +723,10 @@ body.backend-shell .page-wrap {
   font-weight: 700;
   line-height: 18px;
   text-align: center;
-  background: var(--portal-chathead-badge-bg, #dc3545);
-  color: var(--portal-chathead-badge-fg, #fff);
+  background: var(--portal-chathead-badge-bg, var(--color-red-600));
+  color: var(--portal-chathead-badge-fg, var(--color-base-0));
   border-radius: 999px;
-  border: 2px solid var(--portal-chathead-badge-border, #fff);
+  border: 2px solid var(--portal-chathead-badge-border, var(--color-base-0));
 }
 
 /* Header refinement: keep search centered and prevent topbar control overlap. */

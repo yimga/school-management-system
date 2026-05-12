@@ -12,7 +12,7 @@
   --rmc-lit-9ef378ee07: 0.5rem 1rem;
   --rmc-lit-9f2cb2c47e: var(--spacing-xs);
   --rmc-lit-b37a5f0e0e: var(--spacing-sm) !important;
-  --rmc-lit-bc77032159: 0 1px 0 0 var(--bs-border-color, #dee2e6);
+  --rmc-lit-bc77032159: 0 1px 0 0 var(--bs-border-color, var(--color-base-200));
   --rmc-lit-ea4d3684b6: var(--spacing-lg) !important;
   --rmc-lit-ef12b23bea: var(--lux-radius-lg, var(--radius-lg));
   --rmc-lit-f245eab363: 0.35rem 0.5rem;
@@ -33,43 +33,43 @@
      ============================================ */
   --color-primary: var(--school-primary);
   --color-primary-light: var(--school-primary-light);
-  --color-primary-dark: color-mix(in srgb, var(--school-primary) 72%, #0f172a);
+  --color-primary-dark: color-mix(in srgb, var(--school-primary) 72%, var(--color-base-900));
   
   /* Secondary: Purple */
-  --color-secondary: #9b6bff;
-  --color-secondary-light: #c4a5ff;
-  --color-secondary-dark: #7040d8;
+  --color-secondary: var(--color-indigo-400);
+  --color-secondary-light: var(--color-indigo-300);
+  --color-secondary-dark: var(--color-indigo-700);
   
   /* Accent: Teal/Mint */
-  --color-accent: #2dd4bf;
-  --color-accent-light: #76ead6;
-  --color-accent-dark: #1ba896;
+  --color-accent: var(--color-teal-500);
+  --color-accent-light: var(--color-teal-300);
+  --color-accent-dark: var(--color-teal-500);
   
   /* Text & Background */
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #22314e;
-  --color-text-muted: #6b7280;
+  --color-text-primary: var(--color-base-900);
+  --color-text-secondary: var(--color-base-800);
+  --color-text-muted: var(--color-base-500);
   
-  --color-bg-primary: #ffffff;
-  --color-bg-light: #f8fafc;
-  --color-bg-lighter: #f0f4f8;
-  --color-bg-dark: #1a1f3a;
+  --color-bg-primary: var(--color-base-0);
+  --color-bg-light: var(--color-base-50);
+  --color-bg-lighter: color-mix(in oklab, var(--color-base-200) 50%, var(--color-base-50));
+  --color-bg-dark: color-mix(in oklab, var(--color-indigo-900) 50%, var(--color-base-950));
   
   /* Borders */
   --color-border: rgba(15, 23, 42, 0.08);
   --color-border-light: rgba(15, 23, 42, 0.04);
   
   /* Status Colors */
-  --color-success: #10b981;
+  --color-success: var(--color-emerald-500);
   --color-success-light: rgba(16, 185, 129, 0.1);
   
-  --color-warning: #f59e0b;
+  --color-warning: var(--color-amber-500);
   --color-warning-light: rgba(245, 158, 11, 0.1);
   
-  --color-danger: #ef4444;
+  --color-danger: var(--color-red-500);
   --color-danger-light: rgba(239, 68, 68, 0.1);
   
-  --color-info: #3b82f6;
+  --color-info: var(--color-primary-500);
   --color-info-light: rgba(59, 130, 246, 0.1);
   
   /* ============================================
@@ -169,12 +169,12 @@
    ============================================ */
 :root[data-theme="light"],
 html[data-bs-theme="light"] {
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #22314e;
-  --color-text-muted: #4b5563; /* Stronger contrast on light bg (WCAG AA) */
-  --color-bg-primary: #ffffff;
-  --color-bg-light: #f8fafc;
-  --color-bg-lighter: #f0f4f8;
+  --color-text-primary: var(--color-base-900);
+  --color-text-secondary: var(--color-base-800);
+  --color-text-muted: var(--color-base-600); /* Stronger contrast on light bg (WCAG AA) */
+  --color-bg-primary: var(--color-base-0);
+  --color-bg-light: var(--color-base-50);
+  --color-bg-lighter: color-mix(in oklab, var(--color-base-200) 50%, var(--color-base-50));
   --color-border: rgba(15, 23, 42, 0.08);
   --color-border-light: rgba(15, 23, 42, 0.04);
   --color-success-light: rgba(16, 185, 129, 0.1);
@@ -186,28 +186,28 @@ html[data-bs-theme="light"] {
 :root[data-theme="dark"],
 html[data-bs-theme="dark"],
 body.portal-backend-dark {
-  --color-text-primary: #f1f5f9;
-  --color-text-secondary: #e2e8f0;
-  --color-text-muted: #94a3b8;
-  --color-bg-primary: #0f172a;
-  --color-bg-light: #1e293b;
-  --color-bg-lighter: #334155;
+  --color-text-primary: var(--color-base-100);
+  --color-text-secondary: var(--color-base-200);
+  --color-text-muted: var(--color-base-400);
+  --color-bg-primary: var(--color-base-900);
+  --color-bg-light: var(--color-base-800);
+  --color-bg-lighter: var(--color-base-700);
   --color-border: rgba(148, 163, 184, 0.25);
   --color-border-light: rgba(148, 163, 184, 0.12);
   /* Dark: brand tints from school primary (one product family) */
-  --color-primary: color-mix(in srgb, var(--school-primary) 70%, #ffffff);
-  --color-primary-light: color-mix(in srgb, var(--school-primary) 45%, #ffffff);
+  --color-primary: color-mix(in srgb, var(--school-primary) 70%, var(--color-base-0));
+  --color-primary-light: color-mix(in srgb, var(--school-primary) 45%, var(--color-base-0));
   --color-primary-dark: var(--school-primary);
-  --color-secondary: #a78bfa;
-  --color-secondary-light: #c4b5fd;
-  --color-secondary-dark: #7c5ce8;
-  --color-accent: #5eead4;
-  --color-accent-light: #99f6e4;
-  --color-accent-dark: #2dd4bf;
-  --color-success: #34d399;
-  --color-warning: #fbbf24;
-  --color-danger: #f87171;
-  --color-info: #60a5fa;
+  --color-secondary: var(--color-indigo-400);
+  --color-secondary-light: var(--color-indigo-300);
+  --color-secondary-dark: var(--color-indigo-600);
+  --color-accent: var(--color-teal-300);
+  --color-accent-light: var(--color-teal-300);
+  --color-accent-dark: var(--color-teal-500);
+  --color-success: var(--color-emerald-400);
+  --color-warning: var(--color-amber-400);
+  --color-danger: var(--color-red-400);
+  --color-info: var(--color-primary-400);
   --color-success-light: rgba(16, 185, 129, 0.2);
   --color-warning-light: rgba(245, 158, 11, 0.2);
   --color-danger-light: rgba(239, 68, 68, 0.2);
@@ -220,13 +220,13 @@ body.portal-backend-dark {
    ============================================ */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-text-primary: #f0f4f8;
-    --color-text-secondary: #cbd5e1;
-    --color-text-muted: #94a3b8;
+    --color-text-primary: color-mix(in oklab, var(--color-base-200) 50%, var(--color-base-50));
+    --color-text-secondary: var(--color-base-300);
+    --color-text-muted: var(--color-base-400);
     
-    --color-bg-primary: #1a1f3a;
-    --color-bg-light: #252d48;
-    --color-bg-lighter: #3f4765;
+    --color-bg-primary: color-mix(in oklab, var(--color-indigo-900) 50%, var(--color-base-950));
+    --color-bg-light: var(--color-base-800);
+    --color-bg-lighter: var(--color-base-700);
     
     --color-border: rgba(240, 244, 248, 0.1);
     --color-border-light: rgba(240, 244, 248, 0.05);
@@ -312,22 +312,22 @@ textarea {
   left: 0.5rem;
   padding: var(--rmc-lit-9ef378ee07);
   background: var(--color-primary, var(--school-primary));
-  color: #fff;
+  color: var(--color-base-0);
   text-decoration: none;
-  outline: 2px solid #fff;
+  outline: 2px solid var(--color-base-0);
   outline-offset: 2px;
 }
 
 /* Selection */
 ::selection {
   background-color: var(--color-primary);
-  color: #f8fafc;
+  color: var(--color-base-50);
 }
 /* Selection – dark mode: desaturated primary, off-white text */
 :root[data-theme="dark"] ::selection,
 html[data-bs-theme="dark"] ::selection {
   background-color: var(--color-primary);
-  color: #f1f5f9;
+  color: var(--color-base-100);
 }
 
 /* Scrollbar for webkit browsers */
@@ -724,22 +724,22 @@ html[data-bs-theme="dark"] ::selection {
   border-color: var(--color-primary, var(--school-primary));
 }
 .btn-back-secondary {
-  color: var(--color-text-muted, #6b7280);
+  color: var(--color-text-muted, var(--color-base-500));
   border-color: var(--color-border, rgba(15, 23, 42, 0.08));
 }
 .btn-back-secondary:hover {
-  background-color: var(--color-bg-light, #f8fafc);
-  color: var(--color-text-primary, #0f172a);
+  background-color: var(--color-bg-light, var(--color-base-50));
+  color: var(--color-text-primary, var(--color-base-900));
   border-color: var(--color-border, rgba(15, 23, 42, 0.08));
 }
 .btn-back-outline {
-  color: var(--color-text-muted, #6b7280);
+  color: var(--color-text-muted, var(--color-base-500));
   border: 1px solid var(--color-border, rgba(15, 23, 42, 0.08));
   background: transparent;
 }
 .btn-back-outline:hover {
-  background-color: var(--color-bg-light, #f8fafc);
-  color: var(--color-text-primary, #0f172a);
+  background-color: var(--color-bg-light, var(--color-base-50));
+  color: var(--color-text-primary, var(--color-base-900));
 }
 
 /* Phase 15.4: Condensed table view (smaller padding and font) */
@@ -757,12 +757,12 @@ html[data-bs-theme="dark"] ::selection {
   position: sticky;
   top: 0;
   z-index: 2;
-  background: var(--bs-light, #f8f9fa);
+  background: var(--bs-light, var(--color-base-50));
   box-shadow: var(--rmc-lit-32c8f82993);
 }
 :root[data-theme="dark"] .table-sticky-head thead th,
 html[data-bs-theme="dark"] .table-sticky-head thead th {
-  background: var(--admin-content-thead-bg, #334155);
+  background: var(--admin-content-thead-bg, var(--color-base-700));
 }
 
 /* Phase 15.1: Zebra striping for data tables (theme-aware) */
@@ -778,12 +778,12 @@ html[data-bs-theme="dark"] .table-zebra tbody tr:nth-of-type(even) {
 .table-cell-fail,
 .td-fail {
   background-color: var(--alert-fail-bg, rgba(220, 38, 38, 0.08));
-  color: var(--alert-fail-fg, #b91c1c);
+  color: var(--alert-fail-fg, color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)));
 }
 .table-cell-overdue,
 .td-overdue {
   font-weight: 600;
-  color: var(--alert-warning-fg, #b45309);
+  color: var(--alert-warning-fg, var(--color-amber-700));
 }
 .table-cell-overdue .badge,
 .td-overdue .badge,
@@ -791,7 +791,7 @@ html[data-bs-theme="dark"] .table-zebra tbody tr:nth-of-type(even) {
   font-weight: 600;
 }
 .cell-overdue {
-  color: var(--alert-warning-fg, #b45309);
+  color: var(--alert-warning-fg, var(--color-amber-700));
 }
 
 /* Phase 15.1: Zebra striping for data tables (theme-aware) */
@@ -806,12 +806,12 @@ html[data-bs-theme="dark"] .table-zebra tbody tr:nth-of-type(even) {
 /* Phase 15.3: Conditional formatting (failing grades, overdue – use with icon/text too) */
 .cell-fail,
 .table .cell-fail {
-  color: var(--admin-content-danger, #dc2626);
+  color: var(--admin-content-danger, var(--color-red-600));
   font-weight: 600;
 }
 .cell-overdue,
 .table .cell-overdue {
-  color: var(--brand-warning, #f59e0b);
+  color: var(--brand-warning, var(--color-amber-500));
   font-weight: 600;
 }
 
@@ -829,7 +829,7 @@ html[data-bs-theme="dark"] .table-zebra tbody tr:nth-of-type(even) {
 
 .cell-success,
 .table .cell-success {
-  color: var(--brand-success, #22c55e);
+  color: var(--brand-success, var(--color-emerald-500));
 }
 
 /* Phase C: Gradebook sticky header (teacher marks list, evals tables) */
@@ -838,7 +838,7 @@ html[data-bs-theme="dark"] .table-zebra tbody tr:nth-of-type(even) {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--bs-table-bg, #fff);
+  background: var(--bs-table-bg, var(--color-base-0));
   box-shadow: var(--rmc-lit-bc77032159);
 }
 [data-bs-theme="dark"] .gradebook-thead-sticky th {
@@ -853,15 +853,15 @@ html[data-bs-theme="dark"] .table-zebra tbody tr:nth-of-type(even) {
 }
 
 .insight-card[data-rmc-insight-tone="warning"] {
-  border-left-color: var(--color-warning, #f59e0b);
+  border-left-color: var(--color-warning, var(--color-amber-500));
 }
 
 .insight-card[data-rmc-insight-tone="danger"] {
-  border-left-color: var(--color-danger, #ef4444);
+  border-left-color: var(--color-danger, var(--color-red-500));
 }
 
 .insight-card[data-rmc-insight-tone="success"] {
-  border-left-color: var(--color-success, #10b981);
+  border-left-color: var(--color-success, var(--color-emerald-500));
 }
 
 .insight-card[data-rmc-insight-tone="neutral"] {

@@ -18,8 +18,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  background: var(--statement-header-bg, #FDFDFD);
-  color: var(--statement-header-fg, #0A0A0A);
+  background: var(--statement-header-bg, var(--color-base-0));
+  color: var(--statement-header-fg, var(--color-base-950));
   transition: background-color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
               color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
               box-shadow var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out);
@@ -36,8 +36,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  background: var(--cp-bg, #0B0E14);
-  color: var(--statement-header-fg, #fff);
+  background: var(--cp-bg, var(--color-base-950));
+  color: var(--statement-header-fg, var(--color-base-0));
   transition: background-color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
               color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
               box-shadow var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out);
@@ -52,8 +52,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  background: var(--mkt-primary, var(--statement-header-bg, #0f172a));
-  color: var(--mkt-text-inverse, #fff);
+  background: var(--mkt-primary, var(--statement-header-bg, var(--color-base-900)));
+  color: var(--mkt-text-inverse, var(--color-base-0));
   transition: background-color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
               color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
               box-shadow var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out);
@@ -62,7 +62,7 @@
 /* Hero mode: transparent with light logo (add .statement-header--hero to header on hero pages) */
 .statement-header--hero {
   background: transparent;
-  color: #fff;
+  color: var(--color-base-0);
   box-shadow: none;
 }
 .statement-header--hero .navbar-brand,
@@ -71,13 +71,13 @@
 .statement-header--hero .statement-logo-wordmark {
   color: inherit;
 }
-.statement-header--hero .statement-logo-wordmark { color: #fff; }
+.statement-header--hero .statement-logo-wordmark { color: var(--color-base-0); }
 .statement-header--hero.is-solid {
-  background: var(--statement-header-bg, #FDFDFD);
-  color: var(--statement-header-fg, #0A0A0A);
+  background: var(--statement-header-bg, var(--color-base-0));
+  color: var(--statement-header-fg, var(--color-base-950));
   box-shadow: 0 1px 0 var(--luxury-border, rgba(0,0,0,.08));
 }
-.statement-header--hero.is-solid .statement-logo-wordmark { color: var(--statement-header-fg, #0A0A0A); }
+.statement-header--hero.is-solid .statement-logo-wordmark { color: var(--statement-header-fg, var(--color-base-950)); }
 
 /* Logo – bold, horizontal wordmark; never shrink below threshold */
 .statement-logo,

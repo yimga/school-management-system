@@ -3,7 +3,7 @@
 /* Pixel-match pass: top bar proportions + polish for backend dashboard */
 body[data-dashboard-page="backend"] #portalHeader.topbar.topbar-sticky {
   min-height: 74px;
-  border-bottom: 1px solid color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6)) 20%, var(--admin-border, #cbd5e1) 80%);
+  border-bottom: 1px solid color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 20%, var(--admin-border, var(--color-base-300)) 80%);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 6px 18px rgba(2, 6, 23, 0.18);
@@ -34,8 +34,8 @@ body[data-dashboard-page="backend"] #portalHeader .topbar-search.header-search-c
 body[data-dashboard-page="backend"] #portalHeader .topbar-search-input {
   min-height: 42px;
   border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6)) 30%, rgba(255, 255, 255, 0.3) 70%);
-  background: color-mix(in srgb, var(--admin-surface, #0f172a) 74%, transparent);
+  border: 1px solid color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 30%, rgba(255, 255, 255, 0.3) 70%);
+  background: color-mix(in srgb, var(--admin-surface, var(--color-base-900)) 74%, transparent);
   font-size: 0.94rem;
 }
 
@@ -57,15 +57,15 @@ body[data-dashboard-page="backend"] #portalHeader .topbar-icon-btn {
   justify-content: center;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.22);
-  background: color-mix(in srgb, var(--admin-surface, #0f172a) 80%, transparent);
+  background: color-mix(in srgb, var(--admin-surface, var(--color-base-900)) 80%, transparent);
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 body[data-dashboard-page="backend"] #portalHeader .topbar-icon-btn:hover,
 body[data-dashboard-page="backend"] #portalHeader .topbar-icon-btn:focus-visible {
   transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6)) 54%, rgba(255, 255, 255, 0.38) 46%);
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6)) 22%, transparent);
+  border-color: color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 54%, rgba(255, 255, 255, 0.38) 46%);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 22%, transparent);
 }
 
 /* Compactness: tighten spacing between header row and Overview/Admin (Phase 0) */
@@ -108,7 +108,7 @@ body[data-dashboard-page="backend"] .backend-dtw-and-calendar {
   flex-wrap: wrap;
   margin-top: var(--dash-gap);
   margin-bottom: var(--dash-gap);
-  border-top: 1px solid var(--admin-border, #cbd5e1);
+  border-top: 1px solid var(--admin-border, var(--color-base-300));
   padding-top: var(--dash-gap);
 }
 body[data-dashboard-page="backend"] .backend-dtw-and-calendar__dtw {
@@ -161,8 +161,8 @@ body[data-dashboard-page="backend"] .backend-v2-side {
 body[data-dashboard-page="backend"] .backend-v2-overview,
 body[data-dashboard-page="backend"] .backend-v2-welcome,
 body[data-dashboard-page="backend"] .backend-v2-side-card {
-  background: var(--admin-surface, var(--dashboard-surface, #ffffff));
-  border: 1px solid var(--admin-border, var(--dashboard-border, #cbd5e1));
+  background: var(--admin-surface, var(--dashboard-surface, var(--color-base-0)));
+  border: 1px solid var(--admin-border, var(--dashboard-border, var(--color-base-300)));
   border-radius: 16px;
   box-shadow: var(--admin-shadow, var(--dashboard-shadow-soft, 0 4px 14px rgba(2, 6, 23, 0.08)));
 }
@@ -184,12 +184,12 @@ body[data-dashboard-page="backend"] .backend-v2-overview-head h2 {
   font-size: 1.5rem;
   line-height: 1.1;
   margin: 0;
-  color: var(--admin-text, var(--dashboard-text-strong, #0f172a));
+  color: var(--admin-text, var(--dashboard-text-strong, var(--color-base-900)));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-overview-sub {
   margin: var(--dash-gap-sm) 0 0;
-  color: var(--admin-muted, var(--dashboard-text-muted, #64748b));
+  color: var(--admin-muted, var(--dashboard-text-muted, var(--color-base-500)));
   font-size: 0.8125rem;
 }
 
@@ -206,23 +206,23 @@ body[data-dashboard-page="backend"] .backend-intent-pill {
   font-size: 0.75rem;
   font-weight: 600;
   border-radius: 999px;
-  border: 1px solid var(--admin-border, #cbd5e1);
-  background: var(--admin-surface, #fff);
-  color: var(--admin-muted, #64748b);
+  border: 1px solid var(--admin-border, var(--color-base-300));
+  background: var(--admin-surface, var(--color-base-0));
+  color: var(--admin-muted, var(--color-base-500));
   text-decoration: none;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 body[data-dashboard-page="backend"] .backend-intent-pill:hover,
 body[data-dashboard-page="backend"] .backend-intent-pill:focus-visible {
-  background: color-mix(in srgb, var(--brand-primary, var(--school-primary)) 10%, var(--admin-surface, #fff) 90%);
-  color: var(--admin-text, #0f172a);
-  border-color: color-mix(in srgb, var(--brand-primary, var(--school-primary)) 40%, var(--admin-border, #cbd5e1) 60%);
+  background: color-mix(in srgb, var(--brand-primary, var(--school-primary)) 10%, var(--admin-surface, var(--color-base-0)) 90%);
+  color: var(--admin-text, var(--color-base-900));
+  border-color: color-mix(in srgb, var(--brand-primary, var(--school-primary)) 40%, var(--admin-border, var(--color-base-300)) 60%);
 }
 
 body[data-dashboard-page="backend"] .backend-intent-pill.active {
   background: var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary)));
-  color: #fff;
+  color: var(--color-base-0);
   border-color: var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary)));
 }
 
@@ -241,17 +241,17 @@ body[data-dashboard-page="backend"] .backend-v2-cta {
   border-radius: 999px;
   padding: var(--dash-pad-chip-lg);
   font-weight: 700;
-  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 28%, var(--admin-border, #cbd5e1) 72%);
-  color: var(--admin-text, #0f172a);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 8%, var(--admin-surface, #fff) 92%);
+  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 28%, var(--admin-border, var(--color-base-300)) 72%);
+  color: var(--admin-text, var(--color-base-900));
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 8%, var(--admin-surface, var(--color-base-0)) 92%);
   text-decoration: none;
   transition: all 0.18s ease;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-cta:hover,
 body[data-dashboard-page="backend"] .backend-v2-cta:focus-visible {
-  color: #fff;
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 75%, #0f172a 25%);
+  color: var(--color-base-0);
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 75%, var(--color-base-900) 25%);
   background: linear-gradient(135deg, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))), var(--brand-accent, var(--dashboard-theme-accent, var(--school-accent))));
 }
 
@@ -269,9 +269,9 @@ body[data-dashboard-page="backend"] .backend-v2-kpi-strip {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-kpi {
-  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 24%, var(--admin-border, #cbd5e1) 76%);
+  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 24%, var(--admin-border, var(--color-base-300)) 76%);
   border-radius: 12px;
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 8%, var(--admin-surface, #fff) 92%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 8%, var(--admin-surface, var(--color-base-0)) 92%);
   padding: var(--dash-pad-cta);
   min-width: 0;
   box-shadow: 0 6px 18px color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 14%, transparent);
@@ -282,14 +282,14 @@ body[data-dashboard-page="backend"] .backend-v2-kpi-head {
   align-items: center;
   justify-content: space-between;
   gap: var(--dash-gap);
-  color: var(--admin-subtle, #475569);
+  color: var(--admin-subtle, var(--color-base-600));
   font-size: 0.74rem;
   font-weight: 700;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-kpi-value {
   margin-top: var(--dash-gap-sm);
-  color: var(--admin-text, #0f172a);
+  color: var(--admin-text, var(--color-base-900));
   font-size: 1.1rem;
   font-weight: 800;
   line-height: 1.15;
@@ -297,7 +297,7 @@ body[data-dashboard-page="backend"] .backend-v2-kpi-value {
 
 body[data-dashboard-page="backend"] .backend-v2-kpi-meta {
   margin-top: var(--dash-gap-xs);
-  color: var(--admin-muted, #64748b);
+  color: var(--admin-muted, var(--color-base-500));
   font-size: 0.74rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -305,21 +305,21 @@ body[data-dashboard-page="backend"] .backend-v2-kpi-meta {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-kpi.is-warn {
-  border-color: color-mix(in srgb, var(--brand-warning, #f59e0b) 50%, var(--admin-border, #cbd5e1) 50%);
+  border-color: color-mix(in srgb, var(--brand-warning, var(--color-amber-500)) 50%, var(--admin-border, var(--color-base-300)) 50%);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-kpi.is-danger {
-  border-color: color-mix(in srgb, var(--brand-danger, #ef4444) 50%, var(--admin-border, #cbd5e1) 50%);
+  border-color: color-mix(in srgb, var(--brand-danger, var(--color-red-500)) 50%, var(--admin-border, var(--color-base-300)) 50%);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-kpi.is-danger .backend-v2-kpi-value {
-  color: var(--brand-danger, #ef4444);
+  color: var(--brand-danger, var(--color-red-500));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-metric {
-  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 28%, var(--admin-border, #cbd5e1) 72%);
+  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 28%, var(--admin-border, var(--color-base-300)) 72%);
   border-radius: 12px;
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 10%, var(--admin-surface, #fff) 90%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 10%, var(--admin-surface, var(--color-base-0)) 90%);
   padding: var(--dash-pad-cta);
   min-width: 0;
   box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 15%, transparent);
@@ -331,7 +331,7 @@ body[data-dashboard-page="backend"] .backend-v2-metric-title {
   justify-content: space-between;
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--admin-subtle, var(--dashboard-text-muted, #475569));
+  color: var(--admin-subtle, var(--dashboard-text-muted, var(--color-base-600)));
   margin-bottom: var(--dash-gap-md);
 }
 
@@ -339,7 +339,7 @@ body[data-dashboard-page="backend"] .backend-v2-metric-value {
   font-size: 1.6rem;
   line-height: 1;
   font-weight: 800;
-  color: var(--admin-text, var(--dashboard-text-strong, #0f172a));
+  color: var(--admin-text, var(--dashboard-text-strong, var(--color-base-900)));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-metric-meta {
@@ -348,11 +348,11 @@ body[data-dashboard-page="backend"] .backend-v2-metric-meta {
   justify-content: space-between;
   gap: var(--dash-gap);
   font-size: 0.75rem;
-  color: var(--admin-muted, var(--dashboard-text-muted, #64748b));
+  color: var(--admin-muted, var(--dashboard-text-muted, var(--color-base-500)));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-metric.is-danger .backend-v2-metric-value {
-  color: var(--brand-danger, #ef4444);
+  color: var(--brand-danger, var(--color-red-500));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-sparkline-wrap {
@@ -362,7 +362,7 @@ body[data-dashboard-page="backend"] .backend-v2-sparkline-wrap {
 }
 body[data-dashboard-page="backend"] .backend-v2-sparkline {
   display: block;
-  color: var(--school-primary, var(--chart-color-1, #6366f1));
+  color: var(--school-primary, var(--chart-color-1, var(--color-indigo-500)));
 }
 body[data-dashboard-page="backend"] .backend-v2-sparkline-line {
   vector-effect: non-scaling-stroke;
@@ -385,12 +385,12 @@ body[data-dashboard-page="backend"] .backend-v2-welcome-title {
   margin: 0;
   font-size: 1.5rem;
   line-height: 1.15;
-  color: var(--admin-text, #0f172a);
+  color: var(--admin-text, var(--color-base-900));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-welcome-sub {
   margin: var(--dash-gap-sm) 0 0;
-  color: var(--admin-muted, #64748b);
+  color: var(--admin-muted, var(--color-base-500));
   font-size: 0.8125rem;
 }
 
@@ -416,9 +416,9 @@ body[data-dashboard-page="backend"] .backend-v2-chip {
   min-height: 30px;
   border-radius: 999px;
   padding: var(--dash-pad-chip);
-  border: 1px solid var(--admin-border, #cbd5e1);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 6%, var(--admin-surface, #fff) 94%);
-  color: var(--admin-text, #0f172a);
+  border: 1px solid var(--admin-border, var(--color-base-300));
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 6%, var(--admin-surface, var(--color-base-0)) 94%);
+  color: var(--admin-text, var(--color-base-900));
   text-decoration: none;
   font-size: 0.8rem;
   font-weight: 600;
@@ -426,8 +426,8 @@ body[data-dashboard-page="backend"] .backend-v2-chip {
 
 body[data-dashboard-page="backend"] .backend-v2-chip:hover,
 body[data-dashboard-page="backend"] .backend-v2-chip:focus-visible {
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 48%, var(--admin-border, #cbd5e1) 52%);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 14%, var(--admin-surface, #fff) 86%);
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 48%, var(--admin-border, var(--color-base-300)) 52%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 14%, var(--admin-surface, var(--color-base-0)) 86%);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-action-grid {
@@ -445,9 +445,9 @@ body[data-dashboard-page="backend"] .backend-v2-action {
   min-height: 32px;
   border-radius: 8px;
   padding: var(--dash-pad-chip-sm);
-  border: 1px solid var(--admin-border, #cbd5e1);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 5%, var(--admin-surface, #fff) 95%);
-  color: var(--admin-text, #0f172a);
+  border: 1px solid var(--admin-border, var(--color-base-300));
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 5%, var(--admin-surface, var(--color-base-0)) 95%);
+  color: var(--admin-text, var(--color-base-900));
   text-decoration: none;
   font-size: 0.78rem;
   font-weight: 600;
@@ -456,8 +456,8 @@ body[data-dashboard-page="backend"] .backend-v2-action {
 
 body[data-dashboard-page="backend"] .backend-v2-action:hover,
 body[data-dashboard-page="backend"] .backend-v2-action:focus-visible {
-  color: #fff;
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 65%, #0f172a 35%);
+  color: var(--color-base-0);
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 65%, var(--color-base-900) 35%);
   background: linear-gradient(135deg, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))), var(--brand-accent, var(--dashboard-theme-accent, var(--school-accent))));
 }
 
@@ -468,8 +468,8 @@ body[data-dashboard-page="backend"] .backend-v2-side-card {
   background:
     linear-gradient(
       152deg,
-      color-mix(in srgb, var(--admin-surface, #fff) 88%, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6)) 12%),
-      color-mix(in srgb, var(--admin-surface, #fff) 93%, var(--dashboard-theme-accent, var(--brand-accent, #14b8a6)) 7%)
+      color-mix(in srgb, var(--admin-surface, var(--color-base-0)) 88%, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 12%),
+      color-mix(in srgb, var(--admin-surface, var(--color-base-0)) 93%, var(--dashboard-theme-accent, var(--brand-accent, var(--color-teal-500))) 7%)
     );
 }
 
@@ -479,8 +479,8 @@ body.backend-theme-warm[data-dashboard-page="backend"] .backend-v2-side-card {
   background:
     linear-gradient(
       145deg,
-      color-mix(in srgb, #fff4e6 20%, var(--admin-surface, #fff) 80%),
-      color-mix(in srgb, #fdf2f8 14%, var(--admin-surface, #fff) 86%)
+      color-mix(in srgb, color-mix(in oklab, var(--color-orange-400) 18%, var(--color-base-0)) 20%, var(--admin-surface, var(--color-base-0)) 80%),
+      color-mix(in srgb, color-mix(in oklab, var(--color-indigo-300) 12%, var(--color-base-0)) 14%, var(--admin-surface, var(--color-base-0)) 86%)
     );
 }
 
@@ -488,7 +488,7 @@ body.backend-theme-depth[data-dashboard-page="backend"] .backend-v2-main-grid .d
 body.backend-theme-depth[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel,
 body.backend-theme-depth[data-dashboard-page="backend"] .backend-v2-rail-card {
   box-shadow:
-    0 16px 30px color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6)) 14%, transparent),
+    0 16px 30px color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 14%, transparent),
     0 4px 14px rgba(2, 6, 23, 0.14);
 }
 
@@ -498,12 +498,12 @@ body.backend-theme-high-depth[data-dashboard-page="backend"] .backend-v2-rail-ca
   background:
     radial-gradient(
       360px 160px at 108% -20%,
-      color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 20%, transparent),
+      color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500)))) 20%, transparent),
       transparent 68%
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 5%, transparent),
+      color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500)))) 5%, transparent),
       transparent 36%
     );
 }
@@ -525,10 +525,10 @@ body[data-dashboard-page="backend"] .backend-v2-progress-ring {
   justify-content: center;
   font-weight: 800;
   font-size: 0.8rem;
-  color: var(--admin-text, #0f172a);
+  color: var(--admin-text, var(--color-base-900));
   background:
-    radial-gradient(closest-side, var(--admin-surface, #fff) 70%, transparent 71% 100%),
-    conic-gradient(var(--brand-warning, #f59e0b) calc(var(--ring-pct) * 1%), color-mix(in srgb, var(--admin-border, #cbd5e1) 80%, transparent) 0);
+    radial-gradient(closest-side, var(--admin-surface, var(--color-base-0)) 70%, transparent 71% 100%),
+    conic-gradient(var(--brand-warning, var(--color-amber-500)) calc(var(--ring-pct) * 1%), color-mix(in srgb, var(--admin-border, var(--color-base-300)) 80%, transparent) 0);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-trend-ribbon,
@@ -536,7 +536,7 @@ body[data-dashboard-page="backend"] .backend-v2-rank-ribbon {
   margin-top: 0.22rem;
   height: 0.24rem;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--admin-border, #cbd5e1) 70%, transparent);
+  background: color-mix(in srgb, var(--admin-border, var(--color-base-300)) 70%, transparent);
   overflow: hidden;
 }
 
@@ -545,7 +545,7 @@ body[data-dashboard-page="backend"] .backend-v2-rank-ribbon > span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6)), var(--dashboard-theme-accent, var(--brand-accent, #22c55e)));
+  background: linear-gradient(90deg, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))), var(--dashboard-theme-accent, var(--brand-accent, var(--color-emerald-500))));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-side-head {
@@ -558,11 +558,11 @@ body[data-dashboard-page="backend"] .backend-v2-side-head {
 body[data-dashboard-page="backend"] .backend-v2-side-title {
   margin: 0;
   font-size: 1.25rem;
-  color: var(--admin-text, #0f172a);
+  color: var(--admin-text, var(--color-base-900));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-side-meta {
-  color: var(--admin-muted, #64748b);
+  color: var(--admin-muted, var(--color-base-500));
   font-size: 0.8rem;
   margin: var(--dash-pad-side-meta);
 }
@@ -574,37 +574,37 @@ body[data-dashboard-page="backend"] .backend-v2-side-grid {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-mini {
-  border: 1px solid var(--admin-border, #cbd5e1);
+  border: 1px solid var(--admin-border, var(--color-base-300));
   border-radius: 10px;
   padding: var(--dash-pad-mini);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 5%, var(--admin-surface, #fff) 95%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 5%, var(--admin-surface, var(--color-base-0)) 95%);
   min-width: 0;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-mini span {
   display: block;
   font-size: 0.72rem;
-  color: var(--admin-muted, #64748b);
+  color: var(--admin-muted, var(--color-base-500));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-mini strong {
   font-size: 1rem;
-  color: var(--admin-text, #0f172a);
+  color: var(--admin-text, var(--color-base-900));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-side-time {
   margin-top: var(--dash-block-spacing);
-  border-top: 1px solid var(--admin-border, #cbd5e1);
+  border-top: 1px solid var(--admin-border, var(--color-base-300));
   padding-top: var(--dash-block-spacing);
   display: flex;
   justify-content: space-between;
   gap: var(--dash-gap-2xl);
-  color: var(--admin-subtle, #475569);
+  color: var(--admin-subtle, var(--color-base-600));
   font-size: 0.85rem;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-side-time strong {
-  color: var(--admin-text, #0f172a);
+  color: var(--admin-text, var(--color-base-900));
 }
 
 body[data-dashboard-page="backend"] .backend-ops-item {
@@ -612,10 +612,10 @@ body[data-dashboard-page="backend"] .backend-ops-item {
   align-items: center;
   justify-content: space-between;
   gap: var(--dash-gap-2xl);
-  border: 1px solid var(--admin-border, #cbd5e1);
+  border: 1px solid var(--admin-border, var(--color-base-300));
   border-radius: 12px;
   padding: var(--dash-pad-list);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 4%, var(--admin-surface, #fff) 96%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 4%, var(--admin-surface, var(--color-base-0)) 96%);
 }
 
 body[data-dashboard-page="backend"] .backend-ops-item-left {
@@ -638,15 +638,15 @@ body[data-dashboard-page="backend"] .backend-ops-dot {
   height: 8px;
   border-radius: 999px;
   flex-shrink: 0;
-  background: #22c55e;
+  background: var(--color-emerald-500);
 }
 
 body[data-dashboard-page="backend"] .backend-ops-item.is-warn .backend-ops-dot {
-  background: #f59e0b;
+  background: var(--color-amber-500);
 }
 
 body.backend-motion-balanced[data-dashboard-page="backend"] .backend-ops-item.is-danger .backend-ops-dot {
-  background: #ef4444;
+  background: var(--color-red-500);
   animation: backendOpsPulse 1.6s infinite;
 }
 
@@ -657,14 +657,14 @@ body.backend-motion-balanced[data-dashboard-page="backend"] .backend-ops-item.is
 }
 
 body[data-dashboard-page="backend"] .backend-ops-item a {
-  color: var(--admin-text, #0f172a);
+  color: var(--admin-text, var(--color-base-900));
   text-decoration: none;
   font-size: 0.83rem;
   font-weight: 600;
 }
 
 body[data-dashboard-page="backend"] .backend-ops-item strong {
-  color: var(--admin-text, #0f172a);
+  color: var(--admin-text, var(--color-base-900));
 }
 
 body[data-dashboard-page="backend"] .backend-ops-item a:hover {
@@ -681,12 +681,12 @@ body[data-dashboard-page="backend"] .backend-quick-link {
   align-items: center;
   justify-content: space-between;
   gap: var(--dash-block-spacing);
-  border: 1px solid var(--admin-border, #cbd5e1);
+  border: 1px solid var(--admin-border, var(--color-base-300));
   border-radius: 12px;
   min-width: 0;
   padding: var(--dash-pad-tight);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 4%, var(--admin-surface, #fff) 96%);
-  color: var(--admin-text, #0f172a);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 4%, var(--admin-surface, var(--color-base-0)) 96%);
+  color: var(--admin-text, var(--color-base-900));
   text-decoration: none;
   font-weight: 600;
   font-size: 0.84rem;
@@ -701,7 +701,7 @@ body[data-dashboard-page="backend"] .backend-quick-link > span:first-child {
 
 body[data-dashboard-page="backend"] .backend-quick-link:hover,
 body[data-dashboard-page="backend"] .backend-quick-link:focus-visible {
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 45%, var(--admin-border, #cbd5e1) 55%);
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 45%, var(--admin-border, var(--color-base-300)) 55%);
 }
 
 body[data-dashboard-page="backend"] .backend-cmd-palette {
@@ -727,8 +727,8 @@ body[data-dashboard-page="backend"] .backend-cmd-box {
   margin: 9vh auto 0;
   width: min(760px, calc(100vw - 2rem));
   border-radius: 14px;
-  border: 1px solid var(--admin-border, #cbd5e1);
-  background: var(--admin-surface, #fff);
+  border: 1px solid var(--admin-border, var(--color-base-300));
+  background: var(--admin-surface, var(--color-base-0));
   box-shadow: var(--shadow-lg, 0 20px 60px rgba(2, 6, 23, 0.28));
   overflow: hidden;
 }
@@ -736,9 +736,9 @@ body[data-dashboard-page="backend"] .backend-cmd-box {
 body[data-dashboard-page="backend"] .backend-cmd-input {
   width: 100%;
   border: none;
-  border-bottom: 1px solid var(--admin-border, #cbd5e1);
+  border-bottom: 1px solid var(--admin-border, var(--color-base-300));
   background: transparent;
-  color: var(--admin-text, #0f172a);
+  color: var(--admin-text, var(--color-base-900));
   font-size: 1rem;
   padding: var(--dash-block-spacing) 1rem;
   outline: none;
@@ -757,38 +757,38 @@ body[data-dashboard-page="backend"] .backend-cmd-item {
   align-items: center;
   justify-content: space-between;
   gap: var(--dash-gap-2xl);
-  border: 1px solid var(--admin-border, #cbd5e1);
+  border: 1px solid var(--admin-border, var(--color-base-300));
   border-radius: 10px;
   padding: var(--dash-gap) var(--dash-block-spacing);
   text-decoration: none;
-  color: var(--admin-text, #0f172a);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 4%, var(--admin-surface, #fff) 96%);
+  color: var(--admin-text, var(--color-base-900));
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 4%, var(--admin-surface, var(--color-base-0)) 96%);
 }
 
 body[data-dashboard-page="backend"] .backend-cmd-item:hover,
 body[data-dashboard-page="backend"] .backend-cmd-item:focus-visible {
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 45%, var(--admin-border, #cbd5e1) 55%);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 10%, var(--admin-surface, #fff) 90%);
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 45%, var(--admin-border, var(--color-base-300)) 55%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 10%, var(--admin-surface, var(--color-base-0)) 90%);
 }
 
 body[data-dashboard-page="backend"] .backend-cmd-item.backend-cmd-item--selected,
 body[data-dashboard-page="backend"] .backend-cmd-item.backend-cmd-item--selected:hover,
 body[data-dashboard-page="backend"] .backend-cmd-item.backend-cmd-item--selected:focus-visible {
   border-color: var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary)));
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 18%, var(--admin-surface, #fff) 82%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 18%, var(--admin-surface, var(--color-base-0)) 82%);
 }
 
 body[data-dashboard-page="backend"] .backend-cmd-item kbd {
-  border: 1px solid var(--admin-border, #cbd5e1);
+  border: 1px solid var(--admin-border, var(--color-base-300));
   border-radius: 6px;
-  background: var(--admin-surface, #fff);
-  color: var(--admin-muted, #64748b);
+  background: var(--admin-surface, var(--color-base-0));
+  color: var(--admin-muted, var(--color-base-500));
   padding: var(--dash-gap-xs) var(--dash-gap-lg);
   font-size: 0.72rem;
 }
 
 body[data-dashboard-page="backend"] .backend-cmd-empty {
-  color: var(--admin-muted, #64748b);
+  color: var(--admin-muted, var(--color-base-500));
   text-align: center;
   padding: 1rem;
 }
@@ -800,15 +800,15 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
 :root[data-theme="dark"] body[data-dashboard-page="backend"] .backend-ops-item,
 :root[data-theme="dark"] body[data-dashboard-page="backend"] .backend-quick-link,
 :root[data-theme="dark"] body[data-dashboard-page="backend"] .backend-cmd-item {
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #60a5fa)) 28%, #475569 72%);
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--color-primary-400))) 28%, var(--color-base-600) 72%);
 }
 
 :root[data-theme="dark"] body[data-dashboard-page="backend"] .backend-ops-item.is-warn strong {
-  color: #fde68a;
+  color: color-mix(in oklab, var(--color-amber-400) 50%, var(--color-base-0));
 }
 
 :root[data-theme="dark"] body[data-dashboard-page="backend"] .backend-ops-item.is-danger strong {
-  color: #fecaca;
+  color: color-mix(in oklab, var(--color-red-400) 50%, var(--color-base-0));
 }
 
 @supports not (color: color-mix(in srgb, white 50%, black 50%)) {
@@ -819,7 +819,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
   body[data-dashboard-page="backend"] .backend-ops-item,
   body[data-dashboard-page="backend"] .backend-quick-link,
   body[data-dashboard-page="backend"] .backend-cmd-item {
-    border-color: var(--admin-border, #cbd5e1);
+    border-color: var(--admin-border, var(--color-base-300));
     background: rgba(59, 130, 246, 0.08);
   }
 }
@@ -901,7 +901,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
      * Replaces hardcoded Bootstrap-blue (rgba(13,110,253,0.94)) and
        Bootstrap-green (rgba(25,135,84,0.88)) with --brand-primary /
        --brand-accent so tenant rebrands flow through automatically.
-     * Replaces hardcoded danger-text #b91c1c and warning-text #92400e
+     * Replaces hardcoded danger-text color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) and warning-text color-mix(in oklab, var(--color-amber-700) 80%, var(--color-base-950))
        with --ds-danger / --ds-warning tokens.
    The per-tenant CSS variable assignments stay in the template because
    they bind to Django context (theme.primary_color, etc.).
@@ -926,8 +926,8 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
   background:
     linear-gradient(135deg, var(--backend-role-home-glass-start, rgba(255,255,255,0.16)), var(--backend-role-home-glass-end, rgba(255,255,255,0.04))),
     radial-gradient(circle at top right, var(--backend-role-home-radial, rgba(255,255,255,0.22)), transparent 40%),
-    linear-gradient(135deg, var(--backend-role-home-accent-start, var(--brand-primary, #4f46e5)), var(--backend-role-home-accent-end, var(--brand-accent, #10b981)));
-  color: var(--backend-role-home-copy-fg, #fff);
+    linear-gradient(135deg, var(--backend-role-home-accent-start, var(--brand-primary, var(--color-indigo-600))), var(--backend-role-home-accent-end, var(--brand-accent, var(--color-emerald-500))));
+  color: var(--backend-role-home-copy-fg, var(--color-base-0));
   box-shadow: 0 24px 60px var(--backend-role-home-copy-shadow, rgba(15, 23, 42, 0.18));
 }
 .backend-role-home-eyebrow {
@@ -1075,14 +1075,14 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
   color: var(--brand-primary);
 }
 .backend-role-home-pill.is-danger {
-  /* Was hardcoded #b91c1c. */
+  /* Was hardcoded color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)). */
   background: var(--backend-role-home-pill-danger-bg, var(--ds-danger-bg, rgba(239,68,68,0.12)));
-  color: var(--backend-role-home-pill-danger-fg, var(--ds-danger, #dc2626));
+  color: var(--backend-role-home-pill-danger-fg, var(--ds-danger, var(--color-red-600)));
 }
 .backend-role-home-pill.is-warn {
-  /* Was hardcoded #92400e. */
+  /* Was hardcoded color-mix(in oklab, var(--color-amber-700) 80%, var(--color-base-950)). */
   background: var(--backend-role-home-pill-warn-bg, var(--ds-warning-bg, rgba(245,158,11,0.15)));
-  color: var(--backend-role-home-pill-warn-fg, var(--ds-warning, #d97706));
+  color: var(--backend-role-home-pill-warn-fg, var(--ds-warning, var(--color-amber-600)));
 }
 .backend-role-home-destinations {
   display: flex;

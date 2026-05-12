@@ -1,12 +1,12 @@
 :root {
-  --rmc-wcx-surface: var(--luxury-surface, #ffffff);
-  --rmc-wcx-muted: var(--bs-secondary-color, #5f6b7a);
-  --rmc-wcx-border: var(--bs-border-color, #d9e2ec);
-  --rmc-wcx-ink: var(--bs-body-color, #111827);
-  --rmc-wcx-accent: var(--bs-primary, #2457c5);
-  --rmc-wcx-success: var(--bs-success, #13795b);
-  --rmc-wcx-warning: var(--bs-warning, #b58105);
-  --rmc-wcx-danger: var(--bs-danger, #b42318);
+  --rmc-wcx-surface: var(--luxury-surface, var(--color-base-0));
+  --rmc-wcx-muted: var(--bs-secondary-color, var(--color-base-500));
+  --rmc-wcx-border: var(--bs-border-color, var(--color-base-200));
+  --rmc-wcx-ink: var(--bs-body-color, var(--color-base-900));
+  --rmc-wcx-accent: var(--bs-primary, var(--color-primary-600));
+  --rmc-wcx-success: var(--bs-success, var(--color-emerald-600));
+  --rmc-wcx-warning: var(--bs-warning, var(--color-amber-700));
+  --rmc-wcx-danger: var(--bs-danger, var(--color-red-600));
   --rmc-wcx-radius: 8px;
   --rmc-acx-glass: color-mix(in srgb, var(--rmc-wcx-surface) 84%, transparent);
   --rmc-acx-shadow: 0 22px 70px rgba(15, 23, 42, 0.12);
@@ -61,7 +61,7 @@
 
 #cp-main-content > .text-muted,
 #cp-main-content > .text-secondary {
-  color: #dbeafe !important;
+  color: var(--color-primary-100) !important;
 }
 
 #cp-main-content .rmc-os-page-header,
@@ -74,7 +74,7 @@
 #cp-main-content .rmc-acx-dependency-graph,
 #cp-main-content .rmc-acx-data-quality,
 #cp-main-content .rmc-acx-inline-edit {
-  color: #0f172a;
+  color: var(--color-base-900);
 }
 
 #cp-main-content .rmc-os-page-header .text-body,
@@ -86,7 +86,7 @@
 #cp-main-content .card h3,
 #cp-main-content .rmc-wcx-surface strong,
 #cp-main-content .rmc-acx-glass-panel strong {
-  color: #0f172a !important;
+  color: var(--color-base-900) !important;
 }
 
 #cp-main-content .rmc-os-page-header .text-muted,
@@ -97,43 +97,43 @@
 #cp-main-content .card .text-secondary,
 #cp-main-content .rmc-wcx-surface .text-muted,
 #cp-main-content .rmc-acx-glass-panel .text-muted {
-  color: #475569 !important;
+  color: var(--color-base-600) !important;
 }
 
 #cp-main-content .card a,
 #cp-main-content .rmc-wcx-surface a,
 #cp-main-content .rmc-acx-glass-panel a {
-  color: #1d4ed8;
+  color: var(--color-primary-700);
 }
 
 #cp-main-content .card code,
 #cp-main-content .rmc-wcx-surface code,
 #cp-main-content .rmc-acx-glass-panel code {
-  color: #334155;
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
+  color: var(--color-base-700);
+  background: var(--color-base-50);
+  border: 1px solid var(--color-base-300);
   border-radius: 6px;
   padding: 0.08rem 0.28rem;
 }
 
 #cp-main-content .rmc-acx-status-pill {
-  color: #0f172a !important;
-  background: #e0f2fe !important;
-  border-color: #0369a1;
+  color: var(--color-base-900) !important;
+  background: color-mix(in oklab, var(--color-sky-400) 20%, var(--color-base-0)) !important;
+  border-color: var(--color-cyan-600);
 }
 
 #cp-main-content .rmc-acx-status-pill[data-status*="blocked"],
 #cp-main-content .rmc-acx-status-pill[data-status*="external"] {
-  color: #451a03 !important;
-  background: #fef3c7 !important;
-  border-color: #b45309;
+  color: color-mix(in oklab, var(--color-amber-700) 60%, var(--color-base-950)) !important;
+  background: color-mix(in oklab, var(--color-amber-400) 25%, var(--color-base-0)) !important;
+  border-color: var(--color-amber-700);
 }
 
 #cp-main-content .cp-context-drawer-toggle,
 #cp-main-content .btn-outline-light.cp-context-drawer-toggle {
-  color: #ffffff !important;
-  background: #334155;
-  border-color: #93c5fd;
+  color: var(--color-base-0) !important;
+  background: var(--color-base-700);
+  border-color: var(--color-primary-300);
 }
 
 #cp-main-content button.cp-context-drawer-toggle,
@@ -144,26 +144,26 @@ button.cp-context-drawer-toggle span,
 button.cp-context-drawer-toggle i,
 #cp-main-content .rmc-wcx-hero .btn-primary,
 #cp-main-content .rmc-wcx-hero .btn-outline-primary {
-  color: #ffffff !important;
+  color: var(--color-base-0) !important;
 }
 
 .skip-link,
 .skip-link:focus,
 .visually-hidden-focusable:focus {
-  color: #ffffff !important;
-  background: #0f172a !important;
-  outline: 3px solid #fbbf24 !important;
+  color: var(--color-base-0) !important;
+  background: var(--color-base-900) !important;
+  outline: 3px solid var(--color-amber-400) !important;
   outline-offset: 2px;
 }
 
 #cp-main-content .rmc-wcx-hero .btn-primary {
-  background: #2457c5;
-  border-color: #bfdbfe;
+  background: var(--color-primary-600);
+  border-color: var(--color-primary-100);
 }
 
 #cp-main-content .rmc-wcx-hero .btn-outline-primary {
   background: rgba(15, 23, 42, 0.72);
-  border-color: #bfdbfe;
+  border-color: var(--color-primary-100);
 }
 
 .rmc-wcx-actions,
@@ -542,35 +542,35 @@ main li,
 
 :root {
   /* Lock contrast-critical foreground/background pairs. */
-  --rmc-acx-text-strong: #0b1220;          /* AA on #ffffff: 17.4:1 */
-  --rmc-acx-text-body: #1f2937;             /* AA on #ffffff: 13.7:1 */
-  --rmc-acx-text-muted: #475569;            /* AA on #ffffff: 7.2:1  */
-  --rmc-acx-link: #1d4ed8;                  /* AA on #ffffff: 7.4:1  */
-  --rmc-acx-success-strong: #0f5132;        /* AA on #ffffff: 7.8:1  */
-  --rmc-acx-warning-strong: #7a4400;        /* AA on #ffffff: 7.0:1  */
-  --rmc-acx-danger-strong: #8a1c10;         /* AA on #ffffff: 7.4:1  */
-  --rmc-acx-surface-opaque: #ffffff;
-  --rmc-acx-surface-elevated: #f8fafc;
-  --rmc-acx-touch-fg: #0b1220;
-  --rmc-acx-touch-bg: #e0f2fe;
-  --rmc-acx-touch-border: #0369a1;
+  --rmc-acx-text-strong: var(--color-base-950);          /* AA on var(--color-base-0): 17.4:1 */
+  --rmc-acx-text-body: var(--color-base-800);             /* AA on var(--color-base-0): 13.7:1 */
+  --rmc-acx-text-muted: var(--color-base-600);            /* AA on var(--color-base-0): 7.2:1  */
+  --rmc-acx-link: var(--color-primary-700);                  /* AA on var(--color-base-0): 7.4:1  */
+  --rmc-acx-success-strong: color-mix(in oklab, var(--color-emerald-600) 50%, var(--color-base-900));        /* AA on var(--color-base-0): 7.8:1  */
+  --rmc-acx-warning-strong: color-mix(in oklab, var(--color-amber-700) 90%, var(--color-base-950));        /* AA on var(--color-base-0): 7.0:1  */
+  --rmc-acx-danger-strong: color-mix(in oklab, var(--color-red-600) 70%, var(--color-base-950));         /* AA on var(--color-base-0): 7.4:1  */
+  --rmc-acx-surface-opaque: var(--color-base-0);
+  --rmc-acx-surface-elevated: var(--color-base-50);
+  --rmc-acx-touch-fg: var(--color-base-950);
+  --rmc-acx-touch-bg: color-mix(in oklab, var(--color-sky-400) 20%, var(--color-base-0));
+  --rmc-acx-touch-border: var(--color-cyan-600);
 }
 
 html[data-theme="dark"],
 html[data-bs-theme="dark"],
 body.portal-backend-dark {
-  --rmc-acx-text-strong: #f8fafc;
-  --rmc-acx-text-body: #e2e8f0;
-  --rmc-acx-text-muted: #cbd5e1;
-  --rmc-acx-link: #93c5fd;
-  --rmc-acx-success-strong: #34d399;
-  --rmc-acx-warning-strong: #fbbf24;
-  --rmc-acx-danger-strong: #fca5a5;
-  --rmc-acx-surface-opaque: #0f172a;
-  --rmc-acx-surface-elevated: #1e293b;
-  --rmc-acx-touch-fg: #f8fafc;
-  --rmc-acx-touch-bg: #1e293b;
-  --rmc-acx-touch-border: #93c5fd;
+  --rmc-acx-text-strong: var(--color-base-50);
+  --rmc-acx-text-body: var(--color-base-200);
+  --rmc-acx-text-muted: var(--color-base-300);
+  --rmc-acx-link: var(--color-primary-300);
+  --rmc-acx-success-strong: var(--color-emerald-400);
+  --rmc-acx-warning-strong: var(--color-amber-400);
+  --rmc-acx-danger-strong: color-mix(in oklab, var(--color-red-400) 70%, var(--color-base-0));
+  --rmc-acx-surface-opaque: var(--color-base-900);
+  --rmc-acx-surface-elevated: var(--color-base-800);
+  --rmc-acx-touch-fg: var(--color-base-50);
+  --rmc-acx-touch-bg: var(--color-base-800);
+  --rmc-acx-touch-border: var(--color-primary-300);
 }
 
 /* Glass becomes deterministic — opaque enough that text contrast does not depend on parent. */

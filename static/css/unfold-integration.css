@@ -3,7 +3,7 @@
    Avoids inline styles and keeps admin visuals theme-safe. */
 
 .admin-unfold-sidebar-brand {
-  color: var(--admin-sidebar-text, #0f172a);
+  color: var(--admin-sidebar-text, var(--color-base-900));
 }
 
 .admin-unfold-sidebar-logo-wrap {
@@ -35,42 +35,42 @@
 }
 
 .admin-unfold-sidebar-title {
-  color: var(--admin-sidebar-text, #0f172a);
+  color: var(--admin-sidebar-text, var(--color-base-900));
 }
 
 .admin-unfold-sidebar-subtitle {
-  color: var(--admin-sidebar-text-muted, #64748b);
+  color: var(--admin-sidebar-text-muted, var(--color-base-500));
 }
 
 .admin-unfold-header-shell {
-  background: var(--admin-surface, var(--admin-dashboard-bg, #f8fafc));
-  color: var(--admin-text, #0f172a);
-  border-color: var(--admin-border, #e2e8f0);
+  background: var(--admin-surface, var(--admin-dashboard-bg, var(--color-base-50)));
+  color: var(--admin-text, var(--color-base-900));
+  border-color: var(--admin-border, var(--color-base-200));
 }
 
 .admin-unfold-empty-results {
-  background: var(--admin-surface, var(--admin-dashboard-bg, #f8fafc));
-  border: 1px solid var(--admin-border, #e2e8f0);
-  color: var(--admin-text, #0f172a);
+  background: var(--admin-surface, var(--admin-dashboard-bg, var(--color-base-50)));
+  border: 1px solid var(--admin-border, var(--color-base-200));
+  color: var(--admin-text, var(--color-base-900));
 }
 
 .admin-unfold-empty-results-icon-shell {
-  border-color: var(--admin-border, #e2e8f0);
+  border-color: var(--admin-border, var(--color-base-200));
 }
 
 .admin-unfold-empty-results-icon {
-  color: var(--admin-muted, #64748b);
+  color: var(--admin-muted, var(--color-base-500));
 }
 
 .admin-unfold-empty-results-title {
-  color: var(--admin-text, #0f172a);
+  color: var(--admin-text, var(--color-base-900));
 }
 
 .admin-unfold-empty-results-subtitle {
-  color: var(--admin-muted, #64748b);
+  color: var(--admin-muted, var(--color-base-500));
 }
 
 .admin-unfold-empty-results-reset {
-  border: 1px solid var(--admin-border, #e2e8f0);
-  color: var(--admin-text, #0f172a);
+  border: 1px solid var(--admin-border, var(--color-base-200));
+  color: var(--admin-text, var(--color-base-900));
 }

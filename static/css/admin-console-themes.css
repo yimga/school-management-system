@@ -5,104 +5,104 @@
 
 /* Dark (default slate grey) - backend-dark-theme handles body; these target admin DOM */
 body.portal-backend-dark #nav-sidebar,
-body.portal-backend-dark [id="nav-sidebar"] { background: #0f172a !important; }
+body.portal-backend-dark [id="nav-sidebar"] { background: var(--color-base-900) !important; }
 body.portal-backend-dark #container,
 body.portal-backend-dark #content,
-body.portal-backend-dark .main { background: #1e293b !important; }
+body.portal-backend-dark .main { background: var(--color-base-800) !important; }
 
 /* Black (true black) */
 body.portal-backend-black #nav-sidebar,
-body.portal-backend-black [id="nav-sidebar"] { background: #000000 !important; }
+body.portal-backend-black [id="nav-sidebar"] { background: var(--color-base-950) !important; }
 body.portal-backend-black #container,
 body.portal-backend-black #content,
-body.portal-backend-black .main { background: #050505 !important; }
+body.portal-backend-black .main { background: var(--color-base-950) !important; }
 
-/* Ink (deep black #030712) */
+/* Ink (deep black var(--color-base-950)) */
 body.portal-backend-ink #nav-sidebar,
-body.portal-backend-ink [id="nav-sidebar"] { background: #030712 !important; }
+body.portal-backend-ink [id="nav-sidebar"] { background: var(--color-base-950) !important; }
 body.portal-backend-ink #container,
 body.portal-backend-ink #content,
-body.portal-backend-ink .main { background: #0f172a !important; }
+body.portal-backend-ink .main { background: var(--color-base-900) !important; }
 
-/* Onyx (rich black #0c0c0c) */
+/* Onyx (rich black var(--color-base-950)) */
 body.portal-backend-onyx #nav-sidebar,
-body.portal-backend-onyx [id="nav-sidebar"] { background: #0c0c0c !important; }
+body.portal-backend-onyx [id="nav-sidebar"] { background: var(--color-base-950) !important; }
 body.portal-backend-onyx #container,
 body.portal-backend-onyx #content,
-body.portal-backend-onyx .main { background: #171717 !important; }
+body.portal-backend-onyx .main { background: var(--color-base-900) !important; }
 
 /* Charcoal */
 body.portal-backend-charcoal #nav-sidebar,
-body.portal-backend-charcoal [id="nav-sidebar"] { background: #0a0a0a !important; }
+body.portal-backend-charcoal [id="nav-sidebar"] { background: var(--color-base-950) !important; }
 body.portal-backend-charcoal #container,
 body.portal-backend-charcoal #content,
-body.portal-backend-charcoal .main { background: #171717 !important; }
+body.portal-backend-charcoal .main { background: var(--color-base-900) !important; }
 
 /* Graphite */
 body.portal-backend-graphite #nav-sidebar,
-body.portal-backend-graphite [id="nav-sidebar"] { background: #09090b !important; }
+body.portal-backend-graphite [id="nav-sidebar"] { background: var(--color-base-950) !important; }
 body.portal-backend-graphite #container,
 body.portal-backend-graphite #content,
-body.portal-backend-graphite .main { background: #18181b !important; }
+body.portal-backend-graphite .main { background: var(--color-base-900) !important; }
 
 /* Steel */
 body.portal-backend-steel #nav-sidebar,
-body.portal-backend-steel [id="nav-sidebar"] { background: #0f172a !important; }
+body.portal-backend-steel [id="nav-sidebar"] { background: var(--color-base-900) !important; }
 body.portal-backend-steel #container,
 body.portal-backend-steel #content,
-body.portal-backend-steel .main { background: #1e293b !important; }
+body.portal-backend-steel .main { background: var(--color-base-800) !important; }
 
 /* Amber */
 body.portal-backend-amber #nav-sidebar,
-body.portal-backend-amber [id="nav-sidebar"] { background: #0c0a09 !important; }
+body.portal-backend-amber [id="nav-sidebar"] { background: var(--color-base-950) !important; }
 body.portal-backend-amber #container,
 body.portal-backend-amber #content,
-body.portal-backend-amber .main { background: #1c1917 !important; }
+body.portal-backend-amber .main { background: var(--color-base-900) !important; }
 
 /* Midnight */
 body.portal-backend-midnight #nav-sidebar,
-body.portal-backend-midnight [id="nav-sidebar"] { background: #050810 !important; }
+body.portal-backend-midnight [id="nav-sidebar"] { background: var(--color-base-950) !important; }
 body.portal-backend-midnight #container,
 body.portal-backend-midnight #content,
-body.portal-backend-midnight .main { background: #0a0f1a !important; }
+body.portal-backend-midnight .main { background: var(--color-base-950) !important; }
 
 /* Ocean */
 body.portal-backend-ocean #nav-sidebar,
-body.portal-backend-ocean [id="nav-sidebar"] { background: #072541 !important; }
+body.portal-backend-ocean [id="nav-sidebar"] { background: var(--color-base-900) !important; }
 body.portal-backend-ocean #container,
 body.portal-backend-ocean #content,
-body.portal-backend-ocean .main { background: #0c1929 !important; }
+body.portal-backend-ocean .main { background: var(--color-base-900) !important; }
 
 /* Slate */
 body.portal-backend-slate #nav-sidebar,
-body.portal-backend-slate [id="nav-sidebar"] { background: #1e293b !important; }
+body.portal-backend-slate [id="nav-sidebar"] { background: var(--color-base-800) !important; }
 body.portal-backend-slate #container,
 body.portal-backend-slate #content,
-body.portal-backend-slate .main { background: #334155 !important; }
+body.portal-backend-slate .main { background: var(--color-base-700) !important; }
 
 /* Forest */
 body.portal-backend-forest #nav-sidebar,
-body.portal-backend-forest [id="nav-sidebar"] { background: #052e16 !important; }
+body.portal-backend-forest [id="nav-sidebar"] { background: color-mix(in oklab, var(--color-emerald-600) 30%, var(--color-base-950)) !important; }
 body.portal-backend-forest #container,
 body.portal-backend-forest #content,
-body.portal-backend-forest .main { background: #0d1f12 !important; }
+body.portal-backend-forest .main { background: color-mix(in oklab, var(--color-emerald-600) 30%, var(--color-base-950)) !important; }
 
 /* Indigo */
 body.portal-backend-indigo #nav-sidebar,
-body.portal-backend-indigo [id="nav-sidebar"] { background: #0f0d2e !important; }
+body.portal-backend-indigo [id="nav-sidebar"] { background: color-mix(in oklab, var(--color-indigo-900) 60%, var(--color-base-950)) !important; }
 body.portal-backend-indigo #container,
 body.portal-backend-indigo #content,
-body.portal-backend-indigo .main { background: #1e1b4b !important; }
+body.portal-backend-indigo .main { background: color-mix(in oklab, var(--color-indigo-900) 80%, var(--color-base-950)) !important; }
 
 /* Light themes: Cream, Lavender, Sand, Snow */
 body.portal-backend-cream #nav-sidebar,
-body.portal-backend-cream [id="nav-sidebar"] { background: #fefce8 !important; }
+body.portal-backend-cream [id="nav-sidebar"] { background: color-mix(in oklab, var(--color-amber-400) 12%, var(--color-base-0)) !important; }
 body.portal-backend-cream #container,
 body.portal-backend-cream #content,
-body.portal-backend-cream .main { background: #fffbeb !important; }
+body.portal-backend-cream .main { background: color-mix(in oklab, var(--color-amber-400) 8%, var(--color-base-0)) !important; }
 
 body.portal-backend-lavender #nav-sidebar,
-body.portal-backend-lavender [id="nav-sidebar"] { background: #faf5ff !important; }
+body.portal-backend-lavender [id="nav-sidebar"] { background: color-mix(in oklab, var(--color-indigo-300) 10%, var(--color-base-0)) !important; }
 body.portal-backend-lavender #container,
 body.portal-backend-lavender #content,
-body.portal-backend-lavender .main { background: #ffffff !important; }
+body.portal-backend-lavender .main { background: var(--color-base-0) !important; }

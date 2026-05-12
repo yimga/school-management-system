@@ -6,7 +6,7 @@
   --rmc-lit-64aa107875: inset 0 1px 1px rgba(15, 23, 42, 0.02);
   --rmc-lit-7a585cbd3b: var(--token-space-md, 1rem);
   --rmc-lit-8823f3caf9: 0.625rem;
-  --rmc-lit-9a1ff83196: 0 0 0 0.2rem color-mix(in srgb, var(--school-primary, #2563eb) 28%, transparent);
+  --rmc-lit-9a1ff83196: 0 0 0 0.2rem color-mix(in srgb, var(--school-primary, var(--color-indigo-600)) 28%, transparent);
   --rmc-lit-a17cd62e2c: var(--token-space-lg);
   --rmc-lit-da03e7b658: var(--token-space-xl, 1.5rem);
   --rmc-lit-dbdf656288: 0.15rem;
@@ -34,22 +34,22 @@
   font-size: var(--type-section, 1.125rem);
   font-weight: 600;
   margin-bottom:var(--rmc-lit-7a585cbd3b);
-  color: var(--portal-text, #111827);
+  color: var(--portal-text, var(--color-base-900));
 }
 .form-section__subtitle {
   font-size: var(--type-body-secondary, 0.875rem);
-  color: var(--portal-text-muted, #6b7280);
+  color: var(--portal-text-muted, var(--color-base-500));
   margin-bottom:var(--rmc-lit-7a585cbd3b);
 }
 
 /* Validation state (use .is-invalid / .was-validated from Bootstrap where applicable) */
 .form-system .form-control.is-invalid,
 .form-system .form-select.is-invalid {
-  border-color: var(--admin-content-danger, #dc2626);
+  border-color: var(--admin-content-danger, var(--color-red-600));
 }
 .form-system .invalid-feedback {
   font-size: var(--type-micro, 0.75rem);
-  color: var(--admin-content-danger, #dc2626);
+  color: var(--admin-content-danger, var(--color-red-600));
 }
 
 /* Unified luxury controls (stateful and accessible) */
@@ -67,20 +67,20 @@
 .form-system .form-select:hover,
 .ui-premium-surface .form-control:hover,
 .ui-premium-surface .form-select:hover {
-  border-color: color-mix(in srgb, var(--school-primary, #2563eb) 42%, #94a3b8);
+  border-color: color-mix(in srgb, var(--school-primary, var(--color-indigo-600)) 42%, var(--color-base-400));
 }
 .form-system .form-control:focus,
 .form-system .form-select:focus,
 .ui-premium-surface .form-control:focus,
 .ui-premium-surface .form-select:focus {
-  border-color: var(--school-primary, #2563eb);
+  border-color: var(--school-primary, var(--color-indigo-600));
   box-shadow: var(--rmc-lit-9a1ff83196);
 }
 .form-system .form-control:focus-visible,
 .form-system .form-select:focus-visible,
 .ui-premium-surface .form-control:focus-visible,
 .ui-premium-surface .form-select:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--school-primary, #2563eb) 38%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--school-primary, var(--color-indigo-600)) 38%, transparent);
   outline-offset: 1px;
 }
 .form-system .form-control:disabled,
@@ -88,7 +88,7 @@
 .ui-premium-surface .form-control:disabled,
 .ui-premium-surface .form-select:disabled {
   opacity: 0.72;
-  background: var(--surface-bg-muted, #e2e8f0);
+  background: var(--surface-bg-muted, var(--color-base-200));
   cursor: not-allowed;
 }
 
@@ -110,7 +110,7 @@
 }
 .ds-btn:focus-visible,
 .ui-premium-surface .btn:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--school-primary, #2563eb) 44%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--school-primary, var(--color-indigo-600)) 44%, transparent);
   outline-offset: 1px;
 }
 .ds-btn:disabled,
@@ -150,7 +150,7 @@
    These were ad-hoc inline styles or repeated utility-class permutations across 8+ forms;
    centralizing them here so future forms render identically without re-rolling. */
 .form-required-marker {
-  color: var(--form-required-color, var(--ds-danger, #dc2626));
+  color: var(--form-required-color, var(--ds-danger, var(--color-red-600)));
   font-weight: 700;
   margin-inline-start: 0.15em;
 }
@@ -167,12 +167,12 @@
 .form-system .invalid-feedback {
   /* Already styled above; reinforce that error text uses the canonical form-error-color
      token so theme packs that swap --form-error-color flow through without re-edit. */
-  color: var(--form-error-color, var(--admin-content-danger, #dc2626));
+  color: var(--form-error-color, var(--admin-content-danger, var(--color-red-600)));
 }
 .form-field.has-error .form-control,
 .form-field.has-error .form-select,
 .form-field.has-error .form-check-input {
-  border-color: var(--form-error-color, var(--ds-danger, #dc2626));
+  border-color: var(--form-error-color, var(--ds-danger, var(--color-red-600)));
 }
 
 /* Pass 8 Wave 2 — canonical list filter bar (used by components/list_filter_bar.html
@@ -181,7 +181,7 @@
 .list-filter-bar.card,
 [data-list-filter-bar].card {
   border: 0;
-  background: var(--ds-surface-muted, #f5f5f7);
+  background: var(--ds-surface-muted, var(--color-base-50));
 }
 .list-filter-bar.card .card-body,
 [data-list-filter-bar].card .card-body {
@@ -198,5 +198,5 @@
 }
 .list-filter-bar .input-group-text,
 [data-list-filter-bar] .input-group-text {
-  background-color: var(--ds-surface, #ffffff);
+  background-color: var(--ds-surface, var(--color-base-0));
 }
