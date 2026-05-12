@@ -93,3 +93,6 @@ db_step4.sqlite3
 
 # Local video-frame extraction (audit artefacts; never committed)
 .video-frames/
+
+# Local dev artifacts (screenshots, verify dbs)
+/tmp/
