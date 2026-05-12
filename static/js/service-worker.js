@@ -1,6 +1,10 @@
 // Service worker for portal PWA + offline write-behind queue.
-// Bumped 2026-05-10: invalidates cached CSS so Apple-tier polish lands on next page load.
-const CACHE_VERSION = "sms-v1.5.0-apple-tier";
+// Bumped 2026-05-12: platform-wide sweep — 1,053 hex literals tokenized across 14 CSS files
+// + 6 templates + 12 JS files; 12 new design tokens added (graph/kbd/signature);
+// 5 orphan files deleted (~57KB); Apple-tier grammar adopted on 7 dashboards
+// (.kpi/.insight-card/.gradebook-table/.grade-pill); ~512 strings i18n-wrapped across
+// 13 templates. Invalidate all stale caches.
+const CACHE_VERSION = "sms-v1.8.0-platform-sweep-2026-05-12";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

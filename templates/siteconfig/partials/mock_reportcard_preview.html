@@ -52,11 +52,11 @@
       </div>
 
       <style>
-        .report-preview-shell { border: 1px solid var(--border-color, #d9dee7); border-radius: 14px; overflow: hidden; background: #f8fafc; }
+        .report-preview-shell { border: 1px solid var(--border-color, var(--color-base-200)); border-radius: 14px; overflow: hidden; background: var(--color-base-50); }
         .report-preview-shell[data-mode="desktop"] { max-width: 100%; }
         .report-preview-shell[data-mode="tablet"] { max-width: 920px; margin: 0 auto; }
         .report-preview-shell[data-mode="mobile"] { max-width: 430px; margin: 0 auto; }
-        .report-preview-frame { width: 100%; border: 0; min-height: 760px; background: #ffffff; }
+        .report-preview-frame { width: 100%; border: 0; min-height: 760px; background: var(--color-base-0); }
         .report-preview-overlay {
           position: absolute;
           inset: 0;
@@ -72,8 +72,8 @@
         .report-preview-fallback {
           margin-top: 10px;
           border-radius: 10px;
-          border: 1px solid #d7e2f0;
-          background: #f8fbff;
+          border: 1px solid var(--color-base-200);
+          background: var(--tint-blue-soft);
           padding: 10px 12px;
         }
         .report-preview-fallback[hidden] { display: none !important; }

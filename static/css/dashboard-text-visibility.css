@@ -56,9 +56,9 @@ button[title]:not([aria-label]) .visually-hidden {
 /* ===== 3. Admin sidebar: tooltip when shown = high contrast (no white-on-white) ===== */
 .sidebar-tooltip,
 #nav-sidebar .sidebar-tooltip {
-  background: #1e293b !important;
-  color: #f8fafc !important;
-  border: 1px solid #334155;
+  background: var(--color-base-800) !important;
+  color: var(--color-base-50) !important;
+  border: 1px solid var(--color-base-700);
   font-weight: 500;
 }
 .sidebar a:hover .sidebar-tooltip,
@@ -72,16 +72,16 @@ button[title]:not([aria-label]) .visually-hidden {
 #nav-sidebar .admin-sidebar-model-link,
 #nav-sidebar .admin-sidebar-app-title a,
 #nav-sidebar .admin-sidebar-section-title {
-  color: var(--admin-sidebar-text, #f1f5f9);
+  color: var(--admin-sidebar-text, var(--color-base-100));
 }
 #nav-sidebar .admin-sidebar-link:hover,
 #nav-sidebar .admin-sidebar-model-link:hover {
-  color: #ffffff;
+  color: var(--color-base-0);
 }
 #nav-sidebar .admin-sidebar-heading,
 #nav-sidebar .module h2,
 #nav-sidebar .module caption {
-  color: var(--admin-sidebar-heading, #e2e8f0);
+  color: var(--admin-sidebar-heading, var(--color-base-200));
 }
 
 /* Unfold navigation helper: muted line (school name/tagline) = readable ===== */
@@ -94,10 +94,10 @@ button[title]:not([aria-label]) .visually-hidden {
 .topbar.text-white,
 .topbar .text-white,
 .navbar-dark .navbar-brand {
-  color: #f8fafc !important;
+  color: var(--color-base-50) !important;
 }
 .topbar .btn-link.text-white:hover {
-  color: #ffffff !important;
+  color: var(--color-base-0) !important;
   opacity: 1;
 }
 
@@ -134,11 +134,11 @@ button[title]:not([aria-label]) .visually-hidden {
 /* Chart export: visible label added in template; here ensure button text visible */
 .dashboard-chart-export,
 .btn[title="Download as PNG"] {
-  color: var(--bs-body-color, #0f172a);
+  color: var(--bs-body-color, var(--color-base-900));
 }
 body.portal-backend-dark .dashboard-chart-export,
 body.portal-backend-dark .btn[title="Download as PNG"] {
-  color: #e2e8f0;
+  color: var(--color-base-200);
 }
 
 /* ===== 8. Meta tags / secondary labels in cards ===== */
@@ -183,7 +183,7 @@ html[data-bs-theme="dark"] {
   --portal-text-muted: var(--vis-text-muted, var(--admin-content-text-muted));
 }
 body.portal-backend-dark {
-  --portal-text-muted: #94a3b8;
+  --portal-text-muted: var(--color-base-400);
 }
 
 /* Portal sidebar: nav and section labels visible */

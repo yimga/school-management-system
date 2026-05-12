@@ -17,6 +17,7 @@ from apps.accounts.security_audit import log_security_event
 from apps.accounts.models import SecurityAuditLog
 from apps.reports import compliance_exports as cx
 from apps.reports.export_integrity import attach_export_integrity_headers
+from apps.schools.control_plane import is_control_plane_request
 from apps.schools.security_enforcer import enforce_tenant_security
 
 
@@ -106,7 +107,7 @@ def compliance_exports_view(request: HttpRequest) -> HttpResponse:
         "academic_years_evidence_url": _u("siteconfig:academic_years_setup_evidence"),
         "departments_setup_url": _u("siteconfig:departments_setup_evidence"),
         "scheduled_reports_hub_url": _u("siteconfig:scheduled_reports_delivery_hub"),
-        "metadata_operator_hub_url": _u("siteconfig:metadata_operator_hub"),
+        "metadata_operator_hub_url": _u("siteconfig:metadata_operator_hub") if is_control_plane_request(request) else None,
         "entity_catalog_url": _u("siteconfig:entity_catalog_overview"),
         "runtime_hub_url": _u("siteconfig:tenant_runtime_configuration_hub"),
         "admin_reports_app_url": admin_fallback,

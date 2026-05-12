@@ -217,13 +217,13 @@
       font-size: 11px;
       font-weight: 700;
       line-height: 1;
-      color: #24292e;
+      color: var(--kbd-color, var(--color-base-900));
       vertical-align: middle;
-      background-color: #fafbfc;
-      border: solid 1px #d1d5da;
-      border-bottom-color: #c6cbd1;
+      background-color: var(--kbd-bg, var(--color-base-50));
+      border: solid 1px var(--kbd-border, var(--color-base-300));
+      border-bottom-color: var(--kbd-border-bottom, var(--color-base-400));
       border-radius: 3px;
-      box-shadow: inset 0 -1px 0 #c6cbd1;
+      box-shadow: inset 0 -1px 0 var(--kbd-border-bottom, var(--color-base-400));
       font-family: monospace;
     }
   `;

@@ -7,18 +7,20 @@ from __future__ import annotations
 
 import logging
 
-from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 
+from apps.schools.control_plane import (
+    is_control_plane_request,
+    require_super_access_with_host,
+)
 from apps.schools.super_views_constants import CONTROL_PLANE_METRIC_FAILURES
 
 logger = logging.getLogger(__name__)
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@require_super_access_with_host
 def config_mutation_audit_evidence(request: HttpRequest) -> HttpResponse:
     rows: list = []
     try:
@@ -30,9 +32,12 @@ def config_mutation_audit_evidence(request: HttpRequest) -> HttpResponse:
     except CONTROL_PLANE_METRIC_FAILURES as ex:
         logger.debug("config_mutation_audit_evidence: %s", ex)
     uc = getattr(request, "urlconf", None)
-    try:
-        metadata_hub = reverse("siteconfig:metadata_operator_hub", urlconf=uc)
-    except NoReverseMatch:
+    if is_control_plane_request(request):
+        try:
+            metadata_hub = reverse("siteconfig:metadata_operator_hub", urlconf=uc)
+        except NoReverseMatch:
+            metadata_hub = ""
+    else:
         metadata_hub = ""
     try:
         feature_audit = reverse("siteconfig:feature_control_audit", urlconf=uc)

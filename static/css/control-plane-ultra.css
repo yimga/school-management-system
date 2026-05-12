@@ -65,14 +65,14 @@
 [data-surface="control-plane"],
 body.control-plane-shell,
 body.admin-manager-shell {
-  --cp-ultra-bg: #06090e;
+  --cp-ultra-bg: var(--cp-ink-abyss);
   --cp-ultra-panel: rgba(10, 18, 30, 0.92);
   --cp-ultra-border: rgba(125, 152, 187, 0.14);
   --cp-ultra-border-strong: rgba(16, 185, 129, 0.28);
   --cp-ultra-gold: var(--school-accent);
   --cp-ultra-gold-dim: rgba(16, 185, 129, 0.75);
-  --cp-ultra-text: #e8eef6;
-  --cp-ultra-muted: #8b9cb8;
+  --cp-ultra-text: var(--cp-text-ultra);
+  --cp-ultra-muted: var(--cp-text-muted-ultra);
   --cp-ultra-sidebar-bg: rgba(6, 12, 22, 0.98);
   --cp-ultra-sidebar-active: rgba(16, 185, 129, 0.12);
   --cp-ultra-sidebar-active-border: var(--school-accent);
@@ -93,13 +93,13 @@ body.admin-manager-shell {
 /* ---- One dark header bar (no white branding block) §8.0 + Scroll directive ---- */
 body.control-plane-shell .cp-navbar.statement-header,
 body.cp-surface .cp-navbar.statement-header {
-  background: var(--cp-bg, #0B0E14) !important;
+  background: var(--cp-bg, var(--cp-ink-canvas)) !important;
   border-bottom: 1px solid rgba(125, 152, 187, 0.18);
 }
 body.control-plane-shell .cp-navbar .navbar-brand,
 body.cp-surface .cp-navbar .navbar-brand {
   background: transparent !important;
-  color: #fff !important;
+  color: var(--color-base-0) !important;
 }
 
 /* ---- Login (manager + admin): full-viewport ultra ---- */
@@ -210,8 +210,8 @@ body.control-plane-shell .admin-login-card::before {
   border-radius: var(--rmc-lit-2a07851a9d);
   padding: var(--rmc-lit-4baf8f49ed);
   background: linear-gradient(160deg, rgba(16, 185, 129, 0.15), transparent 40%, transparent 70%, rgba(16, 185, 129, 0.05));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(var(--color-base-0) 0 0) content-box, linear-gradient(var(--color-base-0) 0 0);
+  mask: linear-gradient(var(--color-base-0) 0 0) content-box, linear-gradient(var(--color-base-0) 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
@@ -258,18 +258,18 @@ body.control-plane-shell .admin-login-card .btn-primary {
   border-radius: var(--rmc-lit-cc76ee6d59);
   padding: var(--rmc-lit-47f460520a);
   font-weight: 600;
-  background: linear-gradient(180deg, #e0bc48 0%, var(--cp-ultra-gold) 50%, #c9a02c 100%);
+  background: linear-gradient(180deg, var(--cp-gold-600) 0%, var(--cp-ultra-gold) 50%, var(--cp-gold-700) 100%);
   border: 1px solid rgba(16, 185, 129, 0.5);
-  color: #0a0c10;
+  color: var(--cp-ink-deep);
   box-shadow: var(--rmc-lit-62bdb7f2e6);
   transition: transform var(--cp-ultra-transition), box-shadow var(--cp-ultra-transition), filter var(--cp-ultra-transition);
 }
 
 body.control-plane-shell .manager-login-card .btn-primary:hover,
 body.control-plane-shell .admin-login-card .btn-primary:hover {
-  background: linear-gradient(180deg, #e8c454 0%, #e0bc48 50%, var(--cp-ultra-gold) 100%);
+  background: linear-gradient(180deg, var(--cp-gold-500) 0%, var(--cp-gold-600) 50%, var(--cp-ultra-gold) 100%);
   border-color: var(--cp-ultra-gold);
-  color: #0a0c10;
+  color: var(--cp-ink-deep);
   transform: translateY(-1px);
   box-shadow: var(--rmc-lit-5f63a4223e);
 }
@@ -661,9 +661,9 @@ body.control-plane-shell #nav-sidebar,
 }
 
 .cp-admin-index .cp-primary-action {
-  background: linear-gradient(180deg, #e0bc48 0%, var(--cp-ultra-gold) 50%, #c9a02c 100%) !important;
+  background: linear-gradient(180deg, var(--cp-gold-600) 0%, var(--cp-ultra-gold) 50%, var(--cp-gold-700) 100%) !important;
   border: 1px solid rgba(16, 185, 129, 0.5) !important;
-  color: #0a0c10 !important;
+  color: var(--cp-ink-deep) !important;
   font-weight: 600;
   box-shadow: var(--rmc-lit-62bdb7f2e6);
   transition: transform var(--cp-ultra-transition), box-shadow var(--cp-ultra-transition);
@@ -672,7 +672,7 @@ body.control-plane-shell #nav-sidebar,
 .cp-admin-index .cp-primary-action:hover {
   transform: translateY(-1px);
   box-shadow: var(--rmc-lit-5f63a4223e);
-  color: #0a0c10 !important;
+  color: var(--cp-ink-deep) !important;
 }
 
 .cp-admin-index .cp-action-row .btn-outline-light:hover,
@@ -699,7 +699,7 @@ body.control-plane-shell #nav-sidebar,
   z-index: 9999;
   padding: var(--rmc-lit-9ef378ee07);
   background: var(--cp-ultra-gold);
-  color: #0a0c10;
+  color: var(--cp-ink-deep);
   font-weight: 600;
   border-radius: var(--rmc-lit-3282c1fa98);
   font-size: 0.9rem;

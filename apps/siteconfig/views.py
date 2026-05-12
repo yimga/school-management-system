@@ -71,7 +71,7 @@ from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
 from .tenant_config import apply_tenant_settings_overrides
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import User
-from apps.schools.control_plane import use_control_plane_shell
+from apps.schools.control_plane import require_super_access_with_host, use_control_plane_shell
 
 logger = logging.getLogger(__name__)
 
@@ -2339,7 +2339,7 @@ def _render_report_pdf_response(
 # ==========================
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@require_super_access_with_host
 def region_validation_dashboard(request):
     """
     Dashboard showing regional configuration status and validation warnings.
@@ -2464,7 +2464,7 @@ def region_validation_dashboard(request):
     return render(request, "siteconfig/region_validation_dashboard.html", context)
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@require_super_access_with_host
 def region_comparison_view(request):
     """
     Comparison view for regional configurations.
@@ -2500,7 +2500,7 @@ def region_comparison_view(request):
     return render(request, "siteconfig/region_comparison.html", context)
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@require_super_access_with_host
 def region_grading_scales_view(request):
     """
     Detailed view of all grading scales across all regions.

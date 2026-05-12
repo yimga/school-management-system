@@ -2,6 +2,10 @@ from functools import partial
 
 from django.urls import path
 from apps.marketplace import views as marketplace_views
+from apps.marketplace.views_publisher import (
+    publisher_app_detail as marketplace_publisher_app_detail,
+    publisher_dashboard as marketplace_publisher_dashboard,
+)
 from apps.customersuccess import views_super as cs_views
 from apps.orchestration import views as orchestration_views
 from . import super_views
@@ -457,6 +461,16 @@ urlpatterns = [
         "marketplace/package-promote/",
         require_super_access_with_host(marketplace_views.package_promote),
         name="package_promote",
+    ),
+    path(
+        "marketplace/publisher/",
+        marketplace_publisher_dashboard,
+        name="marketplace_publisher_dashboard",
+    ),
+    path(
+        "marketplace/publisher/<slug:slug>/",
+        marketplace_publisher_app_detail,
+        name="marketplace_publisher_app_detail",
     ),
     path(
         "phase-b-snapshot-diff/",

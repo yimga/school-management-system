@@ -118,7 +118,7 @@
       serverUnreachable = false;
       bar.classList.remove('d-none');
       bar.classList.add('d-inline-flex');
-      dot.style.background = '#ffc107';
+      dot.style.background = 'var(--ds-warning)';
       textEl.textContent = 'Syncing…';
       if (spinnerEl) spinnerEl.classList.remove('d-none');
       if (syncBtn) { syncBtn.disabled = true; syncBtn.style.visibility = 'hidden'; }
@@ -130,7 +130,7 @@
     if (online && syncingInOtherTab) {
       bar.classList.remove('d-none');
       bar.classList.add('d-inline-flex');
-      dot.style.background = '#ffc107';
+      dot.style.background = 'var(--ds-warning)';
       textEl.textContent = 'Syncing in another tab';
       if (spinnerEl) spinnerEl.classList.add('d-none');
       if (syncBtn) { syncBtn.disabled = true; syncBtn.style.visibility = 'hidden'; }
@@ -141,7 +141,7 @@
     if (online && serverUnreachable) {
       bar.classList.remove('d-none');
       bar.classList.add('d-inline-flex');
-      dot.style.background = '#fd7e14';
+      dot.style.background = 'var(--ds-danger)';
       textEl.textContent = 'Server unreachable';
       if (spinnerEl) spinnerEl.classList.add('d-none');
       if (lastSyncedEl) lastSyncedEl.classList.add('d-none');
@@ -153,7 +153,7 @@
       stopQueueLengthPolling();
       bar.classList.remove('d-none');
       bar.classList.add('d-inline-flex');
-      dot.style.background = '#198754';
+      dot.style.background = 'var(--ds-success)';
       textEl.textContent = 'Connected';
       if (spinnerEl) spinnerEl.classList.add('d-none');
       refreshLastSynced();
@@ -161,7 +161,7 @@
     } else {
       bar.classList.remove('d-none');
       bar.classList.add('d-inline-flex');
-      dot.style.background = '#fd7e14';
+      dot.style.background = 'var(--ds-danger)';
       textEl.textContent = pendingCount > 0
         ? 'Offline – ' + pendingCount + ' item(s) will sync'
         : 'Offline – data will sync later';

@@ -7,18 +7,20 @@ from __future__ import annotations
 
 import logging
 
-from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 
+from apps.schools.control_plane import (
+    is_control_plane_request,
+    require_super_access_with_host,
+)
 from apps.schools.super_views_constants import CONTROL_PLANE_METRIC_FAILURES
 
 logger = logging.getLogger(__name__)
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@require_super_access_with_host
 def metadata_dynamic_fields_operator(request: HttpRequest) -> HttpResponse:
     context: dict = {}
     try:
@@ -42,11 +44,14 @@ def metadata_dynamic_fields_operator(request: HttpRequest) -> HttpResponse:
         )
     except NoReverseMatch:
         context["entity_catalog_url"] = ""
-    try:
-        context["metadata_operator_hub_url"] = reverse(
-            "siteconfig:metadata_operator_hub", urlconf=uc
-        )
-    except NoReverseMatch:
+    if is_control_plane_request(request):
+        try:
+            context["metadata_operator_hub_url"] = reverse(
+                "siteconfig:metadata_operator_hub", urlconf=uc
+            )
+        except NoReverseMatch:
+            context["metadata_operator_hub_url"] = ""
+    else:
         context["metadata_operator_hub_url"] = ""
     try:
         context["admin_dynamic_definition_url"] = reverse(

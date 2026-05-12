@@ -49,7 +49,7 @@
           {% for app in apps %}
           <tr>
             <td>
-              <a href="{% url 'marketplace:publisher_app_detail' app.slug %}"><strong>{{ app.name }}</strong></a>
+              <a href="{% url 'super:marketplace_publisher_app_detail' app.slug %}"><strong>{{ app.name }}</strong></a>
               <span class="small text-muted d-block"><code>{{ app.slug }}</code></span>
             </td>
             <td class="small">{{ app.version }}</td>
@@ -57,7 +57,7 @@
             <td>{% if app.listing %}<span class="badge bg-secondary">{{ app.listing.status }}</span>{% else %}<span class="text-muted small">{% trans "no listing" %}</span>{% endif %}</td>
             <td>{% if app.listing %}<span class="badge bg-light text-muted">{{ app.listing.security_review_status }}</span>{% else %}—{% endif %}</td>
             <td class="small text-muted">{{ app.updated_at|date:"Y-m-d" }}</td>
-            <td><a href="{% url 'marketplace:publisher_app_detail' app.slug %}" class="btn btn-sm btn-outline-secondary">{% trans "Open" %}</a></td>
+            <td><a href="{% url 'super:marketplace_publisher_app_detail' app.slug %}" class="btn btn-sm btn-outline-secondary">{% trans "Open" %}</a></td>
           </tr>
           {% empty %}
           <tr><td colspan="7" class="text-muted text-center py-4">{% trans "No apps yet. Submit your first draft via the API." %}</td></tr>

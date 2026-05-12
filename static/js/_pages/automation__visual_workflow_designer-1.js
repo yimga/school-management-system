@@ -11,6 +11,13 @@
   var csrftoken = document.cookie.match(/csrftoken=([^;]+)/);
   csrftoken = csrftoken ? csrftoken[1] : "";
 
+  function tok(name, fallback){
+    try {
+      var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return v || fallback;
+    } catch (_e) { return fallback; }
+  }
+
   function uid(){ return "n-" + Math.random().toString(36).slice(2,10); }
 
   function nodeCenter(n){
@@ -33,7 +40,7 @@
       var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
       line.setAttribute("x1", p1.x); line.setAttribute("y1", p1.y);
       line.setAttribute("x2", p2.x); line.setAttribute("y2", p2.y);
-      line.setAttribute("stroke", "#6c757d");
+      line.setAttribute("stroke", tok("--color-base-500", "#6c757d"));
       line.setAttribute("stroke-width", "2");
       svg.appendChild(line);
     });

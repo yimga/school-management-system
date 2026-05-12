@@ -414,7 +414,7 @@ backend-shell dashboard-page-backend
                 <a class="backend-role-home-primary-cta" href="{{ role_home_primary_action.url }}" data-rmc-backend-role-home-primary="1">
                   <span class="backend-role-home-command-copy">
                     <strong>{% if role_home_primary_action.icon %}<i class="bi {{ role_home_primary_action.icon }} me-1"></i>{% endif %}{{ role_home_primary_action.label }}</strong>
-                    <span class="backend-role-home-command-hint">{{ role_home_primary_action.reason|default:"Primary action for this role home." }}</span>
+                    <span class="backend-role-home-command-hint">{{ role_home_primary_action.reason|default:_("Primary action for this role home.") }}</span>
                   </span>
                   <span class="badge text-bg-primary">{% trans "Do now" %}</span>
                 </a>
@@ -457,7 +457,7 @@ backend-shell dashboard-page-backend
                 <a class="backend-role-home-primary-cta" href="{{ role_home_primary_action.url }}">
                   <span class="backend-role-home-command-copy">
                     <strong>{% if role_home_primary_action.icon %}<i class="bi {{ role_home_primary_action.icon }} me-1"></i>{% endif %}{{ role_home_primary_action.label }}</strong>
-                    <span class="backend-role-home-command-hint">{{ role_home_primary_action.reason|default:"Primary action for this role home." }}</span>
+                    <span class="backend-role-home-command-hint">{{ role_home_primary_action.reason|default:_("Primary action for this role home.") }}</span>
                   </span>
                   <span class="badge text-bg-primary">{% trans "Do now" %}</span>
                 </a>
@@ -605,7 +605,7 @@ backend-shell dashboard-page-backend
         {% if backend_module_visibility.outstanding_fees %}
         <div class="backend-v2-span-2" data-widget-id="backend-outstanding-fees">
           {% if chart_finance_status_json %}
-          {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title="Outstanding Fees" chart_data=chart_finance_status_json show_export=False fill_container=True aria_label="Outstanding fees by invoice status" %}
+          {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title=_("Outstanding Fees") chart_data=chart_finance_status_json show_export=False fill_container=True aria_label=_("Outstanding fees by invoice status") %}
           {% else %}
           <article class="card backend-v2-panel backend-v2-panel--empty">
             <div class="card-body">
@@ -658,7 +658,7 @@ backend-shell dashboard-page-backend
         {% if backend_module_visibility.enrollment_trends %}
         <div class="backend-v2-span-2" data-widget-id="backend-enrollment-trends">
           {% if chart_enrollment_trend_json %}
-          {% include "components/dashboard_chart.html" with chart_id="backendEnrollmentTrendChart" chart_type="line" chart_title="Enrollment Trends" chart_data=chart_enrollment_trend_json show_export=False fill_container=True aria_label="Enrollment trend over recent months" %}
+          {% include "components/dashboard_chart.html" with chart_id="backendEnrollmentTrendChart" chart_type="line" chart_title=_("Enrollment Trends") chart_data=chart_enrollment_trend_json show_export=False fill_container=True aria_label=_("Enrollment trend over recent months") %}
           {% else %}
           <article class="card backend-v2-panel backend-v2-panel--empty">
             <div class="card-body">

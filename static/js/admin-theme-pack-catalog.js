@@ -171,7 +171,13 @@
 
     if (window.ContrastGuard && typeof window.ContrastGuard.textColorForBackground === "function") {
       cards.forEach(function (card) {
-        var bg = (card.dataset.surface || card.dataset.dashboardBg || "#f8fafc").trim();
+        var tokenFallback = (function () {
+          try {
+            var v = getComputedStyle(document.documentElement).getPropertyValue("--color-base-50").trim();
+            return v || "#f8fafc";
+          } catch (_e) { return "#f8fafc"; }
+        })();
+        var bg = (card.dataset.surface || card.dataset.dashboardBg || tokenFallback).trim();
         if (bg) {
           var fg = window.ContrastGuard.textColorForBackground(bg);
           card.style.setProperty("--card-fg", fg);

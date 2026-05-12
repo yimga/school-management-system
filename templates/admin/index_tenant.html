@@ -5,8 +5,8 @@
 {{ block.super }}
 {% with theme=SITE_ADMIN_THEME|default:SITE_THEME %}
 <style>
-  .tenant-admin-index { --tai-primary: var(--school-primary, {{ theme.primary_color|default:"#4f46e5" }}); --tai-accent: var(--school-accent, {{ theme.accent_color|default:"#10b981" }}); --tai-surface: {{ theme.background_color|default:"#f8fafc" }}; --tai-card: #ffffff; --tai-border: #e2e8f0; --tai-text: #1e293b; --tai-muted: #64748b; }
-  body.control-plane-shell .tenant-admin-index { --tai-surface: #0f172a; --tai-card: #1e293b; --tai-border: rgba(148, 163, 184, 0.25); --tai-text: #f1f5f9; --tai-muted: #94a3b8; }
+  .tenant-admin-index { --tai-primary: var(--school-primary, {{ theme.primary_color|default:"#4f46e5" }}); --tai-accent: var(--school-accent, {{ theme.accent_color|default:"#10b981" }}); --tai-surface: {{ theme.background_color|default:"#f8fafc" }}; --tai-card: var(--color-base-0); --tai-border: var(--color-base-200); --tai-text: var(--color-base-800); --tai-muted: var(--color-base-500); }
+  body.control-plane-shell .tenant-admin-index { --tai-surface: var(--color-base-900); --tai-card: var(--color-base-800); --tai-border: rgba(148, 163, 184, 0.25); --tai-text: var(--color-base-100); --tai-muted: var(--color-base-400); }
   .tenant-admin-index { max-width: 100%; padding: 24px; min-height: 100vh; background: var(--tai-surface); }
   #content-main .tenant-admin-index, #content .tenant-admin-index { background: var(--tai-surface); }
   .tenant-admin-hero { background: var(--tai-card); border: 1px solid var(--tai-border); border-radius: 16px; padding: 28px 32px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
@@ -15,8 +15,8 @@
   .tenant-admin-hero h1 { margin: 0 0 8px; font-size: 26px; font-weight: 800; color: var(--tai-text); }
   .tenant-admin-hero p { margin: 0 0 20px; color: var(--tai-muted); font-size: 15px; line-height: 1.5; }
   .tenant-admin-hero-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-  .tenant-admin-cta-primary { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 12px; font-size: 16px; font-weight: 700; text-decoration: none; transition: all 0.2s; background: var(--tai-primary); color: #fff; border: none; box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
-  .tenant-admin-cta-primary:hover { filter: brightness(1.08); transform: translateY(-2px); color: #fff; box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+  .tenant-admin-cta-primary { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 12px; font-size: 16px; font-weight: 700; text-decoration: none; transition: all 0.2s; background: var(--tai-primary); color: var(--text-on-brand); border: none; box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
+  .tenant-admin-cta-primary:hover { filter: brightness(1.08); transform: translateY(-2px); color: var(--text-on-brand); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
   .tenant-admin-cta-secondary { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 10px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s; background: transparent; color: var(--tai-muted); border: 2px solid var(--tai-border); }
   .tenant-admin-cta-secondary:hover { border-color: var(--tai-accent); color: var(--tai-accent); }
   .tenant-admin-section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--tai-muted); margin-bottom: 14px; }

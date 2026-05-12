@@ -10,14 +10,14 @@
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-decision-engine="surface">
 {% phase8_dashboard_declaration "finance/invoices.html" %}
 {% trans "Back to Finance" as back_action %}
-{% include "studio_os/components/page_header.html" with eyebrow="Finance · invoices" title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
+{% include "studio_os/components/page_header.html" with eyebrow=_("Finance · invoices") title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
 
 {% if finance_access_required and not finance_access_granted %}
 <div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert">
   <div class="d-flex align-items-center gap-2">
     <i class="bi bi-shield-lock"></i>
     <div>
-      Finance access is not yet enabled for your account. Once an admin grants access, invoices and payments will appear here.
+      {% trans "Finance access is not yet enabled for your account. Once an admin grants access, invoices and payments will appear here." %}
       {% if finance_access_summary %}
       <div class="small text-muted">{{ finance_access_summary }}</div>
       {% endif %}
@@ -26,7 +26,7 @@
   {% if can_request_finance_access %}
   <form method="post" action="{{ finance_request_url }}">
     {% csrf_token %}
-    <button type="submit" class="btn btn-sm btn-primary">Request finance access</button>
+    <button type="submit" class="btn btn-sm btn-primary">{% trans "Request finance access" %}</button>
   </form>
   {% endif %}
 </div>
@@ -37,7 +37,7 @@
   {% if can_request_finance_access %}
   <form method="post" action="{{ finance_request_url }}" class="ms-auto">
     {% csrf_token %}
-    <button type="submit" class="btn btn-sm btn-outline-primary">Request broader access</button>
+    <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Request broader access" %}</button>
   </form>
   {% endif %}
 </div>
@@ -47,29 +47,29 @@
   <div class="card-body">
     <div class="row g-2 align-items-end">
       <div class="col-md-3">
-        <label class="form-label small">Search</label>
-        <input type="search" class="form-control" name="q" placeholder="Reference or student name..." value="{{ search }}">
+        <label class="form-label small">{% trans "Search" %}</label>
+        <input type="search" class="form-control" name="q" placeholder="{% trans 'Reference or student name...' %}" value="{{ search }}">
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Status</label>
+        <label class="form-label small">{% trans "Status" %}</label>
         <select class="form-select" name="status">
-          <option value="">All</option>
+          <option value="">{% trans "All" %}</option>
           {% for value, label in statuses %}
             <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Academic year</label>
+        <label class="form-label small">{% trans "Academic year" %}</label>
         <select class="form-select" name="year">
-          <option value="">All</option>
+          <option value="">{% trans "All" %}</option>
           {% for y in years %}
             <option value="{{ y.id }}" {% if selected_year == y.id|stringformat:"s" %}selected{% endif %}>{{ y.name }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="col-md-3">
-        <label class="form-label small">Sort by</label>
+        <label class="form-label small">{% trans "Sort by" %}</label>
         <select class="form-select" name="order">
           {% for value, label in order_options %}
             <option value="{{ value }}" {% if selected_order == value %}selected{% endif %}>{{ label }}</option>
@@ -77,7 +77,7 @@
         </select>
       </div>
       <div class="col-md-2 d-grid">
-        <button type="submit" class="btn btn-primary">Filter</button>
+        <button type="submit" class="btn btn-primary">{% trans "Filter" %}</button>
       </div>
     </div>
   </div>
@@ -86,38 +86,38 @@
 <div class="card">
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-      <div class="small text-muted">Showing {{ invoices|length }} invoices</div>
+      <div class="small text-muted">{% blocktrans with n=invoices|length %}Showing {{ n }} invoices{% endblocktrans %}</div>
       <div class="d-flex gap-2 align-items-center flex-wrap">
-        <span class="small text-muted me-1">View:</span>
-        <div class="btn-group btn-group-sm table-density-toggle" role="group" aria-label="Table density">
-          <button type="button" class="btn btn-outline-secondary" data-density="condensed">Condensed</button>
-          <button type="button" class="btn btn-outline-secondary" data-density="expanded">Expanded</button>
+        <span class="small text-muted me-1">{% trans "View:" %}</span>
+        <div class="btn-group btn-group-sm table-density-toggle" role="group" aria-label="{% trans 'Table density' %}">
+          <button type="button" class="btn btn-outline-secondary" data-density="condensed">{% trans "Condensed" %}</button>
+          <button type="button" class="btn btn-outline-secondary" data-density="expanded">{% trans "Expanded" %}</button>
         </div>
         {% if user.is_staff or user.is_superuser %}
-        <a class="btn btn-outline-primary btn-sm" href="{% url 'finance:finance_access_bulk' %}">Bulk finance access</a>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'finance:finance_access_bulk' %}">{% trans "Bulk finance access" %}</a>
         {% endif %}
-        <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=csv">Export CSV</a>
-        <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=pdf">Export PDF</a>
+        <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=csv">{% trans "Export CSV" %}</a>
+        <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=pdf">{% trans "Export PDF" %}</a>
       </div>
     </div>
     <div class="table-responsive" data-table-density-key="finance_invoices">
       {% if invoices %}
-      <table class="table table-sm align-middle table-sticky-head table-zebra table-family" aria-label="Invoices list: reference, type, status, due date, student, total, balance, and actions">
+      <table class="table table-sm align-middle table-sticky-head table-zebra table-family" aria-label="{% trans 'Invoices list: reference, type, status, due date, student, total, balance, and actions' %}">
         <thead class="table-light">
           <tr>
-            <th scope="col">Reference</th>
-            <th scope="col">Type</th>
-            <th scope="col">Status</th>
-            <th scope="col">Due</th>
-            <th scope="col">Student</th>
+            <th scope="col">{% trans "Reference" %}</th>
+            <th scope="col">{% trans "Type" %}</th>
+            <th scope="col">{% trans "Status" %}</th>
+            <th scope="col">{% trans "Due" %}</th>
+            <th scope="col">{% trans "Student" %}</th>
             {% if user.is_staff or user.is_superuser %}
-            <th scope="col">Parent access</th>
+            <th scope="col">{% trans "Parent access" %}</th>
             {% endif %}
-            <th scope="col">Split billing</th>
-            <th scope="col" class="text-end">Total</th>
-            <th scope="col" class="text-end">Balance</th>
-            <th scope="col" class="text-end">Attachment</th>
-            <th scope="col">Actions</th>
+            <th scope="col">{% trans "Split billing" %}</th>
+            <th scope="col" class="text-end">{% trans "Total" %}</th>
+            <th scope="col" class="text-end">{% trans "Balance" %}</th>
+            <th scope="col" class="text-end">{% trans "Attachment" %}</th>
+            <th scope="col">{% trans "Actions" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -138,13 +138,13 @@
                 {% if guardians|length %}
                   {% with guardian=guardians|dictsort:"-can_view_finance"|first %}
                     {% if guardian and guardian.can_view_finance %}
-                      <span class="badge bg-success-subtle text-success">Enabled</span>
+                      <span class="badge bg-success-subtle text-success">{% trans "Enabled" %}</span>
                     {% else %}
-                      <span class="badge bg-light text-muted">Not enabled</span>
+                      <span class="badge bg-light text-muted">{% trans "Not enabled" %}</span>
                     {% endif %}
                   {% endwith %}
                 {% else %}
-                  <span class="text-muted">No guardians</span>
+                  <span class="text-muted">{% trans "No guardians" %}</span>
                 {% endif %}
               </td>
               {% endwith %}
@@ -155,10 +155,10 @@
                     <div class="fw-semibold">{{ inv.my_split_outstanding|format_currency }}</div>
                     <div class="text-muted">{{ inv.my_split_status }}</div>
                   {% elif user.is_staff or user.is_superuser %}
-                    <div class="fw-semibold">{{ inv.split_payer_count }} payer{{ inv.split_payer_count|pluralize }}</div>
-                    <div class="text-muted">Due {{ inv.split_outstanding_total|format_currency }}</div>
+                    <div class="fw-semibold">{% blocktrans count counter=inv.split_payer_count %}{{ counter }} payer{% plural %}{{ counter }} payers{% endblocktrans %}</div>
+                    <div class="text-muted">{% blocktrans with amt=inv.split_outstanding_total|format_currency %}Due {{ amt }}{% endblocktrans %}</div>
                   {% else %}
-                    <span class="text-muted">Split configured</span>
+                    <span class="text-muted">{% trans "Split configured" %}</span>
                   {% endif %}
                 {% else %}
                   <span class="text-muted">-</span>
@@ -168,19 +168,19 @@
               <td class="text-end {% if inv.status == 'OVERDUE' %}cell-overdue fw-bold{% endif %}">{{ inv.balance_amount|format_currency }}</td>
               <td class="text-end">
                 {% if inv.attachment %}
-                  <a class="btn btn-sm btn-outline-secondary" href="{{ inv.attachment.url }}" target="_blank" rel="noopener noreferrer">View</a>
+                  <a class="btn btn-sm btn-outline-secondary" href="{{ inv.attachment.url }}" target="_blank" rel="noopener noreferrer">{% trans "View" %}</a>
                 {% else %}
-                  <span class="text-muted small">None</span>
+                  <span class="text-muted small">{% trans "None" %}</span>
                 {% endif %}
               </td>
               <td>
                 <div class="d-flex flex-wrap gap-2">
-                  <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:invoice_detail' inv.id %}">View</a>
+                  <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:invoice_detail' inv.id %}">{% trans "View" %}</a>
                   {% if inv.payments.first %}
-                    <a class="btn btn-outline-primary btn-sm" href="{% url 'finance:invoice_receipt' inv.id %}">Receipt</a>
+                    <a class="btn btn-outline-primary btn-sm" href="{% url 'finance:invoice_receipt' inv.id %}">{% trans "Receipt" %}</a>
                   {% endif %}
                   {% if inv.balance_amount > 0 %}
-                    <a class="btn btn-sm btn-primary" href="{% url 'finance:invoice_detail' inv.id %}#pay">Pay now</a>
+                    <a class="btn btn-sm btn-primary" href="{% url 'finance:invoice_detail' inv.id %}#pay">{% trans "Pay now" %}</a>
                   {% endif %}
                   {% if user.is_staff or user.is_superuser and inv.student %}
                   {% comment %} Pass 8 Wave 2: native confirm() → shared themed modal at end of table.
@@ -204,35 +204,35 @@
          on confirm, so each row sends its own student_id. {% endcomment %}
       {% include "components/confirm_modal.html" with modal_id="grantAccessConfirm" icon="bi-people" title=_("Grant finance access to this student's guardians?") body=_("All guardians linked to the student will be granted access to invoices and payment history. They will be notified by email when finance notifications are enabled.") confirm_label=_("Grant access") confirm_class="btn-primary" %}
       {% elif finance_access_required and not finance_access_granted %}
-      <table class="table table-sm align-middle table-family" aria-label="Invoices list (no results)">
+      <table class="table table-sm align-middle table-family" aria-label="{% trans 'Invoices list (no results)' %}">
         <thead class="table-light">
           <tr>
-            <th scope="col">Reference</th>
-            <th scope="col">Type</th>
-            <th scope="col">Status</th>
-            <th scope="col">Due</th>
-            <th scope="col">Student</th>
+            <th scope="col">{% trans "Reference" %}</th>
+            <th scope="col">{% trans "Type" %}</th>
+            <th scope="col">{% trans "Status" %}</th>
+            <th scope="col">{% trans "Due" %}</th>
+            <th scope="col">{% trans "Student" %}</th>
             {% if user.is_staff or user.is_superuser %}
-            <th scope="col">Parent access</th>
+            <th scope="col">{% trans "Parent access" %}</th>
             {% endif %}
-            <th scope="col">Split billing</th>
-            <th scope="col" class="text-end">Total</th>
-            <th scope="col" class="text-end">Balance</th>
-            <th scope="col" class="text-end">Attachment</th>
-            <th scope="col">Actions</th>
+            <th scope="col">{% trans "Split billing" %}</th>
+            <th scope="col" class="text-end">{% trans "Total" %}</th>
+            <th scope="col" class="text-end">{% trans "Balance" %}</th>
+            <th scope="col" class="text-end">{% trans "Attachment" %}</th>
+            <th scope="col">{% trans "Actions" %}</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td colspan="{% if user.is_staff or user.is_superuser %}11{% else %}10{% endif %}" class="text-muted py-4">
-              Finance access is not enabled yet. Request access to see invoices for your linked students.
+              {% trans "Finance access is not enabled yet. Request access to see invoices for your linked students." %}
             </td>
           </tr>
         </tbody>
       </table>
       {% else %}
       {% url 'finance:generate_fees' as empty_action_url %}
-      {% include "components/dashboard_empty_state.html" with icon="bi-receipt" title="No invoices found" message="Generate fee invoices to get started." action_url=empty_action_url action_text="Generate fees" %}
+      {% include "components/dashboard_empty_state.html" with icon="bi-receipt" title=_("No invoices found") message=_("Generate fee invoices to get started.") action_url=empty_action_url action_text=_("Generate fees") %}
       {% endif %}
     </div>
     {% if page_obj %}

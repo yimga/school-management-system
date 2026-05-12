@@ -7,7 +7,7 @@
       data-rmc-page-type="{{ marketing_page_type|default:'marketing' }}"
       data-rmc-page-slug="{{ marketing_page_slug|default:'marketing' }}"
       data-theme="{% if PUBLIC_BRAND_MODE %}system{% else %}light{% endif %}"
-      {% if PUBLIC_BRAND_MODE %}style="--mkt-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:'#0f172a' }}; --mkt-hero-bg: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:'#0f172a' }}; --mkt-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:'#f59e0b' }};"{% endif %}>
+      {% if PUBLIC_BRAND_MODE %}style="--mkt-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:platform_palette.hero_bg }}; --mkt-hero-bg: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:platform_palette.hero_bg }}; --mkt-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:platform_palette.warning }};"{% endif %}>
 <head>
   <meta charset="utf-8">
   <script src="{% static '_pages/marketing__base_marketing.js' %}"></script>
@@ -39,12 +39,12 @@
   <link rel="stylesheet" href="{% static 'marketing/css/proof-pages.css' %}">
   <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
   {# design-system-phase2-enforcement.css dropped from marketing — its .ds-*/Bootstrap-overlap rules are not used on the editorial surface (Bootstrap alone covers .alert / .card / .btn-*). ~8 KB shaved. #}
-  {# marketing-static-bundle.css = 9 KB carve-out of phase2-static-templates-bundle.css covering only marketing template blocks. #}
+  {# marketing-static-bundle.css holds static <style> extractions from marketing/* templates. Other shells use phase2-{portal,base,admin,control-plane}-bundle.css. #}
   <link rel="stylesheet" href="{% static 'css/marketing-static-bundle.css' %}">
   <link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
   <!-- §8.0.11 platform-wide: responsive and fluid layout on every page -->
   <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
-  <link rel="stylesheet" href="{% static 'css/platform-fluid-everywhere.css' %}">
+  {# platform-fluid-everywhere.css retired 2026-05-12 — clamp() typography now in design-tokens.css #}
   <link rel="stylesheet" href="{% static 'css/accessibility.css' %}">
   <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-premium-os.css' %}">

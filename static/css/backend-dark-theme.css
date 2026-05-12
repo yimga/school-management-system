@@ -11,24 +11,24 @@
 body.portal-backend-dark,
 body.portal-backend-dark[data-bs-theme="dark"],
 body.portal-backend-dark[data-bs-theme="light"] {
-  background: #1e293b !important;
-  color: #e2e8f0 !important;
+  background: var(--color-base-800) !important;
+  color: var(--color-base-200) !important;
   /* Semantic variables for templates and JS */
-  --backend-text: #e2e8f0;
-  --backend-text-muted: #b8c4d0;
-  --backend-surface: #334155;
-  --backend-surface-alt: #475569;
+  --backend-text: var(--color-base-200);
+  --backend-text-muted: var(--color-base-350);
+  --backend-surface: var(--color-base-700);
+  --backend-surface-alt: var(--color-base-600);
   --backend-border: rgba(148, 163, 184, 0.25);
-  --admin-text: #f8fafc;
-  --admin-muted: #b8c4d0;
-  --admin-dashboard-bg: #1e293b;
-  --admin-surface: #334155;
-  --admin-surface-alt: #475569;
+  --admin-text: var(--color-base-50);
+  --admin-muted: var(--color-base-350);
+  --admin-dashboard-bg: var(--color-base-800);
+  --admin-surface: var(--color-base-700);
+  --admin-surface-alt: var(--color-base-600);
   --admin-border: rgba(148, 163, 184, 0.25);
-  --brand-primary: #6366f1;
-  --brand-success: #34d399;
-  --brand-danger: #f87171;
-  --focus-ring-color: #a5b4fc;
+  --brand-primary: var(--color-indigo-500);
+  --brand-success: var(--color-emerald-400);
+  --brand-danger: var(--color-red-400);
+  --focus-ring-color: var(--color-indigo-300);
   /* Chart palette (soft, readable on dark) */
   --chart-color-1: rgba(99, 102, 241, 0.85);
   --chart-color-2: rgba(34, 197, 94, 0.85);
@@ -36,9 +36,9 @@ body.portal-backend-dark[data-bs-theme="light"] {
   --chart-color-4: rgba(239, 68, 68, 0.85);
   --chart-color-5: rgba(168, 85, 247, 0.85);
   --chart-color-6: rgba(6, 182, 212, 0.85);
-  --chart-bg: #334155;
+  --chart-bg: var(--color-base-700);
   --chart-grid: rgba(148, 163, 184, 0.4);
-  --chart-text: #cbd5e1;
+  --chart-text: var(--color-base-300);
 }
 
 /* Base text: ensure body and all inherited text is readable */
@@ -56,18 +56,18 @@ body.portal-backend-dark label {
 body.portal-backend-dark .text-muted,
 body.portal-backend-dark .workflow-hero p,
 body.portal-backend-dark .workflow-subtitle {
-  color: #b8c4d0 !important;
+  color: var(--color-base-350) !important;
 }
 
 body.portal-backend-dark .small,
 body.portal-backend-dark small {
-  color: #b8c4d0 !important;
+  color: var(--color-base-350) !important;
 }
 
 /* Top bar: dark grey to match – use tokens for consistency */
 body.portal-backend-dark {
-  --header-brand-bg: linear-gradient(90deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-  --header-brand-fg: #f1f5f9;
+  --header-brand-bg: linear-gradient(90deg, var(--color-base-900) 0%, var(--color-base-800) 50%, var(--color-base-700) 100%);
+  --header-brand-fg: var(--color-base-100);
 }
 body.portal-backend-dark .topbar,
 body.portal-backend-dark .navbar.topbar {
@@ -85,11 +85,11 @@ body.portal-backend-dark .admin-top-header {
 }
 body.portal-backend-dark #header.admin-top-header a,
 body.portal-backend-dark .admin-top-header a {
-  color: #93c5fd !important;
+  color: var(--color-primary-300) !important;
 }
 body.portal-backend-dark #header.admin-top-header a:hover,
 body.portal-backend-dark .admin-top-header a:hover {
-  color: #bfdbfe !important;
+  color: var(--link-text-on-dark-hover) !important;
 }
 body.portal-backend-dark #header.admin-top-header .nav-global-actions .button.ghost,
 body.portal-backend-dark #header.admin-top-header .nav-global-actions a.button.ghost,
@@ -102,7 +102,7 @@ body.portal-backend-dark .admin-top-header .nav-global-actions a.button.ghost {
 body.portal-backend-dark .admin-top-header .nav-global-actions .button.ghost:hover,
 body.portal-backend-dark .admin-top-header .nav-global-actions a.button.ghost:hover {
   background: rgba(255, 255, 255, 0.2) !important;
-  color: #f8fafc !important;
+  color: var(--color-base-50) !important;
 }
 body.portal-backend-dark .admin-top-header .theme-toggle button {
   color: var(--admin-muted) !important;
@@ -113,7 +113,7 @@ body.portal-backend-dark .admin-top-header .theme-toggle button:hover {
 }
 body.portal-backend-dark .admin-top-header .theme-toggle button.active {
   background: rgba(255, 255, 255, 0.95) !important;
-  color: #0f172a !important;
+  color: var(--color-base-900) !important;
 }
 
 /* Main content area: same dark background so no white “half” */
@@ -134,7 +134,7 @@ body.portal-backend-dark .admin-app-index__title {
   color: var(--admin-text) !important;
 }
 body.portal-backend-dark .admin-app-index__card-link:hover {
-  color: #93c5fd !important;
+  color: var(--color-primary-300) !important;
 }
 body.portal-backend-dark .admin-app-index__subtitle,
 body.portal-backend-dark .admin-app-index__empty {
@@ -146,16 +146,16 @@ body.portal-backend-dark .admin-app-index__card-actions a {
 }
 body.portal-backend-dark .admin-app-index__card-actions a:hover,
 body.portal-backend-dark .admin-app-index__card-actions a.addlink {
-  color: #93c5fd !important;
-  border-color: #93c5fd !important;
+  color: var(--color-primary-300) !important;
+  border-color: var(--color-primary-300) !important;
 }
 body.portal-backend-dark .admin-app-index__card-actions a.addlink:hover {
-  background: #93c5fd !important;
-  color: #0f172a !important;
+  background: var(--color-primary-300) !important;
+  color: var(--color-base-900) !important;
 }
 body.portal-backend-dark .admin-app-index__back a:hover {
-  color: #93c5fd !important;
-  border-color: #93c5fd !important;
+  color: var(--color-primary-300) !important;
+  border-color: var(--color-primary-300) !important;
 }
 
 /* ----- Changelist (list views): full theme – no white body ----- */
@@ -211,8 +211,8 @@ body.portal-backend-dark .admin-empty-results a[href="?"] {
   border-color: var(--admin-border) !important;
 }
 body.portal-backend-dark .admin-empty-results a[href="?"]:hover {
-  color: #93c5fd !important;
-  border-color: #93c5fd !important;
+  color: var(--color-primary-300) !important;
+  border-color: var(--color-primary-300) !important;
 }
 
 /* Theme/actions bar: stay in frame, readable */
@@ -223,7 +223,7 @@ body.portal-backend-dark .admin-tab-actions-list a {
   border-color: var(--admin-border) !important;
 }
 body.portal-backend-dark .admin-tab-actions-list a:hover {
-  color: #93c5fd !important;
+  color: var(--color-primary-300) !important;
 }
 
 /* Changelist pagination and footer bar */
@@ -237,7 +237,7 @@ body.portal-backend-dark .pagination span {
   color: var(--admin-text) !important;
 }
 body.portal-backend-dark .pagination a:hover {
-  color: #93c5fd !important;
+  color: var(--color-primary-300) !important;
 }
 
 /* Sidebar search box and user dropdown – theme surface */
@@ -255,16 +255,16 @@ body.portal-backend-dark #nav-sidebar input {
 
 body.portal-backend-dark .page-wrap,
 body.portal-backend-dark #main-content {
-  background: #1e293b !important;
-  color: #e2e8f0 !important;
+  background: var(--color-base-800) !important;
+  color: var(--color-base-200) !important;
 }
 
 body.portal-backend-dark .card,
 body.portal-backend-dark .workflow-card,
 body.portal-backend-dark .workflow-hero {
-  background: #334155 !important;
+  background: var(--color-base-700) !important;
   border-color: rgba(148, 163, 184, 0.25) !important;
-  color: #e2e8f0 !important;
+  color: var(--color-base-200) !important;
 }
 
 body.portal-backend-dark .workflow-hero h2,
@@ -276,7 +276,7 @@ body.portal-backend-dark h3,
 body.portal-backend-dark h4,
 body.portal-backend-dark h5,
 body.portal-backend-dark h6 {
-  color: #f8fafc !important;
+  color: var(--color-base-50) !important;
 }
 
 /* Form labels and section labels */
@@ -286,44 +286,44 @@ body.portal-backend-dark .section-title,
 body.portal-backend-dark .trend-label,
 body.portal-backend-dark .metric-title,
 body.portal-backend-dark .metric-desc {
-  color: #cbd5e1 !important;
+  color: var(--color-base-300) !important;
 }
 
 /* Links: visible and readable */
 body.portal-backend-dark a:not(.nav-link):not(.dropdown-item):not(.btn) {
-  color: #93c5fd !important;
+  color: var(--color-primary-300) !important;
 }
 
 body.portal-backend-dark a:not(.nav-link):not(.dropdown-item):not(.btn):hover {
-  color: #bfdbfe !important;
+  color: var(--link-text-on-dark-hover) !important;
 }
 
 /* Sidebar: dark grey to match */
 body.portal-backend-dark .sidebar,
 body.portal-backend-dark .portal-sidebar-wrapper {
-  background: #0f172a !important;
+  background: var(--color-base-900) !important;
   border-color: rgba(148, 163, 184, 0.15) !important;
 }
 
 body.portal-backend-dark .sidebar .nav-link.nav-pill,
 body.portal-backend-dark .sidebar .sidebar-section-title,
 body.portal-backend-dark .sidebar .sidebar-info h6 {
-  color: #cbd5e1 !important;
+  color: var(--color-base-300) !important;
 }
 
 body.portal-backend-dark .sidebar .sidebar-info p {
-  color: #94a3b8 !important;
+  color: var(--color-base-400) !important;
 }
 
 body.portal-backend-dark .sidebar .nav-link.nav-pill:hover {
   background: rgba(148, 163, 184, 0.12) !important;
-  color: var(--school-primary, #a5b4fc) !important;
+  color: var(--school-primary, var(--color-indigo-300)) !important;
 }
 
 body.portal-backend-dark .sidebar .nav-link.nav-pill.active,
 body.portal-backend-dark .sidebar .nav-link.nav-pill[aria-current="page"] {
-  background: color-mix(in srgb, var(--school-primary, #6366f1) 25%, transparent) !important;
-  color: var(--school-primary, #a5b4fc) !important;
+  background: color-mix(in srgb, var(--school-primary, var(--color-indigo-500)) 25%, transparent) !important;
+  color: var(--school-primary, var(--color-indigo-300)) !important;
 }
 
 body.portal-backend-dark .sidebar .sidebar-header {
@@ -331,97 +331,97 @@ body.portal-backend-dark .sidebar .sidebar-header {
 }
 
 body.portal-backend-dark .sidebar-avatar {
-  background: linear-gradient(135deg, var(--school-primary, #6366f1), var(--school-accent, #22c55e)) !important;
+  background: linear-gradient(135deg, var(--school-primary, var(--color-indigo-500)), var(--school-accent, var(--color-green-500))) !important;
 }
 
 body.portal-backend-dark .breadcrumb,
 body.portal-backend-dark .breadcrumb-item a {
-  color: #b8c4d0 !important;
+  color: var(--color-base-350) !important;
 }
 
 body.portal-backend-dark .breadcrumb-item a:hover {
-  color: #e2e8f0 !important;
+  color: var(--color-base-200) !important;
 }
 
 body.portal-backend-dark .breadcrumb-item.active {
-  color: #f8fafc !important;
+  color: var(--color-base-50) !important;
 }
 
 body.portal-backend-dark .btn-outline-primary,
 body.portal-backend-dark .btn-outline-secondary {
   border-color: rgba(148, 163, 184, 0.5);
-  color: #cbd5e1;
+  color: var(--color-base-300);
 }
 
 body.portal-backend-dark .btn-outline-primary:hover,
 body.portal-backend-dark .btn-outline-secondary:hover {
   background: rgba(148, 163, 184, 0.15);
-  border-color: #94a3b8;
-  color: #f1f5f9;
+  border-color: var(--color-base-400);
+  color: var(--color-base-100);
 }
 
 body.portal-backend-dark .btn-primary {
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
-  border-color: #4f46e5;
-  color: #f1f5f9;
+  background: linear-gradient(135deg, var(--color-indigo-600), var(--color-indigo-500));
+  border-color: var(--color-indigo-600);
+  color: var(--color-base-100);
 }
 
 body.portal-backend-dark .btn-primary:hover {
-  background: linear-gradient(135deg, #4338ca, #4f46e5);
-  border-color: #4338ca;
-  color: #f1f5f9;
+  background: linear-gradient(135deg, var(--color-indigo-700), var(--color-indigo-600));
+  border-color: var(--color-indigo-700);
+  color: var(--color-base-100);
 }
 
 body.portal-backend-dark .nav-pill:hover,
 body.portal-backend-dark .nav-pill.active {
-  background: color-mix(in srgb, var(--school-primary, #6366f1) 20%, transparent) !important;
+  background: color-mix(in srgb, var(--school-primary, var(--color-indigo-500)) 20%, transparent) !important;
 }
 
 /* Badges: all readable on dark; never dark text on dark bg */
 body.portal-backend-dark .badge.bg-primary {
-  background: linear-gradient(135deg, #4f46e5, #6366f1) !important;
-  color: #f1f5f9 !important;
+  background: linear-gradient(135deg, var(--color-indigo-600), var(--color-indigo-500)) !important;
+  color: var(--color-base-100) !important;
 }
 
 body.portal-backend-dark .badge.bg-light,
 body.portal-backend-dark .badge.bg-secondary {
-  background: #475569 !important;
-  color: #f1f5f9 !important;
+  background: var(--color-base-600) !important;
+  color: var(--color-base-100) !important;
 }
 
 body.portal-backend-dark .badge.bg-success {
-  background: #059669 !important;
-  color: #f1f5f9 !important;
+  background: var(--color-emerald-600) !important;
+  color: var(--color-base-100) !important;
 }
 
 body.portal-backend-dark .badge.bg-warning,
 body.portal-backend-dark .badge.bg-warning.text-dark {
-  background: #d97706 !important;
-  color: #f1f5f9 !important;
+  background: var(--color-amber-600) !important;
+  color: var(--color-base-100) !important;
 }
 
 body.portal-backend-dark .badge.bg-danger {
-  background: #dc2626 !important;
-  color: #f1f5f9 !important;
+  background: var(--color-red-600) !important;
+  color: var(--color-base-100) !important;
 }
 
 body.portal-backend-dark .badge.bg-info {
-  background: #0891b2 !important;
-  color: #f1f5f9 !important;
+  background: var(--color-cyan-600) !important;
+  color: var(--color-base-100) !important;
 }
 
 body.portal-backend-dark .badge.bg-dark {
-  background: #64748b !important;
-  color: #f1f5f9 !important;
+  background: var(--color-base-500) !important;
+  color: var(--color-base-100) !important;
 }
 
 /* btn-link and small links */
 body.portal-backend-dark .btn-link {
-  color: #93c5fd !important;
+  color: var(--color-primary-300) !important;
 }
 
 body.portal-backend-dark .btn-link:hover {
-  color: #bfdbfe !important;
+  color: var(--link-text-on-dark-hover) !important;
 }
 
 /* Forms, inputs, tables */
@@ -432,21 +432,21 @@ body.portal-backend-dark .form-select,
 body.portal-backend-dark input,
 body.portal-backend-dark select,
 body.portal-backend-dark textarea {
-  background-color: #334155 !important;
-  color: #e2e8f0 !important;
+  background-color: var(--color-base-700) !important;
+  color: var(--color-base-200) !important;
   border-color: rgba(148, 163, 184, 0.3) !important;
 }
 
 body.portal-backend-dark .form-control::placeholder,
 body.portal-backend-dark input::placeholder,
 body.portal-backend-dark textarea::placeholder {
-  color: #94a3b8 !important;
+  color: var(--color-base-400) !important;
   opacity: 1;
 }
 
 /* Override any .text-dark so it stays readable */
 body.portal-backend-dark .text-dark {
-  color: #f1f5f9 !important;
+  color: var(--color-base-100) !important;
 }
 
 body.portal-backend-dark .list-group-item {
@@ -456,7 +456,7 @@ body.portal-backend-dark .list-group-item {
 body.portal-backend-dark .table,
 body.portal-backend-dark .table th,
 body.portal-backend-dark .table td {
-  color: #e2e8f0 !important;
+  color: var(--color-base-200) !important;
   border-color: rgba(148, 163, 184, 0.2) !important;
 }
 
@@ -465,8 +465,8 @@ body.portal-backend-dark .table-striped tbody tr:nth-of-type(odd) {
 }
 
 body.portal-backend-dark .table-light {
-  background: #334155 !important;
-  color: #e2e8f0 !important;
+  background: var(--color-base-700) !important;
+  color: var(--color-base-200) !important;
 }
 
 /* Dropdowns and page-wrap in dark mode */
@@ -474,85 +474,85 @@ html[data-bs-theme="dark"] body.portal-backend-dark .page-wrap,
 html[data-bs-theme="dark"] body.portal-backend-dark .dropdown-menu,
 html[data-bs-theme="light"] body.portal-backend-dark .page-wrap,
 html[data-bs-theme="light"] body.portal-backend-dark .dropdown-menu {
-  background: #334155 !important;
+  background: var(--color-base-700) !important;
   border-color: rgba(148, 163, 184, 0.2) !important;
-  color: #e2e8f0 !important;
+  color: var(--color-base-200) !important;
 }
 
 body.portal-backend-dark .dropdown-item {
-  color: #e2e8f0 !important;
+  color: var(--color-base-200) !important;
 }
 
 body.portal-backend-dark .dropdown-item:hover {
   background: rgba(99, 102, 241, 0.2) !important;
-  color: #f1f5f9 !important;
+  color: var(--color-base-100) !important;
 }
 
 /* Sidebar Recent Activity block (same dark sidebar surface) */
 body.portal-backend-dark .sidebar-activity-item {
   background: rgba(51, 65, 85, 0.5);
   border-left-color: rgba(99, 102, 241, 0.6);
-  color: #e2e8f0;
+  color: var(--color-base-200);
 }
 
 body.portal-backend-dark .sidebar-activity-item .small {
-  color: #b8c4d0 !important;
+  color: var(--color-base-350) !important;
 }
 
 body.portal-backend-dark .sidebar-activity-item .badge {
-  color: #f1f5f9 !important;
+  color: var(--color-base-100) !important;
 }
 
 /* Right sidebar (Copilot, etc.): card text readable */
 body.portal-backend-dark .backend-right-sidebar .card,
 body.portal-backend-dark .backend-right-sidebar .card-body {
-  background: #334155 !important;
-  color: #e2e8f0 !important;
+  background: var(--color-base-700) !important;
+  color: var(--color-base-200) !important;
 }
 
 body.portal-backend-dark .backend-right-sidebar .card h6,
 body.portal-backend-dark .backend-right-sidebar .card .small,
 body.portal-backend-dark .backend-right-sidebar .card .text-muted {
-  color: #cbd5e1 !important;
+  color: var(--color-base-300) !important;
 }
 
 body.portal-backend-dark .backend-right-sidebar .badge.bg-light,
 body.portal-backend-dark .backend-right-sidebar .badge.text-dark {
-  background: #475569 !important;
-  color: #f1f5f9 !important;
+  background: var(--color-base-600) !important;
+  color: var(--color-base-100) !important;
 }
 
 /* Alerts: keep message and description text visible on dark */
 body.portal-backend-dark .alert,
 body.portal-backend-dark .alert strong,
 body.portal-backend-dark .alert .text-muted {
-  color: #e2e8f0 !important;
+  color: var(--color-base-200) !important;
 }
 
 /* Admin nav bridge: theme-aware so it doesn't clash with dark backend */
 body.portal-backend-dark .admin-nav-bridge {
-  background: linear-gradient(90deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
+  background: linear-gradient(90deg, var(--color-base-900) 0%, var(--color-base-800) 50%, var(--color-base-700) 100%) !important;
   border-bottom-color: rgba(148, 163, 184, 0.2) !important;
 }
 body.portal-backend-dark .admin-nav-bridge__brand,
 body.portal-backend-dark .admin-nav-bridge__location {
-  color: #e2e8f0 !important;
+  color: var(--color-base-200) !important;
 }
 body.portal-backend-dark .admin-nav-bridge__switch-btn {
-  background: #475569 !important;
-  color: #f1f5f9 !important;
+  background: var(--color-base-600) !important;
+  color: var(--color-base-100) !important;
   border: 1px solid rgba(148, 163, 184, 0.3) !important;
 }
 body.portal-backend-dark .admin-nav-bridge__switch-btn:hover {
-  background: #64748b !important;
-  color: #f1f5f9 !important;
+  background: var(--color-base-500) !important;
+  color: var(--color-base-100) !important;
 }
 body.portal-backend-dark .admin-nav-bridge__home-btn {
   background: rgba(148, 163, 184, 0.15) !important;
   border-color: rgba(148, 163, 184, 0.3) !important;
-  color: #e2e8f0 !important;
+  color: var(--color-base-200) !important;
 }
 body.portal-backend-dark .admin-nav-bridge__home-btn:hover {
   background: rgba(148, 163, 184, 0.25) !important;
-  color: #f1f5f9 !important;
+  color: var(--color-base-100) !important;
 }

@@ -340,10 +340,6 @@ urlpatterns = [
     ),
     path("marketplace/", include("apps.marketplace.tenant_urls")),
     path(
-        "api/internal/metadata/",
-        include(("apps.metadata.urls", "metadata"), namespace="metadata"),
-    ),
-    path(
         "api/internal/click-tracking/",
         record_click_event,
         name="record_click_event",

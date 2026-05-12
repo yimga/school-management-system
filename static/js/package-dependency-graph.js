@@ -11,6 +11,13 @@
     return Math.max(a, Math.min(b, n));
   }
 
+  function tok(name, fallback) {
+    try {
+      var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return v || fallback;
+    } catch (_e) { return fallback; }
+  }
+
   function sanitizeId(s) {
     return String(s || "").replace(/[^a-zA-Z0-9_-]/g, "_");
   }
@@ -56,13 +63,13 @@
     marker.setAttribute("orient", "auto");
     var mp = document.createElementNS("http://www.w3.org/2000/svg", "path");
     mp.setAttribute("d", "M0,0 L8,4 L0,8 z");
-    mp.setAttribute("fill", "#64748b");
+    mp.setAttribute("fill", tok("--color-base-500", "#64748b"));
     marker.appendChild(mp);
     defs.appendChild(marker);
     svg.appendChild(defs);
 
     var edges = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    edges.setAttribute("stroke", "#94a3b8");
+    edges.setAttribute("stroke", tok("--color-base-400", "#94a3b8"));
     edges.setAttribute("stroke-width", "1.5");
     edges.setAttribute("fill", "none");
     edges.setAttribute("marker-end", "url(#" + markerId + ")");
@@ -83,8 +90,8 @@
       rect.setAttribute("rx", "6");
       rect.setAttribute("width", nodeW);
       rect.setAttribute("height", nodeH);
-      rect.setAttribute("fill", fill || "#f1f5f9");
-      rect.setAttribute("stroke", stroke || "#64748b");
+      rect.setAttribute("fill", fill || tok("--color-base-100", "#f1f5f9"));
+      rect.setAttribute("stroke", stroke || tok("--color-base-500", "#64748b"));
       rect.setAttribute("stroke-width", "1");
       rect.setAttribute("id", "n-" + sanitizeId(id) + "-" + markerId);
 
@@ -94,7 +101,7 @@
       text.setAttribute("text-anchor", "middle");
       text.setAttribute("font-size", "10");
       text.setAttribute("font-family", "system-ui, sans-serif");
-      text.setAttribute("fill", "#0f172a");
+      text.setAttribute("fill", tok("--color-base-900", "#0f172a"));
       var display =
         String(label).length > 18
           ? String(label).slice(0, 16) + "…"

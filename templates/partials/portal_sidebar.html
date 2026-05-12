@@ -72,95 +72,95 @@
         {% endif %}
       {% endfor %}
     {% else %}
-      <div class="sidebar-section-title">Home</div>
-      <a class="nav-link nav-pill" href="{% url 'accounts:redirect' %}" title="Command Center">
-        <i class="bi bi-speedometer2 me-2"></i>Command Center
+      <div class="sidebar-section-title">{% trans "Home" %}</div>
+      <a class="nav-link nav-pill" href="{% url 'accounts:redirect' %}" title="{% trans 'Command Center' %}">
+        <i class="bi bi-speedometer2 me-2"></i>{% trans "Command Center" %}
       </a>
-      <div class="sidebar-section-title">Account</div>
-      <a class="nav-link nav-pill" href="{% url 'accounts:user_profile' %}" title="My Profile">
-        <i class="bi bi-person me-2"></i>My Profile
+      <div class="sidebar-section-title">{% trans "Account" %}</div>
+      <a class="nav-link nav-pill" href="{% url 'accounts:user_profile' %}" title="{% trans 'My Profile' %}">
+        <i class="bi bi-person me-2"></i>{% trans "My Profile" %}
       </a>
-      <a class="nav-link nav-pill" href="{% url 'siteconfig:user_preferences' %}" title="Preferences">
-        <i class="bi bi-sliders me-2"></i>Preferences
+      <a class="nav-link nav-pill" href="{% url 'siteconfig:user_preferences' %}" title="{% trans 'Preferences' %}">
+        <i class="bi bi-sliders me-2"></i>{% trans "Preferences" %}
       </a>
-      <a class="nav-link nav-pill" href="{% url 'accounts:user_notifications' %}" title="Notifications">
-        <i class="bi bi-bell me-2"></i>Notifications
+      <a class="nav-link nav-pill" href="{% url 'accounts:user_notifications' %}" title="{% trans 'Notifications' %}">
+        <i class="bi bi-bell me-2"></i>{% trans "Notifications" %}
       </a>
-      <a class="nav-link nav-pill" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}" title="Knowledge Base">
-        <i class="bi bi-journal-text me-2"></i>Knowledge Base
+      <a class="nav-link nav-pill" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}" title="{% trans 'Knowledge Base' %}">
+        <i class="bi bi-journal-text me-2"></i>{% trans "Knowledge Base" %}
       </a>
       {% if request.user.role == 'TEACHER' %}
-        <div class="sidebar-section-title">Communication</div>
+        <div class="sidebar-section-title">{% trans "Communication" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_feed' %}"><i class="bi bi-newspaper me-2"></i>{% trans "Feed" %}</a>
         <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
-          <span><i class="bi bi-chat-dots me-2"></i>Messages</span>
+          <span><i class="bi bi-chat-dots me-2"></i>{% trans "Messages" %}</span>
           {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
         </a>
-        <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}"><i class="bi bi-people me-2"></i>Message Groups</a>
+        <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}"><i class="bi bi-people me-2"></i>{% trans "Message Groups" %}</a>
       {% elif request.user.role == 'PARENT' %}
-        <div class="sidebar-section-title">Communication</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-envelope-paper me-2"></i>Contact School</a>
+        <div class="sidebar-section-title">{% trans "Communication" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-envelope-paper me-2"></i>{% trans "Contact School" %}</a>
       {% elif request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
-        <div class="sidebar-section-title">Communication</div>
+        <div class="sidebar-section-title">{% trans "Communication" %}</div>
         <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
-          <span><i class="bi bi-chat-dots me-2"></i>Messages</span>
+          <span><i class="bi bi-chat-dots me-2"></i>{% trans "Messages" %}</span>
           {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
         </a>
-        <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}"><i class="bi bi-people me-2"></i>Message Groups</a>
+        <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}"><i class="bi bi-people me-2"></i>{% trans "Message Groups" %}</a>
         {% if can_access_school_wide_announcement_create %}
-        <a class="nav-link nav-pill" href="{% url 'communication:announcement_create' %}"><i class="bi bi-megaphone me-2"></i>School-wide Announcements</a>
+        <a class="nav-link nav-pill" href="{% url 'communication:announcement_create' %}"><i class="bi bi-megaphone me-2"></i>{% trans "School-wide Announcements" %}</a>
         {% endif %}
         {% if can_create_school_wide_announcement %}
-        <a class="nav-link nav-pill" href="{% url 'communication:announcement_list_pending' %}"><i class="bi bi-hourglass-split me-2"></i>Pending approval</a>
+        <a class="nav-link nav-pill" href="{% url 'communication:announcement_list_pending' %}"><i class="bi bi-hourglass-split me-2"></i>{% trans "Pending approval" %}</a>
         {% endif %}
       {% endif %}
       {% if request.user.role == 'TEACHER' %}
-        <div class="sidebar-section-title">Communication</div>
-        <a class="nav-link nav-pill" href="{% url 'communication:class_announcement_create' %}"><i class="bi bi-journal-text me-2"></i>Class Announcement</a>
-        <div class="sidebar-section-title">My Workflow</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:teacher_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>My Workflow</a>
-        <div class="sidebar-section-title">Teacher Workspace</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:teacher_dashboard_alias' %}"><i class="bi bi-grid me-2"></i>Assigned Classes</a>
-        <a class="nav-link nav-pill" href="{% url 'academics:teacher_syllabus_hub' %}"><i class="bi bi-journal-richtext me-2"></i>Course Syllabi</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:portal_syllabus' %}"><i class="bi bi-journal-bookmark me-2"></i>Syllabus Coverage</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:teacher_lesson_notes' %}"><i class="bi bi-journal-text me-2"></i>Lesson Notes</a>
-        <a class="nav-link nav-pill" href="{% url 'evals:teacher_marks_entry' %}"><i class="bi bi-pencil-square me-2"></i>Enter Marks</a>
-        <a class="nav-link nav-pill" href="{% url 'evals:teacher_marks_list' %}"><i class="bi bi-table me-2"></i>Gradebook / Marks</a>
-        <div class="sidebar-section-title">Operational Tasks</div>
+        <div class="sidebar-section-title">{% trans "Communication" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'communication:class_announcement_create' %}"><i class="bi bi-journal-text me-2"></i>{% trans "Class Announcement" %}</a>
+        <div class="sidebar-section-title">{% trans "My Workflow" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>{% trans "My Workflow" %}</a>
+        <div class="sidebar-section-title">{% trans "Teacher Workspace" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_dashboard_alias' %}"><i class="bi bi-grid me-2"></i>{% trans "Assigned Classes" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'academics:teacher_syllabus_hub' %}"><i class="bi bi-journal-richtext me-2"></i>{% trans "Course Syllabi" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:portal_syllabus' %}"><i class="bi bi-journal-bookmark me-2"></i>{% trans "Syllabus Coverage" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_lesson_notes' %}"><i class="bi bi-journal-text me-2"></i>{% trans "Lesson Notes" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'evals:teacher_marks_entry' %}"><i class="bi bi-pencil-square me-2"></i>{% trans "Enter Marks" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'evals:teacher_marks_list' %}"><i class="bi bi-table me-2"></i>{% trans "Gradebook / Marks" %}</a>
+        <div class="sidebar-section-title">{% trans "Operational Tasks" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_bulk_capture_hub' %}"><i class="bi bi-phone me-2"></i>{% trans "Bulk capture" %}</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:teacher_timetable' %}"><i class="bi bi-calendar-week me-2"></i>Timetable</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:teacher_attendance' %}"><i class="bi bi-clipboard-check me-2"></i>Attendance</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:teacher_disciplinary' %}"><i class="bi bi-shield-exclamation me-2"></i>Disciplinary</a>
-        <div class="sidebar-section-title">HR &amp; Professional Growth</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:teacher_wellness' %}"><i class="bi bi-heart me-2"></i>Wellness</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:teacher_hr_status' %}"><i class="bi bi-person-badge me-2"></i>HR &amp; Status</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:teacher_training_log' %}"><i class="bi bi-journal-check me-2"></i>Training Log</a>
-        <a class="nav-link nav-pill" href="{% url 'payroll:employee_payslips' %}"><i class="bi bi-wallet2 me-2"></i>Payslips</a>
-        <a class="nav-link nav-pill" href="{% url 'payroll:employee_leave' %}"><i class="bi bi-calendar-check me-2"></i>Leave Requests</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:teacher_pay_history' %}"><i class="bi bi-receipt me-2"></i>Pay History</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_timetable' %}"><i class="bi bi-calendar-week me-2"></i>{% trans "Timetable" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_attendance' %}"><i class="bi bi-clipboard-check me-2"></i>{% trans "Attendance" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_disciplinary' %}"><i class="bi bi-shield-exclamation me-2"></i>{% trans "Disciplinary" %}</a>
+        <div class="sidebar-section-title">{% trans "HR & Professional Growth" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_wellness' %}"><i class="bi bi-heart me-2"></i>{% trans "Wellness" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_hr_status' %}"><i class="bi bi-person-badge me-2"></i>{% trans "HR & Status" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_training_log' %}"><i class="bi bi-journal-check me-2"></i>{% trans "Training Log" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'payroll:employee_payslips' %}"><i class="bi bi-wallet2 me-2"></i>{% trans "Payslips" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'payroll:employee_leave' %}"><i class="bi bi-calendar-check me-2"></i>{% trans "Leave Requests" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_pay_history' %}"><i class="bi bi-receipt me-2"></i>{% trans "Pay History" %}</a>
       {% elif request.user.role == 'PARENT' %}
-        <div class="sidebar-section-title">Home</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-house me-2"></i>Family Home</a>
-        <div class="sidebar-section-title">My Workflow</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>My Workflow</a>
-        <div class="sidebar-section-title">Student Overview</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}#children"><i class="bi bi-people me-2"></i>My Children</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_medal_case' %}"><i class="bi bi-award me-2"></i>Medal case</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_attendance_discipline' %}"><i class="bi bi-clipboard-check me-2"></i>Attendance &amp; Discipline</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>Portal Stats</a>
-        <div class="sidebar-section-title">Finance</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_finance' %}"><i class="bi bi-cash-coin me-2"></i>Finance</a>
+        <div class="sidebar-section-title">{% trans "Home" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-house me-2"></i>{% trans "Family Home" %}</a>
+        <div class="sidebar-section-title">{% trans "My Workflow" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>{% trans "My Workflow" %}</a>
+        <div class="sidebar-section-title">{% trans "Student Overview" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}#children"><i class="bi bi-people me-2"></i>{% trans "My Children" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_medal_case' %}"><i class="bi bi-award me-2"></i>{% trans "Medal case" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_attendance_discipline' %}"><i class="bi bi-clipboard-check me-2"></i>{% trans "Attendance & Discipline" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>{% trans "Portal Stats" %}</a>
+        <div class="sidebar-section-title">{% trans "Finance" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_finance' %}"><i class="bi bi-cash-coin me-2"></i>{% trans "Finance" %}</a>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_wallet' %}"><i class="bi bi-wallet2 me-2"></i>{% trans "Wallet" %}</a>
-        <div class="sidebar-section-title">Calendar &amp; Homework</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:unified_calendar' %}"><i class="bi bi-calendar3 me-2"></i>Calendar</a>
-        <div class="sidebar-section-title">Communication</div>
+        <div class="sidebar-section-title">{% trans "Calendar & Homework" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:unified_calendar' %}"><i class="bi bi-calendar3 me-2"></i>{% trans "Calendar" %}</a>
+        <div class="sidebar-section-title">{% trans "Communication" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_feed' %}"><i class="bi bi-newspaper me-2"></i>{% trans "Feed" %}</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-envelope-paper me-2"></i>Messages</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-megaphone me-2"></i>Announcements</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-file-earmark-text me-2"></i>Documents</a>
-        <div class="sidebar-section-title">Account</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:link_child' %}"><i class="bi bi-link-45deg me-2"></i>Link a child</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:claim_invite' %}"><i class="bi bi-ticket me-2"></i>Claim invite</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-envelope-paper me-2"></i>{% trans "Messages" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-megaphone me-2"></i>{% trans "Announcements" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-file-earmark-text me-2"></i>{% trans "Documents" %}</a>
+        <div class="sidebar-section-title">{% trans "Account" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:link_child' %}"><i class="bi bi-link-45deg me-2"></i>{% trans "Link a child" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:claim_invite' %}"><i class="bi bi-ticket me-2"></i>{% trans "Claim invite" %}</a>
       {% elif request.user.role != 'TEACHER' %}
         {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' or request.user.role == 'IT_ADMIN' %}
         {% comment %}RBAC: staff sections; Admin Panel last (includes Site Settings, Region Configuration). No duplicate sections.{% endcomment %}
@@ -172,56 +172,56 @@
         <a class="nav-link nav-pill" href="{{ school_configuration_url }}"><i class="bi bi-sliders me-2"></i>{% trans "School Configuration" %}</a>
         {% endif %}
         {% endif %}
-        <div class="sidebar-section-title">Support</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:staff_contact_request_list' %}"><i class="bi bi-inbox me-2"></i>Contact Requests</a>
+        <div class="sidebar-section-title">{% trans "Support" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:staff_contact_request_list' %}"><i class="bi bi-inbox me-2"></i>{% trans "Contact Requests" %}</a>
         {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser or SITE and SITE.portal_features and SITE.portal_features.documents and request.user|has_feature_permission:"portal.documents" %}
-        <div class="sidebar-section-title">Content &amp; Documents</div>
+        <div class="sidebar-section-title">{% trans "Content & Documents" %}</div>
         {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
-        <a class="nav-link nav-pill" href="{% url 'portal:document_library_manage' %}"><i class="bi bi-folder2-open me-2"></i>Document Library Manager</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:signature_requests_manage' %}"><i class="bi bi-pen me-2"></i>Signature Requests</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:document_library_manage' %}"><i class="bi bi-folder2-open me-2"></i>{% trans "Document Library Manager" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:signature_requests_manage' %}"><i class="bi bi-pen me-2"></i>{% trans "Signature Requests" %}</a>
         {% endif %}
         {% if SITE and SITE.portal_features and SITE.portal_features.documents and request.user|has_feature_permission:"portal.documents" %}
-        <a class="nav-link nav-pill" href="{% url 'portal:portal_feature' 'documents' %}"><i class="bi bi-file-earmark-text me-2"></i>Documents</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:portal_feature' 'documents' %}"><i class="bi bi-file-earmark-text me-2"></i>{% trans "Documents" %}</a>
         {% endif %}
         {% endif %}
-        <div class="sidebar-section-title">People & Access</div>
-        <a class="nav-link nav-pill" href="{% url 'accounts:backend_student_list' %}"><i class="bi bi-person-lines-fill me-2"></i>Student Profiles</a>
+        <div class="sidebar-section-title">{% trans "People & Access" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'accounts:backend_student_list' %}"><i class="bi bi-person-lines-fill me-2"></i>{% trans "Student Profiles" %}</a>
         {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
         <a class="nav-link nav-pill" href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-gear-wide me-2"></i>{% trans "Config center" %}</a>
         {% endif %}
-        <a class="nav-link nav-pill" href="{% url 'accounts:rbac' %}"><i class="bi bi-diagram-3 me-2"></i>RBAC & Access Control</a>
-        <div class="sidebar-section-title">Academic Management</div>
-        <a class="nav-link nav-pill" href="{% url 'evals:evaluation_admin' %}"><i class="bi bi-clipboard-data me-2"></i>Evaluation Admin</a>
-        <a class="nav-link nav-pill" href="{% url 'evals:class_ranking' %}"><i class="bi bi-trophy me-2"></i>Class Ranking</a>
-        <a class="nav-link nav-pill" href="{% url 'evals:school_ranking' %}"><i class="bi bi-bar-chart-line me-2"></i>School Ranking</a>
-        <a class="nav-link nav-pill" href="{% url 'reports:publish_term_results' %}"><i class="bi bi-megaphone me-2"></i>Publish Results</a>
-        <a class="nav-link nav-pill" href="{% url 'accounts:certification_home' %}"><i class="bi bi-award me-2"></i>Certification &amp; Exams</a>
-        <div class="sidebar-section-title">Financial Management</div>
-        <a class="nav-link nav-pill" href="{% url 'finance:dashboard' %}"><i class="bi bi-currency-exchange me-2"></i>Money Center</a>
-        <a class="nav-link nav-pill" href="{% url 'payroll:dashboard' %}"><i class="bi bi-cash-stack me-2"></i>Payroll</a>
-        <div class="sidebar-section-title">Analytics & Reports</div>
-        <a class="nav-link nav-pill" href="{% url 'analytics:dashboard' %}"><i class="bi bi-graph-up-arrow me-2"></i>Insights Center</a>
-        <a class="nav-link nav-pill" href="{% url 'studio_os:output' %}"><i class="bi bi-journal-text me-2"></i>Report Library</a>
-        <a class="nav-link nav-pill" href="{% url 'siteconfig:reportcard_builder' %}"><i class="bi bi-file-earmark-richtext me-2"></i>Report Card Builder</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>Portal Stats</a>
-        <div class="sidebar-section-title">Admin Panel</div>
+        <a class="nav-link nav-pill" href="{% url 'accounts:rbac' %}"><i class="bi bi-diagram-3 me-2"></i>{% trans "RBAC & Access Control" %}</a>
+        <div class="sidebar-section-title">{% trans "Academic Management" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'evals:evaluation_admin' %}"><i class="bi bi-clipboard-data me-2"></i>{% trans "Evaluation Admin" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'evals:class_ranking' %}"><i class="bi bi-trophy me-2"></i>{% trans "Class Ranking" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'evals:school_ranking' %}"><i class="bi bi-bar-chart-line me-2"></i>{% trans "School Ranking" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'reports:publish_term_results' %}"><i class="bi bi-megaphone me-2"></i>{% trans "Publish Results" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'accounts:certification_home' %}"><i class="bi bi-award me-2"></i>{% trans "Certification & Exams" %}</a>
+        <div class="sidebar-section-title">{% trans "Financial Management" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'finance:dashboard' %}"><i class="bi bi-currency-exchange me-2"></i>{% trans "Money Center" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'payroll:dashboard' %}"><i class="bi bi-cash-stack me-2"></i>{% trans "Payroll" %}</a>
+        <div class="sidebar-section-title">{% trans "Analytics & Reports" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'analytics:dashboard' %}"><i class="bi bi-graph-up-arrow me-2"></i>{% trans "Insights Center" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'studio_os:output' %}"><i class="bi bi-journal-text me-2"></i>{% trans "Report Library" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'siteconfig:reportcard_builder' %}"><i class="bi bi-file-earmark-richtext me-2"></i>{% trans "Report Card Builder" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>{% trans "Portal Stats" %}</a>
+        <div class="sidebar-section-title">{% trans "Admin Panel" %}</div>
         {% if can_customize_dashboard %}
-        <a class="nav-link nav-pill js-dashboard-layout-sidebar-link" href="{{ dashboard_layout_link }}" title="Arrange widgets, resize, and set chart styles">
-          <i class="bi bi-grid-3x3-gap me-2"></i>Dashboard Layout
+        <a class="nav-link nav-pill js-dashboard-layout-sidebar-link" href="{{ dashboard_layout_link }}" title="{% trans 'Arrange widgets, resize, and set chart styles' %}">
+          <i class="bi bi-grid-3x3-gap me-2"></i>{% trans "Dashboard Layout" %}
         </a>
         {% endif %}
-        <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-gear-fill me-2"></i>School Command Center</a>
-        <a class="nav-link nav-pill" href="{% url 'studio_os:workflow_center' %}"><i class="bi bi-diagram-3 me-2"></i>Automation Studio</a>
-        <a class="nav-link nav-pill" href="{% url 'studio_os:approval_hub' %}"><i class="bi bi-clipboard-check me-2"></i>Approval Hub</a>
-        <a class="nav-link nav-pill" href="{% url 'academics:syllabus_approval_queue' %}"><i class="bi bi-journal-check me-2"></i>Syllabus Approvals</a>
-        <a class="nav-link nav-pill" href="{% url 'studio_os:import_hub' %}"><i class="bi bi-upload me-2"></i>Import Hub</a>
+        <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-gear-fill me-2"></i>{% trans "School Command Center" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'studio_os:workflow_center' %}"><i class="bi bi-diagram-3 me-2"></i>{% trans "Automation Studio" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'studio_os:approval_hub' %}"><i class="bi bi-clipboard-check me-2"></i>{% trans "Approval Hub" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'academics:syllabus_approval_queue' %}"><i class="bi bi-journal-check me-2"></i>{% trans "Syllabus Approvals" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'studio_os:import_hub' %}"><i class="bi bi-upload me-2"></i>{% trans "Import Hub" %}</a>
         {% if request.user.is_superuser or request.user|has_feature_permission:"settings.feature_control" %}
-        <a class="nav-link nav-pill" href="{% url 'siteconfig:feature_control_panel' %}"><i class="bi bi-toggle-on me-2"></i>Feature Control</a>
-        <a class="nav-link nav-pill" href="{% url 'siteconfig:feature_control_audit' %}"><i class="bi bi-clock-history me-2"></i>Feature Control Audit</a>
+        <a class="nav-link nav-pill" href="{% url 'siteconfig:feature_control_panel' %}"><i class="bi bi-toggle-on me-2"></i>{% trans "Feature Control" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'siteconfig:feature_control_audit' %}"><i class="bi bi-clock-history me-2"></i>{% trans "Feature Control Audit" %}</a>
         {% endif %}
         {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
-        <a class="nav-link nav-pill" href="{% url 'studio_os:experience' %}"><i class="bi bi-palette me-2"></i>Customizer</a>
-        <a class="nav-link nav-pill" href="{% url 'siteconfig:request_custom_requirement' %}"><i class="bi bi-lightning-charge me-2"></i>Request custom requirement</a>
+        <a class="nav-link nav-pill" href="{% url 'studio_os:experience' %}"><i class="bi bi-palette me-2"></i>{% trans "Customizer" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'siteconfig:request_custom_requirement' %}"><i class="bi bi-lightning-charge me-2"></i>{% trans "Request custom requirement" %}</a>
         {% endif %}
         {% if SUPER_ADMIN_UI_ENABLED and request.public_host_kind == 'manager' %}{% if request.user.is_superuser or request.user.role == "SUPERADMIN" %}
         <a class="nav-link nav-pill" href="{% url 'super:dashboard' %}"><i class="bi bi-building me-2"></i>{% trans "Schools" %}</a>
@@ -234,8 +234,8 @@
     {% comment %}RBAC: Recent Activity shows other users' actions; hide for teachers and parents to avoid leaking info.{% endcomment %}
     {% if request.user.role != 'TEACHER' and request.user.role != 'PARENT' %}
     <div class="sidebar-collapsible mt-3 recent-activity-block">
-      <div class="sidebar-collapsible-header recent-activity-toggle" role="button" aria-expanded="true" title="Click to expand or collapse">
-        <span>Recent Activity</span>
+      <div class="sidebar-collapsible-header recent-activity-toggle" role="button" aria-expanded="true" title="{% trans 'Click to expand or collapse' %}">
+        <span>{% trans "Recent Activity" %}</span>
         <i class="bi bi-chevron-down ms-1 recent-activity-chevron" aria-hidden="true"></i>
       </div>
       <div class="sidebar-collapsible-content recent-activity-content">
@@ -245,11 +245,11 @@
             <li class="sidebar-activity-item px-2 py-1 rounded mb-1" style="border-left: 3px solid color-mix(in srgb, var(--stat-admin) 50%, transparent); padding-left: 0.6rem !important;">
               <span class="fw-semibold d-block" style="font-size: 0.8rem;">{{ activity.user.username }}</span>
               <span class="small text-muted">{{ activity.action }} {{ activity.model }}</span>
-              <span class="badge bg-secondary ms-1" style="font-size: 0.65rem;">{{ activity.time_ago }} ago</span>
+              <span class="badge bg-secondary ms-1" style="font-size: 0.65rem;">{% blocktrans with ago=activity.time_ago %}{{ ago }} ago{% endblocktrans %}</span>
             </li>
           {% endfor %}
         {% else %}
-          <li class="text-muted small px-2">Loading activity...</li>
+          <li class="text-muted small px-2">{% trans "Loading activity..." %}</li>
         {% endif %}
       </ul>
       </div>
@@ -266,16 +266,16 @@
   {% if portal_cfg %}
   {% comment %}Per-feature RBAC: show Portal Tools section only for Community and Video Hub (Documents moved to Content & Documents).{% endcomment %}
   {% if portal_cfg.forums and request.user|has_feature_permission:"portal.forums" or portal_cfg.video and request.user|has_feature_permission:"portal.video" %}
-    <div class="sidebar-section-title mt-4">Portal Tools</div>
+    <div class="sidebar-section-title mt-4">{% trans "Portal Tools" %}</div>
     <div class="nav flex-column gap-0">
       {% if portal_cfg.forums and request.user|has_feature_permission:"portal.forums" %}
         <a class="nav-link nav-pill" href="{% url 'portal:portal_feature' 'forums' %}">
-          <i class="bi bi-people me-2"></i>Community
+          <i class="bi bi-people me-2"></i>{% trans "Community" %}
         </a>
       {% endif %}
       {% if portal_cfg.video and request.user|has_feature_permission:"portal.video" %}
         <a class="nav-link nav-pill" href="{% url 'portal:portal_feature' 'video' %}">
-          <i class="bi bi-camera-video me-2"></i>Video Hub
+          <i class="bi bi-camera-video me-2"></i>{% trans "Video Hub" %}
         </a>
       {% endif %}
     </div>
@@ -286,31 +286,31 @@
 {% endif %}
 
 {% if not PORTAL_SIDEBAR_ITEMS and request.user.is_authenticated %}
-<div class="sidebar-section-title mt-4">Help &amp; Support</div>
+<div class="sidebar-section-title mt-4">{% trans "Help & Support" %}</div>
 <div class="nav flex-column gap-0">
   <a class="nav-link nav-pill" href="{% url 'kb:kb_home' %}">
-    <i class="bi bi-book me-2"></i>Knowledge Base
+    <i class="bi bi-book me-2"></i>{% trans "Knowledge Base" %}
   </a>
   <a class="nav-link nav-pill" href="{% url 'kb:faq_list' %}">
-    <i class="bi bi-question-circle me-2"></i>FAQs
+    <i class="bi bi-question-circle me-2"></i>{% trans "FAQs" %}
   </a>
   <a class="nav-link nav-pill" href="{% url 'kb:kb_search' %}">
-    <i class="bi bi-search me-2"></i>Search Help
+    <i class="bi bi-search me-2"></i>{% trans "Search Help" %}
   </a>
   <a class="nav-link nav-pill" href="{% url 'kb:user_contributions' %}">
-    <i class="bi bi-trophy me-2"></i>My Contributions
+    <i class="bi bi-trophy me-2"></i>{% trans "My Contributions" %}
   </a>
   {% if request.user.is_staff %}
-    <a class="nav-link nav-pill" href="/admin/"><i class="bi bi-shield-lock me-2"></i>Open Admin</a>
+    <a class="nav-link nav-pill" href="/admin/"><i class="bi bi-shield-lock me-2"></i>{% trans "Open Admin" %}</a>
   {% endif %}
 </div>
 {% endif %}
 
 <!-- Portal Stats for teachers (static sidebar); staff get it under Analytics & Reports. -->
 {% if not PORTAL_SIDEBAR_ITEMS and request.user.is_authenticated and request.user.role == 'TEACHER' %}
-<div class="sidebar-section-title mt-4">Settings</div>
+<div class="sidebar-section-title mt-4">{% trans "Settings" %}</div>
 <div class="nav flex-column gap-0">
-  <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>Portal Stats</a>
+  <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>{% trans "Portal Stats" %}</a>
 </div>
 {% endif %}
 

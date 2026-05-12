@@ -3041,382 +3041,382 @@ a.card:hover {
 
 </style>
   <style data-source="/static/css/design-tokens-luxury.css">
-/**
- * Final luxury token contract (quiet, restrained, platform-wide).
- * This file is the canonical contract for spacing/type/radius/shadow/surface/motion.
- * Legacy variables are kept as aliases to avoid breakage while converging older layers.
- */
-:root {
-  /* -------------------------------------------------------------------------- */
-  /* Canonical luxury contract                                                   */
-  /* -------------------------------------------------------------------------- */
-
-  /* Spacing */
-  --lux-space-1: 0.25rem;
-  --lux-space-2: 0.5rem;
-  --lux-space-3: 0.75rem;
-  --lux-space-4: 1rem;
-  --lux-space-5: 1.25rem;
-  --lux-space-6: 1.5rem;
-  --lux-space-7: 2rem;
-  --lux-space-8: 2.5rem;
-  --lux-space-9: 3rem;
-  --lux-space-10: 4rem;
-  --lux-space-11: 5rem;
-  --lux-space-12: 6rem;
-
-  /* Typography */
-  --lux-type-xs: 0.75rem;
-  --lux-type-sm: 0.875rem;
-  --lux-type-md: 1rem;
-  --lux-type-lg: 1.125rem;
-  --lux-type-xl: 1.375rem;
-  --lux-type-2xl: 1.75rem;
-  --lux-type-3xl: 2.25rem;
-  --lux-type-display: clamp(2.25rem, 4vw, 3.25rem);
-
-  /* Radius */
-  --lux-radius-sm: 0.375rem;
-  --lux-radius-md: 0.5rem;
-  --lux-radius-lg: 0.75rem;
-  --lux-radius-xl: 1rem;
-  --lux-radius-2xl: 1.25rem;
-
-  /* Shadows (quiet luxury: no aggressive bloom) */
-  --lux-shadow-hairline: 0 0 0 1px rgba(15, 23, 42, 0.08);
-  --lux-shadow-elevated: 0 6px 18px rgba(15, 23, 42, 0.08);
-  --lux-shadow-floating: 0 14px 30px rgba(15, 23, 42, 0.12);
-
-  /* Surfaces */
-  --lux-surface-base: #ffffff;
-  --lux-surface-elevated: #f8fafc;
-  --lux-surface-muted: #f1f5f9;
-
-  /* Motion (calm; long durations only for explicit decorative use; keep 150–250ms band) */
-  --lux-motion-fast: 160ms ease;
-  --lux-motion-base: 220ms ease;
-  --lux-motion-slow: 360ms ease;
-
-  /* Palette */
-  --lux-color-ink: #0f172a;
-  --lux-color-ink-muted: #475569;
-  --lux-color-border: rgba(15, 23, 42, 0.12);
-  --lux-color-border-strong: rgba(15, 23, 42, 0.2);
-  --lux-color-accent: #0f172a;
-  --lux-color-accent-contrast: #ffffff;
-  /* Highlight follows tenant accent (was hardcoded gold #d4af37 — single-tenant residue).
-     Keep a fallback that works on white surfaces if --school-accent is unset. */
-  --lux-color-highlight: var(--school-accent, #10b981);
-
-  /* -------------------------------------------------------------------------- */
-  /* Legacy aliases (compatibility bridge)                                      */
-  /* -------------------------------------------------------------------------- */
-  --luxury-rich-black: var(--lux-color-ink);
-  --luxury-gallery-white: var(--lux-surface-base);
-  --luxury-platinum: #e5e7eb;
-  --luxury-text: var(--lux-color-ink);
-  --luxury-text-muted: var(--lux-color-ink-muted);
-  --luxury-primary: var(--lux-color-accent);
-  --luxury-primary-invert: var(--lux-color-accent-contrast);
-  --luxury-accent: var(--lux-color-highlight);
-  --luxury-accent-alt: var(--lux-color-accent);
-  --luxury-border: var(--lux-color-border);
-  --luxury-border-strong: var(--lux-color-border-strong);
-
-  --luxury-section-padding: var(--lux-space-9);
-  --luxury-gap: var(--lux-space-7);
-  --luxury-gap-sm: var(--lux-space-5);
-  --luxury-card-padding: var(--lux-space-6) var(--lux-space-7);
-  --luxury-font-display: "Inter", system-ui, -apple-system, sans-serif;
-  --luxury-font-body: "Inter", system-ui, -apple-system, sans-serif;
-  --luxury-letter-spacing-caps: 0.08em;
-  --luxury-letter-spacing-tight: -0.02em;
-  --luxury-heading-weight: 700;
-  --luxury-body-weight: 400;
-  --luxury-motion-duration: var(--lux-motion-base);
-  --luxury-motion-ease: ease;
-  --luxury-motion-hover: var(--lux-motion-fast);
-  --luxury-btn-radius: var(--lux-radius-sm);
-  --luxury-btn-padding-x: var(--lux-space-6);
-  --luxury-btn-padding-y: var(--lux-space-3);
-  --luxury-btn-weight: 600;
-  --luxury-surface: var(--lux-surface-base);
-  --luxury-surface-subtle: var(--lux-surface-elevated);
-  --luxury-surface-muted: var(--lux-surface-muted);
-  --luxury-shadow-soft: var(--lux-shadow-elevated);
-  --luxury-shadow-lift: var(--lux-shadow-floating);
-
-  /* Statement header */
-  --statement-header-bg: var(--lux-surface-base);
-  --statement-header-fg: var(--lux-color-ink);
-  --statement-header-height: 72px;
-  --statement-logo-min-width: 150px;
-  --statement-logo-font: "Inter", system-ui, -apple-system, sans-serif;
-  --statement-logo-weight: 700;
-  --statement-header-padding-x: var(--lux-space-7);
-  --statement-header-padding-y: var(--lux-space-5);
-}
-
-html[data-theme="dark"],
-html[data-bs-theme="dark"],
-body.portal-backend-dark {
-  --lux-color-ink: #e2e8f0;
-  --lux-color-ink-muted: #94a3b8;
-  --lux-color-border: rgba(148, 163, 184, 0.28);
-  --lux-color-border-strong: rgba(148, 163, 184, 0.38);
-  --lux-color-accent: #f8fafc;
-  --lux-color-accent-contrast: #0f172a;
-  --lux-surface-base: #0f172a;
-  --lux-surface-elevated: #1e293b;
-  --lux-surface-muted: #334155;
-  --lux-shadow-hairline: 0 0 0 1px rgba(148, 163, 184, 0.2);
-  --lux-shadow-elevated: 0 8px 20px rgba(0, 0, 0, 0.3);
-  --lux-shadow-floating: 0 18px 36px rgba(0, 0, 0, 0.4);
-
-  --statement-header-bg: #0f172a;
-  --statement-header-fg: #f8fafc;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --lux-motion-fast: 0ms;
-    --lux-motion-base: 0ms;
-    --lux-motion-slow: 0ms;
-    --luxury-motion-duration: 0ms;
-    --luxury-motion-hover: 0ms;
-  }
-}
+/**
+ * Final luxury token contract (quiet, restrained, platform-wide).
+ * This file is the canonical contract for spacing/type/radius/shadow/surface/motion.
+ * Legacy variables are kept as aliases to avoid breakage while converging older layers.
+ */
+:root {
+  /* -------------------------------------------------------------------------- */
+  /* Canonical luxury contract                                                   */
+  /* -------------------------------------------------------------------------- */
+
+  /* Spacing */
+  --lux-space-1: 0.25rem;
+  --lux-space-2: 0.5rem;
+  --lux-space-3: 0.75rem;
+  --lux-space-4: 1rem;
+  --lux-space-5: 1.25rem;
+  --lux-space-6: 1.5rem;
+  --lux-space-7: 2rem;
+  --lux-space-8: 2.5rem;
+  --lux-space-9: 3rem;
+  --lux-space-10: 4rem;
+  --lux-space-11: 5rem;
+  --lux-space-12: 6rem;
+
+  /* Typography */
+  --lux-type-xs: 0.75rem;
+  --lux-type-sm: 0.875rem;
+  --lux-type-md: 1rem;
+  --lux-type-lg: 1.125rem;
+  --lux-type-xl: 1.375rem;
+  --lux-type-2xl: 1.75rem;
+  --lux-type-3xl: 2.25rem;
+  --lux-type-display: clamp(2.25rem, 4vw, 3.25rem);
+
+  /* Radius */
+  --lux-radius-sm: 0.375rem;
+  --lux-radius-md: 0.5rem;
+  --lux-radius-lg: 0.75rem;
+  --lux-radius-xl: 1rem;
+  --lux-radius-2xl: 1.25rem;
+
+  /* Shadows (quiet luxury: no aggressive bloom) */
+  --lux-shadow-hairline: 0 0 0 1px rgba(15, 23, 42, 0.08);
+  --lux-shadow-elevated: 0 6px 18px rgba(15, 23, 42, 0.08);
+  --lux-shadow-floating: 0 14px 30px rgba(15, 23, 42, 0.12);
+
+  /* Surfaces */
+  --lux-surface-base: #ffffff;
+  --lux-surface-elevated: #f8fafc;
+  --lux-surface-muted: #f1f5f9;
+
+  /* Motion (calm; long durations only for explicit decorative use; keep 150–250ms band) */
+  --lux-motion-fast: 160ms ease;
+  --lux-motion-base: 220ms ease;
+  --lux-motion-slow: 360ms ease;
+
+  /* Palette */
+  --lux-color-ink: #0f172a;
+  --lux-color-ink-muted: #475569;
+  --lux-color-border: rgba(15, 23, 42, 0.12);
+  --lux-color-border-strong: rgba(15, 23, 42, 0.2);
+  --lux-color-accent: #0f172a;
+  --lux-color-accent-contrast: #ffffff;
+  /* Highlight follows tenant accent (was hardcoded gold #d4af37 — single-tenant residue).
+     Keep a fallback that works on white surfaces if --school-accent is unset. */
+  --lux-color-highlight: var(--school-accent, #10b981);
+
+  /* -------------------------------------------------------------------------- */
+  /* Legacy aliases (compatibility bridge)                                      */
+  /* -------------------------------------------------------------------------- */
+  --luxury-rich-black: var(--lux-color-ink);
+  --luxury-gallery-white: var(--lux-surface-base);
+  --luxury-platinum: #e5e7eb;
+  --luxury-text: var(--lux-color-ink);
+  --luxury-text-muted: var(--lux-color-ink-muted);
+  --luxury-primary: var(--lux-color-accent);
+  --luxury-primary-invert: var(--lux-color-accent-contrast);
+  --luxury-accent: var(--lux-color-highlight);
+  --luxury-accent-alt: var(--lux-color-accent);
+  --luxury-border: var(--lux-color-border);
+  --luxury-border-strong: var(--lux-color-border-strong);
+
+  --luxury-section-padding: var(--lux-space-9);
+  --luxury-gap: var(--lux-space-7);
+  --luxury-gap-sm: var(--lux-space-5);
+  --luxury-card-padding: var(--lux-space-6) var(--lux-space-7);
+  --luxury-font-display: "Inter", system-ui, -apple-system, sans-serif;
+  --luxury-font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --luxury-letter-spacing-caps: 0.08em;
+  --luxury-letter-spacing-tight: -0.02em;
+  --luxury-heading-weight: 700;
+  --luxury-body-weight: 400;
+  --luxury-motion-duration: var(--lux-motion-base);
+  --luxury-motion-ease: ease;
+  --luxury-motion-hover: var(--lux-motion-fast);
+  --luxury-btn-radius: var(--lux-radius-sm);
+  --luxury-btn-padding-x: var(--lux-space-6);
+  --luxury-btn-padding-y: var(--lux-space-3);
+  --luxury-btn-weight: 600;
+  --luxury-surface: var(--lux-surface-base);
+  --luxury-surface-subtle: var(--lux-surface-elevated);
+  --luxury-surface-muted: var(--lux-surface-muted);
+  --luxury-shadow-soft: var(--lux-shadow-elevated);
+  --luxury-shadow-lift: var(--lux-shadow-floating);
+
+  /* Statement header */
+  --statement-header-bg: var(--lux-surface-base);
+  --statement-header-fg: var(--lux-color-ink);
+  --statement-header-height: 72px;
+  --statement-logo-min-width: 150px;
+  --statement-logo-font: "Inter", system-ui, -apple-system, sans-serif;
+  --statement-logo-weight: 700;
+  --statement-header-padding-x: var(--lux-space-7);
+  --statement-header-padding-y: var(--lux-space-5);
+}
+
+html[data-theme="dark"],
+html[data-bs-theme="dark"],
+body.portal-backend-dark {
+  --lux-color-ink: #e2e8f0;
+  --lux-color-ink-muted: #94a3b8;
+  --lux-color-border: rgba(148, 163, 184, 0.28);
+  --lux-color-border-strong: rgba(148, 163, 184, 0.38);
+  --lux-color-accent: #f8fafc;
+  --lux-color-accent-contrast: #0f172a;
+  --lux-surface-base: #0f172a;
+  --lux-surface-elevated: #1e293b;
+  --lux-surface-muted: #334155;
+  --lux-shadow-hairline: 0 0 0 1px rgba(148, 163, 184, 0.2);
+  --lux-shadow-elevated: 0 8px 20px rgba(0, 0, 0, 0.3);
+  --lux-shadow-floating: 0 18px 36px rgba(0, 0, 0, 0.4);
+
+  --statement-header-bg: #0f172a;
+  --statement-header-fg: #f8fafc;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --lux-motion-fast: 0ms;
+    --lux-motion-base: 0ms;
+    --lux-motion-slow: 0ms;
+    --luxury-motion-duration: 0ms;
+    --luxury-motion-hover: 0ms;
+  }
+}
 
 </style>
   
   <style data-source="/static/css/statement-header.css">
-/**
- * Statement Header – mature, bold branding on all pages and flows.
- * Sticky, scroll-aware (transparent hero → solid), min-width logo, SVG-ready.
- * Works with .base-topbar, #portalHeader, .cp-navbar, .dashboard-header-wrapper.
- */
-
-/* ========== Universal statement header shell ========== */
-.statement-header,
-.base-topbar.statement-header,
-#portalHeader.statement-header,
-.dashboard-header-wrapper.statement-header {
-  position: sticky;
-  top: 0;
-  z-index: 1030;
-  min-height: var(--statement-header-height, 72px);
-  padding: var(--statement-header-padding-y, 1.25rem) var(--statement-header-padding-x, 2rem);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  background: var(--statement-header-bg, #FDFDFD);
-  color: var(--statement-header-fg, #0A0A0A);
-  transition: background-color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
-              color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
-              box-shadow var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out);
-}
-
-/* Control plane and marketing: dark navbar; do not use light default */
-.cp-navbar.statement-header {
-  position: sticky;
-  top: 0;
-  z-index: 1030;
-  min-height: var(--statement-header-height, 72px);
-  padding: var(--statement-header-padding-y, 1.25rem) var(--statement-header-padding-x, 2rem);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  background: var(--cp-bg, #0B0E14);
-  color: var(--statement-header-fg, #fff);
-  transition: background-color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
-              color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
-              box-shadow var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out);
-}
-.mkt-navbar.statement-header {
-  position: sticky;
-  top: 0;
-  z-index: 1030;
-  min-height: var(--statement-header-height, 72px);
-  padding: var(--statement-header-padding-y, 1.25rem) var(--statement-header-padding-x, 2rem);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  background: var(--mkt-primary, var(--statement-header-bg, #0f172a));
-  color: var(--mkt-text-inverse, #fff);
-  transition: background-color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
-              color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
-              box-shadow var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out);
-}
-
-/* Hero mode: transparent with light logo (add .statement-header--hero to header on hero pages) */
-.statement-header--hero {
-  background: transparent;
-  color: #fff;
-  box-shadow: none;
-}
-.statement-header--hero .navbar-brand,
-.statement-header--hero .brand-logo,
-.statement-header--hero .header-logo,
-.statement-header--hero .statement-logo-wordmark {
-  color: inherit;
-}
-.statement-header--hero .statement-logo-wordmark { color: #fff; }
-.statement-header--hero.is-solid {
-  background: var(--statement-header-bg, #FDFDFD);
-  color: var(--statement-header-fg, #0A0A0A);
-  box-shadow: 0 1px 0 var(--luxury-border, rgba(0,0,0,.08));
-}
-.statement-header--hero.is-solid .statement-logo-wordmark { color: var(--statement-header-fg, #0A0A0A); }
-
-/* Logo – bold, horizontal wordmark; never shrink below threshold */
-.statement-logo,
-.navbar-brand .brand-logo,
-.header-logo,
-.statement-logo-wordmark {
-  min-width: var(--statement-logo-min-width, 150px);
-  font-family: var(--statement-logo-font, "Inter", system-ui, sans-serif);
-  font-weight: var(--statement-logo-weight, 700);
-  font-size: 1.25rem;
-  letter-spacing: var(--luxury-letter-spacing-tight, -0.02em);
-  color: var(--statement-header-fg);
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  white-space: nowrap;
-  transition: color var(--luxury-motion-duration) var(--luxury-motion-ease);
-}
-.statement-logo img,
-.navbar-brand img,
-.brand-logo img,
-.header-logo img {
-  height: 32px;
-  width: auto;
-  max-width: 160px;
-  object-fit: contain;
-}
-.statement-logo svg,
-.brand-logo svg {
-  height: 32px;
-  width: auto;
-  min-width: 32px;
-  fill: currentColor;
-}
-
-/* Space around logo so it breathes */
-.statement-header .statement-logo,
-.statement-header .navbar-brand,
-#portalHeader .navbar-brand,
-.cp-navbar .statement-logo,
-.dashboard-header-wrapper .header-logo {
-  margin-right: 1rem;
-  padding-right: 1rem;
-}
-
-/* Every page: single brand line only — no tagline or second wordmark line */
-.statement-header .brand-sub,
-#portalHeader .brand-sub,
-.cp-navbar .brand-sub,
-.dashboard-header-wrapper .brand-sub,
-.mkt-navbar .brand-sub,
-.admin-login-brand .brand-sub,
-.statement-header .navbar-brand .brand-sub,
-.statement-header .statement-logo .brand-sub,
-.cp-navbar .navbar-brand .brand-sub,
-#portalHeader .navbar-brand .brand-sub {
-  display: none !important;
-}
-.statement-header .navbar-brand,
-.statement-header .statement-logo,
-.cp-navbar .navbar-brand,
-.cp-navbar .statement-logo,
-#portalHeader .navbar-brand {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
-}
-.statement-header .navbar-brand span,
-.statement-header .statement-logo span,
-.cp-navbar .navbar-brand span,
-.cp-navbar .statement-logo span {
-  white-space: nowrap;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-/* ========== Mobile: center logo, hamburger focal ========== */
-@media (max-width: 991.98px) {
-  .statement-header,
-  .base-topbar.statement-header,
-  #portalHeader.statement-header,
-  .cp-navbar.statement-header {
-    flex-wrap: wrap;
-    justify-content: center;
-    text-align: center;
-  }
-  .statement-header .navbar-brand,
-  #portalHeader .navbar-brand,
-  .statement-logo,
-  .header-logo {
-    flex: 1 1 auto;
-    justify-content: center;
-    min-width: 0;
-    max-width: 200px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 0;
-    padding-right: 0;
-  }
-  .statement-header .statement-logo-wordmark,
-  .navbar-brand .brand-logo {
-    min-width: 0;
-  }
-  .statement-header .topbar-actions,
-  .statement-header .topbar-controls,
-  .statement-header .navbar-collapse,
-  .statement-header .cp-nav-links {
-    order: 2;
-    width: 100%;
-    justify-content: center;
-  }
-  .statement-header .navbar-toggler,
-  .statement-header .hamburger-trigger {
-    position: absolute;
-    left: var(--statement-header-padding-x, 2rem);
-    top: 50%;
-    transform: translateY(-50%);
-  }
-}
-
-/* ========== Integrations with existing classes ========== */
-.topbar.statement-header,
-.topbar-sticky.statement-header {
-  position: sticky;
-  top: 0;
-  z-index: 1030;
-}
-.dashboard-header-wrapper.statement-header .header-title {
-  font-weight: var(--statement-logo-weight, 700);
-  color: var(--statement-header-fg);
-}
-
-/* Marketing mega menus: avoid clipping dropdown panels (header stays sticky) */
-@media (min-width: 992px) {
-  .mkt-navbar.statement-header:has(.mkt-mega-menu.show),
-  .mkt-navbar.statement-header:has(.mkt-mega-menu.show) .mkt-navbar-container,
-  .mkt-navbar.statement-header:has(.mkt-mega-menu.show) .container,
-  .mkt-navbar.statement-header:has(.mkt-mega-menu.show) .navbar-collapse,
-  .mkt-navbar.statement-header:has(.mkt-mega-menu.show) .mkt-nav-primary--mega {
-    overflow: visible;
-  }
-  .mkt-navbar.statement-header .mkt-mega-menu,
-  .mkt-navbar.statement-header .dropdown-menu.mkt-mega-menu {
-    z-index: 1205;
-  }
-}
+/**
+ * Statement Header – mature, bold branding on all pages and flows.
+ * Sticky, scroll-aware (transparent hero → solid), min-width logo, SVG-ready.
+ * Works with .base-topbar, #portalHeader, .cp-navbar, .dashboard-header-wrapper.
+ */
+
+/* ========== Universal statement header shell ========== */
+.statement-header,
+.base-topbar.statement-header,
+#portalHeader.statement-header,
+.dashboard-header-wrapper.statement-header {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  min-height: var(--statement-header-height, 72px);
+  padding: var(--statement-header-padding-y, 1.25rem) var(--statement-header-padding-x, 2rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: var(--statement-header-bg, #FDFDFD);
+  color: var(--statement-header-fg, #0A0A0A);
+  transition: background-color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
+              color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
+              box-shadow var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out);
+}
+
+/* Control plane and marketing: dark navbar; do not use light default */
+.cp-navbar.statement-header {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  min-height: var(--statement-header-height, 72px);
+  padding: var(--statement-header-padding-y, 1.25rem) var(--statement-header-padding-x, 2rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: var(--cp-bg, #0B0E14);
+  color: var(--statement-header-fg, #fff);
+  transition: background-color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
+              color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
+              box-shadow var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out);
+}
+.mkt-navbar.statement-header {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  min-height: var(--statement-header-height, 72px);
+  padding: var(--statement-header-padding-y, 1.25rem) var(--statement-header-padding-x, 2rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: var(--mkt-primary, var(--statement-header-bg, #0f172a));
+  color: var(--mkt-text-inverse, #fff);
+  transition: background-color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
+              color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
+              box-shadow var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out);
+}
+
+/* Hero mode: transparent with light logo (add .statement-header--hero to header on hero pages) */
+.statement-header--hero {
+  background: transparent;
+  color: #fff;
+  box-shadow: none;
+}
+.statement-header--hero .navbar-brand,
+.statement-header--hero .brand-logo,
+.statement-header--hero .header-logo,
+.statement-header--hero .statement-logo-wordmark {
+  color: inherit;
+}
+.statement-header--hero .statement-logo-wordmark { color: #fff; }
+.statement-header--hero.is-solid {
+  background: var(--statement-header-bg, #FDFDFD);
+  color: var(--statement-header-fg, #0A0A0A);
+  box-shadow: 0 1px 0 var(--luxury-border, rgba(0,0,0,.08));
+}
+.statement-header--hero.is-solid .statement-logo-wordmark { color: var(--statement-header-fg, #0A0A0A); }
+
+/* Logo – bold, horizontal wordmark; never shrink below threshold */
+.statement-logo,
+.navbar-brand .brand-logo,
+.header-logo,
+.statement-logo-wordmark {
+  min-width: var(--statement-logo-min-width, 150px);
+  font-family: var(--statement-logo-font, "Inter", system-ui, sans-serif);
+  font-weight: var(--statement-logo-weight, 700);
+  font-size: 1.25rem;
+  letter-spacing: var(--luxury-letter-spacing-tight, -0.02em);
+  color: var(--statement-header-fg);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  transition: color var(--luxury-motion-duration) var(--luxury-motion-ease);
+}
+.statement-logo img,
+.navbar-brand img,
+.brand-logo img,
+.header-logo img {
+  height: 32px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+}
+.statement-logo svg,
+.brand-logo svg {
+  height: 32px;
+  width: auto;
+  min-width: 32px;
+  fill: currentColor;
+}
+
+/* Space around logo so it breathes */
+.statement-header .statement-logo,
+.statement-header .navbar-brand,
+#portalHeader .navbar-brand,
+.cp-navbar .statement-logo,
+.dashboard-header-wrapper .header-logo {
+  margin-right: 1rem;
+  padding-right: 1rem;
+}
+
+/* Every page: single brand line only — no tagline or second wordmark line */
+.statement-header .brand-sub,
+#portalHeader .brand-sub,
+.cp-navbar .brand-sub,
+.dashboard-header-wrapper .brand-sub,
+.mkt-navbar .brand-sub,
+.admin-login-brand .brand-sub,
+.statement-header .navbar-brand .brand-sub,
+.statement-header .statement-logo .brand-sub,
+.cp-navbar .navbar-brand .brand-sub,
+#portalHeader .navbar-brand .brand-sub {
+  display: none !important;
+}
+.statement-header .navbar-brand,
+.statement-header .statement-logo,
+.cp-navbar .navbar-brand,
+.cp-navbar .statement-logo,
+#portalHeader .navbar-brand {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+.statement-header .navbar-brand span,
+.statement-header .statement-logo span,
+.cp-navbar .navbar-brand span,
+.cp-navbar .statement-logo span {
+  white-space: nowrap;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* ========== Mobile: center logo, hamburger focal ========== */
+@media (max-width: 991.98px) {
+  .statement-header,
+  .base-topbar.statement-header,
+  #portalHeader.statement-header,
+  .cp-navbar.statement-header {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+  .statement-header .navbar-brand,
+  #portalHeader .navbar-brand,
+  .statement-logo,
+  .header-logo {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-width: 0;
+    max-width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .statement-header .statement-logo-wordmark,
+  .navbar-brand .brand-logo {
+    min-width: 0;
+  }
+  .statement-header .topbar-actions,
+  .statement-header .topbar-controls,
+  .statement-header .navbar-collapse,
+  .statement-header .cp-nav-links {
+    order: 2;
+    width: 100%;
+    justify-content: center;
+  }
+  .statement-header .navbar-toggler,
+  .statement-header .hamburger-trigger {
+    position: absolute;
+    left: var(--statement-header-padding-x, 2rem);
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
+/* ========== Integrations with existing classes ========== */
+.topbar.statement-header,
+.topbar-sticky.statement-header {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+}
+.dashboard-header-wrapper.statement-header .header-title {
+  font-weight: var(--statement-logo-weight, 700);
+  color: var(--statement-header-fg);
+}
+
+/* Marketing mega menus: avoid clipping dropdown panels (header stays sticky) */
+@media (min-width: 992px) {
+  .mkt-navbar.statement-header:has(.mkt-mega-menu.show),
+  .mkt-navbar.statement-header:has(.mkt-mega-menu.show) .mkt-navbar-container,
+  .mkt-navbar.statement-header:has(.mkt-mega-menu.show) .container,
+  .mkt-navbar.statement-header:has(.mkt-mega-menu.show) .navbar-collapse,
+  .mkt-navbar.statement-header:has(.mkt-mega-menu.show) .mkt-nav-primary--mega {
+    overflow: visible;
+  }
+  .mkt-navbar.statement-header .mkt-mega-menu,
+  .mkt-navbar.statement-header .dropdown-menu.mkt-mega-menu {
+    z-index: 1205;
+  }
+}
 
 </style>
   <style data-source="/static/marketing/css/tokens-marketing.css">
@@ -4792,536 +4792,536 @@ html[data-bs-theme="dark"][data-surface="marketing"] {
 
 </style>
   <style data-source="/static/marketing/css/marketing-shell.css">
-/**
- * Marketing shell: layout, nav, footer, typography, sections, cards, CTAs.
- * Load only on runmycampus.com marketing pages. No dashboard/tenant CSS.
- */
-/* ----- Global marketing layout ----- */
-body.marketing-surface,
-.marketing-surface {
-  font-family: var(--mkt-font);
-  color: var(--mkt-text);
-  background: var(--mkt-surface);
-}
-.mkt-main { padding: 0; max-width: none; }
-
-/* Skip link (a11y) */
-.mkt-skip-link {
-  position: absolute;
-  top: -3rem;
-  left: var(--mkt-spacing-sm);
-  z-index: 1060;
-  padding: 0.5rem 1rem;
-  background: var(--mkt-primary);
-  color: var(--mkt-text-inverse);
-  font-weight: 600;
-  border-radius: var(--mkt-radius-sm);
-  text-decoration: none;
-  transition: top 0.2s ease;
-}
-.mkt-skip-link:focus {
-  top: var(--mkt-spacing-sm);
-  outline: 2px solid var(--mkt-accent);
-  outline-offset: 2px;
-}
-
-.marketing-surface .btn:focus-visible,
-.marketing-surface .nav-link:focus-visible,
-.marketing-surface .dropdown-toggle:focus-visible,
-.marketing-surface .form-control:focus-visible,
-.marketing-surface .form-select:focus-visible {
-  outline: 2px solid var(--mkt-accent, #f59e0b);
-  outline-offset: 2px;
-}
-
-/* ----- Nav (sticky): one bar, no horizontal scroll (Scroll directive §8.0) ----- */
-.mkt-navbar {
-  position: sticky;
-  top: 0;
-  z-index: 1020;
-  background: var(--mkt-primary);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.04);
-  font-weight: 500;
-}
-.mkt-navbar-unified .mkt-navbar-container {
-  min-width: 0;
-  overflow-x: clip;
-  overflow-y: visible;
-}
-.mkt-navbar-unified .navbar-collapse {
-  min-width: 0;
-  flex-wrap: wrap;
-  overflow-x: clip;
-  overflow-y: visible;
-}
-.mkt-navbar-unified .mkt-nav-primary { flex-wrap: wrap; min-width: 0; }
-.mkt-navbar .navbar-brand { color: var(--mkt-text-inverse) !important; font-size: 1.125rem; background: transparent !important; }
-.mkt-navbar .navbar-brand { min-width: 0; }
-.mkt-navbar .navbar-brand img { width: 28px; height: 28px; max-width: 28px; }
-.mkt-navbar .navbar-brand span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-
-/* Desktop: single compact row like /super header */
-@media (min-width: 992px) {
-  .mkt-navbar.mkt-navbar-unified.statement-header {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-  }
-  .mkt-navbar-unified .mkt-navbar-container {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: nowrap;
-  }
-  .mkt-navbar-unified .navbar-brand.statement-logo {
-    flex: 0 0 auto;
-    max-width: 320px;
-    padding-right: 0;
-    margin-right: 0.5rem;
-  }
-  .mkt-navbar-unified .navbar-collapse {
-    flex: 1 1 auto;
-    min-width: 0;
-    flex-wrap: nowrap;
-  }
-  .mkt-navbar-unified .mkt-nav-primary {
-    flex: 1 1 auto;
-    min-width: 0;
-    flex-wrap: nowrap;
-    overflow-x: clip;
-    overflow-y: visible;
-  }
-}
-.mkt-navbar .nav-link {
-  color: rgba(248, 250, 252, 0.92) !important;
-  padding: 0.5rem 0.75rem !important;
-  border-radius: var(--mkt-radius-sm);
-  transition: color 0.2s ease, background 0.2s ease;
-}
-.mkt-navbar .nav-link:hover { color: var(--mkt-on-primary) !important; background: rgba(255,255,255,0.06); }
-.mkt-navbar .mkt-nav-submenu {
-  max-height: min(70vh, 28rem);
-  overflow-y: auto;
-  min-width: 12.5rem;
-  z-index: 1200;
-}
-.mkt-navbar .mkt-nav-submenu .dropdown-item { white-space: nowrap; }
-
-/* Mega menus: wide panels, must not be clipped by ancestors (see header-no-spillage). */
-.mkt-navbar .mkt-mega-menu {
-  min-width: min(1024px, 96vw);
-  max-width: 1080px;
-  padding: 0;
-  z-index: 1205;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
-}
-.mkt-navbar .mkt-mega-menu.dropdown-menu {
-  z-index: 1205;
-}
-.mkt-navbar .mkt-mega-link:focus-visible {
-  outline: 2px solid var(--mkt-accent, #f59e0b);
-  outline-offset: 2px;
-}
-@media (min-width: 992px) {
-  /* Allow mega panels to paint outside clipped flex rows when a menu is open */
-  .mkt-navbar-unified:has(.mkt-mega-menu.show) .mkt-navbar-container,
-  .mkt-navbar-unified:has(.mkt-mega-menu.show) .navbar-collapse,
-  .mkt-navbar-unified:has(.mkt-mega-menu.show) .mkt-nav-primary--mega {
-    overflow-x: visible;
-    overflow-y: visible;
-  }
-}
-.mkt-navbar .mkt-mega-menu .mkt-mega-inner {
-  max-height: min(78vh, 32rem);
-  overflow-y: auto;
-}
-.mkt-navbar .mkt-mega-menu .mkt-mega-col-title {
-  font-size: 0.68rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(248, 250, 252, 0.55);
-  margin-bottom: 0.65rem;
-}
-.mkt-navbar .mkt-mega-menu .mkt-mega-link {
-  display: block;
-  padding: 0.4rem 0.35rem;
-  margin: 0 -0.35rem;
-  border-radius: var(--mkt-radius-sm);
-  color: rgba(248, 250, 252, 0.95) !important;
-  text-decoration: none !important;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-.mkt-navbar .mkt-mega-menu .mkt-mega-link:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff !important;
-}
-.mkt-navbar .mkt-mega-menu .mkt-mega-link .mkt-mega-label {
-  font-weight: 600;
-  font-size: 0.92rem;
-}
-.mkt-navbar .mkt-mega-menu .mkt-mega-link .mkt-mega-blurb {
-  display: block;
-  font-size: 0.8rem;
-  font-weight: 400;
-  line-height: 1.35;
-  color: rgba(248, 250, 252, 0.62);
-  margin-top: 0.2rem;
-}
-/* Full-width mega panels: static positioning on the LI so the menu can span the bar. */
-.mkt-navbar .mkt-nav-dropdown--mega {
-  position: static;
-}
-@media (min-width: 992px) {
-  .mkt-navbar-unified .mkt-nav-dropdown--mega {
-    position: static;
-  }
-}
-.mkt-navbar .mkt-nav-dropdown--mega .mkt-mega-menu {
-  left: 0 !important;
-  right: 0;
-  width: min(960px, 96vw);
-  margin-left: auto;
-  margin-right: auto;
-}
-.mkt-navbar .mkt-nav-dropdown .dropdown-toggle::after { margin-left: 0.35em; }
-
-.mkt-navbar .btn-cta-primary {
-  background: var(--mkt-accent);
-  color: var(--mkt-on-accent);
-  border-radius: var(--mkt-radius-md);
-  font-weight: 600;
-  padding: 0.5rem 1.25rem;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
-  transition: transform 0.15s ease, box-shadow 0.2s ease;
-}
-.mkt-navbar .btn-cta-primary:hover {
-  background: var(--mkt-accent-hover);
-  color: var(--mkt-on-accent);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
-}
-
-/* Bootstrap button harmonization (marketing only) */
-body.marketing-surface .btn-primary,
-body.marketing-surface .btn.btn-primary {
-  background: var(--mkt-accent);
-  border-color: var(--mkt-accent);
-}
-body.marketing-surface .btn-primary:hover,
-body.marketing-surface .btn.btn-primary:hover {
-  background: var(--mkt-accent-hover);
-  border-color: var(--mkt-accent-hover);
-}
-body.marketing-surface .btn-outline-primary,
-body.marketing-surface .btn.btn-outline-primary {
-  color: var(--mkt-accent);
-  border-color: color-mix(in srgb, var(--mkt-accent) 55%, transparent);
-}
-body.marketing-surface .btn-outline-primary:hover,
-body.marketing-surface .btn.btn-outline-primary:hover {
-  background: color-mix(in srgb, var(--mkt-accent) 14%, transparent);
-  border-color: var(--mkt-accent);
-  color: var(--mkt-accent);
-}
-
-/* ----- Footer ----- */
-.mkt-footer {
-  background: var(--mkt-primary);
-  color: var(--mkt-text-inverse);
-  padding: var(--mkt-spacing-xl) var(--mkt-spacing-md);
-  margin-top: var(--mkt-spacing-2xl);
-}
-.mkt-footer a { color: rgba(248, 250, 252, 0.9); text-decoration: none; }
-.mkt-footer a:hover { color: var(--mkt-on-primary); }
-.mkt-footer-section { margin-bottom: var(--mkt-spacing-md); }
-.mkt-footer-section h4 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: var(--mkt-spacing-sm);
-  color: rgba(248, 250, 252, 0.7);
-}
-.mkt-footer-links { list-style: none; padding: 0; margin: 0; }
-.mkt-footer-links li { margin-bottom: 0.35rem; }
-.mkt-footer-brand { font-weight: 700; margin-top: var(--mkt-spacing-lg); font-size: 1rem; }
-.mkt-footer-tagline { font-size: 0.875rem; color: rgba(248, 250, 252, 0.7); margin-top: 0.25rem; }
-
-/* ----- Marketing home (landing) ----- */
-.marketing-home {
-  position: relative;
-  font-family: var(--mkt-font);
-}
-
-/* Hero */
-.marketing-home .mkt-hero {
-  padding: var(--mkt-spacing-2xl) var(--mkt-spacing-md);
-  background: linear-gradient(155deg, var(--mkt-hero-bg) 0%, var(--mkt-hero-bg-mid) 45%, var(--mkt-hero-bg-end) 100%);
-  color: var(--mkt-text-inverse);
-  border-radius: 0 0 var(--mkt-radius-xl) var(--mkt-radius-xl);
-  position: relative;
-  overflow: hidden;
-}
-.marketing-home .mkt-hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 80% 50% at 70% 20%, rgba(59, 130, 246, 0.15), transparent 50%),
-              radial-gradient(ellipse 60% 40% at 20% 80%, rgba(99, 102, 241, 0.1), transparent 45%);
-  pointer-events: none;
-}
-.marketing-home .mkt-hero-inner {
-  position: relative;
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  gap: var(--mkt-spacing-lg);
-  align-items: center;
-}
-@media (min-width: 992px) {
-  .marketing-home .mkt-hero-inner { grid-template-columns: 1fr 1fr; }
-}
-.marketing-home .mkt-hero-headline {
-  font-size: var(--mkt-type-hero);
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  margin-bottom: var(--mkt-spacing-sm);
-}
-.marketing-home .mkt-hero-subheadline {
-  font-size: var(--mkt-type-body);
-  line-height: 1.6;
-  color: rgba(248, 250, 252, 0.92);
-  margin-bottom: var(--mkt-spacing-lg);
-  max-width: 42ch;
-}
-.marketing-home .mkt-hero-trusted { font-size: var(--mkt-type-micro); letter-spacing: 0.04em; text-transform: uppercase; color: rgba(248, 250, 252, 0.75); }
-.marketing-home .mkt-hero-ctas { display: flex; flex-wrap: wrap; gap: var(--mkt-spacing-sm); }
-.marketing-home .mkt-hero-ctas .btn { padding: 0.75rem 1.5rem; font-weight: 600; border-radius: var(--mkt-radius-md); text-decoration: none; transition: transform 0.15s ease, box-shadow 0.15s ease; }
-.marketing-home .mkt-hero-ctas .btn-primary { background: var(--mkt-accent); color: var(--mkt-on-accent); border: none; }
-.marketing-home .mkt-hero-ctas .btn-primary:hover { background: var(--mkt-accent-hover); color: var(--mkt-on-accent); transform: translateY(-1px); box-shadow: var(--mkt-shadow-md); }
-.marketing-home .mkt-hero-ctas .btn-outline-light { background: transparent; color: var(--color-base-50); border: 2px solid rgba(248, 250, 252, 0.5); }
-.marketing-home .mkt-hero-ctas .btn-outline-light:hover { background: rgba(255,255,255,0.1); color: var(--mkt-on-primary); border-color: var(--color-base-0); }
-.marketing-home .mkt-hero-visual { border-radius: var(--mkt-radius-lg); overflow: hidden; box-shadow: var(--mkt-shadow-lg); background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); }
-.marketing-home .mkt-hero-visual img { width: 100%; height: auto; display: block; }
-
-/* Sticky CTA bar */
-.marketing-home .mkt-sticky-cta-bar {
-  position: fixed;
-  top: 56px;
-  left: 0;
-  right: 0;
-  z-index: 1018;
-  background: var(--mkt-primary);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  transform: translateY(-100%);
-  opacity: 0;
-  visibility: hidden;
-  transition: transform 0.25s ease, opacity 0.2s ease, visibility 0.2s;
-}
-.marketing-home .mkt-sticky-cta-bar.is-visible { transform: translateY(0); opacity: 1; visibility: visible; }
-
-/* Trust band */
-.marketing-home .mkt-trust-band {
-  padding: var(--mkt-spacing-lg) var(--mkt-spacing-md);
-  text-align: center;
-  background: var(--mkt-surface);
-}
-.marketing-home .mkt-trust-band-heading { font-size: var(--mkt-type-micro); text-transform: uppercase; letter-spacing: 0.1em; color: var(--mkt-text-muted); margin-bottom: var(--mkt-spacing-md); font-weight: 600; }
-.marketing-home .mkt-trust-logos { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: var(--mkt-spacing-lg); max-width: 900px; margin: 0 auto; }
-.marketing-home .mkt-trust-logo { height: 32px; opacity: 0.7; filter: grayscale(1); }
-.marketing-home .mkt-trust-logo img { height: 100%; width: auto; object-fit: contain; }
-
-/* Sections */
-.marketing-home .mkt-section {
-  padding: var(--mkt-spacing-2xl) var(--mkt-spacing-md);
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.marketing-home .mkt-section-heading {
-  font-size: var(--mkt-type-section);
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: var(--mkt-spacing-sm);
-  color: var(--mkt-text);
-  letter-spacing: -0.01em;
-}
-.marketing-home .mkt-section-lead {
-  font-size: var(--mkt-type-body);
-  color: var(--mkt-text-muted);
-  text-align: center;
-  max-width: 60ch;
-  margin: 0 auto var(--mkt-spacing-xl);
-  line-height: 1.6;
-}
-
-/* Module cards */
-.marketing-home .mkt-modules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--mkt-spacing-md); }
-.marketing-home .mkt-module-card {
-  background: var(--mkt-surface);
-  border: 1px solid var(--mkt-border);
-  border-radius: var(--mkt-radius-lg);
-  padding: var(--mkt-spacing-md);
-  box-shadow: var(--mkt-shadow-sm);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-.marketing-home .mkt-module-card:hover { box-shadow: var(--mkt-shadow-md); transform: translateY(-2px); }
-.marketing-home .mkt-module-card h3 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.35rem; }
-.marketing-home .mkt-module-card p { font-size: 0.9375rem; color: var(--mkt-text-muted); margin-bottom: var(--mkt-spacing-sm); line-height: 1.5; }
-.marketing-home .mkt-module-card .mkt-module-screenshot { border-radius: var(--mkt-radius-sm); overflow: hidden; background: var(--color-base-100); aspect-ratio: 16/10; }
-.marketing-home .mkt-module-card .mkt-module-screenshot img { width: 100%; height: 100%; object-fit: cover; }
-
-/* Product demo */
-.marketing-home .mkt-product-demo {
-  background: linear-gradient(180deg, var(--color-base-50) 0%, var(--color-base-100) 100%);
-  border-radius: var(--mkt-radius-xl);
-  padding: var(--mkt-spacing-xl);
-  border: 1px solid var(--mkt-border);
-}
-.marketing-home .mkt-product-demo-visual { border-radius: var(--mkt-radius-lg); overflow: hidden; box-shadow: var(--mkt-shadow-lg); max-width: 100%; }
-.marketing-home .mkt-product-demo-visual img { width: 100%; height: auto; display: block; }
-
-/* Platform grid */
-.marketing-home .mkt-platform-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--mkt-spacing-md); }
-.marketing-home .mkt-platform-card {
-  background: var(--mkt-surface);
-  border: 1px solid var(--mkt-border);
-  border-radius: var(--mkt-radius-lg);
-  padding: var(--mkt-spacing-lg);
-  box-shadow: var(--mkt-shadow-sm);
-}
-.marketing-home .mkt-platform-card h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
-.marketing-home .mkt-platform-card p { font-size: 0.9375rem; color: var(--mkt-text-muted); line-height: 1.6; }
-
-/* Migration */
-.marketing-home .mkt-migration { display: grid; gap: var(--mkt-spacing-lg); align-items: center; }
-@media (min-width: 768px) { .marketing-home .mkt-migration { grid-template-columns: 1fr 1fr; } }
-.marketing-home .mkt-migration-list { list-style: none; padding: 0; margin: 0; }
-.marketing-home .mkt-migration-list li { display: flex; align-items: center; gap: var(--mkt-spacing-sm); margin-bottom: var(--mkt-spacing-sm); font-size: 1rem; }
-.marketing-home .mkt-migration-list li::before { content: "✓"; color: var(--mkt-checkmark); font-weight: 700; }
-.marketing-home .mkt-migration-visual { border-radius: var(--mkt-radius-lg); overflow: hidden; box-shadow: var(--mkt-shadow-md); }
-.marketing-home .mkt-migration-visual img { width: 100%; height: auto; display: block; }
-
-/* Ecosystem */
-.marketing-home .mkt-ecosystem-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--mkt-spacing-md); }
-.marketing-home .mkt-ecosystem-card {
-  background: var(--mkt-surface);
-  border: 1px solid var(--mkt-border);
-  border-radius: var(--mkt-radius-md);
-  padding: var(--mkt-spacing-md);
-  text-align: center;
-}
-.marketing-home .mkt-ecosystem-card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
-.marketing-home .mkt-ecosystem-card p { font-size: 0.875rem; color: var(--mkt-text-muted); margin: 0; line-height: 1.4; }
-
-/* Testimonials */
-.marketing-home .mkt-testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--mkt-spacing-md); }
-.marketing-home .mkt-testimonial-card {
-  background: var(--mkt-surface);
-  border: 1px solid var(--mkt-border);
-  border-radius: var(--mkt-radius-lg);
-  padding: var(--mkt-spacing-lg);
-  box-shadow: var(--mkt-shadow-sm);
-}
-.marketing-home .mkt-testimonial-card blockquote { font-size: 1rem; line-height: 1.6; color: var(--mkt-text); margin-bottom: var(--mkt-spacing-sm); }
-.marketing-home .mkt-testimonial-card .mkt-testimonial-author { font-weight: 600; font-size: 0.9375rem; }
-.marketing-home .mkt-testimonial-card .mkt-testimonial-role { font-size: 0.875rem; color: var(--mkt-text-muted); }
-.marketing-home .mkt-testimonial-stars { color: var(--mkt-star-rating); margin-bottom: 0.5rem; }
-
-/* Security badges */
-.marketing-home .mkt-security-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--mkt-spacing-md); margin-bottom: var(--mkt-spacing-md); }
-.marketing-home .mkt-security-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--mkt-surface);
-  border: 1px solid var(--mkt-border);
-  border-radius: 999px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-.marketing-home .mkt-security-copy { font-size: 0.9375rem; color: var(--mkt-text-muted); text-align: center; max-width: 55ch; margin: 0 auto; line-height: 1.6; }
-
-/* Final CTA */
-.marketing-home .mkt-final-cta {
-  padding: var(--mkt-spacing-2xl) var(--mkt-spacing-md);
-  text-align: center;
-  background: linear-gradient(155deg, var(--mkt-hero-bg) 0%, var(--mkt-hero-bg-mid) 100%);
-  color: var(--mkt-text-inverse);
-  border-radius: var(--mkt-radius-xl);
-}
-.marketing-home .mkt-final-cta h2 { font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 700; margin-bottom: var(--mkt-spacing-md); }
-.marketing-home .mkt-final-cta .mkt-hero-ctas { justify-content: center; }
-
-/* ----- Inner page (detail-hero, trust-strip, section-shell) ----- */
-.page-stack { display: grid; gap: 1rem; }
-.page-nav-scroll { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.25rem; }
-.detail-hero {
-  border-radius: 1.8rem;
-  padding: clamp(1.2rem, 2.4vw, 2rem);
-  background: linear-gradient(150deg, var(--mkt-hero-bg), var(--mkt-hero-bg-mid));
-  color: var(--mkt-text-inverse);
-  box-shadow: 0 16px 42px rgba(2, 6, 23, 0.34);
-}
-.detail-eyebrow { text-transform: uppercase; letter-spacing: 0.11em; font-size: 0.75rem; opacity: 0.82; margin-bottom: 0.58rem; }
-.detail-headline { font-size: clamp(1.5rem, 2.8vw, 2.3rem); line-height: 1.15; margin-bottom: 0.75rem; max-width: 24ch; }
-.detail-subheadline { color: rgba(226, 232, 240, 0.94); max-width: 68ch; margin-bottom: 0.95rem; }
-.hero-cta { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-.trust-strip {
-  border-radius: 1rem;
-  border: 1px solid var(--mkt-border);
-  background: rgba(255, 255, 255, 0.95);
-  padding: 0.72rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-.trust-pill {
-  border: 1px solid var(--mkt-border);
-  border-radius: 999px;
-  padding: 0.34rem 0.68rem;
-  font-size: 0.82rem;
-  background: var(--mkt-surface);
-  color: var(--mkt-text);
-}
-.section-shell {
-  border-radius: 1.3rem;
-  border: 1px solid var(--mkt-border);
-  background: var(--mkt-surface);
-  padding: 1.25rem;
-  box-shadow: var(--mkt-shadow-sm);
-}
-.section-heading { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
-.section-lead { color: var(--mkt-text-muted); margin-bottom: 1rem; line-height: 1.5; }
-.marketing-blog-body { line-height: 1.7; }
-.mkt-cta-focus:focus-visible { outline: 2px solid var(--mkt-accent); outline-offset: 2px; }
-
-/* Compare table (marketing compare page) */
-.compare-table-wrap {
-  border: 1px solid var(--mkt-border);
-  border-radius: var(--mkt-radius-md);
-  overflow: hidden;
-  background: var(--mkt-surface);
-}
-.compare-table { width: 100%; margin: 0; border-collapse: collapse; }
-.compare-table th,
-.compare-table td {
-  border-bottom: 1px solid var(--mkt-border);
-  padding: 0.62rem 0.75rem;
-  text-align: left;
-  vertical-align: top;
-  font-size: 0.9rem;
-}
-.compare-table th {
-  font-size: 0.76rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--mkt-text-muted);
-  background: color-mix(in srgb, var(--mkt-surface) 94%, var(--mkt-primary) 6%);
-}
-.compare-table tr:last-child td { border-bottom: 0; }
+/**
+ * Marketing shell: layout, nav, footer, typography, sections, cards, CTAs.
+ * Load only on runmycampus.com marketing pages. No dashboard/tenant CSS.
+ */
+/* ----- Global marketing layout ----- */
+body.marketing-surface,
+.marketing-surface {
+  font-family: var(--mkt-font);
+  color: var(--mkt-text);
+  background: var(--mkt-surface);
+}
+.mkt-main { padding: 0; max-width: none; }
+
+/* Skip link (a11y) */
+.mkt-skip-link {
+  position: absolute;
+  top: -3rem;
+  left: var(--mkt-spacing-sm);
+  z-index: 1060;
+  padding: 0.5rem 1rem;
+  background: var(--mkt-primary);
+  color: var(--mkt-text-inverse);
+  font-weight: 600;
+  border-radius: var(--mkt-radius-sm);
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+.mkt-skip-link:focus {
+  top: var(--mkt-spacing-sm);
+  outline: 2px solid var(--mkt-accent);
+  outline-offset: 2px;
+}
+
+.marketing-surface .btn:focus-visible,
+.marketing-surface .nav-link:focus-visible,
+.marketing-surface .dropdown-toggle:focus-visible,
+.marketing-surface .form-control:focus-visible,
+.marketing-surface .form-select:focus-visible {
+  outline: 2px solid var(--mkt-accent, #f59e0b);
+  outline-offset: 2px;
+}
+
+/* ----- Nav (sticky): one bar, no horizontal scroll (Scroll directive §8.0) ----- */
+.mkt-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  background: var(--mkt-primary);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.04);
+  font-weight: 500;
+}
+.mkt-navbar-unified .mkt-navbar-container {
+  min-width: 0;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+.mkt-navbar-unified .navbar-collapse {
+  min-width: 0;
+  flex-wrap: wrap;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+.mkt-navbar-unified .mkt-nav-primary { flex-wrap: wrap; min-width: 0; }
+.mkt-navbar .navbar-brand { color: var(--mkt-text-inverse) !important; font-size: 1.125rem; background: transparent !important; }
+.mkt-navbar .navbar-brand { min-width: 0; }
+.mkt-navbar .navbar-brand img { width: 28px; height: 28px; max-width: 28px; }
+.mkt-navbar .navbar-brand span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* Desktop: single compact row like /super header */
+@media (min-width: 992px) {
+  .mkt-navbar.mkt-navbar-unified.statement-header {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+  .mkt-navbar-unified .mkt-navbar-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: nowrap;
+  }
+  .mkt-navbar-unified .navbar-brand.statement-logo {
+    flex: 0 0 auto;
+    max-width: 320px;
+    padding-right: 0;
+    margin-right: 0.5rem;
+  }
+  .mkt-navbar-unified .navbar-collapse {
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+  }
+  .mkt-navbar-unified .mkt-nav-primary {
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+}
+.mkt-navbar .nav-link {
+  color: rgba(248, 250, 252, 0.92) !important;
+  padding: 0.5rem 0.75rem !important;
+  border-radius: var(--mkt-radius-sm);
+  transition: color 0.2s ease, background 0.2s ease;
+}
+.mkt-navbar .nav-link:hover { color: var(--mkt-on-primary) !important; background: rgba(255,255,255,0.06); }
+.mkt-navbar .mkt-nav-submenu {
+  max-height: min(70vh, 28rem);
+  overflow-y: auto;
+  min-width: 12.5rem;
+  z-index: 1200;
+}
+.mkt-navbar .mkt-nav-submenu .dropdown-item { white-space: nowrap; }
+
+/* Mega menus: wide panels, must not be clipped by ancestors (see header-no-spillage). */
+.mkt-navbar .mkt-mega-menu {
+  min-width: min(1024px, 96vw);
+  max-width: 1080px;
+  padding: 0;
+  z-index: 1205;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+}
+.mkt-navbar .mkt-mega-menu.dropdown-menu {
+  z-index: 1205;
+}
+.mkt-navbar .mkt-mega-link:focus-visible {
+  outline: 2px solid var(--mkt-accent, #f59e0b);
+  outline-offset: 2px;
+}
+@media (min-width: 992px) {
+  /* Allow mega panels to paint outside clipped flex rows when a menu is open */
+  .mkt-navbar-unified:has(.mkt-mega-menu.show) .mkt-navbar-container,
+  .mkt-navbar-unified:has(.mkt-mega-menu.show) .navbar-collapse,
+  .mkt-navbar-unified:has(.mkt-mega-menu.show) .mkt-nav-primary--mega {
+    overflow-x: visible;
+    overflow-y: visible;
+  }
+}
+.mkt-navbar .mkt-mega-menu .mkt-mega-inner {
+  max-height: min(78vh, 32rem);
+  overflow-y: auto;
+}
+.mkt-navbar .mkt-mega-menu .mkt-mega-col-title {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(248, 250, 252, 0.55);
+  margin-bottom: 0.65rem;
+}
+.mkt-navbar .mkt-mega-menu .mkt-mega-link {
+  display: block;
+  padding: 0.4rem 0.35rem;
+  margin: 0 -0.35rem;
+  border-radius: var(--mkt-radius-sm);
+  color: rgba(248, 250, 252, 0.95) !important;
+  text-decoration: none !important;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.mkt-navbar .mkt-mega-menu .mkt-mega-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff !important;
+}
+.mkt-navbar .mkt-mega-menu .mkt-mega-link .mkt-mega-label {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.mkt-navbar .mkt-mega-menu .mkt-mega-link .mkt-mega-blurb {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.35;
+  color: rgba(248, 250, 252, 0.62);
+  margin-top: 0.2rem;
+}
+/* Full-width mega panels: static positioning on the LI so the menu can span the bar. */
+.mkt-navbar .mkt-nav-dropdown--mega {
+  position: static;
+}
+@media (min-width: 992px) {
+  .mkt-navbar-unified .mkt-nav-dropdown--mega {
+    position: static;
+  }
+}
+.mkt-navbar .mkt-nav-dropdown--mega .mkt-mega-menu {
+  left: 0 !important;
+  right: 0;
+  width: min(960px, 96vw);
+  margin-left: auto;
+  margin-right: auto;
+}
+.mkt-navbar .mkt-nav-dropdown .dropdown-toggle::after { margin-left: 0.35em; }
+
+.mkt-navbar .btn-cta-primary {
+  background: var(--mkt-accent);
+  color: var(--mkt-on-accent);
+  border-radius: var(--mkt-radius-md);
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.mkt-navbar .btn-cta-primary:hover {
+  background: var(--mkt-accent-hover);
+  color: var(--mkt-on-accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+}
+
+/* Bootstrap button harmonization (marketing only) */
+body.marketing-surface .btn-primary,
+body.marketing-surface .btn.btn-primary {
+  background: var(--mkt-accent);
+  border-color: var(--mkt-accent);
+}
+body.marketing-surface .btn-primary:hover,
+body.marketing-surface .btn.btn-primary:hover {
+  background: var(--mkt-accent-hover);
+  border-color: var(--mkt-accent-hover);
+}
+body.marketing-surface .btn-outline-primary,
+body.marketing-surface .btn.btn-outline-primary {
+  color: var(--mkt-accent);
+  border-color: color-mix(in srgb, var(--mkt-accent) 55%, transparent);
+}
+body.marketing-surface .btn-outline-primary:hover,
+body.marketing-surface .btn.btn-outline-primary:hover {
+  background: color-mix(in srgb, var(--mkt-accent) 14%, transparent);
+  border-color: var(--mkt-accent);
+  color: var(--mkt-accent);
+}
+
+/* ----- Footer ----- */
+.mkt-footer {
+  background: var(--mkt-primary);
+  color: var(--mkt-text-inverse);
+  padding: var(--mkt-spacing-xl) var(--mkt-spacing-md);
+  margin-top: var(--mkt-spacing-2xl);
+}
+.mkt-footer a { color: rgba(248, 250, 252, 0.9); text-decoration: none; }
+.mkt-footer a:hover { color: var(--mkt-on-primary); }
+.mkt-footer-section { margin-bottom: var(--mkt-spacing-md); }
+.mkt-footer-section h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--mkt-spacing-sm);
+  color: rgba(248, 250, 252, 0.7);
+}
+.mkt-footer-links { list-style: none; padding: 0; margin: 0; }
+.mkt-footer-links li { margin-bottom: 0.35rem; }
+.mkt-footer-brand { font-weight: 700; margin-top: var(--mkt-spacing-lg); font-size: 1rem; }
+.mkt-footer-tagline { font-size: 0.875rem; color: rgba(248, 250, 252, 0.7); margin-top: 0.25rem; }
+
+/* ----- Marketing home (landing) ----- */
+.marketing-home {
+  position: relative;
+  font-family: var(--mkt-font);
+}
+
+/* Hero */
+.marketing-home .mkt-hero {
+  padding: var(--mkt-spacing-2xl) var(--mkt-spacing-md);
+  background: linear-gradient(155deg, var(--mkt-hero-bg) 0%, var(--mkt-hero-bg-mid) 45%, var(--mkt-hero-bg-end) 100%);
+  color: var(--mkt-text-inverse);
+  border-radius: 0 0 var(--mkt-radius-xl) var(--mkt-radius-xl);
+  position: relative;
+  overflow: hidden;
+}
+.marketing-home .mkt-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 50% at 70% 20%, rgba(59, 130, 246, 0.15), transparent 50%),
+              radial-gradient(ellipse 60% 40% at 20% 80%, rgba(99, 102, 241, 0.1), transparent 45%);
+  pointer-events: none;
+}
+.marketing-home .mkt-hero-inner {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  gap: var(--mkt-spacing-lg);
+  align-items: center;
+}
+@media (min-width: 992px) {
+  .marketing-home .mkt-hero-inner { grid-template-columns: 1fr 1fr; }
+}
+.marketing-home .mkt-hero-headline {
+  font-size: var(--mkt-type-hero);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--mkt-spacing-sm);
+}
+.marketing-home .mkt-hero-subheadline {
+  font-size: var(--mkt-type-body);
+  line-height: 1.6;
+  color: rgba(248, 250, 252, 0.92);
+  margin-bottom: var(--mkt-spacing-lg);
+  max-width: 42ch;
+}
+.marketing-home .mkt-hero-trusted { font-size: var(--mkt-type-micro); letter-spacing: 0.04em; text-transform: uppercase; color: rgba(248, 250, 252, 0.75); }
+.marketing-home .mkt-hero-ctas { display: flex; flex-wrap: wrap; gap: var(--mkt-spacing-sm); }
+.marketing-home .mkt-hero-ctas .btn { padding: 0.75rem 1.5rem; font-weight: 600; border-radius: var(--mkt-radius-md); text-decoration: none; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.marketing-home .mkt-hero-ctas .btn-primary { background: var(--mkt-accent); color: var(--mkt-on-accent); border: none; }
+.marketing-home .mkt-hero-ctas .btn-primary:hover { background: var(--mkt-accent-hover); color: var(--mkt-on-accent); transform: translateY(-1px); box-shadow: var(--mkt-shadow-md); }
+.marketing-home .mkt-hero-ctas .btn-outline-light { background: transparent; color: var(--color-base-50); border: 2px solid rgba(248, 250, 252, 0.5); }
+.marketing-home .mkt-hero-ctas .btn-outline-light:hover { background: rgba(255,255,255,0.1); color: var(--mkt-on-primary); border-color: var(--color-base-0); }
+.marketing-home .mkt-hero-visual { border-radius: var(--mkt-radius-lg); overflow: hidden; box-shadow: var(--mkt-shadow-lg); background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); }
+.marketing-home .mkt-hero-visual img { width: 100%; height: auto; display: block; }
+
+/* Sticky CTA bar */
+.marketing-home .mkt-sticky-cta-bar {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  z-index: 1018;
+  background: var(--mkt-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 0.25s ease, opacity 0.2s ease, visibility 0.2s;
+}
+.marketing-home .mkt-sticky-cta-bar.is-visible { transform: translateY(0); opacity: 1; visibility: visible; }
+
+/* Trust band */
+.marketing-home .mkt-trust-band {
+  padding: var(--mkt-spacing-lg) var(--mkt-spacing-md);
+  text-align: center;
+  background: var(--mkt-surface);
+}
+.marketing-home .mkt-trust-band-heading { font-size: var(--mkt-type-micro); text-transform: uppercase; letter-spacing: 0.1em; color: var(--mkt-text-muted); margin-bottom: var(--mkt-spacing-md); font-weight: 600; }
+.marketing-home .mkt-trust-logos { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: var(--mkt-spacing-lg); max-width: 900px; margin: 0 auto; }
+.marketing-home .mkt-trust-logo { height: 32px; opacity: 0.7; filter: grayscale(1); }
+.marketing-home .mkt-trust-logo img { height: 100%; width: auto; object-fit: contain; }
+
+/* Sections */
+.marketing-home .mkt-section {
+  padding: var(--mkt-spacing-2xl) var(--mkt-spacing-md);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.marketing-home .mkt-section-heading {
+  font-size: var(--mkt-type-section);
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: var(--mkt-spacing-sm);
+  color: var(--mkt-text);
+  letter-spacing: -0.01em;
+}
+.marketing-home .mkt-section-lead {
+  font-size: var(--mkt-type-body);
+  color: var(--mkt-text-muted);
+  text-align: center;
+  max-width: 60ch;
+  margin: 0 auto var(--mkt-spacing-xl);
+  line-height: 1.6;
+}
+
+/* Module cards */
+.marketing-home .mkt-modules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--mkt-spacing-md); }
+.marketing-home .mkt-module-card {
+  background: var(--mkt-surface);
+  border: 1px solid var(--mkt-border);
+  border-radius: var(--mkt-radius-lg);
+  padding: var(--mkt-spacing-md);
+  box-shadow: var(--mkt-shadow-sm);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.marketing-home .mkt-module-card:hover { box-shadow: var(--mkt-shadow-md); transform: translateY(-2px); }
+.marketing-home .mkt-module-card h3 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.35rem; }
+.marketing-home .mkt-module-card p { font-size: 0.9375rem; color: var(--mkt-text-muted); margin-bottom: var(--mkt-spacing-sm); line-height: 1.5; }
+.marketing-home .mkt-module-card .mkt-module-screenshot { border-radius: var(--mkt-radius-sm); overflow: hidden; background: var(--color-base-100); aspect-ratio: 16/10; }
+.marketing-home .mkt-module-card .mkt-module-screenshot img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Product demo */
+.marketing-home .mkt-product-demo {
+  background: linear-gradient(180deg, var(--color-base-50) 0%, var(--color-base-100) 100%);
+  border-radius: var(--mkt-radius-xl);
+  padding: var(--mkt-spacing-xl);
+  border: 1px solid var(--mkt-border);
+}
+.marketing-home .mkt-product-demo-visual { border-radius: var(--mkt-radius-lg); overflow: hidden; box-shadow: var(--mkt-shadow-lg); max-width: 100%; }
+.marketing-home .mkt-product-demo-visual img { width: 100%; height: auto; display: block; }
+
+/* Platform grid */
+.marketing-home .mkt-platform-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--mkt-spacing-md); }
+.marketing-home .mkt-platform-card {
+  background: var(--mkt-surface);
+  border: 1px solid var(--mkt-border);
+  border-radius: var(--mkt-radius-lg);
+  padding: var(--mkt-spacing-lg);
+  box-shadow: var(--mkt-shadow-sm);
+}
+.marketing-home .mkt-platform-card h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+.marketing-home .mkt-platform-card p { font-size: 0.9375rem; color: var(--mkt-text-muted); line-height: 1.6; }
+
+/* Migration */
+.marketing-home .mkt-migration { display: grid; gap: var(--mkt-spacing-lg); align-items: center; }
+@media (min-width: 768px) { .marketing-home .mkt-migration { grid-template-columns: 1fr 1fr; } }
+.marketing-home .mkt-migration-list { list-style: none; padding: 0; margin: 0; }
+.marketing-home .mkt-migration-list li { display: flex; align-items: center; gap: var(--mkt-spacing-sm); margin-bottom: var(--mkt-spacing-sm); font-size: 1rem; }
+.marketing-home .mkt-migration-list li::before { content: "✓"; color: var(--mkt-checkmark); font-weight: 700; }
+.marketing-home .mkt-migration-visual { border-radius: var(--mkt-radius-lg); overflow: hidden; box-shadow: var(--mkt-shadow-md); }
+.marketing-home .mkt-migration-visual img { width: 100%; height: auto; display: block; }
+
+/* Ecosystem */
+.marketing-home .mkt-ecosystem-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--mkt-spacing-md); }
+.marketing-home .mkt-ecosystem-card {
+  background: var(--mkt-surface);
+  border: 1px solid var(--mkt-border);
+  border-radius: var(--mkt-radius-md);
+  padding: var(--mkt-spacing-md);
+  text-align: center;
+}
+.marketing-home .mkt-ecosystem-card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
+.marketing-home .mkt-ecosystem-card p { font-size: 0.875rem; color: var(--mkt-text-muted); margin: 0; line-height: 1.4; }
+
+/* Testimonials */
+.marketing-home .mkt-testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--mkt-spacing-md); }
+.marketing-home .mkt-testimonial-card {
+  background: var(--mkt-surface);
+  border: 1px solid var(--mkt-border);
+  border-radius: var(--mkt-radius-lg);
+  padding: var(--mkt-spacing-lg);
+  box-shadow: var(--mkt-shadow-sm);
+}
+.marketing-home .mkt-testimonial-card blockquote { font-size: 1rem; line-height: 1.6; color: var(--mkt-text); margin-bottom: var(--mkt-spacing-sm); }
+.marketing-home .mkt-testimonial-card .mkt-testimonial-author { font-weight: 600; font-size: 0.9375rem; }
+.marketing-home .mkt-testimonial-card .mkt-testimonial-role { font-size: 0.875rem; color: var(--mkt-text-muted); }
+.marketing-home .mkt-testimonial-stars { color: var(--mkt-star-rating); margin-bottom: 0.5rem; }
+
+/* Security badges */
+.marketing-home .mkt-security-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--mkt-spacing-md); margin-bottom: var(--mkt-spacing-md); }
+.marketing-home .mkt-security-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--mkt-surface);
+  border: 1px solid var(--mkt-border);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.marketing-home .mkt-security-copy { font-size: 0.9375rem; color: var(--mkt-text-muted); text-align: center; max-width: 55ch; margin: 0 auto; line-height: 1.6; }
+
+/* Final CTA */
+.marketing-home .mkt-final-cta {
+  padding: var(--mkt-spacing-2xl) var(--mkt-spacing-md);
+  text-align: center;
+  background: linear-gradient(155deg, var(--mkt-hero-bg) 0%, var(--mkt-hero-bg-mid) 100%);
+  color: var(--mkt-text-inverse);
+  border-radius: var(--mkt-radius-xl);
+}
+.marketing-home .mkt-final-cta h2 { font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 700; margin-bottom: var(--mkt-spacing-md); }
+.marketing-home .mkt-final-cta .mkt-hero-ctas { justify-content: center; }
+
+/* ----- Inner page (detail-hero, trust-strip, section-shell) ----- */
+.page-stack { display: grid; gap: 1rem; }
+.page-nav-scroll { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.25rem; }
+.detail-hero {
+  border-radius: 1.8rem;
+  padding: clamp(1.2rem, 2.4vw, 2rem);
+  background: linear-gradient(150deg, var(--mkt-hero-bg), var(--mkt-hero-bg-mid));
+  color: var(--mkt-text-inverse);
+  box-shadow: 0 16px 42px rgba(2, 6, 23, 0.34);
+}
+.detail-eyebrow { text-transform: uppercase; letter-spacing: 0.11em; font-size: 0.75rem; opacity: 0.82; margin-bottom: 0.58rem; }
+.detail-headline { font-size: clamp(1.5rem, 2.8vw, 2.3rem); line-height: 1.15; margin-bottom: 0.75rem; max-width: 24ch; }
+.detail-subheadline { color: rgba(226, 232, 240, 0.94); max-width: 68ch; margin-bottom: 0.95rem; }
+.hero-cta { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.trust-strip {
+  border-radius: 1rem;
+  border: 1px solid var(--mkt-border);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 0.72rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+.trust-pill {
+  border: 1px solid var(--mkt-border);
+  border-radius: 999px;
+  padding: 0.34rem 0.68rem;
+  font-size: 0.82rem;
+  background: var(--mkt-surface);
+  color: var(--mkt-text);
+}
+.section-shell {
+  border-radius: 1.3rem;
+  border: 1px solid var(--mkt-border);
+  background: var(--mkt-surface);
+  padding: 1.25rem;
+  box-shadow: var(--mkt-shadow-sm);
+}
+.section-heading { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+.section-lead { color: var(--mkt-text-muted); margin-bottom: 1rem; line-height: 1.5; }
+.marketing-blog-body { line-height: 1.7; }
+.mkt-cta-focus:focus-visible { outline: 2px solid var(--mkt-accent); outline-offset: 2px; }
+
+/* Compare table (marketing compare page) */
+.compare-table-wrap {
+  border: 1px solid var(--mkt-border);
+  border-radius: var(--mkt-radius-md);
+  overflow: hidden;
+  background: var(--mkt-surface);
+}
+.compare-table { width: 100%; margin: 0; border-collapse: collapse; }
+.compare-table th,
+.compare-table td {
+  border-bottom: 1px solid var(--mkt-border);
+  padding: 0.62rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  font-size: 0.9rem;
+}
+.compare-table th {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mkt-text-muted);
+  background: color-mix(in srgb, var(--mkt-surface) 94%, var(--mkt-primary) 6%);
+}
+.compare-table tr:last-child td { border-bottom: 0; }
 
 </style>
   <style data-source="/static/marketing/css/proof-pages.css">
@@ -5663,550 +5663,542 @@ body.marketing-surface .btn.btn-outline-primary:hover {
 
 </style>
   <style data-source="/static/css/platform-high-end.css">
-:root {
-  /* Luxury audit bridge: literal → token refs (definitions exempt from audit scan) */
-  --rmc-lit-00181fcf9c: var(--luxury-btn-radius) !important;
-  --rmc-lit-16e1af8c15: 0.6rem 0.875rem !important;
-  --rmc-lit-1790534eb5: var(--platform-premium-radius-sm);
-  --rmc-lit-1b268f4d74: 1.5rem 1.75rem;
-  --rmc-lit-27cbb6c002: 0.55rem 0.75rem;
-  --rmc-lit-352fc245ef: 1.25rem 1.5rem;
-  --rmc-lit-716221b690: 999px;
-  --rmc-lit-7fbd3d69ca: var(--platform-premium-radius) !important;
-  --rmc-lit-842e4594ea: 50%;
-  --rmc-lit-86a04737d1: 0.5rem;
-  --rmc-lit-8db8586d85: 0.875rem;
-  --rmc-lit-8f98a91903: var(--platform-premium-shadow-dark-hover);
-  --rmc-lit-930d0f52bf: var(--platform-card-radius) !important;
-  --rmc-lit-9d4a3474f2: var(--platform-card-radius);
-  --rmc-lit-9dbba2ddbe: 0.35rem 0.65rem;
-  --rmc-lit-a88e95397c: var(--platform-premium-shadow);
-  --rmc-lit-a9df0f5f17: var(--platform-premium-radius);
-  --rmc-lit-b10c730cc7: var(--platform-premium-radius-sm) var(--platform-premium-radius-sm) 0 0;
-  --rmc-lit-b15c288a9f: 1.5rem;
-  --rmc-lit-cd9da089fd: var(--platform-premium-shadow-dark);
-  --rmc-lit-d5c68f3a57: 1.25rem;
-  --rmc-lit-d6a349e182: 0.75rem;
-  --rmc-lit-ddb43c922a: var(--lux-shadow-hairline, 0 0 0 1px rgba(15, 23, 42, 0.08));
-  --rmc-lit-ddec53ab03: var(--platform-sidebar-radius);
-  --rmc-lit-ef1608ba77: var(--platform-premium-shadow-hover);
-  --rmc-lit-fec2baec80: 0.875rem 1rem;
-}
-
-/**
- * Platform High-End – One place for premium feel across the entire product.
- * Quiet luxury by default: restrained elevation, calm motion, and strict token usage.
- *
- * Applied to: tenant portal, tenant backend, superadmin, marketing, admin, login,
- * every sidebar, every dashboard, every card, every chart and data visualization.
- *
- * Load after design-tokens.css and design-tokens-luxury.css where available.
- */
-
-/* ========== Platform-wide super ultra high-end (default experience) ========== */
-body {
-  color: var(--luxury-text, #1a1a1a);
-  transition: color var(--lux-motion-base, 220ms ease);
-}
-html[data-theme="dark"] body,
-html[data-bs-theme="dark"] body,
-body.portal-backend-dark,
-body.control-plane-shell {
-  color: var(--luxury-text, #F5F5F5);
-}
-#main-content,
-.portal-main-col,
-.cp-main-col,
-.mkt-main,
-main[role="main"] {
-  background-color: var(--luxury-surface-subtle, var(--luxury-gallery-white, #FDFDFD));
-}
-
-/* ========== Premium design tokens (used by all surfaces) ========== */
-:root {
-  --platform-premium-radius: var(--lux-radius-xl, 1rem);
-  --platform-premium-radius-sm: var(--lux-radius-md, 0.5rem);
-  --platform-premium-shadow: var(--lux-shadow-elevated, 0 6px 18px rgba(15, 23, 42, 0.08));
-  --platform-premium-shadow-hover: var(--lux-shadow-floating, 0 14px 30px rgba(15, 23, 42, 0.12));
-  --platform-premium-shadow-dark: var(--lux-shadow-elevated, 0 8px 20px rgba(0, 0, 0, 0.3));
-  --platform-premium-shadow-dark-hover: var(--lux-shadow-floating, 0 18px 36px rgba(0, 0, 0, 0.4));
-  --platform-sidebar-radius: var(--lux-radius-lg, 0.75rem);
-  --platform-sidebar-padding: var(--lux-space-4, 1rem) var(--lux-space-5, 1.25rem);
-  --platform-card-radius: var(--platform-premium-radius);
-  --platform-chart-radius: var(--platform-premium-radius);
-}
-
-/* Dark / backend dark: use elevated dark shadows */
-html[data-theme="dark"],
-html[data-bs-theme="dark"],
-body.portal-backend-dark {
-  --platform-premium-shadow: var(--platform-premium-shadow-dark);
-  --platform-premium-shadow-hover: var(--platform-premium-shadow-dark-hover);
-}
-
-/* ========== Premium polish – selection, focus, motion ========== */
-/* Refined text selection (all surfaces) */
-::selection {
-  background: rgba(79, 70, 229, 0.2);
-  color: inherit;
-}
-.control-plane-shell ::selection,
-body.portal-backend-dark ::selection,
-html[data-theme="dark"] ::selection {
-  background: rgba(16, 185, 129, 0.25);
-  color: inherit;
-}
-/* Consistent focus-visible: high contrast, never clip */
-*:focus-visible {
-  outline-offset: 2px;
-}
-
-/* ========== Sidebars – every sidebar on the platform ========== */
-
-/* Portal / tenant backend sidebar (partials/portal_sidebar) */
-.portal-sidebar-col .sidebar {
-  border-radius:var(--rmc-lit-ddec53ab03);
-  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
-  box-shadow:var(--rmc-lit-a88e95397c);
-}
-html[data-bs-theme="dark"] .portal-sidebar-col .sidebar,
-body.portal-backend-dark .portal-sidebar-col .sidebar {
-  border-color: rgba(148, 163, 184, 0.2);
-  box-shadow:var(--rmc-lit-cd9da089fd);
-}
-.sidebar-header,
-[data-sidebar-nav="true"] {
-  padding-inline: var(--rmc-lit-86a04737d1);
-}
-.sidebar-header {
-  border-radius:var(--rmc-lit-ddec53ab03);
-  padding-block: var(--rmc-lit-8db8586d85);
-}
-.sidebar-section-title {
-  letter-spacing: 0.08em;
-  font-weight: 700;
-  color: var(--portal-text-muted, var(--luxury-text-muted, #475569));
-}
-.nav-link.nav-pill {
-  border-radius:var(--rmc-lit-1790534eb5);
-  padding: var(--rmc-lit-16e1af8c15);
-  transition: background var(--lux-motion-fast, 140ms ease), color var(--lux-motion-fast, 140ms ease), box-shadow var(--lux-motion-fast, 140ms ease);
-}
-.nav-link.nav-pill:hover {
-  box-shadow:var(--rmc-lit-ddb43c922a);
-}
-.nav-link.nav-pill.active,
-.nav-link.nav-pill[aria-current="page"] {
-  box-shadow:var(--rmc-lit-a88e95397c);
-}
-.sidebar-avatar {
-  border-radius: var(--rmc-lit-842e4594ea);
-  box-shadow:var(--rmc-lit-a88e95397c);
-}
-
-/* Control plane sidebar (partials/control_plane_sidebar) – scroll controlled by manager-control-plane.css */
-.cp-sidebar-inner {
-  border-radius:var(--rmc-lit-7fbd3d69ca);
-  box-shadow:var(--rmc-lit-cd9da089fd);
-}
-.cp-sidebar-nav .nav-link {
-  border-radius:var(--rmc-lit-1790534eb5);
-  padding: var(--rmc-lit-27cbb6c002);
-  transition: background var(--lux-motion-fast, 140ms ease), color var(--lux-motion-fast, 140ms ease), padding-left var(--lux-motion-fast, 140ms ease);
-}
-.cp-sidebar-nav .nav-link:hover {
-  background: rgba(16, 185, 129, 0.12);
-  color: #f1f5f9;
-}
-.cp-sidebar-nav .nav-link:focus-visible {
-  outline: 2px solid var(--platform-gold, var(--school-accent));
-  outline-offset: 2px;
-}
-.control-plane-shell .cp-sidebar-nav .nav-item .border-top {
-  border-color: rgba(125, 152, 187, 0.25) !important;
-}
-
-/* Admin (Unfold) sidebar – use premium radius for logo and nav items */
-#nav-sidebar .admin-sidebar-link,
-#nav-sidebar .admin-sidebar-model-link,
-#nav-sidebar .admin-sidebar-app-title a {
-  border-radius:var(--rmc-lit-1790534eb5);
-  transition: background 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* ========== Dashboards – all dashboard pages and cards ========== */
-
-/* Cards: consistent premium radius and shadow (all dashboards) */
-#dashboard-layout .card,
-.dashboard-layout-unified .card,
-[data-dashboard-page] .card,
-.dashboard-chart-card,
-.finance-dashboard-widgets .card,
-.analytics-dashboard-widgets .card,
-.payroll-dashboard-widgets .card,
-.emis-dashboard-widgets .card,
-.compliance-dashboard .card,
-.parent-dashboard .card,
-.teacher-shell .card,
-.control-plane-shell .card,
-.cp-panel,
-.stat-card,
-.app-card {
-  border-radius:var(--rmc-lit-930d0f52bf);
-  box-shadow:var(--rmc-lit-a88e95397c);
-  transition: box-shadow 0.25s ease, transform 0.2s ease;
-}
-#dashboard-layout .card:hover,
-.dashboard-layout-unified .card:hover,
-[data-dashboard-page] .card:hover,
-.dashboard-chart-card:hover,
-.finance-dashboard-widgets .card:hover,
-.analytics-dashboard-widgets .card:hover,
-.control-plane-shell .card:hover,
-.stat-card:hover,
-.app-card:hover {
-  box-shadow:var(--rmc-lit-ef1608ba77);
-}
-html[data-bs-theme="dark"] #dashboard-layout .card:hover,
-[data-theme="dark"] .card:hover,
-body.portal-backend-dark .card:hover,
-.control-plane-shell .card:hover {
-  box-shadow:var(--rmc-lit-8f98a91903);
-}
-
-/* Dashboard chart cards and data visualization containers */
-.dashboard-chart-card,
-.dashboard-chart-container {
-  overflow: hidden;
-}
-.dashboard-chart-card .card-body,
-.dashboard-chart-container {
-  padding: var(--rmc-lit-352fc245ef);
-}
-.dashboard-chart-wrapper {
-  border-radius:var(--rmc-lit-1790534eb5);
-  overflow: hidden;
-  background: var(--admin-content-bg, #f8fafc);
-}
-.dashboard-chart-container {
-  border-radius:var(--rmc-lit-9d4a3474f2);
-  box-shadow:var(--rmc-lit-a88e95397c);
-}
-html[data-bs-theme="dark"] .dashboard-chart-wrapper,
-[data-theme="dark"] .dashboard-chart-wrapper,
-body.portal-backend-dark .dashboard-chart-wrapper {
-  background: var(--admin-content-surface, #1e293b);
-}
-
-/* Control plane panels and hero blocks */
-.cp-hero {
-  border-radius:var(--rmc-lit-7fbd3d69ca);
-  box-shadow:var(--rmc-lit-cd9da089fd);
-}
-.cp-panel,
-.control-plane-shell [class^="cp-"] .card {
-  border-radius:var(--rmc-lit-9d4a3474f2);
-}
-.cp-overview-card {
-  border-radius:var(--rmc-lit-1790534eb5);
-  border: 1px solid rgba(125, 152, 187, 0.2);
-  transition: box-shadow var(--lux-motion-fast, 140ms ease), border-color var(--lux-motion-fast, 140ms ease);
-}
-.cp-overview-card:hover {
-  box-shadow:var(--rmc-lit-ef1608ba77);
-  border-color: rgba(16, 185, 129, 0.35);
-}
-
-/* Admin index and tenant dashboard headers */
-.dashboard-header {
-  border-radius:var(--rmc-lit-a9df0f5f17);
-  box-shadow:var(--rmc-lit-a88e95397c);
-}
-body.portal-backend-dark .dashboard-header,
-html[data-bs-theme="dark"] .dashboard-header {
-  box-shadow:var(--rmc-lit-cd9da089fd);
-}
-
-/* Stat cards and app cards (admin index, tenant dashboards) */
-.stat-card,
-.app-card {
-  border-radius:var(--rmc-lit-930d0f52bf);
-}
-.stat-item,
-.app-card .app-actions .app-btn {
-  border-radius:var(--rmc-lit-1790534eb5);
-}
-
-/* ========== Tables and data lists – premium feel ========== */
-#dashboard-layout .table,
-[data-dashboard-page] .table,
-.dashboard-layout-unified .table {
-  border-collapse: separate;
-  border-spacing: 0;
-}
-#dashboard-layout .table thead th,
-[data-dashboard-page] .table thead th {
-  border-radius:var(--rmc-lit-b10c730cc7);
-  padding: var(--rmc-lit-fec2baec80);
-}
-.control-plane-shell .table thead th {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(125, 152, 187, 0.2);
-}
-
-/* ========== Buttons and form controls – consistent radius ========== */
-.control-plane-shell .btn {
-  border-radius:var(--rmc-lit-1790534eb5);
-}
-.control-plane-shell .btn-primary {
-  box-shadow:var(--rmc-lit-a88e95397c);
-}
-.control-plane-shell .btn-primary:hover {
-  box-shadow:var(--rmc-lit-ef1608ba77);
-}
-.form-control,
-.form-select {
-  border-radius:var(--rmc-lit-1790534eb5);
-}
-
-/* ========== Page headers and section titles ========== */
-[data-dashboard-page] h1,
-#dashboard-layout h1,
-.dashboard-layout-unified h1,
-.control-plane-shell h1 {
-  letter-spacing: -0.02em;
-  font-weight: 700;
-}
-[data-dashboard-page] .dashboard-subtitle,
-[data-dashboard-page] .section-title,
-.cp-hero-copy {
-  color: var(--portal-text-muted, var(--cp-muted));
-  max-width: 60ch;
-}
-
-/* ========== Alerts and badges – subtle elevation ========== */
-.alert {
-  border-radius:var(--rmc-lit-1790534eb5);
-  border-width: 1px;
-}
-.badge.rounded-pill {
-  border-radius: var(--rmc-lit-716221b690);
-  padding: var(--rmc-lit-9dbba2ddbe);
-  font-weight: 600;
-}
-
-/* ========== Setup Studio and first-login – premium cards ========== */
-.setup-studio-shell .card,
-.first-login-checklist-card {
-  border-radius:var(--rmc-lit-930d0f52bf);
-  box-shadow:var(--rmc-lit-a88e95397c);
-}
-.setup-studio-shell .card:hover,
-.first-login-checklist-card:hover {
-  box-shadow:var(--rmc-lit-ef1608ba77);
-}
-.contextual-quick-actions .card {
-  border-radius:var(--rmc-lit-930d0f52bf);
-  box-shadow:var(--rmc-lit-a88e95397c);
-}
-
-/* Empty states: same radius and padding as cards */
-.backend-v2-panel--empty,
-.cp-panel .card-body:empty + .card-footer {
-  border-radius:var(--rmc-lit-1790534eb5);
-}
-.backend-v2-panel--empty .card-body {
-  padding: var(--rmc-lit-352fc245ef);
-}
-
-/* ========== Main content area – consistent padding ========== */
-#main-content,
-.portal-main-col,
-.cp-main-col {
-  padding-block: var(--rmc-lit-d5c68f3a57);
-}
-@media (min-width: 992px) {
-  #main-content,
-  .portal-main-col,
-  .cp-main-col {
-    padding-block: var(--rmc-lit-b15c288a9f);
-  }
-}
-
-/* ========== High-end UI/UX – no exceptions (all pages) ========== */
-/* Minimum vertical rhythm so no page feels cramped */
-.page-wrap,
-#main-content > .page-wrap,
-.cp-content-wrap {
-  min-height: 50vh;
-}
-/* Typography scale: consistent heading hierarchy */
-#main-content h1, .portal-main-col h1, .cp-main-col h1 {
-  font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.75rem);
-  letter-spacing: -0.02em;
-  font-weight: 700;
-  line-height: 1.25;
-}
-#main-content h2, .portal-main-col h2, .cp-main-col h2 {
-  font-size: clamp(1.1rem, 1rem + 0.35vw, 1.35rem);
-  font-weight: 700;
-  margin-top: var(--rmc-lit-b15c288a9f);
-  margin-bottom: var(--rmc-lit-d6a349e182);
-}
-#main-content .section-title,
-[data-dashboard-page] .section-title {
-  font-weight: 700;
-  letter-spacing: 0.01em;
-}
-/* Global reach footnote (footer) */
-.brand-global-reach {
-  font-size: 0.8125rem;
-  letter-spacing: 0.02em;
-  opacity: 0.9;
-}
-/* Ensure all form pages and list pages get card consistency */
-#main-content .card .card-body,
-.portal-main-col .card .card-body,
-.cp-main-col .card .card-body {
-  padding: var(--rmc-lit-352fc245ef);
-}
-@media (min-width: 768px) {
-  #main-content .card .card-body,
-  .portal-main-col .card .card-body,
-  .cp-main-col .card .card-body {
-    padding: var(--rmc-lit-1b268f4d74);
-  }
-}
-
-/* ========== Ultra high-end UI/UX – no compromise (all pages, dashboards, flows) ========== */
-/* Uses luxury tokens when design-tokens-luxury.css is loaded; fallbacks otherwise */
-
-/* Spatial luxury – 2x breathing room where tokens exist */
-:root {
-  --luxury-section-padding: var(--luxury-section-padding, 3rem);
-  --luxury-gap: var(--luxury-gap, 2rem);
-  --luxury-motion-duration: var(--lux-motion-base, 220ms);
-  --luxury-motion-ease: var(--luxury-motion-ease, ease-out);
-  --luxury-btn-radius: var(--lux-radius-sm, 0.375rem);
-}
-
-/* CTAs – sharp or 2px radius; hover invert/fill (high-end) */
-#main-content .btn-primary,
-.portal-main-col .btn-primary,
-.cp-main-col .btn-primary,
-[data-dashboard-page] .btn-primary,
-.control-plane-shell .btn-primary,
-.btn.btn-primary {
-  border-radius:var(--rmc-lit-00181fcf9c);
-  font-weight: var(--luxury-btn-weight, 600);
-  letter-spacing: 0.02em;
-  transition: background-color var(--luxury-motion-duration) var(--luxury-motion-ease),
-              color var(--luxury-motion-duration) var(--luxury-motion-ease),
-              box-shadow var(--luxury-motion-duration) var(--luxury-motion-ease);
-}
-#main-content .btn-primary:hover,
-.portal-main-col .btn-primary:hover,
-[data-dashboard-page] .btn-primary:hover,
-.btn.btn-primary:hover {
-  box-shadow:var(--rmc-lit-ef1608ba77);
-}
-
-/* Secondary/outline: hover invert (dark bg → light text) */
-.btn-outline-primary,
-.btn-outline-dark,
-.btn-outline-secondary {
-  border-radius:var(--rmc-lit-00181fcf9c);
-  transition: background-color var(--luxury-motion-duration) var(--luxury-motion-ease),
-              color var(--luxury-motion-duration) var(--luxury-motion-ease),
-              border-color var(--luxury-motion-duration) var(--luxury-motion-ease);
-}
-
-/* Hairline borders and tonal sections (quiet interface) */
-.card,
-.cp-panel,
-.dashboard-chart-card,
-.stat-card,
-.app-card {
-  border-width: 1px;
-  border-color: var(--luxury-border, rgba(10, 10, 10, 0.08));
-}
-html[data-theme="dark"] .card,
-html[data-bs-theme="dark"] .card,
-body.portal-backend-dark .card,
-.control-plane-shell .card {
-  border-color: var(--luxury-border, rgba(255, 255, 255, 0.1));
-}
-
-/* Motion – calm transitions for surfaces (reveal, not pop) */
-#main-content .card,
-.portal-main-col .card,
-[data-dashboard-page] .card,
-.dashboard-chart-card,
-.stat-card,
-.app-card,
-.alert,
-.modal-content {
-  transition: box-shadow var(--luxury-motion-duration) var(--luxury-motion-ease),
-              transform var(--luxury-motion-duration) var(--luxury-motion-ease),
-              border-color var(--luxury-motion-duration) var(--luxury-motion-ease);
-}
-
-/* Form controls – refined radius and focus */
-.form-control,
-.form-select {
-  border-radius:var(--rmc-lit-00181fcf9c);
-  transition: border-color var(--luxury-motion-duration) var(--luxury-motion-ease),
-              box-shadow var(--luxury-motion-duration) var(--luxury-motion-ease);
-}
-
-/* Remove cheap defaults: no bright blue links where we use luxury palette */
-a:not(.btn):not(.nav-link):not(.dropdown-item) {
-  color: var(--luxury-text, #1A1A1A);
-}
-html[data-theme="dark"] a:not(.btn):not(.nav-link):not(.dropdown-item),
-body.portal-backend-dark a:not(.btn):not(.nav-link):not(.dropdown-item) {
-  color: var(--luxury-text, #F5F5F5);
-}
-a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
-  color: var(--luxury-primary, #0A0A0A);
-  transition: color var(--luxury-motion-duration) var(--luxury-motion-ease);
-}
-
-/* All-caps labels – letter-spacing (luxury typography) */
-.text-uppercase.btn,
-[data-dashboard-page] .section-title.text-uppercase,
-.sidebar-section-title {
-  letter-spacing: var(--luxury-letter-spacing-caps, 0.1em);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body,
-  .card,
-  .btn,
-  .form-control,
-  .form-select,
-  .alert,
-  .modal-content {
-    transition: none !important;
-  }
-}
+:root {
+  /* Luxury audit bridge: literal → token refs (definitions exempt from audit scan) */
+  --rmc-lit-00181fcf9c: var(--luxury-btn-radius) !important;
+  --rmc-lit-16e1af8c15: 0.6rem 0.875rem !important;
+  --rmc-lit-1790534eb5: var(--platform-premium-radius-sm);
+  --rmc-lit-1b268f4d74: 1.5rem 1.75rem;
+  --rmc-lit-27cbb6c002: 0.55rem 0.75rem;
+  --rmc-lit-352fc245ef: 1.25rem 1.5rem;
+  --rmc-lit-716221b690: 999px;
+  --rmc-lit-7fbd3d69ca: var(--platform-premium-radius) !important;
+  --rmc-lit-842e4594ea: 50%;
+  --rmc-lit-86a04737d1: 0.5rem;
+  --rmc-lit-8db8586d85: 0.875rem;
+  --rmc-lit-8f98a91903: var(--platform-premium-shadow-dark-hover);
+  --rmc-lit-930d0f52bf: var(--platform-card-radius) !important;
+  --rmc-lit-9d4a3474f2: var(--platform-card-radius);
+  --rmc-lit-9dbba2ddbe: 0.35rem 0.65rem;
+  --rmc-lit-a88e95397c: var(--platform-premium-shadow);
+  --rmc-lit-a9df0f5f17: var(--platform-premium-radius);
+  --rmc-lit-b10c730cc7: var(--platform-premium-radius-sm) var(--platform-premium-radius-sm) 0 0;
+  --rmc-lit-b15c288a9f: 1.5rem;
+  --rmc-lit-cd9da089fd: var(--platform-premium-shadow-dark);
+  --rmc-lit-d5c68f3a57: 1.25rem;
+  --rmc-lit-d6a349e182: 0.75rem;
+  --rmc-lit-ddb43c922a: var(--lux-shadow-hairline, 0 0 0 1px rgba(15, 23, 42, 0.08));
+  --rmc-lit-ddec53ab03: var(--platform-sidebar-radius);
+  --rmc-lit-ef1608ba77: var(--platform-premium-shadow-hover);
+  --rmc-lit-fec2baec80: 0.875rem 1rem;
+}
+
+/**
+ * Platform High-End – One place for premium feel across the entire product.
+ * Quiet luxury by default: restrained elevation, calm motion, and strict token usage.
+ *
+ * Applied to: tenant portal, tenant backend, superadmin, marketing, admin, login,
+ * every sidebar, every dashboard, every card, every chart and data visualization.
+ *
+ * Load after design-tokens.css and design-tokens-luxury.css where available.
+ */
+
+/* ========== Platform-wide super ultra high-end (default experience) ========== */
+body {
+  color: var(--luxury-text, #1a1a1a);
+  transition: color var(--lux-motion-base, 220ms ease);
+}
+html[data-theme="dark"] body,
+html[data-bs-theme="dark"] body,
+body.portal-backend-dark,
+body.control-plane-shell {
+  color: var(--luxury-text, #F5F5F5);
+}
+#main-content,
+.portal-main-col,
+.cp-main-col,
+.mkt-main,
+main[role="main"] {
+  background-color: var(--luxury-surface-subtle, var(--luxury-gallery-white, #FDFDFD));
+}
+
+/* ========== Premium design tokens (used by all surfaces) ========== */
+:root {
+  --platform-premium-radius: var(--lux-radius-xl, 1rem);
+  --platform-premium-radius-sm: var(--lux-radius-md, 0.5rem);
+  --platform-premium-shadow: var(--lux-shadow-elevated, 0 6px 18px rgba(15, 23, 42, 0.08));
+  --platform-premium-shadow-hover: var(--lux-shadow-floating, 0 14px 30px rgba(15, 23, 42, 0.12));
+  --platform-premium-shadow-dark: var(--lux-shadow-elevated, 0 8px 20px rgba(0, 0, 0, 0.3));
+  --platform-premium-shadow-dark-hover: var(--lux-shadow-floating, 0 18px 36px rgba(0, 0, 0, 0.4));
+  --platform-sidebar-radius: var(--lux-radius-lg, 0.75rem);
+  --platform-sidebar-padding: var(--lux-space-4, 1rem) var(--lux-space-5, 1.25rem);
+  --platform-card-radius: var(--platform-premium-radius);
+  --platform-chart-radius: var(--platform-premium-radius);
+}
+
+/* Dark / backend dark: use elevated dark shadows */
+html[data-theme="dark"],
+html[data-bs-theme="dark"],
+body.portal-backend-dark {
+  --platform-premium-shadow: var(--platform-premium-shadow-dark);
+  --platform-premium-shadow-hover: var(--platform-premium-shadow-dark-hover);
+}
+
+/* ========== Premium polish – selection, focus, motion ========== */
+/* Refined text selection (all surfaces) */
+::selection {
+  background: rgba(79, 70, 229, 0.2);
+  color: inherit;
+}
+.control-plane-shell ::selection,
+body.portal-backend-dark ::selection,
+html[data-theme="dark"] ::selection {
+  background: rgba(16, 185, 129, 0.25);
+  color: inherit;
+}
+/* Consistent focus-visible: high contrast, never clip */
+*:focus-visible {
+  outline-offset: 2px;
+}
+
+/* ========== Sidebars – every sidebar on the platform ========== */
+
+/* Portal / tenant backend sidebar (partials/portal_sidebar) */
+.portal-sidebar-col .sidebar {
+  border-radius:var(--rmc-lit-ddec53ab03);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  box-shadow:var(--rmc-lit-a88e95397c);
+}
+html[data-bs-theme="dark"] .portal-sidebar-col .sidebar,
+body.portal-backend-dark .portal-sidebar-col .sidebar {
+  border-color: rgba(148, 163, 184, 0.2);
+  box-shadow:var(--rmc-lit-cd9da089fd);
+}
+.sidebar-header,
+[data-sidebar-nav="true"] {
+  padding-inline: var(--rmc-lit-86a04737d1);
+}
+.sidebar-header {
+  border-radius:var(--rmc-lit-ddec53ab03);
+  padding-block: var(--rmc-lit-8db8586d85);
+}
+.sidebar-section-title {
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--portal-text-muted, var(--luxury-text-muted, #475569));
+}
+.nav-link.nav-pill {
+  border-radius:var(--rmc-lit-1790534eb5);
+  padding: var(--rmc-lit-16e1af8c15);
+  transition: background var(--lux-motion-fast, 140ms ease), color var(--lux-motion-fast, 140ms ease), box-shadow var(--lux-motion-fast, 140ms ease);
+}
+.nav-link.nav-pill:hover {
+  box-shadow:var(--rmc-lit-ddb43c922a);
+}
+.nav-link.nav-pill.active,
+.nav-link.nav-pill[aria-current="page"] {
+  box-shadow:var(--rmc-lit-a88e95397c);
+}
+.sidebar-avatar {
+  border-radius: var(--rmc-lit-842e4594ea);
+  box-shadow:var(--rmc-lit-a88e95397c);
+}
+
+/* Control plane sidebar (partials/control_plane_sidebar) – scroll controlled by manager-control-plane.css */
+.cp-sidebar-inner {
+  border-radius:var(--rmc-lit-7fbd3d69ca);
+  box-shadow:var(--rmc-lit-cd9da089fd);
+}
+.cp-sidebar-nav .nav-link {
+  border-radius:var(--rmc-lit-1790534eb5);
+  padding: var(--rmc-lit-27cbb6c002);
+  transition: background var(--lux-motion-fast, 140ms ease), color var(--lux-motion-fast, 140ms ease), padding-left var(--lux-motion-fast, 140ms ease);
+}
+.cp-sidebar-nav .nav-link:hover {
+  background: rgba(16, 185, 129, 0.12);
+  color: #f1f5f9;
+}
+.cp-sidebar-nav .nav-link:focus-visible {
+  outline: 2px solid var(--platform-gold, var(--school-accent));
+  outline-offset: 2px;
+}
+.control-plane-shell .cp-sidebar-nav .nav-item .border-top {
+  border-color: rgba(125, 152, 187, 0.25) !important;
+}
+
+/* Admin (Unfold) sidebar – use premium radius for logo and nav items */
+#nav-sidebar .admin-sidebar-link,
+#nav-sidebar .admin-sidebar-model-link,
+#nav-sidebar .admin-sidebar-app-title a {
+  border-radius:var(--rmc-lit-1790534eb5);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* ========== Dashboards – all dashboard pages and cards ========== */
+
+/* Cards: consistent premium radius and shadow (all dashboards) */
+#dashboard-layout .card,
+.dashboard-layout-unified .card,
+[data-dashboard-page] .card,
+.dashboard-chart-card,
+.finance-dashboard-widgets .card,
+.analytics-dashboard-widgets .card,
+.payroll-dashboard-widgets .card,
+.emis-dashboard-widgets .card,
+.compliance-dashboard .card,
+.parent-dashboard .card,
+.teacher-shell .card,
+.control-plane-shell .card,
+.cp-panel,
+.stat-card,
+.app-card {
+  border-radius:var(--rmc-lit-930d0f52bf);
+  box-shadow:var(--rmc-lit-a88e95397c);
+  transition: box-shadow 0.25s ease, transform 0.2s ease;
+}
+#dashboard-layout .card:hover,
+.dashboard-layout-unified .card:hover,
+[data-dashboard-page] .card:hover,
+.dashboard-chart-card:hover,
+.finance-dashboard-widgets .card:hover,
+.analytics-dashboard-widgets .card:hover,
+.control-plane-shell .card:hover,
+.stat-card:hover,
+.app-card:hover {
+  box-shadow:var(--rmc-lit-ef1608ba77);
+}
+html[data-bs-theme="dark"] #dashboard-layout .card:hover,
+[data-theme="dark"] .card:hover,
+body.portal-backend-dark .card:hover,
+.control-plane-shell .card:hover {
+  box-shadow:var(--rmc-lit-8f98a91903);
+}
+
+/* Dashboard chart cards and data visualization containers */
+.dashboard-chart-card,
+.dashboard-chart-container {
+  overflow: hidden;
+}
+.dashboard-chart-card .card-body,
+.dashboard-chart-container {
+  padding: var(--rmc-lit-352fc245ef);
+}
+.dashboard-chart-wrapper {
+  border-radius:var(--rmc-lit-1790534eb5);
+  overflow: hidden;
+  background: var(--admin-content-bg, #f8fafc);
+}
+.dashboard-chart-container {
+  border-radius:var(--rmc-lit-9d4a3474f2);
+  box-shadow:var(--rmc-lit-a88e95397c);
+}
+html[data-bs-theme="dark"] .dashboard-chart-wrapper,
+[data-theme="dark"] .dashboard-chart-wrapper,
+body.portal-backend-dark .dashboard-chart-wrapper {
+  background: var(--admin-content-surface, #1e293b);
+}
+
+/* Control plane panels and hero blocks */
+.cp-hero {
+  border-radius:var(--rmc-lit-7fbd3d69ca);
+  box-shadow:var(--rmc-lit-cd9da089fd);
+}
+.cp-panel,
+.control-plane-shell [class^="cp-"] .card {
+  border-radius:var(--rmc-lit-9d4a3474f2);
+}
+.cp-overview-card {
+  border-radius:var(--rmc-lit-1790534eb5);
+  border: 1px solid rgba(125, 152, 187, 0.2);
+  transition: box-shadow var(--lux-motion-fast, 140ms ease), border-color var(--lux-motion-fast, 140ms ease);
+}
+.cp-overview-card:hover {
+  box-shadow:var(--rmc-lit-ef1608ba77);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+/* Admin index and tenant dashboard headers */
+.dashboard-header {
+  border-radius:var(--rmc-lit-a9df0f5f17);
+  box-shadow:var(--rmc-lit-a88e95397c);
+}
+body.portal-backend-dark .dashboard-header,
+html[data-bs-theme="dark"] .dashboard-header {
+  box-shadow:var(--rmc-lit-cd9da089fd);
+}
+
+/* Stat cards and app cards (admin index, tenant dashboards) */
+.stat-card,
+.app-card {
+  border-radius:var(--rmc-lit-930d0f52bf);
+}
+.stat-item,
+.app-card .app-actions .app-btn {
+  border-radius:var(--rmc-lit-1790534eb5);
+}
+
+/* ========== Tables and data lists – premium feel ========== */
+#dashboard-layout .table,
+[data-dashboard-page] .table,
+.dashboard-layout-unified .table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+#dashboard-layout .table thead th,
+[data-dashboard-page] .table thead th {
+  border-radius:var(--rmc-lit-b10c730cc7);
+  padding: var(--rmc-lit-fec2baec80);
+}
+.control-plane-shell .table thead th {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(125, 152, 187, 0.2);
+}
+
+/* ========== Buttons and form controls – consistent radius ========== */
+.control-plane-shell .btn {
+  border-radius:var(--rmc-lit-1790534eb5);
+}
+.control-plane-shell .btn-primary {
+  box-shadow:var(--rmc-lit-a88e95397c);
+}
+.control-plane-shell .btn-primary:hover {
+  box-shadow:var(--rmc-lit-ef1608ba77);
+}
+.form-control,
+.form-select {
+  border-radius:var(--rmc-lit-1790534eb5);
+}
+
+/* ========== Page headers and section titles ========== */
+[data-dashboard-page] h1,
+#dashboard-layout h1,
+.dashboard-layout-unified h1,
+.control-plane-shell h1 {
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+[data-dashboard-page] .dashboard-subtitle,
+[data-dashboard-page] .section-title,
+.cp-hero-copy {
+  color: var(--portal-text-muted, var(--cp-muted));
+  max-width: 60ch;
+}
+
+/* ========== Alerts and badges – subtle elevation ========== */
+.alert {
+  border-radius:var(--rmc-lit-1790534eb5);
+  border-width: 1px;
+}
+.badge.rounded-pill {
+  border-radius: var(--rmc-lit-716221b690);
+  padding: var(--rmc-lit-9dbba2ddbe);
+  font-weight: 600;
+}
+
+/* ========== Setup Studio and first-login – premium cards ========== */
+.setup-studio-shell .card,
+.first-login-checklist-card {
+  border-radius:var(--rmc-lit-930d0f52bf);
+  box-shadow:var(--rmc-lit-a88e95397c);
+}
+.setup-studio-shell .card:hover,
+.first-login-checklist-card:hover {
+  box-shadow:var(--rmc-lit-ef1608ba77);
+}
+.contextual-quick-actions .card {
+  border-radius:var(--rmc-lit-930d0f52bf);
+  box-shadow:var(--rmc-lit-a88e95397c);
+}
+
+/* Empty states: same radius and padding as cards */
+.backend-v2-panel--empty,
+.cp-panel .card-body:empty + .card-footer {
+  border-radius:var(--rmc-lit-1790534eb5);
+}
+.backend-v2-panel--empty .card-body {
+  padding: var(--rmc-lit-352fc245ef);
+}
+
+/* ========== Main content area – consistent padding ========== */
+#main-content,
+.portal-main-col,
+.cp-main-col {
+  padding-block: var(--rmc-lit-d5c68f3a57);
+}
+@media (min-width: 992px) {
+  #main-content,
+  .portal-main-col,
+  .cp-main-col {
+    padding-block: var(--rmc-lit-b15c288a9f);
+  }
+}
+
+/* ========== High-end UI/UX – no exceptions (all pages) ========== */
+/* Minimum vertical rhythm so no page feels cramped */
+.page-wrap,
+#main-content > .page-wrap,
+.cp-content-wrap {
+  min-height: 50vh;
+}
+/* Typography scale: consistent heading hierarchy */
+#main-content h1, .portal-main-col h1, .cp-main-col h1 {
+  font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.75rem);
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  line-height: 1.25;
+}
+#main-content h2, .portal-main-col h2, .cp-main-col h2 {
+  font-size: clamp(1.1rem, 1rem + 0.35vw, 1.35rem);
+  font-weight: 700;
+  margin-top: var(--rmc-lit-b15c288a9f);
+  margin-bottom: var(--rmc-lit-d6a349e182);
+}
+#main-content .section-title,
+[data-dashboard-page] .section-title {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+/* Global reach footnote (footer) */
+.brand-global-reach {
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  opacity: 0.9;
+}
+/* Ensure all form pages and list pages get card consistency */
+#main-content .card .card-body,
+.portal-main-col .card .card-body,
+.cp-main-col .card .card-body {
+  padding: var(--rmc-lit-352fc245ef);
+}
+@media (min-width: 768px) {
+  #main-content .card .card-body,
+  .portal-main-col .card .card-body,
+  .cp-main-col .card .card-body {
+    padding: var(--rmc-lit-1b268f4d74);
+  }
+}
+
+/* ========== Ultra high-end UI/UX – no compromise (all pages, dashboards, flows) ========== */
+/* Uses luxury tokens when design-tokens-luxury.css is loaded; fallbacks otherwise */
+
+/* Spatial luxury – 2x breathing room where tokens exist */
+:root {
+  --luxury-section-padding: var(--luxury-section-padding, 3rem);
+  --luxury-gap: var(--luxury-gap, 2rem);
+  --luxury-motion-duration: var(--lux-motion-base, 220ms);
+  --luxury-motion-ease: var(--luxury-motion-ease, ease-out);
+  --luxury-btn-radius: var(--lux-radius-sm, 0.375rem);
+}
+
+/* CTAs – sharp or 2px radius; hover invert/fill (high-end) */
+#main-content .btn-primary,
+.portal-main-col .btn-primary,
+.cp-main-col .btn-primary,
+[data-dashboard-page] .btn-primary,
+.control-plane-shell .btn-primary,
+.btn.btn-primary {
+  border-radius:var(--rmc-lit-00181fcf9c);
+  font-weight: var(--luxury-btn-weight, 600);
+  letter-spacing: 0.02em;
+  transition: background-color var(--luxury-motion-duration) var(--luxury-motion-ease),
+              color var(--luxury-motion-duration) var(--luxury-motion-ease),
+              box-shadow var(--luxury-motion-duration) var(--luxury-motion-ease);
+}
+#main-content .btn-primary:hover,
+.portal-main-col .btn-primary:hover,
+[data-dashboard-page] .btn-primary:hover,
+.btn.btn-primary:hover {
+  box-shadow:var(--rmc-lit-ef1608ba77);
+}
+
+/* Secondary/outline: hover invert (dark bg → light text) */
+.btn-outline-primary,
+.btn-outline-dark,
+.btn-outline-secondary {
+  border-radius:var(--rmc-lit-00181fcf9c);
+  transition: background-color var(--luxury-motion-duration) var(--luxury-motion-ease),
+              color var(--luxury-motion-duration) var(--luxury-motion-ease),
+              border-color var(--luxury-motion-duration) var(--luxury-motion-ease);
+}
+
+/* Hairline borders and tonal sections (quiet interface) */
+.card,
+.cp-panel,
+.dashboard-chart-card,
+.stat-card,
+.app-card {
+  border-width: 1px;
+  border-color: var(--luxury-border, rgba(10, 10, 10, 0.08));
+}
+html[data-theme="dark"] .card,
+html[data-bs-theme="dark"] .card,
+body.portal-backend-dark .card,
+.control-plane-shell .card {
+  border-color: var(--luxury-border, rgba(255, 255, 255, 0.1));
+}
+
+/* Motion – calm transitions for surfaces (reveal, not pop) */
+#main-content .card,
+.portal-main-col .card,
+[data-dashboard-page] .card,
+.dashboard-chart-card,
+.stat-card,
+.app-card,
+.alert,
+.modal-content {
+  transition: box-shadow var(--luxury-motion-duration) var(--luxury-motion-ease),
+              transform var(--luxury-motion-duration) var(--luxury-motion-ease),
+              border-color var(--luxury-motion-duration) var(--luxury-motion-ease);
+}
+
+/* Form controls – refined radius and focus */
+.form-control,
+.form-select {
+  border-radius:var(--rmc-lit-00181fcf9c);
+  transition: border-color var(--luxury-motion-duration) var(--luxury-motion-ease),
+              box-shadow var(--luxury-motion-duration) var(--luxury-motion-ease);
+}
+
+/* Remove cheap defaults: no bright blue links where we use luxury palette */
+a:not(.btn):not(.nav-link):not(.dropdown-item) {
+  color: var(--luxury-text, #1A1A1A);
+}
+html[data-theme="dark"] a:not(.btn):not(.nav-link):not(.dropdown-item),
+body.portal-backend-dark a:not(.btn):not(.nav-link):not(.dropdown-item) {
+  color: var(--luxury-text, #F5F5F5);
+}
+a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
+  color: var(--luxury-primary, #0A0A0A);
+  transition: color var(--luxury-motion-duration) var(--luxury-motion-ease);
+}
+
+/* All-caps labels – letter-spacing (luxury typography) */
+.text-uppercase.btn,
+[data-dashboard-page] .section-title.text-uppercase,
+.sidebar-section-title {
+  letter-spacing: var(--luxury-letter-spacing-caps, 0.1em);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body,
+  .card,
+  .btn,
+  .form-control,
+  .form-select,
+  .alert,
+  .modal-content {
+    transition: none !important;
+  }
+}
 
 </style>
   
   
   <style data-source="/static/css/marketing-static-bundle.css">
 /**
- * Marketing-only static template styles, extracted from
- * phase2-static-templates-bundle.css. The original 109 KB bundle
- * also covers admin, portal, control-plane, and console templates
- * — none of which the public marketing surface needs. This carve-out
- * keeps only the rules belonging to marketing_landing.html,
- * marketing_page.html, and marketing_product_page.html.
- *
- * Source ranges in phase2-static-templates-bundle.css:
- *   marketing_landing.html      (line 3288)
- *   marketing_page.html         (line 3291)
- *   marketing_product_page.html (line 3566)
+ * Marketing shell carve-out of phase2 static template <style> extractions.
+ * Covers only marketing_landing.html, marketing_page.html, and
+ * marketing_product_page.html. Other shells load per-shell phase2 bundles.
  */
 
 /* ========== templates/schools/marketing_landing.html ========== */
@@ -6493,237 +6485,237 @@ a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
 
 </style>
   <style data-source="/static/css/glass-surface-recipe.css">
-/**
- * RunMyCampus shared glass surface recipe — marketing + portal + backend (SOT §8.0).
- * Single source for blur, border, shadow, fill so prospects recognize product after login.
- * See docs/GLASS_SURFACE_DESIGN_RECIPE.md
- */
-:root {
-  --rmc-glass-blur: 14px;
-  --rmc-glass-bg: rgba(255, 255, 255, 0.78);
-  --rmc-glass-bg-strong: rgba(255, 255, 255, 0.92);
-  --rmc-glass-border: rgba(255, 255, 255, 0.65);
-  --rmc-glass-border-subtle: rgba(148, 163, 184, 0.22);
-  --rmc-glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
-  --rmc-glass-shadow-elevated: 0 20px 50px rgba(15, 23, 42, 0.12);
-  --rmc-glass-radius: 1rem;
-  --rmc-glass-radius-lg: 1.25rem;
-}
-
-[data-theme="dark"] .portal-body-with-layout,
-html[data-bs-theme="dark"] .portal-body-with-layout,
-body.portal-backend-dark {
-  --rmc-glass-bg: rgba(30, 41, 59, 0.72);
-  --rmc-glass-bg-strong: rgba(30, 41, 59, 0.88);
-  --rmc-glass-border: rgba(148, 163, 184, 0.18);
-  --rmc-glass-border-subtle: rgba(148, 163, 184, 0.12);
-  --rmc-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-  --rmc-glass-shadow-elevated: 0 24px 60px rgba(0, 0, 0, 0.45);
-}
-
-.marketing-surface {
-  --rmc-glass-bg: rgba(255, 255, 255, 0.12);
-  --rmc-glass-bg-strong: rgba(255, 255, 255, 0.18);
-  --rmc-glass-border: rgba(255, 255, 255, 0.2);
-  --rmc-glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-}
-
-.rmc-glass-surface {
-  background: var(--rmc-glass-bg);
-  backdrop-filter: blur(var(--rmc-glass-blur));
-  -webkit-backdrop-filter: blur(var(--rmc-glass-blur));
-  border: 1px solid var(--rmc-glass-border);
-  border-radius: var(--rmc-glass-radius);
-  box-shadow: var(--rmc-glass-shadow);
-}
-
-.rmc-glass-surface--strong {
-  background: var(--rmc-glass-bg-strong);
-  box-shadow: var(--rmc-glass-shadow-elevated);
-}
-
-.rmc-glass-sidebar-shell {
-  background: var(--rmc-glass-bg);
-  backdrop-filter: blur(var(--rmc-glass-blur));
-  -webkit-backdrop-filter: blur(var(--rmc-glass-blur));
-  border-right: 1px solid var(--rmc-glass-border-subtle);
-}
+/**
+ * RunMyCampus shared glass surface recipe — marketing + portal + backend (SOT §8.0).
+ * Single source for blur, border, shadow, fill so prospects recognize product after login.
+ * See docs/GLASS_SURFACE_DESIGN_RECIPE.md
+ */
+:root {
+  --rmc-glass-blur: 14px;
+  --rmc-glass-bg: rgba(255, 255, 255, 0.78);
+  --rmc-glass-bg-strong: rgba(255, 255, 255, 0.92);
+  --rmc-glass-border: rgba(255, 255, 255, 0.65);
+  --rmc-glass-border-subtle: rgba(148, 163, 184, 0.22);
+  --rmc-glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+  --rmc-glass-shadow-elevated: 0 20px 50px rgba(15, 23, 42, 0.12);
+  --rmc-glass-radius: 1rem;
+  --rmc-glass-radius-lg: 1.25rem;
+}
+
+[data-theme="dark"] .portal-body-with-layout,
+html[data-bs-theme="dark"] .portal-body-with-layout,
+body.portal-backend-dark {
+  --rmc-glass-bg: rgba(30, 41, 59, 0.72);
+  --rmc-glass-bg-strong: rgba(30, 41, 59, 0.88);
+  --rmc-glass-border: rgba(148, 163, 184, 0.18);
+  --rmc-glass-border-subtle: rgba(148, 163, 184, 0.12);
+  --rmc-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --rmc-glass-shadow-elevated: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.marketing-surface {
+  --rmc-glass-bg: rgba(255, 255, 255, 0.12);
+  --rmc-glass-bg-strong: rgba(255, 255, 255, 0.18);
+  --rmc-glass-border: rgba(255, 255, 255, 0.2);
+  --rmc-glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.rmc-glass-surface {
+  background: var(--rmc-glass-bg);
+  backdrop-filter: blur(var(--rmc-glass-blur));
+  -webkit-backdrop-filter: blur(var(--rmc-glass-blur));
+  border: 1px solid var(--rmc-glass-border);
+  border-radius: var(--rmc-glass-radius);
+  box-shadow: var(--rmc-glass-shadow);
+}
+
+.rmc-glass-surface--strong {
+  background: var(--rmc-glass-bg-strong);
+  box-shadow: var(--rmc-glass-shadow-elevated);
+}
+
+.rmc-glass-sidebar-shell {
+  background: var(--rmc-glass-bg);
+  backdrop-filter: blur(var(--rmc-glass-blur));
+  -webkit-backdrop-filter: blur(var(--rmc-glass-blur));
+  border-right: 1px solid var(--rmc-glass-border-subtle);
+}
 
 </style>
   <!-- §8.0.11 platform-wide: responsive and fluid layout on every page -->
   <style data-source="/static/css/platform-responsive-touch.css">
-/**
- * Platform-wide: responsive behaviour, touch targets, and clickability.
- * Ensures every page is responsive, every button/link is clickable and goes to the right place.
- * No shortcuts — professional tuning for all viewports.
- */
-
-/* ========== Viewport & base ========== */
-/* (viewport meta is in base templates; ensure no min-width locks body) */
-body {
-  overflow-x: hidden;
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.08);
-}
-
-/* ========== Minimum touch targets (WCAG 2.5.5 — 44x44px) ========== */
-@media (pointer: coarse) {
-  .btn,
-  .nav-link,
-  .dropdown-item,
-  .breadcrumb-item a,
-  .navbar-toggler,
-  .page-link,
-  .list-group-item-action,
-  a[role="button"],
-  .cp-sidebar-nav .nav-link,
-  .cp-next-action,
-  .cp-chip {
-    min-height: 44px;
-    min-width: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .nav-link,
-  .dropdown-item,
-  .cp-sidebar-nav .nav-link {
-    justify-content: flex-start;
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-  }
-  .btn-sm {
-    min-height: 40px;
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-}
-
-/* All viewports: ensure buttons and links are comfortably tappable/clickable */
-.btn:not(.btn-sm),
-.navbar-brand {
-  min-height: 44px;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-}
-.nav-link,
-.cp-sidebar-nav .nav-link {
-  padding: 0.6rem 0.75rem;
-  border-radius: 0.375rem;
-}
-.dropdown-item {
-  padding: 0.6rem 1rem;
-}
-
-/* ========== Clickability: no accidental blocks ========== */
-a[href],
-button:not([disabled]),
-[role="button"]:not([aria-disabled="true"]),
-input[type="submit"],
-input[type="button"] {
-  cursor: pointer;
-}
-a[href]:hover,
-button:not([disabled]):hover {
-  cursor: pointer;
-}
-
-/* Ensure clickable cards/rows use <a> or onclick; if they're links, full hit area */
-.card-link,
-.stretched-link {
-  z-index: 1;
-}
-
-/* ========== Focus visible (keyboard & a11y) ========== */
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-[tabindex]:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
-}
-.btn:focus-visible,
-.nav-link:focus-visible,
-.dropdown-item:focus-visible {
-  outline: 2px solid var(--bs-primary, var(--school-primary));
-  outline-offset: 2px;
-}
-.control-plane-shell .btn:focus-visible,
-.control-plane-shell .nav-link:focus-visible {
-  outline-color: var(--platform-gold, var(--school-accent));
-}
-
-/* ========== Responsive containers ========== */
-.container-fluid {
-  padding-left: max(0.75rem, env(safe-area-inset-left));
-  padding-right: max(0.75rem, env(safe-area-inset-right));
-}
-@media (max-width: 576px) {
-  .container-fluid {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-  }
-}
-
-/* ========== Navbar: always usable on small screens ========== */
-.navbar-collapse {
-  max-height: min(85vh, 600px);
-  overflow-y: auto;
-}
-@media (max-width: 991.98px) {
-  .navbar .navbar-nav .nav-link {
-    padding: 0.75rem 1rem;
-  }
-}
-
-/* ========== Tables: horizontal scroll on small viewports ========== */
-.table-responsive {
-  -webkit-overflow-scrolling: touch;
-}
-@media (max-width: 767px) {
-  .table-responsive {
-    margin-left: -0.5rem;
-    margin-right: -0.5rem;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-  }
-}
-
-/* ========== Forms: full width on mobile ========== */
-@media (max-width: 576px) {
-  .form-control,
-  .form-select,
-  .btn {
-    width: 100%;
-  }
-  .input-group .form-control,
-  .input-group .btn {
-    width: auto;
-  }
-}
-
-/* ========== Control plane sidebar (nav + offcanvas) ========== */
-.cp-sidebar-nav .nav-link {
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-.cp-sidebar-nav .nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-}
-.cp-sidebar-nav .nav-link:active {
-  background-color: rgba(255, 255, 255, 0.12);
-}
-.offcanvas .cp-sidebar-nav .nav-link {
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-}
-
-/* Offcanvas close button: clear hit area */
-.offcanvas-header .btn-close {
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0.5rem;
-}
+/**
+ * Platform-wide: responsive behaviour, touch targets, and clickability.
+ * Ensures every page is responsive, every button/link is clickable and goes to the right place.
+ * No shortcuts — professional tuning for all viewports.
+ */
+
+/* ========== Viewport & base ========== */
+/* (viewport meta is in base templates; ensure no min-width locks body) */
+body {
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.08);
+}
+
+/* ========== Minimum touch targets (WCAG 2.5.5 — 44x44px) ========== */
+@media (pointer: coarse) {
+  .btn,
+  .nav-link,
+  .dropdown-item,
+  .breadcrumb-item a,
+  .navbar-toggler,
+  .page-link,
+  .list-group-item-action,
+  a[role="button"],
+  .cp-sidebar-nav .nav-link,
+  .cp-next-action,
+  .cp-chip {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-link,
+  .dropdown-item,
+  .cp-sidebar-nav .nav-link {
+    justify-content: flex-start;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+  .btn-sm {
+    min-height: 40px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* All viewports: ensure buttons and links are comfortably tappable/clickable */
+.btn:not(.btn-sm),
+.navbar-brand {
+  min-height: 44px;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.nav-link,
+.cp-sidebar-nav .nav-link {
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.375rem;
+}
+.dropdown-item {
+  padding: 0.6rem 1rem;
+}
+
+/* ========== Clickability: no accidental blocks ========== */
+a[href],
+button:not([disabled]),
+[role="button"]:not([aria-disabled="true"]),
+input[type="submit"],
+input[type="button"] {
+  cursor: pointer;
+}
+a[href]:hover,
+button:not([disabled]):hover {
+  cursor: pointer;
+}
+
+/* Ensure clickable cards/rows use <a> or onclick; if they're links, full hit area */
+.card-link,
+.stretched-link {
+  z-index: 1;
+}
+
+/* ========== Focus visible (keyboard & a11y) ========== */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.btn:focus-visible,
+.nav-link:focus-visible,
+.dropdown-item:focus-visible {
+  outline: 2px solid var(--bs-primary, var(--school-primary));
+  outline-offset: 2px;
+}
+.control-plane-shell .btn:focus-visible,
+.control-plane-shell .nav-link:focus-visible {
+  outline-color: var(--platform-gold, var(--school-accent));
+}
+
+/* ========== Responsive containers ========== */
+.container-fluid {
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+  padding-right: max(0.75rem, env(safe-area-inset-right));
+}
+@media (max-width: 576px) {
+  .container-fluid {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+/* ========== Navbar: always usable on small screens ========== */
+.navbar-collapse {
+  max-height: min(85vh, 600px);
+  overflow-y: auto;
+}
+@media (max-width: 991.98px) {
+  .navbar .navbar-nav .nav-link {
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* ========== Tables: horizontal scroll on small viewports ========== */
+.table-responsive {
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 767px) {
+  .table-responsive {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+/* ========== Forms: full width on mobile ========== */
+@media (max-width: 576px) {
+  .form-control,
+  .form-select,
+  .btn {
+    width: 100%;
+  }
+  .input-group .form-control,
+  .input-group .btn {
+    width: auto;
+  }
+}
+
+/* ========== Control plane sidebar (nav + offcanvas) ========== */
+.cp-sidebar-nav .nav-link {
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.cp-sidebar-nav .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.cp-sidebar-nav .nav-link:active {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+.offcanvas .cp-sidebar-nav .nav-link {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+}
+
+/* Offcanvas close button: clear hit area */
+.offcanvas-header .btn-close {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem;
+}
 
 </style>
   <style data-source="/static/css/platform-fluid-everywhere.css">
@@ -6815,488 +6807,488 @@ img[width][height] {
 
 </style>
   <style data-source="/static/css/accessibility.css">
-/**
- * Accessibility: focus, reduced motion, high contrast
- * Use across Studio OS, workflow center, portal sidebar, and backend.
- */
-
-/* Visible focus for keyboard users; avoid focus ring for mouse-only */
-:where(a:focus-visible, button:focus-visible, [tabindex]:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible) {
-  outline: 2px solid var(--color-primary-500, var(--school-primary));
-  outline-offset: 2px;
-}
-
-/* Optional: respect reduced motion for transitions/animations */
-@media (prefers-reduced-motion: reduce) {
-  :where(*, *::before, *::after) {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Skip link: visible on focus, hidden otherwise */
-.visually-hidden-focusable:not(:focus):not(:focus-within) {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
-}
-.visually-hidden-focusable:focus {
-  position: absolute !important;
-  z-index: 1060;
-  width: auto !important;
-  height: auto !important;
-  padding: 0.5rem 1rem !important;
-  margin: 0.5rem !important;
-  overflow: visible !important;
-  clip: auto !important;
-  white-space: normal !important;
-}
+/**
+ * Accessibility: focus, reduced motion, high contrast
+ * Use across Studio OS, workflow center, portal sidebar, and backend.
+ */
+
+/* Visible focus for keyboard users; avoid focus ring for mouse-only */
+:where(a:focus-visible, button:focus-visible, [tabindex]:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible) {
+  outline: 2px solid var(--color-primary-500, var(--school-primary));
+  outline-offset: 2px;
+}
+
+/* Optional: respect reduced motion for transitions/animations */
+@media (prefers-reduced-motion: reduce) {
+  :where(*, *::before, *::after) {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Skip link: visible on focus, hidden otherwise */
+.visually-hidden-focusable:not(:focus):not(:focus-within) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.visually-hidden-focusable:focus {
+  position: absolute !important;
+  z-index: 1060;
+  width: auto !important;
+  height: auto !important;
+  padding: 0.5rem 1rem !important;
+  margin: 0.5rem !important;
+  overflow: visible !important;
+  clip: auto !important;
+  white-space: normal !important;
+}
 
 </style>
   <style data-source="/static/css/header-no-spillage.css">
-/**
- * Phase I.5 — Header no spillage (SOT).
- * Ensures header/top bar is properly configured on every surface:
- * no spillage, no overflow outside the shell, contained within layout.
- * Applies to: control plane, portal, backend, marketing, auth.
- */
-/* Global: prevent horizontal spill from viewport */
-html {
-  overflow-x: clip;
-}
-body {
-  overflow-x: clip;
-  max-width: 100vw;
-}
-
-/* Control plane: .cp-navbar (control_plane_base.html) */
-.cp-shell-content .cp-navbar.statement-header,
-nav.cp-navbar.statement-header {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: hidden;
-  flex-shrink: 0;
-}
-.cp-shell-content .cp-navbar .container-fluid,
-nav.cp-navbar .container-fluid {
-  max-width: 100%;
-  min-width: 0;
-  /* overflow-x: hidden made overflow-y compute to auto and clipped Bootstrap dropdowns */
-  overflow-x: clip;
-  overflow-y: visible;
-}
-
-/* Portal / tenant: #portalHeader (portal_base.html) */
-#portalHeader.topbar.statement-header,
-nav#portalHeader.statement-header {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: clip;
-  overflow-y: visible;
-}
-#portalHeader .container-fluid,
-#portalHeader .navbar-collapse {
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: clip;
-  overflow-y: visible;
-}
-
-/* Marketing: .mkt-navbar (marketing_header.html)
-   overflow-x: hidden clips Bootstrap dropdowns (Popper absolutely positioned).
-   Use clip + visible y (same pattern as portal header). */
-.mkt-navbar.statement-header,
-nav.mkt-navbar.statement-header {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: clip;
-  overflow-y: visible;
-}
-.mkt-navbar .mkt-navbar-container,
-.mkt-navbar .container {
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: clip;
-  overflow-y: visible;
-}
-.mkt-navbar .navbar-collapse {
-  overflow-x: clip;
-  overflow-y: visible;
-}
-@media (min-width: 992px) {
-  .mkt-navbar-unified:has(.mkt-mega-menu.show) .mkt-navbar-container,
-  .mkt-navbar-unified:has(.mkt-mega-menu.show) .navbar-collapse,
-  .mkt-navbar-unified:has(.mkt-mega-menu.show) .container {
-    overflow-x: visible;
-    overflow-y: visible;
-  }
-}
-
-/* Auth / standalone: any .navbar that is a direct header */
-body .navbar.statement-header {
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: hidden;
-}
-body .navbar .container,
-body .navbar .container-fluid {
-  max-width: 100%;
-  min-width: 0;
-}
-
-/* Admin wrapper (admin_nav_bridge): ensure header strip doesn't spill */
-body.admin-wrap .navbar,
-body .admin_nav_bridge {
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: hidden;
-}
+/**
+ * Phase I.5 — Header no spillage (SOT).
+ * Ensures header/top bar is properly configured on every surface:
+ * no spillage, no overflow outside the shell, contained within layout.
+ * Applies to: control plane, portal, backend, marketing, auth.
+ */
+/* Global: prevent horizontal spill from viewport */
+html {
+  overflow-x: clip;
+}
+body {
+  overflow-x: clip;
+  max-width: 100vw;
+}
+
+/* Control plane: .cp-navbar (control_plane_base.html) */
+.cp-shell-content .cp-navbar.statement-header,
+nav.cp-navbar.statement-header {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  flex-shrink: 0;
+}
+.cp-shell-content .cp-navbar .container-fluid,
+nav.cp-navbar .container-fluid {
+  max-width: 100%;
+  min-width: 0;
+  /* overflow-x: hidden made overflow-y compute to auto and clipped Bootstrap dropdowns */
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+/* Portal / tenant: #portalHeader (portal_base.html) */
+#portalHeader.topbar.statement-header,
+nav#portalHeader.statement-header {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+#portalHeader .container-fluid,
+#portalHeader .navbar-collapse {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+/* Marketing: .mkt-navbar (marketing_header.html)
+   overflow-x: hidden clips Bootstrap dropdowns (Popper absolutely positioned).
+   Use clip + visible y (same pattern as portal header). */
+.mkt-navbar.statement-header,
+nav.mkt-navbar.statement-header {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+.mkt-navbar .mkt-navbar-container,
+.mkt-navbar .container {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+.mkt-navbar .navbar-collapse {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+@media (min-width: 992px) {
+  .mkt-navbar-unified:has(.mkt-mega-menu.show) .mkt-navbar-container,
+  .mkt-navbar-unified:has(.mkt-mega-menu.show) .navbar-collapse,
+  .mkt-navbar-unified:has(.mkt-mega-menu.show) .container {
+    overflow-x: visible;
+    overflow-y: visible;
+  }
+}
+
+/* Auth / standalone: any .navbar that is a direct header */
+body .navbar.statement-header {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+body .navbar .container,
+body .navbar .container-fluid {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Admin wrapper (admin_nav_bridge): ensure header strip doesn't spill */
+body.admin-wrap .navbar,
+body .admin_nav_bridge {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
 
 </style>
   <style data-source="/static/css/rmc-premium-os.css">
-/**
- * RunMyCampus Premium OS layer.
- * Final-pass polish that sits above the older dashboard/theme bundles without
- * changing routes, permissions, tenant isolation, or PSP readiness behavior.
- */
-
-:root {
-  --rmc-premium-bg: #f7f9fc;
-  --rmc-premium-ink: #111827;
-  --rmc-premium-muted: #64748b;
-  --rmc-premium-line: rgba(15, 23, 42, 0.1);
-  --rmc-premium-surface: rgba(255, 255, 255, 0.9);
-  --rmc-premium-surface-strong: #ffffff;
-  --rmc-premium-radius: 8px;
-  --rmc-premium-shadow: 0 18px 55px rgba(15, 23, 42, 0.1);
-}
-
-[data-rmc-premium-shell] body,
-body[data-rmc-premium-shell] {
-  color: var(--rmc-premium-ink);
-  letter-spacing: 0;
-}
-
-body.marketing-surface {
-  background:
-    linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(255, 255, 255, 1) 28%),
-    var(--rmc-premium-bg);
-}
-
-.marketing-surface .mkt-main {
-  overflow-x: clip;
-}
-
-.marketing-surface .mkt-hero {
-  min-height: min(760px, calc(100vh - 4.5rem));
-  display: grid;
-  align-items: center;
-  background:
-    linear-gradient(140deg, rgba(8, 13, 24, 0.96) 0%, rgba(12, 23, 39, 0.94) 52%, rgba(30, 41, 59, 0.94) 100%);
-}
-
-.marketing-surface .mkt-hero-inner {
-  width: min(1180px, calc(100% - 2rem));
-  margin-inline: auto;
-  gap: clamp(1.5rem, 4vw, 4rem);
-}
-
-.marketing-surface .mkt-hero-headline {
-  max-width: 12ch;
-  letter-spacing: 0;
-  text-wrap: balance;
-}
-
-.marketing-surface .mkt-hero-subheadline {
-  max-width: 58ch;
-  color: rgba(241, 245, 249, 0.86);
-}
-
-.marketing-surface .mkt-hero-trusted,
-.marketing-surface .mkt-hero-category-claim,
-.marketing-surface .mkt-glob-pill,
-.marketing-surface .badge {
-  letter-spacing: 0;
-}
-
-.marketing-surface .mkt-hero-ctas {
-  gap: 0.75rem;
-}
-
-.marketing-surface .btn,
-.portal-body-with-layout .btn,
-.cp-shell-content .btn {
-  border-radius: var(--rmc-premium-radius);
-  font-weight: 650;
-  letter-spacing: 0;
-}
-
-.marketing-surface .btn-primary,
-.portal-body-with-layout .btn-primary,
-.cp-shell-content .btn-primary {
-  box-shadow: 0 14px 34px rgba(37, 99, 235, 0.22);
-}
-
-.marketing-surface .mkt-hero-visual,
-.marketing-surface .mkt-product-demo-visual {
-  border-radius: var(--rmc-premium-radius);
-  border: 1px solid rgba(226, 232, 240, 0.22);
-  box-shadow: var(--rmc-premium-shadow);
-}
-
-.marketing-surface .mkt-section {
-  padding-block: clamp(3rem, 7vw, 5.75rem);
-}
-
-.marketing-surface .mkt-section-heading,
-.marketing-surface h1,
-.marketing-surface h2,
-.portal-body-with-layout h1,
-.portal-body-with-layout h2,
-.cp-shell-content h1,
-.cp-shell-content h2 {
-  letter-spacing: 0;
-  text-wrap: balance;
-}
-
-.marketing-surface [class*="card"],
-.marketing-surface [class*="panel"],
-.marketing-surface .rmc-glass-surface,
-.portal-body-with-layout .card,
-.portal-body-with-layout [class*="panel"],
-.portal-body-with-layout .rmc-glass-surface,
-.cp-shell-content .card,
-.cp-shell-content [class*="panel"],
-.cp-shell-content .rmc-glass-surface {
-  border-radius: var(--rmc-premium-radius);
-  border-color: var(--rmc-premium-line);
-}
-
-.portal-body-with-layout,
-.cp-shell-content {
-  --rmc-os-canvas-gap: 1.15rem;
-}
-
-.portal-body-with-layout .page-wrap,
-.cp-shell-content .cp-layout {
-  background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 34rem),
-    linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.95));
-}
-
-.portal-body-with-layout .portal-main-col,
-.cp-shell-content .cp-main-col {
-  min-width: 0;
-}
-
-.rmc-os-page-header {
-  background: var(--rmc-premium-surface-strong) !important;
-  border: 1px solid var(--rmc-premium-line) !important;
-  border-radius: var(--rmc-premium-radius) !important;
-  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.06);
-}
-
-.rmc-os-page-header__title {
-  font-size: clamp(1.1rem, 1rem + 0.5vw, 1.45rem);
-}
-
-[data-rmc-os-primary-action-slot],
-[data-rmc-primary-action-slot] {
-  min-height: 2.25rem;
-}
-
-.cp-sidebar-inner,
-.portal-sidebar,
-.offcanvas.cp-context-drawer {
-  border-radius: var(--rmc-premium-radius);
-}
-
-.cp-sidebar-nav .nav-link,
-.portal-sidebar .nav-link,
-.portal-sidebar .nav-pill {
-  border-radius: var(--rmc-premium-radius);
-}
-
-.table-responsive {
-  border-radius: var(--rmc-premium-radius);
-  border: 1px solid var(--rmc-premium-line);
-}
-
-.dashboard-empty-state,
-[data-empty-state],
-.empty-state {
-  border-radius: var(--rmc-premium-radius);
-  border: 1px dashed rgba(100, 116, 139, 0.35);
-  background: rgba(255, 255, 255, 0.72);
-}
-
-@media (max-width: 767.98px) {
-  .marketing-surface .mkt-hero {
-    min-height: auto;
-    padding-block: 4rem 3rem;
-  }
-
-  .marketing-surface .mkt-hero-headline {
-    max-width: 13ch;
-  }
-
-  .marketing-surface .mkt-hero-ctas .btn,
-  .marketing-surface .mkt-sticky-cta-bar .btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .portal-body-with-layout .page-wrap,
-  .cp-shell-content .cp-layout {
-    padding-inline: 0.75rem !important;
-  }
-}
+/**
+ * RunMyCampus Premium OS layer.
+ * Final-pass polish that sits above the older dashboard/theme bundles without
+ * changing routes, permissions, tenant isolation, or PSP readiness behavior.
+ */
+
+:root {
+  --rmc-premium-bg: #f7f9fc;
+  --rmc-premium-ink: #111827;
+  --rmc-premium-muted: #64748b;
+  --rmc-premium-line: rgba(15, 23, 42, 0.1);
+  --rmc-premium-surface: rgba(255, 255, 255, 0.9);
+  --rmc-premium-surface-strong: #ffffff;
+  --rmc-premium-radius: 8px;
+  --rmc-premium-shadow: 0 18px 55px rgba(15, 23, 42, 0.1);
+}
+
+[data-rmc-premium-shell] body,
+body[data-rmc-premium-shell] {
+  color: var(--rmc-premium-ink);
+  letter-spacing: 0;
+}
+
+body.marketing-surface {
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(255, 255, 255, 1) 28%),
+    var(--rmc-premium-bg);
+}
+
+.marketing-surface .mkt-main {
+  overflow-x: clip;
+}
+
+.marketing-surface .mkt-hero {
+  min-height: min(760px, calc(100vh - 4.5rem));
+  display: grid;
+  align-items: center;
+  background:
+    linear-gradient(140deg, rgba(8, 13, 24, 0.96) 0%, rgba(12, 23, 39, 0.94) 52%, rgba(30, 41, 59, 0.94) 100%);
+}
+
+.marketing-surface .mkt-hero-inner {
+  width: min(1180px, calc(100% - 2rem));
+  margin-inline: auto;
+  gap: clamp(1.5rem, 4vw, 4rem);
+}
+
+.marketing-surface .mkt-hero-headline {
+  max-width: 12ch;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.marketing-surface .mkt-hero-subheadline {
+  max-width: 58ch;
+  color: rgba(241, 245, 249, 0.86);
+}
+
+.marketing-surface .mkt-hero-trusted,
+.marketing-surface .mkt-hero-category-claim,
+.marketing-surface .mkt-glob-pill,
+.marketing-surface .badge {
+  letter-spacing: 0;
+}
+
+.marketing-surface .mkt-hero-ctas {
+  gap: 0.75rem;
+}
+
+.marketing-surface .btn,
+.portal-body-with-layout .btn,
+.cp-shell-content .btn {
+  border-radius: var(--rmc-premium-radius);
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+.marketing-surface .btn-primary,
+.portal-body-with-layout .btn-primary,
+.cp-shell-content .btn-primary {
+  box-shadow: 0 14px 34px rgba(37, 99, 235, 0.22);
+}
+
+.marketing-surface .mkt-hero-visual,
+.marketing-surface .mkt-product-demo-visual {
+  border-radius: var(--rmc-premium-radius);
+  border: 1px solid rgba(226, 232, 240, 0.22);
+  box-shadow: var(--rmc-premium-shadow);
+}
+
+.marketing-surface .mkt-section {
+  padding-block: clamp(3rem, 7vw, 5.75rem);
+}
+
+.marketing-surface .mkt-section-heading,
+.marketing-surface h1,
+.marketing-surface h2,
+.portal-body-with-layout h1,
+.portal-body-with-layout h2,
+.cp-shell-content h1,
+.cp-shell-content h2 {
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.marketing-surface [class*="card"],
+.marketing-surface [class*="panel"],
+.marketing-surface .rmc-glass-surface,
+.portal-body-with-layout .card,
+.portal-body-with-layout [class*="panel"],
+.portal-body-with-layout .rmc-glass-surface,
+.cp-shell-content .card,
+.cp-shell-content [class*="panel"],
+.cp-shell-content .rmc-glass-surface {
+  border-radius: var(--rmc-premium-radius);
+  border-color: var(--rmc-premium-line);
+}
+
+.portal-body-with-layout,
+.cp-shell-content {
+  --rmc-os-canvas-gap: 1.15rem;
+}
+
+.portal-body-with-layout .page-wrap,
+.cp-shell-content .cp-layout {
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 34rem),
+    linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.95));
+}
+
+.portal-body-with-layout .portal-main-col,
+.cp-shell-content .cp-main-col {
+  min-width: 0;
+}
+
+.rmc-os-page-header {
+  background: var(--rmc-premium-surface-strong) !important;
+  border: 1px solid var(--rmc-premium-line) !important;
+  border-radius: var(--rmc-premium-radius) !important;
+  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.06);
+}
+
+.rmc-os-page-header__title {
+  font-size: clamp(1.1rem, 1rem + 0.5vw, 1.45rem);
+}
+
+[data-rmc-os-primary-action-slot],
+[data-rmc-primary-action-slot] {
+  min-height: 2.25rem;
+}
+
+.cp-sidebar-inner,
+.portal-sidebar,
+.offcanvas.cp-context-drawer {
+  border-radius: var(--rmc-premium-radius);
+}
+
+.cp-sidebar-nav .nav-link,
+.portal-sidebar .nav-link,
+.portal-sidebar .nav-pill {
+  border-radius: var(--rmc-premium-radius);
+}
+
+.table-responsive {
+  border-radius: var(--rmc-premium-radius);
+  border: 1px solid var(--rmc-premium-line);
+}
+
+.dashboard-empty-state,
+[data-empty-state],
+.empty-state {
+  border-radius: var(--rmc-premium-radius);
+  border: 1px dashed rgba(100, 116, 139, 0.35);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+@media (max-width: 767.98px) {
+  .marketing-surface .mkt-hero {
+    min-height: auto;
+    padding-block: 4rem 3rem;
+  }
+
+  .marketing-surface .mkt-hero-headline {
+    max-width: 13ch;
+  }
+
+  .marketing-surface .mkt-hero-ctas .btn,
+  .marketing-surface .mkt-sticky-cta-bar .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .portal-body-with-layout .page-wrap,
+  .cp-shell-content .cp-layout {
+    padding-inline: 0.75rem !important;
+  }
+}
 
 </style>
   <style data-source="/static/css/rmc-premium-polish.css">
-/**
- * RunMyCampus Premium Polish layer.
- * This is the final visual refinement layer above the RMC OS shell and
- * premium OS reset. It uses existing tokens and avoids changing routes,
- * permissions, tenant isolation, or payment-readiness truth.
- */
-
-:root {
-  --rmc-polish-radius: var(--rmc-premium-radius, 8px);
-  --rmc-polish-line: var(--rmc-premium-line, rgba(15, 23, 42, 0.1));
-  --rmc-polish-shadow-soft: 0 16px 42px rgba(15, 23, 42, 0.08);
-  --rmc-polish-shadow-focus: 0 0 0 0.18rem rgba(37, 99, 235, 0.2);
-  --rmc-polish-surface: rgba(255, 255, 255, 0.92);
-  --rmc-polish-ink: var(--rmc-premium-ink, #111827);
-  --rmc-polish-muted: var(--rmc-premium-muted, #64748b);
-}
-
-body {
-  letter-spacing: 0;
-}
-
-.marketing-surface .mkt-header,
-.cp-shell-content .cp-navbar,
-.portal-body-with-layout .portal-topbar {
-  backdrop-filter: saturate(150%) blur(14px);
-}
-
-.marketing-surface .mkt-nav-link,
-.marketing-surface .dropdown-item,
-.portal-body-with-layout .nav-link,
-.cp-shell-content .nav-link {
-  text-underline-offset: 0.18em;
-}
-
-.marketing-surface .btn:focus-visible,
-.portal-body-with-layout .btn:focus-visible,
-.cp-shell-content .btn:focus-visible,
-.marketing-surface a:focus-visible,
-.portal-body-with-layout a:focus-visible,
-.cp-shell-content a:focus-visible {
-  outline: 0;
-  box-shadow: var(--rmc-polish-shadow-focus);
-}
-
-.marketing-surface .btn,
-.portal-body-with-layout .btn,
-.cp-shell-content .btn {
-  min-height: 2.35rem;
-}
-
-.marketing-surface .badge,
-.marketing-surface [class*="pill"],
-.portal-body-with-layout .badge,
-.portal-body-with-layout [class*="pill"],
-.cp-shell-content .badge,
-.cp-shell-content [class*="pill"] {
-  border-radius: 999px;
-}
-
-.marketing-surface .mkt-section > .container,
-.marketing-surface .mkt-section > .container-fluid {
-  max-width: 1180px;
-}
-
-.marketing-surface .mkt-section p,
-.portal-body-with-layout .rmc-os-page-header__subtitle,
-.cp-shell-content .rmc-os-page-header__subtitle {
-  color: var(--rmc-polish-muted);
-}
-
-.portal-body-with-layout .card,
-.portal-body-with-layout [class*="panel"],
-.cp-shell-content .card,
-.cp-shell-content [class*="panel"],
-.marketing-surface [class*="card"],
-.marketing-surface [class*="panel"] {
-  box-shadow: var(--rmc-polish-shadow-soft);
-}
-
-.portal-body-with-layout .table-responsive,
-.cp-shell-content .table-responsive {
-  background: var(--rmc-polish-surface);
-  overflow: auto;
-}
-
-.portal-body-with-layout table,
-.cp-shell-content table {
-  margin-bottom: 0;
-}
-
-.portal-body-with-layout thead th,
-.cp-shell-content thead th {
-  color: var(--rmc-polish-muted);
-  font-size: 0.78rem;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.rmc-os-empty-state,
-[data-rmc-empty-state],
-.dashboard-empty-state,
-.empty-state {
-  display: grid;
-  gap: 0.75rem;
-  align-content: start;
-}
-
-.rmc-os-status-strip,
-[data-rmc-os-status-strip] {
-  border-radius: var(--rmc-polish-radius);
-  border: 1px solid var(--rmc-polish-line);
-}
-
-.cp-progressive-disclosure > summary {
-  cursor: pointer;
-  list-style: none;
-}
-
-.cp-progressive-disclosure > summary::-webkit-details-marker {
-  display: none;
-}
-
-@media (max-width: 767.98px) {
-  .marketing-surface .mkt-section {
-    padding-block: 2.75rem;
-  }
-
-  .portal-body-with-layout .card,
-  .cp-shell-content .card,
-  .marketing-surface [class*="card"] {
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
-  }
-}
+/**
+ * RunMyCampus Premium Polish layer.
+ * This is the final visual refinement layer above the RMC OS shell and
+ * premium OS reset. It uses existing tokens and avoids changing routes,
+ * permissions, tenant isolation, or payment-readiness truth.
+ */
+
+:root {
+  --rmc-polish-radius: var(--rmc-premium-radius, 8px);
+  --rmc-polish-line: var(--rmc-premium-line, rgba(15, 23, 42, 0.1));
+  --rmc-polish-shadow-soft: 0 16px 42px rgba(15, 23, 42, 0.08);
+  --rmc-polish-shadow-focus: 0 0 0 0.18rem rgba(37, 99, 235, 0.2);
+  --rmc-polish-surface: rgba(255, 255, 255, 0.92);
+  --rmc-polish-ink: var(--rmc-premium-ink, #111827);
+  --rmc-polish-muted: var(--rmc-premium-muted, #64748b);
+}
+
+body {
+  letter-spacing: 0;
+}
+
+.marketing-surface .mkt-header,
+.cp-shell-content .cp-navbar,
+.portal-body-with-layout .portal-topbar {
+  backdrop-filter: saturate(150%) blur(14px);
+}
+
+.marketing-surface .mkt-nav-link,
+.marketing-surface .dropdown-item,
+.portal-body-with-layout .nav-link,
+.cp-shell-content .nav-link {
+  text-underline-offset: 0.18em;
+}
+
+.marketing-surface .btn:focus-visible,
+.portal-body-with-layout .btn:focus-visible,
+.cp-shell-content .btn:focus-visible,
+.marketing-surface a:focus-visible,
+.portal-body-with-layout a:focus-visible,
+.cp-shell-content a:focus-visible {
+  outline: 0;
+  box-shadow: var(--rmc-polish-shadow-focus);
+}
+
+.marketing-surface .btn,
+.portal-body-with-layout .btn,
+.cp-shell-content .btn {
+  min-height: 2.35rem;
+}
+
+.marketing-surface .badge,
+.marketing-surface [class*="pill"],
+.portal-body-with-layout .badge,
+.portal-body-with-layout [class*="pill"],
+.cp-shell-content .badge,
+.cp-shell-content [class*="pill"] {
+  border-radius: 999px;
+}
+
+.marketing-surface .mkt-section > .container,
+.marketing-surface .mkt-section > .container-fluid {
+  max-width: 1180px;
+}
+
+.marketing-surface .mkt-section p,
+.portal-body-with-layout .rmc-os-page-header__subtitle,
+.cp-shell-content .rmc-os-page-header__subtitle {
+  color: var(--rmc-polish-muted);
+}
+
+.portal-body-with-layout .card,
+.portal-body-with-layout [class*="panel"],
+.cp-shell-content .card,
+.cp-shell-content [class*="panel"],
+.marketing-surface [class*="card"],
+.marketing-surface [class*="panel"] {
+  box-shadow: var(--rmc-polish-shadow-soft);
+}
+
+.portal-body-with-layout .table-responsive,
+.cp-shell-content .table-responsive {
+  background: var(--rmc-polish-surface);
+  overflow: auto;
+}
+
+.portal-body-with-layout table,
+.cp-shell-content table {
+  margin-bottom: 0;
+}
+
+.portal-body-with-layout thead th,
+.cp-shell-content thead th {
+  color: var(--rmc-polish-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.rmc-os-empty-state,
+[data-rmc-empty-state],
+.dashboard-empty-state,
+.empty-state {
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.rmc-os-status-strip,
+[data-rmc-os-status-strip] {
+  border-radius: var(--rmc-polish-radius);
+  border: 1px solid var(--rmc-polish-line);
+}
+
+.cp-progressive-disclosure > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.cp-progressive-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .marketing-surface .mkt-section {
+    padding-block: 2.75rem;
+  }
+
+  .portal-body-with-layout .card,
+  .cp-shell-content .card,
+  .marketing-surface [class*="card"] {
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
+  }
+}
 
 </style>
   <style data-source="/static/css/rmc-world-class-experience.css">

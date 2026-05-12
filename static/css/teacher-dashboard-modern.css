@@ -3,16 +3,16 @@
   --tdm-accent: var(--school-accent);
   --tdm-bg: linear-gradient(
     135deg,
-    color-mix(in srgb, #eef4ff 84%, var(--tdm-primary) 16%),
-    color-mix(in srgb, #f7f4ff 88%, var(--tdm-accent) 12%) 40%,
-    color-mix(in srgb, #edf8ff 86%, var(--tdm-primary) 14%) 70%
+    color-mix(in srgb, var(--tint-blue-soft) 84%, var(--tdm-primary) 16%),
+    color-mix(in srgb, var(--tint-indigo-soft) 88%, var(--tdm-accent) 12%) 40%,
+    color-mix(in srgb, var(--tint-sky-soft) 86%, var(--tdm-primary) 14%) 70%
   );
   --tdm-card: var(--dashboard-surface, rgba(255, 255, 255, 0.84));
   --tdm-border: var(--dashboard-border, rgba(148, 163, 184, 0.28));
   --tdm-shadow: var(--dashboard-shadow, 0 20px 60px rgba(62, 83, 173, 0.18));
   --tdm-radius: 18px;
-  --tdm-text: var(--dashboard-text-strong, #0f172a);
-  --tdm-muted: var(--dashboard-text-muted, #475569);
+  --tdm-text: var(--dashboard-text-strong, var(--color-base-900));
+  --tdm-muted: var(--dashboard-text-muted, var(--color-base-600));
 }
 
 .tdm-bg {
@@ -50,11 +50,11 @@
   font-weight: 800;
   font-size: clamp(1.6rem, 2vw, 2rem);
   margin-bottom: 4px;
-  color: var(--admin-content-text, #0f172a);
+  color: var(--admin-content-text, var(--color-base-900));
 }
 
 .tdm-subtitle {
-  color: var(--admin-content-text-muted, #475569);
+  color: var(--admin-content-text-muted, var(--color-base-600));
   margin: 0 0 10px;
 }
 
@@ -77,23 +77,23 @@
 .chip {
   padding: 6px 12px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--tdm-primary) 12%, #ffffff 88%);
-  color: color-mix(in srgb, var(--tdm-primary) 72%, #0f172a 28%);
+  background: color-mix(in srgb, var(--tdm-primary) 12%, var(--color-base-0) 88%);
+  color: color-mix(in srgb, var(--tdm-primary) 72%, var(--color-base-900) 28%);
   font-weight: 600;
   font-size: 0.85rem;
-  border: 1px solid color-mix(in srgb, var(--tdm-primary) 34%, #cbd5e1 66%);
+  border: 1px solid color-mix(in srgb, var(--tdm-primary) 34%, var(--color-base-300) 66%);
 }
 
 .chip-accent {
-  background: color-mix(in srgb, var(--tdm-accent) 16%, #ffffff 84%);
-  color: color-mix(in srgb, var(--tdm-accent) 70%, #0f172a 30%);
-  border-color: color-mix(in srgb, var(--tdm-accent) 40%, #cbd5e1 60%);
+  background: color-mix(in srgb, var(--tdm-accent) 16%, var(--color-base-0) 84%);
+  color: color-mix(in srgb, var(--tdm-accent) 70%, var(--color-base-900) 30%);
+  border-color: color-mix(in srgb, var(--tdm-accent) 40%, var(--color-base-300) 60%);
 }
 
 .chip-soft {
-  background: color-mix(in srgb, var(--tdm-primary) 10%, #ffffff 90%);
-  color: color-mix(in srgb, var(--tdm-primary) 64%, #0f172a 36%);
-  border-color: color-mix(in srgb, var(--tdm-primary) 30%, #cbd5e1 70%);
+  background: color-mix(in srgb, var(--tdm-primary) 10%, var(--color-base-0) 90%);
+  color: color-mix(in srgb, var(--tdm-primary) 64%, var(--color-base-900) 36%);
+  border-color: color-mix(in srgb, var(--tdm-primary) 30%, var(--color-base-300) 70%);
 }
 
 .tdm-hero__actions .btn {
@@ -102,8 +102,8 @@
 }
 
 .dashboard-page-teacher .tdm-hero__actions .btn-outline-light {
-  background: color-mix(in srgb, var(--tdm-primary) 14%, #ffffff 86%);
-  border-color: color-mix(in srgb, var(--tdm-primary) 42%, #cbd5e1 58%);
+  background: color-mix(in srgb, var(--tdm-primary) 14%, var(--color-base-0) 86%);
+  border-color: color-mix(in srgb, var(--tdm-primary) 42%, var(--color-base-300) 58%);
   color: var(--tdm-text);
   font-weight: 700;
   opacity: 1;
@@ -111,8 +111,8 @@
 
 .dashboard-page-teacher .tdm-hero__actions .btn-outline-light:hover,
 .dashboard-page-teacher .tdm-hero__actions .btn-outline-light:focus-visible {
-  background: color-mix(in srgb, var(--tdm-primary) 20%, #ffffff 80%);
-  border-color: color-mix(in srgb, var(--tdm-primary) 58%, #94a3b8 42%);
+  background: color-mix(in srgb, var(--tdm-primary) 20%, var(--color-base-0) 80%);
+  border-color: color-mix(in srgb, var(--tdm-primary) 58%, var(--color-base-400) 42%);
   color: var(--tdm-text);
 }
 
@@ -134,7 +134,7 @@
   height: 60px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #fff;
+  border: 2px solid var(--color-base-0);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
@@ -142,7 +142,7 @@
   display: grid;
   place-items: center;
   background: linear-gradient(135deg, var(--tdm-primary), var(--tdm-accent));
-  color: #fff;
+  color: var(--color-base-0);
   font-weight: 700;
 }
 
@@ -163,9 +163,9 @@
 }
 
 .btn-soft {
-  background: color-mix(in srgb, var(--tdm-primary) 10%, #ffffff 90%);
-  border: 1px solid color-mix(in srgb, var(--tdm-primary) 28%, #cbd5e1 72%);
-  color: color-mix(in srgb, var(--tdm-primary) 74%, #0f172a 26%);
+  background: color-mix(in srgb, var(--tdm-primary) 10%, var(--color-base-0) 90%);
+  border: 1px solid color-mix(in srgb, var(--tdm-primary) 28%, var(--color-base-300) 72%);
+  color: color-mix(in srgb, var(--tdm-primary) 74%, var(--color-base-900) 26%);
 }
 
 .tdm-overview-grid {
@@ -177,7 +177,7 @@
 
 .tdm-stat {
   padding: 16px;
-  color: #fff;
+  color: var(--color-base-0);
   position: relative;
   overflow: hidden;
 }
@@ -206,16 +206,16 @@
 }
 
 .tdm-stat.purple {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--tdm-primary) 76%, #312e81 24%), color-mix(in srgb, var(--tdm-accent) 48%, #4f46e5 52%));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--tdm-primary) 76%, var(--color-indigo-900) 24%), color-mix(in srgb, var(--tdm-accent) 48%, var(--color-indigo-600) 52%));
 }
 .tdm-stat.blue {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--tdm-primary) 58%, #0ea5e9 42%), color-mix(in srgb, var(--tdm-primary) 44%, #38bdf8 56%));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--tdm-primary) 58%, var(--color-sky-500) 42%), color-mix(in srgb, var(--tdm-primary) 44%, var(--color-sky-400) 56%));
 }
 .tdm-stat.teal {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--tdm-accent) 72%, #14b8a6 28%), color-mix(in srgb, var(--tdm-primary) 40%, #06b6d4 60%));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--tdm-accent) 72%, var(--color-teal-500) 28%), color-mix(in srgb, var(--tdm-primary) 40%, var(--color-cyan-500) 60%));
 }
 .tdm-stat.orange {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--dashboard-theme-warning, #f59e0b) 74%, #f97316 26%), color-mix(in srgb, var(--dashboard-theme-danger, #ef4444) 52%, #fb923c 48%));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--dashboard-theme-warning, var(--color-amber-500)) 74%, var(--color-orange-500) 26%), color-mix(in srgb, var(--dashboard-theme-danger, var(--color-red-500)) 52%, var(--color-orange-400) 48%));
 }
 
 .tdm-main-grid {
@@ -295,7 +295,7 @@
 .tdm-progress-track {
   flex: 1;
   height: 8px;
-  background: color-mix(in srgb, var(--tdm-primary) 14%, #ffffff 86%);
+  background: color-mix(in srgb, var(--tdm-primary) 14%, var(--color-base-0) 86%);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -334,7 +334,7 @@
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  background: conic-gradient(var(--tdm-primary) calc(var(--value, 0) * 1%), color-mix(in srgb, var(--tdm-primary) 14%, #ffffff 86%) 0);
+  background: conic-gradient(var(--tdm-primary) calc(var(--value, 0) * 1%), color-mix(in srgb, var(--tdm-primary) 14%, var(--color-base-0) 86%) 0);
   display: grid;
   place-items: center;
   position: relative;
@@ -453,8 +453,8 @@
 .tdm-pulse-item {
   padding: 10px;
   border-radius: 10px;
-  background: color-mix(in srgb, var(--tdm-primary) 8%, #ffffff 92%);
-  border: 1px solid color-mix(in srgb, var(--tdm-primary) 22%, #cbd5e1 78%);
+  background: color-mix(in srgb, var(--tdm-primary) 8%, var(--color-base-0) 92%);
+  border: 1px solid color-mix(in srgb, var(--tdm-primary) 22%, var(--color-base-300) 78%);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -464,7 +464,7 @@
 .tdm-pulse-item span {
   font-size: 0.74rem;
   line-height: 1.2;
-  color: var(--admin-content-text-muted, #64748b);
+  color: var(--admin-content-text-muted, var(--color-base-500));
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-weight: 700;
@@ -473,7 +473,7 @@
 .tdm-pulse-item strong {
   font-size: 1.08rem;
   line-height: 1.1;
-  color: var(--admin-content-text, #0f172a);
+  color: var(--admin-content-text, var(--color-base-900));
 }
 
 .tdm-curriculum-list {
@@ -486,9 +486,9 @@
 }
 
 .tdm-curriculum-list li {
-  border: 1px solid color-mix(in srgb, var(--tdm-primary) 18%, #cbd5e1 82%);
+  border: 1px solid color-mix(in srgb, var(--tdm-primary) 18%, var(--color-base-300) 82%);
   border-radius: 10px;
-  background: color-mix(in srgb, var(--tdm-primary) 6%, #ffffff 94%);
+  background: color-mix(in srgb, var(--tdm-primary) 6%, var(--color-base-0) 94%);
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
@@ -506,14 +506,14 @@
   display: block;
   min-width: 0;
   font-size: 0.84rem;
-  color: var(--admin-content-text, #0f172a);
+  color: var(--admin-content-text, var(--color-base-900));
 }
 
 .tdm-curriculum-top span {
   flex-shrink: 0;
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--admin-content-text-muted, #475569);
+  color: var(--admin-content-text-muted, var(--color-base-600));
 }
 
 .tdm-compact-head {
@@ -529,7 +529,7 @@
   margin: 0;
   font-size: 0.92rem;
   font-weight: 700;
-  color: var(--admin-content-text, #0f172a);
+  color: var(--admin-content-text, var(--color-base-900));
 }
 
 .tdm-compact-list {
@@ -559,13 +559,13 @@
   display: block;
   font-size: 0.88rem;
   line-height: 1.2;
-  color: var(--admin-content-text, #0f172a);
+  color: var(--admin-content-text, var(--color-base-900));
 }
 
 .tdm-compact-list small {
   display: block;
   font-size: 0.78rem;
-  color: var(--admin-content-text-muted, #64748b);
+  color: var(--admin-content-text-muted, var(--color-base-500));
 }
 
 .tdm-badge-grid {
@@ -577,20 +577,20 @@
 .tdm-badge-tile {
   padding: 10px;
   border-radius: 10px;
-  background: color-mix(in srgb, var(--tdm-primary) 8%, #ffffff 92%);
-  border: 1px solid color-mix(in srgb, var(--tdm-primary) 24%, #cbd5e1 76%);
+  background: color-mix(in srgb, var(--tdm-primary) 8%, var(--color-base-0) 92%);
+  border: 1px solid color-mix(in srgb, var(--tdm-primary) 24%, var(--color-base-300) 76%);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
   font-size: 0.82rem;
-  color: var(--admin-content-text-muted, #475569);
+  color: var(--admin-content-text-muted, var(--color-base-600));
 }
 
 .tdm-badge-tile strong {
   font-size: 1rem;
   font-weight: 800;
-  color: var(--admin-content-text, #0f172a);
+  color: var(--admin-content-text, var(--color-base-900));
 }
 
 :root[data-theme="dark"] .tdm-compact-card {
@@ -627,8 +627,8 @@
 .tdm-workflow-panel {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--tdm-primary) 14%, #ffffff 86%),
-    color-mix(in srgb, var(--tdm-accent) 10%, #ffffff 90%)
+    color-mix(in srgb, var(--tdm-primary) 14%, var(--color-base-0) 86%),
+    color-mix(in srgb, var(--tdm-accent) 10%, var(--color-base-0) 90%)
   );
 }
 
@@ -651,7 +651,7 @@
 .tdm-workflow-focus {
   padding: 10px 12px;
   border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--tdm-primary) 26%, #cbd5e1 74%);
+  border: 1px solid color-mix(in srgb, var(--tdm-primary) 26%, var(--color-base-300) 74%);
   background: rgba(255, 255, 255, 0.72);
   margin-bottom: 10px;
 }
@@ -685,8 +685,8 @@
 
 .tdm-task-inline {
   margin-top: 2px;
-  background: color-mix(in srgb, var(--tdm-primary) 8%, #ffffff 92%);
-  border-color: color-mix(in srgb, var(--tdm-primary) 28%, #cbd5e1 72%);
+  background: color-mix(in srgb, var(--tdm-primary) 8%, var(--color-base-0) 92%);
+  border-color: color-mix(in srgb, var(--tdm-primary) 28%, var(--color-base-300) 72%);
 }
 
 .tdm-task-title {
@@ -843,7 +843,7 @@
 .org-chart-photo-wrap {
   width: 100%;
   height: var(--org-photo-size);
-  background: #f1f3f5;
+  background: var(--tint-gray-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -858,7 +858,7 @@
 .org-chart-photo-placeholder {
   width: 100%;
   height: 100%;
-  background: #e9ecef;
+  background: var(--tint-gray-warm);
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 .org-chart-photo-placeholder-inner {

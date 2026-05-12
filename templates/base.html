@@ -44,12 +44,13 @@
     <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-tables-forms.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
-    <link rel="stylesheet" href="{% static 'css/ui-alignment-improvements.css' %}">
-    <link rel="stylesheet" href="{% static 'css/no-watermark.css' %}">
-    <link rel="stylesheet" href="{% static 'css/topbar-header-polish.css' %}">
-    <link rel="stylesheet" href="{% static 'css/dashboard-high-contrast.css' %}">
+    {# Retired 2026-05-12 (pass 2 css cleanup):
+       - ui-alignment-improvements.css: duplicate --spacing-* aliasing --token-space-*
+       - no-watermark.css: pure defensive background-image:none overrides; no longer needed
+       - topbar-header-polish.css: covered by header-no-spillage.css + statement-header.css
+       - theme-everywhere-dark.css: author labeled "temporary bridge"; replaced by theme-visibility-guard.css #}
+    {# Retired 2026-05-12 (pass 3 css cleanup): dashboard-high-contrast.css — folded into dashboard-theme-sync.css. #}
     <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
-    <link rel="stylesheet" href="{% static 'css/theme-everywhere-dark.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
     <link rel="stylesheet" href="{% static 'css/surface-themes.css' %}">
@@ -107,7 +108,7 @@
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
     {# Pass B: platform-wide aesthetic discipline (card grammar, type rhythm, empty-state hygiene). #}
     <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
-    <link rel="stylesheet" href="{% static 'css/phase2-static-templates-bundle.css' %}">
+    <link rel="stylesheet" href="{% static 'css/phase2-base-bundle.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-theme-sync.css' %}">
     {% if SITE and SITE.custom_css %}
     <style data-site-custom-css>
@@ -247,7 +248,7 @@
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/statement-header-scroll.js' %}" defer></script>
     {% if SITE and SITE.is_preview %}
-    <link rel="stylesheet" href="{% static 'css/preview-highlights.css' %}">
+    {# preview-highlights.css retired 2026-05-12 (pass 2 css cleanup); folded into design-system-unified.css #}
     <script type="application/json" id="page-data-base-1">{
   "trans_your_changes_affect_this_area": "{% trans "Your changes affect this area" %}",
   "trans_dismiss_highlights": "{% trans "Dismiss highlights" %}"

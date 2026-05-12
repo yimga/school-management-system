@@ -2,21 +2,21 @@
 {% load static %}
 {% load i18n region_format %}
 
-{% block title %}Evaluation Manager{% endblock %}
+{% block title %}{% trans "Evaluation Manager" %}{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-2" data-page-archetype="operational-workbench">
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
   <div class="d-flex align-items-center gap-2">
     <div>
-      <h1 class="mb-1">Evaluation Manager</h1>
-      <div class="text-muted">Create evaluations in bulk and track missing scores.</div>
+      <h1 class="mb-1">{% trans "Evaluation Manager" %}</h1>
+      <div class="text-muted">{% trans "Create evaluations in bulk and track missing scores." %}</div>
     </div>
     {% include "components/pin_to_quick_access.html" with sidebar_item_id="eval_admin" %}
   </div>
   <div class="d-flex gap-2">
     <a class="btn btn-outline-secondary btn-back-outline" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to Backend" %}</a>
-    <a class="btn btn-outline-primary" href="{% url 'evals:grade_import_template' %}">Download CSV template</a>
+    <a class="btn btn-outline-primary" href="{% url 'evals:grade_import_template' %}">{% trans "Download CSV template" %}</a>
   </div>
 </div>
 
@@ -24,27 +24,27 @@
   <div class="col-lg-5">
     <div class="card h-100">
       <div class="card-body">
-        <h5 class="mb-3">Bulk Create Evaluations</h5>
+        <h5 class="mb-3">{% trans "Bulk Create Evaluations" %}</h5>
         <form method="post">
           {% csrf_token %}
           <input type="hidden" name="action" value="bulk_create">
           <div class="mb-3">
-            <label class="form-label">Academic Year</label>
+            <label class="form-label">{% trans "Academic Year" %}</label>
             {{ create_form.academic_year }}
           </div>
           <div class="mb-3">
-            <label class="form-label">Term</label>
+            <label class="form-label">{% trans "Term" %}</label>
             {{ create_form.term }}
           </div>
           <div class="mb-3">
-            <label class="form-label">Subject Assignment</label>
+            <label class="form-label">{% trans "Subject Assignment" %}</label>
             {{ create_form.subject_assignment }}
           </div>
           <div class="mb-3">
-            <label class="form-label">Teacher</label>
+            <label class="form-label">{% trans "Teacher" %}</label>
             {{ create_form.teacher }}
           </div>
-          <button type="submit" class="btn btn-primary">Create Evaluations</button>
+          <button type="submit" class="btn btn-primary">{% trans "Create Evaluations" %}</button>
         </form>
       </div>
     </div>
@@ -52,39 +52,39 @@
   <div class="col-lg-7">
     <div class="card h-100">
       <div class="card-body">
-        <h5 class="mb-3">Filter Evaluations</h5>
+        <h5 class="mb-3">{% trans "Filter Evaluations" %}</h5>
         <form method="get">
           <div class="row g-2 align-items-end">
             <div class="col-md-4">
-              <label class="form-label small">Academic Year</label>
+              <label class="form-label small">{% trans "Academic Year" %}</label>
               {{ filter_form.year }}
             </div>
             <div class="col-md-4">
-              <label class="form-label small">Term</label>
+              <label class="form-label small">{% trans "Term" %}</label>
               {{ filter_form.term }}
             </div>
             <div class="col-md-4">
-              <label class="form-label small">Classroom</label>
+              <label class="form-label small">{% trans "Classroom" %}</label>
               {{ filter_form.classroom }}
             </div>
             <div class="col-md-6">
-              <label class="form-label small">Subject</label>
+              <label class="form-label small">{% trans "Subject" %}</label>
               {{ filter_form.subject }}
             </div>
             <div class="col-md-3">
-              <label class="form-label small">Missing Only</label>
+              <label class="form-label small">{% trans "Missing Only" %}</label>
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="missing" value="1" {% if missing_only %}checked{% endif %}>
-                <label class="form-check-label">Show missing</label>
+                <label class="form-check-label">{% trans "Show missing" %}</label>
               </div>
             </div>
             <div class="col-md-3 d-grid">
-              <button type="submit" class="btn btn-outline-primary">Apply Filters</button>
+              <button type="submit" class="btn btn-outline-primary">{% trans "Apply Filters" %}</button>
             </div>
           </div>
         </form>
         <div class="small text-muted mt-3">
-          Required fields: {{ required_fields|join:", " }}
+          {% blocktrans with fields=required_fields|join:", " %}Required fields: {{ fields }}{% endblocktrans %}
         </div>
       </div>
     </div>
@@ -95,11 +95,11 @@
   <div class="card-body">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
       <div>
-        <h5 class="mb-1">Assessment Weights (Theory vs Practical)</h5>
+        <h5 class="mb-1">{% trans "Assessment Weights (Theory vs Practical)" %}</h5>
         <div class="text-muted small">
-          Current: {{ current_weights.academic_year }} •
-          {% if current_weights.term %}{{ current_weights.term.get_name_display }}{% else %}All terms{% endif %} •
-          {% if current_weights.classroom %}{{ current_weights.classroom.name }}{% else %}School default{% endif %}
+          {% blocktrans with year=current_weights.academic_year %}Current: {{ year }}{% endblocktrans %} •
+          {% if current_weights.term %}{{ current_weights.term.get_name_display }}{% else %}{% trans "All terms" %}{% endif %} •
+          {% if current_weights.classroom %}{{ current_weights.classroom.name }}{% else %}{% trans "School default" %}{% endif %}
         </div>
       </div>
     </div>
@@ -108,44 +108,44 @@
       <input type="hidden" name="action" value="update_weights">
       <div class="row g-2">
         <div class="col-md-3">
-          <label class="form-label small">Academic Year</label>
+          <label class="form-label small">{% trans "Academic Year" %}</label>
           {{ weights_form.academic_year }}
         </div>
         <div class="col-md-3">
-          <label class="form-label small">Term</label>
+          <label class="form-label small">{% trans "Term" %}</label>
           {{ weights_form.term }}
         </div>
         <div class="col-md-3">
-          <label class="form-label small">Classroom</label>
+          <label class="form-label small">{% trans "Classroom" %}</label>
           {{ weights_form.classroom }}
         </div>
         <div class="col-md-3">
-          <label class="form-label small">Score Scale</label>
+          <label class="form-label small">{% trans "Score Scale" %}</label>
           {{ weights_form.score_scale }}
         </div>
         <div class="col-md-2">
-          <label class="form-label small">Seq 1</label>
+          <label class="form-label small">{% trans "Seq 1" %}</label>
           {{ weights_form.seq1_weight }}
         </div>
         <div class="col-md-2">
-          <label class="form-label small">Seq 2</label>
+          <label class="form-label small">{% trans "Seq 2" %}</label>
           {{ weights_form.seq2_weight }}
         </div>
         <div class="col-md-2">
-          <label class="form-label small">Exam</label>
+          <label class="form-label small">{% trans "Exam" %}</label>
           {{ weights_form.exam_weight }}
         </div>
         <div class="col-md-2">
-          <label class="form-label small">Mock</label>
+          <label class="form-label small">{% trans "Mock" %}</label>
           {{ weights_form.mock_weight }}
         </div>
         <div class="col-md-2">
-          <label class="form-label small">Practical</label>
+          <label class="form-label small">{% trans "Practical" %}</label>
           {{ weights_form.practical_weight }}
         </div>
         <div class="col-md-2 d-grid">
           <label class="form-label small">&nbsp;</label>
-          <button type="submit" class="btn btn-primary">Save Weights</button>
+          <button type="submit" class="btn btn-primary">{% trans "Save Weights" %}</button>
         </div>
       </div>
     </form>
@@ -156,20 +156,20 @@
   <div class="card-body">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
       <div>
-        <h5 class="mb-1">Fill Missing Scores</h5>
-        <div class="text-muted small">Apply a default value to missing required components.</div>
+        <h5 class="mb-1">{% trans "Fill Missing Scores" %}</h5>
+        <div class="text-muted small">{% trans "Apply a default value to missing required components." %}</div>
       </div>
     </div>
     <form method="post" class="row g-2 align-items-end">
       {% csrf_token %}
       <input type="hidden" name="action" value="fill_missing">
       <div class="col-md-3">
-        <label class="form-label small">Fill Value</label>
+        <label class="form-label small">{% trans "Fill Value" %}</label>
         {{ fill_form.fill_value }}
       </div>
       <div class="col-md-3 d-grid">
         <label class="form-label small">&nbsp;</label>
-        <button type="submit" class="btn btn-outline-primary">Apply to Missing</button>
+        <button type="submit" class="btn btn-outline-primary">{% trans "Apply to Missing" %}</button>
       </div>
     </form>
   </div>
@@ -179,52 +179,57 @@
   <div class="card-body">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
       <div class="text-muted small">
-        Showing {{ evals|length }} evaluations • {{ selected_year.name }} • {{ selected_term.label }}
+        {% blocktrans with n=evals|length year=selected_year.name term=selected_term.label %}Showing {{ n }} evaluations • {{ year }} • {{ term }}{% endblocktrans %}
       </div>
       <div class="d-flex gap-2 align-items-center flex-wrap">
-        <span class="small text-muted me-1">View:</span>
-        <div class="btn-group btn-group-sm table-density-toggle" role="group" aria-label="Table density">
-          <button type="button" class="btn btn-outline-secondary" data-density="condensed">Condensed</button>
-          <button type="button" class="btn btn-outline-secondary" data-density="expanded">Expanded</button>
+        <span class="small text-muted me-1">{% trans "View:" %}</span>
+        <div class="btn-group btn-group-sm table-density-toggle" role="group" aria-label="{% trans 'Table density' %}">
+          <button type="button" class="btn btn-outline-secondary" data-density="condensed">{% trans "Condensed" %}</button>
+          <button type="button" class="btn btn-outline-secondary" data-density="expanded">{% trans "Expanded" %}</button>
         </div>
-        <a class="btn btn-outline-secondary btn-sm" href="?{{ export_csv_query }}">Export CSV</a>
-        <a class="btn btn-outline-secondary btn-sm" href="?{{ export_pdf_query }}">Export PDF</a>
+        <a class="btn btn-outline-secondary btn-sm" href="?{{ export_csv_query }}">{% trans "Export CSV" %}</a>
+        <a class="btn btn-outline-secondary btn-sm" href="?{{ export_pdf_query }}">{% trans "Export PDF" %}</a>
       </div>
     </div>
     {% if evals %}
     <div class="table-responsive" data-table-density-key="evaluation_admin">
-      <table class="table align-middle table-sticky table-sticky-head table-zebra table-family" aria-label="Evaluations: student, class, subject, evidence, and score components">
+      <table class="gradebook-table table-family" aria-label="{% trans 'Evaluations: student, class, subject, evidence, and score components' %}">
         <thead>
           <tr>
-            <th scope="col">Student</th>
-            <th scope="col">Class</th>
-            <th scope="col">Subject</th>
-            <th scope="col" class="text-center">Evidence</th>
-            <th scope="col" class="text-end">Seq 1</th>
-            <th scope="col" class="text-end">Seq 2</th>
-            <th scope="col" class="text-end">Exam</th>
-            <th scope="col" class="text-end">Mock</th>
-            <th scope="col" class="text-end">Practical</th>
-            <th scope="col" class="text-end">Total</th>
+            <th scope="col">{% trans "Student" %}</th>
+            <th scope="col">{% trans "Class" %}</th>
+            <th scope="col">{% trans "Subject" %}</th>
+            <th scope="col" class="text-center">{% trans "Evidence" %}</th>
+            <th scope="col" class="num">{% trans "Seq 1" %}</th>
+            <th scope="col" class="num">{% trans "Seq 2" %}</th>
+            <th scope="col" class="num">{% trans "Exam" %}</th>
+            <th scope="col" class="num">{% trans "Mock" %}</th>
+            <th scope="col" class="num">{% trans "Practical" %}</th>
+            <th scope="col" class="num">{% trans "Total" %}</th>
           </tr>
         </thead>
         <tbody>
           {% for e in evals %}
             <tr>
-              <td>{{ e.student }}</td>
+              <td>
+                <span class="student-cell">
+                  <span class="av" aria-hidden="true">{{ e.student|stringformat:"s"|slice:":1"|upper }}</span>
+                  <span>{{ e.student }}</span>
+                </span>
+              </td>
               <td>{{ e.subject_assignment.classroom.name }}</td>
               <td>{{ e.subject_assignment.subject.name }}</td>
               <td class="text-center">
                 <a class="btn btn-sm btn-outline-secondary" href="{% url 'evals:evaluation_evidence_upload' %}?evaluation={{ e.id }}">
-                  {{ e.evidence.count }} file{{ e.evidence.count|pluralize }}
+                  {% blocktrans count counter=e.evidence.count %}{{ counter }} file{% plural %}{{ counter }} files{% endblocktrans %}
                 </a>
               </td>
-              <td class="text-end">{{ e.seq1_score|default:"-" }}</td>
-              <td class="text-end">{{ e.seq2_score|default:"-" }}</td>
-              <td class="text-end">{{ e.exam_score|default:"-" }}</td>
-              <td class="text-end">{{ e.mock_score|default:"-" }}</td>
-              <td class="text-end">{{ e.practical_score|default:"-" }}</td>
-              <td class="text-end fw-semibold {% if e.total_score is not None and pass_mark is not None and e.total_score < pass_mark %}cell-fail{% endif %}">{{ e.total_score|format_number:2 }}</td>
+              <td class="num">{{ e.seq1_score|default:"-" }}</td>
+              <td class="num">{{ e.seq2_score|default:"-" }}</td>
+              <td class="num">{{ e.exam_score|default:"-" }}</td>
+              <td class="num">{{ e.mock_score|default:"-" }}</td>
+              <td class="num">{{ e.practical_score|default:"-" }}</td>
+              <td class="num fw-semibold {% if e.total_score is not None and pass_mark is not None and e.total_score < pass_mark %}cell-fail{% endif %}">{{ e.total_score|format_number:2 }}</td>
             </tr>
           {% endfor %}
         </tbody>

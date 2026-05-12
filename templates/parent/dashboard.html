@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-unified.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
-<link rel="stylesheet" href="{% static 'css/dashboard-premium-compact.css' %}">
+{# Retired 2026-05-12 (pass 3 css cleanup): dashboard-premium-compact.css — folded into dashboard-theme-sync.css. #}
 <script src="{% static '_pages/parent__dashboard.js' %}"></script>
 
 {% endblock %}
@@ -185,12 +185,14 @@
               <a class="btn btn-sm btn-outline-secondary text-start" href="{% url 'accounts:user_notifications' %}">{% trans "Manage notifications" %}</a>
               {% if SITE.enable_whatsapp_parent_portal and SITE.whatsapp_support_number or SITE.enable_whatsapp_parent_portal and SITE.footer_whatsapp_url %}
                 {% if SITE.whatsapp_support_number %}
-                  <a class="btn btn-sm btn-success text-start" href="https://wa.me/{{ SITE.whatsapp_support_number|urlencode }}?text={{ 'Hello, I need help with my parent portal access.'|urlencode }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-whatsapp me-1"></i>{% trans "WhatsApp Support" %}</a>
+                  {% trans "Hello, I need help with my parent portal access." as wa_support_msg %}
+                  <a class="btn btn-sm btn-success text-start" href="https://wa.me/{{ SITE.whatsapp_support_number|urlencode }}?text={{ wa_support_msg|urlencode }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-whatsapp me-1"></i>{% trans "WhatsApp Support" %}</a>
                 {% else %}
                   <a class="btn btn-sm btn-success text-start" href="{{ SITE.footer_whatsapp_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-whatsapp me-1"></i>{% trans "WhatsApp Support" %}</a>
                 {% endif %}
                 {% if SITE.whatsapp_admissions_number %}
-                  <a class="btn btn-sm btn-outline-success text-start" href="https://wa.me/{{ SITE.whatsapp_admissions_number|urlencode }}?text={{ 'Hello, I have an admissions question for my child.'|urlencode }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-whatsapp me-1"></i>{% trans "Admissions WhatsApp" %}</a>
+                  {% trans "Hello, I have an admissions question for my child." as wa_admissions_msg %}
+                  <a class="btn btn-sm btn-outline-success text-start" href="https://wa.me/{{ SITE.whatsapp_admissions_number|urlencode }}?text={{ wa_admissions_msg|urlencode }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-whatsapp me-1"></i>{% trans "Admissions WhatsApp" %}</a>
                 {% endif %}
               {% endif %}
             </div>
@@ -359,7 +361,7 @@
                       {% if card.badges %}
                       <div class="d-flex flex-wrap gap-1 mt-1" role="list" aria-label="{% trans 'Student badges' %}">
                         {% for b in card.badges %}
-                        <span class="badge rounded-pill" style="background: var(--school-primary); color: #fff;" role="listitem">{{ b.badge_type.label }}</span>
+                        <span class="badge rounded-pill" style="background: var(--school-primary); color: var(--text-on-brand);" role="listitem">{{ b.badge_type.label }}</span>
                         {% endfor %}
                       </div>
                       {% endif %}

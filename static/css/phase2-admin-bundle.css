@@ -1,0 +1,389 @@
+/**
+ * Phase 2 - static-only template <style> blocks for admin shell.
+ * Regenerate: python scripts/extract_template_styles_phase2.py
+ * Surface: admin
+ */
+
+/* ========== templates/admin/app_index.html ========== */
+.admin-app-index { max-width: 100%; }
+  .admin-app-index__back { margin-bottom: 20px; }
+  .admin-app-index__back a {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--admin-muted, var(--color-base-500)); text-decoration: none; font-size: 14px; font-weight: 600;
+    padding: 8px 12px; border-radius: 8px; border: 1px solid var(--admin-border, var(--color-base-200));
+    background: var(--admin-surface, var(--color-base-0)); transition: color .2s, border-color .2s, background .2s;
+  }
+  .admin-app-index__back a:hover { color: var(--admin-text, var(--color-base-900)); border-color: var(--admin-accent, var(--color-sky-500)); background: var(--admin-surface, var(--color-base-0)); }
+  .admin-app-index__title { font-size: 22px; font-weight: 700; color: var(--admin-text, var(--color-base-900)); margin: 0 0 8px; letter-spacing: -0.02em; }
+  .admin-app-index__subtitle { font-size: 14px; color: var(--admin-muted, var(--color-base-500)); margin-bottom: 24px; line-height: 1.5; }
+  .admin-app-index__grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;
+  }
+  .admin-app-index__card {
+    background: var(--admin-surface, var(--color-base-0)); border: 1px solid var(--admin-border-strong, var(--color-base-200));
+    border-radius: 10px; padding: 20px; box-shadow: var(--admin-shadow, 0 1px 2px rgba(0,0,0,0.04));
+    transition: box-shadow .2s, border-color .2s, transform .2s;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .admin-app-index__card:hover {
+    border-color: var(--admin-border-hover, var(--color-base-400)); box-shadow: var(--admin-shadow-hover, 0 4px 12px rgba(0,0,0,0.08));
+  }
+  .admin-app-index__card-link {
+    font-size: 15px; font-weight: 600; color: var(--admin-text, var(--color-base-900)); text-decoration: none;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .admin-app-index__card-link:hover { color: var(--admin-accent, var(--color-sky-500)); }
+  .admin-app-index__card-actions { display: flex; gap: 8px; margin-top: auto; }
+  .admin-app-index__card-actions a {
+    font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px; text-decoration: none;
+    border: 1px solid var(--admin-border, var(--color-base-200)); color: var(--admin-muted, var(--color-base-500));
+    background: transparent; transition: border-color .2s, color .2s;
+  }
+  .admin-app-index__card-actions a:hover { border-color: var(--admin-accent, var(--color-sky-500)); color: var(--admin-accent, var(--color-sky-500)); }
+  .admin-app-index__card-actions a.addlink { border-color: var(--admin-accent, var(--color-sky-500)); color: var(--admin-accent, var(--color-sky-500)); }
+  .admin-app-index__card-actions a.addlink:hover { background: var(--admin-accent, var(--color-sky-500)); color: var(--color-base-0); }
+  .admin-app-index__empty { color: var(--admin-muted, var(--color-base-500)); font-size: 14px; padding: 24px; }
+
+/* ========== templates/admin/index_superadmin.html ========== */
+body.admin-manager-shell #content { padding: 0 !important; margin: 0 !important; max-width: none !important; }
+  .cp-admin-index { padding: 1.5rem; max-width: 960px; }
+  .cp-admin-index .cp-hero { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--cp-panel-border, rgba(255,255,255,0.1)); }
+  .cp-admin-index .cp-hero-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .cp-admin-index .cp-hero-copy { font-size: 0.875rem; color: var(--cp-muted, rgba(255,255,255,0.6)); margin-bottom: 1rem; }
+  .cp-admin-app-list { list-style: none; padding: 0; margin: 0; }
+  .cp-admin-app-list li { border: 1px solid var(--cp-panel-border, rgba(255,255,255,0.1)); border-radius: 0.5rem; margin-bottom: 0.5rem; padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; }
+  .cp-admin-app-list li:hover { background: rgba(255,255,255,0.04); }
+  .cp-admin-app-list a { color: inherit; text-decoration: none; }
+  .cp-admin-app-list .app-models { font-size: 0.8rem; color: var(--cp-muted); margin-top: 0.25rem; }
+
+/* ========== templates/admin/login.html ========== */
+/* Standalone card so login never looks like the old placeholder; works even if Unfold CSS fails to load */
+  .admin-login-card {
+    border-radius: 16px;
+    border: 1px solid var(--color-base-200);
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(0,0,0,0.02);
+    padding: 2rem;
+    background: var(--color-base-0);
+  }
+  html.dark .admin-login-card,
+  [data-theme="dark"] .admin-login-card,
+  .dark .admin-login-card {
+    border-color: var(--color-base-700);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    background: var(--color-base-800);
+  }
+  .admin-login-brand {
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-base-200);
+  }
+  html.dark .admin-login-brand,
+  [data-theme="dark"] .admin-login-brand { border-bottom-color: var(--color-base-700); }
+  .admin-login-brand .brand-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--school-primary);
+    letter-spacing: -0.02em;
+  }
+  html.dark .admin-login-brand .brand-name { color: var(--color-indigo-400); }
+  .admin-login-brand .brand-sub {
+    font-size: 0.8125rem;
+    color: var(--color-base-500);
+    margin-top: 0.25rem;
+  }
+  html.dark .admin-login-brand .brand-sub { color: var(--color-base-400); }
+  .admin-login-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-base-900);
+    margin-bottom: 0.25rem;
+  }
+  html.dark .admin-login-title { color: var(--color-base-100); }
+  .admin-login-subtitle {
+    font-size: 0.875rem;
+    color: var(--color-base-500);
+  }
+  html.dark .admin-login-subtitle { color: var(--color-base-400); }
+
+/* ========== templates/admin/siteconfig/sitesettings/change_form.html ========== */
+/* Site Settings: Keep original layout, only minor adjustments */
+    body.app-siteconfig.model-sitesettings.change-form .field-theme_color_tools_link_block {
+      grid-column: 1 / -1;
+    }
+    body.app-siteconfig.model-sitesettings.change-form .field-theme_color_tools_link_block .readonly {
+      width: 100%;
+    }
+
+    /* Hide Unfold's horizontal tab strip on Site Settings -- we use the vertical sidebar only */
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-main [role="tablist"],
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-main nav[class*="tab"],
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-main .border-b.overflow-x-auto {
+      display: none !important;
+    }
+
+    /* Phase 1.2: Vertical sidebar -- show only the active section */
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-section {
+      display: none;
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-section.site-settings-section-active {
+      display: block;
+    }
+
+    /* Full-width main content; 2-column form layout on wide screens (Phase 2.5) */
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-main {
+      background: var(--admin-content-bg, var(--admin-content-surface, var(--color-base-0)));
+      color: var(--admin-content-text, var(--color-base-900));
+      min-height: 400px;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--admin-content-border, rgba(15, 23, 42, 0.14));
+      max-width: none;
+      width: 100%;
+    }
+    @media (min-width: 1024px) {
+      body.app-siteconfig.model-sitesettings.change-form .site-settings-section fieldset .form-row {
+        display: grid;
+        grid-template-columns: minmax(160px, auto) 1fr;
+        gap: 0.75rem 1.5rem;
+        align-items: start;
+      }
+      body.app-siteconfig.model-sitesettings.change-form .site-settings-section fieldset .form-row label {
+        padding-top: 0.375rem;
+      }
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-main #content-main {
+      background: transparent;
+      color: inherit;
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-section {
+      color: var(--admin-content-text, var(--color-base-900));
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-section fieldset {
+      border-color: var(--admin-content-border, rgba(15, 23, 42, 0.14));
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-section label,
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-section .form-label {
+      color: var(--admin-content-text, var(--color-base-900));
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-section input:not([type="checkbox"]):not([type="radio"]),
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-section select,
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-section textarea {
+      background: var(--admin-content-surface, var(--color-base-0));
+      color: var(--admin-content-text, var(--color-base-900));
+      border-color: var(--admin-content-border, rgba(15, 23, 42, 0.2));
+    }
+
+    /* Theme alignment: internal sidebar uses same design tokens as rest of admin */
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-sidebar-nav {
+      background: var(--admin-content-surface, var(--color-base-0));
+      border-color: var(--admin-content-border, rgba(15, 23, 42, 0.14));
+      color: var(--admin-content-text, var(--color-base-900));
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-sidebar .settings-nav-group-label {
+      color: var(--admin-content-text-muted, var(--color-base-600));
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-sidebar .settings-nav-link {
+      color: var(--admin-content-text, var(--color-base-900));
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-sidebar .settings-nav-link:hover {
+      background: var(--admin-sidebar-hover-bg, var(--color-base-800));
+      color: var(--admin-content-text, var(--color-base-100));
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-sidebar .settings-nav-link.active {
+      background: var(--admin-sidebar-active-bg, var(--color-base-800));
+      color: var(--admin-sidebar-active-border, var(--brand-primary, var(--color-sky-400)));
+      border-left: 2px solid var(--admin-sidebar-active-border, var(--brand-primary, var(--color-sky-400)));
+      padding-left: calc(0.625rem - 2px);
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-mobile-trigger {
+      background: var(--admin-content-surface, var(--color-base-0));
+      border-color: var(--admin-content-border, rgba(15, 23, 42, 0.14));
+      color: var(--admin-content-text, var(--color-base-900));
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-mobile-trigger:hover {
+      background: var(--admin-sidebar-hover-bg, var(--color-base-100));
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-mobile-dropdown {
+      background: var(--admin-content-surface, var(--color-base-0));
+      border-color: var(--admin-content-border, rgba(15, 23, 42, 0.14));
+      color: var(--admin-content-text, var(--color-base-900));
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-mobile-dropdown .settings-nav-group-label {
+      color: var(--admin-content-text-muted, var(--color-base-600));
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-mobile-link {
+      color: var(--admin-content-text, var(--color-base-900));
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-mobile-link:hover {
+      background: var(--admin-sidebar-hover-bg, var(--color-base-800));
+    }
+
+    /* B3.4: Sticky Save bar so admin doesn't have to scroll to bottom on long form */
+    body.app-siteconfig.model-sitesettings.change-form #content .submit-row {
+      position: sticky;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--admin-content-bg, var(--color-base-0));
+      border-top: 1px solid var(--admin-content-border, rgba(15,23,42,0.14));
+      padding: 0.75rem 1rem;
+      z-index: 100;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    /* Back button: visually a secondary CTA on the left */
+    body.app-siteconfig.model-sitesettings.change-form #content .submit-row .submit-row-back {
+      margin-right: auto;
+      border-radius: 999px;
+      padding-inline: 0.9rem;
+    }
+
+    /* Button hierarchy: primary Save vs secondary actions - EXPLICIT COLORS */
+    .submit-row input[type="submit"],
+    .submit-row button[type="submit"] {
+      border-radius: 8px;
+      font-weight: 600;
+      padding: 0.5rem 1.25rem;
+      transition: all 0.2s;
+    }
+    
+    /* PRIMARY: Main Save button - BLUE */
+    .submit-row input[type="submit"].default,
+    .submit-row button[type="submit"].default,
+    .submit-row input[type="submit"][name="_save"] {
+      background: var(--color-indigo-600) !important;
+      border-color: var(--color-indigo-600) !important;
+      color: var(--color-base-0) !important;
+    }
+    
+    .submit-row input[type="submit"].default:hover,
+    .submit-row button[type="submit"].default:hover {
+      background: var(--color-indigo-700) !important;
+      border-color: var(--color-indigo-700) !important;
+    }
+    
+    /* SECONDARY: Save and continue, other buttons - OUTLINED */
+    .submit-row input[type="submit"]:not(.default),
+    .submit-row button[type="submit"]:not(.default),
+    .submit-row input[type="submit"][name="_continue"] {
+      background: transparent !important;
+      border: 2px solid rgba(148, 163, 184, 0.5) !important;
+      color: var(--admin-content-text, var(--color-base-900)) !important;
+    }
+    
+    .submit-row input[type="submit"]:not(.default):hover,
+    .submit-row button[type="submit"]:not(.default):hover {
+      background: rgba(148, 163, 184, 0.1) !important;
+      border-color: rgba(148, 163, 184, 0.7) !important;
+    }
+    
+    /* Back button styling */
+    .submit-row .submit-row-back {
+      background: transparent !important;
+      border: 2px solid rgba(148, 163, 184, 0.5) !important;
+      color: var(--admin-content-text, var(--color-base-900)) !important;
+      margin-right: auto !important;
+    }
+    
+    .submit-row .submit-row-back:hover {
+      background: rgba(148, 163, 184, 0.1) !important;
+      border-color: rgba(148, 163, 184, 0.7) !important;
+    }
+
+    /* ALL TOGGLES: Red when OFF, Green when ON - explicit hex so visible in all themes */
+    body.app-siteconfig.model-sitesettings.change-form .form-switch .form-check-input:not(:checked),
+    body.app-siteconfig.model-sitesettings.change-form .form-check-input[type="checkbox"]:not(:checked) {
+      background-color: var(--color-red-600) !important;
+      border-color: var(--color-red-600) !important;
+    }
+    
+    body.app-siteconfig.model-sitesettings.change-form .form-switch .form-check-input:checked,
+    body.app-siteconfig.model-sitesettings.change-form .form-check-input[type="checkbox"]:checked {
+      background-color: var(--color-emerald-600) !important;
+      border-color: var(--color-emerald-600) !important;
+    }
+    
+    /* Critical toggles: ON/OFF badges -- explicit hex so visible in all theme/color packs */
+    body.app-siteconfig.model-sitesettings.change-form .form-check-input.settings-toggle-critical + .form-check-label::after {
+      content: "Off";
+      display: inline-block;
+      margin-left: 0.5rem;
+      padding: 0.05rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--color-red-600);
+      color: var(--color-base-0);
+    }
+
+    body.app-siteconfig.model-sitesettings.change-form .form-check-input.settings-toggle-critical:checked + .form-check-label::after {
+      content: "On";
+      background: var(--color-emerald-600);
+      color: var(--color-base-0);
+    }
+
+    /* Theme revert button dark mode */
+    :root[data-theme="dark"] body.app-siteconfig.model-sitesettings.change-form #theme-revert-to-saved,
+    html[data-bs-theme="dark"] body.app-siteconfig.model-sitesettings.change-form #theme-revert-to-saved {
+      border-color: var(--admin-content-border, rgba(148,163,184,0.3));
+      color: var(--admin-content-text, var(--color-base-100));
+    }
+
+    :root[data-theme="dark"] body.app-siteconfig.model-sitesettings.change-form #theme-revert-to-saved:hover,
+    html[data-bs-theme="dark"] body.app-siteconfig.model-sitesettings.change-form #theme-revert-to-saved:hover {
+      background: var(--admin-sidebar-surface, var(--color-base-800));
+      border-color: var(--admin-content-border, rgba(148,163,184,0.5));
+    }
+
+    /* Noscript alert dark mode */
+    :root[data-theme="dark"] body.app-siteconfig.model-sitesettings.change-form noscript .alert-info,
+    html[data-bs-theme="dark"] body.app-siteconfig.model-sitesettings.change-form noscript .alert-info {
+      background: var(--admin-sidebar-surface, var(--color-base-800));
+      border-color: var(--admin-content-accent, var(--color-sky-500));
+      color: var(--admin-content-text, var(--color-base-100));
+    }
+
+    /* Theme & color block: full width inside Theme & Experience tab (no label column) */
+    body.app-siteconfig.model-sitesettings.change-form .field-theme_color_tools_link_block {
+      grid-column: 1 / -1;
+    }
+    body.app-siteconfig.model-sitesettings.change-form .field-theme_color_tools_link_block .readonly {
+      width: 100%;
+    }
+    /* Phase 6.3: Smart Search for settings */
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-search-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--admin-content-surface, var(--color-base-0));
+      padding-bottom: 0.5rem;
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-search {
+      width: 100%;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.8125rem;
+      border-radius: 6px;
+      border: 1px solid var(--admin-content-border, rgba(15, 23, 42, 0.2));
+      background: var(--admin-content-bg, var(--color-base-0));
+      color: var(--admin-content-text, var(--color-base-900));
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-search::placeholder {
+      color: var(--admin-content-text-muted, var(--color-base-500));
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-search-no-match {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--admin-content-text-muted, var(--color-base-500));
+      margin-top: 0.25rem;
+    }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-search-no-match.visually-hidden { display: none !important; }
+    body.app-siteconfig.model-sitesettings.change-form .settings-nav-item.nav-hidden { display: none; }
+    body.app-siteconfig.model-sitesettings.change-form .settings-nav-group.nav-group-hidden { display: none; }
+    body.app-siteconfig.model-sitesettings.change-form .site-settings-mobile-link.nav-hidden { display: none !important; }
+    body.app-siteconfig.model-sitesettings.change-form .mobile-nav-group.nav-group-hidden { display: none !important; }

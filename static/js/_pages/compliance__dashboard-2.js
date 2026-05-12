@@ -1,4 +1,10 @@
     (() => {
+        const tok = (name, fallback) => {
+            try {
+                const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+                return v || fallback;
+            } catch (_e) { return fallback; }
+        };
         const activityPayload = JSON.parse(document.getElementById('activityData').textContent);
         const activityCtx = document.getElementById('activityChartCanvas');
         if (activityCtx && activityPayload) {
@@ -10,7 +16,7 @@
                         label: 'Audit Events',
                         data: activityPayload.data,
                         fill: false,
-                        borderColor: '#1f78d1',
+                        borderColor: tok('--chart-color-1', '#1f78d1'),
                         backgroundColor: 'rgba(31, 120, 209, 0.15)',
                         tension: 0.25,
                         pointRadius: 2,

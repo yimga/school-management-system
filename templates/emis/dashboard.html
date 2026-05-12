@@ -131,32 +131,45 @@
         </h6>
       </div>
       <div class="card-body">
-        <div class="row g-3">
-          <div class="col-6">
-            <div class="text-center">
-              <div class="h4 mb-1" id="total-students">-</div>
-              <small class="text-muted">Students</small>
+        {% load i18n %}
+        <section class="row g-3" aria-label="{% trans 'EMIS quick stats' %}">
+          <div class="col-12 col-md-6" data-shell-kpi="emis-total-students">
+            <div class="kpi">
+              <div class="d-flex align-items-start justify-content-between gap-2">
+                <span class="label">{% trans "Students" %}</span>
+                <span class="kpi-icon" aria-hidden="true"><i class="bi bi-mortarboard"></i></span>
+              </div>
+              <div class="value" id="total-students" data-kpi-count="emis-total-students">-</div>
             </div>
           </div>
-          <div class="col-6">
-            <div class="text-center">
-              <div class="h4 mb-1" id="total-teachers">-</div>
-              <small class="text-muted">Teachers</small>
+          <div class="col-12 col-md-6" data-shell-kpi="emis-total-teachers">
+            <div class="kpi">
+              <div class="d-flex align-items-start justify-content-between gap-2">
+                <span class="label">{% trans "Teachers" %}</span>
+                <span class="kpi-icon" aria-hidden="true"><i class="bi bi-easel"></i></span>
+              </div>
+              <div class="value" id="total-teachers" data-kpi-count="emis-total-teachers">-</div>
             </div>
           </div>
-          <div class="col-6">
-            <div class="text-center">
-              <div class="h4 mb-1" id="total-subjects">-</div>
-              <small class="text-muted">Subjects</small>
+          <div class="col-12 col-md-6" data-shell-kpi="emis-total-subjects">
+            <div class="kpi">
+              <div class="d-flex align-items-start justify-content-between gap-2">
+                <span class="label">{% trans "Subjects" %}</span>
+                <span class="kpi-icon" aria-hidden="true"><i class="bi bi-journal-bookmark"></i></span>
+              </div>
+              <div class="value" id="total-subjects" data-kpi-count="emis-total-subjects">-</div>
             </div>
           </div>
-          <div class="col-6">
-            <div class="text-center">
-              <div class="h4 mb-1" id="total-classes">-</div>
-              <small class="text-muted">Classes</small>
+          <div class="col-12 col-md-6" data-shell-kpi="emis-total-classes">
+            <div class="kpi">
+              <div class="d-flex align-items-start justify-content-between gap-2">
+                <span class="label">{% trans "Classes" %}</span>
+                <span class="kpi-icon" aria-hidden="true"><i class="bi bi-grid-3x3-gap"></i></span>
+              </div>
+              <div class="value" id="total-classes" data-kpi-count="emis-total-classes">-</div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   </div>

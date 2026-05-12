@@ -100,12 +100,14 @@
   }
 
   function buildThemePalette() {
-    const primary = getComputedVar('--dashboard-theme-primary') || getComputedVar('--brand-primary') || '#3b82f6';
-    const accent = getComputedVar('--dashboard-theme-accent') || getComputedVar('--brand-accent') || '#22c55e';
-    const success = getComputedVar('--brand-success') || '#16a34a';
-    const warning = getComputedVar('--brand-warning') || '#f59e0b';
-    const danger = getComputedVar('--brand-danger') || '#ef4444';
-    const info = getComputedVar('--chart-color-6') || '#06b6d4';
+    // All values flow from design-tokens.css; fallback hex literals remain only as a defensive
+    // last resort if CSS tokens fail to load. Order matches --chart-color-1..6.
+    const primary = getComputedVar('--dashboard-theme-primary') || getComputedVar('--brand-primary') || getComputedVar('--chart-color-1') || '#3b82f6';
+    const accent = getComputedVar('--dashboard-theme-accent') || getComputedVar('--brand-accent') || getComputedVar('--chart-color-2') || '#22c55e';
+    const success = getComputedVar('--brand-success') || getComputedVar('--ds-success') || '#16a34a';
+    const warning = getComputedVar('--brand-warning') || getComputedVar('--ds-warning') || '#f59e0b';
+    const danger = getComputedVar('--brand-danger') || getComputedVar('--ds-danger') || '#ef4444';
+    const info = getComputedVar('--chart-color-6') || getComputedVar('--ds-info') || '#06b6d4';
     return [primary, accent, success, warning, danger, info];
   }
 
@@ -124,7 +126,7 @@
   /** When on backend, returns Chart.js options for scales and legend (grid/tick/legend color from theme). */
   function getBackendChartOptions() {
     if (!isBackendPage()) return {};
-    const chartText = getComputedVar('--chart-text') || getComputedVar('--backend-text-muted') || '#94a3b8';
+    const chartText = getComputedVar('--chart-text') || getComputedVar('--backend-text-muted') || getComputedVar('--color-base-400') || '#94a3b8';
     const chartGrid = getComputedVar('--chart-grid') || getComputedVar('--backend-border') || 'rgba(148, 163, 184, 0.2)';
     return {
       scales: {

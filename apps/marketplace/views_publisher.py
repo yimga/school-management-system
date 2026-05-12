@@ -2,21 +2,22 @@
 Pass 14.D: publisher dashboard — operator UI on top of the 14.C submission
 endpoint.
 
-GET /marketplace/publisher/  → list every app belonging to the requester's
+GET /super/marketplace/publisher/  → list every app belonging to the requester's
 PublisherOrganization with status + review-status + last-updated.
-GET /marketplace/publisher/<slug>/  → detail page with the manifest + review
+GET /super/marketplace/publisher/<slug>/  → detail page with the manifest + review
 notes + (when set) the security review queue link.
 
-Auth: IsAuthenticated. The full publisher dashboard (screenshot upload,
-version compat, revenue-share negotiation) lands in a separate change —
-those screens hang off this list view.
+Auth: control-plane operators only (manager host + SUPERADMIN / is_superuser).
+Publisher accounts are platform identities, not tenant identities — these
+surfaces render on manager.<base>, never on a school subdomain.
 """
 
 from __future__ import annotations
 
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_GET
+
+from apps.schools.control_plane import require_super_access_with_host
 
 
 def _publisher_for_user(user):
@@ -31,7 +32,7 @@ def _publisher_for_user(user):
     ).first()
 
 
-@login_required
+@require_super_access_with_host
 @require_GET
 def publisher_dashboard(request):
     publisher = _publisher_for_user(request.user)
@@ -58,7 +59,7 @@ def publisher_dashboard(request):
     )
 
 
-@login_required
+@require_super_access_with_host
 @require_GET
 def publisher_app_detail(request, slug: str):
     publisher = _publisher_for_user(request.user)

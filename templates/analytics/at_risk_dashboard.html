@@ -11,27 +11,32 @@
   <div class="card shadow-sm mb-3">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-sm table-bordered">
+        <table class="gradebook-table table-family" aria-label="{% trans 'At-risk students by score and band' %}">
           <caption class="visually-hidden">{% trans "At-Risk Dashboard" %}</caption>
-          <thead class="table-light">
+          <thead>
             <tr>
-              <th>{% trans "Student" %}</th>
-              <th>{% trans "Score" %}</th>
-              <th>{% trans "Band" %}</th>
-              <th>{% trans "Why" %}</th>
-              <th>{% trans "Computed" %}</th>
-              <th>{% trans "Intervention" %}</th>
+              <th scope="col">{% trans "Student" %}</th>
+              <th scope="col" class="num">{% trans "Score" %}</th>
+              <th scope="col">{% trans "Band" %}</th>
+              <th scope="col">{% trans "Why" %}</th>
+              <th scope="col">{% trans "Computed" %}</th>
+              <th scope="col">{% trans "Intervention" %}</th>
             </tr>
           </thead>
           <tbody>
             {% for r in risk_factors %}
             <tr>
-              <td>{{ r.student.get_full_name|default:r.student_id }}</td>
-              <td>{{ r.score }}</td>
               <td>
-                {% if r.band == 'red' %}<span class="badge bg-danger">{% trans "Red" %}</span>
-                {% elif r.band == 'amber' %}<span class="badge bg-warning text-dark">{% trans "Amber" %}</span>
-                {% else %}<span class="badge bg-success">{% trans "Green" %}</span>{% endif %}
+                <span class="student-cell">
+                  <span class="av" aria-hidden="true">{{ r.student.first_name|slice:":1"|upper }}{{ r.student.last_name|slice:":1"|upper }}</span>
+                  <span>{{ r.student.get_full_name|default:r.student_id }}</span>
+                </span>
+              </td>
+              <td class="num">{{ r.score }}</td>
+              <td>
+                {% if r.band == 'red' %}<span class="grade-pill low" aria-label="{% trans 'Red band' %}">{% trans "Red" %}</span>
+                {% elif r.band == 'amber' %}<span class="grade-pill mid" aria-label="{% trans 'Amber band' %}">{% trans "Amber" %}</span>
+                {% else %}<span class="grade-pill high" aria-label="{% trans 'Green band' %}">{% trans "Green" %}</span>{% endif %}
               </td>
               <td>{{ r.reason_summary|default:"—" }}</td>
               <td>{{ r.computed_at|date:"M d, Y H:i" }}</td>
@@ -41,7 +46,7 @@
                   {% csrf_token %}
                   <input type="hidden" name="action" value="start">
                   <input type="hidden" name="student_id" value="{{ r.student_id }}">
-                  <input type="text" name="action_taken" class="form-control form-control-sm mb-1" placeholder="{% trans 'e.g. Counselor contact' %}" maxlength="100">
+                  <input type="text" name="action_taken" class="form-control form-control-sm mb-1" placeholder="{% trans 'e.g. Counselor contact' %}" maxlength="100" aria-label="{% trans 'Intervention action' %}">
                   <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Log intervention" %}</button>
                 </form>
                 {% else %}—{% endif %}

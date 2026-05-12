@@ -83,7 +83,7 @@
 <div class="card">
   <div class="card-body">
     <div class="table-responsive">
-      <table class="table table-sm align-middle table-family" aria-label="Master sheet: students, class, subject, teacher, term, and score components">
+      <table class="gradebook-table table-family" aria-label="Master sheet: students, class, subject, teacher, term, and score components">
         <thead>
           <tr>
             <th scope="col">Student</th>
@@ -92,29 +92,34 @@
             <th scope="col">Subject</th>
             <th scope="col">Teacher</th>
             <th scope="col">Term</th>
-            <th scope="col" class="text-end">Seq1</th>
-            <th scope="col" class="text-end">Seq2</th>
-            <th scope="col" class="text-end">Exam</th>
-            <th scope="col" class="text-end">Mock</th>
-            <th scope="col" class="text-end">Pract</th>
-            <th scope="col" class="text-end">Total</th>
+            <th scope="col" class="num">Seq1</th>
+            <th scope="col" class="num">Seq2</th>
+            <th scope="col" class="num">Exam</th>
+            <th scope="col" class="num">Mock</th>
+            <th scope="col" class="num">Pract</th>
+            <th scope="col" class="num">Total</th>
           </tr>
         </thead>
         <tbody>
           {% for e in evals %}
             <tr>
-              <td>{{ e.student.last_name }} {{ e.student.first_name }} ({{ e.student.student_code }})</td>
+              <td>
+                <span class="student-cell">
+                  <span class="av" aria-hidden="true">{{ e.student.first_name|slice:":1"|upper }}{{ e.student.last_name|slice:":1"|upper }}</span>
+                  <span>{{ e.student.last_name }} {{ e.student.first_name }} <span class="text-muted">({{ e.student.student_code }})</span></span>
+                </span>
+              </td>
               <td>{{ e.subject_assignment.classroom.name }}</td>
               <td>{{ e.subject_assignment.specialty.name }}</td>
               <td>{{ e.subject_assignment.subject.name }}</td>
               <td>{{ e.teacher.user.get_full_name|default:e.teacher.user.username }}</td>
               <td>{{ e.term.get_name_display }}</td>
-              <td class="text-end">{{ e.seq1_score|default_if_none:"" }}</td>
-              <td class="text-end">{{ e.seq2_score|default_if_none:"" }}</td>
-              <td class="text-end">{{ e.exam_score|default_if_none:"" }}</td>
-              <td class="text-end">{{ e.mock_score|default_if_none:"" }}</td>
-              <td class="text-end">{{ e.practical_score|default_if_none:"" }}</td>
-              <td class="text-end">{{ e.total_score|format_number:2 }}</td>
+              <td class="num">{{ e.seq1_score|default_if_none:"" }}</td>
+              <td class="num">{{ e.seq2_score|default_if_none:"" }}</td>
+              <td class="num">{{ e.exam_score|default_if_none:"" }}</td>
+              <td class="num">{{ e.mock_score|default_if_none:"" }}</td>
+              <td class="num">{{ e.practical_score|default_if_none:"" }}</td>
+              <td class="num">{{ e.total_score|format_number:2 }}</td>
             </tr>
           {% empty %}
             <tr>

@@ -7,9 +7,9 @@
 /* ========== Marketing plane (runmycampus.com) ========== */
 html[data-surface="marketing"],
 body.marketing-surface {
-  --surface-bg-base: #ffffff;
-  --surface-bg-subtle: #f8fafc;
-  --surface-bg-muted: #f1f5f9;
+  --surface-bg-base: var(--color-base-0);
+  --surface-bg-subtle: var(--color-base-50);
+  --surface-bg-muted: var(--color-base-100);
   --type-hero: clamp(1.75rem, 4vw, 2.75rem);
   --type-section: clamp(1.25rem, 2.8vw, 1.5rem);
   --shell-elevation-1: 0 2px 12px rgba(15, 23, 42, 0.06);
@@ -22,9 +22,9 @@ body.marketing-surface {
 html[data-surface="control-plane"],
 body.cp-surface,
 .cp-layout {
-  --surface-bg-base: #0f172a;
-  --surface-bg-subtle: #1e293b;
-  --surface-bg-muted: #334155;
+  --surface-bg-base: var(--color-base-900);
+  --surface-bg-subtle: var(--color-base-800);
+  --surface-bg-muted: var(--color-base-700);
   --shell-elevation-1: 0 2px 8px rgba(0, 0, 0, 0.25);
   --shell-elevation-2: 0 4px 16px rgba(0, 0, 0, 0.3);
   --shell-elevation-3: 0 12px 28px rgba(0, 0, 0, 0.35);
@@ -35,9 +35,9 @@ body.cp-surface,
 /* ========== Admin backoffice (manager.runmycampus.com/admin) ========== */
 html[data-surface="admin"],
 body.admin-ops-surface {
-  --surface-bg-base: #ffffff;
-  --surface-bg-subtle: #f8fafc;
-  --surface-bg-muted: #f1f5f9;
+  --surface-bg-base: var(--color-base-0);
+  --surface-bg-subtle: var(--color-base-50);
+  --surface-bg-muted: var(--color-base-100);
   --shell-elevation-1: 0 2px 8px rgba(15, 23, 42, 0.06);
   --shell-elevation-2: 0 4px 12px rgba(15, 23, 42, 0.08);
   --type-table: 0.875rem;
@@ -48,7 +48,7 @@ body.admin-ops-surface {
 html[data-surface="tenant"],
 body.tenant-surface {
   /* Uses design-tokens defaults + portal/school theme overrides from base templates */
-  --surface-bg-base: var(--portal-bg, #f7fbff);
+  --surface-bg-base: var(--portal-bg, color-mix(in oklab, var(--color-sky-500) 4%, var(--color-base-0)));
   --surface-bg-subtle: rgba(255, 255, 255, 0.8);
   --surface-bg-muted: rgba(15, 23, 42, 0.04);
 }
@@ -56,7 +56,7 @@ body.tenant-surface {
 /* ========== Onboarding wizards (extends base.html; /setup-studio/, /onboard/*) ========== */
 html[data-surface="onboarding"] {
   /* Same token plane as tenant; distinct surface for shell classifier + future overrides */
-  --surface-bg-base: var(--portal-bg, #f7fbff);
+  --surface-bg-base: var(--portal-bg, color-mix(in oklab, var(--color-sky-500) 4%, var(--color-base-0)));
   --surface-bg-subtle: rgba(255, 255, 255, 0.8);
   --surface-bg-muted: rgba(15, 23, 42, 0.04);
 }

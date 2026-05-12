@@ -11,9 +11,16 @@
     return;
   }
 
+  function tok(name, fallback) {
+    try {
+      var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return v || fallback;
+    } catch (_e) { return fallback; }
+  }
+
   var studio = {};
   var state = {
-    baseColor: '#0d6efd',
+    baseColor: tok('--school-primary', '#0d6efd'),
     harmonyType: 'complement',
     pickrInstance: null,
     selectedPreset: ''

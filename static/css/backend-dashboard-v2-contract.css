@@ -25,8 +25,8 @@ body[data-dashboard-page="backend"] {
   --backend-data-size: 1.72rem;
   --backend-scroll-cap-main: clamp(180px, 28vh, 296px);
   --backend-scroll-cap-rail: clamp(170px, 24vh, 260px);
-  --backend-heading-color: var(--vis-heading-strong, var(--admin-text, #0f172a));
-  --backend-subheading-color: var(--vis-text-muted, var(--admin-muted, #475569));
+  --backend-heading-color: var(--vis-heading-strong, var(--admin-text, var(--color-base-900)));
+  --backend-subheading-color: var(--vis-text-muted, var(--admin-muted, var(--color-base-600)));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-overview-head h2,
@@ -187,15 +187,15 @@ body[data-dashboard-page="backend"] .backend-v2-rail-card {
   border-radius: 14px;
   border-width: 1px;
   border-style: solid;
-  border-color: color-mix(in srgb, var(--admin-border, #cbd5e1) 72%, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6)) 28%) !important;
+  border-color: color-mix(in srgb, var(--admin-border, var(--color-base-300)) 72%, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 28%) !important;
   background:
     linear-gradient(
       148deg,
-      color-mix(in srgb, var(--admin-surface, #fff) 86%, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6)) 14%),
-      color-mix(in srgb, var(--admin-surface, #fff) 92%, var(--dashboard-theme-accent, var(--brand-accent, #22c55e)) 8%)
+      color-mix(in srgb, var(--admin-surface, var(--color-base-0)) 86%, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 14%),
+      color-mix(in srgb, var(--admin-surface, var(--color-base-0)) 92%, var(--dashboard-theme-accent, var(--brand-accent, var(--color-emerald-500))) 8%)
     ) !important;
   box-shadow:
-    0 12px 26px color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 10%, transparent),
+    0 12px 26px color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500)))) 10%, transparent),
     0 2px 10px rgba(2, 6, 23, 0.12);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -212,12 +212,12 @@ body[data-dashboard-page="backend"] .backend-v2-rail-card::after {
   background:
     radial-gradient(
       320px 120px at 108% -24%,
-      color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 16%, transparent),
+      color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500)))) 16%, transparent),
       transparent 66%
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 3%, transparent),
+      color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500)))) 3%, transparent),
       transparent 32%
     );
 }
@@ -448,60 +448,60 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="bac
 
 /* Theme accents by card role */
 body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-enrollment-trends"] {
-  --card-accent: var(--dashboard-theme-primary, var(--brand-primary, #3b82f6));
+  --card-accent: var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500)));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-admissions"] {
-  --card-accent: var(--dashboard-theme-accent, var(--brand-accent, #14b8a6));
+  --card-accent: var(--dashboard-theme-accent, var(--brand-accent, var(--color-teal-500)));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-outstanding-fees"] {
-  --card-accent: var(--brand-warning, #f59e0b);
+  --card-accent: var(--brand-warning, var(--color-amber-500));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-at-risk-students"] {
-  --card-accent: var(--brand-danger, #ef4444);
+  --card-accent: var(--brand-danger, var(--color-red-500));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-activity"] {
-  --card-accent: var(--dashboard-theme-primary, var(--brand-primary, #3b82f6));
+  --card-accent: var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500)));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-top-performing"] {
-  --card-accent: var(--brand-success, #22c55e);
+  --card-accent: var(--brand-success, var(--color-emerald-500));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-attendance-today"] {
-  --card-accent: var(--dashboard-theme-accent, var(--brand-accent, #14b8a6));
+  --card-accent: var(--dashboard-theme-accent, var(--brand-accent, var(--color-teal-500)));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-rail-card--ops {
-  --card-accent: var(--brand-danger, #ef4444);
+  --card-accent: var(--brand-danger, var(--color-red-500));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-rail-card--links {
-  --card-accent: var(--dashboard-theme-primary, var(--brand-primary, #3b82f6));
+  --card-accent: var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500)));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-rail-card--planner {
-  --card-accent: var(--dashboard-theme-accent, var(--brand-accent, #14b8a6));
+  --card-accent: var(--dashboard-theme-accent, var(--brand-accent, var(--color-teal-500)));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-metric--tone-1 {
-  --metric-tone: var(--dashboard-theme-primary, var(--brand-primary, #3b82f6));
+  --metric-tone: var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500)));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-metric--tone-2 {
-  --metric-tone: var(--brand-warning, #f59e0b);
+  --metric-tone: var(--brand-warning, var(--color-amber-500));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-metric--tone-3 {
-  --metric-tone: var(--brand-danger, #ef4444);
+  --metric-tone: var(--brand-danger, var(--color-red-500));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-metric,
 body[data-dashboard-page="backend"] .backend-v2-kpi {
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--metric-tone, var(--brand-primary, #3b82f6)) 12%, transparent);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--metric-tone, var(--brand-primary, var(--color-primary-500))) 12%, transparent);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-header .card-title,
@@ -519,15 +519,15 @@ body[data-dashboard-page="backend"] .backend-v2-rail-card h6::before {
   width: 0.48rem;
   height: 0.9rem;
   border-radius: 999px;
-  background: linear-gradient(180deg, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))), color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 35%, transparent));
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 16%, transparent);
+  background: linear-gradient(180deg, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500)))), color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500)))) 35%, transparent));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500)))) 16%, transparent);
   flex-shrink: 0;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-rail-card .badge.bg-light,
 body[data-dashboard-page="backend"] .backend-v2-rail-card .badge.text-bg-light {
-  border: 1px solid color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 32%, var(--admin-border, #cbd5e1) 68%);
-  background: color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 12%, var(--admin-surface, #fff) 88%) !important;
+  border: 1px solid color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500)))) 32%, var(--admin-border, var(--color-base-300)) 68%);
+  background: color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500)))) 12%, var(--admin-surface, var(--color-base-0)) 88%) !important;
   color: var(--backend-heading-color) !important;
 }
 
@@ -542,13 +542,13 @@ body[data-dashboard-page="backend"] .backend-ops-item {
 }
 
 body[data-dashboard-page="backend"] .backend-ops-item.is-danger {
-  border-color: color-mix(in srgb, var(--brand-danger, #ef4444) 48%, var(--admin-border, #cbd5e1) 52%);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--brand-danger, #ef4444) 12%, var(--admin-surface, #fff) 88%), var(--admin-surface, #fff));
+  border-color: color-mix(in srgb, var(--brand-danger, var(--color-red-500)) 48%, var(--admin-border, var(--color-base-300)) 52%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brand-danger, var(--color-red-500)) 12%, var(--admin-surface, var(--color-base-0)) 88%), var(--admin-surface, var(--color-base-0)));
 }
 
 body[data-dashboard-page="backend"] .backend-ops-item.is-warn {
-  border-color: color-mix(in srgb, var(--brand-warning, #f59e0b) 48%, var(--admin-border, #cbd5e1) 52%);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--brand-warning, #f59e0b) 11%, var(--admin-surface, #fff) 89%), var(--admin-surface, #fff));
+  border-color: color-mix(in srgb, var(--brand-warning, var(--color-amber-500)) 48%, var(--admin-border, var(--color-base-300)) 52%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brand-warning, var(--color-amber-500)) 11%, var(--admin-surface, var(--color-base-0)) 89%), var(--admin-surface, var(--color-base-0)));
 }
 
 body[data-dashboard-page="backend"] .backend-ops-item:hover,

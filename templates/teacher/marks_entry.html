@@ -245,15 +245,15 @@
         {% csrf_token %}
         <input type="hidden" name="subject_assignment_id" value="{{ sa.id }}">
 
-        <table class="table table-sm table-striped align-middle table-family" aria-label="Marks entry by student">
+        <table class="gradebook-table table-family" aria-label="Marks entry by student">
           <thead>
             <tr>
               <th scope="col">Student</th>
-              <th scope="col" style="width:110px;">Sequence 1</th>
-              <th scope="col" style="width:110px;">Sequence 2</th>
-              <th scope="col" style="width:110px;">Exam</th>
-              <th scope="col" style="width:110px;">Mock</th>
-              <th scope="col" style="width:110px;">Practical</th>
+              <th scope="col" class="num" style="width:110px;">Sequence 1</th>
+              <th scope="col" class="num" style="width:110px;">Sequence 2</th>
+              <th scope="col" class="num" style="width:110px;">Exam</th>
+              <th scope="col" class="num" style="width:110px;">Mock</th>
+              <th scope="col" class="num" style="width:110px;">Practical</th>
               <th scope="col">Remarks</th>
             </tr>
           </thead>
@@ -261,12 +261,17 @@
             {% for s in students %}
               {% with e=existing|get_item:s.id %}
               <tr class="{% if e|evaluation_incomplete:required_fields %}table-warning{% endif %}">
-                <td>{{ s.last_name }} {{ s.first_name }} ({{ s.student_code }})</td>
-                <td><input class="form-control form-control-sm" name="seq1_{{ s.id }}" value="{% if e %}{{ e.seq1_score }}{% endif %}" {% if locked %}disabled{% endif %}></td>
-                <td><input class="form-control form-control-sm" name="seq2_{{ s.id }}" value="{% if e %}{{ e.seq2_score }}{% endif %}" {% if locked %}disabled{% endif %}></td>
-                <td><input class="form-control form-control-sm" name="exam_{{ s.id }}" value="{% if e %}{{ e.exam_score }}{% endif %}" {% if locked %}disabled{% endif %}></td>
-                <td><input class="form-control form-control-sm" name="mock_{{ s.id }}" value="{% if e %}{{ e.mock_score }}{% endif %}" {% if locked %}disabled{% endif %}></td>
-                <td><input class="form-control form-control-sm" name="practical_{{ s.id }}" value="{% if e %}{{ e.practical_score }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+                <td>
+                  <span class="student-cell">
+                    <span class="av" aria-hidden="true">{{ s.first_name|slice:":1"|upper }}{{ s.last_name|slice:":1"|upper }}</span>
+                    <span>{{ s.last_name }} {{ s.first_name }} <span class="text-muted">({{ s.student_code }})</span></span>
+                  </span>
+                </td>
+                <td class="num"><input class="mark-cell" name="seq1_{{ s.id }}" value="{% if e %}{{ e.seq1_score }}{% endif %}" inputmode="decimal" {% if locked %}disabled{% endif %}></td>
+                <td class="num"><input class="mark-cell" name="seq2_{{ s.id }}" value="{% if e %}{{ e.seq2_score }}{% endif %}" inputmode="decimal" {% if locked %}disabled{% endif %}></td>
+                <td class="num"><input class="mark-cell" name="exam_{{ s.id }}" value="{% if e %}{{ e.exam_score }}{% endif %}" inputmode="decimal" {% if locked %}disabled{% endif %}></td>
+                <td class="num"><input class="mark-cell" name="mock_{{ s.id }}" value="{% if e %}{{ e.mock_score }}{% endif %}" inputmode="decimal" {% if locked %}disabled{% endif %}></td>
+                <td class="num"><input class="mark-cell" name="practical_{{ s.id }}" value="{% if e %}{{ e.practical_score }}{% endif %}" inputmode="decimal" {% if locked %}disabled{% endif %}></td>
                 <td><input class="form-control form-control-sm" name="remarks_{{ s.id }}" value="{% if e %}{{ e.remarks }}{% endif %}" {% if locked %}disabled{% endif %}></td>
               </tr>
               {% endwith %}

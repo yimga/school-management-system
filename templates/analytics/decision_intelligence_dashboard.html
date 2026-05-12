@@ -14,16 +14,55 @@
   <div class="row g-3">
     {% for ins in insights %}
     <div class="col-md-6 col-xl-4">
-      <div class="card h-100 shadow-sm border-{% if ins.severity == 'danger' %}danger{% elif ins.severity == 'warning' %}warning{% else %}secondary{% endif %}">
-        <div class="card-body">
+      {% if ins.severity == 'danger' %}{% with tone='danger' icon='exclamation-octagon' %}
+      <article class="insight-card {{ tone }} h-100" data-rmc-insight-card="1" data-rmc-insight-tone="{{ tone }}">
+        <div class="ico" aria-hidden="true"><i class="bi bi-{{ icon }}"></i></div>
+        <div class="insight-card__body" style="flex:1;min-width:0">
           <div class="text-uppercase small text-muted mb-1">{{ ins.audience }}</div>
-          <h2 class="h6 card-title">{{ ins.title }}</h2>
-          <p class="small card-text">{{ ins.explanation }}</p>
+          <h4 class="insight-card__title">{{ ins.title }}</h4>
+          <p class="insight-card__copy">{{ ins.explanation }}</p>
           {% if ins.primary_action %}
-          <a class="btn btn-sm btn-primary" href="{{ ins.primary_action.primary_action_url|default:ins.primary_action.path }}" data-action="decision-insight-primary" data-task="report_generation" data-task-step="analytics:insight-card">{{ ins.primary_action.label }}</a>
+          <a class="btn btn-sm btn-outline-danger" href="{{ ins.primary_action.primary_action_url|default:ins.primary_action.path }}" data-action="decision-insight-primary" data-task="report_generation" data-task-step="analytics:insight-card">{{ ins.primary_action.label }} <span aria-hidden="true">→</span></a>
           {% endif %}
         </div>
-      </div>
+      </article>
+      {% endwith %}{% elif ins.severity == 'warning' %}{% with tone='warning' icon='clock-history' %}
+      <article class="insight-card {{ tone }} h-100" data-rmc-insight-card="1" data-rmc-insight-tone="{{ tone }}">
+        <div class="ico" aria-hidden="true"><i class="bi bi-{{ icon }}"></i></div>
+        <div class="insight-card__body" style="flex:1;min-width:0">
+          <div class="text-uppercase small text-muted mb-1">{{ ins.audience }}</div>
+          <h4 class="insight-card__title">{{ ins.title }}</h4>
+          <p class="insight-card__copy">{{ ins.explanation }}</p>
+          {% if ins.primary_action %}
+          <a class="btn btn-sm btn-outline-warning" href="{{ ins.primary_action.primary_action_url|default:ins.primary_action.path }}" data-action="decision-insight-primary" data-task="report_generation" data-task-step="analytics:insight-card">{{ ins.primary_action.label }} <span aria-hidden="true">→</span></a>
+          {% endif %}
+        </div>
+      </article>
+      {% endwith %}{% elif ins.severity == 'success' %}{% with tone='success' icon='check2-circle' %}
+      <article class="insight-card {{ tone }} h-100" data-rmc-insight-card="1" data-rmc-insight-tone="{{ tone }}">
+        <div class="ico" aria-hidden="true"><i class="bi bi-{{ icon }}"></i></div>
+        <div class="insight-card__body" style="flex:1;min-width:0">
+          <div class="text-uppercase small text-muted mb-1">{{ ins.audience }}</div>
+          <h4 class="insight-card__title">{{ ins.title }}</h4>
+          <p class="insight-card__copy">{{ ins.explanation }}</p>
+          {% if ins.primary_action %}
+          <a class="btn btn-sm btn-outline-success" href="{{ ins.primary_action.primary_action_url|default:ins.primary_action.path }}" data-action="decision-insight-primary" data-task="report_generation" data-task-step="analytics:insight-card">{{ ins.primary_action.label }} <span aria-hidden="true">→</span></a>
+          {% endif %}
+        </div>
+      </article>
+      {% endwith %}{% else %}{% with tone='info' icon='info-circle' %}
+      <article class="insight-card {{ tone }} h-100" data-rmc-insight-card="1" data-rmc-insight-tone="{{ tone }}">
+        <div class="ico" aria-hidden="true"><i class="bi bi-{{ icon }}"></i></div>
+        <div class="insight-card__body" style="flex:1;min-width:0">
+          <div class="text-uppercase small text-muted mb-1">{{ ins.audience }}</div>
+          <h4 class="insight-card__title">{{ ins.title }}</h4>
+          <p class="insight-card__copy">{{ ins.explanation }}</p>
+          {% if ins.primary_action %}
+          <a class="btn btn-sm btn-outline-primary" href="{{ ins.primary_action.primary_action_url|default:ins.primary_action.path }}" data-action="decision-insight-primary" data-task="report_generation" data-task-step="analytics:insight-card">{{ ins.primary_action.label }} <span aria-hidden="true">→</span></a>
+          {% endif %}
+        </div>
+      </article>
+      {% endwith %}{% endif %}
     </div>
     {% empty %}
     <div class="col-12">

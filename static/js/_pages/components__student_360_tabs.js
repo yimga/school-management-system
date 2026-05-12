@@ -106,11 +106,11 @@ class Student360 {
       </div>
       <div class="info-card">
         <span class="info-label">Paid</span>
-        <span class="info-value" style="color: #2dd4bf;">${data.paid || 'N/A'}</span>
+        <span class="info-value" style="color: var(--ds-success);">${data.paid || 'N/A'}</span>
       </div>
       <div class="info-card">
         <span class="info-label">Outstanding</span>
-        <span class="info-value" style="color: #ff6a88;">${data.outstanding || 'N/A'}</span>
+        <span class="info-value" style="color: var(--ds-danger);">${data.outstanding || 'N/A'}</span>
       </div>
     `;
 

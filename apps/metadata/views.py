@@ -1,18 +1,15 @@
 """
 §3.3 Metadata search and governance UI — stub API for catalog search.
-Staff-only; returns entity catalog entries matching query.
+Manager-host operator-only; returns entity catalog entries matching query.
 """
 
-from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
-
-def _staff_required(user):
-    return getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)
+from apps.schools.control_plane import require_super_access_with_host
 
 
 def _catalog_search(q: str, limit: int = 20, active_only: bool = True):
@@ -43,8 +40,7 @@ def _catalog_search(q: str, limit: int = 20, active_only: bool = True):
     ]
 
 
-@login_required
-@user_passes_test(_staff_required)
+@require_super_access_with_host
 @require_http_methods(["GET"])
 def metadata_governance_ui(request):
     """
@@ -73,8 +69,7 @@ def metadata_governance_ui(request):
     )
 
 
-@login_required
-@user_passes_test(_staff_required)
+@require_super_access_with_host
 @require_http_methods(["GET"])
 def metadata_search_api(request):
     """
@@ -93,8 +88,7 @@ def metadata_search_api(request):
     return JsonResponse({"results": results})
 
 
-@login_required
-@user_passes_test(_staff_required)
+@require_super_access_with_host
 @require_http_methods(["GET"])
 def metadata_lineage_api(request):
     """
@@ -130,8 +124,7 @@ def metadata_lineage_api(request):
     return JsonResponse(payload)
 
 
-@login_required
-@user_passes_test(_staff_required)
+@require_super_access_with_host
 @require_http_methods(["GET"])
 def metadata_lineage_graph_ui(request):
     """

@@ -10,7 +10,7 @@
         <ul class="list-unstyled mb-0">
           {% for e in before_entries %}
           <li class="d-flex align-items-center mb-2">
-            <span class="me-2 rounded border" style="width:1.25rem;height:1.25rem;background:{{ e.value|default:'#f0f0f0' }};" title="{{ e.value|default:'' }}"></span>
+            <span class="me-2 rounded border" style="width:1.25rem;height:1.25rem;background:{{ e.value|default:platform_palette.muted_swatch }};" title="{{ e.value|default:'' }}"></span>
             <span class="small">{{ e.label }}:</span>
             <code class="small ms-1 text-break">{{ e.value|default:"—" }}</code>
           </li>
@@ -24,7 +24,7 @@
         <ul class="list-unstyled mb-0">
           {% for e in after_entries %}
           <li class="d-flex align-items-center mb-2">
-            <span class="me-2 rounded border" style="width:1.25rem;height:1.25rem;background:{{ e.value|default:'#f0f0f0' }};" title="{{ e.value|default:'' }}"></span>
+            <span class="me-2 rounded border" style="width:1.25rem;height:1.25rem;background:{{ e.value|default:platform_palette.muted_swatch }};" title="{{ e.value|default:'' }}"></span>
             <span class="small">{{ e.label }}:</span>
             <code class="small ms-1 text-break">{{ e.value|default:"—" }}</code>
           </li>

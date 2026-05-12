@@ -1,15 +1,10 @@
 /**
- * Marketing-only static template styles, extracted from
- * phase2-static-templates-bundle.css. The original 109 KB bundle
- * also covers admin, portal, control-plane, and console templates
- * — none of which the public marketing surface needs. This carve-out
- * keeps only the rules belonging to marketing_landing.html,
- * marketing_page.html, and marketing_product_page.html.
- *
- * Source ranges in phase2-static-templates-bundle.css:
- *   marketing_landing.html      (line 3288)
- *   marketing_page.html         (line 3291)
- *   marketing_product_page.html (line 3566)
+ * Marketing shell carve-out of phase2 static template <style> extractions.
+ * Covers only the rules belonging to marketing_landing.html, marketing_page.html,
+ * and marketing_product_page.html. Other shells load the per-shell bundles
+ * (phase2-portal-bundle.css, phase2-base-bundle.css, phase2-admin-bundle.css,
+ * phase2-control-plane-bundle.css). The original 108 KB monolith
+ * (phase2-static-templates-bundle.css) was retired 2026-05-12.
  */
 
 /* ========== templates/schools/marketing_landing.html ========== */

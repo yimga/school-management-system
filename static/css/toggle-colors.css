@@ -1,7 +1,7 @@
 /**
  * Toggle color coding – on/off states visible regardless of theme pack or color pack.
  * Uses explicit hex only so theme/color overrides cannot hide toggles.
- * ON = green (#16a34a), OFF = grey (#94a3b8) or red in admin (#dc2626).
+ * ON = green (var(--color-emerald-600)), OFF = grey (var(--color-base-400)) or red in admin (var(--color-red-600)).
  */
 
 /* Bootstrap form-switch: ON state (checked) – explicit green, theme-independent - APPLY EVERYWHERE */
@@ -11,41 +11,41 @@
 #content .form-check-input[type="checkbox"]:checked,
 .admin .form-switch .form-check-input:checked,
 .admin .form-check-input[type="checkbox"]:checked {
-  background-color: #16a34a !important;
-  border-color: #16a34a !important;
+  background-color: var(--color-emerald-600) !important;
+  border-color: var(--color-emerald-600) !important;
 }
 
 /* Bootstrap form-switch: OFF state – explicit grey */
 .form-switch .form-check-input:not(:checked),
 .form-check-input.form-check-input[type="checkbox"]:not(:checked) {
-  background-color: #94a3b8 !important;
-  border-color: #94a3b8 !important;
+  background-color: var(--color-base-400) !important;
+  border-color: var(--color-base-400) !important;
 }
 
 /* Dark mode – OFF grey still visible */
 .dark .form-switch .form-check-input:not(:checked),
 [data-theme="dark"] .form-switch .form-check-input:not(:checked) {
-  background-color: #64748b !important;
-  border-color: #64748b !important;
+  background-color: var(--color-base-500) !important;
+  border-color: var(--color-base-500) !important;
 }
 
 /* Hover: ON stays green, OFF slightly lighter */
 .form-switch .form-check-input:hover:not(:checked) {
-  background-color: #b8c4d4 !important;
-  border-color: #b8c4d4 !important;
+  background-color: var(--color-base-300) !important;
+  border-color: var(--color-base-300) !important;
 }
 
 .dark .form-switch .form-check-input:hover:not(:checked),
 [data-theme="dark"] .form-switch .form-check-input:hover:not(:checked) {
-  background-color: #94a3b8 !important;
-  border-color: #94a3b8 !important;
+  background-color: var(--color-base-400) !important;
+  border-color: var(--color-base-400) !important;
 }
 
 /* Backend/portal dark body – OFF grey */
 body.portal-backend-dark .form-switch .form-check-input:not(:checked),
 body[data-bs-theme="dark"] .form-switch .form-check-input:not(:checked) {
-  background-color: #64748b !important;
-  border-color: #64748b !important;
+  background-color: var(--color-base-500) !important;
+  border-color: var(--color-base-500) !important;
 }
 
 /* Admin & Site Settings: OFF = red (explicit hex, theme-independent) */
@@ -55,15 +55,15 @@ body.app-siteconfig .form-switch .form-check-input:not(:checked),
 body.change-form .form-check-input[type="checkbox"]:not(:checked),
 body.changelist .form-check-input[type="checkbox"]:not(:checked),
 body.app-siteconfig .form-check-input[type="checkbox"]:not(:checked) {
-  background-color: #dc2626 !important;
-  border-color: #dc2626 !important;
+  background-color: var(--color-red-600) !important;
+  border-color: var(--color-red-600) !important;
 }
 
 body.change-form .form-switch .form-check-input:hover:not(:checked),
 body.changelist .form-switch .form-check-input:hover:not(:checked),
 body.app-siteconfig .form-switch .form-check-input:hover:not(:checked) {
-  background-color: #b91c1c !important;
-  border-color: #b91c1c !important;
+  background-color: color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) !important;
+  border-color: color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) !important;
 }
 
 [data-theme="dark"] body.change-form .form-switch .form-check-input:not(:checked),
@@ -71,8 +71,8 @@ body.app-siteconfig .form-switch .form-check-input:hover:not(:checked) {
 [data-theme="dark"] body.app-siteconfig .form-switch .form-check-input:not(:checked),
 body.portal-backend-dark.change-form .form-switch .form-check-input:not(:checked),
 body.portal-backend-dark.app-siteconfig .form-switch .form-check-input:not(:checked) {
-  background-color: #b91c1c !important;
-  border-color: #b91c1c !important;
+  background-color: color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) !important;
+  border-color: color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) !important;
 }
 
 /* =========================================================
@@ -85,27 +85,27 @@ body.portal-backend-dark.app-siteconfig .form-switch .form-check-input:not(:chec
 body.change-form input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]:not(:checked),
 body.changelist input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]:not(:checked),
 body.app-siteconfig input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]:not(:checked) {
-  background-color: #dc2626 !important;
+  background-color: var(--color-red-600) !important;
 }
 
 body.change-form input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]:checked,
 body.changelist input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]:checked,
 body.app-siteconfig input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]:checked {
-  background-color: #16a34a !important;
+  background-color: var(--color-emerald-600) !important;
 }
 
 /* Switch knob: force high-contrast white in all themes */
 body.change-form input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]::after,
 body.changelist input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]::after,
 body.app-siteconfig input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]::after {
-  background-color: #ffffff !important;
+  background-color: var(--color-base-0) !important;
 }
 
 /* Hover: slightly darker OFF red (keeps intent obvious) */
 body.change-form input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]:hover:not(:checked),
 body.changelist input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]:hover:not(:checked),
 body.app-siteconfig input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]:hover:not(:checked) {
-  background-color: #b91c1c !important;
+  background-color: color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) !important;
 }
 
 /* Backend (/backend) and dashboard: same red/green toggle semantics */
@@ -113,44 +113,44 @@ body.app-siteconfig input[type="checkbox"][class*="w-8"][class*="h-5"][class*="r
 body[data-dashboard-page] .form-switch .form-check-input:checked,
 body.portal-backend-dark .form-switch .form-check-input:checked,
 body.portal-backend-light .form-switch .form-check-input:checked {
-  background-color: #16a34a !important;
-  border-color: #16a34a !important;
+  background-color: var(--color-emerald-600) !important;
+  border-color: var(--color-emerald-600) !important;
 }
 #content .form-switch .form-check-input:not(:checked),
 body[data-dashboard-page] .form-switch .form-check-input:not(:checked),
 body.portal-backend-dark .form-switch .form-check-input:not(:checked),
 body.portal-backend-light .form-switch .form-check-input:not(:checked) {
-  background-color: #dc2626 !important;
-  border-color: #dc2626 !important;
+  background-color: var(--color-red-600) !important;
+  border-color: var(--color-red-600) !important;
 }
 /* Generic checkbox (no .form-switch) in admin/backend: ON=green, OFF=red when in content area */
 #content input[type="checkbox"]:checked,
 body.app-siteconfig #content input[type="checkbox"]:checked,
 body[data-dashboard-page] input[type="checkbox"]:checked {
-  accent-color: #16a34a;
+  accent-color: var(--color-emerald-600);
 }
 #content input[type="checkbox"]:not(:checked),
 body.app-siteconfig #content input[type="checkbox"]:not(:checked),
 body[data-dashboard-page] input[type="checkbox"]:not(:checked) {
-  accent-color: #dc2626;
+  accent-color: var(--color-red-600);
 }
 
 /* Button state coding – "on/applied" vs "off/inactive" (Feature Control pattern site-wide) */
 .btn-state-on,
 .btn-success.btn-state-on {
-  background-color: var(--brand-success, #22c55e);
-  border-color: var(--brand-success, #22c55e);
-  color: #fff;
+  background-color: var(--brand-success, var(--color-emerald-500));
+  border-color: var(--brand-success, var(--color-emerald-500));
+  color: var(--color-base-0);
 }
 .btn-state-off,
 .btn-secondary.btn-state-off {
-  background-color: var(--color-base-300, #cbd5e1);
-  border-color: var(--color-base-300, #cbd5e1);
-  color: var(--portal-text, #111827);
+  background-color: var(--color-base-300, var(--color-base-300));
+  border-color: var(--color-base-300, var(--color-base-300));
+  color: var(--portal-text, var(--color-base-900));
 }
 [data-bs-theme="dark"] .btn-state-off,
 body.portal-backend-dark .btn-state-off {
-  background-color: var(--color-base-600, #475569);
-  border-color: var(--color-base-600, #475569);
-  color: var(--backend-text, #e5e7eb);
+  background-color: var(--color-base-600, var(--color-base-600));
+  border-color: var(--color-base-600, var(--color-base-600));
+  color: var(--backend-text, var(--color-base-200));
 }

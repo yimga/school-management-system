@@ -21,8 +21,9 @@
   --school-primary-light: rgba(79, 70, 229, 0.14);
   --school-accent-light: rgba(16, 185, 129, 0.12);
 
-  /* Admin content area (forms, lists). Overridden in #content by admin-content-readability.css
-     and in dark theme by admin-dark-readability.css. Refined dark uses softer slate, not navy. */
+  /* Admin content area (forms, lists). Refined dark uses softer slate, not navy.
+     Previous overrides via admin-content-readability.css / admin-dark-readability.css retired
+     2026-05-12 — values folded into the token defaults below. */
   --admin-content-bg: #ffffff;
   --admin-content-surface: #ffffff;
   --admin-content-text: #0f172a;
@@ -36,8 +37,8 @@
   --admin-content-danger: #dc2626;
 
   /* Admin surface (overridden by SITE.admin_sidebar_* in admin base_site).
-     Defaults tuned for WCAG-friendly readability; admin_sidebar_enhanced.css
-     applies theme-specific overrides (light/dark). */
+     Defaults tuned for WCAG-friendly readability. admin_sidebar_enhanced.css was retired
+     2026-05-12 (zero template load); per-theme overrides now live in backend-themes.css. */
   --admin-accent: var(--school-primary);
   --admin-accent-light: var(--school-primary-light);
   --admin-sidebar-bg: #0f172a;
@@ -51,7 +52,7 @@
   --admin-sidebar-active-border: #38bdf8;
   --admin-sidebar-badge-bg: #334155;
   --admin-sidebar-badge-text: #f1f5f9;
-  /* Lively child block (no black); overridden per theme in admin_sidebar_enhanced.css */
+  /* Lively child block (no black); per-theme overrides now live in backend-themes.css. */
   --admin-sidebar-child-bg: linear-gradient(160deg, #334155 0%, #475569 100%);
   --admin-sidebar-child-border: rgba(148, 163, 184, 0.35);
 
@@ -115,6 +116,28 @@
   --token-radius-lg: 16px;
   --token-radius-xl: 20px;
   --token-radius-2xl: 24px;
+
+  /* Border-width scale — Apple HIG-aligned. Default is hairline; strong is reserved for
+     focus rings / active emphasis. Anything thicker is a design violation. Replaces ad-hoc
+     `border: 2px` literals in admin/index.html, visual_workflow_designer.html, etc.
+     Tenant themes never need to override these — they are purely structural. */
+  --token-border-width-hairline: 0.5px;
+  --token-border-width-subtle: 1px;
+  --token-border-width-strong: 2px;
+  --border-width-hairline: var(--token-border-width-hairline);
+  --border-width-subtle: var(--token-border-width-subtle);
+  --border-width-strong: var(--token-border-width-strong);
+
+  /* Sidebar-width scale — admin shell + portal sidebar widths. `default` matches the
+     280px convention in portal-base-shell.css (`--portal-sidebar-width`).
+     `compact` is the collapsed/icon-only state; `wide` is for dense-data admin contexts.
+     Tenant themes never need to override these — they are purely layout chrome. */
+  --token-sidebar-width-compact: 240px;
+  --token-sidebar-width-default: 280px;
+  --token-sidebar-width-wide: 320px;
+  --sidebar-width-compact: var(--token-sidebar-width-compact);
+  --sidebar-width-default: var(--token-sidebar-width-default);
+  --sidebar-width-wide: var(--token-sidebar-width-wide);
 
   /* ========== Phase 2 — semantic design system (--ds-*) ==========
      Single grammar for cards, surfaces, alerts, chips. Alias platform/luxury/tokens.
@@ -228,15 +251,162 @@
   --color-base-100: #f1f5f9;
   --color-base-200: #e2e8f0;
   --color-base-300: #cbd5e1;
+  --color-base-350: #b8c4d0;
   --color-base-400: #94a3b8;
   --color-base-500: #64748b;
   --color-base-600: #475569;
   --color-base-700: #334155;
   --color-base-800: #1e293b;
   --color-base-900: #0f172a;
+  --color-base-950: #020617;
   --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
   --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
   --color-primary-700: #1d4ed8;
+  --color-primary-900: #1e3a8a;
+
+  /* Indigo scale — platform brand chrome variants (admin sidebar, focus rings, decorative
+     gradients in backend chrome). Stays platform-fixed by design: the "recessive palette"
+     decision means admin chrome does NOT respond to tenant brand overrides — only the
+     tenant-facing portal does. For tenant-overridable brand surfaces use --school-primary
+     (which defaults to --color-indigo-600). */
+  --color-indigo-100: #c7d2fe;
+  --color-indigo-300: #a5b4fc;
+  --color-indigo-400: #818cf8;
+  --color-indigo-500: #6366f1;
+  --color-indigo-600: #4f46e5;
+  --color-indigo-700: #4338ca;
+  --color-indigo-800: #3730a3;
+
+  /* Alert text-on-tint scale — text shades inside alert chips/badges, separated by surface
+     theme so we don't ship a #fcd34d-on-amber-tint blob inline in every theme override.
+     `*-on-dark` = readable on dark backgrounds; `*-on-light` = readable on light backgrounds. */
+  --alert-text-success-on-dark: #86efac;
+  --alert-text-warning-on-dark: #fcd34d;
+  --alert-text-danger-on-dark: #fca5a5;
+  --alert-text-info-on-dark: #7dd3fc;
+  --alert-text-success-on-light: #166534;
+  --alert-text-warning-on-light: #92400e;
+  --alert-text-danger-on-light: #991b1b;
+  --alert-text-info-on-light: #0369a1;
+
+  /* Link text on dark theme (for non-button, non-nav anchors inside admin chrome) */
+  --link-text-on-dark: #93c5fd;
+  --link-text-on-dark-hover: #bfdbfe;
+
+  /* Text-on-brand — readable foreground for text rendered on top of --school-primary,
+     --school-accent, or any saturated brand surface. Defaults to white (works against
+     dark indigo/emerald). Tenants with light/pastel brand colors should override
+     to a dark value via SiteSettings so contrast stays AA. */
+  --text-on-brand: #ffffff;
+
+  /* Amber scale — used for warning chrome distinct from --ds-warning (amber-600).
+     400 = soft warning highlights, 500 = alert-warning borders, 700 = dark-theme warning text. */
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+
+  /* Status palette — full primitives for chart fills, progress bars, status badges.
+     Distinct from --ds-{success,danger,info} semantic tokens which alias the platform
+     defaults but may shift per theme; these primitives are stable Tailwind ladder steps. */
+  --color-emerald-400: #34d399;
+  --color-emerald-600: #059669;
+  --color-green-500: #22c55e;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-orange-400: #fb923c;
+  --color-orange-500: #f97316;
+  --color-sky-400: #38bdf8;
+  --color-sky-500: #0ea5e9;
+  --color-cyan-500: #06b6d4;
+  --color-cyan-600: #0891b2;
+  --color-teal-500: #14b8a6;
+
+  /* Indigo-900 extends the indigo scale (used for deep brand text + hover ink). */
+  --color-indigo-900: #312e81;
+
+  /* Soft pastel tints — used as icon-chip backgrounds and faint surface tints.
+     These could be derived via color-mix() but are pinned to specific hex for
+     consistent rendering across older browsers that lack oklab color-mix. */
+  --tint-indigo-soft: #f7f4ff;
+  --tint-blue-soft: #eef4ff;
+  --tint-sky-soft: #edf8ff;
+  --tint-gray-soft: #f1f3f5;
+  --tint-gray-warm: #e9ecef;
+
+  /* Tailwind gray-800 — distinct from --color-base-800 (slate-800); used by
+     manager-aesthetic-polish rail links for warmer neutral text. */
+  --color-gray-800: #1f2937;
+
+  /* Emerald-500 — fills the gap between --color-emerald-400 and --color-emerald-600
+     in the emerald ladder. Matches --school-accent default. */
+  --color-emerald-500: #10b981;
+
+  /* Teal-300 — extends the teal scale alongside --color-teal-500; used as a
+     decorative sky/teal accent on dark control-plane surfaces. */
+  --color-teal-300: #5eead4;
+
+  /* Control-plane ink scale — extremely dark blue-blacks used as the operator
+     surface canvas and as text-on-gold for the manager + /super/ shells. These
+     sit below --color-base-950 in luminosity and carry slight cool/warm shifts
+     for layered atmospherics (header < sidebar < canvas). */
+  --cp-ink-abyss: #06090e;        /* ultra-dark canvas (control-plane-ultra hero bg) */
+  --cp-ink-deep: #0a0c10;          /* text-on-gold for gold-buttoned primary actions */
+  --cp-ink-canvas: #0b0e14;        /* operator dark ground (platform-navy default) */
+  --cp-ink-sidebar: #0b1220;       /* manager sidebar bg (aesthetic-polish) */
+  --cp-ink-action: #0a1729;        /* text-on-sky-gradient for hero primary action */
+
+  /* Control-plane neutrals (light text + muted text on cp-ink-* surfaces). */
+  --cp-text-ultra: #e8eef6;        /* primary text on ultra-dark cp surfaces */
+  --cp-text-muted-ultra: #8b9cb8;  /* muted/secondary text on ultra-dark cp surfaces */
+
+  /* Cool slate tints (3xx-ish range) used by cp-hero/panel meta text.
+     Distinct from --color-base-* because they are warmer and trade neutrality
+     for a faint blue lift consistent with the cp navy palette. */
+  --cp-slate-cool-400: #9fb1cb;    /* cp-muted (default body muted) */
+  --cp-slate-cool-300: #a8bdd8;    /* table thead text */
+  --cp-slate-cool-200: #b6c8e0;    /* hero stat subtitle */
+
+  /* Soft canvas off-white — non-pure-white page bg behind cards (Aesthetic Pass A). */
+  --surface-canvas-soft: #f6f7fb;
+
+  /* Control-plane sky/blue pastels — link text, eyebrows, chip text, gradient stops.
+     All used on dark cp surfaces; chosen so AA contrast holds against --cp-ink-*. */
+  --cp-sky-100: #e7eefc;           /* default cp-text (hero copy on dark) */
+  --cp-sky-150: #d9eeff;           /* subtle link / workstream text */
+  --cp-sky-175: #d7e7fb;           /* panel-stat label */
+  --cp-sky-185: #d7e4f7;           /* status-badge-neutral text */
+  --cp-sky-200: #cce6ff;           /* section-link text */
+  --cp-sky-300: #9bd9ff;           /* eyebrow label */
+  --cp-sky-350: #8fd6ff;           /* workstream-cta text */
+  --cp-sky-400: #8ebdff;           /* hero primary-action gradient end */
+  --cp-sky-450: #76d5ff;           /* hero primary-action gradient start */
+  --cp-sky-500: #77c6ff;           /* cp-accent (anchor for sky pastels) */
+
+  /* Control-plane status pastels — readable foreground for status chips/badges
+     rendered on dark cp surfaces; mirrors --alert-text-*-on-dark family but
+     uses the manager's saturated palette instead of muted Tailwind shades. */
+  --cp-success-300: #96edc4;       /* status-badge success text */
+  --cp-success-350: #9af0ca;       /* chip success text */
+  --cp-success-500: #31c48d;       /* cp-success (border + emphasis) */
+  --cp-warning-300: #ffe3a8;       /* status-badge warning text */
+  --cp-warning-350: #ffe0a3;       /* chip warning text */
+  --cp-warning-450: #ffd166;       /* cp-accent-2 (hero accent) */
+  --cp-warning-500: #ffbf47;       /* cp-warning (border + emphasis) */
+  --cp-danger-300: #ffc0c0;        /* status-badge danger text */
+  --cp-danger-350: #ffb5b5;        /* chip danger text */
+  --cp-danger-500: #ff6b6b;        /* cp-danger (border + emphasis) */
+
+  /* Control-plane gold gradient stops — used for primary-action gradient on
+     manager + admin login (control-plane-ultra). Three stops form the gradient. */
+  --cp-gold-500: #e8c454;          /* gradient hover top */
+  --cp-gold-600: #e0bc48;          /* gradient default top */
+  --cp-gold-700: #c9a02c;          /* gradient default bottom (darkest) */
 
   /* Studio OS layout tokens (fluid; SOT §8.0.6 responsive) */
   --studio-rail-width: minmax(min(12rem, 100%), 16rem);
@@ -259,6 +429,24 @@
   --chart-legend-text: var(--text-sm);
   /* Pass 10: chart axes render on light surfaces; slate-500 meets AA. */
   --chart-axis-muted: #64748b;
+
+  /* Graph node badges (consumed by package-dependency-graph.js for SVG node fills) */
+  --graph-node-info-bg: var(--color-sky-50, #e0f2fe);
+  --graph-node-info-border: var(--color-sky-600, #0284c7);
+  --graph-node-warning-bg: var(--color-amber-100, #fef3c7);
+  --graph-node-warning-border: var(--color-amber-600, #d97706);
+  --graph-node-success-bg: var(--color-emerald-50, #ecfdf5);
+  --graph-node-success-border: var(--color-emerald-600, #059669);
+
+  /* Keyboard hint chips (kbd element style injected by keyboard_shortcuts-1.js) */
+  --kbd-color: var(--color-base-900);
+  --kbd-bg: var(--color-base-50);
+  --kbd-border: var(--color-base-300);
+  --kbd-border-bottom: var(--color-base-400);
+
+  /* Signature pad (portal__signature_sign.js) — overridable for dark-mode signature surfaces */
+  --signature-canvas-bg: var(--color-base-0);
+  --signature-canvas-ink: var(--color-base-900);
 
   /* Motion */
   --motion-fast: 150ms ease;
@@ -290,7 +478,7 @@
 
   /* Unified content surface: use for cards, panels, dropdowns (alias for admin-content-bg when same) */
   --admin-surface: #ffffff;
-  /* Aliases used by theme-everywhere-dark and components for text/border on main content */
+  /* Aliases for components for text/border on main content (theme-everywhere-dark.css retired 2026-05-12 — was a temporary bridge) */
   --admin-text: #0f172a;
   --admin-border: rgba(15, 23, 42, 0.12);
 

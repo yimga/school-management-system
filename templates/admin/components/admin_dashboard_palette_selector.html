@@ -53,20 +53,20 @@
                    data-pack-slug="{{ pack.slug }}"
                    data-site-active="{% if site_settings.theme_pack_id == pack.pk %}1{% else %}0{% endif %}"
                    data-admin-active="{% if site_settings.admin_theme_pack_id == pack.pk %}1{% else %}0{% endif %}"
-                   data-primary="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.primary %}{{ pack.palette.admin_dashboard.primary }}{% else %}{{ pack.primary_color|default:'#4f46e5' }}{% endif %}"
-                   data-accent="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.accent %}{{ pack.palette.admin_dashboard.accent }}{% else %}{{ pack.accent_color|default:'#10b981' }}{% endif %}"
-                   data-background="{{ pack.background_color|default:'#f8fafc' }}"
-                   data-dashboard-bg="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.dashboard_bg %}{{ pack.palette.admin_dashboard.dashboard_bg }}{% else %}{{ pack.background_color|default:'#f8fafc' }}{% endif %}"
-                   data-surface="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.surface %}{{ pack.palette.admin_dashboard.surface }}{% else %}#ffffff{% endif %}"
-                   data-success="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.success %}{{ pack.palette.admin_dashboard.success }}{% else %}#22c55e{% endif %}"
-                   data-warning="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.warning %}{{ pack.palette.admin_dashboard.warning }}{% else %}#f59e0b{% endif %}"
-                   data-danger="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.danger %}{{ pack.palette.admin_dashboard.danger }}{% else %}#ef4444{% endif %}"
+                   data-primary="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.primary %}{{ pack.palette.admin_dashboard.primary }}{% else %}{{ pack.primary_color|default:platform_palette.primary }}{% endif %}"
+                   data-accent="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.accent %}{{ pack.palette.admin_dashboard.accent }}{% else %}{{ pack.accent_color|default:platform_palette.accent }}{% endif %}"
+                   data-background="{{ pack.background_color|default:platform_palette.dashboard_bg }}"
+                   data-dashboard-bg="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.dashboard_bg %}{{ pack.palette.admin_dashboard.dashboard_bg }}{% else %}{{ pack.background_color|default:platform_palette.dashboard_bg }}{% endif %}"
+                   data-surface="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.surface %}{{ pack.palette.admin_dashboard.surface }}{% else %}{{ platform_palette.surface }}{% endif %}"
+                   data-success="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.success %}{{ pack.palette.admin_dashboard.success }}{% else %}{{ platform_palette.success }}{% endif %}"
+                   data-warning="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.warning %}{{ pack.palette.admin_dashboard.warning }}{% else %}{{ platform_palette.warning }}{% endif %}"
+                   data-danger="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.danger %}{{ pack.palette.admin_dashboard.danger }}{% else %}{{ platform_palette.danger }}{% endif %}"
                    title="{{ pack.name }}">
                 <div class="admin-dashboard-palette-swatches">
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.primary %}{{ pack.palette.admin_dashboard.primary }}{% else %}{{ pack.primary_color|default:'#4f46e5' }}{% endif %};"></span>
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.accent %}{{ pack.palette.admin_dashboard.accent }}{% else %}{{ pack.accent_color|default:'#10b981' }}{% endif %};"></span>
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.surface %}{{ pack.palette.admin_dashboard.surface }}{% else %}#ffffff{% endif %}; border: 1px solid #ccc;"></span>
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.dashboard_bg %}{{ pack.palette.admin_dashboard.dashboard_bg }}{% else %}{{ pack.background_color|default:'#f8fafc' }}{% endif %};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.primary %}{{ pack.palette.admin_dashboard.primary }}{% else %}{{ pack.primary_color|default:platform_palette.primary }}{% endif %};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.accent %}{{ pack.palette.admin_dashboard.accent }}{% else %}{{ pack.accent_color|default:platform_palette.accent }}{% endif %};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.surface %}{{ pack.palette.admin_dashboard.surface }}{% else %}{{ platform_palette.surface }}{% endif %}; border: 1px solid {{ platform_palette.border_light }};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.dashboard_bg %}{{ pack.palette.admin_dashboard.dashboard_bg }}{% else %}{{ pack.background_color|default:platform_palette.dashboard_bg }}{% endif %};"></span>
                 </div>
                 <div class="admin-dashboard-palette-name">{{ pack.name }}</div>
                 {% if pack.description %}<div class="admin-dashboard-palette-desc">{{ pack.description|truncatewords:9 }}</div>{% endif %}
@@ -90,20 +90,20 @@
                    data-pack-slug="{{ pack.slug }}"
                    data-site-active="{% if site_settings.theme_pack_id == pack.pk %}1{% else %}0{% endif %}"
                    data-admin-active="{% if site_settings.admin_theme_pack_id == pack.pk %}1{% else %}0{% endif %}"
-                   data-primary="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.primary %}{{ pack.palette.admin_dashboard.primary }}{% else %}{{ pack.primary_color|default:'#4f46e5' }}{% endif %}"
-                   data-accent="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.accent %}{{ pack.palette.admin_dashboard.accent }}{% else %}{{ pack.accent_color|default:'#10b981' }}{% endif %}"
-                   data-background="{{ pack.background_color|default:'#f8fafc' }}"
-                   data-dashboard-bg="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.dashboard_bg %}{{ pack.palette.admin_dashboard.dashboard_bg }}{% else %}{{ pack.background_color|default:'#f8fafc' }}{% endif %}"
-                   data-surface="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.surface %}{{ pack.palette.admin_dashboard.surface }}{% else %}#ffffff{% endif %}"
-                   data-success="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.success %}{{ pack.palette.admin_dashboard.success }}{% else %}#22c55e{% endif %}"
-                   data-warning="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.warning %}{{ pack.palette.admin_dashboard.warning }}{% else %}#f59e0b{% endif %}"
-                   data-danger="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.danger %}{{ pack.palette.admin_dashboard.danger }}{% else %}#ef4444{% endif %}"
+                   data-primary="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.primary %}{{ pack.palette.admin_dashboard.primary }}{% else %}{{ pack.primary_color|default:platform_palette.primary }}{% endif %}"
+                   data-accent="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.accent %}{{ pack.palette.admin_dashboard.accent }}{% else %}{{ pack.accent_color|default:platform_palette.accent }}{% endif %}"
+                   data-background="{{ pack.background_color|default:platform_palette.dashboard_bg }}"
+                   data-dashboard-bg="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.dashboard_bg %}{{ pack.palette.admin_dashboard.dashboard_bg }}{% else %}{{ pack.background_color|default:platform_palette.dashboard_bg }}{% endif %}"
+                   data-surface="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.surface %}{{ pack.palette.admin_dashboard.surface }}{% else %}{{ platform_palette.surface }}{% endif %}"
+                   data-success="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.success %}{{ pack.palette.admin_dashboard.success }}{% else %}{{ platform_palette.success }}{% endif %}"
+                   data-warning="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.warning %}{{ pack.palette.admin_dashboard.warning }}{% else %}{{ platform_palette.warning }}{% endif %}"
+                   data-danger="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.danger %}{{ pack.palette.admin_dashboard.danger }}{% else %}{{ platform_palette.danger }}{% endif %}"
                    title="{{ pack.name }}">
                 <div class="admin-dashboard-palette-swatches">
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.primary %}{{ pack.palette.admin_dashboard.primary }}{% else %}{{ pack.primary_color|default:'#4f46e5' }}{% endif %};"></span>
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.accent %}{{ pack.palette.admin_dashboard.accent }}{% else %}{{ pack.accent_color|default:'#10b981' }}{% endif %};"></span>
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.surface %}{{ pack.palette.admin_dashboard.surface }}{% else %}#ffffff{% endif %}; border: 1px solid #ccc;"></span>
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.dashboard_bg %}{{ pack.palette.admin_dashboard.dashboard_bg }}{% else %}{{ pack.background_color|default:'#f8fafc' }}{% endif %};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.primary %}{{ pack.palette.admin_dashboard.primary }}{% else %}{{ pack.primary_color|default:platform_palette.primary }}{% endif %};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.accent %}{{ pack.palette.admin_dashboard.accent }}{% else %}{{ pack.accent_color|default:platform_palette.accent }}{% endif %};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.surface %}{{ pack.palette.admin_dashboard.surface }}{% else %}{{ platform_palette.surface }}{% endif %}; border: 1px solid {{ platform_palette.border_light }};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.dashboard_bg %}{{ pack.palette.admin_dashboard.dashboard_bg }}{% else %}{{ pack.background_color|default:platform_palette.dashboard_bg }}{% endif %};"></span>
                 </div>
                 <div class="admin-dashboard-palette-name">{{ pack.name }}</div>
                 {% if pack.description %}<div class="admin-dashboard-palette-desc">{{ pack.description|truncatewords:9 }}</div>{% endif %}

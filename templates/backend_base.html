@@ -26,8 +26,8 @@ Staff theme: /backend uses same ThemePack as /admin. Operator/platform uses dark
 {% if PUBLIC_BRAND_MODE %}
 :root {
   --obsidian-bg: #0B0E14;
-  --school-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:'#4f46e5' }};
-  --school-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:'#10b981' }};
+  --school-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:platform_palette.primary }};
+  --school-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:platform_palette.accent }};
   --platform-navy: #0B0E14;
   --platform-navy-dark: #070a0e;
   --platform-gold: var(--school-primary); /* legacy alias — anywhere using --platform-gold now gets indigo */
@@ -67,7 +67,7 @@ Staff theme: /backend uses same ThemePack as /admin. Operator/platform uses dark
 <link rel="stylesheet" href="{% static 'css/backend-dark-theme.css' %}">
 {% endif %}
 <link rel="stylesheet" href="{% static 'css/backend-themes.css' %}">
-<link rel="stylesheet" href="{% static 'css/dashboard-high-contrast.css' %}">
+{# Retired 2026-05-12 (pass 3 css cleanup): dashboard-high-contrast.css — folded into dashboard-theme-sync.css. #}
 <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
 <link rel="stylesheet" href="{% static 'css/micro-feedback.css' %}">
 {% endwith %}

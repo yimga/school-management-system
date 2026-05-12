@@ -41,7 +41,7 @@
       if (!indicator) return;
       var lastActivity = Date.now();
       var idleTime = 5 * 60 * 1000;
-      indicator.style.background = (Date.now() - lastActivity < idleTime) ? '#198754' : '#ffc107';
+      indicator.style.background = (Date.now() - lastActivity < idleTime) ? 'var(--ds-success)' : 'var(--ds-warning)';
     }
     setInterval(updateUserStatus, 60000);
     updateUserStatus();

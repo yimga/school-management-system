@@ -57,7 +57,7 @@
   text-transform: uppercase !important;
   margin: var(--sidebar-section) var(--sidebar-px) 10px !important;
   padding: 0 !important;
-  color: var(--color-base-500, #64748b) !important;
+  color: var(--color-base-500, var(--color-base-500)) !important;
   line-height: 1.2;
 }
 .dark #nav-sidebar .admin-sidebar-section-title,
@@ -170,19 +170,19 @@
   font-size: 0.875rem !important;
   font-weight: 600 !important;
   text-decoration: none !important;
-  color: var(--color-base-700, #334155) !important;
+  color: var(--color-base-700, var(--color-base-700)) !important;
 }
 .dark #nav-sidebar .admin-sidebar-app-title a,
 .dark #nav-sidebar-apps .admin-sidebar-app-title a {
-  color: var(--color-base-300, #cbd5e1) !important;
+  color: var(--color-base-300, var(--color-base-300)) !important;
 }
 #nav-sidebar .admin-sidebar-app-title:hover a,
 #nav-sidebar-apps .admin-sidebar-app-title:hover a {
-  color: var(--color-primary-600, #2563eb) !important;
+  color: var(--color-primary-600, var(--color-indigo-600)) !important;
 }
 .dark #nav-sidebar .admin-sidebar-app-title:hover a,
 .dark #nav-sidebar-apps .admin-sidebar-app-title:hover a {
-  color: var(--color-primary-400, #60a5fa) !important;
+  color: var(--color-primary-400, var(--color-indigo-400)) !important;
 }
 
 /* Model list: clear indent, subtle left border */
@@ -224,7 +224,7 @@
   font-weight: 700 !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
-  color: var(--color-base-500, #64748b) !important;
+  color: var(--color-base-500, var(--color-base-500)) !important;
   border: none !important;
   background: none !important;
 }
@@ -242,7 +242,7 @@
   border-radius: 8px;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--color-base-600, #475569);
+  color: var(--color-base-600, var(--color-base-600));
   background: transparent;
   cursor: pointer;
   text-align: left;
@@ -253,7 +253,7 @@
 }
 #nav-sidebar-apps .admin-sidebar-all-apps-trigger:hover {
   background: rgba(255, 255, 255, 0.06);
-  color: var(--color-base-800, #1e293b);
+  color: var(--color-base-800, var(--color-base-800));
 }
 .dark #nav-sidebar-apps .admin-sidebar-all-apps-trigger:hover {
   background: rgba(255, 255, 255, 0.08);
@@ -308,7 +308,7 @@
   text-transform: uppercase !important;
   margin: 12px var(--sidebar-px) 8px !important;
   padding: 0 !important;
-  color: var(--color-base-500, #64748b) !important;
+  color: var(--color-base-500, var(--color-base-500)) !important;
   line-height: 1.2;
 }
 .dark #nav-sidebar-apps .admin-sidebar-section-heading {
@@ -328,7 +328,7 @@
   font-size: 0.75rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.04em !important;
-  color: var(--color-base-600, #475569) !important;
+  color: var(--color-base-600, var(--color-base-600)) !important;
   cursor: pointer;
   border: none;
   background: none;
@@ -337,7 +337,7 @@
   border-radius: 6px;
 }
 #nav-sidebar-apps .admin-sidebar-quick-group-title:hover {
-  color: var(--color-base-800, #1e293b) !important;
+  color: var(--color-base-800, var(--color-base-800)) !important;
 }
 .dark #nav-sidebar-apps .admin-sidebar-quick-group-title {
   color: rgba(255, 255, 255, 0.7) !important;
@@ -445,7 +445,7 @@ body.admin-sidebar-compact .admin-sidebar-compact-icon-collapse {
 /* ----- RTL: admin sidebar (pinned, quick access, compact, sections) ----- */
 [dir="rtl"] #nav-sidebar,
 [dir="rtl"] #nav-sidebar-apps {
-  border-left: 1px solid var(--color-base-200, #e2e8f0);
+  border-left: 1px solid var(--color-base-200, var(--color-base-200));
   border-right: none;
 }
 .dark[dir="rtl"] #nav-sidebar,
