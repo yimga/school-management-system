@@ -5,11 +5,11 @@ First-class metadata & lineage operator hub (read-only entry; CRUD remains Djang
 
 from __future__ import annotations
 
-from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
+
+from apps.schools.control_plane import require_super_access_with_host
 
 
 def _rev(request: HttpRequest, name: str, **kwargs) -> str:
@@ -22,7 +22,7 @@ def _rev(request: HttpRequest, name: str, **kwargs) -> str:
         return ""
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@require_super_access_with_host
 def metadata_operator_hub(request: HttpRequest) -> HttpResponse:
     """
     Curated control-plane entry for entity catalog, governance search, lineage graph,

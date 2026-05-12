@@ -7,18 +7,20 @@ from __future__ import annotations
 
 import logging
 
-from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 
+from apps.schools.control_plane import (
+    is_control_plane_request,
+    require_super_access_with_host,
+)
 from apps.schools.super_views_constants import CONTROL_PLANE_METRIC_FAILURES
 
 logger = logging.getLogger(__name__)
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@require_super_access_with_host
 def entity_catalog_overview(request: HttpRequest) -> HttpResponse:
     """
     First-class operator view: searchable entity/field catalog slice (same query as
@@ -47,11 +49,14 @@ def entity_catalog_overview(request: HttpRequest) -> HttpResponse:
         full_catalog = reverse("super:metadata_catalog", urlconf=uc)
     except NoReverseMatch:
         full_catalog = ""
-    try:
-        metadata_operator_hub_url = reverse(
-            "siteconfig:metadata_operator_hub", urlconf=uc
-        )
-    except NoReverseMatch:
+    if is_control_plane_request(request):
+        try:
+            metadata_operator_hub_url = reverse(
+                "siteconfig:metadata_operator_hub", urlconf=uc
+            )
+        except NoReverseMatch:
+            metadata_operator_hub_url = ""
+    else:
         metadata_operator_hub_url = ""
     try:
         metadata_dynamic_fields_url = reverse(

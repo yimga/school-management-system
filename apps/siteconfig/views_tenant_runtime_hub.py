@@ -14,6 +14,7 @@ from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.decorators import permission_required
+from apps.schools.control_plane import is_control_plane_request
 from apps.siteconfig.config_service import (
     BaseDomainConfig,
     GuidedConfigurationWorkflow,
@@ -99,9 +100,12 @@ def tenant_runtime_configuration_hub(request: HttpRequest) -> HttpResponse:
         )
     except NoReverseMatch:
         report_output_history_evidence_url = None
-    try:
-        metadata_operator_hub_url = reverse("siteconfig:metadata_operator_hub")
-    except NoReverseMatch:
+    if is_control_plane_request(request):
+        try:
+            metadata_operator_hub_url = reverse("siteconfig:metadata_operator_hub")
+        except NoReverseMatch:
+            metadata_operator_hub_url = None
+    else:
         metadata_operator_hub_url = None
     try:
         billing_plan_readonly_url = reverse("siteconfig:billing_plan_readonly")
