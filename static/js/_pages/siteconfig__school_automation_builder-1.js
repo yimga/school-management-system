@@ -13,6 +13,13 @@
   let connectMode = false;
   let connectFromId = null;
 
+  function tok(name, fallback) {
+    try {
+      const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return v || fallback;
+    } catch (_e) { return fallback; }
+  }
+
   function syncJsonFromGraph() {
     const trig = document.getElementById('wf-trigger').value;
     let conditions = [];
@@ -59,7 +66,7 @@
     marker.setAttribute('orient', 'auto');
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', 'M0,0 L0,6 L6,3 z');
-    path.setAttribute('fill', '#6c757d');
+    path.setAttribute('fill', tok('--color-base-500', '#6c757d'));
     marker.appendChild(path);
     defs.appendChild(marker);
     svg.appendChild(defs);
@@ -82,7 +89,7 @@
       line.setAttribute('y1', a.y);
       line.setAttribute('x2', b.x);
       line.setAttribute('y2', b.y);
-      line.setAttribute('stroke', '#6c757d');
+      line.setAttribute('stroke', tok('--color-base-500', '#6c757d'));
       line.setAttribute('stroke-width', '2');
       line.setAttribute('marker-end', 'url(#arrowhead)');
       svg.appendChild(line);

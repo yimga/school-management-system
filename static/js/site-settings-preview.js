@@ -9,6 +9,13 @@
     "danger_color",
   ];
 
+  const tok = (name, fallback) => {
+    try {
+      const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return v || fallback;
+    } catch (_e) { return fallback; }
+  };
+
   const previewDevice = document.querySelector(".preview-device");
   const contrastHint = document.getElementById("contrastHint");
   const roleSelect = document.getElementById("previewRoleSelect");
@@ -68,11 +75,13 @@
 
   const pickReadableText = (backgroundHex) => {
     const bg = toRgb(backgroundHex);
-    const white = toRgb("#ffffff");
-    const dark = toRgb("#0f172a");
+    const lightHex = tok("--color-base-0", "#ffffff");
+    const darkHex = tok("--color-base-900", "#0f172a");
+    const white = toRgb(lightHex);
+    const dark = toRgb(darkHex);
     const whiteRatio = contrastRatio(bg, white) || 0;
     const darkRatio = contrastRatio(bg, dark) || 0;
-    return whiteRatio >= darkRatio ? "#ffffff" : "#0f172a";
+    return whiteRatio >= darkRatio ? lightHex : darkHex;
   };
 
   const updateRoleLabel = () => {
@@ -102,7 +111,7 @@
       },
       {
         label: "Accent vs preview text",
-        bgHex: getColorValue("accent_color", "#38bdf8"),
+        bgHex: getColorValue("accent_color", tok("--chart-color-3", "#38bdf8")),
         fgHex: previewTextHex,
       },
       {
@@ -140,10 +149,10 @@
   const updatePreview = () => {
     if (!previewDevice) return;
 
-    const primary = getColorValue("primary_color", "#0b0f14");
+    const primary = getColorValue("primary_color", tok("--school-primary", "#0b0f14"));
     const headerSurface = getColorValue("header_bg_color", primary);
     const contentSurface = getColorValue("footer_bg_color", headerSurface);
-    const accent = getColorValue("accent_color", "#38bdf8");
+    const accent = getColorValue("accent_color", tok("--chart-color-3", "#38bdf8"));
     const text = pickReadableText(primary);
 
     previewDevice.style.setProperty("--preview-sidebar-bg", primary);

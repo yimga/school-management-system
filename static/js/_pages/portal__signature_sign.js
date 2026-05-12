@@ -4,8 +4,18 @@ let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
 
+function tok(name, fallback) {
+  try {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  } catch (_e) { return fallback; }
+}
+
+const SIGNATURE_BG = tok('--signature-canvas-bg', tok('--color-base-0', '#ffffff'));
+const SIGNATURE_INK = tok('--signature-canvas-ink', tok('--color-base-900', '#000000'));
+
 // Set canvas background
-ctx.fillStyle = '#ffffff';
+ctx.fillStyle = SIGNATURE_BG;
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 // Drawing functions
@@ -33,7 +43,7 @@ function draw(e) {
   const currentX = e.clientX - rect.left;
   const currentY = e.clientY - rect.top;
   
-  ctx.strokeStyle = '#000000';
+  ctx.strokeStyle = SIGNATURE_INK;
   ctx.lineWidth = 2;
   ctx.lineCap = 'round';
   ctx.beginPath();
@@ -62,7 +72,7 @@ function handleTouch(e) {
 }
 
 function clearSignature() {
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = SIGNATURE_BG;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   document.getElementById('signatureData').value = '';
   document.getElementById('typedSignature').value = '';
@@ -78,9 +88,9 @@ document.getElementById('typedSignature').addEventListener('input', function() {
   const typedName = this.value.trim();
   if (typedName) {
     // Clear canvas and use typed name
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = SIGNATURE_BG;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = SIGNATURE_INK;
     ctx.font = '24px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';

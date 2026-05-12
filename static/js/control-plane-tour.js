@@ -26,7 +26,7 @@
       "position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:10040;display:block;";
     var tooltip = document.createElement("div");
     tooltip.style.cssText =
-      "position:fixed;z-index:10041;max-width:min(92vw,340px);padding:1rem;background:#fff;color:#111;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,0.25);";
+      "position:fixed;z-index:10041;max-width:min(92vw,340px);padding:1rem;background:var(--color-base-0);color:var(--color-base-900);border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,0.25);";
     var titleEl = document.createElement("div");
     titleEl.className = "fw-bold mb-2";
     var btnWrap = document.createElement("div");

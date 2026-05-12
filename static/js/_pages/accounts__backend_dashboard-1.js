@@ -20,7 +20,7 @@
         overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998;display:none;";
         var tooltip = document.createElement("div");
         tooltip.id = "backend-tour-tooltip";
-        tooltip.style.cssText = "position:fixed;z-index:9999;max-width:320px;padding:1rem;background:#fff;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.2);display:none;";
+        tooltip.style.cssText = "position:fixed;z-index:9999;max-width:320px;padding:1rem;background:var(--color-base-0);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.2);display:none;";
         var titleEl = document.createElement("div");
         titleEl.className = "fw-bold mb-1";
         var btnWrap = document.createElement("div");
