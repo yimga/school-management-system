@@ -317,8 +317,27 @@
   --color-emerald-600: #059669;
   --color-green-500: #22c55e;
   --color-red-400: #f87171;
+  --color-red-500: #ef4444;
   --color-red-600: #dc2626;
+  --color-orange-400: #fb923c;
+  --color-orange-500: #f97316;
+  --color-sky-400: #38bdf8;
+  --color-sky-500: #0ea5e9;
+  --color-cyan-500: #06b6d4;
   --color-cyan-600: #0891b2;
+  --color-teal-500: #14b8a6;
+
+  /* Indigo-900 extends the indigo scale (used for deep brand text + hover ink). */
+  --color-indigo-900: #312e81;
+
+  /* Soft pastel tints — used as icon-chip backgrounds and faint surface tints.
+     These could be derived via color-mix() but are pinned to specific hex for
+     consistent rendering across older browsers that lack oklab color-mix. */
+  --tint-indigo-soft: #f7f4ff;
+  --tint-blue-soft: #eef4ff;
+  --tint-sky-soft: #edf8ff;
+  --tint-gray-soft: #f1f3f5;
+  --tint-gray-warm: #e9ecef;
 
   /* Studio OS layout tokens (fluid; SOT §8.0.6 responsive) */
   --studio-rail-width: minmax(min(12rem, 100%), 16rem);
