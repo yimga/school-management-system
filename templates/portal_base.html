@@ -52,9 +52,9 @@
     <link rel="stylesheet" href="{% static 'css/portal-sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
-<link rel="stylesheet" href="{% static 'css/dashboard-high-contrast.css' %}">
+{# Retired 2026-05-12 (pass 3 css cleanup): dashboard-high-contrast.css + dashboard-crisp-polish.css
+       — unique load-bearing rules folded into dashboard-theme-sync.css (already loaded). #}
     <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
-    <link rel="stylesheet" href="{% static 'css/dashboard-crisp-polish.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-premium-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/tenant-ux-upgrade.css' %}">
@@ -82,7 +82,7 @@
     {% comment %} Pass B: platform-wide aesthetic discipline — same card grammar / type rhythm / empty-state
        hygiene that the manager surface uses, so portal + backend look like one product. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
-    <link rel="stylesheet" href="{% static 'css/phase2-static-templates-bundle.css' %}">
+    <link rel="stylesheet" href="{% static 'css/phase2-portal-bundle.css' %}">
     <style>
       {% block theme_root_variables %}
       {% with theme=SITE_THEME %}

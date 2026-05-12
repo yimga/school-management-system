@@ -39,7 +39,7 @@
   <link rel="stylesheet" href="{% static 'marketing/css/proof-pages.css' %}">
   <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
   {# design-system-phase2-enforcement.css dropped from marketing — its .ds-*/Bootstrap-overlap rules are not used on the editorial surface (Bootstrap alone covers .alert / .card / .btn-*). ~8 KB shaved. #}
-  {# marketing-static-bundle.css = 9 KB carve-out of phase2-static-templates-bundle.css covering only marketing template blocks. #}
+  {# marketing-static-bundle.css holds static <style> extractions from marketing/* templates. Other shells use phase2-{portal,base,admin,control-plane}-bundle.css. #}
   <link rel="stylesheet" href="{% static 'css/marketing-static-bundle.css' %}">
   <link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
   <!-- §8.0.11 platform-wide: responsive and fluid layout on every page -->

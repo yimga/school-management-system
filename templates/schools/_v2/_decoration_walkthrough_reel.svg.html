@@ -17,33 +17,7 @@ Decorative; parent <video> poster picks this up as a still frame.
       <stop offset="100%" stop-color="#FDFBF6"/>
     </linearGradient>
 
-    <style>
-      .reel-scene { opacity: 0; animation: reelCycle 25s cubic-bezier(.45,0,.25,1) infinite; }
-      .reel-scene--1 { animation-delay:  0s; }
-      .reel-scene--2 { animation-delay:  5s; }
-      .reel-scene--3 { animation-delay: 10s; }
-      .reel-scene--4 { animation-delay: 15s; }
-      .reel-scene--5 { animation-delay: 20s; }
-      @keyframes reelCycle {
-        0%   { opacity: 0; transform: translate3d(0, 12px, 0); }
-        4%   { opacity: 1; transform: none; }
-        20%  { opacity: 1; transform: none; }
-        24%  { opacity: 0; transform: translate3d(0, -12px, 0); }
-        100% { opacity: 0; transform: translate3d(0, 12px, 0); }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .reel-scene { animation: none; opacity: 1; }
-        .reel-scene:not(.reel-scene--1) { display: none; }
-      }
-      .reel-progress {
-        animation: reelProgress 25s linear infinite;
-        transform-origin: 0 0;
-      }
-      @keyframes reelProgress {
-        0%   { transform: scaleX(0); }
-        100% { transform: scaleX(1); }
-      }
-    </style>
+    
   </defs>
 
   <rect x="0" y="0" width="960" height="540" rx="12" fill="url(#reel-bg)"/>

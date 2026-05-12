@@ -164,9 +164,9 @@ flowchart TD
 | Card / form / table variants | **PASS** | Grammars + `design-system-phase2-enforcement.css` (`.ds-card`, `.ds-table-wrap`, `.ds-form-stack` on applicable surfaces) |
 | Drawer / modal | **PASS** | Bootstrap offcanvas + `.cp-context-drawer` + `.ds-drawer-panel` where used |
 | Alerts / toasts | **PASS** | Bootstrap + `.ds-alert`; toast chrome in `portal-ui-components.css` (from former `toast_notifications.html`) |
-| Empty / loading / error | **PASS** | `.ds-empty` + Studio `loading_empty_states` styles in `phase2-static-templates-bundle.css`; broader repo: incremental new pages |
+| Empty / loading / error | **PASS** | `.ds-empty` + Studio `loading_empty_states` styles folded into `portal-ui-components.css` 2026-05-12; broader repo: incremental new pages |
 | Dark / light | **PASS** | CP fixed dark (`control_plane_skeleton`); tenant `portal_base` + `base.html` `data-theme`; `base.html` prefs `pref-high-contrast` / `pref-reduced-motion` on `<html>` |
-| Page-local overrides (touched paths) | **PASS** | `report_template_inline_styles.py`: **0 flagged** non-exempt; static consolidated in `portal-ui-components.css`, `phase2-static-templates-bundle.css`, shell CSS files |
+| Page-local overrides (touched paths) | **PASS** | `report_template_inline_styles.py`: **0 flagged** non-exempt; static consolidated in `portal-ui-components.css` + per-shell phase2 bundles (`phase2-{portal,base,admin,control-plane}-bundle.css`), shell CSS files |
 | Centralize color, spacing, type, radii, shadow, motion, state | **PASS** | Token files + enforcement sheet; server-only `:root` fragments remain tagged in-template (see `scripts/report_template_inline_styles.py` exemptions) |
 
 ### Phase 2 mandatory audit (your list)
@@ -206,7 +206,7 @@ Order is **literal top-to-bottom** in `control_plane_skeleton.html` (lines 11–
 
 **Manager `/admin/`** (`templates/admin/base_site.html` `extrastyle`): same token + grammar stack as above, then **`static/css/admin-base-site-shell.css`** (layout, skip-link, preview cues, sidebar flex + list fallbacks) and **`#admin-brand-resolved-tokens`** (Django `--brand-success|warning|danger` only).
 
-**Tenant `portal_base.html`:** token stack + `portal-base-shell.css` + `portal-ui-components.css` + `phase2-static-templates-bundle.css` + small `#theme_root_variables` / `data-site-custom-css`.
+**Tenant `portal_base.html`:** token stack + `portal-base-shell.css` + `portal-ui-components.css` + `phase2-portal-bundle.css` + small `#theme_root_variables` / `data-site-custom-css`.
 
 **Marketing:** `marketing/base_marketing.html` + `tokens-marketing.css`; public brand vars on `<html style="...">` when `PUBLIC_BRAND_MODE`.
 
@@ -221,7 +221,7 @@ Order is **literal top-to-bottom** in `control_plane_skeleton.html` (lines 11–
 | Tables | `table-system.css` + `.ds-table-wrap` | Super/CP list pages |
 | Drawers | `.ds-drawer-panel` + `control-plane-phase1-shell.css` `.cp-context-drawer` | `cp_context_drawer_shell.html` |
 | Alerts | `.ds-alert` + Bootstrap `.alert` | `control_plane_base.html` messages loop L66–72 |
-| Empty / loading | `.ds-empty` + `phase2-static-templates-bundle.css` | Former inline blocks from Studio loading states and other pages consolidated where static-only |
+| Empty / loading | `.ds-empty` + Studio `loading_empty_states` folded into `portal-ui-components.css` + per-shell phase2 bundles | Former inline blocks from Studio loading states and other pages consolidated where static-only |
 
 ### 2.3 Page-local overrides removed or reduced (closure register)
 
@@ -234,7 +234,7 @@ Order is **literal top-to-bottom** in `control_plane_skeleton.html` (lines 11–
 | `base.html` | **`root-base-shell.css`** + **`#root-base-theme-vars`** |
 | Studio sysconf | **`studio-system-config-console.css`** |
 | `templates/components/*` + `language_switcher` | **`portal-ui-components.css`** |
-| 43+ app templates (static-only `<style>`) | **`phase2-static-templates-bundle.css`** via **`scripts/extract_template_styles_phase2.py`** |
+| 43+ app templates (static-only `<style>`) | Per-shell bundles via **`scripts/extract_template_styles_phase2.py`**: `phase2-portal-bundle.css`, `phase2-base-bundle.css`, `phase2-admin-bundle.css`, `phase2-control-plane-bundle.css` (monolith retired 2026-05-12) |
 | Badge verify / reportcard preview | **`badge-verify.css`**, **`reportcard-style-preview-shell.css`** + tiny tagged theme `<style>` |
 
 **Intentional Django-injected theme (not static):** five templates listed in **`PHASE2_SERVER_THEME_STYLE_FILES`** inside `scripts/report_template_inline_styles.py` (admin/index variants, `backend_dashboard`, `guided_onboarding`).

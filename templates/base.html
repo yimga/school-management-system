@@ -49,7 +49,7 @@
        - no-watermark.css: pure defensive background-image:none overrides; no longer needed
        - topbar-header-polish.css: covered by header-no-spillage.css + statement-header.css
        - theme-everywhere-dark.css: author labeled "temporary bridge"; replaced by theme-visibility-guard.css #}
-    <link rel="stylesheet" href="{% static 'css/dashboard-high-contrast.css' %}">
+    {# Retired 2026-05-12 (pass 3 css cleanup): dashboard-high-contrast.css — folded into dashboard-theme-sync.css. #}
     <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
@@ -108,7 +108,7 @@
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
     {# Pass B: platform-wide aesthetic discipline (card grammar, type rhythm, empty-state hygiene). #}
     <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
-    <link rel="stylesheet" href="{% static 'css/phase2-static-templates-bundle.css' %}">
+    <link rel="stylesheet" href="{% static 'css/phase2-base-bundle.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-theme-sync.css' %}">
     {% if SITE and SITE.custom_css %}
     <style data-site-custom-css>

@@ -41,7 +41,10 @@ REQUIRED_STATIC = [
     "static/css/studio-control-mode-canvas.css",
     "static/css/root-base-shell.css",
     "static/css/portal-ui-components.css",
-    "static/css/phase2-static-templates-bundle.css",
+    "static/css/phase2-portal-bundle.css",
+    "static/css/phase2-base-bundle.css",
+    "static/css/phase2-admin-bundle.css",
+    "static/css/phase2-control-plane-bundle.css",
     "static/css/badge-verify.css",
     "static/css/reportcard-style-preview-shell.css",
 ]
