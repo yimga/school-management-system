@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-09T22:06:11.373134+00:00",
+  "generated_at": "2026-05-11T23:45:32.643846+00:00",
   "kill_test": {
-    "critical_count": 0,
+    "critical_count": 1,
     "present": true,
-    "result": "PASS"
+    "result": "FAIL"
   },
   "northstar": {
     "present": true,
@@ -11,9 +11,9 @@
     "score": 75
   },
   "runtime": {
-    "ai_audits_recent_24h": -1,
-    "platform_events_recent_24h": -1,
-    "platform_incidents_open": -1
+    "ai_audits_recent_24h": 0,
+    "platform_events_recent_24h": 0,
+    "platform_incidents_open": 0
   },
   "self_heal": {
     "present": true,

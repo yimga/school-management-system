@@ -1,6 +1,31 @@
 {
   "allow_any_hints": [
     {
+      "file": "apps/api/views_marketplace_catalog.py",
+      "line": "16",
+      "signal": "allow_any_hint"
+    },
+    {
+      "file": "apps/api/views_marketplace_catalog.py",
+      "line": "59",
+      "signal": "allow_any_hint"
+    },
+    {
+      "file": "apps/api/views_marketplace_catalog.py",
+      "line": "98",
+      "signal": "allow_any_hint"
+    },
+    {
+      "file": "apps/api/views_webhook_catalog.py",
+      "line": "13",
+      "signal": "allow_any_hint"
+    },
+    {
+      "file": "apps/api/views_webhook_catalog.py",
+      "line": "31",
+      "signal": "allow_any_hint"
+    },
+    {
       "file": "apps/schools/api_views.py",
       "line": "7",
       "signal": "allow_any_hint"
@@ -292,12 +317,12 @@
   "export_delivery_hints": [
     {
       "file": "apps/academics/api_views.py",
-      "line": "147",
+      "line": "148",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/accounts/views_certification.py",
-      "line": "556",
+      "line": "553",
       "signal": "export_delivery_hint"
     },
     {
@@ -331,6 +356,11 @@
       "signal": "export_delivery_hint"
     },
     {
+      "file": "apps/api/views_migration_jobs.py",
+      "line": "93",
+      "signal": "export_delivery_hint"
+    },
+    {
       "file": "apps/api/views_v1.py",
       "line": "934",
       "signal": "export_delivery_hint"
@@ -342,37 +372,37 @@
     },
     {
       "file": "apps/compliance/admin_audit.py",
-      "line": "70",
+      "line": "71",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/compliance/admin_audit.py",
-      "line": "104",
+      "line": "105",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/compliance/admin_audit.py",
-      "line": "284",
+      "line": "285",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/compliance/admin_audit.py",
-      "line": "315",
+      "line": "316",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/compliance/admin_audit.py",
-      "line": "353",
+      "line": "354",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/compliance/admin_audit.py",
-      "line": "493",
+      "line": "494",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/compliance/admin_audit.py",
-      "line": "572",
+      "line": "573",
       "signal": "export_delivery_hint"
     },
     {
@@ -392,27 +422,27 @@
     },
     {
       "file": "apps/evals/views.py",
-      "line": "1905",
+      "line": "1906",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/evals/views.py",
-      "line": "1910",
+      "line": "1911",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/evals/views.py",
-      "line": "2410",
+      "line": "2411",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/evals/views.py",
-      "line": "2416",
+      "line": "2417",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/evals/views.py",
-      "line": "2600",
+      "line": "2568",
       "signal": "export_delivery_hint"
     },
     {
@@ -427,17 +457,17 @@
     },
     {
       "file": "apps/finance/views_invoicing.py",
-      "line": "159",
+      "line": "161",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/finance/views_invoicing.py",
-      "line": "189",
+      "line": "191",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/finance/views_invoicing.py",
-      "line": "835",
+      "line": "841",
       "signal": "export_delivery_hint"
     },
     {
@@ -462,27 +492,27 @@
     },
     {
       "file": "apps/people/views_backend.py",
-      "line": "339",
+      "line": "340",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/people/views_backend.py",
-      "line": "468",
+      "line": "469",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/people/views_backend.py",
-      "line": "721",
+      "line": "732",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/people/views_backend.py",
-      "line": "870",
+      "line": "881",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/people/views_backend.py",
-      "line": "982",
+      "line": "993",
       "signal": "export_delivery_hint"
     },
     {
@@ -542,12 +572,7 @@
     },
     {
       "file": "apps/portal/views_teacher.py",
-      "line": "319",
-      "signal": "export_delivery_hint"
-    },
-    {
-      "file": "apps/reports/views.py",
-      "line": "285",
+      "line": "321",
       "signal": "export_delivery_hint"
     },
     {
@@ -557,17 +582,22 @@
     },
     {
       "file": "apps/reports/views.py",
-      "line": "444",
+      "line": "297",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/reports/views.py",
-      "line": "1089",
+      "line": "452",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/reports/views.py",
-      "line": "1232",
+      "line": "1098",
+      "signal": "export_delivery_hint"
+    },
+    {
+      "file": "apps/reports/views.py",
+      "line": "1241",
       "signal": "export_delivery_hint"
     },
     {
@@ -582,7 +612,7 @@
     },
     {
       "file": "apps/schools/marketing_views.py",
-      "line": "2654",
+      "line": "2653",
       "signal": "export_delivery_hint"
     },
     {
@@ -622,32 +652,32 @@
     },
     {
       "file": "apps/siteconfig/admin.py",
-      "line": "1426",
+      "line": "1427",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/siteconfig/admin.py",
-      "line": "1762",
+      "line": "1763",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/siteconfig/views.py",
-      "line": "2232",
+      "line": "2243",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/siteconfig/views.py",
-      "line": "2266",
+      "line": "2277",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/siteconfig/views.py",
-      "line": "2309",
+      "line": "2320",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/siteconfig/views.py",
-      "line": "2322",
+      "line": "2333",
       "signal": "export_delivery_hint"
     },
     {
@@ -662,24 +692,24 @@
     },
     {
       "file": "apps/student360/views.py",
-      "line": "155",
+      "line": "157",
       "signal": "export_delivery_hint"
     }
   ],
-  "generated_at": "2026-05-09T22:06:00.052054+00:00",
+  "generated_at": "2026-05-11T23:45:24.557939+00:00",
   "post_handler_audit_embed": {
-    "generated_at": "2026-05-09T22:05:56.698055+00:00",
+    "generated_at": "2026-05-11T23:45:21.226810+00:00",
     "summary_by_bucket": {
-      "product": 234,
+      "product": 241,
       "scripts": 4
     },
     "summary_by_classification": {
-      "needs_review": 86,
-      "protected_candidate": 148,
+      "needs_review": 87,
+      "protected_candidate": 154,
       "scripts_cli": 4
     },
     "totals": {
-      "hits": 238
+      "hits": 245
     }
   },
   "post_handler_product_needs_review": [
@@ -820,7 +850,7 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/finance/security.py",
-      "line": "410",
+      "line": "426",
       "protective_decorator_nearby": false
     },
     {
@@ -834,14 +864,21 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/observability/views.py",
-      "line": "595",
+      "line": "381",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/observability/views.py",
-      "line": "1037",
+      "line": "702",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/observability/views.py",
+      "line": "1144",
       "protective_decorator_nearby": false
     },
     {
@@ -855,7 +892,7 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/portal/views_ai_copilot.py",
-      "line": "260",
+      "line": "261",
       "protective_decorator_nearby": false
     },
     {
@@ -939,21 +976,21 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2375",
+      "line": "2374",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2452",
+      "line": "2451",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2511",
+      "line": "2510",
       "protective_decorator_nearby": false
     },
     {
@@ -995,28 +1032,28 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/signup_views.py",
-      "line": "66",
+      "line": "67",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/signup_views.py",
-      "line": "412",
+      "line": "448",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/signup_views.py",
-      "line": "612",
+      "line": "695",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/signup_views.py",
-      "line": "742",
+      "line": "825",
       "protective_decorator_nearby": false
     },
     {
@@ -1287,29 +1324,29 @@
     }
   ],
   "post_risk": {
-    "product_needs_review_post_handlers": 86,
-    "product_protected_candidate_post_handlers": 148
+    "product_needs_review_post_handlers": 87,
+    "product_protected_candidate_post_handlers": 154
   },
   "schema_version": 2,
   "security_surface_audit_embed": {
-    "generated_at": "2026-05-09T22:05:55.414965+00:00",
+    "generated_at": "2026-05-11T23:45:19.761500+00:00",
     "summary": {
-      "allow_any": 28,
+      "allow_any": 33,
       "csrf_exempt": 28,
       "cursor_execute": 2,
-      "login_required": 445,
-      "permission_classes": 33,
-      "require_http_methods": 326,
+      "login_required": 456,
+      "permission_classes": 43,
+      "require_http_methods": 333,
       "staff_member_required": 72,
       "subprocess": 259
     },
     "summary_by_classification": {
-      "allowed": 1040,
-      "needs_review": 141,
+      "allowed": 1068,
+      "needs_review": 146,
       "unsafe": 12
     },
     "totals": {
-      "hits": 1193
+      "hits": 1226
     }
   },
   "subprocess_hits": [
@@ -1420,13 +1457,13 @@
     }
   ],
   "summary": {
-    "allow_any_hint_hits": 2,
+    "allow_any_hint_hits": 7,
     "csrf_exempt_hits_apps": 55,
     "cursor_execute_hits_apps": 0,
-    "export_delivery_hint_hits_apps": 75,
-    "product_needs_review": 86,
-    "product_post_handlers": 234,
-    "product_protected_candidate": 148,
+    "export_delivery_hint_hits_apps": 76,
+    "product_needs_review": 87,
+    "product_post_handlers": 241,
+    "product_protected_candidate": 154,
     "subprocess_hits_apps": 21
   }
 }

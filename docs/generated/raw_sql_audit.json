@@ -1,10 +1,22 @@
 {
   "allowlist_path": "scripts/allowlists/raw_sql_allowlist.json",
-  "generated_at": "2026-05-09T22:06:09.110994+00:00",
+  "generated_at": "2026-05-11T23:45:29.140415+00:00",
   "hits": [
     {
       "classification": "migration_safe",
+      "file": "apps/academics/migrations/0002_fix_classroom_academic_year_column.py",
+      "line": "9",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
       "file": "apps/academics/migrations/0003_classroom_academic_year_backfill.py",
+      "line": "9",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/academics/migrations/0003_ensure_classroom_academic_year_column.py",
       "line": "9",
       "pattern": "connection_cursor"
     },
@@ -442,6 +454,12 @@
     },
     {
       "classification": "migration_safe",
+      "file": "apps/portal/migrations/0013_kb_target_roles.py",
+      "line": "13",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
       "file": "apps/portal/migrations/0021_kb_regional_metadata.py",
       "line": "11",
       "pattern": "connection_cursor"
@@ -612,6 +630,18 @@
       "classification": "migration_safe",
       "file": "apps/schools/migrations/0028_add_default_workflow_dashboard_slugs.py",
       "line": "11",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0048_force_rls_on_all_enabled_tables.py",
+      "line": "39",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0048_force_rls_on_all_enabled_tables.py",
+      "line": "47",
       "pattern": "connection_cursor"
     },
     {
@@ -851,6 +881,6 @@
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 141
+    "hits": 146
   }
 }
