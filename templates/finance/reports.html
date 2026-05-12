@@ -3,31 +3,31 @@
 {% load region_format %}
 {% load static %}
 
-{% block title %}Finance Reports{% endblock %}
+{% block title %}{% trans "Finance Reports" %}{% endblock %}
 
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Finance Reports</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Finance Reports" %}</h1>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench">
 {% trans "Back to Finance" as back_action %}
 {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
 <div class="d-flex flex-wrap align-items-center justify-content-end mb-3">
-  <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:notifications' %}">Notifications</a>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:notifications' %}">{% trans "Notifications" %}</a>
 </div>
 
 <div class="card mb-3">
   <div class="card-body">
     <form class="row g-2 align-items-end" method="get" id="finance-reports-period-form" data-draft-key="finance_reports_period_{{ request.user.id }}" data-draft-max-age-hours="72">
       <div class="col-md-4">
-        <label class="form-label">From date</label>
+        <label class="form-label">{% trans "From date" %}</label>
         <input class="form-control" type="date" name="start" value="{{ report_start|format_date:"YYYY-MM-DD" }}">
       </div>
       <div class="col-md-4">
-        <label class="form-label">To date</label>
+        <label class="form-label">{% trans "To date" %}</label>
         <input class="form-control" type="date" name="end" value="{{ report_end|format_date:"YYYY-MM-DD" }}">
       </div>
       <div class="col-md-4 d-flex gap-2">
-        <button class="btn btn-primary" type="submit">Apply period</button>
-        <a class="btn btn-outline-secondary" href="{% url 'finance:reports' %}">Reset</a>
+        <button class="btn btn-primary" type="submit">{% trans "Apply period" %}</button>
+        <a class="btn btn-outline-secondary" href="{% url 'finance:reports' %}">{% trans "Reset" %}</a>
       </div>
     </form>
   </div>
@@ -37,27 +37,27 @@
   <div class="col-md-6">
     <div class="card h-100">
       <div class="card-body">
-        <h5 class="mb-3">Collection rate</h5>
+        <h5 class="mb-3">{% trans "Collection rate" %}</h5>
         <div class="display-6 fw-semibold">{{ collection_rate|format_number:2 }}%</div>
-        <p class="text-muted small mb-0">Paid vs issued invoices</p>
+        <p class="text-muted small mb-0">{% trans "Paid vs issued invoices" %}</p>
       </div>
     </div>
   </div>
   <div class="col-md-6">
     <div class="card h-100">
       <div class="card-body">
-        <h5 class="mb-3">Payroll liabilities (all runs)</h5>
+        <h5 class="mb-3">{% trans "Payroll liabilities (all runs)" %}</h5>
         <div class="row g-2">
           <div class="col-6">
-            <div class="text-muted small">Employee contributions</div>
+            <div class="text-muted small">{% trans "Employee contributions" %}</div>
             <div class="fw-semibold">{{ liabilities.total_employee|format_currency|default:"0.00" }}</div>
           </div>
           <div class="col-6">
-            <div class="text-muted small">Employer contributions</div>
+            <div class="text-muted small">{% trans "Employer contributions" %}</div>
             <div class="fw-semibold">{{ liabilities.total_employer|format_currency|default:"0.00" }}</div>
           </div>
         </div>
-        <div class="text-muted small mt-2">Taxes withheld: {{ liabilities.total_taxes|format_currency|default:"0.00" }}</div>
+        <div class="text-muted small mt-2">{% blocktrans with amt=liabilities.total_taxes|format_currency|default:"0.00" %}Taxes withheld: {{ amt }}{% endblocktrans %}</div>
       </div>
     </div>
   </div>
@@ -65,45 +65,45 @@
 
 <div class="card mb-3">
   <div class="card-body">
-    <h5 class="mb-3">OHADA / DSF package summary</h5>
+    <h5 class="mb-3">{% trans "OHADA / DSF package summary" %}</h5>
     <div class="row g-3">
       <div class="col-lg-3 col-md-6">
         <div class="border rounded p-3 h-100">
-          <div class="text-muted small">Assets</div>
+          <div class="text-muted small">{% trans "Assets" %}</div>
           <div class="fw-semibold">{{ dsf_report.balance_sheet.assets_total|format_currency }}</div>
-          <div class="text-muted small mt-2">Liabilities</div>
+          <div class="text-muted small mt-2">{% trans "Liabilities" %}</div>
           <div class="fw-semibold">{{ dsf_report.balance_sheet.liabilities_total|format_currency }}</div>
-          <div class="text-muted small mt-2">Equity</div>
+          <div class="text-muted small mt-2">{% trans "Equity" %}</div>
           <div class="fw-semibold">{{ dsf_report.balance_sheet.equity_total|format_currency }}</div>
         </div>
       </div>
       <div class="col-lg-3 col-md-6">
         <div class="border rounded p-3 h-100">
-          <div class="text-muted small">Revenue</div>
+          <div class="text-muted small">{% trans "Revenue" %}</div>
           <div class="fw-semibold">{{ dsf_report.income_statement.revenue_total|format_currency }}</div>
-          <div class="text-muted small mt-2">Expenses</div>
+          <div class="text-muted small mt-2">{% trans "Expenses" %}</div>
           <div class="fw-semibold">{{ dsf_report.income_statement.expense_total|format_currency }}</div>
-          <div class="text-muted small mt-2">Net result</div>
+          <div class="text-muted small mt-2">{% trans "Net result" %}</div>
           <div class="fw-semibold">{{ dsf_report.income_statement.net_result|format_currency }}</div>
         </div>
       </div>
       <div class="col-lg-3 col-md-6">
         <div class="border rounded p-3 h-100">
-          <div class="text-muted small">Cash in</div>
+          <div class="text-muted small">{% trans "Cash in" %}</div>
           <div class="fw-semibold">{{ dsf_report.cash_flow.cash_in|format_currency }}</div>
-          <div class="text-muted small mt-2">Cash out</div>
+          <div class="text-muted small mt-2">{% trans "Cash out" %}</div>
           <div class="fw-semibold">{{ dsf_report.cash_flow.cash_out|format_currency }}</div>
-          <div class="text-muted small mt-2">Net cash movement</div>
+          <div class="text-muted small mt-2">{% trans "Net cash movement" %}</div>
           <div class="fw-semibold">{{ dsf_report.cash_flow.net_cash_movement|format_currency }}</div>
         </div>
       </div>
       <div class="col-lg-3 col-md-6">
         <div class="border rounded p-3 h-100">
-          <div class="text-muted small">Stamp duty estimate</div>
+          <div class="text-muted small">{% trans "Stamp duty estimate" %}</div>
           <div class="fw-semibold">{{ dsf_report.annexes.estimated_stamp_duty_xaf|format_currency }}</div>
-          <div class="text-muted small mt-2">Unresolved suspense</div>
+          <div class="text-muted small mt-2">{% trans "Unresolved suspense" %}</div>
           <div class="fw-semibold">{{ dsf_report.annexes.unresolved_suspense_count }}</div>
-          <div class="text-muted small mt-2">Outstanding AR</div>
+          <div class="text-muted small mt-2">{% trans "Outstanding AR" %}</div>
           <div class="fw-semibold">{{ dsf_report.annexes.outstanding_ar|format_currency }}</div>
         </div>
       </div>
@@ -115,20 +115,20 @@
   <div class="col-lg-7">
     <div class="card mb-3">
       <div class="card-body">
-        <h5 class="mb-3">Overdue by classroom</h5>
+        <h5 class="mb-3">{% trans "Overdue by classroom" %}</h5>
         <div class="table-responsive">
           <table class="table table-sm align-middle table-family">
             <caption class="visually-hidden">{% trans "Overdue by classroom" %}</caption>
             <thead>
               <tr>
-                <th scope="col">Classroom</th>
-                <th scope="col" class="text-end">Overdue</th>
+                <th scope="col">{% trans "Classroom" %}</th>
+                <th scope="col" class="text-end">{% trans "Overdue" %}</th>
               </tr>
             </thead>
             <tbody>
               {% for row in overdue %}
                 <tr>
-                  <td>{{ row.student__classroom__name|default:"Unassigned" }}</td>
+                  <td>{{ row.student__classroom__name|default:_("Unassigned") }}</td>
                   <td class="text-end">{{ row.overdue_total|format_currency }}</td>
                 </tr>
               {% empty %}
@@ -150,16 +150,16 @@
 
     <div class="card">
       <div class="card-body">
-        <h5 class="mb-3">Report requests</h5>
+        <h5 class="mb-3">{% trans "Report requests" %}</h5>
         <div class="table-responsive">
           <table class="table table-sm align-middle table-family">
             <caption class="visually-hidden">{% trans "Report requests" %}</caption>
             <thead>
               <tr>
-                <th scope="col">Type</th>
-                <th scope="col">Requested by</th>
-                <th scope="col">Status</th>
-                <th scope="col">Created</th>
+                <th scope="col">{% trans "Type" %}</th>
+                <th scope="col">{% trans "Requested by" %}</th>
+                <th scope="col">{% trans "Status" %}</th>
+                <th scope="col">{% trans "Created" %}</th>
               </tr>
             </thead>
             <tbody>
@@ -191,18 +191,18 @@
   <div class="col-lg-5">
     <div class="card h-100">
       <div class="card-body">
-        <h5 class="mb-3">Request a custom report</h5>
+        <h5 class="mb-3">{% trans "Request a custom report" %}</h5>
         <form method="post" action="{% url 'finance:report_request' %}" id="finance-report-request-form" data-draft-key="finance_report_request_{{ request.user.id }}" data-draft-max-age-hours="48">
           {% csrf_token %}
           <div class="mb-3">
-            <label class="form-label">Report type</label>
+            <label class="form-label">{% trans "Report type" %}</label>
             {{ report_form.report_type }}
           </div>
           <div class="mb-3">
-            <label class="form-label">Details</label>
+            <label class="form-label">{% trans "Details" %}</label>
             {{ report_form.description }}
           </div>
-          <button type="submit" class="btn btn-primary">Submit request</button>
+          <button type="submit" class="btn btn-primary">{% trans "Submit request" %}</button>
         </form>
       </div>
     </div>

@@ -1,7 +1,7 @@
 {% extends "control_plane_base.html" %}
 {% load static i18n region_format phase8_tags %}
 
-{% block cp_title %}Control Plane{% endblock %}
+{% block cp_title %}{% trans "Control Plane" %}{% endblock %}
 
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
@@ -54,29 +54,28 @@
   <section class="cp-hero mb-4" data-decision-zone="headline">
     <div class="cp-hero-grid">
       <div>
-        <div class="cp-eyebrow">RunMyCampus Platform</div>
+        <div class="cp-eyebrow">{% trans "RunMyCampus Platform" %}</div>
         {% comment %} Pass 8 UX consistency: was h1; the world_class_page_hero partial (line 27)
            already provides the single page H1 ("Platform Command Center"). Demoting to
            h2 keeps the visual prominence (cp-hero-title styling) but fixes the duplicate
            heading-outline a screen reader would otherwise announce. {% endcomment %}
-        <h2 class="cp-hero-title">Control Plane</h2>
+        <h2 class="cp-hero-title">{% trans "Control Plane" %}</h2>
         <p class="cp-hero-copy">
-          Operate the platform from one place: provisioning, billing, incidents,
-          readiness, branding, and global rollout. The command center for every school.
+          {% trans "Operate the platform from one place: provisioning, billing, incidents, readiness, branding, and global rollout. The command center for every school." %}
         </p>
         <div class="cp-chip-row">
-          <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'warning' }}">Platform {{ platform_health.overall_status|default:"warning"|upper }}</span>
+          <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'warning' }}">{% blocktrans with status=platform_health.overall_status|default:"warning"|upper %}Platform {{ status }}{% endblocktrans %}</span>
           {% if platform_incidents_url %}
-          <a href="{{ platform_incidents_url }}" class="cp-chip text-decoration-none" title="{% trans 'Open incident console' %}">Open incidents {{ platform_incidents|length }}</a>
+          <a href="{{ platform_incidents_url }}" class="cp-chip text-decoration-none" title="{% trans 'Open incident console' %}">{% blocktrans with count=platform_incidents|length %}Open incidents {{ count }}{% endblocktrans %}</a>
           {% else %}
-          <span class="cp-chip">Open incidents {{ platform_incidents|length }}</span>
+          <span class="cp-chip">{% blocktrans with count=platform_incidents|length %}Open incidents {{ count }}{% endblocktrans %}</span>
           {% endif %}
-          <span class="cp-chip">Countries live {{ countries_live_count }}/{{ registry_counts.countries }}</span>
-          <span class="cp-chip">Webhook drift {{ webhook_stack.unsynced_legacy_groups|default:0 }}</span>
+          <span class="cp-chip">{% blocktrans with live=countries_live_count total=registry_counts.countries %}Countries live {{ live }}/{{ total }}{% endblocktrans %}</span>
+          <span class="cp-chip">{% blocktrans with drift=webhook_stack.unsynced_legacy_groups|default:0 %}Webhook drift {{ drift }}{% endblocktrans %}</span>
           {% if command_center_url and attention_school_count %}
-          <a href="{{ command_center_url }}" class="cp-chip text-decoration-none" title="{% trans 'Open operational queues' %}">Schools needing attention {{ attention_school_count }}</a>
+          <a href="{{ command_center_url }}" class="cp-chip text-decoration-none" title="{% trans 'Open operational queues' %}">{% blocktrans with count=attention_school_count %}Schools needing attention {{ count }}{% endblocktrans %}</a>
           {% else %}
-          <span class="cp-chip">Schools needing attention {{ attention_school_count }}</span>
+          <span class="cp-chip">{% blocktrans with count=attention_school_count %}Schools needing attention {{ count }}{% endblocktrans %}</span>
           {% endif %}
         </div>
       </div>
@@ -87,14 +86,14 @@
             <strong class="cp-hero-stat-value">{{ north_star_formatted }}</strong>
             <span class="cp-hero-stat-subtitle">{{ revenue_snapshot_month|date:"F Y" }}</span>
           </div>
-          <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary cp-primary-action">Setup Studio</a>
+          <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary cp-primary-action">{% trans "Setup Studio" %}</a>
           <div class="cp-action-row">
-            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="btn btn-outline-light btn-sm">Queues</a>
-            <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-light btn-sm">Billing</a>
-            <a href="{% url 'super:migration_cloud' %}" class="btn btn-outline-light btn-sm">Migration</a>
-            <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">Marketplace</a>
-            {% if platform_incidents_url %}<a href="{{ platform_incidents_url }}" class="btn btn-outline-light btn-sm">Incidents</a>{% endif %}
-            <a href="{% url 'super:export_super_dashboard_pdf' %}{% if current_request_month %}?month={{ current_request_month }}{% endif %}" class="btn btn-outline-light btn-sm">Export PDF</a>
+            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="btn btn-outline-light btn-sm">{% trans "Queues" %}</a>
+            <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-light btn-sm">{% trans "Billing" %}</a>
+            <a href="{% url 'super:migration_cloud' %}" class="btn btn-outline-light btn-sm">{% trans "Migration" %}</a>
+            <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">{% trans "Marketplace" %}</a>
+            {% if platform_incidents_url %}<a href="{{ platform_incidents_url }}" class="btn btn-outline-light btn-sm">{% trans "Incidents" %}</a>{% endif %}
+            <a href="{% url 'super:export_super_dashboard_pdf' %}{% if current_request_month %}?month={{ current_request_month }}{% endif %}" class="btn btn-outline-light btn-sm">{% trans "Export PDF" %}</a>
           </div>
         </div>
       </div>
@@ -109,33 +108,33 @@
       {% endfor %}
     </div>
   </section>
-  <section class="cp-panel mb-4" aria-label="Executive pulse">
+  <section class="cp-panel mb-4" aria-label="{% trans 'Executive pulse' %}">
     <div class="cp-panel-header">
       <div>
-        <span class="cp-panel-eyebrow">Executive pulse</span>
-        <h2 class="cp-panel-title">Score, risk, revenue, and system health at a glance</h2>
+        <span class="cp-panel-eyebrow">{% trans "Executive pulse" %}</span>
+        <h2 class="cp-panel-title">{% trans "Score, risk, revenue, and system health at a glance" %}</h2>
       </div>
     </div>
     <div class="cp-health-grid">
       <article class="cp-health-card cp-health-card-neutral">
-        <span class="cp-health-label">North Star score</span>
+        <span class="cp-health-label">{% trans "North Star score" %}</span>
         <strong class="cp-health-value">{{ north_star_formatted }}</strong>
         <span class="cp-health-meta">{{ revenue_snapshot_month|date:"F Y" }}</span>
       </article>
       <article class="cp-health-card cp-health-card-warning">
-        <span class="cp-health-label">Operational risk</span>
+        <span class="cp-health-label">{% trans "Operational risk" %}</span>
         <strong class="cp-health-value">{{ command_center.tenant_churn_risk_count|default:0 }}</strong>
-        <span class="cp-health-meta">Schools in risk watch</span>
+        <span class="cp-health-meta">{% trans "Schools in risk watch" %}</span>
       </article>
       <article class="cp-health-card cp-health-card-success">
-        <span class="cp-health-label">Revenue posture</span>
+        <span class="cp-health-label">{% trans "Revenue posture" %}</span>
         <strong class="cp-health-value">{{ north_star_formatted }}</strong>
-        <span class="cp-health-meta">Use month picker below for detail</span>
+        <span class="cp-health-meta">{% trans "Use month picker below for detail" %}</span>
       </article>
       <article class="cp-health-card cp-health-card-neutral">
-        <span class="cp-health-label">System health</span>
+        <span class="cp-health-label">{% trans "System health" %}</span>
         <strong class="cp-health-value">{{ platform_health.overall_status|default:"unknown"|upper }}</strong>
-        <span class="cp-health-meta">Incidents {{ platform_incidents|length }} · approvals {{ pending_approval_count }}</span>
+        <span class="cp-health-meta">{% blocktrans with incidents=platform_incidents|length approvals=pending_approval_count %}Incidents {{ incidents }} · approvals {{ approvals }}{% endblocktrans %}</span>
       </article>
     </div>
   </section>
@@ -144,13 +143,13 @@
   <details class="cp-progressive-disclosure mb-4" data-rmc-manager-progressive-disclosure="1">
     <summary class="btn btn-outline-primary btn-sm">{% trans "Open detailed operating board" %}</summary>
     <div class="pt-3">
-  <nav class="cp-section-nav mb-4 d-flex flex-wrap align-items-center gap-2" aria-label="Jump to dashboard section">
-    <a href="#cp-action-queue" class="cp-section-link">Action queue</a>
-    <a href="#cp-fleet-health" class="cp-section-link">Fleet health</a>
-    <a href="#cp-global-footprint" class="cp-section-link">Global footprint</a>
-    <a href="#cp-tenant-registry" class="cp-section-link">School registry</a>
-    <a href="#cp-readiness" class="cp-section-link">Readiness</a>
-    <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="cp-customize-layout-btn" aria-label="Customize section order">Customize layout</button>
+  <nav class="cp-section-nav mb-4 d-flex flex-wrap align-items-center gap-2" aria-label="{% trans 'Jump to dashboard section' %}">
+    <a href="#cp-action-queue" class="cp-section-link">{% trans "Action queue" %}</a>
+    <a href="#cp-fleet-health" class="cp-section-link">{% trans "Fleet health" %}</a>
+    <a href="#cp-global-footprint" class="cp-section-link">{% trans "Global footprint" %}</a>
+    <a href="#cp-tenant-registry" class="cp-section-link">{% trans "School registry" %}</a>
+    <a href="#cp-readiness" class="cp-section-link">{% trans "Readiness" %}</a>
+    <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="cp-customize-layout-btn" aria-label="{% trans 'Customize section order' %}">{% trans "Customize layout" %}</button>
   </nav>
 
   <div class="row g-3 mb-4">
@@ -172,16 +171,16 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content bg-dark border-secondary">
         <div class="modal-header border-secondary">
-          <h5 class="modal-title text-white">Dashboard section order</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title text-white">{% trans "Dashboard section order" %}</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
         </div>
         <div class="modal-body">
-          <p class="text-muted small">Drag to reorder. Save to persist for your account.</p>
+          <p class="text-muted small">{% trans "Drag to reorder. Save to persist for your account." %}</p>
           <ul class="list-group list-group-flush" id="cp-layout-sortable"></ul>
         </div>
         <div class="modal-footer border-secondary">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" id="cp-layout-save">Save layout</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+          <button type="button" class="btn btn-primary" id="cp-layout-save">{% trans "Save layout" %}</button>
         </div>
       </div>
     </div>
@@ -200,19 +199,19 @@
       <section class="cp-panel mb-4" id="cp-action-queue">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Queue board</span>
-            <h2 class="cp-panel-title">Operator queues</h2>
+            <span class="cp-panel-eyebrow">{% trans "Queue board" %}</span>
+            <h2 class="cp-panel-title">{% trans "Operator queues" %}</h2>
           </div>
           <div class="cp-panel-header-actions">
-            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">Pending approvals {{ pending_approval_count }}</a>
-            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">Support backlog 48h+ {{ command_center.support_backlog_48h_count }}</a>
-            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">Provisioning breaches {{ command_center.provisioning_sla_breaches }}</a>
+            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">{% blocktrans with count=pending_approval_count %}Pending approvals {{ count }}{% endblocktrans %}</a>
+            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">{% blocktrans with count=command_center.support_backlog_48h_count %}Support backlog 48h+ {{ count }}{% endblocktrans %}</a>
+            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">{% blocktrans with count=command_center.provisioning_sla_breaches %}Provisioning breaches {{ count }}{% endblocktrans %}</a>
           </div>
         </div>
         <div class="cp-queue-grid">
           <article class="cp-queue-card">
             <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open operational queues' %}">
-              <h3 class="mb-0">Pending approvals</h3>
+              <h3 class="mb-0">{% trans "Pending approvals" %}</h3>
               <span>{{ pending_approval_count }}</span>
             </a>
             <div class="cp-list">
@@ -223,8 +222,8 @@
                   <div class="cp-list-meta">{{ school.country_display }}{% if school.selected_systems %} | {{ school.selected_systems|join:", " }}{% endif %}</div>
                 </div>
                 <div class="cp-inline-actions">
-                  <button type="button" class="btn btn-sm btn-success approve-btn" data-school-id="{{ school.id }}" data-csrftoken="{{ csrf_token }}">Approve</button>
-                  {% if school.admin_edit_url %}<a href="{{ school.admin_edit_url }}" class="btn btn-sm btn-outline-secondary">Edit</a>{% endif %}
+                  <button type="button" class="btn btn-sm btn-success approve-btn" data-school-id="{{ school.id }}" data-csrftoken="{{ csrf_token }}">{% trans "Approve" %}</button>
+                  {% if school.admin_edit_url %}<a href="{{ school.admin_edit_url }}" class="btn btn-sm btn-outline-secondary">{% trans "Edit" %}</a>{% endif %}
                 </div>
               </div>
               {% empty %}
@@ -236,12 +235,12 @@
           <article class="cp-queue-card">
             {% if platform_incidents_url %}
             <a href="{{ platform_incidents_url }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open incident console' %}">
-              <h3 class="mb-0">Platform incidents</h3>
+              <h3 class="mb-0">{% trans "Platform incidents" %}</h3>
               <span>{{ platform_incidents|length }}</span>
             </a>
             {% else %}
             <div class="cp-queue-card-header">
-              <h3>Platform incidents</h3>
+              <h3>{% trans "Platform incidents" %}</h3>
               <span>{{ platform_incidents|length }}</span>
             </div>
             {% endif %}
@@ -259,13 +258,13 @@
               {% endfor %}
             </div>
             {% if platform_incidents_url %}
-            <a href="{{ platform_incidents_url }}" class="cp-subtle-link">Open incident console</a>
+            <a href="{{ platform_incidents_url }}" class="cp-subtle-link">{% trans "Open incident console" %}</a>
             {% endif %}
           </article>
 
           <article class="cp-queue-card">
             <div class="cp-queue-card-header">
-              <h3>Billing exceptions</h3>
+              <h3>{% trans "Billing exceptions" %}</h3>
               <span>{{ billing_watchlist|length }}</span>
             </div>
             <div class="cp-list">
@@ -278,42 +277,42 @@
                 <span class="cp-status-badge cp-status-badge-{{ subscription.status|lower }}">{{ subscription.status|title }}</span>
               </div>
               {% empty %}
-              <div class="cp-empty-state">No schools are past due or suspended.</div>
+              <div class="cp-empty-state">{% trans "No schools are past due or suspended." %}</div>
               {% endfor %}
             </div>
-            <a href="{% url 'super:billing_dashboard' %}" class="cp-subtle-link">Open billing console</a>
+            <a href="{% url 'super:billing_dashboard' %}" class="cp-subtle-link">{% trans "Open billing console" %}</a>
           </article>
 
           <article class="cp-queue-card">
             <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open operational queues' %}">
-              <h3 class="mb-0">Support and provisioning</h3>
+              <h3 class="mb-0">{% trans "Support and provisioning" %}</h3>
               <span>{{ stale_support_rows|length }} / {{ provisioning_breach_rows|length }}</span>
             </a>
             <div class="cp-queue-split">
               <div>
-                <div class="cp-mini-heading">Stale support</div>
+                <div class="cp-mini-heading">{% trans "Stale support" %}</div>
                 {% for row in stale_support_rows|slice:":4" %}
                 <div class="cp-mini-row">
                   <strong>{{ row.ticket.school.name }}</strong>
                   <span>{{ row.age_hours }}h | {{ row.ticket.subject|truncatewords:5 }}</span>
                 </div>
                 {% empty %}
-                <div class="cp-empty-inline">Clear</div>
+                <div class="cp-empty-inline">{% trans "Clear" %}</div>
                 {% endfor %}
               </div>
               <div>
-                <div class="cp-mini-heading">Provisioning breaches</div>
+                <div class="cp-mini-heading">{% trans "Provisioning breaches" %}</div>
                 {% for row in provisioning_breach_rows|slice:":4" %}
                 <div class="cp-mini-row">
-                  <strong>{{ row.school.name|default:"Unknown school" }}</strong>
+                  <strong>{{ row.school.name|default:_("Unknown school") }}</strong>
                   <span>{{ row.hours }}h</span>
                 </div>
                 {% empty %}
-                <div class="cp-empty-inline">No breaches</div>
+                <div class="cp-empty-inline">{% trans "No breaches" %}</div>
                 {% endfor %}
               </div>
             </div>
-            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-subtle-link">Open operational queues</a>
+            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-subtle-link">{% trans "Open operational queues" %}</a>
           </article>
         </div>
       </section>
@@ -321,12 +320,12 @@
       <section class="cp-panel mb-4" id="cp-fleet-health">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Fleet health</span>
-            <h2 class="cp-panel-title">Platform health, delivery, and operational drag</h2>
+            <span class="cp-panel-eyebrow">{% trans "Fleet health" %}</span>
+            <h2 class="cp-panel-title">{% trans "Platform health, delivery, and operational drag" %}</h2>
           </div>
           <div class="cp-panel-header-actions">
-            <span class="cp-panel-stat">Support open {{ command_center.support_open_count }}</span>
-            <span class="cp-panel-stat">Churn risk {{ command_center.tenant_churn_risk_count }}</span>
+            <span class="cp-panel-stat">{% blocktrans with count=command_center.support_open_count %}Support open {{ count }}{% endblocktrans %}</span>
+            <span class="cp-panel-stat">{% blocktrans with count=command_center.tenant_churn_risk_count %}Churn risk {{ count }}{% endblocktrans %}</span>
           </div>
         </div>
         <div class="cp-health-grid">
@@ -341,10 +340,10 @@
         <div class="row g-3 mt-1">
           <div class="col-lg-5">
             <div class="cp-stack-card">
-              <div class="cp-mini-heading">Webhook migration posture</div>
-              <div class="cp-stack-metric">Legacy groups {{ webhook_stack.legacy_groups|default:0 }}</div>
-              <div class="cp-stack-metric">Canonical groups {{ webhook_stack.canonical_groups|default:0 }}</div>
-              <div class="cp-stack-metric">Unsynced legacy groups {{ webhook_stack.unsynced_legacy_groups|default:0 }}</div>
+              <div class="cp-mini-heading">{% trans "Webhook migration posture" %}</div>
+              <div class="cp-stack-metric">{% blocktrans with n=webhook_stack.legacy_groups|default:0 %}Legacy groups {{ n }}{% endblocktrans %}</div>
+              <div class="cp-stack-metric">{% blocktrans with n=webhook_stack.canonical_groups|default:0 %}Canonical groups {{ n }}{% endblocktrans %}</div>
+              <div class="cp-stack-metric">{% blocktrans with n=webhook_stack.unsynced_legacy_groups|default:0 %}Unsynced legacy groups {{ n }}{% endblocktrans %}</div>
               {% if webhook_stack.sample_unsynced_urls %}
               <div class="cp-stack-detail">{{ webhook_stack.sample_unsynced_urls|join:", " }}</div>
               {% endif %}
@@ -352,25 +351,25 @@
           </div>
           <div class="col-lg-7">
             <div class="cp-stack-card">
-              <div class="cp-mini-heading">Operational posture</div>
+              <div class="cp-mini-heading">{% trans "Operational posture" %}</div>
               <div class="cp-stack-row">
-                <span>Provisioning SLA avg</span>
+                <span>{% trans "Provisioning SLA avg" %}</span>
                 <strong>{{ command_center.provisioning_sla_avg_hours }}h</strong>
               </div>
               <div class="cp-stack-row">
-                <span>Target</span>
+                <span>{% trans "Target" %}</span>
                 <strong>{{ command_center.provisioning_sla_target_hours }}h</strong>
               </div>
               <div class="cp-stack-row">
-                <span>Recovery rate</span>
+                <span>{% trans "Recovery rate" %}</span>
                 <strong>{{ command_center.recovery_rate_pct }}%</strong>
               </div>
               <div class="cp-stack-row">
-                <span>Student passports</span>
+                <span>{% trans "Student passports" %}</span>
                 <strong>{{ command_center.student_passport_count }}</strong>
               </div>
               <div class="cp-stack-row">
-                <span>Transfer invites</span>
+                <span>{% trans "Transfer invites" %}</span>
                 <strong>{{ command_center.student_passport_invite_count }}</strong>
               </div>
             </div>
@@ -383,12 +382,12 @@
           {% if health_schema_stats %}
           <div class="col-xl-6">
             <div class="cp-table-card">
-              <div class="cp-mini-heading">Storage by schema</div>
+              <div class="cp-mini-heading">{% trans "Storage by schema" %}</div>
               <div class="table-responsive">
                 <table class="table table-family table-sm mb-0 cp-table cp-table-compact align-middle">
                   <caption class="visually-hidden">{% trans "Storage by schema" %}</caption>
                   <thead>
-                    <tr><th>Schema</th><th>Size</th><th>Tables</th></tr>
+                    <tr><th>{% trans "Schema" %}</th><th>{% trans "Size" %}</th><th>{% trans "Tables" %}</th></tr>
                   </thead>
                   <tbody>
                     {% for row in health_schema_stats %}
@@ -407,12 +406,12 @@
           {% if health_top_tables %}
           <div class="col-xl-6">
             <div class="cp-table-card">
-              <div class="cp-mini-heading">Largest tables</div>
+              <div class="cp-mini-heading">{% trans "Largest tables" %}</div>
               <div class="table-responsive">
                 <table class="table table-family table-sm mb-0 cp-table cp-table-compact align-middle">
                   <caption class="visually-hidden">{% trans "Largest tables" %}</caption>
                   <thead>
-                    <tr><th>Table</th><th>Size</th><th>Rows</th></tr>
+                    <tr><th>{% trans "Table" %}</th><th>{% trans "Size" %}</th><th>{% trans "Rows" %}</th></tr>
                   </thead>
                   <tbody>
                     {% for row in health_top_tables %}
@@ -436,52 +435,52 @@
       <section class="cp-panel mb-4" id="cp-global-footprint">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Global footprint</span>
-            <h2 class="cp-panel-title">Registry readiness and rollout coverage</h2>
+            <span class="cp-panel-eyebrow">{% trans "Global footprint" %}</span>
+            <h2 class="cp-panel-title">{% trans "Registry readiness and rollout coverage" %}</h2>
           </div>
           <div class="cp-panel-header-actions">
             <form method="get" id="super-month-form" class="cp-month-form">
-              <label for="super-month-select">Month</label>
+              <label for="super-month-select">{% trans "Month" %}</label>
               <select name="month" id="super-month-select" class="form-select form-select-sm">
                 {% for value, label in month_options %}
                 <option value="{{ value }}" {% if value == current_request_month %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
               </select>
             </form>
-            <a href="{% url 'super:export_revenue_csv' %}?month={{ current_request_month }}" class="btn btn-outline-secondary btn-sm">Export revenue</a>
+            <a href="{% url 'super:export_revenue_csv' %}?month={{ current_request_month }}" class="btn btn-outline-secondary btn-sm">{% trans "Export revenue" %}</a>
           </div>
         </div>
         <div class="cp-footprint-metrics">
           <div class="cp-footprint-card">
-            <span>Country registry</span>
+            <span>{% trans "Country registry" %}</span>
             <strong>{{ registry_counts.countries }}</strong>
-            <small>{{ countries_live_count }} countries live ({{ countries_live_pct }}%)</small>
+            <small>{% blocktrans with n=countries_live_count pct=countries_live_pct %}{{ n }} countries live ({{ pct }}%){% endblocktrans %}</small>
           </div>
           <div class="cp-footprint-card">
-            <span>Subdivision registry</span>
+            <span>{% trans "Subdivision registry" %}</span>
             <strong>{{ registry_counts.subdivisions }}</strong>
-            <small>Country-specific subdivision coverage</small>
+            <small>{% trans "Country-specific subdivision coverage" %}</small>
           </div>
           <div class="cp-footprint-card">
-            <span>Education levels</span>
+            <span>{% trans "Education levels" %}</span>
             <strong>{{ registry_counts.education_levels }}</strong>
-            <small>Canonical global level taxonomy</small>
+            <small>{% trans "Canonical global level taxonomy" %}</small>
           </div>
           <div class="cp-footprint-card">
-            <span>Education system types</span>
+            <span>{% trans "Education system types" %}</span>
             <strong>{{ registry_counts.education_system_types }}</strong>
-            <small>General, STEM, trade, IB, hybrid, and more</small>
+            <small>{% trans "General, STEM, trade, IB, hybrid, and more" %}</small>
           </div>
         </div>
         <div class="row g-3 mt-1">
           <div class="col-xl-7">
             <div class="cp-table-card">
-              <div class="cp-mini-heading">Top active countries</div>
+              <div class="cp-mini-heading">{% trans "Top active countries" %}</div>
               <div class="table-responsive">
                 <table class="table table-family table-sm mb-0 cp-table align-middle">
                   <caption class="visually-hidden">{% trans "Top active countries" %}</caption>
                   <thead>
-                    <tr><th>Country</th><th>Schools</th><th>Students</th><th>Revenue</th><th>Waived</th></tr>
+                    <tr><th>{% trans "Country" %}</th><th>{% trans "Schools" %}</th><th>{% trans "Students" %}</th><th>{% trans "Revenue" %}</th><th>{% trans "Waived" %}</th></tr>
                   </thead>
                   <tbody>
                     {% for row in country_rollup %}
@@ -493,7 +492,7 @@
                       <td>{{ row.waived_revenue|format_currency }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="5" class="text-muted">No country rollup yet.</td></tr>
+                    <tr><td colspan="5" class="text-muted">{% trans "No country rollup yet." %}</td></tr>
                     {% endfor %}
                   </tbody>
                 </table>
@@ -502,15 +501,15 @@
           </div>
           <div class="col-xl-5">
             <div class="cp-table-card">
-              <div class="cp-mini-heading">Billing model split</div>
+              <div class="cp-mini-heading">{% trans "Billing model split" %}</div>
               <div class="cp-pill-stack">
                 {% for row in billing_model_breakdown %}
-                <span class="cp-pill">{{ row.billing_model|default:"Unspecified" }} | {{ row.count }}</span>
+                <span class="cp-pill">{{ row.billing_model|default:_("Unspecified") }} | {{ row.count }}</span>
                 {% empty %}
-                <span class="cp-empty-inline">No billing model data for this month.</span>
+                <span class="cp-empty-inline">{% trans "No billing model data for this month." %}</span>
                 {% endfor %}
               </div>
-              <div class="cp-mini-heading mt-3">Revenue by country</div>
+              <div class="cp-mini-heading mt-3">{% trans "Revenue by country" %}</div>
               <div class="cp-mini-table">
                 {% for row in revenue_by_country|slice:":6" %}
                 <div class="cp-mini-table-row">
@@ -518,7 +517,7 @@
                   <strong>{{ row.actual|format_currency }}</strong>
                 </div>
                 {% empty %}
-                <div class="cp-empty-inline">No revenue snapshots yet.</div>
+                <div class="cp-empty-inline">{% trans "No revenue snapshots yet." %}</div>
                 {% endfor %}
               </div>
             </div>
@@ -529,37 +528,37 @@
       <section class="cp-panel" id="cp-tenant-registry">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">School registry</span>
-            <h2 class="cp-panel-title">Search, triage, and drill into every school</h2>
+            <span class="cp-panel-eyebrow">{% trans "School registry" %}</span>
+            <h2 class="cp-panel-title">{% trans "Search, triage, and drill into every school" %}</h2>
           </div>
           <div class="cp-panel-header-actions">
-            <a href="{% url 'super:export_schools_csv' %}" class="btn btn-outline-secondary btn-sm">Export schools</a>
-            <a href="{% url 'super:tenant_health' %}" class="btn btn-outline-secondary btn-sm">School health</a>
+            <a href="{% url 'super:export_schools_csv' %}" class="btn btn-outline-secondary btn-sm">{% trans "Export schools" %}</a>
+            <a href="{% url 'super:tenant_health' %}" class="btn btn-outline-secondary btn-sm">{% trans "School health" %}</a>
           </div>
         </div>
         <div class="cp-toolbar">
-          <input type="search" id="cp-school-search" class="form-control" placeholder="Search schools, countries, systems, risk flags">
+          <input type="search" id="cp-school-search" class="form-control" placeholder="{% trans 'Search schools, countries, systems, risk flags' %}">
           <select id="cp-school-filter" class="form-select">
-            <option value="all">All schools</option>
-            <option value="attention">Needs attention</option>
-            <option value="pending">Pending approval</option>
-            <option value="inactive">Inactive</option>
-            <option value="healthy">Healthy</option>
+            <option value="all">{% trans "All schools" %}</option>
+            <option value="attention">{% trans "Needs attention" %}</option>
+            <option value="pending">{% trans "Pending approval" %}</option>
+            <option value="inactive">{% trans "Inactive" %}</option>
+            <option value="healthy">{% trans "Healthy" %}</option>
           </select>
-          <div class="cp-toolbar-summary"><span id="cp-visible-school-count">{{ schools|length }}</span> of {{ schools|length }} schools visible</div>
+          <div class="cp-toolbar-summary">{% blocktrans with total=schools|length %}<span id="cp-visible-school-count">{{ total }}</span> of {{ total }} schools visible{% endblocktrans %}</div>
         </div>
         <div class="table-responsive cp-table-wrap">
           <table class="table table-family table-hover mb-0 cp-table align-middle">
             <caption class="visually-hidden">{% trans "Search, triage, and drill into every school" %}</caption>
             <thead>
               <tr>
-                <th>School</th>
-                <th>Geography</th>
-                <th>Education footprint</th>
-                <th>Brand and domain</th>
-                <th>Subscription</th>
-                <th>Operational state</th>
-                <th>Actions</th>
+                <th>{% trans "School" %}</th>
+                <th>{% trans "Geography" %}</th>
+                <th>{% trans "Education footprint" %}</th>
+                <th>{% trans "Brand and domain" %}</th>
+                <th>{% trans "Subscription" %}</th>
+                <th>{% trans "Operational state" %}</th>
+                <th>{% trans "Actions" %}</th>
               </tr>
             </thead>
             <tbody>
@@ -570,14 +569,14 @@
                   <div class="cp-school-meta"><code>{{ school.slug }}</code> | <code>{{ school.subdomain|default:"--" }}</code></div>
                   <div class="cp-badge-row">
                     {% if school.is_active %}
-                    <span class="cp-status-badge cp-status-badge-active">Active</span>
+                    <span class="cp-status-badge cp-status-badge-active">{% trans "Active" %}</span>
                     {% else %}
-                    <span class="cp-status-badge cp-status-badge-inactive">Inactive</span>
+                    <span class="cp-status-badge cp-status-badge-inactive">{% trans "Inactive" %}</span>
                     {% endif %}
                     {% if not school.is_approved %}
-                    <span class="cp-status-badge cp-status-badge-pending">Approval</span>
+                    <span class="cp-status-badge cp-status-badge-pending">{% trans "Approval" %}</span>
                     {% endif %}
-                    <span class="cp-status-badge cp-status-badge-{{ school.identity_tone }}">{{ school.identity_status|title }} identity</span>
+                    <span class="cp-status-badge cp-status-badge-{{ school.identity_tone }}">{% blocktrans with status=school.identity_status|title %}{{ status }} identity{% endblocktrans %}</span>
                   </div>
                 </td>
                 <td>
@@ -585,10 +584,10 @@
                   <div class="cp-cell-meta">{{ school.subdivision_display }}</div>
                 </td>
                 <td>
-                  <div class="cp-cell-meta">{{ school.education_level_labels|join:", "|default:"No levels" }}</div>
-                  <div class="cp-cell-meta">{{ school.education_system_type_labels|join:", "|default:"No system types" }}</div>
+                  <div class="cp-cell-meta">{{ school.education_level_labels|join:", "|default:_("No levels") }}</div>
+                  <div class="cp-cell-meta">{{ school.education_system_type_labels|join:", "|default:_("No system types") }}</div>
                   {% if school.selected_systems %}
-                  <div class="cp-cell-meta">Profiles: {{ school.selected_systems|join:", " }}</div>
+                  <div class="cp-cell-meta">{% blocktrans with profiles=school.selected_systems|join:", " %}Profiles: {{ profiles }}{% endblocktrans %}</div>
                   {% endif %}
                 </td>
                 <td>
@@ -598,11 +597,11 @@
                   {% endif %}
                   <div class="cp-badge-row">
                     {% if school.custom_domain_verified %}
-                    <span class="cp-status-badge cp-status-badge-success">Verified</span>
+                    <span class="cp-status-badge cp-status-badge-success">{% trans "Verified" %}</span>
                     {% elif school.custom_domain %}
-                    <span class="cp-status-badge cp-status-badge-warning">Pending</span>
+                    <span class="cp-status-badge cp-status-badge-warning">{% trans "Pending" %}</span>
                     {% else %}
-                    <span class="cp-status-badge cp-status-badge-neutral">Default domain</span>
+                    <span class="cp-status-badge cp-status-badge-neutral">{% trans "Default domain" %}</span>
                     {% endif %}
                   </div>
                 </td>
@@ -612,7 +611,7 @@
                   <div class="cp-cell-meta">{{ school.latest_subscription_amount|format_currency }}</div>
                   {% endif %}
                   {% if school.latest_subscription_period_end %}
-                  <div class="cp-cell-meta">Period end {{ school.latest_subscription_period_end|format_date:"YYYY-MM-DD" }}</div>
+                  <div class="cp-cell-meta">{% blocktrans with d=school.latest_subscription_period_end|format_date:"YYYY-MM-DD" %}Period end {{ d }}{% endblocktrans %}</div>
                   {% endif %}
                 </td>
                 <td>
@@ -623,10 +622,10 @@
                     {% endfor %}
                   </div>
                   {% else %}
-                  <div class="cp-cell-meta">No immediate operator flags.</div>
+                  <div class="cp-cell-meta">{% trans "No immediate operator flags." %}</div>
                   {% endif %}
-                  <div class="cp-cell-meta">Students {{ school.student_count }} | Teachers {{ school.teacher_count }} | Members {{ school.member_count }}</div>
-                  <div class="cp-cell-meta">Last update {{ school.updated_at|date:"Y-m-d H:i"|default:"-" }}</div>
+                  <div class="cp-cell-meta">{% blocktrans with s=school.student_count t=school.teacher_count m=school.member_count %}Students {{ s }} | Teachers {{ t }} | Members {{ m }}{% endblocktrans %}</div>
+                  <div class="cp-cell-meta">{% blocktrans with d=school.updated_at|date:"Y-m-d H:i"|default:"-" %}Last update {{ d }}{% endblocktrans %}</div>
                 </td>
                 <td>
                   <div class="cp-action-column">
@@ -649,16 +648,16 @@
                       </div>
                       <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Open as school" %}</button>
                     </form>
-                    {% if school.timeline_url %}<a href="{{ school.timeline_url }}" class="btn btn-sm btn-outline-info">Timeline</a>{% endif %}
-                    {% if school.sync_repair_url %}<a href="{{ school.sync_repair_url }}" class="btn btn-sm btn-outline-warning">Sync repair</a>{% endif %}
+                    {% if school.timeline_url %}<a href="{{ school.timeline_url }}" class="btn btn-sm btn-outline-info">{% trans "Timeline" %}</a>{% endif %}
+                    {% if school.sync_repair_url %}<a href="{{ school.sync_repair_url }}" class="btn btn-sm btn-outline-warning">{% trans "Sync repair" %}</a>{% endif %}
                   </div>
                 </td>
               </tr>
               {% empty %}
               <tr>
                 <td colspan="7" class="text-center py-5">
-                  <p class="text-muted mb-2">No schools yet.</p>
-                  <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary">Create the first school</a>
+                  <p class="text-muted mb-2">{% trans "No schools yet." %}</p>
+                  <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary">{% trans "Create the first school" %}</a>
                 </td>
               </tr>
               {% endfor %}
@@ -672,8 +671,8 @@
       <section class="cp-panel mb-4">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Control modules</span>
-            <h2 class="cp-panel-title">Operator workstreams</h2>
+            <span class="cp-panel-eyebrow">{% trans "Control modules" %}</span>
+            <h2 class="cp-panel-title">{% trans "Operator workstreams" %}</h2>
           </div>
         </div>
         <div class="cp-workstream-grid">
@@ -691,8 +690,8 @@
       <section class="cp-panel mb-4" id="cp-readiness">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Readiness</span>
-            <h2 class="cp-panel-title">Platform adoption and consistency</h2>
+            <span class="cp-panel-eyebrow">{% trans "Readiness" %}</span>
+            <h2 class="cp-panel-title">{% trans "Platform adoption and consistency" %}</h2>
           </div>
         </div>
         <div class="cp-readiness-grid">
@@ -709,8 +708,8 @@
       <section class="cp-panel mb-4">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Risk watch</span>
-            <h2 class="cp-panel-title">Churn and operator escalation</h2>
+            <span class="cp-panel-eyebrow">{% trans "Risk watch" %}</span>
+            <h2 class="cp-panel-title">{% trans "Churn and operator escalation" %}</h2>
           </div>
         </div>
         <div class="cp-list">
@@ -723,7 +722,7 @@
             <span class="cp-status-badge cp-status-badge-warning">{{ row.risk_score }}</span>
           </div>
           {% empty %}
-          <div class="cp-empty-state">No churn-risk schools detected right now.</div>
+          <div class="cp-empty-state">{% trans "No churn-risk schools detected right now." %}</div>
           {% endfor %}
         </div>
       </section>
@@ -731,8 +730,8 @@
       <section class="cp-panel">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Recent schools</span>
-            <h2 class="cp-panel-title">Newest fleet entries</h2>
+            <span class="cp-panel-eyebrow">{% trans "Recent schools" %}</span>
+            <h2 class="cp-panel-title">{% trans "Newest fleet entries" %}</h2>
           </div>
         </div>
         <div class="cp-list">
@@ -740,12 +739,12 @@
           <div class="cp-list-row">
             <div>
               <strong>{{ school.name }}</strong>
-              <div class="cp-list-meta">{{ school.country_display }} | Created {{ school.created_at|format_date:"YYYY-MM-DD" }}</div>
+              <div class="cp-list-meta">{% blocktrans with country=school.country_display created=school.created_at|format_date:"YYYY-MM-DD" %}{{ country }} | Created {{ created }}{% endblocktrans %}</div>
             </div>
             <span class="cp-status-badge cp-status-badge-{{ school.roster_state }}">{{ school.roster_state|title }}</span>
           </div>
           {% empty %}
-          <div class="cp-empty-state">No schools provisioned yet.</div>
+          <div class="cp-empty-state">{% trans "No schools provisioned yet." %}</div>
           {% endfor %}
         </div>
       </section>

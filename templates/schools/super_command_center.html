@@ -2,7 +2,7 @@
 {% load static i18n phase8_tags %}
 {% load region_format %}
 
-{% block cp_title %}Mission Queues{% endblock %}
+{% block cp_title %}{% trans "Mission Queues" %}{% endblock %}
 
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
@@ -38,28 +38,28 @@
   <section class="cp-hero cp-hero-compact mb-4">
     <div class="cp-hero-grid">
       <div>
-        <div class="cp-eyebrow">RunMyCampus Manager</div>
-        <h1 class="cp-hero-title">Operational queues</h1>
+        <div class="cp-eyebrow">{% trans "RunMyCampus Manager" %}</div>
+        <h1 class="cp-hero-title">{% trans "Operational queues" %}</h1>
         <p class="cp-hero-copy">
-          Drill into the work that blocks revenue, rollout speed, platform health, and operator trust.
+          {% trans "Drill into the work that blocks revenue, rollout speed, platform health, and operator trust." %}
         </p>
         <div class="cp-chip-row">
-          <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'warning' }}">Platform {{ platform_health.overall_status|default:"warning"|upper }}</span>
-          <span class="cp-chip">Support backlog 48h+ {{ command_center.support_backlog_48h_count }}</span>
-          <span class="cp-chip">Provisioning breaches {{ command_center.provisioning_sla_breaches }}</span>
-          <span class="cp-chip">Billing watchlist {{ billing_watchlist|length }}</span>
+          <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'warning' }}">{% blocktrans with s=platform_health.overall_status|default:"warning"|upper %}Platform {{ s }}{% endblocktrans %}</span>
+          <span class="cp-chip">{% blocktrans with n=command_center.support_backlog_48h_count %}Support backlog 48h+ {{ n }}{% endblocktrans %}</span>
+          <span class="cp-chip">{% blocktrans with n=command_center.provisioning_sla_breaches %}Provisioning breaches {{ n }}{% endblocktrans %}</span>
+          <span class="cp-chip">{% blocktrans with n=billing_watchlist|length %}Billing watchlist {{ n }}{% endblocktrans %}</span>
         </div>
       </div>
       <div class="cp-hero-actions">
         <div class="cp-action-stack">
-          <a href="{{ dashboard_url }}" class="btn btn-outline-light btn-sm js-return-to-origin" data-fallback="{{ dashboard_url }}">Back to control plane</a>
+          <a href="{{ dashboard_url }}" class="btn btn-outline-light btn-sm js-return-to-origin" data-fallback="{{ dashboard_url }}">{% trans "Back to control plane" %}</a>
           <div class="cp-action-row">
-            <a href="{{ support_dashboard_url }}" class="btn btn-outline-light btn-sm">Support</a>
-            <a href="{{ billing_dashboard_url }}" class="btn btn-outline-light btn-sm">Billing</a>
-            <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">Marketplace</a>
+            <a href="{{ support_dashboard_url }}" class="btn btn-outline-light btn-sm">{% trans "Support" %}</a>
+            <a href="{{ billing_dashboard_url }}" class="btn btn-outline-light btn-sm">{% trans "Billing" %}</a>
+            <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">{% trans "Marketplace" %}</a>
             <a href="{% url 'super:orchestration_workbench' %}" class="btn btn-outline-light btn-sm">{% trans "Orchestration" %}</a>
-            <a href="{{ usage_url }}" class="btn btn-outline-light btn-sm">Usage</a>
-            {% if platform_incidents_url %}<a href="{{ platform_incidents_url }}" class="btn btn-outline-light btn-sm">Incidents</a>{% endif %}
+            <a href="{{ usage_url }}" class="btn btn-outline-light btn-sm">{% trans "Usage" %}</a>
+            {% if platform_incidents_url %}<a href="{{ platform_incidents_url }}" class="btn btn-outline-light btn-sm">{% trans "Incidents" %}</a>{% endif %}
           </div>
         </div>
       </div>
@@ -68,24 +68,24 @@
 
   <div class="cp-overview-grid mb-4">
     <article class="cp-overview-card cp-overview-card-blue">
-      <span class="cp-overview-label">Pending approvals</span>
+      <span class="cp-overview-label">{% trans "Pending approvals" %}</span>
       <strong class="cp-overview-value">{{ pending_schools|length }}</strong>
-      <span class="cp-overview-meta">Schools blocked before activation</span>
+      <span class="cp-overview-meta">{% trans "Schools blocked before activation" %}</span>
     </article>
     <article class="cp-overview-card cp-overview-card-amber">
-      <span class="cp-overview-label">Support backlog 48h+</span>
+      <span class="cp-overview-label">{% trans "Support backlog 48h+" %}</span>
       <strong class="cp-overview-value">{{ command_center.support_backlog_48h_count }}</strong>
-      <span class="cp-overview-meta">{{ command_center.support_backlog_7d_count }} older than seven days</span>
+      <span class="cp-overview-meta">{% blocktrans with n=command_center.support_backlog_7d_count %}{{ n }} older than seven days{% endblocktrans %}</span>
     </article>
     <article class="cp-overview-card cp-overview-card-crimson">
-      <span class="cp-overview-label">Live incidents</span>
+      <span class="cp-overview-label">{% trans "Live incidents" %}</span>
       <strong class="cp-overview-value">{{ platform_incidents|length }}</strong>
-      <span class="cp-overview-meta">{{ incident_counts.open|default:0 }} open / {{ incident_counts.acknowledged|default:0 }} acknowledged</span>
+      <span class="cp-overview-meta">{% blocktrans with o=incident_counts.open|default:0 a=incident_counts.acknowledged|default:0 %}{{ o }} open / {{ a }} acknowledged{% endblocktrans %}</span>
     </article>
     <article class="cp-overview-card cp-overview-card-violet">
-      <span class="cp-overview-label">Billing watchlist</span>
+      <span class="cp-overview-label">{% trans "Billing watchlist" %}</span>
       <strong class="cp-overview-value">{{ billing_watchlist|length }}</strong>
-      <span class="cp-overview-meta">Past due and suspended subscriptions</span>
+      <span class="cp-overview-meta">{% trans "Past due and suspended subscriptions" %}</span>
     </article>
   </div>
 
@@ -105,8 +105,8 @@
       <section class="cp-panel">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Approvals</span>
-            <h2 class="cp-panel-title">Pending approvals</h2>
+            <span class="cp-panel-eyebrow">{% trans "Approvals" %}</span>
+            <h2 class="cp-panel-title">{% trans "Pending approvals" %}</h2>
           </div>
         </div>
         <div class="cp-list">
@@ -114,9 +114,9 @@
           <div class="cp-list-row">
             <div>
               <strong>{{ school.name }}</strong>
-              <div class="cp-list-meta">Created {{ school.created_at|date:"Y-m-d H:i" }} | Students {{ school.student_count|default:0 }}</div>
+              <div class="cp-list-meta">{% blocktrans with d=school.created_at|date:"Y-m-d H:i" s=school.student_count|default:0 %}Created {{ d }} | Students {{ s }}{% endblocktrans %}</div>
             </div>
-            <span class="cp-status-badge cp-status-badge-pending">Pending</span>
+            <span class="cp-status-badge cp-status-badge-pending">{% trans "Pending" %}</span>
           </div>
           {% empty %}
           {% include "studio_os/components/loading_empty_states.html" with state="empty" message=_("No pending approvals.") empty_icon="bi-check2-circle" only %}
@@ -129,8 +129,8 @@
       <section class="cp-panel">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Free trials</span>
-            <h2 class="cp-panel-title">Trials ending soon</h2>
+            <span class="cp-panel-eyebrow">{% trans "Free trials" %}</span>
+            <h2 class="cp-panel-title">{% trans "Trials ending soon" %}</h2>
           </div>
         </div>
         <div class="cp-list">
@@ -138,9 +138,9 @@
           <div class="cp-list-row">
             <div>
               <strong>{{ school.name }}</strong>
-              <div class="cp-list-meta">Trial end {{ school.trial_end_date|format_date:"YYYY-MM-DD"|default:"-" }}</div>
+              <div class="cp-list-meta">{% blocktrans with d=school.trial_end_date|format_date:"YYYY-MM-DD"|default:"-" %}Trial end {{ d }}{% endblocktrans %}</div>
             </div>
-            <span class="cp-status-badge cp-status-badge-warning">Trial</span>
+            <span class="cp-status-badge cp-status-badge-warning">{% trans "Trial" %}</span>
           </div>
           {% empty %}
           {% include "studio_os/components/loading_empty_states.html" with state="empty" message=_("No active trial watchlist.") empty_icon="bi-clock-history" only %}
@@ -153,16 +153,16 @@
       <section class="cp-panel">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Provisioning</span>
-            <h2 class="cp-panel-title">SLA breaches</h2>
+            <span class="cp-panel-eyebrow">{% trans "Provisioning" %}</span>
+            <h2 class="cp-panel-title">{% trans "SLA breaches" %}</h2>
           </div>
         </div>
         <div class="cp-list">
           {% for row in provisioning_breach_rows %}
           <div class="cp-list-row">
             <div>
-              <strong>{{ row.school.name|default:"Unknown school" }}</strong>
-              <div class="cp-list-meta">Exceeded target by {{ row.hours }}h</div>
+              <strong>{{ row.school.name|default:_("Unknown school") }}</strong>
+              <div class="cp-list-meta">{% blocktrans with h=row.hours %}Exceeded target by {{ h }}h{% endblocktrans %}</div>
             </div>
             <span class="cp-status-badge cp-status-badge-danger">{{ row.hours }}h</span>
           </div>
@@ -177,8 +177,8 @@
       <section class="cp-panel">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Support</span>
-            <h2 class="cp-panel-title">Stale backlog</h2>
+            <span class="cp-panel-eyebrow">{% trans "Support" %}</span>
+            <h2 class="cp-panel-title">{% trans "Stale backlog" %}</h2>
           </div>
         </div>
         <div class="cp-list">
@@ -201,8 +201,8 @@
       <section class="cp-panel">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Incident response</span>
-            <h2 class="cp-panel-title">Platform incidents</h2>
+            <span class="cp-panel-eyebrow">{% trans "Incident response" %}</span>
+            <h2 class="cp-panel-title">{% trans "Platform incidents" %}</h2>
           </div>
         </div>
         <div class="cp-list">
@@ -225,8 +225,8 @@
       <section class="cp-panel">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Billing</span>
-            <h2 class="cp-panel-title">Exceptions and recovery</h2>
+            <span class="cp-panel-eyebrow">{% trans "Billing" %}</span>
+            <h2 class="cp-panel-title">{% trans "Exceptions and recovery" %}</h2>
           </div>
         </div>
         <div class="cp-list">
@@ -249,8 +249,8 @@
       <section class="cp-panel">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Churn risk</span>
-            <h2 class="cp-panel-title">Schools needing intervention</h2>
+            <span class="cp-panel-eyebrow">{% trans "Churn risk" %}</span>
+            <h2 class="cp-panel-title">{% trans "Schools needing intervention" %}</h2>
           </div>
         </div>
         <div class="cp-list">
@@ -273,29 +273,29 @@
       <section class="cp-panel">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Stack posture</span>
-            <h2 class="cp-panel-title">Health and delivery drift</h2>
+            <span class="cp-panel-eyebrow">{% trans "Stack posture" %}</span>
+            <h2 class="cp-panel-title">{% trans "Health and delivery drift" %}</h2>
           </div>
         </div>
         <div class="cp-stack-card">
           <div class="cp-stack-row">
-            <span>Platform health</span>
+            <span>{% trans "Platform health" %}</span>
             <strong>{{ platform_health.overall_status|default:"warning"|upper }}</strong>
           </div>
           <div class="cp-stack-row">
-            <span>Database</span>
+            <span>{% trans "Database" %}</span>
             <strong>{{ platform_health.database.status|default:"unknown"|upper }}</strong>
           </div>
           <div class="cp-stack-row">
-            <span>Cache</span>
+            <span>{% trans "Cache" %}</span>
             <strong>{{ platform_health.cache.status|default:"unknown"|upper }}</strong>
           </div>
           <div class="cp-stack-row">
-            <span>Legacy webhook groups</span>
+            <span>{% trans "Legacy webhook groups" %}</span>
             <strong>{{ webhook_stack.legacy_groups|default:0 }}</strong>
           </div>
           <div class="cp-stack-row">
-            <span>Unsynced webhook groups</span>
+            <span>{% trans "Unsynced webhook groups" %}</span>
             <strong>{{ webhook_stack.unsynced_legacy_groups|default:0 }}</strong>
           </div>
         </div>

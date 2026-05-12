@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static i18n %}
 {% load region_format phase8_tags %}
-{% block title %}Access Control{% endblock %}
+{% block title %}{% trans "Access Control" %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -14,8 +14,8 @@
   {% phase8_dashboard_declaration "accounts/rbac_dashboard.html" %}
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
     <div>
-      <h1 class="mb-1">Access Control</h1>
-      <p class="text-muted mb-0">Manage roles, permissions, and user assignments. All changes are additive; existing roles and permissions are not removed.</p>
+      <h1 class="mb-1">{% trans "Access Control" %}</h1>
+      <p class="text-muted mb-0">{% trans "Manage roles, permissions, and user assignments. All changes are additive; existing roles and permissions are not removed." %}</p>
     </div>
   </div>
 
@@ -24,19 +24,19 @@
     <div class="col-12">
       <div class="card border-primary rbac-assign-roles-card">
         <div class="card-body">
-          <h5 class="mb-3"><i class="bi bi-person-badge me-2"></i>Assign Roles to User</h5>
+          <h5 class="mb-3"><i class="bi bi-person-badge me-2"></i>{% trans "Assign Roles to User" %}</h5>
           <form method="post" class="row g-3">
             {% csrf_token %}
             <input type="hidden" name="form_type" value="user_roles">
             {{ user_role_form.non_field_errors }}
             <div class="col-12 col-md-3">
-              <label class="form-label" for="{{ user_role_form.user.id_for_label }}">User</label>
+              <label class="form-label" for="{{ user_role_form.user.id_for_label }}">{% trans "User" %}</label>
               {{ user_role_form.user }}
             </div>
             <div class="col-12 col-md-9">
               <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                <label class="form-label mb-0">Roles</label>
-                <button class="btn btn-primary btn-sm" type="submit">Save Roles</button>
+                <label class="form-label mb-0">{% trans "Roles" %}</label>
+                <button class="btn btn-primary btn-sm" type="submit">{% trans "Save Roles" %}</button>
               </div>
               <div class="rbac-form-check-wrapper rbac-roles-wrapper" id="rbac-roles-container">
                 {% if roles_by_category %}
@@ -70,7 +70,7 @@
                 {% endfor %}
                 {% endif %}
               </div>
-              <small class="form-text text-muted">Select one or more roles. Assign only roles needed for this user's job.</small>
+              <small class="form-text text-muted">{% trans "Select one or more roles. Assign only roles needed for this user's job." %}</small>
             </div>
           </form>
         </div>
@@ -82,30 +82,30 @@
     <div class="col-lg-6">
       <div class="card h-100">
         <div class="card-body">
-          <h5 class="mb-3">Create Role</h5>
+          <h5 class="mb-3">{% trans "Create Role" %}</h5>
           <form method="post">
             {% csrf_token %}
             <input type="hidden" name="form_type" value="role">
             {{ role_form.non_field_errors }}
             <div class="mb-3">
-              <label class="form-label">Code</label>
+              <label class="form-label">{% trans "Code" %}</label>
               {{ role_form.code }}
             </div>
             <div class="mb-3">
-              <label class="form-label">Name</label>
+              <label class="form-label">{% trans "Name" %}</label>
               {{ role_form.name }}
             </div>
             <div class="mb-3">
-              <label class="form-label">Description</label>
+              <label class="form-label">{% trans "Description" %}</label>
               {{ role_form.description }}
             </div>
             <div class="mb-3">
-              <label class="form-label">Permissions</label>
+              <label class="form-label">{% trans "Permissions" %}</label>
               <div class="rbac-form-check-wrapper rbac-permissions-wrapper">
                 {{ role_form.permissions }}
               </div>
             </div>
-            <button class="btn btn-primary" type="submit">Create Role</button>
+            <button class="btn btn-primary" type="submit">{% trans "Create Role" %}</button>
           </form>
         </div>
       </div>
@@ -114,24 +114,24 @@
     <div class="col-lg-6">
       <div class="card h-100">
         <div class="card-body">
-          <h5 class="mb-3">Create Permission</h5>
+          <h5 class="mb-3">{% trans "Create Permission" %}</h5>
           <form method="post">
             {% csrf_token %}
             <input type="hidden" name="form_type" value="permission">
             {{ permission_form.non_field_errors }}
             <div class="mb-3">
-              <label class="form-label">Code</label>
+              <label class="form-label">{% trans "Code" %}</label>
               {{ permission_form.code }}
             </div>
             <div class="mb-3">
-              <label class="form-label">Name</label>
+              <label class="form-label">{% trans "Name" %}</label>
               {{ permission_form.name }}
             </div>
             <div class="mb-3">
-              <label class="form-label">Description</label>
+              <label class="form-label">{% trans "Description" %}</label>
               {{ permission_form.description }}
             </div>
-            <button class="btn btn-outline-primary" type="submit">Create Permission</button>
+            <button class="btn btn-outline-primary" type="submit">{% trans "Create Permission" %}</button>
           </form>
         </div>
       </div>
@@ -142,22 +142,22 @@
     <div class="col-lg-6">
       <div class="card h-100">
         <div class="card-body">
-          <h5 class="mb-3">Assign Direct Permissions</h5>
+          <h5 class="mb-3">{% trans "Assign Direct Permissions" %}</h5>
           <form method="post">
             {% csrf_token %}
             <input type="hidden" name="form_type" value="user_permissions">
             {{ user_permission_form.non_field_errors }}
             <div class="mb-3">
-              <label class="form-label">User</label>
+              <label class="form-label">{% trans "User" %}</label>
               {{ user_permission_form.user }}
             </div>
             <div class="mb-3">
-              <label class="form-label">Permissions</label>
+              <label class="form-label">{% trans "Permissions" %}</label>
               <div class="rbac-form-check-wrapper rbac-permissions-wrapper">
                 {{ user_permission_form.permissions }}
               </div>
             </div>
-            <button class="btn btn-outline-primary" type="submit">Save Permissions</button>
+            <button class="btn btn-outline-primary" type="submit">{% trans "Save Permissions" %}</button>
           </form>
         </div>
       </div>
@@ -165,34 +165,34 @@
     <div class="col-lg-6">
       <div class="card h-100">
         <div class="card-body">
-          <h5 class="mb-3"><i class="bi bi-clock-history me-2"></i>Grant role with expiry</h5>
-          <p class="small text-muted">Give a user a role until a set date (e.g. auditor for one month).</p>
+          <h5 class="mb-3"><i class="bi bi-clock-history me-2"></i>{% trans "Grant role with expiry" %}</h5>
+          <p class="small text-muted">{% trans "Give a user a role until a set date (e.g. auditor for one month)." %}</p>
           <form method="post">
             {% csrf_token %}
             <input type="hidden" name="form_type" value="temporary_grant">
             {{ temporary_grant_form.non_field_errors }}
             <div class="mb-3">
-              <label class="form-label" for="{{ temporary_grant_form.user.id_for_label }}">User</label>
+              <label class="form-label" for="{{ temporary_grant_form.user.id_for_label }}">{% trans "User" %}</label>
               {{ temporary_grant_form.user }}
             </div>
             <div class="mb-3">
-              <label class="form-label" for="{{ temporary_grant_form.role.id_for_label }}">Role</label>
+              <label class="form-label" for="{{ temporary_grant_form.role.id_for_label }}">{% trans "Role" %}</label>
               {{ temporary_grant_form.role }}
             </div>
             <div class="mb-3">
-              <label class="form-label" for="{{ temporary_grant_form.expires_at.id_for_label }}">Expires on</label>
+              <label class="form-label" for="{{ temporary_grant_form.expires_at.id_for_label }}">{% trans "Expires on" %}</label>
               {{ temporary_grant_form.expires_at }}
               {% if temporary_grant_form.expires_at.errors %}<div class="invalid-feedback d-block">{{ temporary_grant_form.expires_at.errors.0 }}</div>{% endif %}
             </div>
             <div class="mb-3">
-              <label class="form-label" for="{{ temporary_grant_form.valid_from.id_for_label }}">Active from (optional)</label>
+              <label class="form-label" for="{{ temporary_grant_form.valid_from.id_for_label }}">{% trans "Active from (optional)" %}</label>
               {{ temporary_grant_form.valid_from }}
             </div>
             <div class="mb-3">
-              <label class="form-label" for="{{ temporary_grant_form.notes.id_for_label }}">Notes (optional)</label>
+              <label class="form-label" for="{{ temporary_grant_form.notes.id_for_label }}">{% trans "Notes (optional)" %}</label>
               {{ temporary_grant_form.notes }}
             </div>
-            <button class="btn btn-outline-primary" type="submit">Grant role</button>
+            <button class="btn btn-outline-primary" type="submit">{% trans "Grant role" %}</button>
           </form>
         </div>
       </div>
@@ -201,17 +201,17 @@
 
   <div class="card mt-4">
     <div class="card-body">
-      <h5 class="mb-3">Active temporary grants</h5>
+      <h5 class="mb-3">{% trans "Active temporary grants" %}</h5>
       {% if active_temporary_grants %}
         <div class="table-responsive">
           <table class="table align-middle mb-0 table-family">
             <caption class="visually-hidden">{% trans "Active temporary grants" %}</caption>
             <thead class="table-light">
               <tr>
-                <th>User</th>
-                <th>Role</th>
-                <th>Expires</th>
-                <th>Notes</th>
+                <th>{% trans "User" %}</th>
+                <th>{% trans "Role" %}</th>
+                <th>{% trans "Expires" %}</th>
+                <th>{% trans "Notes" %}</th>
               </tr>
             </thead>
             <tbody>
@@ -226,26 +226,26 @@
             </tbody>
           </table>
         </div>
-        <p class="small text-muted mt-2">Showing up to 50 active grants. Manage all in Configuration Engine &rarr; Accounts &rarr; Temporary role grants.</p>
+        <p class="small text-muted mt-2">{% trans "Showing up to 50 active grants. Manage all in Configuration Engine → Accounts → Temporary role grants." %}</p>
       {% else %}
-        <p class="text-muted mb-0">No active temporary grants. Use the form above to grant a role with an expiry date.</p>
+        <p class="text-muted mb-0">{% trans "No active temporary grants. Use the form above to grant a role with an expiry date." %}</p>
       {% endif %}
     </div>
   </div>
 
   <div class="card mt-4">
     <div class="card-body">
-      <h5 class="mb-3">Existing Roles</h5>
+      <h5 class="mb-3">{% trans "Existing Roles" %}</h5>
       {% if roles %}
         <div class="table-responsive">
-          <table class="table align-middle mb-0 table-family" aria-label="Existing RBAC roles">
+          <table class="table align-middle mb-0 table-family" aria-label="{% trans 'Existing RBAC roles' %}">
             <thead class="table-light">
               <tr>
-                <th scope="col">Code</th>
-                <th scope="col">Name</th>
-                <th scope="col">Description</th>
-                <th scope="col" class="rbac-perms-cell">Permissions</th>
-                <th scope="col" class="text-end">Actions</th>
+                <th scope="col">{% trans "Code" %}</th>
+                <th scope="col">{% trans "Name" %}</th>
+                <th scope="col">{% trans "Description" %}</th>
+                <th scope="col" class="rbac-perms-cell">{% trans "Permissions" %}</th>
+                <th scope="col" class="text-end">{% trans "Actions" %}</th>
               </tr>
             </thead>
             <tbody>
@@ -262,11 +262,11 @@
                         {% endfor %}
                       </div>
                     {% else %}
-                      <span class="text-muted">No permissions</span>
+                      <span class="text-muted">{% trans "No permissions" %}</span>
                     {% endif %}
                   </td>
                   <td class="text-end">
-                    <a href="?edit_role={{ role.pk }}" class="btn btn-sm btn-outline-primary" aria-label="Edit role {{ role.code }}">Edit</a>
+                    <a href="?edit_role={{ role.pk }}" class="btn btn-sm btn-outline-primary" aria-label="{% blocktrans with code=role.code %}Edit role {{ code }}{% endblocktrans %}">{% trans "Edit" %}</a>
                   </td>
                 </tr>
               {% endfor %}
@@ -274,7 +274,7 @@
           </table>
         </div>
       {% else %}
-        <p class="text-muted mb-0">No roles created yet.</p>
+        <p class="text-muted mb-0">{% trans "No roles created yet." %}</p>
       {% endif %}
     </div>
   </div>
@@ -284,8 +284,8 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="editRoleModalLabel">Edit role permissions</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title" id="editRoleModalLabel">{% trans "Edit role permissions" %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
         </div>
         <form method="post" action="">
           {% csrf_token %}
@@ -294,19 +294,19 @@
           <div class="modal-body" id="editRoleModalDesc">
             {{ edit_role_form.non_field_errors }}
             <div class="mb-3">
-              <label class="form-label">Description</label>
+              <label class="form-label">{% trans "Description" %}</label>
               {{ edit_role_form.description }}
             </div>
             <div class="mb-0">
-              <label class="form-label">Permissions</label>
+              <label class="form-label">{% trans "Permissions" %}</label>
               <div class="rbac-form-check-wrapper rbac-permissions-wrapper border rounded p-2" style="max-height: 280px;">
                 {{ edit_role_form.permissions }}
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <a href="{% url 'accounts:rbac' %}" class="btn btn-outline-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="{% url 'accounts:rbac' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+            <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
           </div>
         </form>
       </div>
@@ -316,16 +316,16 @@
 
   <div class="card mt-4">
     <div class="card-body">
-      <h5 class="mb-3">Existing Permissions</h5>
+      <h5 class="mb-3">{% trans "Existing Permissions" %}</h5>
       {% if permissions %}
         <div class="table-responsive">
           <table class="table align-middle mb-0 table-family">
             <caption class="visually-hidden">{% trans "Existing Permissions" %}</caption>
             <thead class="table-light">
               <tr>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Description</th>
+                <th>{% trans "Code" %}</th>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Description" %}</th>
               </tr>
             </thead>
             <tbody>
@@ -340,7 +340,7 @@
           </table>
         </div>
       {% else %}
-        <div class="text-muted">No permissions created yet.</div>
+        <div class="text-muted">{% trans "No permissions created yet." %}</div>
       {% endif %}
     </div>
   </div>
