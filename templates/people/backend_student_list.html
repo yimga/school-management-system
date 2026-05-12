@@ -94,7 +94,7 @@
                   <td>
                     {% for tag in student.tags.all %}
                       {% if not tag.is_private or can_see_private_tags %}
-                        <span class="badge me-1" style="background-color: {{ tag.color_hex }}; color: #fff;" title="{{ tag.get_category_display }}{% if tag.is_private %} (private){% endif %}">{{ tag.name }}</span>
+                        <span class="badge me-1" style="background-color: {{ tag.color_hex }}; color: var(--text-on-brand);" title="{{ tag.get_category_display }}{% if tag.is_private %} (private){% endif %}">{{ tag.name }}</span>
                       {% endif %}
                     {% empty %}
                       <span class="text-muted small">—</span>

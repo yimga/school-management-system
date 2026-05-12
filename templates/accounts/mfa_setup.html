@@ -21,7 +21,7 @@
       <div class="content-card" style="padding:0;overflow:hidden">
         {# Header — refined hairline + brand-tinted icon, replaces card-header bg-primary #}
         <div style="padding:22px 26px 18px;border-bottom:1px solid var(--admin-content-border);display:flex;gap:14px;align-items:center">
-          <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--school-primary),color-mix(in oklab,var(--school-primary) 70%, var(--school-accent)));color:#fff;display:inline-flex;align-items:center;justify-content:center" aria-hidden="true">
+          <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--school-primary),color-mix(in oklab,var(--school-primary) 70%, var(--school-accent)));color:var(--text-on-brand);display:inline-flex;align-items:center;justify-content:center" aria-hidden="true">
             <i class="bi bi-shield-lock" style="font-size:1.25rem"></i>
           </div>
           <div>
@@ -63,7 +63,7 @@
 
             <h2 class="h6 mt-2 mb-3" style="font-weight:600;letter-spacing:-0.01em">{% trans "Step 1 — Scan this QR code" %}</h2>
             <div style="text-align:center;padding:18px;background:var(--surface-bg-subtle);border-radius:var(--token-radius-md);margin-bottom:22px">
-              <img src="data:image/png;base64,{{ qr_code }}" alt="{% trans 'MFA QR code' %}" class="img-fluid" width="240" height="240" decoding="async" style="max-width:240px;height:auto;object-fit:contain;border-radius:8px;background:#fff;padding:12px">
+              <img src="data:image/png;base64,{{ qr_code }}" alt="{% trans 'MFA QR code' %}" class="img-fluid" width="240" height="240" decoding="async" style="max-width:240px;height:auto;object-fit:contain;border-radius:8px;background:var(--color-base-0);padding:12px">
             </div>
 
             <h2 class="h6 mb-2" style="font-weight:600;letter-spacing:-0.01em">{% trans "Step 2 — Manual entry code (if needed)" %}</h2>

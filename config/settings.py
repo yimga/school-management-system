@@ -345,6 +345,7 @@ TEMPLATES = [
                 "django.template.context_processors.i18n",
                 "apps.siteconfig.context_processors.site_settings",
                 "apps.siteconfig.email_palette.brand_email_processor",  # `brand_email` palette for emails/PDF (inline hex)
+                "apps.siteconfig.platform_palette.platform_palette_processor",  # `platform_palette` for server-rendered swatch/preview defaults
                 "apps.siteconfig.breadcrumb_context.breadcrumbs_context",
                 "apps.siteconfig.breadcrumb_context.page_metadata_context",
                 "apps.siteconfig.context_processors.region_settings",
@@ -1688,6 +1689,24 @@ PLATFORM_DEFAULT_TIMEZONE = (
 PLATFORM_DEFAULT_GRADING_SCALE = (
     os.getenv("PLATFORM_DEFAULT_GRADING_SCALE", "") or DEFAULT_GRADING_SCALE or "0-100"
 )
+
+# Platform palette defaults — fallback hex values used when a tenant has not configured
+# their brand palette via SiteSettings. Consumed by:
+#   - apps.siteconfig.email_palette.resolve_email_palette() for transactional emails
+#   - apps.siteconfig.platform_palette.platform_palette_processor for template context
+#     (templates use `{{ platform_palette.primary }}` instead of `|default:'#4f46e5'`)
+# Operators that white-label the platform set these via env (e.g. PLATFORM_PALETTE_PRIMARY=#0f172a)
+# so even the "pre-tenant" UI surfaces (signup, palette selector swatches) reflect their brand.
+PLATFORM_PALETTE_PRIMARY = os.getenv("PLATFORM_PALETTE_PRIMARY", "#4f46e5")
+PLATFORM_PALETTE_ACCENT = os.getenv("PLATFORM_PALETTE_ACCENT", "#10b981")
+PLATFORM_PALETTE_SURFACE = os.getenv("PLATFORM_PALETTE_SURFACE", "#ffffff")
+PLATFORM_PALETTE_DASHBOARD_BG = os.getenv("PLATFORM_PALETTE_DASHBOARD_BG", "#f8fafc")
+PLATFORM_PALETTE_HERO_BG = os.getenv("PLATFORM_PALETTE_HERO_BG", "#0f172a")
+PLATFORM_PALETTE_MUTED_SWATCH = os.getenv("PLATFORM_PALETTE_MUTED_SWATCH", "#f0f0f0")
+PLATFORM_PALETTE_BORDER_LIGHT = os.getenv("PLATFORM_PALETTE_BORDER_LIGHT", "#cccccc")
+PLATFORM_PALETTE_SUCCESS = os.getenv("PLATFORM_PALETTE_SUCCESS", "#22c55e")
+PLATFORM_PALETTE_WARNING = os.getenv("PLATFORM_PALETTE_WARNING", "#f59e0b")
+PLATFORM_PALETTE_DANGER = os.getenv("PLATFORM_PALETTE_DANGER", "#ef4444")
 
 # Risk-band fallback thresholds (used by apps.analytics.get_risk_band_for_school and
 # RiskFactor.band when a tenant has not configured RiskThresholds). The defaults assume

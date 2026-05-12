@@ -358,7 +358,7 @@ body.backend-shell .page-wrap {
   --rmc-shell-max-width: none;
   --rmc-shell-gutter: clamp(0.75rem, 1.2vw, 1.25rem);
   --rmc-shell-rhythm-y: clamp(0.75rem, 1.5vw, 1.25rem);
-  --portal-sidebar-width: 280px;
+  --portal-sidebar-width: var(--sidebar-width-default);
   --portal-sidebar-min: 200px;
   --portal-sidebar-max: 420px;
   --portal-shell-sticky-offset: 4.75rem;

@@ -116,6 +116,28 @@
   --token-radius-xl: 20px;
   --token-radius-2xl: 24px;
 
+  /* Border-width scale — Apple HIG-aligned. Default is hairline; strong is reserved for
+     focus rings / active emphasis. Anything thicker is a design violation. Replaces ad-hoc
+     `border: 2px` literals in admin/index.html, visual_workflow_designer.html, etc.
+     Tenant themes never need to override these — they are purely structural. */
+  --token-border-width-hairline: 0.5px;
+  --token-border-width-subtle: 1px;
+  --token-border-width-strong: 2px;
+  --border-width-hairline: var(--token-border-width-hairline);
+  --border-width-subtle: var(--token-border-width-subtle);
+  --border-width-strong: var(--token-border-width-strong);
+
+  /* Sidebar-width scale — admin shell + portal sidebar widths. `default` matches the
+     existing 280px convention in admin_sidebar_enhanced.css / admin-dashboard-security.css.
+     `compact` is the collapsed/icon-only state; `wide` is for dense-data admin contexts.
+     Tenant themes never need to override these — they are purely layout chrome. */
+  --token-sidebar-width-compact: 240px;
+  --token-sidebar-width-default: 280px;
+  --token-sidebar-width-wide: 320px;
+  --sidebar-width-compact: var(--token-sidebar-width-compact);
+  --sidebar-width-default: var(--token-sidebar-width-default);
+  --sidebar-width-wide: var(--token-sidebar-width-wide);
+
   /* ========== Phase 2 — semantic design system (--ds-*) ==========
      Single grammar for cards, surfaces, alerts, chips. Alias platform/luxury/tokens.
      Components: design-system-phase2-enforcement.css + card-grammar / form-system / table-system. */
@@ -228,15 +250,74 @@
   --color-base-100: #f1f5f9;
   --color-base-200: #e2e8f0;
   --color-base-300: #cbd5e1;
+  --color-base-350: #b8c4d0;
   --color-base-400: #94a3b8;
   --color-base-500: #64748b;
   --color-base-600: #475569;
   --color-base-700: #334155;
   --color-base-800: #1e293b;
   --color-base-900: #0f172a;
+  --color-base-950: #020617;
   --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
   --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
   --color-primary-700: #1d4ed8;
+  --color-primary-900: #1e3a8a;
+
+  /* Indigo scale — platform brand chrome variants (admin sidebar, focus rings, decorative
+     gradients in backend chrome). Stays platform-fixed by design: the "recessive palette"
+     decision means admin chrome does NOT respond to tenant brand overrides — only the
+     tenant-facing portal does. For tenant-overridable brand surfaces use --school-primary
+     (which defaults to --color-indigo-600). */
+  --color-indigo-100: #c7d2fe;
+  --color-indigo-300: #a5b4fc;
+  --color-indigo-400: #818cf8;
+  --color-indigo-500: #6366f1;
+  --color-indigo-600: #4f46e5;
+  --color-indigo-700: #4338ca;
+  --color-indigo-800: #3730a3;
+
+  /* Alert text-on-tint scale — text shades inside alert chips/badges, separated by surface
+     theme so we don't ship a #fcd34d-on-amber-tint blob inline in every theme override.
+     `*-on-dark` = readable on dark backgrounds; `*-on-light` = readable on light backgrounds. */
+  --alert-text-success-on-dark: #86efac;
+  --alert-text-warning-on-dark: #fcd34d;
+  --alert-text-danger-on-dark: #fca5a5;
+  --alert-text-info-on-dark: #7dd3fc;
+  --alert-text-success-on-light: #166534;
+  --alert-text-warning-on-light: #92400e;
+  --alert-text-danger-on-light: #991b1b;
+  --alert-text-info-on-light: #0369a1;
+
+  /* Link text on dark theme (for non-button, non-nav anchors inside admin chrome) */
+  --link-text-on-dark: #93c5fd;
+  --link-text-on-dark-hover: #bfdbfe;
+
+  /* Text-on-brand — readable foreground for text rendered on top of --school-primary,
+     --school-accent, or any saturated brand surface. Defaults to white (works against
+     dark indigo/emerald). Tenants with light/pastel brand colors should override
+     to a dark value via SiteSettings so contrast stays AA. */
+  --text-on-brand: #ffffff;
+
+  /* Amber scale — used for warning chrome distinct from --ds-warning (amber-600).
+     400 = soft warning highlights, 500 = alert-warning borders, 700 = dark-theme warning text. */
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+
+  /* Status palette — full primitives for chart fills, progress bars, status badges.
+     Distinct from --ds-{success,danger,info} semantic tokens which alias the platform
+     defaults but may shift per theme; these primitives are stable Tailwind ladder steps. */
+  --color-emerald-400: #34d399;
+  --color-emerald-600: #059669;
+  --color-green-500: #22c55e;
+  --color-red-400: #f87171;
+  --color-red-600: #dc2626;
+  --color-cyan-600: #0891b2;
 
   /* Studio OS layout tokens (fluid; SOT §8.0.6 responsive) */
   --studio-rail-width: minmax(min(12rem, 100%), 16rem);

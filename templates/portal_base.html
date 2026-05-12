@@ -16,7 +16,7 @@
     <title>{% block title %}{{ rmc_shell.portal_default_document_title|default:_("Portal") }}{% endblock %}</title>
     <link rel="icon" href="{% if SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
     {# Wave 6 web: installable surface + home-screen hint (native store apps = external). #}
-    {% if "/portal/" in request.path %}<link rel="manifest" href="{% static 'manifest-portal.json' %}"><meta name="theme-color" content="{{ SITE.primary_color|default:'#4f46e5' }}"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">{% endif %}
+    {% if "/portal/" in request.path %}<link rel="manifest" href="{% static 'manifest-portal.json' %}"><meta name="theme-color" content="{{ SITE.primary_color|default:platform_palette.primary }}"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">{% endif %}
     <!-- Self-hosted fonts and vendor CSS (no CDN dependency) -->
     <link rel="stylesheet" href="{% static 'css/vendor/inter.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
@@ -113,7 +113,7 @@
 
     <!-- PWA Support -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
-    <meta name="theme-color" content="{{ SITE_THEME.primary_color|default:'#007bff' }}">
+    <meta name="theme-color" content="{{ SITE_THEME.primary_color|default:platform_palette.primary }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="SMS">

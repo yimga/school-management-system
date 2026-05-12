@@ -9,7 +9,7 @@
   {% if error %}
     <div class="alert alert-warning">{{ error }}</div>
   {% elif collabora_url %}
-    <iframe title="Office editor" src="{{ collabora_url }}" style="width:100%;min-height:80vh;border:1px solid #d8dee4;border-radius:8px;"></iframe>
+    <iframe title="Office editor" src="{{ collabora_url }}" style="width:100%;min-height:80vh;border:var(--border-width-subtle) solid var(--color-base-200);border-radius:8px;"></iframe>
   {% endif %}
 </div>
 {% endblock %}

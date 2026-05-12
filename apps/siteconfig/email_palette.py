@@ -18,9 +18,7 @@ Usage from a request-free render (Celery task, management command):
 
 from __future__ import annotations
 
-# Platform defaults — match the historic `|default:'…'` fallbacks in templates.
-_DEFAULT_PRIMARY = "#4f46e5"
-_DEFAULT_ACCENT = "#10b981"
+from django.conf import settings
 
 
 def _coerce_hex(value, fallback: str) -> str:
@@ -81,10 +79,12 @@ def resolve_email_palette(site=None, request=None) -> dict:
         )
 
     primary = _coerce_hex(
-        getattr(site, "primary_color", None) if site else None, _DEFAULT_PRIMARY
+        getattr(site, "primary_color", None) if site else None,
+        settings.PLATFORM_PALETTE_PRIMARY,
     )
     accent = _coerce_hex(
-        getattr(site, "accent_color", None) if site else None, _DEFAULT_ACCENT
+        getattr(site, "accent_color", None) if site else None,
+        settings.PLATFORM_PALETTE_ACCENT,
     )
 
     return {

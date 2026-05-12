@@ -359,7 +359,7 @@
                       {% if card.badges %}
                       <div class="d-flex flex-wrap gap-1 mt-1" role="list" aria-label="{% trans 'Student badges' %}">
                         {% for b in card.badges %}
-                        <span class="badge rounded-pill" style="background: var(--school-primary); color: #fff;" role="listitem">{{ b.badge_type.label }}</span>
+                        <span class="badge rounded-pill" style="background: var(--school-primary); color: var(--text-on-brand);" role="listitem">{{ b.badge_type.label }}</span>
                         {% endfor %}
                       </div>
                       {% endif %}

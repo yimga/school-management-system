@@ -66,7 +66,7 @@
         <tbody>
           {% for tag in tags %}
           <tr>
-            <td><span class="badge" style="background-color: {{ tag.color_hex }}; color: #fff;">{{ tag.name }}</span></td>
+            <td><span class="badge" style="background-color: {{ tag.color_hex }}; color: var(--text-on-brand);">{{ tag.name }}</span></td>
             <td>{{ tag.get_category_display }}</td>
             <td><code>{{ tag.color_hex }}</code></td>
             <td>{% if tag.is_private %}<span class="text-warning">{% trans "Yes" %}</span>{% else %}—{% endif %}</td>
