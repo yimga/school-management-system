@@ -21,8 +21,9 @@
   --school-primary-light: rgba(79, 70, 229, 0.14);
   --school-accent-light: rgba(16, 185, 129, 0.12);
 
-  /* Admin content area (forms, lists). Overridden in #content by admin-content-readability.css
-     and in dark theme by admin-dark-readability.css. Refined dark uses softer slate, not navy. */
+  /* Admin content area (forms, lists). Refined dark uses softer slate, not navy.
+     Previous overrides via admin-content-readability.css / admin-dark-readability.css retired
+     2026-05-12 — values folded into the token defaults below. */
   --admin-content-bg: #ffffff;
   --admin-content-surface: #ffffff;
   --admin-content-text: #0f172a;
@@ -36,8 +37,8 @@
   --admin-content-danger: #dc2626;
 
   /* Admin surface (overridden by SITE.admin_sidebar_* in admin base_site).
-     Defaults tuned for WCAG-friendly readability; admin_sidebar_enhanced.css
-     applies theme-specific overrides (light/dark). */
+     Defaults tuned for WCAG-friendly readability. admin_sidebar_enhanced.css was retired
+     2026-05-12 (zero template load); per-theme overrides now live in backend-themes.css. */
   --admin-accent: var(--school-primary);
   --admin-accent-light: var(--school-primary-light);
   --admin-sidebar-bg: #0f172a;
@@ -51,7 +52,7 @@
   --admin-sidebar-active-border: #38bdf8;
   --admin-sidebar-badge-bg: #334155;
   --admin-sidebar-badge-text: #f1f5f9;
-  /* Lively child block (no black); overridden per theme in admin_sidebar_enhanced.css */
+  /* Lively child block (no black); per-theme overrides now live in backend-themes.css. */
   --admin-sidebar-child-bg: linear-gradient(160deg, #334155 0%, #475569 100%);
   --admin-sidebar-child-border: rgba(148, 163, 184, 0.35);
 
@@ -128,7 +129,7 @@
   --border-width-strong: var(--token-border-width-strong);
 
   /* Sidebar-width scale — admin shell + portal sidebar widths. `default` matches the
-     existing 280px convention in admin_sidebar_enhanced.css / admin-dashboard-security.css.
+     280px convention in portal-base-shell.css (`--portal-sidebar-width`).
      `compact` is the collapsed/icon-only state; `wide` is for dense-data admin contexts.
      Tenant themes never need to override these — they are purely layout chrome. */
   --token-sidebar-width-compact: 240px;

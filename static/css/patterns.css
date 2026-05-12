@@ -1771,34 +1771,28 @@
 
 
 /* ==========================================================================
-   25. RETIREMENT AUDIT — zero-load CSS files (informational, not enforced)
+   25. RETIREMENT AUDIT — zero-load CSS retired 2026-05-12
    ==========================================================================
-   These files exist in static/css/ but are not referenced by any template
-   under templates/ or Python under apps/ or config/ (as of the aesthetic
-   sweep wave 4 audit). They're safe-to-delete candidates for a separate
-   cleanup pass — keep this list synced with the actual file state.
+   The following ~84 KB / 7 files were deleted on 2026-05-12 after re-audit
+   confirmed zero template/python references:
 
-     admin_sidebar_enhanced.css         30.8 KB
-     backend-dashboard-extras.css       13.4 KB
-     admin-dark-readability.css         11.8 KB
-     admin-content-readability.css      10.6 KB
-     print.css                           6.4 KB  ← may be media="print" attr
-     portal_theme.css                    6.1 KB  ← see SW cache + theme visibility test
-     backend-command-center-fixes.css    5.8 KB
-     admin-flow.css                      5.5 KB
-                                        ------
-     total:                            ~90.4 KB
+     admin_sidebar_enhanced.css         30.8 KB  → per-theme overrides in backend-themes.css
+     backend-dashboard-extras.css       13.4 KB  → orphan; logic in backend-dashboard-v2.css
+     admin-dark-readability.css         11.8 KB  → folded into design-tokens.css token defaults
+     admin-content-readability.css      10.6 KB  → folded into design-tokens.css token defaults
+     portal_theme.css                    6.1 KB  → conflicted with --portal-bg; superseded by tokens
+     backend-command-center-fixes.css    5.8 KB  → fixes folded upstream
+     admin-flow.css                      5.5 KB  → orphan
 
-   Caveats before deleting:
-   - print.css MAY be loaded with media="print" — grep for ".css.*media=" first.
-   - portal_theme.css is intentionally on disk for service-worker cache manifest
-     reasons. Deleting it requires bumping the SW version + updating
-     apps/siteconfig/tests/test_theme_visibility_matrix.py (see memory).
-   - Some files may be referenced dynamically from JS bundles or unit tests.
-     Always run the full test suite after deletion.
+   Kept (still loaded, do NOT retire):
+     print.css                           6.4 KB  ← media="print" attr in base templates
 
-   Wave 4 deliberately does NOT delete these files — the user owns the cleanup
-   pass. This block exists so future Claude sessions don't re-audit from scratch.
+   Service worker note: portal_theme.css removed from static/js/service-worker.js
+   cache manifest. backend-dashboard-extras.css remained as a tolerated-missing
+   candidate in test_theme_visibility_matrix.py (test has fallback logic).
+
+   This block stays as a record so future Claude sessions don't re-audit and
+   so the deletion intent stays linked to the canonical token migration.
    ========================================================================== */
 
 
