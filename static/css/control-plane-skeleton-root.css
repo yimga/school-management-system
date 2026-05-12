@@ -6,10 +6,10 @@
 html[data-surface="control-plane"] {
   /* Operator/control-plane surface: dark navy ground + indigo accent (was navy + gold).
      We DO NOT override --school-primary here anymore — the operator inherits the platform
-     indigo (which auto-brightens to #818cf8 in dark mode via design-tokens.css), so brand
+     indigo (which auto-brightens to var(--color-indigo-400) in dark mode via design-tokens.css), so brand
      buttons, links, and active states look like the rest of the platform.
      --platform-navy stays as the operator's signature dark ground. */
-  --platform-navy: var(--color-base-900, #0b0e14);
+  --platform-navy: var(--color-base-900, var(--cp-ink-canvas));
   --platform-gold: var(--school-primary); /* legacy alias — anywhere using --platform-gold now gets indigo */
   /* UX fix: manager shell was capped at 1440px which left huge dead margins
      on wide monitors (every menu / sidebar / page showed the same narrow

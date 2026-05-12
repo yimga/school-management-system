@@ -2,15 +2,15 @@
   --cp-bg: linear-gradient(180deg, rgba(7, 17, 32, 0.96), rgba(11, 24, 43, 0.92));
   --cp-panel-bg: rgba(8, 16, 30, 0.78);
   --cp-panel-border: rgba(125, 152, 187, 0.18);
-  --cp-text: #e7eefc;
-  --cp-muted: #9fb1cb;
-  --cp-accent: #77c6ff;
-  --cp-accent-2: #ffd166;
-  --cp-success: #31c48d;
-  --cp-warning: #ffbf47;
-  --cp-danger: #ff6b6b;
-  --cp-violet: #a78bfa;
-  --cp-sky: #5eead4;
+  --cp-text: var(--cp-sky-100);
+  --cp-muted: var(--cp-slate-cool-400);
+  --cp-accent: var(--cp-sky-500);
+  --cp-accent-2: var(--cp-warning-450);
+  --cp-success: var(--cp-success-500);
+  --cp-warning: var(--cp-warning-500);
+  --cp-danger: var(--cp-danger-500);
+  --cp-violet: var(--chart-color-4);
+  --cp-sky: var(--color-teal-300);
   --cp-shadow: 0 24px 80px rgba(3, 8, 18, 0.42);
 }
 
@@ -55,7 +55,7 @@ body.control-plane-shell .btn {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-size: 0.72rem;
-  color: #9bd9ff;
+  color: var(--cp-sky-300);
   margin-bottom: 0.55rem;
 }
 
@@ -104,18 +104,18 @@ a.cp-chip:hover {
 .cp-chip-healthy,
 .cp-chip-success {
   border-color: rgba(49, 196, 141, 0.35);
-  color: #9af0ca;
+  color: var(--cp-success-350);
 }
 
 .cp-chip-warning {
   border-color: rgba(255, 191, 71, 0.35);
-  color: #ffe0a3;
+  color: var(--cp-warning-350);
 }
 
 .cp-chip-critical,
 .cp-chip-danger {
   border-color: rgba(255, 107, 107, 0.35);
-  color: #ffb5b5;
+  color: var(--cp-danger-350);
 }
 
 .cp-hero-actions {
@@ -137,8 +137,8 @@ a.cp-chip:hover {
 }
 
 .cp-primary-action {
-  background: linear-gradient(135deg, #76d5ff, #8ebdff);
-  color: #0a1729;
+  background: linear-gradient(135deg, var(--cp-sky-450), var(--cp-sky-400));
+  color: var(--cp-ink-action);
   border: none;
   font-weight: 700;
 }
@@ -176,7 +176,7 @@ a.cp-chip:hover {
 
 .cp-hero-stat-subtitle {
   font-size: 0.85rem;
-  color: #b6c8e0;
+  color: var(--cp-slate-cool-200);
 }
 
 .cp-overview-grid,
@@ -260,7 +260,7 @@ a.cp-chip:hover {
 }
 
 .cp-section-link {
-  color: #cce6ff;
+  color: var(--cp-sky-200);
   text-decoration: none;
   border-bottom: 1px solid transparent;
   padding-bottom: 0.18rem;
@@ -306,11 +306,11 @@ a.cp-chip:hover {
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.06);
-  color: #d7e7fb;
+  color: var(--cp-sky-175);
   font-size: 0.78rem;
 }
 a.cp-panel-stat:hover {
-  color: #d7e7fb;
+  color: var(--cp-sky-175);
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -375,7 +375,7 @@ a.cp-queue-card-header:hover {
 
 .cp-subtle-link,
 .cp-workstream-card {
-  color: #d9eeff;
+  color: var(--cp-sky-150);
   text-decoration: none;
 }
 
@@ -443,7 +443,7 @@ a.cp-queue-card-header:hover {
 }
 
 .cp-table thead th {
-  color: #a8bdd8;
+  color: var(--cp-slate-cool-300);
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -489,7 +489,7 @@ a.cp-queue-card-header:hover {
   padding: 0.28rem 0.55rem;
   background: rgba(255, 191, 71, 0.12);
   border-color: rgba(255, 191, 71, 0.22);
-  color: #ffe0a3;
+  color: var(--cp-warning-350);
 }
 
 .cp-workstream-grid {
@@ -511,7 +511,7 @@ a.cp-queue-card-header:hover {
 }
 
 .cp-workstream-cta {
-  color: #8fd6ff;
+  color: var(--cp-sky-350);
   font-size: 0.88rem;
 }
 
@@ -532,7 +532,7 @@ a.cp-queue-card-header:hover {
 .cp-status-badge-active,
 .cp-status-badge-resolved,
 .cp-status-badge-healthy {
-  color: #96edc4;
+  color: var(--cp-success-300);
   border-color: rgba(49, 196, 141, 0.28);
   background: rgba(49, 196, 141, 0.12);
 }
@@ -543,7 +543,7 @@ a.cp-queue-card-header:hover {
 .cp-status-badge-mitigated,
 .cp-status-badge-attention,
 .cp-status-badge-trialing {
-  color: #ffe3a8;
+  color: var(--cp-warning-300);
   border-color: rgba(255, 191, 71, 0.28);
   background: rgba(255, 191, 71, 0.12);
 }
@@ -553,14 +553,14 @@ a.cp-queue-card-header:hover {
 .cp-status-badge-past_due,
 .cp-status-badge-suspended,
 .cp-status-badge-inactive {
-  color: #ffc0c0;
+  color: var(--cp-danger-300);
   border-color: rgba(255, 107, 107, 0.28);
   background: rgba(255, 107, 107, 0.12);
 }
 
 .cp-status-badge-neutral,
 .cp-status-badge-unseeded {
-  color: #d7e4f7;
+  color: var(--cp-sky-185);
 }
 
 .cp-school-row.is-hidden {
