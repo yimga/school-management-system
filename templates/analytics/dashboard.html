@@ -17,13 +17,14 @@
 {% phase8_dashboard_declaration "analytics/dashboard.html" %}
 <div class="container-fluid py-2" data-page-archetype="role-home" data-rmc-os-center="insights_center" data-rmc-ux-role-dashboard="analytics-insights">
 {% if finance_requests_count %}
-  <div class="alert alert-warning d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <strong>{% blocktrans count counter=finance_requests_count %}{{ counter }} finance access request waiting{% plural %}{{ counter }} finance access requests waiting{% endblocktrans %}</strong>
-      <div class="small text-muted">{% trans "Stay on top of guardian access requests without leaving the dashboard." %}</div>
+  <article class="insight-card warning mb-4" data-rmc-insight-card="1" data-rmc-insight-tone="warning">
+    <div class="ico" aria-hidden="true"><i class="bi bi-clock-history"></i></div>
+    <div class="insight-card__body" style="flex:1;min-width:0">
+      <h4 class="insight-card__title">{% blocktrans count counter=finance_requests_count %}{{ counter }} finance access request waiting{% plural %}{{ counter }} finance access requests waiting{% endblocktrans %}</h4>
+      <p class="insight-card__copy">{% trans "Stay on top of guardian access requests without leaving the dashboard." %}</p>
+      <a class="btn btn-sm btn-outline-warning" href="{{ finance_request_link }}">{% trans "Open inbox" %} <span aria-hidden="true">→</span></a>
     </div>
-    <a class="btn btn-sm btn-outline-dark" href="{{ finance_request_link }}">{% trans "Open inbox" %}</a>
-  </div>
+  </article>
   {% if finance_request_notifications %}
     <div class="card shadow-sm mb-4">
       <div class="card-body">
@@ -81,31 +82,42 @@
           <span class="badge bg-outline-primary">{% trans "2026 insights" %}</span>
         </div>
       </div>
-      <div class="dashboard-card-grid dashboard-card-grid--dense mt-3">
-        <div class="border p-3 rounded-3" style="background: var(--admin-content-bg);">
-          <div class="text-uppercase small text-muted mb-1">{% trans "Top students" %}</div>
-          <div class="h4">{{ top_n }}</div>
-          <div class="small text-muted">{% trans "per filter results" %}</div>
-          <div class="progress mt-2" style="height:4px;">
-            <div class="progress-bar" role="progressbar" style="width:{{ weak_subjects|length|default:30 }}%;"></div>
+      <div class="row g-3 mt-3" aria-label="{% trans 'Operational KPI snapshot' %}">
+        <div class="col-12 col-md-6 col-lg-3" data-shell-kpi="analytics-top-students">
+          <div class="kpi">
+            <div class="d-flex align-items-start justify-content-between gap-2">
+              <span class="label">{% trans "Top students" %}</span>
+              <span class="kpi-icon" aria-hidden="true"><i class="bi bi-mortarboard"></i></span>
+            </div>
+            <div class="value" data-kpi-count="analytics-top-students">{{ top_n }}</div>
           </div>
         </div>
-        <div class="border p-3 rounded-3" style="background: var(--admin-content-bg);">
-          <div class="text-uppercase small text-muted mb-1">{% trans "Weak subjects" %}</div>
-          <div class="h4">{{ weak_subjects|length }}</div>
-          <div class="small text-muted">{% trans "monitor action" %}</div>
-          <div class="progress mt-2" style="height:4px;">
-            <div class="progress-bar bg-warning" style="width:{{ weak_subjects|length|default:10 }}%;"></div>
+        <div class="col-12 col-md-6 col-lg-3" data-shell-kpi="analytics-weak-subjects">
+          <div class="kpi">
+            <div class="d-flex align-items-start justify-content-between gap-2">
+              <span class="label">{% trans "Weak subjects" %}</span>
+              <span class="kpi-icon warn" aria-hidden="true"><i class="bi bi-exclamation-triangle"></i></span>
+            </div>
+            <div class="value" data-kpi-count="analytics-weak-subjects">{{ weak_subjects|length }}</div>
           </div>
         </div>
-        <div class="border p-3 rounded-3" style="background: var(--admin-content-bg);">
-          <div class="text-uppercase small text-muted mb-1">{% trans "Teacher compliance" %}</div>
-          <div class="h4">{{ teacher_stats|length }}</div>
-          <div class="small text-muted">{% trans "on deadlines" %}</div>
+        <div class="col-12 col-md-6 col-lg-3" data-shell-kpi="analytics-teacher-compliance">
+          <div class="kpi">
+            <div class="d-flex align-items-start justify-content-between gap-2">
+              <span class="label">{% trans "Teacher compliance" %}</span>
+              <span class="kpi-icon" aria-hidden="true"><i class="bi bi-easel"></i></span>
+            </div>
+            <div class="value" data-kpi-count="analytics-teacher-compliance">{{ teacher_stats|length }}</div>
+          </div>
         </div>
-        <div class="border p-3 rounded-3 text-center" style="background: var(--admin-content-bg);">
-          <div class="h1 fw-bold">{{ improvement_rows|length }}</div>
-          <div class="small text-muted">{% trans "students improved" %}</div>
+        <div class="col-12 col-md-6 col-lg-3" data-shell-kpi="analytics-students-improved">
+          <div class="kpi">
+            <div class="d-flex align-items-start justify-content-between gap-2">
+              <span class="label">{% trans "Students improved" %}</span>
+              <span class="kpi-icon success" aria-hidden="true"><i class="bi bi-graph-up-arrow"></i></span>
+            </div>
+            <div class="value" data-kpi-count="analytics-students-improved">{{ improvement_rows|length }}</div>
+          </div>
         </div>
       </div>
       <div class="d-flex flex-wrap gap-2 mt-3">

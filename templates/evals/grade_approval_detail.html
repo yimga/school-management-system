@@ -76,27 +76,32 @@
     <strong>Submitted marks</strong>
   </div>
   <div class="table-responsive">
-    <table class="table table-striped mb-0 table-family align-middle" aria-label="Submitted marks for approval: student and score components">
+    <table class="gradebook-table table-family" aria-label="Submitted marks for approval: student and score components">
       <thead>
         <tr>
           <th scope="col">Student</th>
-          <th scope="col">Seq1</th>
-          <th scope="col">Seq2</th>
-          <th scope="col">Exam</th>
-          <th scope="col">Mock</th>
-          <th scope="col">Practical</th>
+          <th scope="col" class="num">Seq1</th>
+          <th scope="col" class="num">Seq2</th>
+          <th scope="col" class="num">Exam</th>
+          <th scope="col" class="num">Mock</th>
+          <th scope="col" class="num">Practical</th>
           <th scope="col">Remarks</th>
         </tr>
       </thead>
       <tbody>
         {% for entry in entries %}
           <tr>
-            <td>{{ entry.student_name }} ({{ entry.student_code }})</td>
-            <td>{{ entry.scores.seq1|default_if_none:"—" }}</td>
-            <td>{{ entry.scores.seq2|default_if_none:"—" }}</td>
-            <td>{{ entry.scores.exam|default_if_none:"—" }}</td>
-            <td>{{ entry.scores.mock|default_if_none:"—" }}</td>
-            <td>{{ entry.scores.practical|default_if_none:"—" }}</td>
+            <td>
+              <span class="student-cell">
+                <span class="av" aria-hidden="true">{{ entry.student_name|slice:":1"|upper }}</span>
+                <span>{{ entry.student_name }} <span class="text-muted">({{ entry.student_code }})</span></span>
+              </span>
+            </td>
+            <td class="num">{{ entry.scores.seq1|default_if_none:"—" }}</td>
+            <td class="num">{{ entry.scores.seq2|default_if_none:"—" }}</td>
+            <td class="num">{{ entry.scores.exam|default_if_none:"—" }}</td>
+            <td class="num">{{ entry.scores.mock|default_if_none:"—" }}</td>
+            <td class="num">{{ entry.scores.practical|default_if_none:"—" }}</td>
             <td>{{ entry.remarks|default:"—" }}</td>
           </tr>
         {% endfor %}

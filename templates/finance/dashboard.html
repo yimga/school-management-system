@@ -23,13 +23,14 @@
 {% include "components/platform_readiness_strip.html" with inline_field_prefix='money-center' tenant_label=request.tenant.display_name|default:'' %}
 {% include "components/apple_class_data_quality_meter.html" with meter_id="money-usage-meter" title=_("Usage Meter") value="68" status="external-required" status_label=_("PSP external") body=_("Entitlements, billing impact, PSP status, and manual fallback stay visible before upgrade or collection actions.") %}
 {% if finance_requests_count %}
-  <div class="alert alert-warning d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <strong>{{ finance_requests_count }} finance access request{% if finance_requests_count != 1 %}s{% endif %} pending</strong>
-      <div class="small text-muted">Handle guardian access requests without leaving the dashboard.</div>
+  <article class="insight-card warning mb-4" data-rmc-insight-card="1" data-rmc-insight-tone="warning">
+    <div class="ico" aria-hidden="true"><i class="bi bi-clock-history"></i></div>
+    <div class="insight-card__body" style="flex:1;min-width:0">
+      <h4 class="insight-card__title">{% blocktrans count counter=finance_requests_count %}{{ counter }} finance access request pending{% plural %}{{ counter }} finance access requests pending{% endblocktrans %}</h4>
+      <p class="insight-card__copy">{% trans "Handle guardian access requests without leaving the dashboard." %}</p>
+      <a class="btn btn-sm btn-outline-warning" href="{{ finance_request_link }}">{% trans "View inbox" %} <span aria-hidden="true">→</span></a>
     </div>
-    <a class="btn btn-sm btn-outline-dark" href="{{ finance_request_link }}">View inbox</a>
-  </div>
+  </article>
   {% if finance_request_notifications %}
     <div class="card shadow-sm mb-4">
       <div class="card-body">

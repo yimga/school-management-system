@@ -4,34 +4,46 @@
    to do. Use a typographic em-dash ("—") inline for unknown values; the headline
    row stays scannable instead of repeating "No data" four times.
    English label strings are now wrapped in {% trans %} for i18n parity. {% endcomment %}
-<div class="dashboard-card-grid dashboard-card-grid--dense mb-4">
+<section class="row g-3 mb-4" aria-label="{% trans 'Finance summary' %}">
   {% with summary=summary %}
-    <div class="card bg-gradient border-0 text-white" data-widget-id="finance-summary-receivables" style="background:linear-gradient(135deg,var(--school-primary),var(--school-accent));">
-      <div class="card-body">
-        <div class="text-white-50 small">{% trans "Accounts receivable" %}</div>
-        <div class="display-6 fw-bold">{{ summary.receivables|format_currency|default:"—" }}</div>
+    <div class="col-12 col-md-6 col-lg-3" data-shell-kpi="finance-summary-receivables" data-widget-id="finance-summary-receivables">
+      <div class="kpi">
+        <div class="d-flex align-items-start justify-content-between gap-2">
+          <span class="label">{% trans "Accounts receivable" %}</span>
+          <span class="kpi-icon" aria-hidden="true"><i class="bi bi-cash-coin"></i></span>
+        </div>
+        <div class="value" data-kpi-count="finance-receivables">{{ summary.receivables|format_currency|default:"—" }}</div>
       </div>
     </div>
-    <div class="card bg-light border-0 shadow-sm" data-widget-id="finance-summary-payables">
-      <div class="card-body">
-        <div class="text-muted small">{% trans "Accounts payable" %}</div>
-        <div class="display-6 fw-semibold">{{ summary.payables|format_currency|default:"—" }}</div>
+    <div class="col-12 col-md-6 col-lg-3" data-shell-kpi="finance-summary-payables" data-widget-id="finance-summary-payables">
+      <div class="kpi">
+        <div class="d-flex align-items-start justify-content-between gap-2">
+          <span class="label">{% trans "Accounts payable" %}</span>
+          <span class="kpi-icon" aria-hidden="true"><i class="bi bi-hourglass-split"></i></span>
+        </div>
+        <div class="value" data-kpi-count="finance-payables">{{ summary.payables|format_currency|default:"—" }}</div>
       </div>
     </div>
-    <div class="card bg-light border-0 shadow-sm" data-widget-id="finance-summary-paid">
-      <div class="card-body">
-        <div class="text-muted small">{% trans "Paid (YTD)" %}</div>
-        <div class="display-6 fw-semibold">{{ summary.paid|format_currency|default:"—" }}</div>
+    <div class="col-12 col-md-6 col-lg-3" data-shell-kpi="finance-summary-paid" data-widget-id="finance-summary-paid">
+      <div class="kpi">
+        <div class="d-flex align-items-start justify-content-between gap-2">
+          <span class="label">{% trans "Paid (YTD)" %}</span>
+          <span class="kpi-icon success" aria-hidden="true"><i class="bi bi-check2-circle"></i></span>
+        </div>
+        <div class="value" data-kpi-count="finance-paid">{{ summary.paid|format_currency|default:"—" }}</div>
       </div>
     </div>
-    <div class="card bg-light border-0 shadow-sm" data-widget-id="finance-summary-overdue">
-      <div class="card-body">
-        <div class="text-muted small">{% trans "Overdue invoices" %}</div>
-        <div class="display-6 fw-semibold">{{ summary.overdue|default_if_none:"—" }}</div>
+    <div class="col-12 col-md-6 col-lg-3" data-shell-kpi="finance-summary-overdue" data-widget-id="finance-summary-overdue">
+      <div class="kpi">
+        <div class="d-flex align-items-start justify-content-between gap-2">
+          <span class="label">{% trans "Overdue invoices" %}</span>
+          <span class="kpi-icon warn" aria-hidden="true"><i class="bi bi-clock-history"></i></span>
+        </div>
+        <div class="value" data-kpi-count="finance-overdue">{{ summary.overdue|default_if_none:"—" }}</div>
       </div>
     </div>
   {% endwith %}
-</div>
+</section>
 
 <div class="dashboard-card-grid dashboard-card-grid--charts mb-4">
   <div data-widget-id="finance-status-counts">
