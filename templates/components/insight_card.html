@@ -1,19 +1,29 @@
 {% load i18n %}
-<article class="card ds-card h-100 insight-card" data-rmc-insight-card="1" data-rmc-insight-tone="{{ tone|default:'neutral' }}">
-  <div class="card-body py-3">
-    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-      <h3 class="h6 mb-0">{{ title }}</h3>
-      {% if tone == "warning" %}
-      <span class="badge text-bg-warning text-dark">{% trans "Warning" %}</span>
-      {% elif tone == "success" %}
-      <span class="badge text-bg-success">{% trans "Healthy" %}</span>
-      {% elif tone == "danger" %}
-      <span class="badge text-bg-danger">{% trans "Urgent" %}</span>
-      {% else %}
-      <span class="badge text-bg-secondary">{% trans "Insight" %}</span>
-      {% endif %}
-    </div>
-    <p class="small text-muted mb-3">{{ explanation }}</p>
-    <a href="{{ action_url }}" class="btn btn-sm btn-primary ds-btn">{{ action_label }}</a>
+{# Insight card — preview-aligned. Patterns.css §12 already styles `.insight-card`
+   with a 14px radius card, --apple-elev-1 shadow, 14px gap flex layout, 3px left-border
+   tonal accent, and a tinted 40px icon chip. Tones (warning|danger|info) drive
+   border-color + icon chip tint + CTA button outline.
+   Parameter signature (backwards-compatible with the prior Bootstrap-card markup):
+     tone:         'warning' | 'danger' | 'info' | 'success' | 'neutral'  (default: info)
+     title:        string
+     explanation:  string
+     action_url:   url string (optional)
+     action_label: string (optional)
+     icon:         bootstrap-icons name without 'bi-' prefix (optional override) #}
+{% with t=tone|default:'info' %}
+<article class="insight-card {{ t }} h-100"
+         data-rmc-insight-card="1"
+         data-rmc-insight-tone="{{ t }}">
+  <div class="ico" aria-hidden="true">
+    <i class="bi {% if icon %}bi-{{ icon }}{% elif t == 'warning' %}bi-clock-history{% elif t == 'danger' %}bi-exclamation-octagon{% elif t == 'success' %}bi-check2-circle{% else %}bi-info-circle{% endif %}"></i>
+  </div>
+  <div class="insight-card__body" style="flex:1;min-width:0">
+    <h4 class="insight-card__title">{{ title }}</h4>
+    <p class="insight-card__copy">{{ explanation }}</p>
+    {% if action_url and action_label %}
+    <a href="{{ action_url }}"
+       class="btn btn-sm {% if t == 'warning' %}btn-outline-warning{% elif t == 'danger' %}btn-outline-danger{% elif t == 'success' %}btn-outline-success{% else %}btn-outline-primary{% endif %}">{{ action_label }} <span aria-hidden="true">→</span></a>
+    {% endif %}
   </div>
 </article>
+{% endwith %}

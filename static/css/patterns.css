@@ -592,6 +592,7 @@
 [data-rmc-aesthetic="v2"] .insight-card.warning { border-left-color: var(--ds-warning, #d97706); }
 [data-rmc-aesthetic="v2"] .insight-card.danger  { border-left-color: var(--ds-danger, #dc2626); }
 [data-rmc-aesthetic="v2"] .insight-card.info    { border-left-color: var(--school-primary); }
+[data-rmc-aesthetic="v2"] .insight-card.success { border-left-color: var(--ds-success, #16a34a); }
 [data-rmc-aesthetic="v2"] .insight-card .ico {
   width: 40px;
   height: 40px;
@@ -611,6 +612,10 @@
 [data-rmc-aesthetic="v2"] .insight-card.danger .ico {
   background: rgba(220, 38, 38, 0.12);
   color: var(--ds-danger, #dc2626);
+}
+[data-rmc-aesthetic="v2"] .insight-card.success .ico {
+  background: rgba(22, 163, 74, 0.12);
+  color: var(--ds-success, #16a34a);
 }
 [data-rmc-aesthetic="v2"] .insight-card h4 {
   font-size: 1rem;
