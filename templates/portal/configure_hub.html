@@ -1,0 +1,76 @@
+{% extends "portal_base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Configure" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3" data-page-archetype="settings-hub">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Configure" %}</h1>
+      <p class="text-tertiary mb-0">{% trans "Settings, branding, and policies for your school." %}</p>
+    </div>
+    {% include "components/rmc_shell_switcher.html" %}
+  </div>
+
+  <div class="rmc-settings-layout">
+    {# Left rail — Apple Settings-app pattern. #}
+    <aside class="rmc-settings-rail" aria-label="{% trans 'Settings categories' %}">
+      <form method="get" class="rmc-settings-search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input type="search" name="q" value="{{ search_q }}" placeholder="{% trans 'Search settings…' %}" aria-label="{% trans 'Search settings' %}">
+      </form>
+      <nav>
+        <ul class="rmc-settings-rail__list" role="list">
+          {% for c in categories %}
+            <li>
+              <a href="#cat-{{ c.slug }}" class="rmc-settings-rail__item{% if active_category == c.slug %} is-active{% endif %}" data-rmc-settings-cat="{{ c.slug }}">
+                <i class="bi {{ c.icon }}" aria-hidden="true"></i>
+                <span>{{ c.label }}</span>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </nav>
+    </aside>
+
+    {# Right content — each category is an anchor section with entries. #}
+    <main class="rmc-settings-pane" data-rmc-settings-pane="1">
+      {% for c in categories %}
+        <section id="cat-{{ c.slug }}" class="rmc-settings-section" data-rmc-section-anchor data-rmc-cat="{{ c.slug }}" data-rmc-search-target="{{ c.label }}">
+          <header class="rmc-settings-section__head">
+            <div class="rmc-settings-section__icon" aria-hidden="true">
+              <i class="bi {{ c.icon }}"></i>
+            </div>
+            <div>
+              <h2 class="rmc-settings-section__title">{{ c.label }}</h2>
+              <p class="rmc-settings-section__caption">{{ c.description }}</p>
+            </div>
+          </header>
+          <div class="rmc-settings-entries">
+            {% for e in c.entries %}
+              <a class="rmc-settings-entry" href="{{ e.url }}" data-rmc-search-text="{{ e.label }} {{ e.description }} {{ e.keywords }}">
+                <span class="rmc-settings-entry__icon" aria-hidden="true">
+                  <i class="bi {{ e.icon }}"></i>
+                </span>
+                <span class="rmc-settings-entry__body">
+                  <span class="rmc-settings-entry__label">{{ e.label }}</span>
+                  <span class="rmc-settings-entry__desc">{{ e.description }}</span>
+                </span>
+                <i class="bi bi-chevron-right rmc-settings-entry__chev" aria-hidden="true"></i>
+              </a>
+            {% endfor %}
+          </div>
+        </section>
+      {% empty %}
+        {% include "components/rmc_empty_state.html" with
+           icon="bi-sliders"
+           title=_("No configuration available")|stringformat:"s"
+           message=_("Your plan does not expose tenant-level configuration. Contact your account manager.")|stringformat:"s" %}
+      {% endfor %}
+    </main>
+  </div>
+</div>
+
+<script src="{% static 'js/rmc-settings-search.js' %}" defer></script>
+{% endblock %}

@@ -66,6 +66,13 @@ RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES: tuple[str, ...] = (
     "footer_bg_color",
     "theme_brightness",
     "theme_harmony",
+    # Theme system v2 (2026-05-12, Phase J end-to-end): tenant-configurable
+    # single-accent gradient + warm-graphite alternate palette.
+    "brand_gradient_end",
+    "brand_gradient_angle",
+    "neutral_palette",
+    # 2026-05-12 carried-forward: companion dark logo for `[data-resolved-theme="dark"]`.
+    "site_logo_dark_url",
     "grade_approval_enabled",
     "grade_approval_auto_validate",
     "enable_practical_assessment",
@@ -153,6 +160,11 @@ RUNTIME_DEFAULTS_FIRST_CLASS_STRING_FIELD_NAMES: frozenset[str] = frozenset(
         "footer_bg_color",
         "theme_brightness",
         "theme_harmony",
+        # Theme system v2 (2026-05-12, Phase J end-to-end).
+        "brand_gradient_end",
+        "brand_gradient_angle",
+        "neutral_palette",
+        "site_logo_dark_url",
         "theme_pack",
         "admin_theme_pack",
         "teacher_theme_pack",

@@ -44,22 +44,9 @@
 
     sidebar.addEventListener("keydown", handleKeydown);
 
-    // Ctrl+K / Cmd+K: Focus sidebar search input
-    document.addEventListener("keydown", function (e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
-        e.preventDefault();
-        // Try Unfold search input first, then our nav-filter
-        var searchInput =
-          sidebar.querySelector('input[type="search"]') ||
-          sidebar.querySelector('input[name="q"]') ||
-          sidebar.querySelector("#nav-filter") ||
-          document.querySelector('[data-action="search"] input');
-        if (searchInput) {
-          searchInput.focus();
-          searchInput.select();
-        }
-      }
-    });
+    // Ctrl+K / Cmd+K retired 2026-05-12 — that shortcut is now owned by the
+    // platform-wide rmc-command-palette.js (.rmc-cmdk). Sidebar search is still
+    // reachable by clicking the search input or via the palette.
   }
 
   if (document.readyState === "loading") {

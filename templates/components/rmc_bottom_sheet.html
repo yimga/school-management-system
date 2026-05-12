@@ -1,0 +1,29 @@
+{% load i18n %}
+{# Bottom sheet partial. Mobile-first: slides up from bottom edge, drag-to-
+   dismiss via rmc-bottom-sheet.js. Falls back to centered modal on tablet+.
+
+   Usage:
+     {% include "components/rmc_bottom_sheet.html" with sheet_id="export-options" sheet_title=_("Export options") %}
+       (caller passes the body via the `sheet_body` block variable through
+       {% include ... only %} or via a wrapping template that supplies it).
+
+   Open from any trigger:
+     <button onclick="document.getElementById('export-options').showModal()">…</button>
+
+   Close via:
+     - tap backdrop
+     - tap × button (data-rmc-sheet-close)
+     - swipe down past 30% of height (mobile)
+     - Escape key (native <dialog> behavior) #}
+<dialog class="rmc-sheet" id="{{ sheet_id }}"{% if sheet_aria_label %} aria-label="{{ sheet_aria_label }}"{% endif %}>
+  <div class="rmc-sheet__handle" aria-hidden="true"></div>
+  {% if sheet_title or sheet_close_label %}
+    <header class="rmc-sheet__header">
+      {% if sheet_title %}<h3 class="rmc-sheet__title">{{ sheet_title }}</h3>{% endif %}
+      <button class="rmc-sheet__close" type="button" aria-label="{{ sheet_close_label|default:_('Close') }}" data-rmc-sheet-close>&times;</button>
+    </header>
+  {% endif %}
+  <div class="rmc-sheet__body">
+    {{ sheet_body|safe }}
+  </div>
+</dialog>

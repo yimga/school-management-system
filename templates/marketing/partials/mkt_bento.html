@@ -1,0 +1,70 @@
+{% load i18n %}
+{# Marketing Bento grid — Apple-style mixed-tile composition.
+
+   Render with:
+     {% include "marketing/partials/mkt_bento.html" with bento=bento %}
+
+   Where `bento` is a dict:
+     {
+       "eyebrow": "What you get",                 # optional
+       "headline": "Built for the whole school.", # required
+       "lead": "One quiet system, …",             # optional
+       "cells": [
+         {
+           "size": "lg" | "md" | "sm" | "wide" | "tall",  # CSS-grid span
+           "eyebrow": "Admissions",               # optional
+           "title": "Apply once, enrol everywhere.",
+           "body": "…",                           # optional rich text
+           "metric": {"value": "94%", "label": "fees collected by week 3"},  # optional
+           "artifact": "schools/_v2/_artifact_finance_dashboard.svg.html",   # optional SVG include
+           "tone": "default|warm|sand|ink",       # optional surface tone
+           "href": "{% url 'marketing_platform' %}",  # optional CTA
+           "cta": "See it live",                  # optional CTA label
+         },
+         …
+       ],
+     }
+
+   Cells without an explicit `size` flow at "md" (2-col span on desktop, full on mobile).
+   The grid uses CSS Grid `grid-template-areas` so order in `cells` determines reading flow.
+   Honors prefers-reduced-motion via no transform on hover. #}
+<section class="mkt-edt-section mkt-bento-section" {% if bento.aria_label_id %}aria-labelledby="{{ bento.aria_label_id }}"{% endif %} data-mkt-reveal>
+  <div class="mkt-edt-container">
+    {% if bento.eyebrow or bento.headline or bento.lead %}
+      <header class="mkt-bento__intro">
+        {% if bento.eyebrow %}<p class="mkt-edt-eyebrow">{{ bento.eyebrow }}</p>{% endif %}
+        {% if bento.headline %}<h2 id="{{ bento.aria_label_id|default:'bento-headline' }}" class="mkt-edt-section-headline">{{ bento.headline }}</h2>{% endif %}
+        {% if bento.lead %}<p class="mkt-edt-lead">{{ bento.lead }}</p>{% endif %}
+      </header>
+    {% endif %}
+
+    <ul class="mkt-bento" data-mkt-reveal-stagger role="list">
+      {% for cell in bento.cells %}
+        <li class="mkt-bento__cell mkt-bento__cell--{{ cell.size|default:'md' }}{% if cell.tone %} mkt-bento__cell--{{ cell.tone }}{% endif %}{% if cell.artifact %} mkt-bento__cell--has-artifact{% endif %}"{% if cell.aria_label %} aria-label="{{ cell.aria_label }}"{% endif %}>
+          {% if cell.eyebrow %}<p class="mkt-bento__eyebrow mkt-edt-eyebrow">{{ cell.eyebrow }}</p>{% endif %}
+          {% if cell.title %}<h3 class="mkt-bento__title">{{ cell.title }}</h3>{% endif %}
+          {% if cell.body %}<p class="mkt-bento__body">{{ cell.body }}</p>{% endif %}
+          {% if cell.metric %}
+            <div class="mkt-bento__metric">
+              <span class="mkt-bento__metric-value">{{ cell.metric.value }}</span>
+              <span class="mkt-bento__metric-label">{{ cell.metric.label }}</span>
+            </div>
+          {% endif %}
+          {% if cell.artifact %}
+            <div class="mkt-bento__artifact" aria-hidden="true">
+              {% include cell.artifact %}
+            </div>
+          {% endif %}
+          {% if cell.href and cell.cta %}
+            <a href="{{ cell.href }}" class="mkt-bento__cta" data-mkt-tactile{% if cell.data_cta %} data-cta="{{ cell.data_cta }}"{% endif %}{% if cell.data_page %} data-page="{{ cell.data_page }}"{% endif %}>
+              {{ cell.cta }}
+              <svg class="mkt-bento__cta-arrow" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 7h8m-3-3 3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>

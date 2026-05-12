@@ -1056,6 +1056,11 @@ class SiteSettings(models.Model):
                 "secondary_font",
                 "use_secondary_font_for_headings",
                 "theme_harmony",
+                # Theme system v2 (2026-05-12).
+                "brand_gradient_end",
+                "brand_gradient_angle",
+                "neutral_palette",
+                "site_logo_dark_url",
                 "base_font_size",
             ),
         )

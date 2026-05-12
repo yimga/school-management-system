@@ -1,0 +1,1349 @@
+/**
+ * RunMyCampus long-page grammar — Phase G + K (2026-05-12).
+ *
+ * Platform-wide primitives for taming long, endless pages:
+ *   1. .rmc-cmdk            — ⌘K command palette (Apple Spotlight feel)
+ *   2. .rmc-section-nav     — sticky left-rail anchor nav for long pages
+ *   3. .rmc-collapse        — progressive-disclosure section with chevron
+ *   4. .rmc-shell-switcher  — Console / Configure pill (tenant URL grammar)
+ *   5. .rmc-data-table      — canonical table grammar (hairline + tabular + sticky)
+ *   6. .rmc-skeleton        — Apple-style shimmering skeleton loaders
+ *   7. .rmc-empty           — empty-state grammar (illustration + teach + CTA)
+ *
+ * All consume Apple semantic surface tokens so light/dark cascades cleanly.
+ */
+
+/* ===== 1. Command palette ============================================== */
+.rmc-cmdk {
+  position: fixed;
+  inset: 0;
+  z-index: 2080;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: clamp(4rem, 12vh, 9rem);
+}
+.rmc-cmdk[hidden] { display: none; }
+.rmc-cmdk__backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklab, var(--surface-bg) 70%, transparent);
+  -webkit-backdrop-filter: var(--material-blur-strong, saturate(180%) blur(28px));
+  backdrop-filter: var(--material-blur-strong, saturate(180%) blur(28px));
+}
+.rmc-cmdk__panel {
+  position: relative;
+  width: min(640px, 92vw);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-popover, var(--surface-elevated));
+  color: var(--text-primary);
+  border-radius: var(--radius-lg, 16px);
+  border: var(--border-width-hairline, 0.5px) solid var(--hairline);
+  box-shadow: var(--elev-3);
+  -webkit-backdrop-filter: var(--material-blur);
+  backdrop-filter: var(--material-blur);
+  overflow: hidden;
+  animation: rmc-cmdk-rise var(--motion-normal, 220ms) cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes rmc-cmdk-rise {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+.rmc-cmdk__inputbar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-bottom: var(--border-width-hairline, 0.5px) solid var(--hairline);
+}
+.rmc-cmdk__icon { font-size: 1.1rem; color: var(--text-tertiary); }
+.rmc-cmdk__input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  font-family: var(--portal-font);
+  padding: 0.15rem 0;
+}
+.rmc-cmdk__input::placeholder { color: var(--text-tertiary); }
+.rmc-cmdk__kbd-hint {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.45rem;
+  background: var(--surface-overlay);
+  color: var(--text-tertiary);
+  border-radius: var(--radius-sm);
+  border: var(--border-width-hairline) solid var(--hairline);
+}
+.rmc-cmdk__list {
+  list-style: none;
+  margin: 0;
+  padding: 0.35rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+.rmc-cmdk__item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--radius-sm, 8px);
+  cursor: pointer;
+  color: var(--text-primary);
+}
+.rmc-cmdk__item.is-active,
+.rmc-cmdk__item:hover {
+  background: var(--surface-overlay);
+}
+.rmc-cmdk__item.is-active {
+  background: color-mix(in oklab, var(--school-primary) 12%, transparent);
+}
+.rmc-cmdk__item-icon {
+  font-size: 1rem;
+  color: var(--text-tertiary);
+  width: 1.25rem;
+  text-align: center;
+}
+.rmc-cmdk__item.is-active .rmc-cmdk__item-icon { color: var(--school-primary); }
+.rmc-cmdk__item-label { flex: 1; }
+.rmc-cmdk__item-group {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.rmc-cmdk__empty {
+  padding: 1rem;
+  color: var(--text-tertiary);
+  text-align: center;
+  font-size: 0.9rem;
+}
+.rmc-cmdk__footer {
+  display: flex;
+  gap: 1rem;
+  padding: 0.55rem 1rem;
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  border-top: var(--border-width-hairline, 0.5px) solid var(--hairline);
+  background: var(--surface-overlay);
+}
+.rmc-cmdk__hint kbd {
+  background: var(--surface-elevated);
+  border: var(--border-width-hairline) solid var(--hairline);
+  border-radius: 4px;
+  padding: 0.05rem 0.35rem;
+  margin: 0 0.15rem;
+  font-family: ui-monospace, "Cascadia Code", "SF Mono", monospace;
+  font-size: 0.7rem;
+}
+body.rmc-cmdk-open { overflow: hidden; }
+
+/* ===== 2. Sticky section nav ========================================== */
+.rmc-section-nav {
+  position: sticky;
+  top: calc(var(--rmc-shell-rhythm-y, 1rem) + 48px);
+  align-self: start;
+  padding: 0.65rem;
+  background: var(--surface-elevated);
+  border: var(--border-width-hairline, 0.5px) solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  box-shadow: var(--elev-1);
+  max-height: calc(100vh - 7rem);
+  overflow-y: auto;
+}
+.rmc-section-nav__label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  padding: 0.3rem 0.5rem;
+}
+.rmc-section-nav__list { list-style: none; margin: 0; padding: 0; }
+.rmc-section-nav__list a {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-sm, 8px);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+.rmc-section-nav__list a:hover {
+  background: var(--surface-overlay);
+  color: var(--text-primary);
+}
+.rmc-section-nav__list a.is-active {
+  background: color-mix(in oklab, var(--school-primary) 12%, transparent);
+  color: var(--school-primary);
+  font-weight: 600;
+}
+.rmc-section-nav__list a i { color: var(--text-tertiary); width: 1.1rem; }
+.rmc-section-nav__list a.is-active i { color: var(--school-primary); }
+
+/* ===== 3. Progressive-disclosure collapse ============================== */
+.rmc-collapse {
+  background: var(--surface-elevated);
+  border: var(--border-width-hairline) solid var(--hairline);
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+.rmc-collapse > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  user-select: none;
+}
+.rmc-collapse > summary::-webkit-details-marker { display: none; }
+.rmc-collapse > summary::after {
+  content: "";
+  margin-left: auto;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-right: 1.5px solid var(--text-tertiary);
+  border-bottom: 1.5px solid var(--text-tertiary);
+  transform: rotate(-45deg);
+  transition: transform var(--motion-normal);
+}
+.rmc-collapse[open] > summary::after { transform: rotate(45deg); }
+.rmc-collapse > .rmc-collapse__body {
+  padding: 0 1rem 1rem;
+  border-top: var(--border-width-hairline) solid var(--hairline);
+  margin-top: 0;
+  padding-top: 1rem;
+}
+
+/* ===== 4. Console / Configure shell switcher =========================== */
+.rmc-shell-switcher {
+  display: inline-flex;
+  gap: 0.1rem;
+  padding: 0.2rem;
+  background: var(--surface-overlay);
+  border-radius: var(--radius-pill, 999px);
+  border: var(--border-width-hairline) solid var(--hairline);
+}
+.rmc-shell-switcher__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border: 0;
+  background: transparent;
+  text-decoration: none;
+  transition: background var(--motion-fast), color var(--motion-fast);
+  min-height: 32px;
+}
+.rmc-shell-switcher__btn:hover { background: var(--surface-overlay); color: var(--text-primary); }
+.rmc-shell-switcher__btn.is-active {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  box-shadow: var(--elev-1);
+}
+
+/* Mobile: section nav becomes a horizontal scroll strip under the page header */
+@media (max-width: 991.98px) {
+  .rmc-section-nav {
+    position: static;
+    max-height: none;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+  }
+  .rmc-section-nav__list {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: nowrap;
+  }
+  .rmc-section-nav__list a { white-space: nowrap; }
+}
+
+/* ===== 5. Data table grammar (.rmc-data-table) ========================
+   Apple Numbers / Linear-tier table:
+     - hairline grid only (no chunky borders)
+     - tabular-nums on numeric columns
+     - zebra at 2% opacity
+     - sticky header on vertical scroll
+     - row hover at 4% surface-overlay
+     - density toggle via [data-density="condensed"]
+   Adopt via: <table class="rmc-data-table">…</table>
+   For numeric cells: <td class="num">123.45</td> (tabular nums + right-align)
+   ====================================================================== */
+/* Bridge: existing .gradebook-table markup auto-adopts the new grammar so the
+   six templates (evaluation_admin, marks_entry, marks_list, grade_approval_detail,
+   master_sheet, at_risk_dashboard) get the upgrade without per-template edits. */
+.rmc-data-table,
+.gradebook-table.table-family,
+.gradebook-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--surface-elevated);
+  border: var(--border-width-hairline, 0.5px) solid var(--hairline);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "cv11" 1;
+}
+.rmc-data-table thead th,
+.gradebook-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-canvas);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.65rem 0.85rem;
+  text-align: left;
+  border-bottom: var(--border-width-hairline) solid var(--hairline);
+  white-space: nowrap;
+  -webkit-backdrop-filter: var(--material-blur);
+  backdrop-filter: var(--material-blur);
+}
+.rmc-data-table tbody td,
+.gradebook-table tbody td {
+  padding: 0.65rem 0.85rem;
+  border-bottom: var(--border-width-hairline) solid var(--hairline);
+  vertical-align: middle;
+  color: var(--text-primary);
+}
+.rmc-data-table tbody tr:last-child td,
+.gradebook-table tbody tr:last-child td { border-bottom: 0; }
+.rmc-data-table tbody tr:nth-child(even) td,
+.gradebook-table tbody tr:nth-child(even) td {
+  background: color-mix(in oklab, var(--text-primary) 2%, transparent);
+}
+.rmc-data-table tbody tr:hover td,
+.gradebook-table tbody tr:hover td {
+  background: var(--surface-overlay);
+}
+.rmc-data-table .num,
+.rmc-data-table td.num,
+.rmc-data-table th.num,
+.gradebook-table .num,
+.gradebook-table td.num,
+.gradebook-table th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+  font-size: 0.86rem;
+}
+.rmc-data-table .currency {
+  font-family: ui-monospace, "SF Mono", monospace;
+  white-space: nowrap;
+}
+.rmc-data-table .cell-muted { color: var(--text-tertiary); }
+.rmc-data-table .cell-success { color: var(--ds-success); font-weight: 600; }
+.rmc-data-table .cell-warning { color: var(--ds-warning); font-weight: 600; }
+.rmc-data-table .cell-fail,
+.rmc-data-table .cell-danger { color: var(--ds-danger); font-weight: 600; }
+
+/* Density toggle: `condensed` halves vertical padding. */
+.rmc-data-table[data-density="condensed"] thead th,
+.rmc-data-table[data-density="condensed"] tbody td { padding: 0.35rem 0.7rem; font-size: 0.85rem; }
+.rmc-data-table[data-density="expanded"] thead th,
+.rmc-data-table[data-density="expanded"] tbody td { padding: 0.95rem 1rem; }
+
+/* Wrapper that gives the table its sticky-header scroll region. */
+.rmc-data-table-wrap {
+  max-height: var(--rmc-table-max-height, 70vh);
+  overflow: auto;
+  border-radius: var(--radius-md);
+  border: var(--border-width-hairline) solid var(--hairline);
+  background: var(--surface-elevated);
+}
+.rmc-data-table-wrap > .rmc-data-table { border: 0; border-radius: 0; }
+
+/* Inline density toggle pill. Bridges legacy `.table-density-toggle` markup. */
+.rmc-table-density-toggle,
+.table-density-toggle.btn-group {
+  display: inline-flex;
+  padding: 0.15rem;
+  gap: 0.1rem;
+  background: var(--surface-overlay);
+  border-radius: var(--radius-pill);
+  border: var(--border-width-hairline) solid var(--hairline);
+}
+.rmc-table-density-toggle .btn,
+.table-density-toggle.btn-group .btn {
+  padding: 0.3rem 0.7rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  background: transparent;
+  color: var(--text-secondary);
+}
+.rmc-table-density-toggle .btn.active,
+.rmc-table-density-toggle .btn[aria-pressed="true"],
+.table-density-toggle.btn-group .btn.active,
+.table-density-toggle.btn-group .btn[aria-pressed="true"] {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  box-shadow: var(--elev-1);
+}
+
+/* ===== 6. Skeleton shimmer ============================================ */
+.rmc-skeleton {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    var(--surface-overlay) 0%,
+    color-mix(in oklab, var(--text-primary) 8%, transparent) 50%,
+    var(--surface-overlay) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: var(--radius-sm);
+  animation: rmc-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+.rmc-skeleton--text { height: 0.85em; margin: 0.25em 0; }
+.rmc-skeleton--title { height: 1.4em; width: 60%; }
+.rmc-skeleton--line { height: 0.75em; }
+.rmc-skeleton--avatar { width: 40px; height: 40px; border-radius: 50%; }
+.rmc-skeleton--button { height: 36px; width: 100px; border-radius: var(--radius-pill); }
+.rmc-skeleton--card { height: 120px; width: 100%; }
+@keyframes rmc-skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rmc-skeleton { animation: none; opacity: 0.8; }
+}
+
+/* ===== 7. Empty state. Bridge for legacy `.dashboard-empty-state`. =====
+   Existing templates with `<div class="dashboard-empty-state">…</div>` auto-upgrade. */
+.rmc-empty,
+.dashboard-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: clamp(2rem, 6vw, 3.5rem) 1rem;
+  text-align: center;
+  background: var(--surface-elevated);
+  border: var(--border-width-hairline) solid var(--hairline);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+}
+.rmc-empty__icon,
+.dashboard-empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-overlay);
+  color: var(--school-primary);
+  font-size: 1.6rem;
+}
+.rmc-empty__title,
+.dashboard-empty-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.005em;
+}
+.rmc-empty__message,
+.dashboard-empty-message {
+  margin: 0;
+  max-width: 36ch;
+  color: var(--text-tertiary);
+  font-size: 0.92rem;
+}
+.rmc-empty__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 0.25rem;
+}
+
+/* v2.6 (2026-05-12): empty-state size variants for compact contexts.
+
+   `.rmc-empty--compact`  — half the vertical padding, smaller icon. For cards
+                            inside a dashboard grid (don't overshadow neighbors).
+   `.rmc-empty--inline`   — horizontal row layout. For places where vertical
+                            space is precious (sidebar widgets, narrow lanes).
+   `.rmc-empty--row`      — fits inside a `<td colspan="N">` cell so empty
+                            tables don't need restructuring; same look as
+                            `.rmc-empty` but without the card border (the
+                            <table> already has one). */
+.rmc-empty--compact {
+  padding: clamp(1rem, 3vw, 1.5rem) 1rem;
+  gap: 0.5rem;
+}
+.rmc-empty--compact .rmc-empty__icon { width: 40px; height: 40px; font-size: 1.2rem; }
+.rmc-empty--compact .rmc-empty__title { font-size: 0.95rem; }
+.rmc-empty--compact .rmc-empty__message { font-size: 0.85rem; }
+
+.rmc-empty--inline {
+  flex-direction: row;
+  text-align: left;
+  padding: 0.85rem 1rem;
+  gap: 0.85rem;
+  align-items: center;
+  justify-content: flex-start;
+}
+.rmc-empty--inline .rmc-empty__icon { width: 36px; height: 36px; font-size: 1.05rem; flex: 0 0 auto; }
+.rmc-empty--inline .rmc-empty__title { font-size: 0.95rem; text-align: left; }
+.rmc-empty--inline .rmc-empty__message { font-size: 0.85rem; max-width: none; text-align: left; }
+.rmc-empty--inline .rmc-empty__body { display: flex; flex-direction: column; gap: 0.1rem; flex: 1 1 auto; min-width: 0; }
+
+.rmc-empty--row {
+  background: transparent;
+  border: 0;
+  padding: 1.5rem 1rem;
+  gap: 0.5rem;
+}
+
+/* iPad split-view (834px and below) — keep sticky nav usable as a strip.
+   This is the school-administrator-on-iPad sweet spot. Apple split-view
+   collapses the iPad to ~507pt which is narrower than mobile expectations. */
+@media (max-width: 834px) {
+  .rmc-section-nav { position: static; max-height: none; margin-bottom: 0.75rem; }
+  .rmc-cmdk__panel { width: min(720px, calc(100vw - 1rem)); }
+  .rmc-cmdk { padding-top: clamp(2rem, 8vh, 5rem); }
+  .rmc-data-table thead th, .rmc-data-table tbody td { padding: 0.5rem 0.65rem; font-size: 0.85rem; }
+  .gradebook-table thead th, .gradebook-table tbody td { padding: 0.5rem 0.65rem; font-size: 0.85rem; }
+  .rmc-shell-switcher__btn span { display: none; }
+  .user-dropdown-trigger .user-info { display: none; }
+  .user-dropdown-trigger .dropdown-arrow { display: none; }
+  /* AI copilot floating button lifts above safe-area + bottom toolbar */
+  .ai-copilot-wrapper {
+    right: max(12px, env(safe-area-inset-right)) !important;
+    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+  }
+  .ai-copilot-panel {
+    width: min(420px, calc(100vw - 1.5rem)) !important;
+    max-width: calc(100vw - 1.5rem) !important;
+  }
+  /* Control-plane navbar gets a tighter, single-row action bar */
+  .cp-navbar .cp-header-search { display: none !important; }
+  .cp-navbar .btn .d-lg-inline,
+  .admin-cp-navbar-unified .btn .d-lg-inline { display: none !important; }
+}
+
+/* ===== Settings hub (Phase U, 2026-05-12) =========================================
+   Apple Settings-app pattern: left rail of categories + right pane with entries.
+   Each entry is a clickable row with icon + label + description + chevron. */
+.rmc-settings-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 1.25rem;
+}
+.rmc-settings-rail {
+  position: sticky;
+  top: 80px;
+  align-self: start;
+  background: var(--surface-elevated);
+  border: var(--border-width-hairline) solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: 0.6rem;
+  max-height: calc(100vh - 6rem);
+  overflow-y: auto;
+}
+.rmc-settings-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.55rem;
+  border: var(--border-width-hairline) solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface-canvas);
+  margin-bottom: 0.5rem;
+}
+.rmc-settings-search input {
+  border: 0;
+  background: transparent;
+  outline: 0;
+  width: 100%;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+.rmc-settings-search input::placeholder { color: var(--text-tertiary); }
+.rmc-settings-search i { color: var(--text-tertiary); }
+.rmc-settings-rail__list { list-style: none; margin: 0; padding: 0; }
+.rmc-settings-rail__item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.92rem;
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+.rmc-settings-rail__item:hover { background: var(--surface-overlay); color: var(--text-primary); }
+.rmc-settings-rail__item.is-active {
+  background: color-mix(in oklab, var(--school-primary) 12%, transparent);
+  color: var(--school-primary);
+  font-weight: 600;
+}
+.rmc-settings-rail__item i { width: 1.2rem; color: var(--text-tertiary); }
+.rmc-settings-rail__item.is-active i { color: var(--school-primary); }
+
+.rmc-settings-pane { display: flex; flex-direction: column; gap: 1.25rem; }
+.rmc-settings-section {
+  background: var(--surface-elevated);
+  border: var(--border-width-hairline) solid var(--hairline);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.rmc-settings-section__head {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem 1.1rem;
+  border-bottom: var(--border-width-hairline) solid var(--hairline);
+  background: var(--surface-canvas);
+}
+.rmc-settings-section__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklab, var(--school-primary) 12%, transparent);
+  color: var(--school-primary);
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+.rmc-settings-section__title { margin: 0 0 0.1rem; font-size: 1.05rem; font-weight: 600; letter-spacing: -0.005em; }
+.rmc-settings-section__caption { margin: 0; color: var(--text-tertiary); font-size: 0.88rem; }
+
+.rmc-settings-entries { display: flex; flex-direction: column; }
+.rmc-settings-entry {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1.1rem;
+  text-decoration: none;
+  color: var(--text-primary);
+  border-bottom: var(--border-width-hairline) solid var(--hairline);
+  transition: background var(--motion-fast);
+}
+.rmc-settings-entry:last-child { border-bottom: 0; }
+.rmc-settings-entry:hover { background: var(--surface-overlay); }
+.rmc-settings-entry.is-hidden { display: none; }
+.rmc-settings-entry__icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-overlay);
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+.rmc-settings-entry__body { display: flex; flex-direction: column; min-width: 0; }
+.rmc-settings-entry__label { font-weight: 600; }
+.rmc-settings-entry__desc { color: var(--text-tertiary); font-size: 0.85rem; }
+.rmc-settings-entry__chev { color: var(--text-tertiary); font-size: 0.85rem; }
+
+@media (max-width: 991.98px) {
+  .rmc-settings-layout { grid-template-columns: 1fr; }
+  .rmc-settings-rail { position: static; max-height: none; }
+  .rmc-settings-rail__list { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .rmc-settings-rail__item { white-space: nowrap; }
+}
+
+/* ===== Spring-physics success checkmark (Phase W, 2026-05-12) =====================
+   Apple-style "success" moment. Drop in after a successful save / submit / payment.
+   Markup:
+     <div class="rmc-check rmc-check--xl" role="img" aria-label="Saved">
+       <svg viewBox="0 0 52 52" class="rmc-check__svg" aria-hidden="true">
+         <circle cx="26" cy="26" r="24" class="rmc-check__circle" />
+         <path d="M14 27 l8 8 l16 -16" class="rmc-check__mark" />
+       </svg>
+     </div>
+   ================================================================================ */
+.rmc-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--ds-success) 12%, transparent);
+}
+.rmc-check--sm { width: 32px; height: 32px; }
+.rmc-check--lg { width: 80px; height: 80px; }
+.rmc-check--xl { width: 112px; height: 112px; }
+
+.rmc-check__svg { width: 65%; height: 65%; }
+.rmc-check__circle {
+  fill: none;
+  stroke: var(--ds-success);
+  stroke-width: 3;
+  stroke-dasharray: 160;
+  stroke-dashoffset: 160;
+  animation: rmc-check-circle 600ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform-origin: center;
+}
+.rmc-check__mark {
+  fill: none;
+  stroke: var(--ds-success);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: rmc-check-mark 380ms cubic-bezier(0.34, 1.56, 0.64, 1) 380ms forwards;
+}
+@keyframes rmc-check-circle {
+  0%   { stroke-dashoffset: 160; opacity: 0; }
+  60%  { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+@keyframes rmc-check-mark {
+  0%   { stroke-dashoffset: 48; transform: scale(0.85); }
+  60%  { transform: scale(1.1); }
+  100% { stroke-dashoffset: 0; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rmc-check__circle, .rmc-check__mark { animation: none; stroke-dashoffset: 0; }
+}
+
+/* Phone (< 575px) — even tighter. Toasts span width. */
+@media (max-width: 575.98px) {
+  .toast-container {
+    top: max(60px, env(safe-area-inset-top)) !important;
+    right: 12px !important;
+    left: 12px;
+  }
+  .toast-notification {
+    min-width: 0 !important;
+    max-width: none !important;
+    width: 100%;
+  }
+  .rmc-cmdk__panel { width: 100vw; border-radius: 0; max-height: 100vh; }
+  .rmc-cmdk { padding-top: 0; align-items: stretch; }
+}
+
+/* ===== Motion vocabulary helpers (Phase M, 2026-05-12) ============================
+   Three named transition tiers (use these — never inline `transition: all 0.2s ease`):
+     .rmc-t-fast    150ms — hover/press feedback
+     .rmc-t-normal  220ms — popovers, dropdowns
+     .rmc-t-slow    360ms — drawers, modal entry
+   Reusable keyframes:
+     .rmc-anim-rise — popovers, palette, dropdowns
+     .rmc-anim-slide-in — drawers, side panels
+     .rmc-anim-fade — toasts, banners
+     .rmc-anim-spring — success check / pop
+   prefers-reduced-motion neutralizes ALL of them.
+   ================================================================================= */
+.rmc-t-fast    { transition: all var(--motion-fast); }
+.rmc-t-normal  { transition: all var(--motion-normal); }
+.rmc-t-slow    { transition: all var(--motion-slow); }
+.rmc-t-color   { transition: color var(--motion-fast), background-color var(--motion-fast); }
+.rmc-t-shadow  { transition: box-shadow var(--motion-normal), transform var(--motion-fast); }
+.rmc-press     { transition: transform var(--motion-fast); }
+.rmc-press:active { transform: scale(0.97); }
+
+/* Improvement E (2026-05-12): platform-wide Apple-style press feedback on every
+   .btn so clicks feel tactile across portal/control-plane/admin. Excluded for
+   .btn-link (no transform — they sit inside nav rows) and .btn-close (modal X). */
+.btn:not(.btn-link):not(.btn-close):not(.dropdown-toggle-split) {
+  transition: transform var(--motion-fast, 150ms),
+              background-color var(--motion-fast, 150ms),
+              border-color var(--motion-fast, 150ms),
+              box-shadow var(--motion-fast, 150ms),
+              color var(--motion-fast, 150ms);
+}
+.btn:not(.btn-link):not(.btn-close):not(.dropdown-toggle-split):active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn:active { transform: none !important; }
+}
+
+@keyframes rmc-anim-rise {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes rmc-anim-slide-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes rmc-anim-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes rmc-anim-spring {
+  0%   { transform: scale(0.5); opacity: 0; }
+  60%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.rmc-anim-rise     { animation: rmc-anim-rise var(--motion-normal) cubic-bezier(0.22, 1, 0.36, 1); }
+.rmc-anim-slide-in { animation: rmc-anim-slide-in var(--motion-normal) cubic-bezier(0.22, 1, 0.36, 1); }
+.rmc-anim-fade     { animation: rmc-anim-fade var(--motion-normal) ease-out; }
+.rmc-anim-spring   { animation: rmc-anim-spring var(--motion-spring); }
+
+/* Reduced-motion: respect user preference globally. Animations end up as a 1ms
+   crossfade so the page still reflects the new state but doesn't move. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===== Avatar / identity (Phase N, 2026-05-12) =====================================
+   Deterministic gradient seeded from user id/name, initials fallback, photo when
+   present, optional status ring (active/away/offline). Used in user_dropdown, comms,
+   gradebook, parent-student rosters. Driven by rmc-avatar-seed.js for the gradient
+   pick — JS-free fallback uses the school-primary→school-accent default. */
+.rmc-avatar {
+  --rmc-avatar-size: 40px;
+  --rmc-avatar-grad-from: var(--school-primary);
+  --rmc-avatar-grad-to: var(--school-accent);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--rmc-avatar-size);
+  height: var(--rmc-avatar-size);
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--rmc-avatar-grad-from), var(--rmc-avatar-grad-to));
+  color: var(--text-on-brand, #ffffff);
+  font-weight: 600;
+  font-size: calc(var(--rmc-avatar-size) * 0.38);
+  letter-spacing: 0.02em;
+  line-height: 1;
+  user-select: none;
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.18), 0 1px 2px rgba(15, 23, 42, 0.18);
+}
+.rmc-avatar__img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rmc-avatar__initials { font-variant-caps: small-caps; }
+
+/* Size shortcuts so consumers can drop in pre-baked dimensions */
+.rmc-avatar--24 { --rmc-avatar-size: 24px; }
+.rmc-avatar--28 { --rmc-avatar-size: 28px; }
+.rmc-avatar--32 { --rmc-avatar-size: 32px; }
+.rmc-avatar--40 { --rmc-avatar-size: 40px; }
+.rmc-avatar--48 { --rmc-avatar-size: 48px; }
+.rmc-avatar--64 { --rmc-avatar-size: 64px; }
+.rmc-avatar--80 { --rmc-avatar-size: 80px; }
+.rmc-avatar--96 { --rmc-avatar-size: 96px; }
+.rmc-avatar--128 { --rmc-avatar-size: 128px; }
+
+/* Status ring (small dot at bottom-right) */
+.rmc-avatar__status {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: calc(var(--rmc-avatar-size) * 0.28);
+  height: calc(var(--rmc-avatar-size) * 0.28);
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  box-shadow: 0 0 0 2px var(--surface-elevated);
+}
+.rmc-avatar--status-active .rmc-avatar__status   { background: var(--ds-success); }
+.rmc-avatar--status-away .rmc-avatar__status     { background: var(--ds-warning); }
+.rmc-avatar--status-offline .rmc-avatar__status  { background: var(--text-muted); }
+
+/* "Avatar + name" inline block used by rosters/people lists */
+.rmc-avatar-with-name {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  vertical-align: middle;
+  margin-left: 0.55rem;
+  min-width: 0;
+}
+.rmc-avatar-with-name__primary { font-weight: 600; color: var(--text-primary); line-height: 1.2; }
+.rmc-avatar-with-name__secondary { font-size: 0.78rem; color: var(--text-tertiary); line-height: 1.2; }
+
+/* Stack: a small overlapping group of avatars (people-in-thread, class-of-N) */
+.rmc-avatar-stack { display: inline-flex; }
+.rmc-avatar-stack .rmc-avatar + .rmc-avatar {
+  margin-left: calc(var(--rmc-avatar-size, 40px) * -0.4);
+  box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.18), 0 0 0 2px var(--surface-elevated);
+}
+
+/* ===== Notifications inbox (Phase O, 2026-05-12) ==================================
+   Apple Mail-style grouped, time-aware list. Unread = left accent stripe + bold.
+   Each group has its own severity icon + count. Actions inline on the right. */
+.rmc-inbox {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.rmc-inbox__group {
+  background: var(--surface-elevated);
+  border: var(--border-width-hairline) solid var(--hairline);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.rmc-inbox__group-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1rem;
+  border-bottom: var(--border-width-hairline) solid var(--hairline);
+  background: var(--surface-canvas);
+  -webkit-backdrop-filter: var(--material-blur);
+  backdrop-filter: var(--material-blur);
+}
+.rmc-inbox__group-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background: var(--surface-overlay);
+}
+.rmc-inbox__group[data-severity="alert"] .rmc-inbox__group-icon { color: var(--ds-danger); background: var(--ds-danger-bg); }
+.rmc-inbox__group[data-severity="warning"] .rmc-inbox__group-icon { color: var(--ds-warning); background: var(--ds-warning-bg); }
+.rmc-inbox__group[data-severity="info"] .rmc-inbox__group-icon,
+.rmc-inbox__group[data-severity="alert_low"] .rmc-inbox__group-icon { color: var(--ds-info); background: var(--ds-info-bg); }
+.rmc-inbox__group-title {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+  letter-spacing: -0.005em;
+}
+.rmc-inbox__group-count {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  padding: 0.1rem 0.5rem;
+  background: var(--surface-overlay);
+  border-radius: var(--radius-pill);
+}
+.rmc-inbox__list { list-style: none; margin: 0; padding: 0; }
+.rmc-inbox__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 4px 36px 1fr auto;
+  align-items: start;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-bottom: var(--border-width-hairline) solid var(--hairline);
+  transition: background var(--motion-fast);
+}
+.rmc-inbox__item:last-child { border-bottom: 0; }
+.rmc-inbox__item:hover { background: var(--surface-overlay); }
+.rmc-inbox__indicator {
+  width: 4px;
+  align-self: stretch;
+  border-radius: 2px;
+  background: transparent;
+}
+.rmc-inbox__item.is-unread .rmc-inbox__indicator { background: var(--school-primary); }
+.rmc-inbox__item.is-unread .rmc-inbox__title { font-weight: 700; }
+.rmc-inbox__body { min-width: 0; }
+.rmc-inbox__title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.15rem;
+}
+.rmc-inbox__title {
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.005em;
+}
+.rmc-inbox__time {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.rmc-inbox__message {
+  margin: 0 0 0.2rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rmc-inbox__meta { font-size: 0.78rem; color: var(--text-tertiary); }
+.rmc-inbox__actions {
+  display: flex;
+  gap: 0.35rem;
+  align-self: center;
+  flex-shrink: 0;
+}
+@media (max-width: 575.98px) {
+  .rmc-inbox__item { grid-template-columns: 4px 32px 1fr; }
+  .rmc-inbox__actions { grid-column: 1 / -1; padding-left: 48px; }
+}
+
+/* ===== Forms grammar (Phase Q, 2026-05-12) ========================================
+   Stripe-tier long forms: section eyebrow + title + caption, hairline-separated
+   field groups, inline help under each field, sticky save bar at bottom.
+
+   Markup:
+     <form class="rmc-form" data-rmc-dirty-watch="1">
+       <div class="rmc-form-section">
+         <div class="rmc-form-section__head">
+           <span class="rmc-form-section__eyebrow">Profile</span>
+           <h2 class="rmc-form-section__title">Identity</h2>
+           <p class="rmc-form-section__caption">How students and parents see you.</p>
+         </div>
+         <div class="rmc-form-section__body">
+           <div class="rmc-form-field">
+             <label for="x">Display name</label>
+             <input id="x" type="text">
+             <p class="rmc-form-help">Shown on grade reports.</p>
+           </div>
+         </div>
+       </div>
+       <div class="rmc-form-savebar">
+         <span class="rmc-form-savebar__hint" data-rmc-dirty-message hidden>You have unsaved changes</span>
+         <div class="rmc-form-savebar__actions">
+           <button type="button" class="btn btn-outline-secondary" data-rmc-form-reset>Cancel</button>
+           <button type="submit" class="btn btn-primary">Save</button>
+         </div>
+       </div>
+     </form>
+   =================================================================================== */
+.rmc-form { display: flex; flex-direction: column; gap: 1.5rem; }
+.rmc-form-section {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) 1fr;
+  gap: 2rem;
+  padding: 1.5rem 0;
+  border-bottom: var(--border-width-hairline) solid var(--hairline);
+}
+.rmc-form-section:last-of-type { border-bottom: 0; }
+.rmc-form-section__head { color: var(--text-primary); }
+.rmc-form-section__eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  margin-bottom: 0.35rem;
+}
+.rmc-form-section__title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.005em;
+}
+.rmc-form-section__caption {
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.rmc-form-section__body { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+
+.rmc-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.rmc-form-field > label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.rmc-form-field input,
+.rmc-form-field select,
+.rmc-form-field textarea {
+  padding: 0.55rem 0.7rem;
+  font-size: 0.95rem;
+  border-radius: var(--radius-sm, 8px);
+  border: var(--border-width-hairline) solid var(--hairline);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+}
+.rmc-form-field input:focus,
+.rmc-form-field select:focus,
+.rmc-form-field textarea:focus {
+  outline: none;
+  border-color: var(--school-primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--school-primary) 22%, transparent);
+}
+.rmc-form-help {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}
+.rmc-form-field.is-invalid input,
+.rmc-form-field.is-invalid select,
+.rmc-form-field.is-invalid textarea {
+  border-color: var(--ds-danger);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ds-danger) 18%, transparent);
+}
+.rmc-form-error {
+  color: var(--ds-danger);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+/* Sticky save bar at bottom — Apple Settings / Stripe Dashboard pattern */
+.rmc-form-savebar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  background: var(--surface-popover, var(--surface-elevated));
+  border: var(--border-width-hairline) solid var(--hairline);
+  border-radius: var(--radius-md);
+  -webkit-backdrop-filter: var(--material-blur);
+  backdrop-filter: var(--material-blur);
+  box-shadow: var(--elev-2);
+  margin-top: 1rem;
+}
+.rmc-form-savebar__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--ds-warning);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.rmc-form-savebar__hint::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ds-warning);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ds-warning) 30%, transparent);
+}
+.rmc-form-savebar__actions { display: flex; gap: 0.5rem; }
+.rmc-form-savebar[data-dirty="1"] { box-shadow: var(--elev-3); }
+
+@media (max-width: 834px) {
+  .rmc-form-section { grid-template-columns: 1fr; gap: 1rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STICKY METRIC TICKER (2026-05-12 carried-forward)
+   ───────────────────────────────────────────────────────────────────────────
+   Apple-Stocks-style pinned KPI strip for long dashboards. The full KPI block
+   lives at the top of the page; when the user scrolls past it, a compact
+   condensed mirror pins below the topbar. Behavior in rmc-metric-ticker.js
+   uses IntersectionObserver to toggle `[data-pinned="1"]` on the host section.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.rmc-metric-ticker { position: relative; }
+.rmc-metric-ticker__sentinel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+/* Pinned condensed mirror — sits below the topbar via CSS sticky. */
+.rmc-metric-ticker__pin {
+  position: sticky;
+  top: var(--rmc-topbar-height, 64px);
+  z-index: 12;
+  display: none;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  margin: 0 calc(var(--mkt-edt-space-3, 1.125rem) * -1) 0.75rem;
+  background: color-mix(in oklab, var(--surface-elevated, #ffffff) 92%, transparent);
+  -webkit-backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
+  backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
+  border-top: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(0, 0, 0, 0.08));
+  border-bottom: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(0, 0, 0, 0.08));
+  border-radius: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  transition: opacity 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  opacity: 0;
+  transform: translateY(-4px);
+}
+.rmc-metric-ticker[data-pinned="1"] .rmc-metric-ticker__pin {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0);
+}
+.rmc-metric-ticker__pin-item {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.1rem 0.35rem;
+  border-right: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(0, 0, 0, 0.08));
+  white-space: nowrap;
+}
+.rmc-metric-ticker__pin-item:last-child { border-right: 0; }
+.rmc-metric-ticker__pin-item-label {
+  font-size: 0.78rem;
+  color: var(--text-secondary, #6b7280);
+  letter-spacing: 0.01em;
+}
+.rmc-metric-ticker__pin-item-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.rmc-metric-ticker__pin-item-delta {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  background: var(--surface-overlay, rgba(0, 0, 0, 0.04));
+}
+.rmc-metric-ticker__pin-item-delta--success {
+  color: var(--ds-success, #28a745);
+  background: color-mix(in oklab, var(--ds-success, #28a745) 12%, transparent);
+}
+.rmc-metric-ticker__pin-item-delta--warning {
+  color: var(--ds-warning, #f0883e);
+  background: color-mix(in oklab, var(--ds-warning, #f0883e) 12%, transparent);
+}
+.rmc-metric-ticker__pin-item-delta--danger {
+  color: var(--ds-danger, #e5484d);
+  background: color-mix(in oklab, var(--ds-danger, #e5484d) 12%, transparent);
+}
+
+/* Tone variants on full cards — subtle left edge accent. */
+.rmc-metric-ticker__card--success { border-left: 2px solid var(--ds-success, #28a745); }
+.rmc-metric-ticker__card--warning { border-left: 2px solid var(--ds-warning, #f0883e); }
+.rmc-metric-ticker__card--danger  { border-left: 2px solid var(--ds-danger, #e5484d); }
+
+.rmc-metric-ticker__delta {
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+.rmc-metric-ticker__delta--success { color: var(--ds-success, #28a745); }
+.rmc-metric-ticker__delta--warning { color: var(--ds-warning, #f0883e); }
+.rmc-metric-ticker__delta--danger  { color: var(--ds-danger, #e5484d); }
+.rmc-metric-ticker__delta--neutral { color: var(--text-secondary, #6b7280); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-metric-ticker__pin { transition: none !important; }
+}
+
+/* Honor prefers-reduced-transparency by stripping the backdrop blur. */
+@media (prefers-reduced-transparency: reduce) {
+  .rmc-metric-ticker__pin {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--surface-elevated, #ffffff);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FORM VALIDATION POLISH (v2.6 2026-05-12)
+   ───────────────────────────────────────────────────────────────────────────
+   Polishes Bootstrap's `.invalid-feedback` / `.is-invalid` to match the v2
+   semantic tokens. Adds a soft red highlight band on the field, a tinted
+   error message with leading icon, and a spring-shake animation triggered
+   by `.rmc-shake` (added by `rmc-form-validation.js` on submit-blocked).
+
+   Bootstrap's default rules continue to work; this is additive polish. */
+.is-invalid, .form-control.is-invalid, .form-select.is-invalid {
+  border-color: var(--ds-danger, #e5484d) !important;
+  background-image: none !important;
+  padding-right: 0.75rem !important;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ds-danger, #e5484d) 14%, transparent) !important;
+}
+.is-invalid:focus, .form-control.is-invalid:focus {
+  border-color: var(--ds-danger, #e5484d) !important;
+  outline: 3px solid color-mix(in oklab, var(--ds-danger, #e5484d) 25%, transparent) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 5px color-mix(in oklab, var(--ds-danger, #e5484d) 18%, transparent) !important;
+}
+.invalid-feedback,
+.rmc-form-field__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  color: var(--ds-danger, #e5484d);
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 0.4rem;
+  line-height: 1.4;
+}
+.invalid-feedback::before,
+.rmc-form-field__error::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  margin-top: 0.15rem;
+  background: var(--ds-danger, #e5484d);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM7.25 4h1.5v5h-1.5V4zm0 6h1.5v1.5h-1.5V10z'/%3E%3C/svg%3E") center / contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM7.25 4h1.5v5h-1.5V4zm0 6h1.5v1.5h-1.5V10z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* Spring-shake animation — triggered by .rmc-shake class added by validation JS. */
+.rmc-shake {
+  animation: rmc-shake-shake 380ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+@keyframes rmc-shake-shake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-7px); }
+  40%, 60% { transform: translateX(7px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rmc-shake { animation: none; }
+}
+
+/* Help text — warmer + tighter spacing under fields. */
+.form-text, .rmc-form-field__help {
+  color: var(--text-tertiary, var(--text-secondary, #6b7280));
+  font-size: 0.82rem;
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
+
+/* Valid state — subtle green chip; only show when field has explicit .is-valid. */
+.is-valid:not(:placeholder-shown) {
+  border-color: var(--ds-success, #28a745) !important;
+}
+.valid-feedback {
+  color: var(--ds-success, #28a745);
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}

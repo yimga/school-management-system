@@ -1,0 +1,51 @@
+{% load i18n %}
+{# Sticky scroll-aware metric ticker — Apple Stocks-style pinned KPI row.
+
+   Wraps a KPI block so that when the user scrolls past it, a condensed mirror
+   pins below the topbar; scrolling back unpins. The full block stays at the
+   top of the page. Honors prefers-reduced-motion.
+
+   Usage:
+     {% include "components/rmc_metric_ticker.html" with metrics=metrics %}
+
+   Where `metrics` is a list of dicts:
+     [
+       {"label": "Students", "value": "1,284", "icon": "mortarboard", "tone": "default"},
+       {"label": "Guardians", "value": "987", "icon": "people"},
+       {"label": "Fees collected", "value": "94%", "icon": "wallet2", "tone": "success", "delta": "+2.1"},
+       ...
+     ]
+
+   `tone`: default | success | warning | danger
+   `delta` (optional): a small +/- string rendered next to the value.
+   `icon` (optional): Bootstrap Icons name without the "bi-" prefix.
+
+   The component renders TWO DOMs:
+     1. `.rmc-metric-ticker__full` — the full block in flow (with all the affordances)
+     2. `.rmc-metric-ticker__pin` — the condensed sticky pinned mirror
+
+   rmc-metric-ticker.js wires the IntersectionObserver + show/hide behavior. #}
+
+<section class="rmc-metric-ticker" data-rmc-metric-ticker aria-label="{% trans 'Key metrics' %}">
+  <div class="rmc-metric-ticker__sentinel" aria-hidden="true"></div>
+  <div class="rmc-metric-ticker__full row g-3">
+    {% for m in metrics %}
+      <div class="col-12 col-md-6 col-lg-{% if metrics|length == 4 %}3{% elif metrics|length <= 3 %}4{% else %}3{% endif %}" data-rmc-kpi="{{ m.id|default:forloop.counter0 }}">
+        <div class="kpi rmc-metric-ticker__card{% if m.tone %} rmc-metric-ticker__card--{{ m.tone }}{% endif %}">
+          <div class="d-flex align-items-start justify-content-between gap-2">
+            <span class="label">{{ m.label }}</span>
+            {% if m.icon %}<span class="kpi-icon{% if m.tone %} {{ m.tone }}{% endif %}" aria-hidden="true"><i class="bi bi-{{ m.icon }}"></i></span>{% endif %}
+          </div>
+          <div class="value" data-rmc-metric-value>{{ m.value }}</div>
+          {% if m.delta %}
+            <div class="rmc-metric-ticker__delta rmc-metric-ticker__delta--{{ m.delta_tone|default:'neutral' }}" data-rmc-metric-delta>{{ m.delta }}</div>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {# Condensed mirror — duplicated in JS at runtime so we don't re-template. JS
+     reads the .rmc-metric-ticker__full DOM and projects into this empty container. #}
+  <div class="rmc-metric-ticker__pin" data-rmc-metric-pin role="region" aria-label="{% trans 'Pinned metrics' %}" hidden></div>
+</section>

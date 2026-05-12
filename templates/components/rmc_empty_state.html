@@ -1,0 +1,33 @@
+{% load i18n %}
+{# Phase L (2026-05-12): platform-wide empty-state component.
+   Usage:
+     {% include "components/rmc_empty_state.html" with
+        icon="bi-people"
+        title="No students yet"
+        message="Add your first student to start tracking attendance and grades."
+        primary_label="Add student"
+        primary_url=add_student_url
+        secondary_label="Bulk import"
+        secondary_url=bulk_import_url %}
+   All variables optional; icon defaults to bi-inbox. #}
+<div class="rmc-empty" role="status" aria-live="polite">
+  <div class="rmc-empty__icon" aria-hidden="true">
+    <i class="bi {{ icon|default:'bi-inbox' }}"></i>
+  </div>
+  {% if title %}<h3 class="rmc-empty__title">{{ title }}</h3>{% endif %}
+  {% if message %}<p class="rmc-empty__message">{{ message }}</p>{% endif %}
+  {% if primary_url or secondary_url %}
+  <div class="rmc-empty__actions">
+    {% if primary_url and primary_label %}
+      <a href="{{ primary_url }}" class="btn btn-primary">
+        {% if primary_icon %}<i class="bi {{ primary_icon }} me-1"></i>{% endif %}{{ primary_label }}
+      </a>
+    {% endif %}
+    {% if secondary_url and secondary_label %}
+      <a href="{{ secondary_url }}" class="btn btn-outline-secondary">
+        {% if secondary_icon %}<i class="bi {{ secondary_icon }} me-1"></i>{% endif %}{{ secondary_label }}
+      </a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>

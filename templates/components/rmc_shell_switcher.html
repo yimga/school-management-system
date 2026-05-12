@@ -1,0 +1,22 @@
+{% load i18n %}
+{# Phase F+G (2026-05-12): Console / Configure tenant shell switcher.
+   Same operating-vs-configuring split as platform's /super vs /admin. Drop into
+   any tenant page header to give operators a one-tap mode toggle. #}
+{% with current_url=request.path %}
+<div class="rmc-shell-switcher" role="group" aria-label="{% trans 'Workspace mode' %}">
+  <a href="{% url 'portal_console' %}"
+     class="rmc-shell-switcher__btn{% if current_url == '/portal/console/' or '/accounts/backend/' in current_url %} is-active{% endif %}"
+     aria-current="{% if current_url == '/portal/console/' or '/accounts/backend/' in current_url %}page{% else %}false{% endif %}"
+     title="{% trans 'Everyday running of the school' %}">
+    <i class="bi bi-speedometer2" aria-hidden="true"></i>
+    <span>{% trans "Console" %}</span>
+  </a>
+  <a href="{% url 'portal_configure' %}"
+     class="rmc-shell-switcher__btn{% if current_url == '/portal/configure/' or '/siteconfig/' in current_url or '/studio/' in current_url %} is-active{% endif %}"
+     aria-current="{% if current_url == '/portal/configure/' or '/siteconfig/' in current_url or '/studio/' in current_url %}page{% else %}false{% endif %}"
+     title="{% trans 'Settings, branding, blueprint pack' %}">
+    <i class="bi bi-sliders" aria-hidden="true"></i>
+    <span>{% trans "Configure" %}</span>
+  </a>
+</div>
+{% endwith %}

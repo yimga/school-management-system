@@ -341,6 +341,47 @@ class RuntimeDefaults(models.Model):
         null=True,
         help_text="Default theme harmony palette mode.",
     )
+    # Theme system v2 (2026-05-12, Phase J end-to-end): tenant-configurable controls
+    # for the single-accent luminous gradient + warm-graphite alternate palette.
+    # Templates already conditionally read these via {% if SITE.brand_gradient_end %};
+    # exposing as typed columns gives admin UI surface + first-class resolver merge.
+    brand_gradient_end = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text=(
+            "Hex color for the dark end of the luminous brand gradient "
+            "(e.g. #3730a3 for indigo-800). Blank = platform default derived from primary."
+        ),
+    )
+    brand_gradient_angle = models.CharField(
+        max_length=12,
+        blank=True,
+        null=True,
+        help_text="Gradient angle for the brand gradient (e.g. '135deg'). Blank = 135deg.",
+    )
+    neutral_palette = models.CharField(
+        max_length=8,
+        blank=True,
+        null=True,
+        help_text=(
+            "Neutral surface palette: 'cool' (Apple slate) or 'warm' (Notion / Anthropic "
+            "graphite). Blank = cool. Drives the data-rmc-neutral attribute on <body>."
+        ),
+    )
+    # Theme system v2 (2026-05-12, Phase X carried-forward): companion dark-surface
+    # logo so tenants with dark logos stay visible against `[data-resolved-theme="dark"]`.
+    # The dark favicon variant ships in `partials/rmc_theme_meta.html`; this column
+    # completes the cascade for the in-page logo (header, login, emails). Blank = use
+    # the light logo on both themes.
+    site_logo_dark_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text=(
+            "Optional logo URL for dark theme surfaces. Blank = use the light logo on "
+            "both themes. Tenant-overridable via BrandProfile.logo_dark_url."
+        ),
+    )
     grade_approval_enabled = models.BooleanField(
         null=True,
         blank=True,

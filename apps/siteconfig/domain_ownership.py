@@ -49,6 +49,12 @@ EXACT_FIELD_OWNERS: Final[dict[str, str]] = {
     "footer_bg_color": "brand_experience",
     "theme_brightness": "brand_experience",
     "theme_harmony": "brand_experience",
+    # Theme system v2 (2026-05-12, Phase J end-to-end): tenant-configurable
+    # single-accent gradient + warm-graphite alternate palette.
+    "brand_gradient_end": "brand_experience",
+    "brand_gradient_angle": "brand_experience",
+    "neutral_palette": "brand_experience",
+    "site_logo_dark_url": "brand_experience",
     "public_brand_primary_color": "brand_experience",
     "public_brand_accent_color": "brand_experience",
     "use_dark_mode": "brand_experience",

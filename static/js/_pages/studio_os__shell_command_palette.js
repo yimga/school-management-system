@@ -28,11 +28,10 @@
   btn.addEventListener('click', openPalette);
   if (backdrop) backdrop.addEventListener('click', closePalette);
 
+  // Ctrl+K is owned by the global rmc-command-palette.js (.rmc-cmdk) — do not
+  // bind it here too or both palettes open on the studio shell. Studio palette
+  // opens via the #studio-command-palette-btn button only.
   document.addEventListener('keydown', function (e) {
-    if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
-      e.preventDefault();
-      openPalette();
-    }
     if (e.key === 'Escape' && !palette.classList.contains('d-none')) closePalette();
   });
 

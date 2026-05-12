@@ -54,7 +54,18 @@
     {% url 'portal:teacher_workflow' as teacher_workflow_url %}
     {% url 'academics:teacher_syllabus_hub' as teacher_syllabus_url %}
     {% url 'portal:teacher_attendance' as teacher_attendance_url %}
-    <section class="mb-3" data-rmc-intelligent-insights="teacher" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
+
+    {# Phase G follow-through (2026-05-12): section nav for 593L teacher dashboard. #}
+    <nav class="rmc-section-nav rmc-section-nav--horizontal mb-3" aria-label="{% trans 'Teaching dashboard sections' %}">
+      <ul class="rmc-section-nav__list">
+        <li><a href="#teacher-attention"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>{% trans "Attention" %}</a></li>
+        <li><a href="#teacher-today"><i class="bi bi-calendar3" aria-hidden="true"></i>{% trans "Today" %}</a></li>
+        <li><a href="#teacher-metrics"><i class="bi bi-bar-chart" aria-hidden="true"></i>{% trans "Metrics" %}</a></li>
+        <li><a href="#teacher-classes"><i class="bi bi-mortarboard" aria-hidden="true"></i>{% trans "Classes" %}</a></li>
+      </ul>
+    </nav>
+
+    <section id="teacher-attention" data-rmc-section-anchor class="mb-3" data-rmc-intelligent-insights="teacher" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
         <h2 class="h6 mb-0">{% trans "What needs attention" %}</h2>
         <span class="small text-muted">{% trans "Focused guidance from attendance, marks, and workflow signals" %}</span>
@@ -82,7 +93,7 @@
         {% endif %}
       </div>
     </section>
-    <section class="tdm-hero card-glass" data-decision-zone="headline" data-rmc-ux-section="today-plan" aria-label="{% trans 'Teaching plan for today' %}">
+    <section id="teacher-today" data-rmc-section-anchor class="tdm-hero card-glass" data-decision-zone="headline" data-rmc-ux-section="today-plan" aria-label="{% trans 'Teaching plan for today' %}">
       <div class="tdm-hero__text">
         <p class="tdm-eyebrow">{% trans "Teacher workspace" %}</p>
         {% comment %} Pass 8: previously hardcoded "Good afternoon" regardless of the user's local time.
@@ -148,7 +159,7 @@
     </div>
     {% endif %}
 
-    <section class="tdm-overview-grid dashboard-card-grid dashboard-card-grid--dense" data-decision-zone="supporting-metrics" data-rmc-ux-section="today-metrics">
+    <section id="teacher-metrics" data-rmc-section-anchor class="tdm-overview-grid dashboard-card-grid dashboard-card-grid--dense" data-decision-zone="supporting-metrics" data-rmc-ux-section="today-metrics">
       <div class="tdm-stat card-glass purple">
         <div class="tdm-stat-label">{% trans "Classes today" %}</div>
         <div class="tdm-stat-value">{{ assignments|length|default:0 }}</div>
@@ -171,7 +182,7 @@
       </div>
     </section>
 
-    <section class="tdm-main-grid">
+    <section id="teacher-classes" data-rmc-section-anchor class="tdm-main-grid">
       <div class="tdm-main-left">
         <div class="card-glass tdm-panel" data-rmc-ux-section="my-classes">
           <div class="tdm-panel-head">
@@ -208,7 +219,7 @@
               </article>
               {% endwith %}
             {% empty %}
-            <p class="text-muted small mb-0">{% trans "No classes assigned yet." %}</p>
+            {% include "components/rmc_empty_state.html" with icon="bi-person-workspace" title=_("No classes assigned yet") message=_("Once your school assigns classes to you, they'll show up here with attendance + grading shortcuts.") %}
             {% endfor %}
           </div>
           {% if assignments|length > 2 %}

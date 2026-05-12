@@ -47,23 +47,29 @@
 /* === 2. Card grammar ==================================================== */
 
 :root {
-  --rmc-card-radius: 12px;
-  --rmc-card-border: 1px solid rgba(15, 23, 42, 0.08);
-  --rmc-card-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.02);
-  --rmc-card-shadow-hover: 0 8px 24px -8px rgba(15, 23, 42, 0.12), 0 2px 4px rgba(15, 23, 42, 0.04);
+  /* v2 theme system: alias card grammar through Apple semantic surfaces so a
+     single token edit cascades. Specific values are fallbacks only. */
+  --rmc-card-radius: var(--radius-md, 12px);
+  --rmc-card-border: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(15, 23, 42, 0.08));
+  --rmc-card-shadow: var(--elev-1, 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.02));
+  --rmc-card-shadow-hover: var(--elev-2, 0 8px 24px -8px rgba(15, 23, 42, 0.12), 0 2px 4px rgba(15, 23, 42, 0.04));
   --rmc-card-pad: clamp(0.875rem, 1vw + 0.5rem, 1.25rem);
-  --rmc-canvas-bg: #f6f7fb;
-  --rmc-canvas-ink: #0f172a;
-  --rmc-canvas-muted: rgba(15, 23, 42, 0.65);
+  --rmc-canvas-bg: var(--surface-bg, #f6f7fb);
+  --rmc-canvas-ink: var(--text-primary, #0f172a);
+  --rmc-canvas-muted: var(--text-tertiary, rgba(15, 23, 42, 0.65));
 }
 
 /* Apply the card grammar broadly. Bootstrap default `.card` gets the
  * platform polish; opt-out by adding `.card-unstyled`. */
 .card:not(.card-unstyled) {
+  /* v2: cards explicitly use --surface-elevated so they visibly rise off the
+     canvas in light, and use the elevated charcoal in dark. */
+  background: var(--surface-elevated, #ffffff);
+  color: var(--text-primary);
   border-radius: var(--rmc-card-radius);
   border: var(--rmc-card-border);
   box-shadow: var(--rmc-card-shadow);
-  transition: box-shadow 160ms ease, transform 160ms ease;
+  transition: box-shadow var(--motion-fast, 160ms) ease, transform var(--motion-fast, 160ms) ease;
 }
 
 .card:not(.card-unstyled):hover {
@@ -288,10 +294,17 @@ main > * + *,
 
 /* Bootstrap's hard rules between dropdown items are too aggressive */
 .dropdown-menu {
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: 12px;
-  box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.18);
+  /* v2 Apple popover recipe: hairline border + soft elevation + frosted material.
+     `max-width: min(...)` caps width like Apple's HIG (no full-width submenus). */
+  border: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(15, 23, 42, 0.1));
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-popover, var(--surface-elevated, #ffffff));
+  color: var(--text-primary);
+  -webkit-backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
+  backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
+  box-shadow: var(--elev-3, 0 12px 32px -8px rgba(15, 23, 42, 0.18));
   padding: 0.35rem;
+  max-width: min(360px, calc(100vw - 1rem));
 }
 
 .dropdown-item {

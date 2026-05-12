@@ -1,39 +1,132 @@
 /**
- * Chart discipline – blueprint Phase 8.
- * Consistent legends, color meaning, density difference between control plane and tenant/marketing.
+ * Chart discipline — Phase V (2026-05-12).
+ *
+ * Linear / Vercel chart signature:
+ *   - no grid lines (only baseline)
+ *   - one accent color from --school-primary
+ *   - hairline axes + tabular-num ticks
+ *   - frosted tooltip with backdrop-filter
+ *   - sparkline-first: dense data → small, lined, low-chrome
+ *
+ * Consumers (Chart.js / ApexCharts / D3) read these via CSS variables and apply
+ * to series stroke / tooltip background / grid color in their JS config.
  */
 
-/* Chart container (use with your chart library wrapper) */
-.chart-container {
-  font-family: var(--portal-font, inherit);
-}
-.chart-container svg {
-  overflow: visible;
+:root {
+  --chart-stroke-default: 1.5px;
+  --chart-stroke-thin: 1px;
+  --chart-axis-muted: var(--text-tertiary, #94a3b8);
+  --chart-grid: transparent;
+  --chart-baseline: var(--hairline);
+  --chart-tooltip-bg: var(--surface-popover);
+  --chart-tooltip-border: var(--hairline);
+  --chart-tooltip-shadow: var(--elev-2);
+  --chart-tooltip-text: var(--text-primary);
+  --chart-tooltip-muted: var(--text-tertiary);
+  --chart-color-1: var(--school-primary);
+  --chart-color-2: color-mix(in oklab, var(--school-primary) 75%, transparent);
+  --chart-color-3: color-mix(in oklab, var(--school-primary) 50%, transparent);
+  --chart-color-4: var(--ds-info);
+  --chart-color-5: var(--ds-success);
+  --chart-color-6: var(--ds-warning);
 }
 
-/* Legend text from tokens */
+.chart-container {
+  font-family: var(--portal-font, inherit);
+  color: var(--text-primary);
+}
+.chart-container svg { overflow: visible; }
+.chart-container text { fill: var(--chart-axis-muted); font-variant-numeric: tabular-nums; }
+
+/* Hairline baseline only — no horizontal grid clutter */
+.chart-container .recharts-cartesian-grid line,
+.chart-container .chart-grid line { stroke: var(--chart-grid); }
+.chart-container .chart-baseline { stroke: var(--chart-baseline); stroke-width: 0.5px; }
+
+/* Legend */
 .chart-legend {
-  font-size: var(--chart-legend-text, var(--text-sm));
-  color: var(--portal-text, #111827);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--chart-legend-text, 0.78rem);
+  color: var(--text-secondary);
 }
-.chart-legend--muted {
-  color: var(--chart-axis-muted, #94a3b8);
+.chart-legend .swatch {
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+  background: var(--chart-color-1);
 }
+.chart-legend--muted { color: var(--chart-axis-muted); }
 
 /* Axis labels */
 .chart-axis-label {
   font-size: var(--type-micro, 0.75rem);
-  fill: var(--chart-axis-muted, #94a3b8);
+  fill: var(--chart-axis-muted);
+  font-variant-numeric: tabular-nums;
 }
 
-/* Stroke default for line charts */
-.chart-line {
-  stroke-width: var(--chart-stroke-default, 1.5px);
-}
+/* Line / area chart strokes use --chart-color-1 by default */
+.chart-line { stroke-width: var(--chart-stroke-default); stroke: var(--chart-color-1); fill: none; }
+.chart-area { fill: color-mix(in oklab, var(--school-primary) 14%, transparent); stroke: var(--chart-color-1); }
+.chart-bar { fill: var(--chart-color-1); }
 
-/* Semantic series colors (use as CSS vars or classes for chart config) */
-.chart-color--primary { color: var(--school-primary); }
-.chart-color--success { color: #22c55e; }
-.chart-color--warning { color: #f59e0b; }
-.chart-color--danger  { color: #ef4444; }
-.chart-color--muted   { color: var(--chart-axis-muted, #94a3b8); }
+/* Point markers: hidden by default, show on series hover only */
+.chart-point { fill: var(--chart-color-1); r: 0; transition: r var(--motion-fast); }
+.chart-line:hover ~ .chart-point,
+.chart-series:hover .chart-point { r: 3; }
+
+/* Frosted tooltip — Apple recipe */
+.chart-tooltip,
+.recharts-tooltip-wrapper > .recharts-default-tooltip,
+.apexcharts-tooltip {
+  background: var(--chart-tooltip-bg) !important;
+  border: 0.5px solid var(--chart-tooltip-border) !important;
+  border-radius: var(--radius-md, 12px) !important;
+  box-shadow: var(--chart-tooltip-shadow) !important;
+  color: var(--chart-tooltip-text) !important;
+  -webkit-backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
+  backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.85rem !important;
+  font-variant-numeric: tabular-nums;
+}
+.chart-tooltip .tooltip-label { color: var(--chart-tooltip-muted); font-size: 0.78rem; }
+.chart-tooltip .tooltip-value { color: var(--chart-tooltip-text); font-weight: 600; }
+
+/* Semantic series colors (tenant-cascading) */
+.chart-color--primary { color: var(--chart-color-1); }
+.chart-color--success { color: var(--ds-success); }
+.chart-color--warning { color: var(--ds-warning); }
+.chart-color--danger  { color: var(--ds-danger); }
+.chart-color--info    { color: var(--ds-info); }
+.chart-color--muted   { color: var(--chart-axis-muted); }
+
+/* Sparkline — small, no axes, no labels. Use as inline trend indicator. */
+.rmc-sparkline {
+  display: inline-block;
+  vertical-align: middle;
+  width: 80px;
+  height: 24px;
+  overflow: visible;
+}
+.rmc-sparkline .chart-line { stroke-width: 1.25px; }
+.rmc-sparkline .chart-area { fill: color-mix(in oklab, var(--school-primary) 12%, transparent); }
+
+/* KPI-with-trend pattern: value + small sparkline + delta chip */
+.rmc-kpi-trend {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+.rmc-kpi-trend__value { font-size: 1.4rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; }
+.rmc-kpi-trend__delta {
+  font-size: 0.78rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-overlay);
+  color: var(--text-tertiary);
+}
+.rmc-kpi-trend__delta.is-up { color: var(--ds-success); background: var(--ds-success-bg); }
+.rmc-kpi-trend__delta.is-down { color: var(--ds-danger); background: var(--ds-danger-bg); }

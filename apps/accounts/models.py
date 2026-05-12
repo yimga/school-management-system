@@ -7,6 +7,8 @@ from django.utils import timezone
 
 
 # User UI/UX preferences (background logo, opacity, etc.)
+# Note: theme preference (light/dark/system) lives on DashboardUserPreference —
+# that's the canonical source the context processor reads. Don't add it here.
 class UserPreference(models.Model):
     high_contrast_mode = models.BooleanField(
         default=False, help_text="Enable high contrast mode for accessibility."

@@ -206,7 +206,17 @@
     {% url 'portal:parent_finance' as parent_finance_url %}
     {% url 'portal:parent_contact_school' as parent_contact_url %}
     {% url 'portal:claim_invite' as parent_claim_invite_url %}
-    <section class="mb-3" data-rmc-intelligent-insights="parent" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
+    {# Phase G follow-through (2026-05-12): section nav for 614L parent dashboard. #}
+    <nav class="rmc-section-nav rmc-section-nav--horizontal mb-3" aria-label="{% trans 'Family dashboard sections' %}">
+      <ul class="rmc-section-nav__list">
+        <li><a href="#parent-attention"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>{% trans "Attention" %}</a></li>
+        <li><a href="#parent-glance"><i class="bi bi-house-heart" aria-hidden="true"></i>{% trans "Family" %}</a></li>
+        <li><a href="#parent-children"><i class="bi bi-people" aria-hidden="true"></i>{% trans "Children" %}</a></li>
+        <li><a href="#parent-next"><i class="bi bi-arrow-right-circle" aria-hidden="true"></i>{% trans "Next up" %}</a></li>
+      </ul>
+    </nav>
+
+    <section id="parent-attention" data-rmc-section-anchor class="mb-3" data-rmc-intelligent-insights="parent" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
         <h2 class="h6 mb-0">{% trans "What needs attention" %}</h2>
         <span class="small text-muted">{% trans "Clear next actions from attendance, academics, and finance signals" %}</span>
@@ -236,7 +246,7 @@
     </section>
 
     <!-- Today's Overview -->
-    <section class="parent-glance-section" aria-labelledby="glance-heading" data-rmc-ux-section="family-summary">
+    <section id="parent-glance" data-rmc-section-anchor class="parent-glance-section" aria-labelledby="glance-heading" data-rmc-ux-section="family-summary">
       <div class="section-title d-flex align-items-center justify-content-between gap-2 mb-2">
         <h2 id="glance-heading" class="h6 mb-0"><i class="bi bi-grid-3x3-gap"></i> {% trans "Family summary" %}</h2>
       </div>
@@ -332,7 +342,7 @@
       <div class="col-lg-8" data-dashboard-column="main">
         
         <!-- My Children -->
-        <section class="metrics-section dashboard-clear parent-children-section" id="children" aria-labelledby="children-heading" {% if is_rtl %}dir="rtl"{% endif %}>
+        <section data-rmc-section-anchor class="metrics-section dashboard-clear parent-children-section" id="parent-children" aria-labelledby="children-heading" {% if is_rtl %}dir="rtl"{% endif %}>
           {% if guardian_students_for_switcher|length > 1 %}
           <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
             <span class="small text-muted">{% trans "Focus:" %}</span>
@@ -471,7 +481,7 @@
         </section>
 
         <!-- Homework & Upcoming -->
-        <section class="metrics-section mt-0" id="next-up" role="region" aria-labelledby="next-up-heading">
+        <section data-rmc-section-anchor class="metrics-section mt-0" id="parent-next" role="region" aria-labelledby="next-up-heading">
           <div class="section-title d-flex flex-wrap align-items-center justify-content-between gap-2">
             <h2 id="next-up-heading" class="h6 mb-0">{% trans "Homework & Upcoming" %}</h2>
             <a href="{% url 'portal:unified_calendar' %}" class="btn btn-sm btn-outline-primary">{% trans "See all" %}</a>

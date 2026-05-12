@@ -104,17 +104,9 @@ body.portal-backend-dark .admin-top-header .nav-global-actions a.button.ghost:ho
   background: rgba(255, 255, 255, 0.2) !important;
   color: var(--color-base-50) !important;
 }
-body.portal-backend-dark .admin-top-header .theme-toggle button {
-  color: var(--admin-muted) !important;
-}
-body.portal-backend-dark .admin-top-header .theme-toggle button:hover {
-  background: rgba(255, 255, 255, 0.15) !important;
-  color: var(--admin-text) !important;
-}
-body.portal-backend-dark .admin-top-header .theme-toggle button.active {
-  background: rgba(255, 255, 255, 0.95) !important;
-  color: var(--color-base-900) !important;
-}
+/* `.admin-top-header .theme-toggle` rules retired 2026-05-12 — the standalone
+   theme toggle was replaced by the Light/Dark/System segmented control inside
+   user_dropdown.html. The element no longer renders on any shell. */
 
 /* Main content area: same dark background so no white “half” */
 body.portal-backend-dark #main {

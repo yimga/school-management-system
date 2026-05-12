@@ -1,0 +1,68 @@
+{% load i18n %}
+{# Phase L (2026-05-12): skeleton loader matching a specific layout shape.
+   Usage:
+     {% include "components/rmc_skeleton.html" with layout="card-grid" rows=4 %}
+   Layouts:
+     - card-grid    : grid of card skeletons (KPI dashboard)
+     - list         : rows of avatar + 2-line text (people/messages/notifications)
+     - table        : table-shaped skeleton (matches .rmc-data-table)
+     - form         : grouped form fields
+     - article      : title + body paragraph (KB articles)
+   #}
+{% with rows=rows|default:5 layout=layout|default:'list' %}
+<div class="rmc-skeleton-block" data-layout="{{ layout }}" aria-busy="true" aria-label="{% trans 'Loading content' %}">
+  {% if layout == 'card-grid' %}
+    <div class="d-grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+      {% for i in "x"|rjust:rows %}
+        <div class="rmc-skeleton rmc-skeleton--card"></div>
+      {% endfor %}
+    </div>
+  {% elif layout == 'list' %}
+    <div class="d-flex flex-column gap-3">
+      {% for i in "x"|rjust:rows %}
+        <div class="d-flex align-items-center gap-3">
+          <span class="rmc-skeleton rmc-skeleton--avatar"></span>
+          <div class="flex-grow-1">
+            <div class="rmc-skeleton rmc-skeleton--title" style="width: 40%;"></div>
+            <div class="rmc-skeleton rmc-skeleton--line" style="width: 65%;"></div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% elif layout == 'table' %}
+    <div class="rmc-data-table-wrap">
+      <table class="rmc-data-table" aria-hidden="true">
+        <thead>
+          <tr>
+            {% for i in "xxxxx" %}<th><span class="rmc-skeleton rmc-skeleton--line" style="width:70%"></span></th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in "x"|rjust:rows %}
+            <tr>
+              {% for i in "xxxxx" %}<td><span class="rmc-skeleton rmc-skeleton--line" style="width:{% cycle 80 60 90 50 75 %}%"></span></td>{% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% elif layout == 'form' %}
+    <div class="d-flex flex-column gap-3">
+      {% for i in "x"|rjust:rows %}
+        <div>
+          <div class="rmc-skeleton rmc-skeleton--line" style="width: 25%; margin-bottom: 0.4rem;"></div>
+          <div class="rmc-skeleton" style="height: 38px; border-radius: 8px;"></div>
+        </div>
+      {% endfor %}
+      <div class="rmc-skeleton rmc-skeleton--button"></div>
+    </div>
+  {% elif layout == 'article' %}
+    <div class="rmc-skeleton rmc-skeleton--title" style="width: 60%; margin-bottom: 1rem;"></div>
+    <div class="rmc-skeleton rmc-skeleton--line"></div>
+    <div class="rmc-skeleton rmc-skeleton--line" style="width: 95%;"></div>
+    <div class="rmc-skeleton rmc-skeleton--line" style="width: 88%;"></div>
+    <div class="rmc-skeleton rmc-skeleton--line" style="width: 90%;"></div>
+    <div class="rmc-skeleton rmc-skeleton--line" style="width: 70%;"></div>
+  {% endif %}
+</div>
+{% endwith %}

@@ -1,0 +1,15 @@
+{% load i18n %}
+{# Phase W (2026-05-12): spring-physics success checkmark. Drop in after a save/submit/payment.
+   Usage:
+     {% include "components/rmc_success_check.html" with size="lg" label="Saved" %}
+   Sizes: sm | (default) | lg | xl  #}
+{% with size=size|default:'' %}
+<div class="rmc-check{% if size %} rmc-check--{{ size }}{% endif %}"
+     role="img"
+     aria-label="{{ label|default:_('Done') }}">
+  <svg viewBox="0 0 52 52" class="rmc-check__svg" aria-hidden="true">
+    <circle cx="26" cy="26" r="24" class="rmc-check__circle"/>
+    <path d="M14 27 l8 8 l16 -16" class="rmc-check__mark"/>
+  </svg>
+</div>
+{% endwith %}

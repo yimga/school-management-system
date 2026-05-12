@@ -388,6 +388,12 @@
 
   <hr class="mkt-edt-rule">
 
+  {# ───────── 2.6  BENTO — mixed-tile composition (2026-05-12 carried-forward) ───────── #}
+  {% if landing_bento %}
+    {% include "marketing/partials/mkt_bento.html" with bento=landing_bento %}
+    <hr class="mkt-edt-rule">
+  {% endif %}
+
   {# ───────── 2.75  GEOGRAPHIC MOMENT — WORLD MAP (full-bleed) ───────── #}
   <section class="mkt-edt-section mkt-edt-globe mkt-edt-globe--fullbleed" aria-labelledby="globe-headline" data-mkt-reveal>
     <div class="mkt-edt-container">

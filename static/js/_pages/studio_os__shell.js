@@ -19,8 +19,9 @@
   }
   btn.addEventListener('click', openPalette);
   backdrop.addEventListener('click', closePalette);
+  // Ctrl+K retired 2026-05-12 — owned by global rmc-command-palette.js. Studio
+  // palette opens via #studio-command-palette-btn only; Escape still closes.
   document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); openPalette(); }
     if (e.key === 'Escape' && !palette.classList.contains('d-none')) closePalette();
   });
   filter.addEventListener('input', function() {

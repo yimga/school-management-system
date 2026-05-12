@@ -1,0 +1,59 @@
+{% load i18n static %}
+{# Phase G (2026-05-12): platform-wide ⌘K command palette. Mount on every
+   authenticated shell. Apple-style frosted popover that lets users jump to
+   any page, student, class, fee, setting, or AI action. Uses semantic
+   --surface-popover so it inherits light/dark from the theme system. #}
+<div id="rmc-cmdk" class="rmc-cmdk" role="dialog" aria-modal="true" aria-label="{% trans 'Command palette' %}" hidden>
+  <div class="rmc-cmdk__backdrop" data-rmc-cmdk-dismiss="1"></div>
+  <div class="rmc-cmdk__panel" role="document">
+    <div class="rmc-cmdk__inputbar">
+      <i class="bi bi-search rmc-cmdk__icon" aria-hidden="true"></i>
+      <input
+        type="search"
+        id="rmc-cmdk-input"
+        class="rmc-cmdk__input"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="{% trans 'Search anywhere — pages, students, settings, AI…' %}"
+        aria-label="{% trans 'Search commands and entities' %}"
+        aria-controls="rmc-cmdk-list"
+        aria-activedescendant=""
+      >
+      <kbd class="rmc-cmdk__kbd-hint" aria-hidden="true">Esc</kbd>
+    </div>
+    <ul id="rmc-cmdk-list" class="rmc-cmdk__list" role="listbox" aria-label="{% trans 'Results' %}"></ul>
+    <div class="rmc-cmdk__footer">
+      <span class="rmc-cmdk__hint"><kbd>↑</kbd><kbd>↓</kbd> {% trans "navigate" %}</span>
+      <span class="rmc-cmdk__hint"><kbd>↵</kbd> {% trans "open" %}</span>
+      <span class="rmc-cmdk__hint"><kbd>Esc</kbd> {% trans "close" %}</span>
+    </div>
+  </div>
+</div>
+<script type="application/json" id="rmc-cmdk-data">{
+  "shortcuts": {
+    "open": ["mod+k", "mod+/"],
+    "close": ["escape"]
+  },
+  "groups": [
+    {
+      "label": "{% trans 'Navigate' %}",
+      "items": [
+        {% if request.user.is_authenticated %}
+          {"label": "{% trans 'Console (everyday)' %}", "url": "{% url 'portal_console' %}", "icon": "bi-speedometer2", "keywords": "dashboard backend operator"},
+          {"label": "{% trans 'Configure (settings)' %}", "url": "{% url 'portal_configure' %}", "icon": "bi-sliders", "keywords": "settings configuration runtime"},
+          {"label": "{% trans 'My Profile' %}", "url": "{% url 'accounts:user_profile' %}", "icon": "bi-person-circle", "keywords": "account user"},
+          {"label": "{% trans 'Notifications' %}", "url": "{% url 'accounts:user_notifications' %}", "icon": "bi-bell", "keywords": "alerts"},
+          {"label": "{% trans 'Help Center' %}", "url": "{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}", "icon": "bi-life-preserver", "keywords": "support docs"}
+        {% endif %}
+      ]
+    },
+    {
+      "label": "{% trans 'Actions' %}",
+      "items": [
+        {"label": "{% trans 'Toggle theme' %}", "action": "rmc:cmdk:toggle-theme", "icon": "bi-circle-half", "keywords": "dark light system appearance"},
+        {"label": "{% trans 'Open AI Copilot' %}", "action": "rmc:cmdk:open-ai", "icon": "bi-stars", "keywords": "assistant chat"}
+      ]
+    }
+  ]
+}</script>
+<script src="{% static 'js/rmc-command-palette.js' %}"></script>

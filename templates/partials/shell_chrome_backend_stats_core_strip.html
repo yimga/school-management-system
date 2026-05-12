@@ -2,38 +2,48 @@
 {# Preview-aligned KPI strip — patterns.css `.kpi` class renders 14px-radius cards
    with --apple-elev-1 shadow, hover lift, label + tinted icon chip header,
    large tabular-num value. No delta arrows here (no historical-baseline data in
-   this strip — that's surfaced separately by analytics widgets). #}
+   this strip — that's surfaced separately by analytics widgets).
+
+   2026-05-12 carried-forward: wrapped in `.rmc-metric-ticker` so the values
+   pin into a condensed strip below the topbar once the user scrolls past
+   them. rmc-metric-ticker.js handles the IntersectionObserver + mirror; no
+   per-page wiring required. #}
 <section
-  class="row g-3 mb-3"
+  class="rmc-metric-ticker mb-3"
+  data-rmc-metric-ticker
   data-shell-chrome="backend-stats-core-strip"
   data-shell-ops-section="core-kpi-counts"
   aria-label="{% trans 'Core school counts' %}"
 >
-  <div class="col-12 col-md-6 col-lg-4" data-shell-kpi="active-students">
-    <div class="kpi">
-      <div class="d-flex align-items-start justify-content-between gap-2">
-        <span class="label">{% trans "Students" %}</span>
-        <span class="kpi-icon" aria-hidden="true"><i class="bi bi-mortarboard"></i></span>
+  <div class="rmc-metric-ticker__sentinel" aria-hidden="true"></div>
+  <div class="rmc-metric-ticker__full row g-3">
+    <div class="col-12 col-md-6 col-lg-4" data-shell-kpi="active-students">
+      <div class="kpi">
+        <div class="d-flex align-items-start justify-content-between gap-2">
+          <span class="label">{% trans "Students" %}</span>
+          <span class="kpi-icon" aria-hidden="true"><i class="bi bi-mortarboard"></i></span>
+        </div>
+        <div class="value" data-kpi-count="students-active" data-rmc-metric-value>{{ stats.students|default:0 }}</div>
       </div>
-      <div class="value" data-kpi-count="students-active">{{ stats.students|default:0 }}</div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-4" data-shell-kpi="guardians-linked">
+      <div class="kpi">
+        <div class="d-flex align-items-start justify-content-between gap-2">
+          <span class="label">{% trans "Guardians" %}</span>
+          <span class="kpi-icon" aria-hidden="true"><i class="bi bi-people"></i></span>
+        </div>
+        <div class="value" data-kpi-count="guardians" data-rmc-metric-value>{{ stats.guardians|default:0 }}</div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-4" data-shell-kpi="published-terms">
+      <div class="kpi">
+        <div class="d-flex align-items-start justify-content-between gap-2">
+          <span class="label">{% trans "Published terms" %}</span>
+          <span class="kpi-icon success" aria-hidden="true"><i class="bi bi-check2-square"></i></span>
+        </div>
+        <div class="value" data-kpi-count="terms-published" data-rmc-metric-value>{{ stats.published_terms|default:0 }}</div>
+      </div>
     </div>
   </div>
-  <div class="col-12 col-md-6 col-lg-4" data-shell-kpi="guardians-linked">
-    <div class="kpi">
-      <div class="d-flex align-items-start justify-content-between gap-2">
-        <span class="label">{% trans "Guardians" %}</span>
-        <span class="kpi-icon" aria-hidden="true"><i class="bi bi-people"></i></span>
-      </div>
-      <div class="value" data-kpi-count="guardians">{{ stats.guardians|default:0 }}</div>
-    </div>
-  </div>
-  <div class="col-12 col-md-6 col-lg-4" data-shell-kpi="published-terms">
-    <div class="kpi">
-      <div class="d-flex align-items-start justify-content-between gap-2">
-        <span class="label">{% trans "Published terms" %}</span>
-        <span class="kpi-icon success" aria-hidden="true"><i class="bi bi-check2-square"></i></span>
-      </div>
-      <div class="value" data-kpi-count="terms-published">{{ stats.published_terms|default:0 }}</div>
-    </div>
-  </div>
+  <div class="rmc-metric-ticker__pin" data-rmc-metric-pin role="region" aria-label="{% trans 'Pinned metrics' %}" hidden></div>
 </section>

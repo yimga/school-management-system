@@ -1,10 +1,56 @@
 // Service worker for portal PWA + offline write-behind queue.
-// Bumped 2026-05-12: platform-wide sweep — 1,053 hex literals tokenized across 14 CSS files
-// + 6 templates + 12 JS files; 12 new design tokens added (graph/kbd/signature);
-// 5 orphan files deleted (~57KB); Apple-tier grammar adopted on 7 dashboards
-// (.kpi/.insight-card/.gradebook-table/.grade-pill); ~512 strings i18n-wrapped across
-// 13 templates. Invalidate all stale caches.
-const CACHE_VERSION = "sms-v1.8.0-platform-sweep-2026-05-12";
+// Bumped 2026-05-12 (v2.5.0): Carried-forward closeout — completes the 4
+// follow-ups from v2.4 aesthetic push as a single wave.
+//   - SITE_LOGO_DARK_URL: RuntimeDefaults typed column (migration 0065) +
+//     SiteSettings dispatch + context-processor cascade with tenant override
+//     via BrandProfile.logo_dark_url + meta-tag bridge + theme bootstrap
+//     propagation as --site-logo-url/--site-logo-dark-url CSS variables +
+//     .rmc-logo-adaptive background-image swap rule + <img> swap in
+//     rmc-shell-polish.js. The dark favicon variant shipped in v2.4; now
+//     the in-page logo completes the dark-mode brand cascade.
+//   - View Transitions API: @view-transition { navigation: auto } + named
+//     persistent regions (rmc-topbar, rmc-main) so cross-doc navigation
+//     glides instead of flashes on Chromium 126+. Other browsers fall back
+//     to native instant nav. prefers-reduced-motion fully honored.
+//   - Bento grid component (templates/marketing/partials/mkt_bento.html +
+//     .mkt-bento grammar in marketing-landing-v2.css): mixed-tile composition
+//     for marketing landing with 5 size spans (sm/md/lg/wide/tall) + 4 tones
+//     (default/warm/sand/ink) + reduced-motion-aware hover. Adopted on
+//     /v2 between the ROI panel and the globe section; data lives in the
+//     view (configurability + i18n).
+//   - Sticky metric ticker (.rmc-metric-ticker + rmc-metric-ticker.js):
+//     Apple Stocks-style pinned KPI strip — when the user scrolls past
+//     the full KPI block, a condensed mirror pins below the topbar via
+//     IntersectionObserver. Adopted on the school command center stats
+//     core strip; mount script loaded on all 4 surface shells.
+// Bumped 2026-05-12 (v2.0.0): Class-tier polish wave (Phases J–W).
+//   - Palette refinement: single-accent luminous gradient + warm-graphite opt-in
+//     (data-rmc-neutral) + Apple HIG status hues + tenant-cascade variables
+//     (--brand-gradient-end / --brand-gradient-angle).
+//   - .rmc-data-table grammar (hairline grid, tabular nums, zebra 2%, sticky header,
+//     density toggle) bridged onto existing .gradebook-table so 6 templates upgrade
+//     without per-template edits.
+//   - Empty-state + skeleton primitives (rmc_empty_state.html / rmc_skeleton.html /
+//     .rmc-empty / .rmc-skeleton with 5 shapes).
+//   - Motion vocabulary: --motion-fast/normal/slow/spring/decel + .rmc-anim-rise/
+//     slide-in/fade/spring, reduced-motion fully honored.
+//   - Avatar / identity system: rmc_avatar.html + deterministic 10-palette gradient
+//     seeded by user pk, status ring (active/away/offline), stacked avatars.
+//   - Notifications inbox rewritten (grouped by severity, indicator stripe for
+//     unread, avatar + actions inline) and toast grammar (frosted + slide-from-top
+//     with overshoot + progress bar + max stack).
+//   - Forms grammar (.rmc-form-section/.rmc-form-field/.rmc-form-savebar) + dirty-
+//     state JS + beforeunload guard.
+//   - Print stylesheet (rmc-print.css) for report cards / transcripts / invoices.
+//   - Settings IA hub at /portal/configure/ (Apple Settings-app left rail + search
+//     + 8 categories: Brand / Academics / Finance / People / Notifications / AI /
+//     Integrations / Compliance).
+//   - Chart aesthetic refresh (hairline grid, single-accent series, frosted
+//     tooltip, sparkline grammar, KPI-with-trend block).
+//   - Spring success checkmark + haptic helper (Navigator.vibrate on
+//     rmc:success/warning/error events, reduced-motion-respecting).
+//   - 834px iPad split-view breakpoint adopted across components.
+const CACHE_VERSION = "sms-v2.5.0-carried-forward-closeout-2026-05-12";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -80,7 +126,9 @@ const STATIC_ASSETS = [
   "/static/css/design-tokens.css",
   "/static/css/dashboard-responsive.css",
   "/static/css/reduce-motion-low-power.css",
-  "/static/js/command-palette.js",
+  // command-palette.js retired 2026-05-12 — replaced by rmc-command-palette.js
+  // (which is loaded per-page from the rmc_command_palette.html include, so it
+  // doesn't need to be in the offline pre-cache).
   "/static/js/dashboard-layout.js",
   "/static/js/vendor/dexie.min.js",
   "/static/js/offline-db.js",

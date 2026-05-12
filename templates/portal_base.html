@@ -3,14 +3,22 @@
 <html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-regional-ui="1" data-surface="tenant" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     {% if request.build_absolute_uri %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endif %}
     {% with desc=meta_description|default:SITE.meta_description|default:"" %}{% if desc %}<meta name="description" content="{{ desc|truncatewords:50 }}">{% endif %}{% endwith %}
     {% comment %}
     Theme preference must apply before paint to avoid flash-of-wrong-theme.
     External JS instead of inline keeps the page CSP-friendly.
     {% endcomment %}
+    {% include "partials/rmc_theme_meta.html" %}
+    {% include "partials/rmc_social_meta.html" %}
     <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
+    <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
+    <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
+    <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
+    <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
+    <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
+    <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
     <script src="{% static 'js/kb-route-signature.js' %}"></script>
     <title>{% block title %}{{ rmc_shell.portal_default_document_title|default:_("Portal") }}{% endblock %}</title>
@@ -79,6 +87,11 @@
 
     <link rel="stylesheet" href="{% static 'css/portal-base-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
+    {# Phase G (2026-05-12): platform-wide long-page grammar — ⌘K palette, sticky
+       section nav, progressive-disclosure collapse, Console/Configure switcher. #}
+    <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
+    {# Phase R (2026-05-12): print grammar for report cards / transcripts / invoices. #}
+    <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
     {% comment %} Pass B: platform-wide aesthetic discipline — same card grammar / type rhythm / empty-state
        hygiene that the manager surface uses, so portal + backend look like one product. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
@@ -89,10 +102,18 @@
       :root {
         --school-primary: {{ theme.primary_color|default:SITE.primary_color|default:"#4f46e5" }};
         --school-accent: {{ theme.accent_color|default:SITE.accent_color|default:"#10b981" }};
-        --school-success: {{ SITE.success_color|default:"#22c55e" }};
-        --school-warning: {{ SITE.warning_color|default:"#f59e0b" }};
-        --school-danger: {{ SITE.danger_color|default:"#ef4444" }};
-        --portal-bg: {{ theme.background_color|default:"rgba(247,251,255,1)" }};
+        --school-success: {{ SITE.success_color|default:"#28a745" }};
+        --school-warning: {{ SITE.warning_color|default:"#f0883e" }};
+        --school-danger: {{ SITE.danger_color|default:"#e5484d" }};
+        {# v2 Phase J (2026-05-12): tenant-configurable luminous gradient.
+           SITE.brand_gradient_end lets the tenant pick the dark end; if absent we
+           default to a deeper shade of the primary computed at the platform default. #}
+        {% if SITE.brand_gradient_end %}--brand-gradient-end: {{ SITE.brand_gradient_end }};{% endif %}
+        {% if SITE.brand_gradient_angle %}--brand-gradient-angle: {{ SITE.brand_gradient_angle }};{% endif %}
+        {# v2 theme system: only override --portal-bg if the tenant set a custom background.
+           Otherwise let it inherit from --surface-bg (Apple off-white) so the inner shell
+           visibly rises out of the canvas. #}
+        {% if theme.background_color %}--portal-bg: {{ theme.background_color }};{% endif %}
         --portal-font: {{ theme.font_family|default:"Inter, system-ui, sans-serif" }};
         {% if SITE and SITE.header_bg_color %}--header-brand-bg: {{ SITE.header_bg_color }};{% endif %}
         {% if SITE and SITE.footer_bg_color %}--footer-bg: {{ SITE.footer_bg_color }};{% endif %}
@@ -123,7 +144,7 @@
 
   {% comment %} Pass 8 UX consistency: activate `.form-system` globally so the design system's
      focus rings / hover borders / button polish actually render on every portal form. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     <div class="htmx-progress-bar" aria-hidden="true"></div>
     {% include "partials/shell_chrome_site_preview_banner_top.html" %}
@@ -259,42 +280,24 @@
                 {% endif %}
               </a>
               {% endif %}
-              <a class="btn btn-link text-white p-0 topbar-icon-btn" href="{{ help_center_url }}" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
-              {% if SHOW_HEADER_THEME_TOGGLE %}
-              <button
-                type="button"
-                class="btn btn-link text-white p-0 topbar-icon-btn"
-                id="themeToggle"
-                title="{% trans 'Toggle Dark/Light Theme' %}"
-                aria-label="{% trans 'Toggle Dark/Light Theme' %}"
-              >
-                <i class="bi bi-moon-stars" aria-hidden="true"></i>
-              </button>
+              {# Phase F follow-through (2026-05-12): Console / Configure shell switcher
+                 visible in every authenticated portal page so operators can toggle modes
+                 from anywhere. Hidden below lg via .d-none .d-lg-inline-flex. #}
+              {% if request.user.is_authenticated and not request.public_host_kind == 'manager' %}
+                <span class="d-none d-lg-inline-flex"> {% include "components/rmc_shell_switcher.html" %}</span>
               {% endif %}
+              <a class="btn btn-link text-white p-0 topbar-icon-btn" href="{{ help_center_url }}" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
 
-              {% if SHOW_HEADER_PROFILE_MENU %}
-              <div class="dropdown">
-                <button
-                  class="btn btn-link text-white p-0 dropdown-toggle topbar-icon-btn"
-                  type="button"
-                  id="adminMenuDropdown"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                  title="{% trans 'Admin Menu' %}"
-                  aria-label="{% trans 'Admin menu' %}"
-                >
-                  <i class="bi bi-gear" aria-hidden="true"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenuDropdown">
-                  <li><a class="dropdown-item" href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-gear-wide-connected"></i> {% trans "Configuration Control Center" %}</a></li>
-                </ul>
-              </div>
-
-              <span class="small opacity-75 d-none d-md-inline topbar-username">{{ request.user.username }}</span>
-              <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1" href="{% url 'accounts:logout' %}">
-                <i class="bi bi-box-arrow-right"></i>
-                <span class="d-none d-sm-inline">{% trans "Logout" %}</span>
-              </a>
+              {# Phase D end-to-end (2026-05-12): portal topbar now uses the same rich
+                 user_dropdown.html as control plane and admin. The component already
+                 includes the Light/Dark/System theme toggle, AI health pulse on the
+                 avatar, unread notification badge, admin tools (Compliance, System
+                 Health) for staff, help links, and logout — so the standalone
+                 themeToggle / adminMenuDropdown / username / logout buttons that
+                 used to live here are now redundant and have been removed.
+                 SHOW_HEADER_PROFILE_MENU gate is preserved. #}
+              {% if SHOW_HEADER_PROFILE_MENU and request.user.is_authenticated %}
+                {% include "components/user_dropdown.html" %}
               {% endif %}
             </div>
           {% else %}
@@ -442,254 +445,10 @@
     Externalised from portal_base.html so the shell is CSP-friendly.
     {% endcomment %}
     <script src="{% static 'js/portal-shell-bootstrap.js' %}" defer></script>
-    {# Legacy inline implementation removed in batch 1239 — see static/js/portal-shell-bootstrap.js #}
-    {% comment %}
-    Original 240-line inline block (theme toggle + Ctrl+K search + sidebar resize)
-    was deleted in batch 1239; implementation now lives in
-    static/js/portal-shell-bootstrap.js.
-    {% endcomment %}
-    {% comment %}
-      // Theme Toggle: light / dark / system (persisted in localStorage)
-      document.addEventListener('DOMContentLoaded', function() {
-        const themeToggle = document.getElementById('themeToggle');
-        const htmlElement = document.documentElement;
-
-        function getSystemTheme() {
-          return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
-        function resolveTheme(stored) {
-          if (stored === 'system') return getSystemTheme();
-          return stored === 'dark' ? 'dark' : 'light';
-        }
-        function updateMetaThemeColor(resolved) {
-          var meta = document.querySelector('meta[name="theme-color"]');
-          if (!meta) return;
-          var prop = resolved === 'dark' ? '--meta-theme-color-dark' : '--meta-theme-color-light';
-          var value = getComputedStyle(htmlElement).getPropertyValue(prop).trim();
-          if (value) meta.setAttribute('content', value);
-        }
-        function applyTheme(stored) {
-          var resolved = resolveTheme(stored);
-          htmlElement.setAttribute("data-theme", resolved);
-          htmlElement.setAttribute("data-bs-theme", resolved);
-          updateThemeIcon(stored, resolved);
-          updateMetaThemeColor(resolved);
-        }
-        function updateThemeIcon(stored, resolved) {
-          if (!themeToggle) return;
-          var icon = themeToggle.querySelector('i');
-          if (!icon) return;
-          icon.classList.remove('bi-moon-stars', 'bi-sun-fill', 'bi-circle-half');
-          if (stored === 'system') {
-            icon.classList.add('bi-circle-half');
-            themeToggle.setAttribute('title', 'Theme: System (' + resolved + ')');
-          } else if (resolved === 'dark') {
-            icon.classList.add('bi-sun-fill');
-            themeToggle.setAttribute('title', 'Switch to light');
-          } else {
-            icon.classList.add('bi-moon-stars');
-            themeToggle.setAttribute('title', 'Switch to dark');
-          }
-        }
-        function cycleTheme() {
-          var key = 'runmycampus-theme-preference';
-          var stored = localStorage.getItem(key) || 'light';
-          var next = stored === 'light' ? 'dark' : (stored === 'dark' ? 'system' : 'light');
-          localStorage.setItem(key, next);
-          applyTheme(next);
-        }
-        
-        var key = 'runmycampus-theme-preference';
-        var stored = localStorage.getItem(key);
-        applyTheme(stored || 'light');
-        if (themeToggle) themeToggle.addEventListener('click', cycleTheme);
-        
-        if (window.matchMedia) {
-          window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
-            if ((localStorage.getItem('runmycampus-theme-preference') || 'light') === 'system') applyTheme('system');
-          });
-        }
-      });
-
-      // Global Search Bar (Ctrl+K) - fetches /api/search/ and shows results
-      document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('headerSearchInput');
-        const resultsEl = document.getElementById('headerSearchResults');
-        if (!searchInput || !resultsEl) return;
-
-        var searchTimeout;
-        var lastQuery = '';
-
-        function showResults(html) {
-          resultsEl.innerHTML = html;
-          resultsEl.style.display = html ? 'block' : 'none';
-          searchInput.setAttribute('aria-expanded', html ? 'true' : 'false');
-        }
-
-        function hideResults() {
-          setTimeout(function() { showResults(''); }, 150);
-        }
-
-        document.addEventListener('keydown', function(e) {
-          if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-            e.preventDefault();
-            searchInput.focus();
-            searchInput.select();
-          }
-        });
-
-        searchInput.addEventListener('input', function() {
-          var q = (this.value || '').trim();
-          clearTimeout(searchTimeout);
-          if (q.length < 2) {
-            showResults('');
-            return;
-          }
-          searchTimeout = setTimeout(function() {
-            fetch('/api/search/?q=' + encodeURIComponent(q) + '&limit=8', { credentials: 'same-origin' })
-              .then(function(r) {
-                if (!r.ok) throw new Error('Search failed');
-                return r.json();
-              })
-              .then(function(data) {
-                var esc = function(t) { var d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; };
-                var items = data.results || [];
-                if (items.length === 0) {
-                  showResults('<div class="search-result-empty">No results for "' + esc(q.length > 20 ? q.slice(0,20) + '...' : q) + '"</div>');
-                } else {
-                  showResults(items.map(function(item) {
-                    var title = esc(item.title || item.label || '');
-                    var desc = item.description ? ' <span class="search-result-muted">' + esc(item.description) + '</span>' : '';
-                    var url = (item.url || '#').replace(/"/g, '&quot;');
-                    return '<a class="search-result-item" href="' + url + '" role="option"><i class="bi ' + (item.icon || 'bi-circle') + ' me-2"></i>' + title + desc + '</a>';
-                  }).join(''));
-                }
-              })
-              .catch(function() {
-                showResults('<div class="search-result-error">Search failed. Try again.</div>');
-              });
-          }, 250);
-        });
-
-        searchInput.addEventListener('keydown', function(e) {
-          if (e.key === 'Escape') {
-            showResults('');
-            this.blur();
-          } else if (e.key === 'Enter') {
-            var first = resultsEl.querySelector('.search-result-item');
-            if (first) {
-              first.click();
-              showResults('');
-            }
-          }
-        });
-
-        searchInput.addEventListener('blur', function(e) {
-          var rel = e.relatedTarget;
-          if (rel && resultsEl.contains(rel)) return;
-          hideResults();
-        });
-      });
-
-      // Resizable sidebar: drag handle updates --portal-sidebar-width and persists to localStorage
-      document.addEventListener('DOMContentLoaded', function() {
-        var handle = document.querySelector('.portal-resize-handle');
-        var root = document.documentElement;
-        var MIN = 200;
-        var MAX = 420;
-        var KEY = 'portal-sidebar-width';
-
-        function px(v) { return Math.round(v) + 'px'; }
-        function clamp(v) { return Math.max(MIN, Math.min(MAX, v)); }
-
-        function loadWidth() {
-          var w = parseInt(localStorage.getItem(KEY), 10);
-          if (w && w >= MIN && w <= MAX) root.style.setProperty('--portal-sidebar-width', px(w));
-        }
-        loadWidth();
-
-        // Collapsible sidebar: toggle icon-only strip, persist to localStorage
-        var sidebarCol = document.getElementById('portal-sidebar-col');
-        var collapseKey = 'portal-sidebar-collapsed';
-        var collapseKeys = [collapseKey];
-        var collapseButtons = Array.from(document.querySelectorAll('.portal-sidebar-collapse-toggle, .js-sidebar-toggle'));
-
-        function updateCollapseButtons(collapsed) {
-          collapseButtons.forEach(function(btn) {
-            btn.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
-            btn.setAttribute('aria-expanded', String(!collapsed));
-            btn.setAttribute('title', collapsed ? 'Expand sidebar' : 'Collapse sidebar to icons');
-            var icon = btn.querySelector('.bi-layout-sidebar-inset, .bi-layout-sidebar-inset-reverse');
-            if (icon) {
-              icon.classList.toggle('bi-layout-sidebar-inset', !collapsed);
-              icon.classList.toggle('bi-layout-sidebar-inset-reverse', collapsed);
-            }
-            var label = btn.querySelector('[data-sidebar-toggle-label]');
-            if (label) {
-              label.textContent = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
-            }
-          });
-        }
-
-        function setSidebarCollapsed(collapsed) {
-          if (!sidebarCol) return;
-          sidebarCol.classList.toggle('portal-sidebar-collapsed', collapsed);
-          collapseKeys.forEach(function (k) {
-            localStorage.setItem(k, collapsed ? 'true' : 'false');
-          });
-          updateCollapseButtons(collapsed);
-        }
-
-        function loadCollapsed() {
-          if (!sidebarCol) return;
-          var collapsed = false;
-          for (var i = 0; i < collapseKeys.length; i++) {
-            if (localStorage.getItem(collapseKeys[i]) === 'true') {
-              collapsed = true;
-              break;
-            }
-          }
-          setSidebarCollapsed(collapsed);
-        }
-        loadCollapsed();
-        collapseButtons.forEach(function(btn) {
-          btn.addEventListener('click', function() {
-            if (!sidebarCol) return;
-            var collapsed = !sidebarCol.classList.contains('portal-sidebar-collapsed');
-            setSidebarCollapsed(collapsed);
-          });
-        });
-
-        if (handle) {
-          handle.addEventListener('mousedown', function(e) {
-            if (e.button !== 0) return;
-            e.preventDefault();
-            var startX = e.clientX;
-            var startW = parseInt(getComputedStyle(root).getPropertyValue('--portal-sidebar-width'), 10) || 280;
-
-            function move(e) {
-              var dx = e.clientX - startX;
-              var newW = clamp(startW + dx);
-              root.style.setProperty('--portal-sidebar-width', px(newW));
-            }
-            function up() {
-              var w = parseInt(getComputedStyle(root).getPropertyValue('--portal-sidebar-width'), 10);
-              localStorage.setItem(KEY, String(w));
-              document.removeEventListener('mousemove', move);
-              document.removeEventListener('mouseup', up);
-              document.body.style.cursor = '';
-              document.body.style.userSelect = '';
-            }
-
-            document.body.style.cursor = 'col-resize';
-            document.body.style.userSelect = 'none';
-            document.addEventListener('mousemove', move);
-            document.addEventListener('mouseup', up);
-          });
-        }
-      });
-    </script>
-    {% endcomment %}
+    {# Legacy inline theme+search+sidebar block fully retired 2026-05-12. Live
+       behavior: theme = theme-preference-bootstrap.js + RMCTheme; Ctrl+K =
+       rmc-command-palette.js; header search filtering + sidebar resize/collapse
+       = static/js/portal-shell-bootstrap.js. #}
 
     {% comment %}
     SMS_OFFLINE_CONFIG: emitted as a JSON data island (CSP-safe) and parsed
@@ -777,6 +536,21 @@
 
     {# AI Copilot Assistant - RBAC Compatible #}
     {% include 'components/ai_copilot.html' %}
+
+    {# Phase G (2026-05-12): platform-wide ⌘K command palette (Apple Spotlight-style).
+       Single answer to "long endless nav" — jump to any page or action from any page. #}
+    {% if request.user.is_authenticated %}
+      {% include 'components/rmc_command_palette.html' %}
+      <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>
+      {# Phase K (2026-05-12): density toggle for .rmc-data-table tables. #}
+      <script src="{% static 'js/rmc-data-table.js' %}" defer></script>
+      {# Phase N (2026-05-12): deterministic avatar gradients. #}
+      <script src="{% static 'js/rmc-avatar-seed.js' %}" defer></script>
+      {# Phase Q (2026-05-12): dirty-state form detection + sticky save bar. #}
+      <script src="{% static 'js/rmc-form-dirty.js' %}" defer></script>
+      {# Phase W (2026-05-12): subtle haptic feedback for success/warning/error. #}
+      <script src="{% static 'js/rmc-haptics.js' %}" defer></script>
+    {% endif %}
 
     {# Phase 14: Toast notifications for success/error feedback (showToast available app-wide) #}
     {% include 'components/toast_notifications.html' %}

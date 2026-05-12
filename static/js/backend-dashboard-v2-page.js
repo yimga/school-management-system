@@ -175,17 +175,11 @@
       }
     });
 
+    // Ctrl/Cmd+K retired 2026-05-12 — that shortcut is now owned by the
+    // platform-wide rmc-command-palette.js (.rmc-cmdk). This page-local palette
+    // still opens via its own trigger button + closes on Escape.
     document.addEventListener("keydown", function (event) {
-      var isMetaK = (event.ctrlKey || event.metaKey) && event.key && event.key.toLowerCase() === "k";
-      var isClose = event.key === "Escape";
-      var isOpen = paletteEl.classList.contains("is-open");
-
-      if (isMetaK) {
-        if (!isOpen && isTypingContext(document.activeElement)) return;
-        event.preventDefault();
-        if (isOpen) closePalette();
-        else openPalette();
-      } else if (isClose && isOpen) {
+      if (event.key === "Escape" && paletteEl.classList.contains("is-open")) {
         closePalette();
       }
     });

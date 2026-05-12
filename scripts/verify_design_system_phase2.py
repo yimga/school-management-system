@@ -29,8 +29,10 @@ REQUIRED_STATIC = [
     "static/css/design-system-phase2-enforcement.css",
     "static/css/design-system-unified.css",
     "static/marketing/css/tokens-marketing.css",
-    "static/css/dashboard-header-component.css",
-    "static/css/theme-toggle-component.css",
+    # `dashboard-header-component.css` + `theme-toggle-component.css` retired
+    # 2026-05-12 — their consumer templates (dashboard_header.html and
+    # theme_toggle.html) were orphans after portal_base.html migrated to the
+    # rich user_dropdown.html which has its own embedded theme toggle.
     "static/css/studio-mode-rail.css",
     "static/css/studio-shell-layout.css",
     "static/css/studio-system-config-console.css",

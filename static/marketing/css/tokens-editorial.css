@@ -1269,3 +1269,43 @@
   font-weight: 500;
   font-size: var(--mkt-edt-type-body);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   v2.6 (2026-05-12) — Marketing dark mode.
+   The editorial cream surface respects prefers-color-scheme: dark. Subtle
+   dark warm graphite (Anthropic-ish night) keeps the editorial voice; the
+   accent terracotta lightens slightly so it still feels warm against
+   the darker canvas.
+
+   Honors `<html data-theme="dark|light">` overrides too — a logged-in user
+   navigating to marketing carries their pref through. Only activates when
+   both [data-mkt-edition="editorial"] is on the body AND dark is resolved.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) [data-mkt-edition="editorial"] {
+    --mkt-edt-bg: #1A1715;
+    --mkt-edt-bg-soft: #221E1B;
+    --mkt-edt-ink: #F2EDE4;
+    --mkt-edt-ink-muted: #C9C2B5;
+    --mkt-edt-ink-subtle: #8E867A;
+    --mkt-edt-rule: rgba(242, 237, 228, 0.10);
+    --mkt-edt-accent: #FB923C;
+    --mkt-edt-accent-hover: #FED7AA;
+    --mkt-edt-on-accent: #1A1715;
+    --mkt-edt-shadow-artifact: 0 24px 48px -16px rgba(0, 0, 0, 0.55),
+      0 4px 12px -4px rgba(0, 0, 0, 0.35);
+  }
+}
+html[data-theme="dark"] [data-mkt-edition="editorial"] {
+  --mkt-edt-bg: #1A1715;
+  --mkt-edt-bg-soft: #221E1B;
+  --mkt-edt-ink: #F2EDE4;
+  --mkt-edt-ink-muted: #C9C2B5;
+  --mkt-edt-ink-subtle: #8E867A;
+  --mkt-edt-rule: rgba(242, 237, 228, 0.10);
+  --mkt-edt-accent: #FB923C;
+  --mkt-edt-accent-hover: #FED7AA;
+  --mkt-edt-on-accent: #1A1715;
+  --mkt-edt-shadow-artifact: 0 24px 48px -16px rgba(0, 0, 0, 0.55),
+    0 4px 12px -4px rgba(0, 0, 0, 0.35);
+}

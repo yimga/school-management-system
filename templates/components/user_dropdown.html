@@ -1,5 +1,5 @@
-{% load static %}
-{# Enhanced user dropdown menu #}
+{% load static i18n %}
+{# Enhanced user dropdown menu — i18n-wrapped 2026-05-12. #}
 <div class="user-dropdown-wrapper">
   <div class="dropdown">
     <button class="user-dropdown-trigger" type="button" id="userDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
@@ -7,25 +7,36 @@
         {% if request.user.profile_photo %}
           <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.get_full_name }}" width="40" height="40" decoding="async" loading="lazy">
         {% else %}
-          <div class="avatar-placeholder" style="background: linear-gradient(135deg, var(--school-primary, #4f46e5) 0%, var(--school-accent, #10b981) 100%);">
+          <div class="avatar-placeholder" style="background: var(--brand-gradient, linear-gradient(135deg, var(--school-primary, #4f46e5), var(--color-indigo-800, #3730a3)));">
             {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
           </div>
         {% endif %}
         <span class="user-status-indicator"></span>
+        {# Improvement A (2026-05-12): AI health micro-dot on the avatar so degraded
+           mode is visible without opening the copilot. Driven by /api/ai/health/. #}
+        <span class="user-avatar-ai-pulse" data-rmc-user-ai-pulse aria-hidden="true" title="{% trans 'AI status' %}"></span>
+        {# Improvement B (2026-05-12): unread notification badge (server-rendered). #}
+        {% with unread_count=NOTIFICATIONS_UNREAD_COUNT|default:unread_notifications_count|default:0 %}
+          {% if unread_count %}
+            <span class="user-avatar-unread" aria-label="{% blocktrans count counter=unread_count %}{{ counter }} unread notification{% plural %}{{ counter }} unread notifications{% endblocktrans %}">
+              {% if unread_count > 99 %}99+{% else %}{{ unread_count }}{% endif %}
+            </span>
+          {% endif %}
+        {% endwith %}
       </div>
       <div class="user-info">
         <div class="user-name">{{ request.user.get_full_name }}</div>
         <div class="user-role-badge">
           {% if request.user.role == 'ADMIN' %}
-            <i class="bi bi-shield-check"></i> Admin
+            <i class="bi bi-shield-check"></i> {% trans "Admin" %}
           {% elif request.user.role == 'LEADERSHIP' %}
-            <i class="bi bi-star"></i> Leadership
+            <i class="bi bi-star"></i> {% trans "Leadership" %}
           {% elif request.user.role == 'TEACHER' %}
-            <i class="bi bi-person-video3"></i> Teacher
+            <i class="bi bi-person-video3"></i> {% trans "Teacher" %}
           {% elif request.user.role == 'PARENT' %}
-            <i class="bi bi-house-heart"></i> Parent
+            <i class="bi bi-house-heart"></i> {% trans "Parent" %}
           {% elif request.user.role == 'STUDENT' %}
-            <i class="bi bi-backpack"></i> Student
+            <i class="bi bi-backpack"></i> {% trans "Student" %}
           {% endif %}
         </div>
       </div>
@@ -37,7 +48,7 @@
       <li class="user-stats">
         <div class="stat-item">
           <div class="stat-value">{{ request.user.login_count|default:"0" }}</div>
-          <div class="stat-label">Logins</div>
+          <div class="stat-label">{% trans "Logins" %}</div>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
@@ -45,10 +56,10 @@
             {% if request.user.last_login %}
               {{ request.user.last_login|timesince|truncatewords:2 }}
             {% else %}
-              N/A
+              {% trans "N/A" %}
             {% endif %}
           </div>
-          <div class="stat-label">Last Login</div>
+          <div class="stat-label">{% trans "Last Login" %}</div>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
@@ -56,10 +67,10 @@
             {% if request.user.date_joined %}
               {{ request.user.date_joined|timesince|truncatewords:2 }}
             {% else %}
-              N/A
+              {% trans "N/A" %}
             {% endif %}
           </div>
-          <div class="stat-label">Member For</div>
+          <div class="stat-label">{% trans "Member For" %}</div>
         </div>
       </li>
 
@@ -67,55 +78,78 @@
 
       <!-- Profile section -->
       <li class="dropdown-section-header">
-        <i class="bi bi-person"></i> Account
+        <i class="bi bi-person"></i> {% trans "Account" %}
       </li>
+
+      {# v2 theme system: Light / Dark / System segmented toggle.
+         Writes to localStorage via window.RMCTheme.set() (theme-preference-bootstrap.js)
+         and lets <html data-theme=...> cascade across every CSS surface. #}
+      <li class="rmc-theme-toggle-row px-3 py-2" role="group" aria-label="{% trans 'Appearance' %}">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+          <span class="small text-muted"><i class="bi bi-circle-half me-1"></i>{% trans "Appearance" %}</span>
+          <span class="small text-tertiary" data-rmc-theme-current aria-live="polite"></span>
+        </div>
+        <div class="btn-group btn-group-sm w-100" role="group">
+          <button type="button" class="btn btn-outline-secondary rmc-theme-btn" data-rmc-theme="light" aria-pressed="false" title="{% trans 'Light' %}">
+            <i class="bi bi-sun" aria-hidden="true"></i><span class="visually-hidden">{% trans "Light" %}</span>
+          </button>
+          <button type="button" class="btn btn-outline-secondary rmc-theme-btn" data-rmc-theme="dark" aria-pressed="false" title="{% trans 'Dark' %}">
+            <i class="bi bi-moon-stars" aria-hidden="true"></i><span class="visually-hidden">{% trans "Dark" %}</span>
+          </button>
+          <button type="button" class="btn btn-outline-secondary rmc-theme-btn" data-rmc-theme="system" aria-pressed="false" title="{% trans 'System' %}">
+            <i class="bi bi-laptop" aria-hidden="true"></i><span class="visually-hidden">{% trans "System" %}</span>
+          </button>
+        </div>
+      </li>
+      <li><hr class="dropdown-divider"></li>
+
       <li>
         <a class="dropdown-item" href="{% url 'accounts:user_profile' %}">
           <i class="bi bi-person-circle"></i>
-          <span>My Profile</span>
+          <span>{% trans "My Profile" %}</span>
           <kbd>P</kbd>
         </a>
       </li>
       <li>
         <a class="dropdown-item" href="{% url 'siteconfig:user_preferences' %}">
           <i class="bi bi-gear"></i>
-          <span>Settings</span>
+          <span>{% trans "Settings" %}</span>
           <kbd>S</kbd>
         </a>
       </li>
       <li>
         <a class="dropdown-item" href="{% url 'accounts:user_notifications' %}">
           <i class="bi bi-bell"></i>
-          <span>Notifications</span>
+          <span>{% trans "Notifications" %}</span>
           <span class="badge bg-primary">{{ unread_notifications_count|default:"0" }}</span>
         </a>
       </li>
       <li>
         <a class="dropdown-item" href="{% url 'accounts:user_documentation' %}">
           <i class="bi bi-journal-text"></i>
-          <span>Documentation</span>
+          <span>{% trans "Documentation" %}</span>
         </a>
       </li>
 
       {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
       <li><hr class="dropdown-divider"></li>
-      
+
       <!-- Admin tools (RBAC: no Django Admin link in portal; use Backend Console) -->
       <li class="dropdown-section-header">
-        <i class="bi bi-tools"></i> Admin Tools
+        <i class="bi bi-tools"></i> {% trans "Admin Tools" %}
       </li>
       {% comment %} Activity logs and system health links are custom admin URLs {% endcomment %}
       {% if request.user.is_staff %}
         <li>
           <a class="dropdown-item" href="{% url 'compliance:dashboard' %}">
             <i class="bi bi-clock-history"></i>
-            <span>Compliance &amp; Activity</span>
+            <span>{% trans "Compliance & Activity" %}</span>
           </a>
         </li>
         <li>
           <a class="dropdown-item" href="{% url 'health' %}">
             <i class="bi bi-heart-pulse"></i>
-            <span>System Health</span>
+            <span>{% trans "System Health" %}</span>
           </a>
         </li>
       {% endif %}
@@ -125,32 +159,41 @@
 
       <!-- Help & Support -->
       <li class="dropdown-section-header">
-        <i class="bi bi-question-circle"></i> Help & Support
+        <i class="bi bi-question-circle"></i> {% trans "Help & Support" %}
       </li>
       <li>
         <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}">
           <i class="bi bi-life-preserver"></i>
-          <span>Help Center</span>
+          <span>{% trans "Help Center" %}</span>
           <kbd>?</kbd>
         </a>
       </li>
       <li>
         <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}">
           <i class="bi bi-book"></i>
-          <span>Knowledge Base</span>
+          <span>{% trans "Knowledge Base" %}</span>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_support_request' %}{% else %}{% url 'portal:support_request' %}?type=support&next={{ request.path|urlencode }}{% endif %}" title="Contact Support">
+        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_support_request' %}{% else %}{% url 'portal:support_request' %}?type=support&next={{ request.path|urlencode }}{% endif %}" title="{% trans 'Contact Support' %}">
           <i class="bi bi-envelope"></i>
-          <span>Contact Support</span>
+          <span>{% trans "Contact Support" %}</span>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_feedback' %}{% else %}{% url 'portal:support_request' %}?type=feedback&next={{ request.path|urlencode }}{% endif %}" title="Send Feedback">
+        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_feedback' %}{% else %}{% url 'portal:support_request' %}?type=feedback&next={{ request.path|urlencode }}{% endif %}" title="{% trans 'Send Feedback' %}">
           <i class="bi bi-chat-left-text"></i>
-          <span>Send Feedback</span>
+          <span>{% trans "Send Feedback" %}</span>
         </a>
+      </li>
+      <li>
+        {# v2.6 (2026-05-12): keyboard shortcut cheat sheet trigger. The same
+           overlay opens via `?` anywhere — listing it here makes it discoverable. #}
+        <button class="dropdown-item" type="button" onclick="if (window.RMCShortcuts && window.RMCShortcuts.open) { window.RMCShortcuts.open(); } return false;">
+          <i class="bi bi-keyboard"></i>
+          <span>{% trans "Keyboard shortcuts" %}</span>
+          <kbd class="rmc-kbd ms-auto">?</kbd>
+        </button>
       </li>
 
       <li><hr class="dropdown-divider"></li>
@@ -159,7 +202,7 @@
       <li>
         <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
           <i class="bi bi-box-arrow-right"></i>
-          <span>Logout</span>
+          <span>{% trans "Logout" %}</span>
           <kbd>L</kbd>
         </a>
       </li>
@@ -179,3 +222,4 @@ JSON data island so the inline executable script can be removed
   "helpUrl": "{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}"
 }</script>
 <script src="{% static '_pages/components__user_dropdown.js' %}"></script>
+<script src="{% static 'js/rmc-theme-toggle.js' %}"></script>

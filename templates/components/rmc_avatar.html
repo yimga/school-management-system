@@ -1,0 +1,48 @@
+{% load i18n %}
+{# Phase N (2026-05-12): platform-wide avatar / identity component.
+   Apple-tier identity grammar — used in user_dropdown, comms, gradebook, parent rosters.
+
+   Usage (minimal):
+     {% include "components/rmc_avatar.html" with user=request.user %}
+
+   Usage (full):
+     {% include "components/rmc_avatar.html" with
+        user=student.user
+        size=48
+        status="active"
+        label="Active"
+        show_name=True %}
+
+   Variables:
+     user        — User-like obj with first_name/last_name/profile_photo/get_full_name/pk
+     name        — fallback display name when user is None
+     initials    — explicit initials override (2 chars)
+     seed        — deterministic gradient seed; defaults to user.pk or hash of name
+     size        — px width/height; default 40
+     status      — "active" | "away" | "offline" | "" — controls ring color
+     show_name   — when True render name + role beside the avatar
+     role_label  — secondary line under the name
+     class       — extra classes
+   #}
+{% with size=size|default:40 status=status|default:'' %}
+<span class="rmc-avatar rmc-avatar--{{ size }}{% if status %} rmc-avatar--status-{{ status }}{% endif %} {{ class|default:'' }}"
+      data-rmc-avatar-seed="{% firstof seed user.pk user.id name|default:'rmc' %}"
+      style="--rmc-avatar-size: {{ size }}px;"
+      role="img"
+      aria-label="{% firstof user.get_full_name name %}{% if status %} ({{ status }}){% endif %}">
+  {% if user and user.profile_photo %}
+    <img class="rmc-avatar__img" src="{{ user.profile_photo.url }}" alt="" width="{{ size }}" height="{{ size }}" decoding="async" loading="lazy">
+  {% else %}
+    <span class="rmc-avatar__initials" aria-hidden="true">
+      {% if initials %}{{ initials|slice:":2"|upper }}{% elif user.first_name and user.last_name %}{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}{% elif name %}{{ name|first|upper }}{% else %}?{% endif %}
+    </span>
+  {% endif %}
+  {% if status %}<span class="rmc-avatar__status" aria-hidden="true"></span>{% endif %}
+</span>
+{% if show_name %}
+<span class="rmc-avatar-with-name">
+  <span class="rmc-avatar-with-name__primary">{% firstof user.get_full_name name "—" %}</span>
+  {% if role_label %}<span class="rmc-avatar-with-name__secondary">{{ role_label }}</span>{% endif %}
+</span>
+{% endif %}
+{% endwith %}

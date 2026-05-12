@@ -1,0 +1,54 @@
+{% load static %}
+{# Open Graph + Twitter card meta tags. Reads from view context with sensible
+   tenant-aware defaults. Include inside <head> on every shell.
+
+   Context variables read (all optional, all have fallbacks):
+     og_title       — Page title (else block.title, else SITE.site_name)
+     og_description — Page description (else seo_description, else SITE.meta_description)
+     og_image       — Absolute URL to a 1200×630 social card. Falls back to
+                      SITE_LOGO_URL or the platform default OG image.
+     og_image_alt   — Alt text for og_image.
+     og_type        — "website" (default) | "article" | "profile"
+     og_url         — Canonical URL (else request.build_absolute_uri)
+     twitter_site   — @handle for the platform brand (env-driven).
+     twitter_creator— @handle for the page author. #}
+<meta property="og:type" content="{{ og_type|default:'website' }}">
+<meta property="og:title" content="{{ og_title|default:SITE.site_name|default:'RunMyCampus' }}">
+{% if og_description or seo_description or SITE.meta_description %}
+  <meta property="og:description" content="{{ og_description|default:seo_description|default:SITE.meta_description|truncatewords:30 }}">
+{% endif %}
+{% if og_image %}
+  <meta property="og:image" content="{{ og_image }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  {% if og_image_alt %}<meta property="og:image:alt" content="{{ og_image_alt }}">{% endif %}
+{% elif SITE_LOGO_URL %}
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ SITE_LOGO_URL }}">
+  <meta property="og:image:alt" content="{{ SITE.site_name|default:'RunMyCampus' }}">
+{% else %}
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'images/runmycampus-og-card.png' %}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="RunMyCampus — Run your school the way your school actually runs">
+{% endif %}
+<meta property="og:url" content="{{ og_url|default:request.build_absolute_uri }}">
+<meta property="og:site_name" content="{{ SITE.site_name|default:'RunMyCampus' }}">
+{% if request.LANGUAGE_CODE %}<meta property="og:locale" content="{{ request.LANGUAGE_CODE }}">{% endif %}
+
+{# Twitter / X cards #}
+<meta name="twitter:card" content="{% if og_image %}summary_large_image{% else %}summary{% endif %}">
+<meta name="twitter:title" content="{{ og_title|default:SITE.site_name|default:'RunMyCampus' }}">
+{% if og_description or seo_description or SITE.meta_description %}
+  <meta name="twitter:description" content="{{ og_description|default:seo_description|default:SITE.meta_description|truncatewords:30 }}">
+{% endif %}
+{% if og_image %}
+  <meta name="twitter:image" content="{{ og_image }}">
+{% elif SITE_LOGO_URL %}
+  <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ SITE_LOGO_URL }}">
+{% else %}
+  <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'images/runmycampus-og-card.png' %}">
+{% endif %}
+{% if SITE.twitter_handle or TWITTER_SITE_HANDLE %}
+  <meta name="twitter:site" content="{{ SITE.twitter_handle|default:TWITTER_SITE_HANDLE }}">
+{% endif %}
+{% if twitter_creator %}<meta name="twitter:creator" content="{{ twitter_creator }}">{% endif %}

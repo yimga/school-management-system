@@ -201,10 +201,12 @@ body.portal-backend-light .portal-sidebar-wrapper .sidebar-stat-label {
   color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
 }
 
-/* ===== 12. Admin index / dashboard (Django admin) ===== */
+/* ===== 12. Admin index / dashboard (Django admin) =====
+   `.theme-toggle-label` selectors retired 2026-05-12 — the standalone theme
+   toggle button was removed when the rich user_dropdown.html adopted the
+   Light/Dark/System segmented control. The element no longer renders. */
 #content .text-muted,
-#content .dashboard-subtitle,
-#content .theme-toggle-label {
+#content .dashboard-subtitle {
   color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
 }
 body.dark #content .text-muted,
@@ -213,12 +215,10 @@ body:not(.light-mode) #content .text-muted,
   color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 body.light-mode #content .text-muted,
-body.light-mode #content .dashboard-subtitle,
-body.light-mode #content .theme-toggle-label {
+body.light-mode #content .dashboard-subtitle {
   color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
 }
-body:not(.light-mode) #content .dashboard-subtitle,
-body:not(.light-mode) #content .theme-toggle-label {
+body:not(.light-mode) #content .dashboard-subtitle {
   color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 

@@ -212,6 +212,86 @@ def get_public_ai_provider_status() -> dict[str, Any]:
     }
 
 
+def probe_ai_provider_reachable() -> dict[str, Any]:
+    """
+    Lightweight reachability probe — does the configured provider answer a TCP ping?
+
+    Result is cached for AI_HEALTH_CACHE_TTL seconds (default 60) so the copilot UI
+    can surface degraded mode without hammering Ollama. Returns:
+        {
+          "reachable": bool,
+          "provider": "ollama" | "rules" | "none",
+          "latency_ms": int | None,
+          "fallback_active": bool,
+          "degraded": bool,
+          "checked_at": ISO-8601 timestamp,
+        }
+    """
+    from datetime import datetime, timezone
+    from django.core.cache import cache
+
+    cache_key = "ai:health:provider-reachability"
+    cached = None
+    try:
+        cached = cache.get(cache_key)
+    except (AttributeError, OSError, RuntimeError, TypeError, ValueError):
+        cached = None
+    if cached is not None:
+        return cached
+
+    status = get_ai_provider_status()
+    preference = status.get("preference", [])
+    rules_enabled = bool(status.get("rules_fallback_enabled"))
+    result: dict[str, Any] = {
+        "reachable": False,
+        "provider": "none",
+        "latency_ms": None,
+        "fallback_active": False,
+        "degraded": True,
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    if "ollama" in preference and status.get("ollama", {}).get("configured"):
+        endpoint, _model = _ollama_config()
+        try:
+            import time as _t
+            import urllib.parse
+            import urllib.request
+
+            parsed = urllib.parse.urlparse(endpoint)
+            base = f"{parsed.scheme}://{parsed.netloc}/api/tags"
+            t0 = _t.monotonic()
+            req = urllib.request.Request(base, method="GET")
+            with urllib.request.urlopen(req, timeout=2.5) as resp:  # noqa: S310
+                ok = 200 <= resp.status < 500
+            latency_ms = int((_t.monotonic() - t0) * 1000)
+            if ok:
+                result.update({
+                    "reachable": True,
+                    "provider": "ollama",
+                    "latency_ms": latency_ms,
+                    "degraded": False,
+                })
+        except _AI_GATEWAY_INVOKE_ERRORS:
+            result["reachable"] = False
+        except Exception:  # noqa: BLE001 — last-resort defensive
+            result["reachable"] = False
+
+    if not result["reachable"] and rules_enabled:
+        result.update({
+            "provider": "rules",
+            "fallback_active": True,
+            "degraded": True,
+        })
+
+    ttl = int(getattr(settings, "AI_HEALTH_CACHE_TTL_SECONDS", 60) or 60)
+    try:
+        cache.set(cache_key, result, ttl)
+    except (AttributeError, OSError, RuntimeError, TypeError, ValueError):
+        pass
+    return result
+
+
 def generate_ai_response(
     prompt: str,
     *,

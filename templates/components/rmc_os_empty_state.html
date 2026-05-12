@@ -1,9 +1,0 @@
-{% load i18n %}
-{# Shared empty state — use inside main canvas. #}
-<div class="rmc-os-empty-state text-center py-5 px-3" data-rmc-os-empty-state="1" role="status">
-  {% if title %}<h2 class="h5 fw-semibold">{{ title }}</h2>{% endif %}
-  {% if body %}<p class="text-muted mb-3">{{ body }}</p>{% endif %}
-  {% if action_url and action_label %}
-    <a class="btn btn-primary" href="{{ action_url }}" data-task="{{ action_task|default:'rmc-empty-state' }}" data-action="{{ action_data_action|default:'empty-state-primary' }}">{{ action_label }}</a>
-  {% endif %}
-</div>

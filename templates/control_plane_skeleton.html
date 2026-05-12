@@ -3,7 +3,18 @@
 <html lang="{{ rmc_locale|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-regional-ui="1" data-theme="dark" data-bs-theme="dark" data-surface="control-plane" data-rmc-shell-root="control-plane-skeleton" data-shell-layout="control-plane"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    {% include "partials/rmc_theme_meta.html" %}
+    {# Theme bootstrap must run before paint to avoid flash-of-wrong-theme.
+       Control plane defaults to dark but respects the user's Light/Dark/System pref. #}
+    {% include "partials/rmc_social_meta.html" %}
+    <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
+    <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
+    <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
+    <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
+    <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
+    <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
+    <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
     <title>{% block title %}RunMyCampus Manager{% endblock %}</title>
     <link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
@@ -43,11 +54,26 @@
     <link rel="stylesheet" href="{% static 'css/phase2-control-plane-bundle.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css/ultra-luxury-ui-system.css' %}">
+    {# Phase G (2026-05-12): platform-wide long-page grammar. #}
+    <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
     {% block extrastyle %}{% endblock %}
   </head>
   <body class="control-plane-shell cp-surface" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %}>
     {% include "partials/shell_skip_link.html" with skip_href="#cp-main-content" skip_link_class="skip-link visually-hidden-focusable" %}
     {% block content %}{% endblock %}
+    {# Phase E (2026-05-12): AI copilot is mounted on every authenticated shell so
+       the ⌘/Ctrl+Shift+? assistant is reachable from /super, /portal, /admin alike. #}
+    {% if request.user.is_authenticated %}
+      {% include 'components/ai_copilot.html' %}
+      {# Phase G: ⌘K command palette + section-nav helper for long control-plane pages. #}
+      {% include 'components/rmc_command_palette.html' %}
+      <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>
+      <script src="{% static 'js/rmc-data-table.js' %}" defer></script>
+      <script src="{% static 'js/rmc-avatar-seed.js' %}" defer></script>
+      <script src="{% static 'js/rmc-form-dirty.js' %}" defer></script>
+      <script src="{% static 'js/rmc-haptics.js' %}" defer></script>
+    {% endif %}
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>
     {% block extrajs %}{% endblock %}

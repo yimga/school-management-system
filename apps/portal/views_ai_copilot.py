@@ -23,6 +23,7 @@ from apps.portal.ai_provider import (
     _normalize_gateway_metadata,
     generate_ai_response,
     get_public_ai_provider_status,
+    probe_ai_provider_reachable,
 )
 from apps.platform_runtime.structured_logging import (
     log_exception_with_context,
@@ -533,6 +534,31 @@ def ai_copilot_config(request):
             "user_role": (getattr(request.user, "role", "USER") or "").upper(),
         }
     )
+
+
+@require_GET
+@login_required
+def ai_health(request):
+    """
+    Phase E (2026-05-12): lightweight AI health endpoint for the copilot UI.
+
+    Returns reachable / provider / latency / fallback_active / degraded so the
+    floating AI Copilot can show a visible "limited mode" badge instead of failing
+    silently when Ollama is down. Cached for 60s server-side.
+    """
+    health = probe_ai_provider_reachable()
+    cfg = get_public_ai_provider_status()
+    return JsonResponse({
+        "success": True,
+        "reachable": bool(health.get("reachable")),
+        "provider": health.get("provider", "none"),
+        "latency_ms": health.get("latency_ms"),
+        "fallback_active": bool(health.get("fallback_active")),
+        "degraded": bool(health.get("degraded")),
+        "checked_at": health.get("checked_at"),
+        "preference": cfg.get("preference", []),
+        "rules_fallback_enabled": bool(cfg.get("rules_fallback_enabled")),
+    })
 
 
 @require_GET

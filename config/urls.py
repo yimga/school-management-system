@@ -22,11 +22,14 @@ from apps.platform_runtime.views_rum import rum_ingest
 from apps.observability import views as obs_views
 from apps.portal.views_ai_copilot import (
     ai_copilot_query,
+    ai_health,
     ai_permissions,
     ai_copilot_limits,
     ai_copilot_config,
     ai_copilot_audit_feed,
 )
+from apps.portal.views_configure import portal_configure_hub
+from apps.accounts.views_theme import set_theme_preference
 from config.admin import platform_admin_site
 from apps.schools.competitive_marketing_views import (
     marketing_implementation_assurance,
@@ -475,6 +478,11 @@ urlpatterns = [
     path("api/ai-copilot/limits/", ai_copilot_limits, name="ai_copilot_limits"),
     path("api/ai-copilot/config/", ai_copilot_config, name="ai_copilot_config"),
     path("api/ai-copilot/audit/", ai_copilot_audit_feed, name="ai_copilot_audit"),
+    # Phase E (2026-05-12): cached reachability probe used by the floating copilot UI
+    # so degraded mode is visible to users instead of silently failing.
+    path("api/ai/health/", ai_health, name="ai_health"),
+    # Theme v2 (2026-05-12): server-side persistence of Light/Dark/System preference.
+    path("api/preferences/theme/", set_theme_preference, name="set_theme_preference"),
     # Step 6 / Phase B: Legacy siteconfig paths → Studio OS (product-confirmed paths)
     path("siteconfig/customizer/", legacy_siteconfig_customizer_redirect),
     path("siteconfig/workflow-hub/", legacy_workflow_hub_redirect),
@@ -526,6 +534,22 @@ urlpatterns = [
     ),
     path("portal/", include(("apps.portal.urls", "portal"), namespace="portal")),
     path("portal", lambda request: redirect("portal:parent_dashboard")),
+    # Phase F (2026-05-12): tenant operator URL grammar — same split that exists for
+    # the platform (/super = everyday management, /admin = configuration). For tenants:
+    #   /portal/console/   → everyday running of the school (operator workbench)
+    #   /portal/configure/ → tenant configuration (settings, branding, blueprint pack)
+    # These are canonical aliases so the URL itself signals *which mode* the user is in,
+    # the way Stripe Dashboard vs Settings or Shopify Admin vs Settings work.
+    path(
+        "portal/console/",
+        lambda request: redirect("accounts:backend_dashboard"),
+        name="portal_console",
+    ),
+    path(
+        "portal/configure/",
+        portal_configure_hub,
+        name="portal_configure",
+    ),
     path("kb/", include(("apps.portal.urls_kb", "kb"), namespace="kb")),
     path("reports/", include(("apps.reports.urls", "reports"), namespace="reports")),
     path(

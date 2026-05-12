@@ -1,71 +1,25 @@
-// Portal shell bootstrap: theme toggle, global Ctrl+K search, sidebar resize/collapse.
-// Externalised from portal_base.html so the shell is CSP-friendly (no inline executable script).
+/**
+ * Portal shell bootstrap — header search filtering + sidebar resize/collapse.
+ *
+ * History:
+ *   - Originally handled theme toggle + Ctrl+K + search + sidebar.
+ *   - 2026-05-12: theme toggle moved to `theme-preference-bootstrap.js` (canonical
+ *     Light/Dark/System bootstrap with prefers-color-scheme live response) and
+ *     `RMCTheme` API. Legacy theme handler retired here to avoid duplicate
+ *     `data-theme` writes and the System-mode collapse bug.
+ *   - 2026-05-12: Ctrl+K shortcut moved to `rmc-command-palette.js` (.rmc-cmdk
+ *     global Spotlight-style palette). The header search input still works as
+ *     a chrome affordance and on focus/input — it just no longer claims Ctrl+K.
+ *
+ * Externalised from portal_base.html so the shell is CSP-friendly (no inline
+ * executable script).
+ */
 (function () {
   'use strict';
 
-  // -- Theme Toggle: light / dark / system (persisted in localStorage) ----
-  document.addEventListener('DOMContentLoaded', function () {
-    var themeToggle = document.getElementById('themeToggle');
-    var htmlElement = document.documentElement;
-
-    function getSystemTheme() {
-      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    function resolveTheme(stored) {
-      if (stored === 'system') return getSystemTheme();
-      return stored === 'dark' ? 'dark' : 'light';
-    }
-    function updateMetaThemeColor(resolved) {
-      var meta = document.querySelector('meta[name="theme-color"]');
-      if (!meta) return;
-      var prop = resolved === 'dark' ? '--meta-theme-color-dark' : '--meta-theme-color-light';
-      var value = getComputedStyle(htmlElement).getPropertyValue(prop).trim();
-      if (value) meta.setAttribute('content', value);
-    }
-    function updateThemeIcon(stored, resolved) {
-      if (!themeToggle) return;
-      var icon = themeToggle.querySelector('i');
-      if (!icon) return;
-      icon.classList.remove('bi-moon-stars', 'bi-sun-fill', 'bi-circle-half');
-      if (stored === 'system') {
-        icon.classList.add('bi-circle-half');
-        themeToggle.setAttribute('title', 'Theme: System (' + resolved + ')');
-      } else if (resolved === 'dark') {
-        icon.classList.add('bi-sun-fill');
-        themeToggle.setAttribute('title', 'Switch to light');
-      } else {
-        icon.classList.add('bi-moon-stars');
-        themeToggle.setAttribute('title', 'Switch to dark');
-      }
-    }
-    function applyTheme(stored) {
-      var resolved = resolveTheme(stored);
-      htmlElement.setAttribute('data-theme', resolved);
-      htmlElement.setAttribute('data-bs-theme', resolved);
-      updateThemeIcon(stored, resolved);
-      updateMetaThemeColor(resolved);
-    }
-    function cycleTheme() {
-      var key = 'runmycampus-theme-preference';
-      var stored = localStorage.getItem(key) || 'light';
-      var next = stored === 'light' ? 'dark' : (stored === 'dark' ? 'system' : 'light');
-      localStorage.setItem(key, next);
-      applyTheme(next);
-    }
-
-    var key = 'runmycampus-theme-preference';
-    var stored = localStorage.getItem(key);
-    applyTheme(stored || 'light');
-    if (themeToggle) themeToggle.addEventListener('click', cycleTheme);
-
-    if (window.matchMedia) {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
-        if ((localStorage.getItem('runmycampus-theme-preference') || 'light') === 'system') applyTheme('system');
-      });
-    }
-  });
-
-  // -- Global Search Bar (Ctrl+K) — fetches /api/search/ and shows results --
+  // -- Header search bar (fetches /api/search/ and renders inline results) --
+  // Ctrl+K is intentionally NOT bound here — that's owned by rmc-command-palette.js
+  // (the global ⌘K palette is more powerful than this single-input search).
   document.addEventListener('DOMContentLoaded', function () {
     var searchInput = document.getElementById('headerSearchInput');
     var resultsEl = document.getElementById('headerSearchResults');
@@ -82,14 +36,6 @@
     function hideResults() {
       setTimeout(function () { showResults(''); }, 150);
     }
-
-    document.addEventListener('keydown', function (e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        searchInput.focus();
-        searchInput.select();
-      }
-    });
 
     searchInput.addEventListener('input', function () {
       var q = (this.value || '').trim();

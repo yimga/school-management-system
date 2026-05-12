@@ -60,11 +60,24 @@ backend-shell dashboard-page-backend
   {% include "partials/backend_portal_breadcrumb_actions.html" %}
   {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
 
+  {# Phase F+G (2026-05-12): tenant shell switcher + sticky section nav so this
+     942-line dashboard is navigable instead of an endless scroll. #}
+  <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+    {% include "components/rmc_shell_switcher.html" %}
+    <nav class="rmc-section-nav rmc-section-nav--horizontal" aria-label="{% trans 'Dashboard sections' %}">
+      <ul class="rmc-section-nav__list">
+        <li><a href="#section-today"><i class="bi bi-sunrise" aria-hidden="true"></i>{% trans "Today" %}</a></li>
+        <li><a href="#section-attention"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>{% trans "Needs attention" %}</a></li>
+        <li><a href="#section-readiness"><i class="bi bi-clipboard-data" aria-hidden="true"></i>{% trans "School readiness" %}</a></li>
+      </ul>
+    </nav>
+  </div>
+
   {# Optional: load status strip via HTMX so initial render does not wait on this data #}
   <div class="backend-dashboard-content ui-premium-surface" data-decision-engine="surface" data-shell-surface="backend-dashboard" data-rmc-blueprint-surface="1101" data-rmc-component-audit="1" data-rmc-ux-role-dashboard="school-command-center">
   {% include "partials/shell_chrome_backend_operational_status_load.html" %}
 
-  <div data-rmc-ux-section="today-operations" class="mb-2">
+  <div id="section-today" data-rmc-ux-section="today-operations" data-rmc-section-anchor class="mb-2">
   {% include "partials/shell_chrome_backend_ops_strip.html" %}
   {% include "partials/shell_chrome_backend_system_indicators.html" %}
   {% include "partials/shell_chrome_backend_ops_depth_summary.html" %}
@@ -83,7 +96,7 @@ backend-shell dashboard-page-backend
   {% include "partials/luxury_major_audit_contract.html" with title=_("School Command Center") subtitle=_("What is happening, what needs attention, and your next step — without hunting through cards.") primary_url=backend_workflow_url primary_label=_("Workflow center") secondary_url=backend_reports_url secondary_label=_("Reports") %}
   <!-- rmc-ux-above-fold-end -->
 
-  <section class="mb-3" data-rmc-intelligent-insights="backend" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
+  <section id="section-attention" data-rmc-section-anchor class="mb-3" data-rmc-intelligent-insights="backend" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
       {% comment %} Pass 8 UX consistency: was <h1 class="h6">; the luxury_major_audit_contract partial
          on line 302 already provides the page H1. Demoting to h2 keeps the heading outline
@@ -123,7 +136,7 @@ backend-shell dashboard-page-backend
   {% if first_login_checklist_show %}
   {% include "accounts/first_login_checklist_card.html" %}
   {% endif %}
-  <div data-rmc-ux-section="school-readiness">
+  <div id="section-readiness" data-rmc-section-anchor data-rmc-ux-section="school-readiness">
   {% include "accounts/school_onboarding_card.html" %}
   {% include "accounts/ai_system_layer_strip.html" %}
   {% include "partials/backend_command_center_setup_strip.html" %}

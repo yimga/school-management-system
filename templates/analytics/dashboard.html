@@ -16,6 +16,15 @@
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Insights Center" %}</h1>
 {% phase8_dashboard_declaration "analytics/dashboard.html" %}
 <div class="container-fluid py-2" data-page-archetype="role-home" data-rmc-os-center="insights_center" data-rmc-ux-role-dashboard="analytics-insights">
+
+{# Phase G follow-through (2026-05-12): section nav for the 649L insights dashboard. #}
+<nav class="rmc-section-nav rmc-section-nav--horizontal mb-3" aria-label="{% trans 'Insights sections' %}">
+  <ul class="rmc-section-nav__list">
+    <li><a href="#insights-main"><i class="bi bi-bar-chart" aria-hidden="true"></i>{% trans "Main" %}</a></li>
+    <li><a href="#insights-secondary"><i class="bi bi-graph-up" aria-hidden="true"></i>{% trans "Trends" %}</a></li>
+    <li><a href="#insights-tertiary"><i class="bi bi-collection" aria-hidden="true"></i>{% trans "Detail" %}</a></li>
+  </ul>
+</nav>
 {% if finance_requests_count %}
   <article class="insight-card warning mb-4" data-rmc-insight-card="1" data-rmc-insight-tone="warning">
     <div class="ico" aria-hidden="true"><i class="bi bi-clock-history"></i></div>
@@ -245,7 +254,7 @@
   </div>
 </form>
 
-<div class="row g-3 mb-4" data-dashboard-column="main">
+<div id="insights-main" data-rmc-section-anchor class="row g-3 mb-4" data-dashboard-column="main">
   <div class="col-lg-8">
     {% include "components/dashboard_chart.html" with chart_id="analyticsWeakSubjectsChart" chart_type="bar" chart_title=_("Weak subjects (below threshold)") chart_data=chart_weak_subjects_json aria_label=_("Weak subjects average scores") %}
   </div>
@@ -321,7 +330,7 @@
               <strong>{{ stat.value }}</strong>
             </div>
           {% empty %}
-            <div class="text-muted">{% trans "No compliance data." %}</div>
+            {% include "components/rmc_empty_state.html" with icon="bi-shield-check" title=_("No compliance data") message=_("Once compliance signals are recorded, they'll appear here as a quick snapshot.") %}
           {% endfor %}
         </div>
         <div class="d-grid gap-2">
@@ -356,7 +365,7 @@
                 <td class="text-end">{{ row.1|format_number:2 }}</td>
               </tr>
             {% empty %}
-              <tr><td colspan="3" class="text-muted">{% trans "No data for this class/term." %}</td></tr>
+              <tr><td colspan="3"><div class="rmc-empty rmc-empty--row" role="status"><div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-bar-chart"></i></div><p class="rmc-empty__message">{% trans "No data for this class/term." %}</p></div></td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -365,7 +374,7 @@
   </div>
 {% endif %}
 
-<div class="row g-3 mb-3" data-dashboard-column="secondary">
+<div id="insights-secondary" data-rmc-section-anchor class="row g-3 mb-3" data-dashboard-column="secondary">
   <div class="col-lg-6" data-widget-id="analytics-top-class-term">
     <div class="card h-100">
       <div class="card-body">
@@ -389,7 +398,7 @@
                     <td class="text-end">{{ row.average|format_number:2 }}</td>
                   </tr>
                 {% empty %}
-                  <tr><td colspan="3" class="text-muted">{% trans "Select a classroom to view." %}</td></tr>
+                  <tr><td colspan="3"><div class="rmc-empty rmc-empty--row" role="status"><div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-table"></i></div><p class="rmc-empty__message">{% trans "Select a classroom to view." %}</p></div></td></tr>
                 {% endfor %}
               </tbody>
             </table>
@@ -422,7 +431,7 @@
                   <td class="text-end">{{ row.average|format_number:2 }}</td>
                 </tr>
               {% empty %}
-                <tr><td colspan="3" class="text-muted">{% trans "No data for this term." %}</td></tr>
+                <tr><td colspan="3"><div class="rmc-empty rmc-empty--row" role="status"><div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-graph-up"></i></div><p class="rmc-empty__message">{% trans "No data for this term." %}</p></div></td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -456,7 +465,7 @@
                     <td class="text-end">{{ row.average|format_number:2 }}</td>
                   </tr>
                 {% empty %}
-                  <tr><td colspan="3" class="text-muted">{% trans "Select a classroom to view." %}</td></tr>
+                  <tr><td colspan="3"><div class="rmc-empty rmc-empty--row" role="status"><div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-table"></i></div><p class="rmc-empty__message">{% trans "Select a classroom to view." %}</p></div></td></tr>
                 {% endfor %}
               </tbody>
             </table>
@@ -489,7 +498,7 @@
                   <td class="text-end">{{ row.average|format_number:2 }}</td>
                 </tr>
               {% empty %}
-                <tr><td colspan="3" class="text-muted">{% trans "No data for annual ranking." %}</td></tr>
+                <tr><td colspan="3"><div class="rmc-empty rmc-empty--row" role="status"><div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-bar-chart-line"></i></div><p class="rmc-empty__message">{% trans "No data for annual ranking." %}</p></div></td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -499,7 +508,7 @@
   </div>
 </div>
 
-<div class="row g-3 mb-3" data-dashboard-column="tertiary">
+<div id="insights-tertiary" data-rmc-section-anchor class="row g-3 mb-3" data-dashboard-column="tertiary">
   <div class="col-lg-6" data-widget-id="analytics-weak-subject-focus">
     <div class="card h-100">
       <div class="card-body">
@@ -523,7 +532,7 @@
                   <td class="text-end">{{ row.count }}</td>
                 </tr>
               {% empty %}
-                <tr><td colspan="3" class="text-muted">{% trans "No weak subjects found." %}</td></tr>
+                <tr><td colspan="3"><div class="rmc-empty rmc-empty--row" role="status"><div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-check2-circle"></i></div><p class="rmc-empty__message">{% trans "No weak subjects found." %}</p></div></td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -556,7 +565,7 @@
                   <td class="text-end">{{ row.delta|format_number:2 }}</td>
                 </tr>
               {% empty %}
-                <tr><td colspan="4" class="text-muted">{% trans "No improvements matched the threshold." %}</td></tr>
+                <tr><td colspan="4"><div class="rmc-empty rmc-empty--row" role="status"><div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-arrow-up-circle"></i></div><p class="rmc-empty__message">{% trans "No improvements matched the threshold." %}</p></div></td></tr>
               {% endfor %}
             </tbody>
           </table>

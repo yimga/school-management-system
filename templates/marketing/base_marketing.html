@@ -10,8 +10,18 @@
       {% if PUBLIC_BRAND_MODE %}style="--mkt-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:platform_palette.hero_bg }}; --mkt-hero-bg: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:platform_palette.hero_bg }}; --mkt-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:platform_palette.warning }};"{% endif %}>
 <head>
   <meta charset="utf-8">
+  {% include "partials/rmc_theme_meta.html" %}
+  {% include "partials/rmc_social_meta.html" %}
+  {# Theme bootstrap must run before paint to avoid flash-of-wrong-theme.
+     Marketing surface keeps its editorial palette, but if a logged-in user
+     navigates here their Light/Dark/System preference must still apply. #}
+  <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
+  <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
+  <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
+  <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
+  <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
   <script src="{% static '_pages/marketing__base_marketing.js' %}"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
   {% block meta_description %}
   {% if seo_description %}<meta name="description" content="{{ seo_description|truncatewords:50 }}">{% endif %}

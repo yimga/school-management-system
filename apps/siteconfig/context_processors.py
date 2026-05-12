@@ -309,6 +309,10 @@ def site_settings(request):
     breadcrumbs = _build_breadcrumbs(request.path)
     # Use theme pack backgrounds if set, else site settings
     logo_url = _resolve_media_url(site.get_theme_background("logo"), "images/logo.png")
+    # v2 carried-forward (2026-05-12): companion dark-theme logo. RuntimeDefaults
+    # `site_logo_dark_url` is the platform default; tenant override (BrandProfile
+    # .logo_dark_url) is applied lower down once `school` is known.
+    logo_dark_url = getattr(site, "site_logo_dark_url", "") or ""
     background_url = _resolve_media_url(site.get_theme_background("background_image"))
 
     try:
@@ -504,7 +508,9 @@ def site_settings(request):
         "SHOW_HEADER_SEARCH": getattr(site, "show_header_search", True),
         "SHOW_HEADER_NOTIFICATIONS": getattr(site, "show_header_notifications", True),
         "SHOW_HEADER_PROFILE_MENU": getattr(site, "show_header_profile_menu", True),
-        "SHOW_HEADER_THEME_TOGGLE": getattr(site, "show_header_theme_toggle", True),
+        # SHOW_HEADER_THEME_TOGGLE retired 2026-05-12 — theme switching now lives
+        # inside user_dropdown.html (Light/Dark/System segmented control). The
+        # standalone topbar themeToggle button was removed in the same pass.
         "SHOW_HEADER_CONTEXT_STRIP": bool(
             feature_flags.get("show_header_context_strip", True)
         ),
@@ -543,6 +549,7 @@ def site_settings(request):
         ),
         "BREADCRUMBS": breadcrumbs,
         "SITE_LOGO_URL": logo_url,
+        "SITE_LOGO_DARK_URL": logo_dark_url,
         "SITE_BACKGROUND_URL": background_url,
         "SITE_VIDEO_BG_URL": video_bg_url,
         "SITE_SVG_BG_URL": svg_bg_url,
@@ -614,6 +621,8 @@ def site_settings(request):
             tenant_brand = {}
         if tenant_brand.get("logo_url"):
             ctx["SITE_LOGO_URL"] = tenant_brand.get("logo_url")
+        if tenant_brand.get("logo_dark_url"):
+            ctx["SITE_LOGO_DARK_URL"] = tenant_brand.get("logo_dark_url")
         if tenant_brand.get("favicon_url"):
             ctx["SITE_FAVICON_URL"] = tenant_brand.get("favicon_url")
         ctx["SITE_PRIMARY_COLOR"] = tenant_brand.get("primary_color") or "#0d6efd"
@@ -765,6 +774,7 @@ def site_settings(request):
     )
     if public_brand_mode:
         ctx["SITE_LOGO_URL"] = ""
+        ctx["SITE_LOGO_DARK_URL"] = ""
         ctx["SITE_BRANDED_DOMAIN"] = "runmycampus.com"
         ctx["TENANT_WALLPAPER_URL"] = ""
         ctx["SITE_PRIMARY_COLOR"] = None

@@ -35,20 +35,9 @@
             <i class="bi bi-box-arrow-up-right"></i>
             <span class="d-none d-lg-inline">{% trans "Public site" %}</span>
           </a>
-          <div class="dropdown">
-            <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="cpUserDropdownAdmin" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-person-circle me-1"></i>
-              {{ request.user.username }}
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="cpUserDropdownAdmin">
-              <li><a class="dropdown-item" href="{% url 'accounts:user_profile' %}"><i class="bi bi-person me-2"></i>{% trans "My Profile" %}</a></li>
-              <li><a class="dropdown-item" href="{% url 'siteconfig:user_preferences' %}"><i class="bi bi-sliders me-2"></i>{% trans "Preferences" %}</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-gear-wide-connected me-2"></i>{% trans "Configuration Control Center" %}</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>{% trans "Logout" %}</a></li>
-            </ul>
-          </div>
+          {# Phase D (2026-05-12): rich user_dropdown (avatar, role, theme toggle, sectioned menu)
+             replaces the minimal cpUserDropdownAdmin for parity across portal / control plane / admin. #}
+          {% include "components/user_dropdown.html" %}
         {% else %}
           <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
         {% endif %}

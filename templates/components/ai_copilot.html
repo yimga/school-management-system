@@ -37,9 +37,17 @@
           </small>
         </div>
       </div>
-      <button type="button" class="btn btn-sm btn-link text-white" id="aiCopilotClose">
-        <i class="bi bi-x-lg"></i>
-      </button>
+      <div class="d-flex align-items-center gap-2">
+        {# Phase E (2026-05-12): live status pill — fed by /api/ai/health/.
+           Visible classes set by static/js/_pages/components__ai_copilot-1.js. #}
+        <span id="aiCopilotStatus" class="ai-copilot-status" data-state="unknown" aria-live="polite" title="{% trans 'AI provider status' %}">
+          <span class="ai-status-dot" aria-hidden="true"></span>
+          <span class="ai-status-text">{% trans "Checking…" %}</span>
+        </span>
+        <button type="button" class="btn btn-sm btn-link text-white" id="aiCopilotClose">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
     </div>
 
     <div class="ai-copilot-body" id="aiCopilotBody">
@@ -148,5 +156,7 @@
   "var_ai_provider_name_default": "{{ AI_PROVIDER_NAME|default:""|escapejs }}",
   "var_user_role_default_user": "{{ USER_ROLE|default:"USER"|escapejs }}",
   "var_csrf_token": "{{ csrf_token|escapejs }}",
-  "var_request_user_first_name_default_request_user_username": "{{ request.user.first_name|default:request.user.username|escapejs }}"
+  "var_request_user_first_name_default_request_user_username": "{{ request.user.first_name|default:request.user.username|escapejs }}",
+  "ai_health_url": "{% url 'ai_health' %}"
 }</script><script src="{% static '_pages/components__ai_copilot-1.js' %}"></script>
+<script src="{% static 'js/rmc-ai-health-pill.js' %}"></script>
