@@ -1,8 +1,8 @@
 {% load i18n %}
-{# Wave 1: one product language — Home, Studio, Operations, Marketplace, Analytics, Migration, Support, Control.
+{% comment %} Wave 1: one product language — Home, Studio, Operations, Marketplace, Analytics, Migration, Support, Control.
    Pass D aesthetic: indigo→emerald gradient for the active pill (matches the
    platform palette); subtle ghost surface for inactive pills (no harsh
-   white-on-dark borders). #}
+   white-on-dark borders). {% endcomment %}
 {% if PRIMARY_CONTROL_PLANE_NAV %}
 <nav class="cp-primary-nav d-flex flex-wrap align-items-center gap-1 gap-md-2 px-3 py-2 border-bottom" aria-label="{% trans 'Primary product navigation' %}">
   {% for item in PRIMARY_CONTROL_PLANE_NAV %}

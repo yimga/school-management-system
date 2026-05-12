@@ -1,7 +1,11 @@
-{% extends "base.html" %}
-{% load i18n %}
+{% extends "backend_base.html" %}
+{% load i18n static %}
 
 {% block title %}{% trans "School Blueprint Setup" %}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
+{% endblock %}
 
 {% block content %}
 <main class="container-fluid py-4" data-rmc-tenant-blueprint-setup="{{ page_marker }}" data-apple-class-tenant-school-admin="1">

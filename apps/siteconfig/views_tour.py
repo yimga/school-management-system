@@ -85,9 +85,9 @@ DEFAULT_STEPS_BACKEND_DASHBOARD = [
         "selector": "[data-tour='quick-actions']",
     },
     {
-        "code": "setup_studio",
-        "title": "Setup Studio",
-        "selector": "[data-tour='setup-studio-link']",
+        "code": "school_configuration",
+        "title": "School Configuration",
+        "selector": "[data-tour='school-configuration-link']",
     },
 ]
 

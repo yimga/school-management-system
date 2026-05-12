@@ -10,8 +10,8 @@
 <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
 {# Pass B: platform-wide aesthetic discipline (card grammar, type rhythm, empty-state hygiene). #}
 <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
-{# Pass A: manager-specific polish (card surfaces, studio toolbar, rail, sidebar).
-   Loaded last so it wins specificity ties without needing !important everywhere. #}
+{% comment %} Pass A: manager-specific polish (card surfaces, studio toolbar, rail, sidebar).
+   Loaded last so it wins specificity ties without needing !important everywhere. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/manager-aesthetic-polish.css' %}">
 {% endblock %}
 
@@ -94,9 +94,9 @@ Targets the existing #cp-main-content landmark (line ~76 below).
     <main id="cp-main-content" class="cp-main-col col-lg-9 col-xl-10 rmc-shell-main" role="main" data-shell-main="control-plane" data-page-archetype="{% block cp_page_archetype %}decision-console{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'manager-control-plane' }}" data-rmc-shell-main="control-plane">
       {% include "partials/shell_chrome_django_messages_control_plane.html" %}
       {% include "partials/shell_chrome_impersonation_session_strip.html" %}
-      {# Operator-facing disclaimer suppressed by default — every operator already
+      {% comment %} Operator-facing disclaimer suppressed by default — every operator already
          knows this is the manager surface. Re-enable per-page by setting
-         `cp_show_operator_disclaimer = True` in the view context. #}
+         `cp_show_operator_disclaimer = True` in the view context. {% endcomment %}
       {% if cp_show_operator_disclaimer %}
       <p class="text-secondary small mb-2" role="note">
         {% trans "Platform Studio and system tools here are operator-facing. For school workflows and live tenant previews, use Open as school (impersonation) from the dashboard." %}

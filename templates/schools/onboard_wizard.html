@@ -82,7 +82,7 @@
               </div>
               {% for pack in blueprint_packs %}
               <div class="col-md-6 col-lg-4">
-                <label class="d-block border rounded-2 p-3 cursor-pointer pack-option {% if onboarding_pack_slug == pack.slug %}border-primary bg-white{% endif %}" style="cursor:pointer;">
+                <label class="d-block border rounded-2 p-3 cursor-pointer pack-option {% if onboarding_pack_slug == pack.slug %}border-primary bg-white{% endif %}" >
                   <input type="radio" name="pack_slug" value="{{ pack.slug }}" {% if onboarding_pack_slug == pack.slug %}checked{% endif %} class="me-2">
                   <strong>{{ pack.name }}</strong>
                   {% if pack.category %}<br><span class="badge bg-light text-muted small">{{ pack.category }}</span>{% endif %}
@@ -103,7 +103,7 @@
               </div>
               {% for t in templates %}
               <div class="col-md-4">
-                <label class="d-block border rounded-2 p-3 cursor-pointer template-option {% if onboarding_template_slug == t.slug %}border-primary bg-white{% endif %}" style="cursor:pointer;">
+                <label class="d-block border rounded-2 p-3 cursor-pointer template-option {% if onboarding_template_slug == t.slug %}border-primary bg-white{% endif %}" >
                   <input type="radio" name="template_slug" value="{{ t.slug }}" {% if onboarding_template_slug == t.slug %}checked{% endif %} class="me-2">
                   <strong>{{ t.name }}</strong>
                   {% if t.description %}<br><span class="text-muted small">{{ t.description|truncatewords:8 }}</span>{% endif %}

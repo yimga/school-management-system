@@ -67,9 +67,9 @@
         </div>
         {% endif %}
 
-        {# Slot for caller-provided facets (selects, date pickers, etc.).
+        {% comment %} Slot for caller-provided facets (selects, date pickers, etc.).
            The caller passes facet markup via the `filter_facets_html` context var
-           (pre-rendered HTML) since Django {% include %} doesn't support body content. #}
+           (pre-rendered HTML) since Django {% include %} doesn't support body content. {% endcomment %}
         {% if filter_facets_html %}
           {{ filter_facets_html|safe }}
         {% endif %}

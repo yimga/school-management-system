@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
     <link rel="stylesheet" href="{% static 'css/statement-header.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
+    <link rel="stylesheet" href="{% static 'css/utilities-extras.css' %}">
     <link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
     <link rel="stylesheet" href="{% static 'css/toggle-colors.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">
@@ -77,8 +78,8 @@
 
     <link rel="stylesheet" href="{% static 'css/portal-base-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
-    {# Pass B: platform-wide aesthetic discipline — same card grammar / type rhythm / empty-state
-       hygiene that the manager surface uses, so portal + backend look like one product. #}
+    {% comment %} Pass B: platform-wide aesthetic discipline — same card grammar / type rhythm / empty-state
+       hygiene that the manager surface uses, so portal + backend look like one product. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase2-static-templates-bundle.css' %}">
     <style>
@@ -119,8 +120,8 @@
     <link rel="apple-touch-icon" href="{% static 'images/icon-192.png' %}">
   </head>
 
-  {# Pass 8 UX consistency: activate `.form-system` globally so the design system's
-     focus rings / hover borders / button polish actually render on every portal form. #}
+  {% comment %} Pass 8 UX consistency: activate `.form-system` globally so the design system's
+     focus rings / hover borders / button polish actually render on every portal form. {% endcomment %}
   <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     <div class="htmx-progress-bar" aria-hidden="true"></div>
@@ -727,19 +728,19 @@
     <script src="{% static 'js/low-power.js' %}"></script>
     <script src="{% static 'js/offline-status-bar.js' %}"></script>
     <script src="{% static 'js/auto-pilot.js' %}"></script>
-    {# Offline foundational: bind SMSOfflineDB.getStudents() / teachers to
+    {% comment %} Offline foundational: bind SMSOfflineDB.getStudents() / teachers to
        the attendance roll-call form when the page loads offline. Only
-       activates on pages that opt in via data-attendance-offline-hydrator. #}
+       activates on pages that opt in via data-attendance-offline-hydrator. {% endcomment %}
     <script src="{% static 'js/attendance-offline-hydrator.js' %}"></script>
     {% endif %}
     <script src="{% static 'js/critical-read-degraded.js' %}"></script>
-    {# Pass 8 Wave 2: wire components/confirm_modal.html — replaces 4 sites that
-       used the jarring native confirm() dialog with a themed Bootstrap modal. #}
+    {% comment %} Pass 8 Wave 2: wire components/confirm_modal.html — replaces 4 sites that
+       used the jarring native confirm() dialog with a themed Bootstrap modal. {% endcomment %}
     <script src="{% static 'js/confirm-modal.js' %}" defer></script>
-    {# Pass 11.B closeout: forward Service Worker errors to Sentry-Browser (or RUM
+    {% comment %} Pass 11.B closeout: forward Service Worker errors to Sentry-Browser (or RUM
        beacon, or console — see static/js/sw-error-sentry-bridge.js for the priority
        chain). The SW already broadcasts errors via postMessage; this script is the
-       missing client-side listener. #}
+       missing client-side listener. {% endcomment %}
     <script src="{% static 'js/sw-error-sentry-bridge.js' %}" defer></script>
     {% if request.user.is_authenticated %}
     {% if click_tracking_ingest_url %}

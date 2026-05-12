@@ -105,8 +105,8 @@
             <i class="bi bi-person-plus me-1" aria-hidden="true"></i>{% trans "Join group" %}
           </a>
           {% else %}
-          {# Pass 8 Wave 2: replaced native onclick="return confirm(...)" with
-             components/confirm_modal.html — themed, screen-reader-friendly, ESC-dismissable. #}
+          {% comment %} Pass 8 Wave 2: replaced native onclick="return confirm(...)" with
+             components/confirm_modal.html — themed, screen-reader-friendly, ESC-dismissable. {% endcomment %}
           <a href="#"
              class="btn btn-outline-danger w-100"
              data-bs-toggle="modal"

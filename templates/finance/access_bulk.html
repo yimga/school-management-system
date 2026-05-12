@@ -38,9 +38,9 @@
         </select>
       </div>
       <div class="col-md-4 d-grid">
-        {# Pass 8 Wave 2: native confirm() → themed Bootstrap modal. The trigger is now
+        {% comment %} Pass 8 Wave 2: native confirm() → themed Bootstrap modal. The trigger is now
            type="button" + data-bs-toggle="modal"; the modal's confirm button submits
-           the parent form via confirm-modal.js. #}
+           the parent form via confirm-modal.js. {% endcomment %}
         <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#grantFinanceAccessConfirm">{% trans "Grant finance access" %}</button>
       </div>
     </div>

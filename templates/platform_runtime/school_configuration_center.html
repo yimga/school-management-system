@@ -1,7 +1,12 @@
-{% extends "base.html" %}
-{% load i18n %}
+{% extends "backend_base.html" %}
+{% load i18n static %}
 
 {% block title %}{% trans "School Configuration Center" %}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
+<link rel="stylesheet" href="{% static 'css/manager-aesthetic-polish.css' %}">
+{% endblock %}
 
 {% block content %}
 <main class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-os-center="school_configuration_center" data-rmc-school-configuration-center="{{ page_marker }}" data-apple-class-tenant-school-admin="1">

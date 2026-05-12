@@ -37,8 +37,8 @@
             {% endfor %}
           </div>
           {% else %}
-          {# Pass 8 Wave 3: was inline <p class="text-muted">No X</p>. Empty state now
-             uses canonical components/dashboard_empty_state.html so list patterns match. #}
+          {% comment %} Pass 8 Wave 3: was inline <p class="text-muted">No X</p>. Empty state now
+             uses canonical components/dashboard_empty_state.html so list patterns match. {% endcomment %}
           {% include "components/dashboard_empty_state.html" with icon="bi-megaphone" title=_("No announcements pending approval") message=_("New submissions awaiting your approval will appear here. You'll receive an in-product notification when one arrives.") %}
           {% endif %}
         </div>

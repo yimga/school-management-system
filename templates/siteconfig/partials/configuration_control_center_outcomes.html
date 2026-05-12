@@ -10,7 +10,7 @@
 
 {% if ccc_source_legend %}
 <details class="mb-3 {% if ccc_outcome_compact %}border rounded p-3 bg-body-secondary bg-opacity-10{% else %}border border-secondary border-opacity-25 rounded p-3 bg-dark bg-opacity-25{% endif %}">
-  <summary class="small {% if ccc_outcome_compact %}text-body-secondary{% else %}text-white-50{% endif %}" style="cursor: pointer;">{% trans "Source labels (trace why enabled)" %}</summary>
+  <summary class="small {% if ccc_outcome_compact %}text-body-secondary{% else %}text-white-50{% endif %} cursor-pointer" >{% trans "Source labels (trace why enabled)" %}</summary>
   <p class="small {% if ccc_outcome_compact %}text-muted{% else %}text-white-50{% endif %} mt-2 mb-2">{% trans "Each outcome link lists sources — these are the platform layers that can explain effective behavior." %}</p>
   <ul class="list-unstyled small row row-cols-1 row-cols-sm-2 g-1 mb-0">
     {% for label in ccc_source_legend %}

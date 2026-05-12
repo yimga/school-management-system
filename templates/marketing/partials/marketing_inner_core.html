@@ -135,10 +135,10 @@
         <div class="col-md-4">
           <article class="segment-card h-100">
             {% if stop.static_visual %}
-            {# Visual treatment uses a subtle hairline border instead of a dark navy fill —
+            {% comment %} Visual treatment uses a subtle hairline border instead of a dark navy fill —
                the SVG placeholders here are light-fill diagrams that disappear against a dark
                background and read as broken images. Hairline + cream surface keeps them legible
-               on the editorial body. #}
+               on the editorial body. {% endcomment %}
             <img src="{% static stop.static_visual %}" alt="" class="img-fluid rounded mb-3" style="max-height: 160px; object-fit: contain; background: var(--mkt-edt-bg, #fafaf7); border: 1px solid var(--mkt-edt-rule, #e2e1d9); padding: 0.5rem;" width="520" height="200" loading="lazy">
             {% endif %}
             <h3 class="h6">{{ stop.title }}</h3>

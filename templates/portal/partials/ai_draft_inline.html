@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Pass 13.C: drop-in AI-draft inline for teacher views.
+{% comment %} Pass 13.C: drop-in AI-draft inline for teacher views.
 
    Renders a "Generate draft" button next to a textarea. Clicking POSTs the
    surrounding form's intent + key facts to a draft endpoint (passed via
@@ -12,7 +12,7 @@
      - `draft_endpoint`: URL the JS POSTs to (POST, CSRF-protected)
      - `intent_value`  : short string describing the draft purpose
      - `entitlement_ok`: bool, false → render nothing (hides AI from
-                         tenants without the entitlement) #}
+                         tenants without the entitlement) {% endcomment %}
 {% if entitlement_ok %}
 <div class="ai-draft-inline mt-2" data-textarea-id="{{ textarea_id }}" data-draft-endpoint="{{ draft_endpoint }}" data-intent="{{ intent_value }}">
   <button type="button" class="btn btn-sm btn-outline-secondary" data-action="generate-draft">

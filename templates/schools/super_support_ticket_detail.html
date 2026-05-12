@@ -34,7 +34,7 @@
       <div class="card border-0 shadow-sm">
         <div class="card-header">{% trans "Request" %}</div>
         <div class="card-body">
-          <pre class="small mb-0 text-wrap" style="white-space: pre-wrap;">{{ ticket.body }}</pre>
+          <pre class="small mb-0 text-wrap ws-pre-wrap" >{{ ticket.body }}</pre>
         </div>
       </div>
     </div>
@@ -57,11 +57,11 @@
           {% if s %}
             {% if s.category %}<div><strong>{% trans "Suggested category" %}:</strong> {{ s.category }}</div>{% endif %}
             {% if s.priority %}<div><strong>{% trans "Suggested priority" %}:</strong> {{ s.priority }}</div>{% endif %}
-            {% if s.suggested_reply %}<div class="mt-2"><strong>{% trans "Suggested reply" %}:</strong><pre class="small mb-0 mt-1 text-wrap" style="white-space: pre-wrap;">{{ s.suggested_reply }}</pre></div>{% endif %}
+            {% if s.suggested_reply %}<div class="mt-2"><strong>{% trans "Suggested reply" %}:</strong><pre class="small mb-0 mt-1 text-wrap ws-pre-wrap" >{{ s.suggested_reply }}</pre></div>{% endif %}
           {% endif %}
           {% endwith %}
           {% if ai_triage.suggested_reply_preview and not ai_triage.suggestions.suggested_reply %}
-          <pre class="small mb-0 text-wrap" style="white-space: pre-wrap;">{{ ai_triage.suggested_reply_preview }}</pre>
+          <pre class="small mb-0 text-wrap ws-pre-wrap" >{{ ai_triage.suggested_reply_preview }}</pre>
           {% endif %}
         </div>
       </div>
@@ -94,7 +94,7 @@
         <div class="card-header">{% trans "CSAT" %}</div>
         <div class="card-body small">
           <div><strong>{% trans "Score" %}:</strong> {{ ticket.csat_score }}/5</div>
-          {% if ticket.csat_comment %}<pre class="small mb-0 mt-2 text-wrap" style="white-space: pre-wrap;">{{ ticket.csat_comment }}</pre>{% endif %}
+          {% if ticket.csat_comment %}<pre class="small mb-0 mt-2 text-wrap ws-pre-wrap" >{{ ticket.csat_comment }}</pre>{% endif %}
           {% if ticket.csat_submitted_at %}<div class="text-muted mt-1">{{ ticket.csat_submitted_at }}</div>{% endif %}
         </div>
       </div>
@@ -112,7 +112,7 @@
         {% for r in thread_replies %}
         <li class="mb-3 pb-3 border-bottom">
           <div class="small text-muted">{{ r.created_at }} · {% if r.author %}{{ r.author.get_full_name|default:r.author.username }}{% else %}{% trans "System" %}{% endif %} · {{ r.get_visibility_display }}</div>
-          <pre class="small mb-0 text-wrap mt-1" style="white-space: pre-wrap;">{{ r.body }}</pre>
+          <pre class="small mb-0 text-wrap mt-1 ws-pre-wrap" >{{ r.body }}</pre>
         </li>
         {% endfor %}
       </ul>

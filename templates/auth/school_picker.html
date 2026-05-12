@@ -17,7 +17,7 @@
         <input type="hidden" name="next" value="{{ request.GET.next }}">
         <div class="list-group mb-3">
           {% for m in memberships %}
-            <label class="list-group-item d-flex align-items-center gap-3" style="cursor:pointer">
+            <label class="list-group-item d-flex align-items-center gap-3 cursor-pointer" >
               <input class="form-check-input m-0 flex-shrink-0" type="radio" name="school_id" id="school-{{ m.school_id }}" value="{{ m.school_id }}" {% if forloop.first %}checked{% endif %}>
               <div class="avatar avatar-sm" style="background:linear-gradient(135deg,var(--school-primary),var(--school-accent))" aria-hidden="true">{{ m.school.name|slice:":1"|upper }}</div>
               <div style="flex:1;min-width:0">

@@ -21,7 +21,7 @@
 <div class="card border-0 shadow-sm mb-4">
   <div class="card-header">{% trans "Original request" %}</div>
   <div class="card-body">
-    <pre class="small mb-0 text-wrap" style="white-space: pre-wrap;">{{ ticket.body }}</pre>
+    <pre class="small mb-0 text-wrap ws-pre-wrap" >{{ ticket.body }}</pre>
   </div>
 </div>
 
@@ -33,7 +33,7 @@
       {% for r in public_replies %}
       <li class="mb-3 pb-3 border-bottom">
         <div class="small text-muted">{{ r.created_at|date:"M j, Y H:i" }}</div>
-        <pre class="small mb-0 mt-1 text-wrap" style="white-space: pre-wrap;">{{ r.body }}</pre>
+        <pre class="small mb-0 mt-1 text-wrap ws-pre-wrap" >{{ r.body }}</pre>
       </li>
       {% endfor %}
     </ul>

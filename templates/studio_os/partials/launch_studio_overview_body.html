@@ -45,7 +45,7 @@
     </ul>
     {% elif launch_payload.registry_alignment.key_rows and launch_payload.registry_alignment.summary_lines %}
     <details class="small text-muted">
-      <summary class="text-muted" style="cursor: pointer;">{% trans "Narrative detail" %}</summary>
+      <summary class="text-muted cursor-pointer" >{% trans "Narrative detail" %}</summary>
       <ul class="list-unstyled mt-1 mb-0">
         {% for line in launch_payload.registry_alignment.summary_lines %}
         <li class="mb-1">{{ line }}</li>

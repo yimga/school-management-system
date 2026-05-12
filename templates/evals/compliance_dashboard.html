@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'backend_base.html' %}
 {% load static i18n phase8_tags %}
 
 {% block title %}Grading Compliance Dashboard{% endblock %}
@@ -151,10 +151,10 @@
     </div>
 </div>
 
-{# Pass 8 UX consistency: migrated from BS4 (data-dismiss + .close + &times;) to BS5
+{% comment %} Pass 8 UX consistency: migrated from BS4 (data-dismiss + .close + &times;) to BS5
    (data-bs-dismiss + .btn-close). The BS4 close button visually rendered but did not
    dismiss the modal on the BS5 bundle the app ships with. Added a Close button in
-   the footer so keyboard users have a reachable exit point. #}
+   the footer so keyboard users have a reachable exit point. {% endcomment %}
 <!-- Details Modal -->
 <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">

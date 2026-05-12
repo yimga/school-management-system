@@ -19,10 +19,10 @@
 <div class="parent-dashboard dashboard-clear parent-dashboard-shell ui-premium-surface" data-page-archetype="role-home" data-decision-engine="surface" data-rmc-component-audit="1" data-rmc-ux-role-dashboard="family-home">
   <div class="container-lg py-4">
     {% phase8_dashboard_declaration "parent/dashboard.html" %}
-    {# Pass 8 UX consistency: removed the v2 rmc-page-header that duplicated the richer
+    {% comment %} Pass 8 UX consistency: removed the v2 rmc-page-header that duplicated the richer
        parent-dashboard-header below (line 158). The rich version owns the H1, badges,
        primary CTAs, and "what needs attention" decision zone — that's the single
-       page-h1 grammar a screen reader should hear. #}
+       page-h1 grammar a screen reader should hear. {% endcomment %}
     {% if parent_simplified %}
     <div class="alert alert-info border-0 shadow-sm rounded-4 mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2" role="region" aria-label="{% trans 'Simplified home' %}" data-parent-simplified="1">
       <div>
@@ -43,7 +43,7 @@
         {% if portal_quick_actions|length > 1 %}
         <div class="col-12">
           <details class="rmc-conversion-more-actions border rounded px-3 py-2">
-            <summary class="small text-muted user-select-none" style="cursor:pointer;">{% trans "More shortcuts" %}</summary>
+            <summary class="small text-muted user-select-none cursor-pointer" >{% trans "More shortcuts" %}</summary>
             <div class="row g-2 pt-3">
               {% for action in portal_quick_actions %}
                 {% if not forloop.first %}
@@ -372,9 +372,9 @@
                     </div>
                     <div>
                       <div class="child-metric-label">{% trans "Academics" %}</div>
-                      {# Pass 8: previously hardcoded "On Track" regardless of card data. Bind to
+                      {% comment %} Pass 8: previously hardcoded "On Track" regardless of card data. Bind to
                          card.academics_status (set by the parent_dashboard view from current term
-                         average vs pass threshold). Fall back to "—" when not yet computed. #}
+                         average vs pass threshold). Fall back to "—" when not yet computed. {% endcomment %}
                       <div class="child-metric-value {% if card.academics_status == 'on_track' %}text-success{% elif card.academics_status == 'attention' %}text-warning{% elif card.academics_status == 'at_risk' %}text-danger{% else %}text-muted{% endif %}">
                         {% if can_view_results %}
                           {% if card.academics_status == 'on_track' %}{% trans "On track" %}
@@ -389,8 +389,8 @@
                       <div class="child-metric-value {% if card.finance_balance and card.finance_balance > 0 %}text-danger{% else %}text-success{% endif %}">{% if can_view_finance %}{% if card.finance_balance and card.finance_balance > 0 %}{% trans "Pending" %}{% else %}{% trans "Cleared" %}{% endif %}{% else %}--{% endif %}</div>
                     </div>
                   </div>
-                  {# Pass 8: CTA names the child so a parent with multiple children can scan
-                     dashboards quickly. Falls back to "View details" if first_name unavailable. #}
+                  {% comment %} Pass 8: CTA names the child so a parent with multiple children can scan
+                     dashboards quickly. Falls back to "View details" if first_name unavailable. {% endcomment %}
                   <a href="{% url 'portal:parent_child_results' card.link.student.id %}" class="btn btn-sm btn-primary w-100">{% blocktrans with name=card.link.student.first_name|default:_("details") %}View {{ name }}'s report{% endblocktrans %}</a>
                 </div>
               </div>

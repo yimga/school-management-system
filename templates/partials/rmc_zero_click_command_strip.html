@@ -1,10 +1,10 @@
 {% load i18n %}
-{# Zero-click command strip: only render when there is real triage data to show.
+{% comment %} Zero-click command strip: only render when there is real triage data to show.
    Previously rendered with hard-coded defaults ("Operational" /
    "Nothing blocking..." / "Use the tools below...") which filled space without
    communicating anything new. Now: hidden unless `triage_status` OR
    `triage_problem` OR `triage_solution` OR `triage_action_url` is populated
-   by the view. #}
+   by the view. {% endcomment %}
 {% if triage_status or triage_problem or triage_solution or triage_action_url %}
 <section
   class="rmc-zero-click card border-0 shadow-sm mb-3 overflow-hidden"

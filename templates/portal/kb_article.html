@@ -198,7 +198,7 @@
                     <!-- Comment Form -->
                     <form method="post" action="{% url 'kb:kb_comment_add' article.id %}" class="mb-4">
                         {% csrf_token %}
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="comment">Add a Comment</label>
                             <textarea class="form-control" id="comment" name="text" rows="3" 
                                       placeholder="Share your thoughts or questions..." required></textarea>

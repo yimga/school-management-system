@@ -77,10 +77,10 @@
     </div>
   </div>
 
-  {# Pass 8 Wave 2: switched filter wrapper from `card shadow-sm` to the canonical
+  {% comment %} Pass 8 Wave 2: switched filter wrapper from `card shadow-sm` to the canonical
      `list-filter-bar card bg-light` pattern + form-system--dense + data hook. Now
      visually matches backend_student_list / finance/invoices filter rows. Right-aligned
-     the submit button (was full-width). #}
+     the submit button (was full-width). {% endcomment %}
   <form method="get"
         class="list-filter-bar form-system form-system--dense card bg-light border-0 shadow-sm mb-4"
         role="search"
@@ -111,9 +111,9 @@
     <div class="card-body">
       {% if requests %}
         <div class="table-responsive">
-          {# Pass 8 Wave 2: standardized to design-system table grammar
+          {% comment %} Pass 8 Wave 2: standardized to design-system table grammar
              (.table-family .table-sticky-head .table-zebra). Right-aligned the
-             three date columns for column-type consistency with finance/invoices. #}
+             three date columns for column-type consistency with finance/invoices. {% endcomment %}
           <table class="table table-family table-sticky-head table-zebra table-hover align-middle" aria-label="Signature requests: form, student, parent, status, dates, and actions">
             <thead class="table-light">
               <tr>

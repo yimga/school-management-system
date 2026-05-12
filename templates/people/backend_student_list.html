@@ -10,9 +10,9 @@
       {% url 'accounts:backend_student_create' as create_url %}
       {% include "studio_os/components/page_header.html" with title="Students" subtitle="Manage student records" action_url=create_url action_text="Add Student" %}
 
-      {# Pass 8 Wave 2: added list-filter-bar + form-system--dense so canonical filter-bar
+      {% comment %} Pass 8 Wave 2: added list-filter-bar + form-system--dense so canonical filter-bar
          CSS (dense micro-labels, harmonized search affordance) styles this row identically
-         to other lists. Existing custom facet structure preserved. #}
+         to other lists. Existing custom facet structure preserved. {% endcomment %}
       <form method="get" class="list-filter-bar form-system form-system--dense card card-body bg-light mb-3 page-family-filter-row" role="search" data-list-filter-bar>
         <div class="row g-2 align-items-end">
           <div class="col-md-4">

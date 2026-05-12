@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "portal_base.html" %}
 {% load i18n static %}
 
 {% block title %}My Profile - {{ SITE.site_name|default:"Portal" }}{% endblock %}
@@ -58,7 +58,7 @@
             <dt>{% trans "Member since" %}</dt><dd>{{ request.user.date_joined|date }}</dd>
           </dl>
           <div class="small">
-            <div class="d-flex justify-content-between" style="display:none"><span class="text-muted">Role</span><span class="fw-semibold">{{ request.user.role }}</span></div>
+            <div class="d-flex justify-content-between d-none" ><span class="text-muted">Role</span><span class="fw-semibold">{{ request.user.role }}</span></div>
               {% if request.user.role == 'TEACHER' %}
                 {% if staff_id %}
                   <div class="d-flex justify-content-between align-items-center gap-2">

@@ -256,6 +256,7 @@ urlpatterns = [
     path("configuration/", tenant_configuration_forbidden, name="tenant_configuration_forbidden"),
     path("configuration/<path:remaining>", tenant_configuration_forbidden),
     path("school/settings/", school_configuration_center, name="school_configuration_center"),
+    path("school/configuration/", school_configuration_center, name="school_configuration_center_canonical"),
     path("school/setup/blueprints/", tenant_blueprint_setup, name="tenant_blueprint_setup"),
     path("school/setup/packs/", tenant_pack_setup, name="tenant_pack_setup"),
     path("school/setup/imports/", school_surface_redirect, {"surface": "imports"}, name="school_setup_imports"),

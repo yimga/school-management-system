@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'backend_base.html' %}
 {% load static %}
 
 {% block title %}Bulk Grade Import - Upload & Validate{% endblock %}
@@ -76,7 +76,7 @@
     </div>
     
     <!-- Step 2: Validation Results -->
-    <div class="row mt-4" id="validationStep" style="display: none;">
+    <div class="row mt-4 d-none" id="validationStep" >
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-info text-white">
@@ -154,7 +154,7 @@
     </div>
     
     <!-- Step 3: Review & Confirm -->
-    <div class="row mt-4" id="reviewStep" style="display: none;">
+    <div class="row mt-4 d-none" id="reviewStep" >
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-success text-white">
@@ -198,7 +198,7 @@
     </div>
     
     <!-- Step 4: Import In Progress -->
-    <div class="row mt-4" id="progressStep" style="display: none;">
+    <div class="row mt-4 d-none" id="progressStep" >
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-info text-white">
@@ -223,7 +223,7 @@
     </div>
     
     <!-- Step 4: Import Complete -->
-    <div class="row mt-4" id="completeStep" style="display: none;">
+    <div class="row mt-4 d-none" id="completeStep" >
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-success text-white">

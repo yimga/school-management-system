@@ -4,11 +4,11 @@
 {% block title %}{% trans "Create announcement" %}{% endblock %}
 
 {% block content %}
-{# Pass 8 Wave 2: migrated to components/form_field. The multi-action footer
+{% comment %} Pass 8 Wave 2: migrated to components/form_field. The multi-action footer
    (Publish / Submit for approval / Save as draft / Cancel) keeps its custom
    layout since form_actions.html supports only one primary + one secondary —
    announcement_create has 4 buttons by design (Publish OR Submit-for-approval,
-   Save as draft, Cancel). #}
+   Save as draft, Cancel). {% endcomment %}
 <div class="container-fluid">
   <div class="row justify-content-center">
     <div class="col-lg-8">
@@ -55,9 +55,9 @@
               </div>
             </div>
 
-            {# Multi-action footer kept custom; form_actions.html partial assumes
+            {% comment %} Multi-action footer kept custom; form_actions.html partial assumes
                a single primary + optional secondary. Layout mirrors form_actions
-               for consistency (right-aligned, gap-2). #}
+               for consistency (right-aligned, gap-2). {% endcomment %}
             <div class="form-actions d-flex flex-wrap align-items-center mt-4 gap-2 justify-content-end">
               <a href="{% url 'portal:teacher_dashboard_alias' %}" class="btn btn-outline-secondary ds-btn">{% trans "Cancel" %}</a>
               {% if can_publish or can_submit_for_approval %}

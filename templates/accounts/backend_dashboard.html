@@ -22,10 +22,10 @@ backend-shell dashboard-page-backend
 <link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
 <!-- Include navigation bridge styles -->
 <script src="{% static '_pages/accounts__backend_dashboard.js' %}"></script>
-  {# Pass 8 Wave 2: Promoted the static .backend-role-home-* rule set (~220 lines) to
+  {% comment %} Pass 8 Wave 2: Promoted the static .backend-role-home-* rule set (~220 lines) to
      static/css/backend-dashboard-v2.css. Only the per-tenant CSS variable assignments
      stay inline here because they bind to Django template variables (theme.primary_color,
-     theme.accent_color) which can't be resolved at static-file collection time. #}
+     theme.accent_color) which can't be resolved at static-file collection time. {% endcomment %}
   <style>
   {% with theme=SITE_ADMIN_THEME|default:SITE_THEME %}
   :root {
@@ -77,15 +77,17 @@ backend-shell dashboard-page-backend
   {% url 'portal:teacher_attendance' as backend_attendance_url %}
   {% url 'siteconfig:guided_onboarding' as backend_onboarding_url %}
   {% url 'siteconfig:scheduled_reports_delivery_hub' as backend_controls_url %}
+  {% url 'school_configuration_center_canonical' as backend_school_config_url %}
+  {% if not backend_school_config_url %}{% url 'school_configuration_center' as backend_school_config_url %}{% endif %}
   {# data-page-header #}{# ds-action-bar #}
   {% include "partials/luxury_major_audit_contract.html" with title=_("School Command Center") subtitle=_("What is happening, what needs attention, and your next step — without hunting through cards.") primary_url=backend_workflow_url primary_label=_("Workflow center") secondary_url=backend_reports_url secondary_label=_("Reports") %}
   <!-- rmc-ux-above-fold-end -->
 
   <section class="mb-3" data-rmc-intelligent-insights="backend" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-      {# Pass 8 UX consistency: was <h1 class="h6">; the luxury_major_audit_contract partial
+      {% comment %} Pass 8 UX consistency: was <h1 class="h6">; the luxury_major_audit_contract partial
          on line 302 already provides the page H1. Demoting to h2 keeps the heading outline
-         clean while preserving the existing visual size via .h6 class. #}
+         clean while preserving the existing visual size via .h6 class. {% endcomment %}
       <h2 class="h6 mb-0">{% trans "What needs attention" %}</h2>
       <span class="small text-muted">{% trans "3-5 actions based on live operations data" %}</span>
     </div>
@@ -161,7 +163,7 @@ backend-shell dashboard-page-backend
                 {% endfor %}
                 {% if primary_ctas|length > 1 or open_webui_url %}
                 <details class="rmc-conversion-more-actions border rounded px-2 py-1 align-self-center">
-                  <summary class="small text-muted user-select-none" style="cursor:pointer;">{% trans "More actions" %}</summary>
+                  <summary class="small text-muted user-select-none cursor-pointer" >{% trans "More actions" %}</summary>
                   <div class="d-flex flex-wrap gap-2 pt-2">
                     {% for cta in primary_ctas %}
                       {% if not forloop.first %}
@@ -347,9 +349,9 @@ backend-shell dashboard-page-backend
           </div>
           <script src="{% static 'js/backend-bento-drill.js' %}" defer></script>
           {% else %}
-          {# Pass 8: previous copy ("Overview metrics will appear here when configured") was
+          {% comment %} Pass 8: previous copy ("Overview metrics will appear here when configured") was
              admin-talking-to-themselves. Use the shared empty-state component which gives a
-             friendly explanation + a clear next-step CTA. #}
+             friendly explanation + a clear next-step CTA. {% endcomment %}
           {% include "components/dashboard_empty_state.html" with icon="bi-graph-up-arrow" title=_("No overview data yet") message=_("Once attendance, fees, and grades are entered, your headline metrics appear here.") action_url=backend_onboarding_url action_text=_("Open setup checklist") %}
           {% endif %}
           {% if kpi_strip_cards and overview_cards %}
@@ -417,7 +419,7 @@ backend-shell dashboard-page-backend
                   <span class="badge text-bg-primary">{% trans "Do now" %}</span>
                 </a>
                 <details class="rmc-conversion-more-actions border rounded px-2 py-2 w-100">
-                  <summary class="small fw-semibold user-select-none" style="cursor:pointer;">{% trans "Navigation and more" %}</summary>
+                  <summary class="small fw-semibold user-select-none cursor-pointer" >{% trans "Navigation and more" %}</summary>
                   <div class="d-grid gap-2 pt-3">
                     <button type="button" class="backend-role-home-command js-open-backend-command ds-btn text-start" aria-label="{% trans 'Open command palette (primary navigation)' %}">
                       <span class="backend-role-home-command-copy">
@@ -427,9 +429,9 @@ backend-shell dashboard-page-backend
                       <span class="badge text-bg-secondary">{% trans "Palette" %}</span>
                     </button>
                     <div class="backend-role-home-secondary mb-0">
-                      <a class="backend-v2-cta" href="{% url 'siteconfig:guided_onboarding' %}" data-tour="setup-studio-link">
-                        <i class="bi bi-rocket-takeoff"></i>
-                        <span>{% trans "Setup Studio" %}</span>
+                      <a class="backend-v2-cta" href="{{ backend_school_config_url }}" data-tour="school-configuration-link">
+                        <i class="bi bi-sliders"></i>
+                        <span>{% trans "School Configuration" %}</span>
                       </a>
                       {% for cta in role_home_supporting_actions %}
                       <a class="backend-v2-cta" href="{{ cta.url }}">
@@ -462,11 +464,11 @@ backend-shell dashboard-page-backend
                 {% endif %}
                 {% if rmc_conversion_single_action_enforced|default:False %}
                 <details class="rmc-conversion-more-actions border rounded px-2 py-2 w-100">
-                  <summary class="small fw-semibold user-select-none" style="cursor:pointer;">{% trans "More setup and shortcuts" %}</summary>
+                  <summary class="small fw-semibold user-select-none cursor-pointer" >{% trans "More shortcuts" %}</summary>
                   <div class="backend-role-home-secondary pt-3">
-                    <a class="backend-v2-cta" href="{% url 'siteconfig:guided_onboarding' %}" data-tour="setup-studio-link">
-                      <i class="bi bi-rocket-takeoff"></i>
-                      <span>{% trans "Setup Studio" %}</span>
+                    <a class="backend-v2-cta" href="{{ backend_school_config_url }}" data-tour="school-configuration-link">
+                      <i class="bi bi-sliders"></i>
+                      <span>{% trans "School Configuration" %}</span>
                     </a>
                     {% for cta in role_home_supporting_actions %}
                     <a class="backend-v2-cta" href="{{ cta.url }}">
@@ -481,9 +483,9 @@ backend-shell dashboard-page-backend
                 </details>
                 {% else %}
                 <div class="backend-role-home-secondary">
-                  <a class="backend-v2-cta" href="{% url 'siteconfig:guided_onboarding' %}" data-tour="setup-studio-link">
-                    <i class="bi bi-rocket-takeoff"></i>
-                    <span>{% trans "Setup Studio" %}</span>
+                  <a class="backend-v2-cta" href="{{ backend_school_config_url }}" data-tour="school-configuration-link">
+                    <i class="bi bi-sliders"></i>
+                    <span>{% trans "School Configuration" %}</span>
                   </a>
                   {% for cta in role_home_supporting_actions %}
                   <a class="backend-v2-cta" href="{{ cta.url }}">
@@ -522,10 +524,10 @@ backend-shell dashboard-page-backend
         </div>
         {% endif %}
 
-        {# Pass 8: previous empty-state ("Dashboard Intro Modules Hidden — Enable Overview
+        {% comment %} Pass 8: previous empty-state ("Dashboard Intro Modules Hidden — Enable Overview
            or Welcome in Feature Control") was operator-config talking-to-itself. When
            both intro modules are explicitly disabled, we render nothing rather than a
-           self-referential card the admin already chose to hide. #}
+           self-referential card the admin already chose to hide. {% endcomment %}
 
       </section>
 

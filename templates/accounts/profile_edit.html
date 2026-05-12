@@ -1,12 +1,12 @@
-{% extends "base.html" %}
+{% extends "portal_base.html" %}
 {% load static i18n %}
 
 {% block title %}{% trans "Edit profile" %} - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block content %}
-{# Pass 8 Wave 2: migrated to components/form_field + form_actions. Profile photo
+{% comment %} Pass 8 Wave 2: migrated to components/form_field + form_actions. Profile photo
    field renders an inline preview when the user already has a photo — kept that
-   wrapper since form_field handles the field, the preview is supplementary. #}
+   wrapper since form_field handles the field, the preview is supplementary. {% endcomment %}
   <div class="container py-4">
     <div class="row justify-content-center">
       <div class="col-lg-6">

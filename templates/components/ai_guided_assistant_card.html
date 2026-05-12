@@ -21,8 +21,8 @@
       placeholder="{% trans 'What should we verify or do next?' %}"
     ></textarea>
     <button type="button" class="btn btn-primary btn-sm" data-rmc-ai-run>{% trans "Ask assistant" %}</button>
-    {# Output is hidden until the assistant has run; the consumer script removes
-       the `hidden` attribute on first response so we don't render an empty box. #}
+    {% comment %} Output is hidden until the assistant has run; the consumer script removes
+       the `hidden` attribute on first response so we don't render an empty box. {% endcomment %}
     <pre
       class="small bg-light text-dark p-2 mt-2 rounded border mb-0"
       style="max-height: 16rem; overflow: auto; white-space: pre-wrap;"

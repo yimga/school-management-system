@@ -19,9 +19,9 @@
       {% endif %}
       <div class="card shadow-sm">
         <div class="card-body">
-          {# Pass 8 Wave 3: migrated to components/form_field. Custom 3-button footer
+          {% comment %} Pass 8 Wave 3: migrated to components/form_field. Custom 3-button footer
              (Cancel + Save draft + Submit) kept inline since form_actions only handles
-             1 primary + 1 secondary — Save draft is conditionally rendered. #}
+             1 primary + 1 secondary — Save draft is conditionally rendered. {% endcomment %}
           <form method="post" novalidate id="backend-applicant-create-form">
             {% csrf_token %}
             <div class="row">

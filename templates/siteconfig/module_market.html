@@ -49,7 +49,7 @@
                       <input type="hidden" name="code" value="{{ mod.code }}">
                       <input type="hidden" name="action" value="activate">
                       <details class="mb-2">
-                        <summary class="small text-primary" style="cursor:pointer;">{% trans "Impact before activate" %}</summary>
+                        <summary class="small text-primary cursor-pointer" >{% trans "Impact before activate" %}</summary>
                         <ul class="small text-muted mb-0 mt-1 ps-3">
                           {% for line in mod.impact_bullets %}
                           <li>{{ line }}</li>

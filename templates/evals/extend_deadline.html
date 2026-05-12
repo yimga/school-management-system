@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'backend_base.html' %}
 {% load static %}
 {% load region_format %}
 
@@ -26,7 +26,7 @@
                     <form method="post">
                         {% csrf_token %}
                         
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="daysExtension">Extend by (days):</label>
                             <input type="number" id="daysExtension" name="days_extension" class="form-control" 
                                    min="1" max="30" value="7" required>
@@ -35,7 +35,7 @@
                             </small>
                         </div>
                         
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="reason">Reason for Extension:</label>
                             <textarea id="reason" name="reason" class="form-control" rows="4" 
                                       placeholder="Explain why this deadline needs to be extended"></textarea>
@@ -48,7 +48,7 @@
                             </h5>
                         </div>
                         
-                        <div class="form-group">
+                        <div class="mb-3">
                             <button type="submit" class="btn btn-success btn-block">
                                 <i class="bi bi-check2"></i> Confirm Extension
                             </button>

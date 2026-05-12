@@ -164,6 +164,14 @@
       {% elif request.user.role != 'TEACHER' %}
         {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' or request.user.role == 'IT_ADMIN' %}
         {% comment %}RBAC: staff sections; Admin Panel last (includes Site Settings, Region Configuration). No duplicate sections.{% endcomment %}
+        {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
+        {% url 'school_configuration_center_canonical' as school_configuration_url %}
+        {% if not school_configuration_url %}{% url 'school_configuration_center' as school_configuration_url %}{% endif %}
+        {% if school_configuration_url %}
+        <div class="sidebar-section-title">{% trans "Configuration" %}</div>
+        <a class="nav-link nav-pill" href="{{ school_configuration_url }}"><i class="bi bi-sliders me-2"></i>{% trans "School Configuration" %}</a>
+        {% endif %}
+        {% endif %}
         <div class="sidebar-section-title">Support</div>
         <a class="nav-link nav-pill" href="{% url 'portal:staff_contact_request_list' %}"><i class="bi bi-inbox me-2"></i>Contact Requests</a>
         {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser or SITE and SITE.portal_features and SITE.portal_features.documents and request.user|has_feature_permission:"portal.documents" %}

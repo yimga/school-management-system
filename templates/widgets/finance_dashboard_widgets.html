@@ -1,9 +1,9 @@
 {% load region_format i18n %}
-{# Pass 8 UX consistency: previously each stat rendered the bare string "No data"
+{% comment %} Pass 8 UX consistency: previously each stat rendered the bare string "No data"
    when the summary was empty. That's a flat dead-end that gives the admin nothing
    to do. Use a typographic em-dash ("—") inline for unknown values; the headline
    row stays scannable instead of repeating "No data" four times.
-   English label strings are now wrapped in {% trans %} for i18n parity. #}
+   English label strings are now wrapped in {% trans %} for i18n parity. {% endcomment %}
 <div class="dashboard-card-grid dashboard-card-grid--dense mb-4">
   {% with summary=summary %}
     <div class="card bg-gradient border-0 text-white" data-widget-id="finance-summary-receivables" style="background:linear-gradient(135deg,var(--school-primary),var(--school-accent));">

@@ -4,10 +4,10 @@
 {% block title %}{% trans "Create message group" %}{% endblock %}
 
 {% block content %}
-{# Pass 8 Wave 2: migrated to components/form_field + components/form_actions partials.
+{% comment %} Pass 8 Wave 2: migrated to components/form_field + components/form_actions partials.
    Removed 6 hand-rolled mb-3 blocks + 2 hand-rolled action rows; ~50 lines of duplicated
    markup replaced. Field error / required-marker / help-text rendering now identical
-   across every form that adopts these partials. #}
+   across every form that adopts these partials. {% endcomment %}
 <div class="container-fluid">
   <div class="row justify-content-center">
     <div class="col-lg-8">

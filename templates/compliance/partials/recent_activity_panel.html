@@ -1,7 +1,7 @@
 {% load i18n %}
-{# Pass 9: per-record drill-down. Renders the AuditLog rows for one object
+{% comment %} Pass 9: per-record drill-down. Renders the AuditLog rows for one object
    over the last 90 days. Requires the view to populate `recent_activity_logs`
-   in the template context (a queryset/iterable of AuditLog rows). #}
+   in the template context (a queryset/iterable of AuditLog rows). {% endcomment %}
 {% if recent_activity_logs is not None %}
 <section class="card mt-3" aria-labelledby="recent-activity-heading">
   <div class="card-header d-flex justify-content-between align-items-center">

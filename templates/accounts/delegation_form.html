@@ -1,13 +1,13 @@
-{% extends "base.html" %}
+{% extends "portal_base.html" %}
 {% load i18n static %}
 
 {% block title %}{% if is_edit %}Edit delegation{% else %}Add delegation{% endif %} - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block content %}
-{# Pass 8 Wave 2: migrated to components/form_field + form_actions partials. The
+{% comment %} Pass 8 Wave 2: migrated to components/form_field + form_actions partials. The
    custom scope-checkbox block is kept as-is since it iterates widget.choices
    directly (form_field assumes a single widget); only the surrounding label+help+errors
-   chrome was moved into form-system grammar. #}
+   chrome was moved into form-system grammar. {% endcomment %}
   <div class="container py-4">
     <div class="row justify-content-center">
       <div class="col-lg-8">
@@ -31,8 +31,8 @@
                 </div>
               </div>
 
-              {# Custom checkbox group — form_field handles single widgets only.
-                 Wrapped in .form-field for consistent error styling via CSS. #}
+              {% comment %} Custom checkbox group — form_field handles single widgets only.
+                 Wrapped in .form-field for consistent error styling via CSS. {% endcomment %}
               <div class="mb-3 form-field{% if form.scope.errors %} has-error{% endif %}">
                 <label class="form-label">{% trans "Scope" %} <span class="form-text-inline">{% trans "(leave empty for all)" %}</span></label>
                 {% for choice in form.scope.field.widget.choices %}

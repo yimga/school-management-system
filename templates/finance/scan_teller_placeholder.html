@@ -90,7 +90,7 @@
         {% if extraction.raw_text %}
         <hr>
         <div class="small text-muted mb-1">OCR text sample</div>
-        <pre class="p-2 rounded bg-light small mb-0" style="white-space: pre-wrap;">{{ extraction.raw_text }}</pre>
+        <pre class="p-2 rounded bg-light small mb-0 ws-pre-wrap" >{{ extraction.raw_text }}</pre>
         {% endif %}
         {% else %}
         <p class="text-muted mb-0">No scan yet. Upload a file and click <strong>Scan teller</strong>.</p>

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "portal_base.html" %}
 {% load static i18n %}
 
 {% block title %}{{ faq.question }} - FAQ{% endblock %}
@@ -188,9 +188,9 @@
     </div>
 </div>
 
-{# Pass 8 UX consistency: migrated from Bootstrap 4 grammar (data-dismiss, .close, .form-group)
+{% comment %} Pass 8 UX consistency: migrated from Bootstrap 4 grammar (data-dismiss, .close, .form-group)
    to Bootstrap 5 (data-bs-dismiss, .btn-close, .mb-3). The BS4 close button rendered fine
-   visually but silently failed to dismiss the modal on a BS5 bundle. #}
+   visually but silently failed to dismiss the modal on a BS5 bundle. {% endcomment %}
 <!-- Report Modal -->
 <div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "portal_base.html" %}
 {% load static %}
 
 {% block title %}Submit Knowledge Base Article{% endblock %}
@@ -31,7 +31,7 @@
                         {% csrf_token %}
 
                         <!-- Title -->
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="{{ form.title.id_for_label }}">
                                 <strong>Article Title</strong>
                                 <span class="badge badge-danger">Required</span>
@@ -50,7 +50,7 @@
                         </div>
 
                         <!-- Summary -->
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="{{ form.summary.id_for_label }}">
                                 <strong>Summary</strong>
                                 <span class="badge badge-danger">Required</span>
@@ -67,7 +67,7 @@
                         </div>
 
                         <!-- Content -->
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="{{ form.content.id_for_label }}">
                                 <strong>Article Content</strong>
                                 <span class="badge badge-danger">Required</span>
@@ -90,7 +90,7 @@
                         </div>
 
                         <!-- Category -->
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="{{ form.category.id_for_label }}">
                                 <strong>Category</strong>
                                 <span class="badge badge-danger">Required</span>
@@ -104,7 +104,7 @@
                         </div>
 
                         <!-- Difficulty -->
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="{{ form.difficulty.id_for_label }}">
                                 <strong>Difficulty Level</strong>
                             </label>
@@ -120,7 +120,7 @@
                         </div>
 
                         <!-- Read Time -->
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="{{ form.read_time.id_for_label }}">
                                 <strong>Estimated Read Time (minutes)</strong>
                             </label>
@@ -136,7 +136,7 @@
                         </div>
 
                         <!-- Tags -->
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="{{ form.tags.id_for_label }}">
                                 <strong>Tags</strong>
                             </label>
@@ -152,7 +152,7 @@
                         </div>
 
                         <!-- Related Articles -->
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="{{ form.related_articles.id_for_label }}">
                                 <strong>Related Articles</strong>
                             </label>
@@ -168,7 +168,7 @@
                         </div>
 
                         <!-- File Uploads -->
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>
                                 <strong>Attachments</strong> - Screenshots, Images, or Files
                             </label>
@@ -203,7 +203,7 @@
                         </div>
 
                         <!-- Form Actions -->
-                        <div class="form-group">
+                        <div class="mb-3">
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-send"></i> Submit Article
                             </button>

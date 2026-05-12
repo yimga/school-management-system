@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "portal_base.html" %}
 {% load i18n static %}
 
 {% block title %}{% trans "Multi-factor authentication" %}{% endblock %}
@@ -134,9 +134,9 @@
             <hr style="margin:28px 0 18px">
             <h2 class="h6" style="font-weight:600;color:var(--ds-danger);letter-spacing:-0.01em"><i class="bi bi-exclamation-circle me-1"></i>{% trans "Disable MFA" %}</h2>
             <p style="color:var(--admin-content-text-muted);font-size:0.9rem;margin-bottom:14px">{% trans "Disabling MFA removes the second layer of security from your account. Only do this if absolutely necessary." %}</p>
-            {# Pass 8 Wave 2: replaced jarring native onclick="return confirm(...)" with
+            {% comment %} Pass 8 Wave 2: replaced jarring native onclick="return confirm(...)" with
                components/confirm_modal.html — themed, ESC-dismissable, role="alertdialog"
-               so screen readers treat the disable-MFA action as a security decision. #}
+               so screen readers treat the disable-MFA action as a security decision. {% endcomment %}
             <form method="post">
               {% csrf_token %}
               {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}

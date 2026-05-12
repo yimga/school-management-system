@@ -23,9 +23,9 @@
     >
       <label class="form-label fw-semibold" for="{{ input_dom_id }}">{% trans "School search" %}</label>
       <div class="input-group input-group-lg">
-        {# Password managers (1Password, Bitwarden, Chrome built-in) sometimes ignore plain
+        {% comment %} Password managers (1Password, Bitwarden, Chrome built-in) sometimes ignore plain
            autocomplete="off" and try to autofill saved tenant logins into this slug search.
-           data-1p-ignore + data-lpignore + the explicit autocomplete token disable that. #}
+           data-1p-ignore + data-lpignore + the explicit autocomplete token disable that. {% endcomment %}
         <input
           id="{{ input_dom_id }}"
           name="q"

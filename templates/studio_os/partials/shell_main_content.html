@@ -2,8 +2,8 @@
 <div class="container-fluid py-2 px-0 px-md-2 rmc-shell-content-grid" data-page-archetype="{% if current_mode == 'control' %}decision-console{% else %}studio-workspace{% endif %}" data-shell-studio-region="main" data-rmc-studio-os-embed="true" data-shell-host="{% if request.public_host_kind == 'manager' %}control-plane{% else %}tenant{% endif %}" data-rmc-shell-content-grid="1">
   <a href="#studio-canvas" class="visually-hidden-focusable btn btn-sm btn-outline-primary position-absolute top-0 start-0 m-2 px-3 py-2 rounded z-1" style="z-index: 1060;">{% trans "Skip to Studio content" %}</a>
   {# Primary 8-pill nav is on control_plane_base (manager); do not duplicate here. #}
-  {# Page title is the anchor for the eye — left-aligned, the toolbar controls
-     sit to its right with ms-auto pushing them to the trailing edge. #}
+  {% comment %} Page title is the anchor for the eye — left-aligned, the toolbar controls
+     sit to its right with ms-auto pushing them to the trailing edge. {% endcomment %}
   <div class="d-flex align-items-center gap-2 mb-3 flex-wrap studio-os__toolbar" role="toolbar" aria-label="{% trans 'Studio toolbar' %}">
     <h1 class="h4 mb-0 me-3 studio-os__page-title">
       {% if current_mode %}

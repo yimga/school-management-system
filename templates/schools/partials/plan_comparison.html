@@ -5,7 +5,7 @@
   <div class="row g-2">
     {% for plan in plans %}
     <div class="col-md-4">
-      <label class="d-block border rounded-2 p-3 cursor-pointer plan-option {% if selected_plan_slug == plan.slug %}border-primary bg-white shadow-sm{% endif %}" style="cursor:pointer;">
+      <label class="d-block border rounded-2 p-3 cursor-pointer plan-option {% if selected_plan_slug == plan.slug %}border-primary bg-white shadow-sm{% endif %}" >
         <input type="radio" name="plan_slug" value="{{ plan.slug }}" {% if selected_plan_slug == plan.slug %}checked{% endif %} class="me-2">
         <strong>{{ plan.name }}</strong>
         {% if plan.base_price is not None %}<br><span class="text-muted small">{% trans "From" %} {{ plan.base_price }} / {% trans "mo" %}</span>{% endif %}
