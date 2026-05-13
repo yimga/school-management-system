@@ -11,7 +11,6 @@ from .views import (
     grading_settings,
     module_market,
     clear_preview,
-    legacy_clear_preview_redirect,
     preview_from_form,
     download_report,
     bulk_letters,
@@ -229,11 +228,6 @@ urlpatterns = [
         name="installed_packages_rollback",
     ),
     path("preview/clear/", clear_preview, name="clear_preview"),
-    path(
-        "customizer/clear-preview/",
-        legacy_clear_preview_redirect,
-        name="legacy_clear_preview_redirect",
-    ),
     path("theme-colors/", theme_colors_page, name="theme_colors"),
     path(
         "theme-colors/import-from-url/",

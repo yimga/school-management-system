@@ -142,6 +142,6 @@ These are the canonical resolved paths (accounts app is mounted at `/authenticat
 | Login | `/authentication/login/` |
 | Global discovery | `/discover/` |
 | Request custom requirement | `/siteconfig/request-custom-requirement/` |
-| Site config / Customizer | `/siteconfig/customizer/` |
+| Site config / Customizer | `/studio/` (legacy `/siteconfig/customizer/` redirects here) |
 
 To confirm in your project: `python manage.py shell` then `from django.urls import reverse; print(reverse('accounts:backend_dashboard'))` should output `/authentication/backend/`.

@@ -14,6 +14,7 @@ from django.utils import timezone
 from apps.accounts.models import User
 from apps.billing.models import (
     BillingAccount,
+    Entitlement,
     PlatformBillingProcessorConfig,
     BillingProcessorSyncEvent,
     PlatformLedgerEntry,
@@ -63,6 +64,29 @@ class PlatformBillingServicesTests(TestCase):
         self.assertEqual(subscription.plan, self.plan)
         self.assertEqual(subscription.base_amount, Decimal("199.00"))
         self.assertEqual(subscription.billed_amount, Decimal("199.00"))
+
+    def test_ensure_subscription_materializes_entitlements_and_limits(self):
+        from apps.billing.entitlements import can, limits
+
+        self.plan.included_features = ["reports"]
+        self.plan.max_students = 2
+        self.plan.save(update_fields=["included_features", "max_students", "updated_at"])
+        self.school.addons = ["analytics"]
+        self.school.save(update_fields=["addons", "updated_at"])
+
+        ensure_subscription_for_school(self.school)
+
+        self.assertTrue(
+            Entitlement.objects.filter(
+                school=self.school,
+                code="reports",
+                kind=Entitlement.Kind.FEATURE,
+                is_enabled=True,
+            ).exists()
+        )
+        self.assertTrue(can(self.school, "reports"))
+        self.assertTrue(can(self.school, "analytics"))
+        self.assertEqual(limits(self.school)["max_students"]["limit_value"], 2)
 
     def test_record_platform_charge_creates_ledger_entry(self):
         ensure_subscription_for_school(self.school)

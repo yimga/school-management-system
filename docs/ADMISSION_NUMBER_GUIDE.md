@@ -12,7 +12,7 @@ The school management system supports flexible admission number generation and v
 
 ### Where to Configure
 
-Admission number settings are managed in **Site Settings** (`/admin/siteconfig/sitesettings/` or `/siteconfig/customizer/`).
+Admission number settings are managed in **Site Settings** (`/admin/siteconfig/sitesettings/` or `/studio/`).
 
 ### Settings
 

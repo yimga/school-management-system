@@ -7,6 +7,7 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import CursorPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -91,12 +92,17 @@ def _check_student_offline_conflict(instance, request):
     return None
 
 
+class StudentProfileCursorPagination(CursorPagination):
+    ordering = "-updated_at"
+
+
 class StudentProfileViewSet(viewsets.ModelViewSet):
     """CRUD for student profiles; scoped by role."""
 
     serializer_class = StudentProfileSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = "id"
+    pagination_class = StudentProfileCursorPagination
 
     def get_queryset(self):
         user = self.request.user

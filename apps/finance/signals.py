@@ -1,16 +1,48 @@
+import logging
+
+from django.conf import settings
+from django.db import connection
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from .models import Invoice, InvoiceLine, Payment, PaymentReminder
 from .services import apply_payment, recalculate_invoice
 
+logger = logging.getLogger(__name__)
+
+
+def _requires_explicit_rls_context() -> bool:
+    return connection.vendor == "postgresql" and not getattr(
+        settings, "USE_DJANGO_TENANTS", False
+    )
+
+
+def _run_with_optional_school_rls(school_id, runnable, *, operation: str):
+    if school_id is None:
+        if _requires_explicit_rls_context():
+            logger.warning("%s skipped: missing school_id under RLS", operation)
+            return 0
+        return runnable()
+    if _requires_explicit_rls_context():
+        from apps.schools.rls_context import rls_school
+
+        with rls_school(school_id):
+            return runnable()
+    return runnable()
+
 
 @receiver(post_save, sender=Invoice)
 def ensure_invoice_reference(sender, instance: Invoice, created: bool, **kwargs):
     if instance.reference:
         return
-    Invoice.objects.filter(id=instance.id, reference="").update(
-        reference=f"INV-{instance.id:05d}"
+    school_id = getattr(instance, "school_id", None)
+    queryset = Invoice.objects.filter(id=instance.id, reference="")
+    if school_id is not None:
+        queryset = queryset.filter(school_id=school_id)
+    _run_with_optional_school_rls(
+        school_id,
+        lambda: queryset.update(reference=f"INV-{instance.id:05d}"),
+        operation="ensure_invoice_reference",
     )
 
 
@@ -85,10 +117,19 @@ def sync_invoice_totals_delete(sender, instance: InvoiceLine, **kwargs):
 def sync_payment(sender, instance: Payment, created: bool, **kwargs):
     if not instance.receipt_number:
         receipt = f"RCPT-{instance.id:05d}"
-        Payment.objects.filter(id=instance.id, receipt_number="").update(
-            receipt_number=receipt
+        school_id = getattr(instance, "school_id", None)
+        if school_id is None and getattr(instance, "invoice_id", None):
+            school_id = getattr(getattr(instance, "invoice", None), "school_id", None)
+        queryset = Payment.objects.filter(id=instance.id, receipt_number="")
+        if school_id is not None:
+            queryset = queryset.filter(school_id=school_id)
+        updated = _run_with_optional_school_rls(
+            school_id,
+            lambda: queryset.update(receipt_number=receipt),
+            operation="sync_payment.receipt_number",
         )
-        instance.receipt_number = receipt
+        if updated:
+            instance.receipt_number = receipt
     if instance.invoice_id:
         apply_payment(instance)
     if created and instance.invoice_id:
@@ -144,10 +185,44 @@ def dispatch_payment_failed_workflows(sender, instance: Payment, **kwargs):
 
 def _deactivate_reminders_for_student(student_profile):
     """Deactivate all payment reminders for invoices belonging to this student."""
-    PaymentReminder.objects.filter(
-        invoice__student=student_profile,
-        is_active=True,
-    ).update(is_active=False)
+    school_id = getattr(student_profile, "school_id", None)
+    if school_id is None and _requires_explicit_rls_context():
+        from apps.schools.rls_context import rls_bypass
+
+        with rls_bypass():
+            school_ids = list(
+                Invoice.objects.filter(student=student_profile)
+                .exclude(school_id__isnull=True)
+                .values_list("school_id", flat=True)
+                .distinct()[:2]
+            )
+        if len(school_ids) == 1:
+            school_id = school_ids[0]
+        elif len(school_ids) > 1:
+            raise ValueError(
+                "_deactivate_reminders_for_student cannot choose between multiple invoice schools"
+            )
+
+    if school_id is None:
+        logger.warning(
+            "_deactivate_reminders_for_student skipped student_id=%s: missing school_id",
+            getattr(student_profile, "pk", None),
+        )
+        return 0
+
+    def _update():
+        return PaymentReminder.objects.filter(
+            invoice__student=student_profile,
+            invoice__school_id=school_id,
+            is_active=True,
+        ).update(is_active=False)
+
+    if _requires_explicit_rls_context():
+        from apps.schools.rls_context import rls_school
+
+        with rls_school(school_id):
+            return _update()
+    return _update()
 
 
 def _on_student_inactive_stop_reminders(sender, instance, **kwargs):

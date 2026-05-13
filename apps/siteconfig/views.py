@@ -1247,14 +1247,6 @@ def clear_preview(request):
     return redirect(next_url)
 
 
-def legacy_clear_preview_redirect(request):
-    target = reverse("siteconfig:clear_preview")
-    query = request.META.get("QUERY_STRING") or ""
-    if query:
-        target = f"{target}?{query}"
-    return redirect(target)
-
-
 @login_required
 def set_default_dashboard_view(request):
     """Set the user's default dashboard view (Overview, Workflow Center, etc.) and redirect."""

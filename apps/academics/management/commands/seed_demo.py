@@ -3,7 +3,8 @@ from __future__ import annotations
 import random
 from datetime import date
 
-from django.core.management.base import BaseCommand
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from apps.accounts.models import User
@@ -49,6 +50,12 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        if not settings.DEBUG:
+            raise CommandError(
+                "This command is for development/staging only (DEBUG=False). "
+                "Cannot run seed_demo in production. Enable DEBUG in settings to use this command."
+            )
+        
         reset = options.get("reset")
         school = _resolve_school(options.get("school"))
         if options.get("school") and not school:

@@ -8,6 +8,7 @@ app now while keeping the current tables intact.
 from apps.billing.models import (
     BillingAccount as LegacyBillingAccount,
     BillingProcessorSyncEvent as LegacyBillingProcessorSyncEvent,
+    Entitlement as LegacyEntitlement,
     PlatformLedgerEntry as LegacyPlatformLedgerEntry,
     Quote as LegacyQuote,
     RevenueSharePayout as LegacyRevenueSharePayout,
@@ -53,6 +54,11 @@ BillingProcessorSyncEvent = _proxy_model(
     app_label="plans_entitlements",
     doc="Plans & Entitlements owner surface for processor sync events.",
 )
+Entitlement = _proxy_model(
+    LegacyEntitlement,
+    app_label="plans_entitlements",
+    doc="Plans & Entitlements owner surface for materialized tenant entitlements.",
+)
 CountryMultiplier = _proxy_model(
     LegacyCountryMultiplier,
     app_label="plans_entitlements",
@@ -97,6 +103,7 @@ UsageMeter = _proxy_model(
 __all__ = [
     "BillingAccount",
     "BillingProcessorSyncEvent",
+    "Entitlement",
     "CountryMultiplier",
     "PlatformLedgerEntry",
     "Plan",

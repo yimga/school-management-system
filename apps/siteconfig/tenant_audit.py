@@ -49,3 +49,16 @@ def find_missing_explicit_school_fields(
         if not has_explicit_school_field(normalized):
             missing.append(normalized)
     return missing
+
+
+def find_tenant_owned_models_missing_school_fields() -> list[str]:
+    """Return concrete TenantOwnedModel subclasses missing the inherited school FK."""
+    from apps.schools.tenant_models import TenantOwnedModel
+
+    missing = []
+    for model in apps.get_models():
+        if model._meta.abstract or not issubclass(model, TenantOwnedModel):
+            continue
+        if not has_explicit_school_field(model._meta.label):
+            missing.append(model._meta.label_lower)
+    return sorted(missing)

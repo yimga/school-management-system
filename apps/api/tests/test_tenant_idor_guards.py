@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from django.test import TestCase
+from django.test import TestCase, tag
 from django.urls import reverse
 
 from apps.accounts.models import User
@@ -13,102 +13,105 @@ from apps.finance.models import (
 )
 from apps.people.models import StudentProfile
 from apps.schools.models import School, SchoolMembership
+from apps.schools.rls_context import rls_bypass
 
 
+@tag("tenants_rls")
 class TenantIdorGuardsTests(TestCase):
     def setUp(self):
-        self.school_a = School.objects.create(
-            name="Tenant A School",
-            slug="tenant-a-school",
-            subdomain="tenant-a-school",
-            is_active=True,
-        )
-        self.school_b = School.objects.create(
-            name="Tenant B School",
-            slug="tenant-b-school",
-            subdomain="tenant-b-school",
-            is_active=True,
-        )
-        self.user_a = User.objects.create_user(
-            username="tenant-admin-a",
-            email="tenant-admin-a@example.com",
-            password="x",
-            role=User.Role.ADMIN,
-        )
-        SchoolMembership.objects.create(
-            school=self.school_a,
-            user=self.user_a,
-            role=User.Role.ADMIN,
-            is_primary=True,
-        )
+        with rls_bypass():
+            self.school_a = School.objects.create(
+                name="Tenant A School",
+                slug="tenant-a-school",
+                subdomain="tenant-a-school",
+                is_active=True,
+            )
+            self.school_b = School.objects.create(
+                name="Tenant B School",
+                slug="tenant-b-school",
+                subdomain="tenant-b-school",
+                is_active=True,
+            )
+            self.user_a = User.objects.create_user(
+                username="tenant-admin-a",
+                email="tenant-admin-a@example.com",
+                password="x",
+                role=User.Role.ADMIN,
+            )
+            SchoolMembership.objects.create(
+                school=self.school_a,
+                user=self.user_a,
+                role=User.Role.ADMIN,
+                is_primary=True,
+            )
 
-        self.profile = ComplianceProfile.objects.create(
-            name="Default Finance",
-            country_code="US",
-            currency_code="USD",
-            currency_symbol="$",
-            is_active=True,
-        )
+            self.profile = ComplianceProfile.objects.create(
+                name="Default Finance",
+                country_code="US",
+                currency_code="USD",
+                currency_symbol="$",
+                is_active=True,
+            )
 
-        self.student_a = StudentProfile.objects.create(
-            school=self.school_a,
-            first_name="Alice",
-            last_name="TenantA",
-            student_code="A-STD-1",
-        )
-        self.student_b = StudentProfile.objects.create(
-            school=self.school_b,
-            first_name="Bob",
-            last_name="TenantB",
-            student_code="B-STD-1",
-        )
+            self.student_a = StudentProfile.objects.create(
+                school=self.school_a,
+                first_name="Alice",
+                last_name="TenantA",
+                student_code="A-STD-1",
+            )
+            self.student_b = StudentProfile.objects.create(
+                school=self.school_b,
+                first_name="Bob",
+                last_name="TenantB",
+                student_code="B-STD-1",
+            )
 
-        self.invoice_a = Invoice.objects.create(
-            school=self.school_a,
-            profile=self.profile,
-            student=self.student_a,
-            total_amount=Decimal("100.00"),
-            balance_amount=Decimal("20.00"),
-            status=Invoice.Status.PARTIAL,
-        )
-        self.invoice_b = Invoice.objects.create(
-            school=self.school_b,
-            profile=self.profile,
-            student=self.student_b,
-            total_amount=Decimal("500.00"),
-            balance_amount=Decimal("100.00"),
-            status=Invoice.Status.PARTIAL,
-        )
-        InvoiceLine.objects.create(
-            invoice=self.invoice_a,
-            description="Tuition A",
-            quantity=Decimal("1.00"),
-            unit_price=Decimal("100.00"),
-            amount=Decimal("100.00"),
-        )
-        InvoiceLine.objects.create(
-            invoice=self.invoice_b,
-            description="Tuition B",
-            quantity=Decimal("1.00"),
-            unit_price=Decimal("500.00"),
-            amount=Decimal("500.00"),
-        )
-        self.payment_a = Payment.objects.create(
-            school=self.school_a,
-            invoice=self.invoice_a,
-            student=self.student_a,
-            amount=Decimal("80.00"),
-            method=PaymentMethodCode.CASH,
-            status="completed",
-        )
-        self.payment_b = Payment.objects.create(
-            school=self.school_b,
-            invoice=self.invoice_b,
-            student=self.student_b,
-            amount=Decimal("400.00"),
-            method=PaymentMethodCode.CASH,
-            status="completed",
-        )
+            self.invoice_a = Invoice.objects.create(
+                school=self.school_a,
+                profile=self.profile,
+                student=self.student_a,
+                total_amount=Decimal("100.00"),
+                balance_amount=Decimal("20.00"),
+                status=Invoice.Status.PARTIAL,
+            )
+            self.invoice_b = Invoice.objects.create(
+                school=self.school_b,
+                profile=self.profile,
+                student=self.student_b,
+                total_amount=Decimal("500.00"),
+                balance_amount=Decimal("100.00"),
+                status=Invoice.Status.PARTIAL,
+            )
+            InvoiceLine.objects.create(
+                invoice=self.invoice_a,
+                description="Tuition A",
+                quantity=Decimal("1.00"),
+                unit_price=Decimal("100.00"),
+                amount=Decimal("100.00"),
+            )
+            InvoiceLine.objects.create(
+                invoice=self.invoice_b,
+                description="Tuition B",
+                quantity=Decimal("1.00"),
+                unit_price=Decimal("500.00"),
+                amount=Decimal("500.00"),
+            )
+            self.payment_a = Payment.objects.create(
+                school=self.school_a,
+                invoice=self.invoice_a,
+                student=self.student_a,
+                amount=Decimal("80.00"),
+                method=PaymentMethodCode.CASH,
+                status="completed",
+            )
+            self.payment_b = Payment.objects.create(
+                school=self.school_b,
+                invoice=self.invoice_b,
+                student=self.student_b,
+                amount=Decimal("400.00"),
+                method=PaymentMethodCode.CASH,
+                status="completed",
+            )
 
     def _login_as_tenant_a(self):
         self.client.force_login(self.user_a)

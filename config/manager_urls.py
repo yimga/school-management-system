@@ -28,13 +28,9 @@ from config.admin import platform_admin_site
 
 # Reuse main urlconf error handlers and Phase B legacy redirects.
 from config.urls import (
-    admin_siteconfig_customizer_redirect,
     page_not_found as handler404_view,
     permission_denied as handler403_view,
     server_error as handler500_view,
-    legacy_siteconfig_customizer_redirect,
-    legacy_workflow_hub_redirect,
-    legacy_report_library_redirect,
 )
 
 handler403 = handler403_view
@@ -362,7 +358,6 @@ urlpatterns = [
     path("support/", manager_support_request, name="manager_support_request"),
     path("feedback/", manager_feedback, name="manager_feedback"),
     path("notifications/", manager_notifications, name="manager_notifications"),
-    path("admin/siteconfig/customizer/", admin_siteconfig_customizer_redirect),
     path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
     path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
     path("admin/", platform_admin_site.urls),
@@ -372,10 +367,6 @@ urlpatterns = [
     ),
     path("super/", include(("apps.schools.super_urls", "super"), namespace="super")),
     path("sales/", include(("apps.sales.urls", "sales"), namespace="sales")),
-    path("siteconfig/customizer/", legacy_siteconfig_customizer_redirect),
-    path("siteconfig/workflow-hub/", legacy_workflow_hub_redirect),
-    path("siteconfig/report-library/", legacy_report_library_redirect),
-    path("siteconfig/reports/", legacy_report_library_redirect),
     path(
         "siteconfig/",
         include(("apps.siteconfig.urls", "siteconfig"), namespace="siteconfig"),

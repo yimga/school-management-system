@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 from apps.siteconfig.tenant_audit import (
     COMMUNICATION_TENANT_MODELS,
     find_missing_explicit_school_fields,
+    find_tenant_owned_models_missing_school_fields,
 )
 
 
@@ -33,6 +34,8 @@ class Command(BaseCommand):
             model_labels = list(COMMUNICATION_TENANT_MODELS)
 
         missing = find_missing_explicit_school_fields(model_labels)
+        missing.extend(find_tenant_owned_models_missing_school_fields())
+        missing = sorted(set(missing))
         if missing:
             self.stdout.write(
                 self.style.WARNING("Models missing explicit school field:")

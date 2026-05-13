@@ -119,6 +119,76 @@ class TenantSubscription(models.Model):
         return f"{self.school.name} subscription"
 
 
+class Entitlement(models.Model):
+    """
+    Materialized tenant entitlement.
+
+    This turns plan/add-on capability JSON into an auditable, queryable table so
+    feature gates and limits are not advisory-only.
+    """
+
+    class Kind(models.TextChoices):
+        FEATURE = "FEATURE", "Feature"
+        LIMIT = "LIMIT", "Limit"
+
+    class Source(models.TextChoices):
+        PLAN = "PLAN", "Plan"
+        ADDON = "ADDON", "Add-on"
+        MANUAL = "MANUAL", "Manual override"
+        PROCESSOR = "PROCESSOR", "Processor sync"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="billing_entitlements",
+    )
+    subscription = models.ForeignKey(
+        TenantSubscription,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="entitlements",
+    )
+    code = models.CharField(max_length=120, db_index=True)
+    kind = models.CharField(
+        max_length=12, choices=Kind.choices, default=Kind.FEATURE, db_index=True
+    )
+    source = models.CharField(
+        max_length=16, choices=Source.choices, default=Source.PLAN, db_index=True
+    )
+    is_enabled = models.BooleanField(default=True, db_index=True)
+    limit_value = models.PositiveBigIntegerField(null=True, blank=True)
+    effective_from = models.DateTimeField(null=True, blank=True)
+    effective_until = models.DateTimeField(null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["school", "kind", "code"]
+        verbose_name = "Entitlement"
+        verbose_name_plural = "Entitlements"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "code"],
+                name="billing_unique_entitlement_school_code",
+            )
+        ]
+        indexes = [
+            models.Index(
+                fields=["school", "kind", "is_enabled"],
+                name="billing_ent_school_2f7f45_idx",
+            ),
+            models.Index(
+                fields=["school", "code", "is_enabled"],
+                name="billing_ent_school_8e2a13_idx",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.school_id}:{self.code}"
+
+
 class UsageMeter(models.Model):
     billing_account = models.ForeignKey(
         BillingAccount,

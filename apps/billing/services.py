@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from apps.billing.models import (
     BillingAccount,
+    Entitlement,
     PlatformBillingProcessorConfig,
     BillingProcessorSyncEvent,
     PlatformLedgerEntry,
@@ -36,6 +37,12 @@ _ACCOUNT_STATUS_MAP = {
     "suspended": BillingAccount.Status.SUSPENDED,
     "canceled": BillingAccount.Status.CANCELED,
     "cancelled": BillingAccount.Status.CANCELED,
+}
+
+_ENTITLEMENT_ACTIVE_SUBSCRIPTION_STATUSES = {
+    TenantSubscription.Status.TRIALING,
+    TenantSubscription.Status.ACTIVE,
+    TenantSubscription.Status.PAST_DUE,
 }
 
 _SUBSCRIPTION_STATUS_MAP = {
@@ -153,6 +160,94 @@ def _coerce_date(value, default: date | None = None) -> date | None:
 
 def _json_safe(value):
     return json.loads(json.dumps(value, cls=DjangoJSONEncoder))
+
+
+def _normalize_entitlement_code(code: object) -> str:
+    return str(code or "").strip().lower()
+
+
+def _subscription_feature_codes(subscription: TenantSubscription) -> dict[str, str]:
+    plan = getattr(subscription, "plan", None)
+    codes: dict[str, str] = {}
+    if plan and isinstance(getattr(plan, "included_features", None), list):
+        for code in plan.included_features:
+            normalized = _normalize_entitlement_code(code)
+            if normalized:
+                codes[normalized] = Entitlement.Source.PLAN
+    for code in list(getattr(subscription, "addon_codes", None) or []):
+        normalized = _normalize_entitlement_code(code)
+        if normalized:
+            codes[normalized] = Entitlement.Source.ADDON
+    return codes
+
+
+def _subscription_limit_codes(subscription: TenantSubscription) -> dict[str, int]:
+    plan = getattr(subscription, "plan", None)
+    if not plan:
+        return {}
+    limits: dict[str, int] = {}
+    for code in ("max_students", "max_staff"):
+        value = getattr(plan, code, None)
+        if value is not None:
+            limits[code] = int(value)
+    return limits
+
+
+def sync_subscription_entitlements(
+    subscription: TenantSubscription, *, as_of: datetime | None = None
+) -> list[str]:
+    """
+    Materialize subscription plan/add-on features and limits into Entitlement rows.
+    Returns the entitlement codes touched.
+    """
+    as_of = as_of or timezone.now()
+    school = subscription.school
+    enabled = subscription.status in _ENTITLEMENT_ACTIVE_SUBSCRIPTION_STATUSES
+    touched: list[str] = []
+    desired_sources = _subscription_feature_codes(subscription)
+    desired_limits = _subscription_limit_codes(subscription)
+
+    for code, source in desired_sources.items():
+        Entitlement.objects.update_or_create(
+            school=school,
+            code=code,
+            defaults={
+                "subscription": subscription,
+                "kind": Entitlement.Kind.FEATURE,
+                "source": source,
+                "is_enabled": enabled,
+                "limit_value": None,
+                "effective_from": as_of,
+                "effective_until": None if enabled else as_of,
+                "metadata": {"subscription_id": subscription.pk},
+            },
+        )
+        touched.append(code)
+
+    for code, value in desired_limits.items():
+        Entitlement.objects.update_or_create(
+            school=school,
+            code=code,
+            defaults={
+                "subscription": subscription,
+                "kind": Entitlement.Kind.LIMIT,
+                "source": Entitlement.Source.PLAN,
+                "is_enabled": enabled,
+                "limit_value": value,
+                "effective_from": as_of,
+                "effective_until": None if enabled else as_of,
+                "metadata": {"subscription_id": subscription.pk},
+            },
+        )
+        touched.append(code)
+
+    stale_qs = Entitlement.objects.filter(
+        school=school,
+        subscription=subscription,
+        source__in=[Entitlement.Source.PLAN, Entitlement.Source.ADDON],
+    ).exclude(code__in=touched)
+    stale_qs.update(is_enabled=False, effective_until=as_of)
+    return touched
 
 
 def convert_quote_to_contract(quote: Quote):
@@ -405,6 +500,7 @@ def ensure_subscription_for_school(school):
             )
         except (ImportError, AttributeError, TypeError, ValueError):
             pass
+        reconcile_subscription_entitlements(subscription, as_of=period_start)
         return account, subscription, True
     changed_fields = []
     if subscription.plan_id != getattr(getattr(school, "plan", None), "pk", None):
@@ -431,6 +527,7 @@ def ensure_subscription_for_school(school):
         changed_fields.append("billed_amount")
     if changed_fields:
         subscription.save(update_fields=changed_fields + ["updated_at"])
+        reconcile_subscription_entitlements(subscription)
     return account, subscription, False
 
 
@@ -484,6 +581,7 @@ def reconcile_subscription_entitlements(
         account.save(update_fields=account_changed + ["updated_at"])
     if school_changed:
         school.save(update_fields=school_changed + ["updated_at"])
+    sync_subscription_entitlements(subscription, as_of=as_of)
     return account, school
 
 

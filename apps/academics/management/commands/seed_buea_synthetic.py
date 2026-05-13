@@ -10,7 +10,8 @@ import random
 from datetime import date, timedelta
 from decimal import Decimal
 
-from django.core.management.base import BaseCommand
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
@@ -99,6 +100,12 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        if not settings.DEBUG:
+            raise CommandError(
+                "This command is for development/staging only (DEBUG=False). "
+                "Cannot run seed_buea_synthetic in production. Enable DEBUG in settings to use this command."
+            )
+        
         scale = options.get("scale", "small")
         self.school = resolve_school_arg(options.get("school"))
         if options.get("school") and not self.school:

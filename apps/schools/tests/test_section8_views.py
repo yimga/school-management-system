@@ -128,6 +128,32 @@ class VerifyCaddyDomainTests(TestCase):
             response = verify_caddy_domain(request)
         self.assertEqual(response.status_code, 200)
 
+    def test_caddy_token_required_when_configured(self):
+        import os
+        from unittest.mock import patch
+        from apps.schools.section8_views import verify_caddy_domain
+
+        with patch.dict(os.environ, {"CADDY_CHECK_TOKEN": "ask-secret"}):
+            request = self.factory.get(
+                "/api/caddy-check/", {"domain": "greenwood.yoursystem.com"}
+            )
+            response = verify_caddy_domain(request)
+        self.assertEqual(response.status_code, 403)
+
+    def test_caddy_token_accepts_header_when_configured(self):
+        import os
+        from unittest.mock import patch
+        from apps.schools.section8_views import verify_caddy_domain
+
+        with patch.dict(os.environ, {"CADDY_CHECK_TOKEN": "ask-secret"}):
+            request = self.factory.get(
+                "/api/caddy-check/",
+                {"domain": "greenwood.yoursystem.com"},
+                HTTP_X_CADDY_ASK_TOKEN="ask-secret",
+            )
+            response = verify_caddy_domain(request)
+        self.assertEqual(response.status_code, 200)
+
     def test_caddy_rate_limit_returns_429_when_exceeded(self):
         from unittest.mock import patch
         from apps.schools.section8_views import verify_caddy_domain

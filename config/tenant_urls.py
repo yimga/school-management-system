@@ -119,42 +119,6 @@ def schema_view(request):
     return _schema_view_raw(request)
 
 
-def admin_siteconfig_customizer_redirect(request):
-    """Backward compatible: /admin/siteconfig/customizer/ → Studio OS Experience (align with platform)."""
-    from django.urls import reverse
-
-    return redirect(reverse("studio_os:experience"))
-
-
-def legacy_siteconfig_customizer_redirect(request):
-    """Phase B: /siteconfig/customizer/ → Studio OS Experience (tenant). Replaces old behavior path."""
-    from django.urls import reverse
-
-    return redirect(reverse("studio_os:experience"))
-
-
-def legacy_workflow_hub_redirect(request):
-    """Legacy /siteconfig/workflow-hub/ → Studio OS Automation (tenant)."""
-    from django.urls import reverse
-
-    url = reverse("studio_os:automation")
-    if request.GET:
-        url = f"{url}?{request.GET.urlencode()}"
-    return redirect(url)
-
-
-def legacy_report_library_redirect(request):
-    """Legacy /siteconfig/reports/ or report-library → Output Studio · Report library pane (tenant)."""
-    from django.urls import reverse
-    from urllib.parse import urlencode
-
-    base = reverse("studio_os:output")
-    params = dict(request.GET.items())
-    params.setdefault("pane", "reports")
-    q = urlencode(params)
-    return redirect(f"{base}?{q}" if q else base)
-
-
 def school_surface_redirect(request, surface: str):
     destinations = {
         "apps": "/settings/app-catalog/",
@@ -248,8 +212,6 @@ urlpatterns = [
     ),
     path("demo/flow/complete/", demo_flow_complete, name="demo_flow_complete"),
     path("favicon.ico", favicon_redirect),
-    # Before path("admin/", …) so legacy customizer hits Studio OS (Phase 5).
-    path("admin/siteconfig/customizer/", admin_siteconfig_customizer_redirect),
     path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
     path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
     path("admin/", tenant_admin_site.urls),
@@ -313,10 +275,6 @@ urlpatterns = [
     path("api/ai-copilot/limits/", ai_copilot_limits, name="ai_copilot_limits"),
     path("api/ai-copilot/config/", ai_copilot_config, name="ai_copilot_config"),
     path("api/ai-copilot/audit/", ai_copilot_audit_feed, name="ai_copilot_audit"),
-    path("siteconfig/customizer/", legacy_siteconfig_customizer_redirect),
-    path("siteconfig/workflow-hub/", legacy_workflow_hub_redirect),
-    path("siteconfig/report-library/", legacy_report_library_redirect),
-    path("siteconfig/reports/", legacy_report_library_redirect),
     path(
         "studio/", include(("apps.studio_os.urls", "studio_os"), namespace="studio_os")
     ),

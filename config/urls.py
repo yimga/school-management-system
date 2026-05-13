@@ -232,35 +232,6 @@ def schema_view(request):
     return _schema_view_raw(request)
 
 
-def admin_siteconfig_customizer_redirect(request):
-    """Backward compatible URL: /admin/siteconfig/customizer/ → Studio Experience."""
-    return redirect(reverse("studio_os:experience"))
-
-
-def legacy_workflow_hub_redirect(request):
-    """Step 6 / Optional 12: Legacy workflow hub → Studio OS Automation. Preserves query string (aligned with tenant_urls)."""
-    base = reverse("studio_os:automation")
-    if request.GET:
-        return redirect(f"{base}?{request.GET.urlencode()}")
-    return redirect(base)
-
-
-def legacy_report_library_redirect(request):
-    """Legacy report library URLs → Output Studio · Report library pane (§4.4 / §6.1)."""
-    from urllib.parse import urlencode
-
-    base = reverse("studio_os:output")
-    params = dict(request.GET.items())
-    params.setdefault("pane", "reports")
-    q = urlencode(params)
-    return redirect(f"{base}?{q}" if q else base)
-
-
-def legacy_siteconfig_customizer_redirect(request):
-    """Phase B: /siteconfig/customizer/ → Studio OS Experience. Replaces old behavior path (manager and tenant)."""
-    return redirect(reverse("studio_os:experience"))
-
-
 def permission_denied(request, exception):
     """Custom 403: friendly message when staff hit Admin without superuser."""
     _coerce_request_user_for_error_pages(request)
@@ -354,8 +325,6 @@ urlpatterns = [
     path("version.json", obs_views.public_version, name="public_version_json"),
     # Language switcher (Django i18n; POST language then redirect)
     path("i18n/setlang/", set_language, name="set_language"),
-    # Must be before path("admin/", ...) so the redirect runs (Phase 5 / Studio OS spine).
-    path("admin/siteconfig/customizer/", admin_siteconfig_customizer_redirect),
     path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
     path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
     # Admin interfaces - /admin/ only for superuser/staff
@@ -483,11 +452,6 @@ urlpatterns = [
     path("api/ai/health/", ai_health, name="ai_health"),
     # Theme v2 (2026-05-12): server-side persistence of Light/Dark/System preference.
     path("api/preferences/theme/", set_theme_preference, name="set_theme_preference"),
-    # Step 6 / Phase B: Legacy siteconfig paths → Studio OS (product-confirmed paths)
-    path("siteconfig/customizer/", legacy_siteconfig_customizer_redirect),
-    path("siteconfig/workflow-hub/", legacy_workflow_hub_redirect),
-    path("siteconfig/report-library/", legacy_report_library_redirect),
-    path("siteconfig/reports/", legacy_report_library_redirect),
     # API Routes
     path(
         "verify/<str:token>/",

@@ -39,6 +39,24 @@ def _caddy_ip_allowed(request) -> bool:
     return remote in [ip.strip() for ip in allowed.split(",") if ip.strip()]
 
 
+def _caddy_token_allowed(request) -> bool:
+    """
+    Optional shared-secret gate for Caddy ask.
+
+    Set CADDY_CHECK_TOKEN and send it as X-Caddy-Ask-Token or ?token=. When unset,
+    existing IP/rate/domain checks remain the full gate.
+    """
+    expected = os.getenv("CADDY_CHECK_TOKEN", "").strip()
+    if not expected:
+        return True
+    supplied = (
+        request.headers.get("X-Caddy-Ask-Token")
+        or request.GET.get("token")
+        or ""
+    ).strip()
+    return bool(supplied) and secrets.compare_digest(supplied, expected)
+
+
 CADDY_CHECK_RATE_LIMIT_WINDOW = 60 * 15
 CADDY_CHECK_RATE_LIMIT_MAX = 180
 
@@ -52,6 +70,8 @@ def verify_caddy_domain(request):
     """
     if not _caddy_ip_allowed(request):
         return HttpResponseForbidden("IP not allowed")
+    if not _caddy_token_allowed(request):
+        return HttpResponseForbidden("Invalid Caddy ask token")
     allowed, retry_after = throttle_ip_request(
         request,
         scope="caddy_domain_check",

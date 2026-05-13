@@ -17,7 +17,7 @@
 
 **How it’s configured:**
 - **URL:** `siteconfig:toggle_preview_mode` — toggles preview on/off; optional `?next=<path>` redirects after toggle.
-- **Clear preview:** `/siteconfig/customizer/clear-preview/` — clears staged preview and returns to live.
+- **Clear preview:** `/siteconfig/preview/clear/` — clears staged preview and returns to live.
 - **Context:** `SITE.is_preview` (or equivalent) is set when preview is on; templates (e.g. `portal_base.html`, `base.html`, admin base) show the banner and “Toggle preview” / “Toggle sandbox” / “Clear preview” buttons.
 - **Behaviour:** Changes made in preview (e.g. in Site Settings customizer) are stored in a sandbox; they only go live when you exit preview or apply them. This keeps config/setup safe before publishing.
 

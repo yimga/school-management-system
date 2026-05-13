@@ -10,7 +10,7 @@ import json
 from django.test import TestCase, override_settings
 from django.urls import resolve, reverse
 
-from apps.accounts.models import User
+from apps.accounts.models import User, UserPasskey
 
 
 @override_settings(ALLOWED_HOSTS=["*"])
@@ -137,3 +137,36 @@ class Wave2GraphQLGlobalSchoolsRestrictedTests(TestCase):
         self.assertEqual(response.status_code, 400)
         payload = response.json()
         self.assertIn("JSON object required", payload["errors"][0]["message"])
+
+    def test_graphql_aliasing_cannot_bypass_global_school_restriction(self):
+        UserPasskey.objects.create(
+            user=self.tenant_staff,
+            name="Test passkey",
+            credential_id="tenant-staff-gql-passkey",
+            public_key="test-public-key",
+        )
+        self.client.force_login(self.tenant_staff)
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
+
+        response = self.client.post(
+            reverse("graphql"),
+            data=json.dumps(
+                {
+                    "query": (
+                        "query AliasLeak { "
+                        "leakedSchools: schools(limit: 10) { id name slug } "
+                        "leakedCount: schoolCount "
+                        "}"
+                    )
+                }
+            ),
+            content_type="application/json",
+            secure=True,
+        )
+
+        self.assertEqual(response.status_code, 200, response.get("Location"))
+        data = response.json().get("data") or {}
+        self.assertEqual(data.get("leakedSchools"), [])
+        self.assertIsNone(data.get("leakedCount"))

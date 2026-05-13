@@ -25,6 +25,31 @@ def can(school, capability: str) -> bool:
     if school is None:
         return False
     try:
+        from django.db import DatabaseError
+        from apps.billing.models import Entitlement
+
+        normalized = str(capability or "").strip().lower()
+        if not normalized:
+            return False
+        row = (
+            Entitlement.objects.filter(
+                school=school,
+                code=normalized,
+                kind=Entitlement.Kind.FEATURE,
+            )
+            .order_by("-is_enabled", "-updated_at")
+            .first()
+        )
+        if row is not None:
+            return bool(row.is_enabled)
+    except (DatabaseError, *_ENTITLEMENT_DB_EXC) as e:
+        logger.debug(
+            "Entitlement table can(%s, %s) failed: %s",
+            getattr(school, "pk", None),
+            capability,
+            e,
+        )
+    try:
         from apps.schools.models import is_feature_enabled
 
         return is_feature_enabled(school, capability)
@@ -46,6 +71,26 @@ def limits(school) -> Dict[str, Dict[str, Any]]:
     if school is None or not getattr(school, "pk", None):
         return {}
     out: Dict[str, Dict[str, Any]] = {}
+    try:
+        from django.db import DatabaseError
+        from apps.billing.models import Entitlement
+
+        for ent in Entitlement.objects.filter(
+            school=school,
+            kind=Entitlement.Kind.LIMIT,
+            is_enabled=True,
+            limit_value__isnull=False,
+        ).values("code", "limit_value"):
+            out[str(ent["code"])] = {
+                "limit_value": int(ent["limit_value"]),
+                "period_days": None,
+            }
+    except (DatabaseError, *_ENTITLEMENT_DB_EXC) as e:
+        logger.debug(
+            "Entitlement table limits(school_id=%s) failed: %s",
+            getattr(school, "pk", None),
+            e,
+        )
     try:
         from django.db import DatabaseError
         from apps.schools.models import TenantQuotaLimit

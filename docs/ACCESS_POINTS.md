@@ -82,7 +82,7 @@ Use the **tenant host** (subdomain or verified custom domain) only.
 | **Payroll** | `/payroll/` | Payroll. |
 | **EMIS** | `/emis/` | EMIS. |
 | **Requests** | `/requests/` | Access requests. |
-| **Site config / customizer** | `/siteconfig/`, `/siteconfig/customizer/` | Theme, branding, settings. |
+| **Site config / customizer** | `/studio/` (legacy `/siteconfig/customizer/` redirects here) | Theme, branding, settings. |
 | **API Center** | `/api-center/` | Integration catalog, etc. |
 | **Evals** | `/evals/` | Evaluations. |
 | **Django Admin** | `/admin/` | Django admin (staff/superuser). |

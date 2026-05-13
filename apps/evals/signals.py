@@ -2,8 +2,9 @@
 
 import logging
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import DatabaseError, IntegrityError
+from django.db import DatabaseError, IntegrityError, connection
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -25,6 +26,36 @@ _EVALS_AUDIT_FAILURES = (
     TypeError,
     ValueError,
 )
+
+
+def _requires_explicit_rls_context() -> bool:
+    return connection.vendor == "postgresql" and not getattr(
+        settings, "USE_DJANGO_TENANTS", False
+    )
+
+
+def _evaluation_school_id(instance):
+    school_id = getattr(instance, "school_id", None)
+    if school_id is not None:
+        return school_id
+    subject_assignment = getattr(instance, "subject_assignment", None)
+    classroom = getattr(subject_assignment, "classroom", None)
+    return getattr(classroom, "school_id", None)
+
+
+def _update_evaluation_with_school_context(instance, values):
+    school_id = _evaluation_school_id(instance)
+    if school_id is None:
+        if _requires_explicit_rls_context():
+            raise ValueError("evaluation school_id required under RLS")
+        return Evaluation.objects.filter(pk=instance.pk).update(**values)
+    queryset = Evaluation.objects.filter(pk=instance.pk, school_id=school_id)
+    if _requires_explicit_rls_context():
+        from apps.schools.rls_context import rls_school
+
+        with rls_school(school_id):
+            return queryset.update(**values)
+    return queryset.update(**values)
 
 
 @receiver(pre_save, sender=Evaluation)
@@ -89,10 +120,13 @@ def create_audit_trail_and_convert_grades(sender, instance, created, **kwargs):
             instance.letter_grade = converter.numeric_to_letter(instance.total_score)
 
         # Save validation without triggering signal again
-        Evaluation.objects.filter(pk=instance.pk).update(
-            validation_flags=instance.validation_flags,
-            letter_grade=instance.letter_grade,
-            last_validated_at=instance.last_validated_at,
+        _update_evaluation_with_school_context(
+            instance,
+            {
+                "validation_flags": instance.validation_flags,
+                "letter_grade": instance.letter_grade,
+                "last_validated_at": instance.last_validated_at,
+            },
         )
 
         # Create audit trail

@@ -5,6 +5,8 @@ Tier 4: celery_task_* events via apps.platform_runtime.celery_task_events (globa
 """
 
 from celery import shared_task
+from django.conf import settings
+from django.db import connection
 from django.db import DatabaseError, OperationalError
 
 from apps.platform_runtime.structured_logging import log_exception_with_context
@@ -25,6 +27,70 @@ _EVALS_BULK_GRADES_TENANT_ERRORS = (
 )
 
 
+def _requires_explicit_rls_context() -> bool:
+    return connection.vendor == "postgresql" and not getattr(
+        settings, "USE_DJANGO_TENANTS", False
+    )
+
+
+def _infer_school_id_for_bulk_grades(
+    student_ids=None,
+    academic_year_id=None,
+    term_id=None,
+):
+    """
+    Resolve the single tenant implied by task identifiers.
+
+    In PostgreSQL RLS mode, unset ``app.current_school_id`` means default deny, so
+    these lookup queries must run in an explicit bypass context. The task then
+    executes the real grading work inside ``rls_school(school_id)``.
+    """
+    if not _requires_explicit_rls_context():
+        return None
+
+    from apps.schools.rls_context import rls_bypass
+
+    school_ids = set()
+    with rls_bypass():
+        if academic_year_id:
+            from apps.academics.models import AcademicYear
+
+            year_school_id = (
+                AcademicYear.objects.filter(pk=academic_year_id)
+                .exclude(school_id__isnull=True)
+                .values_list("school_id", flat=True)
+                .first()
+            )
+            if year_school_id:
+                school_ids.add(str(year_school_id))
+        if term_id:
+            from apps.academics.models import Term
+
+            term_school_id = (
+                Term.objects.filter(pk=term_id)
+                .exclude(school_id__isnull=True)
+                .values_list("school_id", flat=True)
+                .first()
+            )
+            if term_school_id:
+                school_ids.add(str(term_school_id))
+        ids = list(student_ids or [])
+        if ids:
+            from apps.people.models import StudentProfile
+
+            school_ids.update(
+                str(sid)
+                for sid in StudentProfile.objects.filter(pk__in=ids)
+                .exclude(school_id__isnull=True)
+                .values_list("school_id", flat=True)
+                .distinct()[:2]
+            )
+
+    if len(school_ids) > 1:
+        raise ValueError("process_bulk_grades identifiers span multiple schools")
+    return next(iter(school_ids), None)
+
+
 @shared_task(bind=True, name="evals.process_bulk_grades")
 def process_bulk_grades(
     self,
@@ -39,7 +105,28 @@ def process_bulk_grades(
     In multi-tenant deployments, pass schema_name or school_id so the task runs in the correct
     tenant schema. If both are omitted, runs in current schema (single-tenant or test only).
     """
-    if schema_name or school_id is not None:
+    resolved_school_id = school_id
+    if resolved_school_id is None and not schema_name:
+        try:
+            resolved_school_id = _infer_school_id_for_bulk_grades(
+                student_ids=student_ids,
+                academic_year_id=academic_year_id,
+                term_id=term_id,
+            )
+        except _EVALS_BULK_GRADES_TENANT_ERRORS as e:
+            log_exception_with_context(
+                "evals.process_bulk_grades: tenant inference failed",
+                school_id=None,
+                extra={
+                    "task": "process_bulk_grades",
+                    "academic_year_id": academic_year_id,
+                    "term_id": term_id,
+                    "error": str(e),
+                },
+            )
+            raise
+
+    if schema_name or resolved_school_id is not None:
         from apps.schools.celery_tasks import _run_with_tenant_context
 
         def run():
@@ -48,13 +135,13 @@ def process_bulk_grades(
         try:
             return _run_with_tenant_context(
                 schema_name=schema_name,
-                school_id=school_id,
+                school_id=resolved_school_id,
                 runnable=run,
             )
         except _EVALS_BULK_GRADES_TENANT_ERRORS as e:
             log_exception_with_context(
                 "evals.process_bulk_grades: tenant context run failed",
-                school_id=school_id,
+                school_id=resolved_school_id,
                 extra={
                     "task": "process_bulk_grades",
                     "schema_name": schema_name,
@@ -62,6 +149,10 @@ def process_bulk_grades(
                 },
             )
             self.retry(exc=e, countdown=60)
+    if _requires_explicit_rls_context():
+        raise ValueError(
+            "process_bulk_grades requires schema_name or school_id in PostgreSQL RLS mode"
+        )
     return _run_bulk_grades(student_ids, academic_year_id, term_id)
 
 

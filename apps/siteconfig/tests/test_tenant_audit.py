@@ -4,6 +4,7 @@ from django.test import SimpleTestCase
 from apps.siteconfig.tenant_audit import (
     COMMUNICATION_TENANT_MODELS,
     find_missing_explicit_school_fields,
+    find_tenant_owned_models_missing_school_fields,
     has_explicit_school_field,
 )
 
@@ -19,3 +20,6 @@ class TenantAuditTests(SimpleTestCase):
     def test_management_command_strict_passes_for_communication_models(self):
         labels = ",".join(COMMUNICATION_TENANT_MODELS)
         call_command("audit_tenant_models", "--models", labels, "--strict")
+
+    def test_tenant_owned_model_subclasses_keep_school_field(self):
+        self.assertEqual(find_tenant_owned_models_missing_school_fields(), [])

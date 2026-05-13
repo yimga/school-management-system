@@ -5,6 +5,7 @@ Invoice, Payment, and Financial Analytics endpoints
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.pagination import CursorPagination
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -30,6 +31,10 @@ FINANCE_WRITE_ROLES = {
     "LEADERSHIP",
     "PRINCIPAL",
 }
+
+
+class FinanceCursorPagination(CursorPagination):
+    ordering = "-created_at"
 
 
 def _can_write_finance(user) -> bool:
@@ -98,6 +103,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
     serializer_class = InvoiceSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = FinanceCursorPagination
     filterset_fields = ["status", "student", "issued_date", "due_date"]
     ordering_fields = ["issued_date", "due_date", "total_amount", "created_at"]
     ordering = ["-issued_date", "-id"]
@@ -329,6 +335,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
     serializer_class = PaymentSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = FinanceCursorPagination
     ordering_fields = ["created_at", "amount", "paid_at"]
     ordering = ["-paid_at"]
 

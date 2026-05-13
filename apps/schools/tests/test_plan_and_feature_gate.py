@@ -2,7 +2,9 @@
 Phase D: Tests for Plan model, is_feature_enabled (plan + addons), and Feature Gatekeeper middleware.
 """
 
-from django.test import TestCase, RequestFactory
+import json
+
+from django.test import TestCase, RequestFactory, tag
 from django.http import HttpResponse
 
 from apps.schools.models import (
@@ -12,6 +14,7 @@ from apps.schools.models import (
 )
 from apps.platform_runtime.models import PlatformReportPlatformSkuDefault
 from apps.siteconfig.models import Plan
+from apps.schools.rls_context import rls_bypass, rls_school
 
 
 class PlanModelTests(TestCase):
@@ -41,6 +44,45 @@ class PlanModelTests(TestCase):
         )
         self.assertEqual(plan.billing_model, "PER_STUDENT")
         self.assertEqual(plan.price_per_student, 2)
+
+
+@tag("tenants_rls")
+class UsageLimitMiddlewareTests(TestCase):
+    def test_max_students_limit_blocks_when_at_cap(self):
+        from apps.people.models import StudentProfile
+        from apps.schools.middleware import UsageLimitMiddleware
+
+        factory = RequestFactory()
+        with rls_bypass():
+            plan = Plan.objects.create(
+                name="Seat capped",
+                slug="seat-capped",
+                max_students=1,
+                included_features=["reports"],
+                is_active=True,
+            )
+            school = School.objects.create(
+                name="Seat cap school",
+                slug="seat-cap-school",
+                subdomain="seat-cap-school",
+                is_active=True,
+                plan=plan,
+            )
+            StudentProfile.objects.create(
+                school=school,
+                first_name="Ada",
+                last_name="Cap",
+                student_code="CAP-001",
+            )
+        request = factory.get("/api/students/", HTTP_ACCEPT="application/json")
+        request.school = school
+        middleware = UsageLimitMiddleware(lambda r: HttpResponse("ok"))
+
+        with rls_school(school.id):
+            response = middleware.process_request(request)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(json.loads(response.content)["limit"], "max_students")
 
 
 class IsFeatureEnabledTests(TestCase):

@@ -5,6 +5,7 @@ from config.admin import platform_admin_site
 from apps.billing.models import (
     BillingAccount,
     BillingProcessorSyncEvent,
+    Entitlement,
     PlatformLedgerEntry,
     PlatformBillingProcessorConfig,
     Quote,
@@ -50,6 +51,23 @@ class TenantSubscriptionAdmin(admin.ModelAdmin):
     )
     list_filter = ("status", "billing_cycle")
     search_fields = ("school__name", "plan__name", "external_subscription_ref")
+
+
+@admin.register(Entitlement, site=platform_admin_site)
+class EntitlementAdmin(admin.ModelAdmin):
+    list_display = (
+        "school",
+        "code",
+        "kind",
+        "source",
+        "is_enabled",
+        "limit_value",
+        "effective_until",
+        "updated_at",
+    )
+    list_filter = ("kind", "source", "is_enabled")
+    search_fields = ("school__name", "code")
+    readonly_fields = ("created_at", "updated_at")
 
 
 @admin.register(UsageMeter, site=platform_admin_site)

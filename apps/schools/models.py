@@ -11,6 +11,8 @@ from django.conf import settings
 from django.db import models
 from django.db.utils import DatabaseError, OperationalError
 
+from apps.schools.tenant_models import TenantManager, TenantOwnedModel
+
 logger = logging.getLogger(__name__)
 
 # Avoid shadowing by School.settings JSONField when referencing AUTH_USER_MODEL in FKs.
@@ -121,6 +123,27 @@ def _plan_entitlements_direct_grant(school, normalized: str) -> bool:
     return False
 
 
+def _materialized_feature_entitlement_state(school, normalized: str):
+    """Return True/False from billing Entitlement when present; None when absent."""
+    try:
+        from apps.billing.models import Entitlement
+
+        row = (
+            Entitlement.objects.filter(
+                school=school,
+                code=normalized,
+                kind=Entitlement.Kind.FEATURE,
+            )
+            .order_by("-is_enabled", "-updated_at")
+            .first()
+        )
+        if row is not None:
+            return bool(row.is_enabled)
+    except (ImportError, DatabaseError, OperationalError, AttributeError, TypeError):
+        return None
+    return None
+
+
 def is_plan_entitlement_feature_enabled(school, code: str) -> bool:
     """
     True when the capability is granted via plan, addons, or School.features JSON,
@@ -143,6 +166,9 @@ def is_plan_entitlement_feature_enabled(school, code: str) -> bool:
     normalized = (code or "").strip().lower()
     if not normalized:
         return False
+    materialized = _materialized_feature_entitlement_state(school, normalized)
+    if materialized is not None:
+        return materialized
     if _plan_entitlements_direct_grant(school, normalized):
         return True
     from apps.siteconfig.billing_sku_registry import (

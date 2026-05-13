@@ -440,8 +440,115 @@ class TenantReportSchedule(models.Model):
         return f"{self.school_id}:{self.name}"
 
 
-# ReportDefinition and MaterializedReportCache are defined in `apps.reports.bi_models`.
-# Import them here for backwards compatibility so existing imports continue to work.
-# NOTE: Not imported here to avoid circular import (reports->bi_models->runtime_blueprints->siteconfig).
-# Django makemigrations --check may report pending changes for reports; bi_models are registered via
-# apps.reports.bi_models and migration history. See BACKLOG §2e / docs for coordination.
+class AdHocReportDefinition(models.Model):
+    """
+    Tenant-scoped ad-hoc report definition used by the ad-hoc runner.
+    """
+
+    ENTITY_TYPES = [
+        ("STUDENTS", "Students"),
+        ("ATTENDANCE", "Attendance"),
+        ("FINANCE", "Finance (invoices/payments)"),
+        ("ENROLLMENT", "Enrollment"),
+        ("CUSTOM", "Custom"),
+    ]
+    OUTPUT_FORMATS = [
+        ("CSV", "CSV"),
+        ("JSON", "JSON"),
+    ]
+
+    name = models.CharField(max_length=255)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="adhoc_report_definitions",
+        null=True,
+        blank=True,
+        help_text="Tenant scope; null for global.",
+    )
+    entity_type = models.CharField(
+        max_length=32, choices=ENTITY_TYPES, default="STUDENTS"
+    )
+    columns = models.JSONField(
+        default=list,
+        help_text='List of column keys to output, e.g. ["id", "first_name", "last_name", "classroom__name"].',
+    )
+    filters = models.JSONField(
+        default=dict,
+        help_text='Filters: {"classroom_id": 1, "is_active": true} or {"date_from": "2024-01-01", "date_to": "2024-12-31"}.',
+    )
+    date_from = models.DateField(
+        null=True, blank=True, help_text="Override or default date range start."
+    )
+    date_to = models.DateField(
+        null=True, blank=True, help_text="Override or default date range end."
+    )
+    output_format = models.CharField(
+        max_length=10, choices=OUTPUT_FORMATS, default="CSV"
+    )
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="adhoc_report_definitions"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(
+                fields=["school", "entity_type"], name="reports_adh_school__0b5d4d_idx"
+            ),
+            models.Index(
+                fields=["school", "is_active"], name="reports_adh_school__d73152_idx"
+            ),
+        ]
+        verbose_name = "Ad-hoc report definition"
+        verbose_name_plural = "Ad-hoc report definitions"
+
+    def __str__(self):
+        return f"{self.name} ({self.entity_type})"
+
+
+class AdHocReportExecution(models.Model):
+    """Track ad-hoc report run history."""
+
+    STATUS_CHOICES = [
+        ("PENDING", "Pending"),
+        ("RUNNING", "Running"),
+        ("COMPLETED", "Completed"),
+        ("FAILED", "Failed"),
+    ]
+
+    definition = models.ForeignKey(
+        AdHocReportDefinition, on_delete=models.CASCADE, related_name="executions"
+    )
+    executed_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    parameters_override = models.JSONField(
+        default=dict, help_text="Optional override for date_from/date_to or filters."
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
+    row_count = models.IntegerField(null=True, blank=True)
+    file_path = models.CharField(max_length=500, blank=True)
+    error_message = models.TextField(blank=True)
+    execution_time_ms = models.IntegerField(null=True, blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(
+                fields=["definition", "created_at"],
+                name="reports_adh_definit_ebc5fb_idx",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.definition.name} - {self.status} @ {self.created_at}"
+
+
+# ReportDefinition and MaterializedReportCache are intentionally not registered here.
+# reports.0017 retired those BI tables. apps.reports.bi_models keeps
+# compatibility aliases for the live ad-hoc report models.

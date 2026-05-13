@@ -132,7 +132,6 @@ def main():
         ("/evals/teacher/", "teacher dashboard"),
         ("/backend/", "frontend admin redirect"),
         ("/authentication/backend/", "frontend admin dashboard"),
-        ("/siteconfig/customizer/", "site customizer"),
     ]
     for route, description in critical_routes:
         try:
