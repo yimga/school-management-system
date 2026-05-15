@@ -700,6 +700,18 @@ def build_control_plane_nav(request):
                 "url_name": "super:compliance_overview",
                 "icon": "bi-shield-check",
             },
+            {
+                "id": "compliance_audit_center",
+                "label": "Audit center",
+                "url_name": "compliance:dashboard",
+                "icon": "bi-journal-text",
+            },
+            {
+                "id": "compliance_audit_trail",
+                "label": "Audit trail report",
+                "url_name": "compliance_reporting:audit_trail",
+                "icon": "bi-list-columns-reverse",
+            },
         ],
     )
     add_group(

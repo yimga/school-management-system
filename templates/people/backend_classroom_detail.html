@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load i18n static %}
+{% load i18n static compliance_tags %}
 {% block backend_title %}{% trans "Classroom" %} — {{ classroom.name }}{% endblock %}
 {% block content %}
 <div class="container-fluid py-4" data-page-archetype="record-detail">
@@ -45,5 +45,7 @@
     </div>
     {% endif %}
   </div>
+  {# Pass 9 platform-wide: per-record audit drill-down. #}
+  {% if classroom %}{% recent_activity_for "Classroom" classroom.pk %}{% endif %}
 </div>
 {% endblock %}
