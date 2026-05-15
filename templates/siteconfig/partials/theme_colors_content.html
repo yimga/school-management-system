@@ -28,6 +28,23 @@
             <div class="col-6 col-md-4">{{ form.admin_theme_pack.label_tag }}{{ form.admin_theme_pack }}</div>
             <div class="col-12"><button type="button" id="theme-use-same-pack" class="btn btn-outline-secondary btn-sm mt-1">{% trans "Use same pack for portal and admin" %}</button></div>
           </div>
+          {# v2.43 — warm-bright aesthetic configurability (curated profile + 6 hex overrides). #}
+          <hr class="my-3">
+          <h2 class="h6 mb-2">{% trans "Welcoming aesthetic" %}</h2>
+          <p class="small text-muted mb-2">
+            {% blocktrans %}Pick a curated palette or override individual tones. Blank values fall back to the platform default. Your <strong>tenant brand color</strong> is set above; this section controls surface, text, and accent tones across the platform.{% endblocktrans %}
+          </p>
+          <div class="row g-2 mb-1">
+            <div class="col-12">{{ form.aesthetic_profile.label_tag }}{{ form.aesthetic_profile }}
+              {% if form.aesthetic_profile.help_text %}<div class="form-text small">{{ form.aesthetic_profile.help_text }}</div>{% endif %}
+            </div>
+            <div class="col-6 col-md-4">{{ form.aesthetic_surface_bg.label_tag }}{{ form.aesthetic_surface_bg }}</div>
+            <div class="col-6 col-md-4">{{ form.aesthetic_surface_canvas.label_tag }}{{ form.aesthetic_surface_canvas }}</div>
+            <div class="col-6 col-md-4">{{ form.aesthetic_text_primary.label_tag }}{{ form.aesthetic_text_primary }}</div>
+            <div class="col-6 col-md-4">{{ form.aesthetic_accent_warm.label_tag }}{{ form.aesthetic_accent_warm }}</div>
+            <div class="col-6 col-md-4">{{ form.aesthetic_accent_success.label_tag }}{{ form.aesthetic_accent_success }}</div>
+            <div class="col-6 col-md-4">{{ form.aesthetic_accent_danger.label_tag }}{{ form.aesthetic_accent_danger }}</div>
+          </div>
           <div class="mt-2">
             <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
             {% if back_url %}<a href="{{ back_url }}" class="btn btn-outline-secondary btn-sm ms-1">{% trans "Back" %}</a>{% endif %}

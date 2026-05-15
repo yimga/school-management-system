@@ -1713,6 +1713,14 @@ class SiteSettings(models.Model):
             "default_refresh_rate",
             "default_term_report_style",
             "default_annual_report_style",
+            # v2.43 (2026-05-15) — warm-bright aesthetic configurability fields.
+            "aesthetic_profile",
+            "aesthetic_surface_bg",
+            "aesthetic_surface_canvas",
+            "aesthetic_text_primary",
+            "aesthetic_accent_warm",
+            "aesthetic_accent_success",
+            "aesthetic_accent_danger",
         }
         model_field_names = {
             f.name

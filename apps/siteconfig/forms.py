@@ -1049,6 +1049,24 @@ THEME_EXPERIENCE_FIELD_NAMES = [
     "default_refresh_rate",
     "default_term_report_style",
     "default_annual_report_style",
+    # v2.43 (2026-05-15) — warm-bright aesthetic configurability admin surface.
+    # Curated profile + 6 fine-grained token overrides (RuntimeDefaults virtual
+    # fields). Cascade: form → SiteSettings.apply_theme_experience_state →
+    # RuntimeDefaults column → meta-tag → CSS var → CSS rule.
+    "aesthetic_profile",
+    "aesthetic_surface_bg",
+    "aesthetic_surface_canvas",
+    "aesthetic_text_primary",
+    "aesthetic_accent_warm",
+    "aesthetic_accent_success",
+    "aesthetic_accent_danger",
+]
+
+_AESTHETIC_PROFILE_CHOICES = [
+    ("", "Use platform default (warm-bright)"),
+    ("warm-bright", "Warm-bright (cream + honey) — recommended"),
+    ("cool-apple", "Cool-Apple (legacy slate + indigo quiet-luxury)"),
+    ("stone", "Stone (warm-graphite editorial)"),
 ]
 
 # Legacy alias for JS that references color field names.
@@ -1157,6 +1175,14 @@ _THEME_EXPERIENCE_FIELD_WIDGETS = {
     ),
     "default_term_report_style": forms.Select(attrs={"class": "form-select"}),
     "default_annual_report_style": forms.Select(attrs={"class": "form-select"}),
+    # v2.43 aesthetic configurability widgets.
+    "aesthetic_profile": forms.Select(attrs={"class": "form-select"}),
+    "aesthetic_surface_bg": ColorInputWithPreview(attrs={"placeholder": "#fdf9f2"}),
+    "aesthetic_surface_canvas": ColorInputWithPreview(attrs={"placeholder": "#fffaf0"}),
+    "aesthetic_text_primary": ColorInputWithPreview(attrs={"placeholder": "#2a241e"}),
+    "aesthetic_accent_warm": ColorInputWithPreview(attrs={"placeholder": "#c47f1c"}),
+    "aesthetic_accent_success": ColorInputWithPreview(attrs={"placeholder": "#7a9b5d"}),
+    "aesthetic_accent_danger": ColorInputWithPreview(attrs={"placeholder": "#d56456"}),
 }
 
 
@@ -1208,6 +1234,14 @@ class ThemeColorsForm(forms.ModelForm):
             elif name == "default_dashboard_view":
                 self.fields[name] = forms.ChoiceField(
                     choices=DashboardView.choices, required=False, widget=w
+                )
+            elif name == "aesthetic_profile":
+                self.fields[name] = forms.ChoiceField(
+                    choices=_AESTHETIC_PROFILE_CHOICES, required=False, widget=w
+                )
+                self.fields[name].help_text = (
+                    "Curated platform aesthetic. Tenant-specific hex overrides "
+                    "below take precedence over the profile defaults."
                 )
             elif name == "default_widgets_per_role":
                 self.fields[name] = forms.JSONField(required=False, widget=w)
