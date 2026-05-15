@@ -72,7 +72,16 @@ _HTTP_STATUS_CODES = frozenset({
     500, 501, 502, 503, 504, 505, 506, 507, 508, 510, 511,
 })
 
-ALLOWED_LITERALS = _SCALE_LITERALS | _HTTP_STATUS_CODES
+# Django CharField max_length conventional values. These appear all over
+# `models.py` files (200+ sites across the platform) but encode a UX/SQL
+# convention, not a business rule. `name = models.CharField(max_length=255)`
+# is more readable than introducing a `NAME_MAX_LENGTH = 255` constant for
+# every text field. Other common CharField lengths (32, 64) are already
+# below the THRESHOLD, and (100, 200, 500) are already in `_SCALE_LITERALS`
+# or `_HTTP_STATUS_CODES`. This set covers the gap.
+_CHARFIELD_LENGTHS = frozenset({120, 128, 255, 256, 512})
+
+ALLOWED_LITERALS = _SCALE_LITERALS | _HTTP_STATUS_CODES | _CHARFIELD_LENGTHS
 
 THRESHOLD = 100
 YEAR_MIN = 1900

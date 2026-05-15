@@ -1,6 +1,7 @@
 {% extends "portal_base.html" %}
 {% load static %}
 {% load i18n %}
+{% load terminology_tags %}
 {% block title %}Take student attendance{% endblock %}
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Take student attendance</h1>
@@ -18,9 +19,9 @@
           <input type="date" name="date" class="form-control" value="{{ date_value }}">
         </div>
         <div class="col-auto">
-          <label class="form-label small mb-0">Class</label>
+          <label class="form-label small mb-0">{% term "class" capitalize=True %}</label>
           <select name="classroom" class="form-select">
-            <option value="">-- Select class --</option>
+            <option value="">-- Select {% term_lower "class" %} --</option>
             {% for c in classrooms %}
               <option value="{{ c.id }}" {% if classroom_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
             {% endfor %}
@@ -84,7 +85,7 @@
           <button type="submit" class="btn btn-primary">Save attendance</button>
         </form>
       {% elif classroom_id and not students_with_status %}
-        <p class="text-muted mb-0">No students in this class.</p>
+        <p class="text-muted mb-0">No {% term_lower "student" plural=True %} in this {% term_lower "class" %}.</p>
       {% endif %}
     </div>
   </div>

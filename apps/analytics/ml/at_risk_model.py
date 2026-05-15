@@ -39,7 +39,20 @@ def _model_path() -> str:
 
 
 def _load_model():
-    """Lazy-load the pickled model artifact. Cached per-process."""
+    """Lazy-load the pickled model artifact. Cached per-process.
+
+    The artifact may be either:
+
+    * a bare sklearn-compatible estimator (legacy shape), or
+    * a dict bundle produced by ``apps.analytics.ml.train_at_risk`` with
+      keys ``{"model", "feature_order", "model_version", "training"}``
+      (current shape — Wave K3 verified).
+
+    In the bundle case we unwrap the estimator and stash the
+    ``model_version`` on it (as a plain attribute) so downstream code
+    that reads ``getattr(model, "model_version", None)`` keeps working
+    without further plumbing.
+    """
     path = _model_path()
     if not path:
         return None
@@ -48,11 +61,27 @@ def _load_model():
     try:
         import joblib
 
-        model = joblib.load(path)
+        loaded = joblib.load(path)
     except (ImportError, FileNotFoundError, OSError, ValueError) as exc:
         logger.warning("at_risk_model: failed to load artifact %s: %s", path, exc)
         _MODEL_CACHE["model"] = None
         return None
+    if isinstance(loaded, dict) and "model" in loaded:
+        estimator = loaded["model"]
+        # Surface the bundle's model_version on the estimator so the
+        # existing reader in predict_at_risk() does not need to know
+        # about the bundle shape.
+        version = loaded.get("model_version")
+        if version and not hasattr(estimator, "model_version"):
+            try:
+                estimator.model_version = version
+            except (AttributeError, TypeError):
+                # Some estimators forbid attr-set; leave fallback path
+                # (artifact basename) to predict_at_risk().
+                pass
+        model = estimator
+    else:
+        model = loaded
     _MODEL_CACHE["model"] = model
     return model
 

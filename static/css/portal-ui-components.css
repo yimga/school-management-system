@@ -3030,6 +3030,48 @@ html[data-bs-theme="dark"] .toast-undo {
   z-index: 1;
 }
 
+/* v2.47 (2026-05-15): aesthetic-profile picker row + buttons. Same grammar
+   as the Appearance row above — uses the platform's semantic surface tokens
+   so it tracks the active theme without per-theme overrides. */
+.rmc-aesthetic-toggle-row {
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-overlay, transparent);
+  margin-top: 0.35rem;
+}
+.rmc-aesthetic-toggle-row .text-tertiary {
+  color: var(--text-tertiary, var(--admin-content-text-muted));
+}
+.rmc-aesthetic-toggle-row .btn-group { gap: 0; }
+.rmc-aesthetic-toggle-row .rmc-aesthetic-btn {
+  flex: 1 1 0;
+  padding: 0.45rem 0.5rem;
+  font-size: var(--type-size-body);
+  border-color: var(--hairline, var(--admin-content-border));
+  background: transparent;
+  color: var(--text-secondary, var(--admin-content-text));
+  transition: background var(--motion-fast, 150ms), color var(--motion-fast, 150ms),
+              border-color var(--motion-fast, 150ms), transform var(--motion-fast, 150ms);
+  min-height: 36px;
+}
+.rmc-aesthetic-toggle-row .rmc-aesthetic-btn i { font-size: var(--type-size-body); line-height: 1; }
+.rmc-aesthetic-toggle-row .rmc-aesthetic-btn:hover {
+  background: var(--surface-overlay, rgba(26, 22, 18, 0.04));
+  color: var(--text-primary, var(--admin-content-text));
+}
+.rmc-aesthetic-toggle-row .rmc-aesthetic-btn.active,
+.rmc-aesthetic-toggle-row .rmc-aesthetic-btn[aria-pressed="true"] {
+  background: var(--school-primary-light, color-mix(in oklab, var(--school-primary) 14%, transparent));
+  color: var(--school-primary);
+  border-color: color-mix(in oklab, var(--school-primary) 35%, transparent);
+  font-weight: 600;
+}
+.rmc-aesthetic-toggle-row .rmc-aesthetic-btn:active { transform: scale(0.98); }
+.rmc-aesthetic-toggle-row .rmc-aesthetic-btn:focus-visible {
+  outline: 2px solid var(--focus-ring-color, var(--school-primary));
+  outline-offset: 2px;
+  z-index: 1;
+}
+
 .user-stats {
   display: flex;
   padding: 1rem;

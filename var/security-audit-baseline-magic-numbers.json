@@ -7,6 +7,8 @@
     2,
     10,
     100,
+    120,
+    128,
     200,
     201,
     202,
@@ -17,6 +19,8 @@
     207,
     208,
     226,
+    255,
+    256,
     300,
     301,
     302,
@@ -65,6 +69,7 @@
     508,
     510,
     511,
+    512,
     1000
   ],
   "constants_home_filenames": [
@@ -92,7 +97,7 @@
   "excluded_path_fragments": [
     "management/commands/"
   ],
-  "finding_count": 1104,
+  "finding_count": 482,
   "findings": [
     {
       "line": 120,
@@ -101,142 +106,40 @@
       "value": 10000
     },
     {
-      "line": 145,
-      "path": "apps/academics/api_views.py",
-      "snippet": "(a.remarks or \"\")[:255],",
-      "value": 255
-    },
-    {
-      "line": 302,
-      "path": "apps/academics/api_views.py",
-      "snippet": "att.remarks = str(rec[\"remarks\"])[:255]",
-      "value": 255
-    },
-    {
-      "line": 330,
-      "path": "apps/academics/api_views.py",
-      "snippet": "\"remarks\": str(rec.get(\"remarks\", \"\"))[:255],",
-      "value": 255
-    },
-    {
-      "line": 147,
-      "path": "apps/academics/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 168,
-      "path": "apps/academics/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 192,
-      "path": "apps/academics/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 260,
-      "path": "apps/academics/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 399,
-      "path": "apps/academics/models.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
-      "line": 546,
-      "path": "apps/academics/models.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
-      "line": 589,
-      "path": "apps/academics/models.py",
-      "snippet": "action = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 636,
+      "line": 646,
       "path": "apps/academics/models.py",
       "snippet": "name = models.CharField(max_length=160)",
       "value": 160
     },
     {
-      "line": 695,
+      "line": 705,
       "path": "apps/academics/models.py",
       "snippet": "name = models.CharField(max_length=160)",
       "value": 160
     },
     {
-      "line": 720,
+      "line": 730,
       "path": "apps/academics/models.py",
       "snippet": "label = models.CharField(max_length=160)",
       "value": 160
     },
     {
-      "line": 770,
+      "line": 780,
       "path": "apps/academics/models.py",
       "snippet": "name = models.CharField(max_length=160)",
       "value": 160
     },
     {
-      "line": 792,
+      "line": 802,
       "path": "apps/academics/models.py",
       "snippet": "label = models.CharField(max_length=160)",
       "value": 160
     },
     {
-      "line": 794,
+      "line": 804,
       "path": "apps/academics/models.py",
       "snippet": "help_text = models.CharField(max_length=240, blank=True)",
       "value": 240
-    },
-    {
-      "line": 880,
-      "path": "apps/academics/models.py",
-      "snippet": "remarks = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 1416,
-      "path": "apps/academics/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 1471,
-      "path": "apps/academics/models.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
-      "line": 116,
-      "path": "apps/academics/scheduling.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 219,
-      "path": "apps/academics/scheduling.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 179,
-      "path": "apps/academics/signals.py",
-      "snippet": "f\"attendance_saved:{instance.pk}:{ra}\"[:120]",
-      "value": 120
-    },
-    {
-      "line": 181,
-      "path": "apps/academics/signals.py",
-      "snippet": "else f\"attendance_saved:{instance.pk}\"[:120]",
-      "value": 120
     },
     {
       "line": 36,
@@ -263,18 +166,6 @@
       "value": 380
     },
     {
-      "line": 129,
-      "path": "apps/accounts/forms.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 294,
-      "path": "apps/accounts/forms.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
       "line": 100,
       "path": "apps/accounts/migration_importers.py",
       "snippet": "username = _normalize(row.get(\"username\")) or email.split(\"@\")[0][:150]",
@@ -285,66 +176,6 @@
       "path": "apps/accounts/migration_importers.py",
       "snippet": "username = _normalize(row.get(\"username\")) or email.split(\"@\")[0][:150]",
       "value": 150
-    },
-    {
-      "line": 371,
-      "path": "apps/accounts/migration_importers.py",
-      "snippet": "\"name\": specialty_name[:120],",
-      "value": 120
-    },
-    {
-      "line": 466,
-      "path": "apps/accounts/migration_importers.py",
-      "snippet": "\"remarks\": _normalize(row.get(\"remarks\"))[:255],",
-      "value": 255
-    },
-    {
-      "line": 745,
-      "path": "apps/accounts/migration_importers.py",
-      "snippet": "description=_normalize(row.get(\"notes\"))[:255],",
-      "value": 255
-    },
-    {
-      "line": 40,
-      "path": "apps/accounts/models.py",
-      "snippet": "code = models.CharField(max_length=120, unique=True)",
-      "value": 120
-    },
-    {
-      "line": 52,
-      "path": "apps/accounts/models.py",
-      "snippet": "code = models.CharField(max_length=120, unique=True)",
-      "value": 120
-    },
-    {
-      "line": 92,
-      "path": "apps/accounts/models.py",
-      "snippet": "notes = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 230,
-      "path": "apps/accounts/models.py",
-      "snippet": "max_length=255, blank=True, help_text=\"Optional: e.g. Annual leave, Training.\"",
-      "value": 255
-    },
-    {
-      "line": 301,
-      "path": "apps/accounts/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 408,
-      "path": "apps/accounts/models.py",
-      "snippet": "name = models.CharField(max_length=120, blank=True, help_text=\"e.g. iPhone Face ID\")",
-      "value": 120
-    },
-    {
-      "line": 409,
-      "path": "apps/accounts/models.py",
-      "snippet": "credential_id = models.CharField(max_length=255, unique=True)",
-      "value": 255
     },
     {
       "line": 26,
@@ -381,18 +212,6 @@
       "path": "apps/accounts/validators.py",
       "snippet": "size_mb = round(file.size / (1024 * 1024), 2)",
       "value": 1024
-    },
-    {
-      "line": 548,
-      "path": "apps/accounts/views.py",
-      "snippet": "\"snippet\": (msg.body or msg.subject or \"\")[:120],",
-      "value": 120
-    },
-    {
-      "line": 1225,
-      "path": "apps/accounts/views.py",
-      "snippet": ":255",
-      "value": 255
     },
     {
       "line": 251,
@@ -479,12 +298,6 @@
       "value": 250
     },
     {
-      "line": 154,
-      "path": "apps/analytics/governed_intent.py",
-      "snippet": "\"limit\": 120,",
-      "value": 120
-    },
-    {
       "line": 14,
       "path": "apps/analytics/governed_query/catalog.py",
       "snippet": "MAX_EXPORT_ROWS = 5000",
@@ -545,46 +358,10 @@
       "value": 999
     },
     {
-      "line": 264,
-      "path": "apps/analytics/models.py",
-      "snippet": "trigger_reason = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 282,
-      "path": "apps/analytics/models.py",
-      "snippet": "draft_email_subject = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 368,
-      "path": "apps/analytics/models.py",
-      "snippet": "name = models.CharField(max_length=120, db_index=True)",
-      "value": 120
-    },
-    {
-      "line": 31,
-      "path": "apps/analytics/models_extended.py",
-      "snippet": "file_name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 836,
-      "path": "apps/analytics/views.py",
-      "snippet": "trigger_reason=reason[:255],",
-      "value": 255
-    },
-    {
       "line": 75,
       "path": "apps/analytics/views_governed.py",
       "snippet": "out[k] = min(max(int(raw[k]), 1), 5000)",
       "value": 5000
-    },
-    {
-      "line": 105,
-      "path": "apps/analytics/views_governed.py",
-      "snippet": "reason=reason[:255],",
-      "value": 255
     },
     {
       "line": 123,
@@ -629,46 +406,10 @@
       "value": 365
     },
     {
-      "line": 342,
-      "path": "apps/api/br_northstar_views.py",
-      "snippet": "\"label\": (data.get(\"label\") or \"\")[:120],",
-      "value": 120
-    },
-    {
-      "line": 189,
-      "path": "apps/api/dashboard_layout_api.py",
-      "snippet": "{\"label\": label[:60], \"url\": url[:256], \"icon\": icon or \"bi-link\"}",
-      "value": 256
-    },
-    {
-      "line": 18,
-      "path": "apps/api/interop_stubs.py",
-      "snippet": "INTEROP_DISCOVERY_RATE_LIMIT_MAX = 120",
-      "value": 120
-    },
-    {
-      "line": 33,
-      "path": "apps/api/ministry_placeholders.py",
-      "snippet": "MINISTRY_API_RATE_LIMIT_MAX = 120",
-      "value": 120
-    },
-    {
       "line": 121,
       "path": "apps/api/ministry_placeholders.py",
       "snippet": "limit = min(max(int(request.GET.get(\"limit\", 500)), 1), 5000)",
       "value": 5000
-    },
-    {
-      "line": 38,
-      "path": "apps/api/mobile_api.py",
-      "snippet": "device_name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 101,
-      "path": "apps/api/mobile_api.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
     },
     {
       "line": 866,
@@ -713,52 +454,10 @@
       "value": 118
     },
     {
-      "line": 753,
-      "path": "apps/api/scim_views.py",
-      "snippet": "code = f\"{code_base}_{suffix}\"[:120]",
-      "value": 120
-    },
-    {
       "line": 903,
       "path": "apps/api/views_v1.py",
       "snippet": "qs = qs.order_by(\"date\", \"classroom\", \"student\")[:5000]",
       "value": 5000
-    },
-    {
-      "line": 928,
-      "path": "apps/api/views_v1.py",
-      "snippet": "(a.remarks or \"\")[:255],",
-      "value": 255
-    },
-    {
-      "line": 959,
-      "path": "apps/api/views_v1.py",
-      "snippet": ")[:255]",
-      "value": 255
-    },
-    {
-      "line": 1885,
-      "path": "apps/api/views_v1.py",
-      "snippet": "att.remarks = str(rec[\"remarks\"])[:255]",
-      "value": 255
-    },
-    {
-      "line": 1907,
-      "path": "apps/api/views_v1.py",
-      "snippet": "\"remarks\": (rec.get(\"remarks\") or \"\")[:255],",
-      "value": 255
-    },
-    {
-      "line": 2841,
-      "path": "apps/api/views_v1.py",
-      "snippet": "sub.external_id = (data.get(\"external_id\") or \"\")[:120]",
-      "value": 120
-    },
-    {
-      "line": 33,
-      "path": "apps/apicenter/models.py",
-      "snippet": "max_length=120, help_text=\"Label for this key (e.g. Production, CI)\"",
-      "value": 120
     },
     {
       "line": 172,
@@ -767,76 +466,16 @@
       "value": 160
     },
     {
-      "line": 243,
-      "path": "apps/apicenter/models.py",
-      "snippet": "scope = models.CharField(max_length=512, blank=True)",
-      "value": 512
-    },
-    {
-      "line": 273,
-      "path": "apps/apicenter/models.py",
-      "snippet": "scope = models.CharField(max_length=512, blank=True)",
-      "value": 512
-    },
-    {
-      "line": 302,
-      "path": "apps/apicenter/models.py",
-      "snippet": "slug = models.SlugField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 370,
-      "path": "apps/apicenter/views.py",
-      "snippet": "description=desc[:255],",
-      "value": 255
-    },
-    {
-      "line": 371,
-      "path": "apps/apicenter/views.py",
-      "snippet": "secret=secret[:255] if secret else \"\",",
-      "value": 255
-    },
-    {
-      "line": 407,
-      "path": "apps/apicenter/views.py",
-      "snippet": "subscription.description = (request.POST.get(\"description\") or \"\").strip()[:255]",
-      "value": 255
-    },
-    {
-      "line": 409,
-      "path": "apps/apicenter/views.py",
-      "snippet": "subscription.secret = (request.POST.get(\"secret\") or \"\").strip()[:255]",
-      "value": 255
-    },
-    {
       "line": 99,
       "path": "apps/automation/ai_workflow_suggest.py",
       "snippet": "reasoning=str(obj.get(\"reasoning\", \"\")).strip()[:280],",
       "value": 280
     },
     {
-      "line": 433,
-      "path": "apps/automation/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 465,
-      "path": "apps/automation/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
       "line": 132,
       "path": "apps/automation/views_visual_workflow.py",
       "snippet": "name = (body.get(\"name\") or \"Untitled flow\").strip()[:160]",
       "value": 160
-    },
-    {
-      "line": 97,
-      "path": "apps/automation/visual_executor.py",
-      "snippet": ")[:128],",
-      "value": 128
     },
     {
       "line": 44,
@@ -857,88 +496,10 @@
       "value": 2500
     },
     {
-      "line": 34,
-      "path": "apps/billing/models.py",
-      "snippet": "external_customer_ref = models.CharField(max_length=120, blank=True, db_index=True)",
-      "value": 120
-    },
-    {
-      "line": 93,
-      "path": "apps/billing/models.py",
-      "snippet": "max_length=120, blank=True, db_index=True",
-      "value": 120
-    },
-    {
-      "line": 152,
-      "path": "apps/billing/models.py",
-      "snippet": "code = models.CharField(max_length=120, db_index=True)",
-      "value": 120
-    },
-    {
-      "line": 256,
-      "path": "apps/billing/models.py",
-      "snippet": "description = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 257,
-      "path": "apps/billing/models.py",
-      "snippet": "reference = models.CharField(max_length=120, blank=True, db_index=True)",
-      "value": 120
-    },
-    {
-      "line": 259,
-      "path": "apps/billing/models.py",
-      "snippet": "source_ref = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 306,
-      "path": "apps/billing/models.py",
-      "snippet": "external_customer_ref = models.CharField(max_length=120, blank=True, db_index=True)",
-      "value": 120
-    },
-    {
-      "line": 308,
-      "path": "apps/billing/models.py",
-      "snippet": "max_length=120, blank=True, db_index=True",
-      "value": 120
-    },
-    {
-      "line": 311,
-      "path": "apps/billing/models.py",
-      "snippet": "message = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 333,
-      "path": "apps/billing/models.py",
-      "snippet": "display_name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
       "line": 386,
       "path": "apps/billing/models.py",
       "snippet": "payee_name = models.CharField(max_length=160)",
       "value": 160
-    },
-    {
-      "line": 387,
-      "path": "apps/billing/models.py",
-      "snippet": "payee_ref = models.CharField(max_length=120, blank=True, db_index=True)",
-      "value": 120
-    },
-    {
-      "line": 389,
-      "path": "apps/billing/models.py",
-      "snippet": "external_payout_ref = models.CharField(max_length=120, blank=True, db_index=True)",
-      "value": 120
-    },
-    {
-      "line": 432,
-      "path": "apps/billing/models.py",
-      "snippet": "stripe_price_id = models.CharField(max_length=120)",
-      "value": 120
     },
     {
       "line": 89,
@@ -953,88 +514,16 @@
       "value": 160
     },
     {
-      "line": 1034,
-      "path": "apps/billing/services.py",
-      "snippet": "payee_ref=str(pref or \"unknown\")[:120],",
-      "value": 120
-    },
-    {
-      "line": 1306,
-      "path": "apps/billing/services.py",
-      "snippet": "message=message[:255],",
-      "value": 255
-    },
-    {
       "line": 131,
       "path": "apps/communication/channels.py",
       "snippet": "\"text\": {\"body\": (body or \"\")[:4096]},",
       "value": 4096
     },
     {
-      "line": 113,
-      "path": "apps/communication/models.py",
-      "snippet": "subject = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 250,
-      "path": "apps/communication/models.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 489,
-      "path": "apps/communication/models.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 702,
-      "path": "apps/communication/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 704,
-      "path": "apps/communication/models.py",
-      "snippet": "condition = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
       "line": 782,
       "path": "apps/communication/models.py",
       "snippet": "contact_name = models.CharField(max_length=160)",
       "value": 160
-    },
-    {
-      "line": 993,
-      "path": "apps/communication/models.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 996,
-      "path": "apps/communication/models.py",
-      "snippet": "link_label = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 1043,
-      "path": "apps/communication/models.py",
-      "snippet": "max_length=255, help_text=\"Phone or WhatsApp ID\"",
-      "value": 255
-    },
-    {
-      "line": 1058,
-      "path": "apps/communication/models.py",
-      "snippet": "idempotency_key = models.CharField(max_length=255, blank=True, db_index=True)",
-      "value": 255
-    },
-    {
-      "line": 1101,
-      "path": "apps/communication/models.py",
-      "snippet": "max_length=120,",
-      "value": 120
     },
     {
       "line": 26,
@@ -1055,24 +544,6 @@
       "value": 160
     },
     {
-      "line": 84,
-      "path": "apps/communication/video_conferencing.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 109,
-      "path": "apps/communication/video_conferencing.py",
-      "snippet": "meeting_id = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 208,
-      "path": "apps/communication/video_conferencing.py",
-      "snippet": "recording_id = models.CharField(max_length=255, unique=True)",
-      "value": 255
-    },
-    {
       "line": 413,
       "path": "apps/compliance/admin_audit.py",
       "snippet": "hours = int(remaining.total_seconds() // 3600)",
@@ -1085,82 +556,10 @@
       "value": 3600
     },
     {
-      "line": 53,
-      "path": "apps/compliance/decorators.py",
-      "snippet": "reason=reason[:255] if reason else \"\",",
-      "value": 255
-    },
-    {
       "line": 59,
       "path": "apps/compliance/gdpr_services.py",
       "snippet": "return f\"deleted_user_{user_id}_{suffix}\"[:150]",
       "value": 150
-    },
-    {
-      "line": 352,
-      "path": "apps/compliance/models.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 402,
-      "path": "apps/compliance/models.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 452,
-      "path": "apps/compliance/models.py",
-      "snippet": "notes = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 530,
-      "path": "apps/compliance/models.py",
-      "snippet": "file_path = models.CharField(max_length=512, blank=True)",
-      "value": 512
-    },
-    {
-      "line": 631,
-      "path": "apps/compliance/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 635,
-      "path": "apps/compliance/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 87,
-      "path": "apps/compliance/models_audit.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 363,
-      "path": "apps/compliance/models_audit.py",
-      "snippet": "max_length=255, blank=True, help_text=\"Reason for this rule\"",
-      "value": 255
-    },
-    {
-      "line": 430,
-      "path": "apps/compliance/models_audit.py",
-      "snippet": "description = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 476,
-      "path": "apps/compliance/models_audit.py",
-      "snippet": "subject = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 28,
-      "path": "apps/compliance/models_digest.py",
-      "snippet": "subject = models.CharField(max_length=255)",
-      "value": 255
     },
     {
       "line": 502,
@@ -1181,70 +580,16 @@
       "value": 5000
     },
     {
-      "line": 22,
-      "path": "apps/customers/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 31,
-      "path": "apps/customersuccess/models.py",
-      "snippet": "max_length=120, help_text=\"Display name, e.g. 'Private K12 Cameroon'\"",
-      "value": 120
-    },
-    {
-      "line": 102,
-      "path": "apps/customersuccess/models.py",
-      "snippet": "label = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 138,
-      "path": "apps/customersuccess/models.py",
-      "snippet": "reason = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 172,
-      "path": "apps/customersuccess/models.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 243,
-      "path": "apps/customersuccess/models.py",
-      "snippet": "workflow_name = models.CharField(max_length=120, db_index=True)",
-      "value": 120
-    },
-    {
-      "line": 295,
-      "path": "apps/customersuccess/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
       "line": 92,
       "path": "apps/customersuccess/services.py",
       "snippet": "delta = (timezone.now() - last).total_seconds() / 86400",
       "value": 86400
     },
     {
-      "line": 209,
-      "path": "apps/customersuccess/services.py",
-      "snippet": ":255",
-      "value": 255
-    },
-    {
       "line": 71,
       "path": "apps/customersuccess/views_tenant.py",
       "snippet": "_LAUNCH_ERROR_MESSAGE_MAX_LEN = 4096",
       "value": 4096
-    },
-    {
-      "line": 118,
-      "path": "apps/customersuccess/views_tenant.py",
-      "snippet": "_SUPPORT_SUGGESTION_TITLE_MAX_LEN = 512",
-      "value": 512
     },
     {
       "line": 119,
@@ -1269,12 +614,6 @@
       "path": "apps/dashboard/admin_context.py",
       "snippet": "cache_ttl_seconds=600,",
       "value": 600
-    },
-    {
-      "line": 81,
-      "path": "apps/dashboard/context.py",
-      "snippet": "DASHBOARD_SNAPSHOT_CACHE_TTL = 120",
-      "value": 120
     },
     {
       "line": 112,
@@ -1307,72 +646,6 @@
       "value": 3600
     },
     {
-      "line": 232,
-      "path": "apps/evals/models.py",
-      "snippet": "label = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 442,
-      "path": "apps/evals/models.py",
-      "snippet": "remarks = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 693,
-      "path": "apps/evals/models.py",
-      "snippet": "caption = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 78,
-      "path": "apps/evals/models_enhanced.py",
-      "snippet": "filename = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 306,
-      "path": "apps/evals/models_enhanced.py",
-      "snippet": "max_length=255, help_text=\"Device that made the change\"",
-      "value": 255
-    },
-    {
-      "line": 334,
-      "path": "apps/evals/models_enhanced.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 376,
-      "path": "apps/evals/models_enhanced.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 397,
-      "path": "apps/evals/models_enhanced.py",
-      "snippet": "max_length=255, help_text=\"e.g., 'Circuit Wiring', 'Welding Technique'\"",
-      "value": 255
-    },
-    {
-      "line": 466,
-      "path": "apps/evals/models_enhanced.py",
-      "snippet": "max_length=255, help_text=\"e.g., 'Welding - Arc Techniques'\"",
-      "value": 255
-    },
-    {
-      "line": 513,
-      "path": "apps/evals/models_enhanced.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 618,
-      "path": "apps/evals/models_enhanced.py",
-      "snippet": "name = models.CharField(max_length=255, help_text=\"e.g., 'Mock 1', 'Final Mock'\")",
-      "value": 255
-    },
-    {
       "line": 33,
       "path": "apps/evals/performance_optimization.py",
       "snippet": "CACHE_TIMEOUT = 3600  # 1 hour default",
@@ -1397,46 +670,10 @@
       "value": 900
     },
     {
-      "line": 326,
-      "path": "apps/evals/signals.py",
-      "snippet": ")[:128],",
-      "value": 128
-    },
-    {
       "line": 175,
       "path": "apps/evals/tasks.py",
       "snippet": ":10000",
       "value": 10000
-    },
-    {
-      "line": 25,
-      "path": "apps/events/models.py",
-      "snippet": "event_type = models.CharField(max_length=128, db_index=True)",
-      "value": 128
-    },
-    {
-      "line": 44,
-      "path": "apps/events/models.py",
-      "snippet": "max_length=255, null=True, blank=True, unique=True, db_index=True",
-      "value": 255
-    },
-    {
-      "line": 89,
-      "path": "apps/events/models.py",
-      "snippet": "max_length=255, blank=True, help_text=\"Used for HMAC signature of payload\"",
-      "value": 255
-    },
-    {
-      "line": 92,
-      "path": "apps/events/models.py",
-      "snippet": "description = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 146,
-      "path": "apps/events/models.py",
-      "snippet": "idempotency_key = models.CharField(max_length=255, blank=True, db_index=True)",
-      "value": 255
     },
     {
       "line": 148,
@@ -1481,28 +718,10 @@
       "value": 180
     },
     {
-      "line": 10,
-      "path": "apps/feedback/forms.py",
-      "snippet": "route = forms.CharField(max_length=255, required=False)",
-      "value": 255
-    },
-    {
       "line": 25,
       "path": "apps/feedback/forms.py",
       "snippet": "title = forms.CharField(max_length=180)",
       "value": 180
-    },
-    {
-      "line": 42,
-      "path": "apps/feedback/forms.py",
-      "snippet": "route = forms.CharField(max_length=255, required=False)",
-      "value": 255
-    },
-    {
-      "line": 73,
-      "path": "apps/feedback/models.py",
-      "snippet": "route = models.CharField(max_length=255, blank=True, db_index=True)",
-      "value": 255
     },
     {
       "line": 74,
@@ -1535,52 +754,10 @@
       "value": 180
     },
     {
-      "line": 429,
-      "path": "apps/feedback/models.py",
-      "snippet": "route = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 280,
-      "path": "apps/finance/admin.py",
-      "snippet": "reason=(obj.void_reason or \"Voided by admin\")[:255],",
-      "value": 255
-    },
-    {
-      "line": 790,
-      "path": "apps/finance/admin.py",
-      "snippet": ")[:255]",
-      "value": 255
-    },
-    {
       "line": 118,
       "path": "apps/finance/advanced_payments.py",
       "snippet": "return current + timedelta(days=365)",
       "value": 365
-    },
-    {
-      "line": 137,
-      "path": "apps/finance/advanced_payments.py",
-      "snippet": "split_name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 163,
-      "path": "apps/finance/advanced_payments.py",
-      "snippet": "transaction_id = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 194,
-      "path": "apps/finance/advanced_payments.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 93,
-      "path": "apps/finance/ai_categorize.py",
-      "snippet": "payer_hint=str(obj.get(\"payer_hint\", \"\")).strip()[:120],",
-      "value": 120
     },
     {
       "line": 94,
@@ -1601,52 +778,10 @@
       "value": 86400
     },
     {
-      "line": 501,
-      "path": "apps/finance/bank_statement_import.py",
-      "snippet": "return (match.group(1).strip() if match else \"\")[:120]",
-      "value": 120
-    },
-    {
       "line": 317,
       "path": "apps/finance/fraud_detection.py",
       "snippet": "if file_size < 5000:  # Less than 5KB",
       "value": 5000
-    },
-    {
-      "line": 48,
-      "path": "apps/finance/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 154,
-      "path": "apps/finance/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 203,
-      "path": "apps/finance/models.py",
-      "snippet": "memo = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 223,
-      "path": "apps/finance/models.py",
-      "snippet": "description = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 257,
-      "path": "apps/finance/models.py",
-      "snippet": "address = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 283,
-      "path": "apps/finance/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
     },
     {
       "line": 306,
@@ -1655,142 +790,16 @@
       "value": 160
     },
     {
-      "line": 477,
-      "path": "apps/finance/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 758,
-      "path": "apps/finance/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 1199,
-      "path": "apps/finance/models.py",
-      "snippet": "reference = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 1741,
-      "path": "apps/finance/models.py",
-      "snippet": "link = models.CharField(max_length=256, blank=True)",
-      "value": 256
-    },
-    {
-      "line": 1846,
-      "path": "apps/finance/models.py",
-      "snippet": "description = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 1881,
-      "path": "apps/finance/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 1908,
-      "path": "apps/finance/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 1929,
-      "path": "apps/finance/models.py",
-      "snippet": "location = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 1993,
-      "path": "apps/finance/models.py",
-      "snippet": "reference_id = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 2445,
-      "path": "apps/finance/models.py",
-      "snippet": "payer_name = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 2743,
-      "path": "apps/finance/models.py",
-      "snippet": "reason = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 2780,
-      "path": "apps/finance/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 2834,
-      "path": "apps/finance/models.py",
-      "snippet": "customer_payment_method_id = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 2861,
-      "path": "apps/finance/models.py",
-      "snippet": "label = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 2875,
-      "path": "apps/finance/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 2886,
-      "path": "apps/finance/models.py",
-      "snippet": "notes = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 226,
-      "path": "apps/finance/payment_fallback_engine.py",
-      "snippet": "reason = (reason or \"Rejected\")[:255]",
-      "value": 255
-    },
-    {
       "line": 296,
       "path": "apps/finance/payment_gateway_health.py",
       "snippet": "body = resp.read(4096) or b\"\"",
       "value": 4096
     },
     {
-      "line": 100,
-      "path": "apps/finance/payment_orchestration.py",
-      "snippet": "external_reference=(intent.transaction_reference or \"\")[:128],",
-      "value": 128
-    },
-    {
       "line": 139,
       "path": "apps/finance/receipt_verification.py",
       "snippet": "processed = processed.point(lambda x: 0 if x < 165 else 255, mode=\"1\")",
       "value": 165
-    },
-    {
-      "line": 139,
-      "path": "apps/finance/receipt_verification.py",
-      "snippet": "processed = processed.point(lambda x: 0 if x < 165 else 255, mode=\"1\")",
-      "value": 255
-    },
-    {
-      "line": 318,
-      "path": "apps/finance/security.py",
-      "snippet": "reference: str, max_length: int = 128",
-      "value": 128
-    },
-    {
-      "line": 397,
-      "path": "apps/finance/security.py",
-      "snippet": "reference: str, max_length: int = 128",
-      "value": 128
     },
     {
       "line": 177,
@@ -1841,30 +850,6 @@
       "value": 160
     },
     {
-      "line": 107,
-      "path": "apps/integrations_marketplace/admin.py",
-      "snippet": "return text[:120] + (\"\u2026\" if len(text) > 120 else \"\")",
-      "value": 120
-    },
-    {
-      "line": 107,
-      "path": "apps/integrations_marketplace/admin.py",
-      "snippet": "return text[:120] + (\"\u2026\" if len(text) > 120 else \"\")",
-      "value": 120
-    },
-    {
-      "line": 150,
-      "path": "apps/interop/clever_classlink_client.py",
-      "snippet": "return {\"error\": str(e)[:120]}",
-      "value": 120
-    },
-    {
-      "line": 171,
-      "path": "apps/interop/clever_classlink_client.py",
-      "snippet": "return {\"error\": str(e)[:120]}",
-      "value": 120
-    },
-    {
       "line": 120,
       "path": "apps/interop/oneroster/auth_resolution.py",
       "snippet": "def token_rate_limit_from_config(cfg: dict[str, Any], default: int = 600) -> int:",
@@ -1877,82 +862,10 @@
       "value": 100000
     },
     {
-      "line": 46,
-      "path": "apps/marketplace/install_impact.py",
-      "snippet": "wedge_slug = f\"wedge-pack-{str(app.slug).replace('_', '-')}\"[:120]",
-      "value": 120
-    },
-    {
-      "line": 27,
-      "path": "apps/marketplace/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 28,
-      "path": "apps/marketplace/models.py",
-      "snippet": "legal_name = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 38,
-      "path": "apps/marketplace/models.py",
-      "snippet": "payout_ref = models.CharField(max_length=120, blank=True, db_index=True)",
-      "value": 120
-    },
-    {
-      "line": 80,
-      "path": "apps/marketplace/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 199,
-      "path": "apps/marketplace/models.py",
-      "snippet": "description = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 242,
-      "path": "apps/marketplace/models.py",
-      "snippet": "short_description = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 410,
-      "path": "apps/marketplace/models.py",
-      "snippet": "description = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 810,
-      "path": "apps/marketplace/models.py",
-      "snippet": "provider_reference = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
       "line": 823,
       "path": "apps/marketplace/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=190, db_index=True)",
       "value": 190
-    },
-    {
-      "line": 873,
-      "path": "apps/marketplace/models.py",
-      "snippet": "notes = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 897,
-      "path": "apps/marketplace/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 899,
-      "path": "apps/marketplace/models.py",
-      "snippet": "description = models.CharField(max_length=255, blank=True)",
-      "value": 255
     },
     {
       "line": 279,
@@ -1961,28 +874,10 @@
       "value": 180
     },
     {
-      "line": 114,
-      "path": "apps/marketplace/monetization_ledger_ops.py",
-      "snippet": "idempotency_key=idempotency_key[:128],",
-      "value": 128
-    },
-    {
       "line": 144,
       "path": "apps/marketplace/monetization_ledger_ops.py",
       "snippet": "key = idempotency_key[:180]",
       "value": 180
-    },
-    {
-      "line": 165,
-      "path": "apps/marketplace/monetization_ledger_ops.py",
-      "snippet": "provider_reference=(provider_reference or \"\")[:255],",
-      "value": 255
-    },
-    {
-      "line": 196,
-      "path": "apps/marketplace/monetization_ledger_ops.py",
-      "snippet": "idempotency_key=f\"evt:{key}\"[:128],",
-      "value": 128
     },
     {
       "line": 345,
@@ -1991,28 +886,10 @@
       "value": 180
     },
     {
-      "line": 399,
-      "path": "apps/marketplace/monetization_ledger_ops.py",
-      "snippet": "provider_reference=processor_ref[:255],",
-      "value": 255
-    },
-    {
       "line": 401,
       "path": "apps/marketplace/monetization_ledger_ops.py",
       "snippet": "idempotency_key=f\"mkt_pay_ok:{school.pk}:{processor_ref}\"[:190],",
       "value": 190
-    },
-    {
-      "line": 414,
-      "path": "apps/marketplace/monetization_ledger_ops.py",
-      "snippet": "\"provider_settlement_confirmation_ref\": (processor_ref or \"\")[:255],",
-      "value": 255
-    },
-    {
-      "line": 423,
-      "path": "apps/marketplace/monetization_ledger_ops.py",
-      "snippet": "provider_reference=processor_ref[:255],",
-      "value": 255
     },
     {
       "line": 425,
@@ -2021,106 +898,10 @@
       "value": 190
     },
     {
-      "line": 112,
-      "path": "apps/marketplace/services.py",
-      "snippet": "\"name\": payload[\"name\"].strip()[:255],",
-      "value": 255
-    },
-    {
-      "line": 126,
-      "path": "apps/marketplace/services.py",
-      "snippet": "\"short_description\": (payload.get(\"short_description\") or \"\").strip()[:255],",
-      "value": 255
-    },
-    {
-      "line": 160,
-      "path": "apps/marketplace/services.py",
-      "snippet": "\"short_description\": (app.description or \"\")[:255],",
-      "value": 255
-    },
-    {
-      "line": 180,
-      "path": "apps/marketplace/services.py",
-      "snippet": "short_description = (app.description or \"\")[:255]",
-      "value": 255
-    },
-    {
-      "line": 800,
-      "path": "apps/marketplace/services.py",
-      "snippet": ")[:128],",
-      "value": 128
-    },
-    {
       "line": 448,
       "path": "apps/marketplace/views.py",
       "snippet": "or (time.time() - ts) > 900",
       "value": 900
-    },
-    {
-      "line": 40,
-      "path": "apps/metadata/changelog.py",
-      "snippet": "reason=reason[:255] if reason else \"\",",
-      "value": 255
-    },
-    {
-      "line": 21,
-      "path": "apps/metadata/models.py",
-      "snippet": "max_length=120, help_text=\"Unique key within entity_type, e.g. preferred_name.\"",
-      "value": 120
-    },
-    {
-      "line": 23,
-      "path": "apps/metadata/models.py",
-      "snippet": "label = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 72,
-      "path": "apps/metadata/models.py",
-      "snippet": "field_key = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 104,
-      "path": "apps/metadata/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 189,
-      "path": "apps/metadata/models.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
-      "line": 199,
-      "path": "apps/metadata/models.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
-      "line": 215,
-      "path": "apps/metadata/models.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
-      "line": 250,
-      "path": "apps/metadata/models.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
-      "line": 254,
-      "path": "apps/metadata/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 274,
-      "path": "apps/metadata/models.py",
-      "snippet": "max_length=120,",
-      "value": 120
     },
     {
       "line": 315,
@@ -2133,42 +914,6 @@
       "path": "apps/metadata/models.py",
       "snippet": "max_length=160,",
       "value": 160
-    },
-    {
-      "line": 353,
-      "path": "apps/metadata/models.py",
-      "snippet": "field_name = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 392,
-      "path": "apps/metadata/models.py",
-      "snippet": "target_id = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 398,
-      "path": "apps/metadata/models.py",
-      "snippet": "reason = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 422,
-      "path": "apps/metadata/models.py",
-      "snippet": "object_id = models.CharField(max_length=120, blank=True, db_index=True)",
-      "value": 120
-    },
-    {
-      "line": 434,
-      "path": "apps/metadata/models.py",
-      "snippet": "reason = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 458,
-      "path": "apps/metadata/models.py",
-      "snippet": "name = models.CharField(max_length=120, blank=True)",
-      "value": 120
     },
     {
       "line": 182,
@@ -2387,12 +1132,6 @@
       "value": 1024
     },
     {
-      "line": 298,
-      "path": "apps/migration_cloud/intake/oauth_intake.py",
-      "snippet": "headers=dl_headers, timeout=120, stream=True,",
-      "value": 120
-    },
-    {
       "line": 304,
       "path": "apps/migration_cloud/intake/oauth_intake.py",
       "snippet": "iter_chunks=lambda r=dl_resp: r.iter_content(chunk_size=1024 * 1024),",
@@ -2417,12 +1156,6 @@
       "value": 1024
     },
     {
-      "line": 432,
-      "path": "apps/migration_cloud/intake/oauth_intake.py",
-      "snippet": "resp = requests.get(url, headers=headers or {}, timeout=120, stream=True)",
-      "value": 120
-    },
-    {
       "line": 437,
       "path": "apps/migration_cloud/intake/oauth_intake.py",
       "snippet": "iter_chunks=lambda: resp.iter_content(chunk_size=1024 * 1024),",
@@ -2445,48 +1178,12 @@
       "path": "apps/migration_cloud/intake/url_intake.py",
       "snippet": "_CHUNK = 1024 * 1024",
       "value": 1024
-    },
-    {
-      "line": 87,
-      "path": "apps/migration_cloud/landers/attendance_lander.py",
-      "snippet": "defaults[\"remarks\"] = str(row[\"remarks\"])[:255]",
-      "value": 255
-    },
-    {
-      "line": 84,
-      "path": "apps/migration_cloud/landers/behavior_lander.py",
-      "snippet": "\"action_taken\": (row.get(\"action_taken\") or \"\").strip()[:255],",
-      "value": 255
     },
     {
       "line": 86,
       "path": "apps/migration_cloud/landers/dynamic_field_lander.py",
       "snippet": "value={\"raw\": str(value)[:1024]},",
       "value": 1024
-    },
-    {
-      "line": 80,
-      "path": "apps/migration_cloud/landers/finance_lander.py",
-      "snippet": "\"description\": (row.get(\"description\") or \"\")[:255],",
-      "value": 255
-    },
-    {
-      "line": 130,
-      "path": "apps/migration_cloud/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 240,
-      "path": "apps/migration_cloud/models.py",
-      "snippet": "filename = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 241,
-      "path": "apps/migration_cloud/models.py",
-      "snippet": "mime_type = models.CharField(max_length=128, blank=True, db_index=True)",
-      "value": 128
     },
     {
       "line": 342,
@@ -2537,70 +1234,16 @@
       "value": 168
     },
     {
-      "line": 36,
-      "path": "apps/observability/logging_context.py",
-      "snippet": "_REQUEST_PATH_MAX_LEN = 256",
-      "value": 256
-    },
-    {
-      "line": 38,
-      "path": "apps/observability/logging_context.py",
-      "snippet": "_HTTP_REFERER_MAX_LEN = 256",
-      "value": 256
-    },
-    {
-      "line": 39,
-      "path": "apps/observability/logging_context.py",
-      "snippet": "_HTTP_USER_AGENT_MAX_LEN = 512",
-      "value": 512
-    },
-    {
       "line": 40,
       "path": "apps/observability/logging_context.py",
       "snippet": "_HTTP_HOST_MAX_LEN = 253",
       "value": 253
     },
     {
-      "line": 41,
-      "path": "apps/observability/logging_context.py",
-      "snippet": "_CONTENT_TYPE_MAX_LEN = 128",
-      "value": 128
-    },
-    {
-      "line": 42,
-      "path": "apps/observability/logging_context.py",
-      "snippet": "_ACCEPT_LANGUAGE_MAX_LEN = 256",
-      "value": 256
-    },
-    {
-      "line": 43,
-      "path": "apps/observability/logging_context.py",
-      "snippet": "_ACCEPT_ENCODING_MAX_LEN = 128",
-      "value": 128
-    },
-    {
-      "line": 44,
-      "path": "apps/observability/logging_context.py",
-      "snippet": "_X_FORWARDED_FOR_MAX_LEN = 256",
-      "value": 256
-    },
-    {
       "line": 46,
       "path": "apps/observability/logging_context.py",
       "snippet": "_X_FORWARDED_HOST_MAX_LEN = 253",
       "value": 253
-    },
-    {
-      "line": 48,
-      "path": "apps/observability/logging_context.py",
-      "snippet": "_HTTP_ORIGIN_MAX_LEN = 256",
-      "value": 256
-    },
-    {
-      "line": 49,
-      "path": "apps/observability/logging_context.py",
-      "snippet": "_QUERY_STRING_MAX_LEN = 512",
-      "value": 512
     },
     {
       "line": 52,
@@ -2643,24 +1286,6 @@
       "path": "apps/observability/monitoring.py",
       "snippet": "rss_mb = float(usage.ru_maxrss) / 1024",
       "value": 1024
-    },
-    {
-      "line": 185,
-      "path": "apps/observability/monitoring.py",
-      "snippet": "operation_name = models.CharField(max_length=255, db_index=True)",
-      "value": 255
-    },
-    {
-      "line": 247,
-      "path": "apps/observability/monitoring.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 268,
-      "path": "apps/observability/monitoring.py",
-      "snippet": "source_system = models.CharField(max_length=128, blank=True)",
-      "value": 128
     },
     {
       "line": 62,
@@ -2735,232 +1360,16 @@
       "value": 3600
     },
     {
-      "line": 317,
-      "path": "apps/observability/views.py",
-      "snippet": "return {\"status\": \"degraded\", \"error\": str(exc)[:120]}",
-      "value": 120
-    },
-    {
       "line": 411,
       "path": "apps/observability/views.py",
       "snippet": "stack = str(payload.get(\"stack\") or \"\")[:4000]",
       "value": 4000
     },
     {
-      "line": 452,
-      "path": "apps/observability/views.py",
-      "snippet": "return value[:128]",
-      "value": 128
-    },
-    {
-      "line": 16,
-      "path": "apps/orchestration/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 23,
-      "path": "apps/packages/models.py",
-      "snippet": "max_length=120, db_index=True, help_text=\"Stable package identifier.\"",
-      "value": 120
-    },
-    {
-      "line": 94,
-      "path": "apps/packages/models.py",
-      "snippet": "package_id = models.CharField(max_length=120, db_index=True)",
-      "value": 120
-    },
-    {
-      "line": 127,
-      "path": "apps/packages/models.py",
-      "snippet": "package_id = models.CharField(max_length=120, db_index=True)",
-      "value": 120
-    },
-    {
-      "line": 184,
-      "path": "apps/packages/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 217,
-      "path": "apps/packages/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 182,
-      "path": "apps/payroll/models.py",
-      "snippet": "bank_account = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
       "line": 71,
       "path": "apps/people/ai_dedup.py",
       "snippet": "reasoning=str(obj.get(\"reasoning\", \"\")).strip()[:280],",
       "value": 280
-    },
-    {
-      "line": 141,
-      "path": "apps/people/models.py",
-      "snippet": "position_title = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 267,
-      "path": "apps/people/models.py",
-      "snippet": "description = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 295,
-      "path": "apps/people/models.py",
-      "snippet": "reason = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 335,
-      "path": "apps/people/models.py",
-      "snippet": "remarks = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 391,
-      "path": "apps/people/models.py",
-      "snippet": "place_of_birth = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 744,
-      "path": "apps/people/models.py",
-      "snippet": "address = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 842,
-      "path": "apps/people/models.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
-      "line": 871,
-      "path": "apps/people/models.py",
-      "snippet": "label = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 930,
-      "path": "apps/people/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 999,
-      "path": "apps/people/models.py",
-      "snippet": "user_agent = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 1000,
-      "path": "apps/people/models.py",
-      "snippet": "notes = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 1033,
-      "path": "apps/people/models.py",
-      "snippet": "first_name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 1034,
-      "path": "apps/people/models.py",
-      "snippet": "last_name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 1096,
-      "path": "apps/people/models.py",
-      "snippet": "primary_reason = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 1097,
-      "path": "apps/people/models.py",
-      "snippet": "recommended_action = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 1166,
-      "path": "apps/people/models.py",
-      "snippet": "title = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 1287,
-      "path": "apps/people/models.py",
-      "snippet": "company_name = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 1324,
-      "path": "apps/people/models.py",
-      "snippet": "max_length=255, help_text=_(\"e.g. FAA Medical, Nursing License\")",
-      "value": 255
-    },
-    {
-      "line": 1330,
-      "path": "apps/people/models.py",
-      "snippet": "issuing_body = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 1331,
-      "path": "apps/people/models.py",
-      "snippet": "credential_id = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 1357,
-      "path": "apps/people/models.py",
-      "snippet": "table_name = models.CharField(max_length=128)",
-      "value": 128
-    },
-    {
-      "line": 1358,
-      "path": "apps/people/models.py",
-      "snippet": "record_id = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 1431,
-      "path": "apps/people/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 72,
-      "path": "apps/people/passport_services.py",
-      "snippet": "artifact_ref=ref[:512],",
-      "value": 512
-    },
-    {
-      "line": 73,
-      "path": "apps/people/passport_services.py",
-      "snippet": "verification_hash=hv[:128],",
-      "value": 128
-    },
-    {
-      "line": 82,
-      "path": "apps/people/student_passport_models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 86,
-      "path": "apps/people/student_passport_models.py",
-      "snippet": "verification_hash = models.CharField(max_length=128, blank=True)",
-      "value": 128
     },
     {
       "line": 344,
@@ -2993,28 +1402,10 @@
       "value": 10000
     },
     {
-      "line": 221,
-      "path": "apps/platform_runtime/action_engine.py",
-      "snippet": "recommendation_key=key[:120],",
-      "value": 120
-    },
-    {
       "line": 266,
       "path": "apps/platform_runtime/ai_assistant_service.py",
       "snippet": "def _sanitize_policy_excerpt(raw: str, *, limit: int = 1200) -> str:",
       "value": 1200
-    },
-    {
-      "line": 336,
-      "path": "apps/platform_runtime/ai_assistant_service.py",
-      "snippet": "tp = (topic or \"school policy\").strip()[:120]",
-      "value": 120
-    },
-    {
-      "line": 388,
-      "path": "apps/platform_runtime/ai_assistant_service.py",
-      "snippet": "topic = str(q.get(\"topic\") or \"platform usage\").strip()[:120]",
-      "value": 120
     },
     {
       "line": 143,
@@ -3023,22 +1414,10 @@
       "value": 8000
     },
     {
-      "line": 27,
-      "path": "apps/platform_runtime/ai_system_layer.py",
-      "snippet": "\"recommendation_key\": recommendation_key[:120],",
-      "value": 120
-    },
-    {
       "line": 29,
       "path": "apps/platform_runtime/ai_system_layer.py",
       "snippet": "\"explanation\": explanation[:8000],",
       "value": 8000
-    },
-    {
-      "line": 84,
-      "path": "apps/platform_runtime/ai_workflow_bridge.py",
-      "snippet": "rec_key = str((recommendation or {}).get(\"recommendation_key\") or \"\").strip()[:120]",
-      "value": 120
     },
     {
       "line": 96,
@@ -3089,42 +1468,6 @@
       "value": 86400
     },
     {
-      "line": 40,
-      "path": "apps/platform_runtime/blueprint_audit.py",
-      "snippet": "idempotency_key=f\"{event_type}:{blueprint_key}:{school_id or 'platform'}:{installation_id or ''}:{actor_id or ''}\"[:128],",
-      "value": 128
-    },
-    {
-      "line": 287,
-      "path": "apps/platform_runtime/click_tracking.py",
-      "snippet": "task_step=(task_step or \"\")[:128],",
-      "value": 128
-    },
-    {
-      "line": 288,
-      "path": "apps/platform_runtime/click_tracking.py",
-      "snippet": "action_code=(action_code or \"\")[:128],",
-      "value": 128
-    },
-    {
-      "line": 293,
-      "path": "apps/platform_runtime/click_tracking.py",
-      "snippet": "path=(path or \"\")[:512],",
-      "value": 512
-    },
-    {
-      "line": 294,
-      "path": "apps/platform_runtime/click_tracking.py",
-      "snippet": "screen_token=(screen_token or \"\")[:128],",
-      "value": 128
-    },
-    {
-      "line": 30,
-      "path": "apps/platform_runtime/event_bus.py",
-      "snippet": "WEBHOOK_BACKOFF_SECONDS: tuple[int, ...] = (5, 30, 120, 600, 1800)",
-      "value": 120
-    },
-    {
       "line": 30,
       "path": "apps/platform_runtime/event_bus.py",
       "snippet": "WEBHOOK_BACKOFF_SECONDS: tuple[int, ...] = (5, 30, 120, 600, 1800)",
@@ -3135,30 +1478,6 @@
       "path": "apps/platform_runtime/event_bus.py",
       "snippet": "WEBHOOK_BACKOFF_SECONDS: tuple[int, ...] = (5, 30, 120, 600, 1800)",
       "value": 1800
-    },
-    {
-      "line": 222,
-      "path": "apps/platform_runtime/event_bus.py",
-      "snippet": ")[:128],",
-      "value": 128
-    },
-    {
-      "line": 366,
-      "path": "apps/platform_runtime/event_bus.py",
-      "snippet": "idempotency_key=f\"pl_wh_out:{ev.pk}:{d.pk}\"[:128],",
-      "value": 128
-    },
-    {
-      "line": 482,
-      "path": "apps/platform_runtime/events.py",
-      "snippet": "idempotency_key=(idempotency_key or \"\")[:128],",
-      "value": 128
-    },
-    {
-      "line": 544,
-      "path": "apps/platform_runtime/events.py",
-      "snippet": "idempotency_key=f\"{et}:{task_name}:{celery_task_id or ''}\"[:120],",
-      "value": 120
     },
     {
       "line": 59,
@@ -3177,12 +1496,6 @@
       "path": "apps/platform_runtime/governor_limits.py",
       "snippet": "API_REQUESTS_PER_MINUTE_PER_TENANT = 600",
       "value": 600
-    },
-    {
-      "line": 21,
-      "path": "apps/platform_runtime/governor_limits.py",
-      "snippet": "DASHBOARD_REFRESH_PER_HOUR_PER_TENANT = 120",
-      "value": 120
     },
     {
       "line": 62,
@@ -3233,172 +1546,10 @@
       "value": 180
     },
     {
-      "line": 48,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "email_from_address = models.CharField(max_length=255, blank=True, null=True)",
-      "value": 255
-    },
-    {
-      "line": 50,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 59,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "marksheet_ocr_command = models.CharField(max_length=512, blank=True, null=True)",
-      "value": 512
-    },
-    {
-      "line": 61,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 67,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 73,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 79,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 85,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 91,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 97,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 103,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 115,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 121,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 139,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 145,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 151,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 157,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
       "line": 169,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=1024,",
       "value": 1024
-    },
-    {
-      "line": 181,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 260,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 473,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 479,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 485,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 491,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 497,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 503,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 509,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 593,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
     },
     {
       "line": 605,
@@ -3407,202 +1558,10 @@
       "value": 320
     },
     {
-      "line": 611,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 842,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "label = models.CharField(max_length=128)",
-      "value": 128
-    },
-    {
-      "line": 844,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 876,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "label = models.CharField(max_length=128)",
-      "value": 128
-    },
-    {
-      "line": 878,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 911,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "label = models.CharField(max_length=128)",
-      "value": 128
-    },
-    {
-      "line": 913,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 945,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "label = models.CharField(max_length=128)",
-      "value": 128
-    },
-    {
-      "line": 947,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 979,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "label = models.CharField(max_length=128)",
-      "value": 128
-    },
-    {
-      "line": 981,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 1013,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "label = models.CharField(max_length=128)",
-      "value": 128
-    },
-    {
-      "line": 1015,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 1047,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "label = models.CharField(max_length=128)",
-      "value": 128
-    },
-    {
-      "line": 1049,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 1081,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "label = models.CharField(max_length=128)",
-      "value": 128
-    },
-    {
-      "line": 1083,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 1115,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "label = models.CharField(max_length=128)",
-      "value": 128
-    },
-    {
-      "line": 1117,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 1148,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "label = models.CharField(max_length=128)",
-      "value": 128
-    },
-    {
-      "line": 1150,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 1181,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "label = models.CharField(max_length=128)",
-      "value": 128
-    },
-    {
-      "line": 1183,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 1214,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "label = models.CharField(max_length=128)",
-      "value": 128
-    },
-    {
-      "line": 1216,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 1247,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "label = models.CharField(max_length=128)",
-      "value": 128
-    },
-    {
-      "line": 1249,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 1328,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=128, blank=True, default=\"\", db_index=True",
-      "value": 128
-    },
-    {
-      "line": 1368,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "blueprint_key = models.CharField(max_length=120, db_index=True)",
-      "value": 120
-    },
-    {
-      "line": 1395,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "audit_ref = models.CharField(max_length=128, blank=True, default=\"\")",
-      "value": 128
-    },
-    {
       "line": 1396,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=160, db_index=True)",
       "value": 160
-    },
-    {
-      "line": 1443,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "pack_key = models.CharField(max_length=120, db_index=True)",
-      "value": 120
-    },
-    {
-      "line": 1473,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "audit_ref = models.CharField(max_length=128, blank=True, default=\"\")",
-      "value": 128
     },
     {
       "line": 1474,
@@ -3617,52 +1576,10 @@
       "value": 160
     },
     {
-      "line": 1577,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "execution_window = models.CharField(max_length=120, blank=True, default=\"\")",
-      "value": 120
-    },
-    {
-      "line": 1579,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "audit_ref = models.CharField(max_length=128, blank=True, default=\"\")",
-      "value": 128
-    },
-    {
       "line": 1580,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=180, blank=True, default=\"\", db_index=True)",
       "value": 180
-    },
-    {
-      "line": 1602,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "name = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 1607,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=256,",
-      "value": 256
-    },
-    {
-      "line": 1732,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 1849,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "trigger = models.CharField(max_length=128, blank=True, default=\"\")",
-      "value": 128
-    },
-    {
-      "line": 1850,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "condition_summary = models.CharField(max_length=256, blank=True, default=\"\")",
-      "value": 256
     },
     {
       "line": 1855,
@@ -3671,64 +1588,10 @@
       "value": 160
     },
     {
-      "line": 1893,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "trigger = models.CharField(max_length=128, blank=True, default=\"\")",
-      "value": 128
-    },
-    {
-      "line": 1977,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "idempotency_key = models.CharField(max_length=128, blank=True, default=\"\")",
-      "value": 128
-    },
-    {
-      "line": 2015,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "task_step = models.CharField(max_length=128, blank=True, default=\"\")",
-      "value": 128
-    },
-    {
-      "line": 2016,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "action_code = models.CharField(max_length=128, blank=True, default=\"\")",
-      "value": 128
-    },
-    {
-      "line": 2035,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "path = models.CharField(max_length=512, blank=True, default=\"\")",
-      "value": 512
-    },
-    {
-      "line": 2037,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
       "line": 2082,
       "path": "apps/platform_runtime/models.py",
       "snippet": "title = models.CharField(max_length=240)",
       "value": 240
-    },
-    {
-      "line": 2084,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
-      "line": 2097,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
-      "line": 2107,
-      "path": "apps/platform_runtime/models.py",
-      "snippet": "linked_test = models.CharField(max_length=256, blank=True)",
-      "value": 256
     },
     {
       "line": 24,
@@ -3743,30 +1606,6 @@
       "value": 1800
     },
     {
-      "line": 193,
-      "path": "apps/platform_runtime/offline_queue.py",
-      "snippet": "idempotency_key=str(key)[:128],",
-      "value": 128
-    },
-    {
-      "line": 222,
-      "path": "apps/platform_runtime/offline_queue.py",
-      "snippet": "key = (idempotency_key or \"\").strip()[:128]",
-      "value": 128
-    },
-    {
-      "line": 335,
-      "path": "apps/platform_runtime/offline_queue.py",
-      "snippet": "remarks = str(payload.get(\"remarks\", \"\") or \"\")[:255]",
-      "value": 255
-    },
-    {
-      "line": 412,
-      "path": "apps/platform_runtime/offline_queue.py",
-      "snippet": "remarks = str(payload.get(\"remarks\", \"\") or \"\")[:255]",
-      "value": 255
-    },
-    {
       "line": 521,
       "path": "apps/platform_runtime/offline_queue.py",
       "snippet": "notes=str(payload.get(\"notes\", \"\"))[:4000],",
@@ -3777,12 +1616,6 @@
       "path": "apps/platform_runtime/offline_queue.py",
       "snippet": "if len(body) > 50000:",
       "value": 50000
-    },
-    {
-      "line": 27,
-      "path": "apps/platform_runtime/ollama_model_sync.py",
-      "snippet": "if len(s) > 256:",
-      "value": 256
     },
     {
       "line": 88,
@@ -3809,22 +1642,10 @@
       "value": -12000
     },
     {
-      "line": 76,
-      "path": "apps/platform_runtime/platform_loop_attendance.py",
-      "snippet": "f\"platform_loop_trace:{event_id}:{'r' if is_replay else 'n'}\"[:120]",
-      "value": 120
-    },
-    {
       "line": 23,
       "path": "apps/platform_runtime/registry_health.py",
       "snippet": "stale = (now - generated_at).total_seconds() > stale_after_hours * 3600",
       "value": 3600
-    },
-    {
-      "line": 42,
-      "path": "apps/platform_runtime/rmc_os_shell.py",
-      "snippet": "return p[:120] if p else \"home\"",
-      "value": 120
     },
     {
       "line": 34,
@@ -3837,12 +1658,6 @@
       "path": "apps/platform_runtime/rum_aggregate.py",
       "snippet": "cap = max(1, min(int(limit_rows), 5000))",
       "value": 5000
-    },
-    {
-      "line": 52,
-      "path": "apps/platform_runtime/rum_aggregate.py",
-      "snippet": "path = str(payload.get(\"path\") or \"\")[:256] or \"(empty)\"",
-      "value": 256
     },
     {
       "line": 40,
@@ -3887,46 +1702,10 @@
       "value": 65536
     },
     {
-      "line": 50,
-      "path": "apps/platform_runtime/views_click_tracking.py",
-      "snippet": "task_step = str(data.get(\"task_step\") or data.get(\"step\") or \"\")[:128]",
-      "value": 128
-    },
-    {
-      "line": 51,
-      "path": "apps/platform_runtime/views_click_tracking.py",
-      "snippet": "action_code = str(data.get(\"action\") or data.get(\"action_code\") or \"\")[:128]",
-      "value": 128
-    },
-    {
-      "line": 52,
-      "path": "apps/platform_runtime/views_click_tracking.py",
-      "snippet": "path = str(data.get(\"path\") or \"\")[:512]",
-      "value": 512
-    },
-    {
-      "line": 53,
-      "path": "apps/platform_runtime/views_click_tracking.py",
-      "snippet": "screen_token = str(data.get(\"screen_token\") or data.get(\"screen\") or \"\")[:128]",
-      "value": 128
-    },
-    {
-      "line": 36,
-      "path": "apps/platform_runtime/views_operational_center.py",
-      "snippet": "payload={\"path\": getattr(request, \"path\", \"\")[:512]},",
-      "value": 512
-    },
-    {
       "line": 25,
       "path": "apps/platform_runtime/views_rum.py",
       "snippet": "MAX_BODY_BYTES = 4096",
       "value": 4096
-    },
-    {
-      "line": 26,
-      "path": "apps/platform_runtime/views_rum.py",
-      "snippet": "RATE_LIMIT_PER_HOUR = 120",
-      "value": 120
     },
     {
       "line": 36,
@@ -3939,42 +1718,6 @@
       "path": "apps/platform_runtime/views_rum.py",
       "snippet": "cache.set(ck, 1, timeout=3600)",
       "value": 3600
-    },
-    {
-      "line": 96,
-      "path": "apps/platform_runtime/views_rum.py",
-      "snippet": "path = str(data.get(\"path\") or \"\")[:256]",
-      "value": 256
-    },
-    {
-      "line": 26,
-      "path": "apps/policies/models.py",
-      "snippet": "name = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 62,
-      "path": "apps/policies/models.py",
-      "snippet": "name = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 159,
-      "path": "apps/policies/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 291,
-      "path": "apps/policies/models.py",
-      "snippet": "max_length=120, db_index=True, help_text=\"e.g. admissions.numbering_strategy\"",
-      "value": 120
-    },
-    {
-      "line": 312,
-      "path": "apps/policies/models.py",
-      "snippet": "policy_key = models.CharField(max_length=120, db_index=True)",
-      "value": 120
     },
     {
       "line": 306,
@@ -4013,12 +1756,6 @@
       "value": 10000
     },
     {
-      "line": 222,
-      "path": "apps/portal/attendance_exports.py",
-      "snippet": "(a.remarks or \"\")[:255],",
-      "value": 255
-    },
-    {
       "line": 443,
       "path": "apps/portal/forms.py",
       "snippet": "max_length=150,",
@@ -4029,12 +1766,6 @@
       "path": "apps/portal/forms.py",
       "snippet": "max_length=150,",
       "value": 150
-    },
-    {
-      "line": 465,
-      "path": "apps/portal/forms.py",
-      "snippet": "max_length=120,",
-      "value": 120
     },
     {
       "line": 546,
@@ -4061,12 +1792,6 @@
       "value": 150
     },
     {
-      "line": 74,
-      "path": "apps/portal/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
       "line": 253,
       "path": "apps/portal/models.py",
       "snippet": "return round(self.file.size / (1024 * 1024), 2)",
@@ -4077,36 +1802,6 @@
       "path": "apps/portal/models.py",
       "snippet": "return round(self.file.size / (1024 * 1024), 2)",
       "value": 1024
-    },
-    {
-      "line": 512,
-      "path": "apps/portal/models.py",
-      "snippet": "max_length=256,",
-      "value": 256
-    },
-    {
-      "line": 645,
-      "path": "apps/portal/models.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
-      "line": 731,
-      "path": "apps/portal/models.py",
-      "snippet": "location = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 753,
-      "path": "apps/portal/models.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 552,
-      "path": "apps/portal/models_kb.py",
-      "snippet": "mime_type = models.CharField(_(\"MIME type\"), max_length=120, blank=True)",
-      "value": 120
     },
     {
       "line": 171,
@@ -4119,18 +1814,6 @@
       "path": "apps/portal/one_record.py",
       "snippet": "else (msg.body or \"\")[:160],",
       "value": 160
-    },
-    {
-      "line": 241,
-      "path": "apps/portal/one_record.py",
-      "snippet": "comm_line = (lm.get(\"subject\") or lm.get(\"preview\") or \"\")[:120]",
-      "value": 120
-    },
-    {
-      "line": 217,
-      "path": "apps/portal/portal_models.py",
-      "snippet": "session_token = models.CharField(max_length=255, unique=True)",
-      "value": 255
     },
     {
       "line": 757,
@@ -4157,40 +1840,10 @@
       "value": 600
     },
     {
-      "line": 115,
-      "path": "apps/portal/support_ai_context.py",
-      "snippet": "lines.append(f\"- FAQ: {faq.question[:120]}: {ans}\")",
-      "value": 120
-    },
-    {
       "line": 13,
       "path": "apps/portal/tasks.py",
       "snippet": "AI_ASYNC_RESULT_TTL = 600",
       "value": 600
-    },
-    {
-      "line": 173,
-      "path": "apps/portal/views.py",
-      "snippet": "cache.set(cache_key, count + 1, 120)",
-      "value": 120
-    },
-    {
-      "line": 249,
-      "path": "apps/portal/views.py",
-      "snippet": ":255",
-      "value": 255
-    },
-    {
-      "line": 83,
-      "path": "apps/portal/views_ai_copilot.py",
-      "snippet": "reason=(reason or \"\")[:255],",
-      "value": 255
-    },
-    {
-      "line": 355,
-      "path": "apps/portal/views_ai_copilot.py",
-      "snippet": "emb = get_embedding_for_text(user_query, max_tokens=512)",
-      "value": 512
     },
     {
       "line": 363,
@@ -4203,12 +1856,6 @@
       "path": "apps/portal/views_ai_draft.py",
       "snippet": "existing = (payload.get(\"existing\") or \"\").strip()[:1500]",
       "value": 1500
-    },
-    {
-      "line": 298,
-      "path": "apps/portal/views_ai_gateway.py",
-      "snippet": "emb = get_embedding_for_text(query, max_tokens=512)",
-      "value": 512
     },
     {
       "line": 314,
@@ -4229,12 +1876,6 @@
       "value": 3000
     },
     {
-      "line": 449,
-      "path": "apps/portal/views_ai_gateway.py",
-      "snippet": "emb = get_embedding_for_text(query, max_tokens=512)",
-      "value": 512
-    },
-    {
       "line": 478,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "context = \"\\n\".join(context_parts)[:1200] if context_parts else \"\"",
@@ -4247,22 +1888,10 @@
       "value": 8000
     },
     {
-      "line": 626,
-      "path": "apps/portal/views_ai_gateway.py",
-      "snippet": "embedding = get_embedding_for_text(query, max_tokens=512)",
-      "value": 512
-    },
-    {
       "line": 638,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "context = str(results[0].get(\"metadata\", \"\"))[:1500]",
       "value": 1500
-    },
-    {
-      "line": 720,
-      "path": "apps/portal/views_ai_gateway.py",
-      "snippet": "emb = get_embedding_for_text(query, max_tokens=512)",
-      "value": 512
     },
     {
       "line": 787,
@@ -4277,34 +1906,16 @@
       "value": 1500
     },
     {
-      "line": 1165,
-      "path": "apps/portal/views_ai_gateway.py",
-      "snippet": "emb = get_embedding_for_text(query, max_tokens=512)",
-      "value": 512
-    },
-    {
       "line": 1169,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "context = \"\\n\".join(context_parts)[:1200] if context_parts else \"\"",
       "value": 1200
     },
     {
-      "line": 1275,
-      "path": "apps/portal/views_ai_gateway.py",
-      "snippet": "emb = get_embedding_for_text(query, max_tokens=512)",
-      "value": 512
-    },
-    {
       "line": 1329,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "query = (body.get(\"query\") or body.get(\"institution_type\") or \"\").strip()[:1500]",
       "value": 1500
-    },
-    {
-      "line": 1395,
-      "path": "apps/portal/views_ai_gateway.py",
-      "snippet": "emb = get_embedding_for_text(query, max_tokens=512)",
-      "value": 512
     },
     {
       "line": 1462,
@@ -4319,12 +1930,6 @@
       "value": 3500
     },
     {
-      "line": 1477,
-      "path": "apps/portal/views_ai_gateway.py",
-      "snippet": "emb = get_embedding_for_text(query, max_tokens=512)",
-      "value": 512
-    },
-    {
       "line": 1497,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "blob = \"\\n\".join(context_parts)[:1200]",
@@ -4335,12 +1940,6 @@
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "f\"Absolute base URL for this request (prefix for relative paths in CONTEXT): {base[:240]}\"",
       "value": 240
-    },
-    {
-      "line": 1756,
-      "path": "apps/portal/views_ai_gateway.py",
-      "snippet": "feature = str(body.get(\"feature\") or task_type).strip()[:120]",
-      "value": 120
     },
     {
       "line": 1833,
@@ -4376,12 +1975,6 @@
       "line": 32,
       "path": "apps/portal/views_offline_sync.py",
       "snippet": "_MAX_JSON_BYTES = 512 * 1024",
-      "value": 512
-    },
-    {
-      "line": 32,
-      "path": "apps/portal/views_offline_sync.py",
-      "snippet": "_MAX_JSON_BYTES = 512 * 1024",
       "value": 1024
     },
     {
@@ -4389,36 +1982,6 @@
       "path": "apps/portal/views_offline_sync.py",
       "snippet": "local_vals[\"body_preview\"] = (pay.get(\"body\") or \"\")[:240]",
       "value": 240
-    },
-    {
-      "line": 166,
-      "path": "apps/portal/views_offline_sync.py",
-      "snippet": ":120",
-      "value": 120
-    },
-    {
-      "line": 171,
-      "path": "apps/portal/views_offline_sync.py",
-      "snippet": ":120",
-      "value": 120
-    },
-    {
-      "line": 176,
-      "path": "apps/portal/views_offline_sync.py",
-      "snippet": ":120",
-      "value": 120
-    },
-    {
-      "line": 181,
-      "path": "apps/portal/views_offline_sync.py",
-      "snippet": ":120",
-      "value": 120
-    },
-    {
-      "line": 322,
-      "path": "apps/portal/views_offline_sync.py",
-      "snippet": "idem = str(data.get(\"idempotency_key\") or \"\")[:128]",
-      "value": 128
     },
     {
       "line": 40,
@@ -4457,70 +2020,10 @@
       "value": 195
     },
     {
-      "line": 16,
-      "path": "apps/registries/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
       "line": 62,
       "path": "apps/registries/models.py",
       "snippet": "name = models.CharField(max_length=160)",
       "value": 160
-    },
-    {
-      "line": 90,
-      "path": "apps/registries/models.py",
-      "snippet": "global_name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 114,
-      "path": "apps/registries/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 148,
-      "path": "apps/registries/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 227,
-      "path": "apps/registries/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 254,
-      "path": "apps/registries/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 276,
-      "path": "apps/registries/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 302,
-      "path": "apps/registries/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 327,
-      "path": "apps/registries/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 350,
-      "path": "apps/registries/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
     },
     {
       "line": 77,
@@ -4583,18 +2086,6 @@
       "value": 160
     },
     {
-      "line": 30,
-      "path": "apps/reports/bi_models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 153,
-      "path": "apps/reports/bi_models.py",
-      "snippet": "cache_key = models.CharField(max_length=255, unique=True, db_index=True)",
-      "value": 255
-    },
-    {
       "line": 91,
       "path": "apps/reports/bi_services.py",
       "snippet": "cache.set(cache_key, summary, 3600)",
@@ -4647,36 +2138,6 @@
       "path": "apps/reports/compliance_exports.py",
       "snippet": "for rc in qs[:5000]:",
       "value": 5000
-    },
-    {
-      "line": 203,
-      "path": "apps/reports/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 337,
-      "path": "apps/reports/models.py",
-      "snippet": "max_length=120, blank=True, help_text=\"Reference from ministry/district\"",
-      "value": 120
-    },
-    {
-      "line": 362,
-      "path": "apps/reports/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 401,
-      "path": "apps/reports/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 460,
-      "path": "apps/reports/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
     },
     {
       "line": 40,
@@ -4745,24 +2206,6 @@
       "value": 86400
     },
     {
-      "line": 81,
-      "path": "apps/reports/signals.py",
-      "snippet": "idempotency_key=f\"report_generated:{instance.pk}\"[:128],",
-      "value": 128
-    },
-    {
-      "line": 114,
-      "path": "apps/reports/views.py",
-      "snippet": "VERIFY_REPORT_HASH_RATE_LIMIT_MAX = 120",
-      "value": 120
-    },
-    {
-      "line": 26,
-      "path": "apps/sales/models.py",
-      "snippet": "school_name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
       "line": 186,
       "path": "apps/sales/views.py",
       "snippet": "lead=lead, body=body[:10000], created_by=request.user",
@@ -4781,34 +2224,10 @@
       "value": 160
     },
     {
-      "line": 12,
-      "path": "apps/school_events/models.py",
-      "snippet": "location = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 46,
-      "path": "apps/school_events/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
       "line": 51,
       "path": "apps/school_events/models.py",
       "snippet": "contact_name = models.CharField(max_length=160, blank=True)",
       "value": 160
-    },
-    {
-      "line": 78,
-      "path": "apps/school_events/models.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 83,
-      "path": "apps/school_events/models.py",
-      "snippet": "summary = models.CharField(max_length=255, blank=True)",
-      "value": 255
     },
     {
       "line": 92,
@@ -4817,148 +2236,10 @@
       "value": 160
     },
     {
-      "line": 129,
-      "path": "apps/school_events/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 210,
-      "path": "apps/school_events/models.py",
-      "snippet": "attendee_name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 16,
-      "path": "apps/schoolops/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 42,
-      "path": "apps/schoolops/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 44,
-      "path": "apps/schoolops/models.py",
-      "snippet": "location = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 63,
-      "path": "apps/schoolops/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 81,
-      "path": "apps/schoolops/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 126,
-      "path": "apps/schoolops/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 166,
-      "path": "apps/schoolops/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 224,
-      "path": "apps/schoolops/models.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 225,
-      "path": "apps/schoolops/models.py",
-      "snippet": "location = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 262,
-      "path": "apps/schoolops/models.py",
-      "snippet": "raw_identifier = models.CharField(max_length=120, blank=True, db_index=True)",
-      "value": 120
-    },
-    {
-      "line": 280,
-      "path": "apps/schoolops/models.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 281,
-      "path": "apps/schoolops/models.py",
-      "snippet": "author = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 384,
-      "path": "apps/schoolops/models.py",
-      "snippet": "visitor_name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 386,
-      "path": "apps/schoolops/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 390,
-      "path": "apps/schoolops/models.py",
-      "snippet": "purpose = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 483,
-      "path": "apps/schoolops/models.py",
-      "snippet": "item_label = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 503,
-      "path": "apps/schoolops/models.py",
-      "snippet": "notes = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 147,
-      "path": "apps/schoolops/views_tenant_ops.py",
-      "snippet": "title=title[:255],",
-      "value": 255
-    },
-    {
-      "line": 148,
-      "path": "apps/schoolops/views_tenant_ops.py",
-      "snippet": "author=(request.POST.get(\"author\") or \"\").strip()[:255],",
-      "value": 255
-    },
-    {
       "line": 150,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": "1, min(9999, int(request.POST.get(\"copies_total\") or 1))",
       "value": 9999
-    },
-    {
-      "line": 186,
-      "path": "apps/schoolops/views_tenant_ops.py",
-      "snippet": "route = Route.objects.create(school=school, name=name[:120])",
-      "value": 120
-    },
-    {
-      "line": 190,
-      "path": "apps/schoolops/views_tenant_ops.py",
-      "snippet": "route=route, name=stop_name[:120], sequence=1",
-      "value": 120
     },
     {
       "line": 259,
@@ -4967,46 +2248,10 @@
       "value": 10000000
     },
     {
-      "line": 265,
-      "path": "apps/schoolops/views_tenant_ops.py",
-      "snippet": "name=name[:255],",
-      "value": 255
-    },
-    {
-      "line": 267,
-      "path": "apps/schoolops/views_tenant_ops.py",
-      "snippet": "location=(request.POST.get(\"location\") or \"\").strip()[:255],",
-      "value": 255
-    },
-    {
-      "line": 301,
-      "path": "apps/schoolops/views_tenant_ops.py",
-      "snippet": "school=school, name=name[:120], price=price",
-      "value": 120
-    },
-    {
       "line": 330,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": ".order_by(\"-recorded_at\")[:150]",
       "value": 150
-    },
-    {
-      "line": 479,
-      "path": "apps/schoolops/views_tenant_ops.py",
-      "snippet": "visitor_name=name[:255],",
-      "value": 255
-    },
-    {
-      "line": 480,
-      "path": "apps/schoolops/views_tenant_ops.py",
-      "snippet": "host_contact=(request.POST.get(\"host_contact\") or \"\").strip()[:255],",
-      "value": 255
-    },
-    {
-      "line": 481,
-      "path": "apps/schoolops/views_tenant_ops.py",
-      "snippet": "purpose=(request.POST.get(\"purpose\") or \"\").strip()[:255],",
-      "value": 255
     },
     {
       "line": 495,
@@ -5039,82 +2284,10 @@
       "value": 9999
     },
     {
-      "line": 740,
-      "path": "apps/schoolops/views_tenant_ops.py",
-      "snippet": "item_label=label[:255],",
-      "value": 255
-    },
-    {
-      "line": 746,
-      "path": "apps/schoolops/views_tenant_ops.py",
-      "snippet": "notes=(request.POST.get(\"notes\") or \"\").strip()[:255],",
-      "value": 255
-    },
-    {
-      "line": 755,
-      "path": "apps/schoolops/views_tenant_ops.py",
-      "snippet": "item_label=label[:255],",
-      "value": 255
-    },
-    {
-      "line": 761,
-      "path": "apps/schoolops/views_tenant_ops.py",
-      "snippet": "notes=(request.POST.get(\"notes\") or \"\").strip()[:255],",
-      "value": 255
-    },
-    {
-      "line": 73,
-      "path": "apps/schools/api_views.py",
-      "snippet": "max_count=120,",
-      "value": 120
-    },
-    {
-      "line": 138,
-      "path": "apps/schools/control_plane.py",
-      "snippet": "def rate_limit_super(minute_limit=120):",
-      "value": 120
-    },
-    {
-      "line": 164,
-      "path": "apps/schools/control_plane.py",
-      "snippet": "cache.set(key, count + 1, timeout=120)",
-      "value": 120
-    },
-    {
-      "line": 213,
-      "path": "apps/schools/control_plane.py",
-      "snippet": "reason=reason[:255] if reason else \"\",",
-      "value": 255
-    },
-    {
       "line": 15,
       "path": "apps/schools/dns_providers/cloudflare.py",
       "snippet": "CLOUDFLARE_RECORD_ALREADY_EXISTS = 81057",
       "value": 81057
-    },
-    {
-      "line": 39,
-      "path": "apps/schools/funnel_events.py",
-      "snippet": "src = (get.get(\"utm_source\") or \"\")[:128]",
-      "value": 128
-    },
-    {
-      "line": 40,
-      "path": "apps/schools/funnel_events.py",
-      "snippet": "med = (get.get(\"utm_medium\") or \"\")[:128]",
-      "value": 128
-    },
-    {
-      "line": 307,
-      "path": "apps/schools/funnel_events.py",
-      "snippet": "idempotency_key=str(plat_key)[:128],",
-      "value": 128
-    },
-    {
-      "line": 45,
-      "path": "apps/schools/hierarchy_helpers.py",
-      "snippet": "max_depth = 256",
-      "value": 256
     },
     {
       "line": 1838,
@@ -5135,106 +2308,16 @@
       "value": 160
     },
     {
-      "line": 2397,
-      "path": "apps/schools/marketing_views.py",
-      "snippet": "name = (request.POST.get(\"name\") or \"\").strip()[:256]",
-      "value": 256
-    },
-    {
-      "line": 2398,
-      "path": "apps/schools/marketing_views.py",
-      "snippet": "email = (request.POST.get(\"email\") or \"\").strip()[:256]",
-      "value": 256
-    },
-    {
-      "line": 2399,
-      "path": "apps/schools/marketing_views.py",
-      "snippet": "school = (request.POST.get(\"school\") or \"\").strip()[:256]",
-      "value": 256
-    },
-    {
-      "line": 2402,
-      "path": "apps/schools/marketing_views.py",
-      "snippet": "country = (request.POST.get(\"country\") or \"\").strip()[:128]",
-      "value": 128
-    },
-    {
-      "line": 2403,
-      "path": "apps/schools/marketing_views.py",
-      "snippet": "school_type = (request.POST.get(\"school_type\") or \"\").strip()[:128]",
-      "value": 128
-    },
-    {
       "line": 2417,
       "path": "apps/schools/marketing_views.py",
       "snippet": "message_for_store = (message + suffix).strip()[:4000]",
       "value": 4000
     },
     {
-      "line": 2479,
-      "path": "apps/schools/marketing_views.py",
-      "snippet": "name = (request.POST.get(\"name\") or \"\").strip()[:256]",
-      "value": 256
-    },
-    {
-      "line": 2480,
-      "path": "apps/schools/marketing_views.py",
-      "snippet": "email = (request.POST.get(\"email\") or \"\").strip()[:256]",
-      "value": 256
-    },
-    {
-      "line": 2481,
-      "path": "apps/schools/marketing_views.py",
-      "snippet": "school = (request.POST.get(\"school\") or \"\").strip()[:256]",
-      "value": 256
-    },
-    {
-      "line": 2482,
-      "path": "apps/schools/marketing_views.py",
-      "snippet": "country = (request.POST.get(\"country\") or \"\").strip()[:128]",
-      "value": 128
-    },
-    {
       "line": 2484,
       "path": "apps/schools/marketing_views.py",
       "snippet": "message = (request.POST.get(\"message\") or \"\").strip()[:4000]",
       "value": 4000
-    },
-    {
-      "line": 2535,
-      "path": "apps/schools/marketing_views.py",
-      "snippet": "name = (request.POST.get(\"name\") or \"\").strip()[:256]",
-      "value": 256
-    },
-    {
-      "line": 2536,
-      "path": "apps/schools/marketing_views.py",
-      "snippet": "email = (request.POST.get(\"email\") or \"\").strip()[:256]",
-      "value": 256
-    },
-    {
-      "line": 2537,
-      "path": "apps/schools/marketing_views.py",
-      "snippet": "organization = (request.POST.get(\"organization\") or \"\").strip()[:256]",
-      "value": 256
-    },
-    {
-      "line": 2538,
-      "path": "apps/schools/marketing_views.py",
-      "snippet": "role = (request.POST.get(\"role\") or \"\").strip()[:128]",
-      "value": 128
-    },
-    {
-      "line": 2539,
-      "path": "apps/schools/marketing_views.py",
-      "snippet": "country = (request.POST.get(\"country\") or \"\").strip()[:128]",
-      "value": 128
-    },
-    {
-      "line": 2540,
-      "path": "apps/schools/marketing_views.py",
-      "snippet": "nda_status = (request.POST.get(\"nda_status\") or \"\").strip()[:128]",
-      "value": 128
     },
     {
       "line": 2541,
@@ -5249,112 +2332,16 @@
       "value": 3600
     },
     {
-      "line": 1051,
-      "path": "apps/schools/middleware.py",
-      "snippet": "MINUTE_LIMIT = 120",
-      "value": 120
-    },
-    {
-      "line": 1077,
-      "path": "apps/schools/middleware.py",
-      "snippet": "cache.set(nk, nc + 1, timeout=120)",
-      "value": 120
-    },
-    {
-      "line": 1091,
-      "path": "apps/schools/middleware.py",
-      "snippet": "cache.set(key, count + 1, timeout=120)",
-      "value": 120
-    },
-    {
       "line": 54,
       "path": "apps/schools/middleware_enterprise_security.py",
       "snippet": "object_repr=f\"{request.method} {path[:180]}\",",
       "value": 180
     },
     {
-      "line": 242,
-      "path": "apps/schools/models.py",
-      "snippet": "max_length=120, unique=True, help_text=\"URL slug e.g. ghs-limbe\"",
-      "value": 120
-    },
-    {
-      "line": 244,
-      "path": "apps/schools/models.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 246,
-      "path": "apps/schools/models.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
       "line": 328,
       "path": "apps/schools/models.py",
       "snippet": "max_length=1024,",
       "value": 1024
-    },
-    {
-      "line": 335,
-      "path": "apps/schools/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 700,
-      "path": "apps/schools/models.py",
-      "snippet": "message = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 764,
-      "path": "apps/schools/models.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 982,
-      "path": "apps/schools/models.py",
-      "snippet": "max_length=120, blank=True, help_text=\"External CRM id\"",
-      "value": 120
-    },
-    {
-      "line": 1011,
-      "path": "apps/schools/models.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
-      "line": 1055,
-      "path": "apps/schools/models.py",
-      "snippet": "session_key = models.CharField(max_length=128, blank=True, db_index=True)",
-      "value": 128
-    },
-    {
-      "line": 1056,
-      "path": "apps/schools/models.py",
-      "snippet": "utm_source = models.CharField(max_length=128, blank=True, db_index=True)",
-      "value": 128
-    },
-    {
-      "line": 1057,
-      "path": "apps/schools/models.py",
-      "snippet": "utm_medium = models.CharField(max_length=128, blank=True, db_index=True)",
-      "value": 128
-    },
-    {
-      "line": 181,
-      "path": "apps/schools/onboarding_service.py",
-      "snippet": "subdomain_val = (subdomain or slug).strip().lower().replace(\" \", \"-\")[:120]",
-      "value": 120
-    },
-    {
-      "line": 27,
-      "path": "apps/schools/rls_context.py",
-      "snippet": "_MAX_RLS_SCHOOL_ID_LEN = 128",
-      "value": 128
     },
     {
       "line": 61,
@@ -5381,46 +2368,10 @@
       "value": -100
     },
     {
-      "line": 47,
-      "path": "apps/schools/signup_views.py",
-      "snippet": "return s[:120] or \"school\"",
-      "value": 120
-    },
-    {
       "line": 84,
       "path": "apps/schools/signup_views.py",
       "snippet": "email = (request.GET.get(\"email\") or \"\").strip()[:254]",
       "value": 254
-    },
-    {
-      "line": 85,
-      "path": "apps/schools/signup_views.py",
-      "snippet": "slug = (request.GET.get(\"slug\") or \"\").strip()[:120]",
-      "value": 120
-    },
-    {
-      "line": 103,
-      "path": "apps/schools/signup_views.py",
-      "snippet": "\"curriculum_hint\": (request.GET.get(\"curriculum\") or \"\").strip()[:128],",
-      "value": 128
-    },
-    {
-      "line": 184,
-      "path": "apps/schools/signup_views.py",
-      "snippet": "subdomain = slug[:120]",
-      "value": 120
-    },
-    {
-      "line": 571,
-      "path": "apps/schools/signup_views.py",
-      "snippet": "\"countries\": countries[:120],",
-      "value": 120
-    },
-    {
-      "line": 738,
-      "path": "apps/schools/signup_views.py",
-      "snippet": "subdomain = slug[:120]",
-      "value": 120
     },
     {
       "line": 512,
@@ -5441,12 +2392,6 @@
       "value": 180
     },
     {
-      "line": 81,
-      "path": "apps/schools/super_views_enterprise_security.py",
-      "snippet": "return str(v)[:120]",
-      "value": 120
-    },
-    {
       "line": 96,
       "path": "apps/schools/super_views_enterprise_security.py",
       "snippet": "\"filter_summary\": (log.object_repr or \"\")[:240],",
@@ -5457,42 +2402,6 @@
       "path": "apps/schools/super_views_enterprise_security.py",
       "snippet": "def _decode_session_user_ids(limit: int = 150):",
       "value": 150
-    },
-    {
-      "line": 432,
-      "path": "apps/schools/super_views_enterprise_security.py",
-      "snippet": "session_rows = _decode_session_user_ids(120)",
-      "value": 120
-    },
-    {
-      "line": 36,
-      "path": "apps/schools/super_views_geo_api.py",
-      "snippet": "limit = _clamp_int(request.GET.get(\"limit\"), 120, minimum=10, maximum=500)",
-      "value": 120
-    },
-    {
-      "line": 21,
-      "path": "apps/schools/super_views_helpers.py",
-      "snippet": "return s[:120] if s else \"school\"",
-      "value": 120
-    },
-    {
-      "line": 88,
-      "path": "apps/schools/super_views_impersonation.py",
-      "snippet": "ticket_ref = (request.POST.get(\"support_ticket_ref\") or \"\").strip()[:120]",
-      "value": 120
-    },
-    {
-      "line": 390,
-      "path": "apps/schools/super_views_runtime_ops.py",
-      "snippet": "log.playbook_slug_short = str(summary.get(\"playbook_slug\") or \"\")[:120]",
-      "value": 120
-    },
-    {
-      "line": 53,
-      "path": "apps/schools/super_views_security_surface.py",
-      "snippet": "def _review_rows(payload: dict, *, limit: int = 120) -> list[dict]:",
-      "value": 120
     },
     {
       "line": 362,
@@ -5537,12 +2446,6 @@
       "value": 254
     },
     {
-      "line": 519,
-      "path": "apps/schools/super_views_wedge.py",
-      "snippet": "external_ref=(request.POST.get(\"external_ref\") or \"\").strip()[:120],",
-      "value": 120
-    },
-    {
       "line": 1001,
       "path": "apps/schools/super_views_wedge.py",
       "snippet": "return json.dumps(obj, indent=2, default=str)[:12000]",
@@ -5567,12 +2470,6 @@
       "value": 254
     },
     {
-      "line": 75,
-      "path": "apps/schools/views_advancement.py",
-      "snippet": "external_ref=(request.POST.get(\"external_ref\") or \"\").strip()[:120],",
-      "value": 120
-    },
-    {
       "line": 76,
       "path": "apps/schools/views_advancement.py",
       "snippet": "notes=(request.POST.get(\"notes\") or \"\").strip()[:4000],",
@@ -5585,22 +2482,10 @@
       "value": 254
     },
     {
-      "line": 115,
-      "path": "apps/schools/views_advancement.py",
-      "snippet": "donor.external_ref = (request.POST.get(\"external_ref\") or \"\").strip()[:120]",
-      "value": 120
-    },
-    {
       "line": 116,
       "path": "apps/schools/views_advancement.py",
       "snippet": "donor.notes = (request.POST.get(\"notes\") or \"\").strip()[:4000]",
       "value": 4000
-    },
-    {
-      "line": 172,
-      "path": "apps/schools/views_advancement.py",
-      "snippet": ":120",
-      "value": 120
     },
     {
       "line": 30,
@@ -5609,46 +2494,10 @@
       "value": 1024
     },
     {
-      "line": 50,
-      "path": "apps/security/csp_report_view.py",
-      "snippet": "directive = str(report.get(\"violated-directive\") or report.get(\"effective-directive\") or \"\")[:120]",
-      "value": 120
-    },
-    {
-      "line": 13,
-      "path": "apps/setup_studio/models.py",
-      "snippet": "label = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 16,
-      "path": "apps/setup_studio/models.py",
-      "snippet": "link = models.CharField(max_length=512, blank=True)",
-      "value": 512
-    },
-    {
       "line": 109,
       "path": "apps/siteconfig/brand_import.py",
       "snippet": "parser.feed(html[: 500 * 1024])",
       "value": 1024
-    },
-    {
-      "line": 32,
-      "path": "apps/siteconfig/cache_utils.py",
-      "snippet": "_MAX_CACHE_SCHOOL_ID_LEN = 128",
-      "value": 128
-    },
-    {
-      "line": 35,
-      "path": "apps/siteconfig/cache_utils.py",
-      "snippet": "_MAX_TENANT_RESOLUTION_LOOKUP_LEN = 512",
-      "value": 512
-    },
-    {
-      "line": 36,
-      "path": "apps/siteconfig/cache_utils.py",
-      "snippet": "_MAX_TENANT_CACHE_BASE_KEY_LEN = 512",
-      "value": 512
     },
     {
       "line": 105,
@@ -5747,18 +2596,6 @@
       "value": 37115000
     },
     {
-      "line": 428,
-      "path": "apps/siteconfig/global_catalog.py",
-      "snippet": "limit: int = 120,",
-      "value": 120
-    },
-    {
-      "line": 436,
-      "path": "apps/siteconfig/global_catalog.py",
-      "snippet": "cap = max(1, min(int(limit or 120), 500))",
-      "value": 120
-    },
-    {
       "line": 445,
       "path": "apps/siteconfig/global_catalog.py",
       "snippet": "base_rows.extend(rows[:600])",
@@ -5783,24 +2620,6 @@
       "value": 1080
     },
     {
-      "line": 31,
-      "path": "apps/siteconfig/image_utils.py",
-      "snippet": "background = Image.new(\"RGBA\", img.size, (255, 255, 255, 0))",
-      "value": 255
-    },
-    {
-      "line": 31,
-      "path": "apps/siteconfig/image_utils.py",
-      "snippet": "background = Image.new(\"RGBA\", img.size, (255, 255, 255, 0))",
-      "value": 255
-    },
-    {
-      "line": 31,
-      "path": "apps/siteconfig/image_utils.py",
-      "snippet": "background = Image.new(\"RGBA\", img.size, (255, 255, 255, 0))",
-      "value": 255
-    },
-    {
       "line": 70,
       "path": "apps/siteconfig/integration_catalog.py",
       "snippet": "\"daily_cap\": 5000,",
@@ -5813,130 +2632,10 @@
       "value": 587
     },
     {
-      "line": 22,
-      "path": "apps/siteconfig/models_ai.py",
-      "snippet": "max_length=512,",
-      "value": 512
-    },
-    {
-      "line": 26,
-      "path": "apps/siteconfig/models_ai.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 31,
-      "path": "apps/siteconfig/models_ai.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 36,
-      "path": "apps/siteconfig/models_ai.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 68,
-      "path": "apps/siteconfig/models_ai.py",
-      "snippet": "max_length=128,",
-      "value": 128
-    },
-    {
-      "line": 76,
-      "path": "apps/siteconfig/models_ai.py",
-      "snippet": "lora_adapter_path = models.CharField(max_length=512, blank=True)",
-      "value": 512
-    },
-    {
-      "line": 143,
-      "path": "apps/siteconfig/models_ai.py",
-      "snippet": "owner = models.CharField(max_length=128, blank=True)",
-      "value": 128
-    },
-    {
-      "line": 144,
-      "path": "apps/siteconfig/models_ai.py",
-      "snippet": "purpose = models.CharField(max_length=256, blank=True)",
-      "value": 256
-    },
-    {
-      "line": 280,
-      "path": "apps/siteconfig/models_dashboard.py",
-      "snippet": "max_length=255, help_text=\"Path to widget template\"",
-      "value": 255
-    },
-    {
-      "line": 451,
-      "path": "apps/siteconfig/models_dashboard.py",
-      "snippet": "summary = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 499,
-      "path": "apps/siteconfig/models_dashboard.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 560,
-      "path": "apps/siteconfig/models_dashboard.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 563,
-      "path": "apps/siteconfig/models_dashboard.py",
-      "snippet": "max_length=512, blank=True, help_text=\"Preview image URL\"",
-      "value": 512
-    },
-    {
-      "line": 19,
-      "path": "apps/siteconfig/models_feature_controls.py",
-      "snippet": "key = models.SlugField(max_length=120, unique=True)",
-      "value": 120
-    },
-    {
       "line": 20,
       "path": "apps/siteconfig/models_feature_controls.py",
       "snippet": "label = models.CharField(max_length=160)",
       "value": 160
-    },
-    {
-      "line": 25,
-      "path": "apps/siteconfig/models_feature_controls.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
-      "line": 112,
-      "path": "apps/siteconfig/models_feature_controls.py",
-      "snippet": "title = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 186,
-      "path": "apps/siteconfig/models_feature_controls.py",
-      "snippet": "subject = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 296,
-      "path": "apps/siteconfig/models_feature_controls.py",
-      "snippet": "name = models.CharField(max_length=120, blank=True, default=\"\")",
-      "value": 120
-    },
-    {
-      "line": 30,
-      "path": "apps/siteconfig/models_global_experience.py",
-      "snippet": "name = models.CharField(max_length=120, help_text=\"Template name\")",
-      "value": 120
-    },
-    {
-      "line": 73,
-      "path": "apps/siteconfig/models_global_experience.py",
-      "snippet": "tagline = models.CharField(max_length=255, blank=True)",
-      "value": 255
     },
     {
       "line": 77,
@@ -5945,46 +2644,10 @@
       "value": 160
     },
     {
-      "line": 79,
-      "path": "apps/siteconfig/models_global_experience.py",
-      "snippet": "portal_visual = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 80,
-      "path": "apps/siteconfig/models_global_experience.py",
-      "snippet": "email_template = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 81,
-      "path": "apps/siteconfig/models_global_experience.py",
-      "snippet": "pdf_template = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 82,
-      "path": "apps/siteconfig/models_global_experience.py",
-      "snippet": "certificate_template = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 196,
-      "path": "apps/siteconfig/models_global_experience.py",
-      "snippet": "city = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
       "line": 197,
       "path": "apps/siteconfig/models_global_experience.py",
       "snippet": "label = models.CharField(max_length=180, blank=True)",
       "value": 180
-    },
-    {
-      "line": 402,
-      "path": "apps/siteconfig/models_global_experience.py",
-      "snippet": "seo_title = models.CharField(max_length=120, blank=True)",
-      "value": 120
     },
     {
       "line": 403,
@@ -5993,208 +2656,10 @@
       "value": 320
     },
     {
-      "line": 428,
-      "path": "apps/siteconfig/models_global_experience.py",
-      "snippet": "country_name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 516,
-      "path": "apps/siteconfig/models_global_experience.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
-      "line": 544,
-      "path": "apps/siteconfig/models_global_experience.py",
-      "snippet": "max_length=120, unique=True, help_text=\"Unique code (e.g. subject-grade-topic).\"",
-      "value": 120
-    },
-    {
-      "line": 546,
-      "path": "apps/siteconfig/models_global_experience.py",
-      "snippet": "name = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 583,
-      "path": "apps/siteconfig/models_global_experience.py",
-      "snippet": "external_id = models.CharField(max_length=255, blank=True, db_index=True)",
-      "value": 255
-    },
-    {
-      "line": 21,
-      "path": "apps/siteconfig/models_marketing.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 66,
-      "path": "apps/siteconfig/models_marketing.py",
-      "snippet": "max_length=120, db_index=True, help_text=\"e.g. hero_subheadline, blog_intro\"",
-      "value": 120
-    },
-    {
-      "line": 89,
-      "path": "apps/siteconfig/models_marketing.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 90,
-      "path": "apps/siteconfig/models_marketing.py",
-      "snippet": "slug = models.SlugField(max_length=255, unique=True)",
-      "value": 255
-    },
-    {
       "line": 173,
       "path": "apps/siteconfig/models_platform_catalog.py",
       "snippet": "name = models.CharField(max_length=160)",
       "value": 160
-    },
-    {
-      "line": 340,
-      "path": "apps/siteconfig/models_platform_catalog.py",
-      "snippet": "name = models.CharField(max_length=120, help_text=\"Province/state name\")",
-      "value": 120
-    },
-    {
-      "line": 400,
-      "path": "apps/siteconfig/models_platform_catalog.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 405,
-      "path": "apps/siteconfig/models_platform_catalog.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 459,
-      "path": "apps/siteconfig/models_platform_catalog.py",
-      "snippet": "max_length=120, help_text=\"Plan name (e.g. Basic, Pro, Enterprise)\"",
-      "value": 120
-    },
-    {
-      "line": 566,
-      "path": "apps/siteconfig/models_platform_catalog.py",
-      "snippet": "resolution_note = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 586,
-      "path": "apps/siteconfig/models_platform_catalog.py",
-      "snippet": "name = models.CharField(max_length=120, help_text=\"Display name\")",
-      "value": 120
-    },
-    {
-      "line": 627,
-      "path": "apps/siteconfig/models_platform_catalog.py",
-      "snippet": "name = models.CharField(max_length=120, blank=True)",
-      "value": 120
-    },
-    {
-      "line": 851,
-      "path": "apps/siteconfig/models_platform_catalog.py",
-      "snippet": "client_id = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 853,
-      "path": "apps/siteconfig/models_platform_catalog.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 895,
-      "path": "apps/siteconfig/models_platform_catalog.py",
-      "snippet": "max_length=255,",
-      "value": 255
-    },
-    {
-      "line": 927,
-      "path": "apps/siteconfig/models_platform_catalog.py",
-      "snippet": "signature = models.CharField(max_length=255, blank=True)",
-      "value": 255
-    },
-    {
-      "line": 977,
-      "path": "apps/siteconfig/models_platform_catalog.py",
-      "snippet": "title = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 1029,
-      "path": "apps/siteconfig/models_platform_catalog.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 15,
-      "path": "apps/siteconfig/models_runtime_ops.py",
-      "snippet": "max_length=255, blank=True, help_text=\"e.g. user_id, school_id.\"",
-      "value": 255
-    },
-    {
-      "line": 54,
-      "path": "apps/siteconfig/models_runtime_ops.py",
-      "snippet": "subject = models.CharField(max_length=255)",
-      "value": 255
-    },
-    {
-      "line": 26,
-      "path": "apps/siteconfig/models_tooling.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 27,
-      "path": "apps/siteconfig/models_tooling.py",
-      "snippet": "slug = models.SlugField(max_length=120, unique=True)",
-      "value": 120
-    },
-    {
-      "line": 33,
-      "path": "apps/siteconfig/models_tooling.py",
-      "snippet": "max_length=120, default=\"Inter, system-ui, sans-serif\"",
-      "value": 120
-    },
-    {
-      "line": 178,
-      "path": "apps/siteconfig/models_tooling.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 401,
-      "path": "apps/siteconfig/models_tooling.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 443,
-      "path": "apps/siteconfig/models_tooling.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 503,
-      "path": "apps/siteconfig/models_tooling.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 506,
-      "path": "apps/siteconfig/models_tooling.py",
-      "snippet": "max_length=120,",
-      "value": 120
-    },
-    {
-      "line": 511,
-      "path": "apps/siteconfig/models_tooling.py",
-      "snippet": "max_length=120,",
-      "value": 120
     },
     {
       "line": 517,
@@ -6207,18 +2672,6 @@
       "path": "apps/siteconfig/models_tooling.py",
       "snippet": "validators=[MinValueValidator(20), MaxValueValidator(180)],",
       "value": 180
-    },
-    {
-      "line": 19,
-      "path": "apps/siteconfig/models_workflow.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
-    },
-    {
-      "line": 97,
-      "path": "apps/siteconfig/models_workflow.py",
-      "snippet": "name = models.CharField(max_length=120)",
-      "value": 120
     },
     {
       "line": 227,
@@ -6239,40 +2692,10 @@
       "value": 8192
     },
     {
-      "line": 97,
-      "path": "apps/siteconfig/student_id_service.py",
-      "snippet": "\"name\": (student_name or \"\")[:120],",
-      "value": 120
-    },
-    {
-      "line": 20,
-      "path": "apps/siteconfig/support_sla.py",
-      "snippet": "{\"URGENT\": 24, \"HIGH\": 48, \"NORMAL\": 72, \"LOW\": 120},",
-      "value": 120
-    },
-    {
-      "line": 139,
-      "path": "apps/siteconfig/support_ticket_hooks.py",
-      "snippet": "subj = f\"[RunMyCampus] New support ticket \u2014 {ticket.subject[:120]}\"",
-      "value": 120
-    },
-    {
-      "line": 174,
-      "path": "apps/siteconfig/support_ticket_hooks.py",
-      "snippet": "subj = f\"[Support {str(ticket.pk)[:8]}] {ticket.subject}\"[:255]",
-      "value": 255
-    },
-    {
       "line": 182,
       "path": "apps/siteconfig/support_ticket_hooks.py",
       "snippet": "f\"{ticket.body[:4000]}\"",
       "value": 4000
-    },
-    {
-      "line": 195,
-      "path": "apps/siteconfig/support_ticket_hooks.py",
-      "snippet": "body_push = f\"{school.name}: {ticket.subject[:120]}\"",
-      "value": 120
     },
     {
       "line": 298,
@@ -6329,24 +2752,6 @@
       "value": 800
     },
     {
-      "line": 91,
-      "path": "apps/siteconfig/utils/image_processor.py",
-      "snippet": "background = Image.new(\"RGB\", image.size, (255, 255, 255))",
-      "value": 255
-    },
-    {
-      "line": 91,
-      "path": "apps/siteconfig/utils/image_processor.py",
-      "snippet": "background = Image.new(\"RGB\", image.size, (255, 255, 255))",
-      "value": 255
-    },
-    {
-      "line": 91,
-      "path": "apps/siteconfig/utils/image_processor.py",
-      "snippet": "background = Image.new(\"RGB\", image.size, (255, 255, 255))",
-      "value": 255
-    },
-    {
       "line": 102,
       "path": "apps/siteconfig/utils/image_processor.py",
       "snippet": "max_width, max_height = ImageProcessor.MAX_SIZES.get(image_type, (800, 600))",
@@ -6383,22 +2788,10 @@
       "value": 150
     },
     {
-      "line": 1133,
-      "path": "apps/siteconfig/views.py",
-      "snippet": "\"school_size\": 120,",
-      "value": 120
-    },
-    {
       "line": 1331,
       "path": "apps/siteconfig/views.py",
       "snippet": "BULK_LETTER_BODY_MAX_LENGTH = 100_000",
       "value": 100000
-    },
-    {
-      "line": 1983,
-      "path": "apps/siteconfig/views.py",
-      "snippet": "field_updates[\"site_name\"] = result[\"site_name\"][:120]",
-      "value": 120
     },
     {
       "line": 2068,
@@ -6441,12 +2834,6 @@
       "path": "apps/siteconfig/views_feature_control.py",
       "snippet": "limit = _clamp_int(request.GET.get(\"limit\"), 220, minimum=10, maximum=500)",
       "value": 220
-    },
-    {
-      "line": 29,
-      "path": "apps/siteconfig/views_onboarding_coach.py",
-      "snippet": "quick.append({\"label\": label[:120], \"url\": url})",
-      "value": 120
     },
     {
       "line": 118,
@@ -6521,76 +2908,10 @@
       "value": 8192
     },
     {
-      "line": 38,
-      "path": "services/ai_schemas.py",
-      "snippet": "\"action\": str(s.get(\"action\", \"\"))[:256],",
-      "value": 256
-    },
-    {
-      "line": 39,
-      "path": "services/ai_schemas.py",
-      "snippet": "\"role\": str(s.get(\"role\", \"\"))[:128],",
-      "value": 128
-    },
-    {
-      "line": 43,
-      "path": "services/ai_schemas.py",
-      "snippet": "\"name\": str(name)[:256],",
-      "value": 256
-    },
-    {
       "line": 46,
       "path": "services/ai_schemas.py",
       "snippet": "\"description\": str(raw.get(\"description\", \"\"))[:1024],",
       "value": 1024
-    },
-    {
-      "line": 76,
-      "path": "services/ai_schemas.py",
-      "snippet": "\"field\": str(d.get(\"field\", \"\"))[:128],",
-      "value": 128
-    },
-    {
-      "line": 77,
-      "path": "services/ai_schemas.py",
-      "snippet": "\"current\": str(d.get(\"current\", \"\"))[:512],",
-      "value": 512
-    },
-    {
-      "line": 78,
-      "path": "services/ai_schemas.py",
-      "snippet": "\"proposed\": str(d.get(\"proposed\", \"\"))[:512],",
-      "value": 512
-    },
-    {
-      "line": 83,
-      "path": "services/ai_schemas.py",
-      "snippet": "out_warnings = [str(w)[:512] for w in warnings[:20] if isinstance(w, (str, int, float))]",
-      "value": 512
-    },
-    {
-      "line": 111,
-      "path": "services/ai_schemas.py",
-      "snippet": "\"source_field\": str(m.get(\"source_field\", \"\"))[:256],",
-      "value": 256
-    },
-    {
-      "line": 112,
-      "path": "services/ai_schemas.py",
-      "snippet": "\"target_field\": str(m.get(\"target_field\", \"\"))[:256],",
-      "value": 256
-    },
-    {
-      "line": 114,
-      "path": "services/ai_schemas.py",
-      "snippet": "\"notes\": str(m.get(\"notes\", \"\"))[:512],",
-      "value": 512
-    },
-    {
-      "line": 141,
-      "path": "services/ai_schemas.py",
-      "snippet": "\"category\": str(raw.get(\"category\", \"\"))[:128],",
-      "value": 128
     },
     {
       "line": 170,
@@ -6599,40 +2920,10 @@
       "value": 160
     },
     {
-      "line": 172,
-      "path": "services/ai_schemas.py",
-      "snippet": "\"description\": str(item.get(\"description\", \"\"))[:512],",
-      "value": 512
-    },
-    {
-      "line": 173,
-      "path": "services/ai_schemas.py",
-      "snippet": "\"rationale\": str(item.get(\"rationale\", \"\"))[:512],",
-      "value": 512
-    },
-    {
-      "line": 174,
-      "path": "services/ai_schemas.py",
-      "snippet": "\"fit\": str(item.get(\"fit\", \"\"))[:256],",
-      "value": 256
-    },
-    {
-      "line": 177,
-      "path": "services/ai_schemas.py",
-      "snippet": "text = str(item)[:256]",
-      "value": 256
-    },
-    {
       "line": 187,
       "path": "services/ai_schemas.py",
       "snippet": "\"rationale\": str(raw.get(\"rationale\", \"\"))[:1024],",
       "value": 1024
-    },
-    {
-      "line": 222,
-      "path": "services/ai_schemas.py",
-      "snippet": "\"components\": [str(component)[:128] for component in components[:20] if isinstance(component, (str, int, float))],",
-      "value": 128
     },
     {
       "line": 241,
@@ -6653,28 +2944,10 @@
       "value": 4000
     },
     {
-      "line": 288,
-      "path": "services/ai_schemas.py",
-      "snippet": "\"title\": str(a.get(\"title\", \"\"))[:256],",
-      "value": 256
-    },
-    {
       "line": 289,
       "path": "services/ai_schemas.py",
       "snippet": "\"detail\": str(a.get(\"detail\", \"\"))[:1500],",
       "value": 1500
-    },
-    {
-      "line": 294,
-      "path": "services/ai_schemas.py",
-      "snippet": "cautions = [str(c)[:512] for c in cautions_in[:15] if isinstance(c, (str, int, float))]",
-      "value": 512
-    },
-    {
-      "line": 298,
-      "path": "services/ai_schemas.py",
-      "snippet": "references = [str(r)[:512] for r in refs_in[:15] if isinstance(r, (str, int, float))]",
-      "value": 512
     },
     {
       "line": 22,
@@ -6719,7 +2992,7 @@
       "value": 1500
     }
   ],
-  "generated_at": "2026-05-15T20:51:08+00:00",
+  "generated_at": "2026-05-15T21:08:47+00:00",
   "rule": "Integer literals with abs(value) >= 100 in production code should route through the 7-layer configurability contract (RuntimeDefaults / constants.py / SiteSettings)",
   "scan_dirs": [
     "apps",

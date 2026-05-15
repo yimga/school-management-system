@@ -385,3 +385,117 @@
   color: rgba(26, 22, 18, 0.85);
   font-weight: 500;
 }
+
+/* ========================================================================== */
+/* DARK MODE — v2.47 (2026-05-15)                                              */
+/* ========================================================================== */
+/*
+ * The rules above were authored assuming light content on dark chrome. When
+ * data-theme="dark" wins (either via the SSR default or the user picking Dark
+ * in the Appearance toggle), the same selectors painted cards #ffffff on a
+ * warm-cocoa body — producing the light-island-on-dark-bg collage the user
+ * flagged. This block re-paints the SAME surfaces with the warm-bright dark
+ * token palette so every card / panel / metric becomes a coherent dark layer.
+ *
+ * Specificity is matched by repeating each selector with [data-theme="dark"]
+ * scope; no !important needed.
+ */
+
+[data-theme="dark"] #cp-main-content {
+  background-color: var(--surface-bg, #1a1612);
+  color: var(--text-primary, #f5efe3);
+}
+
+[data-theme="dark"] #cp-main-content .card,
+[data-theme="dark"] #cp-main-content .rmc-zero-click,
+[data-theme="dark"] #cp-main-content .rmc-os-page-header,
+[data-theme="dark"] #cp-main-content .rmc-wcx-surface,
+[data-theme="dark"] #cp-main-content .rmc-acx-glass-panel,
+[data-theme="dark"] #cp-main-content .rmc-acx-metric-card,
+[data-theme="dark"] #cp-main-content .rmc-acx-drawer,
+[data-theme="dark"] #cp-main-content .studio-os__card {
+  background-color: var(--surface-elevated, #2c241d);
+  border-color: var(--hairline-strong, rgba(245, 220, 180, 0.18));
+  color: var(--text-primary, #f5efe3);
+}
+
+[data-theme="dark"] #cp-main-content .card-header {
+  background-color: rgba(245, 220, 180, 0.04);
+  border-bottom-color: var(--hairline, rgba(245, 220, 180, 0.10));
+  color: var(--text-primary, #f5efe3);
+}
+
+[data-theme="dark"] .studio-os__toolbar {
+  background: rgba(44, 36, 29, 0.75);
+  border-color: var(--hairline, rgba(245, 220, 180, 0.10));
+  color: var(--text-primary, #f5efe3);
+}
+
+[data-theme="dark"] .studio-os__page-title {
+  color: var(--text-primary, #f5efe3);
+}
+
+[data-theme="dark"] .studio-os__toolbar .form-control-sm,
+[data-theme="dark"] .studio-os__toolbar .btn-sm {
+  border-color: var(--hairline-strong, rgba(245, 220, 180, 0.18));
+  background: rgba(245, 220, 180, 0.04);
+  color: var(--text-primary, #f5efe3);
+}
+
+[data-theme="dark"] #cp-main-content .studio-os__rail {
+  background: var(--surface-canvas, #241e18);
+  border-color: var(--hairline, rgba(245, 220, 180, 0.10));
+}
+
+[data-theme="dark"] #cp-main-content .studio-os__rail .studio-os__home,
+[data-theme="dark"] #cp-main-content #studio-rail-label {
+  color: var(--text-tertiary, #a8a092);
+}
+
+[data-theme="dark"] #cp-main-content .studio-os__rail a {
+  color: var(--text-secondary, #d9d0c2);
+}
+
+[data-theme="dark"] #cp-main-content .studio-os__rail a:hover {
+  background: rgba(245, 220, 180, 0.08);
+  color: var(--text-primary, #f5efe3);
+}
+
+/* Page header eyebrows / labels in dark mode */
+[data-theme="dark"] #cp-main-content .rmc-os-page-header .text-uppercase {
+  color: var(--text-tertiary, #a8a092) !important;
+}
+
+[data-theme="dark"] #cp-main-content .rmc-os-page-header__title {
+  color: var(--text-primary, #f5efe3) !important;
+}
+
+/* Breadcrumb text — warm cream instead of dark slate */
+[data-theme="dark"] #cp-main-content .breadcrumb .breadcrumb-item,
+[data-theme="dark"] #cp-main-content .breadcrumb .breadcrumb-item a {
+  color: var(--text-tertiary, #a8a092);
+}
+
+[data-theme="dark"] #cp-main-content .breadcrumb .breadcrumb-item.active {
+  color: var(--text-primary, #f5efe3);
+}
+
+[data-theme="dark"] #cp-main-content .breadcrumb .breadcrumb-item a:hover {
+  color: var(--school-primary, var(--accent-honey, #c47f1c));
+}
+
+/* The risk-drawer component renders inline as a card; in dark mode its
+ * accent stripe + body needs warm honey accent + warm cream text. */
+[data-theme="dark"] #cp-main-content .rmc-acx-drawer {
+  border-left-color: var(--school-primary, var(--accent-honey, #c47f1c));
+}
+
+[data-theme="dark"] #cp-main-content .rmc-acx-layer-label,
+[data-theme="dark"] #cp-main-content .rmc-acx-metric-card__label,
+[data-theme="dark"] #cp-main-content .rmc-acx-metric-card__meta {
+  color: var(--text-tertiary, #a8a092);
+}
+
+[data-theme="dark"] #cp-main-content .rmc-acx-metric-card__value {
+  color: var(--text-primary, #f5efe3);
+}

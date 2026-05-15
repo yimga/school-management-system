@@ -111,6 +111,29 @@
           </button>
         </div>
       </li>
+
+      {% comment %} v2.47 (2026-05-15): aesthetic-profile picker — per-user override of the
+         tenant default. Writes to localStorage["runmycampus-aesthetic-preference"] and
+         fires rmc:aesthetic-change; theme-preference-bootstrap.js re-projects
+         data-rmc-aesthetic + --site-aesthetic-* on <html> live. {% endcomment %}
+      <li class="rmc-aesthetic-toggle-row px-3 py-2" role="group" aria-label="{% trans 'Aesthetic' %}">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+          <span class="small text-muted"><i class="bi bi-palette me-1"></i>{% trans "Aesthetic" %}</span>
+          <span class="small text-tertiary" data-rmc-aesthetic-current aria-live="polite"></span>
+        </div>
+        <div class="btn-group btn-group-sm w-100" role="group">
+          <button type="button" class="btn btn-outline-secondary rmc-aesthetic-btn" data-rmc-aesthetic="warm-bright" aria-pressed="false" title="{% trans 'Warm Bright — buttermilk + honey, welcoming school feel' %}">
+            <i class="bi bi-sun-fill" aria-hidden="true"></i><span class="visually-hidden">{% trans "Warm Bright" %}</span>
+          </button>
+          <button type="button" class="btn btn-outline-secondary rmc-aesthetic-btn" data-rmc-aesthetic="cool-apple" aria-pressed="false" title="{% trans 'Cool Apple — slate + indigo, quiet-luxury SaaS' %}">
+            <i class="bi bi-apple" aria-hidden="true"></i><span class="visually-hidden">{% trans "Cool Apple" %}</span>
+          </button>
+          <button type="button" class="btn btn-outline-secondary rmc-aesthetic-btn" data-rmc-aesthetic="stone" aria-pressed="false" title="{% trans 'Stone — warm gray, neutral editorial' %}">
+            <i class="bi bi-circle-square" aria-hidden="true"></i><span class="visually-hidden">{% trans "Stone" %}</span>
+          </button>
+        </div>
+      </li>
+
       <li><hr class="dropdown-divider"></li>
 
       <li>

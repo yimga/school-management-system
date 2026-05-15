@@ -96,8 +96,15 @@
        The CSS layer (rmc-warm-bright-school.css) consumes these via
        var(--site-aesthetic-surface-bg, <profile-default>) so tenant
        overrides always win, blank fields fall back to the platform default. */
+    /* v2.47 (2026-05-15): per-user aesthetic override. Read localStorage first
+       so a user picking "Cool Apple" or "Stone" in the Appearance dropdown can
+       override the tenant default. Falls back to the meta-tag value (which is
+       the tenant SiteSettings or platform default). */
+    var userAestheticPref = null;
+    try { userAestheticPref = localStorage.getItem("runmycampus-aesthetic-preference"); } catch (_) { /* private mode */ }
     var aestheticMeta = document.querySelector('meta[name="rmc-aesthetic-profile"]');
-    var profile = (aestheticMeta && (aestheticMeta.getAttribute("content") || "").trim().toLowerCase()) || "warm-bright";
+    var metaProfile = (aestheticMeta && (aestheticMeta.getAttribute("content") || "").trim().toLowerCase()) || "warm-bright";
+    var profile = (userAestheticPref || metaProfile).toLowerCase();
     if (profile !== "warm-bright" && profile !== "cool-apple" && profile !== "stone") {
       profile = "warm-bright";
     }
@@ -153,6 +160,18 @@
   });
   window.addEventListener("rmc:theme-change", function () {
     apply(readPreference());
+  });
+
+  /* v2.47 (2026-05-15): aesthetic-profile picker. The button group in
+     user_dropdown.html writes to localStorage["runmycampus-aesthetic-preference"]
+     and fires rmc:aesthetic-change so the cascade re-applies without a reload. */
+  window.addEventListener("rmc:aesthetic-change", function () {
+    applyNeutralPalette();
+  });
+  window.addEventListener("storage", function (e) {
+    if (e.key === "runmycampus-aesthetic-preference") {
+      applyNeutralPalette();
+    }
   });
 
   /* Server sync — fire-and-forget POST to persist preference across devices.

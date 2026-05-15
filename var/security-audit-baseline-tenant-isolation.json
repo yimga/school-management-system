@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-15T09:03:56.441909+00:00",
+  "generated_at": "2026-05-15T21:10:31.976137+00:00",
   "tenant_scoped_models": [
     "AIEmbeddingStore",
     "APIKey",
@@ -75,10 +75,13 @@
     "EventWebhookSubscription",
     "ExportJob",
     "FeatureFragment",
+    "FeatureRequest",
     "FeatureToggleState",
     "FeatureUsageEvent",
     "FeePlan",
     "FeedItem",
+    "FeedbackSubmission",
+    "FeedbackVote",
     "FerpaDisclosure",
     "FinancialAidApplication",
     "ForecastScenario",
@@ -163,6 +166,7 @@
     "Subject",
     "SubjectAssignment",
     "SubstituteCover",
+    "SurveyResponse",
     "SyncConflict",
     "TeacherAssignment",
     "TeacherProfile",
@@ -198,8 +202,8 @@
     "WorkflowFailureEvent",
     "WorkflowPackAssignment"
   ],
-  "tenant_model_count": 196,
-  "finding_count": 741,
+  "tenant_model_count": 200,
+  "finding_count": 742,
   "findings_per_app": {
     "evals": 118,
     "portal": 80,
@@ -221,6 +225,7 @@
     "apicenter": 8,
     "dashboard": 8,
     "student360": 2,
+    "feedback": 1,
     "metadata": 1
   },
   "findings": [
@@ -394,7 +399,7 @@
     },
     {
       "file": "apps/academics/scheduling_solver.py",
-      "line": 58,
+      "line": 67,
       "model": "SubjectAssignment",
       "method": "filter",
       "call": "SubjectAssignment.objects.filter(...)",
@@ -402,7 +407,7 @@
     },
     {
       "file": "apps/academics/scheduling_solver.py",
-      "line": 64,
+      "line": 73,
       "model": "TeacherAssignment",
       "method": "filter",
       "call": "TeacherAssignment.objects.filter(...)",
@@ -610,7 +615,7 @@
     },
     {
       "file": "apps/accounts/permissions.py",
-      "line": 835,
+      "line": 879,
       "model": "StudentProfile",
       "method": "get",
       "call": "StudentProfile.objects.get(...)",
@@ -618,7 +623,7 @@
     },
     {
       "file": "apps/accounts/permissions.py",
-      "line": 845,
+      "line": 889,
       "model": "TeacherAssignment",
       "method": "filter",
       "call": "TeacherAssignment.objects.filter(...)",
@@ -626,7 +631,7 @@
     },
     {
       "file": "apps/accounts/permissions.py",
-      "line": 900,
+      "line": 944,
       "model": "StudentProfile",
       "method": "get",
       "call": "StudentProfile.objects.get(...)",
@@ -634,7 +639,7 @@
     },
     {
       "file": "apps/accounts/permissions.py",
-      "line": 909,
+      "line": 953,
       "model": "TeacherAssignment",
       "method": "filter",
       "call": "TeacherAssignment.objects.filter(...)",
@@ -642,7 +647,7 @@
     },
     {
       "file": "apps/accounts/permissions.py",
-      "line": 961,
+      "line": 1005,
       "model": "Invoice",
       "method": "get",
       "call": "Invoice.objects.get(...)",
@@ -3358,6 +3363,14 @@
       "model": "Classroom",
       "method": "filter",
       "call": "Classroom.objects.filter(...)",
+      "reason": "no_school_filter"
+    },
+    {
+      "file": "apps/feedback/services.py",
+      "line": 371,
+      "model": "FeedbackSubmission",
+      "method": "filter",
+      "call": "FeedbackSubmission.objects.filter(...)",
       "reason": "no_school_filter"
     },
     {

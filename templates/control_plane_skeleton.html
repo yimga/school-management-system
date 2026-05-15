@@ -1,12 +1,15 @@
 {% load i18n static %}
 <!doctype html>
-<html lang="{{ rmc_locale|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-regional-ui="1" data-theme="dark" data-bs-theme="dark" data-surface="control-plane" data-rmc-shell-root="control-plane-skeleton" data-shell-layout="control-plane"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+<html lang="{{ rmc_locale|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-regional-ui="1" data-theme="light" data-bs-theme="light" data-surface="control-plane" data-rmc-shell-root="control-plane-skeleton" data-shell-layout="control-plane"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     {% include "partials/rmc_theme_meta.html" %}
     {% comment %} Theme bootstrap must run before paint to avoid flash-of-wrong-theme.
-       Control plane defaults to dark but respects the user's Light/Dark/System pref. {% endcomment %}
+       v2.47 (2026-05-15): Control plane defaults to LIGHT — manager-aesthetic-polish.css
+       was authored for light content over dark chrome (sidebar/navbar stay dark in both
+       modes). The Appearance toggle in the user dropdown lets operators pick Dark or
+       System; theme-preference-bootstrap.js overrides this SSR default at runtime. {% endcomment %}
     {% include "partials/rmc_social_meta.html" %}
     <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
     <script src="{% static 'js/rmc-lexicon.js' %}" defer></script>
@@ -78,6 +81,8 @@
       <script src="{% static 'js/rmc-avatar-seed.js' %}" defer></script>
       <script src="{% static 'js/rmc-form-dirty.js' %}" defer></script>
       <script src="{% static 'js/rmc-autosubmit.js' %}" defer></script>
+      {# v2.47: inline drawer collapse/expand toggle. #}
+      <script src="{% static 'js/rmc-acx-drawer-toggle.js' %}" defer></script>
       <script src="{% static 'js/rmc-haptics.js' %}" defer></script>
     {% endif %}
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>

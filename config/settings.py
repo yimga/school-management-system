@@ -331,6 +331,23 @@ CSP_ENFORCE = os.getenv("CSP_ENFORCE", "0") == "1"
 # Flip only after `manage.py verify_data_residency --fix-derive` is clean
 # AND at least one region replica is provisioned in DATABASES.
 DATA_RESIDENCY_ENFORCE = os.getenv("DATA_RESIDENCY_ENFORCE", "0") == "1"
+
+# Wave K3 — at-risk ML artifact: where the predictor loads its joblib bundle.
+# Resolution order in `apps.analytics.ml.at_risk_model`:
+#   1. settings.AT_RISK_MODEL_PATH (here) — explicit override wins.
+#   2. AT_RISK_MODEL_PATH env var.
+#   3. Auto-discovered baseline at AT_RISK_MODEL_DIR/at_risk_v1.joblib if it exists.
+# When none resolve, the heuristic baseline ships predictions instead.
+AT_RISK_MODEL_DIR = os.getenv(
+    "AT_RISK_MODEL_DIR", str(BASE_DIR / "var" / "at_risk")
+)
+_at_risk_explicit = os.getenv("AT_RISK_MODEL_PATH", "").strip()
+if _at_risk_explicit:
+    AT_RISK_MODEL_PATH = _at_risk_explicit
+else:
+    _auto_artifact = os.path.join(AT_RISK_MODEL_DIR, "at_risk_v1.joblib")
+    AT_RISK_MODEL_PATH = _auto_artifact if os.path.exists(_auto_artifact) else ""
+
 CSP_REPORT_URI = os.getenv("CSP_REPORT_URI", "/security/csp-report/")
 
 ROOT_URLCONF = "config.urls"
@@ -504,6 +521,41 @@ if PREVIEW_DATABASE_URL and not (
     DATABASES["preview"] = _preview_db
 else:
     DATABASES["preview"] = DATABASES["default"].copy()
+
+# Wave K4 — data residency replica registration (env-driven).
+#
+# Operators provision a region replica without code edits by exporting
+# env vars of the form ``DATA_RESIDENCY_REPLICA_<REGION>=<DATABASE_URL>``.
+# Each one registers a ``replica_<region>`` alias in DATABASES that
+# downstream routers / verification commands can target.
+#
+# Examples:
+#   DATA_RESIDENCY_REPLICA_EU_CENTRAL=postgres://user:pw@eu-host/db
+#   DATA_RESIDENCY_REPLICA_UK=postgres://user:pw@uk-host/db
+#
+# Skipped during tests so the SQLite test runner doesn't try to mount
+# unreachable Postgres replicas in CI.
+DATA_RESIDENCY_REPLICA_ALIASES: dict[str, str] = {}
+if not RUNNING_TESTS:
+    _PREFIX = "DATA_RESIDENCY_REPLICA_"
+    for _env_key, _env_val in os.environ.items():
+        if not _env_key.startswith(_PREFIX):
+            continue
+        _region = _env_key[len(_PREFIX):].strip().lower()
+        _url = (_env_val or "").strip()
+        if not _region or not _url:
+            continue
+        _alias = f"replica_{_region}"
+        try:
+            _replica_db = dj_database_url.config(
+                default=_url, conn_max_age=600, ssl_require=not DEBUG
+            )
+        except Exception:  # noqa: BLE001 — bad URL: skip, don't crash boot
+            continue
+        if not _replica_db.get("ENGINE"):
+            _replica_db["ENGINE"] = "django.db.backends.postgresql"
+        DATABASES[_alias] = _replica_db
+        DATA_RESIDENCY_REPLICA_ALIASES[_region] = _alias
 
 # When running tests with SQLite and preview is a copy of default, use only default
 # to avoid Django cloning the test DB and re-running migrations (duplicate column errors).

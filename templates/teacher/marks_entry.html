@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load evals_extras static region_format i18n %}
+{% load evals_extras static region_format i18n terminology_tags %}
 {% block title %}Enter Marks{% endblock %}
 
 {% block content %}
@@ -34,7 +34,7 @@
 
 <form method="get" class="card mb-3" data-rmc-autosubmit="1">
   <div class="card-body">
-    <label class="form-label"><b>Select your assigned class/subject</b></label>
+    <label class="form-label"><b>Select your assigned {% term_lower "class" %}/subject</b></label>
     <div class="d-flex gap-2">
       <select class="form-select" name="subject_assignment_id" required {% if locked %}disabled{% endif %}>
         <option value="">-- choose --</option>
@@ -47,7 +47,7 @@
           </option>
         {% endfor %}
       </select>
-      <button class="btn btn-primary" type="submit" {% if locked %}disabled{% endif %} data-action="marks-load-roster" data-task-step="marks:filter-class" data-rmc-autosubmit-hide-when-js>Load Students</button>
+      <button class="btn btn-primary" type="submit" {% if locked %}disabled{% endif %} data-action="marks-load-roster" data-task-step="marks:filter-class" data-rmc-autosubmit-hide-when-js>Load {% term "student" plural=True capitalize=True %}</button>
     </div>
   </div>
 </form>
