@@ -13,7 +13,7 @@
   <a class="btn btn-outline-secondary btn-back-outline" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to Backend" %}</a>
 </div>
 
-<form method="get" class="card mb-3">
+<form method="get" class="card mb-3" data-rmc-autosubmit="1">
   <div class="card-body">
     <div class="row g-2 align-items-end">
       <div class="col-md-3">
@@ -41,7 +41,7 @@
         </select>
       </div>
       <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100">View</button>
+        <button type="submit" class="btn btn-primary w-100" data-rmc-autosubmit-hide-when-js>View</button>
       </div>
     </div>
   </div>

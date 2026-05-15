@@ -6719,7 +6719,7 @@
       "value": 1500
     }
   ],
-  "generated_at": "2026-05-15T18:00:01+00:00",
+  "generated_at": "2026-05-15T20:51:08+00:00",
   "rule": "Integer literals with abs(value) >= 100 in production code should route through the 7-layer configurability contract (RuntimeDefaults / constants.py / SiteSettings)",
   "scan_dirs": [
     "apps",

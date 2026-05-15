@@ -8,7 +8,25 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 
-import apps.people.models
+
+def _people_tenant_upload_to(subpath):
+    """Tenant-prefixed upload_to for models with school_id (Section 25.3).
+
+    Inlined from ``apps.people.models._people_tenant_upload_to`` for migration
+    historical-state safety.
+    """
+
+    def upload_to(instance, filename):
+        school_id = getattr(instance, "school_id", None) or (
+            getattr(getattr(instance, "school", None), "pk", None)
+            if getattr(instance, "school", None)
+            else None
+        )
+        if school_id is None:
+            return f"tenant_uploads/people/{subpath}/{filename}"
+        return f"tenants/{school_id}/people/{subpath}/{filename}"
+
+    return upload_to
 
 
 class Migration(migrations.Migration):
@@ -55,7 +73,7 @@ class Migration(migrations.Migration):
                 ("plan_document", models.FileField(
                     blank=True,
                     null=True,
-                    upload_to=apps.people.models._people_tenant_upload_to("special_education_plans"),
+                    upload_to=_people_tenant_upload_to("special_education_plans"),
                 )),
                 ("parent_consent_on_file", models.BooleanField(default=False)),
                 ("notes", models.TextField(blank=True)),

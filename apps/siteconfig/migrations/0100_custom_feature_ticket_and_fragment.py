@@ -1,9 +1,35 @@
 # Security Powerhouse & Request-to-Feature: CustomFeatureTicket, FeatureFragment only
 
-import apps.siteconfig.models
 import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
+
+
+def _tenant_upload_to(subpath):
+    """Return an upload_to callable that prefixes path with tenants/{school_id}/.
+
+    Inlined from ``apps.siteconfig.models._tenant_upload_to`` for migration
+    historical-state safety.
+    """
+
+    def upload_to(instance, filename):
+        school_id = getattr(instance, "school_id", None)
+        if school_id is None and getattr(instance, "school", None):
+            school_id = getattr(instance.school, "pk", None)
+        if school_id is None:
+            return f"tenant_uploads/{subpath}/{filename}"
+        return f"tenants/{school_id}/{subpath}/{filename}"
+
+    return upload_to
+
+
+def tenant_upload_to_waiver_requests(instance, filename):
+    """Serializable upload_to for WaiverRequest.proof_file.
+
+    Inlined from ``apps.siteconfig.models.tenant_upload_to_waiver_requests`` for
+    migration historical-state safety.
+    """
+    return _tenant_upload_to("waiver_requests")(instance, filename)
 
 
 class Migration(migrations.Migration):
@@ -133,7 +159,7 @@ class Migration(migrations.Migration):
             field=models.FileField(
                 blank=True,
                 help_text="Proof of NGO / non-profit status",
-                upload_to=apps.siteconfig.models.tenant_upload_to_waiver_requests,
+                upload_to=tenant_upload_to_waiver_requests,
             ),
         ),
         migrations.AddIndex(

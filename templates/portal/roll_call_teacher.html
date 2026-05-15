@@ -7,13 +7,13 @@
   {% include "widgets/dashboard_hero.html" with hero=hero %}
   <div class="card mb-3">
     <div class="card-body">
-      <form method="get" action="{% url 'portal:record_teacher_attendance' %}" class="row g-2 align-items-end mb-3">
+      <form method="get" action="{% url 'portal:record_teacher_attendance' %}" class="row g-2 align-items-end mb-3" data-rmc-autosubmit="1">
         <div class="col-auto">
           <label class="form-label small mb-0">Date</label>
           <input type="date" name="date" class="form-control" value="{{ date_value }}">
         </div>
         <div class="col-auto">
-          <button type="submit" class="btn btn-primary">Load</button>
+          <button type="submit" class="btn btn-primary" data-rmc-autosubmit-hide-when-js>Load</button>
         </div>
       </form>
       {% if teachers_with_status %}

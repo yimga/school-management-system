@@ -12,7 +12,7 @@
   <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:backend_dashboard' %}">{% trans "Back to Backend" %}</a>
 </div>
 
-<form method="get" class="row g-2 align-items-end mb-4">
+<form method="get" class="row g-2 align-items-end mb-4" data-rmc-autosubmit="1">
   <div class="col-md-4">
     <label class="form-label small mb-1">Filter by status</label>
     <select name="status" class="form-select">
@@ -22,7 +22,7 @@
     </select>
   </div>
   <div class="col-auto">
-    <button class="btn btn-primary" type="submit">Apply</button>
+    <button class="btn btn-primary" type="submit" data-rmc-autosubmit-hide-when-js>Apply</button>
   </div>
 </form>
 

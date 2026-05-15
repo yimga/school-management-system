@@ -32,7 +32,7 @@
   </div>
 {% endif %}
 
-<form method="get" class="card mb-3">
+<form method="get" class="card mb-3" data-rmc-autosubmit="1">
   <div class="card-body">
     <label class="form-label"><b>Select your assigned class/subject</b></label>
     <div class="d-flex gap-2">
@@ -47,7 +47,7 @@
           </option>
         {% endfor %}
       </select>
-      <button class="btn btn-primary" type="submit" {% if locked %}disabled{% endif %} data-action="marks-load-roster" data-task-step="marks:filter-class">Load Students</button>
+      <button class="btn btn-primary" type="submit" {% if locked %}disabled{% endif %} data-action="marks-load-roster" data-task-step="marks:filter-class" data-rmc-autosubmit-hide-when-js>Load Students</button>
     </div>
   </div>
 </form>

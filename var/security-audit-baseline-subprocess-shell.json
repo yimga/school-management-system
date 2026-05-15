@@ -2,7 +2,7 @@
   "allow_marker": "shell-true-allow:",
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-05-15T08:50:31+00:00",
+  "generated_at": "2026-05-15T20:51:03+00:00",
   "rule": "subprocess(..., shell=True) and os.system() are command-injection risks; use list-of-args form",
   "scan_dirs": [
     "apps",

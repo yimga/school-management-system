@@ -26,7 +26,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <form method="get" class="form-inline">
+                    <form method="get" class="form-inline" data-rmc-autosubmit="1">
                         <label class="mr-2">Filter by Status:</label>
                         <select name="status" class="form-control mr-3">
                             <option value="">All Jobs</option>
@@ -39,7 +39,7 @@
                         <input type="date" name="from_date" class="form-control mr-2" value="{{ from_date }}" placeholder="From">
                         <input type="date" name="to_date" class="form-control mr-2" value="{{ to_date }}" placeholder="To">
                         
-                        <button type="submit" class="btn btn-info">Filter</button>
+                        <button type="submit" class="btn btn-info" data-rmc-autosubmit-hide-when-js>Filter</button>
                     </form>
                 </div>
             </div>

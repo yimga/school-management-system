@@ -2,13 +2,13 @@
 """Detect CSS class names referenced in templates that have no corresponding
 CSS rule anywhere in the project.
 
-Caught `content-max-960` (referenced 25x, never defined → silent layout bug).
+Caught `content-max-960` (referenced 25x, never defined -> silent layout bug).
 
 Strategy:
-  1. Parse every project CSS file → extract every selector that contains a
+  1. Parse every project CSS file -> extract every selector that contains a
      class fragment (`.foo` patterns inside selectors, including
      `.foo[attr]`, `.foo.bar`, `.foo > .bar`, etc.).
-  2. Parse every template `class="..."` attribute → extract class tokens.
+  2. Parse every template `class="..."` attribute -> extract class tokens.
   3. Allow Bootstrap utility classes (`d-flex`, `mt-2`, `col-lg-*`, `row`,
      `nav-*`, etc.) since those live in the vendored bootstrap stylesheet.
   4. Allow JS-generated classes by sniffing `static/js/**/*.js` for class

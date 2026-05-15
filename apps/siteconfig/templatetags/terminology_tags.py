@@ -44,8 +44,25 @@ def _school_from_context(context: dict[str, Any], explicit: Any = None):
 # --- Generic Wave A surface ------------------------------------------------
 
 
+def _classroom_from_context(context: dict[str, Any], explicit: Any = None):
+    """Resolve the classroom for lexicon scoping (Wave K1).
+
+    Order: explicit ``classroom=`` arg → ``request.classroom`` → context
+    ``classroom`` var. Returns ``None`` when no classroom is in scope —
+    the resolver gracefully ignores ``None``.
+    """
+    if explicit is not None:
+        return explicit
+    req = context.get("request")
+    if req is not None:
+        cls = getattr(req, "classroom", None)
+        if cls is not None:
+            return cls
+    return context.get("classroom")
+
+
 @register.simple_tag(takes_context=True)
-def term(context, key, plural=False, school=None, capitalize=False):
+def term(context, key, plural=False, school=None, capitalize=False, classroom=None):
     """Resolve any canonical lexicon key for the current tenant.
 
     Usage:
@@ -53,24 +70,35 @@ def term(context, key, plural=False, school=None, capitalize=False):
         {% term "student" plural=True %}      -> "Students"
         {% term "class" capitalize=True %}    -> "Class"
         {% term "grade" school=other_school %}
+        {% term "student" classroom=cohort %} -> classroom-level override (Wave K1)
 
     ``capitalize=True`` is a render-time convenience; the stored override
     decides the underlying case.
     """
     from apps.siteconfig.terminology_service import resolve_term
 
-    value = resolve_term(_school_from_context(context, school), str(key), plural=bool(plural))
+    value = resolve_term(
+        _school_from_context(context, school),
+        str(key),
+        plural=bool(plural),
+        classroom=_classroom_from_context(context, classroom),
+    )
     if capitalize and value:
         return value[:1].upper() + value[1:]
     return value
 
 
 @register.simple_tag(takes_context=True)
-def term_lower(context, key, plural=False, school=None):
+def term_lower(context, key, plural=False, school=None, classroom=None):
     """Lowercase form of the resolved term (for mid-sentence use)."""
     from apps.siteconfig.terminology_service import resolve_term
 
-    value = resolve_term(_school_from_context(context, school), str(key), plural=bool(plural))
+    value = resolve_term(
+        _school_from_context(context, school),
+        str(key),
+        plural=bool(plural),
+        classroom=_classroom_from_context(context, classroom),
+    )
     return value.lower() if value else value
 
 

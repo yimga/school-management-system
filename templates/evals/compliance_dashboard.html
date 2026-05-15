@@ -55,7 +55,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <form method="get" class="form-inline">
+                    <form method="get" class="form-inline" data-rmc-autosubmit="1">
                         <label class="mr-2">Filter by Status:</label>
                         <select name="status" class="form-control mr-2">
                             <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
@@ -63,7 +63,7 @@
                             <option value="at_risk" {% if status_filter == 'at_risk' %}selected{% endif %}>At Risk</option>
                             <option value="overdue" {% if status_filter == 'overdue' %}selected{% endif %}>Overdue</option>
                         </select>
-                        <button type="submit" class="btn btn-primary">Filter</button>
+                        <button type="submit" class="btn btn-primary" data-rmc-autosubmit-hide-when-js>Filter</button>
                     </form>
                 </div>
             </div>

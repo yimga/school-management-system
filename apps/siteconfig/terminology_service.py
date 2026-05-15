@@ -2,6 +2,7 @@
 
 Cascade (most-specific wins):
 
+    0. Classroom override       Classroom.settings["terminology"][key]   (Wave K1, optional)
     1. School override          School.settings["terminology"][key]
     2. District / ancestors     walk School.parent_school chain
     3. Curriculum template      School.settings["curriculum_template_key"]
@@ -144,20 +145,34 @@ def _apply_overlay(merged: dict[str, dict[str, str]], src: object) -> None:
         slot.update(norm)
 
 
-def _build_full_overlay(school: Any) -> dict[str, dict[str, str]]:
+def _classroom_overrides(classroom: Any) -> dict[str, Any]:
+    """Return ``Classroom.settings["terminology"]`` if present and dict-shaped."""
+    if classroom is None:
+        return {}
+    raw = getattr(classroom, "settings", None)
+    if not isinstance(raw, dict):
+        return {}
+    terms = raw.get("terminology")
+    return terms if isinstance(terms, dict) else {}
+
+
+def _build_full_overlay(school: Any, classroom: Any = None) -> dict[str, dict[str, str]]:
     """Apply the cascade and return ``{key: {"singular"?:..., "plural"?:...}}``.
 
     Slots are **sparse** — a key is present only if some layer contributed
     to it. Callers (`resolve_term`, `resolve_all_terms`, `lexicon_payload`)
     fill in registry defaults at lookup time. This keeps plural derivation
     honest when an override sets only the singular.
+
+    When ``classroom`` is supplied, ``Classroom.settings["terminology"]``
+    applies as the **most-specific** layer (overrides the school's own).
     """
     merged: dict[str, dict[str, str]] = {}
 
-    if school is None:
+    if school is None and classroom is None:
         return merged
 
-    raw = _school_settings_dict(school)
+    raw = _school_settings_dict(school) if school is not None else {}
 
     # Layer 2: country overlay
     country_code = getattr(school, "country_code", "") or ""
@@ -171,11 +186,15 @@ def _build_full_overlay(school: Any) -> dict[str, dict[str, str]]:
         _apply_overlay(merged, tmpl_map)
 
     # Layer 4: ancestor schools (district / group)
-    for ancestor_terms in _ancestor_overrides(school):
-        _apply_overlay(merged, ancestor_terms)
+    if school is not None:
+        for ancestor_terms in _ancestor_overrides(school):
+            _apply_overlay(merged, ancestor_terms)
 
-    # Layer 5: school's own terminology override (highest precedence)
+    # Layer 5: school's own terminology override
     _apply_overlay(merged, raw.get("terminology"))
+
+    # Layer 6 (Wave K1): classroom-level override — most specific, applied last.
+    _apply_overlay(merged, _classroom_overrides(classroom))
 
     return merged
 
@@ -183,14 +202,19 @@ def _build_full_overlay(school: Any) -> dict[str, dict[str, str]]:
 # --- New generic resolver --------------------------------------------------
 
 
-def resolve_term(school: Any, key: str, *, plural: bool = False) -> str:
+def resolve_term(
+    school: Any, key: str, *, plural: bool = False, classroom: Any = None
+) -> str:
     """Resolve one term for ``school`` to its singular or plural form.
 
     Falls back to the registry default when no layer overrode the key.
     Unknown keys (not in the registry) return the key itself for singular
     and an auto-plural for plural.
+
+    When ``classroom`` is supplied, classroom-level terminology overrides
+    take precedence over the school's own (Wave K1).
     """
-    overlay = _build_full_overlay(school)
+    overlay = _build_full_overlay(school, classroom=classroom)
     slot = overlay.get(key, {})
     singular = slot.get("singular") or _registry_singular(key)
     if not plural:
@@ -216,13 +240,18 @@ def _derive_plural(singular: str, key: str) -> str:
     return auto_plural(singular)
 
 
-def resolve_all_terms(school: Any) -> dict[str, dict[str, str]]:
+def resolve_all_terms(
+    school: Any, classroom: Any = None
+) -> dict[str, dict[str, str]]:
     """Return the entire resolved registry for one school.
 
     Useful for the settings UI preview and the meta-tag JSON payload.
     Shape: ``{key: {"singular": str, "plural": str}}``.
+
+    When ``classroom`` is supplied, classroom-level overrides apply
+    (Wave K1).
     """
-    overlay = _build_full_overlay(school)
+    overlay = _build_full_overlay(school, classroom=classroom)
     out: dict[str, dict[str, str]] = {}
     for key, (def_sing, def_plur, _cat, _desc) in LEXICON_REGISTRY.items():
         slot = overlay.get(key, {})
@@ -239,15 +268,20 @@ def resolve_all_terms(school: Any) -> dict[str, dict[str, str]]:
     return out
 
 
-def lexicon_payload(school: Any) -> dict[str, dict[str, str]]:
+def lexicon_payload(
+    school: Any, classroom: Any = None
+) -> dict[str, dict[str, str]]:
     """Compact JSON-serialisable payload for the ``<meta name="rmc-lexicon">``
     bridge consumed by ``static/js/rmc-lexicon.js`` / ``RMC.term()``.
 
     Only emits entries that differ from the registry default to keep the
     meta-tag small on the wire. The JS helper falls back to its own
     bundled defaults when a key is absent.
+
+    When ``classroom`` is supplied, classroom-level overrides take
+    precedence (Wave K1).
     """
-    all_terms = resolve_all_terms(school)
+    all_terms = resolve_all_terms(school, classroom=classroom)
     out: dict[str, dict[str, str]] = {}
     for key, (def_sing, def_plur, _cat, _desc) in LEXICON_REGISTRY.items():
         slot = all_terms.get(key, {})

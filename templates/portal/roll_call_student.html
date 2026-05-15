@@ -12,7 +12,7 @@
   </p>
   <div class="card mb-3">
     <div class="card-body">
-      <form method="get" action="{% url 'portal:take_student_attendance' %}" class="row g-2 align-items-end mb-3">
+      <form method="get" action="{% url 'portal:take_student_attendance' %}" class="row g-2 align-items-end mb-3" data-rmc-autosubmit="1">
         <div class="col-auto">
           <label class="form-label small mb-0">Date</label>
           <input type="date" name="date" class="form-control" value="{{ date_value }}">
@@ -27,7 +27,7 @@
           </select>
         </div>
         <div class="col-auto">
-          <button type="submit" class="btn btn-primary">Load</button>
+          <button type="submit" class="btn btn-primary" data-rmc-autosubmit-hide-when-js>Load</button>
         </div>
         <div class="col-auto">
           <a href="{% url 'portal:seating_chart' %}{% if classroom %}?classroom={{ classroom.id }}{% endif %}" class="btn btn-outline-secondary">Seating chart</a>

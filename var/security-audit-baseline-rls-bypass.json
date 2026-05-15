@@ -63,7 +63,7 @@
       "path": "apps/siteconfig/repositories/rls_session_repository.py"
     }
   ],
-  "generated_at": "2026-05-15T10:56:02+00:00",
+  "generated_at": "2026-05-15T20:51:15+00:00",
   "rule": "Raw-SQL / cursor.execute / .raw() / .extra() / RawSQL() callsites must either run inside set_rls_school_id() or carry an '# rls-bypass-allow: <reason>' comment.",
   "scan_dirs": [
     "apps",

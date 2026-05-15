@@ -9,9 +9,18 @@ already resolves currency at runtime from tenant region + platform default.
 
 See docs/CONFIGURABILITY.md (Layer B).
 """
+from django.conf import settings
 from django.db import migrations, models
 
-import apps.billing.models
+
+def _platform_default_currency():
+    """Top-level callable for migration safety. Django can serialize a top-level
+    function reference but not a lambda. See docs/CONFIGURABILITY.md Layer B.
+
+    Inlined from ``_platform_default_currency`` for
+    migration historical-state safety.
+    """
+    return getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD")
 
 
 class Migration(migrations.Migration):
@@ -25,7 +34,7 @@ class Migration(migrations.Migration):
             model_name="billingaccount",
             name="currency_code",
             field=models.CharField(
-                default=apps.billing.models._platform_default_currency,
+                default=_platform_default_currency,
                 max_length=3,
             ),
         ),
@@ -33,7 +42,7 @@ class Migration(migrations.Migration):
             model_name="platformledgerentry",
             name="currency_code",
             field=models.CharField(
-                default=apps.billing.models._platform_default_currency,
+                default=_platform_default_currency,
                 max_length=3,
             ),
         ),
@@ -41,7 +50,7 @@ class Migration(migrations.Migration):
             model_name="revenuesharepayout",
             name="currency_code",
             field=models.CharField(
-                default=apps.billing.models._platform_default_currency,
+                default=_platform_default_currency,
                 max_length=3,
             ),
         ),
@@ -49,7 +58,7 @@ class Migration(migrations.Migration):
             model_name="stripeplanprice",
             name="currency",
             field=models.CharField(
-                default=apps.billing.models._platform_default_currency,
+                default=_platform_default_currency,
                 max_length=3,
             ),
         ),
@@ -57,7 +66,7 @@ class Migration(migrations.Migration):
             model_name="quote",
             name="currency_code",
             field=models.CharField(
-                default=apps.billing.models._platform_default_currency,
+                default=_platform_default_currency,
                 max_length=3,
             ),
         ),

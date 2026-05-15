@@ -154,7 +154,7 @@ def _write_baseline(findings: list[dict]) -> None:
         json.dumps(_baseline_payload(findings), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
-    print(f"  wrote baseline → {BASELINE_PATH.relative_to(REPO_ROOT)}")
+    print(f"  wrote baseline -> {BASELINE_PATH.relative_to(REPO_ROOT)}")
 
 
 def _compare(findings: list[dict]) -> int:

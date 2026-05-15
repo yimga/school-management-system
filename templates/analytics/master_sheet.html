@@ -12,7 +12,7 @@
   <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'analytics:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Back to Analytics</a>
 </div>
 
-<form method="get" class="card mb-3">
+<form method="get" class="card mb-3" data-rmc-autosubmit="1">
   <div class="card-body">
     <div class="row g-2 align-items-end">
       <div class="col-md-2">
@@ -71,7 +71,7 @@
         </select>
       </div>
       <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+        <button type="submit" class="btn btn-primary w-100" data-rmc-autosubmit-hide-when-js>Apply Filters</button>
       </div>
       <div class="col-md-2">
         <a class="btn btn-outline-secondary w-100" href="?{{ export_query }}">Export CSV</a>

@@ -2,9 +2,29 @@
 # Made idempotent for tenant migrations: add school_id only if missing (PostgreSQL duplicate_column).
 
 import apps.accounts.validators
-import apps.portal.models
 import django.db.models.deletion
 from django.db import migrations, models
+
+
+def _portal_upload_to(instance, filename, subpath, school_id):
+    """Build tenant-prefixed path for portal uploads (Section 25.3).
+
+    Inlined from ``apps.portal.models._portal_upload_to`` for migration
+    historical-state safety.
+    """
+    if school_id is None:
+        return f"tenant_uploads/portal/{subpath}/{filename}"
+    return f"tenants/{school_id}/portal/{subpath}/{filename}"
+
+
+def _portal_feature_item_file_upload_to(instance, filename):
+    """Section 25.3: tenant-prefixed path for Document Library (PortalFeatureItem.file).
+
+    Inlined from ``apps.portal.models._portal_feature_item_file_upload_to`` for
+    migration historical-state safety.
+    """
+    school_id = getattr(instance, "school_id", None)
+    return _portal_upload_to(instance, filename, "documents", school_id)
 
 
 def add_school_id_if_missing(apps, schema_editor):
@@ -73,7 +93,7 @@ class Migration(migrations.Migration):
                 blank=True,
                 help_text="Upload a document (PDF, Word, Excel, or LibreOffice ODT/ODS) - max 10MB",
                 null=True,
-                upload_to=apps.portal.models._portal_feature_item_file_upload_to,
+                upload_to=_portal_feature_item_file_upload_to,
                 validators=[
                     apps.accounts.validators.FileTypeValidator(
                         allowed_extensions=[

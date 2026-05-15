@@ -2,10 +2,17 @@
 
 import uuid
 
-import apps.requests.models
 from django.conf import settings
 from django.db import migrations, models
+from django.utils import timezone
 import django.db.models.deletion
+
+
+def _generate_request_reference() -> str:
+    """Inlined from ``apps.requests.models._generate_request_reference`` for
+    migration historical-state safety.
+    """
+    return f"REQ-{timezone.now():%Y%m%d}-{uuid.uuid4().hex[:8].upper()}"
 
 
 class Migration(migrations.Migration):
@@ -32,7 +39,7 @@ class Migration(migrations.Migration):
                 (
                     "reference",
                     models.CharField(
-                        default=apps.requests.models._generate_request_reference,
+                        default=_generate_request_reference,
                         editable=False,
                         max_length=32,
                         unique=True,

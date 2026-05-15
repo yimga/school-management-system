@@ -8,7 +8,23 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 
-import apps.academics.models_lms
+
+def _lms_tenant_upload_to(subpath):
+    """Tenant-prefixed upload_to mirroring people._people_tenant_upload_to.
+
+    Inlined from ``_lms_tenant_upload_to`` for
+    migration historical-state safety.
+    """
+
+    def upload_to(instance, filename):
+        school_id = getattr(instance, "school_id", None)
+        if school_id is None:
+            assignment = getattr(instance, "assignment", None)
+            school_id = getattr(assignment, "school_id", None)
+        bucket = f"tenant-{school_id or 'unscoped'}"
+        return f"{bucket}/{subpath}/{filename}"
+
+    return upload_to
 
 
 class Migration(migrations.Migration):
@@ -59,7 +75,7 @@ class Migration(migrations.Migration):
                 ("attachment", models.FileField(
                     blank=True,
                     null=True,
-                    upload_to=apps.academics.models_lms._lms_tenant_upload_to("lms_assignment_attachments"),
+                    upload_to=_lms_tenant_upload_to("lms_assignment_attachments"),
                 )),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
@@ -122,7 +138,7 @@ class Migration(migrations.Migration):
                 ("attachment", models.FileField(
                     blank=True,
                     null=True,
-                    upload_to=apps.academics.models_lms._lms_tenant_upload_to("lms_submission_attachments"),
+                    upload_to=_lms_tenant_upload_to("lms_submission_attachments"),
                 )),
                 ("submitted_at", models.DateTimeField(blank=True, null=True)),
                 ("score", models.DecimalField(blank=True, decimal_places=2, max_digits=6, null=True)),

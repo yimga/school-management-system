@@ -24,7 +24,7 @@
       <p class="mb-2 small">
         <a href="{% url 'accounts:rollover_queue' %}">Rollover queue</a> — prepare a proposal, review suggested classes, approve, then apply.
       </p>
-      <form method="get" action="" class="row g-3 align-items-end mb-0">
+      <form method="get" action="" class="row g-3 align-items-end mb-0" data-rmc-autosubmit="1">
         <div class="col-md-4">
           <label for="source_year" class="form-label">Source year (current)</label>
           <select name="source_year" id="source_year" class="form-select" required>
@@ -44,7 +44,7 @@
           </select>
         </div>
         <div class="col-md-2">
-          <button type="submit" class="btn btn-outline-primary w-100">Show students</button>
+          <button type="submit" class="btn btn-outline-primary w-100" data-rmc-autosubmit-hide-when-js>Show students</button>
         </div>
       </form>
       {% if source_year and target_year and not source_year.is_locked %}

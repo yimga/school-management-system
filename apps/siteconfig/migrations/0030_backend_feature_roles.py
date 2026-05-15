@@ -1,5 +1,17 @@
 from django.db import migrations, models
-import apps.siteconfig.models
+
+
+def default_backend_feature_flags():
+    """Inlined from ``apps.siteconfig.models.default_backend_feature_flags`` for
+    migration historical-state safety. Delegates to the live default-factory
+    via importlib at call time so the migration file does not carry a
+    top-level live-model import.
+    """
+    import importlib
+
+    return importlib.import_module(
+        "apps.siteconfig.models_support"
+    ).default_backend_feature_flags()
 
 
 class Migration(migrations.Migration):
@@ -13,7 +25,7 @@ class Migration(migrations.Migration):
             name="backend_feature_flags",
             field=models.JSONField(
                 blank=True,
-                default=apps.siteconfig.models.default_backend_feature_flags,
+                default=default_backend_feature_flags,
                 help_text="Backend/front-office admin feature flags (entity console/import, schema UI, bulk limits).",
             ),
         ),

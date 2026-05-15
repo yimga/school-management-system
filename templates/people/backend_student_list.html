@@ -13,7 +13,7 @@
       {% comment %} Pass 8 Wave 2: added list-filter-bar + form-system--dense so canonical filter-bar
          CSS (dense micro-labels, harmonized search affordance) styles this row identically
          to other lists. Existing custom facet structure preserved. {% endcomment %}
-      <form method="get" class="list-filter-bar form-system form-system--dense card card-body bg-light mb-3 page-family-filter-row" role="search" data-list-filter-bar>
+      <form method="get" class="list-filter-bar form-system form-system--dense card card-body bg-light mb-3 page-family-filter-row" role="search" data-list-filter-bar data-rmc-autosubmit="1">
         <div class="row g-2 align-items-end">
           <div class="col-md-4">
             <label for="student-q" class="form-label small">Search</label>
@@ -47,7 +47,7 @@
             </select>
           </div>
           <div class="col-md-2">
-            <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+            <button type="submit" class="btn btn-primary btn-sm w-100" data-rmc-autosubmit-hide-when-js>Filter</button>
           </div>
         </div>
       </form>

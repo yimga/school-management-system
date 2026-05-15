@@ -199,6 +199,16 @@ class Classroom(models.Model):
         default=False,
         help_text="When True, students in this class can be registered as GCE/certification candidates (e.g. Form 5, Upper Sixth). Form 4 and other non-exam classes should leave this unchecked.",
     )
+    settings = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Per-classroom configuration. Honoured keys: `terminology` — "
+            "classroom-scoped lexicon overrides in the same shape as "
+            "`School.settings['terminology']`. Most-specific layer in the "
+            "lexicon cascade (overrides school and ancestor layers)."
+        ),
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

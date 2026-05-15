@@ -18,7 +18,7 @@
     </div>
   </div>
 
-<form method="get" class="card card-grammar form-system mb-3" data-rmc-form-grammar="1">
+<form method="get" class="card card-grammar form-system mb-3" data-rmc-form-grammar="1" data-rmc-autosubmit="1">
   <div class="card-body">
     <div class="row g-2 align-items-end">
       <div class="col-md-3">
@@ -62,7 +62,7 @@
           <input class="form-check-input" type="checkbox" value="1" id="missingOnly" name="missing" {% if request.GET.missing %}checked{% endif %}>
           <label class="form-check-label small" for="missingOnly">Missing only</label>
         </div>
-        <button class="btn btn-primary ds-btn w-100" type="submit">Filter</button>
+        <button class="btn btn-primary ds-btn w-100" type="submit" data-rmc-autosubmit-hide-when-js>Filter</button>
       </div>
     </div>
     <div class="row g-2 align-items-end mt-1">

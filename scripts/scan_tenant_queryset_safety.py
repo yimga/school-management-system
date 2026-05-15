@@ -194,7 +194,7 @@ def _has_safe_kwarg(call: ast.Call) -> bool:
 
 
 def _call_chain_names(node: ast.AST) -> list[str]:
-    """Return attribute path leading to a Call. ``Foo.objects.filter(x=1)`` →
+    """Return attribute path leading to a Call. ``Foo.objects.filter(x=1)`` ->
     ``["Foo", "objects", "filter"]``. Used to recognise ``<Model>.objects.<method>(...)``.
     """
     names: list[str] = []

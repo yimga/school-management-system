@@ -10,7 +10,7 @@
 {% trans "Back to Finance" as back_action %}
 {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
 
-<form method="get" class="card mb-3" id="trial-balance-filter-form" data-draft-key="trial_balance_filter_{{ request.user.id }}" data-draft-max-age-hours="72">
+<form method="get" class="card mb-3" id="trial-balance-filter-form" data-draft-key="trial_balance_filter_{{ request.user.id }}" data-draft-max-age-hours="72" data-rmc-autosubmit="1">
   <div class="card-body">
     <div class="row g-2 align-items-end">
       <div class="col-md-3">
@@ -22,7 +22,7 @@
         <input class="form-control" type="date" name="end" value="{{ end }}">
       </div>
       <div class="col-md-3">
-        <button type="submit" class="btn btn-primary w-100">Filter</button>
+        <button type="submit" class="btn btn-primary w-100" data-rmc-autosubmit-hide-when-js>Filter</button>
       </div>
     </div>
   </div>

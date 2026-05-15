@@ -18,7 +18,7 @@
   <a class="btn btn-sm btn-outline-secondary" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=pdf">Export PDF</a>
 </div>
 
-<form method="get" class="card mb-3" id="finance-payments-filter-form" data-draft-key="finance_payments_filter_{{ request.user.id }}" data-draft-max-age-hours="72">
+<form method="get" class="card mb-3" id="finance-payments-filter-form" data-draft-key="finance_payments_filter_{{ request.user.id }}" data-draft-max-age-hours="72" data-rmc-autosubmit="1">
   <div class="card-body">
     <div class="row g-2 align-items-end">
       <div class="col-md-3">
@@ -47,7 +47,7 @@
         </select>
       </div>
       <div class="col-md-2 d-grid">
-        <button type="submit" class="btn btn-primary">Filter</button>
+        <button type="submit" class="btn btn-primary" data-rmc-autosubmit-hide-when-js>Filter</button>
       </div>
     </div>
   </div>
