@@ -1,0 +1,25 @@
+{
+  "allow_marker": "assert-allow:",
+  "excluded_dir_segments": [
+    "migrations",
+    "tests"
+  ],
+  "excluded_filename_prefixes": [
+    "test_"
+  ],
+  "excluded_filename_suffixes": [
+    "_tests.py",
+    "_test.py"
+  ],
+  "excluded_path_fragments": [
+    "management/commands/"
+  ],
+  "finding_count": 0,
+  "findings": [],
+  "generated_at": "2026-05-15T10:41:18+00:00",
+  "rule": "assert statements are stripped under python -O; use explicit raise in production code",
+  "scan_dirs": [
+    "apps",
+    "services"
+  ]
+}

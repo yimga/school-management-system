@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django.test import Client, TestCase, override_settings
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.platform_runtime.models import ConfigurationChangeRequest
@@ -17,10 +18,21 @@ class TenantChangeRequestBoundaryTests(TestCase):
         self.school = School.objects.create(name="Tenant Boundary", slug="tenant-boundary", subdomain="tenant-boundary", is_active=True)
         self.other = School.objects.create(name="Other Boundary", slug="other-boundary", subdomain="other-boundary", is_active=True)
         self.admin = User.objects.create_user(username="tenant_boundary_admin", password="x" * 8, role=User.Role.ADMIN, is_staff=True)
+        TOTPDevice.objects.create(user=self.admin, name="test-device", confirmed=True)
+
+    def _admin_client(self):
+        client = Client(
+            HTTP_HOST="tenant-boundary.runmycampus.com",
+            raise_request_exception=False,
+        )
+        client.login(username="tenant_boundary_admin", password="x" * 8)
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
+        return client
 
     def test_tenant_high_risk_pack_creates_request_not_install(self):
-        client = Client(HTTP_HOST="tenant-boundary.runmycampus.com", raise_request_exception=False)
-        client.login(username="tenant_boundary_admin", password="x" * 8)
+        client = self._admin_client()
 
         response = client.post("/school/setup/packs/", {"pack": "network-operator", "pack_type": "dashboard_pack"})
 

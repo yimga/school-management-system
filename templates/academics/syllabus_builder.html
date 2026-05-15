@@ -30,7 +30,9 @@
                 <label class="form-check-label small" for="node-{{ node.pk }}">{{ node.code }} — {{ node.title|default:node.code }}</label>
               </div>
               {% empty %}
-              <p class="text-muted small mb-0">No curriculum nodes in this school. Add standards in Admin → Curriculum.</p>
+              <div class="rmc-empty rmc-empty--inline" role="status" aria-live="polite">
+                <p class="rmc-empty__message small mb-0">No curriculum nodes in this school. Add standards in Admin → Curriculum.</p>
+              </div>
               {% endfor %}
             </div>
           </div>

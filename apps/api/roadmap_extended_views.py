@@ -309,6 +309,6 @@ class NiceToHaveModulesAPI(View):
                         "doc": "ID/biometric hardware integration; roadmap.",
                     },
                 },
-                "doc": "PHASE7_NICE_TO_HAVE_ROADMAP.md; DOCS_ROADMAP_AUDIT.",
+                "doc": "archive/legacy_2026_05_14/PHASE7_NICE_TO_HAVE_ROADMAP.md; DOCS_ROADMAP_AUDIT.",
             }
         )

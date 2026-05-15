@@ -6,6 +6,7 @@ import uuid
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import Permission as FeaturePermission
 from apps.accounts.models import User
@@ -122,10 +123,21 @@ class SchoolGroupHierarchyTests(TestCase):
         )
         return u
 
+    def _force_login_verified(self, client: Client, user: User) -> None:
+        TOTPDevice.objects.get_or_create(
+            user=user,
+            name="default",
+            defaults={"confirmed": True},
+        )
+        client.force_login(user)
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
+
     def test_parent_sees_children_on_hierarchy_page(self):
         u = self._admin(f"dadm_{uuid.uuid4().hex[:8]}", self.parent_school)
         c = Client(HTTP_HOST="metro-grp.runmycampus.com")
-        c.force_login(u)
+        self._force_login_verified(c, u)
         url = reverse("siteconfig:school_group_hierarchy", urlconf="config.tenant_urls")
         resp = c.get(url)
         self.assertEqual(resp.status_code, 200, msg=getattr(resp, "content", b"")[:600])
@@ -139,7 +151,7 @@ class SchoolGroupHierarchyTests(TestCase):
         u = self._admin(f"badm_{uuid.uuid4().hex[:8]}", self.child_b)
         host = "south-cg.runmycampus.com"
         c = Client(HTTP_HOST=host)
-        c.force_login(u)
+        self._force_login_verified(c, u)
         url = reverse("siteconfig:school_group_hierarchy", urlconf="config.tenant_urls")
         resp = c.get(url)
         self.assertEqual(resp.status_code, 200)
@@ -181,7 +193,7 @@ class SchoolGroupHierarchyTests(TestCase):
         )
         u = self._admin(f"solo_{uuid.uuid4().hex[:8]}", solo)
         c = Client(HTTP_HOST="solo-gr.runmycampus.com")
-        c.force_login(u)
+        self._force_login_verified(c, u)
         resp = c.get(reverse("siteconfig:school_group_hierarchy", urlconf="config.tenant_urls"))
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
@@ -198,7 +210,7 @@ class SchoolGroupHierarchyTests(TestCase):
             user=su, school=self.child_b, role=User.Role.ADMIN, is_primary=True
         )
         c = Client(HTTP_HOST="south-cg.runmycampus.com")
-        c.force_login(su)
+        self._force_login_verified(c, su)
         resp = c.get(reverse("siteconfig:school_group_hierarchy", urlconf="config.tenant_urls"))
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")

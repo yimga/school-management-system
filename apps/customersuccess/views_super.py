@@ -362,6 +362,7 @@ def customer_success_dashboard(request):
 
     alerts = _safe_customer_success_dashboard_section(
         lambda: list(
+            # tenant-isolation-allow: super-admin CS dashboard (cross-tenant by design; reviewed 2026-05-14)
             TenantRiskAlert.objects.filter(acknowledged_at__isnull=True)
             .select_related("school")
             .order_by("-created_at")[:20]
@@ -370,6 +371,7 @@ def customer_success_dashboard(request):
     )
     suggestions = _safe_customer_success_dashboard_section(
         lambda: list(
+            # tenant-isolation-allow: super-admin CS dashboard (cross-tenant by design; reviewed 2026-05-14)
             TenantInterventionSuggestion.objects.filter(dismissed_at__isnull=True)
             .select_related("school")
             .order_by("priority", "-created_at")[:20]

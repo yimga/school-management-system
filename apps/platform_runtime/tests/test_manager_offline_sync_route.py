@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django.test import Client, TestCase, override_settings
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 
@@ -13,6 +14,20 @@ _MGR_HOST = "manager.runmycampus.com"
     ROOT_URLCONF="config.urls",
 )
 class ManagerOfflineSyncRouteTests(TestCase):
+    def _login_verified_superuser(self, client: Client, username: str):
+        user = User.objects.create_user(
+            username=username,
+            password="x" * 8,
+            role=User.Role.ADMIN,
+            is_staff=True,
+            is_superuser=True,
+        )
+        TOTPDevice.objects.create(user=user, name="test-device", confirmed=True)
+        client.login(username=username, password="x" * 8)
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
+
     def test_anonymous_manager_user_is_blocked_from_offline_sync_center(self):
         response = Client(HTTP_HOST=_MGR_HOST, raise_request_exception=False).get(
             "/offline/sync/"
@@ -27,14 +42,7 @@ class ManagerOfflineSyncRouteTests(TestCase):
 
     def test_manager_offline_sync_route_returns_explanatory_center(self):
         client = Client(HTTP_HOST=_MGR_HOST, raise_request_exception=False)
-        User.objects.create_user(
-            username="manager_offline_super",
-            password="x" * 8,
-            role=User.Role.ADMIN,
-            is_staff=True,
-            is_superuser=True,
-        )
-        client.login(username="manager_offline_super", password="x" * 8)
+        self._login_verified_superuser(client, "manager_offline_super")
 
         response = client.get("/offline/sync/")
         self.assertEqual(response.status_code, 200, msg=response.content[:500])
@@ -48,14 +56,7 @@ class ManagerOfflineSyncRouteTests(TestCase):
 
     def test_root_urlconf_fallback_preserves_control_plane_only_rendering(self):
         client = Client(raise_request_exception=False)
-        User.objects.create_user(
-            username="root_offline_super",
-            password="x" * 8,
-            role=User.Role.ADMIN,
-            is_staff=True,
-            is_superuser=True,
-        )
-        client.login(username="root_offline_super", password="x" * 8)
+        self._login_verified_superuser(client, "root_offline_super")
 
         response = client.get("/offline/sync/")
         self.assertEqual(response.status_code, 200, msg=response.content[:500])

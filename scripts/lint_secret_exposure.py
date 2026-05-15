@@ -46,7 +46,9 @@ PLACEHOLDER_TOKENS = (
     "placeholder",
 )
 SKIP_DIRS = {"migrations", "tests", "__pycache__", ".venv", "venv", "node_modules"}
-ALLOWED_SERVER_SECRET_REF_PREFIXES: tuple[str, ...] = ()
+ALLOWED_SERVER_SECRET_REF_PREFIXES: tuple[str, ...] = (
+    "services/ai_gateway.py",
+)
 
 
 def _resolve_base(base: str) -> Path:

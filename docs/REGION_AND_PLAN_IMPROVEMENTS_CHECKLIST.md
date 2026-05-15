@@ -19,7 +19,7 @@ This checklist covers the code added for the critical review plan (Phases 1–7)
 | **Phase 2** | UserPreference preferred_language/preferred_region; template filters `format_date`, `format_currency`, `format_number`; LocalizationService accepts `region`; filters used in finance, parent finance, receipt, report (Cameroon); LANGUAGES extended. |
 | **Phase 3** | AssessmentWeights → grading scale mapping; report context gets `_region_display_context()` (date_format, currency_symbol, etc.). |
 | **Phase 4** | Finance dashboard/widgets use format_currency; model help_text for thresholds. |
-| **Phase 5** | MULTI_SCHOOL_ADD_NEW_SCHOOL.md updated (region seeding note). |
+| **Phase 5** | MULTI_SCHOOL_ADD_NEW_SCHOOL.md updated (region seeding note). _Archived 2026-05-15 (NS-13); see `docs/archive/legacy_2026_05_14/MULTI_SCHOOL_ADD_NEW_SCHOOL.md`._ |
 | **Phase 6** | Teacher timetable view and template; “My Timetable” in portal sidebar. |
 | **Phase 7** | PHASE7_NICE_TO_HAVE_ROADMAP.md. |
 

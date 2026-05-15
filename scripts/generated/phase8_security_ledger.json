@@ -1,5 +1,27 @@
 {
   "allow_any": {
+    "apps/api/views_marketplace_catalog.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "public_catalog_read_only",
+      "data_exposure": "active_marketplace_app_public_projection_and_scope_vocabulary_only",
+      "expected_count": 3,
+      "last_reviewed": "2026-05-14",
+      "notes": "Marketplace catalog and scopes endpoints intentionally expose cacheable public developer-directory metadata without tenant secrets or installation data.",
+      "owner": "marketplace_platform_api",
+      "rate_limiting": "implemented",
+      "verdict": "keep"
+    },
+    "apps/api/views_webhook_catalog.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "public_catalog_read_only",
+      "data_exposure": "webhook_event_type_catalog_and_payload_key_metadata_only",
+      "expected_count": 2,
+      "last_reviewed": "2026-05-14",
+      "notes": "Webhook event type catalog intentionally exposes cacheable public integration metadata without tenant webhook subscriptions, secrets, or deliveries.",
+      "owner": "webhook_platform_api",
+      "rate_limiting": "implemented",
+      "verdict": "keep"
+    },
     "apps/schools/api_views.py": {
       "audit_logging": "manual_review_required",
       "auth_model": "public_host_resolved_read_only",
@@ -156,6 +178,17 @@
       "replay_protection": "tool_signature_manual_review_required",
       "verdict": "keep_with_hardening"
     },
+    "apps/security/csp_report_view.py": {
+      "audit_logging": "implemented",
+      "auth_model": "browser_csp_report_post",
+      "expected_count": 1,
+      "last_reviewed": "2026-05-14",
+      "notes": "CSP violation reports are browser-generated POSTs without application CSRF cookies; the endpoint rate-limits, caps request bodies, and logs only normalized directive and URI metadata.",
+      "owner": "security_observability",
+      "rate_limiting": "implemented",
+      "replay_protection": "not_applicable",
+      "verdict": "keep"
+    },
     "config/graphql_view.py": {
       "audit_logging": "manual_review_required",
       "auth_model": "mixed_client_access",
@@ -168,7 +201,7 @@
       "verdict": "keep_with_hardening"
     }
   },
-  "generated_at": "2026-05-01T09:49:41.226029+00:00",
+  "generated_at": "2026-05-14T23:10:41.973051+00:00",
   "raw_sql": {
     "apps/people/repositories/audit_repository.py": {
       "expected_count": 5,
@@ -208,8 +241,8 @@
     "raw_sql_allowlist": "scripts/allowlists/raw_sql_allowlist.json"
   },
   "summary": {
-    "allow_any_files": 1,
-    "csrf_exempt_files": 14,
+    "allow_any_files": 3,
+    "csrf_exempt_files": 15,
     "raw_sql_files": 6
   }
 }

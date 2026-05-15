@@ -290,6 +290,7 @@
     </div>
   </div>
   <script src="{% static 'js/form-draft-save.js' %}"></script>
+  {# FormDraftSave.init is called by the page script after the library loads. #}
 {% endif %}
 {% include "components/was_this_helpful.html" with feedback_id="teacher-marks-entry" %}
 <script src="{% static '_pages/teacher__marks_entry.js' %}"></script>

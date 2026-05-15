@@ -68,7 +68,7 @@
     <div class="col-12">
       {% url 'analytics:governed_report_builder' as grb_url %}
       {% url 'analytics:decision_school_health_dashboard' as health_url %}
-      {% include "components/dashboard_empty_state.html" with icon="bi-graph-up-arrow" title=_("No surfaced insights yet") message=_("Insights appear once attendance, marks, or finance signals cross thresholds for your tenant.") purpose=_("You can still explore governed datasets safely.") action_url=grb_url action_text=_("Open governed report builder") secondary_action_url=health_url secondary_action_text=_("School health dashboard") empty_primary_task="report_generation" empty_primary_step="analytics:insights-empty-primary" empty_secondary_task="report_generation" empty_secondary_step="analytics:insights-empty-secondary" %}
+      {% include "components/rmc_empty_state.html" with icon="bi-graph-up-arrow" title=_("No surfaced insights yet") message=_("Insights appear once attendance, marks, or finance signals cross thresholds for your tenant.") primary_url=grb_url primary_label=_("Open governed report builder") secondary_url=health_url secondary_label=_("School health dashboard") %}
     </div>
     {% endfor %}
   </div>

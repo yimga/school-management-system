@@ -18,9 +18,18 @@
       <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:tenant_runtime_configuration_hub' %}">
         <i class="bi bi-sliders me-1"></i>{% trans "Tenant runtime & settings" %}
       </a>
-      <a class="btn btn-sm btn-outline-secondary" href="{% url 'tenant_app_catalog' %}">
+      {% url 'tenant_app_catalog' as tenant_catalog_url %}
+      {% if tenant_catalog_url %}
+      <a class="btn btn-sm btn-outline-secondary" href="{{ tenant_catalog_url }}">
         <i class="bi bi-box-seam me-1"></i>{% trans "App catalog" %}
       </a>
+      {% endif %}
+    </div>
+    <div class="border-top border-light-subtle pt-3 mt-3">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <p class="small text-muted mb-0">{% trans "Quick access to activation, import, and runtime configuration." %}</p>
+        <p class="small text-muted mb-0">{% trans "Press" %} <kbd>?</kbd> {% trans "for keyboard shortcuts" %}</p>
+      </div>
     </div>
   </div>
 </div>

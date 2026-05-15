@@ -48,7 +48,8 @@ class TeacherAttendanceMagicUxHttpTests(TestCase):
         self.assertEqual(resp.status_code, 200, msg=getattr(resp, "content", b"")[:800])
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn('data-task="teacher_attendance"', body)
-        self.assertIn("dashboard-empty-state", body)
+        self.assertIn("rmc-empty", body)
+        self.assertIn("No attendance history yet", body)
 
 
 class StudentLearningHomeMagicUxHttpTests(TestCase):

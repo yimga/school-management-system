@@ -191,6 +191,43 @@ WORKFLOW_PACKS = [
         "family": "compliance",
         "description": "Safety drill documentation and compliance.",
     },
+    # === 2026-05-14 wave NS-4: domain coverage expansion ===
+    # HR / Staff lifecycle
+    {"code": "hr-staff-onboarding-v2", "name": "HR — Staff Onboarding (v2)", "family": "hr", "description": "End-to-end teacher / staff onboarding: contract, training, asset issue."},
+    {"code": "hr-staff-offboarding", "name": "HR — Staff Offboarding", "family": "hr", "description": "Exit checklist, asset return, knowledge handover."},
+    {"code": "hr-leave-request", "name": "HR — Leave Request", "family": "hr", "description": "Staff leave request with substitute coverage + payroll impact."},
+    {"code": "hr-performance-review", "name": "HR — Performance Review", "family": "hr", "description": "Periodic appraisal cycle with goals + feedback rollup."},
+    {"code": "hr-contract-renewal", "name": "HR — Contract Renewal", "family": "hr", "description": "Yearly contract renewal cadence with finance gate."},
+    # Discipline / Behavior
+    {"code": "discipline-incident-intake", "name": "Discipline — Incident Intake", "family": "discipline", "description": "Multi-role intake (teacher, dean, parent) with severity routing."},
+    {"code": "discipline-appeal", "name": "Discipline — Appeal", "family": "discipline", "description": "Disciplinary appeal review with hearing scheduling."},
+    {"code": "discipline-suspension-cycle", "name": "Discipline — Suspension Cycle", "family": "discipline", "description": "Suspension lifecycle: notice → counselor follow-up → return interview."},
+    # Transport
+    {"code": "transport-route-publish", "name": "Transport — Route Publish", "family": "transport", "description": "Publish bus routes with student-stop assignments + guardian notification."},
+    {"code": "transport-incident-report", "name": "Transport — Incident Report", "family": "transport", "description": "Bus incident reporting with chain-of-custody."},
+    {"code": "transport-driver-handover", "name": "Transport — Driver Handover", "family": "transport", "description": "End-of-shift handover with vehicle state + receipts."},
+    # Library
+    {"code": "library-loan-overdue", "name": "Library — Overdue Loan", "family": "library", "description": "Escalation cascade for overdue items: reminder → parent CC → admin lock."},
+    {"code": "library-acquisition-request", "name": "Library — Acquisition Request", "family": "library", "description": "Teacher / department acquisition request with budget approval."},
+    # Medical / Clinic
+    {"code": "medical-immunization-renewal", "name": "Medical — Immunization Renewal", "family": "medical", "description": "Annual immunization-status verification with parent consent."},
+    {"code": "medical-visit-followup", "name": "Medical — Visit Follow-Up", "family": "medical", "description": "Clinic visit follow-up workflow + guardian notification."},
+    # Boarding
+    {"code": "boarding-leave-permission", "name": "Boarding — Leave Permission", "family": "boarding", "description": "Boarder leave permission with parent acknowledgement."},
+    {"code": "boarding-visitor-log", "name": "Boarding — Visitor Log", "family": "boarding", "description": "Visitor sign-in with photo capture + curfew gate."},
+    # Cafeteria
+    {"code": "cafeteria-meal-plan-renewal", "name": "Cafeteria — Plan Renewal", "family": "cafeteria", "description": "Term meal-plan renewal with allergen review."},
+    {"code": "cafeteria-allergen-update", "name": "Cafeteria — Allergen Update", "family": "cafeteria", "description": "Guardian-initiated allergen update with kitchen notification."},
+    # Communications
+    {"code": "communications-emergency-broadcast", "name": "Comms — Emergency Broadcast", "family": "communications", "description": "Multi-channel emergency broadcast with delivery audit."},
+    {"code": "communications-newsletter-monthly", "name": "Comms — Monthly Newsletter", "family": "communications", "description": "Monthly newsletter with section ownership + sign-off."},
+    # Compliance
+    {"code": "compliance-dsar-fulfilment", "name": "Compliance — DSAR Fulfilment", "family": "compliance", "description": "GDPR / FERPA DSAR (data subject access request) fulfilment workflow with redaction step."},
+    {"code": "compliance-retention-purge", "name": "Compliance — Retention Purge", "family": "compliance", "description": "Periodic retention-policy purge with approval gate."},
+    {"code": "compliance-evidence-collection", "name": "Compliance — Evidence Collection", "family": "compliance", "description": "SOC 2 / ISO evidence collection cadence with auditor handoff."},
+    # Integration / Migration
+    {"code": "integration-sis-sync-failure", "name": "Integration — SIS Sync Failure", "family": "integration", "description": "Sync failure triage + tenant notification + rollback option."},
+    {"code": "migration-bundle-review", "name": "Migration — Bundle Review", "family": "migration", "description": "Migration Cloud bundle review with reconciliation sampling + sign-off."},
 ]
 
 DASHBOARD_PACKS = [
@@ -320,6 +357,24 @@ DASHBOARD_PACKS = [
         "family": "nurse",
         "description": "Health room visits and medication log.",
     },
+    # === 2026-05-14 wave NS-4: per-role + per-domain dashboard coverage ===
+    {"code": "principal-academic-pulse", "name": "Principal — Academic Pulse", "family": "principal", "description": "Grade-distribution heatmap + on-track / at-risk band per cohort."},
+    {"code": "principal-parent-engagement", "name": "Principal — Parent Engagement", "family": "principal", "description": "Parent-portal adoption + outbound message reach."},
+    {"code": "vice-principal-discipline-trends", "name": "Vice Principal — Discipline Trends", "family": "principal", "description": "Discipline incident heatmap by grade / classroom / category."},
+    {"code": "bursar-collection-rate", "name": "Bursar — Collection Rate", "family": "finance", "description": "Real-time collection rate by term + cohort with aging buckets."},
+    {"code": "bursar-aging-report", "name": "Bursar — Aging Report", "family": "finance", "description": "Outstanding-balance aging report drilling into 30/60/90+ buckets."},
+    {"code": "it-admin-system-health", "name": "IT Admin — System Health", "family": "it_admin", "description": "Health probes, integration sync state, AI provider reachability."},
+    {"code": "it-admin-audit-trail", "name": "IT Admin — Audit Trail", "family": "it_admin", "description": "Recent admin actions, login anomalies, RBAC change feed."},
+    {"code": "hr-staff-pipeline", "name": "HR — Staff Pipeline", "family": "hr", "description": "Open positions, candidates, onboarding/offboarding in flight."},
+    {"code": "transport-fleet-status", "name": "Transport — Fleet Status", "family": "transport", "description": "Bus location, route on-time %, driver shift state."},
+    {"code": "library-circulation", "name": "Library — Circulation", "family": "library", "description": "Active loans, overdue items, top-circulated titles."},
+    {"code": "nurse-clinic-pulse", "name": "Nurse — Clinic Pulse", "family": "nurse", "description": "Visits today, recurring complaints, immunization due."},
+    {"code": "boarding-house-summary", "name": "Boarding — House Summary", "family": "boarding", "description": "Occupancy, visitor count, leave-permission requests pending."},
+    {"code": "cafeteria-meal-uptake", "name": "Cafeteria — Meal Uptake", "family": "cafeteria", "description": "Plan subscribers, daily uptake %, allergen incidents."},
+    {"code": "student-self-service", "name": "Student — Self Service", "family": "student", "description": "Today's classes, assignments due, attendance % to date."},
+    {"code": "admissions-funnel-conversion", "name": "Admissions — Funnel Conversion", "family": "admissions", "description": "Inquiry → application → offer → enrol conversion with stage SLAs."},
+    {"code": "alumni-engagement-summary", "name": "Alumni — Engagement Summary", "family": "alumni", "description": "Alumni roster activity + donation flow + event RSVP."},
+    {"code": "compliance-evidence-room", "name": "Compliance — Evidence Room", "family": "compliance", "description": "SOC 2 / ISO evidence collection status by control."},
 ]
 
 

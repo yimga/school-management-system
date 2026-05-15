@@ -7,7 +7,7 @@ the marketplace lane needs tenants to add their own integrators
 (school district SSO portals, gradebook iframes, …) without a redeploy.
 
 This middleware runs BEFORE CorsMiddleware. It pulls per-tenant origins
-from the current request's `request.school.settings["cors_allowed_origins"]`
+from the central school-settings accessor key `cors_allowed_origins`
 (JSON list) and injects them into `settings.CORS_ALLOWED_ORIGINS` on the
 fly via thread-local override. Empty / missing list → no change.
 
@@ -22,6 +22,8 @@ import logging
 from typing import Iterable
 
 from django.conf import settings
+
+from apps.platform_runtime.school_settings_kv import get_school_settings_dict
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +40,8 @@ def _normalize_origin(value: str) -> str:
 def _extract_tenant_origins(school) -> list[str]:
     if school is None:
         return []
-    tenant_settings = getattr(school, "settings", None) or {}
-    raw = tenant_settings.get("cors_allowed_origins") if isinstance(tenant_settings, dict) else None
+    tenant_settings = get_school_settings_dict(school)
+    raw = tenant_settings.get("cors_allowed_origins")
     if not isinstance(raw, (list, tuple)):
         return []
     return [o for o in (_normalize_origin(item) for item in raw) if o]

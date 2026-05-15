@@ -2,6 +2,7 @@
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import Permission, User
 from apps.academics.models import AcademicYear, Department
@@ -147,16 +148,24 @@ class OnboardingEngineCoreHttpTests(TestCase):
             defaults={"name": "Manage settings"},
         )
 
-    def test_onboarding_checklist_renders_markers(self):
+    def _login_verified_admin(self, username):
         u = User.objects.create_user(
-            username="onb_http",
+            username=username,
             password="x" * 8,
             role=User.Role.ADMIN,
             is_staff=True,
         )
         u.feature_permissions.add(self.perm)
+        TOTPDevice.objects.create(user=u, name="test-device", confirmed=True)
         c = Client(HTTP_HOST=_T_HOST)
-        c.login(username="onb_http", password="x" * 8)
+        c.login(username=username, password="x" * 8)
+        session = c.session
+        session["mfa_verified"] = True
+        session.save()
+        return c
+
+    def test_onboarding_checklist_renders_markers(self):
+        c = self._login_verified_admin("onb_http")
         path = reverse("siteconfig:onboarding", urlconf="config.tenant_urls")
         r = c.get(path)
         self.assertEqual(r.status_code, 200, msg=r.content[:800])
@@ -165,15 +174,7 @@ class OnboardingEngineCoreHttpTests(TestCase):
         self.assertIn("/siteconfig/onboarding/step/", body)
 
     def test_step_page_and_post_mark(self):
-        u = User.objects.create_user(
-            username="onb_http2",
-            password="x" * 8,
-            role=User.Role.ADMIN,
-            is_staff=True,
-        )
-        u.feature_permissions.add(self.perm)
-        c = Client(HTTP_HOST=_T_HOST)
-        c.login(username="onb_http2", password="x" * 8)
+        c = self._login_verified_admin("onb_http2")
         p = reverse(
             "siteconfig:onboarding_step",
             kwargs={"step_key": "ccc"},

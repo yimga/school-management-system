@@ -3,15 +3,13 @@
     {% if active_nav_slug == 'resources' and page_extras.resources_hub_cards %}
     <section class="section-shell mkt-resources-hub-cards" aria-label="{% trans 'Resource areas' %}">
       <h2 class="section-heading">{% trans "Explore resource areas" %}</h2>
-      <div class="row g-3">
+      <div class="bento-grid">
         {% for card in page_extras.resources_hub_cards %}
-        <div class="col-md-6 col-lg-4">
-          <article class="segment-card h-100 d-flex flex-column">
-            <h3 class="h6">{{ card.title }}</h3>
-            <p class="text-muted small flex-grow-1 mb-0">{{ card.body }}</p>
-            <a href="{{ card.path }}" class="btn btn-sm btn-outline-primary mt-3 align-self-start">{% trans "Open" %} — {{ card.title }}</a>
-          </article>
-        </div>
+        <article class="bento-panel h-100 d-flex flex-column">
+          <h3 class="h6">{{ card.title }}</h3>
+          <p class="text-muted small flex-grow-1 mb-0">{{ card.body }}</p>
+          <a href="{{ card.path }}" class="btn btn-sm btn-outline-primary mt-3 align-self-start">{% trans "Open" %} — {{ card.title }}</a>
+        </article>
         {% endfor %}
       </div>
     </section>
@@ -19,14 +17,12 @@
 
     {% if active_nav_slug == 'company' and page_extras.company_pillars %}
     <section class="section-shell" aria-label="{% trans 'Company' %}">
-      <div class="row g-4">
+      <div class="bento-grid">
         {% for pillar in page_extras.company_pillars %}
-        <div class="col-md-6">
-          <article class="segment-card h-100">
-            <h3 class="h6 text-uppercase text-muted">{{ pillar.title }}</h3>
-            <p class="mb-0 text-muted">{{ pillar.body }}</p>
-          </article>
-        </div>
+        <article class="bento-panel h-100">
+          <h3 class="h6 text-uppercase text-muted">{{ pillar.title }}</h3>
+          <p class="mb-0 text-muted">{{ pillar.body }}</p>
+        </article>
         {% endfor %}
       </div>
     </section>
@@ -36,18 +32,16 @@
     <section class="section-shell" aria-label="{% trans 'How to reach us' %}">
       <h2 class="section-heading">{% trans "Choose how you want to engage" %}</h2>
       <p class="section-lead">{% trans "Every path returns to one accountable team—we label expectations up front." %}</p>
-      <div class="row g-3">
+      <div class="bento-grid">
         {% for card in page_extras.contact_intent_cards %}
-        <div class="col-md-6 col-lg-4">
-          <article class="segment-card h-100 d-flex flex-column">
-            <h3 class="h6">{{ card.title }}</h3>
-            <p class="text-muted small flex-grow-1">{{ card.body }}</p>
-            {% if card.cta_href %}
-            <a href="{{ card.cta_href }}" class="btn btn-sm btn-outline-primary mt-2">{{ card.cta_label }}</a>
-            {% endif %}
-            {% if card.hint %}<p class="small text-muted mb-0 mt-2">{{ card.hint }}</p>{% endif %}
-          </article>
-        </div>
+        <article class="bento-panel h-100 d-flex flex-column">
+          <h3 class="h6">{{ card.title }}</h3>
+          <p class="text-muted small flex-grow-1">{{ card.body }}</p>
+          {% if card.cta_href %}
+          <a href="{{ card.cta_href }}" class="btn btn-sm btn-outline-primary mt-2">{{ card.cta_label }}</a>
+          {% endif %}
+          {% if card.hint %}<p class="small text-muted mb-0 mt-2">{{ card.hint }}</p>{% endif %}
+        </article>
         {% endfor %}
       </div>
       {% if page_extras.contact_support_note %}<p class="small text-muted mt-3 mb-1">{{ page_extras.contact_support_note }}</p>{% endif %}
@@ -286,7 +280,14 @@
           <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-outline-primary">{% trans "Product tour" %}</a>
         </div>
         {% else %}
-        <p class="text-muted mb-0">{% trans "No posts published yet. Run seed_marketing_cms or add posts in admin." %}</p>
+        <div class="segment-card p-4 text-center">
+          <div class="rmc-empty rmc-empty--inline justify-content-center" role="status" aria-live="polite">
+            <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-journal-text"></i></div>
+            <div class="rmc-empty__body">
+              <p class="rmc-empty__message mb-0">{% trans "No posts published yet. Run seed_marketing_cms or add posts in admin." %}</p>
+            </div>
+          </div>
+        </div>
         {% endif %}
       </section>
     {% endif %}

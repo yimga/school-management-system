@@ -61,6 +61,7 @@ def create_schema_if_not_exists(schema_name: str) -> None:
 
     from apps.customers.models import Client
 
+    # tenant-isolation-allow: provisioning-time lookup by schema_name (no tenant context yet; reviewed 2026-05-14)
     client = Client.objects.filter(schema_name=normalized).first()
     if client is None:
         return

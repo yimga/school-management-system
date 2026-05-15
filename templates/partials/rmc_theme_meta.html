@@ -28,3 +28,12 @@
 {% elif SITE_LOGO_URL %}
   <link rel="apple-touch-icon" sizes="180x180" href="{{ SITE_LOGO_URL }}">
 {% endif %}
+{% with light_color=SITE.theme_color|default:SITE.primary_color|default:platform_palette.primary|default:'#2563eb' dark_color=SITE.theme_color_dark|default:SITE.theme_color|default:SITE.primary_color|default:platform_palette.primary|default:'#0B0E14' %}
+  <meta name="theme-color" content="{{ light_color }}">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="{{ dark_color }}">
+  <meta name="msapplication-TileColor" content="{{ light_color }}">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+{% endwith %}
+{# Wave A — G1: tenant lexicon overrides (only non-default keys). #}
+{% include "partials/rmc_lexicon_meta.html" %}

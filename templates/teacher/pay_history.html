@@ -60,7 +60,7 @@
                 <strong>{{ method.amount }}</strong>
               </li>
             {% empty %}
-              <li class="text-muted">No pay records yet.</li>
+              <li><div class="rmc-empty rmc-empty--inline" role="status" aria-live="polite"><p class="rmc-empty__message">No pay records yet.</p></div></li>
             {% endfor %}
           </ul>
         </div>
@@ -112,7 +112,12 @@
           </table>
         </div>
       {% else %}
-        <div class="alert alert-info mb-0">No pay records yet.</div>
+        <div class="rmc-empty rmc-empty--inline" role="status" aria-live="polite">
+          <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-wallet2"></i></div>
+          <div class="rmc-empty__body">
+            <p class="rmc-empty__message mb-0">{% trans "No pay records yet." %}</p>
+          </div>
+        </div>
       {% endif %}
     </div>
   </div>

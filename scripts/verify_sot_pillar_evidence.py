@@ -113,7 +113,7 @@ def _required_paths(root: Path) -> list[tuple[str, Path]]:
     ("BR-10 billing SKUs", root / "docs" / "BILLING_SKUS_ENTITLEMENTS_BR10.md"),
     ("BR-12 mega-file plan", root / "docs" / "MEGA_FILE_SPLIT_PLAN_BR12.md"),
     ("Template editing convention", root / "docs" / "TEMPLATE_EDITING_CONVENTION.md"),
-    ("BR-13 premium pass", root / "docs" / "PREMIUM_UX_MANUAL_PASS_BR13.md"),
+    ("BR-13 premium pass", root / "docs" / "PHASE_H_MANUAL_CHECKLIST.md"),
     ("BR audit checklist", root / "docs" / "BR_BEYOND_REACH_AUDIT.md"),
     ("BR-08 comms_locale helper", root / "apps" / "communication" / "comms_locale.py"),
     (

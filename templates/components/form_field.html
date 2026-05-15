@@ -29,7 +29,6 @@
   Closes Forms-audit items #2 (error pattern), #3 (required marker), #5 (help text).
 {% endcomment %}
 
-{% with widget_type=field.field.widget.__class__.__name__ %}
 <div class="mb-3 form-field{% if field.errors %} has-error{% endif %}" data-form-field="{{ field.name }}">
   {% if show_label|default_if_none:True %}
     <label class="form-label {{ label_class|default:'' }}" for="{{ field.id_for_label }}">
@@ -55,4 +54,3 @@
     </div>
   {% endif %}
 </div>
-{% endwith %}

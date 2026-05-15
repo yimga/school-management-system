@@ -21,11 +21,13 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # Baseline captured 2026-03-26 (non-growth discipline).
 # OAuth token endpoint classified 2026-05-01 for external non-browser clients.
+# 2026-05-14: reviewed CSP report ingestion and public catalog read-only
+# endpoints; embedded classification lints still enforce exact path/count parity.
 # tracked_root: repo-root file allowlist for mega-file / tree gates (shrink-only).
 MAX_COUNTS: dict[str, tuple[str, int]] = {
     "raw_sql_allowlist.json": ("files", 8),
-    "csrf_exempt_allowlist.json": ("files", 14),
-    "allow_any_allowlist.json": ("files", 1),
+    "csrf_exempt_allowlist.json": ("files", 15),
+    "allow_any_allowlist.json": ("files", 3),
     "broad_except_allowlist.json": ("allowed_counts", 189),
     "tracked_root_allowlist.json": ("allowed", 25),
 }

@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice - SOT items 2-6 repo hardening (2026-05-13)
+
+**A. Scope:** Proceeded from SOT follow-up items 2-6: tenant isolation depth, deploy parity, SOC2/PCI proof honesty, pilot scorecard evidence rules, and repo-side verifier hardening. Lane 2 live PSP/pilot/auditor proof stayed external.
+
+**B. RLS/test tagging:** Added `@tag("tenants_rls")` and RLS-aware setup/execution to delta-sync conflict tenant isolation and staff contact-request cross-school isolation tests. Fixture data seeds under `rls_bypass()`; request/service paths that should run tenant-scoped use `rls_school(...)`.
+
+**C. Deploy parity:** Added tenant URLconf `/-/version/` parity and manager-host aliases for `api/ai/health/`, `portal_console`, and `portal_configure`. Fixed the staff contact-request template `{% trans %}` render path by loading `i18n`.
+
+**D. Evidence honesty:** Tightened pilot scorecard validation so unsupported verdicts such as `verified_live` are rejected and public-reference-ready status requires explicit approval plus evidence notes. Extended procurement-packet tests so full-market/category-defining claims require PSP live evidence, live pilots, and SOC 2 together.
+
+**E. Gates:** Targeted SOT 2-6 bundle -> **15 OK**; `python manage.py check --settings=config.settings` -> **OK**; `python manage.py test --tag=tenants_rls --settings=config.settings --noinput --keepdb` -> **20 OK, skipped=3**; `audit_page_standards --strict` -> **0 findings**; `audit_security_surface` -> **OK**; `audit_tenant_isolation` -> **OK**.
+
+**F. Verdict:** **SOT ITEMS 2-6 ADVANCED - REPO SCOPE**. PSP merchant accounts, production/staging secrets, webhook secrets, settlement proof, supervised live transaction, SOC2/PCI auditor artifacts, and live pilot scorecard data remain external blockers.
+
 ## Slice - Proof integrity cleanup (2026-05-07)
 
 **A. Scope:** Closed the SOT batch-ID integrity gap without adding product scope or changing proof claims.
@@ -28521,3 +28535,21 @@ Both families share the same root: shell theme tokens not yet meeting WCAG 1.4.3
 **I. Generated reports:** `docs/generated/apple_class_authenticated_browser_report.{json,md}`, `docs/generated/apple_class_component_coverage.{json,md}`. New artifacts (intentionally untracked unless committed by user request): `scripts/seed_apple_class_qa.py`, `scripts/update_apple_class_evidence_verdict.py`, `tests/e2e/apple_class_evidence.spec.js`.
 
 **J. Verdict:** **APPLE-CLASS UX READY - LOCAL**. Render/deployed SHA parity remains pending; active drawer focus-trap remains future depth until drawers are JS-active; full-market category-defining remains externally blocked (PSP, settlement, certification, customer count). Do **not** claim **APPLE-CLASS UX READY - RENDER** or full-market category-defining until external proof exists.
+
+---
+
+## §11.4 batch 1244 - Batch 1243 verification + RLS/security follow-ups (2026-05-13)
+
+**A. Scope:** Verified the open batch 1243 shell/UI work and continued the repo-contained RLS/security follow-ups named by batch 1242. Lane 2 PSP, settlement, SOC2/PCI, and pilot evidence was reviewed but remains external/operator-owned.
+
+**B. Page standards:** `audit_page_standards --strict` initially reported 11 findings. Fixed missing/multiple h1 issues in workflow, interop-token, support co-pilot, MFA/password/maintenance, backend base, control-plane base, and password reset confirm templates. Externalised `templates/portal/partials/ai_draft_inline.html` to `static/js/ai-draft-inline.js`.
+
+**C. RLS follow-ups:** Added tests proving `evals.process_bulk_grades` rejects cross-school identifiers and refuses unscoped PostgreSQL RLS runs. Added tests proving finance reminder deactivation resolves school from invoices and logs/refuses unscoped students under RLS.
+
+**D. Breach-scenario coverage:** Confirmed existing GraphQL aliasing, plan max-student, and TenantOwnedModel contract tests. Added signed student-ID forgery rejection and public-field-only response tests.
+
+**E. Validation:** Targeted RLS tests **5 OK**. Security scenario bundle **57 OK**. Batch 1243 target bundle **59 OK**. `manage.py check` **OK**. `audit_page_standards --strict` **OK**. `audit_security_surface` **OK**. `audit_tenant_isolation` **OK**.
+
+**F. Lane 2:** No live PSP merchant accounts, production/staging secrets, webhook secrets, settlement accounts, supervised transactions, SOC2/PCI auditor artifacts, or pilot-school evidence were available in repo. SOT §12 remains the command center; no `verified_live` claim was made.
+
+**G. Verdict:** **BATCH 1243 VERIFIED; RLS/SECURITY FOLLOW-UP COVERAGE ADDED; FULL-MARKET READINESS STILL EXTERNAL-EVIDENCE BLOCKED**.

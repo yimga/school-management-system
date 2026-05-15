@@ -23,7 +23,7 @@
 | REMAINING_WORK.md | Yes | §12 **MET**; table = residual / Phase 10, not gate re-proof. |
 | WHAT_IS_LEFT_MASTER.md | Yes | §12 **MET**; path-to-11 inventory; completion authority = SOT §0 + ledger. |
 | PHASE_10_BACKLOG.md | Yes | "Nothing in this file is required for 9.5/10"; path-to-10 only. |
-| IMPLEMENTATION_COMPLETE.md | Reference | Historical/implementation detail; not completion authority. |
+| archive/legacy_2026_05_14/IMPLEMENTATION_COMPLETE.md | Archived | Historical/implementation detail; archived 2026-05-14, never was completion authority. |
 | CODE_REVIEW_GAPS_REDUNDANCIES.md | Reference | Resolution notes; not completion authority. |
 
 ---

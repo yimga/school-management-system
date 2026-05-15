@@ -73,6 +73,7 @@ def _can_manage_requests(user) -> bool:
 def requests_dashboard(request: HttpRequest):
     school = _request_school(request)
     qs = AccessRequest.objects.select_related("requester").order_by("-requested_at")
+    # tenant-isolation-allow: conditionally scoped by school on next line (reviewed 2026-05-14)
     scoped_base = AccessRequest.objects.all()
     if school is not None:
         qs = qs.filter(school=school)

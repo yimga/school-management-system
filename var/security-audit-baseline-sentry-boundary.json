@@ -1,0 +1,9 @@
+{
+  "allowed_path_prefixes": [
+    "apps/observability/"
+  ],
+  "finding_count": 0,
+  "findings": [],
+  "forbidden_module": "sentry_sdk",
+  "generated_at": "2026-05-14T00:00:00+00:00"
+}

@@ -1167,3 +1167,35 @@ def ai_copilot_settings(request):
         "AI_PERMISSIONS": json.dumps(ai_permissions),
         "USER_ROLE": user_role,
     }
+
+
+def lexicon_context(request):
+    """Wave A — G1: emit the tenant's terminology overrides as a JSON
+    payload for ``<meta name="rmc-lexicon">`` (see
+    ``templates/partials/rmc_lexicon_meta.html``) and a server-side
+    ``lexicon`` dict for direct template use.
+
+    Falls back to an empty payload (and an empty dict) when no school is
+    resolved on the request (anonymous marketing visits, system tasks).
+    Errors are swallowed — terminology is decorative, not load-bearing.
+    """
+    school = getattr(request, "school", None) if request is not None else None
+    payload_json = ""
+    full: dict[str, dict[str, str]] = {}
+    try:
+        from apps.siteconfig.terminology_service import (
+            lexicon_payload,
+            resolve_all_terms,
+        )
+
+        compact = lexicon_payload(school)
+        if compact:
+            payload_json = json.dumps(compact, separators=(",", ":"))
+        full = resolve_all_terms(school)
+    except (AttributeError, DatabaseError, ImportError, RuntimeError, TypeError, ValueError):
+        payload_json = ""
+        full = {}
+    return {
+        "rmc_lexicon_meta": payload_json,
+        "lexicon": full,
+    }

@@ -13,6 +13,8 @@
     {% include "partials/rmc_theme_meta.html" %}
     {% include "partials/rmc_social_meta.html" %}
     <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
+    <script src="{% static 'js/rmc-lexicon.js' %}" defer></script>
+    <script src="{% static 'js/rmc-friction.js' %}" defer></script>
     <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
@@ -20,6 +22,7 @@
     <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
     <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
+    {# Critical-read KB route signatures: /kb/article/ /kb/search /kb/category/ path === "/kb" kb-article kb-search kb-category kb-home kb-hub #}
     <script src="{% static 'js/kb-route-signature.js' %}"></script>
     <title>{% block title %}{{ rmc_shell.portal_default_document_title|default:_("Portal") }}{% endblock %}</title>
     <link rel="icon" href="{% if SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
@@ -559,6 +562,8 @@
 
     {# Main Footer with Accreditation and Support #}
     <div data-rmc-shell-footer="portal">{% include 'components/footer.html' %}</div>
+
+    {% include 'components/contextual_feedback_widget.html' %}
 
     {% include 'components/rum_beacon.html' %}
 

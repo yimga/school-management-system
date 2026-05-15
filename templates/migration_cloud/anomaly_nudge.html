@@ -1,0 +1,117 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="rmc-page rmc-page--migration-cloud-review">
+  <header class="rmc-page__header">
+    <a class="rmc-back"
+       href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}{% endif %}">
+      {% trans "← Back to bundle" %}
+    </a>
+    <h1 class="rmc-h1">{% trans "Review queue" %}</h1>
+    <p class="rmc-muted">{% blocktrans with name=bundle.label|default:bundle.idempotency_key %}Anomalies + low-confidence decisions for {{ name }}.{% endblocktrans %}</p>
+  </header>
+
+  <section class="rmc-card">
+    <h2 class="rmc-h2">
+      {% trans "Low-confidence mappings" %}
+      <span class="rmc-muted">({{ low_conf_mappings|length }} {% trans "below" %} {{ threshold|floatformat:2 }})</span>
+    </h2>
+    {% if low_conf_mappings %}
+      <table class="rmc-data-table">
+        <thead>
+          <tr>
+            <th>{% trans "Artifact" %}</th>
+            <th>{% trans "Source column" %}</th>
+            <th>{% trans "Canonical" %}</th>
+            <th>{% trans "Confidence" %}</th>
+            <th>{% trans "Method" %}</th>
+            <th>{% trans "Reasoning" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in low_conf_mappings %}
+          <tr>
+            <td>{{ m.artifact }}</td>
+            <td>{{ m.source_column }}</td>
+            <td>{{ m.canonical_field }}</td>
+            <td>{{ m.confidence|floatformat:2 }}</td>
+            <td><span class="rmc-mapping__method-tag">{{ m.method }}</span></td>
+            <td class="rmc-muted">{{ m.reasoning|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="rmc-empty rmc-empty--inline">
+        <p>{% trans "No low-confidence mappings — every column cleared the threshold." %}</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="rmc-card">
+    <h2 class="rmc-h2">
+      {% trans "Quarantine" %}
+      <span class="rmc-muted">({{ quarantine_rows|length }})</span>
+    </h2>
+    {% if quarantine_rows %}
+      <table class="rmc-data-table">
+        <thead>
+          <tr>
+            <th>{% trans "Run" %}</th>
+            <th>{% trans "Reason" %}</th>
+            <th>{% trans "Acknowledged?" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for q in quarantine_rows %}
+          <tr>
+            <td>#{{ q.run_id }}</td>
+            <td>{{ q.reason|default:"—"|truncatechars:140 }}</td>
+            <td>{{ q.ack_status|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="rmc-empty rmc-empty--inline">
+        <p>{% trans "No quarantined rows from this bundle." %}</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Reconciliation drift" %}</h2>
+    {% if drift_domains %}
+      <table class="rmc-data-table">
+        <thead>
+          <tr>
+            <th>{% trans "Domain" %}</th>
+            <th>{% trans "Source" %}</th>
+            <th>{% trans "Created" %}</th>
+            <th>{% trans "Quarantined" %}</th>
+            <th>{% trans "Parity %" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in drift_domains %}
+          <tr>
+            <td>{{ d.domain }}</td>
+            <td>{{ d.source_count }}</td>
+            <td>{{ d.target_created }}</td>
+            <td>{{ d.quarantined }}</td>
+            <td>{{ d.parity_pct }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="rmc-empty rmc-empty--inline">
+        <p>{% trans "Every domain met the 99% parity bar (or reconciliation has not run yet)." %}</p>
+      </div>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

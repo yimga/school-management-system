@@ -149,14 +149,17 @@ class Command(BaseCommand):
             (Decimal("200000"), Decimal("500000"), Decimal("0.20")),
             (Decimal("500000"), None, Decimal("0.30")),
         ]
-        TaxBracket.objects.filter(profile=profile).delete()
+        seen_lower_bounds = []
         for lower, upper, rate in brackets:
-            TaxBracket.objects.create(
+            TaxBracket.objects.update_or_create(
                 profile=profile,
                 lower_bound=lower,
-                upper_bound=upper,
-                rate=rate,
+                defaults={"upper_bound": upper, "rate": rate},
             )
+            seen_lower_bounds.append(lower)
+        TaxBracket.objects.filter(profile=profile).exclude(
+            lower_bound__in=seen_lower_bounds
+        ).delete()
 
     def _seed_contributions(self, profile: ComplianceProfile) -> None:
         ContributionRule.objects.update_or_create(

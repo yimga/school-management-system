@@ -9,7 +9,12 @@ from apps.schools.models import School
 _T_HOST = "bd-shell.runmycampus.com"
 
 
-@override_settings(ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", _T_HOST])
+@override_settings(
+    ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", _T_HOST],
+    CONVERSION_LOCK_STRICT=False,
+    CONVERSION_LOCK_ALL_SCHOOLS=False,
+    DISABLE_SCHOOL_ACTIVATION_GATE=True,
+)
 class BackendDashboardShellRenderTests(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -27,6 +32,18 @@ class BackendDashboardShellRenderTests(TestCase):
     def setUp(self):
         self.client = Client(HTTP_HOST=_T_HOST, raise_request_exception=False)
 
+    def _mark_mfa_verified(self, user):
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        TOTPDevice.objects.update_or_create(
+            user=user,
+            name="shell-render-test",
+            defaults={"confirmed": True},
+        )
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
+
     def test_backend_dashboard_renders_role_ops_and_system_indicators(self):
         u = User.objects.create_user(
             username="bd_shell_adm",
@@ -36,6 +53,7 @@ class BackendDashboardShellRenderTests(TestCase):
         )
         u.feature_permissions.add(self.perm_settings)
         self.client.login(username="bd_shell_adm", password="x" * 8)
+        self._mark_mfa_verified(u)
         path = reverse("accounts:backend_dashboard", urlconf="config.tenant_urls")
         resp = self.client.get(path)
         self.assertEqual(resp.status_code, 200, msg=getattr(resp, "content", b"")[:500])
@@ -79,6 +97,7 @@ class BackendDashboardShellRenderTests(TestCase):
         )
         u.feature_permissions.add(self.perm_settings)
         self.client.login(username="bd_1087_tok", password="x" * 8)
+        self._mark_mfa_verified(u)
         path = reverse("accounts:backend_dashboard", urlconf="config.tenant_urls")
         resp = self.client.get(path)
         self.assertEqual(resp.status_code, 200)

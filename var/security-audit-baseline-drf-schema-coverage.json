@@ -1,0 +1,29 @@
+{
+  "allow_marker": "drf-spectacular-allow:",
+  "drf_view_bases": [
+    "APIView",
+    "CreateAPIView",
+    "DestroyAPIView",
+    "GenericAPIView",
+    "GenericViewSet",
+    "ListAPIView",
+    "ListCreateAPIView",
+    "ModelViewSet",
+    "ReadOnlyModelViewSet",
+    "RetrieveAPIView",
+    "RetrieveDestroyAPIView",
+    "RetrieveUpdateAPIView",
+    "RetrieveUpdateDestroyAPIView",
+    "UpdateAPIView",
+    "ViewSet"
+  ],
+  "finding_count": 0,
+  "findings": [],
+  "generated_at": "2026-05-15T08:53:22+00:00",
+  "rule": "DRF view classes in apps/api/ must carry @extend_schema or @extend_schema_view",
+  "scan_dir": "apps/api",
+  "schema_decorators": [
+    "extend_schema",
+    "extend_schema_view"
+  ]
+}

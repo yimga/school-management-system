@@ -1,4 +1,10 @@
 // Service worker for portal PWA + offline write-behind queue.
+// Bumped 2026-05-13 (v2.6.0): Shell polish + breadth adoption.
+//   - Progress bar, OG/Twitter meta, safe-area mobile guards, keyboard
+//     cheat sheet, marketing dark-mode tokens, and native form-validation
+//     feedback are mounted across the shell family.
+//   - Empty-state, metric ticker, and bento grid breadth extended across
+//     high-traffic dashboards plus pricing/platform/admin hubs.
 // Bumped 2026-05-12 (v2.5.0): Carried-forward closeout — completes the 4
 // follow-ups from v2.4 aesthetic push as a single wave.
 //   - SITE_LOGO_DARK_URL: RuntimeDefaults typed column (migration 0065) +
@@ -50,7 +56,7 @@
 //   - Spring success checkmark + haptic helper (Navigator.vibrate on
 //     rmc:success/warning/error events, reduced-motion-respecting).
 //   - 834px iPad split-view breakpoint adopted across components.
-const CACHE_VERSION = "sms-v2.5.0-carried-forward-closeout-2026-05-12";
+const CACHE_VERSION = "sms-v2.25.0-burndown-sweep-2026-05-15";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -137,6 +143,7 @@ const STATIC_ASSETS = [
   "/static/js/low-power.js",
   "/static/js/offline-status-bar.js",
   "/static/js/auto-pilot.js",
+  "/static/js/migration_cloud_wizard.js",
   "/static/images/logo.png",
   "/static/manifest.json",
 ];

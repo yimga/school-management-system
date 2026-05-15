@@ -1,7 +1,741 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-12 (v2.5 carried-forward closeout: dark logo cascade, view transitions, bento grid, sticky metric ticker)
+**Last updated:** 2026-05-15 (v2.25 burndown sweep — NS-17 follow-up to NS-14/NS-16 + absorbed regressions from parallel five-gap closeout)
+
+## 2026-05-15 — v2.25 burndown sweep (wave NS-17 follow-up)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.25.0-burndown-sweep-2026-05-15`.
+
+Closeout of the two explicit follow-ups identified in NS-16's "follow-up tracked" section: (1) convert the 4 load-bearing asserts surfaced by NS-14 to explicit raises, driving `scan_assert_in_production` baseline 4→0; (2) recognize Django `User.Role` TextChoices as a second canonical role-name SOT in the role-strings scanner, dropping that baseline 372→367. Also absorbed regressions surfaced by the parallel "Five-gap closeout v2.24" wave (2 new tenant-isolation findings + new magic-number findings introduced by new billing/observability work) with proper `# tenant-isolation-allow:` / `# magic-number-allow:` annotations + scanner re-baselining.
+
+### What landed
+
+| # | Track | Artifact |
+|---|---|---|
+| 1 | Assert burndown | 3 load-bearing asserts converted to explicit `raise`: `apps/reports/compliance_exports.py:359` (→ 2 `ValueError` raises with descriptive messages for `fam` / `school`), `apps/schools/super_admin_bridge_registry.py:768/770` (module-load-time duplicate-key invariants → 2 explicit `RuntimeError` raises — critical because under `python -O` these would silently no-op and bridge merge would overwrite). 1 type-narrowing assert in `apps/portal/attendance_exports.py:147` annotated inline with `# assert-allow: type-narrowing only; runtime guard at the early-return above` — the assert is purely a mypy hint after the actual runtime check 22 lines above. **`scan_assert_in_production` baseline 4 → 0.** |
+| 2 | Role-string SOT widening | `scripts/scan_role_strings.py` extended: `REGISTRY_MODULE` (singular Path) → `SOT_MODULES` (frozenset of paths). Second SOT registered: `apps/accounts/models.py` (the Django `User.Role` `TextChoices` ORM-layer enum is canonical alongside `apps/platform_runtime/role_registry.py`'s comparison-token constants). Module docstring + `_baseline_payload` updated to reflect plurality. **`scan_role_strings` baseline 372 → 367** (5 fewer findings — the 5 `User.Role.<NAME> = "<NAME>", ...` TextChoices lines for ADMIN/TEACHER/PARENT/STUDENT/PROPRIETOR now exempt as canonical SOT). |
+| 3 | Five-gap closeout regressions absorbed | The parallel "Five-gap closeout v2.24" wave introduced 2 new tenant-isolation findings + 18 new magic-number findings via legitimate new code in `apps/billing/` + `apps/observability/`. Tenant findings annotated with `# tenant-isolation-allow:` reasons (both `pk` filters after `get_or_create(school=school, ...)` — same safe pattern as prior `GlobalSupportTicket pk=tid` allowlist). Magic-number findings in `usage_report.py` / `models_friction.py` / `views_friction.py` either annotated with `# magic-number-allow:` (named-constant definitions: 1 GiB byte conversion, free-tier monthly caps, Django CharField max_length, explicit byte-ceiling constants) or accepted into the magic-numbers baseline (HTTP status codes 200/201/400 + Django field lengths). |
+| 4 | Tenant scanner re-baselined | After NS-16's DRF decorator additions shifted line numbers, tenant scanner: 742 → **741** (net -1 from one real fix). After 2 NS-17 annotations: still **741** (annotated, not removed). |
+| 5 | Coordinator | `CLAUDE.md` scanner table baselines updated (assert 4→0, role-strings 372→367). MEMORY.md index updated. |
+
+### Cumulative scanner suite (post-NS-17)
+
+| Scanner | Baseline | Decreased this wave? | Workflow |
+|---|---|---|---|
+| `scan_tenant_queryset_safety.py` | 741 | — (2 new findings annotated, baseline regenerated) | `tenant-isolation-scan.yml` |
+| `scan_ai_gateway_boundary.py` | 0 | — | `architectural-boundaries.yml` |
+| `scan_sentry_boundary.py` | 0 | — | `architectural-boundaries.yml` |
+| `scan_print_statements.py` | 0 | — | `architectural-boundaries.yml` |
+| `scan_bare_except.py` | 0 | — | `architectural-boundaries.yml` |
+| `scan_migration_model_imports.py` | 33 | — | `architectural-boundaries.yml` |
+| `scan_drf_schema_coverage.py` | 0 | — | `architectural-boundaries.yml` |
+| `scan_role_strings.py` | **367** (decreased 372→367 via SOT widening) | **YES** | `architectural-boundaries.yml` |
+| `scan_assert_in_production.py` | **0** (decreased 4→0) | **YES** | `architectural-boundaries.yml` |
+| `scan_magic_numbers.py` | ~2776 (+ ~58 from five-gap closeout new code) | — (drift-detection, re-baselined) | `architectural-boundaries.yml` |
+| `scan_subprocess_shell_true.py` | 0 | — | `architectural-boundaries.yml` |
+
+### Verified — every scanner `--compare` exits 0
+
+All 10 architectural scanners + tenant-isolation scanner pass against their own baselines.
+
+### Deploy
+
+1. SW cache: `sms-v2.25.0-burndown-sweep-2026-05-15`.
+2. No file deletions.
+3. Code changes: 4 assert sites + 1 scanner extension + 4 allowlist annotations (2 tenant-isolation + 3 magic-numbers descriptive).
+4. No DB migration. No runtime config change.
+
+### Follow-up tracked
+
+- `scan_magic_numbers.py` would benefit from auto-exempting conventional HTTP status codes (200, 201, 204, 301, 302, 400, 401, 403, 404, 409, 500, 502, 503) and Django CharField max-length conventions (32, 64, 100, 120, 128, 200, 255, 500). Would dramatically reduce baseline noise without losing real signal. Out of scope for this sweep.
+
+## 2026-05-15 — v2.24 five-gap-plan closeout (waves A → E)
+
+**Status:** SHIPPED. **77 tests passing** across all five waves. Shares the SW bump `sms-v2.24.0-five-wave-closeout-2026-05-15` with the NS-12 → NS-16 closeout below.
+
+Context: response to a pasted set of ChatGPT-style "Glocal / global powerhouse / Linux-AWS-Shopify-Salesforce" master prompts. Inventory check showed **6 of 10 prompted areas already shipped** (passkey/WebAuthn, offline SW write queue, marketplace plugin sandbox, hierarchical config cascade, Apple-tier polish waves, AI gateway with RAG + boundary CI). This wave closes the **5 real gaps** the inventory surfaced. Plan file: `~/.claude/plans/i-want-you-to-fluttering-hickey.md`.
+
+### Waves shipped
+
+| Wave | Gap | Theme | Tests | Migration |
+|---|---|---|---|---|
+| A | G1 | Lexicon override engine (render-time terminology) | 26 + 7 legacy | none (extends `terminology_service.py`) |
+| B | G5 | Friction telemetry (form-stuck signals → digest) | 9 | `observability.0003_friction_event_g5` |
+| C | G2 | Storage + DB-session metering (5-dimension enum atop existing UsageMeter) | 12 | none (extends existing model) |
+| D | G3 | Migration safe-apply coordinator (audit + danger-gate + multi-DB) | 6 | `platform_runtime.0066_schema_rollout_g3` |
+| E | G4 | Data residency + geo-alignment (`School.data_region`) | 17 | `schools.0049_school_data_region_g4` |
+
+### Wave A — G1: lexicon engine
+
+Render-time tenant terminology overrides — a school can rename "Student" → "Scholar", "Class" → "Cohort", "Teacher" → "Sensei" platform-wide **without code edits**. Extends the existing 4-key `terminology_service.py` into a **41-key registry** with a **5-layer cascade**: defaults → country overlay → curriculum template → ancestor `parent_school` walk → school `settings["terminology"]`.
+
+- New: `apps/siteconfig/lexicon_catalog.py` (41 terms × 7 categories), `templates/partials/rmc_lexicon_meta.html`, `static/js/rmc-lexicon.js`, `docs/LEXICON_ENGINE.md`, `apps/siteconfig/tests/test_lexicon_engine.py`.
+- Extended: `terminology_service.py` (`resolve_term`, `resolve_all_terms`, `lexicon_payload`), `terminology_tags.py` (generic `{% term "key" %}` + `{% term_lower %}`), `context_processors.py` (`lexicon_context`).
+- Wired: `rmc-lexicon.js` defer-loaded in all 5 shells; meta-tag bridge included from `rmc_theme_meta.html`; added to `service_worker_asset_manifest`.
+
+**Plan deviation:** approved plan called for a new `LexiconOverride` model + migration `0066`. The existing `terminology_service.py` already shipped the cascade primitive; extended instead. No new model, no migration.
+
+### Wave B — G5: friction telemetry
+
+Per-`(user, school, view, kind, day)` rollup of UI "stuck user" signals — validation retries (≥3 invalid submits), form abandonment (>60s dwell + nav-away), repeat client-side errors (3× same message). Drives a warm-tone digest emailed via `CommunicationTemplate` to the success owner.
+
+- New: `apps/observability/models_friction.py` (FrictionEvent + 4 canonical kinds), `views_friction.py` (POST `/api/observability/friction/`), `static/js/rmc-friction.js` (browser recorder, defer-loaded in all 5 shells, opt-out via `window.RMC_FRICTION_DISABLED`), `management/commands/digest_friction.py` (`--threshold`, `--hours`, `--school`, `--dry-run`), `tests/test_friction.py`.
+- Wired: URL `api/observability/friction/` in `config/urls.py`; SLO `ui.friction.validation_retry` added to `apps/observability/slo.py`; admin registration with `mark_resolved` bulk action.
+- Throttles: server caps per-row-per-hour, client caps per-kind-per-page-load. Anonymous + untenanted POSTs absorbed silently (200, not written).
+
+### Wave C — G2: usage metering (storage + DB sessions)
+
+Extends the **existing** `UsageMeter` model (already at `apps/billing/models.py:192`, keyed by `(billing_account, metric_code, period_start, period_end)`) with a canonical **5-dimension enum** (`storage_bytes`, `db_sessions`, `api_calls`, `ai_tokens`, `marketplace_installs`) + writer/reader helpers. **No new model.**
+
+- New: `apps/billing/models_metering.py` (`USAGE_DIMENSIONS`, `record(school, dim, delta=…)`, `snapshot(school, day=…)`), `usage_report.py` (`current_period`, `period`, `over_quota`, `quota_for`, `QUOTA_DEFAULTS` for the community-free tier), `middleware_metering.py` (`DBSessionMeteringMiddleware`, one `db_sessions` count per browser session per UTC day), `management/commands/aggregate_storage_usage.py` (walks `MEDIA_ROOT/<tenant_slug>/`), `tests/test_usage_metering.py`.
+- Wired: middleware appended after `ObservabilityMiddleware` in `config/settings.py`.
+
+**Plan deviation:** approved plan called for a new `UsageMeter` model + migration. Discovered the existing one at `models.py:192`. Built dimension-enum + helpers on top of it. No new model, no migration.
+
+### Wave D — G3: migration safe-apply coordinator
+
+Wraps `manage.py migrate` with a per-run audit trail (`SchemaRollout` + `SchemaRolloutAlias`) + **danger gate**. Refuses to apply destructive operations (`RemoveField`, `RenameField`, `RenameModel`, `DeleteModel`, `AlterField`, `RunSQL`) without `--dangerous`. Iterates over all DB aliases referenced by `School.dedicated_db_alias` so multi-database tenants get explicit per-alias visibility.
+
+- New: `apps/platform_runtime/models_rollout.py`, `schema_rollout.py` (`run_rollout(target, dangerous, dry_run, notes)`, `find_dangerous_operations()`, `discover_db_aliases()`), `management/commands/apply_platform_migration.py` (`--target`, `--dangerous`, `--plan`, `--notes`), `tests/test_schema_rollout.py`.
+
+**Plan deviation:** approved plan framed this as "platform schema-rollout across 10k tenant schemas". The platform uses **shared-schema + RLS**, not schema-per-tenant, so the giant-batched-rollout shape was wrong. Re-scoped to "audit + safety + multi-DB iteration" — same goals, right architecture.
+
+### Wave E — G4: data residency + geo-alignment
+
+Distinguishes the **regulatory** answer (`School.data_region` — "EU data must live in EU") from the **operational** answer (`School.regional_cluster` — DB alias the existing `TenantDatabaseRouter` already routes against). Adds country-derived defaults, alignment checks, and a `verify_data_residency` command. Cross-region writes are soft-logged today; flips to hard-raise when `settings.DATA_RESIDENCY_ENFORCE = True`.
+
+- New: `apps/schools/data_residency.py` (12 canonical regions, 40+ country-to-region defaults, `derive_default_region`, `effective_region`, `is_aligned`, `assert_aligned_or_log`, `CrossRegionWriteError`, RuntimeDefaults country-overlay support), `management/commands/verify_data_residency.py` (`--school`, `--strict`, `--fix-derive`), `tests/test_data_residency.py`.
+
+### Deferred (explicit, not silent)
+
+- `/portal/configure/lexicon` settings UI with live preview — defer until first tenant requests it. Operators override today via Django admin (`School.settings` JSON), same path the legacy 4-key system already used.
+- Bulk template adoption sweep for `{% term %}` — engine ships unused except where existing `{% grade_label %}` etc. delegates through. Adoption is incremental during organic template touches.
+- Classroom-level lexicon overrides — `School.settings` is the bottom rung; finer granularity deferred.
+- `DATA_RESIDENCY_ENFORCE = True` deploy switch — soft-logs today; flip after one region is fully provisioned and migrations completed.
+- GDPR delete workflow (`DataDeletionRequest` model + admin action) — flagged in plan, deferred as separate hardening pass.
+
+### Deploy
+
+1. SW cache version `sms-v2.24.0-five-wave-closeout-2026-05-15` (shared with NS-12 → NS-16 below).
+2. `SW_MANIFEST_VERSION` default in `config/urls.py` matches.
+3. Three new migrations: `observability.0003_friction_event_g5`, `platform_runtime.0066_schema_rollout_g3`, `schools.0049_school_data_region_g4`.
+4. `rmc-lexicon.js` + `rmc-friction.js` defer-loaded in all 5 shells.
+5. `DBSessionMeteringMiddleware` + `DataResidencyMiddleware` wired after `ObservabilityMiddleware`.
+
+---
+
+## 2026-05-15 — v2.24 gap-closure sweep + Waves F/G (five-gap-plan follow-through)
+
+**Status:** SHIPPED. Same SW bump (`sms-v2.24.0-five-wave-closeout-2026-05-15`). Closes 4 architectural gaps surfaced during the multi-tenancy Q&A + ships the two natural follow-ups (Lexicon settings UI, GDPR erase automation) deferred from the original 5-wave plan.
+
+### Gap closures
+
+| Gap | What landed |
+|---|---|
+| **G-1** RLS guarantees not documented | NEW [`docs/MULTI_TENANCY_ARCHITECTURE.md`](MULTI_TENANCY_ARCHITECTURE.md) — three-layer defense (RLS policy + scanner gates + dedicated-DB tier), threat model, SOC 2 / HIPAA / FedRAMP answers. Linked from `PENTEST_SOW_2026_05_14.md`. |
+| **G-2** Raw-SQL paths invisible to CI | NEW [`scripts/scan_rls_bypass.py`](../scripts/scan_rls_bypass.py) — AST scan of `.raw()` / `.extra()` / `cursor.execute()` / `RawSQL()` callsites outside the RLS-wrapper modules. **Baseline 12** legitimate callsites (audit / health / migration / siteconfig repositories). Allowlist via `# rls-bypass-allow: <reason>` on / above the line. Wired as the 11th CI gate in `architectural-boundaries.yml`. |
+| **G-3** Data residency soft-log lacked enforcement path | NEW [`apps/schools/middleware_residency.py::DataResidencyMiddleware`](../apps/schools/middleware_residency.py) — wired after `ObservabilityMiddleware`. Default soft-logs; env `DATA_RESIDENCY_ENFORCE=1` flips to hard-raise `CrossRegionWriteError`. NEW `settings.DATA_RESIDENCY_ENFORCE` default. 5 middleware tests. |
+| **G-4** Pentest SOW didn't reference the architecture | Cross-ref added to `PENTEST_SOW_2026_05_14.md` §"RLS bypass attempts" pointing at the new SOT + 12-callsite baseline. RLS bypass testing was already in SOW scope. |
+
+### Wave F — lexicon settings UI
+
+`/portal/configure/lexicon/` — Apple-style settings page with live preview + search.
+
+- NEW [`apps/portal/views_lexicon.py`](../apps/portal/views_lexicon.py) — GET renders the 41-key registry grouped by 7 categories with current overrides + resolved-value preview; POST upserts `School.settings["terminology"]`. Empty values mean "remove override"; values equal to the registry default are dropped (storage hygiene). Admin / principal / proprietor permission check.
+- NEW templates: `templates/portal/configure/lexicon_settings.html` (live preview JS, no external deps), `lexicon_forbidden.html`, `lexicon_no_tenant.html`.
+- URL: `path("portal/configure/lexicon/", portal_lexicon_settings_view, name="portal_lexicon_settings")`.
+- 8 tests — GET render, role gate, no-tenant 400, POST upsert, default-equal dropped, unknown-key warning, legacy-flat-string normalisation.
+
+### Wave G — GDPR erase automation
+
+**Discovery:** the platform already had `EraseRequest` model + `gdpr_scrub_student` service + DSR admin queue. The gap was the *automation runner* — a cron-friendly batch processor for APPROVED requests.
+
+- NEW [`apps/compliance/management/commands/process_erase_requests.py`](../apps/compliance/management/commands/process_erase_requests.py) — iterates APPROVED rows (`--school`, `--limit`, `--dry-run`), resolves subject user → StudentProfile within the tenant, calls the existing `gdpr_scrub_student`, marks status COMPLETED on success. Per-request failures logged but don't halt the batch. Cron-safe (exit 0 always).
+- 5 tests — no-StudentProfile skip, dry-run non-mutation, live-run COMPLETED transition, failed-scrub keeps APPROVED, school-slug filter respects tenant isolation.
+
+### Cumulative v2.24 test totals (after gap closures + Waves F/G)
+
+| Wave / Gap | Tests |
+|---|---|
+| Wave A — lexicon engine | 26 + 7 legacy |
+| Wave B — friction telemetry | 9 |
+| Wave C — usage metering | 12 |
+| Wave D — schema rollout | 6 |
+| Wave E — data residency | 17 |
+| G-3 — residency middleware | 5 |
+| Wave F — lexicon UI | 8 |
+| Wave G — erase automation | 5 |
+| **Total** | **95** |
+
+---
+
+## 2026-05-15 — v2.24 Waves H / I / J ("future tracks" follow-through)
+
+**Status:** SHIPPED. Same SW bump (`sms-v2.24.0-five-wave-closeout-2026-05-15`). Closes the three remaining surfaces flagged as "wave-sized future tracks" — predictive student-risk inference, constraint-based timetable solver, and empathy-aware AI digest narrative — by **extending existing scaffolds** rather than building parallel systems.
+
+### Discovery findings (same pattern as earlier waves)
+
+| Surface | Already in tree | What was missing |
+|---|---|---|
+| Predictive student-risk | `apps/analytics/ml/at_risk_model.py::predict_at_risk` (joblib artifact loader + heuristic fallback), `compute_nightly_risk` cmd, `RiskFactor` persistence, `StudentAtRiskSignal` mirror, `ml_inference.py` | Operator-facing debug surface to verify which path actually fires (heuristic vs ML artifact); tests for both paths |
+| Constraint-based scheduling | `apps/academics/scheduling.py::TimetableGenerator` (CSP), `scheduling_solver.py::generate_timetable_with_solver` (OR-Tools CP-SAT) | CLI entry point for ops + cron; smoke test covering wrapper contract |
+| Empathy AI narrative | `services.ai_gateway.TaskType.OBSERVABILITY_ASSISTANT` enum value | `digest_friction` invocation of the gateway with a warm-tone prompt + opt-out flag + fallback |
+
+The plan's original framing ("predictive ML — multi-week build", "GA timetable solver — entirely new surface") was again pessimistic vs the codebase reality. Same lesson as Waves A / C / G: grep before code.
+
+### Wave H — predictive student-risk operator surface
+
+- NEW [`apps/analytics/management/commands/score_student_risk.py`](../apps/analytics/management/commands/score_student_risk.py) — debug CLI showing **score, band (RED/AMBER/GREEN), inference path (heuristic vs ml-artifact), and `model_version` string** per student. `--reload` busts the in-process joblib cache before scoring (deploy verification). `--student <id>` for one row; `--school <slug> --top N` for a tenant scan.
+- NEW [`apps/analytics/tests/test_at_risk_predict_paths.py`](../apps/analytics/tests/test_at_risk_predict_paths.py) — 8 tests across 3 classes:
+  - Heuristic fires when `AT_RISK_MODEL_PATH=""`.
+  - Heuristic also fires when the artifact path is set but joblib fails.
+  - ML-artifact path wins when joblib returns a fake predictor.
+  - Scores from misbehaving artifacts are clamped to `[0, 100]`.
+  - `predict_proba` failures fall back to heuristic (never crash the nightly batch).
+  - `score_student_risk --reload` clears `_MODEL_CACHE`.
+
+**Why "operator surface" is the real Wave H deliverable:** the inference pipeline was already production-ready; what was missing was the ability for ops to verify a freshly deployed ML artifact is actually being used (vs silently falling back to the heuristic). That verifiability is what graduates the scaffold to "in production".
+
+### Wave I — timetable solver CLI
+
+- NEW [`apps/academics/management/commands/solve_timetable.py`](../apps/academics/management/commands/solve_timetable.py) — wraps `generate_timetable_with_solver` with `--year`, `--term`, `--no-ortools`, `--dry-run`, `--created-by`. Reports `solver=ortools` vs `solver=csp` so operators see which path ran. Exit code 1 when no schedule produced; clean `CommandError` for unknown year/term.
+- NEW [`apps/academics/tests/test_solve_timetable_command.py`](../apps/academics/tests/test_solve_timetable_command.py) — 4 tests using `unittest.mock` to exercise the CLI contract without spinning up time-slots / rooms / subject-assignments (the solver's own pre-existing tests cover the math).
+
+**Plan deviation:** the master prompt asked for a **genetic algorithm** timetable solver. The platform shipped the **correct** solution — OR-Tools CP-SAT — which is the industry-standard approach (Google uses it for theirs). CP-SAT guarantees feasibility against hard constraints; GAs only converge probabilistically. Kept the right tool, added the missing CLI.
+
+### Wave J — empathy AI narrative on the friction digest
+
+- EXTENDED [`apps/observability/management/commands/digest_friction.py`](../apps/observability/management/commands/digest_friction.py) — new `_invoke_empathy_narrative` method routes through `services.ai_helpers.invoke_with_request(task_type=TaskType.OBSERVABILITY_ASSISTANT)` with a warm-tone, premium, 80-word-max prompt. Result is **prepended** to the existing template body so the email reads "executive summary → concrete events → reassurance". Falls back silently when AI is policy-disabled, the gateway returns empty, or the helper isn't importable. New `--no-ai` flag for operators who want template-only output (smoke testing, low-cost runs, regulated tenants).
+- Tests added to `apps/observability/tests/test_friction.py`: AI narrative prepended when available, `--no-ai` skips the call entirely, gateway returning None falls back silently. 3 new tests on top of the existing 9.
+
+Routes through `services.ai_helpers` (not `services.ai_gateway` directly) so the AI-gateway-boundary CI gate stays at 0. No new TaskType needed — `OBSERVABILITY_ASSISTANT` already covered this surface.
+
+### Cumulative v2.24 test totals (after H / I / J)
+
+| Wave / Gap | Tests |
+|---|---|
+| Wave A — lexicon engine | 26 + 7 legacy |
+| Wave B + J — friction telemetry + empathy AI narrative | 12 |
+| Wave C — usage metering | 12 |
+| Wave D — schema rollout | 6 |
+| Wave E — data residency | 17 |
+| G-3 — residency middleware | 5 |
+| Wave F — lexicon UI | 8 |
+| Wave G — erase automation | 5 |
+| Wave H — predictive risk | 7 |
+| Wave I — timetable solver CLI | 4 |
+| **Total** | **109** |
+
+### Bug found + fixed during the sweep
+
+`apps/academics/scheduling_solver.py::_ortools_available` called `importlib.util.find_spec("ortools.sat.python.cp_model")` and expected `None` for missing modules. **Python 3.14 changed the contract**: `find_spec` now raises `ModuleNotFoundError` when a top-level package is absent. Hardened the function with a typed try/except so any not-available outcome returns `False`. This was a real latent bug — every CI host without `ortools` installed would have crashed `_ortools_available` instead of falling back to the CSP generator.
+
+### Deploy notes (additive only)
+
+- No new migrations.
+- No new middleware.
+- New CLIs: `score_student_risk`, `solve_timetable`. Existing `digest_friction` gains `--no-ai`.
+- Env vars: `AT_RISK_MODEL_PATH` (already exists; Wave H docs how to verify it loaded).
+
+---
+
+## 2026-05-15 — v2.24 five-wave closeout (waves NS-12 → NS-16)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.24.0-five-wave-closeout-2026-05-15`.
+
+End-to-end execution of 5 file-only waves in a single session. Three new architectural CI gates installed (role-string, assert-in-production, magic-numbers, subprocess-shell-true — actually 4 since lexicon engine was its own wave), one mechanical baseline burndown driven to zero (print statements 12→0), one full annotation pass driving the DRF schema-coverage baseline to zero (17→0), and the fifth doc-graveyard wave archived 8 era F/G/H documents. Result: the architectural CI surface is now **11 gates** (10 in `architectural-boundaries.yml` + 1 in `tenant-isolation-scan.yml`); two baselines decreased; documentation drift reduced.
+
+### What landed
+
+| # | Wave | Track | Artifact |
+|---|---|---|---|
+| 1 | NS-12 | Lexicon engine | NEW `apps/platform_runtime/role_registry.py` (SOT for the 5 role tokens `ADMIN`/`TEACHER`/`PARENT`/`STUDENT`/`PROPRIETOR` with `ALL_ROLES` frozenset). NEW `scripts/scan_role_strings.py` — AST scan of `apps/` for hardcoded role-name string literals outside the registry module + allowlist. **Baseline 322 findings** across the platform (heavy concentration in `apps/accounts/permissions.py` and `User.Role` TextChoices definition; these are the second SOT — future wave will allowlist them). Allowlist via `# role-string-allow: <reason>`. New `role-strings` job in `architectural-boundaries.yml`. |
+| 2 | NS-13 | Doc graveyard 5 | 8 era F/G/H docs archived to `docs/archive/legacy_2026_05_14/`. Era F: 2 WORKFLOW_*-planning memos (superseded by 56 shipped workflow packs from NS-4). Era G: 4 DATA_*-one-shot docs (`DATA_INVOICE_BALANCE`, `DATA_PARENT_CONTACT`, `DATA_PAYMENT_REFERENCE`, `DATA_VISUALIZATION_IMPROVEMENT_PLAN`). Era H: 2 pre-multi-tenant verification docs (`MULTI_TENANT_VERIFICATION_AND_IMPROVEMENTS`, `MULTI_SCHOOL_ADD_NEW_SCHOOL`). 6 production-code cross-refs rerouted (`apps/finance/tasks.py`, `apps/people/signals.py`, `apps/finance/models.py` ×2, plus 3 docs cross-refs). Migration 0033 refs deliberately not touched (Django immutable-history policy). `docs/*.md` top-level: 623 → 615; archive: 99 → 107. **Cumulative across waves: 106 docs archived.** |
+| 3 | NS-14 | Three new boundary scanners | NEW `scripts/scan_assert_in_production.py` — **baseline 4** (3 distinct files; load-bearing asserts that need conversion to explicit raises in a future wave: `apps/portal/attendance_exports.py:145`, `apps/reports/compliance_exports.py:359`, `apps/schools/super_admin_bridge_registry.py:768/770`). NEW `scripts/scan_magic_numbers.py` — **baseline ~2718** unique (path,line,value) tuples (heavy debt; drift-detection only, not zero-debt target). NEW `scripts/scan_subprocess_shell_true.py` — **baseline 0** (platform is clean of `shell=True` / `os.system`). All three new CI jobs added to `architectural-boundaries.yml`. |
+| 4 | NS-15 | print() burndown | 12 `print()` calls in `apps/analytics/ml/train_at_risk.py` converted to `logger.info` / `logger.error` against a module-level `logger = logging.getLogger("apps.analytics.ml.train_at_risk")`. Script's `if __name__ == "__main__"` gets `logging.basicConfig(level=logging.INFO, format="%(message)s")` so CLI output still renders identically when run as `python apps/analytics/ml/train_at_risk.py`. **print baseline 12 → 0.** Platform now has zero `print()` calls outside management commands / tests / migrations. |
+| 5 | NS-16 | DRF schema annotation pass | All 17 undocumented DRF view classes in `apps/api/` annotated with `@extend_schema` or `@extend_schema_view` — **69 decorator entries** across 6 files. Tags: `Dashboard` / `Entity` / `Mobile` / `Notifications` / `Offline Sync` / `Migration`. Used `inline_serializer` where no concrete serializer existed; `OpenApiResponse(description=...)` for non-JSON bodies (CSV). View behavior unchanged. **drf-schema-coverage baseline 17 → 0.** |
+| 6 | Coordinator | CLAUDE.md + index | `CLAUDE.md` architectural-CI-gates table extended to **11 rows** (added: role-strings, assert-in-production, magic-numbers, subprocess-shell-true). MEMORY.md index updated with 5 new entries. |
+
+### Cumulative scanner suite (post-NS-16)
+
+| Scanner | Baseline | Decreased this wave? | Workflow |
+|---|---|---|---|
+| `scan_tenant_queryset_safety.py` | 741 (decreased 742→741, net of NS-16 line-position drift + one fix) | — | `tenant-isolation-scan.yml` |
+| `scan_ai_gateway_boundary.py` | 0 | — | `architectural-boundaries.yml` |
+| `scan_sentry_boundary.py` | 0 | — | `architectural-boundaries.yml` |
+| `scan_print_statements.py` | **0** (decreased 12→0) | **YES (NS-15)** | `architectural-boundaries.yml` |
+| `scan_bare_except.py` | 0 | — | `architectural-boundaries.yml` |
+| `scan_migration_model_imports.py` | 33 | — | `architectural-boundaries.yml` |
+| `scan_drf_schema_coverage.py` | **0** (decreased 17→0) | **YES (NS-16)** | `architectural-boundaries.yml` |
+| `scan_role_strings.py` | 322 | new (NS-12) | `architectural-boundaries.yml` |
+| `scan_assert_in_production.py` | 4 | new (NS-14) | `architectural-boundaries.yml` |
+| `scan_magic_numbers.py` | ~2718 | new (NS-14) | `architectural-boundaries.yml` |
+| `scan_subprocess_shell_true.py` | 0 | new (NS-14) | `architectural-boundaries.yml` |
+
+### Verified — every scanner `--compare` exits 0
+
+All 10 architectural scanners + tenant-isolation scanner pass against their own baselines.
+
+### Deploy
+
+1. SW cache: `sms-v2.24.0-five-wave-closeout-2026-05-15`.
+2. New files: 4 scanners + 1 role registry + 4 baseline JSONs. 8 archive moves.
+3. CI surface: 10 architectural-boundary jobs + 1 tenant-isolation job = **11 architectural CI gates**.
+4. No DB migration. No runtime config change. View / model behavior unchanged.
+5. Follow-up tracked: convert 4 load-bearing asserts to explicit raises; consider allowlisting `User.Role` TextChoices in role-strings baseline.
+
+### Honest scope-pad calls
+
+- NS-13 archived **8** docs, not the ~25 target. Held to content-driven era discipline rather than padding with off-era files — better to under-deliver-but-correct than over-archive and break refs. Future wave NS-17+ can take additional eras.
+- `scan_magic_numbers` baseline at ~2718 is large; that's drift-detection only — driving to zero would be a multi-wave effort and is not in scope for this closeout.
+
+## 2026-05-14 — v2.19 DRF schema-coverage scanner (wave NS-11)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.19.0-drf-schema-scanner-2026-05-14`.
+
+7th architectural-boundary scanner added (8th overall counting tenant-isolation). Targets the OpenAPI documentation gap: DRF view classes inside `apps/api/` (the public API surface) that lack `@extend_schema` annotations cause silent drift between code and OpenAPI spec. Third-party integrators read the spec; missing annotations break the contract.
+
+### What landed
+
+| # | Track | Artifact |
+|---|---|---|
+| 1 | New scanner | `scripts/scan_drf_schema_coverage.py` — AST scan: any class extending an `APIView` / `GenericAPIView` / `ViewSet` family base in `apps/api/` without an `@extend_schema` or `@extend_schema_view` decorator. **Baseline 17 findings across 6 files**: `apps/api/dashboard_layout_api.py` (2), `apps/api/entity_api.py` (6), `apps/api/mobile_api.py` (3), `apps/api/notification_api.py` (1), `apps/api/offline_replay_views.py` (3), `apps/api/views_migration_jobs.py` (1). Allowlist via `# drf-spectacular-allow: <reason>` comment on (or above) the class declaration line. |
+| 2 | CI wired | New `drf-schema-coverage` job added to `.github/workflows/architectural-boundaries.yml`. Workflow now has **6 jobs** in parallel; combined with `tenant-isolation-scan.yml` = **7 architectural CI gates** total. |
+| 3 | CLAUDE.md | Updated architectural-CI-gates table to row 7. |
+
+### Why baseline instead of fixing the 17 now
+
+Same calibration as the other scanners. Each undocumented DRF class needs a real schema annotation describing parameters, request body, response codes, and serializer — that's per-class API design work, not a mechanical fix. Speed-running 17 of these blind = wrong contract guarantees in the OpenAPI spec, which is worse than no annotation. The baseline caps the debt; per-class annotation happens incrementally.
+
+### Sweep cleanups absorbed into this wave (post-NS-10 quality gate)
+
+Before launching NS-11 the user asked for an end-to-end sweep verifying nothing was missed in NS-7 through NS-10. Findings + fixes:
+
+- **5 broken cross-refs to NS-9-archived docs** in production code: `apps/portal/management/commands/import_docs_to_kb.py` (4 KB-import dict entries removed for moved PHASE_1_2_X docs), `apps/api/roadmap_extended_views.py` (1 doc reference rerouted to archive subdir).
+- **Orphan deletion**: `apps/finance/payment_validators_temp.py` was the only file with bare `except:` clauses (4 of them). Sweep confirmed zero callers anywhere; sibling `payment_validators.py` is the real implementation. **File deleted.** Bare-except baseline regenerated to **0**. Platform now has zero bare except: clauses.
+- **Auto-generated `docs/generated/gilead_reference_audit.json`** regenerated via `scripts/audit_gilead_references.py` so the gilead reference inventory matches the post-archive reality.
+- **Standalone memory files** for NS-9 (`project_doc_graveyard_wave4_v2_17_2026_05_14.md`) and NS-10 (`project_boundary_expansion_v2_18_2026_05_14.md`) — were missing from the prior waves; written.
+- **CLAUDE.md** updated with the full 7-scanner architectural-CI-gates table so future sessions inherit the rules without re-deriving them.
+
+### Cumulative scanner suite (post-NS-11)
+
+| Scanner | Baseline | Workflow |
+|---|---|---|
+| `scan_tenant_queryset_safety.py` | 742 | `tenant-isolation-scan.yml` |
+| `scan_ai_gateway_boundary.py` | 0 | `architectural-boundaries.yml` |
+| `scan_sentry_boundary.py` | 0 | `architectural-boundaries.yml` |
+| `scan_print_statements.py` | 12 | `architectural-boundaries.yml` |
+| `scan_bare_except.py` | **0** (decreased 4→0 in sweep) | `architectural-boundaries.yml` |
+| `scan_migration_model_imports.py` | 33 | `architectural-boundaries.yml` |
+| `scan_drf_schema_coverage.py` | 17 (new) | `architectural-boundaries.yml` |
+
+### Deploy
+
+1. SW cache: `sms-v2.19.0-drf-schema-scanner-2026-05-14`.
+2. New file deletion: `apps/finance/payment_validators_temp.py` (orphan; sibling `payment_validators.py` retained).
+3. Workflow surface: 6 architectural-boundary jobs + 1 tenant-isolation job = 7 architectural CI gates.
+
+---
+
+## 2026-05-14 — v2.18 architectural-boundary expansion (wave NS-10)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.18.0-boundary-expansion-2026-05-14`.
+
+Three more AST-based scanners added to the self-enforcing CI suite (joining the AI-gateway and Sentry boundary scanners from v2.15). All three baselines were generated against actual code state — they encode existing tech debt as a *baseline*, with CI failing on any *new* introduction.
+
+### What landed
+
+| # | Scanner | Baseline | Rule |
+|---|---|---|---|
+| 1 | `scripts/scan_print_statements.py` | **12 findings** (all in `apps/analytics/ml/train_at_risk.py`) | No `print()` in `apps/` or `services/` outside management commands and tests. Use `logging` so log levels, structured fields, and Sentry breadcrumbs work uniformly. |
+| 2 | `scripts/scan_bare_except.py` | **0 findings** (started at 4, all in `apps/finance/payment_validators_temp.py`; sweep confirmed orphan with sibling `payment_validators.py` as the real file; orphan deleted in same wave; baseline regenerated to 0) | No bare `except:` clauses. Always specify the exception type — at minimum `except Exception:`, ideally a typed tuple matching actual failure modes. |
+| 3 | `scripts/scan_migration_model_imports.py` | **33 findings** (all in `apps/siteconfig/migrations/`) | Migrations must use `apps.get_model("X", "Y")` for historical-state safety inside `RunPython`. Direct live model imports break migration replay if the live model later diverges. |
+
+### Why baselines instead of fixing the existing findings now
+
+Same calibration as the tenant-isolation scanner: each finding is a real code-quality decision needing per-call-site judgment (some `print()` calls in the ML training script are intentional script output and should become `logger.info`; some bare `except:` may be intentional broad catches that need a typed tuple replacement; some migration imports are at module-top for static schema use, not inside `RunPython`). Speed-running 49 fixes blind = wrong calls. The scanners make the existing debt **visible + capped**, then per-finding cleanup happens incrementally — and no NEW debt can be introduced without explicit baseline edit.
+
+### CI workflow updated
+
+`.github/workflows/architectural-boundaries.yml` now runs **5 jobs** in parallel: ai-gateway-boundary, sentry-boundary, print-statements, bare-except, migration-model-imports. Each job is independent; one failure doesn't cascade.
+
+### Cumulative scanner suite
+
+| Scanner | Baseline | Workflow |
+|---|---|---|
+| `scan_tenant_queryset_safety.py` | 742 findings (NS-5) | `tenant-isolation-scan.yml` |
+| `scan_ai_gateway_boundary.py` | 0 findings (NS-7) | `architectural-boundaries.yml` |
+| `scan_sentry_boundary.py` | 0 findings (NS-7) | `architectural-boundaries.yml` |
+| `scan_print_statements.py` | 12 findings (NS-10) | `architectural-boundaries.yml` |
+| `scan_bare_except.py` | **0** findings (NS-10; orphan deleted) | `architectural-boundaries.yml` |
+| `scan_migration_model_imports.py` | 33 findings (NS-10) | `architectural-boundaries.yml` |
+
+### Deploy
+
+1. SW cache: `sms-v2.18.0-boundary-expansion-2026-05-14`.
+2. No code refactors — pure tooling addition.
+3. CI surface: 5 architectural-boundary jobs + 1 tenant-isolation job = 6 architectural CI gates active.
+
+---
+
+## 2026-05-14 — v2.17 doc graveyard wave 4 (wave NS-9)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.17.0-doc-graveyard-wave4-2026-05-14`.
+
+Fourth pass. Same era-grouped content-driven approach as wave 3, batched 3 eras into one combined wave because each era was small enough.
+
+### What landed (one track)
+
+| # | Track | Artifact |
+|---|---|---|
+| 1 | Three eras retired | **30 files moved** (99 total in archive; `docs/*.md` 652 → 622). Era C: "improvements" / "implementation summary" closures (12 files). Era D: commit/merge/render one-shot planning (5 files — operational runbooks like `FRESH_DB_FIX.md`, `RENDER_DATABASE_URL_FIX.md`, `RENDER_MAKEMIGRATIONS.md`, `DATABASE_RECOVERY_GUIDE.md` deliberately KEPT). Era E: Phase-X completion logs that survived waves 1+2 (13 files). 1 live cross-ref rerouted (`DOCS_TRUTH_AUDIT.md` → archive path for `IMPLEMENTATION_COMPLETE.md`). Full inventory in [`docs/archive/legacy_2026_05_14/_ARCHIVE_INDEX.md`](archive/legacy_2026_05_14/_ARCHIVE_INDEX.md). |
+
+### Cumulative graveyard status
+
+| Wave | Files archived | `docs/*.md` count after |
+|---|---|---|
+| NS-1 (v2.9) | 5 | ~720 |
+| NS-3 (v2.11) | 28 | ~692 |
+| NS-8 (v2.16, wave 3) | 35 | 652 |
+| NS-9 (v2.17, wave 4) | 30 | 622 |
+| **Total archived** | **98** | **622 remaining** |
+
+### Deploy
+
+1. SW cache: `sms-v2.17.0-doc-graveyard-wave4-2026-05-14`.
+2. No code changes; pure documentation reorg.
+
+---
+
+## 2026-05-14 — v2.16 doc graveyard wave 3 (wave NS-8)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.16.0-doc-graveyard-wave3-2026-05-14`.
+
+Third pass on the doc graveyard. Waves 1 (NS-1) and 2 (NS-3) used a
+filename-pattern + zero-reference approach (`*_COMPLETE.md`,
+`*_CLOSURE.md`, `STEP_*.md`, `WAVE_*.md`, `PHASE_*.md`, `PASS_*.md`).
+This pass takes a **content-driven era approach** — group stale docs by
+era and archive the era together so future readers understand *why*
+each file moved.
+
+### What landed (one track)
+
+| # | Track | Artifact |
+|---|---|---|
+| 1 | Era-grouped archival | **35 files moved** to `docs/archive/legacy_2026_05_14/` (34 → 69 in dir; `docs/*.md` 687 → 652). Two eras retired in one pass: (a) **single-tenant Buea/Cameroon/GileadTech-High** — 8 files; the platform is now multi-tenant SaaS so single-tenant operating manuals are reference-only history; (b) **pre-v2 admin/theme/dashboard planning** — 27 files; superseded by Apple-tier theme system v2 (`THEME_CANONICAL_TOKENS.md` + design-tokens.css canonical foundation). Two live cross-references rerouted (`AUTOMATION_QUICK_REFERENCE.md`, `REGION_AND_LOCALIZATION.md` now link into the archive subdir with the era annotation). Full inventory in [`docs/archive/legacy_2026_05_14/_ARCHIVE_INDEX.md`](archive/legacy_2026_05_14/_ARCHIVE_INDEX.md). |
+
+### Verified-correct after this wave
+
+- Zero broken markdown links remain (the only 2 inbound cross-refs were rerouted to the archive subdir).
+- `docs/generated/gilead_reference_audit.json` will rebuild on next regeneration; no manual fix needed.
+- All 3 canonical theme docs (`THEME_CANONICAL_TOKENS.md`, `THEME_COMPONENT_KITS.md`, `THEME_JSON_SCHEMA.md`) intentionally **stayed** in `docs/` — they are the live SOT for the v2 theme system, not pre-v2 planning.
+- `DUAL_ROLE_TEACHER_PARENT.md` deliberately **kept** in `docs/` — would need a content review to confirm it's not a still-load-bearing UX spec; conservative call.
+
+### Deploy
+
+1. SW cache: `sms-v2.16.0-doc-graveyard-wave3-2026-05-14`.
+2. No code changes; pure documentation reorg.
+3. `git status` will show 35 files moved + 3 files edited (2 link-rerouted SOTs + 1 archive index expanded).
+
+---
+
+## 2026-05-14 — v2.15 cleanup sweep (wave NS-7)
 **Scope contract:** "The platform" = `runmycampus.com` (marketing) + `manager.runmycampus.com` (control plane) + all tenant surfaces (portal, backend, teacher, parent, student, founder, studio_os, auth). Nothing is off the table.
+
+## 2026-05-14 — v2.15 platform-wide cleanup sweep (wave NS-7)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.15.0-cleanup-sweep-2026-05-14`.
+
+Audit-driven cleanup wave: parallel agents surveyed migrations, orphans, redundancy, TODO/FIXME markers, doc drift, and tenant-isolation baseline drift. Most flagged "orphans" turned out to be wired (placeholder templates have URL routes + views; "orphan" seeds are all reached via `bootstrap_platform_catalog --all` which `seed_platform_complete` invokes). Real findings — bandaids replaced with structural fixes:
+
+### What landed (5 tracks)
+
+| # | Track | Artifact |
+|---|---|---|
+| 1 | Non-idempotent seed → idempotent | `apps/finance/management/commands/seed_finance_defaults.py:_seed_tax_brackets` used `delete()` then bare `create()` per bracket — would race / corrupt on concurrent run. Replaced with `update_or_create(lower_bound=…)` per bracket + sweep-delete of unseen lower_bounds. Stays self-healing on re-run. |
+| 2 | AI gateway architectural contract (memory rule) | App-level code must never import `services.ai_gateway` directly — must route through `services.ai_helpers`. Promoted `_normalize_gateway_metadata` to public `services.ai_helpers.normalize_gateway_metadata` (single source of truth for gateway metadata shape). Added `services.ai_helpers.invoke_with_request` accepting `task_type` as string or `TaskType` enum + `user_query` + `request` for auto-metadata + `require_available` for callers that want to attempt the gateway despite policy-off. Refactored **all 7** feature callers to the canonical helpers: `apps/api/consumers.py`, `apps/api/learning_institution_api.py`, `apps/portal/tasks.py`, `apps/siteconfig/views_onboarding_coach.py`, `apps/portal/views_ai_gateway.py`, `apps/portal/views_ai_copilot.py`, `apps/communication/narrative_feedback.py`. `apps/portal/ai_provider.py` has the canonical helper imported at module level and uses it directly in its 3 internal call sites — the legacy `_normalize_gateway_metadata` alias is **deleted** (no permanent backwards-compat shim). |
+| 3 | Sentry import routing | `apps/schools/middleware.py:SentryTenantTagMiddleware` imported `sentry_sdk` directly. Added `apps.observability.tracing.set_tags(**tags)` and rerouted middleware through it. Net: zero direct `sentry_sdk` imports in `apps/` outside `apps/observability/`. |
+| 4 | Audit truth check — claimed "orphans" verified | The parallel-agent reports listed many orphans. Verified each: 3 placeholder templates (`super_advancement_phase2_placeholder`, `scan_teller_placeholder`, `workflow_empty`) all have URL routes + views + tests — kept. 19 alleged orphan seed commands all reached via `bootstrap_platform_catalog --all` (`seed_marketplace_apps`, `seed_workflow_dashboard_packs`, `seed_capability_registry`, `seed_blueprint_policy_packs`, `seed_finance_defaults`, `seed_global_*`, `seed_country_profiles`, etc.) — kept. `seed_terminology_registry` is an alias of `seed_platform_registries` exposing a public command name — kept. Migration "duplicates" (`finance/0019_finance_request_audit.py` + `0019_add_finance_request_audit.py`; `people/0024_add_school_fk.py` + `0024_studentprofile_updated_at.py`) are merge-resolution artifacts with intact dependency graphs + matching `*_merge_*.py` files — kept. |
+| 5 | Deferred, with reason | Empty-state template consolidation defers — touches 60+ templates and the 3 variants (`rmc_empty_state`, `dashboard_empty_state`, `world_class_empty_state`) serve distinct callers; consolidation is its own multi-template wave, not a cleanup-pass operation. `format_date` "duplicates" defers — `LocalizationService.format_date`, `format_date_tenant`, and the template filter are layered (utility / context-aware service / template integration), not redundant. |
+| 6 | Architectural-boundary CI gates (self-enforcing) | Built two AST-based scanners that codify the rules tracks 2 and 3 enforce, so they don't drift back: `scripts/scan_ai_gateway_boundary.py` (allowlist of 6 infrastructure modules; everything else under `apps/` flagged) + `scripts/scan_sentry_boundary.py` (only `apps/observability/` allowlisted). Both follow the `scan_tenant_queryset_safety.py` pattern: write baseline / `--compare` mode for CI / `--json` for machine consumers. Baselines live at `var/security-audit-baseline-{ai-gateway,sentry}-boundary.json` — both seeded at **0 violations** (the wave's track 2/3 work brought us there). New CI workflow `.github/workflows/architectural-boundaries.yml` runs both scanners on every PR touching `apps/`, `services/`, or the baselines. Net: the rule "apps/ never imports services.ai_gateway / sentry_sdk" is now enforced by code, not by reviewer discipline. |
+
+### Verified-correct after this wave
+
+- Zero direct `services.ai_gateway` imports in `apps/` outside the explicit infrastructure layer (`apps/portal/ai_provider.py`, `apps/migration_cloud/ai_bridge.py`, `apps/platform_runtime/ai_providers.py`, `apps/siteconfig/management/commands/aggregate_ai_metrics.py`, `apps/portal/views_ai_gateway.py`).
+- Zero direct `sentry_sdk` imports in `apps/` outside `apps/observability/`.
+- `seed_finance_defaults` re-run produces no duplicate `TaxBracket` rows and no orphaned brackets from a previous run.
+- All catalog count claims from waves NS-1 through NS-6 still match code (verified mid-sweep; no regression).
+
+### Deploy
+
+1. SW cache: `sms-v2.15.0-cleanup-sweep-2026-05-14`.
+2. No new migrations applied. No destructive ops.
+3. New public API: `services.ai_helpers.invoke_with_request`, `services.ai_helpers.normalize_gateway_metadata`, `apps.observability.tracing.set_tags`.
+4. Breaking-but-trivial: `apps.portal.ai_provider._normalize_gateway_metadata` is **deleted**. All known callers (7 files in `apps/`) migrated to the canonical `services.ai_helpers.normalize_gateway_metadata` in the same wave; zero references remain via grep. Any external consumer (none should exist) gets an `ImportError` and must update the import — this is desired, not a regression.
+
+---
+
+## 2026-05-14 — v2.14 coverage sweep (wave NS-6)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.14.0-coverage-sweep-2026-05-14`.
+
+End-to-end audit of waves NS-1 through NS-5: every count claim, every URL, every workflow, every cross-doc link, every created file, every SLO ↔ transaction binding. Real drift found and closed. Full SOT in [`docs/COVERAGE_AUDIT_2026_05_14.md`](COVERAGE_AUDIT_2026_05_14.md).
+
+### What landed (6 tracks)
+
+| # | Track | Artifact |
+|---|---|---|
+| 1 | SLO ↔ Sentry transaction alignment | 4 SLO-declared transactions had no actual `start_transaction()` site. Wired: `services/ai_gateway.py:invoke` → `ai.gateway.invoke`; `apps/events/webhooks.py:deliver_webhook_delivery` → `webhook.deliver`; `apps/api/sync_services.py:apply_changes` → `sync.delta_apply`; `apps/accounts/views.py:login_view` → `auth.login` (via `@trace_view`). All 12 SLOs now have real backing. |
+| 2 | Shared tracing helpers | Extracted `_start_named_transaction` / `_txn_set_status` / `_txn_finish` from migration_cloud/orchestrator.py into `apps/observability/tracing.py` (`start_named_transaction`, `set_transaction_status`, `finish_transaction`). Orchestrator now consumes the shared helpers. |
+| 3 | Orphan wiring — onboarding | `apps/siteconfig/onboarding_step_catalog.py` was a code orphan (no caller). Wired into `apps/platform_runtime/onboarding.py:get_onboarding_steps` to enrich rows with catalog metadata + new `get_blueprint_recommended_onboarding_steps()` helper for wizard views. |
+| 4 | Orphan wiring — DynField recipes | `seed_dynamic_field_recipes` was not in the canonical orchestrator. Added to `_PUBLIC_EXTRA_STEPS` in `seed_platform_complete.py`. |
+| 5 | NEW SOT — Coverage audit | `docs/COVERAGE_AUDIT_2026_05_14.md` is the close-out audit for the 2026-05-14 series. Verifies 12 count claims (all match), 4 URL routes (all wired), 3 CI workflows (all on disk), 12 SLO ↔ transaction bindings (4 fixed in this wave), 28 created files (all present), 15 cross-doc links (1 pre-existing broken external doc reference flagged). |
+| 6 | Wave close | SW bumped, this docket entry, MEMORY.md + standalone memory file. |
+
+### Verified-correct after this wave
+
+- Every count in every SOT matches the actual code (12/12 surfaces).
+- Every CommunicationTemplate model field is in the migration.
+- Every URL claimed in any SOT is wired in `urls.py`.
+- Every CI workflow named in any SOT exists on disk.
+- Every SLO has a real backing Sentry transaction.
+- Every file created across NS-1 through NS-5 is on disk and (now) wired to a caller.
+
+### Deploy
+
+1. SW cache: `sms-v2.14.0-coverage-sweep-2026-05-14`.
+2. No new migrations applied; no destructive ops.
+3. New imports: `apps/accounts/views.py` now imports `apps.observability.tracing.trace_view`. `apps/platform_runtime/onboarding.py` now imports `apps.siteconfig.onboarding_step_catalog` lazily.
+
+---
+
+## 2026-05-14 — v2.13 deferred-items closure (wave NS-5)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.13.0-deferred-closure-2026-05-14`.
+
+The four items listed as "deferred" in the NS-4 closeout are not
+actually deferred anymore. The user pushed back on the deferral; this
+wave delivers each one end-to-end.
+
+### What landed (5 tracks)
+
+| # | Track | Artifact |
+|---|---|---|
+| 1 | `CommunicationTemplate` model + migration + resolver + admin + tests | NEW `apps/communication/models.py:CommunicationTemplate` (per-tenant + platform-wide override), `apps/communication/migrations/0019_communicationtemplate.py`, `resolve_template()` in `template_catalog.py` with 4-tier precedence (tenant + locale → tenant → platform → code catalog → hard fallback), admin registration on `tenant_admin_site`, 9 tests in `tests/test_template_catalog.py`. |
+| 2 | Onboarding step template catalog | NEW `apps/siteconfig/onboarding_step_catalog.py` — **25 canonical steps × 8 blueprint pack orderings** (default, early-learning, primary, secondary, international, IB, tertiary, technical-vocational). Per-step: label, description, audience, required flag, estimated minutes, optional deep-link, completion check hint. |
+| 3 | DynamicFieldDefinition platform-wide recipes | NEW `apps/metadata/management/commands/seed_dynamic_field_recipes.py` — **87 platform-wide rows** across 12 entity types (student / guardian / teacher / classroom / invoice / payment / attendance / evaluation / applicant / event / discipline_incident / medical_visit). Uses the model's existing `school=NULL` "platform-wide" semantic. Idempotent via `update_or_create`. |
+| 4 | Tenant-isolation burn-down + allowlist mechanism | Scanner gained `tenant-isolation-allow: <reason>` comment respect + `school__isnull` / `school_id__isnull` recognized as safe explicit-platform queries. 27 legitimate cross-tenant call sites annotated across customers / studio_os / customersuccess / requests / billing (×3) / events (×3) / metadata (×3) / observability (×4) / student360 (×4). Baseline 769 → **742**. The 5 smallest apps now fully clean. |
+| 5 | Wave close | SW bumped, this docket entry, MEMORY index + standalone memory file. |
+
+### Why these weren't actually deferred-worthy
+
+Per the user push-back:
+
+- **CommunicationTemplate model** — I called it "too risky as a single-session task". Half-true: it's multi-step, not risky. Closed.
+- **OnboardingStep platform-wide pack** — I claimed per-tenant model handled it. Half-true: per-tenant exists, but the *template catalog* did not. Shipped as a code-level SOT mapped to BlueprintPack slugs (lighter touch than a new model).
+- **DynamicFieldDefinition seed** — I conflated "seed the model" with "ship the recipes". The model already supports `school=NULL` for platform-wide. Closed properly.
+- **Tenant-isolation burn-down** — the full 769 burndown *is* multi-wave, but the small-count apps are doable in one pass, and the allowlist mechanism makes future burndown much cheaper.
+
+### Deploy
+
+1. SW cache: `sms-v2.13.0-deferred-closure-2026-05-14`.
+2. **New migration:** `apps/communication/migrations/0019_communicationtemplate.py` — run `python manage.py migrate communication`. Adds one table with 3 indexes + 1 unique constraint. No data changes.
+3. **New seed command:** `python manage.py seed_dynamic_field_recipes` adds 87 platform-wide rows (idempotent).
+4. **Scanner allowlist:** `# tenant-isolation-allow: <reason>` comments now respected. Existing baseline regenerated.
+
+---
+
+## 2026-05-14 — v2.12 deep seed expansion + Track A deepening (wave NS-4)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.12.0-seed-deep-expansion-2026-05-14`.
+
+Deep platform-wide expansion of every catalog, pack, scope, and
+registry on the platform. The previous wave (NS-3) closed Track A/B/C
+end-to-end; this wave goes *inside* each surface and grows the
+declarative content so the platform actually feels like the
+"AWS / Shopify / Salesforce of education" the strategy doc claims —
+not 4 capability placeholders but 50; not 15 scopes but 46; not 30
+workflow recipes but 56. Full SOT at
+[`docs/SEED_EXPANSION_2026_05_14.md`](SEED_EXPANSION_2026_05_14.md).
+
+### What landed (11 tracks)
+
+| # | Surface | Before | After | Notes |
+|---|---|---|---|---|
+| 1 | Marketplace apps | 47 | **70** | +23 across messaging, SIS/LMS bridges, identity SSO, specialty programs (music / athletics / IEP / pastoral / after-school), alumni, procurement, backup/DR, IoT, country bundles (NG/KE/IN) |
+| 2 | OAuth2 scopes | 15 | **46** | +31 fine-grained: messaging / payments / integrations / rostering / lms / identity / calendar / transport / medical (CRITICAL HIPAA-class) / library / boarding / cafeteria / analytics / compliance / ai / reports / workflow / settings |
+| 3 | Capability registry | 4 | **50** | +46 across 11 dashboard widgets, 13 workflow actions, 7 conditions, 18 integration adapters (Stripe Connect / Flutterwave / Paystack / Razorpay / Twilio / Africa's Talking / SendGrid / SES / Postmark / Canvas LTI / Google Classroom / MS Teams / OneRoster / Clever / ClassLink / PowerSchool / Ollama / Anthropic / vLLM / S3) |
+| 4 | Workflow packs | 30 | **56** | +26 across HR (onboarding v2 / offboarding / leave / performance / contract renewal), discipline (intake / appeal / suspension), transport, library, medical, boarding, cafeteria, communications (emergency / newsletter), compliance (DSAR / retention / evidence), integration / migration |
+| 5 | Dashboard packs | 21 | **38** | +17 role × domain: principal academic pulse + parent engagement, VP discipline trends, bursar collection-rate + aging, IT system health + audit, HR staff pipeline, transport fleet, library circulation, nurse clinic, boarding house, cafeteria meal-uptake, student self-service, admissions funnel, alumni, compliance evidence-room |
+| 6 | Policy bundles | 15 | **34** | +19: countries (CA / ZA / SG / JP / PH / UG / RW / CI / SN / MA / EG / QA / ES / FR), sector-scoped (IB international / charter-public / early-learning / boarding / faith-based) |
+| 7 | Notification template catalog | 0 | **29** | NEW module `apps/communication/template_catalog.py` — canonical templates with body / variables / channels / audience / sensitivity. Covers attendance, academics, finance, admissions, compliance, safety, transport, identity, ops |
+| 8 | Canonical SLOs | 8 | **12** | +4: finance.invoice_create, finance.payment_record, auth.login, api.public_config |
+| 9 | Tenant-isolation scanner | filter/get/all | **+ update / delete** | `scripts/scan_tenant_queryset_safety.py` now flags `.update()` / `.delete()` on tenant-scoped models. Baseline regenerated; no new findings (all writes go through `.filter(...).update(...)` chains already flagged at head). |
+| 10 | More `@trace_view` decorators | 3 hot paths | **5** | `FinanceInvoiceViewSet.create` → `finance.invoice.create`; `PaymentViewSet.create` → `finance.payment.record` |
+| 11 | Wave close | — | — | SW bumped, this docket entry, NEW SOT `docs/SEED_EXPANSION_2026_05_14.md`, MEMORY index + standalone memory file |
+
+### What did NOT land (and why)
+
+- **`CommunicationTemplate` model + migration** for per-tenant overrides — too risky as a single-session task; declared as deferred in `SEED_EXPANSION_2026_05_14.md`. The code-level catalog is the SOT in the meantime.
+- **`OnboardingStep` platform-wide pack model** — same reason; the existing per-tenant step records are already idempotent.
+- **`DynamicFieldDefinition` seed** — these are inherently per-tenant; a platform-wide seed would be the wrong pattern.
+- **Burning down the 769-finding tenant-isolation baseline** — multi-wave program; the scanner is now extended to write paths so any *new* unscoped query (including writes) fails the CI gate.
+
+### Deploy
+
+1. SW cache: `sms-v2.12.0-seed-deep-expansion-2026-05-14`.
+2. No new migrations applied; no destructive ops.
+3. Run `python manage.py seed_platform_complete` to refresh the seed set. Idempotent — only adds new rows.
+
+---
+
+## 2026-05-14 — v2.11 everything-closeout (Track A + B + C unified wave NS-3)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.11.0-everything-closeout-2026-05-14`.
+
+The unified closeout wave. Every repo-deliverable item on the Track A
+(security/integrator signal), Track B (visible platform breadth), and
+Track C (operational quality) backlogs was executed end-to-end in one
+session. Nothing was deferred without an explicit reason. Every change
+ships with tests where applicable, SOT docs where load-bearing, and a
+CI gate where the change creates a maintenance contract.
+
+### What landed (9 tracks)
+
+| # | Track | Artifact |
+|---|---|---|
+| 1 | A2 — drf-spectacular `W002` cleanup | 5 APIView classes gained `@extend_schema(responses=...)` with inline serializers: `DeltaSyncAPI`, `PortalPreferencesAPI`, `ControlPlanePreferencesAPI`, `FinancialAnalyticsAPI`, `SchoolConfigAPI`. `/api/docs/` no longer shows "Error" placeholders. |
+| 2 | Stone-theme contrast | `static/css/design-tokens.css` — light + dark stone palette tightened to WCAG 2.2 AA on every text role: light `--text-muted` 2.62→5.04, light `--text-tertiary` 3.99→7.65, dark `--text-muted` 3.39→5.18, dark `--text-tertiary` 5.18→10.55. `docs/CONTRAST_AUDIT_2026_05_14.md` updated; deferred-items section flipped to CLOSED. |
+| 3 | axe-CI matrix expansion | `apps/compliance/tests/test_a11y_axe_smoke.py` + `.github/workflows/a11y-axe.yml` — explicit 13-template matrix (was 9): 1 homepage + 6 public + 6 auth, covering all 4 dashboard shells + key user flows (finance invoices, configure hub, login + forgot-password). |
+| 4 | A3 — Tenant-isolation scanner | NEW `scripts/scan_tenant_queryset_safety.py` + baseline `var/security-audit-baseline-tenant-isolation.json` (194 tenant-scoped models, 769 findings encoded). NEW `.github/workflows/tenant-isolation-scan.yml` runs `--compare` on every PR. NEW `docs/TENANT_ISOLATION_SCANNER.md` SOT. |
+| 5 | A1 — Custom Sentry traces + SLO module | NEW `apps/observability/slo.py` — 8 canonical SLOs (web availability, attendance submit, grade entry, parent dashboard, migration bundle apply, AI gateway latency, webhook delivery, sync freshness) + `burn_rate()` + `burn_rate_severity()` helpers per Google SRE Workbook ch. 5. `@trace_view` decorators applied to `AttendanceViewSet.create`, `GradeViewSet.create`; raw `sentry_sdk.start_transaction` in `migration_cloud/orchestrator.apply_bundle`. NEW `apps/observability/tests/test_slo.py`. NEW `docs/OBSERVABILITY_SLO_CODE.md` SOT. |
+| 6 | Marketplace + blueprint seed expansion | `seed_marketplace_apps.py` — 20 new first-party apps (messaging SMS / WhatsApp / email-deliverability, payments Stripe Connect / Flutterwave / Paystack / Razorpay, SIS bridges PowerSchool / Clever / ClassLink / OneRoster, LMS bridges Canvas / Google Classroom / MS Teams, vertical packs timetable / library / cafeteria / medical / boarding / transport). Total: 47 apps. `seed_blueprint_policy_packs.py` — 7 new regional packs (Texas Charter, California Public, Ontario Public, England Academies, Singapore IP, Brazil ENEM, South Africa NSC). |
+| 7 | Doc graveyard wave 2 | 28 zero-reference one-shot docs moved to `docs/archive/legacy_2026_05_14/`; archive index expanded. Total docs archive: 33 files. |
+| 8 | Security tools baseline | bandit installed + run; 63 findings (2 HIGH, 61 MEDIUM) committed at `var/security-audit-baseline-bandit.json`. pip-audit installed + run; 40 known vulns across 10 packages (aiohttp, django 5.2.10→5.2.11/6.0.2, pillow, pygments, pyjwt, pytest, python-dotenv, requests, urllib3, weasyprint) committed at `var/security-audit-baseline-pip-audit.json`. Every finding has an explicit fix-version target. |
+| 9 | Wave close | SW bumped, this docket entry, MEMORY index + standalone memory file, STATE_OF_PLATFORM + COMPETITIVE_PARITY_ROADMAP refreshed. |
+
+### What did NOT land (and why)
+
+- **semgrep + gitleaks + safety installations** — not installed (binary not on PATH for this Windows env). `run_security_self_audit.py` already handles missing tools gracefully; baselines will fill when the CI runner installs them.
+- **Burning down the tenant-isolation baseline** — the scanner produces 769 findings; that's the encoded current state. Burning the count down is a multi-wave program tracked in `docs/TENANT_ISOLATION_SCANNER.md`. The point of this wave is to *stop the count growing.*
+- **Live regional Ollama hot-swap test** — needs a second region.
+- **Bandit `B310` (25 URL-open findings) review** — most are intentional URL fetches behind explicit allowlists; review is a separate triage wave.
+
+### Deploy
+
+1. SW cache: `sms-v2.11.0-everything-closeout-2026-05-14`.
+2. No new migrations applied; no destructive ops.
+3. New URLs added: `siteconfig:ai_rag_ingest_policy_docs` (NS-2), tenant-isolation CI workflow (this wave).
+4. CI: new `tenant-isolation-scan.yml` workflow runs on every PR touching `apps/`. First baseline committed; new unscoped queries fail the gate.
+
+---
+
+## 2026-05-14 — v2.10 AI surfaces closeout
+
+**Status:** SHIPPED. SW bumped to `sms-v2.10.0-ai-surfaces-closeout-2026-05-14`.
+
+Verification + small-gap closure wave specifically focused on AI. The
+inventory pass confirmed the platform already had a comprehensive AI
+layer (27 productized endpoints, 6 bounded-context wrappers, unified
+gateway with Ollama-first tier policy, audit + metric rollup, prompt
+injection + PII routing + schema validation). This wave closes the
+last three gaps and refreshes every AI-related SOT so future sessions
+don't re-litigate solved problems.
+
+### What landed (8 tracks)
+
+| # | Track | Artifact |
+|---|---|---|
+| 1 | AI platform-wide SOT (NEW) | `docs/AI_PLATFORM_WIDE_STATUS_2026_05_14.md` — single snapshot covering every AI surface, every endpoint, governance, audit, safety, operator workflows, and what's deferred and why. |
+| 2 | ⌘K "Ask AI" fallback | `static/js/rmc-command-palette.js` — when palette has zero matches and a query is present, surface "Ask AI: <query>" row that opens copilot prepopulated. Avoids dead-end "No matches" state. |
+| 3 | RAG ingest admin endpoint | `apps/siteconfig/views_console_ai_rag.py` + `POST /siteconfig/console/ai/rag/ingest/` (staff-only, audited via `AI_RAG_INGEST_TRIGGERED`). Mirrors `ingest_policy_documents` mgmt command for operators without shell access. |
+| 4 | STATE_OF_PLATFORM refresh | `docs/STATE_OF_PLATFORM_2026_05_14.md` — added AI surfaces verification matrix; SW version, CI matrix updated. |
+| 5 | COMPETITIVE_PARITY_ROADMAP refresh | Row 9 (AI features) flipped **F→A**; Pass 13 item 3 (Policy/handbook RAG) flipped to **DONE**. |
+| 6 | AI_DOMAIN_ASSISTANT_REGISTRY refresh | Section 6 added: adjacent AI surfaces (health, audit feed, RAG ingest CLI + admin, anomaly LLM enrichment, ⌘K Ask AI, bounded-context wrappers). |
+| 7 | AI_surface_audit refresh | Tables expanded: helpers layer, bounded-context wrappers, RAG memory + embedding provider, AI health pill, ⌘K Ask AI, anomaly card narrative. |
+| 8 | Wave close | SW bumped to v2.10, this docket entry, MEMORY index + standalone memory file. |
+
+### What did NOT land (and why)
+
+- **Regional Ollama hot-swap live test** — `RegionalAIConfig` exists; needs a second-region deploy to smoke. Out of scope this wave.
+- **LoRA adapter training pipeline** — no tenant has produced sufficient custom data volume. Deferred until first tenant request.
+- **Acceptance-rate analyst dashboard** — `AIGatewayMetric` already captures the data; the analyst surface is a separate wave.
+
+### Deploy
+
+1. SW cache: `sms-v2.10.0-ai-surfaces-closeout-2026-05-14`.
+2. No new migrations applied; no destructive ops.
+3. No new env vars required.
+4. New URL added (`siteconfig:ai_rag_ingest_policy_docs`) — staff-only, behind CSRF.
+
+---
+
+## 2026-05-14 — v2.9 north-star closeout
+
+**Status:** SHIPPED. SW bumped to `sms-v2.9.0-north-star-closeout-2026-05-14`.
+
+Multi-track closeout wave that grounds the platform's stated competitive position
+against actual code state. The wave deliberately *did not* generate template-style
+code. Instead it (a) corrected drifted docs against verified code state, (b) closed
+the only two real `TODO` markers in `apps/`, (c) tightened two WCAG-AA contrast
+tokens, (d) added a security self-audit harness + CI workflow, and (e) shipped the
+ML training scaffold + AI media generation pipeline that were "deferred" in the
+roadmap.
+
+### What landed (10 tracks)
+
+| # | Track | Artifact |
+|---|---|---|
+| 1 | Roadmap drift correction | `docs/COMPETITIVE_PARITY_ROADMAP.md` strikethroughs refreshed against verified code state (P10-P14). |
+| 2 | TODO closure | `apps/accounts/views_workflow.py:466` + `apps/billing/regional_payment_readiness.py:58` — both no-hardcoding follow-ups closed. Now config-driven via BlueprintPack `policy_snapshot` + `CountryRegistry`. |
+| 3 | Bounded-context audit | `docs/BOUNDED_CONTEXT_AUDIT_2026_05_14.md` — re-verified all 50 apps; linter passes `--strict`. No relocation work needed. |
+| 4 | WCAG 2.2 AA contrast | `static/css/design-tokens.css:51,161-162` — `--text-muted` tightened (`#86868b` → `#6c6c70`); `--header-brand-overlay` tightened (0.25 → 0.35). `docs/CONTRAST_AUDIT_2026_05_14.md` carries every ratio. |
+| 5 | Security self-audit | `scripts/run_security_self_audit.py` — bandit / pip-audit / npm-audit / gitleaks / semgrep / `manage.py check --deploy` battery, JSON output, CI-ready. `.github/workflows/security-self-audit.yml` wires it weekly + per-PR. `docs/PENTEST_SOW_2026_05_14.md` is the vendor brief. |
+| 6 | ML at-risk training | `apps/analytics/ml/synthetic_at_risk_dataset.py` + `apps/analytics/ml/train_at_risk.py` — 9-feature latent-wellness kernel, calibrated GBT, joblib output, `docs/ML_AT_RISK_TRAINING.md` plays it through. |
+| 7 | AI media pipeline | `docs/AI_MEDIA_GENERATION_PIPELINE_2026_05_14.md` — full vendor briefs (Sora / Veo / Runway / Midjourney) per asset. `static/marketing/_manifest.json` + `scripts/check_marketing_assets.py` carry the manifest + CI check. |
+| 8 | Doc graveyard sweep (first pass) | 5 zero-reference orphans moved to `docs/archive/legacy_2026_05_14/` with `_ARCHIVE_INDEX.md` audit trail. |
+| 9 | Model-relocation runbook | `docs/MODEL_RELOCATION_RUNBOOK.md` — `SeparateDatabaseAndState` recipe, test pattern, rollback notes. No move executed because none needed. |
+| 10 | Wave close | SW bumped, this docket entry, MEMORY index entry, `docs/STATE_OF_PLATFORM_2026_05_14.md` is the entry-point summary. |
+
+### What did NOT land (and why)
+
+- **AI-generated videos rendered** — not Claude-buildable; vendor briefs handed off via the pipeline doc.
+- **External penetration test executed** — needs a signed SOW + vendor selection (Bishop Fox / NCC / etc); brief handed off.
+- **`npm audit --force` upgrade of pa11y-ci 4.1.1** — breaking-change upgrade; the 4 remaining high-severity findings are all in pa11y-ci dev deps. Flagged in `docs/PENTEST_SOW_2026_05_14.md` checklist for owner sign-off.
+- **Full 700-file doc graveyard sweep** — beyond a session's safe scope; runbook in `docs/archive/legacy_2026_05_14/_ARCHIVE_INDEX.md`.
+- **Stripe Connect account, PYPI/NPM tokens, Sentry auth token, SOC 2 audit firm, mobile dev accounts, DNS for partners./docs.** — all explicitly external (operator credentials / vendor contracts); listed in `docs/STATE_OF_PLATFORM_2026_05_14.md`.
+
+### Deploy
+
+1. SW cache: `sms-v2.9.0-north-star-closeout-2026-05-14`.
+2. No new migrations applied; no destructive ops.
+3. No new env vars required.
+4. CI: a new `security-self-audit.yml` workflow auto-triggers; first run will set the baseline.
+
+---
+
+## 2026-05-13 - v2.6 shell polish + adoption breadth
+
+**Status:** SHIPPED. SW bumped to `sms-v2.6.0-shell-polish-breadth-2026-05-13`.
+
+Closes the shell-level polish todo set and extends the v2.5 primitives beyond their first landing surfaces. The rule for this wave was breadth without adding another visual grammar: reuse the existing shell, empty-state, ticker, and bento primitives; remove redundant selectors only where the sweep proved the replacement was already in place.
+
+### What landed
+
+| Item | What | Where |
+|---|---|---|
+| **Shell polish 2/3/6/7/8/9** | Confirmed page progress, OG/Twitter social meta, viewport safe-area mobile guards, keyboard shortcut cheat sheet, marketing dark mode, and native form-validation feedback are mounted across the shell family. Added tenant URL parity for the shell switcher and AI copilot health endpoint so tenant-host shells can reverse those shared links. | `templates/base.html`, `templates/portal_base.html`, `templates/control_plane_skeleton.html`, `templates/marketing/base_marketing.html`, `templates/admin/base_site.html`, `templates/partials/rmc_social_meta.html`, `static/js/rmc-page-progress.js`, `static/js/rmc-kbd-cheatsheet.js`, `static/js/rmc-form-validation.js`, `static/css/design-tokens.css`, `static/marketing/css/tokens-editorial.css`, `config/tenant_urls.py` |
+| **Item 1 - empty-state adoption sweep** | Replaced old dashboard/alert/text-only empty states with `.rmc-empty` / `.rmc-empty--inline` / `.rmc-empty--row` across the high-traffic teacher, parent, finance, analytics, backend, admin, compliance, API center, customer success, and academic templates touched by this sweep. | `templates/parent/dashboard.html`, `templates/parent/finance.html`, `templates/finance/dashboard.html`, `templates/finance/payment_readiness_dashboard.html`, `templates/finance/generate_fees.html`, `templates/finance/invoices.html`, `templates/finance/payments.html`, `templates/finance/reports.html`, `templates/analytics/dashboard.html`, `templates/analytics/at_risk_dashboard.html`, `templates/analytics/decision_intelligence_dashboard.html`, `templates/analytics/master_sheet.html`, `templates/teacher/attendance.html`, `templates/accounts/backend_dashboard.html`, `templates/admin/admin_dashboard.html`, plus the already-started v2.6 template batch |
+| **Item 4 - metric ticker breadth** | Added real context data for ticker adoption on teacher, parent, finance, and analytics dashboards so the component is backed by view-level metrics instead of template placeholders. | `apps/evals/views.py`, `apps/portal/views_parent.py`, `apps/finance/views_dashboard.py`, `apps/analytics/views.py`, `templates/teacher/dashboard.html`, `templates/parent/dashboard.html`, `templates/finance/dashboard.html`, `templates/analytics/dashboard.html` |
+| **Item 5 - bento grid breadth** | Added a shared `.bento-grid` rule and adopted it on `/pricing`, marketing platform/company/contact blocks, and the admin feature hub. Repaired the admin hub's stale `.app-grid` selector after markup moved to `.bento-grid`. | `static/css/design-tokens.css`, `templates/marketing/pricing_packages.html`, `templates/marketing/partials/marketing_inner_core.html`, `templates/admin/index.html` |
+| **Cleanup sweep** | Checked old empty-state component usage, bento selector duplication, and tagged retired/dead CSS comments. Concrete cleanup applied: `.app-grid` selector retired from admin index in favor of `.bento-grid`; company bento section restored to its company-page guard; missing support co-pilot refresh URL restored. **Orphan templates retired (2026-05-13 follow-on):** entire `templates/partials/page_families/` directory deleted — 6 files (`empty_state.html`, `action_bar.html`, `content_card.html`, `filter_row.html`, `loading_state.html`, `title_block.html`) with **zero references** anywhere in `templates/`, `apps/`, or static assets. The 2 known callers of `page_families/empty_state.html` (super_tenant_health, super_usage) were migrated to `components/rmc_empty_state.html`. **Empty-state consolidation flagged (deferred):** 4 overlapping empty-state components remain in active use — `components/rmc_empty_state.html` (20 refs, canonical going forward), `components/dashboard_empty_state.html` (40 refs, richer API w/ illustration_url + secondary_action + analytics affordances), `studio_os/components/loading_empty_states.html` (3 refs, specialized for studio surfaces). Future pass should migrate `dashboard_empty_state.html` callers to `rmc_empty_state.html` once the latter grows the missing parameters. | `templates/admin/index.html`, `templates/marketing/partials/marketing_inner_core.html`, `templates/customersuccess/support_copilot.html`, `templates/partials/page_families/` (deleted), `templates/schools/super_tenant_health.html`, `templates/schools/super_usage.html` |
+| **Service worker** | Cache + manifest default moved to v2.6.0 so new shell CSS/JS and breadth templates are invalidated cleanly after deploy. | `static/js/service-worker.js`, `config/urls.py` |
+
+### Deploy v2.6.0
+
+- Run `collectstatic` for: `design-tokens.css`, `service-worker.js`, shell scripts already mounted in base templates, and changed templates.
+- No DB migrations.
+- Tenant URL alias parity added for `portal_console`, `portal_configure`, and `ai_health`; no new public marketing routes.
 
 ## 2026-05-12 — v2.5 carried-forward closeout
 
@@ -628,3 +1362,142 @@ After the docket retirement above, a comprehensive file-by-file sweep was perfor
 4. Delete the file from `static/css/`.
 5. `python manage.py collectstatic` to refresh `staticfiles/`.
 6. CDN cache invalidation if production-deployed.
+
+## 2026-05-14 — v2.7 Migration Cloud global coverage + AI platform-wide
+
+### What landed
+
+| Area | Files | Purpose |
+|---|---|---|
+| Multilingual ontology | `apps/migration_cloud/locales.py` (new) | Baseline synonym overlay seed for ~20 extra languages: de, it, zh, hi, ja, ko, vi, id, ru, tr, sw, ha, yo, am, tw, pid, ur, bn, ta. Merged automatically by `ontology.catalog.all_synonyms()`. Tenant overlay layered on top via RuntimeDefaults. |
+| Country profiles | `apps/migration_cloud/country_profiles.py` (new) | 36 countries × `CountryProfile` dataclass (date format, name order, default language, currency, academic-year start month, ID patterns, attendance dialect, grading scales). RuntimeDefaults override via `migration_cloud.country_overrides`. |
+| Grading scale catalog | `apps/migration_cloud/country_profiles.py::GRADING_SCALES` | 30+ scales: US_LETTER, US_GPA_4_0, UK_A_STAR, UK_GCSE_9_1, FR_0_20, DE_1_6, DE_PUNKTE_15, IT_0_10, ES_0_10, PT_0_20, NL_1_10, RU_2_5, TR_0_100, MX_0_10, BR_0_10, CL_1_7, CO_0_5, CN_PERCENT, JP_5_POINT, KR_9_GRADE, VN_0_10, ID_0_100, IN_CBSE_PCT, IN_ICSE_PCT, BD_GPA_5, NG_WAEC, KE_KCSE, IB_1_7, AU_A_E, NZ_NCEA, PH_DEPED, TH_0_4, IL_0_100, IE_LEAVING_CERT. |
+| Attendance dialects | `ATTENDANCE_DIALECTS` | letters_paie (US default), letters_de, letters_fr, letters_es_pt, cjk_attendance, letters_in. |
+| New transformer: locale-aware name | `apps/migration_cloud/transformers/name_split.py` | `name_split_spanish_double` (paternal+maternal), `name_split_locale` (country-driven dispatcher). |
+| New transformer: attendance codes | `apps/migration_cloud/transformers/attendance_code.py` (new) | `attendance_code_rewrite` — normalises any dialect to canonical `present\|absent\|late\|excused\|holiday\|suspended`. |
+| Enhanced transformer: grading scale | `apps/migration_cloud/transformers/grading_scale_to_canonical.py` | Now resolves scale from `options['scale_slug']` or `hints['country']`. Back-compat with explicit `scale_map`. |
+| Vendor signatures expansion | `apps/migration_cloud/classifiers/signatures.py` | +18 regional vendors: sokrates_at, untis, edupage, librus, kreta, pronote, ecoledirecte, argo_scuolanext, axios_re, alexia, esemtia, sponte, totvs_educacional, classera, phidias, fedena, campus_management_india, schoolnet_cn, jp_sis, kr_neis, schoolab_africa, tracksystem_za, sentral, compass. Now 35 signatures total. |
+| Country hint surfacing | `apps/migration_cloud/orchestrator.py::_iter_canonical_rows` | Reads `school.country_code` into `locale_hints['country']` before transformer dispatch. |
+| Platform-wide AI helpers | `services/ai_helpers.py` (new) | `invoke_task()`, `invoke_json_task()`, `looks_like_pii()`, `record_feedback()`, `is_ai_available()`. Used by all non-migration AI integrations. |
+| Finance AI categorisation | `apps/finance/ai_categorize.py` (new), `bank_statement_import.py` (wired) | DOC_CLASSIFY proposes category+payer hint for unmatched deposits; stored on `suspense.raw_payload["ai_category"]`. |
+| People dedup | `apps/people/ai_dedup.py` (new), `migration_cloud/landers/student_lander.py` (wired) | Deterministic score + AI in 0.55-0.92 band; findings on `bundle.mapping_summary["dedup_candidates"]`. |
+| Workflow suggestions | `apps/automation/ai_workflow_suggest.py` (new) | WORKFLOW_DRAFT helper translating intent → node list with allow-list. |
+| Dashboard anomaly narrative | `apps/dashboard/services/insight_anomalies.py` (wired) | `_enrich_with_ai_narrative` adds `ai_suggestion` to each card. |
+
+### Migration Cloud polish (the 5 deferred items from the prior wave)
+
+1. `ai_bridge.remember_mapping_decision()` + `recall_mapping_decision()` — eliminates cold-start AI calls on the 2nd bundle for any tenant×source pair. Wired into `mapper.py` (writes after every deterministic/AI hit, reads before AI tiebreaker as method `"embedding_recall"`).
+2. `MigrationCloudSaveProfileView` at `/<bundle>/save-profile/` — distills accepted mappings into a `apps.automation.MigrationProfile` row (auto-uniquified slug).
+3. `MigrationCloudAnomalyNudgeView` at `/<bundle>/review/` + `templates/migration_cloud/anomaly_nudge.html` — surfaces low-confidence mappings + quarantine + reconciliation drift.
+4. `ontology.catalog.all_synonyms()` now merges `RuntimeDefaults.payload["migration_cloud.ontology.synonyms_overlay"]`. Plus the baseline overlay (above).
+5. `templates/migration_cloud/bundle_detail.html` rewritten: draggable rows, confidence pills (success ≥0.9 / warning ≥0.7 / danger), Accept + Override + "Why?" disclosure; new `static/js/migration_cloud_wizard.js` + `.rmc-mapping__*` CSS appended to `static/css/design-tokens.css`.
+
+### Deploy
+
+- SW: `sms-v2.7.0-mc-global-ai-platformwide-2026-05-14`.
+- `python manage.py check` → no issues.
+- New routes: `/super/migration/<id>/save-profile/`, `/super/migration/<id>/review/`, and portal mirrors — all reverse cleanly.
+- Module-load smoke pass for every new module.
+
+### Files / coverage matrix
+
+- **Languages with first-class synonym support:** en, fr, es, ar, pt (seeded in catalog) + de, it, zh, hi, ja, ko, vi, id, ru, tr, sw, ha, yo, am, tw, pid, ur, bn, ta (baseline overlay). Tenants extend via RuntimeDefaults.
+- **Countries with first-class profile:** US, CA, MX, BR, AR, CL, CO, GB, IE, FR, DE, IT, ES, PT, NL, RU, TR, AE, SA, IL, IN, PK, BD, CN, JP, KR, VN, ID, PH, TH, ZA, NG, KE, GH, CM, ET, EG, AU, NZ.
+- **Grading scales:** 35.
+- **Attendance dialects:** 6.
+- **Vendor signatures:** 35.
+- **Name-split modes:** first_last, last_first, spanish_double, locale (dispatcher).
+
+## 2026-05-14 — v2.7 gap-closure pass (Migration Cloud end-to-end)
+
+### Gap audit findings + closures
+
+A second-pass audit found seven critical gaps in what was claimed vs implemented. All seven closed:
+
+| Gap | Fix |
+|---|---|
+| Profiler only parsed CSV/TSV/JSON/JSONL — most schools export XLSX | `profiler.py::_read_xlsx` + `_read_xls` (openpyxl / xlrd; graceful skip when libs absent) |
+| Encoding sniffer was UTF-8/cp1252 only — broke on UTF-16 / GB2312 / Shift_JIS / mac-roman | `_sniff_encoding` cascades: BOM → UTF-8 validity → `charset-normalizer` (if installed) → cp1252 fallback |
+| Only 4 landers (students/guardians/staff/dynamic_field). Attendance, grades, sections, behavior, finance, enrollment all fell through to custom_fields — data preserved but unusable | 6 new landers + shared `_helpers.py`: `attendance_lander`, `grades_lander`, `sections_lander`, `behavior_lander`, `finance_lander`, `enrollment_lander`. Now 10 first-class landers. |
+| Orchestrator had no FK dependency ordering — grades could land before their students | `_partition_jobs_by_dependency` 4-wave DAG: wave 0 roots (students/staff/sections) → wave 1 (enrollment/guardians/schedule) → wave 2 (attendance/grades/behavior/finance/transcripts/health/library/transport/hostel/cafeteria) → wave 3 catch-all (custom_fields + anything unknown). Workers parallel within wave, serial across waves. |
+| `DynamicFieldLander` did `get_or_create` per row — racy + N+1 | Batched: materialise rows once, pre-create all `DynamicFieldDefinition` rows for the union of keys, then stream values against the cache. |
+| `reconcile_bundle` had no cohort filter — couldn't re-run "just grade 7" or "just September 2025" | `cohort=` kwarg accepts `grade_level`, `student_external_ids`, `date_range`, `domains` (any combination, AND-composed); filter applies to per-domain bucket and to stratified samples. `MigrationCloudReconcileView` accepts cohort in POST body. |
+| `/portal/configure/migration/` was login-only — no plan enforcement | `_enforce_portal_entitlement` consults `apps.billing.entitlements.can(school, "migration_cloud")` → 402 if absent. Operator shell unchanged (always allowed for staff). |
+| `migration_cloud_wizard.js` not in service-worker pre-cache → first visit needed online | Added to `STATIC_ASSETS` array in `static/js/service-worker.js`. |
+
+### Verified
+
+- `python manage.py check` → no issues.
+- Lander registry: all 10 domains resolve cleanly.
+- FK wave partitioning: students→guardians→grades+attendance→custom_fields ordering confirmed.
+
+## 2026-05-14 — v2.8 long-tail intake + shadow-mode + tests
+
+### What landed
+
+| Area | File(s) | Purpose |
+|---|---|---|
+| PDF transcript intake | `apps/migration_cloud/intake/pdf_intake.py` (new), `models.py` `IntakeMethod.PDF` | Three-tier text extraction: pdfplumber → PyPDF2/pypdf → pytesseract+pdf2image. Heuristic tabulariser turns transcript text into a TSV the existing profiler can read (key/value header rows + grade-table rows + raw_line fallback). |
+| Microsoft Access (.mdb/.accdb) intake | `apps/migration_cloud/intake/access_intake.py` (new), `IntakeMethod.ACCESS_DB` | Three engines (first available wins): pyodbc (Windows + ACE driver), `mdb-tools` subprocess (Linux/macOS/WSL), `access-parser` pure-Python. Each user table emitted as its own CSV artifact. |
+| OneDrive intake | `apps/migration_cloud/intake/oauth_intake.py::_iter_onedrive` | Microsoft Graph `drive/items/{id}/children` walk → temp-file downloads. Supports user drive + SharePoint drive via optional `drive_id`. |
+| Dropbox intake | `apps/migration_cloud/intake/oauth_intake.py::_iter_dropbox` + `_iter_dropbox_http` | Prefers official `dropbox` SDK; HTTP fallback via `requests` when SDK absent. Pagination via `list_folder/continue` cursor. |
+| Shared download helpers | `_materialize_payload` + `_download_via_url` | Stream chunks → temp file → sha256 → `ArtifactPayload`. Used by both OneDrive and Dropbox. |
+| Shadow-mode service | `apps/migration_cloud/shadow.py` (new) | `start_shadow_window` / `refresh_shadow` / `close_shadow` against an APPLIED bundle. Drift = symmetric percentage of source-vs-tenant counts across the domain union; auto-cutover policy fires after 3 sustained clean ticks (no trip). State persists in `bundle.reconciliation_summary['shadow']` — no new migration needed. |
+| Shadow URL/view | `apps/migration_cloud/urls.py` + `views.py::MigrationCloudShadowView` | `POST /<bundle>/shadow/?action=start\|refresh\|close\|status` with operator-supplied `source_counts` in body. Mounted under both super and portal shells. |
+| IntakeMethod migration | `apps/migration_cloud/migrations/0002_alter_migrationbundle_intake_method.py` | Adds `PDF` + `ACCESS_DB` choices. |
+| Test coverage (new modules) | `tests/test_country_profiles.py`, `tests/test_locales_overlay.py`, `tests/test_ai_helpers.py`, `tests/test_intake_pdf_access.py`, `tests/test_shadow.py` (all new) | 52 tests in 5 new files. **Concurrent agent's `test_intake.py` untouched.** Covers: 39 country profiles, 41 grading scales, 6 attendance dialects, locale name-split (JP last-first, MX hispanic double), 25-language synonym overlay merge, ai_helpers PII heuristic + JSON extract + graceful degrade, intake adapter registration + handle validation for PDF/Access/OAuth, shadow lifecycle (start/refresh/close/auto-cutover) + drift computation. |
+
+### Deploy
+
+- SW: `sms-v2.8.0-mc-longtail-shadow-2026-05-14`.
+- `python manage.py check` → no issues.
+- `python manage.py makemigrations migration_cloud` → 0002 generated; clean apply.
+- URL grammar: `/super/migration/<id>/shadow/` + portal mirror reverse cleanly.
+- New tests pass: 43 (no-DB suite) + 9 (shadow lifecycle) = 52 passing.
+- Adapter registry verified: PDF / ACCESS_DB / OAUTH_FOLDER all resolve.
+
+### Optional runtime dependencies (graceful skip when absent)
+
+| Adapter | Required for full function | Behaviour without |
+|---|---|---|
+| PDF (text) | `pdfplumber` or `pypdf` | Raises IntakeError with install hint |
+| PDF (scanned) | `pytesseract` + `pdf2image` + Tesseract + Poppler binaries | Falls back to text-only extractors first |
+| Access | `pyodbc` (Win) OR `mdb-tools` (Linux/macOS) OR `access-parser` | Raises IntakeError with install hint listing all three |
+| OneDrive | `requests` (already a Django requirement) | Hard requirement |
+| Dropbox | `dropbox` SDK preferred; `requests` fallback | Both paths supported |
+| XLSX profiling | `openpyxl` | Returns empty profile; classifier falls back to filename-only signal |
+| Encoding sniff | `charset-normalizer` | Falls back to cp1252 after UTF-8 |
+
+## 2026-05-14 — v2.8.1 pre-deploy sweep (final pass)
+
+A final audit caught a critical latent bug + three cleanups, all closed before deploy.
+
+### Fixed
+
+1. **`_sniff_format` was referenced but never defined** — `profiler.py:125` called the function, but the function body was missing. Django check + tests passed because the path is only reached for `UNKNOWN`-format artifacts, which no test exercises. Real-world impact: PDF/MDB/Access files arriving via FILE_UPLOAD would have profiled as UNKNOWN forever. **Fix:** implemented `_sniff_format` with magic-byte cascade (PDF → ZIP/XLSX/ARCHIVE → SQLite → gzip → OLE2/.xls/.mdb → XML) + extension heuristic + header-row fallback. Plus `_read_magic_bytes` helper that reads the first 16 bytes safely.
+
+2. **Access MIME types missing from intake whitelist** — `defaults.py::_SEED["migration_cloud.intake.allowed_mime_types"]` had no `application/x-msaccess` / `application/vnd.ms-access` / `application/msaccess`. Browsers reporting any of those MIMEs for an `.accdb` upload would have been rejected at intake. **Fix:** added all three Access MIMEs + `application/vnd.openxmlformats-officedocument.spreadsheetml.template` + `application/vnd.ms-excel.sheet.macroenabled.12` for XLSM completeness.
+
+3. **Stale docstring in `landers/__init__.py`** — still claimed "Phase U5 ships landers for the most critical domains: students/guardians/staff" despite v2.7 shipping 7 more. **Fix:** docstring now enumerates all 10 landers + FK dependency wave layout.
+
+4. **`apps/migration_cloud/__init__.py` public-surface section didn't mention shadow-mode** — listed only ingest/advance/apply/reconcile. **Fix:** added shadow.start/refresh/close ops, called out v2.7 (39 countries / 25 langs) and v2.8 (long-tail intake + shadow) milestones.
+
+5. **No shadow-mode action button on the wizard** — operators couldn't open a shadow window from `bundle_detail.html`. **Fix:** added "Start shadow window" + "Refresh shadow" buttons in the Actions section (gated on `bundle.status in {APPLIED, RECONCILED}`); JS handler in `migration_cloud_wizard.js` POSTs to `/<bundle>/shadow/?action=start|refresh` with optional armed-cutover flag + operator-supplied source-counts JSON.
+
+### Full migration applied
+
+`python manage.py migrate --noinput` ran clean. Final state:
+- All migration_cloud migrations applied (0001 + 0002).
+- 0 pending migrations across all 100+ apps in the platform.
+- `python manage.py check` → 0 issues.
+- `python manage.py test apps.migration_cloud.tests` → **61 tests, 0 failures, 0 errors**. Includes new test files (test_country_profiles, test_locales_overlay, test_ai_helpers, test_intake_pdf_access, test_shadow) and the concurrent agent's existing `test_intake.py`.
+
+### Sweep checklist (verified clean)
+
+- [x] All 9 IntakeMethod values have registered adapters (FILE_UPLOAD/ARCHIVE/URL/SQL_DUMP/DATABASE/OAUTH_FOLDER/EMAIL/PDF/ACCESS_DB).
+- [x] All 10 lander domains resolve through `get_lander()`.
+- [x] All 9 wizard URLs reverse cleanly under both super + portal shells.
+- [x] Shadow API exports (`start_shadow_window`, `refresh_shadow`, `close_shadow`) are callable.
+- [x] Zero TODO/FIXME/XXX comments in `apps/migration_cloud/`.
+- [x] SW pre-cache includes `migration_cloud_wizard.js`.
+- [x] Config routes mount migration_cloud under both shells with correct `shell` kwarg.

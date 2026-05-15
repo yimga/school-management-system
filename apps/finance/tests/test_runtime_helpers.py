@@ -39,5 +39,3 @@ class GetPolicyForRequestTests(TestCase):
         result = get_policy_for_request(request)
         self.assertIsInstance(result, dict)
         self.assertIn("finance", result)
-
-        school.delete()

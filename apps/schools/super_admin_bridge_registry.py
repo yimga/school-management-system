@@ -60,6 +60,7 @@ PLATFORM_ADMIN_BRIDGE_ORDER: list[str] = [
     "ai_embedding_store",
     "billing_waiver_audit_log",
     "stripe_plan_prices",
+    "billing_entitlements",
     "custom_nuance",
     "pending_nuance",
     "custom_feature_ticket",
@@ -364,6 +365,13 @@ PLATFORM_ADMIN_BRIDGES: dict[str, dict[str, object]] = {
         "label": _("Stripe plan prices (platform admin)"),
         "description": _("StripePlanPrice — commercial plan/price rows"),
         "icon": "bi-currency-dollar",
+        "show_in_nav": False,
+    },
+    "billing_entitlements": {
+        "admin_url": "admin:billing_entitlement_changelist",
+        "label": _("Billing entitlements (platform admin)"),
+        "description": _("Entitlement — materialized tenant feature and quota grants"),
+        "icon": "bi-shield-check",
         "show_in_nav": False,
     },
     "custom_nuance": {
@@ -757,9 +765,15 @@ PLATFORM_ADMIN_BRIDGES.update(
 )
 
 _overlap = set(PLATFORM_ADMIN_BRIDGE_ORDER) & set(PLATFORM_ADMIN_SURFACE_BRIDGE_ORDER)
-assert not _overlap, f"Duplicate bridge keys between base and surface: {_overlap}"
+if _overlap:
+    raise RuntimeError(
+        f"Duplicate bridge keys between base and surface: {_overlap}"
+    )
 _overlap_b = set(PLATFORM_ADMIN_BRIDGES.keys()) & set(PLATFORM_ADMIN_SURFACE_BRIDGES.keys())
-assert not _overlap_b, f"Duplicate bridge keys in dict merge: {_overlap_b}"
+if _overlap_b:
+    raise RuntimeError(
+        f"Duplicate bridge keys in dict merge: {_overlap_b}"
+    )
 
 PLATFORM_ADMIN_BRIDGE_ORDER.extend(PLATFORM_ADMIN_SURFACE_BRIDGE_ORDER)
 PLATFORM_ADMIN_BRIDGES.update(PLATFORM_ADMIN_SURFACE_BRIDGES)

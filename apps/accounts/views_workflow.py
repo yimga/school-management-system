@@ -400,6 +400,35 @@ def workflow_center(request):
         year and getattr(year, "enable_gce_registration", False) if year else False
     )
 
+    # Certification tip is resolved from the active BlueprintPack's policy_snapshot so
+    # different country packs (KCSE/WAEC/IGCSE/IB/etc.) plug in their own copy without
+    # code edits. Falls back to a generic country-agnostic string.
+    _certification_tip = None
+    try:
+        from apps.policies.models import TenantBlueprint
+
+        _school = getattr(request, "school", None) or getattr(request.user, "school", None)
+        if _school is not None:
+            _blueprint = (
+                TenantBlueprint.objects.select_related("active_bundle")
+                .filter(school=_school)
+                .first()
+            )
+            if _blueprint and _blueprint.active_bundle_id:
+                _pack = getattr(_blueprint.active_bundle, "pack", None)
+                if _pack is not None:
+                    _snapshot = getattr(_pack, "policy_snapshot", None) or {}
+                    _certification_tip = (
+                        (_snapshot.get("certification") or {}).get("workflow_tip")
+                        or _snapshot.get("certification_tip")
+                    )
+    except ACCOUNTS_SOFT_FAILURES:
+        _certification_tip = None
+    if not _certification_tip:
+        _certification_tip = _(
+            "Tune sessions to your local exam subsystem (the certification body your country requires)."
+        )
+
     steps = [
         {
             "title": "1) Year setup",
@@ -463,9 +492,7 @@ def workflow_center(request):
             "step_key": "certification",
             "icon": "bi-award",
             "progress_label": "Enabled" if gce_enabled else "Enable in Academic Year",
-            # TODO(config): copy bound to Cameroon GCE/BAC pack — should live in apps/policies/BlueprintPack
-            # so other regions (KCSE, WAEC, IGCSE etc.) plug in their own tip without code edits.
-            "tip": _("Tune sessions to your local exam subsystem (GCE/BAC/BEPC/CAP/KCSE/WAEC/IGCSE — whatever your country requires)."),
+            "tip": _certification_tip,
             "links": _filter_links(certification_links),
         },
         {

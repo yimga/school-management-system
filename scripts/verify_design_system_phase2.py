@@ -59,10 +59,7 @@ CANONICAL_BASES = [
     "templates/control_plane_skeleton.html",
 ]
 
-FORBIDDEN_INLINE_STYLE_TEMPLATES = [
-    "templates/components/dashboard_header.html",
-    "templates/components/theme_toggle.html",
-]
+FORBIDDEN_INLINE_STYLE_TEMPLATES: list[str] = []
 
 HIGH_IMPACT_TEMPLATES = [
     "templates/marketplace/tenant_app_catalog.html",

@@ -66,6 +66,7 @@ def _canonical_groups() -> dict[tuple[str, str, str], dict]:
 
     grouped: dict[tuple[str, str, str], dict] = {}
     try:
+        # tenant-isolation-allow: legacy bridge groups subscriptions by school_id (cross-tenant by design; reviewed 2026-05-14)
         for subscription in WebhookSubscription.objects.all().order_by(
             "school_id", "url", "secret"
         ):

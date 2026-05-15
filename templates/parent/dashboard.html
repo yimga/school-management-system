@@ -176,7 +176,7 @@
             {% endfor %}
           </select>
           {% endif %}
-          <details class="parent-actions-more">
+          <details class="parent-actions-more de-secondary-collapsible">
             <summary class="btn btn-sm btn-outline-secondary">{% trans "More actions" %}</summary>
             <div class="d-flex flex-column gap-2 mt-2 p-2 border rounded-3 bg-light">
               {% if rmc_conversion_single_action_enforced|default:False %}
@@ -224,22 +224,34 @@
       <div class="row g-2">
         {% if missing_work_count|default:0 > 0 %}
         <div class="col-md-6 col-xl-4">
-          {% include "components/insight_card.html" with tone="warning" title=_("Follow-up work is pending") explanation=_("There are pending learning tasks. Completing them now reduces end-of-term pressure for your child.") action_url=parent_workflow_url action_label=_("Open parent workflow") %}
+          {% trans "Follow-up work is pending" as followup_title %}
+          {% trans "There are pending learning tasks. Completing them now reduces end-of-term pressure for your child." as followup_explanation %}
+          {% trans "Open parent workflow" as followup_action_label %}
+          {% include "components/insight_card.html" with tone="warning" title=followup_title explanation=followup_explanation action_url=parent_workflow_url action_label=followup_action_label %}
         </div>
         {% endif %}
         {% if can_view_finance and widget_data.finance.balance and widget_data.finance.balance > 0 %}
         <div class="col-md-6 col-xl-4">
-          {% include "components/insight_card.html" with tone="danger" title=_("Outstanding balance requires action") explanation=_("A balance is currently due. Settling early helps avoid reminders and service friction.") action_url=parent_finance_url action_label=_("Review finance") %}
+          {% trans "Outstanding balance requires action" as balance_title %}
+          {% trans "A balance is currently due. Settling early helps avoid reminders and service friction." as balance_explanation %}
+          {% trans "Review finance" as balance_action_label %}
+          {% include "components/insight_card.html" with tone="danger" title=balance_title explanation=balance_explanation action_url=parent_finance_url action_label=balance_action_label %}
         </div>
         {% endif %}
         {% if unread_messages_aggregate|default:0 > 0 %}
         <div class="col-md-6 col-xl-4">
-          {% include "components/insight_card.html" with tone="neutral" title=_("Unread school messages") explanation=_("You have unread updates from school. Respond quickly to keep decisions aligned.") action_url=parent_contact_url action_label=_("Open message center") %}
+          {% trans "Unread school messages" as unread_title %}
+          {% trans "You have unread updates from school. Respond quickly to keep decisions aligned." as unread_explanation %}
+          {% trans "Open message center" as unread_action_label %}
+          {% include "components/insight_card.html" with tone="neutral" title=unread_title explanation=unread_explanation action_url=parent_contact_url action_label=unread_action_label %}
         </div>
         {% endif %}
         {% if not links %}
         <div class="col-md-6 col-xl-4">
-          {% include "components/insight_card.html" with tone="warning" title=_("No child linked yet") explanation=_("Your dashboard is limited until at least one child profile is linked.") action_url=parent_claim_invite_url action_label=_("Link child with invite") %}
+          {% trans "No child linked yet" as no_child_title %}
+          {% trans "Your dashboard is limited until at least one child profile is linked." as no_child_explanation %}
+          {% trans "Link child with invite" as no_child_action_label %}
+          {% include "components/insight_card.html" with tone="warning" title=no_child_title explanation=no_child_explanation action_url=parent_claim_invite_url action_label=no_child_action_label %}
         </div>
         {% endif %}
       </div>
@@ -343,6 +355,11 @@
         
         <!-- My Children -->
         <section data-rmc-section-anchor class="metrics-section dashboard-clear parent-children-section" id="parent-children" aria-labelledby="children-heading" {% if is_rtl %}dir="rtl"{% endif %}>
+          {% with parent_metrics|default:None as metrics %}
+            {% if metrics %}
+              {% include "components/rmc_metric_ticker.html" with metric_items=metrics %}
+            {% endif %}
+          {% endwith %}
           {% if guardian_students_for_switcher|length > 1 %}
           <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
             <span class="small text-muted">{% trans "Focus:" %}</span>
@@ -410,11 +427,10 @@
             {% endif %}
             {% empty %}
             <div class="col-12">
-              <div class="alert alert-info d-flex align-items-center flex-wrap gap-2">
-                <i class="bi bi-info-circle me-2"></i>
-                <span>{% trans "No children linked yet. Add one using your invite code from the school." %}</span>
-                <a href="{% url 'portal:claim_invite' %}" class="btn btn-sm btn-primary">{% trans "Add a child" %}</a>
-              </div>
+              {% trans "No children linked yet" as empty_children_title %}
+              {% trans "Add one using your invite code from the school." as empty_children_message %}
+              {% trans "Add a child" as empty_children_label %}
+              {% include "components/rmc_empty_state.html" with icon="bi-people" title=empty_children_title message=empty_children_message primary_url=parent_claim_invite_url primary_label=empty_children_label %}
             </div>
             {% endfor %}
             {% if child_cards|length > 2 %}
@@ -465,7 +481,12 @@
                       {% endfor %}
                     </ul>
                     {% else %}
-                    <p class="small text-muted mb-0">{% trans "No pending deadlines this week." %}</p>
+                    <div class="rmc-empty rmc-empty--inline mb-2" role="status">
+                      <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-calendar-check"></i></div>
+                      <div class="rmc-empty__body">
+                        <p class="rmc-empty__message mb-0">{% trans "No pending deadlines this week." %}</p>
+                      </div>
+                    </div>
                     {% endif %}
                     <div class="child-fill-actions">
                       <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:parent_workflow' %}">{% trans "Open workflow" %}</a>
@@ -509,7 +530,13 @@
                 {% endfor %}
               </ul>
               {% else %}
-              <p class="text-muted small mb-0">{% trans "No upcoming items." %} <a href="{% url 'portal:unified_calendar' %}">{% trans "View calendar" %}</a></p>
+              <div class="rmc-empty rmc-empty--inline" role="status">
+                <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-calendar-event"></i></div>
+                <div class="rmc-empty__body">
+                  <p class="rmc-empty__message mb-0">{% trans "No upcoming items." %}</p>
+                  <a href="{% url 'portal:unified_calendar' %}" class="small">{% trans "View calendar" %}</a>
+                </div>
+              </div>
               {% endif %}
             </div>
           </div>
@@ -537,7 +564,12 @@
                 {% endfor %}
               </ul>
               {% else %}
-              <p class="text-muted small mb-2">{% trans "No active class threads." %}</p>
+              <div class="rmc-empty rmc-empty--inline mb-2" role="status">
+                <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-chat-dots"></i></div>
+                <div class="rmc-empty__body">
+                  <p class="rmc-empty__message mb-0">{% trans "No active class threads." %}</p>
+                </div>
+              </div>
               {% endif %}
               <div class="d-grid gap-2">
                 <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-primary"><i class="bi bi-envelope me-2"></i>{% trans "Message school" %}</a>
@@ -566,7 +598,12 @@
                 {% endfor %}
               </ul>
               {% else %}
-              <p class="text-muted small mb-2">{% trans "No announcements right now." %}</p>
+              <div class="rmc-empty rmc-empty--inline mb-2" role="status">
+                <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-megaphone"></i></div>
+                <div class="rmc-empty__body">
+                  <p class="rmc-empty__message mb-0">{% trans "No announcements right now." %}</p>
+                </div>
+              </div>
               {% endif %}
               <div class="parent-rail-kpis mb-2">
                 <div class="parent-rail-metric">
@@ -601,7 +638,12 @@
                 {% endfor %}
               </ul>
               {% else %}
-              <p class="text-muted small mb-2">{% trans "No recent payments recorded." %}</p>
+              <div class="rmc-empty rmc-empty--inline mb-2" role="status">
+                <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-wallet2"></i></div>
+                <div class="rmc-empty__body">
+                  <p class="rmc-empty__message mb-0">{% trans "No recent payments recorded." %}</p>
+                </div>
+              </div>
               {% endif %}
               <div class="d-grid gap-2">
                 <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary">{% trans "Payment history" %}</a>

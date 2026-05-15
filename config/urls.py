@@ -5,7 +5,7 @@ from django.urls import include, path, reverse
 from django.views.i18n import set_language
 from django.views.decorators.cache import cache_page
 from django.views.generic.base import RedirectView
-from rest_framework.schemas import get_schema_view
+from drf_spectacular.views import SpectacularAPIView
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.views import redirect_to_login
 from django.template.response import TemplateResponse
@@ -20,6 +20,7 @@ from apps.platform_runtime.views_administration import internal_admin_alias_redi
 from apps.platform_runtime.views_rum import rum_ingest
 
 from apps.observability import views as obs_views
+from apps.observability import views_friction as obs_friction_views
 from apps.portal.views_ai_copilot import (
     ai_copilot_query,
     ai_health,
@@ -29,6 +30,7 @@ from apps.portal.views_ai_copilot import (
     ai_copilot_audit_feed,
 )
 from apps.portal.views_configure import portal_configure_hub
+from apps.portal.views_lexicon import lexicon_settings as portal_lexicon_settings_view
 from apps.accounts.views_theme import set_theme_preference
 from config.admin import platform_admin_site
 from apps.schools.competitive_marketing_views import (
@@ -133,6 +135,8 @@ def service_worker_asset_manifest(request):
         "js/low-power.js",
         "js/offline-status-bar.js",
         "js/auto-pilot.js",
+        "js/rmc-lexicon.js",
+        "js/rmc-friction.js",
         "images/logo.png",
         "manifest.json",
     ]
@@ -145,7 +149,10 @@ def service_worker_asset_manifest(request):
             assets.append(f"/static/{p}")
     return JsonResponse(
         {
-            "version": _os.getenv("SW_MANIFEST_VERSION", "sms-v1.5.0-apple-tier"),
+            "version": _os.getenv(
+                "SW_MANIFEST_VERSION",
+                "sms-v2.24.0-five-wave-closeout-2026-05-15",
+            ),
             "assets": assets,
         }
     )
@@ -217,11 +224,7 @@ def api_schema_ui(request):
 
 
 _schema_view_raw = cache_page(60)(
-    get_schema_view(
-        title="RunMyCampus API",
-        description="Entity/analytics/session claims schema for frontend orchestration",
-        version="1.0.0",
-    )
+    SpectacularAPIView.as_view(permission_classes=[])
 )
 
 
@@ -267,7 +270,7 @@ def server_error(request):
 
     Two-stage fallback so the 500 page survives context-processor or middleware
     crashes that could otherwise chain into a raw 500. Reference incident:
-    `gilead-school.runmycampus.com/school/settings/` returning 500 with no
+    `<tenant>.runmycampus.com/school/settings/` returning 500 with no
     operator-friendly recovery (2026-05-07).
     """
     _coerce_request_user_for_error_pages(request)
@@ -418,6 +421,12 @@ urlpatterns = [
         obs_views.runtime_inspect,
         name="runtime_inspect",
     ),
+    # Wave B — G5: user-friction telemetry ingest.
+    path(
+        "api/observability/friction/",
+        obs_friction_views.ingest_friction_event,
+        name="api_friction_ingest",
+    ),
     # Legacy alias: /admin/dashboard/ resolves to canonical /admin/
     path("admin/dashboard/", obs_views.admin_dashboard, name="admin_dashboard"),
     # API endpoints for admin dashboard
@@ -514,6 +523,12 @@ urlpatterns = [
         portal_configure_hub,
         name="portal_configure",
     ),
+    # Wave F (2026-05-15): tenant lexicon settings UI with live preview.
+    path(
+        "portal/configure/lexicon/",
+        portal_lexicon_settings_view,
+        name="portal_lexicon_settings",
+    ),
     path("kb/", include(("apps.portal.urls_kb", "kb"), namespace="kb")),
     path("reports/", include(("apps.reports.urls", "reports"), namespace="reports")),
     path(
@@ -536,6 +551,7 @@ urlpatterns = [
     path(
         "requests/", include(("apps.requests.urls", "requests"), namespace="requests")
     ),
+    path("", include(("apps.feedback.urls", "feedback"), namespace="feedback")),
     path(
         "organization/network/",
         parent_tenant_dashboard,
@@ -543,6 +559,18 @@ urlpatterns = [
     ),
     # Super Admin (multi-tenant provisioning)
     path("super/", include(("apps.schools.super_urls", "super"), namespace="super")),
+    # Migration Cloud — operator console (Phase U6 scaffold).
+    path(
+        "super/migration/",
+        include(("apps.migration_cloud.urls", "migration_cloud_super"), namespace="migration_cloud_super"),
+        {"shell": "super"},
+    ),
+    # Migration Cloud — tenant mirror (plan-gated upstream; same URL grammar).
+    path(
+        "portal/configure/migration/",
+        include(("apps.migration_cloud.urls", "migration_cloud_portal"), namespace="migration_cloud_portal"),
+        {"shell": "portal"},
+    ),
     # §3.3 Metadata search (staff-only)
     path(
         "api/internal/metadata/",

@@ -110,6 +110,7 @@ def _period_reference(
 
 
 def _current_balance_for_account(account: BillingAccount) -> Decimal:
+    # tenant-isolation-allow: billing_account is the school-scoped FK; equivalent to `school=account.school` (reviewed 2026-05-14)
     totals = PlatformLedgerEntry.objects.filter(
         billing_account=account,
         status=PlatformLedgerEntry.Status.POSTED,
@@ -858,6 +859,7 @@ def apply_processor_snapshot(
             ):
                 src_ref = str(processor_source_ref or "").strip()
                 ref = f"{processor_code}:{et}:{src_ref or external_subscription_ref or account.pk}"
+                # tenant-isolation-allow: webhook idempotency check by unique reference (reviewed 2026-05-14)
                 if not PlatformLedgerEntry.objects.filter(
                     reference=ref, source="stripe_webhook"
                 ).exists():
@@ -1112,13 +1114,16 @@ def run_platform_billing_lifecycle(
             or as_of
         )
 
-        if (
+        expired_trial = (
+            subscription.trial_end_date and subscription.trial_end_date < as_of.date()
+        )
+        if expired_trial and (
             school.billing_type == school.BillingType.FREE_TRIAL
-            and subscription.trial_end_date
-            and subscription.trial_end_date < as_of.date()
+            or subscription.status == TenantSubscription.Status.TRIALING
         ):
-            school.billing_type = school.BillingType.REGULAR
-            school.save(update_fields=["billing_type", "updated_at"])
+            if school.billing_type == school.BillingType.FREE_TRIAL:
+                school.billing_type = school.BillingType.REGULAR
+                school.save(update_fields=["billing_type", "updated_at"])
             if subscription.status == TenantSubscription.Status.TRIALING:
                 subscription.status = TenantSubscription.Status.ACTIVE
                 subscription_changed.append("status")
@@ -1136,6 +1141,7 @@ def run_platform_billing_lifecycle(
             )
             period_end = subscription.current_period_end
             reference = _period_reference(subscription, period_start, period_end)
+            # tenant-isolation-allow: billing_account FK already school-scoped (reviewed 2026-05-14)
             if not PlatformLedgerEntry.objects.filter(
                 billing_account=account,
                 reference=reference,

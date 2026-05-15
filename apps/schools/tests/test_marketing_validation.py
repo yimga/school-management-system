@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 from unittest.mock import patch
 
 from django.conf import settings
+from django.test.client import ContextList
 from django.test import Client, SimpleTestCase, TestCase, override_settings
 from django.core.management import call_command
 from django.urls import reverse
@@ -20,6 +21,13 @@ from apps.schools.marketing_url_inventory import (
     iter_marketing_smoke_targets,
 )
 from apps.schools.marketing_settings_helpers import derive_marketing_demo_tenant_url
+
+
+def _store_rendered_templates_without_context_copy(store, signal, sender, template, context, **kwargs):
+    store.setdefault("templates", []).append(template)
+    if "context" not in store:
+        store["context"] = ContextList()
+    store["context"].append(context)
 
 
 # URL names exercised by manage.py validate_marketing_urls (and --smoke subset)
@@ -253,34 +261,25 @@ class MarketingLandingContextTests(TestCase):
     def test_landing_renders_required_visual_assets(self):
         resp = self.client.get("/marketing/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
-        # Wired in _marketing_context / template fallbacks (static SVG paths in HTML)
-        self.assertContains(resp, "images/marketing/migration-flow.svg")
-        self.assertContains(resp, "images/marketing/platform-diagram-marketing.svg")
-        self.assertContains(resp, "images/marketing/setup-studio-flow.svg")
-        self.assertContains(resp, "images/marketing/viz-admin.svg")
-        self.assertContains(resp, "hero-global-os-composite.svg")
-        self.assertContains(resp, "mkt-hero-composite-img")
-        self.assertContains(resp, "images/marketing/module-finance.svg")
-        # Phase 10 narrative spine (verify_ux_completion.py markers)
-        self.assertContains(resp, "data-phase10-marketing-narrative")
-        self.assertContains(resp, "mkt-narrative-phase10")
-        self.assertContains(resp, "Why schools switch")
-        self.assertContains(resp, "product-visualization")
-        self.assertContains(resp, "Studio OS")
+        # Homepage now renders the editorial v2 visual system with inline SVG artifacts.
+        self.assertContains(resp, "marketing/css/marketing-landing-v2.css")
+        self.assertContains(resp, "mkt-edt-hero__artifact")
+        self.assertContains(resp, "mkt-edt-crests__strip")
+        self.assertContains(resp, "mkt-edt-frieze")
+        self.assertContains(resp, "mkt-edt-job__artifact")
+        self.assertContains(resp, "mkt-edt-lens__panel")
+        self.assertContains(resp, "mkt-edt-walkthrough__reel")
 
     def test_landing_renders_admissions_flow_post_enrollment_and_what_you_get(self):
         """MARKETING_PAGE_AUDIT: context keys must surface on HTML (was context-only)."""
         resp = self.client.get("/marketing/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "admissions-pipeline")
-        self.assertContains(resp, "Capture enquiries")
-        self.assertContains(resp, "Convert and onboard")
-        self.assertContains(resp, "post-enrollment-revenue")
-        self.assertContains(resp, "School Events")
-        self.assertContains(resp, "Alumni Network")
-        self.assertContains(resp, "what-you-get")
-        self.assertContains(resp, "Data security")
-        self.assertContains(resp, "Customizable branding")
+        self.assertContains(resp, "Run your school the way your school actually runs.")
+        self.assertContains(resp, "A Tuesday at Cedar Ridge Academy.")
+        self.assertContains(resp, "What people actually do here")
+        self.assertContains(resp, "One platform. Nothing to babysit.")
+        self.assertContains(resp, "One platform that bends to each campus.")
+        self.assertContains(resp, "Book a demo")
 
     def test_landing_nav_has_product_and_solutions_dropdowns(self):
         resp = self.client.get("/marketing/", HTTP_HOST=self.host)
@@ -292,14 +291,16 @@ class MarketingLandingContextTests(TestCase):
         self.assertIn("/platform/student-information-system/", body)
         self.assertIn("/for-private-schools/", body)
         self.assertIn("/offline-first/", body)
-        self.assertIn("Why RunMyCampus", body)
+        self.assertIn("Platform status", body)
         self.assertIn("/trust/", body)
 
     def test_landing_includes_platform_visual_assets_without_placeholder_video_urls(self):
         resp = self.client.get("/marketing/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
-        self.assertIn("illustration-students.svg", body)
+        self.assertIn("marketing/css/marketing-landing-v2.css", body)
+        self.assertIn("mkt-edt-hero__artifact", body)
+        self.assertIn("mkt-edt-frieze", body)
         self.assertNotIn("youtube.com/watch?v=YE7VzlLtp-4", body)
 
 
@@ -450,12 +451,17 @@ class MarketingFullUrlInventoryTests(TestCase):
     def tearDown(self):
         self.env.stop()
 
+    def _get(self, path: str):
+        with patch(
+            "django.test.client.store_rendered_templates",
+            _store_rendered_templates_without_context_copy,
+        ):
+            return self.client.get(path, HTTP_HOST=self.host, follow=True)
+
     def test_all_inventory_marketing_urls_acceptable_status(self):
         for target in iter_marketing_smoke_targets():
             with self.subTest(name=target.name, path=target.path):
-                resp = self.client.get(
-                    target.path, HTTP_HOST=self.host, follow=True
-                )
+                resp = self._get(target.path)
                 self.assertTrue(
                     target.accepts(resp.status_code),
                     f"{target.name} GET {target.path} -> {resp.status_code}, "
@@ -465,9 +471,7 @@ class MarketingFullUrlInventoryTests(TestCase):
     def test_all_adjacent_marketing_surface_urls_return_200(self):
         for target in iter_marketing_adjacent_smoke_targets():
             with self.subTest(name=target.name, path=target.path):
-                resp = self.client.get(
-                    target.path, HTTP_HOST=self.host, follow=True
-                )
+                resp = self._get(target.path)
                 self.assertTrue(
                     target.accepts(resp.status_code),
                     f"{target.name} GET {target.path} -> {resp.status_code}, "
@@ -514,19 +518,22 @@ class MarketingAbVariantTests(TestCase):
         resp = self.client.get("/marketing/", HTTP_HOST=self.host, secure=True)
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
-        hero_part = body.split('id="hero"', 1)[1].split('id="platform-pillars"', 1)[0]
-        self.assertIn("Book demo", hero_part)
-        self.assertIn("See product tour", hero_part)
+        hero_part = body.split('aria-labelledby="hero-headline"', 1)[1].split(
+            'mkt-edt-hero__artifact',
+            1,
+        )[0]
+        self.assertIn("Book a demo", hero_part)
+        self.assertIn("See it live", hero_part)
         self.assertNotIn("Start Free Trial", hero_part)
 
-    def test_hero_variant_b_appends_subline_when_no_cms(self):
+    def test_legacy_hero_variant_b_session_keeps_v2_homepage_stable(self):
         session = self.client.session
         session["marketing_ab_variant"] = "B"
         session.save()
         resp = self.client.get("/marketing/", HTTP_HOST=self.host, secure=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "Operator-grade visibility")
-        self.assertContains(resp, 'data-marketing-hero-variant="B"')
+        self.assertContains(resp, "Run your school the way your school actually runs.")
+        self.assertContains(resp, 'data-mkt-edition="editorial"')
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)

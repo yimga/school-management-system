@@ -13,14 +13,80 @@ Usage:
     @trace_view("attendance.submit")
     def submit_attendance(request, ...): ...
 
-When sentry_sdk isn't installed or SENTRY_DSN is unset, the decorator is a
-no-op so test envs don't pull in the SDK.
+For non-view code paths (background tasks, service-layer functions),
+use the lower-level :func:`start_named_transaction` /
+:func:`finish_transaction` helpers.
+
+When sentry_sdk isn't installed or SENTRY_DSN is unset, every helper here
+becomes a no-op so test envs don't pull in the SDK.
 """
 
 from __future__ import annotations
 
 import functools
-from typing import Callable
+from typing import Any, Callable
+
+
+def start_named_transaction(name: str, *, op: str = "task.hot_path", **tags: Any):
+    """Start a named Sentry transaction. Returns the transaction object
+    (or ``None`` when sentry_sdk is unavailable). Always pair with
+    :func:`finish_transaction`.
+
+    For request-handling code, prefer :func:`trace_view`. This helper
+    exists for tasks, service-layer functions, and outbox processors —
+    anywhere there is no `request` to bind to.
+    """
+    try:
+        import sentry_sdk
+    except ImportError:
+        return None
+    try:
+        txn = sentry_sdk.start_transaction(op=op, name=name)
+        for key, value in tags.items():
+            try:
+                txn.set_tag(key, value)
+            except Exception:  # noqa: BLE001 - telemetry never blocks
+                pass
+        return txn
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def set_transaction_status(txn, status: str) -> None:
+    if txn is None:
+        return
+    try:
+        txn.set_status(status)
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def finish_transaction(txn) -> None:
+    if txn is None:
+        return
+    try:
+        txn.finish()
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def set_tags(**tags: Any) -> None:
+    """Tag the current Sentry scope with arbitrary key/value pairs.
+
+    Used by middleware (e.g. tenant tagging) so app code never imports
+    ``sentry_sdk`` directly. No-op when the SDK isn't available.
+    """
+    if not tags:
+        return
+    try:
+        import sentry_sdk
+    except ImportError:
+        return
+    for key, value in tags.items():
+        try:
+            sentry_sdk.set_tag(key, "" if value is None else str(value))
+        except Exception:  # noqa: BLE001 - telemetry never blocks
+            pass
 
 
 def trace_view(name: str, op: str = "view.hot_path") -> Callable:

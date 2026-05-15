@@ -149,7 +149,7 @@
                             <td><strong>{{ stats.total }}</strong></td>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="5" class="empty">{% trans "No changes recorded" %}</td></tr>
+                        <tr><td colspan="5"><div class="rmc-empty rmc-empty--row" role="status"><div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-clipboard-check"></i></div><p class="rmc-empty__message">{% trans "No changes recorded" %}</p></div></td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -196,7 +196,7 @@
                         <td><span class="sensitivity-badge {{ audit.sensitivity|lower }}">{{ audit.sensitivity }}</span></td>
                     </tr>
                 {% empty %}
-                    <tr><td colspan="6" class="empty">{% trans "No audit logs available" %}</td></tr>
+                    <tr><td colspan="6"><div class="rmc-empty rmc-empty--row" role="status"><div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-shield-check"></i></div><p class="rmc-empty__message">{% trans "No audit logs available" %}</p></div></td></tr>
                 {% endfor %}
             </tbody>
         </table>

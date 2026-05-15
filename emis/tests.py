@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.test import TestCase
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty, Subject, SubjectAssignment, Term
@@ -115,6 +116,17 @@ class EMISExportServiceTests(TestCase):
             },
         )
 
+    def _force_login_verified(self, user):
+        TOTPDevice.objects.get_or_create(
+            user=user,
+            name="default",
+            defaults={"confirmed": True},
+        )
+        self.client.force_login(user)
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
+
     def test_exports_are_schema_safe(self):
         service = EMISExportService("CMR")
         students = service.export_students(self.year, self.term)
@@ -142,6 +154,6 @@ class EMISExportServiceTests(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
         )
-        self.client.force_login(admin)
+        self._force_login_verified(admin)
         response = self.client.get(reverse("emis:dashboard"))
         self.assertEqual(response.status_code, 200)

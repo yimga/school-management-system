@@ -37,5 +37,3 @@ class GetPolicyForRequestTests(TestCase):
         result = get_policy_for_request(request)
         self.assertIsInstance(result, dict)
         self.assertIn("terminology", result)
-
-        school.delete()

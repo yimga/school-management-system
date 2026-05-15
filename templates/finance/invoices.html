@@ -155,7 +155,13 @@
                     <div class="fw-semibold">{{ inv.my_split_outstanding|format_currency }}</div>
                     <div class="text-muted">{{ inv.my_split_status }}</div>
                   {% elif user.is_staff or user.is_superuser %}
-                    <div class="fw-semibold">{% blocktrans count counter=inv.split_payer_count %}{{ counter }} payer{% plural %}{{ counter }} payers{% endblocktrans %}</div>
+                    <div class="fw-semibold">
+                      {% if inv.split_payer_count == 1 %}
+                        {% trans "1 payer" %}
+                      {% else %}
+                        {{ inv.split_payer_count }} {% trans "payers" %}
+                      {% endif %}
+                    </div>
                     <div class="text-muted">{% blocktrans with amt=inv.split_outstanding_total|format_currency %}Due {{ amt }}{% endblocktrans %}</div>
                   {% else %}
                     <span class="text-muted">{% trans "Split configured" %}</span>
@@ -232,7 +238,7 @@
       </table>
       {% else %}
       {% url 'finance:generate_fees' as empty_action_url %}
-      {% include "components/dashboard_empty_state.html" with icon="bi-receipt" title=_("No invoices found") message=_("Generate fee invoices to get started.") action_url=empty_action_url action_text=_("Generate fees") %}
+      {% include "components/rmc_empty_state.html" with icon="bi-receipt" title=_("No invoices found") message=_("Generate fee invoices to get started.") primary_url=empty_action_url primary_label=_("Generate fees") %}
       {% endif %}
     </div>
     {% if page_obj %}

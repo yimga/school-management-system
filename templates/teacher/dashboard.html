@@ -159,27 +159,55 @@
     </div>
     {% endif %}
 
-    <section id="teacher-metrics" data-rmc-section-anchor class="tdm-overview-grid dashboard-card-grid dashboard-card-grid--dense" data-decision-zone="supporting-metrics" data-rmc-ux-section="today-metrics">
-      <div class="tdm-stat card-glass purple">
-        <div class="tdm-stat-label">{% trans "Classes today" %}</div>
-        <div class="tdm-stat-value">{{ assignments|length|default:0 }}</div>
-        <div class="tdm-stat-meta">{% trans "Active subjects" %}</div>
+    {# v2.6 (2026-05-12): teacher KPI strip wrapped in .rmc-metric-ticker so the
+       Classes/Syllabus/Attendance/Alerts numbers pin to the topbar when the
+       user scrolls past them. The auto-grid layout is kept inside the
+       __full container so the visual strip remains identical above the fold. #}
+    <section id="teacher-metrics" data-rmc-section-anchor class="rmc-metric-ticker mb-3" data-rmc-metric-ticker data-decision-zone="supporting-metrics" data-rmc-ux-section="today-metrics" aria-label="{% trans 'Today metrics' %}">
+      <div class="rmc-metric-ticker__sentinel" aria-hidden="true"></div>
+      <div class="rmc-metric-ticker__full row g-3">
+        <div class="col-12 col-md-6 col-lg-3" data-rmc-kpi="classes-today">
+          <div class="kpi tdm-stat card-glass purple">
+            <div class="d-flex align-items-start justify-content-between gap-2">
+              <span class="label tdm-stat-label">{% trans "Classes today" %}</span>
+              <span class="kpi-icon" aria-hidden="true"><i class="bi bi-mortarboard"></i></span>
+            </div>
+            <div class="value tdm-stat-value" data-rmc-metric-value>{{ assignments|length|default:0 }}</div>
+            <div class="tdm-stat-meta">{% trans "Active subjects" %}</div>
+          </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3" data-rmc-kpi="syllabus-progress">
+          <div class="kpi tdm-stat card-glass blue">
+            <div class="d-flex align-items-start justify-content-between gap-2">
+              <span class="label tdm-stat-label">{% trans "Syllabus progress" %}</span>
+              <span class="kpi-icon" aria-hidden="true"><i class="bi bi-list-check"></i></span>
+            </div>
+            <div class="value tdm-stat-value" data-rmc-metric-value>{{ widget_data.completion_pct|default:0 }}%</div>
+            <div class="tdm-stat-meta">{% trans "All classes" %}</div>
+          </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3" data-rmc-kpi="attendance-overall">
+          <div class="kpi tdm-stat card-glass teal">
+            <div class="d-flex align-items-start justify-content-between gap-2">
+              <span class="label tdm-stat-label">{% trans "Attendance" %}</span>
+              <span class="kpi-icon success" aria-hidden="true"><i class="bi bi-people"></i></span>
+            </div>
+            <div class="value tdm-stat-value" data-rmc-metric-value>{{ widget_data.attendance.overall|default:"0" }}%</div>
+            <div class="tdm-stat-meta">{% trans "Overall" %}</div>
+          </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3" data-rmc-kpi="alerts-action-needed">
+          <div class="kpi tdm-stat card-glass orange">
+            <div class="d-flex align-items-start justify-content-between gap-2">
+              <span class="label tdm-stat-label">{% trans "Alerts" %}</span>
+              <span class="kpi-icon warning" aria-hidden="true"><i class="bi bi-exclamation-triangle"></i></span>
+            </div>
+            <div class="value tdm-stat-value" data-rmc-metric-value>{{ items_requiring_review|default:0 }}</div>
+            <div class="tdm-stat-meta">{% trans "Requiring action" %}</div>
+          </div>
+        </div>
       </div>
-      <div class="tdm-stat card-glass blue">
-        <div class="tdm-stat-label">{% trans "Syllabus progress" %}</div>
-        <div class="tdm-stat-value">{{ widget_data.completion_pct|default:0 }}%</div>
-        <div class="tdm-stat-meta">{% trans "All classes" %}</div>
-      </div>
-      <div class="tdm-stat card-glass teal">
-        <div class="tdm-stat-label">{% trans "Attendance" %}</div>
-        <div class="tdm-stat-value">{{ widget_data.attendance.overall|default:"0" }}%</div>
-        <div class="tdm-stat-meta">{% trans "Overall" %}</div>
-      </div>
-      <div class="tdm-stat card-glass orange">
-        <div class="tdm-stat-label">{% trans "Alerts" %}</div>
-        <div class="tdm-stat-value">{{ items_requiring_review|default:0 }}</div>
-        <div class="tdm-stat-meta">{% trans "Requiring action" %}</div>
-      </div>
+      <div class="rmc-metric-ticker__pin" data-rmc-metric-pin role="region" aria-label="{% trans 'Pinned metrics' %}" hidden></div>
     </section>
 
     <section id="teacher-classes" data-rmc-section-anchor class="tdm-main-grid">
@@ -317,7 +345,11 @@
                 {% endfor %}
               </ul>
               {% else %}
-              <p class="text-muted small mb-0">{% trans "No upcoming deadlines yet." %}</p>
+              <div class="rmc-empty rmc-empty--inline" role="status" aria-live="polite">
+                <div class="rmc-empty__body">
+                  <p class="rmc-empty__message small mb-0">{% trans "No upcoming deadlines yet." %}</p>
+                </div>
+              </div>
               {% endif %}
             </article>
           </div>

@@ -83,13 +83,37 @@
     activeIndex: 0,
   };
 
+  function askAiItem(query) {
+    /* 2026-05-14: Ask-AI fallback. When the user's query has zero
+       palette matches, surface a single "Ask AI: <query>" row that
+       opens the copilot prepopulated with the query. Avoids the
+       dead-end "No matches" state and keeps ⌘K as the platform-wide
+       answer to "where do I start?". */
+    return {
+      label: 'Ask AI: "' + query + '"',
+      url: null,
+      action: "rmc:cmdk:ask-ai",
+      icon: "bi-stars",
+      keywords: "ask ai " + query,
+      group: "AI",
+      _askQuery: query,
+    };
+  }
+
   function render() {
     var list = document.getElementById(LIST_ID);
     if (!list) { return; }
     list.innerHTML = "";
     if (!state.filtered.length) {
-      list.innerHTML = '<li class="rmc-cmdk__empty">No matches.</li>';
-      return;
+      var q = (state.query || "").trim();
+      if (q) {
+        /* Render the Ask AI fallback as a real item so Enter activates it. */
+        state.filtered = [askAiItem(q)];
+        state.activeIndex = 0;
+      } else {
+        list.innerHTML = '<li class="rmc-cmdk__empty">No matches.</li>';
+        return;
+      }
     }
     state.filtered.forEach(function (item, idx) {
       var li = document.createElement("li");
@@ -236,6 +260,21 @@
     window.addEventListener("rmc:cmdk:open-ai", function () {
       var t = document.getElementById("aiCopilotTrigger");
       if (t) { t.click(); }
+    });
+    window.addEventListener("rmc:cmdk:ask-ai", function () {
+      /* Fired by the Ask-AI fallback item. Opens the copilot panel and
+         prepopulates the input with the user's query. */
+      var q = (state.query || "").trim();
+      var trigger = document.getElementById("aiCopilotTrigger");
+      if (trigger) { trigger.click(); }
+      setTimeout(function () {
+        var input = document.getElementById("aiCopilotInput");
+        if (input) {
+          input.value = q;
+          try { input.dispatchEvent(new Event("input", { bubbles: true })); } catch (_) {}
+          input.focus();
+        }
+      }, 80);
     });
 
     /* Expose for other scripts (e.g. nav buttons). */

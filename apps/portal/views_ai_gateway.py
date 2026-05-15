@@ -204,7 +204,7 @@ def _gateway_response(
     user_query: str = "",
     response_schema: str | None = None,
 ):
-    from apps.portal.ai_provider import _normalize_gateway_metadata
+    from services.ai_helpers import normalize_gateway_metadata
     from services.ai_permissions import get_ai_permission_for_user
 
     school = getattr(request, "school", None)
@@ -227,7 +227,7 @@ def _gateway_response(
         None,
     )
     school_id = _school_id(request)
-    md = _normalize_gateway_metadata(
+    md = normalize_gateway_metadata(
         {
             "request": request,
             "school": school,

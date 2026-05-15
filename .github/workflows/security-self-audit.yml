@@ -1,0 +1,82 @@
+name: security-self-audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/**"
+      - "config/**"
+      - "scripts/run_security_self_audit.py"
+      - "requirements.txt"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/security-self-audit.yml"
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly drift check on Monday 06:00 UTC. Catches new CVEs against pinned deps.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  self-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Python project + audit tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install bandit pip-audit semgrep
+
+      - name: Install JS deps (audit-only — no lifecycle scripts)
+        run: npm ci --ignore-scripts
+
+      - name: Install gitleaks
+        run: |
+          curl -fsSL https://github.com/gitleaks/gitleaks/releases/download/v8.18.0/gitleaks_8.18.0_linux_x64.tar.gz \
+            | tar -xz -C /usr/local/bin gitleaks
+          gitleaks version
+
+      - name: Run security self-audit
+        id: audit
+        # Set --fail-fast to fail PRs that introduce HIGH/CRITICAL findings.
+        # Schedule + manual triggers tolerate findings so the report still publishes.
+        run: |
+          set +e
+          python scripts/run_security_self_audit.py --json self-audit.json
+          rc=$?
+          echo "audit_exit=$rc" >> "$GITHUB_OUTPUT"
+          # Don't fail PRs on existing dev-dep findings (npm audit baseline); fail only on regressions.
+          # The schedule run uploads the JSON and never blocks.
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            exit $rc
+          else
+            exit 0
+          fi
+
+      - name: Upload audit JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-self-audit-${{ github.sha }}
+          path: self-audit.json
+          retention-days: 90

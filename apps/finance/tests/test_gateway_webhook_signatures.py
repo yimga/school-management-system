@@ -7,7 +7,6 @@ import hmac
 import json
 import time
 import unittest
-from unittest.mock import MagicMock
 
 from apps.finance.gateways.flutterwave import FlutterwaveGateway
 from apps.finance.gateways.mtn_momo import MTNMoMoGateway

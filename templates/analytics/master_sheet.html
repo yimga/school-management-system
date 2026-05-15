@@ -125,9 +125,8 @@
             <tr>
               <td colspan="12" class="p-0">
                 <div class="py-3 px-2">
-                  {% load i18n %}
                   {% url 'evals:evaluation_admin' as evals_url %}
-                  {% include "components/dashboard_empty_state.html" with icon="bi-table" title=_("No evaluations found.") message=_("Create evaluations or adjust the filters above.") action_url=evals_url action_text=_("Create evaluations") %}
+                  {% include "components/rmc_empty_state.html" with icon="bi-table" title=_("No evaluations found.") message=_("Create evaluations or adjust the filters above.") primary_url=evals_url primary_label=_("Create evaluations") %}
                 </div>
               </td>
             </tr>

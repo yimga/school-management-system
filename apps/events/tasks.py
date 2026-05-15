@@ -39,6 +39,7 @@ except ImportError:  # pragma: no cover - celery is optional in tests
 def process_outbox_batch(batch_size: int = 100):
     from apps.events.models import DomainEvent
 
+    # tenant-isolation-allow: domain-event outbox sweep across all tenants (reviewed 2026-05-14)
     queryset = DomainEvent.objects.filter(status=DomainEvent.Status.PENDING).order_by(
         "created_at"
     )[: max(1, int(batch_size))]

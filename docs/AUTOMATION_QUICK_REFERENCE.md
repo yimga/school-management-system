@@ -193,5 +193,5 @@ cache_ttl = site.cache_ttls.get("default", 300)
 
 - [Full Automation Plan](./AUTOMATION_AND_CONFIGURABILITY_PLAN.md)
 - [API Services Requirements](./API_SERVICES_REQUIREMENTS.md)
-- [Cameroon/Buea Setup Guide](./CAMEROON_BUEA_SETUP_GUIDE.md)
+- [Cameroon/Buea Setup Guide (archived 2026-05-14, single-tenant era)](./archive/legacy_2026_05_14/CAMEROON_BUEA_SETUP_GUIDE.md)
 - [Finance Workflow](./WORKFLOW_FINANCE.md)

@@ -78,7 +78,10 @@ def main(argv: list[str] | None = None) -> int:
         tracked_files = [
             line.strip()
             for line in proc.stdout.splitlines()
-            if line.strip() and "/" not in line and "\\" not in line
+            if line.strip()
+            and "/" not in line
+            and "\\" not in line
+            and (base / line.strip()).is_file()
         ]
     except Exception:
         tracked_files = [path.name for path in base.iterdir() if path.is_file()]

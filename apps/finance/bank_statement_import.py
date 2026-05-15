@@ -242,6 +242,13 @@ class BankStatementImportService:
         suggested_invoice = self._suggest_invoice(
             entry.transaction_reference, entry.description
         )
+
+        # AI category suggestion — never blocking, never required.
+        raw_payload = dict(row.raw_payload or {})
+        ai_payload = self._ai_categorize(entry, row)
+        if ai_payload is not None:
+            raw_payload["ai_category"] = ai_payload
+
         suspense, created = SuspensePayment.objects.get_or_create(
             bank_statement_entry=entry,
             defaults={
@@ -252,12 +259,48 @@ class BankStatementImportService:
                 "payer_name": row.payer_name,
                 "payer_phone": row.payer_phone,
                 "description": entry.description,
-                "raw_payload": row.raw_payload or {},
+                "raw_payload": raw_payload,
                 "suggested_invoice": suggested_invoice,
                 "suggested_student": getattr(suggested_invoice, "student", None),
             },
         )
         return created
+
+    def _ai_categorize(
+        self, entry: BankStatementEntry, row: ParsedStatementRow
+    ) -> dict | None:
+        """Best-effort AI category proposal for an unmatched deposit.
+
+        Returns a dict shaped {category, confidence, payer_hint, reasoning,
+        tier} when AI is enabled and parseable; ``None`` otherwise. Wrapped
+        in a broad exception guard — bank statement import must never
+        fail because the AI provider is degraded.
+        """
+        try:
+            from apps.finance.ai_categorize import propose_category
+
+            school = getattr(entry.bank_account, "school", None) or getattr(
+                row, "school", None
+            )
+            proposal = propose_category(
+                school=school,
+                description=entry.description,
+                amount=entry.amount,
+                transaction_type=entry.transaction_type,
+                payer_phone=row.payer_phone,
+                payer_name=row.payer_name,
+            )
+            if proposal is None:
+                return None
+            return {
+                "category": proposal.category,
+                "confidence": proposal.confidence,
+                "payer_hint": proposal.payer_hint,
+                "reasoning": proposal.reasoning,
+                "tier": proposal.tier,
+            }
+        except Exception:  # noqa: BLE001
+            return None
 
     def _find_matching_receipt_proof(
         self, entry: BankStatementEntry

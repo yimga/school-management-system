@@ -1,0 +1,17 @@
+{
+  "exclude_dir_names": [
+    "__pycache__",
+    "management",
+    "migrations",
+    "node_modules",
+    "tests"
+  ],
+  "finding_count": 0,
+  "findings": [],
+  "generated_at": "2026-05-15T08:57:36+00:00",
+  "rule": "no print() in apps/ or services/ outside management commands and tests",
+  "scan_dirs": [
+    "apps",
+    "services"
+  ]
+}

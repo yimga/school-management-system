@@ -6,6 +6,7 @@ from apps.communication.models import (
     Message,
     Announcement,
     AnnouncementAuditLog,
+    CommunicationTemplate,
     FeedItem,
     OutboundMessageQueue,
 )
@@ -125,3 +126,22 @@ class OutboundMessageQueueAdmin(admin.ModelAdmin):
         self.message_user(request, f"{n} item(s) set to pending for retry.")
 
     mark_retry_pending.short_description = "Retry failed (set to pending)"
+
+
+@admin.register(CommunicationTemplate, site=tenant_admin_site)
+class CommunicationTemplateAdmin(admin.ModelAdmin):
+    """Per-tenant + platform-wide notification template overrides.
+
+    Pairs with the code-level catalog at `apps/communication/template_catalog.py`.
+    Resolution order: tenant override → platform-wide override → catalog → hard fallback.
+    """
+
+    list_display = ("key", "school", "locale", "is_active", "sensitivity", "updated_at")
+    list_filter = ("is_active", "sensitivity", "school")
+    search_fields = ("key", "subject_template", "body_template", "notes")
+    readonly_fields = ("created_at", "updated_at")
+    fieldsets = (
+        (None, {"fields": ("school", "key", "locale", "is_active")}),
+        ("Content", {"fields": ("subject_template", "body_template", "channels", "audience", "sensitivity")}),
+        ("Notes & audit", {"fields": ("notes", "created_at", "updated_at")}),
+    )

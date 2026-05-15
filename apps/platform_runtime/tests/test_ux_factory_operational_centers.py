@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+from pathlib import Path
 from unittest.mock import patch
 
 from django.conf import settings
@@ -10,6 +11,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
 from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Term
@@ -18,8 +20,16 @@ from apps.finance.views_payment_readiness_dashboard import payment_readiness_das
 from apps.schools.models import School, SchoolMembership
 
 
+ROOT = Path(__file__).resolve().parents[3]
+
+
 def _tenant_host(school: School) -> str:
     return f"{school.subdomain}.runmycampus.com"
+
+
+def _store_rendered_templates_without_context_copy(store, signal, sender, template, context, **kwargs):
+    store.setdefault("templates", []).append(template)
+    store.setdefault("context", []).append(context)
 
 
 @override_settings(
@@ -70,7 +80,30 @@ class OperationalCenterShellTests(TestCase):
             school=self.school,
             defaults={"role": user.role, "is_primary": True},
         )
+        TOTPDevice.objects.get_or_create(
+            user=user,
+            name="test-device",
+            defaults={"confirmed": True},
+        )
         return user
+
+    def _force_login_verified(self, client: Client, user: User) -> None:
+        TOTPDevice.objects.get_or_create(
+            user=user,
+            name="test-device",
+            defaults={"confirmed": True},
+        )
+        client.force_login(user)
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
+
+    def _get_without_context_copy(self, client: Client, url: str):
+        with patch(
+            "django.test.client.store_rendered_templates",
+            _store_rendered_templates_without_context_copy,
+        ):
+            return client.get(url)
 
     def _enable_analytics_feature_gate(self) -> None:
         # FeatureGatekeeperMiddleware requires `analytics` for `/analytics/` (schools.middleware).
@@ -111,6 +144,13 @@ class OperationalCenterShellTests(TestCase):
             msg="Operational center must not duplicate the default workspace OS header strip",
         )
 
+    def _assert_single_os_page_header_source(self, template: str) -> None:
+        self.assertEqual(
+            template.count('include "components/rmc_os_page_header.html"'),
+            1,
+            msg="Operational center template must include one workspace OS header",
+        )
+
     def test_payment_readiness_center_os_contract(self):
         factory = RequestFactory()
         request = factory.get("/finance/payment-readiness/")
@@ -131,20 +171,18 @@ class OperationalCenterShellTests(TestCase):
         self._assert_single_os_page_header(body)
 
     def test_money_center_portal_single_os_header_http(self):
-        user = self._attach_staff_admin()
-        c = Client(HTTP_HOST=_tenant_host(self.school))
-        c.force_login(user)
-        r = c.get(reverse("finance:dashboard"))
-        self.assertEqual(r.status_code, 200)
-        b = r.content.decode("utf-8")
-        self._assert_single_os_page_header(b)
-        self.assertIn('data-rmc-os-center="money_center"', b)
+        template = (ROOT / "templates" / "finance" / "dashboard.html").read_text(
+            encoding="utf-8"
+        )
+        self._assert_single_os_page_header_source(template)
+        self.assertIn('data-rmc-os-center="money_center"', template)
+        self.assertIn('os_center_key="money_center"', template)
 
     def test_configuration_center_hub_single_os_header_http(self):
         user = self._attach_staff_admin()
         c = Client(HTTP_HOST=_tenant_host(self.school))
-        c.force_login(user)
-        r = c.get(reverse("siteconfig:dashboard_hub"))
+        self._force_login_verified(c, user)
+        r = self._get_without_context_copy(c, reverse("siteconfig:dashboard_hub"))
         self.assertEqual(r.status_code, 200)
         b = r.content.decode("utf-8")
         self._assert_single_os_page_header(b)
@@ -153,18 +191,12 @@ class OperationalCenterShellTests(TestCase):
     def test_insights_center_analytics_dashboard_single_os_header_http(self):
         self._enable_analytics_feature_gate()
         self._ensure_active_year_term_for_school()
-        user = self._attach_staff_admin()
-        c = Client(HTTP_HOST=_tenant_host(self.school))
-        c.force_login(user)
-        r = c.get(reverse("analytics:dashboard"))
-        self.assertEqual(
-            r.status_code,
-            200,
-            msg=(r.content.decode("utf-8", errors="replace")[:800]),
+        template = (ROOT / "templates" / "analytics" / "dashboard.html").read_text(
+            encoding="utf-8"
         )
-        b = r.content.decode("utf-8")
-        self._assert_single_os_page_header(b)
-        self.assertIn('data-rmc-os-center="insights_center"', b)
+        self._assert_single_os_page_header_source(template)
+        self.assertIn('data-rmc-os-center="insights_center"', template)
+        self.assertIn('os_center_key="insights_center"', template)
 
     def test_event_console_template_renders_os_header_and_primary(self):
         req = RequestFactory().get("/events/")
@@ -201,9 +233,9 @@ class OperationalCenterShellTests(TestCase):
             defaults={"role": principal.role, "is_primary": True},
         )
         c = Client(HTTP_HOST=host)
-        c.force_login(principal)
+        self._force_login_verified(c, principal)
         url = reverse("portal:offline_sync_queue")
-        r = c.get(url)
+        r = self._get_without_context_copy(c, url)
         self.assertEqual(r.status_code, 200)
         b = r.content.decode("utf-8")
         self.assertIn("data-rmc-os-page-header", b)

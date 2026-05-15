@@ -24,6 +24,7 @@ class SetupStudioServiceTests(TestCase):
             code="TST",
             name="Test Region",
             default_currency="XAF",
+            grading_scale="0-20",
         )
         self.school = School.objects.create(
             name="Setup School",

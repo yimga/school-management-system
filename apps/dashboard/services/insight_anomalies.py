@@ -214,4 +214,57 @@ def build_insight_anomaly_cards(
         out.append(c)
         if len(out) >= limit:
             break
+
+    # Best-effort AI narrative enrichment: when AI is enabled for this
+    # tenant, attach a one-sentence model-generated suggestion to each card.
+    # Always safe — silent when AI is disabled.
+    _enrich_with_ai_narrative(out, school)
     return out
+
+
+def _enrich_with_ai_narrative(cards: list[dict[str, Any]], school: Any) -> None:
+    """Add an `ai_suggestion` line to each card via services.ai_helpers.
+
+    Pure enhancement: rules-based detail+insight_line stay unchanged. The
+    UI shows ai_suggestion when present as an additional whisper line
+    below insight_line.
+    """
+    if not cards:
+        return
+    try:
+        from services.ai_helpers import invoke_task
+    except Exception:  # noqa: BLE001
+        return
+
+    bullet_lines = "\n".join(
+        f"- ({c['id']}) {c.get('title', '')}: {c.get('detail', '')}"
+        for c in cards
+    )
+    prompt = (
+        "You are a school operations co-pilot. For each anomaly bullet "
+        "below, respond with ONE short next-step suggestion (max 14 "
+        "words). Tone: calm, actionable, no hedging. Output one line per "
+        "input bullet, formatted as `<id>: <suggestion>`.\n\n"
+        f"{bullet_lines}"
+    )
+    result = invoke_task(
+        school=school,
+        task_type_name="NARRATIVE",
+        prompt=prompt,
+        prompt_type="dashboard.anomaly_nudge",
+        content_sensitivity="standard",
+    )
+    if result is None:
+        return
+    text, _meta = result
+    by_id = {}
+    for line in (text or "").splitlines():
+        line = line.strip()
+        if ":" not in line:
+            continue
+        cid, _, body = line.partition(":")
+        by_id[cid.strip().lstrip("-").strip()] = body.strip()
+    for c in cards:
+        suggestion = by_id.get(c["id"])
+        if suggestion:
+            c["ai_suggestion"] = suggestion[:200]

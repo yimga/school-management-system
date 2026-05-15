@@ -6,6 +6,7 @@ import uuid
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import Permission as FeaturePermission
 from apps.accounts.models import User
@@ -31,6 +32,17 @@ class AbsoluteSecurityExportTests(TestCase):
             is_active=True,
         )
 
+    def _force_login_verified(self, client: Client, user: User) -> None:
+        TOTPDevice.objects.get_or_create(
+            user=user,
+            name="default",
+            defaults={"confirmed": True},
+        )
+        client.force_login(user)
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
+
     def test_compliance_download_403_without_membership(self):
         u = User.objects.create_user(
             username=f"n_{uuid.uuid4().hex[:8]}",
@@ -40,7 +52,7 @@ class AbsoluteSecurityExportTests(TestCase):
         )
         u.feature_permissions.add(self.perm)
         c = Client(HTTP_HOST=_T_HOST)
-        c.force_login(u)
+        self._force_login_verified(c, u)
         url = reverse(
             "siteconfig:compliance_export_download",
             kwargs={"export_key": "waec_wassce_student_summary"},
@@ -61,7 +73,7 @@ class AbsoluteSecurityExportTests(TestCase):
             user=u, school=self.school, role=User.Role.ADMIN, is_primary=True
         )
         c = Client(HTTP_HOST=_T_HOST)
-        c.force_login(u)
+        self._force_login_verified(c, u)
         url = reverse(
             "siteconfig:compliance_export_download",
             kwargs={"export_key": "waec_wassce_student_summary"},

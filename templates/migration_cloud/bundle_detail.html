@@ -1,0 +1,274 @@
+{% comment %}
+  Migration Cloud — single-bundle detail / wizard (Phase U6 + polish wave).
+
+  Renders the bundle's lifecycle position + artifacts + per-artifact domain
+  classification + per-column mappings (with drag-and-drop overrides, confidence
+  pills, accept/override actions wired to MigrationCloudFeedbackView) +
+  reconciliation report (when present). Action buttons gate by status.
+
+  The mapping section is the operator's primary workspace: each row exposes
+  an accept ✓ button, an override picker, and an explain link. Operator
+  decisions POST to /<bundle>/feedback/ → record_operator_feedback →
+  AIGatewayMetric daily rollup + AIEmbeddingStore for next-bundle recall.
+{% endcomment %}
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="rmc-page rmc-page--migration-cloud-detail"
+         data-mc-bundle-id="{{ bundle.pk }}"
+         data-mc-shell="{{ shell }}"
+         data-mc-feedback-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_feedback' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_feedback' bundle_id=bundle.pk %}{% endif %}"
+         data-mc-save-profile-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_save_profile' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_save_profile' bundle_id=bundle.pk %}{% endif %}"
+         data-mc-csrf="{{ csrf_token }}">
+  <header class="rmc-page__header">
+    <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:console' %}{% else %}{% url 'migration_cloud_super:console' %}{% endif %}"
+       class="rmc-back">{% trans "← All migrations" %}</a>
+    <h1 class="rmc-h1">{{ bundle.label|default:bundle.idempotency_key }}</h1>
+    <dl class="rmc-meta">
+      <dt>{% trans "Status" %}</dt><dd><span class="rmc-pill rmc-pill--{{ bundle.status|lower }}">{{ bundle.status }}</span></dd>
+      <dt>{% trans "Intake" %}</dt><dd>{{ bundle.intake_method }}</dd>
+      <dt>{% trans "SLA tier" %}</dt><dd>{{ bundle.sla_tier }}</dd>
+      <dt>{% trans "Source hint" %}</dt><dd>{{ bundle.source_hint|default:"—" }}</dd>
+      <dt>{% trans "Created" %}</dt><dd>{{ bundle.created_at|date:"Y-m-d H:i" }}</dd>
+    </dl>
+  </header>
+
+  <nav class="rmc-section-nav" aria-label="{% trans 'Bundle sections' %}">
+    <a href="#artifacts">{% trans "Artifacts" %}</a>
+    <a href="#discovery">{% trans "Discovery" %}</a>
+    <a href="#mapping">{% trans "Mapping" %}</a>
+    <a href="#reconciliation">{% trans "Reconciliation" %}</a>
+    <a href="#actions">{% trans "Actions" %}</a>
+  </nav>
+
+  <section id="artifacts" class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Artifacts" %}</h2>
+    <table class="rmc-data-table">
+      <thead>
+        <tr>
+          <th>{% trans "Path" %}</th>
+          <th>{% trans "Format" %}</th>
+          <th>{% trans "Rows" %}</th>
+          <th>{% trans "Bytes" %}</th>
+          <th>{% trans "Source guess" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in artifacts %}
+        <tr>
+          <td>{{ a.path_within_bundle }}</td>
+          <td>{{ a.detected_format }}</td>
+          <td>{{ a.row_count|default:"—" }}</td>
+          <td>{{ a.byte_size }}</td>
+          <td>{{ a.inferred_source|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section id="discovery" class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Discovery" %}</h2>
+    {% if bundle.discovery_summary %}
+      <p class="rmc-kv">
+        <strong>{% trans "Source system:" %}</strong>
+        {{ bundle.discovery_summary.source.chosen|default:"—" }}
+        <span class="rmc-muted">({{ bundle.discovery_summary.source.method|default:"—" }})</span>
+      </p>
+      {% if per_artifact_domain %}
+      <table class="rmc-data-table">
+        <thead><tr><th>{% trans "Artifact" %}</th><th>{% trans "Domain" %}</th><th>{% trans "Method" %}</th></tr></thead>
+        <tbody>
+          {% for path, info in per_artifact_domain.items %}
+          <tr>
+            <td>{{ path }}</td>
+            <td>{{ info.domain }}</td>
+            <td>{{ info.method }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    {% else %}
+      <div class="rmc-empty rmc-empty--inline">
+        <p>{% trans "Discovery has not run yet. Use the advance action below." %}</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <section id="mapping" class="rmc-card rmc-mapping">
+    <header class="rmc-mapping__header">
+      <h2 class="rmc-h2">{% trans "Mapping" %}</h2>
+      <p class="rmc-muted">
+        {% trans "Drag a source column onto a different canonical field, or accept the AI's suggestion. Decisions feed the platform's learning loop." %}
+      </p>
+    </header>
+
+    {% if per_artifact_mappings %}
+      {% for path, mappings in per_artifact_mappings.items %}
+      <details class="rmc-collapsible" open data-mc-artifact-path="{{ path }}">
+        <summary>
+          {{ path }}
+          <span class="rmc-muted">({{ mappings|length }} {% trans "columns" %})</span>
+        </summary>
+        <table class="rmc-data-table rmc-mapping__table">
+          <thead>
+            <tr>
+              <th>{% trans "Source column" %}</th>
+              <th>{% trans "Canonical field" %}</th>
+              <th>{% trans "Confidence" %}</th>
+              <th>{% trans "Method" %}</th>
+              <th>{% trans "Transformer" %}</th>
+              <th scope="col" class="rmc-mapping__actions-col">{% trans "Decision" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in mappings %}
+            {% with conf=m.confidence|default:0 %}
+            <tr class="rmc-mapping__row"
+                draggable="true"
+                data-mc-source-column="{{ m.source_column }}"
+                data-mc-canonical="{{ m.canonical_field }}"
+                data-mc-domain="{{ m.domain }}"
+                data-mc-confidence="{{ conf }}"
+                data-mc-method="{{ m.method }}"
+                data-mc-transformer="{{ m.transformer|default:'' }}">
+              <td>
+                <span class="rmc-mapping__handle" aria-hidden="true">⠿</span>
+                {{ m.source_column }}
+              </td>
+              <td class="rmc-mapping__canonical" data-mc-canonical-cell>
+                {{ m.canonical_field }}
+              </td>
+              <td>
+                <span class="rmc-pill rmc-pill--confidence
+                  {% if conf >= 0.9 %}rmc-pill--success{% elif conf >= 0.7 %}rmc-pill--warning{% else %}rmc-pill--danger{% endif %}">
+                  {% widthratio conf 1 100 %}%
+                </span>
+              </td>
+              <td><span class="rmc-mapping__method-tag">{{ m.method }}</span></td>
+              <td>{{ m.transformer|default:"—" }}</td>
+              <td class="rmc-mapping__actions">
+                <button type="button" class="rmc-btn rmc-btn--ghost rmc-btn--xs"
+                        data-mc-accept
+                        title="{% trans 'Accept and remember for next bundle' %}">{% trans "Accept" %}</button>
+                <button type="button" class="rmc-btn rmc-btn--ghost rmc-btn--xs"
+                        data-mc-override
+                        title="{% trans 'Override the canonical field' %}">{% trans "Override" %}</button>
+                {% if m.reasoning %}
+                <details class="rmc-mapping__explain">
+                  <summary aria-label="{% trans 'Why this mapping' %}">{% trans "Why?" %}</summary>
+                  <p class="rmc-muted">{{ m.reasoning }}</p>
+                </details>
+                {% endif %}
+              </td>
+            </tr>
+            {% endwith %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </details>
+      {% endfor %}
+    {% else %}
+      <div class="rmc-empty rmc-empty--inline">
+        <p>{% trans "Mapping has not run yet. Discovery must complete first." %}</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <section id="reconciliation" class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Reconciliation" %}</h2>
+    {% if reconciliation.overall_parity_pct %}
+      <p class="rmc-kv">
+        <strong>{% trans "Overall parity:" %}</strong>
+        {{ reconciliation.overall_parity_pct }}%
+      </p>
+      <table class="rmc-data-table">
+        <thead>
+          <tr>
+            <th>{% trans "Domain" %}</th>
+            <th>{% trans "Source" %}</th>
+            <th>{% trans "Created" %}</th>
+            <th>{% trans "Updated" %}</th>
+            <th>{% trans "Quarantined" %}</th>
+            <th>{% trans "Parity %" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in reconciliation.per_domain %}
+          <tr>
+            <td>{{ d.domain }}</td>
+            <td>{{ d.source_count }}</td>
+            <td>{{ d.target_created }}</td>
+            <td>{{ d.target_updated }}</td>
+            <td>{{ d.quarantined }}</td>
+            <td>{{ d.parity_pct }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="rmc-empty rmc-empty--inline">
+        <p>{% trans "No reconciliation report yet. Apply the bundle first, then reconcile." %}</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <section id="actions" class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Actions" %}</h2>
+    <div class="rmc-button-row">
+      {% if can_advance %}
+      <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_advance' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_advance' bundle_id=bundle.pk %}{% endif %}">
+        {% csrf_token %}
+        <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Advance (profile → classify → map)" %}</button>
+      </form>
+      {% endif %}
+      {% if can_apply %}
+      <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_apply' bundle_id=bundle.pk %}?dry_run=1{% else %}{% url 'migration_cloud_super:bundle_apply' bundle_id=bundle.pk %}?dry_run=1{% endif %}">
+        {% csrf_token %}
+        <button type="submit" class="rmc-btn rmc-btn--ghost">{% trans "Dry-run apply" %}</button>
+      </form>
+      <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_apply' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_apply' bundle_id=bundle.pk %}{% endif %}">
+        {% csrf_token %}
+        <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Apply" %}</button>
+      </form>
+      {% endif %}
+      {% if can_reconcile %}
+      <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_reconcile' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_reconcile' bundle_id=bundle.pk %}{% endif %}">
+        {% csrf_token %}
+        <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Reconcile" %}</button>
+      </form>
+      {% endif %}
+      {% if per_artifact_mappings %}
+      <button type="button" class="rmc-btn rmc-btn--ghost" data-mc-save-profile>
+        {% trans "Save mappings as profile" %}
+      </button>
+      {% endif %}
+      <a class="rmc-btn rmc-btn--ghost"
+         href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_review' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_review' bundle_id=bundle.pk %}{% endif %}">
+        {% trans "Open review queue" %}
+      </a>
+      {% if bundle.status == 'APPLIED' or bundle.status == 'RECONCILED' %}
+      <button type="button" class="rmc-btn rmc-btn--ghost"
+              data-mc-shadow-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_shadow' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_shadow' bundle_id=bundle.pk %}{% endif %}"
+              data-mc-shadow-action="start"
+              title="{% trans 'Open a shadow window to track drift against the live source.' %}">
+        {% trans "Start shadow window" %}
+      </button>
+      <button type="button" class="rmc-btn rmc-btn--ghost"
+              data-mc-shadow-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_shadow' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_shadow' bundle_id=bundle.pk %}{% endif %}"
+              data-mc-shadow-action="refresh"
+              title="{% trans 'Take a tick: compute drift, maybe auto-cutover.' %}">
+        {% trans "Refresh shadow" %}
+      </button>
+      {% endif %}
+    </div>
+    <p class="rmc-mapping__status" data-mc-status role="status" aria-live="polite"></p>
+  </section>
+</section>
+
+<script src="{{ STATIC_URL }}js/migration_cloud_wizard.js" defer></script>
+{% endblock %}

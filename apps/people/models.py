@@ -37,6 +37,11 @@ def tenant_upload_to_student_profile_photo(instance, filename):
     return _people_tenant_upload_to("profiles/students")(instance, filename)
 
 
+def tenant_upload_to_special_education_plan(instance, filename):
+    """Serializable upload_to for SpecialEducationPlan.plan_document."""
+    return _people_tenant_upload_to("special_education_plans")(instance, filename)
+
+
 def _passport_doc_upload_to(instance, filename):
     """Tenant-scoped path for PassportDocument; uses verified_by_school_id when set (Section 25.3)."""
     school_id = getattr(instance, "verified_by_school_id", None)
@@ -1452,7 +1457,7 @@ class SpecialEducationPlan(models.Model):
         help_text=_("Special-ed coordinator or counselor owning this plan."),
     )
     plan_document = models.FileField(
-        upload_to=_people_tenant_upload_to("special_education_plans"),
+        upload_to=tenant_upload_to_special_education_plan,
         null=True,
         blank=True,
         help_text=_("Signed IEP / 504 PDF (FERPA-sensitive)."),

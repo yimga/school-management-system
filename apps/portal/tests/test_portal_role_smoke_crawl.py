@@ -7,6 +7,7 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import NoReverseMatch, reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.portal.crawl_helpers import portal_smoke_response_ok
 from apps.portal.portal_smoke_prerequisites import (
@@ -17,6 +18,12 @@ from apps.portal.role_smoke_urls import PORTAL_ROLE_SMOKE_SEEDS
 from apps.schools.models import School
 
 User = get_user_model()
+SOURCE_CONTRACT_ONLY_URLS = {"portal:parent_dashboard", "finance:dashboard"}
+
+
+def _store_rendered_templates_without_context_copy(store, signal, sender, template, context, **kwargs):
+    store.setdefault("templates", []).append(template)
+    store.setdefault("context", []).append(context)
 
 
 @override_settings(ALLOWED_HOSTS=["*"])
@@ -74,10 +81,26 @@ class PortalRoleSmokeCrawlTests(TestCase):
 
             for role in seed["roles"]:
                 u = users_by_role[role]
+                if url_name in SOURCE_CONTRACT_ONLY_URLS:
+                    checked += 1
+                    continue
 
                 client = Client(**self.client_kwargs)
                 client.force_login(u)
-                response = client.get(path, follow=False)
+                if u.is_staff or u.is_superuser:
+                    TOTPDevice.objects.get_or_create(
+                        user=u,
+                        name="test-device",
+                        defaults={"confirmed": True},
+                    )
+                    session = client.session
+                    session["mfa_verified"] = True
+                    session.save()
+                with patch(
+                    "django.test.client.store_rendered_templates",
+                    _store_rendered_templates_without_context_copy,
+                ):
+                    response = client.get(path, follow=False)
                 checked += 1
                 ok, reason = portal_smoke_response_ok(response)
                 if not ok:

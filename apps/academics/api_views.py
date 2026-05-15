@@ -17,6 +17,7 @@ from rest_framework.views import APIView
 from apps.api.serializers import AttendanceSerializer
 from apps.accounts.permissions import can_view_student_data, can_edit_student_grades
 from apps.accounts.models import User
+from apps.observability.tracing import trace_view
 
 
 class AttendanceViewSet(viewsets.ModelViewSet):
@@ -156,6 +157,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @trace_view("attendance.submit")
     def create(self, request, *args, **kwargs):
         """
         Record attendance for a class
@@ -557,6 +559,7 @@ class GradeViewSet(viewsets.ModelViewSet):
 
         return Grade.objects.none()
 
+    @trace_view("grade.entry")
     def create(self, request, *args, **kwargs):
         """
         Record a grade for a student

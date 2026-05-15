@@ -6,6 +6,7 @@ import uuid
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.people.models import TeacherProfile
@@ -42,8 +43,12 @@ class TenantCatalogMagicUxStrictTests(TestCase):
             school=self.school,
             defaults={"role": User.Role.ADMIN, "is_primary": True},
         )
+        TOTPDevice.objects.create(user=u, name="test-device", confirmed=True)
         c = Client(HTTP_HOST=_HOST)
         c.login(username=u.username, password="x" * 8)
+        session = c.session
+        session["mfa_verified"] = True
+        session.save()
         return c
 
     def test_strict_mode_primary_and_grid_markers(self):

@@ -11,6 +11,28 @@
       "audit_logging": "manual_review_required",
       "notes": "SchoolConfigAPI exposes host-resolved branding and offline capability to SPA/mobile clients without authentication.",
       "last_reviewed": "2026-03-28"
+    },
+    "apps/api/views_marketplace_catalog.py": {
+      "expected_count": 3,
+      "owner": "marketplace_platform_api",
+      "verdict": "keep",
+      "auth_model": "public_catalog_read_only",
+      "data_exposure": "active_marketplace_app_public_projection_and_scope_vocabulary_only",
+      "rate_limiting": "implemented",
+      "audit_logging": "manual_review_required",
+      "notes": "Marketplace catalog and scopes endpoints intentionally expose cacheable public developer-directory metadata without tenant secrets or installation data.",
+      "last_reviewed": "2026-05-14"
+    },
+    "apps/api/views_webhook_catalog.py": {
+      "expected_count": 2,
+      "owner": "webhook_platform_api",
+      "verdict": "keep",
+      "auth_model": "public_catalog_read_only",
+      "data_exposure": "webhook_event_type_catalog_and_payload_key_metadata_only",
+      "rate_limiting": "implemented",
+      "audit_logging": "manual_review_required",
+      "notes": "Webhook event type catalog intentionally exposes cacheable public integration metadata without tenant webhook subscriptions, secrets, or deliveries.",
+      "last_reviewed": "2026-05-14"
     }
   }
 }

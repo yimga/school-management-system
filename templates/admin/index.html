@@ -77,9 +77,9 @@
   .app-section-header {display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
   .app-section h2 {margin:0;font-size:22px;font-weight:800;color:var(--text-primary);letter-spacing:-0.01em;}
   .app-count {background:var(--surface-deep);color:var(--text-muted);padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;border:1px solid var(--border-dark);}
-  .app-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}
-  .app-card {background:var(--surface-deep);border:1px solid var(--border-dark);padding:20px;border-radius:12px;transition:all 0.3s;cursor:pointer;}
-  .app-card:hover {border-color:var(--brand-accent);background:var(--admin-surface-hover);transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.25);}
+  .bento-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}
+  .bento-panel {background:var(--surface-deep);border:1px solid var(--border-dark);padding:20px;border-radius:12px;transition:all 0.3s;cursor:pointer;}
+  .bento-panel:hover {border-color:var(--brand-accent);background:var(--admin-surface-hover);transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.25);}
   .app-icon {font-size:32px;margin-bottom:12px;display:block;}
   .app-title {margin:0 0 8px;font-size:15px;font-weight:700;color:var(--text-primary);letter-spacing:-0.01em;}
   .app-meta {margin:0 0 16px;font-size:12px;color:var(--admin-text-tertiary);}
@@ -96,8 +96,8 @@
   body.light-mode .stat-item {background:var(--admin-light-bg);border-color:var(--admin-light-border);}
   body.light-mode .stat-item.active {background:var(--admin-light-active-bg);border-color:var(--admin-light-active-border);}
   body.light-mode .stat-title {color:var(--admin-light-text);}
-  body.light-mode .app-card {background:var(--admin-light-bg);border-color:var(--admin-light-border);}
-  body.light-mode .app-card:hover {background:var(--admin-light-surface);border-color:var(--admin-accent-hex);}
+  body.light-mode .bento-panel {background:var(--admin-light-bg);border-color:var(--admin-light-border);}
+  body.light-mode .bento-panel:hover {background:var(--admin-light-surface);border-color:var(--admin-accent-hex);}
   body.light-mode .app-title {color:var(--admin-light-text);}
   body.light-mode .app-count {background:var(--color-base-100);color:var(--admin-light-muted);border-color:var(--admin-light-border);}
   body.light-mode .theme-toggle {background:var(--admin-light-surface);border-color:var(--admin-light-border);}
@@ -179,11 +179,11 @@
       margin-bottom: 12px;
     }
 
-    .app-grid {
+    .bento-grid {
       gap: 12px;
     }
 
-    .app-card {
+    .bento-panel {
       padding: 16px;
       border-radius: 10px;
     }
@@ -230,7 +230,7 @@
       grid-template-columns: 1fr;
     }
 
-    .app-grid {
+    .bento-grid {
       grid-template-columns: 1fr;
     }
 
@@ -259,14 +259,14 @@
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     }
 
-    .app-grid {
+    .bento-grid {
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     }
   }
 
   /* Touch device optimizations */
   @media (hover: none) and (pointer: coarse) {
-    .stat-item, .app-card {
+    .stat-item, .bento-panel {
       padding: 16px;
     }
 
@@ -274,7 +274,7 @@
       border-color: var(--admin-light-active-border);
     }
 
-    .app-card:active {
+    .bento-panel:active {
       border-color: var(--admin-accent-hex);
     }
 
@@ -401,8 +401,8 @@
       <h2>{% trans "Applications & Sections" %}</h2>
       <span class="app-count">{% blocktrans with n=app_list|length|default_if_none:0 %}{{ n }} Apps{% endblocktrans %}</span>
     </div>
-    <div class="app-grid">
-      <div class="app-card">
+    <div class="bento-grid">
+      <div class="bento-panel">
         <span class="app-icon">👤</span>
         <h3 class="app-title">{% trans "People & Access Controls" %}</h3>
         <p class="app-meta">{% trans "Users, roles, authentication, and entity orchestration" %}</p>
@@ -417,7 +417,7 @@
         </div>
       </div>
 
-      <div class="app-card">
+      <div class="bento-panel">
         <span class="app-icon">👥</span>
         <h3 class="app-title">{% trans "People Management" %}</h3>
         <p class="app-meta">{% trans "Students, teachers, guardians" %}</p>
@@ -428,7 +428,7 @@
         </div>
       </div>
 
-      <div class="app-card">
+      <div class="bento-panel">
         <span class="app-icon">🎓</span>
         <h3 class="app-title">{% trans "Academic Structure" %}</h3>
         <p class="app-meta">{% trans "7 sections" %}</p>
@@ -437,7 +437,7 @@
         </div>
       </div>
 
-      <div class="app-card">
+      <div class="bento-panel">
         <span class="app-icon">📊</span>
         <h3 class="app-title">{% trans "Evaluations & Grading" %}</h3>
         <p class="app-meta">{% trans "6 sections" %}</p>
@@ -446,7 +446,7 @@
         </div>
       </div>
 
-      <div class="app-card">
+      <div class="bento-panel">
         <span class="app-icon">📄</span>
         <h3 class="app-title">{% trans "Reports & Transcripts" %}</h3>
         <p class="app-meta">{% trans "3 sections" %}</p>
@@ -455,7 +455,7 @@
         </div>
       </div>
 
-      <div class="app-card">
+      <div class="bento-panel">
         <span class="app-icon">💰</span>
         <h3 class="app-title">{% trans "Finance & Billing" %}</h3>
         <p class="app-meta">{% trans "20 sections" %}</p>
@@ -464,7 +464,7 @@
         </div>
       </div>
 
-      <div class="app-card">
+      <div class="bento-panel">
         <span class="app-icon">💵</span>
         <h3 class="app-title">{% trans "Payroll & Leave" %}</h3>
         <p class="app-meta">{% trans "7 sections" %}</p>
@@ -473,7 +473,7 @@
         </div>
       </div>
 
-      <div class="app-card">
+      <div class="bento-panel">
         <span class="app-icon">📢</span>
         <h3 class="app-title">{% trans "Portal & Communication" %}</h3>
         <p class="app-meta">{% trans "Portal content & notices" %}</p>
@@ -482,7 +482,7 @@
         </div>
       </div>
 
-      <div class="app-card">
+      <div class="bento-panel">
         <span class="app-icon">📈</span>
         <h3 class="app-title">{% trans "Analytics & Insights" %}</h3>
         <p class="app-meta">{% trans "1 sections" %}</p>
@@ -491,7 +491,7 @@
         </div>
       </div>
 
-      <div class="app-card">
+      <div class="bento-panel">
         <span class="app-icon">🔒</span>
         <h3 class="app-title">{% trans "Compliance & Audit" %}</h3>
         <p class="app-meta">{% trans "7 sections" %}</p>
@@ -501,7 +501,7 @@
       </div>
 
       {% if request.user.is_superuser or request.user.role == 'ADMIN' %}
-      <div class="app-card">
+      <div class="bento-panel">
         <span class="app-icon">⚙️</span>
         <h3 class="app-title">{% trans "Configuration Control Center" %}</h3>
         <p class="app-meta">{% trans "Outcomes, domains, platform settings" %}</p>

@@ -70,7 +70,12 @@
               <strong>{{ method.count }}</strong>
             </div>
           {% empty %}
-            <div class="small text-muted">{% trans "No payments recorded yet." %}</div>
+            <div class="rmc-empty rmc-empty--inline" role="status">
+              <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-credit-card"></i></div>
+              <div class="rmc-empty__body">
+                <p class="rmc-empty__message mb-0">{% trans "No payments recorded yet." %}</p>
+              </div>
+            </div>
           {% endfor %}
         </div>
       </div>
@@ -215,7 +220,7 @@
         </div>
       {% else %}
         {% url 'portal:parent_dashboard' as parent_dash_url %}
-        {% include "components/dashboard_empty_state.html" with icon="bi-receipt-cutoff" title=_("No invoices yet") message=_("Finance will publish fee invoices here when they are ready. You can still review reminders below.") action_url=parent_dash_url action_text=_("Back to parent home") %}
+        {% include "components/rmc_empty_state.html" with icon="bi-receipt-cutoff" title=_("No invoices yet") message=_("Finance will publish fee invoices here when they are ready. You can still review reminders below.") primary_url=parent_dash_url primary_label=_("Back to parent home") %}
       {% endif %}
     </div>
   </div>
@@ -245,7 +250,12 @@
           {% endfor %}
         </div>
       {% else %}
-        <div class="alert alert-info mb-0">{% trans "No active reminders. Finance will queue reminders once invoices become due." %}</div>
+        <div class="rmc-empty rmc-empty--inline mb-0" role="status">
+          <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-bell"></i></div>
+          <div class="rmc-empty__body">
+            <p class="rmc-empty__message mb-0">{% trans "No active reminders. Finance will queue reminders once invoices become due." %}</p>
+          </div>
+        </div>
       {% endif %}
     </div>
   </div>

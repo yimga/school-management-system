@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load region_format %}
+{% load i18n region_format %}
 
 {% block title %}Contact Requests{% endblock %}
 
@@ -65,7 +65,7 @@
   </div>
   {% else %}
   {% url 'requests:dashboard' as empty_action_url %}
-  {% include "components/dashboard_empty_state.html" with icon="bi-envelope" title="No contact requests found" message="When parents submit contact requests they will appear here. You can also check the Requests dashboard." action_url=empty_action_url action_text="Open Requests dashboard" %}
+  {% include "components/rmc_empty_state.html" with icon="bi-envelope" title="No contact requests found" message="When parents submit contact requests they will appear here. You can also check the Requests dashboard." primary_url=empty_action_url primary_label="Open Requests dashboard" %}
   {% endif %}
 </div>
 {% endblock %}

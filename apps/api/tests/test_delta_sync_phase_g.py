@@ -6,7 +6,7 @@ Phase G integration tests: Delta sync conflict, offline queue semantics, tenant 
 3) Tenant isolation: cache key must include tenant_id; conflicts are scoped by school.
 """
 
-from django.test import TestCase
+from django.test import TestCase, tag
 from django.utils import timezone
 from rest_framework.test import APIClient, APIRequestFactory, force_authenticate
 
@@ -15,6 +15,7 @@ from apps.academics.models import AcademicYear, Classroom, Department
 from apps.api.sync_delta_api import DeltaSyncAPI
 from apps.people.models import StudentProfile
 from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.schools.rls_context import rls_bypass, rls_school
 from apps.schools.models import School
 from apps.siteconfig.models import SyncConflict
 
@@ -179,50 +180,52 @@ class DeltaSyncSuccessClearQueueTestCase(TestCase):
         self.assertEqual(self.student.first_name, "Updated")
 
 
+@tag("tenants_rls")
 class DeltaSyncTenantIsolationTestCase(TestCase):
     """Conflicts are scoped by school; cache key must include tenant_id (documented)."""
 
     def setUp(self):
-        self.school_a = School.objects.create(
-            name="School A", slug="school-a", subdomain="school-a"
-        )
-        self.school_b = School.objects.create(
-            name="School B", slug="school-b", subdomain="school-b"
-        )
-        self.user = User.objects.create_superuser(
-            username="iso_user", password="testpass123", email="i@test.com"
-        )
-        for i, school in enumerate((self.school_a, self.school_b)):
-            year = AcademicYear.objects.create(
-                name="2024-2025",
-                starts_on="2024-01-01",
-                ends_on="2024-12-31",
-                school=school,
+        with rls_bypass():
+            self.school_a = School.objects.create(
+                name="School A", slug="school-a", subdomain="school-a"
             )
-            dept = Department.objects.create(name=f"Iso Dept {i}", code=f"ISO{i}")
-            Classroom.objects.create(
-                academic_year=year,
-                department=dept,
-                name="1A",
-                code=f"1A-{i}",
-                school=school,
+            self.school_b = School.objects.create(
+                name="School B", slug="school-b", subdomain="school-b"
             )
-        self.student_a = StudentProfile.objects.create(
-            school=self.school_a,
-            first_name="A",
-            last_name="B",
-            date_of_birth="2012-01-01",
-        )
-        self.student_b = StudentProfile.objects.create(
-            school=self.school_b,
-            first_name="X",
-            last_name="Y",
-            date_of_birth="2012-01-01",
-        )
-        site = get_platform_site_settings_record(create=True)
-        site.apply_feature_control_state(
-            field_updates={"enable_offline_mode": True},
-        )
+            self.user = User.objects.create_superuser(
+                username="iso_user", password="testpass123", email="i@test.com"
+            )
+            for i, school in enumerate((self.school_a, self.school_b)):
+                year = AcademicYear.objects.create(
+                    name="2024-2025",
+                    starts_on="2024-01-01",
+                    ends_on="2024-12-31",
+                    school=school,
+                )
+                dept = Department.objects.create(name=f"Iso Dept {i}", code=f"ISO{i}")
+                Classroom.objects.create(
+                    academic_year=year,
+                    department=dept,
+                    name="1A",
+                    code=f"1A-{i}",
+                    school=school,
+                )
+            self.student_a = StudentProfile.objects.create(
+                school=self.school_a,
+                first_name="A",
+                last_name="B",
+                date_of_birth="2012-01-01",
+            )
+            self.student_b = StudentProfile.objects.create(
+                school=self.school_b,
+                first_name="X",
+                last_name="Y",
+                date_of_birth="2012-01-01",
+            )
+            site = get_platform_site_settings_record(create=True)
+            site.apply_feature_control_state(
+                field_updates={"enable_offline_mode": True},
+            )
 
     def test_conflict_scoped_to_school(self):
         """SyncConflict records are created with school_id; no cross-tenant data."""
@@ -232,23 +235,29 @@ class DeltaSyncTenantIsolationTestCase(TestCase):
         self.student_a.save(update_fields=["updated_at"])
         server_dt = self.student_a.updated_at
         old_dt = server_dt - timezone.timedelta(minutes=5)
-        out_a = apply_changes(
-            str(self.school_a.id),
-            self.user,
-            [
-                {
-                    "entity_type": "student",
-                    "id": self.student_a.pk,
-                    "changes": {"first_name": "ClientA"},
-                    "updated_at": old_dt.isoformat(),
-                },
-            ],
-            persist_conflicts=True,
-        )
+        with rls_school(self.school_a.id):
+            out_a = apply_changes(
+                str(self.school_a.id),
+                self.user,
+                [
+                    {
+                        "entity_type": "student",
+                        "id": self.student_a.pk,
+                        "changes": {"first_name": "ClientA"},
+                        "updated_at": old_dt.isoformat(),
+                    },
+                ],
+                persist_conflicts=True,
+            )
         self.assertEqual(len(out_a["conflicts"]), 1)
-        self.assertEqual(SyncConflict.objects.filter(school=self.school_a).count(), 1)
-        self.assertEqual(SyncConflict.objects.filter(school=self.school_b).count(), 0)
-        # Frontend MUST use tenant-scoped cache key (e.g. sync_queue_${school_id}) so no cross-tenant data
-        # This test asserts backend stores conflict per school only.
-        sc = SyncConflict.objects.get(school=self.school_a)
+        with rls_bypass():
+            self.assertEqual(
+                SyncConflict.objects.filter(school=self.school_a).count(), 1
+            )
+            self.assertEqual(
+                SyncConflict.objects.filter(school=self.school_b).count(), 0
+            )
+            # Frontend MUST use tenant-scoped cache key (e.g. sync_queue_${school_id}) so no cross-tenant data
+            # This test asserts backend stores conflict per school only.
+            sc = SyncConflict.objects.get(school=self.school_a)
         self.assertEqual(sc.school_id, self.school_a.id)

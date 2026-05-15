@@ -1,0 +1,9 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Permission required" %}{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <h1 class="h3">{% trans "Permission required" %}</h1>
+  <p class="text-muted">{% blocktrans %}Only school administrators and principals can edit terminology. Ask your school admin if you need to change a term.{% endblocktrans %}</p>
+</div>
+{% endblock %}

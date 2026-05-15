@@ -30,10 +30,8 @@ def generate_narrative_for_achievement(
     Creates a NarrativeFeedback in DRAFT status for teacher approval.
     """
     try:
-        from apps.portal.ai_provider import (
-            _normalize_gateway_metadata,
-            generate_ai_response,
-        )
+        from apps.portal.ai_provider import generate_ai_response
+        from services.ai_helpers import normalize_gateway_metadata
     except ImportError:
         return None
 
@@ -61,7 +59,7 @@ def generate_narrative_for_achievement(
     text, _ = generate_ai_response(
         prompt,
         user_query=user_query,
-        metadata=_normalize_gateway_metadata(
+        metadata=normalize_gateway_metadata(
             {
                 "school": school,
                 "school_id": str(school_id) if school_id is not None else None,

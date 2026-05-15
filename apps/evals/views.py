@@ -45,7 +45,7 @@ from apps.evals.models import (
     AssessmentWeights,
 )
 from apps.evals.rosetta_stone import get_supported_scales, view_grade_in_target_system
-from apps.evals.importers import preview_import, apply_import, build_template_headers
+from apps.evals.importers import build_template_headers
 from apps.reports.services import is_term_published
 from apps.reports.weasy import render_pdf_bytes
 from .forms import (
@@ -1022,6 +1022,38 @@ def teacher_dashboard(request: HttpRequest):
         widget_data.get("tasks", {}).get("pending_evaluations", 0)
         + syllabus_pending_count
     )
+    teacher_metrics = [
+        {
+            "id": "teacher-classes",
+            "label": "Classes",
+            "value": len(assignments),
+            "icon": "easel",
+        },
+        {
+            "id": "teacher-completion",
+            "label": "Marks completion",
+            "value": f"{widget_data.get('completion_pct', 0)}%",
+            "icon": "clipboard-check",
+            "tone": (
+                "success"
+                if widget_data.get("completion_pct", 0) >= 80
+                else "warning"
+            ),
+        },
+        {
+            "id": "teacher-attendance",
+            "label": "Attendance",
+            "value": f"{attendance_pct or 0}%",
+            "icon": "calendar-check",
+        },
+        {
+            "id": "teacher-review",
+            "label": "Needs review",
+            "value": items_requiring_review,
+            "icon": "exclamation-triangle",
+            "tone": "warning" if items_requiring_review else "success",
+        },
+    ]
 
     # Phase 1: Staff digital badges (non-expired, STAFF audience only)
     staff_badges = []
@@ -1096,6 +1128,7 @@ def teacher_dashboard(request: HttpRequest):
             "can_approve_syllabus": can_approve_syllabus,
             "certification_badge": certification_badge,
             "items_requiring_review": items_requiring_review,
+            "teacher_metrics": teacher_metrics,
             "staff_badges": staff_badges,
             "pending_leaves": pending_leaves,
             "workflow_summary": workflow_summary,

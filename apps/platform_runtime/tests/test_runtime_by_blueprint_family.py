@@ -82,22 +82,19 @@ class RuntimeModulesByBlueprintFamilyTests(TestCase):
             slug="test-matrix-runtime-fixture",
             is_active=True,
         )
-        try:
-            ctx = TenantContext(
-                tenant_id=str(school.id),
-                schema_name=None,
-                school_id=school.id,
-                country=getattr(school, "country_code", None) or None,
-                timezone=getattr(school, "timezone", None),
-                feature_flags=getattr(school, "features", None) or {},
-                policy_overrides=getattr(school, "settings", None) or {},
-                host="test-matrix.example.com",
-            )
-            runtime = build_tenant_runtime(ctx, request=None, school=school)
-            self.assertIsNotNone(runtime._school)
-            self.assertEqual(runtime._school.id, school.id)
-            self.assertIn("numbering_strategy", runtime.modules.admissions)
-            self.assertIn("pass_mark", runtime.modules.gradebook)
-            self.assertIn("currency", runtime.modules.finance)
-        finally:
-            school.delete()
+        ctx = TenantContext(
+            tenant_id=str(school.id),
+            schema_name=None,
+            school_id=school.id,
+            country=getattr(school, "country_code", None) or None,
+            timezone=getattr(school, "timezone", None),
+            feature_flags=getattr(school, "features", None) or {},
+            policy_overrides=getattr(school, "settings", None) or {},
+            host="test-matrix.example.com",
+        )
+        runtime = build_tenant_runtime(ctx, request=None, school=school)
+        self.assertIsNotNone(runtime._school)
+        self.assertEqual(runtime._school.id, school.id)
+        self.assertIn("numbering_strategy", runtime.modules.admissions)
+        self.assertIn("pass_mark", runtime.modules.gradebook)
+        self.assertIn("currency", runtime.modules.finance)

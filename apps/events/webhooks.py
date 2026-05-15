@@ -15,6 +15,15 @@ from django.utils import timezone
 
 RETRY_BACKOFF_SECONDS = (60, 300, 3600)
 RETRY_BACKOFF_FALLBACK = 21600
+_WEBHOOK_DELIVERY_RUNTIME_ERRORS = (
+    HTTPError,
+    URLError,
+    OSError,
+    TimeoutError,
+    ValueError,
+    TypeError,
+    AttributeError,
+)
 
 
 def canonical_json_bytes(payload: dict[str, Any]) -> bytes:
@@ -93,6 +102,7 @@ def _subscription_matches_event(subscription, event_type: str) -> bool:
 def matching_subscriptions_for_event(event):
     from apps.events.models import WebhookSubscription
 
+    # tenant-isolation-allow: conditionally scoped by event's school_id on next line (reviewed 2026-05-14)
     subscriptions = WebhookSubscription.objects.filter(is_active=True)
     school_id = getattr(event, "school_id", None)
     if school_id:
@@ -204,6 +214,28 @@ def enqueue_webhook_event(
 
 
 def deliver_webhook_delivery(
+    delivery,
+    *,
+    http_post: Callable[[str, bytes, dict[str, str], int], tuple[int, str]]
+    | None = None,
+    now=None,
+) -> dict[str, Any]:
+    # Sentry custom transaction: backs the `webhook.delivery` SLO.
+    from apps.observability.tracing import (
+        finish_transaction, set_transaction_status, start_named_transaction,
+    )
+
+    _txn = start_named_transaction("webhook.deliver", op="task.hot_path", delivery_id=delivery.pk)
+    try:
+        return _deliver_webhook_delivery_inner(delivery, http_post=http_post, now=now)
+    except _WEBHOOK_DELIVERY_RUNTIME_ERRORS:
+        set_transaction_status(_txn, "internal_error")
+        raise
+    finally:
+        finish_transaction(_txn)
+
+
+def _deliver_webhook_delivery_inner(
     delivery,
     *,
     http_post: Callable[[str, bytes, dict[str, str], int], tuple[int, str]]

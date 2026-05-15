@@ -231,6 +231,7 @@ def get_studio_activity_feed(request, limit: int = 15) -> list[dict[str, Any]]:
         from apps.packages.models import InstalledPackage
 
         pkg_url = _safe("studio_os:control")
+        # tenant-isolation-allow: studio_os control-plane activity feed (reviewed 2026-05-14)
         for pkg in InstalledPackage.objects.filter(is_active=True).order_by(
             "-applied_at"
         )[:5]:

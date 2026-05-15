@@ -89,7 +89,7 @@
               <td class="small">{{ row.action_required|default:"—" }}</td>
             </tr>
             {% empty %}
-            <tr><td colspan="5" class="text-muted small">No health rows — configure compliance country.</td></tr>
+            <tr><td colspan="5"><div class="rmc-empty rmc-empty--row" role="status"><div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-heart-pulse"></i></div><p class="rmc-empty__message">{% trans "No health rows - configure compliance country." %}</p></div></td></tr>
             {% endfor %}
           </tbody>
         </table>

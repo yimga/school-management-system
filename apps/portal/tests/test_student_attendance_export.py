@@ -7,6 +7,7 @@ import uuid
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.academics.models import (
@@ -233,8 +234,19 @@ class StudentAttendanceExportSlice6Tests(TestCase):
     def _url(self, name, **kwargs):
         return reverse(name, urlconf="config.tenant_urls", kwargs=kwargs)
 
+    def _force_login_verified(self, user):
+        TOTPDevice.objects.get_or_create(
+            user=user,
+            name="test-device",
+            defaults={"confirmed": True},
+        )
+        self.client.force_login(user)
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
+
     def test_authorized_admin_csv_contains_rows(self):
-        self.client.force_login(self.admin)
+        self._force_login_verified(self.admin)
         url = self._url("portal:student_attendance_export_csv")
         r = self.client.get(
             url,
@@ -296,7 +308,7 @@ class StudentAttendanceExportSlice6Tests(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
         )
-        self.client.force_login(u)
+        self._force_login_verified(u)
         r = self.client.get(
             self._url("portal:student_attendance_export_csv"),
             {
@@ -313,7 +325,7 @@ class StudentAttendanceExportSlice6Tests(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
         )
-        self.client.force_login(u)
+        self._force_login_verified(u)
         r = self.client.get(
             "/api/v1/attendance/export",
             HTTP_HOST=_HOST,
@@ -321,7 +333,7 @@ class StudentAttendanceExportSlice6Tests(TestCase):
         self.assertEqual(r.status_code, 403)
 
     def test_tenant_scoped_no_other_school(self):
-        self.client.force_login(self.admin)
+        self._force_login_verified(self.admin)
         r = self.client.get(
             self._url("portal:student_attendance_export_csv"),
             {
@@ -333,7 +345,7 @@ class StudentAttendanceExportSlice6Tests(TestCase):
         self.assertNotIn("OTH-1", r.content.decode("utf-8"))
 
     def test_date_range_filters(self):
-        self.client.force_login(self.admin)
+        self._force_login_verified(self.admin)
         r = self.client.get(
             self._url("portal:student_attendance_export_csv"),
             {
@@ -348,7 +360,7 @@ class StudentAttendanceExportSlice6Tests(TestCase):
         self.assertNotIn("2025-10-01", "\n".join(lines[1:]))
 
     def test_invalid_date_range_bad_request(self):
-        self.client.force_login(self.admin)
+        self._force_login_verified(self.admin)
         r = self.client.get(
             self._url("portal:student_attendance_export_csv"),
             {
@@ -359,7 +371,7 @@ class StudentAttendanceExportSlice6Tests(TestCase):
         self.assertEqual(r.status_code, 400)
 
     def test_empty_dataset_header_only(self):
-        self.client.force_login(self.admin)
+        self._force_login_verified(self.admin)
         r = self.client.get(
             self._url("portal:student_attendance_export_csv"),
             {
@@ -373,7 +385,7 @@ class StudentAttendanceExportSlice6Tests(TestCase):
         self.assertTrue(lines[0].startswith("date,"))
 
     def test_ui_renders_markers(self):
-        self.client.force_login(self.admin)
+        self._force_login_verified(self.admin)
         r = self.client.get(self._url("portal:student_attendance_export"))
         self.assertEqual(r.status_code, 200)
         b = r.content.decode("utf-8")
@@ -386,7 +398,7 @@ class StudentAttendanceExportSlice6Tests(TestCase):
         self.assertIn("/authentication/login/", r["Location"])
 
     def test_student_filter_limits_rows(self):
-        self.client.force_login(self.admin)
+        self._force_login_verified(self.admin)
         url = self._url("portal:student_attendance_export_csv")
         r = self.client.get(
             url,
@@ -402,7 +414,7 @@ class StudentAttendanceExportSlice6Tests(TestCase):
         self.assertNotIn("FormTwo", body)
 
     def test_classroom_filter_limits_rows(self):
-        self.client.force_login(self.admin)
+        self._force_login_verified(self.admin)
         url = self._url("portal:student_attendance_export_csv")
         r = self.client.get(
             url,
@@ -418,7 +430,7 @@ class StudentAttendanceExportSlice6Tests(TestCase):
         self.assertNotIn("Zed", body)
 
     def test_csv_content_disposition_attachment(self):
-        self.client.force_login(self.admin)
+        self._force_login_verified(self.admin)
         r = self.client.get(
             self._url("portal:student_attendance_export_csv"),
             {

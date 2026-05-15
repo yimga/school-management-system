@@ -12,6 +12,16 @@ TESTIMONIAL_STATES = frozenset(
     {"not_requested", "requested", "approved_internal", "approved_public"}
 )
 REFERENCE_STATES = frozenset({"none", "internal_only", "public_reference"})
+PILOT_VERDICT_STATES = frozenset(
+    {
+        "not_started",
+        "blocked",
+        "in_progress",
+        "pilot_ready_internal",
+        "pilot_complete_internal",
+        "public_reference_ready",
+    }
+)
 
 REQUIRED_PILOT_NON_PII_KEYS = frozenset(
     {
@@ -74,6 +84,26 @@ def validate_scorecard_schema(data: dict[str, Any]) -> list[str]:
         rs = p.get("reference_status")
         if rs is not None and rs not in REFERENCE_STATES:
             errors.append(f"pilot {i} invalid reference_status")
+        verdict = p.get("pilot_verdict")
+        if verdict is not None and verdict not in PILOT_VERDICT_STATES:
+            errors.append(f"pilot {i} invalid pilot_verdict")
+        has_public_reference = (
+            p.get("reference_status") == "public_reference"
+            or p.get("testimonial_permission_status") == "approved_public"
+            or p.get("pilot_verdict") == "public_reference_ready"
+        )
+        if (
+            has_public_reference
+            and not str(p.get("evidence_link_or_notes") or "").strip()
+        ):
+            errors.append(f"pilot {i} public reference requires evidence_link_or_notes")
+        if p.get("pilot_verdict") == "public_reference_ready" and not (
+            p.get("reference_status") == "public_reference"
+            and p.get("testimonial_permission_status") == "approved_public"
+        ):
+            errors.append(
+                f"pilot {i} public_reference_ready requires public reference and approval"
+            )
     return errors
 
 
@@ -97,11 +127,15 @@ def redact_pilot_for_display(pilot: dict[str, Any]) -> dict[str, Any]:
                 "Public reference pending explicit approval — identity withheld in-product."
             )
         elif rs == "internal_only":
-            out["display_reference_note"] = "Internal reference only — not shown as a public logo/name."
+            out["display_reference_note"] = (
+                "Internal reference only — not shown as a public logo/name."
+            )
         else:
             out["display_reference_note"] = "No reference recorded."
     else:
-        out["display_reference_note"] = "Public reference approved for controlled use only."
+        out["display_reference_note"] = (
+            "Public reference approved for controlled use only."
+        )
     return out
 
 
@@ -109,7 +143,9 @@ def build_pilot_dashboard_rows(raw: dict[str, Any] | None = None) -> dict[str, A
     data = raw if raw is not None else load_raw_scorecard()
     issues = validate_scorecard_schema(data)
     pilots_in = data.get("pilots") or []
-    pilots_out = [redact_pilot_for_display(dict(p)) for p in pilots_in if isinstance(p, dict)]
+    pilots_out = [
+        redact_pilot_for_display(dict(p)) for p in pilots_in if isinstance(p, dict)
+    ]
     return {
         "schema_ok": not issues,
         "schema_issues": issues,

@@ -28,7 +28,7 @@
 | ID | Item | Implementation |
 |----|------|----------------|
 | 4.1 | Post–bulk invoice "Notify guardians" | After "Generate Fee Invoices", success message and **Notify guardians** button. POST to `finance:notify_guardians_new_invoices` sends in-app (and optional email) to guardians for the just-created invoice set. Invoice IDs stored in session until user clicks the button or navigates away. |
-| 4.2 | Guardian → student contact sync on save | Implemented in **apps/people/signals.py**: `sync_student_parent_phone_from_guardian` updates `student.parent_phone` from `StudentGuardian.phone` when the latter is set and the former is empty. See docs/DATA_PARENT_CONTACT.md. |
+| 4.2 | Guardian → student contact sync on save | Implemented in **apps/people/signals.py**: `sync_student_parent_phone_from_guardian` updates `student.parent_phone` from `StudentGuardian.phone` when the latter is set and the former is empty. See docs/archive/legacy_2026_05_14/DATA_PARENT_CONTACT.md. |
 
 ### Code locations (4.1)
 

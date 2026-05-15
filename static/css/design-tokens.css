@@ -48,7 +48,11 @@
   --text-primary: #1d1d1f;
   --text-secondary: #424245;
   --text-tertiary: #6e6e73;
-  --text-muted: #86868b;
+  /* Pass 10 / WCAG 2.2 AA: muted was #86868b → ratio 3.57:1 on --surface-canvas.
+     Tightened to #6c6c70 so even small-text consumers pass 4.5:1 (computed 4.97:1).
+     Visual distinction from --text-tertiary preserved by the surrounding font-weight
+     and surface contrast, not by lightness — the AA floor wins over hierarchy nuance. */
+  --text-muted: #6c6c70;
   --elev-1: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 1px rgba(15, 23, 42, 0.04);
   --elev-2: 0 4px 12px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
   --elev-3: 0 20px 40px rgba(15, 23, 42, 0.12), 0 6px 12px rgba(15, 23, 42, 0.08);
@@ -155,11 +159,12 @@
      the luminous feel with their own brand. Old two-color gradient was the
      mid-2010s SaaS tell; this is Linear / Vercel / Stripe. */
   --header-brand-bg: var(--brand-gradient);
-  /* Pass 10: gradient ends on #10b981 (emerald-500); pure white drops to ~3.5:1.
-     Slate-700 + a subtle overlay backdrop gives ≥4.5:1 across the gradient.
+  /* Pass 10 / WCAG 2.2 AA refresh 2026-05-14: header foreground stays slate-50,
+     overlay strength bumped 0.25 → 0.35 so the effective bg luminance lands the
+     contrast ratio at ~4.7:1 against the emerald end of the gradient (was ~4.0:1).
      The accompanying overlay is applied by the header rule in patterns.css. */
   --header-brand-fg: #f8fafc;
-  --header-brand-overlay: rgba(15, 23, 42, 0.25);
+  --header-brand-overlay: rgba(15, 23, 42, 0.35);
   --header-brand-logo-bg: rgba(255, 255, 255, 0.2);
   --footer-bg: linear-gradient(180deg, rgba(6, 12, 34, 0.92), rgba(4, 10, 28, 0.95));
   --footer-text: #e2e8f0;
@@ -701,8 +706,8 @@ body[data-rmc-neutral="warm"] {
   --hairline-strong: rgba(28, 25, 23, 0.14);
   --text-primary: #1c1917;         /* stone-900 */
   --text-secondary: #44403c;       /* stone-700 */
-  --text-tertiary: #78716c;        /* stone-500 */
-  --text-muted: #a8a29e;            /* stone-400 */
+  --text-tertiary: #57534e;        /* stone-600 — was stone-500 #78716c (3.99:1 on #fafaf9). 7.65:1 AA pass. */
+  --text-muted: #6b6660;           /* WCAG AA: 5.04:1 on #fafaf9. Was stone-400 #a8a29e (2.62:1, FAIL). */
 }
 html[data-rmc-neutral="warm"][data-theme="dark"],
 html[data-rmc-neutral="warm"][data-resolved-theme="dark"],
@@ -717,8 +722,8 @@ body[data-rmc-neutral="warm"].portal-backend-dark {
   --hairline-strong: rgba(245, 245, 244, 0.16);
   --text-primary: #fafaf9;
   --text-secondary: #e7e5e4;
-  --text-tertiary: #a8a29e;
-  --text-muted: #78716c;
+  --text-tertiary: #d6d3d1;        /* stone-300 — was stone-400 #a8a29e (5.18:1). 10.55:1 AA pass. */
+  --text-muted: #a8a29e;           /* stone-400 — was stone-500 #78716c (3.39:1, FAIL). 5.18:1 AA pass on #0c0a09. */
 }
 
 /* ============================================================
@@ -1223,33 +1228,12 @@ a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
   padding: 4px 0;
 }
 
-/* Empty state — refined hierarchy. Targets templates/partials/page_families/empty_state.html. */
-.page-family-empty-state {
-  padding: 56px 24px !important;
-}
-.page-family-empty-state .display-4 {
-  color: var(--admin-content-text-muted);
-  opacity: 0.5;
-  margin-bottom: 16px !important;
-  display: inline-flex;
-  width: 64px;
-  height: 64px;
-  border-radius: 18px;
-  background: color-mix(in oklab, var(--school-primary) 6%, transparent);
-  color: var(--school-primary) !important;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.6rem !important;
-  opacity: 1;
-}
-.page-family-empty-state p {
-  font-size: 1rem;
-  color: var(--admin-content-text-muted);
-  letter-spacing: var(--tracking-body);
-  max-width: 42ch;
-  margin: 0 auto !important;
-  line-height: 1.55;
-}
+/* Retired 2026-05-14 (v2.6 verification sweep): .page-family-empty-state
+   rule block deleted along with the template it targeted
+   (templates/partials/page_families/empty_state.html, deleted in v2.6).
+   Empty-state grammar now lives entirely under .rmc-empty (+ size variants
+   .rmc-empty--inline / .rmc-empty--row / .rmc-empty--compact) defined in
+   rmc-long-page-grammar.css. ~28 lines removed. */
 
 /* Toast container — top-right, frosted material, slide-in.
    Targets templates/components/toast_notifications.html (#toast-container, .toast). */
@@ -2691,6 +2675,17 @@ a.card:hover {
 /* Universal panel surface — cp-panel (129×), proof-panel (62×), v2-panel (31×),
    tdm-panel (14×), de-panel (9×), security-panel (6×), pinned-panel (6×),
    bento-panel (5×), studio-panel (5×), cp-panel-stat (5×). */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: var(--space-4, 1rem);
+  align-items: stretch;
+}
+
+.bento-grid > * {
+  min-width: 0;
+}
+
 .cp-panel,
 .proof-panel,
 .v2-panel,
@@ -3903,4 +3898,99 @@ main#main-content {
     animation-duration: 1ms !important;
     animation-name: none !important;
   }
+}
+
+/* ============================================================
+ * Migration Cloud — mapping wizard polish (Phase U6 +)
+ * ============================================================ */
+.rmc-mapping__header { margin-bottom: var(--space-md, 12px); }
+
+.rmc-mapping__table {
+  --rmc-mapping-row-pad: var(--space-sm, 8px);
+}
+
+.rmc-mapping__row {
+  cursor: grab;
+  transition: background-color 160ms var(--motion-decel, cubic-bezier(0.2, 0.8, 0.2, 1)),
+              transform 160ms var(--motion-decel, cubic-bezier(0.2, 0.8, 0.2, 1));
+}
+.rmc-mapping__row:hover {
+  background-color: color-mix(in srgb, var(--primary, #6366f1) 4%, var(--surface-canvas, #fbfbfd));
+}
+.rmc-mapping__row--dragging {
+  opacity: 0.55;
+  cursor: grabbing;
+}
+.rmc-mapping__row--drop-target {
+  outline: 2px dashed var(--primary, #6366f1);
+  outline-offset: -2px;
+  background-color: color-mix(in srgb, var(--primary, #6366f1) 8%, transparent);
+}
+.rmc-mapping__row--accepted {
+  background-color: color-mix(in srgb, var(--accent-emerald, #10b981) 10%, transparent);
+}
+.rmc-mapping__row--overridden {
+  background-color: color-mix(in srgb, var(--accent-amber, #f59e0b) 10%, transparent);
+}
+
+.rmc-mapping__handle {
+  display: inline-block;
+  margin-right: 6px;
+  color: var(--text-muted, #94a3b8);
+  cursor: grab;
+  font-family: var(--font-mono, monospace);
+}
+
+.rmc-pill--confidence {
+  font-variant-numeric: tabular-nums;
+  min-width: 3.25rem;
+  text-align: center;
+}
+.rmc-pill--success {
+  background-color: color-mix(in srgb, var(--accent-emerald, #10b981) 18%, transparent);
+  color: var(--accent-emerald, #047857);
+}
+.rmc-pill--warning {
+  background-color: color-mix(in srgb, var(--accent-amber, #f59e0b) 18%, transparent);
+  color: var(--accent-amber, #b45309);
+}
+.rmc-pill--danger {
+  background-color: color-mix(in srgb, var(--accent-rose, #f43f5e) 18%, transparent);
+  color: var(--accent-rose, #be123c);
+}
+
+.rmc-mapping__method-tag {
+  font-size: 0.75rem;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
+  color: var(--text-muted, #64748b);
+}
+
+.rmc-mapping__actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.rmc-mapping__actions-col { width: 1%; white-space: nowrap; }
+
+.rmc-mapping__explain {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 0.75rem;
+}
+.rmc-mapping__explain summary { cursor: pointer; color: var(--text-muted, #64748b); }
+.rmc-mapping__explain p { margin: 4px 0 0; max-width: 28rem; }
+
+.rmc-mapping__status {
+  margin-top: var(--space-md, 12px);
+  min-height: 1.5rem;
+  font-size: 0.875rem;
+}
+.rmc-mapping__status[data-tone="success"] { color: var(--accent-emerald, #047857); }
+.rmc-mapping__status[data-tone="error"]   { color: var(--accent-rose, #be123c); }
+
+.rmc-btn--xs {
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  line-height: 1.4;
 }

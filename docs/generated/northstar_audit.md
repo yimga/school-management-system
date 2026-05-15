@@ -1,6 +1,6 @@
 # North Star audit
 
-**Total:** 71 / 75 — **ELITE**
+**Total:** 75 / 75 — **DOMINANT**
 
 | Section | Score |
 | --- | ---: |
@@ -9,7 +9,7 @@
 | test_coverage | 5 |
 | data_integrity | 5 |
 | system_integration | 5 |
-| architecture_quality | 1 |
+| architecture_quality | 5 |
 | performance | 5 |
 | business_value | 5 |
 | ux_quality | 5 |

@@ -147,3 +147,22 @@ Guided assistants call `get_ai_permission_for_user` **before** prompt formatting
 ## 5. External API manifest
 
 `apps/api/api_v1_manifest.py` lists **integrator-facing** stable URLs only. Internal `/api/ai/*` console endpoints are **not** part of that manifest by design; use this registry for operators and engineers.
+
+---
+
+## 6. Adjacent AI surfaces (not `/api/ai/*` invoke endpoints)
+
+These are not gateway-invoke endpoints, but they are first-class AI
+surfaces and are listed here so the registry is exhaustive:
+
+| Surface | Path / module | Wave | Purpose |
+|---|---|---|---|
+| Health probe | `GET /api/ai/health/` → `apps.portal.views_ai_copilot.ai_health` | Phase E (2026-05-12) | Live Ollama-reachability + degraded-mode badge feed |
+| Copilot audit feed | `GET /api/ai-copilot/audit/` → `apps.portal.views_ai_copilot.ai_copilot_audit_feed` | Phase E (2026-05-12) | Staff-only feed of AI_QUERY_SUBMITTED / DENIED / RATE_LIMITED |
+| RAG ingest (CLI) | `python manage.py ingest_policy_documents --school <uuid> --path <dir>` | 2026-05-14 | Bulk ingest tenant handbook → AIEmbeddingStore |
+| RAG ingest (admin endpoint) | `POST /siteconfig/console/ai/rag/ingest/` → `apps.siteconfig.views_console_ai_rag.ingest_policy_docs` | 2026-05-14 (wave NS-2) | Same as CLI; staff-only HTTP trigger |
+| Anomaly LLM enrichment | `apps.dashboard.services.insight_anomalies._enrich_with_ai_narrative` | 2026-05-14 | One-line model suggestion appended to each anomaly card |
+| ⌘K command palette → Ask AI | `static/js/rmc-command-palette.js` (Ask-AI fallback) | 2026-05-14 (wave NS-2) | When no palette items match, surface "Ask AI: <query>" that opens copilot prepopulated |
+| Bounded-context wrappers | `apps/{migration_cloud,finance,people,automation}/ai_*.py`; `apps/dashboard/services/insight_anomalies.py`; `apps/analytics/ml/` | Various | Per-context AI integration; never imports `services/ai_gateway` directly |
+
+**Platform-wide AI SOT:** [AI_PLATFORM_WIDE_STATUS_2026_05_14.md](AI_PLATFORM_WIDE_STATUS_2026_05_14.md) is the single snapshot covering every surface above plus governance, audit, safety, and operator workflows.

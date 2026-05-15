@@ -49,3 +49,20 @@ class FinanceSignalTenantContextTests(TestCase):
         with rls_bypass():
             reminder.refresh_from_db()
             self.assertFalse(reminder.is_active)
+
+    def test_deactivate_reminders_refuses_unscoped_student_under_rls(self):
+        with rls_bypass():
+            student = StudentProfile.objects.create(
+                school=None,
+                first_name="No",
+                last_name="Invoices",
+                student_code="NO-INVOICE-SCHOOL",
+            )
+
+        with patch("apps.finance.signals._requires_explicit_rls_context", return_value=True):
+            with self.assertLogs("apps.finance.signals", level="WARNING") as captured:
+                self.assertEqual(_deactivate_reminders_for_student(student), 0)
+
+        self.assertTrue(
+            any("missing school_id" in message for message in captured.output)
+        )

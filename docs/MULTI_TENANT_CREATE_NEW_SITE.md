@@ -65,7 +65,7 @@
 
 ## Verification and completeness
 
-For a checklist that maps all multi-tenant requirements (data isolation, provisioning, feature toggles, regional flexibility, Super Admin, usage monitoring) to the codebase and notes optional improvements, see **[MULTI_TENANT_VERIFICATION_AND_IMPROVEMENTS.md](MULTI_TENANT_VERIFICATION_AND_IMPROVEMENTS.md)**.
+For the live multi-tenant state-of-platform reference, see **[STATE_OF_PLATFORM_2026_05_14.md](STATE_OF_PLATFORM_2026_05_14.md)** and the canonical **[MULTI_TENANT_GLOBAL_ROADMAP.md](MULTI_TENANT_GLOBAL_ROADMAP.md)**. The original Phase-era audit checklist is archived at `docs/archive/legacy_2026_05_14/MULTI_TENANT_VERIFICATION_AND_IMPROVEMENTS.md`.
 
 ## Quick Links
 

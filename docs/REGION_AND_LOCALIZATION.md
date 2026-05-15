@@ -84,6 +84,6 @@ Filters **require** the `region_settings` context (they use `takes_context=True`
 
 ## Configuration and Docs
 
-- **Default region / Buea:** `REGION_CODE`, `TIME_ZONE`, `ENABLE_MULTI_REGION` in `.env`; see `docs/CAMEROON_BUEA_SETUP_GUIDE.md` and `.env.example`.
-- **Adding regions:** `RegionConfig` in admin; multi-school flow in `docs/MULTI_SCHOOL_ADD_NEW_SCHOOL.md`.
+- **Default region / Buea:** `REGION_CODE`, `TIME_ZONE`, `ENABLE_MULTI_REGION` in `.env`; see `docs/archive/legacy_2026_05_14/CAMEROON_BUEA_SETUP_GUIDE.md` (archived single-tenant era) and `.env.example`.
+- **Adding regions:** `RegionConfig` in admin; multi-school flow in `docs/archive/legacy_2026_05_14/MULTI_SCHOOL_ADD_NEW_SCHOOL.md` (archived — single-DB-per-school Option A; current SaaS uses one DB + tenant FK, see `MULTI_TENANT_CREATE_NEW_SITE.md`).
 - **Checklist and roadmap:** `docs/REGION_AND_PLAN_IMPROVEMENTS_CHECKLIST.md`, `docs/PHASE7_NICE_TO_HAVE_ROADMAP.md`.

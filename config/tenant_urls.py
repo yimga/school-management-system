@@ -9,7 +9,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.shortcuts import redirect
 from django.urls import include, path
 from django.views.decorators.cache import cache_page
-from rest_framework.schemas import get_schema_view
+from drf_spectacular.views import SpectacularAPIView
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.template.response import TemplateResponse
 from django.http import HttpResponseForbidden
@@ -23,7 +23,9 @@ from apps.portal.views_ai_copilot import (
     ai_copilot_limits,
     ai_copilot_config,
     ai_copilot_audit_feed,
+    ai_health,
 )
+from apps.portal.views_configure import portal_configure_hub
 from config.admin import tenant_admin_site
 from apps.schools.activation_views import activation_first_action
 from apps.schools.demo_conversion_views import (
@@ -105,11 +107,7 @@ def api_schema_ui(request):
 
 
 _schema_view_raw = cache_page(60)(
-    get_schema_view(
-        title="RunMyCampus API",
-        description="Entity/analytics/session claims schema for frontend orchestration",
-        version="1.0.0",
-    )
+    SpectacularAPIView.as_view(permission_classes=[])
 )
 
 
@@ -158,7 +156,7 @@ def server_error(request):
     """Custom 500 (SOT batch 1218 hardened).
 
     Two-stage fallback so the 500 page survives context-processor or middleware
-    crashes. Reference incident: `gilead-school.runmycampus.com/school/settings/`
+    crashes. Reference incident: `<tenant>.runmycampus.com/school/settings/`
     returning 500 with no operator-friendly recovery (2026-05-07).
     """
     context = {"user": getattr(request, "user", None)}
@@ -167,6 +165,7 @@ def server_error(request):
     except Exception:
         from django.http import HttpResponse
         from django.template.loader import get_template
+
         try:
             html = get_template("errors/500_minimal.html").render({})
         except Exception:
@@ -215,20 +214,73 @@ urlpatterns = [
     path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
     path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
     path("admin/", tenant_admin_site.urls),
-    path("configuration/", tenant_configuration_forbidden, name="tenant_configuration_forbidden"),
+    path(
+        "configuration/",
+        tenant_configuration_forbidden,
+        name="tenant_configuration_forbidden",
+    ),
     path("configuration/<path:remaining>", tenant_configuration_forbidden),
-    path("school/settings/", school_configuration_center, name="school_configuration_center"),
-    path("school/configuration/", school_configuration_center, name="school_configuration_center_canonical"),
-    path("school/setup/blueprints/", tenant_blueprint_setup, name="tenant_blueprint_setup"),
+    path(
+        "school/settings/",
+        school_configuration_center,
+        name="school_configuration_center",
+    ),
+    path(
+        "school/configuration/",
+        school_configuration_center,
+        name="school_configuration_center_canonical",
+    ),
+    path(
+        "school/setup/blueprints/",
+        tenant_blueprint_setup,
+        name="tenant_blueprint_setup",
+    ),
     path("school/setup/packs/", tenant_pack_setup, name="tenant_pack_setup"),
-    path("school/setup/imports/", school_surface_redirect, {"surface": "imports"}, name="school_setup_imports"),
-    path("school/apps/", school_surface_redirect, {"surface": "apps"}, name="school_apps"),
-    path("school/billing/", school_surface_redirect, {"surface": "billing"}, name="school_billing"),
-    path("school/money/", school_surface_redirect, {"surface": "money"}, name="school_money"),
-    path("school/workflows/", school_surface_redirect, {"surface": "workflows"}, name="school_workflows"),
-    path("school/offline/", school_surface_redirect, {"surface": "offline"}, name="school_offline"),
-    path("school/audit/", school_surface_redirect, {"surface": "audit"}, name="school_audit"),
-    path("school/security/", school_surface_redirect, {"surface": "security"}, name="school_security"),
+    path(
+        "school/setup/imports/",
+        school_surface_redirect,
+        {"surface": "imports"},
+        name="school_setup_imports",
+    ),
+    path(
+        "school/apps/", school_surface_redirect, {"surface": "apps"}, name="school_apps"
+    ),
+    path(
+        "school/billing/",
+        school_surface_redirect,
+        {"surface": "billing"},
+        name="school_billing",
+    ),
+    path(
+        "school/money/",
+        school_surface_redirect,
+        {"surface": "money"},
+        name="school_money",
+    ),
+    path(
+        "school/workflows/",
+        school_surface_redirect,
+        {"surface": "workflows"},
+        name="school_workflows",
+    ),
+    path(
+        "school/offline/",
+        school_surface_redirect,
+        {"surface": "offline"},
+        name="school_offline",
+    ),
+    path(
+        "school/audit/",
+        school_surface_redirect,
+        {"surface": "audit"},
+        name="school_audit",
+    ),
+    path(
+        "school/security/",
+        school_surface_redirect,
+        {"surface": "security"},
+        name="school_security",
+    ),
     path("api/schema/", schema_view, name="api-schema"),
     path("api/schema/ui/", api_schema_ui, name="api-schema-ui"),
     path(
@@ -236,6 +288,7 @@ urlpatterns = [
         lambda request: redirect("accounts:backend_dashboard", permanent=False),
     ),
     path("healthz/", obs_views.healthz, name="healthz"),
+    path("-/version/", obs_views.public_version, name="public_version"),
     path("health/", obs_views.public_health, name="health"),
     path("ready/", obs_views.public_health, name="ready"),
     path("status/", obs_views.public_health, name="status"),
@@ -275,6 +328,7 @@ urlpatterns = [
     path("api/ai-copilot/limits/", ai_copilot_limits, name="ai_copilot_limits"),
     path("api/ai-copilot/config/", ai_copilot_config, name="ai_copilot_config"),
     path("api/ai-copilot/audit/", ai_copilot_audit_feed, name="ai_copilot_audit"),
+    path("api/ai/health/", ai_health, name="ai_health"),
     path(
         "studio/", include(("apps.studio_os.urls", "studio_os"), namespace="studio_os")
     ),
@@ -372,6 +426,16 @@ urlpatterns = [
     path(
         "academics/",
         include(("apps.academics.urls", "academics"), namespace="academics"),
+    ),
+    path(
+        "portal/console/",
+        lambda request: redirect("accounts:backend_dashboard"),
+        name="portal_console",
+    ),
+    path(
+        "portal/configure/",
+        portal_configure_hub,
+        name="portal_configure",
     ),
     path("portal/", include(("apps.portal.urls", "portal"), namespace="portal")),
     path("portal", lambda request: redirect("portal:parent_dashboard")),

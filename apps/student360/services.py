@@ -57,6 +57,7 @@ def get_student_360_summary(
         # Academic: evaluations count, enrollments
         if apps.is_installed("evals"):
             Evaluation = apps.get_model("evals", "Evaluation")
+            # tenant-isolation-allow: `student` already school-scoped on line 52 (reviewed 2026-05-14)
             out["academic"]["evaluations_count"] = Evaluation.objects.filter(
                 student=student
             ).count()
@@ -69,6 +70,7 @@ def get_student_360_summary(
         # Finance: invoices summary
         if apps.is_installed("finance"):
             Invoice = apps.get_model("finance", "Invoice")
+            # tenant-isolation-allow: `student` already school-scoped on line 52 (reviewed 2026-05-14)
             inv_qs = Invoice.objects.filter(student=student)
             out["finance"]["invoices_count"] = inv_qs.count()
             from django.db.models import Sum

@@ -9,6 +9,39 @@
       </ul>
     </section>
 
+    {# v2.6 (2026-05-12): when a view passes `marketing_topic_bento=True`, render
+       the topical_nav as a bento grid (Apple mixed-tile composition) instead of
+       the legacy uniform 3-col grid. Opt-in so existing pages don't change layout
+       unless the view chooses the richer treatment. Cells alternate tone for
+       visual rhythm. #}
+    {% if marketing_topic_bento %}
+    <section class="mkt-edt-section mkt-bento-section" data-mkt-edition="editorial" aria-labelledby="topic-bento-headline">
+      <div class="mkt-edt-container">
+        <header class="mkt-bento__intro">
+          <p class="mkt-edt-eyebrow">{% trans "Popular solution topics" %}</p>
+          <h2 id="topic-bento-headline" class="mkt-edt-section-headline">{% trans "Start with a focused story." %}</h2>
+          <p class="mkt-edt-lead">{% trans "Browse the full solutions hub when you need the complete map." %}</p>
+        </header>
+        <ul class="mkt-bento" role="list">
+          {% for topic in topical_nav %}
+            <li class="mkt-bento__cell mkt-bento__cell--{% cycle 'md' 'sm' 'sm' 'md' 'lg' 'sm' %}{% cycle ' mkt-bento__cell--sand' ' mkt-bento__cell--warm' ' mkt-bento__cell--ink' '' '' '' %}">
+              <p class="mkt-bento__eyebrow mkt-edt-eyebrow">{% trans "Solution topic" %}</p>
+              <h3 class="mkt-bento__title">{{ topic.label }}</h3>
+              {% if topic.summary %}<p class="mkt-bento__body">{{ topic.summary }}</p>{% endif %}
+              <a href="{{ topic.path }}" class="mkt-bento__cta" data-mkt-tactile>{% trans "Explore" %}
+                <svg class="mkt-bento__cta-arrow" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7h8m-3-3 3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+        {% if topical_nav_total|default:0 > topical_nav|length %}
+        <p class="text-center mt-4 mb-0">
+          <a href="{% url 'marketing_solutions' %}" class="fw-semibold">{% trans "View all solutions" %}</a>
+        </p>
+        {% endif %}
+      </div>
+    </section>
+    {% else %}
     <section class="section-shell">
       <h2 class="section-heading">{% trans "Popular solution topics" %}</h2>
       <p class="section-lead">{% trans "Start with a focused story—browse the full solutions hub when you need the complete map." %}</p>
@@ -28,6 +61,7 @@
       </p>
       {% endif %}
     </section>
+    {% endif %}
     {% endif %}
 
     <section class="close-cta">

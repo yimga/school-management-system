@@ -6,6 +6,7 @@ import uuid
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import Permission as FeaturePermission
 from apps.accounts.models import User
@@ -67,6 +68,17 @@ class GroupIntelligenceTests(TestCase):
         )
         return u
 
+    def _force_login_verified(self, client: Client, user: User) -> None:
+        TOTPDevice.objects.get_or_create(
+            user=user,
+            name="test-device",
+            defaults={"confirmed": True},
+        )
+        client.force_login(user)
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
+
     def test_parent_admin_sees_intelligence_marker_and_real_counts(self):
         u = self._admin(self.parent_school)
         ctx = build_group_intelligence_context(self.parent_school, u)
@@ -76,7 +88,7 @@ class GroupIntelligenceTests(TestCase):
         self.assertGreaterEqual(gs.get("campus_count", 0), 1)
 
         c = Client(HTTP_HOST="metro-gi.runmycampus.com")
-        c.force_login(u)
+        self._force_login_verified(c, u)
         url = reverse("siteconfig:school_group_hierarchy", urlconf="config.tenant_urls")
         resp = c.get(url)
         self.assertEqual(resp.status_code, 200)
@@ -86,7 +98,7 @@ class GroupIntelligenceTests(TestCase):
     def test_child_admin_no_sibling_leak_in_page(self):
         u = self._admin(self.child_b)
         c = Client(HTTP_HOST="south-gi.runmycampus.com")
-        c.force_login(u)
+        self._force_login_verified(c, u)
         url = reverse("siteconfig:school_group_hierarchy", urlconf="config.tenant_urls")
         resp = c.get(url)
         self.assertEqual(resp.status_code, 200)

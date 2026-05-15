@@ -675,6 +675,7 @@ def parent_dashboard(request: HttpRequest):
     request.parent_dashboard_attendance_pct = attendance_pct
     finance_total = widget_data["finance"].get("total_due") or Decimal("0.00")
     finance_paid = widget_data["finance"].get("paid") or Decimal("0.00")
+    finance_balance = widget_data.get("finance", {}).get("balance") or Decimal("0.00")
     finance_paid_pct = int((finance_paid / finance_total) * 100) if finance_total else 0
     missing_work_count = widget_data.get("tasks", {}).get("pending_evaluations", 0)
     finance_request_url = reverse("finance:finance_request_access")
@@ -905,6 +906,37 @@ def parent_dashboard(request: HttpRequest):
         ).count()
     else:
         reminders_count = 0
+    parent_metrics = [
+        {
+            "id": "parent-linked-students",
+            "label": "Linked students",
+            "value": links.count(),
+            "icon": "people",
+        },
+        {
+            "id": "parent-attendance",
+            "label": "Attendance",
+            "value": f"{attendance_pct}%",
+            "icon": "calendar-check",
+            "tone": "success" if attendance_pct >= 90 else "warning",
+        },
+        {
+            "id": "parent-missing-work",
+            "label": "Pending work",
+            "value": missing_work_count,
+            "icon": "clipboard-x",
+            "tone": "warning" if missing_work_count else "success",
+        },
+        {
+            "id": "parent-balance",
+            "label": "Balance",
+            "value": finance_balance,
+            "icon": "wallet2",
+            "tone": (
+                "warning" if can_view_finance and finance_balance > 0 else "success"
+            ),
+        },
+    ]
     hero = {
         "tagline": "Student Management Dashboard",
         "title": "Welcome back",
@@ -1139,6 +1171,7 @@ def parent_dashboard(request: HttpRequest):
             "portal_upcoming_assessments": portal_upcoming_assessments,
             "hero": hero,
             "reminders_count": reminders_count,
+            "parent_metrics": parent_metrics,
             "class_announcements": class_announcements,
             "class_threads": class_threads,
             "attendance_pct": attendance_pct,

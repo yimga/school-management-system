@@ -1,0 +1,79 @@
+{% comment %}
+  Migration Cloud — operator + tenant console (Phase U6 scaffold).
+
+  Designed to inherit the host shell's base template (``portal_base.html``
+  for tenant, ``control_plane_skeleton.html`` for super). The wrapper
+  template is chosen by the ``shell`` context var so a single template
+  serves both surfaces.
+
+  Apple-tier grammar: pulls from ``static/css/design-tokens.css``
+  (.rmc-data-table, .rmc-empty, .rmc-card, .rmc-segmented, sticky
+  section-nav). No inline styles, no hex literals — adopt grammar, not
+  bespoke CSS.
+
+  i18n: every user-facing string wrapped in {% trans %}.
+{% endcomment %}
+{% extends "control_plane_skeleton.html" %}{# default; portal override via include if shell==portal #}
+{% load i18n %}
+
+{% block page_title %}{{ page_title|default:"Migration Cloud" }}{% endblock %}
+
+{% block content %}
+<section class="rmc-page rmc-page--migration-cloud">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "Migration Cloud" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Any platform, any size, hours not weeks. Bundles, classifiers, and the operator's audit trail in one place." %}
+    </p>
+    <div class="rmc-page__actions">
+      <a href="#new-bundle" class="rmc-btn rmc-btn--primary">{% trans "Start a new migration" %}</a>
+      <a href="{% url 'admin:migration_cloud_migrationbundle_changelist' %}" class="rmc-btn rmc-btn--ghost" aria-label="{% trans 'Advanced admin fallback: open migration bundles in Django admin' %}">
+        {% trans "Open admin" %}
+      </a>
+    </div>
+  </header>
+
+  {% if bundles %}
+  <table class="rmc-data-table rmc-data-table--migrations">
+    <thead>
+      <tr>
+        <th>{% trans "Label" %}</th>
+        <th>{% trans "School" %}</th>
+        <th>{% trans "Intake" %}</th>
+        <th>{% trans "Status" %}</th>
+        <th>{% trans "Tier" %}</th>
+        <th>{% trans "Artifacts" %}</th>
+        <th>{% trans "Created" %}</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in bundles %}
+      <tr>
+        <td>{{ b.label|default:b.idempotency_key }}</td>
+        <td>{% if b.school %}{{ b.school.name }}{% else %}—{% endif %}</td>
+        <td>{{ b.intake_method }}</td>
+        <td><span class="rmc-pill rmc-pill--{{ b.status|lower }}">{{ b.status }}</span></td>
+        <td>{{ b.sla_tier }}</td>
+        <td>{{ b.artifact_count }}</td>
+        <td>{{ b.created_at|date:"Y-m-d H:i" }}</td>
+        <td>
+          <a class="rmc-btn rmc-btn--ghost rmc-btn--sm"
+             href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=b.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=b.pk %}{% endif %}">
+            {% trans "Open" %}
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="rmc-empty rmc-empty--inline">
+    <h3 class="rmc-empty__title">{% trans "No migrations yet" %}</h3>
+    <p class="rmc-empty__body">
+      {% trans "Drop a ZIP, a folder, a SQL dump, or paste a OneRoster export URL to start." %}
+    </p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

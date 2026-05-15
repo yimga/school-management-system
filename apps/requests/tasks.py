@@ -30,6 +30,7 @@ def _remind_pending_assignees_body() -> dict:
         status=AutomationExecutionLog.Status.PENDING,
     )
     try:
+        # tenant-isolation-allow: scheduled task sweeps pending requests across all tenants (reviewed 2026-05-14)
         pending = AccessRequest.objects.filter(
             status=AccessRequest.Status.PENDING,
             assigned_to__isnull=False,

@@ -21,6 +21,8 @@
     {# Theme bootstrap must run before paint to avoid flash-of-wrong-theme.
        v2 theme system: Light / Dark / System with prefers-color-scheme live response. #}
     <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
+    <script src="{% static 'js/rmc-lexicon.js' %}" defer></script>
+    <script src="{% static 'js/rmc-friction.js' %}" defer></script>
     <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
@@ -166,6 +168,7 @@
         <div class="base-topbar-actions text-white d-flex align-items-center gap-2 ms-lg-auto order-2 order-lg-3 justify-content-end">
           {% if request.user.is_authenticated %}
             <span class="small d-none d-md-inline topbar-username">{% blocktrans with name=request.user.username %}Logged in as {{ name }}{% endblocktrans %}</span>
+            <span class="small text-white-50 d-none d-md-inline align-self-center ms-2">Press <kbd>?</kbd> for keyboard shortcuts</span>
             <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:logout' %}">{% trans "Logout" %}</a>
           {% else %}
             <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>

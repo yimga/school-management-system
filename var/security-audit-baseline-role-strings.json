@@ -1,0 +1,1862 @@
+{
+  "allow_marker": "role-string-allow:",
+  "excluded_segments": [
+    "migrations",
+    "tests"
+  ],
+  "excluded_tails": [
+    "management/commands"
+  ],
+  "finding_count": 367,
+  "findings": [
+    {
+      "line": 44,
+      "path": "apps/academics/api_views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 273,
+      "path": "apps/academics/api_views.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 274,
+      "path": "apps/academics/api_views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 415,
+      "path": "apps/academics/api_views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 421,
+      "path": "apps/academics/api_views.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 504,
+      "path": "apps/academics/api_views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 670,
+      "path": "apps/academics/api_views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 676,
+      "path": "apps/academics/api_views.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 759,
+      "path": "apps/academics/api_views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 200,
+      "path": "apps/accounts/context_processors.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 239,
+      "path": "apps/accounts/context_processors.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 331,
+      "path": "apps/accounts/context_processors.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 440,
+      "path": "apps/accounts/context_processors.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 37,
+      "path": "apps/accounts/decorators.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 39,
+      "path": "apps/accounts/decorators.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 29,
+      "path": "apps/accounts/mfa_defaults.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 27,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 29,
+      "path": "apps/accounts/permissions.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 44,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 45,
+      "path": "apps/accounts/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 46,
+      "path": "apps/accounts/permissions.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 51,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 63,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 75,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 93,
+      "path": "apps/accounts/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 94,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 95,
+      "path": "apps/accounts/permissions.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 97,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 109,
+      "path": "apps/accounts/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 110,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 112,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 126,
+      "path": "apps/accounts/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 127,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 128,
+      "path": "apps/accounts/permissions.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 129,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 139,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 150,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 155,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 167,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 177,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 184,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 187,
+      "path": "apps/accounts/permissions.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 198,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 201,
+      "path": "apps/accounts/permissions.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 209,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 214,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 222,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 227,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 237,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 238,
+      "path": "apps/accounts/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 239,
+      "path": "apps/accounts/permissions.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 244,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 247,
+      "path": "apps/accounts/permissions.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 257,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 260,
+      "path": "apps/accounts/permissions.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 268,
+      "path": "apps/accounts/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 269,
+      "path": "apps/accounts/permissions.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 273,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 276,
+      "path": "apps/accounts/permissions.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 285,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 293,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 296,
+      "path": "apps/accounts/permissions.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 306,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 308,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 314,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 322,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 330,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 338,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 341,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 342,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 345,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 346,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 349,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 350,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 353,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 354,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 362,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 363,
+      "path": "apps/accounts/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 364,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 373,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 374,
+      "path": "apps/accounts/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 375,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 386,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 401,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 418,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 426,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 429,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 430,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 434,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 443,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 446,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 446,
+      "path": "apps/accounts/permissions.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 447,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 450,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 451,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 459,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 460,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 501,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 504,
+      "path": "apps/accounts/permissions.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 512,
+      "path": "apps/accounts/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 512,
+      "path": "apps/accounts/permissions.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 512,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 619,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 628,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 751,
+      "path": "apps/accounts/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 751,
+      "path": "apps/accounts/permissions.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 751,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 840,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 852,
+      "path": "apps/accounts/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 860,
+      "path": "apps/accounts/permissions.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 905,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 969,
+      "path": "apps/accounts/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 973,
+      "path": "apps/accounts/permissions.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 1043,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 1043,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 1046,
+      "path": "apps/accounts/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 1049,
+      "path": "apps/accounts/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 1052,
+      "path": "apps/accounts/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 1053,
+      "path": "apps/accounts/permissions.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 18,
+      "path": "apps/accounts/portal_roles.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 18,
+      "path": "apps/accounts/portal_roles.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 82,
+      "path": "apps/accounts/portal_roles.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 83,
+      "path": "apps/accounts/portal_roles.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 84,
+      "path": "apps/accounts/portal_roles.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 85,
+      "path": "apps/accounts/portal_roles.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 265,
+      "path": "apps/accounts/security_health.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 270,
+      "path": "apps/accounts/security_health.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 11,
+      "path": "apps/accounts/signals.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 12,
+      "path": "apps/accounts/signals.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 24,
+      "path": "apps/accounts/signals.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 28,
+      "path": "apps/accounts/signals.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 33,
+      "path": "apps/accounts/signals.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 34,
+      "path": "apps/accounts/signals.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 275,
+      "path": "apps/accounts/views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 928,
+      "path": "apps/accounts/views.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 932,
+      "path": "apps/accounts/views.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 2375,
+      "path": "apps/accounts/views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 2377,
+      "path": "apps/accounts/views.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 2380,
+      "path": "apps/accounts/views.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 2380,
+      "path": "apps/accounts/views.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 2380,
+      "path": "apps/accounts/views.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 59,
+      "path": "apps/accounts/views_district_interop.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 59,
+      "path": "apps/accounts/views_district_interop.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 22,
+      "path": "apps/accounts/views_tenant_observability.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 22,
+      "path": "apps/accounts/views_trust_hub.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 125,
+      "path": "apps/accounts/views_workflow.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 665,
+      "path": "apps/analytics/views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 665,
+      "path": "apps/analytics/views.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 739,
+      "path": "apps/analytics/views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 739,
+      "path": "apps/analytics/views.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 782,
+      "path": "apps/analytics/views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 782,
+      "path": "apps/analytics/views.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 924,
+      "path": "apps/analytics/views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 924,
+      "path": "apps/analytics/views.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 36,
+      "path": "apps/api/dashboard_api.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 112,
+      "path": "apps/api/dashboard_api.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 204,
+      "path": "apps/api/dashboard_api.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 282,
+      "path": "apps/api/dashboard_api.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 348,
+      "path": "apps/api/dashboard_api.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 409,
+      "path": "apps/api/dashboard_api.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 261,
+      "path": "apps/api/dashboard_layout_api.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 273,
+      "path": "apps/api/dashboard_layout_api.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 280,
+      "path": "apps/api/dashboard_layout_api.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 281,
+      "path": "apps/api/dashboard_layout_api.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 282,
+      "path": "apps/api/dashboard_layout_api.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 291,
+      "path": "apps/api/dashboard_layout_api.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 292,
+      "path": "apps/api/dashboard_layout_api.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 293,
+      "path": "apps/api/dashboard_layout_api.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 295,
+      "path": "apps/api/dashboard_layout_api.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 298,
+      "path": "apps/api/dashboard_layout_api.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 303,
+      "path": "apps/api/dashboard_layout_api.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 306,
+      "path": "apps/api/dashboard_layout_api.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 307,
+      "path": "apps/api/dashboard_layout_api.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 40,
+      "path": "apps/api/entity_api.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 29,
+      "path": "apps/api/learning_institution_api.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 29,
+      "path": "apps/api/learning_institution_api.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 243,
+      "path": "apps/api/offline_replay_views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 25,
+      "path": "apps/api/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 34,
+      "path": "apps/api/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 34,
+      "path": "apps/api/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 42,
+      "path": "apps/api/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 49,
+      "path": "apps/api/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 56,
+      "path": "apps/api/permissions.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 63,
+      "path": "apps/api/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 63,
+      "path": "apps/api/permissions.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 70,
+      "path": "apps/api/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 94,
+      "path": "apps/api/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 109,
+      "path": "apps/api/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 111,
+      "path": "apps/api/permissions.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 112,
+      "path": "apps/api/permissions.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 113,
+      "path": "apps/api/permissions.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 139,
+      "path": "apps/api/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 99,
+      "path": "apps/api/search_api.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 112,
+      "path": "apps/api/search_api.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 119,
+      "path": "apps/api/serializers.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 119,
+      "path": "apps/api/serializers.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 27,
+      "path": "apps/api/views_v1.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 35,
+      "path": "apps/api/views_v1.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 47,
+      "path": "apps/api/views_v1.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 47,
+      "path": "apps/api/views_v1.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 93,
+      "path": "apps/api/views_v1.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 1866,
+      "path": "apps/api/views_v1.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 1867,
+      "path": "apps/api/views_v1.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 1959,
+      "path": "apps/api/views_v1.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 2084,
+      "path": "apps/api/views_v1.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 38,
+      "path": "apps/apicenter/views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 68,
+      "path": "apps/communication/api_views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 79,
+      "path": "apps/communication/api_views.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 80,
+      "path": "apps/communication/api_views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 108,
+      "path": "apps/communication/api_views.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 110,
+      "path": "apps/communication/api_views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 155,
+      "path": "apps/communication/api_views.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 156,
+      "path": "apps/communication/api_views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 592,
+      "path": "apps/communication/api_views.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 594,
+      "path": "apps/communication/api_views.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 596,
+      "path": "apps/communication/api_views.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 61,
+      "path": "apps/communication/forms_groups.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 62,
+      "path": "apps/communication/forms_groups.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 63,
+      "path": "apps/communication/forms_groups.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 750,
+      "path": "apps/communication/models.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 252,
+      "path": "apps/communication/views_announcements.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 60,
+      "path": "apps/communication/views_groups.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 74,
+      "path": "apps/communication/views_groups.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 75,
+      "path": "apps/communication/views_groups.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 22,
+      "path": "apps/communication/views_narrative.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 22,
+      "path": "apps/communication/views_narrative.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 17,
+      "path": "apps/compliance/auth_utils.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 188,
+      "path": "apps/compliance/gdpr_services.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 194,
+      "path": "apps/compliance/models_audit.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 771,
+      "path": "apps/dashboard/admin_context.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 772,
+      "path": "apps/dashboard/admin_context.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 773,
+      "path": "apps/dashboard/admin_context.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 172,
+      "path": "apps/dashboard/context.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 470,
+      "path": "apps/dashboard/context.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 477,
+      "path": "apps/dashboard/context.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 481,
+      "path": "apps/dashboard/context.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 482,
+      "path": "apps/dashboard/context.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 651,
+      "path": "apps/dashboard/context.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 44,
+      "path": "apps/dashboard/north_star_guidance.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 46,
+      "path": "apps/dashboard/north_star_guidance.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 106,
+      "path": "apps/dashboard/north_star_guidance.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 131,
+      "path": "apps/dashboard/north_star_guidance.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 139,
+      "path": "apps/dashboard/north_star_guidance.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 156,
+      "path": "apps/dashboard/north_star_guidance.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 52,
+      "path": "apps/dashboard/role_home_engine.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 58,
+      "path": "apps/dashboard/role_home_engine.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 65,
+      "path": "apps/dashboard/role_home_engine.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 66,
+      "path": "apps/dashboard/role_home_engine.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 67,
+      "path": "apps/dashboard/role_home_engine.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 29,
+      "path": "apps/evals/views_drilldown.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 34,
+      "path": "apps/finance/api_views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 126,
+      "path": "apps/finance/api_views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 240,
+      "path": "apps/finance/models.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 1275,
+      "path": "apps/finance/services.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 21,
+      "path": "apps/marketplace/permissions.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 64,
+      "path": "apps/observability/test_slo_dashboard_api.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 277,
+      "path": "apps/observability/views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 298,
+      "path": "apps/observability/views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 1481,
+      "path": "apps/observability/views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 868,
+      "path": "apps/people/models.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 217,
+      "path": "apps/people/signals.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 524,
+      "path": "apps/people/views_backend.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 57,
+      "path": "apps/platform_runtime/action_engine.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 59,
+      "path": "apps/platform_runtime/action_engine.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 61,
+      "path": "apps/platform_runtime/action_engine.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 63,
+      "path": "apps/platform_runtime/action_engine.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 65,
+      "path": "apps/platform_runtime/action_engine.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 304,
+      "path": "apps/platform_runtime/administration_catalog.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 316,
+      "path": "apps/platform_runtime/administration_catalog.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 87,
+      "path": "apps/platform_runtime/context_processors.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 77,
+      "path": "apps/portal/forms_documents.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 78,
+      "path": "apps/portal/forms_documents.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 79,
+      "path": "apps/portal/forms_documents.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 80,
+      "path": "apps/portal/forms_documents.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 492,
+      "path": "apps/portal/models.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 258,
+      "path": "apps/portal/services.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 260,
+      "path": "apps/portal/services.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 152,
+      "path": "apps/portal/views_ai_copilot.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 574,
+      "path": "apps/portal/views_ai_copilot.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 611,
+      "path": "apps/portal/views_ai_copilot.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 97,
+      "path": "apps/portal/views_support.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 533,
+      "path": "apps/registries/services.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 544,
+      "path": "apps/registries/services.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 548,
+      "path": "apps/registries/services.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 549,
+      "path": "apps/registries/services.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 555,
+      "path": "apps/registries/services.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 566,
+      "path": "apps/registries/services.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 577,
+      "path": "apps/registries/services.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 598,
+      "path": "apps/registries/services.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 607,
+      "path": "apps/registries/services.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 607,
+      "path": "apps/registries/services.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 607,
+      "path": "apps/registries/services.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 622,
+      "path": "apps/registries/services.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 622,
+      "path": "apps/registries/services.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 671,
+      "path": "apps/registries/services.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 1317,
+      "path": "apps/reports/views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 53,
+      "path": "apps/schoolops/views_tenant_ops.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 68,
+      "path": "apps/schoolops/views_tenant_ops.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 19,
+      "path": "apps/schools/hierarchy_helpers.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 24,
+      "path": "apps/schools/hierarchy_helpers.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 817,
+      "path": "apps/schools/models.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 917,
+      "path": "apps/schools/section8_views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 919,
+      "path": "apps/schools/section8_views.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 921,
+      "path": "apps/schools/section8_views.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 291,
+      "path": "apps/schools/super_views_runtime_ops.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 21,
+      "path": "apps/schools/tenant_access.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 21,
+      "path": "apps/schools/tenant_access.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 98,
+      "path": "apps/schools/tenant_access.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 103,
+      "path": "apps/schools/tenant_access.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 32,
+      "path": "apps/schools/views_domains.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 38,
+      "path": "apps/schools/views_domains.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 297,
+      "path": "apps/siteconfig/admin.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 111,
+      "path": "apps/siteconfig/context_processors.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 112,
+      "path": "apps/siteconfig/context_processors.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 1077,
+      "path": "apps/siteconfig/context_processors.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 1123,
+      "path": "apps/siteconfig/context_processors.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 1131,
+      "path": "apps/siteconfig/context_processors.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 41,
+      "path": "apps/siteconfig/dashboard_views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 44,
+      "path": "apps/siteconfig/dashboard_views.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 49,
+      "path": "apps/siteconfig/dashboard_views.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 158,
+      "path": "apps/siteconfig/models_dashboard.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 159,
+      "path": "apps/siteconfig/models_dashboard.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 160,
+      "path": "apps/siteconfig/models_dashboard.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 264,
+      "path": "apps/siteconfig/models_dashboard.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 265,
+      "path": "apps/siteconfig/models_dashboard.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 266,
+      "path": "apps/siteconfig/models_dashboard.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 267,
+      "path": "apps/siteconfig/models_dashboard.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 590,
+      "path": "apps/siteconfig/models_dashboard.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 591,
+      "path": "apps/siteconfig/models_dashboard.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 592,
+      "path": "apps/siteconfig/models_dashboard.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 593,
+      "path": "apps/siteconfig/models_dashboard.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 65,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 72,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 79,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 86,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 97,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 103,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 109,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 121,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 128,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 135,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 142,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 155,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 163,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 171,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 209,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 268,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 269,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 270,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 314,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 315,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 315,
+      "path": "apps/siteconfig/models_support.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 246,
+      "path": "apps/siteconfig/portal_sidebar_items.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 254,
+      "path": "apps/siteconfig/portal_sidebar_items.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 369,
+      "path": "apps/siteconfig/portal_sidebar_items.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 375,
+      "path": "apps/siteconfig/portal_sidebar_items.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 704,
+      "path": "apps/siteconfig/portal_sidebar_items.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 712,
+      "path": "apps/siteconfig/portal_sidebar_items.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 1004,
+      "path": "apps/siteconfig/portal_sidebar_items.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 1004,
+      "path": "apps/siteconfig/portal_sidebar_items.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 1107,
+      "path": "apps/siteconfig/portal_sidebar_items.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 1129,
+      "path": "apps/siteconfig/portal_sidebar_items.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 1129,
+      "path": "apps/siteconfig/portal_sidebar_items.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 1259,
+      "path": "apps/siteconfig/portal_sidebar_items.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 421,
+      "path": "apps/siteconfig/views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 491,
+      "path": "apps/siteconfig/views.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 30,
+      "path": "apps/siteconfig/views_package_rollback.py",
+      "role": "ADMIN"
+    }
+  ],
+  "generated_at": "2026-05-15T10:41:36+00:00",
+  "role_tokens": [
+    "ADMIN",
+    "PARENT",
+    "PROPRIETOR",
+    "STUDENT",
+    "TEACHER"
+  ],
+  "rule": "Role-name string literals outside apps/platform_runtime/role_registry.py must be replaced with the canonical ROLE_* constant (or User.Role.<NAME>.value).",
+  "scan_dir": "apps",
+  "sot_modules": [
+    "apps/accounts/models.py",
+    "apps/platform_runtime/role_registry.py"
+  ]
+}

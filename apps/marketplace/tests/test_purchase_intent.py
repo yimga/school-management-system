@@ -7,6 +7,7 @@ from decimal import Decimal
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import Permission, User
 from apps.billing.models import PlatformBillingProcessorConfig, StripePlanPrice
@@ -60,8 +61,12 @@ class AppPurchaseIntentTests(TestCase):
             defaults={"role": User.Role.ADMIN, "is_primary": True},
         )
         u.feature_permissions.add(self.perm_manage)
+        TOTPDevice.objects.create(user=u, name="test-device", confirmed=True)
         c = Client(HTTP_HOST=_T_HOST)
         c.login(username=u.username, password="x" * 8)
+        session = c.session
+        session["mfa_verified"] = True
+        session.save()
         return c
 
     def test_free_app_redirects_to_catalog(self):

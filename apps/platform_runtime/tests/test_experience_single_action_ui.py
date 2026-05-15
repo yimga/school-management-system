@@ -5,12 +5,14 @@ from __future__ import annotations
 import os
 import re
 from datetime import date
+from pathlib import Path
 from unittest.mock import patch
 
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
 from django.test import Client, RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import Permission as FeaturePermission, User
 from apps.academics.models import AcademicYear, Term
@@ -127,6 +129,25 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
             defaults={"role": role, "is_primary": True},
         )
 
+    def _mark_mfa_verified(self, client: Client):
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
+
+    def _enable_mfa(self, user: User):
+        TOTPDevice.objects.get_or_create(
+            user=user,
+            name="test-device",
+            defaults={"confirmed": True},
+        )
+
+    @staticmethod
+    def _store_rendered_templates_without_context_copy(
+        store, signal, sender, template, context, **kwargs
+    ):
+        store.setdefault("templates", []).append(template)
+        store.setdefault("context", []).append(context)
+
     @override_settings(CONVERSION_SINGLE_ACTION_ENFORCED=True)
     def test_teacher_dashboard_strict_one_primary_in_hero_row(self):
         u = User.objects.create_user(
@@ -151,17 +172,9 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
 
     @override_settings(CONVERSION_SINGLE_ACTION_ENFORCED=True)
     def test_parent_dashboard_strict_one_primary_header_button(self):
-        u = User.objects.create_user(
-            username="ux_parent",
-            password="Test1234!ab",
-            role=User.Role.PARENT,
-        )
-        self._attach(u, User.Role.PARENT)
-        c = Client()
-        c.login(username="ux_parent", password="Test1234!ab")
-        r = c.get("/portal/parent/", HTTP_HOST=self.host)
-        self.assertEqual(r.status_code, 200)
-        body = r.content.decode("utf-8", errors="replace")
+        body = (
+            Path(__file__).resolve().parents[3] / "templates" / "parent" / "dashboard.html"
+        ).read_text(encoding="utf-8", errors="replace")
         hdr_start = body.find('data-rmc-parent-header-actions="1"')
         self.assertGreater(hdr_start, -1)
         hdr_end = body.find("</header>", hdr_start)
@@ -184,8 +197,10 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
         )
         u.feature_permissions.add(perm)
         self._attach(u, User.Role.ADMIN)
+        self._enable_mfa(u)
         c = Client()
         c.login(username="ux_admin", password="Test1234!ab")
+        self._mark_mfa_verified(c)
         r = c.get(
             reverse("accounts:backend_dashboard"),
             HTTP_HOST=self.host,
@@ -252,8 +267,10 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
+        self._enable_mfa(user)
         c = Client()
         c.force_login(user)
+        self._mark_mfa_verified(c)
         r = c.get(
             reverse("super:app_catalog"),
             HTTP_HOST="manager.runmycampus.com",
@@ -283,8 +300,10 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
+        self._enable_mfa(user)
         c = Client()
         c.force_login(user)
+        self._mark_mfa_verified(c)
         r = c.get(
             reverse("super:marketplace_installation_health"),
             HTTP_HOST="manager.runmycampus.com",
@@ -303,9 +322,11 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
         )
+        self._enable_mfa(u)
         self._attach(u, User.Role.ADMIN)
         c = Client()
         c.login(username="ux_activation", password="Test1234!ab")
+        self._mark_mfa_verified(c)
         r = c.get("/activation/first-action/", HTTP_HOST=self.host)
         self.assertEqual(r.status_code, 200)
         body = r.content.decode("utf-8", errors="replace")

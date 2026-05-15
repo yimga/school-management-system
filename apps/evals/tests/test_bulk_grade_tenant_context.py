@@ -4,7 +4,8 @@ from unittest.mock import patch
 from django.test import TestCase, tag
 
 from apps.academics.models import AcademicYear, Term
-from apps.evals.tasks import _infer_school_id_for_bulk_grades
+from apps.evals.tasks import _infer_school_id_for_bulk_grades, process_bulk_grades
+from apps.people.models import StudentProfile
 from apps.schools.models import School
 from apps.schools.rls_context import rls_bypass
 
@@ -41,3 +42,49 @@ class BulkGradeTenantContextTests(TestCase):
                 ),
                 str(school.pk),
             )
+
+    def test_inference_rejects_identifiers_spanning_multiple_schools(self):
+        with rls_bypass():
+            school_a = School.objects.create(
+                name="Bulk Grade School A",
+                slug="bulk-grade-school-a",
+                subdomain="bulk-grade-school-a",
+                is_active=True,
+            )
+            school_b = School.objects.create(
+                name="Bulk Grade School B",
+                slug="bulk-grade-school-b",
+                subdomain="bulk-grade-school-b",
+                is_active=True,
+            )
+            student_a = StudentProfile.objects.create(
+                school=school_a,
+                first_name="Ada",
+                last_name="A",
+                student_code="BULK-A",
+            )
+            student_b = StudentProfile.objects.create(
+                school=school_b,
+                first_name="Ben",
+                last_name="B",
+                student_code="BULK-B",
+            )
+
+        with patch("apps.evals.tasks._requires_explicit_rls_context", return_value=True):
+            with self.assertRaisesMessage(
+                ValueError, "identifiers span multiple schools"
+            ):
+                _infer_school_id_for_bulk_grades(
+                    student_ids=[student_a.pk, student_b.pk],
+                )
+
+    def test_process_bulk_grades_refuses_unscoped_rls_run(self):
+        with patch("apps.evals.tasks._requires_explicit_rls_context", return_value=True):
+            with self.assertRaisesMessage(ValueError, "requires schema_name or school_id"):
+                process_bulk_grades.run(
+                    student_ids=[],
+                    academic_year_id=None,
+                    term_id=None,
+                    schema_name=None,
+                    school_id=None,
+                )

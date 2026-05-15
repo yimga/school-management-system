@@ -19,9 +19,9 @@ def _normalize_async_gateway_metadata(
     country_code: str | None,
     kwargs: dict[str, Any],
 ) -> dict[str, Any]:
-    from apps.portal.ai_provider import _normalize_gateway_metadata
+    from services.ai_helpers import normalize_gateway_metadata
 
-    return _normalize_gateway_metadata(
+    return normalize_gateway_metadata(
         {
             "school": school,
             "school_id": school_id,
@@ -47,7 +47,7 @@ def generate_ai_response_async(
     Heavy AI: Celery worker calls ``services.ai_gateway.invoke("narrative", ...)``; result in cache for UI poll.
     Result key: ai:async_result:{task_id}. Poll with task_id from AsyncResult.id.
     """
-    from services.ai_gateway import invoke
+    from services.ai_helpers import invoke_with_request
     from apps.schools.models import School
 
     school = School.objects.filter(pk=school_id).first()
@@ -69,14 +69,19 @@ def generate_ai_response_async(
     store_result("running")
     try:
         prompt = (system_prompt + "\n\n" + user_prompt).strip() or user_prompt
-        result, meta = invoke(
-            "narrative",
-            prompt,
+        outcome = invoke_with_request(
+            task_type="narrative",
+            prompt=prompt,
+            school=school,
             user_query=user_prompt,
             metadata=_normalize_async_gateway_metadata(
                 school, school_id, country_code, kwargs
             ),
         )
+        if outcome is None:
+            store_result("error", error="unavailable")
+            return {"status": "error", "task_id": task_id, "error": "unavailable"}
+        result, meta = outcome
         text = (
             result
             if isinstance(result, str)
@@ -160,6 +165,7 @@ def apply_support_ticket_ai_triage(ticket_id: str) -> dict[str, Any]:
             "gateway": meta,
             "suggested_reply_preview": preview,
         }
+        # tenant-isolation-allow: GlobalSupportTicket lives in the public schema (see schema_context wrap below); pk filter is globally-unique
         GlobalSupportTicket.objects.filter(pk=tid).update(metadata=md)
         return {"ok": True, "ticket_id": str(tid)}
 

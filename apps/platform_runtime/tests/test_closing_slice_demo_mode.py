@@ -67,6 +67,7 @@ class DemoPortalShellMarkersTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         from apps.accounts.models import User
+        from django_otp.plugins.otp_totp.models import TOTPDevice
 
         cls.staff = User.objects.create_user(
             username="demo_shell_staff",
@@ -75,12 +76,19 @@ class DemoPortalShellMarkersTests(TestCase):
         )
         cls.staff.role = User.Role.ADMIN
         cls.staff.save(update_fields=["role"])
+        TOTPDevice.objects.create(user=cls.staff, name="test-device", confirmed=True)
+
+    def _login_staff_verified(self):
+        self.client.login(username="demo_shell_staff", password="cert-pass-01")
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
 
     @override_settings(RUNMYCAMPUS_DEMO_ENABLED=True, RUNMYCAMPUS_DEMO_MODE=False)
     def test_demo_banner_and_hints_when_enabled(self):
         from django.urls import reverse
 
-        self.client.login(username="demo_shell_staff", password="cert-pass-01")
+        self._login_staff_verified()
         url = reverse("accounts:user_notifications")
         r = self.client.get(url)
         self.assertEqual(r.status_code, 200)
@@ -91,7 +99,7 @@ class DemoPortalShellMarkersTests(TestCase):
     def test_no_demo_banner_when_disabled(self):
         from django.urls import reverse
 
-        self.client.login(username="demo_shell_staff", password="cert-pass-01")
+        self._login_staff_verified()
         r = self.client.get(reverse("accounts:user_notifications"))
         self.assertEqual(r.status_code, 200)
         self.assertNotContains(r, 'data-rmc-demo-sandbox-banner="1"')

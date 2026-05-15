@@ -68,3 +68,12 @@ class LiveVersionEndpointTests(TestCase):
 
         self.assertEqual(response.status_code, 200, msg=response.content[:500])
         self.assertIn("commit_sha", response.json())
+
+    def test_version_endpoint_resolves_on_tenant_urlconf(self):
+        with self.settings(ROOT_URLCONF="config.tenant_urls"):
+            response = Client(HTTP_HOST="demo.runmycampus.com").get("/-/version/")
+
+        self.assertEqual(response.status_code, 200, msg=response.content[:500])
+        payload = response.json()
+        self.assertIn("commit_sha", payload)
+        self.assertIn("app_version", payload)

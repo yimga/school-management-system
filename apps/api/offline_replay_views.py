@@ -8,7 +8,12 @@ import json
 from json import JSONDecodeError
 from django.core.cache import cache
 from django.test import Client
-from rest_framework import status
+from drf_spectacular.utils import (
+    OpenApiResponse,
+    extend_schema,
+    inline_serializer,
+)
+from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -42,6 +47,36 @@ def _allowed_path(path: str) -> bool:
     return any(path.startswith(prefix) for prefix in ALLOWED_PATH_PREFIXES)
 
 
+@extend_schema(
+    tags=["Offline Sync"],
+    summary="Replay a batch of queued offline API calls",
+    description=(
+        "Accepts up to 100 queued mutations and replays each as the current user "
+        "via the in-process test client. Only allowed path prefixes "
+        "(/api/attendance/, /api/entities/, /api/entity/, /api/finance/, "
+        "/api/requests/) are accepted. Returns per-item statuses plus the ids "
+        "the client can safely remove from its outbox."
+    ),
+    request=inline_serializer(
+        name="OfflineReplayBatchRequest",
+        fields={
+            "items": serializers.ListField(child=serializers.DictField()),
+        },
+    ),
+    responses={
+        200: inline_serializer(
+            name="OfflineReplayBatchResponse",
+            fields={
+                "results": serializers.ListField(child=serializers.DictField()),
+                "removed_ids": serializers.ListField(child=serializers.IntegerField()),
+                "failed_count": serializers.IntegerField(),
+                "failed_items": serializers.ListField(child=serializers.DictField()),
+            },
+        ),
+        400: OpenApiResponse(description="Invalid items list or too many items"),
+        403: OpenApiResponse(description="Offline sync disabled by system configuration"),
+    },
+)
 class OfflineReplayBatchAPI(APIView):
     """
     POST body: { "items": [ { "id": 1, "method": "PATCH", "path": "/api/finance/invoices/1/", "body": {...} } ] }
@@ -162,6 +197,23 @@ class OfflineReplayBatchAPI(APIView):
         )
 
 
+@extend_schema(
+    tags=["Offline Sync"],
+    summary="Get role-specific URLs to prefetch for offline use",
+    description=(
+        "Return up to 30 absolute URLs the client should prefetch so they are "
+        "available offline. The set depends on the caller's role (teacher / "
+        "admin / parent / student). Empty when offline_mode is disabled."
+    ),
+    request=None,
+    responses={
+        200: inline_serializer(
+            name="PrefetchUrlsResponse",
+            fields={"urls": serializers.ListField(child=serializers.CharField())},
+        ),
+        401: OpenApiResponse(description="Authentication required"),
+    },
+)
 class PrefetchUrlsAPI(APIView):
     """
     GET: Returns a list of URLs the client should prefetch for offline (Auto-Pilot).
@@ -213,6 +265,27 @@ class PrefetchUrlsAPI(APIView):
         return Response({"urls": urls[:30]})
 
 
+@extend_schema(
+    tags=["Offline Sync"],
+    summary="Read and report client offline-queue metrics",
+    description=(
+        "GET returns the last reported queue metrics (total, by_type) for the "
+        "tenant; POST accepts metrics from a client (e.g. service worker) and "
+        "caches them for admin/analytics surfaces. Both return zeros when "
+        "offline_mode is disabled for the tenant."
+    ),
+    responses={
+        200: inline_serializer(
+            name="QueueMetricsResponse",
+            fields={
+                "total": serializers.IntegerField(required=False),
+                "by_type": serializers.DictField(required=False),
+                "ok": serializers.BooleanField(required=False),
+            },
+        ),
+        403: OpenApiResponse(description="Offline sync disabled by system configuration"),
+    },
+)
 class QueueMetricsAPI(APIView):
     """
     GET: Returns last reported queue metrics (total, by_type) from clients.

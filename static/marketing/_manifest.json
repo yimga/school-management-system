@@ -1,0 +1,135 @@
+{
+  "version": "2026-05-14",
+  "doc": "docs/AI_MEDIA_GENERATION_PIPELINE_2026_05_14.md",
+  "assets": [
+    {
+      "slot": "hero_home",
+      "kind": "video",
+      "expected_path": "static/marketing/video/hero-home.mp4",
+      "mobile_path": "static/marketing/video/hero-home-square.mp4",
+      "caption_path": "static/marketing/captions/hero-home.vtt",
+      "expected_aspect": "16:9",
+      "mobile_aspect": "1:1",
+      "expected_duration_s": 8,
+      "status": "PLACEHOLDER",
+      "vendor_hint": "Sora or Veo",
+      "brief_ref": "docs/AI_MEDIA_GENERATION_PIPELINE_2026_05_14.md#21-sora--veo--hero-homemp4"
+    },
+    {
+      "slot": "hero_platform",
+      "kind": "video",
+      "expected_path": "static/marketing/video/hero-platform.mp4",
+      "caption_path": "static/marketing/captions/hero-platform.vtt",
+      "expected_aspect": "16:9",
+      "expected_duration_s": 10,
+      "status": "PLACEHOLDER",
+      "vendor_hint": "Sora or Veo",
+      "brief_ref": "docs/AI_MEDIA_GENERATION_PIPELINE_2026_05_14.md#22-sora--veo--hero-platformmp4"
+    },
+    {
+      "slot": "hero_migration",
+      "kind": "video",
+      "expected_path": "static/marketing/video/hero-migration.mp4",
+      "mobile_path": "static/marketing/video/hero-migration-vertical.mp4",
+      "caption_path": "static/marketing/captions/hero-migration.vtt",
+      "expected_aspect": "16:9",
+      "mobile_aspect": "9:16",
+      "expected_duration_s": 6,
+      "status": "PLACEHOLDER",
+      "vendor_hint": "Runway Gen-3",
+      "brief_ref": "docs/AI_MEDIA_GENERATION_PIPELINE_2026_05_14.md#23-runway-gen-3--hero-migrationmp4"
+    },
+    {
+      "slot": "hero_northstar",
+      "kind": "video",
+      "expected_path": "static/marketing/video/hero-northstar.mp4",
+      "caption_path": "static/marketing/captions/hero-northstar.vtt",
+      "expected_aspect": "16:9",
+      "expected_duration_s": 12,
+      "status": "PLACEHOLDER",
+      "vendor_hint": "Sora",
+      "brief_ref": "docs/AI_MEDIA_GENERATION_PIPELINE_2026_05_14.md#24-sora--hero-northstarmp4"
+    },
+    {
+      "slot": "walkthrough_platform",
+      "kind": "video",
+      "expected_path": "static/marketing/video/walkthrough-platform.mp4",
+      "caption_path": "static/marketing/captions/walkthrough-platform.vtt",
+      "expected_duration_s": 240,
+      "status": "PLACEHOLDER",
+      "vendor_hint": "Synthesia or filmed + Descript"
+    },
+    {
+      "slot": "walkthrough_migration",
+      "kind": "video",
+      "expected_path": "static/marketing/video/walkthrough-migration.mp4",
+      "caption_path": "static/marketing/captions/walkthrough-migration.vtt",
+      "expected_duration_s": 180,
+      "status": "PLACEHOLDER",
+      "vendor_hint": "Loom or Descript"
+    },
+    {
+      "slot": "walkthrough_onboarding",
+      "kind": "video",
+      "expected_path": "static/marketing/video/walkthrough-onboarding.mp4",
+      "caption_path": "static/marketing/captions/walkthrough-onboarding.vtt",
+      "expected_duration_s": 300,
+      "status": "PLACEHOLDER",
+      "vendor_hint": "Filmed"
+    },
+    {
+      "slot": "hero_global_os",
+      "kind": "image",
+      "expected_path": "static/marketing/img/hero-global-os.png",
+      "fallback_svg": "static/images/marketing/hero-global-os-composite.svg",
+      "status": "PLACEHOLDER_SVG",
+      "vendor_hint": "Midjourney v6",
+      "brief_ref": "docs/AI_MEDIA_GENERATION_PIPELINE_2026_05_14.md#25-midjourney-v6--illustrations"
+    },
+    {
+      "slot": "health_score",
+      "kind": "image",
+      "expected_path": "static/marketing/img/health-score-render.png",
+      "fallback_svg": "static/images/marketing/health-score-visual.svg",
+      "status": "PLACEHOLDER_SVG",
+      "vendor_hint": "Midjourney v6"
+    },
+    {
+      "slot": "control_plane_diagram",
+      "kind": "image",
+      "expected_path": "static/marketing/img/control-plane-diagram.png",
+      "fallback_svg": "static/images/marketing/control-plane-diagram.svg",
+      "status": "PLACEHOLDER_SVG",
+      "vendor_hint": "Midjourney v6"
+    },
+    {
+      "slot": "global_map",
+      "kind": "image",
+      "expected_path": "static/marketing/img/global-map-render.png",
+      "fallback_svg": "static/images/marketing/global-map.svg",
+      "status": "PLACEHOLDER_SVG",
+      "vendor_hint": "Midjourney v6"
+    },
+    {
+      "slot": "illustration_workflow",
+      "kind": "image",
+      "expected_path": "static/marketing/img/illustration-workflow-render.png",
+      "fallback_svg": "static/images/marketing/illustration-workflow.svg",
+      "status": "PLACEHOLDER_SVG"
+    },
+    {
+      "slot": "illustration_students",
+      "kind": "image",
+      "expected_path": "static/marketing/img/illustration-students-render.png",
+      "fallback_svg": "static/images/marketing/illustration-students.svg",
+      "status": "PLACEHOLDER_SVG"
+    },
+    {
+      "slot": "ecosystem_diagram",
+      "kind": "image",
+      "expected_path": "static/marketing/img/ecosystem-diagram-render.png",
+      "fallback_svg": "static/images/marketing/ecosystem-diagram.svg",
+      "status": "PLACEHOLDER_SVG"
+    }
+  ]
+}

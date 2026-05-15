@@ -2,7 +2,7 @@
   "version": 1,
   "source": "apps.api.api_v1_manifest.MANIFEST_CURATED_API_V1_URL_NAMES",
   "curated_url_name_count": 38,
-  "snapshot_name_count": 56,
+  "snapshot_name_count": 62,
   "non_curated": [
     "billing-quote-accept",
     "finance-disputes-create",
@@ -12,6 +12,11 @@
     "intervention-action-center-detail",
     "intervention-generate-roadmap",
     "manifest",
+    "marketplace-apps",
+    "marketplace-scopes",
+    "marketplace-submissions",
+    "migration-job-errors-csv",
+    "migration-job-status",
     "reports-adhoc-run",
     "reports-emis-submit",
     "reports-scheduled-detail",
@@ -21,6 +26,7 @@
     "vocational-certifications-expiring",
     "vocational-digital-badge",
     "vocational-log-hours",
-    "vocational-verify-skill"
+    "vocational-verify-skill",
+    "webhooks-event-types"
   ]
 }

@@ -45,7 +45,7 @@ Derive the next slice from, in order:
 
 ### Project overview
 
-Gilead School Management System is a multi-tenant Django 5.x SaaS platform for schools with a Cameroon/Africa focus. It is a single Django project with apps under `apps/`, plus `emis/` and `payment/`.
+RunMyCampus is a multi-tenant Django 5.x SaaS platform for schools with a Cameroon/Africa focus. It is a single Django project with apps under `apps/`, plus `emis/` and `payment/`.
 
 ### Tech stack
 
@@ -61,8 +61,8 @@ python3 manage.py runserver 0.0.0.0:8000
 
 The app uses multi-tenant routing. Local URLs may use tenant paths or host-based routing depending on the environment:
 
-- Login: `http://localhost:8000/t/gilead-school/authentication/login/`
-- Backend dashboard: `http://localhost:8000/t/gilead-school/authentication/backend/`
+- Login: `http://localhost:8000/t/demo-school/authentication/login/`
+- Backend dashboard: `http://localhost:8000/t/demo-school/authentication/backend/`
 - Django admin: `http://localhost:8000/admin/`
 
 ### Default local accounts
@@ -77,7 +77,7 @@ After a fresh migrate, run `python3 manage.py ensure_superuser --password Sch00l
 
 ### Database
 
-Local development can use SQLite. If `.env.local` contains a Windows-style `DB_FILE=%TEMP%\gilead_db.sqlite3` and you are on Linux/Cursor Cloud, override it with `DB_FILE=db_working.sqlite3`.
+Local development can use SQLite. If `.env.local` contains a Windows-style temp-path `DB_FILE` and you are on Linux/Cursor Cloud, override it with `DB_FILE=db_working.sqlite3`.
 
 ### Running tests and checks
 

@@ -50,14 +50,33 @@ def compute_payment_readiness(
 
     checklist: list[dict[str, Any]] = []
 
+    # Country example list now sourced from CountryRegistry (registry-driven, not hardcoded).
+    # Falls back to a translatable generic string when the registry has not been seeded yet.
+    if not cc:
+        try:
+            from apps.registries.models import CountryRegistry
+
+            _sample_country_names = list(
+                CountryRegistry.objects.filter(is_active=True)
+                .order_by("name")
+                .values_list("name", flat=True)[:6]
+            )
+        except Exception:
+            _sample_country_names = []
+        if _sample_country_names:
+            _country_detail = str(_("Choose your country (e.g. {examples}).").format(
+                examples=", ".join(_sample_country_names)
+            ))
+        else:
+            _country_detail = str(_("Choose your country on the compliance profile."))
+    else:
+        _country_detail = cc
     checklist.append(
         {
             "id": "country",
             "label": "School country on finance profile",
             "done": bool(cc),
-            # TODO(config): country list should come from CountryRegistry.objects.filter(is_active=True)
-            # rather than a hardcoded sample. Translatable for the time being.
-            "detail": cc or str(_("Choose your country (e.g. Cameroon, Ghana, Nigeria, Kenya, US, GB, EU).")),
+            "detail": _country_detail,
         }
     )
 

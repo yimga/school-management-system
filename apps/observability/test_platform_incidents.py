@@ -64,10 +64,13 @@ class PlatformIncidentConsoleTests(TestCase):
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertEqual(payload["status"], "success")
-        self.assertEqual(len(payload["incidents"]), 1)
-        self.assertEqual(
-            payload["incidents"][0]["status"], PlatformIncident.Status.OPEN
-        )
+        incident_rows = [
+            row
+            for row in payload["incidents"]
+            if str(row["id"]) == str(self.incident.id)
+        ]
+        self.assertEqual(len(incident_rows), 1)
+        self.assertEqual(incident_rows[0]["status"], PlatformIncident.Status.OPEN)
 
         response = self.client.post(
             f"/api/observability/incidents/{self.incident.id}/status/",

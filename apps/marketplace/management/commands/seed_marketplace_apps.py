@@ -314,6 +314,263 @@ FIRST_PARTY_APPS = [
             "wedge_ids": [1, 6, 31, 43],
         },
     },
+    # === 2026-05-14 wave NS-3 expansion: messaging / payments / SIS+LMS bridges / verticals ===
+    {
+        "slug": "messaging-sms-gateway",
+        "name": "Messaging — SMS gateway",
+        "description": "Send SMS via Twilio / Africa's Talking / Termii. Per-tenant credentials + delivery audit.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["communication", "integrations"],
+            "widgets": [],
+            "wedge_ids": [15, 24, 25, 44],
+        },
+    },
+    {
+        "slug": "messaging-whatsapp-broadcast",
+        "name": "Messaging — WhatsApp Business broadcast",
+        "description": "Approved-template broadcasts via WhatsApp Business API. Opt-in workflow + DPA.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["communication", "integrations"],
+            "widgets": [],
+            "wedge_ids": [15, 24, 25, 44],
+        },
+    },
+    {
+        "slug": "messaging-email-deliverability-pack",
+        "name": "Messaging — Email deliverability pack",
+        "description": "Per-tenant SPF/DKIM/DMARC config + bounce-rate dashboard. SES / Postmark / Mailgun adapters.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["communication", "integrations"],
+            "widgets": [],
+            "wedge_ids": [15, 25, 44],
+        },
+    },
+    {
+        "slug": "payments-stripe-connect",
+        "name": "Payments — Stripe Connect",
+        "description": "Tenant-billed Stripe Connect onboarding + revenue share for marketplace app sellers.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["finance", "integrations"],
+            "widgets": [],
+            "wedge_ids": [15, 32, 36, 44],
+        },
+    },
+    {
+        "slug": "payments-flutterwave-momo",
+        "name": "Payments — Flutterwave / Mobile Money",
+        "description": "MoMo, MTN, Orange, M-Pesa wallets via Flutterwave. West / East Africa optimized.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["finance", "integrations"],
+            "widgets": [],
+            "wedge_ids": [15, 32, 36],
+        },
+    },
+    {
+        "slug": "payments-paystack",
+        "name": "Payments — Paystack",
+        "description": "Paystack gateway for Nigeria / Ghana / Kenya / SA. Direct debit + recurring + invoice links.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["finance", "integrations"],
+            "widgets": [],
+            "wedge_ids": [15, 32, 36],
+        },
+    },
+    {
+        "slug": "payments-razorpay",
+        "name": "Payments — Razorpay (India)",
+        "description": "Razorpay UPI / NetBanking / cards for India. Sub-merchant onboarding.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["finance", "integrations"],
+            "widgets": [],
+            "wedge_ids": [15, 32, 36],
+        },
+    },
+    {
+        "slug": "sis-bridge-powerschool",
+        "name": "SIS bridge — PowerSchool",
+        "description": "Bidirectional roster / grade sync with PowerSchool. OneRoster v1.2 compatible.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["migration_import", "integrations"],
+            "widgets": [],
+            "wedge_ids": [1, 4, 44],
+        },
+    },
+    {
+        "slug": "sis-bridge-clever",
+        "name": "SIS bridge — Clever",
+        "description": "Clever rostering: SSO + roster sync + SAML JIT provisioning.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["identity", "integrations"],
+            "widgets": [],
+            "wedge_ids": [1, 2, 44, 45],
+        },
+    },
+    {
+        "slug": "sis-bridge-classlink",
+        "name": "SIS bridge — ClassLink",
+        "description": "ClassLink rostering + SSO + OneRoster sync.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["identity", "integrations"],
+            "widgets": [],
+            "wedge_ids": [1, 2, 44, 45],
+        },
+    },
+    {
+        "slug": "sis-bridge-oneroster-v1p2",
+        "name": "SIS bridge — OneRoster v1.2",
+        "description": "Generic OneRoster 1.2 producer + consumer. REST + bulk CSV.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["migration_import", "integrations"],
+            "widgets": [],
+            "wedge_ids": [1, 4, 44],
+        },
+    },
+    {
+        "slug": "lms-bridge-canvas",
+        "name": "LMS bridge — Canvas",
+        "description": "Canvas LTI 1.3 + Names & Roles + Assignment & Grades passback.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["academics", "integrations"],
+            "widgets": [],
+            "wedge_ids": [4, 26, 44],
+        },
+    },
+    {
+        "slug": "lms-bridge-google-classroom",
+        "name": "LMS bridge — Google Classroom",
+        "description": "Google Classroom course + roster + grade sync via Google Workspace for Education.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["academics", "integrations"],
+            "widgets": [],
+            "wedge_ids": [4, 26, 44],
+        },
+    },
+    {
+        "slug": "lms-bridge-microsoft-teams",
+        "name": "LMS bridge — Microsoft Teams for Education",
+        "description": "MS Teams class teams + assignments + grade passback via Graph API.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["academics", "integrations"],
+            "widgets": [],
+            "wedge_ids": [4, 26, 44],
+        },
+    },
+    {
+        "slug": "timetable-scheduling-pro",
+        "name": "Timetable — Master scheduling Pro",
+        "description": "Constraint-based master timetable + room booking + teacher load balancing.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["academics", "workflow"],
+            "widgets": [],
+            "wedge_ids": [4, 14, 16, 21, 22],
+        },
+    },
+    {
+        "slug": "library-asset-tracker",
+        "name": "Library & asset tracker",
+        "description": "Library checkout + barcode scan + asset depreciation + lost-item workflow.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["academics", "finance"],
+            "widgets": [],
+            "wedge_ids": [4, 32, 33],
+        },
+    },
+    {
+        "slug": "cafeteria-meal-plans",
+        "name": "Cafeteria & meal plans",
+        "description": "Meal plan subscriptions, allergen registry, daily POS integration.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["finance", "academics"],
+            "widgets": [],
+            "wedge_ids": [15, 32, 33],
+        },
+    },
+    {
+        "slug": "medical-clinic-records",
+        "name": "Medical / clinic records",
+        "description": "School nurse visit log + immunization registry + medication consent (HIPAA-aware schema).",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["academics", "compliance"],
+            "widgets": [],
+            "wedge_ids": [6, 20, 43],
+        },
+    },
+    {
+        "slug": "boarding-house-management",
+        "name": "Boarding house / dorm management",
+        "description": "Dorm assignment + curfew tracking + visitor logs + parent permissions.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["academics", "communication"],
+            "widgets": [],
+            "wedge_ids": [6, 19, 33, 43],
+        },
+    },
+    {
+        "slug": "transport-route-optimizer",
+        "name": "Transport route optimizer",
+        "description": "Daily bus-route optimization with student stop assignments and GPS handoff.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["transport", "workflow"],
+            "widgets": [],
+            "wedge_ids": [14, 16, 33],
+        },
+    },
+    # === 2026-05-14 wave NS-4: deep expansion to ~70 apps ===
+    # Communication channels
+    {"slug": "messaging-voice-broadcast", "name": "Messaging — Voice broadcast", "description": "IVR / voice-call broadcasts via Twilio / Vonage / Africa's Talking voice. Per-channel rate-limit + opt-in audit.", "version": "1.0", "manifest": {"scopes": ["messaging:write", "communication"], "widgets": [], "wedge_ids": [15, 24, 25]}},
+    {"slug": "messaging-push-notifications", "name": "Messaging — Push notifications", "description": "FCM + APNs push to RunMyCampus mobile apps. Topic + per-user targeting.", "version": "1.0", "manifest": {"scopes": ["messaging:write", "communication"], "widgets": [], "wedge_ids": [15, 25]}},
+    {"slug": "messaging-emergency-alert-system", "name": "Messaging — Emergency alert system", "description": "Multi-channel emergency broadcast (SMS + voice + push + email + WhatsApp) with delivery audit and drill mode.", "version": "1.0", "manifest": {"scopes": ["messaging:write", "communication"], "widgets": [], "wedge_ids": [15, 25, 42]}},
+    # SIS / LMS additions
+    {"slug": "sis-bridge-skyward", "name": "SIS bridge — Skyward", "description": "Skyward SIS bridge with bidirectional roster + grade sync.", "version": "1.0", "manifest": {"scopes": ["rostering:read", "rostering:write", "integrations:configure"], "widgets": [], "wedge_ids": [1, 4, 44]}},
+    {"slug": "sis-bridge-veracross", "name": "SIS bridge — Veracross", "description": "Veracross SIS bridge for independent schools.", "version": "1.0", "manifest": {"scopes": ["rostering:read", "rostering:write", "integrations:configure"], "widgets": [], "wedge_ids": [1, 4, 44]}},
+    {"slug": "sis-bridge-blackbaud-rene", "name": "SIS bridge — Blackbaud Education Management", "description": "Blackbaud Education Management (Re-Engage) bidirectional bridge.", "version": "1.0", "manifest": {"scopes": ["rostering:read", "rostering:write", "integrations:configure"], "widgets": [], "wedge_ids": [1, 4, 44]}},
+    {"slug": "lms-bridge-moodle", "name": "LMS bridge — Moodle", "description": "Moodle LTI 1.3 + REST adapter for grade and course sync.", "version": "1.0", "manifest": {"scopes": ["lms:read", "lms:write", "integrations:configure"], "widgets": [], "wedge_ids": [4, 26, 44]}},
+    {"slug": "lms-bridge-schoology", "name": "LMS bridge — Schoology", "description": "Schoology LMS bridge with assignment + grade passback.", "version": "1.0", "manifest": {"scopes": ["lms:read", "lms:write", "integrations:configure"], "widgets": [], "wedge_ids": [4, 26, 44]}},
+    # Identity / SSO
+    {"slug": "identity-google-sso", "name": "Identity — Google Workspace SSO", "description": "Google Workspace for Education SSO + JIT provisioning.", "version": "1.0", "manifest": {"scopes": ["identity:read", "identity:provision"], "widgets": [], "wedge_ids": [2, 44, 45]}},
+    {"slug": "identity-azure-ad-sso", "name": "Identity — Microsoft Entra (Azure AD) SSO", "description": "Entra ID OIDC + SAML SSO with group-based role mapping.", "version": "1.0", "manifest": {"scopes": ["identity:read", "identity:provision"], "widgets": [], "wedge_ids": [2, 44, 45]}},
+    {"slug": "identity-okta-sso", "name": "Identity — Okta SSO", "description": "Okta OIDC / SAML SSO + SCIM provisioning.", "version": "1.0", "manifest": {"scopes": ["identity:read", "identity:provision"], "widgets": [], "wedge_ids": [2, 44, 45]}},
+    # Specialty / niche tools
+    {"slug": "specialty-music-program", "name": "Specialty — Music Program", "description": "Instrument inventory, lesson schedules, recital workflow.", "version": "1.0", "manifest": {"scopes": ["academics"], "widgets": [], "wedge_ids": [4, 26]}},
+    {"slug": "specialty-athletics-eligibility", "name": "Specialty — Athletics Eligibility", "description": "Student-athlete eligibility tracker (academics + attendance + clearance).", "version": "1.0", "manifest": {"scopes": ["academics", "compliance"], "widgets": [], "wedge_ids": [6, 20, 31]}},
+    {"slug": "specialty-extracurricular-clubs", "name": "Specialty — Extracurricular Clubs", "description": "Club roster + meetings + permission slips.", "version": "1.0", "manifest": {"scopes": ["academics", "communication"], "widgets": [], "wedge_ids": [4, 25]}},
+    {"slug": "specialty-special-education-iep", "name": "Specialty — Special Education / IEP", "description": "IEP plan authoring, accommodation tracking, parent sign-off.", "version": "1.0", "manifest": {"scopes": ["academics", "compliance", "medical:read"], "widgets": [], "wedge_ids": [4, 20, 31, 43]}},
+    {"slug": "specialty-pastoral-care", "name": "Specialty — Pastoral / Counseling Care", "description": "Counselor caseload + intervention notes + parent meeting log.", "version": "1.0", "manifest": {"scopes": ["academics", "communication"], "widgets": [], "wedge_ids": [4, 25, 31, 43]}},
+    {"slug": "specialty-after-school-program", "name": "Specialty — After-school Program", "description": "After-school program enrollment + attendance + parent pickup.", "version": "1.0", "manifest": {"scopes": ["academics", "finance"], "widgets": [], "wedge_ids": [15, 25, 33]}},
+    # Alumni / Development
+    {"slug": "alumni-engagement-pack", "name": "Alumni — Engagement Pack", "description": "Alumni directory + event RSVP + outreach campaigns.", "version": "1.0", "manifest": {"scopes": ["communication", "people"], "widgets": [], "wedge_ids": [25, 38]}},
+    {"slug": "alumni-development-fundraising", "name": "Alumni — Development / Fundraising", "description": "Donation pipeline + pledge tracking + receipts.", "version": "1.0", "manifest": {"scopes": ["finance", "communication"], "widgets": [], "wedge_ids": [15, 32, 38]}},
+    # Vendor / Procurement
+    {"slug": "procurement-vendor-management", "name": "Procurement — Vendor Management", "description": "Vendor catalog + PO workflow + invoice matching.", "version": "1.0", "manifest": {"scopes": ["finance", "workflow"], "widgets": [], "wedge_ids": [15, 32, 36]}},
+    # Backup / DR
+    {"slug": "backup-disaster-recovery", "name": "Backup & Disaster Recovery", "description": "Per-tenant backup snapshot + restore wizard + DR drill scheduler.", "version": "1.0", "manifest": {"scopes": ["compliance", "integrations:configure"], "widgets": [], "wedge_ids": [20, 42, 44], "required_commercial_tier": "enterprise"}},
+    # Hardware / IoT
+    {"slug": "iot-biometric-attendance", "name": "IoT — Biometric Attendance", "description": "Fingerprint / RFID device adapter for attendance capture.", "version": "1.0", "manifest": {"scopes": ["attendance:write", "integrations:configure"], "widgets": [], "wedge_ids": [23, 33, 44]}},
+    {"slug": "iot-rfid-asset-tracking", "name": "IoT — RFID Asset Tracking", "description": "RFID asset gates + loss-prevention alerts.", "version": "1.0", "manifest": {"scopes": ["library:write", "compliance"], "widgets": [], "wedge_ids": [33, 44]}},
+    # Country-bundle starter packs
+    {"slug": "country-bundle-nigeria", "name": "Country bundle — Nigeria", "description": "Nigeria starter: WAEC alignment, Naira currency, mobile-first parent portal.", "version": "1.0", "manifest": {"scopes": ["setup"], "widgets": [], "wedge_ids": [1, 17]}},
+    {"slug": "country-bundle-kenya", "name": "Country bundle — Kenya", "description": "Kenya starter: KCSE alignment, M-Pesa via Flutterwave, SMS-first parent comms.", "version": "1.0", "manifest": {"scopes": ["setup"], "widgets": [], "wedge_ids": [1, 17]}},
+    {"slug": "country-bundle-india", "name": "Country bundle — India", "description": "India starter: CBSE alignment, Razorpay UPI, regional language packs (Hindi + Tamil + Bengali).", "version": "1.0", "manifest": {"scopes": ["setup"], "widgets": [], "wedge_ids": [1, 17]}},
 ]
 
 

@@ -20,11 +20,11 @@ from apps.accounts.utils import get_user_role
 from apps.compliance.models import AuditLog
 from django.core.cache import cache
 from apps.portal.ai_provider import (
-    _normalize_gateway_metadata,
     generate_ai_response,
     get_public_ai_provider_status,
     probe_ai_provider_reachable,
 )
+from services.ai_helpers import normalize_gateway_metadata
 from apps.platform_runtime.structured_logging import (
     log_exception_with_context,
     log_view_exception,
@@ -379,7 +379,7 @@ def ai_copilot_query(request):
         response_text, provider_meta = generate_ai_response(
             prompt,
             user_query=user_query,
-            metadata=_normalize_gateway_metadata(
+            metadata=normalize_gateway_metadata(
                 {
                     "request": request,
                     "school": getattr(request, "school", None),

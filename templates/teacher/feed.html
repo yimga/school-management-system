@@ -26,7 +26,9 @@
       {% if item.link_url %}<a href="{{ item.link_url }}" class="small">{{ item.link_label|default:item.link_url }}</a>{% endif %}
     </div>
     {% empty %}
-    <p class="text-muted">{% trans "No feed items yet." %}</p>
+    <div class="rmc-empty rmc-empty--inline" role="status" aria-live="polite">
+      <p class="rmc-empty__message">{% trans "No feed items yet." %}</p>
+    </div>
     {% endfor %}
   </div>
 </div>

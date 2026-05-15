@@ -5,6 +5,8 @@ Do **not** treat configuration inside RunMyCampus as proof of PSP approval — p
 
 Cross-reference: **`docs/payments/PAYMENT_ENVIRONMENT_CONTRACT.md`**, **`docs/payments/PAYMENT_BLOCKER_CLASSIFICATION.md`**, **`docs/external_dependencies_register.json`**, **`python manage.py check_payment_gateways --mode=metadata`**.
 
+**Current execution note (2026-05-13):** Repo readiness remains complete for metadata checks and webhook rails, but no provider row can move to **`verified_live`** until an operator supplies provider evidence. Minimum evidence package per corridor: merchant approval screenshot/export, staging/prod secret names configured outside Git, webhook secret configured, settlement account confirmation, one supervised live or approved test transaction where policy allows, and payout/settlement confirmation. Keep secrets out of this file.
+
 Legend for each row:
 
 | Column | Meaning |

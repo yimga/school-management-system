@@ -5,31 +5,29 @@
 <div class="container py-5">
   {% include "components/world_class_page_hero.html" with hero_id="pricing-packages-title" role=_("Buyers and operators") title=_("Packages") subtitle=live_psp_caveat purpose=_("Package comparison") status=_("Payment readiness honest") primary_url="/book-demo/" primary_label=_("Book demo") secondary_url="/trust/" secondary_label=_("Review trust posture") visual_title=_("Compare impact before rollout") visual_body=_("Entitlements, usage posture, support, marketplace access, and PSP caveats stay visible before a buyer chooses a package.") %}
   {% include "components/world_class_summary_strip.html" with readiness="Package fit" readiness_label=_("Compare modules") risk=_("PSP external") risk_label=_("No live payment claim") next_step=_("Demo") next_step_label=_("Guided buyer action") blockers=_("Settlement") blockers_label=_("External proof required") %}
-  <div class="row g-4">
+  <div class="bento-grid">
     {% for p in packages %}
-    <div class="col-lg-6">
-      <section class="card h-100 shadow-sm border-0 rmc-wcx-surface" data-world-class-package-card="1">
-        <div class="card-body d-flex flex-column">
-          <h1 class="h5">{{ p.label }}</h1>
-          <p class="small text-muted">{% trans "Targets:" %} {{ p.target_school_types|join:", " }}</p>
-          <h3 class="h6 mt-2">{% trans "Included" %}</h3>
-          <ul class="small">
-            {% for m in p.included_modules %}<li>{{ m }}</li>{% endfor %}
-          </ul>
-          <h3 class="h6">{% trans "Add-ons" %}</h3>
-          <ul class="small">
-            {% for m in p.optional_add_ons %}<li>{{ m }}</li>{% endfor %}
-          </ul>
-          <p class="small mb-1"><strong>{% trans "Offline" %}:</strong> {{ p.offline_support }}</p>
-          <p class="small mb-1"><strong>{% trans "Payments" %}:</strong> {{ p.payment_support }}</p>
-          <p class="small mb-1"><strong>{% trans "Marketplace" %}:</strong> {{ p.marketplace_access }}</p>
-          <p class="small mb-1"><strong>{% trans "Implementation" %}:</strong> {{ p.implementation_support }}</p>
-          <p class="small mb-3"><strong>{% trans "Support SLA" %}:</strong> {{ p.support_sla_wording }}</p>
-          <p class="small mb-3" data-world-class-billing-impact-preview="1"><strong>{% trans "Billing impact preview" %}:</strong> {% trans "Final billing requires contract, package confirmation, and external PSP readiness where payments are used." %}</p>
-          <a class="btn btn-primary mt-auto align-self-start" href="{{ p.cta_url }}">{{ p.cta_label }}</a>
-        </div>
-      </section>
-    </div>
+    <section class="bento-panel h-100 shadow-sm border-0 rmc-wcx-surface" data-world-class-package-card="1">
+      <div class="card-body d-flex flex-column">
+        <h1 class="h5">{{ p.label }}</h1>
+        <p class="small text-muted">{% trans "Targets:" %} {{ p.target_school_types|join:", " }}</p>
+        <h3 class="h6 mt-2">{% trans "Included" %}</h3>
+        <ul class="small">
+          {% for m in p.included_modules %}<li>{{ m }}</li>{% endfor %}
+        </ul>
+        <h3 class="h6">{% trans "Add-ons" %}</h3>
+        <ul class="small">
+          {% for m in p.optional_add_ons %}<li>{{ m }}</li>{% endfor %}
+        </ul>
+        <p class="small mb-1"><strong>{% trans "Offline" %}:</strong> {{ p.offline_support }}</p>
+        <p class="small mb-1"><strong>{% trans "Payments" %}:</strong> {{ p.payment_support }}</p>
+        <p class="small mb-1"><strong>{% trans "Marketplace" %}:</strong> {{ p.marketplace_access }}</p>
+        <p class="small mb-1"><strong>{% trans "Implementation" %}:</strong> {{ p.implementation_support }}</p>
+        <p class="small mb-3"><strong>{% trans "Support SLA" %}:</strong> {{ p.support_sla_wording }}</p>
+        <p class="small mb-3" data-world-class-billing-impact-preview="1"><strong>{% trans "Billing impact preview" %}:</strong> {% trans "Final billing requires contract, package confirmation, and external PSP readiness where payments are used." %}</p>
+        <a class="btn btn-primary mt-auto align-self-start" href="{{ p.cta_url }}">{{ p.cta_label }}</a>
+      </div>
+    </section>
     {% endfor %}
   </div>
   <p class="small text-muted mt-4">

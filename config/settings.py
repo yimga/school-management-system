@@ -210,12 +210,14 @@ INSTALLED_APPS = [
     "apps.compliance.apps.ComplianceConfig",
     "apps.communication",
     "apps.requests",
+    "apps.feedback.apps.FeedbackConfig",
     "apps.observability.apps.ObservabilityConfig",  # Observability/monitoring
     "apps.customersuccess",  # Section 11: Benchmark intelligence, customer success, health
     "apps.api",
     "apps.sync_engine.apps.SyncEngineConfig",
     "apps.apicenter",
     "apps.automation",  # Automation and background tasks
+    "apps.migration_cloud.apps.MigrationCloudConfig",  # Universal Migration Cloud (Phase U1+)
     "apps.metadata.apps.MetadataConfig",  # Custom fields without DDL (metadata engine)
     "apps.packages.apps.PackagesConfig",  # PackageEngine: validate/preview/apply/rollback (metadata plan todo 5)
     "apps.brand_experience.apps.BrandExperienceConfig",  # Bounded-context shell (metadata plan todo 2)
@@ -307,6 +309,12 @@ MIDDLEWARE += [
     # Phase 5: Observability middleware (A4: request_id, tenant_id on logs)
     "apps.observability.middleware.RequestIdLoggingMiddleware",
     "apps.observability.middleware.ObservabilityMiddleware",  # Prometheus request metrics
+    # Wave C — G2: count one db_session per authenticated browser session per UTC day.
+    "apps.billing.middleware_metering.DBSessionMeteringMiddleware",
+    # Wave E — G4: soft-log (or strict-raise) cross-region data residency mismatches.
+    # Flip DATA_RESIDENCY_ENFORCE=True once region replicas are provisioned and
+    # `manage.py verify_data_residency --fix-derive` has been run.
+    "apps.schools.middleware_residency.DataResidencyMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # Content-Security-Policy (Report-Only by default; flip CSP_ENFORCE=True
     # once high-traffic surfaces report zero violations). Last in the chain so
@@ -316,6 +324,13 @@ MIDDLEWARE += [
 
 # CSP defaults — report-only until the inline-style/script footprint is closed.
 CSP_ENFORCE = os.getenv("CSP_ENFORCE", "0") == "1"
+
+# Wave E — G4 (Gap 3, 2026-05-15): data residency enforcement toggle.
+# False (default): DataResidencyMiddleware soft-logs cross-region mismatches.
+# True: same middleware raises CrossRegionWriteError on mismatch, bubbling to a 500.
+# Flip only after `manage.py verify_data_residency --fix-derive` is clean
+# AND at least one region replica is provisioned in DATABASES.
+DATA_RESIDENCY_ENFORCE = os.getenv("DATA_RESIDENCY_ENFORCE", "0") == "1"
 CSP_REPORT_URI = os.getenv("CSP_REPORT_URI", "/security/csp-report/")
 
 ROOT_URLCONF = "config.urls"
@@ -350,6 +365,7 @@ TEMPLATES = [
                 "apps.siteconfig.breadcrumb_context.page_metadata_context",
                 "apps.siteconfig.context_processors.region_settings",
                 "apps.siteconfig.context_processors.language_context",
+                "apps.siteconfig.context_processors.lexicon_context",  # Wave A — G1 tenant terminology overrides
                 "apps.accounts.context_processors.dashboard_context",  # Dashboard header/footer data
                 "apps.accounts.context_processors.sidebar_record_context",
                 "apps.schools.context_processors.marketing_base_url",  # MARKETING_BASE_URL for cross-host links
@@ -1863,6 +1879,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.sync_engine.apps.SyncEngineConfig",
         "apps.apicenter",
         "apps.automation",
+        "apps.migration_cloud.apps.MigrationCloudConfig",
         "apps.requests",
         "apps.billing",
         "apps.sales.apps.SalesConfig",
@@ -1893,6 +1910,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.evals",
         "apps.reports",
         "apps.communication",
+        "apps.feedback.apps.FeedbackConfig",
         "apps.analytics",
         "apps.payroll",
         "apps.school_events",

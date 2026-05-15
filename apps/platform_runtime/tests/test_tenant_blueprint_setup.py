@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django.test import Client, TestCase, override_settings
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.platform_runtime.models import BlueprintInstallation
@@ -38,10 +39,21 @@ class TenantBlueprintSetupTests(TestCase):
             role=User.Role.SUPERADMIN,
             is_staff=True,
         )
+        TOTPDevice.objects.create(user=self.admin, name="test-device", confirmed=True)
+
+    def _admin_client(self):
+        client = Client(
+            HTTP_HOST="tenant-blueprints.runmycampus.com",
+            raise_request_exception=False,
+        )
+        client.login(username="tenant_blueprint_admin", password="x" * 8)
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
+        return client
 
     def test_school_admin_can_access_tenant_blueprint_setup(self):
-        client = Client(HTTP_HOST="tenant-blueprints.runmycampus.com", raise_request_exception=False)
-        client.login(username="tenant_blueprint_admin", password="x" * 8)
+        client = self._admin_client()
 
         response = client.get("/school/setup/blueprints/")
 
@@ -51,8 +63,7 @@ class TenantBlueprintSetupTests(TestCase):
         self.assertIn("Private Primary School", body)
 
     def test_tenant_user_cannot_see_platform_only_blueprint_management(self):
-        client = Client(HTTP_HOST="tenant-blueprints.runmycampus.com", raise_request_exception=False)
-        client.login(username="tenant_blueprint_admin", password="x" * 8)
+        client = self._admin_client()
 
         response = client.get("/school/setup/blueprints/")
         body = response.content.decode("utf-8", errors="replace")
@@ -61,8 +72,7 @@ class TenantBlueprintSetupTests(TestCase):
         self.assertNotIn("/configuration/blueprints/", body)
 
     def test_tenant_apply_only_affects_own_school(self):
-        client = Client(HTTP_HOST="tenant-blueprints.runmycampus.com", raise_request_exception=False)
-        client.login(username="tenant_blueprint_admin", password="x" * 8)
+        client = self._admin_client()
 
         response = client.post(
             "/school/setup/blueprints/",
@@ -79,8 +89,7 @@ class TenantBlueprintSetupTests(TestCase):
         self.assertFalse(BlueprintInstallation.objects.filter(school=self.other).exists())
 
     def test_external_blockers_remain_honest(self):
-        client = Client(HTTP_HOST="tenant-blueprints.runmycampus.com", raise_request_exception=False)
-        client.login(username="tenant_blueprint_admin", password="x" * 8)
+        client = self._admin_client()
 
         response = client.get("/school/setup/blueprints/?blueprint=cameroon-gce-school&preview=1")
 

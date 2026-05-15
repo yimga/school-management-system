@@ -1,0 +1,72 @@
+{
+  "allow_comment_prefix": "# rls-bypass-allow:",
+  "finding_count": 12,
+  "findings": [
+    {
+      "call": ".execute() (cursor)",
+      "line": 202,
+      "path": "apps/migration_cloud/intake/access_intake.py"
+    },
+    {
+      "call": ".execute() (cursor)",
+      "line": 147,
+      "path": "apps/people/repositories/audit_repository.py"
+    },
+    {
+      "call": ".execute() (cursor)",
+      "line": 208,
+      "path": "apps/people/repositories/audit_repository.py"
+    },
+    {
+      "call": ".execute() (cursor)",
+      "line": 227,
+      "path": "apps/people/repositories/audit_repository.py"
+    },
+    {
+      "call": ".execute() (cursor)",
+      "line": 247,
+      "path": "apps/people/repositories/audit_repository.py"
+    },
+    {
+      "call": ".execute() (cursor)",
+      "line": 258,
+      "path": "apps/people/repositories/audit_repository.py"
+    },
+    {
+      "call": ".execute() (cursor)",
+      "line": 105,
+      "path": "apps/schools/repositories/health_repository.py"
+    },
+    {
+      "call": ".execute() (cursor)",
+      "line": 203,
+      "path": "apps/schools/repositories/health_repository.py"
+    },
+    {
+      "call": ".execute() (cursor)",
+      "line": 249,
+      "path": "apps/schools/repositories/health_repository.py"
+    },
+    {
+      "call": ".execute() (cursor)",
+      "line": 75,
+      "path": "apps/schools/repositories/rls_repository.py"
+    },
+    {
+      "call": ".execute() (cursor)",
+      "line": 70,
+      "path": "apps/siteconfig/repositories/database_recovery_repository.py"
+    },
+    {
+      "call": ".execute() (cursor)",
+      "line": 29,
+      "path": "apps/siteconfig/repositories/rls_session_repository.py"
+    }
+  ],
+  "generated_at": "2026-05-15T10:56:02+00:00",
+  "rule": "Raw-SQL / cursor.execute / .raw() / .extra() / RawSQL() callsites must either run inside set_rls_school_id() or carry an '# rls-bypass-allow: <reason>' comment.",
+  "scan_dirs": [
+    "apps",
+    "services"
+  ]
+}

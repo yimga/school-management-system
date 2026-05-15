@@ -77,7 +77,7 @@ When step 7 fires, hunt **one** extra load path per PR:
 - **`control-plane-primary-nav.css` / `control-plane-phase1-shell.css`** on tenant `portal_base` / `base.html` / login chains (forbidden by architecture).
 - **Second header stacks** — duplicate control-plane nav includes inside Studio canvas when the parent already provides the spine.
 
-Re-run `python scripts/verify_shell_architecture_matrix.py` after each fix; keep [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) seven-step table updated for **local** runs; use the sign-off log below for **live** hosts.
+Re-run `python scripts/verify_shell_architecture_matrix.py` after each fix; keep [PHASE_H_MANUAL_CHECKLIST.md](PHASE_H_MANUAL_CHECKLIST.md) updated for **local** runs; use the sign-off log below for **live** hosts.
 
 #### Repository audit log (append-only)
 
@@ -104,9 +104,9 @@ Use **your** real staging/prod hostnames at release time. Examples below mirror 
 | 3b | Tenant (Render subdomain style) | `https://<school-slug>.<service>.onrender.com` | [RENDER_SSL_AND_TENANT_URLS.md](RENDER_SSL_AND_TENANT_URLS.md) |
 | 4 | Studio | `https://manager.runmycampus.com/studio/` | [RENDER_SHELL_AFTER_DEPLOY.md](RENDER_SHELL_AFTER_DEPLOY.md) |
 | 5 | Admin | Manager or tenant host + `/admin/` | Matrix table above |
-| 6–7 | Automation + duplicate bundles | Local `verify_shell_architecture_matrix.py`; repeat Network checks on **each** live host | [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) hostname matrix |
+| 6–7 | Automation + duplicate bundles | Local `verify_shell_architecture_matrix.py`; repeat Network checks on **each** live host | [PHASE_H_MANUAL_CHECKLIST.md](PHASE_H_MANUAL_CHECKLIST.md) |
 
-**Local BR-13 evidence:** seven-step table + automation line in [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md).
+**Local BR-13 evidence:** Phase H checklist + automation line in [PHASE_H_MANUAL_CHECKLIST.md](PHASE_H_MANUAL_CHECKLIST.md).
 
 ### Operator sign-off log (staging / production)
 
@@ -116,7 +116,7 @@ Automation and localhost evidence **do not** close **P4** for real deploys. **In
 |------------|-------------|------------------------------------------------|-----------|----------|-----------------|
 | *— template: add real row above; keep this row last —* | *staging / prod* | *one URL per surface or “same as col 3 in URL matrix”* | *✓ or note gaps* | *initials* | *ticket / release note* |
 
-**Evidence:** [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) — **Shell architecture matrix — seven-step pass** (local `127.0.0.1`, **2026-03-28**) **and** **Staging / production hostname matrix**. This file adds **Staging / production URL matrix (reference)** plus **Repository audit log** for in-repo duplicate-bundle sweeps. **SOT:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) epic **P4** / Premium maturity **Shell triad** — re-verify on **your** live staging if a regression is suspected.
+**Evidence:** [PHASE_H_MANUAL_CHECKLIST.md](PHASE_H_MANUAL_CHECKLIST.md) plus this shell matrix sign-off log. This file adds **Staging / production URL matrix (reference)** plus **Repository audit log** for in-repo duplicate-bundle sweeps. **SOT:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) epic **P4** / Premium maturity **Shell triad** — re-verify on **your** live staging if a regression is suspected.
 
 ## References
 

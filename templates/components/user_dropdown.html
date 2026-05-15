@@ -1,5 +1,6 @@
 {% load static i18n %}
 {# Enhanced user dropdown menu — i18n-wrapped 2026-05-12. #}
+{% firstof NOTIFICATIONS_UNREAD_COUNT unread_notifications_count 0 as rmc_unread_count %}
 <div class="user-dropdown-wrapper">
   <div class="dropdown">
     <button class="user-dropdown-trigger" type="button" id="userDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
@@ -16,7 +17,7 @@
            mode is visible without opening the copilot. Driven by /api/ai/health/. #}
         <span class="user-avatar-ai-pulse" data-rmc-user-ai-pulse aria-hidden="true" title="{% trans 'AI status' %}"></span>
         {# Improvement B (2026-05-12): unread notification badge (server-rendered). #}
-        {% with unread_count=NOTIFICATIONS_UNREAD_COUNT|default:unread_notifications_count|default:0 %}
+        {% with unread_count=rmc_unread_count|default:0|add:0 %}
           {% if unread_count %}
             <span class="user-avatar-unread" aria-label="{% blocktrans count counter=unread_count %}{{ counter }} unread notification{% plural %}{{ counter }} unread notifications{% endblocktrans %}">
               {% if unread_count > 99 %}99+{% else %}{{ unread_count }}{% endif %}
@@ -121,7 +122,7 @@
         <a class="dropdown-item" href="{% url 'accounts:user_notifications' %}">
           <i class="bi bi-bell"></i>
           <span>{% trans "Notifications" %}</span>
-          <span class="badge bg-primary">{{ unread_notifications_count|default:"0" }}</span>
+          <span class="badge bg-primary">{{ rmc_unread_count|default:"0" }}</span>
         </a>
       </li>
       <li>
@@ -140,12 +141,15 @@
       </li>
       {% comment %} Activity logs and system health links are custom admin URLs {% endcomment %}
       {% if request.user.is_staff %}
+        {% url 'compliance:dashboard' as compliance_url %}
+        {% if compliance_url %}
         <li>
-          <a class="dropdown-item" href="{% url 'compliance:dashboard' %}">
+          <a class="dropdown-item" href="{{ compliance_url }}">
             <i class="bi bi-clock-history"></i>
             <span>{% trans "Compliance & Activity" %}</span>
           </a>
         </li>
+        {% endif %}
         <li>
           <a class="dropdown-item" href="{% url 'health' %}">
             <i class="bi bi-heart-pulse"></i>
@@ -175,13 +179,16 @@
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_support_request' %}{% else %}{% url 'portal:support_request' %}?type=support&next={{ request.path|urlencode }}{% endif %}" title="{% trans 'Contact Support' %}">
+        {% url 'manager_support_request' as manager_support_url %}
+        {% url 'portal:support_request' as portal_support_url %}
+        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' and manager_support_url %}{{ manager_support_url }}{% elif portal_support_url %}{{ portal_support_url }}?type=support&next={{ request.path|urlencode }}{% else %}#{% endif %}" title="{% trans 'Contact Support' %}">
           <i class="bi bi-envelope"></i>
           <span>{% trans "Contact Support" %}</span>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_feedback' %}{% else %}{% url 'portal:support_request' %}?type=feedback&next={{ request.path|urlencode }}{% endif %}" title="{% trans 'Send Feedback' %}">
+        {% url 'manager_feedback' as manager_feedback_url %}
+        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' and manager_feedback_url %}{{ manager_feedback_url }}{% elif portal_support_url %}{{ portal_support_url }}?type=feedback&next={{ request.path|urlencode }}{% else %}#{% endif %}" title="{% trans 'Send Feedback' %}">
           <i class="bi bi-chat-left-text"></i>
           <span>{% trans "Send Feedback" %}</span>
         </a>

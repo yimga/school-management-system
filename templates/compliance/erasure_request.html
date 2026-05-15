@@ -26,5 +26,10 @@
 {% block extrajs %}
 {{ block.super }}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script src="{% static '_pages/compliance__erasure_request.js' %}"></script>
+<script>
+(function() {
+  var form = document.getElementById('compliance-erasure-form');
+  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
+})();
+</script>
 {% endblock %}

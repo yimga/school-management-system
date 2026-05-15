@@ -143,7 +143,6 @@ class TenantPlanContextTests(TestCase):
             self.assertEqual(ctx["tier_key"], "enterprise")
             self.assertEqual(ctx["tier_label"], "Enterprise")
         finally:
-            school.delete()
             plan.delete()
 
 
@@ -208,7 +207,7 @@ class TenantCatalogSignalsTests(TestCase):
             self.assertTrue(hints["blocked"])
             self.assertIn("nonexistent_feature_xyz", hints["missing_features"])
         finally:
-            school.delete()
+            pass
 
     def test_entitlement_hints_paid_blocked_on_free_tier_trial_without_stripe_customer(
         self,
@@ -245,7 +244,6 @@ class TenantCatalogSignalsTests(TestCase):
             self.assertTrue(hints.get("monetization_blocked"))
             self.assertTrue(hints["blocked"])
         finally:
-            school.delete()
             plan.delete()
 
     def test_entitlement_hints_commercial_tier_blocked(self):
@@ -280,7 +278,6 @@ class TenantCatalogSignalsTests(TestCase):
             self.assertFalse(hints["commercial_tier_ok"])
             self.assertEqual(hints["required_commercial_tier"], "enterprise")
         finally:
-            school.delete()
             plan.delete()
 
     def test_activate_sandbox_raises_when_entitlements_blocked(self):
@@ -315,7 +312,6 @@ class TenantCatalogSignalsTests(TestCase):
         finally:
             AppInstallation.objects.filter(school=school).delete()
             app.delete()
-            school.delete()
             plan.delete()
 
     def test_resolve_signals_update_available_after_install_version_stamp(self):
@@ -363,7 +359,6 @@ class TenantCatalogSignalsTests(TestCase):
                 self.assertIn(mission_k, sm, msg=mission_k)
         finally:
             AppInstallation.objects.filter(school=school).delete()
-            school.delete()
             self.app.version = "2.0.0"
             self.app.save(update_fields=["version"])
 
@@ -409,7 +404,6 @@ class InstallVersionStampTests(TestCase):
             self.assertEqual(cfg.get("previous_catalog_version"), "1.0.0")
         finally:
             AppInstallation.objects.filter(school=school).delete()
-            school.delete()
             self.app.version = "1.0.0"
             self.app.save(update_fields=["version"])
 
@@ -453,4 +447,4 @@ class PlatformCompatSignalsTests(TestCase):
             self.assertIn("ok", sig)
             self.assertIsInstance(sig.get("messages"), list)
         finally:
-            school.delete()
+            pass

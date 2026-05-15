@@ -96,11 +96,11 @@ def main(argv: list[str] | None = None) -> int:
             "Operator sign-off log",
         ],
     )
-    _check_file_exists(errors, root, "docs/PREMIUM_UX_MANUAL_PASS_BR13.md")
+    _check_file_exists(errors, root, "docs/PHASE_H_MANUAL_CHECKLIST.md")
     _check_contains(
         errors,
         root,
-        "docs/PREMIUM_UX_MANUAL_PASS_BR13.md",
+        "docs/PHASE_H_MANUAL_CHECKLIST.md",
         [
             "verify_shell_architecture_matrix.py",
             "Phase H",

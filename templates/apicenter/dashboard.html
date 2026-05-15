@@ -51,7 +51,10 @@
     {% empty %}
     <div class="card shadow-sm" style="grid-column: 1 / -1;">
       <div class="card-body">
-        <div class="alert alert-info mb-0">{% trans "No integrations yet. Add them in the Configuration Control Center." %}</div>
+        <div class="rmc-empty rmc-empty--inline" role="status" aria-live="polite">
+          <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-plug"></i></div>
+          <p class="rmc-empty__message">{% trans "No integrations yet. Add them in the Configuration Control Center." %}</p>
+        </div>
       </div>
     </div>
     {% endfor %}
@@ -122,7 +125,12 @@
       </div>
       <p class="small text-muted px-3 py-2 mb-0">{% trans "Showing last 50 entries." %}</p>
       {% else %}
-      <p class="text-muted px-3 py-3 mb-0">{% trans "No audit entries yet." %}</p>
+      <div class="rmc-empty rmc-empty--inline px-3 py-3 mb-0" role="status" aria-live="polite">
+        <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-journal-text"></i></div>
+        <div class="rmc-empty__body">
+          <p class="rmc-empty__message mb-0">{% trans "No audit entries yet." %}</p>
+        </div>
+      </div>
       {% endif %}
     </div>
   </div>

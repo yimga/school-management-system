@@ -8,6 +8,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 
+from apps.accounts.models import User
 from apps.schools.models import School
 
 
@@ -37,13 +38,23 @@ class CrawlPortalRoleUrlsCommandTests(TestCase):
         )
         out = StringIO()
         err = StringIO()
-        call_command(
-            "crawl_portal_role_urls",
-            host="cmd-crawl.example.com",
-            stdout=out,
-            stderr=err,
-            verbosity=0,
-        )
+        smoke_seeds = [
+            {
+                "url_name": "portal:student_onboarding",
+                "roles": (User.Role.STUDENT,),
+            }
+        ]
+        with patch(
+            "apps.portal.management.commands.crawl_portal_role_urls.PORTAL_ROLE_SMOKE_SEEDS",
+            smoke_seeds,
+        ):
+            call_command(
+                "crawl_portal_role_urls",
+                host="cmd-crawl.example.com",
+                stdout=out,
+                stderr=err,
+                verbosity=0,
+            )
         combined = out.getvalue() + err.getvalue()
         self.assertIn("Resolved school", combined)
         self.assertIn("Ensured portal smoke prerequisites", combined)

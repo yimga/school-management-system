@@ -740,7 +740,7 @@ class Payment(models.Model):
     reference = models.CharField(
         max_length=80,
         blank=True,
-        help_text="Human-readable or internal reference; may mirror external_reference. See docs/DATA_PAYMENT_REFERENCE.md.",
+        help_text="Human-readable or internal reference; may mirror external_reference. See docs/archive/legacy_2026_05_14/DATA_PAYMENT_REFERENCE.md.",
     )
     paid_at = models.DateTimeField(default=timezone.now)
     receipt_number = models.CharField(max_length=64, blank=True)
@@ -757,7 +757,7 @@ class Payment(models.Model):
     external_reference = models.CharField(
         max_length=128,
         blank=True,
-        help_text="External transaction ID (provider, bank, receipt). Use for matching and idempotency. See docs/DATA_PAYMENT_REFERENCE.md.",
+        help_text="External transaction ID (provider, bank, receipt). Use for matching and idempotency. See docs/archive/legacy_2026_05_14/DATA_PAYMENT_REFERENCE.md.",
     )
     gateway_transaction_id = models.CharField(
         max_length=100, blank=True, null=True, unique=True, default=None

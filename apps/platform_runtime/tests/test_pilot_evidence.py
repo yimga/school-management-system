@@ -76,6 +76,68 @@ class PilotEvidenceTests(SimpleTestCase):
         p0 = ctx["pilots"][0]
         self.assertEqual(p0.get("school_name"), "")
 
+    def test_schema_rejects_public_reference_without_evidence_and_approval(self):
+        raw = {
+            "schema_version": 1,
+            "pilots": [
+                {
+                    "slot": 1,
+                    "school_name": "Named School",
+                    "country_region": "CM",
+                    "modules_enabled": ["attendance"],
+                    "onboarding_status": "complete",
+                    "first_action_completed": True,
+                    "first_result_completed": True,
+                    "attendance_completed": True,
+                    "marks_completed": True,
+                    "report_generated": True,
+                    "invoice_created": True,
+                    "receipt_or_payment_captured": True,
+                    "parent_portal_viewed": True,
+                    "offline_sync_used": False,
+                    "defects_found": 0,
+                    "defects_resolved": 0,
+                    "testimonial_permission_status": "requested",
+                    "reference_status": "public_reference",
+                    "evidence_link_or_notes": "",
+                    "pilot_verdict": "public_reference_ready",
+                }
+            ],
+        }
+        issues = validate_scorecard_schema(raw)
+        self.assertTrue(any("evidence_link_or_notes" in issue for issue in issues))
+        self.assertTrue(any("requires public reference" in issue for issue in issues))
+
+    def test_schema_rejects_unknown_pilot_verdict(self):
+        raw = {
+            "schema_version": 1,
+            "pilots": [
+                {
+                    "slot": 1,
+                    "country_region": "CM",
+                    "modules_enabled": [],
+                    "onboarding_status": "not_started",
+                    "first_action_completed": False,
+                    "first_result_completed": False,
+                    "attendance_completed": False,
+                    "marks_completed": False,
+                    "report_generated": False,
+                    "invoice_created": False,
+                    "receipt_or_payment_captured": False,
+                    "parent_portal_viewed": False,
+                    "offline_sync_used": False,
+                    "defects_found": 0,
+                    "defects_resolved": 0,
+                    "testimonial_permission_status": "not_requested",
+                    "reference_status": "none",
+                    "evidence_link_or_notes": "",
+                    "pilot_verdict": "verified_live",
+                }
+            ],
+        }
+        issues = validate_scorecard_schema(raw)
+        self.assertTrue(any("invalid pilot_verdict" in issue for issue in issues))
+
 
 @override_settings(
     ALLOWED_HOSTS=["*"],

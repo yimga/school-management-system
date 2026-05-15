@@ -158,7 +158,7 @@ def sync_student_parent_phone_from_guardian(sender, instance, **kwargs):
     """
     One-way sync: when a guardian has phone and the student's parent_phone is empty,
     set student.parent_phone so fallback contact (StudentProfile.parent_phone) stays in sync.
-    See docs/DATA_PARENT_CONTACT.md.
+    See docs/archive/legacy_2026_05_14/DATA_PARENT_CONTACT.md.
     """
     if (
         instance.phone

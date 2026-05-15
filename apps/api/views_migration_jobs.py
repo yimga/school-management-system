@@ -18,7 +18,7 @@ import io
 import re
 
 from django.http import HttpResponse
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -60,6 +60,20 @@ def _split_row_and_message(message: str) -> tuple[str, str]:
     return m.group(1), message[m.end():].strip()
 
 
+@extend_schema(
+    tags=["Migration"],
+    summary="Download migration-job errors as CSV",
+    description=(
+        "Streams the migration job snapshot's `errors` list as a two-column CSV "
+        "(row, message) the operator can hand back to their data team for "
+        "cleanup before re-importing. 404 once the snapshot expires."
+    ),
+    responses={
+        200: OpenApiResponse(description="text/csv body with header `row,message`"),
+        404: OpenApiResponse(description="Job not found or expired"),
+        503: OpenApiResponse(description="migration_async backend unavailable"),
+    },
+)
 class MigrationJobErrorsCsvView(APIView):
     """Pass 8.D: download `errors` from the migration_job snapshot as CSV."""
 

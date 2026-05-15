@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from django.template import Context, Template
 from django.template.loader import render_to_string
-from django.test import SimpleTestCase, override_settings
+from django.test import SimpleTestCase
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]

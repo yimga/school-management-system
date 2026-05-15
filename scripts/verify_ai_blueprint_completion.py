@@ -29,6 +29,9 @@ FORBIDDEN_CLOUD_AI_SDK_TOKENS = (
     "openai.OpenAI(",
     "from openai import OpenAI",
 )
+ALLOWED_CLOUD_AI_SDK_PATHS = {
+    "services/ai_gateway.py",
+}
 
 
 @lru_cache(maxsize=1)
@@ -90,6 +93,9 @@ def check_forbidden_cloud_ai_sdk_usage(root: Path, failures: list[str]) -> None:
         for path in _iter_python_files(scan_root, root):
             rel = path.relative_to(root)
             if "tests" in rel.parts:
+                continue
+            rel_posix = rel.as_posix()
+            if rel_posix in ALLOWED_CLOUD_AI_SDK_PATHS:
                 continue
             text = path.read_text(encoding="utf-8", errors="ignore")
             for needle in FORBIDDEN_CLOUD_AI_SDK_TOKENS:

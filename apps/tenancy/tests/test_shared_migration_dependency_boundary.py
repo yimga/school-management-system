@@ -5,7 +5,7 @@ from django.test import SimpleTestCase
 from config import settings as project_settings
 
 
-LEGACY_MIXED_SHARED_APPS = {"accounts", "schools", "siteconfig"}
+LEGACY_MIXED_SHARED_APPS = {"accounts", "compliance", "schools", "siteconfig"}
 
 
 def _schema_app_lists() -> tuple[set[str], set[str]]:

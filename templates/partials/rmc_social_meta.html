@@ -36,7 +36,7 @@
 {% if request.LANGUAGE_CODE %}<meta property="og:locale" content="{{ request.LANGUAGE_CODE }}">{% endif %}
 
 {# Twitter / X cards #}
-<meta name="twitter:card" content="{% if og_image %}summary_large_image{% else %}summary{% endif %}">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ og_title|default:SITE.site_name|default:'RunMyCampus' }}">
 {% if og_description or seo_description or SITE.meta_description %}
   <meta name="twitter:description" content="{{ og_description|default:seo_description|default:SITE.meta_description|truncatewords:30 }}">

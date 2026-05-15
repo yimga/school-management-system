@@ -24,12 +24,12 @@
         <div class="card-body p-0">
           <table class="table table-sm mb-0">
             <caption class="visually-hidden">{% trans "Count of users grouped by role." %}</caption>
-            <thead class="table-light"><tr><th>{% trans "Role" %}</th><th class="text-end">{% trans "Users" %}</th></tr></thead>
+            <thead class="table-light"><tr><th>{% trans "Role" %}</th><th scope="col" class="text-end">{% trans "Users" %}</th></tr></thead>
             <tbody>
               {% for entry in users_by_role %}
               <tr><td>{{ entry.role|default:"—" }}</td><td class="text-end">{{ entry.count }}</td></tr>
               {% empty %}
-              <tr><td colspan="2" class="text-muted text-center py-3">{% trans "No users." %}</td></tr>
+              <tr><td colspan="2"><div class="rmc-empty rmc-empty--row" role="status" aria-live="polite"><p class="rmc-empty__message text-center py-3">{% trans "No users." %}</p></div></td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -42,7 +42,7 @@
         <div class="card-body p-0">
           <table class="table table-sm mb-0">
             <caption class="visually-hidden">{% trans "Total accesses and failure counts grouped by role." %}</caption>
-            <thead class="table-light"><tr><th>{% trans "Role" %}</th><th class="text-end">{% trans "Total" %}</th><th class="text-end">{% trans "Failed" %}</th></tr></thead>
+            <thead class="table-light"><tr><th>{% trans "Role" %}</th><th scope="col" class="text-end">{% trans "Total" %}</th><th scope="col" class="text-end">{% trans "Failed" %}</th></tr></thead>
             <tbody>
               {% for entry in access_by_role %}
               <tr>
@@ -51,7 +51,7 @@
                 <td class="text-end {% if entry.failed %}text-danger{% else %}text-muted{% endif %}">{{ entry.failed|default:0 }}</td>
               </tr>
               {% empty %}
-              <tr><td colspan="3" class="text-muted text-center py-3">{% trans "No access logs yet." %}</td></tr>
+              <tr><td colspan="3"><div class="rmc-empty rmc-empty--row" role="status" aria-live="polite"><p class="rmc-empty__message text-center py-3">{% trans "No access logs yet." %}</p></div></td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -65,12 +65,12 @@
         <div class="card-body p-0">
           <table class="table table-sm mb-0">
             <caption class="visually-hidden">{% trans "Resources with the most accesses." %}</caption>
-            <thead class="table-light"><tr><th>{% trans "Resource" %}</th><th class="text-end">{% trans "Accesses" %}</th></tr></thead>
+            <thead class="table-light"><tr><th>{% trans "Resource" %}</th><th scope="col" class="text-end">{% trans "Accesses" %}</th></tr></thead>
             <tbody>
               {% for entry in top_resources %}
               <tr><td class="small"><code>{{ entry.resource|truncatechars:80 }}</code></td><td class="text-end">{{ entry.access_count }}</td></tr>
               {% empty %}
-              <tr><td colspan="2" class="text-muted text-center py-3">{% trans "No data." %}</td></tr>
+              <tr><td colspan="2"><div class="rmc-empty rmc-empty--row" role="status" aria-live="polite"><p class="rmc-empty__message text-center py-3">{% trans "No data." %}</p></div></td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -83,12 +83,12 @@
         <div class="card-body p-0">
           <table class="table table-sm mb-0">
             <caption class="visually-hidden">{% trans "Resources where 403 forbidden responses were recorded." %}</caption>
-            <thead class="table-light"><tr><th>{% trans "Resource" %}</th><th class="text-end">{% trans "Denials" %}</th></tr></thead>
+            <thead class="table-light"><tr><th>{% trans "Resource" %}</th><th scope="col" class="text-end">{% trans "Denials" %}</th></tr></thead>
             <tbody>
               {% for entry in denied_resources %}
               <tr><td class="small"><code>{{ entry.resource|truncatechars:80 }}</code></td><td class="text-end text-danger">{{ entry.denial_count }}</td></tr>
               {% empty %}
-              <tr><td colspan="2" class="text-muted text-center py-3">{% trans "No denials recorded." %}</td></tr>
+              <tr><td colspan="2"><div class="rmc-empty rmc-empty--row" role="status" aria-live="polite"><p class="rmc-empty__message text-center py-3">{% trans "No denials recorded." %}</p></div></td></tr>
               {% endfor %}
             </tbody>
           </table>

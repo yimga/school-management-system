@@ -189,7 +189,7 @@ def group_detail(request: HttpRequest, thread_id: int):
     thread_messages = thread.messages.filter(is_deleted=False).order_by("created_at")
 
     # Mark as read
-    read_state, _ = ThreadReadState.objects.get_or_create(
+    read_state, _created = ThreadReadState.objects.get_or_create(
         thread=thread, user=request.user
     )
     read_state.last_read_at = timezone.now()

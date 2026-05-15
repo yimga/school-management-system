@@ -231,7 +231,12 @@ backend-shell dashboard-page-backend
             </div>
             {% empty %}
               <div class="col-12" id="insight-anomaly-empty">
-                <p class="small text-muted mb-0">{% trans "No ranked anomalies right now. Refresh after new attendance or grade data." %}</p>
+                <div class="rmc-empty rmc-empty--inline" role="status">
+                  <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-activity"></i></div>
+                  <div class="rmc-empty__body">
+                    <p class="rmc-empty__message mb-0">{% trans "No ranked anomalies right now. Refresh after new attendance or grade data." %}</p>
+                  </div>
+                </div>
               </div>
               {% endfor %}
             </div>
@@ -365,7 +370,7 @@ backend-shell dashboard-page-backend
           {% comment %} Pass 8: previous copy ("Overview metrics will appear here when configured") was
              admin-talking-to-themselves. Use the shared empty-state component which gives a
              friendly explanation + a clear next-step CTA. {% endcomment %}
-          {% include "components/dashboard_empty_state.html" with icon="bi-graph-up-arrow" title=_("No overview data yet") message=_("Once attendance, fees, and grades are entered, your headline metrics appear here.") action_url=backend_onboarding_url action_text=_("Open setup checklist") %}
+          {% include "components/rmc_empty_state.html" with icon="bi-graph-up-arrow" title=_("No overview data yet") message=_("Once attendance, fees, and grades are entered, your headline metrics appear here.") primary_url=backend_onboarding_url primary_label=_("Open setup checklist") %}
           {% endif %}
           {% if kpi_strip_cards and overview_cards %}
           <div class="backend-v2-kpi-strip mt-3" data-widget-id="backend-overview-kpis" data-bento-tier="trend">
@@ -623,7 +628,12 @@ backend-shell dashboard-page-backend
           <article class="card backend-v2-panel backend-v2-panel--empty">
             <div class="card-body">
               <h5 class="backend-v2-panel-title mb-1">{% trans "Outstanding Fees" %}</h5>
-              <p class="small text-muted mb-0">{% trans "No fee status data yet. Create invoices to see breakdown here." %}</p>
+              <div class="rmc-empty rmc-empty--inline" role="status">
+                <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-cash-stack"></i></div>
+                <div class="rmc-empty__body">
+                  <p class="rmc-empty__message mb-0">{% trans "No fee status data yet. Create invoices to see breakdown here." %}</p>
+                </div>
+              </div>
               <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'finance:dashboard' %}">{% trans "Open finance console" %}</a>
             </div>
           </article>
@@ -657,8 +667,11 @@ backend-shell dashboard-page-backend
                   <span class="badge text-bg-warning">{{ student.value }}</span>
                 </div>
                 {% empty %}
-                <div>
-                  <p class="small text-muted mb-0">{% trans "No at-risk learners detected." %}</p>
+                <div class="rmc-empty rmc-empty--inline" role="status">
+                  <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-shield-check"></i></div>
+                  <div class="rmc-empty__body">
+                    <p class="rmc-empty__message mb-0">{% trans "No at-risk learners detected." %}</p>
+                  </div>
                   <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'studio_os:workflow_center' %}">{% trans "Review intervention workflow" %}</a>
                 </div>
                 {% endfor %}
@@ -705,8 +718,11 @@ backend-shell dashboard-page-backend
                   <span class="badge text-bg-light">{{ student.admission_number }}</span>
                 </div>
                 {% empty %}
-                <div>
-                  <div class="small text-muted">{% trans "No recent admissions yet." %}</div>
+                <div class="rmc-empty rmc-empty--inline" role="status">
+                  <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-person-plus"></i></div>
+                  <div class="rmc-empty__body">
+                    <p class="rmc-empty__message mb-0">{% trans "No recent admissions yet." %}</p>
+                  </div>
                   <a class="backend-empty-quick-action mt-2 d-inline-block" href="{{ quick_student_create_url }}">{% trans "Start admissions" %}</a>
                 </div>
                 {% endfor %}
@@ -734,8 +750,11 @@ backend-shell dashboard-page-backend
                   <span class="small text-muted">{{ activity.time_ago }} ago</span>
                 </div>
                 {% empty %}
-                <div>
-                  <div class="small text-muted">{% trans "No recent activity available." %}</div>
+                <div class="rmc-empty rmc-empty--inline" role="status">
+                  <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-clock-history"></i></div>
+                  <div class="rmc-empty__body">
+                    <p class="rmc-empty__message mb-0">{% trans "No recent activity available." %}</p>
+                  </div>
                   <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'studio_os:workflow_center' %}">{% trans "Open workflow center" %}</a>
                 </div>
                 {% endfor %}
@@ -766,8 +785,11 @@ backend-shell dashboard-page-backend
                   <span class="badge text-bg-success">{{ student.score }}/20</span>
                 </div>
                 {% empty %}
-                <div>
-                  <div class="small text-muted">{% trans "Top-performing metrics will appear once marks are entered." %}</div>
+                <div class="rmc-empty rmc-empty--inline" role="status">
+                  <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-trophy"></i></div>
+                  <div class="rmc-empty__body">
+                    <p class="rmc-empty__message mb-0">{% trans "Top-performing metrics will appear once marks are entered." %}</p>
+                  </div>
                   <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'reports:publish_term_results' %}">{% trans "Open academic workbench" %}</a>
                 </div>
                 {% endfor %}
@@ -876,7 +898,12 @@ backend-shell dashboard-page-backend
               <i class="bi bi-chevron-right small"></i>
             </a>
             {% empty %}
-            <p class="small text-muted mb-1">{% trans "No shortcuts for your role." %}</p>
+            <div class="rmc-empty rmc-empty--inline mb-2" role="status">
+              <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-lightning-charge"></i></div>
+              <div class="rmc-empty__body">
+                <p class="rmc-empty__message mb-0">{% trans "No shortcuts for your role." %}</p>
+              </div>
+            </div>
             <a class="backend-empty-quick-action" href="{% url 'siteconfig:user_preferences' %}"><i class="bi bi-sliders me-1"></i>{% trans "Add in Preferences" %}</a>
             {% endfor %}
           </div>
@@ -906,7 +933,12 @@ backend-shell dashboard-page-backend
                   </div>
                 </div>
                 {% empty %}
-                <p class="small text-muted mb-1">{% trans "No upcoming events." %}</p>
+                <div class="rmc-empty rmc-empty--inline mb-2" role="status">
+                  <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-calendar-event"></i></div>
+                  <div class="rmc-empty__body">
+                    <p class="rmc-empty__message mb-0">{% trans "No upcoming events." %}</p>
+                  </div>
+                </div>
                 {% endfor %}
               </div>
             </section>

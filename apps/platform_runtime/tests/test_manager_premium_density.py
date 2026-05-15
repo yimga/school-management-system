@@ -5,6 +5,7 @@ from pathlib import Path
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 
@@ -20,14 +21,18 @@ _MGR_HOST = "manager.runmycampus.com"
 class ManagerPremiumDensityTests(TestCase):
     def setUp(self):
         self.client = Client(HTTP_HOST=_MGR_HOST, raise_request_exception=False)
-        User.objects.create_user(
+        user = User.objects.create_user(
             username="manager_density_super",
             password="x" * 8,
             role=User.Role.ADMIN,
             is_staff=True,
             is_superuser=True,
         )
+        TOTPDevice.objects.create(user=user, name="test-device", confirmed=True)
         self.client.login(username="manager_density_super", password="x" * 8)
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
 
     def test_super_dashboard_uses_progressive_disclosure_for_dense_board(self):
         response = self.client.get(reverse("super:dashboard"))

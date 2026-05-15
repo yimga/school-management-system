@@ -81,7 +81,7 @@
       <a href="{% url 'admin:app_list' app.app_label %}" class="btn btn-sm btn-outline-secondary">{% trans "Open" %}</a>
     </li>
     {% empty %}
-    <li class="text-muted">{% trans "No applications available." %}</li>
+    <li class="list-unstyled p-0">{% include "components/rmc_empty_state.html" with icon="bi-grid-3x3-gap" title=_("No applications available") message=_("Once apps are installed for this school, they'll appear here with an Open shortcut.") %}</li>
     {% endfor %}
   </ul>
 </div>

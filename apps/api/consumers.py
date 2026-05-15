@@ -158,55 +158,29 @@ class AIChatConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({"error": "message required"}))
             return
         from asgiref.sync import sync_to_async
-        from apps.portal.ai_provider import _normalize_gateway_metadata
-        from services.ai_gateway import invoke
+        from services.ai_helpers import invoke_with_request
 
         request = self.scope.get("request", None)
         school = getattr(request, "school", None) or getattr(self.user, "school", None)
-        user_id = getattr(self.user, "pk", None) or getattr(self.user, "id", None)
-        school_pk = None
-        if school is not None:
-            school_pk = getattr(school, "pk", None) or getattr(school, "id", None)
-        school_id = (
-            str(school_pk)
-            if school_pk is not None
-            else (
-                str(getattr(self.user, "school_id", None))
-                if getattr(self.user, "school_id", None)
-                else None
-            )
-        )
-        country_code = payload.get("country_code") or getattr(school, "country_code", None) or (
-            getattr(school, "default_region", None)
-            and getattr(school.default_region, "code", None)
-        )
-        role = (
-            getattr(self.user, "role", None)
-            or getattr(self.user, "portal_role", None)
-            or getattr(self.user, "user_type", None)
-        )
+        extra_country = payload.get("country_code")
         prompt = (
             "You are a helpful assistant for the school platform. Answer concisely.\n\nUser: "
             + message
         )
 
         def _gateway_infer():
-            result, meta = invoke(
-                "general_chat",
-                prompt,
+            extra_md = {"country_code": extra_country} if extra_country else None
+            outcome = invoke_with_request(
+                task_type="general_chat",
+                prompt=prompt,
+                request=request,
+                school=school,
                 user_query=message,
-                metadata=_normalize_gateway_metadata(
-                    {
-                        "request": request,
-                        "school": school,
-                        "school_id": school_id,
-                        "tenant_id": school_id,
-                        "user_id": str(user_id) if user_id is not None else None,
-                        "country_code": country_code,
-                        "role": role,
-                    }
-                ),
+                metadata=extra_md,
             )
+            if outcome is None:
+                return None, {"provider": "none", "error": "unavailable"}, "unavailable"
+            result, meta = outcome
             error = None
             if meta.get("prompt_injection_blocked"):
                 error = "Request rejected by safety policy. Please rephrase as a normal school-operation question."

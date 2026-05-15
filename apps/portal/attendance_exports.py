@@ -142,7 +142,7 @@ def parse_export_filters_from_get(get_data: Any) -> tuple[StudentAttendanceExpor
         except (TypeError, ValueError):
             return None, "Invalid student filter."
 
-    assert start is not None and end is not None
+    assert start is not None and end is not None  # assert-allow: type-narrowing only; runtime guard at the early-return above
     return (
         StudentAttendanceExportFilters(
             start_date=start,

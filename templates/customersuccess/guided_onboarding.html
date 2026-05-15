@@ -304,7 +304,9 @@
           <div class="setup-studio-muted mt-2">{{ step.status }} • {{ step.recommended_choice }}</div>
         </div>
         {% empty %}
-        <div class="setup-studio-muted">{% trans "No steps configured." %}</div>
+        <div class="rmc-empty rmc-empty--inline" role="status" aria-live="polite">
+          <p class="rmc-empty__message">{% trans "No steps configured." %}</p>
+        </div>
         {% endfor %}
       </div>
     </aside>
@@ -600,7 +602,9 @@
           {% endif %}
         </div>
         {% empty %}
-        <div class="setup-studio-muted">{% trans "No role previews available yet." %}</div>
+        <div class="rmc-empty rmc-empty--inline" role="status" aria-live="polite">
+          <p class="rmc-empty__message">{% trans "No role previews available yet." %}</p>
+        </div>
         {% endfor %}
       </div>
 

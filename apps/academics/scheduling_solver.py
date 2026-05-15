@@ -13,8 +13,17 @@ from .scheduling import TimetableGenerator, Schedule
 
 
 def _ortools_available() -> bool:
-    """Return True if ortools.sat.python.cp_model is importable."""
-    return importlib.util.find_spec("ortools.sat.python.cp_model") is not None
+    """Return True if ortools.sat.python.cp_model is importable.
+
+    Hardened against Python 3.14: ``importlib.util.find_spec`` now raises
+    ``ModuleNotFoundError`` for top-level packages that aren't installed,
+    where older versions returned ``None``. Any exception means "not
+    available", same effective outcome.
+    """
+    try:
+        return importlib.util.find_spec("ortools.sat.python.cp_model") is not None
+    except (ModuleNotFoundError, ImportError, ValueError):
+        return False
 
 
 def generate_timetable_with_solver(

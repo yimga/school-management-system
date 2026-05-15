@@ -5,13 +5,13 @@ from __future__ import annotations
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.accounts.decorators import permission_required
+from apps.accounts.permissions import tenant_operator_hub_eligible
 from apps.platform_runtime.customer_health import (
     calculate_school_health,
     get_school_health_recommendations,
@@ -31,9 +31,10 @@ def _reverse_tenant_onboarding() -> str:
 
 
 @login_required
-@permission_required("settings.manage", raise_exception=True)
 def school_activation_onboarding(request: HttpRequest) -> HttpResponse:
     school = getattr(request, "school", None)
+    if school is None or not tenant_operator_hub_eligible(request.user):
+        return HttpResponseForbidden("Tenant school configuration access required.")
     progress: dict = {}
     health: dict = {}
     recommendations: list = []
@@ -63,12 +64,13 @@ def school_activation_onboarding(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
-@permission_required("settings.manage", raise_exception=True)
 def onboarding_step_detail(
     request: HttpRequest, step_key: str
 ) -> HttpResponse:
     """Single activation step: deep link, open action, optional mark-done."""
     school = getattr(request, "school", None)
+    if school is None or not tenant_operator_hub_eligible(request.user):
+        return HttpResponseForbidden("Tenant school configuration access required.")
     if school is None:
         return render(
             request,
@@ -101,10 +103,11 @@ def onboarding_step_detail(
 
 
 @login_required
-@permission_required("settings.manage", raise_exception=True)
 @require_POST
 def onboarding_step_mark_complete(request: HttpRequest) -> HttpResponse:
     school = getattr(request, "school", None)
+    if school is None or not tenant_operator_hub_eligible(request.user):
+        return HttpResponseForbidden("Tenant school configuration access required.")
     if school is None:
         messages.error(request, _("No tenant school on this request."))
         return HttpResponseRedirect(_reverse_tenant_onboarding())

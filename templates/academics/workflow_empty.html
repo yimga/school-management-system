@@ -2,6 +2,7 @@
 {% load i18n %}
 {% block content %}
 <div class="container py-4" data-page-archetype="operational-workbench">
+  <h1 class="h4 mb-3">{% trans "Workflow not configured" %}</h1>
   <p class="text-muted">{% trans "This workflow has no steps configured." %}</p>
   <p><small>{% trans "Workflow key" %}: <code>{{ workflow_key }}</code></small></p>
 </div>

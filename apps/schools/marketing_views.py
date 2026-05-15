@@ -504,6 +504,8 @@ def _marketing_navbar_primary() -> list[dict]:
             resources_children.append({"label": x["label"], "path": x["path"]})
 
     pricing_path = p("marketing_pricing", "/pricing/")
+    why_path = p("marketing_why_switch", "/why-switch/")
+    trust_path = p("marketing_trust_dedicated", "/trust/")
 
     return [
         {
@@ -518,7 +520,9 @@ def _marketing_navbar_primary() -> list[dict]:
             "children": solutions_children,
             "mega_columns": solutions_mega_columns,
         },
+        {"label": "Why RunMyCampus", "path": why_path},
         {"label": "Pricing", "path": pricing_path},
+        {"label": "Trust", "path": trust_path},
         {
             "label": "Resources",
             "path": resources_path,
@@ -2348,6 +2352,16 @@ def marketing_page(request, page_slug: str):
             "Student passport and transcript portability across schools.",
             "Super-admin mission control for approvals, billing, and support.",
         ],
+        # v2.6 (2026-05-12): bento layout for the topical_nav strip on rich
+        # marketing pages (platform hub, pricing, solutions). Gives those
+        # surfaces an Apple/Linear/Stripe-style mixed-tile composition instead
+        # of the legacy uniform 3-col grid. Other pages keep the legacy grid.
+        "marketing_topic_bento": normalized_slug in {
+            "platform", "pricing", "solutions", "compare", "company",
+            "platform-education-os", "platform-control-plane",
+            "platform-marketplace", "platform-runtime", "platform-integrations",
+            "platform-security", "platform-analytics",
+        },
     }
     # Product page: product-led storytelling (micro-demos, scroll-driven dark-mode, outcome-focused, developer-centric)
     if normalized_slug == "product":

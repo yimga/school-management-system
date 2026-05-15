@@ -1,0 +1,199 @@
+# Architectural-boundary CI gate.
+#
+# Enforces the platform's bounded-context rules by AST-scanning for
+# forbidden import patterns. Each scanner produces a JSON baseline; CI
+# fails when a NEW violation is introduced.
+#
+# Update a baseline ONLY when you have intentionally removed a violation
+# (and the diff in the PR makes that obvious) — never to silence a new one.
+
+name: architectural-boundaries
+
+on:
+  pull_request:
+    paths:
+      - "beta/school-management-system/apps/**/*.py"
+      - "beta/school-management-system/services/**/*.py"
+      - "beta/school-management-system/scripts/scan_ai_gateway_boundary.py"
+      - "beta/school-management-system/scripts/scan_sentry_boundary.py"
+      - "beta/school-management-system/scripts/scan_print_statements.py"
+      - "beta/school-management-system/scripts/scan_bare_except.py"
+      - "beta/school-management-system/scripts/scan_migration_model_imports.py"
+      - "beta/school-management-system/scripts/scan_drf_schema_coverage.py"
+      - "beta/school-management-system/scripts/scan_role_strings.py"
+      - "beta/school-management-system/scripts/scan_assert_in_production.py"
+      - "beta/school-management-system/scripts/scan_magic_numbers.py"
+      - "beta/school-management-system/scripts/scan_subprocess_shell_true.py"
+      - "beta/school-management-system/scripts/scan_rls_bypass.py"
+      - "beta/school-management-system/var/security-audit-baseline-ai-gateway-boundary.json"
+      - "beta/school-management-system/var/security-audit-baseline-sentry-boundary.json"
+      - "beta/school-management-system/var/security-audit-baseline-print-statements.json"
+      - "beta/school-management-system/var/security-audit-baseline-bare-except.json"
+      - "beta/school-management-system/var/security-audit-baseline-migration-model-imports.json"
+      - "beta/school-management-system/var/security-audit-baseline-drf-schema-coverage.json"
+      - "beta/school-management-system/var/security-audit-baseline-role-strings.json"
+      - "beta/school-management-system/var/security-audit-baseline-assert-in-production.json"
+      - "beta/school-management-system/var/security-audit-baseline-magic-numbers.json"
+      - "beta/school-management-system/var/security-audit-baseline-subprocess-shell.json"
+      - "beta/school-management-system/var/security-audit-baseline-rls-bypass.json"
+      - ".github/workflows/architectural-boundaries.yml"
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    working-directory: beta/school-management-system
+
+jobs:
+  ai-gateway-boundary:
+    name: AI gateway import boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_ai_gateway_boundary.py --compare
+
+  sentry-boundary:
+    name: Sentry SDK import boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_sentry_boundary.py --compare
+
+  print-statements:
+    name: print() statement boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_print_statements.py --compare
+
+  bare-except:
+    name: "Bare except: clause boundary"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_bare_except.py --compare
+
+  migration-model-imports:
+    name: Migration live-model-import boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_migration_model_imports.py --compare
+
+  drf-schema-coverage:
+    name: DRF view schema coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_drf_schema_coverage.py --compare
+
+  role-strings:
+    name: Hardcoded role-string boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_role_strings.py --compare
+
+  assert-in-production:
+    name: assert statements in production code
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_assert_in_production.py --compare
+
+  magic-numbers:
+    name: Magic-number (>= 100) drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_magic_numbers.py --compare
+
+  subprocess-shell-true:
+    name: "subprocess(..., shell=True) / os.system boundary"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_subprocess_shell_true.py --compare
+
+  rls-bypass:
+    name: "RLS bypass (raw SQL / cursor.execute) boundary"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_rls_bypass.py --compare

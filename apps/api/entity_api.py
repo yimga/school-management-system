@@ -3,6 +3,14 @@
 from django.db import transaction
 from django.db.utils import DatabaseError, IntegrityError
 from django.utils.dateparse import parse_datetime
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+    inline_serializer,
+)
+from rest_framework import serializers as drf_serializers
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.utils import timezone
 from rest_framework import status, viewsets
@@ -96,6 +104,86 @@ class StudentProfileCursorPagination(CursorPagination):
     ordering = "-updated_at"
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=["Entity"],
+        summary="List student profiles",
+        description="Role-scoped list of students in the active school. Admin-like users see all; teachers see students in their assigned classrooms; parents see their own children.",
+        responses={200: StudentProfileSerializer(many=True), 401: OpenApiResponse(description="Authentication required")},
+    ),
+    retrieve=extend_schema(
+        tags=["Entity"],
+        summary="Retrieve a student profile",
+        responses={200: StudentProfileSerializer, 401: OpenApiResponse(description="Authentication required"), 404: OpenApiResponse(description="Not found")},
+    ),
+    create=extend_schema(
+        tags=["Entity"],
+        summary="Create a student profile",
+        description="Admin-only.",
+        request=StudentProfileSerializer,
+        responses={201: StudentProfileSerializer, 400: OpenApiResponse(description="Validation error"), 403: OpenApiResponse(description="Permission denied")},
+    ),
+    update=extend_schema(
+        tags=["Entity"],
+        summary="Update a student profile",
+        description="Admin-only. Honors X-Client-Updated-At header for offline conflict detection (409).",
+        request=StudentProfileSerializer,
+        responses={200: StudentProfileSerializer, 400: OpenApiResponse(description="Validation error"), 403: OpenApiResponse(description="Permission denied"), 409: OpenApiResponse(description="Client copy stale")},
+    ),
+    partial_update=extend_schema(
+        tags=["Entity"],
+        summary="Partially update a student profile",
+        request=StudentProfileSerializer,
+        responses={200: StudentProfileSerializer, 400: OpenApiResponse(description="Validation error"), 403: OpenApiResponse(description="Permission denied"), 409: OpenApiResponse(description="Client copy stale")},
+    ),
+    destroy=extend_schema(
+        tags=["Entity"],
+        summary="Delete a student profile",
+        request=None,
+        responses={204: OpenApiResponse(description="Deleted"), 403: OpenApiResponse(description="Permission denied"), 404: OpenApiResponse(description="Not found")},
+    ),
+    bulk_assign=extend_schema(
+        tags=["Entity"],
+        summary="Bulk-assign students to classroom/specialty/year",
+        description="Apply one or more of classroom / specialty / academic_year to a list of student ids in a single transaction.",
+        request=inline_serializer(
+            name="StudentBulkAssignRequest",
+            fields={
+                "student_ids": drf_serializers.ListField(child=drf_serializers.IntegerField()),
+                "classroom": drf_serializers.IntegerField(required=False),
+                "specialty": drf_serializers.IntegerField(required=False),
+                "academic_year": drf_serializers.IntegerField(required=False),
+            },
+        ),
+        responses={
+            200: inline_serializer(name="StudentBulkAssignResponse", fields={"updated": drf_serializers.IntegerField(), "applied": drf_serializers.DictField()}),
+            400: OpenApiResponse(description="Invalid payload"),
+            403: OpenApiResponse(description="Permission denied"),
+            404: OpenApiResponse(description="Referenced entity not found"),
+        },
+    ),
+    bulk_preview=extend_schema(
+        tags=["Entity"],
+        summary="Dry-run CSV preview for student import",
+        request=inline_serializer(name="StudentBulkPreviewRequest", fields={"csv": drf_serializers.CharField()}),
+        responses={
+            200: inline_serializer(name="StudentBulkPreviewResponse", fields={"preview": drf_serializers.ListField(child=drf_serializers.DictField()), "errors": drf_serializers.ListField(child=drf_serializers.DictField())}),
+            400: OpenApiResponse(description="Missing csv body"),
+            403: OpenApiResponse(description="Permission denied"),
+        },
+    ),
+    bulk_commit=extend_schema(
+        tags=["Entity"],
+        summary="Commit parsed student rows",
+        description="Create student records from a parsed rows payload. Admin-only; subject to `allow_bulk_commit` feature flag.",
+        request=inline_serializer(name="StudentBulkCommitRequest", fields={"rows": drf_serializers.ListField(child=drf_serializers.DictField())}),
+        responses={
+            201: inline_serializer(name="StudentBulkCommitResponse", fields={"created": drf_serializers.ListField(child=drf_serializers.IntegerField()), "errors": drf_serializers.ListField(child=drf_serializers.DictField())}),
+            400: OpenApiResponse(description="Invalid payload"),
+            403: OpenApiResponse(description="Permission denied or bulk commit disabled"),
+        },
+    ),
+)
 class StudentProfileViewSet(viewsets.ModelViewSet):
     """CRUD for student profiles; scoped by role."""
 
@@ -311,6 +399,19 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
         )
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=["Entity"],
+        summary="List teacher profiles",
+        description="Admin-like users see all teachers in their school; teachers see only their own profile.",
+        responses={200: TeacherProfileSerializer(many=True), 401: OpenApiResponse(description="Authentication required")},
+    ),
+    retrieve=extend_schema(tags=["Entity"], summary="Retrieve a teacher profile", responses={200: TeacherProfileSerializer, 404: OpenApiResponse(description="Not found")}),
+    create=extend_schema(tags=["Entity"], summary="Create a teacher profile (admin only)", request=TeacherProfileSerializer, responses={201: TeacherProfileSerializer, 400: OpenApiResponse(description="Validation error"), 403: OpenApiResponse(description="Permission denied")}),
+    update=extend_schema(tags=["Entity"], summary="Update a teacher profile (admin only)", request=TeacherProfileSerializer, responses={200: TeacherProfileSerializer, 403: OpenApiResponse(description="Permission denied")}),
+    partial_update=extend_schema(tags=["Entity"], summary="Partially update a teacher profile (admin only)", request=TeacherProfileSerializer, responses={200: TeacherProfileSerializer, 403: OpenApiResponse(description="Permission denied")}),
+    destroy=extend_schema(tags=["Entity"], summary="Delete a teacher profile (admin only)", request=None, responses={204: OpenApiResponse(description="Deleted"), 403: OpenApiResponse(description="Permission denied")}),
+)
 class TeacherProfileViewSet(viewsets.ModelViewSet):
     """CRUD for teachers; admin-only writes, teacher self-read."""
 
@@ -344,6 +445,34 @@ class TeacherProfileViewSet(viewsets.ModelViewSet):
         return None
 
 
+@extend_schema_view(
+    list=extend_schema(tags=["Entity"], summary="List guardian/student links", description="Parents see their own links; admins see all links in the active school.", responses={200: StudentGuardianSerializer(many=True)}),
+    retrieve=extend_schema(tags=["Entity"], summary="Retrieve a guardian/student link", responses={200: StudentGuardianSerializer, 404: OpenApiResponse(description="Not found")}),
+    create=extend_schema(tags=["Entity"], summary="Create a guardian/student link", description="Parents can only create links where guardian_user is themselves; admins may link any user.", request=StudentGuardianSerializer, responses={201: StudentGuardianSerializer, 400: OpenApiResponse(description="Validation error"), 403: OpenApiResponse(description="Permission denied")}),
+    update=extend_schema(tags=["Entity"], summary="Update a guardian/student link (admin only)", request=StudentGuardianSerializer, responses={200: StudentGuardianSerializer, 403: OpenApiResponse(description="Permission denied")}),
+    partial_update=extend_schema(tags=["Entity"], summary="Partially update a guardian/student link (admin only)", request=StudentGuardianSerializer, responses={200: StudentGuardianSerializer, 403: OpenApiResponse(description="Permission denied")}),
+    destroy=extend_schema(tags=["Entity"], summary="Delete a guardian/student link (admin only)", request=None, responses={204: OpenApiResponse(description="Deleted"), 403: OpenApiResponse(description="Permission denied")}),
+    bulk_preview=extend_schema(
+        tags=["Entity"],
+        summary="Dry-run CSV preview for guardian links",
+        request=inline_serializer(name="GuardianBulkPreviewRequest", fields={"csv": drf_serializers.CharField()}),
+        responses={
+            200: inline_serializer(name="GuardianBulkPreviewResponse", fields={"preview": drf_serializers.ListField(child=drf_serializers.DictField()), "errors": drf_serializers.ListField(child=drf_serializers.DictField())}),
+            400: OpenApiResponse(description="Missing csv body"),
+            403: OpenApiResponse(description="Permission denied"),
+        },
+    ),
+    bulk_commit=extend_schema(
+        tags=["Entity"],
+        summary="Commit parsed guardian rows (admin only)",
+        request=inline_serializer(name="GuardianBulkCommitRequest", fields={"rows": drf_serializers.ListField(child=drf_serializers.DictField())}),
+        responses={
+            201: inline_serializer(name="GuardianBulkCommitResponse", fields={"created": drf_serializers.ListField(child=drf_serializers.IntegerField()), "errors": drf_serializers.ListField(child=drf_serializers.DictField())}),
+            400: OpenApiResponse(description="Invalid payload"),
+            403: OpenApiResponse(description="Permission denied or bulk commit disabled"),
+        },
+    ),
+)
 class StudentGuardianViewSet(viewsets.ModelViewSet):
     """Manage guardian/student links; parents can view their own links, admins manage all."""
 
@@ -487,6 +616,14 @@ class StudentGuardianViewSet(viewsets.ModelViewSet):
         )
 
 
+@extend_schema_view(
+    list=extend_schema(tags=["Entity"], summary="List classrooms", description="Active-school-scoped list of classrooms with academic_year and department.", responses={200: ClassroomSerializer(many=True)}),
+    retrieve=extend_schema(tags=["Entity"], summary="Retrieve a classroom", responses={200: ClassroomSerializer, 404: OpenApiResponse(description="Not found")}),
+    create=extend_schema(tags=["Entity"], summary="Create a classroom (admin only)", request=ClassroomSerializer, responses={201: ClassroomSerializer, 400: OpenApiResponse(description="Validation error"), 403: OpenApiResponse(description="Permission denied")}),
+    update=extend_schema(tags=["Entity"], summary="Update a classroom (admin only)", request=ClassroomSerializer, responses={200: ClassroomSerializer, 403: OpenApiResponse(description="Permission denied")}),
+    partial_update=extend_schema(tags=["Entity"], summary="Partially update a classroom (admin only)", request=ClassroomSerializer, responses={200: ClassroomSerializer, 403: OpenApiResponse(description="Permission denied")}),
+    destroy=extend_schema(tags=["Entity"], summary="Delete a classroom (admin only)", request=None, responses={204: OpenApiResponse(description="Deleted"), 403: OpenApiResponse(description="Permission denied")}),
+)
 class ClassroomViewSet(viewsets.ModelViewSet):
     """Classroom CRUD; open read, admin-only writes."""
 
@@ -510,6 +647,27 @@ class ClassroomViewSet(viewsets.ModelViewSet):
         return None
 
 
+@extend_schema(
+    tags=["Entity"],
+    summary="Get session claims for the current user",
+    description="Return JWT-like claims (user, role, roles, feature_permissions, is_staff, is_superuser, school_id) used by the frontend for RBAC decisions.",
+    request=None,
+    responses={
+        200: inline_serializer(
+            name="SessionClaimsResponse",
+            fields={
+                "user": UserSerializer(),
+                "role": drf_serializers.CharField(),
+                "roles": drf_serializers.ListField(child=drf_serializers.CharField()),
+                "feature_permissions": drf_serializers.ListField(child=drf_serializers.CharField()),
+                "is_staff": drf_serializers.BooleanField(),
+                "is_superuser": drf_serializers.BooleanField(),
+                "school_id": drf_serializers.CharField(required=False),
+            },
+        ),
+        401: OpenApiResponse(description="Authentication required"),
+    },
+)
 class SessionClaimsView(APIView):
     """Return JWT-like claims for the current session to drive frontend RBAC."""
 
@@ -537,6 +695,13 @@ class SessionClaimsView(APIView):
         return Response(payload)
 
 
+@extend_schema(
+    tags=["Entity"],
+    summary="Get the current user's profile",
+    description="Return the authenticated user serialized with their role string. Used by mobile/frontend for self-info.",
+    request=None,
+    responses={200: UserSerializer, 401: OpenApiResponse(description="Authentication required")},
+)
 class ProfileView(APIView):
     """Current user profile for mobile/frontend. GET /api/auth/profile/"""
 
@@ -549,6 +714,27 @@ class ProfileView(APIView):
         return Response(data)
 
 
+@extend_schema(
+    tags=["Entity"],
+    summary="Get the teacher's roster aggregation",
+    description=(
+        "Return a list of rosters keyed by (classroom, specialty, teacher). Each "
+        "roster includes the students currently enrolled in that classroom + "
+        "specialty. Admin-like callers see every active assignment in their "
+        "school; teachers see only their own assignments."
+    ),
+    request=None,
+    responses={
+        200: inline_serializer(
+            name="TeacherRosterResponse",
+            fields={
+                "rosters": drf_serializers.ListField(child=drf_serializers.DictField()),
+            },
+        ),
+        401: OpenApiResponse(description="Authentication required"),
+        403: OpenApiResponse(description="Permission denied"),
+    },
+)
 class TeacherRosterView(APIView):
     """Roster aggregation for teachers/admins to drive course/quiz builders."""
 

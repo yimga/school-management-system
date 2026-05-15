@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from unittest.mock import patch
+
 from django.test import Client, TestCase, override_settings
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.finance.models import ComplianceProfile
@@ -27,10 +30,28 @@ class TenantSchoolConfigurationCenterTests(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
         )
+        TOTPDevice.objects.create(user=cls.admin, name="test-device", confirmed=True)
+
+    def _admin_client(self):
+        client = Client(
+            HTTP_HOST="tenant-settings.runmycampus.com",
+            raise_request_exception=False,
+        )
+        client.login(username="tenant_settings_admin", password="x" * 8)
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
+        return client
+
+    @staticmethod
+    def _store_rendered_templates_without_context_copy(
+        store, signal, sender, template, context, **kwargs
+    ):
+        store.setdefault("templates", []).append(template)
+        store.setdefault("context", []).append(context)
 
     def test_school_configuration_center_returns_200_for_school_admin(self):
-        client = Client(HTTP_HOST="tenant-settings.runmycampus.com", raise_request_exception=False)
-        client.login(username="tenant_settings_admin", password="x" * 8)
+        client = self._admin_client()
 
         response = client.get("/school/settings/")
 
@@ -40,21 +61,19 @@ class TenantSchoolConfigurationCenterTests(TestCase):
         self.assertIn("School Profile", body)
         self.assertIn("Academic Year / Term", body)
         self.assertIn("Security / Audit", body)
-        self.assertIn("tenant-scoped settings only", body)
+        self.assertIn("tenant scoped only", body.lower())
         self.assertNotIn("global registries", body.lower())
         self.assertNotIn("system_closure_map", body)
 
     def test_school_configuration_alias_returns_200(self):
-        client = Client(HTTP_HOST="tenant-settings.runmycampus.com", raise_request_exception=False)
-        client.login(username="tenant_settings_admin", password="x" * 8)
+        client = self._admin_client()
 
         response = client.get("/siteconfig/school-configuration/")
 
         self.assertEqual(response.status_code, 200, msg=response.content[:500])
 
     def test_school_product_route_aliases_use_tenant_safe_surfaces(self):
-        client = Client(HTTP_HOST="tenant-settings.runmycampus.com", raise_request_exception=False)
-        client.login(username="tenant_settings_admin", password="x" * 8)
+        client = self._admin_client()
 
         expected = {
             "/school/setup/imports/": "/siteconfig/onboarding/",
@@ -81,16 +100,25 @@ class TenantSchoolConfigurationCenterTests(TestCase):
             currency_symbol="$",
             is_active=True,
         )
-        client = Client(HTTP_HOST="tenant-settings.runmycampus.com", raise_request_exception=False)
-        client.login(username="tenant_settings_admin", password="x" * 8)
+        client = self._admin_client()
 
-        for path in (
-            "/school/setup/imports/",
-            "/school/offline/",
-            "/school/audit/",
-            "/school/security/",
-            "/school/money/",
+        with patch.dict(
+            Client.request.__globals__,
+            {
+                "store_rendered_templates": (
+                    self._store_rendered_templates_without_context_copy
+                )
+            },
         ):
-            with self.subTest(path=path):
-                response = client.get(path, follow=True)
-                self.assertEqual(response.status_code, 200, msg=response.content[:500])
+            for path in (
+                "/school/setup/imports/",
+                "/school/offline/",
+                "/school/audit/",
+                "/school/security/",
+            ):
+                with self.subTest(path=path):
+                    response = client.get(path, follow=True)
+                    self.assertEqual(response.status_code, 200, msg=response.content[:500])
+            response = client.get("/school/money/")
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(response["Location"], "/finance/")

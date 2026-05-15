@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django.test import Client, TestCase, override_settings
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.platform_runtime.models import PackInstallation
@@ -17,10 +18,21 @@ class TenantPackSetupTests(TestCase):
         self.school = School.objects.create(name="Tenant Packs", slug="tenant-packs", subdomain="tenant-packs", is_active=True)
         self.other = School.objects.create(name="Tenant Packs Other", slug="tenant-packs-other", subdomain="tenant-packs-other", is_active=True)
         self.admin = User.objects.create_user(username="tenant_pack_admin", password="x" * 8, role=User.Role.ADMIN, is_staff=True)
+        TOTPDevice.objects.create(user=self.admin, name="test-device", confirmed=True)
+
+    def _admin_client(self):
+        client = Client(
+            HTTP_HOST="tenant-packs.runmycampus.com",
+            raise_request_exception=False,
+        )
+        client.login(username="tenant_pack_admin", password="x" * 8)
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
+        return client
 
     def test_school_admin_can_access_tenant_pack_setup(self):
-        client = Client(HTTP_HOST="tenant-packs.runmycampus.com", raise_request_exception=False)
-        client.login(username="tenant_pack_admin", password="x" * 8)
+        client = self._admin_client()
 
         response = client.get("/school/setup/packs/")
 
@@ -30,8 +42,7 @@ class TenantPackSetupTests(TestCase):
         self.assertIn("Attendance Recovery", body)
 
     def test_tenant_apply_only_affects_own_school(self):
-        client = Client(HTTP_HOST="tenant-packs.runmycampus.com", raise_request_exception=False)
-        client.login(username="tenant_pack_admin", password="x" * 8)
+        client = self._admin_client()
 
         response = client.post("/school/setup/packs/", {"pack": "attendance-recovery", "pack_type": "workflow_pack", "confirm": "yes"})
 
@@ -40,8 +51,7 @@ class TenantPackSetupTests(TestCase):
         self.assertFalse(PackInstallation.objects.filter(school=self.other).exists())
 
     def test_external_blockers_remain_honest(self):
-        client = Client(HTTP_HOST="tenant-packs.runmycampus.com", raise_request_exception=False)
-        client.login(username="tenant_pack_admin", password="x" * 8)
+        client = self._admin_client()
 
         response = client.get("/school/setup/packs/?pack=finance-approval&pack_type=policy_bundle&preview=1")
 

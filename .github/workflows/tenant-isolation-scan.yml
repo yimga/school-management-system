@@ -1,0 +1,40 @@
+# Tenant-isolation queryset safety scan.
+#
+# Builds and compares against the baseline JSON at
+# `var/security-audit-baseline-tenant-isolation.json`. New unscoped
+# `<TenantModel>.objects.filter()` / `.get()` / `.all()` queries cause CI to fail.
+#
+# Update the baseline only when you've intentionally fixed (removed) an
+# existing finding — never to silence a new one.
+#
+# Hand-edit the baseline file with care; format is deterministic JSON.
+
+name: tenant-isolation-scan
+
+on:
+  pull_request:
+    paths:
+      - "beta/school-management-system/apps/**/*.py"
+      - "beta/school-management-system/scripts/scan_tenant_queryset_safety.py"
+      - "beta/school-management-system/var/security-audit-baseline-tenant-isolation.json"
+      - ".github/workflows/tenant-isolation-scan.yml"
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    working-directory: beta/school-management-system
+
+jobs:
+  scan:
+    name: Compare against tenant-isolation baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_tenant_queryset_safety.py --compare

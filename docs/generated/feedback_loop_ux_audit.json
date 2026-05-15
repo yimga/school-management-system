@@ -1,0 +1,33 @@
+{
+  "surface": "Voice of Customer + Feedback Loop",
+  "routes_checked": [
+    "/feedback/",
+    "/school/feedback/",
+    "/teacher/feedback/",
+    "/parent/feedback/",
+    "/student/feedback/",
+    "/school/roadmap/",
+    "/super/voice-of-customer/",
+    "/super/product-roadmap/"
+  ],
+  "accessibility": {
+    "forms_have_labels": true,
+    "keyboard_usable": true,
+    "csrf_protected": true,
+    "no_dummy_href_action": true,
+    "student_public_posting_disabled": true
+  },
+  "ux_rules": {
+    "minimal_fields_first": true,
+    "role_specific_categories": true,
+    "privacy_language_present": true,
+    "status_language_present": true,
+    "contextual_widget_on_authenticated_shells": true,
+    "you_said_we_did_visible": true
+  },
+  "risk_notes": [
+    "The current templates use Django form rendering for speed and consistency; a later pass can replace this with hand-laid progressive disclosure fields.",
+    "The contextual widget captures route/module/role, but browser device parsing is stored as raw request metadata until a client-side parser is added."
+  ],
+  "verdict": "UX foundation ready for repo scope"
+}

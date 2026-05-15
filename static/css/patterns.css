@@ -1763,7 +1763,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* --- 24.19 Action bar polish (partials/page_families/action_bar.html) --- */
+/* --- 24.19 Action bar polish — .ds-action-bar grammar (20 callers across portal + admin). --- */
 [data-rmc-aesthetic="v2"] .ds-action-bar {
   display: flex;
   gap: 8px;

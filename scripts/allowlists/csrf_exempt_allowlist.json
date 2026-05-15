@@ -154,6 +154,17 @@
       "audit_logging": "manual_review_required",
       "notes": "WOPI endpoints accept Collabora server callbacks without CSRF; guarded by document-scoped HMAC token and auth context.",
       "last_reviewed": "2026-03-28"
+    },
+    "apps/security/csp_report_view.py": {
+      "expected_count": 1,
+      "owner": "security_observability",
+      "verdict": "keep",
+      "auth_model": "browser_csp_report_post",
+      "replay_protection": "not_applicable",
+      "rate_limiting": "implemented",
+      "audit_logging": "implemented",
+      "notes": "CSP violation reports are browser-generated POSTs without application CSRF cookies; the endpoint rate-limits, caps request bodies, and logs only normalized directive and URI metadata.",
+      "last_reviewed": "2026-05-14"
     }
   }
 }

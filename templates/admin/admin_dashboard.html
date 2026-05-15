@@ -105,8 +105,13 @@
       {% for card in dashboard_kpi_cards %}
       {% include "admin/components/dashboard_kpi_card.html" with card=card %}
       {% empty %}
-      <div class="admin-kpi-card">
-        <div class="admin-kpi-card__details">{% trans "No KPI data available." %}</div>
+      <div class="admin-kpi-card admin-kpi-card--empty">
+        <div class="rmc-empty rmc-empty--inline" role="status">
+          <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-bar-chart"></i></div>
+          <div class="rmc-empty__body">
+            <p class="rmc-empty__message mb-0">{% trans "No KPI data available." %}</p>
+          </div>
+        </div>
       </div>
       {% endfor %}
     </div>

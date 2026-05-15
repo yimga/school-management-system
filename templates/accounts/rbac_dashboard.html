@@ -208,10 +208,10 @@
             <caption class="visually-hidden">{% trans "Active temporary grants" %}</caption>
             <thead class="table-light">
               <tr>
-                <th>{% trans "User" %}</th>
-                <th>{% trans "Role" %}</th>
-                <th>{% trans "Expires" %}</th>
-                <th>{% trans "Notes" %}</th>
+                <th scope="col">{% trans "User" %}</th>
+                <th scope="col">{% trans "Role" %}</th>
+                <th scope="col">{% trans "Expires" %}</th>
+                <th scope="col">{% trans "Notes" %}</th>
               </tr>
             </thead>
             <tbody>
@@ -238,10 +238,10 @@
       <h5 class="mb-3">{% trans "Existing Roles" %}</h5>
       {% if roles %}
         <div class="table-responsive">
-          <table class="table align-middle mb-0 table-family" aria-label="{% trans 'Existing RBAC roles' %}">
+          <table class="table align-middle mb-0 table-family" aria-label="Existing RBAC roles">
             <thead class="table-light">
               <tr>
-                <th scope="col">{% trans "Code" %}</th>
+                <th scope="col">Code</th>
                 <th scope="col">{% trans "Name" %}</th>
                 <th scope="col">{% trans "Description" %}</th>
                 <th scope="col" class="rbac-perms-cell">{% trans "Permissions" %}</th>
@@ -323,9 +323,9 @@
             <caption class="visually-hidden">{% trans "Existing Permissions" %}</caption>
             <thead class="table-light">
               <tr>
-                <th>{% trans "Code" %}</th>
-                <th>{% trans "Name" %}</th>
-                <th>{% trans "Description" %}</th>
+                <th scope="col">{% trans "Code" %}</th>
+                <th scope="col">{% trans "Name" %}</th>
+                <th scope="col">{% trans "Description" %}</th>
               </tr>
             </thead>
             <tbody>

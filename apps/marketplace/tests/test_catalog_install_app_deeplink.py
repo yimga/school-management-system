@@ -8,6 +8,7 @@ import uuid
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.marketplace.models import (
@@ -51,8 +52,12 @@ class TenantCatalogInstallAppDeepLinkTests(TestCase):
             school=self.school,
             defaults={"role": User.Role.ADMIN, "is_primary": True},
         )
+        TOTPDevice.objects.create(user=u, name="test-device", confirmed=True)
         c = Client(HTTP_HOST=_T_HOST)
         c.login(username=u.username, password="x" * 8)
+        session = c.session
+        session["mfa_verified"] = True
+        session.save()
         return c
 
     def test_install_app_sets_context_only_for_installable_app(self):
@@ -89,7 +94,7 @@ class TenantCatalogInstallAppDeepLinkTests(TestCase):
         c = self._admin_client()
         base = reverse("tenant_app_catalog", urlconf="config.tenant_urls")
         r_ok = c.get(f"{base}?install_app={good_app.pk}")
-        self.assertEqual(r_ok.status_code, 200)
+        self.assertEqual(r_ok.status_code, 200, msg=r_ok.get("Location", ""))
         self.assertEqual(r_ok.context["catalog_install_app_id"], good_app.pk)
         self.assertContains(
             r_ok,
@@ -165,7 +170,7 @@ class TenantCatalogInstallAppDeepLinkTests(TestCase):
         c = self._admin_client()
         base = reverse("tenant_app_catalog", urlconf="config.tenant_urls")
         r = c.get(base)
-        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.status_code, 200, msg=r.get("Location", ""))
         body = r.content.decode("utf-8", errors="replace")
         self.assertNotIn(
             "if (btn && !btn.disabled)",

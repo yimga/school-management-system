@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.schools.models import MarketingFunnelEvent, School, SchoolMembership
@@ -48,6 +49,14 @@ class DemoConversionFlowTests(TestCase):
             defaults={"role": User.Role.ADMIN, "is_primary": True},
         )
         self.client.login(username="demoflow", password="Test1234!ab")
+        TOTPDevice.objects.create(
+            user=self.user,
+            name="test-device",
+            confirmed=True,
+        )
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
 
     def test_index_redirects_to_attendance(self):
         r = self.client.get(

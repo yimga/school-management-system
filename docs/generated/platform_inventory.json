@@ -1,36 +1,41 @@
 {
   "baseline_counts": {
-    "allow_any": 106,
-    "csrf_exempt": 306,
-    "cursor_execute": 371,
-    "except_exception": 411,
-    "get_solo": 208,
-    "gilead": 16623,
-    "gilead_files": 164,
-    "html_files": 789,
-    "management_commands": 162,
-    "markdown_files": 1126,
-    "migration_files": 747,
-    "print_calls": 1062,
-    "python_files": 2938,
-    "site_settings": 2048
+    "allow_any": 112,
+    "csrf_exempt": 305,
+    "cursor_execute": 377,
+    "except_exception": 479,
+    "get_solo": 207,
+    "gilead": 16620,
+    "gilead_files": 162,
+    "html_files": 859,
+    "management_commands": 170,
+    "markdown_files": 1088,
+    "migration_files": 774,
+    "print_calls": 1152,
+    "python_files": 3162,
+    "site_settings": 1942
   },
   "doc_drift": {
-    "actual_installed_app_count": 45,
-    "documented_app_count": 45,
+    "actual_installed_app_count": 46,
+    "documented_app_count": 46,
     "is_stale": false,
     "legacy_doc": "docs/ALL_MODULES_COMPLETE_LIST.md"
   },
   "largest_python_files": [
     {
-      "bytes": 145327,
-      "lines": 3641,
+      "bytes": 147264,
+      "lines": 3677,
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 140810,
+      "bytes": 140963,
       "lines": 3005,
       "path": "apps/schools/marketing_page_definitions.py"
+    },
+    {
+      "bytes": 119193,
+      "lines": 3107,
+      "path": "apps/accounts/views.py"
     },
     {
       "bytes": 118727,
@@ -38,28 +43,23 @@
       "path": "apps/api/views_v1.py"
     },
     {
-      "bytes": 118357,
-      "lines": 3177,
+      "bytes": 117976,
+      "lines": 3179,
       "path": "apps/evals/views.py"
     },
     {
-      "bytes": 118228,
-      "lines": 3088,
-      "path": "apps/accounts/views.py"
-    },
-    {
-      "bytes": 104223,
-      "lines": 2986,
+      "bytes": 105500,
+      "lines": 3018,
       "path": "apps/finance/models.py"
     },
     {
-      "bytes": 100442,
-      "lines": 2668,
+      "bytes": 101336,
+      "lines": 2671,
       "path": "apps/siteconfig/views.py"
     },
     {
-      "bytes": 98676,
-      "lines": 2814,
+      "bytes": 98733,
+      "lines": 2815,
       "path": "apps/siteconfig/admin.py"
     },
     {
@@ -68,18 +68,18 @@
       "path": "apps/studio_os/views.py"
     },
     {
+      "bytes": 92569,
+      "lines": 2007,
+      "path": "config/settings.py"
+    },
+    {
       "bytes": 82395,
       "lines": 2062,
       "path": "apps/finance/tasks.py"
     },
     {
-      "bytes": 80573,
-      "lines": 1769,
-      "path": "config/settings.py"
-    },
-    {
-      "bytes": 78471,
-      "lines": 2023,
+      "bytes": 78737,
+      "lines": 2029,
       "path": "apps/siteconfig/models.py"
     }
   ],
@@ -181,6 +181,11 @@
     },
     {
       "app": "analytics",
+      "command": "export_to_warehouse",
+      "path": "apps/analytics/management/commands/export_to_warehouse.py"
+    },
+    {
+      "app": "analytics",
       "command": "send_deadline_reminders",
       "path": "apps/analytics/management/commands/send_deadline_reminders.py"
     },
@@ -261,6 +266,11 @@
     },
     {
       "app": "compliance",
+      "command": "inject_table_captions",
+      "path": "apps/compliance/management/commands/inject_table_captions.py"
+    },
+    {
+      "app": "compliance",
       "command": "privacy_request",
       "path": "apps/compliance/management/commands/privacy_request.py"
     },
@@ -271,6 +281,11 @@
     },
     {
       "app": "compliance",
+      "command": "rotate_audit_hmac_key",
+      "path": "apps/compliance/management/commands/rotate_audit_hmac_key.py"
+    },
+    {
+      "app": "compliance",
       "command": "seed_compliance_baseline",
       "path": "apps/compliance/management/commands/seed_compliance_baseline.py"
     },
@@ -278,6 +293,11 @@
       "app": "compliance",
       "command": "send_digest_alerts",
       "path": "apps/compliance/management/commands/send_digest_alerts.py"
+    },
+    {
+      "app": "compliance",
+      "command": "tenant_purge",
+      "path": "apps/compliance/management/commands/tenant_purge.py"
     },
     {
       "app": "compliance",
@@ -381,6 +401,11 @@
     },
     {
       "app": "marketplace",
+      "command": "create_sandbox_tenant",
+      "path": "apps/marketplace/management/commands/create_sandbox_tenant.py"
+    },
+    {
+      "app": "marketplace",
       "command": "marketplace_health_check",
       "path": "apps/marketplace/management/commands/marketplace_health_check.py"
     },
@@ -398,6 +423,11 @@
       "app": "marketplace",
       "command": "seed_marketplace_apps",
       "path": "apps/marketplace/management/commands/seed_marketplace_apps.py"
+    },
+    {
+      "app": "marketplace",
+      "command": "seed_marketplace_scopes",
+      "path": "apps/marketplace/management/commands/seed_marketplace_scopes.py"
     },
     {
       "app": "metadata",
@@ -488,6 +518,11 @@
       "app": "platform_runtime",
       "command": "platform_inventory",
       "path": "apps/platform_runtime/management/commands/platform_inventory.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "process_configuration_change_queue",
+      "path": "apps/platform_runtime/management/commands/process_configuration_change_queue.py"
     },
     {
       "app": "platform_runtime",
@@ -781,6 +816,11 @@
     },
     {
       "app": "siteconfig",
+      "command": "ingest_policy_documents",
+      "path": "apps/siteconfig/management/commands/ingest_policy_documents.py"
+    },
+    {
+      "app": "siteconfig",
       "command": "migrate_dashboard_layouts",
       "path": "apps/siteconfig/management/commands/migrate_dashboard_layouts.py"
     },
@@ -898,10 +938,12 @@
   "public_endpoint_audits": {
     "allow_any": {
       "owners": [
-        "tenant_bootstrap_api"
+        "marketplace_platform_api",
+        "tenant_bootstrap_api",
+        "webhook_platform_api"
       ],
-      "reviewed_files": 1,
-      "reviewed_occurrences": 2
+      "reviewed_files": 3,
+      "reviewed_occurrences": 7
     },
     "csrf_exempt": {
       "owners": [
@@ -917,20 +959,21 @@
         "marketing_leads",
         "north_star_api",
         "platform_observability",
-        "portal_office_wopi"
+        "portal_office_wopi",
+        "security_observability"
       ],
-      "reviewed_endpoints": 38,
-      "reviewed_files": 14
+      "reviewed_endpoints": 39,
+      "reviewed_files": 15
     }
   },
   "scoped_gravity_counts": {
-    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 38,
+    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 39,
     "cursor_execute_apps_config_py_excl_migrations": 32,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 961,
-    "site_settings_refs_apps_py_excl_migrations": 41,
-    "site_settings_refs_apps_py_excl_migrations_tests": 7
+    "print_calls_scripts_py": 1048,
+    "site_settings_refs_apps_py_excl_migrations": 46,
+    "site_settings_refs_apps_py_excl_migrations_tests": 12
   },
   "site_settings_fields": [
     {

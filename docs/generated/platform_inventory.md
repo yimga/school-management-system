@@ -1,24 +1,24 @@
 # Platform Inventory
 
-- Installed app modules: `45`
-- Python files: `2938`
-- HTML templates: `789`
-- Markdown files: `1126`
-- Migration files: `747`
-- Management commands: `162` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs (gross scan): `2048`
-- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `41`
-- `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `7`
-- `get_solo()` refs: `208`
-- `except Exception`: `411`
-- `cursor.execute()` (gross): `371`
+- Installed app modules: `46`
+- Python files: `3162`
+- HTML templates: `859`
+- Markdown files: `1088`
+- Migration files: `774`
+- Management commands: `170` (full list in JSON key `management_commands_list`)
+- `SiteSettings` refs (gross scan): `1942`
+- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `46`
+- `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `12`
+- `get_solo()` refs: `207`
+- `except Exception`: `479`
+- `cursor.execute()` (gross): `377`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `32`
-- `csrf_exempt` (substring, gross): `306`
-- `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `38`
-- `AllowAny`: `106`
-- `print()` (gross all `.py`): `1062`
-- `print()` (`apps` product paths): `0`; `scripts/`: `961`
-- `gilead` matches (gross corpus): `16623` across `164` files
+- `csrf_exempt` (substring, gross): `305`
+- `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `39`
+- `AllowAny`: `112`
+- `print()` (gross all `.py`): `1152`
+- `print()` (`apps` product paths): `0`; `scripts/`: `1048`
+- `gilead` matches (gross corpus): `16620` across `162` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -26,7 +26,7 @@ Gross totals include migrations and broad file pools; use **scoped** lines aroun
 
 ## Management Commands (full list)
 
-Total: `162` commands. First 25 by app/command:
+Total: `170` commands. First 25 by app/command:
 
 - `academics` / `export_certification_pack` — `apps/academics/management/commands/export_certification_pack.py`
 - `academics` / `fix_term_positions` — `apps/academics/management/commands/fix_term_positions.py`
@@ -47,20 +47,20 @@ Total: `162` commands. First 25 by app/command:
 - `accounts` / `seed_render_users` — `apps/accounts/management/commands/seed_render_users.py`
 - `analytics` / `compute_benchmark_aggregates` — `apps/analytics/management/commands/compute_benchmark_aggregates.py`
 - `analytics` / `compute_nightly_risk` — `apps/analytics/management/commands/compute_nightly_risk.py`
+- `analytics` / `export_to_warehouse` — `apps/analytics/management/commands/export_to_warehouse.py`
 - `analytics` / `send_deadline_reminders` — `apps/analytics/management/commands/send_deadline_reminders.py`
 - `automation` / `migration_legacy_data_audit` — `apps/automation/management/commands/migration_legacy_data_audit.py`
 - `automation` / `seed_migration_profiles` — `apps/automation/management/commands/seed_migration_profiles.py`
 - `billing` / `import_platform_billing_snapshot` — `apps/billing/management/commands/import_platform_billing_snapshot.py`
 - `billing` / `run_platform_billing_lifecycle` — `apps/billing/management/commands/run_platform_billing_lifecycle.py`
-- `billing` / `run_revenue_share_payouts` — `apps/billing/management/commands/run_revenue_share_payouts.py`
-- … and 137 more (see `platform_inventory.json` key `management_commands_list`).
+- … and 145 more (see `platform_inventory.json` key `management_commands_list`).
 
 ## Public Endpoint Review
 
-- Reviewed `csrf_exempt` files: `14`
-- Reviewed `csrf_exempt` endpoints: `38`
-- Reviewed `AllowAny` files: `1`
-- Reviewed `AllowAny` occurrences: `2`
+- Reviewed `csrf_exempt` files: `15`
+- Reviewed `csrf_exempt` endpoints: `39`
+- Reviewed `AllowAny` files: `3`
+- Reviewed `AllowAny` occurrences: `7`
 
 ## SiteSettings Ownership
 
@@ -77,22 +77,22 @@ Total: `162` commands. First 25 by app/command:
 
 ## Largest Python Files
 
-- `apps/schools/marketing_views.py`: `3641` lines / `145327` bytes
-- `apps/schools/marketing_page_definitions.py`: `3005` lines / `140810` bytes
+- `apps/schools/marketing_views.py`: `3677` lines / `147264` bytes
+- `apps/schools/marketing_page_definitions.py`: `3005` lines / `140963` bytes
+- `apps/accounts/views.py`: `3107` lines / `119193` bytes
 - `apps/api/views_v1.py`: `2856` lines / `118727` bytes
-- `apps/evals/views.py`: `3177` lines / `118357` bytes
-- `apps/accounts/views.py`: `3088` lines / `118228` bytes
-- `apps/finance/models.py`: `2986` lines / `104223` bytes
-- `apps/siteconfig/views.py`: `2668` lines / `100442` bytes
-- `apps/siteconfig/admin.py`: `2814` lines / `98676` bytes
+- `apps/evals/views.py`: `3179` lines / `117976` bytes
+- `apps/finance/models.py`: `3018` lines / `105500` bytes
+- `apps/siteconfig/views.py`: `2671` lines / `101336` bytes
+- `apps/siteconfig/admin.py`: `2815` lines / `98733` bytes
 - `apps/studio_os/views.py`: `2420` lines / `95628` bytes
+- `config/settings.py`: `2007` lines / `92569` bytes
 - `apps/finance/tasks.py`: `2062` lines / `82395` bytes
-- `config/settings.py`: `1769` lines / `80573` bytes
-- `apps/siteconfig/models.py`: `2023` lines / `78471` bytes
+- `apps/siteconfig/models.py`: `2029` lines / `78737` bytes
 
 ## Documentation Drift
 
-- Legacy documented app count: `45`
-- Actual installed app count: `45`
+- Legacy documented app count: `46`
+- Actual installed app count: `46`
 - Drift detected: `False`
 

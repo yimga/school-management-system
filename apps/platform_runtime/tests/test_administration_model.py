@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django.test import Client, TestCase, override_settings
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.schools.models import School
@@ -33,13 +34,17 @@ class AdministrationModelTests(TestCase):
             is_active=True,
         )
         tenant = Client(HTTP_HOST="tenant-one.runmycampus.com", raise_request_exception=False)
-        User.objects.create_user(
+        user = User.objects.create_user(
             username="tenant_cfg_blocked",
             password="x" * 8,
             role=User.Role.ADMIN,
             is_staff=True,
         )
+        TOTPDevice.objects.create(user=user, name="test-device", confirmed=True)
         tenant.login(username="tenant_cfg_blocked", password="x" * 8)
+        session = tenant.session
+        session["mfa_verified"] = True
+        session.save()
 
         response = tenant.get("/configuration/")
 

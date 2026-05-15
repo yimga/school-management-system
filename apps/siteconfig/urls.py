@@ -113,6 +113,7 @@ from .views_school_onboarding import (
     school_activation_onboarding,
 )
 from .views_school_group_hierarchy import school_group_hierarchy
+from .views_console_ai_rag import ingest_policy_docs as ai_rag_ingest_policy_docs
 
 app_name = "siteconfig"
 
@@ -431,4 +432,9 @@ urlpatterns = [
         name="revoke_impersonation_consent",
     ),
     path("feedback-roadmap/", feedback_roadmap, name="feedback_roadmap"),
+    path(
+        "console/ai/rag/ingest/",
+        ai_rag_ingest_policy_docs,
+        name="ai_rag_ingest_policy_docs",
+    ),
 ]

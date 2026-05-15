@@ -41,22 +41,6 @@ def _validate_payload(data: dict) -> tuple[bool, dict]:
     return True, {}
 
 
-def _ensure_publisher(user):
-    from apps.marketplace.models import PublisherOrganization
-
-    publisher = (
-        PublisherOrganization.objects.filter(verified_contact_email=user.email).first()
-        if user.email
-        else None
-    )
-    if publisher is not None:
-        return publisher
-    return PublisherOrganization.objects.create(
-        name=f"{user.username}'s apps",
-        verified_contact_email=user.email or "",
-    )
-
-
 @extend_schema(
     tags=["Marketplace"],
     summary="Submit a draft marketplace app for review",
@@ -82,58 +66,18 @@ class MarketplaceSubmissionView(APIView):
             )
 
         try:
-            from apps.marketplace.models import (
-                MarketplaceApp,
-                MarketplaceListing,
-            )
+            from apps.marketplace.services import upsert_marketplace_submission
         except ImportError:
             return Response(
                 {"detail": "marketplace app unavailable"}, status=503
             )
 
-        publisher = _ensure_publisher(request.user)
-        slug = data["slug"].strip().lower()
-        kind = (data.get("kind") or "first_party").strip().lower()
-        manifest = data.get("manifest") or {}
-
-        app, app_created = MarketplaceApp.objects.update_or_create(
-            slug=slug,
-            defaults={
-                "app_key": slug,
-                "publisher": publisher,
-                "name": data["name"].strip()[:255],
-                "description": (data.get("description") or "").strip(),
-                "kind": kind,
-                "version": data["version"].strip()[:32],
-                "manifest": manifest,
-                "is_active": True,
-            },
-        )
-
-        listing, listing_created = MarketplaceListing.objects.update_or_create(
-            app=app,
-            defaults={
-                "publisher": publisher,
-                "category": (data.get("category") or "").strip()[:80],
-                "short_description": (data.get("short_description") or "").strip()[:255],
-                "preview_image_url": (data.get("preview_image_url") or "").strip()[:500],
-                "screenshot_urls": list(data.get("screenshot_urls") or [])[:10],
-                "status": MarketplaceListing.Status.PENDING_REVIEW
-                if not app_created
-                else MarketplaceListing.Status.DRAFT,
-                "security_review_status": MarketplaceListing.ReviewStatus.PENDING,
-            },
-        )
-
+        result = upsert_marketplace_submission(user=request.user, payload=data)
         return Response(
-            {
-                "app_slug": app.slug,
-                "app_id": app.pk,
-                "listing_id": listing.pk,
-                "status": listing.status,
-                "created_app": app_created,
-                "created_listing": listing_created,
-                "next_steps_url": "https://docs.runmycampus.com/marketplace/submission/",
-            },
-            status=status.HTTP_201_CREATED if app_created else status.HTTP_200_OK,
+            result,
+            status=(
+                status.HTTP_201_CREATED
+                if result["created_app"]
+                else status.HTTP_200_OK
+            ),
         )

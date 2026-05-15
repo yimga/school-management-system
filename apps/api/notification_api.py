@@ -6,7 +6,14 @@ Location: apps/api/notification_api.py
 Handle all notification-related endpoints
 """
 
-from rest_framework import viewsets, status
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+    inline_serializer,
+)
+from rest_framework import serializers, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -18,6 +25,56 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=["Notifications"],
+        summary="List notifications for the caller",
+        description=(
+            "Return up to 50 most-recent notifications the caller is the "
+            "recipient of (or created). Filterable by severity, read state, and "
+            "rolling day window."
+        ),
+        parameters=[
+            OpenApiParameter(name="type", type=str, location=OpenApiParameter.QUERY, required=False, description="Filter by severity (ALERT / WARNING / INFO)."),
+            OpenApiParameter(name="is_read", type=bool, location=OpenApiParameter.QUERY, required=False, description="Filter by read-state."),
+            OpenApiParameter(name="days", type=int, location=OpenApiParameter.QUERY, required=False, description="Rolling window in days (default 7)."),
+        ],
+        request=None,
+        responses={
+            200: inline_serializer(
+                name="NotificationListResponse",
+                fields={
+                    "count": serializers.IntegerField(),
+                    "results": serializers.ListField(child=serializers.DictField()),
+                    "notifications": serializers.ListField(child=serializers.DictField()),
+                    "unread": serializers.IntegerField(),
+                },
+            ),
+            401: OpenApiResponse(description="Authentication required"),
+        },
+    ),
+    unread_count=extend_schema(
+        tags=["Notifications"],
+        summary="Get the caller's unread notification count",
+        request=None,
+        responses={200: inline_serializer(name="UnreadCountResponse", fields={"unread_count": serializers.IntegerField()})},
+    ),
+    read=extend_schema(
+        tags=["Notifications"],
+        summary="Mark a notification as read",
+        request=None,
+        responses={
+            200: inline_serializer(name="NotificationReadResponse", fields={"status": serializers.CharField(), "notification_id": serializers.IntegerField()}),
+            404: OpenApiResponse(description="Notification not found"),
+        },
+    ),
+    mark_all_read=extend_schema(
+        tags=["Notifications"],
+        summary="Mark all of the caller's notifications as read",
+        request=None,
+        responses={200: inline_serializer(name="MarkAllReadResponse", fields={"status": serializers.CharField(), "marked_as_read": serializers.IntegerField()})},
+    ),
+)
 class NotificationViewSet(viewsets.ViewSet):
     """
     Notification API with filtering and bulk actions

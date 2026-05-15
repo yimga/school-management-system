@@ -588,7 +588,7 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                     else channels
                 )
 
-                # No contact: prefer StudentGuardian.email/phone, then guardian_user (see docs/DATA_PARENT_CONTACT.md)
+                # No contact: prefer StudentGuardian.email/phone, then guardian_user (see docs/archive/legacy_2026_05_14/DATA_PARENT_CONTACT.md)
                 has_contact = bool(
                     (getattr(guardian, "email", None) or "").strip()
                     or (guardian_user.email or "").strip()

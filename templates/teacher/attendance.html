@@ -68,7 +68,7 @@
             </div>
           {% else %}
             {% url 'portal:teacher_dashboard_alias' as teacher_dash_url %}
-            {% include "components/dashboard_empty_state.html" with icon="bi-calendar-week" title=_("No attendance history yet") message=_("Records appear here after you take attendance for your classes.") action_url=teacher_dash_url action_text=_("Back to teacher home") secondary_action_url=export_url secondary_action_text=_("Export CSV") %}
+            {% include "components/rmc_empty_state.html" with icon="bi-calendar-week" title=_("No attendance history yet") message=_("Records appear here after you take attendance for your classes.") primary_url=teacher_dash_url primary_label=_("Back to teacher home") secondary_url=export_url secondary_label=_("Export CSV") %}
           {% endif %}
         </div>
       </div>

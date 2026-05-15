@@ -3,7 +3,13 @@ Finance API Views
 Invoice, Payment, and Financial Analytics endpoints
 """
 
-from rest_framework import viewsets, status
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiTypes,
+    extend_schema,
+    inline_serializer,
+)
+from rest_framework import serializers, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.pagination import CursorPagination
 from rest_framework.response import Response
@@ -17,6 +23,7 @@ from django.utils.dateparse import parse_datetime
 
 from apps.finance.models import Invoice, Payment, Notification, ComplianceProfile
 from apps.finance.services import pay_invoice_with_wallet
+from apps.observability.tracing import trace_view
 from apps.platform_runtime.helpers import get_platform_defaults
 from apps.api.serializers import InvoiceSerializer, PaymentSerializer
 from apps.api.permissions import IsAdminUser
@@ -167,6 +174,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @trace_view("finance.invoice.create")
     def create(self, request, *args, **kwargs):
         """Create new invoice"""
         if not _can_write_finance(request.user):
@@ -362,6 +370,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
         return base.filter(invoice__student_id__in=guardian_children)
 
+    @trace_view("finance.payment.record")
     def create(self, request, *args, **kwargs):
         """
         Record a new payment.
@@ -515,6 +524,30 @@ class FinancialAnalyticsAPI(APIView):
 
     permission_classes = [IsAdminUser]
 
+    @extend_schema(
+        tags=["Finance"],
+        parameters=[
+            OpenApiParameter(name="from_date", type=OpenApiTypes.DATE, required=False),
+            OpenApiParameter(name="to_date", type=OpenApiTypes.DATE, required=False),
+        ],
+        responses={
+            200: inline_serializer(
+                name="FinancialAnalyticsResponse",
+                fields={
+                    "total_invoiced": serializers.FloatField(),
+                    "total_collected": serializers.FloatField(),
+                    "collection_rate": serializers.FloatField(),
+                    "pending_amount": serializers.FloatField(),
+                    "overdue_amount": serializers.FloatField(),
+                    "outstanding_fees": serializers.FloatField(),
+                    "payment_methods": serializers.ListField(child=serializers.DictField()),
+                    "monthly_revenue": serializers.ListField(child=serializers.DictField()),
+                    "currency": serializers.CharField(),
+                },
+            ),
+            400: OpenApiTypes.OBJECT,
+        },
+    )
     def get(self, request):
         """Get comprehensive financial analytics"""
         school = _request_school(request)

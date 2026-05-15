@@ -37,6 +37,7 @@ def _student_360_academic(student):
             )
         if apps.is_installed("evals"):
             Evaluation = apps.get_model("evals", "Evaluation")
+            # tenant-isolation-allow: `student` is school-scoped by caller; FK already binds tenant (reviewed 2026-05-14)
             evaluations = list(
                 Evaluation.objects.filter(student=student).select_related(
                     "term", "academic_year"
@@ -62,6 +63,7 @@ def _student_360_finance(student):
 
         if apps.is_installed("finance"):
             Invoice = apps.get_model("finance", "Invoice")
+            # tenant-isolation-allow: `student` is school-scoped by caller; FK already binds tenant (reviewed 2026-05-14)
             invoices = list(
                 Invoice.objects.filter(student=student).order_by("-created_at")[:20]
             )

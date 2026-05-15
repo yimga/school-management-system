@@ -13,12 +13,18 @@
   runs synchronously in <head>, before paint, so no FOUC. The Unfold skeleton
   template owns the <html> tag (third-party), so we toggle the attribute here.
   {% endcomment %}
-  <script>document.documentElement.setAttribute('data-rmc-aesthetic','v2');</script>
+  <script>document.documentElement.setAttribute('data-rmc-aesthetic','v2');
+    // v2.6 viewport-fit=cover parity — Unfold's skeleton.html owns the viewport
+    // meta; patch it here so safe-area-inset utilities behave on notched devices.
+    (function(){var m=document.querySelector('meta[name="viewport"]');if(m&&!/viewport-fit/.test(m.getAttribute('content')||'')){m.setAttribute('content',(m.getAttribute('content')||'width=device-width, initial-scale=1')+', viewport-fit=cover');}})();
+  </script>
   {% include "partials/rmc_theme_meta.html" %}
   {% include "partials/rmc_social_meta.html" %}
   {# Theme bootstrap must run before paint to avoid flash-of-wrong-theme.
      v2 theme system: Light / Dark / System with prefers-color-scheme live response. #}
   <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
+  <script src="{% static 'js/rmc-lexicon.js' %}" defer></script>
+  <script src="{% static 'js/rmc-friction.js' %}" defer></script>
   <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
   <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
   <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>

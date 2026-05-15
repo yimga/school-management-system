@@ -334,6 +334,7 @@ def get_package_lineage_registry(
             entity_codes=entity_codes,
             exclude_consumers={("other", f"package:{pkg.package_id}")},
         )
+        # tenant-isolation-allow: package blast-radius aggregates installs across tenants (reviewed 2026-05-14)
         active_installs = list(
             InstalledPackage.objects.filter(
                 package_id=pkg.package_id,
@@ -348,6 +349,7 @@ def get_package_lineage_registry(
                 "created_at": row.created_at.isoformat() if row.created_at else None,
                 "reconciliation_status": row.reconciliation_status,
             }
+            # tenant-isolation-allow: rollback aggregation across tenants for blast-radius (reviewed 2026-05-14)
             for row in PackageChangeLog.objects.filter(
                 package_id=pkg.package_id,
                 version=pkg.version,

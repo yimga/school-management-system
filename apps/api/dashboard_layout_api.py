@@ -9,6 +9,13 @@ from typing import Any, Dict, List, Set
 
 from django.http import Http404
 from django.db import models
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+    inline_serializer,
+)
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -302,6 +309,31 @@ def _allowed_roles_for_page(page: str) -> List[str]:
     }.get(page, [])
 
 
+@extend_schema(
+    tags=["Dashboard"],
+    summary="List available widgets for a dashboard page",
+    description=(
+        "Return the active widgets that the current user is allowed to place on "
+        "the given dashboard page. Role-scoped — widgets the caller cannot use "
+        "are filtered out. Used by the palette UI and the AI Copilot for widget "
+        "discovery."
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="page",
+            type=str,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="Dashboard page slug (e.g. 'backend', 'teacher', 'parent'). Defaults to 'backend'.",
+        ),
+    ],
+    request=None,
+    responses={
+        200: DashboardWidgetSerializer(many=True),
+        401: OpenApiResponse(description="Authentication required"),
+        404: OpenApiResponse(description="Page not allowed for the caller's role"),
+    },
+)
 class AvailableWidgetsAPI(APIView):
     """
     GET: return available widgets for a dashboard page (role-scoped).
@@ -331,6 +363,103 @@ class AvailableWidgetsAPI(APIView):
         return Response({"page": page, "widgets": widgets})
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=["Dashboard"],
+        summary="Get user dashboard layout for a page",
+        description=(
+            "Return the widgets available to the current user on the given page "
+            "plus the user's saved layout (or default if none). Records a "
+            "dashboard refresh in governor limits."
+        ),
+        parameters=[
+            OpenApiParameter(
+                name="page",
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description="Dashboard page slug.",
+            ),
+        ],
+        request=None,
+        responses={
+            200: inline_serializer(
+                name="DashboardLayoutGetResponse",
+                fields={
+                    "page": serializers.CharField(),
+                    "role": serializers.CharField(),
+                    "layout": serializers.DictField(),
+                    "widgets": DashboardWidgetSerializer(many=True),
+                },
+            ),
+            401: OpenApiResponse(description="Authentication required"),
+            404: OpenApiResponse(description="Page not allowed for the caller's role"),
+        },
+    ),
+    put=extend_schema(
+        tags=["Dashboard"],
+        summary="Save user dashboard layout for a page (full update)",
+        description=(
+            "Persist the caller's per-page layout. Validates each widget id is "
+            "allowed for the user/page and enforces allowed sizes/variants. "
+            "Requires `_can_customize` privilege."
+        ),
+        request=DashboardLayoutSerializer,
+        responses={
+            200: inline_serializer(
+                name="DashboardLayoutSaveResponse",
+                fields={
+                    "status": serializers.CharField(),
+                    "layout": serializers.DictField(),
+                },
+            ),
+            400: OpenApiResponse(description="Invalid layout payload"),
+            401: OpenApiResponse(description="Authentication required"),
+            403: OpenApiResponse(description="Caller cannot customize this dashboard"),
+            404: OpenApiResponse(description="Page not allowed for the caller's role"),
+        },
+    ),
+    patch=extend_schema(
+        tags=["Dashboard"],
+        summary="Save user dashboard layout for a page (partial update)",
+        description="Same semantics as PUT; layout payload is validated and persisted.",
+        request=DashboardLayoutSerializer,
+        responses={
+            200: inline_serializer(
+                name="DashboardLayoutPatchResponse",
+                fields={
+                    "status": serializers.CharField(),
+                    "layout": serializers.DictField(),
+                },
+            ),
+            400: OpenApiResponse(description="Invalid layout payload"),
+            401: OpenApiResponse(description="Authentication required"),
+            403: OpenApiResponse(description="Caller cannot customize this dashboard"),
+            404: OpenApiResponse(description="Page not allowed for the caller's role"),
+        },
+    ),
+    delete=extend_schema(
+        tags=["Dashboard"],
+        summary="Reset user dashboard layout for a page",
+        description=(
+            "Delete the caller's saved layout for the given page so the default "
+            "layout takes effect on next load. Requires `_can_customize`."
+        ),
+        request=None,
+        responses={
+            200: inline_serializer(
+                name="DashboardLayoutResetResponse",
+                fields={
+                    "status": serializers.CharField(),
+                    "layout": serializers.DictField(),
+                },
+            ),
+            401: OpenApiResponse(description="Authentication required"),
+            403: OpenApiResponse(description="Caller cannot customize this dashboard"),
+            404: OpenApiResponse(description="Page not allowed for the caller's role"),
+        },
+    ),
+)
 class DashboardLayoutAPI(APIView):
     """
     GET: return widgets + current layout for a page (role/user scoped).

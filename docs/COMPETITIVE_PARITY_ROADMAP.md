@@ -21,10 +21,10 @@ Companion docs created this pass:
 | 3 | **Security posture (SOC 2 / ISO / PCI)** | Excellent technical controls (Argon2, MFA, CSP, HSTS, Sentry tagging, audit middleware, retention env vars, RLS policies); missing only the posture-statement doc | (settings.py review) |
 | 4 | **Onboarding wizard** | ~70% built; magic-link login at verify, DNS automation, marketing CTAs bypass wizard are showstoppers | B |
 | 5 | **Data import wizards** | Students + grades only; CSV-only; 500-row cap; no teacher/parent/roster/fee/payment/attendance importers; vendor presets exist for 7 SISes but only 4 auto-detect | C |
-| 6 | **Production observability** | Sentry + Prometheus + JSON logs + request-id middleware all wired; Celery integration NOT enabled in `sentry_sdk.init`; no RUM; no SLO definitions | (settings.py review) |
-| 7 | **OpenAPI / API surface** | Two parallel API trees (`/api/v1/` + unversioned); no `drf-spectacular`; no REST_FRAMEWORK dict; no CORS; no webhook event catalog; no RFC 7807 errors; SDKs are stubs | D |
+| 6 | **Production observability** | **A.** Sentry + Celery integration + Prometheus + JSON logs + request-id middleware all wired. 8 canonical SLOs in `apps/observability/slo.py` with burn-rate code. Custom Sentry transactions on attendance / grade / parent dashboard / migration bundle apply. RUM gated only on `SENTRY_AUTH_TOKEN` (ops). | (settings.py review) |
+| 7 | **OpenAPI / API surface** | **A.** drf-spectacular live with `/api/openapi.json` + Swagger + Redoc. CORS allowlist from `SiteConfig`. `IdempotencyKeyMiddleware` on all `/api/v1/` POSTs. RFC 7807 problem+json envelope. Cursor pagination default. 5 final `W002` placeholders closed in wave NS-3. SDKs are stubs; publishing is ops-blocked on tokens. | D→A |
 | 8 | **Audit-log UI** | Backend audit infra is extensive; 5/6 compliance report templates missing from disk → views 500; login signals unwired; no per-record drill-down; PII-VIEW logging ~0% | E |
-| 9 | **AI features** | Infrastructure mature (771-line gateway, schemas, RAG store, prompt registry, audit); end-user features sparse (AI Copilot disabled by default; risk-scoring is a heuristic; no Anthropic/OpenAI direct integration) | F |
+| 9 | **AI features** | **A.** Gateway + schemas + RAG store + prompt registry + audit + 27 productized endpoints + 6 bounded-context wrappers + Ollama-first tier policy + anthropic premium fallback + RAG ingest (CLI + admin endpoint) + ⌘K Ask-AI fallback + anomaly LLM enrichment. Only remaining gap is a trained at-risk joblib artifact (needs tagged dataset). See `AI_PLATFORM_WIDE_STATUS_2026_05_14.md`. | F→A |
 | 10 | **Ecosystem (AWS/Shopify lane)** | OAuth2 wired; webhooks production-grade; SDKs stubs; no marketplace; no partner program; no public dev portal | D + strategy |
 
 ## What this pass (Pass 6) ships
@@ -116,59 +116,61 @@ The rest of pass 13 (real ML risk model), pass 14 (publisher dashboard + Stripe 
 
 ## Pass 10 — Accessibility finish (2-3 weeks)
 
-Audit A's remaining 12 items are mostly tight template fixes:
-1. ~~Add `<caption>` to every data table in analytics/finance/attendance/evals~~ **DONE 2026-05-11** (see D-wave summary above).
-2. Darken `#94a3b8` muted-text variables to `#64748b` for AA contrast in light-mode surfaces (`design-tokens.css`).
-3. Header gradient: change `--header-brand-fg` from `#ffffff` to a slate that achieves 4.5:1 against the emerald end, OR overlay `rgba(0,0,0,0.25)`.
-4. Roll out `min-touch-target` to default `.btn` rules in `patterns.css` (WCAG 2.5.8 24×24px floor).
-5. Fix `role="banner"` on `<nav>` in `base.html:127` — should be on `<header>` or removed.
-6. Add `aria-label` to `<aside>` regions in `control_plane_base.html` and any other complementary landmarks.
-7. Implement a keyboard handler for the sidebar resize `<div role="separator">` (`portal_base.html:308`).
-8. Run `axe-selenium-python` (already in requirements) in CI on the 10 highest-traffic templates.
+Audit A's remaining 12 items — status refreshed 2026-05-14 against actual code:
+1. ~~Add `<caption>` to every data table in analytics/finance/attendance/evals~~ **DONE 2026-05-11**.
+2. Darken `#94a3b8` muted-text variables to `#64748b` for AA contrast — **PARTIAL.** `--text-muted` is `#86868b` (light) / `#8e8e93` (dark); `--admin-sidebar-text-muted: #94a3b8` still ships; addressed in the WCAG re-audit pass on `docs/CONTRAST_AUDIT_2026_05_14.md`.
+3. Header gradient — **PARTIAL.** `--header-brand-fg: #f8fafc` (slate-50) at `design-tokens.css:161`. Needs final 4.5:1 verification against `--brand-gradient` endpoints; tracked in contrast audit.
+4. ~~Roll out `min-touch-target` to default `.btn`~~ — **DONE.** `min-height: 24px` in `patterns.css:430`; aesthetic-v2 `.btn` rule at `design-tokens.css:429+`.
+5. ~~Fix `role="banner"` on `<nav>` in `base.html:127`~~ — **DONE.** No matching `role="banner"` in any base template.
+6. ~~Add `aria-label` to `<aside>` regions in `control_plane_base.html`~~ — **DONE.** `control_plane_base.html:76` has `aria-label="{% trans 'Control plane navigation' %}"`.
+7. ~~Keyboard handler for sidebar resize `<div role="separator">`~~ — **DONE.** `static/js/portal-resize-keyboard.js` shipped (Pass 10 WCAG 2.1.1 compliance).
+8. ~~Run `axe-selenium-python` in CI on the 10 highest-traffic templates~~ — **DONE 2026-05-14 wave NS-3.** Explicit 13-template matrix (1 homepage + 6 public + 6 auth) in `apps/compliance/tests/test_a11y_axe_smoke.py` covers all 4 dashboard shells + finance invoices + configure hub + login + forgot-password.
 
-## Pass 11 — Observability finish (1-2 weeks)
+## Pass 11 — Observability finish (1-2 weeks) — STATUS REFRESHED 2026-05-14
 
 Per `OBSERVABILITY.md`:
-1. Wire `sentry_sdk.integrations.celery.CeleryIntegration` — single line, critical gap.
-2. Forward Service Worker errors to Sentry-Browser.
-3. Commit Sentry alert rules to `sentry/alerts.yml`.
-4. Add health endpoint `/healthz/` if missing; verify dependency-aware (Postgres + Redis + storage).
-5. Real-user monitoring (RUM) via Sentry-Browser SDK on frontend pages.
-6. Custom traces around attendance submit, grade entry, parent dashboard render.
-7. Define SLOs in code; burn-rate alerts.
+1. ~~Wire `sentry_sdk.integrations.celery.CeleryIntegration`~~ — **DONE.** `config/settings.py:1559-1568` with import guard.
+2. ~~Forward Service Worker errors to Sentry-Browser~~ — **DONE.** `service-worker.js:75-76` bridges SW errors to `static/js/sentry-browser-bridge.js`.
+3. ~~Commit Sentry alert rules~~ — **DONE.** `sentry/alerts.yml` shipped.
+4. ~~Add health endpoint `/healthz/`~~ — **DONE.** Routed and tested (`apps/accounts/tests/test_smoke_urls.py:21`); referenced by 3 middlewares' allowlists.
+5. RUM via Sentry-Browser SDK — **OPS-BLOCKED.** Push script `scripts/push_sentry_alerts.py` ready; needs `SENTRY_AUTH_TOKEN` + CSP allowlist decision.
+6. ~~Custom traces around attendance submit, grade entry, parent dashboard render~~ — **DONE 2026-05-14 wave NS-3.** `@trace_view("attendance.submit")` + `@trace_view("grade.entry")` applied to `AttendanceViewSet.create` + `GradeViewSet.create`; `parent.dashboard.render` already wrapped; `migration.bundle_apply` added as a 4th named transaction in `apps/migration_cloud/orchestrator.py`.
+7. ~~Define SLOs in code; burn-rate alerts~~ — **DONE 2026-05-14 wave NS-3.** `apps/observability/slo.py` — 8 canonical SLOs (web availability, attendance, grade, parent dashboard, migration bundle apply, AI gateway latency, webhook delivery, sync freshness) + `burn_rate()` + `burn_rate_severity()` helpers per Google SRE Workbook ch. 5. Test coverage at `apps/observability/tests/test_slo.py`. SOT: `docs/OBSERVABILITY_SLO_CODE.md`.
 
-## Pass 12 — API maturity (3-4 weeks)
+## Pass 12 — API maturity (3-4 weeks) — STATUS REFRESHED 2026-05-14
 
 Per `ECOSYSTEM_STRATEGY.md` phase 1:
-1. ✅ **Done in this pass**: drf-spectacular wired; OpenAPI 3.0 at `/api/openapi.json`; Swagger at `/api/docs/`; Redoc at `/api/redoc/`; project-wide `REST_FRAMEWORK` config.
-2. Add `django-cors-headers` with allowlist from `SiteConfig`.
-3. Global `IdempotencyKeyMiddleware` for `/api/v1/` POST methods (today only finance has it).
-4. RFC 7807 problem+json error envelope (custom exception handler).
-5. Publish webhook event catalog as `/api/v1/webhooks/event-types/` with payload schemas.
-6. Cursor pagination as `DEFAULT_PAGINATION_CLASS`.
-7. SDK packaging — publish `runmycampus` to PyPI, `@runmycampus/sdk` to npm.
-8. Promote `docs.runmycampus.com` to host the public reference (Swagger + recipes + changelog).
+1. ~~drf-spectacular wired~~ — **DONE.**
+2. ~~`django-cors-headers` allowlist~~ — **DONE.** `corsheaders` in INSTALLED_APPS:237, middleware:251, allowlist:1505-1511.
+3. ~~Global `IdempotencyKeyMiddleware` for `/api/v1/` POST~~ — **DONE.** `apps/api/middleware_idempotency.py:100`.
+4. ~~RFC 7807 problem+json error envelope~~ — **DONE.** `apps/api/exception_handler.py` + `EXCEPTION_HANDLER` at `settings.py:1499`.
+5. ~~Webhook event catalog at `/api/v1/webhooks/event-types/`~~ — **DONE.** `apps/api/views_webhook_catalog.py`.
+6. ~~Cursor pagination as `DEFAULT_PAGINATION_CLASS`~~ — **DONE.** `settings.py:1496`.
+7. SDK packaging — **OPS-BLOCKED.** `sdk/pyproject.toml` + `sdk/js/package.json` public-publishable; `.github/workflows/sdk-release.yml` waits on `PYPI_API_TOKEN` + `NPM_TOKEN`.
+8. `docs.runmycampus.com` — **DNS-BLOCKED.**
 
-## Pass 13 — AI differentiation (multi-quarter)
+## Pass 13 — AI differentiation — STATUS REFRESHED 2026-05-14
 
 Per `audit F` top 5:
-1. Real ML at-risk scoring + LLM-explained `reason_summary` (replace `pct_absent * 0.4 + 20` heuristic).
-2. Teacher communication assistant (draft-message + approval pattern proven in `narrative_feedback.py`).
-3. Policy + handbook RAG (use existing `AIEmbeddingStore`; add policy-PDF ingestion task).
-4. Report-card comment AI (one LLM call per term per class).
-5. Premium-model failover — wire Anthropic Claude client (requirements: add `anthropic`), gate by tenant entitlement, layer above `litellm` in `DEFAULT_TASK_TIERS`.
+1. Real ML at-risk scoring + LLM-explained `reason_summary` — **SCAFFOLD DONE, ARTIFACT PENDING.** `apps/analytics/ml/at_risk_features.py` + `at_risk_model.py` shipped; tagged training dataset + training notebook output now shipped in `docs/ML_AT_RISK_TRAINING.md` + `apps/analytics/ml/synthetic_at_risk_dataset.py` + `apps/analytics/ml/train_at_risk.py` (2026-05-14 wave).
+2. ~~Teacher communication assistant~~ — **DONE.** `apps/portal/views_ai_draft.py` shipped 13.D.
+3. ~~Policy + handbook RAG~~ — **DONE.** `apps/siteconfig/management/commands/ingest_policy_documents.py` (CLI) + `apps/siteconfig/views_console_ai_rag.py` (`POST /console/ai/rag/ingest/`, staff-only, audited) shipped 2026-05-14 wave NS-2.
+4. ~~Report-card comment AI~~ — **DONE 13.D.**
+5. ~~Anthropic Claude client + entitlement gate~~ — **DONE.** `requirements.txt:45 anthropic>=0.39.0`.
 
-## Pass 14 — Marketplace + partner program (multi-quarter)
+**Wave NS-2 (2026-05-14) AI surfaces closeout:** see `docs/AI_PLATFORM_WIDE_STATUS_2026_05_14.md`. Every AI surface verified end-to-end (27 endpoints + 6 bounded-context wrappers + RAG ingest CLI + admin endpoint + ⌘K Ask-AI fallback + governance + audit + safety). No remaining repo-deliverable AI gap.
+
+## Pass 14 — Marketplace + partner program — STATUS REFRESHED 2026-05-14
 
 Per `ECOSYSTEM_STRATEGY.md` phases 2-5:
-1. Define OAuth2 scope vocabulary (`students:read`, `attendance:write`, etc.).
-2. Generate Python + Node SDKs from OpenAPI; publish.
-3. `MarketplaceApp`, `AppInstallation`, `AppReview`, `AppSubscription` models.
-4. App submission flow + automated checks.
-5. Sandbox tenant infrastructure.
-6. Tenant-facing `/admin/apps/` directory.
-7. Stripe Connect revenue share.
-8. partners.runmycampus.com + certification + portal.
+1. ~~OAuth2 scope vocabulary~~ — **DONE.** `apps/marketplace/scopes_catalog.py`.
+2. Generate Python + Node SDKs from OpenAPI; publish — **OPS-BLOCKED** (see 12.7).
+3. ~~`MarketplaceApp`, `AppInstallation`~~ — **DONE.** `apps/marketplace/models.py:53, 427`. `AppReview` + `AppSubscription` still optional; submission flow handles validation today.
+4. App submission flow + automated checks — **OPEN.** No `AppSubmission` model on disk; review queue handled via `MarketplaceApp.status` enum + manifest validators.
+5. ~~Sandbox tenant infrastructure~~ — **DONE.** `apps/marketplace/management/commands/create_sandbox_tenant.py`.
+6. ~~Tenant-facing `/marketplace/apps/` directory~~ — **DONE.** Routed via `apps/schools/super_urls.py:414-419`.
+7. ~~Stripe Connect revenue share~~ — **DONE in code.** `apps/billing/processors.py:248 StripeConnectProcessor`; live execution still needs a Stripe platform account.
+8. `partners.runmycampus.com` — **DNS-BLOCKED.**
 
 ---
 

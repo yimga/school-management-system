@@ -2,7 +2,7 @@
 {# Marketing Bento grid — Apple-style mixed-tile composition.
 
    Render with:
-     {% include "marketing/partials/mkt_bento.html" with bento=bento %}
+     { % include "marketing/partials/mkt_bento.html" with bento=bento % }
 
    Where `bento` is a dict:
      {
@@ -18,7 +18,7 @@
            "metric": {"value": "94%", "label": "fees collected by week 3"},  # optional
            "artifact": "schools/_v2/_artifact_finance_dashboard.svg.html",   # optional SVG include
            "tone": "default|warm|sand|ink",       # optional surface tone
-           "href": "{% url 'marketing_platform' %}",  # optional CTA
+           "href": "{ % url 'marketing_platform' % }",  # optional CTA
            "cta": "See it live",                  # optional CTA label
          },
          …

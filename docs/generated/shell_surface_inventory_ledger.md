@@ -1,7 +1,7 @@
 # Shell surface inventory (generated)
 
-**UTC** `2026-05-08T15:54:11.314015+00:00`  
-**Status** `PASS`  
+**UTC** `2026-05-15T12:09:14.290091+00:00`
+**Status** `PASS`
 
 | Template | Substrings (required) |
 | --- | --- |
@@ -63,4 +63,3 @@
 | `templates/studio_os/partials/shell_main_content.html` | ok |
 | `templates/studio_os/shell.html` | ok |
 | `templates/studio_os/shell_control_plane.html` | ok |
-

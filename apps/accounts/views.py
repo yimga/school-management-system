@@ -38,6 +38,7 @@ from apps.people.models import (
 from apps.reports.models import TermPublishStatus
 from apps.academics.services import get_active_year_and_term
 from apps.accounts.decorators import permission_required
+from apps.observability.tracing import trace_view
 from apps.dashboard.context import build_dashboard_extras
 from apps.dashboard.recommendation_service import get_recommended_next_steps
 from apps.siteconfig.templatetags.admin_health import admin_section_stats
@@ -2742,6 +2743,7 @@ def auth_root_redirect(request):
 
 
 @ratelimit(key="ip", rate="5/m", method="POST", block=True)
+@trace_view("auth.login")
 def login_view(request):
     # Optional: set login page language from tenant or Accept-Language (this request only).
     login_lang = _get_login_page_language(request)

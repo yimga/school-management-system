@@ -85,8 +85,6 @@ class TenantIsolationPrecedenceTests(TestCase):
             runtime = build_tenant_runtime(ctx, request=None, school=school)
             self.assertEqual(runtime.tenant.slug, expected_slug)
             self.assertEqual(runtime.tenant_ctx.school_id, school.id)
-        s1.delete()
-        s2.delete()
 
     def test_sandbox_preview_overlay_wins_on_feature_flags_in_step6(self):
         """Sandbox/preview policy_overrides feature_flags beat TenantContext.feature_flags."""
@@ -117,7 +115,6 @@ class TenantIsolationPrecedenceTests(TestCase):
         )
         self.assertTrue(runtime.flags.is_enabled("beta_ui"))
         self.assertTrue(runtime.route.is_sandbox)
-        school.delete()
 
     def test_preview_overlay_same_as_sandbox_for_feature_flags(self):
         school = School.objects.create(
@@ -147,4 +144,3 @@ class TenantIsolationPrecedenceTests(TestCase):
         )
         self.assertTrue(runtime.route.is_preview)
         self.assertTrue(runtime.flags.is_enabled("beta_ui"))
-        school.delete()

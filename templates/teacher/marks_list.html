@@ -125,9 +125,14 @@
           {% endwith %}
         {% empty %}
           <tr>
-            <td colspan="{% if rosetta_target %}13{% else %}12{% endif %}" class="text-center py-4">
-              <p class="text-muted mb-2">{% trans "No marks entered yet for the selected filters." %}</p>
-              <a class="btn btn-sm btn-primary" href="{% url 'evals:teacher_marks_entry' %}">{% trans "Enter first marks" %}</a>
+            <td colspan="{% if rosetta_target %}13{% else %}12{% endif %}">
+              <div class="rmc-empty rmc-empty--row" role="status" aria-live="polite">
+                <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-table"></i></div>
+                <p class="rmc-empty__message">{% trans "No marks entered yet for the selected filters." %}</p>
+                <div class="rmc-empty__actions">
+                  <a class="btn btn-primary btn-sm" href="{% url 'evals:teacher_marks_entry' %}">{% trans "Enter first marks" %}</a>
+                </div>
+              </div>
             </td>
           </tr>
         {% endfor %}

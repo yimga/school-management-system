@@ -6,6 +6,7 @@ import uuid
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty
@@ -107,6 +108,8 @@ class StudentPassportVaultTests(TestCase):
             is_staff=True,
         )
         SchoolMembership.objects.get_or_create(user=u, school=school, defaults={"role": "ADMIN"})
+        if role == User.Role.ADMIN:
+            TOTPDevice.objects.create(user=u, name="test-device", confirmed=True)
         return u
 
     def test_passport_created_for_student(self):
@@ -151,6 +154,9 @@ class StudentPassportVaultTests(TestCase):
         admin = self._staff(f"e_{uuid.uuid4().hex[:8]}", self.school_a)
         c = Client(HTTP_HOST="pv1.runmycampus.com")
         c.force_login(admin)
+        session = c.session
+        session["mfa_verified"] = True
+        session.save()
         url_p = reverse(
             "portal:student_passport_detail",
             urlconf="config.tenant_urls",

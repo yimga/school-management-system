@@ -10,80 +10,83 @@ from datetime import date
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.http import HttpResponse
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, tag
 
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Department
 from apps.communication.models import ContactRequest
 from apps.people.models import StudentGuardian, StudentProfile
 from apps.portal.views_contact_requests import staff_contact_request_list
+from apps.schools.rls_context import rls_bypass, rls_school
 from apps.schools.models import School
 from apps.siteconfig.models import RegionConfig
 
 
+@tag("tenants_rls")
 class CrossModuleSupportIsolationTests(TestCase):
     def setUp(self):
-        self.region = RegionConfig.get_default()
-        self.school_a = School.objects.create(
-            slug="iso-a",
-            subdomain="iso-a",
-            name="School A",
-            default_region=self.region,
-            timezone=self.region.timezone,
-        )
-        self.school_b = School.objects.create(
-            slug="iso-b",
-            subdomain="iso-b",
-            name="School B",
-            default_region=self.region,
-            timezone=self.region.timezone,
-        )
-        year_a = AcademicYear.objects.create(
-            name="Y-A",
-            start_date=date(2025, 9, 1),
-            end_date=date(2026, 7, 1),
-            is_active=True,
-            school=self.school_a,
-        )
-        dept = Department.objects.create(
-            name="D", code="D-ISO", school=self.school_a
-        )
-        classroom = Classroom.objects.create(
-            academic_year=year_a,
-            department=dept,
-            name="C1",
-            code="C1",
-            school=self.school_a,
-        )
-        self.parent = User.objects.create_user(
-            username="iso_parent", password="pass", role=User.Role.PARENT
-        )
-        student = StudentProfile.objects.create(
-            first_name="Kid",
-            last_name="A",
-            student_code="ISO-001",
-            academic_year=year_a,
-            classroom=classroom,
-            school=self.school_a,
-            is_active=True,
-        )
-        StudentGuardian.objects.create(guardian_user=self.parent, student=student)
-        self.secretary_b = User.objects.create_user(
-            username="iso_sec_b",
-            password="pass",
-            role=User.Role.SECRETARY,
-            is_staff=True,
-        )
-        ContactRequest.objects.create(
-            parent=self.parent,
-            student=student,
-            school=self.school_a,
-            contact_name="Guardian",
-            subject="Secret from A",
-            message="Do not leak",
-            audience=ContactRequest.Audience.TEACHER,
-            preferred_channel=ContactRequest.Channel.EMAIL,
-        )
+        with rls_bypass():
+            self.region = RegionConfig.get_default()
+            self.school_a = School.objects.create(
+                slug="iso-a",
+                subdomain="iso-a",
+                name="School A",
+                default_region=self.region,
+                timezone=self.region.timezone,
+            )
+            self.school_b = School.objects.create(
+                slug="iso-b",
+                subdomain="iso-b",
+                name="School B",
+                default_region=self.region,
+                timezone=self.region.timezone,
+            )
+            year_a = AcademicYear.objects.create(
+                name="Y-A",
+                start_date=date(2025, 9, 1),
+                end_date=date(2026, 7, 1),
+                is_active=True,
+                school=self.school_a,
+            )
+            dept = Department.objects.create(
+                name="D", code="D-ISO", school=self.school_a
+            )
+            classroom = Classroom.objects.create(
+                academic_year=year_a,
+                department=dept,
+                name="C1",
+                code="C1",
+                school=self.school_a,
+            )
+            self.parent = User.objects.create_user(
+                username="iso_parent", password="pass", role=User.Role.PARENT
+            )
+            student = StudentProfile.objects.create(
+                first_name="Kid",
+                last_name="A",
+                student_code="ISO-001",
+                academic_year=year_a,
+                classroom=classroom,
+                school=self.school_a,
+                is_active=True,
+            )
+            StudentGuardian.objects.create(guardian_user=self.parent, student=student)
+            self.secretary_b = User.objects.create_user(
+                username="iso_sec_b",
+                password="pass",
+                role=User.Role.SECRETARY,
+                is_staff=True,
+            )
+            ContactRequest.objects.create(
+                parent=self.parent,
+                student=student,
+                school=self.school_a,
+                contact_name="Guardian",
+                subject="Secret from A",
+                message="Do not leak",
+                audience=ContactRequest.Audience.TEACHER,
+                preferred_channel=ContactRequest.Channel.EMAIL,
+            )
 
     def test_staff_on_school_b_sees_no_school_a_requests(self):
         rf = RequestFactory()
@@ -93,7 +96,8 @@ class CrossModuleSupportIsolationTests(TestCase):
         SessionMiddleware(lambda r: HttpResponse()).process_request(request)
         request.session.save()
         setattr(request, "_messages", FallbackStorage(request))
-        response = staff_contact_request_list(request)
+        with rls_school(self.school_b.id):
+            response = staff_contact_request_list(request)
         self.assertEqual(response.status_code, 200)
         body = response.content.decode()
         self.assertIn("No contact requests found", body)

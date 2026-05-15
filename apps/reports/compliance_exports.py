@@ -356,7 +356,10 @@ def generate_regional_compliance_export(
         }
 
     fam = get_compliance_export_family(export_key)
-    assert fam is not None and school is not None
+    if fam is None:
+        raise ValueError(f"Unknown compliance export key: {export_key!r}")
+    if school is None:
+        raise ValueError("school is required for compliance export generation")
     year = _resolve_academic_year_for_school(school, params)
     if year is None:
         return {

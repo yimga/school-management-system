@@ -76,6 +76,11 @@
 {% if phase7_de %}
 {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
 {% endif %}
+{% with analytics_metrics|default:None as metrics %}
+  {% if metrics %}
+    {% include "components/rmc_metric_ticker.html" with metrics=metrics %}
+  {% endif %}
+{% endwith %}
 
 <details class="de-secondary-collapsible mb-2">
 <summary>{% trans "Expand full operational KPI grid" %}</summary>
@@ -282,7 +287,7 @@
               <div class="py-3 px-2">
                 {% load i18n %}
                 {% url 'analytics:master_sheet' as master_url %}
-                {% include "components/dashboard_empty_state.html" with icon="bi-trophy" title=_("No data yet.") message=_("Top performers will appear when evaluations and marks are in place.") action_url=master_url action_text=_("Open master sheet") %}
+                {% include "components/rmc_empty_state.html" with icon="bi-trophy" title=_("No data yet.") message=_("Top performers will appear when evaluations and marks are in place.") primary_url=master_url primary_label=_("Open master sheet") %}
               </div>
             </li>
           {% endfor %}
@@ -352,7 +357,7 @@
           <caption class="visually-hidden">{% trans "Ranking per class" %}</caption>
           <thead>
             <tr>
-              <th scope="col" style="width:80px;">{% trans "Rank" %}</th>
+              <th scope="col" style="width:80px;">Rank</th>
               <th scope="col">{% trans "Student" %}</th>
               <th scope="col" class="text-end">{% trans "Average" %}</th>
             </tr>
@@ -385,7 +390,7 @@
               <caption class="visually-hidden">{% trans "Top students (class, term)" %}</caption>
               <thead>
                 <tr>
-                  <th scope="col" style="width:80px;">{% trans "Rank" %}</th>
+                  <th scope="col" style="width:80px;">Rank</th>
                   <th scope="col">{% trans "Student" %}</th>
                   <th scope="col" class="text-end">{% trans "Average" %}</th>
                 </tr>
@@ -418,7 +423,7 @@
             <caption class="visually-hidden">{% trans "Top students (school, term)" %}</caption>
             <thead>
               <tr>
-                <th scope="col" style="width:80px;">{% trans "Rank" %}</th>
+                <th scope="col" style="width:80px;">Rank</th>
                 <th scope="col">{% trans "Student" %}</th>
                 <th scope="col" class="text-end">{% trans "Average" %}</th>
               </tr>
@@ -452,7 +457,7 @@
               <caption class="visually-hidden">{% trans "Top students (class, annual)" %}</caption>
               <thead>
                 <tr>
-                  <th scope="col" style="width:80px;">{% trans "Rank" %}</th>
+                  <th scope="col" style="width:80px;">Rank</th>
                   <th scope="col">{% trans "Student" %}</th>
                   <th scope="col" class="text-end">{% trans "Average" %}</th>
                 </tr>
@@ -485,7 +490,7 @@
             <caption class="visually-hidden">{% trans "Top students (school, annual)" %}</caption>
             <thead>
               <tr>
-                <th scope="col" style="width:80px;">{% trans "Rank" %}</th>
+                <th scope="col" style="width:80px;">Rank</th>
                 <th scope="col">{% trans "Student" %}</th>
                 <th scope="col" class="text-end">{% trans "Average" %}</th>
               </tr>
@@ -605,7 +610,7 @@
                   <td class="text-end">{{ row.on_time_rate|format_number:2 }}%</td>
                 </tr>
               {% empty %}
-                <tr><td colspan="6" class="text-muted">{% trans "No teacher data for this term." %}</td></tr>
+                <tr><td colspan="6"><div class="rmc-empty rmc-empty--row" role="status"><div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-person-check"></i></div><p class="rmc-empty__message">{% trans "No teacher data for this term." %}</p></div></td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -639,7 +644,7 @@
                   <td class="text-end">{{ row.rate|format_number:2 }}%</td>
                 </tr>
               {% empty %}
-                <tr><td colspan="5" class="text-muted">{% trans "No data for specialties." %}</td></tr>
+                <tr><td colspan="5"><div class="rmc-empty rmc-empty--row" role="status"><div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-diagram-3"></i></div><p class="rmc-empty__message">{% trans "No data for specialties." %}</p></div></td></tr>
               {% endfor %}
             </tbody>
           </table>

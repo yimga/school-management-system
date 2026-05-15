@@ -1,0 +1,51 @@
+{% if request.user.is_authenticated %}
+{% url 'feedback:contextual' as voc_contextual_url %}
+{% if voc_contextual_url %}
+<style>
+  .voc-widget{position:fixed;right:1rem;bottom:5.25rem;z-index:1040;display:flex;flex-direction:column;align-items:flex-end;gap:.5rem}
+  .voc-widget__panel{display:none;width:min(360px,calc(100vw - 2rem));background:var(--bs-body-bg,#fff);border:1px solid rgba(15,23,42,.18);box-shadow:0 18px 45px rgba(15,23,42,.18);border-radius:8px;padding:1rem}
+  .voc-widget[data-open="true"] .voc-widget__panel{display:block}
+  .voc-widget__actions{display:grid;grid-template-columns:1fr;gap:.5rem}
+  .voc-widget textarea{min-height:84px}
+</style>
+<div class="voc-widget" data-open="false" data-module="{{ request.resolver_match.app_name|default:'' }}">
+  <div class="voc-widget__panel" role="dialog" aria-label="Page feedback">
+    <form method="post" action="{{ voc_contextual_url }}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <input type="hidden" name="route" value="{{ request.path }}">
+      <input type="hidden" name="page_title" value="{{ title|default:request.resolver_match.url_name|default:'' }}">
+      <input type="hidden" name="module" value="{{ request.resolver_match.app_name|default:'' }}">
+      <div class="voc-widget__actions mb-2">
+        <button class="btn btn-sm btn-outline-primary text-start" name="title" value="Was this page helpful?" type="submit">
+          <i class="bi bi-hand-thumbs-up" aria-hidden="true"></i> Was this page helpful?
+        </button>
+        <button class="btn btn-sm btn-outline-danger text-start" name="category" value="bug" type="submit">
+          <i class="bi bi-bug" aria-hidden="true"></i> Report issue
+        </button>
+      </div>
+      <label class="form-label small fw-semibold" for="voc-widget-description">Request improvement</label>
+      <textarea id="voc-widget-description" class="form-control form-control-sm mb-2" name="description" placeholder="What should work better on this page?"></textarea>
+      <input type="hidden" name="title" value="Request improvement">
+      <input type="hidden" name="category" value="feature">
+      <button class="btn btn-sm btn-primary w-100" type="submit">
+        <i class="bi bi-send" aria-hidden="true"></i> Send feedback
+      </button>
+    </form>
+  </div>
+  <button class="btn btn-primary rounded-circle shadow" type="button" data-voc-toggle aria-label="Open feedback">
+    <i class="bi bi-chat-square-text" aria-hidden="true"></i>
+  </button>
+</div>
+<script>
+(function(){
+  var widget = document.querySelector('.voc-widget');
+  if (!widget) return;
+  var toggle = widget.querySelector('[data-voc-toggle]');
+  toggle.addEventListener('click', function(){
+    widget.dataset.open = widget.dataset.open === 'true' ? 'false' : 'true';
+  });
+})();
+</script>
+{% endif %}
+{% endif %}

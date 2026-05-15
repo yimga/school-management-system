@@ -36,7 +36,7 @@
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="4" class="text-muted text-center py-3 small">{% trans "No activity recorded in the last 90 days." %}</td></tr>
+        <tr><td colspan="4"><div class="rmc-empty rmc-empty--row" role="status" aria-live="polite"><p class="rmc-empty__message text-center py-3 small">{% trans "No activity recorded in the last 90 days." %}</p></div></td></tr>
         {% endfor %}
       </tbody>
     </table>

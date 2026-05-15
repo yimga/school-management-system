@@ -27,7 +27,7 @@
       <i class="bi bi-grid-3x3-gap"></i>
     </a>
     <input type="search" class="form-control form-control-sm studio-os-search" id="studio-global-search" placeholder="{% trans 'Search Studio...' %}" aria-label="{% trans 'Search' %}" style="max-width: 16rem;">
-    <button type="button" class="btn btn-sm btn-outline-secondary studio-os-cmd-btn" id="studio-command-palette-btn" aria-label="{% trans 'Commands' %}">{% trans "Commands" %}</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary studio-os-cmd-btn" id="studio-command-palette-btn" aria-label="{% trans 'Commands' %} (Ctrl+K)">{% trans "Commands" %}<kbd class="ms-1">Ctrl+K</kbd></button>
     {% if rmc_conversion_single_action_enforced|default:False %}
       </div>
     </details>

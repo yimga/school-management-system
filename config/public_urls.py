@@ -10,6 +10,7 @@ from django.urls import include, path
 from django.views.generic.base import RedirectView
 
 from apps.observability import views as obs_views
+from apps.portal.views_ai_copilot import ai_health
 from apps.schools.error_views import school_not_found_public
 from apps.schools.competitive_marketing_views import (
     marketing_implementation_assurance,
@@ -96,6 +97,7 @@ urlpatterns = [
         obs_views.api_weather_context,
         name="api_weather_context",
     ),
+    path("api/ai/health/", ai_health, name="ai_health"),
     path("healthz/", obs_views.healthz, name="healthz"),
     path("health/", obs_views.public_health, name="health"),
     path("ready/", obs_views.public_health, name="ready"),

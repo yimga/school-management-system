@@ -3,14 +3,36 @@ API for user portal preferences (e.g. pinned sidebar items for Quick access).
 """
 
 from django.db import DatabaseError
+from drf_spectacular.utils import OpenApiTypes, extend_schema, inline_serializer
+from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
 
 from apps.siteconfig.config_service import get_effective_site_settings
 from apps.runtime_blueprints.models import DashboardUserPreference
 from apps.siteconfig.portal_sidebar_items import build_portal_sidebar_items
+
+
+_PortalPinnedResponse = inline_serializer(
+    name="PortalPinnedSidebarItemsResponse",
+    fields={"pinned_sidebar_items": serializers.ListField(child=serializers.CharField())},
+)
+
+_PortalPinnedRequest = inline_serializer(
+    name="PortalPinnedSidebarItemsPatch",
+    fields={"pinned_sidebar_items": serializers.ListField(child=serializers.CharField())},
+)
+
+_CPPinnedResponse = inline_serializer(
+    name="ControlPlanePinnedItemsResponse",
+    fields={"control_plane_pinned_items": serializers.ListField(child=serializers.CharField())},
+)
+
+_CPPinnedRequest = inline_serializer(
+    name="ControlPlanePinnedItemsPatch",
+    fields={"control_plane_pinned_items": serializers.ListField(child=serializers.CharField())},
+)
 
 PREFERENCE_NAV_FAILURES = (
     AttributeError,
@@ -22,6 +44,7 @@ PREFERENCE_NAV_FAILURES = (
 )
 
 
+@extend_schema(tags=["User preferences"])
 class PortalPreferencesAPI(APIView):
     """
     GET: return pinned_sidebar_items for the current user.
@@ -47,6 +70,7 @@ class PortalPreferencesAPI(APIView):
         except PREFERENCE_NAV_FAILURES:
             return set()
 
+    @extend_schema(responses={200: _PortalPinnedResponse})
     def get(self, request):
         prefs = getattr(request.user, "dashboard_preferences", None)
         if not prefs:
@@ -54,6 +78,7 @@ class PortalPreferencesAPI(APIView):
         pinned = list(prefs.pinned_sidebar_items or [])
         return Response({"pinned_sidebar_items": pinned})
 
+    @extend_schema(request=_PortalPinnedRequest, responses={200: _PortalPinnedResponse, 400: OpenApiTypes.OBJECT})
     def patch(self, request):
         data = getattr(request, "data", None) or request.POST
         raw = data.get("pinned_sidebar_items")
@@ -87,6 +112,7 @@ class PortalPreferencesAPI(APIView):
         return Response({"pinned_sidebar_items": prefs.pinned_sidebar_items})
 
 
+@extend_schema(tags=["User preferences"])
 class ControlPlanePreferencesAPI(APIView):
     """
     GET: return control_plane_pinned_items for the current user (Manager Quick access).
@@ -112,6 +138,7 @@ class ControlPlanePreferencesAPI(APIView):
         except PREFERENCE_NAV_FAILURES:
             return set()
 
+    @extend_schema(responses={200: _CPPinnedResponse})
     def get(self, request):
         prefs = getattr(request.user, "dashboard_preferences", None)
         if not prefs:
@@ -119,6 +146,7 @@ class ControlPlanePreferencesAPI(APIView):
         pinned = list(getattr(prefs, "control_plane_pinned_items", None) or [])
         return Response({"control_plane_pinned_items": pinned})
 
+    @extend_schema(request=_CPPinnedRequest, responses={200: _CPPinnedResponse, 400: OpenApiTypes.OBJECT})
     def patch(self, request):
         data = getattr(request, "data", None) or request.POST
         raw = data.get("control_plane_pinned_items")

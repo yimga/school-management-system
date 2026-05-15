@@ -1,0 +1,59 @@
+{% extends "control_plane_base.html" %}
+{% block cp_title %}Voice of Customer{% endblock %}
+{% block cp_content %}
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+  <div>
+    <h1 class="h3">Voice of Customer Center</h1>
+    <p class="text-muted mb-0">Feedback inbox, triage queue, feature requests, pain points, sentiment, and churn risk signals.</p>
+  </div>
+  <a class="btn btn-outline-primary" href="{% url 'feedback:product_roadmap' %}">Product roadmap</a>
+</div>
+<div class="row g-3 mb-3">
+  <section class="col-md-3"><div class="card"><div class="card-body"><div class="small text-muted">Feedback</div><div class="h4">{{ feedback_items|length }}</div></div></div></section>
+  <section class="col-md-3"><div class="card"><div class="card-body"><div class="small text-muted">Feature Requests</div><div class="h4">{{ feature_requests|length }}</div></div></div></section>
+  <section class="col-md-3"><div class="card"><div class="card-body"><div class="small text-muted">Roadmap Candidates</div><div class="h4">{{ roadmap_candidates|length }}</div></div></div></section>
+  <section class="col-md-3"><div class="card"><div class="card-body"><div class="small text-muted">Churn Risk Schools</div><div class="h4">{{ churn_risk|length }}</div></div></div></section>
+</div>
+<div class="row g-3">
+  <section class="col-xl-8">
+    <div class="card">
+      <div class="card-header fw-semibold">Triage Queue</div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead><tr><th>Title</th><th>School</th><th>Role</th><th>Module</th><th>Severity</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+          {% for item in feedback_items %}
+            <tr>
+              <td>{{ item.title }}</td>
+              <td>{{ item.school.name|default:"-" }}</td>
+              <td>{{ item.role }}</td>
+              <td>{{ item.module|default:"-" }}</td>
+              <td>{{ item.severity }}</td>
+              <td>{{ item.status }}</td>
+              <td>
+                <form method="post" action="{% url 'feedback:operator_feedback_action' item.pk %}" class="d-flex gap-1">
+                  {% csrf_token %}
+                  <input type="hidden" name="status" value="triaged">
+                  <button class="btn btn-sm btn-outline-primary" type="submit">Triage</button>
+                  <button class="btn btn-sm btn-outline-secondary" name="action" value="convert" type="submit">Convert</button>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="text-muted">No feedback found.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+  <section class="col-xl-4">
+    <div class="card mb-3"><div class="card-header fw-semibold">Top Pain Points</div><div class="card-body">
+      {% for module,count in pain_points %}<span class="badge text-bg-secondary me-1 mb-1">{{ module }} {{ count }}</span>{% empty %}<span class="text-muted">No pain points yet.</span>{% endfor %}
+    </div></div>
+    <div class="card"><div class="card-header fw-semibold">Sentiment by Role</div><div class="list-group list-group-flush">
+      {% for row in by_role %}<div class="list-group-item d-flex justify-content-between"><span>{{ row.role|default:"unknown" }}</span><strong>{{ row.total }}</strong></div>{% empty %}<div class="list-group-item text-muted">No role sentiment yet.</div>{% endfor %}
+    </div></div>
+  </section>
+</div>
+{% endblock %}

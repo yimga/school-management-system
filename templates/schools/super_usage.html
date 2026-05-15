@@ -57,7 +57,7 @@
           </table>
         </div>
         {% else %}
-        {% include "partials/page_families/empty_state.html" with message="No active schools." icon="bi-bar-chart" %}
+        {% include "components/rmc_empty_state.html" with icon="bi-bar-chart" title=_("No active schools") message=_("Nothing here yet.") %}
         {% endif %}
       </div>
     </div>

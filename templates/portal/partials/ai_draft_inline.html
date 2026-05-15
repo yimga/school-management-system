@@ -1,68 +1,31 @@
-{% load i18n %}
+{% load i18n static %}
 {% comment %} Pass 13.C: drop-in AI-draft inline for teacher views.
 
    Renders a "Generate draft" button next to a textarea. Clicking POSTs the
    surrounding form's intent + key facts to a draft endpoint (passed via
    `draft_endpoint` context var) and fills the textarea with the result.
-   The teacher always reviews + edits before send — this is a writing
-   aid, not an auto-send.
+   The teacher always reviews + edits before send; this is a writing aid, not
+   an auto-send.
 
    Required context:
      - `textarea_id`   : id of the <textarea> to populate
      - `draft_endpoint`: URL the JS POSTs to (POST, CSRF-protected)
      - `intent_value`  : short string describing the draft purpose
-     - `entitlement_ok`: bool, false → render nothing (hides AI from
-                         tenants without the entitlement) {% endcomment %}
+     - `entitlement_ok`: bool, false renders nothing
+{% endcomment %}
 {% if entitlement_ok %}
-<div class="ai-draft-inline mt-2" data-textarea-id="{{ textarea_id }}" data-draft-endpoint="{{ draft_endpoint }}" data-intent="{{ intent_value }}">
+<div class="ai-draft-inline mt-2"
+     data-textarea-id="{{ textarea_id }}"
+     data-draft-endpoint="{{ draft_endpoint }}"
+     data-intent="{{ intent_value }}"
+     data-status-drafting="{% trans 'Drafting...' %}"
+     data-status-inserted="{% trans 'Draft inserted - please review.' %}"
+     data-status-empty="{% trans 'No draft returned.' %}"
+     data-status-unavailable="{% trans 'Draft service unavailable.' %}">
   <button type="button" class="btn btn-sm btn-outline-secondary" data-action="generate-draft">
     <span class="bi bi-magic me-1" aria-hidden="true"></span>{% trans "Generate AI draft" %}
   </button>
   <span class="small text-muted ms-2" data-role="status" role="status" aria-live="polite"></span>
 </div>
-<script>
-(function () {
-  var host = document.currentScript.previousElementSibling;
-  if (!host) return;
-  var btn = host.querySelector('[data-action="generate-draft"]');
-  var statusEl = host.querySelector('[data-role="status"]');
-  var ta = document.getElementById(host.dataset.textareaId);
-  if (!btn || !ta) return;
-  function csrf() {
-    var name = "csrftoken=";
-    var parts = (document.cookie || "").split(";");
-    for (var i = 0; i < parts.length; i++) {
-      var c = parts[i].trim();
-      if (c.indexOf(name) === 0) return c.substring(name.length);
-    }
-    return "";
-  }
-  btn.addEventListener("click", function () {
-    btn.disabled = true;
-    statusEl.textContent = "{% trans 'Drafting…' %}";
-    fetch(host.dataset.draftEndpoint, {
-      method: "POST",
-      credentials: "same-origin",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrf()
-      },
-      body: JSON.stringify({ intent: host.dataset.intent, existing: ta.value })
-    }).then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (data && data.draft) {
-          ta.value = data.draft;
-          ta.dispatchEvent(new Event("input", { bubbles: true }));
-          statusEl.textContent = "{% trans 'Draft inserted — please review.' %}";
-        } else {
-          statusEl.textContent = data && data.error ? data.error : "{% trans 'No draft returned.' %}";
-        }
-      }).catch(function () {
-        statusEl.textContent = "{% trans 'Draft service unavailable.' %}";
-      }).finally(function () {
-        btn.disabled = false;
-      });
-  });
-})();
-</script>
+<script src="{% static 'js/ai-draft-inline.js' %}"></script>
 {% endif %}

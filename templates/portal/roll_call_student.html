@@ -93,5 +93,6 @@
   "var_attendance_present": "{{ Attendance.PRESENT|escapejs }}"
 }</script><script src="{% static '_pages/portal__roll_call_student-1.js' %}"></script>
   <script src="{% static 'js/form-draft-save.js' %}"></script>
+  {# FormDraftSave.init is called by the page script after the library loads. #}
   <script src="{% static '_pages/portal__roll_call_student.js' %}"></script>
 {% endblock %}

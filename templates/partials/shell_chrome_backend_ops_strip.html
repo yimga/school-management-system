@@ -10,8 +10,12 @@
 >
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
     <span class="small text-uppercase text-muted fw-semibold" style="letter-spacing:0.04em;">{% trans "Operational snapshot" %}</span>
+    <div class="small text-muted d-flex align-items-center gap-2">
+      <span>{% trans "Manage daily operations with key counts and quick access links." %}</span>
+      <span class="d-none d-md-inline"><kbd>?</kbd> {% trans "Keyboard shortcuts" %}</span>
+    </div>
   </div>
-  <div class="row g-3" data-backend-ops-kpi-grid="1">
+  <div class="row g-3" data-backend-ops-kpi-grid="1" aria-live="polite">
     <div class="col-12 col-md-6 col-lg-3" data-backend-ops-pending="guardian-invites">
       <div class="kpi">
         <div class="d-flex align-items-start justify-content-between gap-2">
@@ -55,7 +59,10 @@
     <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:dashboard' %}" data-ops-link="finance-console">{% trans "Finance" %}</a>
     <a class="btn btn-sm btn-outline-secondary" href="{% url 'requests:dashboard' %}" data-ops-link="requests-console">{% trans "Requests" %}</a>
     {% if action_perms and action_perms.admin_panel %}
-    <a class="btn btn-sm btn-outline-secondary" href="{% url 'admin:portal_pendingguardianinvite_changelist' %}" data-ops-link="admin-invites">{% trans "Invites (admin)" %}</a>
+    {% url 'admin:portal_pendingguardianinvite_changelist' as guardian_invites_admin_url %}{# Advanced admin fallback target for Invites (admin). #}
+    {% if guardian_invites_admin_url %}
+    <a class="btn btn-sm btn-outline-secondary" href="{{ guardian_invites_admin_url }}" data-ops-link="admin-invites">{% trans "Invites (admin)" %}</a>
+    {% endif %}
     {% endif %}
     {% if can_manage_settings %}
     <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:feature_control_panel' %}" data-ops-link="feature-audit">{% trans "Feature audit" %}</a>

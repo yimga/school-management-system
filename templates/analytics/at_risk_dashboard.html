@@ -56,9 +56,8 @@
             <tr>
               <td colspan="6" class="p-0">
                 <div class="py-3 px-2">
-                  {% load i18n %}
                   {% url 'analytics:master_sheet' as master_url %}
-                  {% include "components/dashboard_empty_state.html" with icon="bi-graph-up" title=_("No risk data yet.") message=_("Run the nightly at-risk computation task or open the master sheet.") action_url=master_url action_text=_("Open master sheet") %}
+                  {% include "components/rmc_empty_state.html" with icon="bi-graph-up" title=_("No risk data yet.") message=_("Run the nightly at-risk computation task or open the master sheet.") primary_url=master_url primary_label=_("Open master sheet") %}
                 </div>
               </td>
             </tr>

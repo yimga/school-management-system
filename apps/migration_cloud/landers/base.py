@@ -1,0 +1,81 @@
+"""Lander contract + registry — the apply step's per-domain persistence layer."""
+
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from typing import Any, Iterator
+
+
+class LanderError(Exception):
+    """Raised when a canonical row cannot be persisted.
+
+    The orchestrator quarantines the row (creates a ``MigrationQuarantineRecord``)
+    with the error attached and continues with the next row. Lander errors
+    never abort the bundle.
+    """
+
+
+@dataclass
+class LanderResult:
+    """Per-row outcome the orchestrator records on the child ``MigrationRun``."""
+
+    created: int = 0
+    updated: int = 0
+    skipped: int = 0
+    quarantined: int = 0
+    errors: list[str] = field(default_factory=list)
+    created_ids: list[Any] = field(default_factory=list)
+    updated_ids_with_old_values: list[dict[str, Any]] = field(default_factory=list)
+
+
+@dataclass
+class LanderContext:
+    """Tenant + bundle context handed to every lander invocation."""
+
+    school: Any
+    schema_name: str
+    bundle_id: int
+    artifact_id: int
+    dry_run: bool = False
+    transformer_options: dict[str, Any] = field(default_factory=dict)
+
+
+class Lander(ABC):
+    """One per canonical domain that owns its tenant-side persistence."""
+
+    domain: str = ""
+
+    @abstractmethod
+    def land(
+        self,
+        *,
+        canonical_rows: Iterator[dict[str, Any]],
+        ctx: LanderContext,
+    ) -> LanderResult:
+        """Persist canonical rows under the tenant schema.
+
+        Implementations MUST:
+          * Run inside ``django_tenants.utils.schema_context(ctx.schema_name)``
+            so writes land in the tenant schema (orchestrator does this
+            wrapping — landers do not call schema_context themselves).
+          * Respect ``ctx.dry_run`` (no writes, just return the would-be result).
+          * Append ``created_ids`` and ``updated_ids_with_old_values`` so the
+            rollback handler can revert the run.
+          * Raise ``LanderError`` for genuine failures; per-row issues should
+            increment ``quarantined`` and continue.
+        """
+
+
+# --- Registry ---------------------------------------------------------------
+
+_REGISTRY: dict[str, Lander] = {}
+
+
+def register(domain: str, lander: Lander) -> None:
+    lander.domain = domain
+    _REGISTRY[domain] = lander
+
+
+def get_lander(domain: str) -> Lander | None:
+    return _REGISTRY.get(domain)

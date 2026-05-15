@@ -39,6 +39,24 @@ _AI_AUDIT_PERSIST_ERRORS = (
     KeyError,
     DatabaseError,
 )
+_AI_PROVIDER_CALL_ERRORS = (
+    TimeoutError,
+    OSError,
+    RuntimeError,
+    ValueError,
+    TypeError,
+    AttributeError,
+)
+_AI_GATEWAY_RUNTIME_ERRORS = (
+    DatabaseError,
+    TimeoutError,
+    OSError,
+    RuntimeError,
+    ValueError,
+    TypeError,
+    KeyError,
+    AttributeError,
+)
 
 from services.ai_schemas import (
     extract_json_from_text,
@@ -97,8 +115,7 @@ class TaskType(str, Enum):
     BILLING_USAGE_EXPLAIN = "billing_usage_explain"
     TRUST_COMPLIANCE_ASSISTANT = "trust_compliance_assistant"
     STUDIO_OS_ASSISTANT = "studio_os_assistant"
-    # Pass 13: explain why a student was flagged at-risk. Default tier list
-    # routes to Anthropic first (premium tenants), then Ollama, then rules.
+    # Pass 13: explain why a student was flagged at-risk.
     RISK_EXPLAIN = "risk_explain"
     # Pass 13.B: draft a parent-facing message from a short brief. Always
     # produced as a draft — humans approve before sending.
@@ -132,14 +149,11 @@ DEFAULT_TASK_TIERS: dict[str, list[str]] = {
     TaskType.BILLING_USAGE_EXPLAIN: list(_DEFAULT_OLLAMA_RULES),
     TaskType.TRUST_COMPLIANCE_ASSISTANT: list(_DEFAULT_OLLAMA_RULES),
     TaskType.STUDIO_OS_ASSISTANT: list(_DEFAULT_OLLAMA_RULES),
-    # Pass 13: risk_explain prefers Anthropic when ANTHROPIC_API_KEY is set,
-    # falls back to Ollama then rules. The premium gate in invoke() drops
-    # "anthropic" automatically when the tenant data tier disallows premium.
-    TaskType.RISK_EXPLAIN: ["anthropic", "ollama", "rules"],
+    TaskType.RISK_EXPLAIN: list(_DEFAULT_OLLAMA_RULES),
     # Pass 13.B: teacher comms drafts and report-card comments — same tier
     # policy as risk_explain (premium-first, on-prem fallback, rules as last resort).
-    TaskType.TEACHER_COMMS_DRAFT: ["anthropic", "ollama", "rules"],
-    TaskType.REPORT_CARD_COMMENT: ["anthropic", "ollama", "rules"],
+    TaskType.TEACHER_COMMS_DRAFT: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.REPORT_CARD_COMMENT: list(_DEFAULT_OLLAMA_RULES),
 }
 
 
@@ -180,7 +194,7 @@ def _cost_class_for_tier(tier: str | None) -> str:
         return "no_cost"
     if tier_name in {"ollama", "vllm"}:
         return "self_hosted"
-    if tier_name in {"litellm", "anthropic"}:
+    if tier_name == "litellm":
         return "premium"
     return "unclassified"
 
@@ -412,62 +426,13 @@ def _call_litellm(prompt: str, metadata: dict[str, Any] | None = None, model_key
         return None, {"provider": "litellm", "error": "timeout"}
 
 
-def _call_anthropic(
+def _call_removed_cloud_provider(
     prompt: str,
     metadata: dict[str, Any] | None = None,
     model_key: str | None = None,
     timeout_sec: int | None = None,
 ) -> tuple[str | None, dict[str, Any]]:
-    """
-    Pass 13: Anthropic Claude provider. Default-off — only fires when
-    ANTHROPIC_API_KEY is set in env or settings. Uses the official `anthropic`
-    SDK (declared optional in requirements.txt). Falls back transparently when
-    the SDK is not installed or the key is unset.
-    """
-    api_key = (
-        (getattr(settings, "ANTHROPIC_API_KEY", None) or os.environ.get("ANTHROPIC_API_KEY") or "")
-        .strip()
-    )
-    if not api_key:
-        return None, {"provider": "anthropic", "error": "ANTHROPIC_API_KEY not set"}
-    model = (
-        model_key
-        or getattr(settings, "ANTHROPIC_MODEL", None)
-        or os.environ.get("ANTHROPIC_MODEL")
-        or "claude-haiku-4-5-20251001"
-    ).strip()
-    try:
-        from anthropic import Anthropic
-    except ImportError:
-        return None, {"provider": "anthropic", "error": "anthropic SDK not installed"}
-
-    timeout = timeout_sec if timeout_sec is not None else _request_timeout(metadata)
-    try:
-        client = Anthropic(api_key=api_key, timeout=timeout)
-        response = client.messages.create(
-            model=model,
-            max_tokens=1024,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        # response.content is a list of content blocks; the SDK returns text
-        # blocks for non-tool-use calls. Concatenate the .text fields.
-        parts: list[str] = []
-        for block in getattr(response, "content", None) or []:
-            text_value = getattr(block, "text", None)
-            if isinstance(text_value, str):
-                parts.append(text_value)
-        text = "".join(parts).strip()
-        return text or None, {
-            "provider": "anthropic",
-            "tier": "anthropic",
-            "model": model,
-            "stop_reason": getattr(response, "stop_reason", None),
-        }
-    except TimeoutError:
-        return None, {"provider": "anthropic", "error": "timeout"}
-    except Exception as exc:  # noqa: BLE001 - SDK exceptions vary by version; one path is fine
-        logger.warning("Anthropic call failed: %s", exc)
-        return None, {"provider": "anthropic", "error": str(exc)[:200]}
+    return None, {"provider": "removed_cloud_provider", "error": "disabled"}
 
 
 def _rules_fallback(user_query: str) -> str:
@@ -542,7 +507,7 @@ def _budget_limit_per_tenant_per_day() -> int:
 
 def _premium_budget_limit_per_tenant_per_day(tenant_id: Any) -> int:
     """
-    Pass 13.C: per-tenant cap on PREMIUM-tier calls (Anthropic + LiteLLM) per
+    Pass 13.C: per-tenant cap on premium-tier calls per
     day. Resolution order:
       1. school.settings["ai_premium_daily_cap"] — tenant-self-managed.
       2. settings.AI_PREMIUM_DAILY_CAP_PER_TENANT — platform default.
@@ -577,7 +542,7 @@ def _premium_budget_limit_per_tenant_per_day(tenant_id: Any) -> int:
 
 
 def _check_and_consume_premium_budget(tenant_id: Any) -> tuple[bool, dict[str, Any]]:
-    """Pass 13.C: gate Anthropic/LiteLLM specifically (separate from request budget)."""
+    """Pass 13.C: gate premium-tier providers separately from request budget."""
     limit = _premium_budget_limit_per_tenant_per_day(tenant_id)
     if limit <= 0:
         return True, {}
@@ -684,6 +649,31 @@ def invoke(
     Request metadata (optional, in metadata dict): sensitivity_class, latency_target (seconds),
     output_type, allowed_backends (list of tier names). See docs/architecture/ai_orchestration.md.
     """
+    # Sentry custom transaction: backs the `ai.gateway.latency` SLO in
+    # apps/observability/slo.py. Always paired with finish_transaction
+    # in the surrounding wrapper below.
+    try:
+        from apps.observability.tracing import start_named_transaction, set_transaction_status, finish_transaction
+    except (ImportError, AttributeError):
+        start_named_transaction = set_transaction_status = finish_transaction = lambda *a, **k: None
+    _txn = start_named_transaction("ai.gateway.invoke", op="ai.invoke")
+    try:
+        return _invoke_inner(task_type, prompt, user_query=user_query, metadata=metadata, response_schema=response_schema)
+    except _AI_GATEWAY_RUNTIME_ERRORS:
+        set_transaction_status(_txn, "internal_error")
+        raise
+    finally:
+        finish_transaction(_txn)
+
+
+def _invoke_inner(
+    task_type: str | TaskType,
+    prompt: str,
+    *,
+    user_query: str = "",
+    metadata: dict[str, Any] | None = None,
+    response_schema: str | None = None,
+) -> tuple[Any, dict[str, Any]]:
     task = TaskType(task_type) if isinstance(task_type, str) else task_type
     task_key = task.value
     md = metadata or {}
@@ -782,7 +772,7 @@ def invoke(
     start = time.perf_counter()
 
     for tier in backends:
-        if tier in ("litellm", "anthropic"):
+        if tier == "litellm":
             if not allow_premium:
                 errors[tier] = "data_tier_disallowed"
                 continue
@@ -796,8 +786,8 @@ def invoke(
         meta: dict[str, Any] = {}
         if tier == "ollama":
             text, meta = _call_ollama(prompt, metadata=md)
-        elif tier == "anthropic":
-            text, meta = _call_anthropic(prompt, metadata=md, timeout_sec=timeout_sec)
+        elif tier == "removed_cloud_provider":
+            text, meta = _call_removed_cloud_provider(prompt, metadata=md, timeout_sec=timeout_sec)
         elif tier == "vllm":
             text, meta = _call_vllm(
                 prompt,

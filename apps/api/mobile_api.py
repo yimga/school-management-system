@@ -6,6 +6,12 @@ REST API for mobile applications with authentication, rate limiting, offline sup
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from drf_spectacular.utils import (
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+    inline_serializer,
+)
 from rest_framework import serializers, viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -236,6 +242,29 @@ class OfflineSyncQueueSerializer(serializers.ModelSerializer):
 # ViewSets
 
 
+@extend_schema_view(
+    list=extend_schema(tags=["Mobile"], summary="List the caller's mobile devices", responses={200: MobileDeviceSerializer(many=True)}),
+    retrieve=extend_schema(tags=["Mobile"], summary="Retrieve a mobile device", responses={200: MobileDeviceSerializer, 404: OpenApiResponse(description="Not found")}),
+    create=extend_schema(tags=["Mobile"], summary="Register a mobile device for the caller", request=MobileDeviceSerializer, responses={201: MobileDeviceSerializer, 400: OpenApiResponse(description="Validation error")}),
+    update=extend_schema(tags=["Mobile"], summary="Update a mobile device", request=MobileDeviceSerializer, responses={200: MobileDeviceSerializer}),
+    partial_update=extend_schema(tags=["Mobile"], summary="Partially update a mobile device", request=MobileDeviceSerializer, responses={200: MobileDeviceSerializer}),
+    destroy=extend_schema(tags=["Mobile"], summary="Delete a mobile device", request=None, responses={204: OpenApiResponse(description="Deleted")}),
+    update_push_token=extend_schema(
+        tags=["Mobile"],
+        summary="Update the device's push-notification token",
+        request=inline_serializer(name="UpdatePushTokenRequest", fields={"push_token": serializers.CharField()}),
+        responses={
+            200: inline_serializer(name="UpdatePushTokenResponse", fields={"status": serializers.CharField()}),
+            400: OpenApiResponse(description="Missing push_token"),
+        },
+    ),
+    deactivate=extend_schema(
+        tags=["Mobile"],
+        summary="Deactivate the device",
+        request=None,
+        responses={200: inline_serializer(name="DeviceDeactivateResponse", fields={"status": serializers.CharField()})},
+    ),
+)
 class MobileDeviceViewSet(viewsets.ModelViewSet):
     """Mobile device registration and management"""
 
@@ -275,6 +304,22 @@ class MobileDeviceViewSet(viewsets.ModelViewSet):
         return Response({"status": "device deactivated"})
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=["Mobile"],
+        summary="List recent push notifications for the caller",
+        description="Returns the most recent 50 push notifications across the caller's registered devices.",
+        responses={200: PushNotificationSerializer(many=True)},
+    ),
+    retrieve=extend_schema(tags=["Mobile"], summary="Retrieve a push notification", responses={200: PushNotificationSerializer, 404: OpenApiResponse(description="Not found")}),
+    mark_delivered=extend_schema(
+        tags=["Mobile"],
+        summary="Mark a push notification as delivered",
+        description="Client-acknowledgement endpoint — sets status=DELIVERED and stamps delivered_at.",
+        request=None,
+        responses={200: inline_serializer(name="MarkDeliveredResponse", fields={"status": serializers.CharField()})},
+    ),
+)
 class PushNotificationViewSet(viewsets.ReadOnlyModelViewSet):
     """View push notifications"""
 
@@ -298,6 +343,65 @@ class PushNotificationViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({"status": "marked delivered"})
 
 
+@extend_schema_view(
+    list=extend_schema(tags=["Offline Sync"], summary="List queued offline sync items", description="Returns PENDING + CONFLICT items for the caller's devices.", responses={200: OfflineSyncQueueSerializer(many=True)}),
+    retrieve=extend_schema(tags=["Offline Sync"], summary="Retrieve a queued sync item", responses={200: OfflineSyncQueueSerializer, 404: OpenApiResponse(description="Not found")}),
+    create=extend_schema(tags=["Offline Sync"], summary="Queue an offline change for sync", request=OfflineSyncQueueSerializer, responses={201: OfflineSyncQueueSerializer, 400: OpenApiResponse(description="Invalid device_id")}),
+    update=extend_schema(tags=["Offline Sync"], summary="Update a queued sync item", request=OfflineSyncQueueSerializer, responses={200: OfflineSyncQueueSerializer}),
+    partial_update=extend_schema(tags=["Offline Sync"], summary="Partially update a queued sync item", request=OfflineSyncQueueSerializer, responses={200: OfflineSyncQueueSerializer}),
+    destroy=extend_schema(tags=["Offline Sync"], summary="Delete a queued sync item", request=None, responses={204: OpenApiResponse(description="Deleted")}),
+    sync_batch=extend_schema(
+        tags=["Offline Sync"],
+        summary="Sync a batch of offline changes",
+        description=(
+            "Replays a list of offline mutations (grades/attendance/payments) as the "
+            "caller. Subject to per-tenant offline mode + feature flags. Each item "
+            "lands in OfflineSyncQueue and is resolved through the appropriate "
+            "domain processor, returning COMPLETED, CONFLICT or FAILED."
+        ),
+        request=inline_serializer(
+            name="OfflineSyncBatchRequest",
+            fields={
+                "device_id": serializers.UUIDField(),
+                "changes": serializers.ListField(child=serializers.DictField()),
+            },
+        ),
+        responses={
+            200: inline_serializer(
+                name="OfflineSyncBatchResponse",
+                fields={
+                    "synced": serializers.IntegerField(),
+                    "conflicts": serializers.IntegerField(),
+                    "failed": serializers.IntegerField(),
+                    "results": serializers.ListField(child=serializers.DictField()),
+                },
+            ),
+            400: OpenApiResponse(description="Missing or invalid device_id"),
+            403: OpenApiResponse(description="Offline sync disabled by tenant or system"),
+        },
+    ),
+    sync_state=extend_schema(
+        tags=["Offline Sync"],
+        summary="Get queue counts for the caller",
+        request=None,
+        responses={200: inline_serializer(name="OfflineSyncStateResponse", fields={"pending": serializers.IntegerField(required=False), "conflict": serializers.IntegerField(required=False), "failed": serializers.IntegerField(required=False)})},
+    ),
+    retry_failed=extend_schema(
+        tags=["Offline Sync"],
+        summary="Reset FAILED rows so the client can replay sync_batch",
+        request=inline_serializer(name="OfflineSyncRetryRequest", fields={"max_retries": serializers.IntegerField(required=False)}),
+        responses={200: inline_serializer(name="OfflineSyncRetryResponse", fields={"reset": serializers.IntegerField(required=False)})},
+    ),
+    resolve_conflict=extend_schema(
+        tags=["Offline Sync"],
+        summary="Resolve a sync conflict",
+        request=inline_serializer(name="OfflineSyncResolveRequest", fields={"resolution": serializers.ChoiceField(choices=["client", "server"])}),
+        responses={
+            200: inline_serializer(name="OfflineSyncResolveResponse", fields={"status": serializers.CharField()}),
+            400: OpenApiResponse(description="Invalid resolution value"),
+        },
+    ),
+)
 class OfflineSyncViewSet(viewsets.ModelViewSet):
     """Offline data synchronization"""
 

@@ -1,6 +1,6 @@
 {
   "extension_registry_present": true,
-  "generated_at": "2026-05-11T23:49:31.506893+00:00",
+  "generated_at": "2026-05-15T12:09:39.702293+00:00",
   "map_rows": 4,
   "missing_map_targets": [],
   "ok": true,
@@ -44,6 +44,7 @@
     "apps.siteconfig.tests.test_recover_database_command",
     "apps.siteconfig.tests.test_sitesettings_save_runtime_sync",
     "apps.siteconfig.tests.test_sitesettings_slim_contract_helpers",
+    "apps.studio_os.tests.test_phase_05_legacy_redirects",
     "apps.tenancy.tests.test_tenant_task"
   ],
   "strict_sot": false,

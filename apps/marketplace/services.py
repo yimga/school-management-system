@@ -6,6 +6,7 @@ On install: record install, apply schema patches if any, register widgets, audit
 import logging
 from django.db import DatabaseError, IntegrityError, OperationalError, transaction
 from django.utils import timezone
+from django.utils.text import slugify
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
@@ -34,6 +35,113 @@ _MARKETPLACE_SCHEMA_BILLING_ERRORS = (
 )
 # Schema patch (migrate) can raise CommandError from call_command
 _SCHEMA_PATCH_ERRORS = _MARKETPLACE_SCHEMA_BILLING_ERRORS + (CommandError,)
+
+
+def _public_marketplace_app_projection(app) -> dict:
+    """Public MarketplaceApp projection with no internal control-plane fields."""
+    manifest = app.manifest if isinstance(app.manifest, dict) else {}
+    return {
+        "slug": app.slug,
+        "app_key": app.app_key,
+        "name": app.name,
+        "description": app.description or "",
+        "kind": app.kind,
+        "version": app.version,
+        "publisher": getattr(getattr(app, "publisher", None), "name", None),
+        "pricing": {
+            "model": app.pricing_model,
+            "price": str(app.price),
+            "billing_interval": app.billing_interval,
+            "is_intentionally_free": bool(app.is_intentionally_free),
+        },
+        "scopes_requested": list(manifest.get("scopes") or []),
+        "events_consumed": list(manifest.get("events_consumed") or []),
+        "events_emitted": list(manifest.get("events_emitted") or []),
+        "widgets": list(manifest.get("widgets") or []),
+        "required_apps": list(app.required_apps or []),
+    }
+
+
+def list_public_marketplace_apps(*, kind: str = "", limit: int = 200) -> list[dict]:
+    from apps.marketplace.models import MarketplaceApp
+
+    qs = MarketplaceApp.objects.filter(is_active=True)
+    if kind:
+        qs = qs.filter(kind=kind)
+    qs = qs.select_related("publisher").order_by("name")
+    return [_public_marketplace_app_projection(app) for app in qs[:limit]]
+
+
+def _publisher_slug_for_user(user) -> str:
+    base = slugify(getattr(user, "username", "") or getattr(user, "email", "") or "user")
+    return f"{base[:60] or 'user'}-apps"
+
+
+def _ensure_submission_publisher(user):
+    from apps.marketplace.models import PublisherOrganization
+
+    if getattr(user, "email", ""):
+        publisher = PublisherOrganization.objects.filter(payout_email=user.email).first()
+        if publisher is not None:
+            return publisher
+
+    slug = _publisher_slug_for_user(user)
+    publisher = PublisherOrganization.objects.filter(slug=slug).first()
+    if publisher is not None:
+        return publisher
+    return PublisherOrganization.objects.create(
+        slug=slug,
+        name=f"{user.username}'s apps",
+        payout_email=getattr(user, "email", "") or "",
+    )
+
+
+def upsert_marketplace_submission(*, user, payload: dict) -> dict:
+    from apps.marketplace.models import MarketplaceApp, MarketplaceListing
+
+    publisher = _ensure_submission_publisher(user)
+    slug = payload["slug"].strip().lower()
+    kind = (payload.get("kind") or "first_party").strip().lower()
+    manifest = payload.get("manifest") or {}
+
+    app, app_created = MarketplaceApp.objects.update_or_create(
+        slug=slug,
+        defaults={
+            "app_key": slug,
+            "publisher": publisher,
+            "name": payload["name"].strip()[:255],
+            "description": (payload.get("description") or "").strip(),
+            "kind": kind,
+            "version": payload["version"].strip()[:32],
+            "manifest": manifest,
+            "is_active": True,
+        },
+    )
+
+    listing, listing_created = MarketplaceListing.objects.update_or_create(
+        app=app,
+        defaults={
+            "publisher": publisher,
+            "category": (payload.get("category") or "").strip()[:80],
+            "short_description": (payload.get("short_description") or "").strip()[:255],
+            "preview_image_url": (payload.get("preview_image_url") or "").strip()[:500],
+            "screenshot_urls": list(payload.get("screenshot_urls") or [])[:10],
+            "status": MarketplaceListing.Status.PENDING_REVIEW
+            if not app_created
+            else MarketplaceListing.Status.DRAFT,
+            "security_review_status": MarketplaceListing.ReviewStatus.PENDING,
+        },
+    )
+
+    return {
+        "app_slug": app.slug,
+        "app_id": app.pk,
+        "listing_id": listing.pk,
+        "status": listing.status,
+        "created_app": app_created,
+        "created_listing": listing_created,
+        "next_steps_url": "https://docs.runmycampus.com/marketplace/submission/",
+    }
 
 
 def ensure_marketplace_listing(app, *, publisher=None):

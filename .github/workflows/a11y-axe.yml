@@ -6,8 +6,11 @@
 # + chromedriver so the headless run has a real browser.
 #
 # Fails the workflow on any "serious" or "critical" axe violation on
-#  / (homepage), /onboard/, /marketing/, /authentication/login/, /healthz/
-#   /portal/, /portal/teacher/, /portal/parent/, /backend/
+# 13 templates total (1 homepage + 6 public + 6 auth):
+#   public:  /, /onboard/, /marketing/, /marketing/pricing/,
+#            /authentication/login/, /authentication/forgot-password/, /healthz/
+#   auth:    /portal/, /portal/teacher/, /portal/parent/, /backend/,
+#            /portal/finance/invoices/, /portal/configure/
 #
 # Authenticated routes use the _login_via_session helper that drops a
 # Django session cookie into the Chrome driver (see test file).

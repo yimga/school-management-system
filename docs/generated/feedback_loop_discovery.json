@@ -1,0 +1,64 @@
+{
+  "generated_for": "RunMyCampus Voice of Customer + Feedback Loop",
+  "existing_primitives": {
+    "tenant_model": "apps.schools.School",
+    "membership_model": "apps.schools.SchoolMembership",
+    "user_roles": "apps.accounts.User.Role",
+    "support_primitives": [
+      "apps.requests.AccessRequest",
+      "apps.siteconfig.GlobalSupportTicket",
+      "apps.customersuccess TenantHealthScore and risk alert models"
+    ],
+    "operator_surface": "/super/",
+    "tenant_configuration_surface": "/siteconfig/ and /school/settings equivalents",
+    "audit_related_systems": [
+      "apps.compliance middleware",
+      "apps.requests.RequestAudit",
+      "apps.platform_runtime event helpers"
+    ],
+    "notification_related_systems": [
+      "accounts notifications",
+      "support ticket replies",
+      "release-note notification flags added in apps.feedback"
+    ]
+  },
+  "new_feedback_app": {
+    "path": "apps/feedback/",
+    "models": [
+      "FeedbackSubmission",
+      "FeatureRequest",
+      "FeedbackVote",
+      "FeedbackComment",
+      "FeedbackAttachment",
+      "FeedbackTriageEvent",
+      "RoadmapItem",
+      "ReleaseNote",
+      "SurveyResponse"
+    ],
+    "tenant_routes": [
+      "/feedback/",
+      "/school/feedback/",
+      "/teacher/feedback/",
+      "/parent/feedback/",
+      "/student/feedback/",
+      "/school/roadmap/"
+    ],
+    "operator_routes": [
+      "/super/voice-of-customer/",
+      "/super/product-feedback/",
+      "/super/product-roadmap/"
+    ]
+  },
+  "gaps_closed": [
+    "Feedback is now a tenant-scoped product operations domain instead of a contact form.",
+    "Feature requests have weighted votes and priority scoring that includes severity, urgency, strategic fit, role spread, churn risk, and external blockers.",
+    "Student feedback is school-private and moderation-required by default.",
+    "Roadmap visibility is explicit for operator, tenant, and public surfaces.",
+    "Released feature requests can generate You Said / We Did items."
+  ],
+  "remaining_gaps": [
+    "Real notification delivery is represented by release-note notification flags and triage events; outbound email/in-app fanout should be connected to the existing notification bus.",
+    "AI classification, duplicate detection, and churn summarization are service extension points, not enabled automation.",
+    "The legacy siteconfig ProductFeedback model remains for public marketing roadmap compatibility and can be migrated later."
+  ]
+}

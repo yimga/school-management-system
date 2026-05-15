@@ -34,7 +34,6 @@ TERMINAL_ERASE_STATUSES = {"completed", "rejected"}
 @shared_task(name="compliance.mark_sla_breaches")
 def mark_sla_breaches() -> dict:
     """Stamp `sla_breach_at` on overdue Export + Erase rows."""
-    from django.db.models import Q
     from django.utils import timezone
 
     from apps.compliance.models import EraseRequest, ExportJob

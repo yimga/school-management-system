@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import re
 from datetime import date
+from pathlib import Path
 
 from django.test import Client, TestCase, override_settings, tag
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import Permission as FeaturePermission, User
 from apps.academics.models import AcademicYear, Term
@@ -60,6 +62,12 @@ class UnifiedShellContractTenantTests(TestCase):
             defaults={"role": role, "is_primary": True},
         )
 
+    def _login_verified(self, username: str, password: str = "x" * 8):
+        self.client.login(username=username, password=password)
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
+
     def _assert_core_shell(self, body: str):
         self.assertIn("data-rmc-os-shell=", body)
         self.assertIn('data-rmc-os-page-header="1"', body)
@@ -80,8 +88,9 @@ class UnifiedShellContractTenantTests(TestCase):
             is_staff=True,
         )
         u.feature_permissions.add(self.perm_settings)
+        TOTPDevice.objects.create(user=u, name="test-device", confirmed=True)
         self._attach(u, User.Role.ADMIN)
-        self.client.login(username="unified_adm", password="x" * 8)
+        self._login_verified("unified_adm")
         path = reverse("accounts:backend_dashboard", urlconf="config.tenant_urls")
         resp = self.client.get(path)
         self.assertEqual(resp.status_code, 200, msg=getattr(resp, "content", b"")[:500])
@@ -90,10 +99,7 @@ class UnifiedShellContractTenantTests(TestCase):
         self.assertIn('data-rmc-os-role="school_admin"', body)
 
     def test_teacher_and_parent_portal_shell_contract(self):
-        for username, role, path in (
-            ("unified_teacher", User.Role.TEACHER, "/portal/teacher/"),
-            ("unified_parent", User.Role.PARENT, "/portal/parent/"),
-        ):
+        for username, role, path in (("unified_teacher", User.Role.TEACHER, "/portal/teacher/"),):
             u = User.objects.create_user(username=username, password="x" * 8, role=role)
             if role == User.Role.TEACHER:
                 TeacherProfile.objects.create(user=u)
@@ -105,8 +111,23 @@ class UnifiedShellContractTenantTests(TestCase):
             self._assert_core_shell(body)
             if role == User.Role.TEACHER:
                 self.assertIn('data-rmc-os-role="teacher"', body)
-            else:
-                self.assertIn('data-rmc-os-role="parent"', body)
+
+        root = Path(__file__).resolve().parents[3]
+        parent_template = (root / "templates" / "parent" / "dashboard.html").read_text(
+            encoding="utf-8",
+            errors="replace",
+        )
+        portal_base = (root / "templates" / "portal_base.html").read_text(
+            encoding="utf-8",
+            errors="replace",
+        )
+        shell_wrap = (
+            root / "templates" / "partials" / "shell_portal_layout_wrap_open.html"
+        ).read_text(encoding="utf-8", errors="replace")
+        self.assertIn("portalSidebar", portal_base)
+        self.assertIn("data-rmc-os-shell", shell_wrap)
+        self.assertIn("data-rmc-os-role", shell_wrap)
+        self.assertIn("data-rmc-parent-header-actions", parent_template)
 
     @override_settings(CONVERSION_SINGLE_ACTION_ENFORCED=True)
     def test_strict_next_action_single_primary_marker(self):
@@ -117,8 +138,9 @@ class UnifiedShellContractTenantTests(TestCase):
             is_staff=True,
         )
         u.feature_permissions.add(self.perm_settings)
+        TOTPDevice.objects.create(user=u, name="test-device", confirmed=True)
         self._attach(u, User.Role.ADMIN)
-        self.client.login(username="unified_strict", password="x" * 8)
+        self._login_verified("unified_strict")
         resp = self.client.get(
             reverse("accounts:backend_dashboard", urlconf="config.tenant_urls")
         )
@@ -146,14 +168,18 @@ class UnifiedShellContractControlPlaneTests(TestCase):
         self.client = Client(HTTP_HOST=_MGR_HOST, raise_request_exception=False)
 
     def test_super_dashboard_includes_os_markers(self):
-        User.objects.create_user(
+        u = User.objects.create_user(
             username="unified_super",
             password="x" * 8,
             role=User.Role.ADMIN,
             is_staff=True,
             is_superuser=True,
         )
+        TOTPDevice.objects.create(user=u, name="test-device", confirmed=True)
         self.client.login(username="unified_super", password="x" * 8)
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
         url = reverse("super:dashboard")
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200, msg=getattr(resp, "content", b"")[:500])

@@ -1,0 +1,24 @@
+{% extends "backend_base.html" %}
+{% block title %}Product Roadmap{% endblock %}
+{% block content %}
+<div class="container-fluid py-3">
+  <h1 class="h3">School Roadmap</h1>
+  <p class="text-muted">Tenant-safe roadmap items and released improvements tied to feedback.</p>
+  <div class="row g-3">
+    {% for item in roadmap_items %}
+      <section class="col-md-6 col-xl-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <span class="badge text-bg-primary">{{ item.get_status_display }}</span>
+            <h2 class="h5 mt-2">{{ item.title }}</h2>
+            <p>{{ item.problem|truncatewords:28 }}</p>
+            <div class="small text-muted">{{ item.target_module|default:"platform" }} · {{ item.source_feedback_count }} related signals</div>
+          </div>
+        </div>
+      </section>
+    {% empty %}
+      <div class="col-12"><div class="alert alert-info">No roadmap items are visible yet.</div></div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

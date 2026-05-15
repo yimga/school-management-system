@@ -6,7 +6,7 @@ MarketplaceApp so developer portals, in-product directories, and partner
 marketing pages can render a consistent catalog without hitting Django admin.
 
 `GET /api/v1/marketplace/scopes/` returns the OAuth2-style scope vocabulary
-from apps.marketplace.scopes_catalog. Both endpoints are public — no auth —
+from apps.marketplace.scopes_catalog. Both endpoints are public, unauthenticated,
 and cacheable for 5 minutes.
 """
 
@@ -18,37 +18,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 
-def _serialize_app(app) -> dict:
-    """Public projection of a MarketplaceApp row — no internal fields."""
-    manifest = app.manifest if isinstance(app.manifest, dict) else {}
-    return {
-        "slug": app.slug,
-        "app_key": app.app_key,
-        "name": app.name,
-        "description": app.description or "",
-        "kind": app.kind,
-        "version": app.version,
-        "publisher": getattr(getattr(app, "publisher", None), "name", None),
-        "pricing": {
-            "model": app.pricing_model,
-            "price": str(app.price),
-            "billing_interval": app.billing_interval,
-            "is_intentionally_free": bool(app.is_intentionally_free),
-        },
-        "scopes_requested": list(manifest.get("scopes") or []),
-        "events_consumed": list(manifest.get("events_consumed") or []),
-        "events_emitted": list(manifest.get("events_emitted") or []),
-        "widgets": list(manifest.get("widgets") or []),
-        "required_apps": list(app.required_apps or []),
-    }
-
-
 @extend_schema(
     tags=["Marketplace"],
     summary="List active marketplace apps",
     description=(
-        "Returns every active MarketplaceApp the platform exposes — first-party, "
-        "premium, and certified third-party — with manifest projections suitable "
+        "Returns every active MarketplaceApp the platform exposes: first-party, "
+        "premium, and certified third-party, with manifest projections suitable "
         "for in-product directories and developer-portal listings. Public, no auth. "
         "Cache-Control: 5 minutes."
     ),
@@ -61,17 +36,12 @@ class MarketplaceAppsListView(APIView):
 
     def get(self, request):
         try:
-            from apps.marketplace.models import MarketplaceApp
+            from apps.marketplace.services import list_public_marketplace_apps
         except ImportError:
             return Response({"apps": [], "count": 0})
 
         kind = (request.GET.get("kind") or "").strip().lower()
-        qs = MarketplaceApp.objects.filter(is_active=True)
-        if kind:
-            qs = qs.filter(kind=kind)
-        qs = qs.select_related("publisher").order_by("name")
-
-        apps = [_serialize_app(app) for app in qs[:200]]
+        apps = list_public_marketplace_apps(kind=kind, limit=200)
         response = Response(
             {
                 "apps": apps,

@@ -58,10 +58,13 @@ class GradeImportAPIViewHardeningTests(TestCase):
         self.user = User.objects.create_user(
             username="evals-admin",
             password="testpass123",
-            role=User.Role.ADMIN,
+            role=User.Role.HOD,
             is_staff=True,
         )
         self.client.force_login(self.user)
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
         self.ay = AcademicYear.objects.create(
             name="GI-Y1",
             start_date="2024-09-01",

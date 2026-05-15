@@ -5,7 +5,8 @@ On conflict: do not overwrite; persist SyncConflict and return conflicts for Syn
 Frontend MUST use tenant-scoped IndexedDB key (e.g. sync_queue_${school_id}) for offline queue.
 """
 
-from rest_framework import status
+from drf_spectacular.utils import OpenApiTypes, extend_schema, inline_serializer
+from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,6 +15,42 @@ from apps.api.sync_services import apply_changes
 from apps.platform_runtime.helpers import get_effective_offline_runtime_settings
 
 
+@extend_schema(
+    tags=["Sync"],
+    request=inline_serializer(
+        name="DeltaSyncRequest",
+        fields={
+            "items": serializers.ListField(
+                child=inline_serializer(
+                    name="DeltaSyncItem",
+                    fields={
+                        "entity_type": serializers.CharField(),
+                        "id": serializers.IntegerField(),
+                        "changes": serializers.DictField(),
+                        "updated_at": serializers.DateTimeField(),
+                        "client_item_id": serializers.CharField(required=False, allow_null=True),
+                    },
+                ),
+                allow_empty=True,
+            ),
+        },
+    ),
+    responses={
+        200: inline_serializer(
+            name="DeltaSyncResponse",
+            fields={
+                "results": serializers.ListField(child=serializers.DictField()),
+                "removed_ids": serializers.ListField(child=serializers.CharField()),
+                "failed_count": serializers.IntegerField(),
+                "failed_items": serializers.ListField(child=serializers.DictField()),
+                "conflicts": serializers.ListField(child=serializers.DictField()),
+                "success_count": serializers.IntegerField(),
+            },
+        ),
+        400: OpenApiTypes.OBJECT,
+        403: OpenApiTypes.OBJECT,
+    },
+)
 class DeltaSyncAPI(APIView):
     """
     POST body: { "items": [ { "entity_type": "student", "id": 1, "changes": { "first_name": "X" },

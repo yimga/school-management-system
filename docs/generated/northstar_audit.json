@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-11T23:45:33.058699+00:00",
+  "generated_at": "2026-05-15T12:09:40.420646+00:00",
   "max_score": 75,
-  "rating": "ELITE",
+  "rating": "DOMINANT",
   "sections": {
     "ai_readiness": {
       "rubric": "AI provider + workflow bridge + registry + deterministic safety tests.",
@@ -9,7 +9,7 @@
     },
     "architecture_quality": {
       "rubric": "audit_admin_gravity.py --strict",
-      "score": 1
+      "score": 5
     },
     "business_value": {
       "rubric": "Billing model + founder business-value metrics surfaces.",
@@ -78,10 +78,10 @@
       "score": 5
     }
   },
-  "total_score": 71,
+  "total_score": 75,
   "verifiers": {
     "audit_admin_gravity_strict": {
-      "exit_code": 1
+      "exit_code": 0
     },
     "audit_luxury_ui_surface": {
       "exit_code": 0
@@ -111,7 +111,7 @@
       "exit_code": 0
     },
     "verify_doc_plan_density_discipline": {
-      "exit_code": 1
+      "exit_code": 0
     },
     "verify_rtl_major_templates": {
       "exit_code": 0

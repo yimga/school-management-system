@@ -216,17 +216,51 @@ def get_onboarding_steps(
 ) -> list[dict[str, Any]]:
     """
     Checklist rows with data-driven *and* operator-marked completion merged.
+
+    Each row is enriched with catalog metadata
+    (label / description / audience / estimated_minutes / deep_link) from
+    ``apps.siteconfig.onboarding_step_catalog`` when the row key matches
+    a catalog entry.
     """
     base = _compute_data_driven_onboarding_steps(school, user=user)
     manual = _load_manual_onboarding_step_keys(school)
+
+    catalog: dict[str, dict] = {}
+    try:
+        from apps.siteconfig.onboarding_step_catalog import ONBOARDING_STEPS
+        catalog = ONBOARDING_STEPS
+    except Exception:  # noqa: BLE001 - catalog is enrichment-only; never block onboarding
+        catalog = {}
+
     out: list[dict[str, Any]] = []
     for row in base:
         r = dict(row)
         if r.get("key") in manual and not r.get("done"):
             r["done"] = True
             r["manually_completed"] = True
+        cat_entry = catalog.get(r.get("key") or "")
+        if cat_entry:
+            for cat_key in ("label", "description", "audience", "estimated_minutes", "deep_link"):
+                if cat_key in cat_entry and cat_key not in r:
+                    r[cat_key] = cat_entry[cat_key]
         out.append(r)
     return out
+
+
+def get_blueprint_recommended_onboarding_steps(
+    blueprint_slug: Optional[str],
+) -> list[dict[str, Any]]:
+    """Return the catalog-recommended ordered step list for a blueprint slug.
+
+    Use from wizard / setup-assistant views that want to *prompt* the
+    operator with the canonical order — orthogonal to the data-driven
+    completion check that ``get_onboarding_steps`` performs.
+    """
+    try:
+        from apps.siteconfig.onboarding_step_catalog import steps_for_blueprint
+    except Exception:  # noqa: BLE001
+        return []
+    return steps_for_blueprint(blueprint_slug)
 
 
 # Backward compatibility / existing imports

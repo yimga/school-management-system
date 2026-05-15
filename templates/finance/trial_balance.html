@@ -48,7 +48,7 @@
               <td class="text-end">{{ acc.credit_total }}</td>
             </tr>
           {% empty %}
-            <tr><td colspan="3" class="text-muted">No ledger activity yet.</td></tr>
+            <tr><td colspan="3"><div class="rmc-empty rmc-empty--row" role="status" aria-live="polite"><p class="rmc-empty__message">No ledger activity yet.</p></div></td></tr>
           {% endfor %}
         </tbody>
         <tfoot>

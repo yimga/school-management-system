@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import Permission as FeaturePermission, User
 from apps.schools.models import School, SchoolMembership
@@ -54,6 +55,16 @@ class ConversionLockStrictRoleWideTests(TestCase):
         )
         self.client.login(username=username, password="Test1234!ab")
         return user
+
+    def _mark_mfa_verified(self, user):
+        TOTPDevice.objects.get_or_create(
+            user=user,
+            name="test-device",
+            defaults={"confirmed": True},
+        )
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
 
     def test_admin_backend_blocked_redirects_to_activation(self):
         self._login_role(User.Role.ADMIN, "lockadmin")
@@ -141,6 +152,7 @@ class ConversionLockStrictRoleWideTests(TestCase):
         from apps.schools.conversion_lock_state import record_conversion_first_action
 
         record_conversion_first_action(self.school, source="proof_test", user=u)
+        self._mark_mfa_verified(u)
         r = self.client.get(
             "/authentication/backend/",
             HTTP_HOST="lock-school.example.com",

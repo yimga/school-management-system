@@ -10,6 +10,7 @@
 
 - Run **after** automated Phase H tests and `phase_h_audit.py` (static + `--live`).
 - **Automated URL check:** Run `python scripts/phase_h_url_check.py` (resolve); with server run `python scripts/phase_h_url_check.py --hit http://localhost:8000` to GET and report status.
+- **Shell architecture check:** Run `python scripts/verify_shell_architecture_matrix.py` before the live pass to confirm marketing, control-plane, admin, tenant, and Studio shells still use the expected base templates and bundles.
 - Perform on a **deployed** or **staging** environment so “visibly correct” can be verified.
 - For each section, tick when done; note any failures and fix or log.
 - **Execution log:** Record run metadata and results in [PHASE_H_EXECUTION_LOG.md](PHASE_H_EXECUTION_LOG.md) for audit trail.

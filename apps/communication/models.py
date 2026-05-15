@@ -1067,6 +1067,83 @@ class OutboundMessageQueue(models.Model):
         return f"{self.channel} to {self.recipient_identifier}: {self.status}"
 
 
+class CommunicationTemplate(models.Model):
+    """Per-tenant notification template override.
+
+    Pairs with the platform-wide code-level catalog at
+    ``apps.communication.template_catalog``. Resolution order in
+    ``notification_service``:
+
+      1. CommunicationTemplate for ``(school, key, locale)`` if ``is_active``
+      2. CommunicationTemplate for ``(school=None, key, locale)`` (platform fallback)
+      3. ``COMMUNICATION_TEMPLATES[key]`` from the code catalog
+      4. Hard fallback (subject = key, body = "(template missing)")
+
+    Tenant admins edit overrides via the manager-portal Comms settings;
+    the platform-wide null-school row is a control-plane override used
+    to test new templates before promoting them into the code catalog.
+    """
+
+    class Sensitivity(models.TextChoices):
+        LOW = "low", "Low"
+        MEDIUM = "medium", "Medium"
+        HIGH = "high", "High"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="communication_templates",
+        null=True,
+        blank=True,
+        help_text="Null = platform-wide override; otherwise scoped to the tenant.",
+    )
+    key = models.CharField(
+        max_length=120,
+        db_index=True,
+        help_text="Catalog key (e.g. 'attendance.absent_today'). Must match COMMUNICATION_TEMPLATES.",
+    )
+    subject_template = models.CharField(max_length=200, blank=True)
+    body_template = models.TextField()
+    channels = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of channel codes this override applies to. Empty = all channels declared by the catalog entry.",
+    )
+    audience = models.CharField(max_length=40, blank=True)
+    sensitivity = models.CharField(
+        max_length=10,
+        choices=Sensitivity.choices,
+        default=Sensitivity.MEDIUM,
+    )
+    is_active = models.BooleanField(default=True)
+    locale = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="Optional BCP-47 locale (e.g. 'fr-CM'). Empty = applies to all locales.",
+    )
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Communication template override"
+        verbose_name_plural = "Communication template overrides"
+        indexes = [
+            models.Index(fields=["school", "key", "is_active"]),
+            models.Index(fields=["key", "locale", "is_active"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "key", "locale"],
+                name="comm_tmpl_school_key_locale_uniq",
+            ),
+        ]
+
+    def __str__(self):
+        scope = self.school_id or "platform"
+        return f"{self.key} @ {scope} ({self.locale or 'any'})"
+
+
 # Register video conferencing models under the communication app so migrations
 # and app model loading include them consistently.
 from .video_conferencing import (  # noqa: E402,F401

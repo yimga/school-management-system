@@ -34,10 +34,10 @@ class DecisionIntelligenceMagicUxTests(TestCase):
             ),
             request=req,
         )
-        self.assertIn("dashboard-empty-state", html)
-        self.assertIn('data-empty-state="action-state"', html)
+        self.assertIn("rmc-empty", html)
+        self.assertIn("No surfaced insights yet", html)
         self.assertIn('data-task="report_generation"', html)
-        self.assertIn('analytics:insights-empty-primary', html)
+        self.assertIn("Open governed report builder", html)
 
 
 class DecisionEngineStudentEmptyMagicUxTests(SimpleTestCase):

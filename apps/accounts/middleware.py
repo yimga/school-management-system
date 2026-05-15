@@ -345,6 +345,12 @@ class ModuleAccessMiddleware:
         ("/compliance/", "compliance"),
         ("/communication/", "communication"),
         ("/requests/", "requests"),
+        ("/feedback/", "feedback"),
+        ("/school/feedback/", "feedback"),
+        ("/school/roadmap/", "feedback"),
+        ("/teacher/feedback/", "feedback"),
+        ("/parent/feedback/", "feedback"),
+        ("/student/feedback/", "feedback"),
         ("/academics/", "academics"),
     )
     MODULE_LIKE_FIRST_SEGMENTS = frozenset(
@@ -361,6 +367,11 @@ class ModuleAccessMiddleware:
             "compliance",
             "communication",
             "requests",
+            "feedback",
+            "school",
+            "teacher",
+            "parent",
+            "student",
             "academics",
         }
     )

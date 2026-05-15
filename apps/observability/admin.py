@@ -4,6 +4,7 @@ from config.admin import platform_admin_site
 
 from .models import (
     AnomalyDetection,
+    FrictionEvent,
     HealthCheckAlert,
     PerformanceTrace,
     PlatformIncident,
@@ -75,3 +76,19 @@ class PlatformIncidentAdmin(admin.ModelAdmin):
         "resolved_at",
     )
     raw_id_fields = ("affected_school",)
+
+
+@admin.register(FrictionEvent, site=platform_admin_site)
+class FrictionEventAdmin(admin.ModelAdmin):
+    list_display = ("view_name", "kind", "user", "school", "count", "utc_day", "last_seen", "resolved_at")
+    list_filter = ("kind", "resolved_at", "utc_day")
+    search_fields = ("view_name", "user__username", "school__name")
+    readonly_fields = ("first_seen", "last_seen", "last_payload")
+    raw_id_fields = ("user", "school")
+    actions = ("mark_resolved",)
+
+    @admin.action(description="Mark selected friction events as resolved")
+    def mark_resolved(self, request, queryset):
+        from django.utils import timezone
+        updated = queryset.filter(resolved_at__isnull=True).update(resolved_at=timezone.now())
+        self.message_user(request, f"Marked {updated} friction events resolved.")

@@ -98,39 +98,25 @@ def api_onboarding_coach(request):
 
     if getattr(settings, "AI_GATEWAY_ENABLED", True):
         try:
-            from apps.portal.ai_provider import _normalize_gateway_metadata
-            from services.ai_gateway import TaskType, invoke
+            from services.ai_helpers import invoke_with_request
 
             prompt = (
                 "You are a concise school SaaS onboarding coach. No PII. "
                 f"Health score ~{score}. Dominant task: {(payload.get('recommended_next') or {}).get('label', 'setup')}. "
                 "Reply in 2–4 short sentences: what to do next and why. Plain text only."
             )
-            school_id = getattr(school, "pk", None) or getattr(school, "id", None)
-            country_code = (
-                getattr(school, "country_code", None)
-                or getattr(getattr(school, "default_region", None), "code", None)
+            result = invoke_with_request(
+                task_type="setup_recommend",
+                prompt=prompt,
+                request=request,
+                school=school,
+                require_available=False,
             )
-            text, meta = invoke(
-                TaskType.SETUP_RECOMMEND,
-                prompt,
-                metadata=_normalize_gateway_metadata(
-                    {
-                        "request": request,
-                        "school": school,
-                        "school_id": str(school_id) if school_id is not None else None,
-                        "tenant_id": str(school_id) if school_id is not None else None,
-                        "user_id": str(request.user.pk),
-                        "role": getattr(request.user, "role", None)
-                        or getattr(request.user, "portal_role", None)
-                        or getattr(request.user, "user_type", None),
-                        "country_code": country_code,
-                    }
-                ),
-            )
-            if text and isinstance(text, str) and len(text.strip()) > 20:
-                coach_message = text.strip()[:1200]
-                source = "ai" if (meta.get("provider") or "") != "rules" else "rules+ai"
+            if result is not None:
+                text, meta = result
+                if text and isinstance(text, str) and len(text.strip()) > 20:
+                    coach_message = text.strip()[:1200]
+                    source = "ai" if (meta.get("provider") or "") != "rules" else "rules+ai"
         except Exception as e:  # noqa: BLE001
             logger.debug("onboarding_coach AI optional: %s", e)
 

@@ -878,12 +878,14 @@ def api_dashboard_charts(request):
             or 0
         )
         paid = (
+            # tenant-isolation-allow: control-plane finance aggregate across tenants (reviewed 2026-05-14)
             Payment.objects.filter(status="completed")
             .aggregate(total=Sum("amount"))
             .get("total")
             or 0
         )
         overdue_amount = (
+            # tenant-isolation-allow: control-plane finance aggregate across tenants (reviewed 2026-05-14)
             Invoice.objects.filter(status=Invoice.Status.OVERDUE)
             .aggregate(total=Sum("balance_amount"))
             .get("total")
@@ -1329,6 +1331,7 @@ def api_operational_slo_dashboard(request):
         )
 
     conflict_window = (
+        # tenant-isolation-allow: SLO dashboard regional rollup across tenants (reviewed 2026-05-14)
         SyncConflict.objects.filter(created_at__gte=window_start)
         .select_related("school__default_region")
         .only("status", "school__default_region_id", "school__default_region__name")
@@ -1342,6 +1345,7 @@ def api_operational_slo_dashboard(request):
             bucket["sync_conflicts_resolved_window"] += 1
 
     pending_conflicts = (
+        # tenant-isolation-allow: SLO dashboard regional rollup across tenants (reviewed 2026-05-14)
         SyncConflict.objects.filter(status=SyncConflict.Status.PENDING)
         .select_related("school__default_region")
         .only("school__default_region_id", "school__default_region__name")

@@ -927,13 +927,12 @@ class SentryTenantTagMiddleware(MiddlewareMixin):
     def process_request(self, request):
         school = getattr(request, "school", None)
         if school:
-            try:
-                import sentry_sdk
+            from apps.observability.tracing import set_tags
 
-                sentry_sdk.set_tag("school_id", str(school.id))
-                sentry_sdk.set_tag("school_slug", getattr(school, "slug", "") or "")
-            except (AttributeError, ImportError):
-                pass
+            set_tags(
+                school_id=getattr(school, "id", ""),
+                school_slug=getattr(school, "slug", "") or "",
+            )
         return None
 
 

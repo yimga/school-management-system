@@ -108,7 +108,7 @@ Targets the existing #cp-main-content landmark (line ~76 below).
       {% include "partials/rmc_zero_click_command_strip.html" with triage_anchor="#cp-main-content" %}
       {% endblock %}
       {% endif %}
-      {% block cp_content %}{% endblock %}
+      {% block cp_content %}<h1 class="visually-hidden">{% trans "Control plane" %}</h1>{% endblock %}
       {% block cp_sticky_action_bar %}{# Page-level sticky actions (override in child templates) #}{% endblock %}
     </main>
   </div>
@@ -138,5 +138,6 @@ Targets the existing #cp-main-content landmark (line ~76 below).
 <div id="cpTourFab" class="cp-tour-fab d-none position-fixed bottom-0 end-0 p-3">
   <button type="button" class="btn btn-warning btn-sm shadow" id="cpTourStartBtn" aria-label="{% trans 'Start page tour' %}">{% trans "Page tour" %}</button>
 </div>
+{% include 'components/contextual_feedback_widget.html' %}
 <script src="{% static 'js/control-plane-tour.js' %}" defer data-tour-api="{% url 'siteconfig:tour_steps_api' %}"></script>
 {% endblock %}

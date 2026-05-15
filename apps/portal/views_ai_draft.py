@@ -4,11 +4,11 @@ Two surfaces:
 
   - POST /portal/ai/draft/parent-message/
         body: {intent: "...", existing: "..."}
-        → {draft: "...", provider: "anthropic|ollama|rules"}
+        -> {draft: "...", provider: "gateway|ollama|rules"}
 
   - POST /portal/ai/draft/report-card-comment/
         body: {intent: "...", existing: "..."}
-        → {draft: "..."}
+        -> {draft: "..."}
 
 Both gated by:
   - login + staff-or-teacher (matches `_can_access_direct_messages` so

@@ -2,12 +2,26 @@
 
 import logging
 
+from drf_spectacular.utils import OpenApiTypes, extend_schema, inline_serializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from rest_framework import status
+from rest_framework import serializers, status
 
 from apps.platform_runtime.helpers import get_effective_offline_runtime_settings
+
+
+_SchoolConfigResponse = inline_serializer(
+    name="SchoolConfigResponse",
+    fields={
+        "schoolName": serializers.CharField(),
+        "logoUrl": serializers.CharField(allow_blank=True, allow_null=True),
+        "primaryColor": serializers.CharField(),
+        "accentColor": serializers.CharField(),
+        "features": serializers.DictField(),
+        "offlineEnabled": serializers.BooleanField(),
+    },
+)
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +57,13 @@ class SchoolConfigAPI(APIView):
 
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        tags=["Public"],
+        responses={
+            200: _SchoolConfigResponse,
+            429: OpenApiTypes.OBJECT,
+        },
+    )
     def get(self, request):
         from apps.api.rate_limit import throttle_ip_request
 

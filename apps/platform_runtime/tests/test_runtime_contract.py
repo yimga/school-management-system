@@ -221,7 +221,6 @@ class TenantRuntimeContractTests(TestCase):
         self.assertIn("1:route", runtime.debug.compilation_trace)
         self.assertIn("13:freeze", runtime.debug.compilation_trace)
         self.assertEqual(len(runtime.debug.compilation_trace), 13)
-        school.delete()
 
     def test_runtime_tenant_identity_includes_primary_sector(self):
         """Wedges 14–22: When school has primary_sector, runtime.tenant.primary_sector is set for RBAC/config."""
@@ -244,7 +243,6 @@ class TenantRuntimeContractTests(TestCase):
         )
         runtime = build_tenant_runtime(tenant_ctx, request=None, school=school)
         self.assertEqual(runtime.tenant.primary_sector, "PUBLIC")
-        school.delete()
 
     def test_build_tenant_runtime_for_tenant_job_mode(self):
         """build_tenant_runtime_for_tenant(tenant, mode='job') returns TenantRuntime."""

@@ -83,14 +83,14 @@ class HomepageAxeSmokeTests(LiveServerTestCase):
 
     # Pass 10.B: widened scan. These routes are unauthenticated entry points
     # — they don't need fixtures and they hit the headers / footers / forms
-    # most prone to a11y regressions. Authenticated coverage (portal_base,
-    # backend_base, finance/invoices, evals/evaluation_admin) lands when a
-    # fixture-based session helper is wired up — separate change.
+    # most prone to a11y regressions.
     PUBLIC_ROUTES = [
         "/onboard/",
         "/marketing/",
         "/authentication/login/",
+        "/authentication/forgot-password/",
         "/healthz/",
+        "/marketing/pricing/",
     ]
 
     def test_public_routes_have_no_severe_violations(self):
@@ -115,11 +115,17 @@ class HomepageAxeSmokeTests(LiveServerTestCase):
     # backend dashboards, and any other surface that requires auth. The fixture
     # uses Django's standard test-client session machinery and pipes the
     # session cookie into the Chrome driver.
+    # 2026-05-14 wave NS-3: explicit 10-template matrix.
+    # 6 public + 6 auth = 12 templates spanning all 4 dashboard shells +
+    # 2 user-flow hotspots (finance/invoices, evals/admin) where regressions
+    # are most likely.
     AUTH_ROUTES = [
         "/portal/",
         "/portal/teacher/",
         "/portal/parent/",
         "/backend/",
+        "/portal/finance/invoices/",
+        "/portal/configure/",
     ]
 
     def _login_via_session(self):

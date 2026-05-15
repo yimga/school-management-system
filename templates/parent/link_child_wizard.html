@@ -365,6 +365,7 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
+{# FormDraftSave.init is called by the page script after the library loads. #}
 {# Wizard config emitted as a JSON data island; reader is _pages/parent__link_child_wizard.js #}
 <script type="application/json" id="link-child-wizard-config">{
   "step": {{ step|default:0 }},

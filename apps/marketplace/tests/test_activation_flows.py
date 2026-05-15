@@ -39,7 +39,6 @@ class BlueprintActivationTests(TestCase):
             self.assertIsNone(out.get("current_bundle_id"))
         finally:
             pack.delete()
-            school.delete()
 
     def test_apply_blueprint_pack_creates_bundle_and_tenant_blueprint(self):
         """Apply creates PolicyBundle and sets TenantBlueprint.active_bundle."""
@@ -71,4 +70,3 @@ class BlueprintActivationTests(TestCase):
             TenantBlueprint.objects.filter(school=school).delete()
             PolicyBundle.objects.filter(school=school).delete()
             pack.delete()
-            school.delete()

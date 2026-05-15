@@ -85,7 +85,7 @@
     </div>
     {% else %}
     {% url 'finance:invoices' as empty_action_url %}
-    {% include "components/dashboard_empty_state.html" with icon="bi-credit-card" title="No payments recorded" message="Payments will appear here once invoices are paid." action_url=empty_action_url action_text="View invoices" %}
+    {% include "components/rmc_empty_state.html" with icon="bi-credit-card" title="No payments recorded" message="Payments will appear here once invoices are paid." primary_url=empty_action_url primary_label="View invoices" %}
     {% endif %}
     {% if page_obj %}
     {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}

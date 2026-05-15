@@ -144,47 +144,30 @@ class InstitutionProfileSuggestView(LoginRequiredMixin, View):
                 from django.conf import settings
 
                 if getattr(settings, "AI_GATEWAY_ENABLED", True):
-                    from apps.portal.ai_provider import _normalize_gateway_metadata
-                    from services.ai_gateway import invoke
+                    from services.ai_helpers import invoke_with_request
 
                     prompt = (
                         'Reply with JSON only: {"delivery_mode_codes":["W23_IN_PERSON"],'
                         '"institution_type_code":"W31_GENERAL_K12","confidence":0.5} '
                         f"for a school named roughly: {school.name[:80]!r}. Choose from SOT wedges 23-30 delivery codes and 31-43 institution codes."
                     )
-                    user_id = getattr(request.user, "pk", None) or getattr(
-                        request.user, "id", None
-                    )
-                    country_code = getattr(school, "country_code", None) or getattr(
-                        getattr(school, "default_region", None),
-                        "code",
-                        None,
-                    )
-                    raw, meta = invoke(
-                        "general_chat",
-                        prompt,
+                    result = invoke_with_request(
+                        task_type="general_chat",
+                        prompt=prompt,
+                        request=request,
+                        school=school,
                         user_query="classify",
-                        metadata=_normalize_gateway_metadata(
-                            {
-                                "request": request,
-                                "school": school,
-                                "school_id": str(school.pk),
-                                "tenant_id": str(school.pk),
-                                "user_id": str(user_id) if user_id is not None else None,
-                                "role": getattr(request.user, "role", None)
-                                or getattr(request.user, "portal_role", None)
-                                or getattr(request.user, "user_type", None),
-                                "country_code": country_code,
-                            }
-                        ),
+                        require_available=False,
                     )
-                    if isinstance(raw, str) and "{" in raw:
-                        start, end = raw.find("{"), raw.rfind("}") + 1
-                        data["ai_json"] = json.loads(raw[start:end])
-                        data["source"] = "ai_gateway"
-                        data["ai_meta"] = {
-                            k: meta.get(k) for k in ("provider", "model") if meta.get(k)
-                        }
+                    if result is not None:
+                        raw, meta = result
+                        if isinstance(raw, str) and "{" in raw:
+                            start, end = raw.find("{"), raw.rfind("}") + 1
+                            data["ai_json"] = json.loads(raw[start:end])
+                            data["source"] = "ai_gateway"
+                            data["ai_meta"] = {
+                                k: meta.get(k) for k in ("provider", "model") if meta.get(k)
+                            }
             except Exception as e:
                 data["ai_error"] = str(e)[:200]
         return JsonResponse(data)

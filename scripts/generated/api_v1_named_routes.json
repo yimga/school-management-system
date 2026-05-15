@@ -25,8 +25,13 @@
     "intervention-generate-roadmap",
     "intervention-red-flags",
     "manifest",
+    "marketplace-apps",
+    "marketplace-scopes",
+    "marketplace-submissions",
     "me-schools",
     "me-switch-school",
+    "migration-job-errors-csv",
+    "migration-job-status",
     "platform-integration-context",
     "platform-scoped-ping",
     "reports-adhoc-list-create",
@@ -57,6 +62,7 @@
     "vocational-certifications-expiring",
     "vocational-digital-badge",
     "vocational-log-hours",
-    "vocational-verify-skill"
+    "vocational-verify-skill",
+    "webhooks-event-types"
   ]
 }

@@ -95,31 +95,31 @@
       646
     ],
     "apps/schools/super_admin_bridge_registry.py": [
-      217,
-      271,
-      278,
-      285,
-      292,
-      299,
-      306,
-      349,
-      356,
-      370,
-      377,
-      384,
-      391,
-      398,
-      405,
-      412,
-      419,
-      426,
-      433,
-      485,
-      541,
-      556,
-      563,
-      570,
-      577
+      218,
+      272,
+      279,
+      286,
+      293,
+      300,
+      307,
+      350,
+      357,
+      378,
+      385,
+      392,
+      399,
+      406,
+      413,
+      420,
+      427,
+      434,
+      441,
+      493,
+      549,
+      564,
+      571,
+      578,
+      585
     ],
     "apps/schools/super_views_catalog.py": [
       32,
@@ -130,7 +130,7 @@
       457
     ],
     "apps/siteconfig/admin.py": [
-      637
+      638
     ],
     "apps/siteconfig/portal_sidebar_items.py": [
       1308
@@ -141,19 +141,19 @@
       53
     ],
     "apps/siteconfig/views.py": [
-      1356
+      1359
     ],
     "apps/siteconfig/views_billing_plan.py": [
       41
     ],
     "apps/siteconfig/views_config_mutation_evidence.py": [
-      43
+      48
     ],
     "apps/siteconfig/views_console_domains.py": [
       164
     ],
     "apps/siteconfig/views_entity_catalog.py": [
-      42
+      44
     ],
     "apps/siteconfig/views_metadata_operator_hub.py": [
       38
@@ -165,7 +165,7 @@
       91
     ],
     "apps/siteconfig/views_tenant_runtime_hub.py": [
-      84
+      85
     ],
     "apps/siteconfig/views_term_publish_evidence.py": [
       51
@@ -322,7 +322,7 @@
       "title": "Dynamic field EAV operator (read-only triage; admin CRUD for definitions/values)"
     }
   ],
-  "generated_at": "2026-05-09T22:06:07.422386+00:00",
+  "generated_at": "2026-05-15T12:09:35.674024+00:00",
   "marketplace_app_admin_line_hits": {
     "apps/accounts/management/commands/ensure_default_tenant_admin.py": [
       111
@@ -332,7 +332,7 @@
       218
     ],
     "apps/accounts/permissions.py": [
-      757
+      801
     ],
     "apps/accounts/views_workflow.py": [
       209,
@@ -365,29 +365,29 @@
       604
     ],
     "apps/schools/super_admin_bridge_registry.py": [
-      127,
-      139,
-      146,
-      158,
-      448,
-      470,
-      485,
-      492,
-      499,
-      506,
-      513,
-      520,
-      527,
-      534,
-      541,
-      548,
-      690,
-      697,
-      725
+      128,
+      140,
+      147,
+      159,
+      456,
+      478,
+      493,
+      500,
+      507,
+      514,
+      521,
+      528,
+      535,
+      542,
+      549,
+      556,
+      698,
+      705,
+      733
     ],
     "apps/siteconfig/admin.py": [
-      702,
-      732
+      703,
+      733
     ],
     "apps/siteconfig/forms.py": [
       1433
@@ -396,8 +396,8 @@
       95
     ],
     "apps/siteconfig/models.py": [
-      1606,
-      1795
+      1611,
+      1800
     ],
     "apps/siteconfig/unfold_dashboard.py": [
       5
@@ -406,7 +406,7 @@
       769
     ],
     "apps/siteconfig/views_compliance_exports.py": [
-      95
+      96
     ],
     "apps/siteconfig/views_tenant_report_schedules_evidence.py": [
       57
@@ -425,7 +425,7 @@
     "apps/siteconfig/views_config_mutation_evidence.py": {
       "classify": "cp_config_mutation_evidence_includes_intentional_admin_fallback",
       "line_numbers": [
-        43
+        48
       ]
     },
     "apps/siteconfig/views_console_domains.py": {
@@ -439,15 +439,15 @@
     "apps/siteconfig/views_entity_catalog.py": {
       "classify": "cp_surface_includes_intentional_admin_fallback",
       "line_numbers": [
-        38,
-        42
+        40,
+        44
       ]
     },
     "apps/siteconfig/views_metadata_dynamic_fields.py": {
       "classify": "cp_dynamic_field_operator_includes_intentional_admin_fallback",
       "line_numbers": [
-        53,
-        59
+        58,
+        64
       ]
     },
     "apps/siteconfig/views_metadata_operator_hub.py": {
@@ -469,8 +469,8 @@
       165
     ],
     "apps/siteconfig/views_metadata_dynamic_fields.py": [
-      53,
-      59
+      58,
+      64
     ],
     "apps/siteconfig/views_metadata_operator_hub.py": [
       44,
@@ -493,26 +493,26 @@
   },
   "product_admin_bridge_hits": {
     "apps/accounts/context_processors.py": [
-      616,
-      700,
-      782
+      644,
+      728,
+      810
     ],
     "apps/accounts/middleware.py": [
       232,
       233,
-      392,
-      564,
-      611,
-      612
+      403,
+      575,
+      622,
+      623
     ],
     "apps/accounts/views.py": [
-      299,
-      978,
-      1568,
-      1804,
-      2282,
-      2285,
-      2388
+      300,
+      996,
+      1586,
+      1822,
+      2300,
+      2303,
+      2406
     ],
     "apps/accounts/views_certification.py": [
       48,
@@ -520,7 +520,7 @@
       134
     ],
     "apps/accounts/views_mfa.py": [
-      169
+      170
     ],
     "apps/accounts/views_workflow.py": [
       203,
@@ -537,10 +537,10 @@
       306
     ],
     "apps/api/search_api.py": [
-      133,
-      149,
-      156,
-      163
+      134,
+      150,
+      157,
+      164
     ],
     "apps/compliance/middleware.py": [
       246,
@@ -573,14 +573,14 @@
       118
     ],
     "apps/evals/views.py": [
-      2785,
-      3049,
-      3073,
-      3077,
-      3109
+      2787,
+      3051,
+      3075,
+      3079,
+      3111
     ],
     "apps/finance/admin.py": [
-      370
+      371
     ],
     "apps/finance/tasks.py": [
       622,
@@ -590,10 +590,10 @@
       126
     ],
     "apps/observability/views.py": [
-      1374
+      1485
     ],
     "apps/people/views_backend.py": [
-      570
+      571
     ],
     "apps/platform_runtime/administration_catalog.py": [
       372
@@ -620,7 +620,7 @@
       696,
       749,
       750,
-      1021
+      1020
     ],
     "apps/schools/middleware_activation_gate.py": [
       74
@@ -660,21 +660,21 @@
       82
     ],
     "apps/siteconfig/admin.py": [
-      538,
-      637,
-      658,
-      699,
-      702,
-      714,
+      539,
+      638,
+      659,
+      700,
+      703,
       715,
-      732,
-      1985,
-      1993
+      716,
+      733,
+      1986,
+      1994
     ],
     "apps/siteconfig/context_processors.py": [
-      396,
-      425,
-      428
+      400,
+      429,
+      432
     ],
     "apps/siteconfig/management/commands/check_accessibility.py": [
       105,
@@ -704,7 +704,7 @@
     ],
     "apps/siteconfig/views.py": [
       769,
-      1356
+      1359
     ],
     "apps/siteconfig/views_academic_years_evidence.py": [
       44
@@ -713,10 +713,10 @@
       41
     ],
     "apps/siteconfig/views_compliance_exports.py": [
-      95
+      96
     ],
     "apps/siteconfig/views_config_mutation_evidence.py": [
-      43
+      48
     ],
     "apps/siteconfig/views_console_domains.py": [
       163,
@@ -733,16 +733,16 @@
       38
     ],
     "apps/siteconfig/views_entity_catalog.py": [
-      38,
-      42
+      40,
+      44
     ],
     "apps/siteconfig/views_grading_scale_bands.py": [
       60,
       63
     ],
     "apps/siteconfig/views_metadata_dynamic_fields.py": [
-      53,
-      59
+      58,
+      64
     ],
     "apps/siteconfig/views_metadata_operator_hub.py": [
       34,
@@ -767,7 +767,7 @@
       57
     ],
     "apps/siteconfig/views_tenant_runtime_hub.py": [
-      84
+      85
     ],
     "apps/siteconfig/views_term_publish_evidence.py": [
       51
@@ -782,9 +782,9 @@
     "apps/accounts/context_processors.py": {
       "category": "redirect_or_link_to_admin",
       "line_numbers": [
-        616,
-        700,
-        782
+        644,
+        728,
+        810
       ]
     },
     "apps/accounts/middleware.py": {
@@ -792,22 +792,22 @@
       "line_numbers": [
         232,
         233,
-        392,
-        564,
-        611,
-        612
+        403,
+        575,
+        622,
+        623
       ]
     },
     "apps/accounts/views.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        299,
-        978,
-        1568,
-        1804,
-        2282,
-        2285,
-        2388
+        300,
+        996,
+        1586,
+        1822,
+        2300,
+        2303,
+        2406
       ]
     },
     "apps/accounts/views_certification.py": {
@@ -821,7 +821,7 @@
     "apps/accounts/views_mfa.py": {
       "category": "redirect_or_link_to_admin",
       "line_numbers": [
-        169
+        170
       ]
     },
     "apps/accounts/views_workflow.py": {
@@ -844,10 +844,10 @@
     "apps/api/search_api.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        133,
-        149,
-        156,
-        163
+        134,
+        150,
+        157,
+        164
       ]
     },
     "apps/compliance/middleware.py": {
@@ -904,17 +904,17 @@
     "apps/evals/views.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        2785,
-        3049,
-        3073,
-        3077,
-        3109
+        2787,
+        3051,
+        3075,
+        3079,
+        3111
       ]
     },
     "apps/finance/admin.py": {
       "category": "harmless_django_admin_registration",
       "line_numbers": [
-        370
+        371
       ]
     },
     "apps/finance/tasks.py": {
@@ -933,13 +933,13 @@
     "apps/observability/views.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        1374
+        1485
       ]
     },
     "apps/people/views_backend.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        570
+        571
       ]
     },
     "apps/platform_runtime/administration_catalog.py": {
@@ -984,7 +984,7 @@
         696,
         749,
         750,
-        1021
+        1020
       ]
     },
     "apps/schools/middleware_activation_gate.py": {
@@ -1051,24 +1051,24 @@
     "apps/siteconfig/admin.py": {
       "category": "harmless_django_admin_registration",
       "line_numbers": [
-        538,
-        637,
-        658,
-        699,
-        702,
-        714,
+        539,
+        638,
+        659,
+        700,
+        703,
         715,
-        732,
-        1985,
-        1993
+        716,
+        733,
+        1986,
+        1994
       ]
     },
     "apps/siteconfig/context_processors.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        396,
-        425,
-        428
+        400,
+        429,
+        432
       ]
     },
     "apps/siteconfig/management/commands/check_accessibility.py": {
@@ -1119,7 +1119,7 @@
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
         769,
-        1356
+        1359
       ]
     },
     "apps/siteconfig/views_academic_years_evidence.py": {
@@ -1137,13 +1137,13 @@
     "apps/siteconfig/views_compliance_exports.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        95
+        96
       ]
     },
     "apps/siteconfig/views_config_mutation_evidence.py": {
-      "category": "permission_and_admin_or_bridge",
+      "category": "redirect_or_link_to_admin",
       "line_numbers": [
-        43
+        48
       ]
     },
     "apps/siteconfig/views_console_domains.py": {
@@ -1170,10 +1170,10 @@
       ]
     },
     "apps/siteconfig/views_entity_catalog.py": {
-      "category": "permission_and_admin_or_bridge",
+      "category": "redirect_or_link_to_admin",
       "line_numbers": [
-        38,
-        42
+        40,
+        44
       ]
     },
     "apps/siteconfig/views_grading_scale_bands.py": {
@@ -1184,14 +1184,14 @@
       ]
     },
     "apps/siteconfig/views_metadata_dynamic_fields.py": {
-      "category": "permission_and_admin_or_bridge",
+      "category": "redirect_or_link_to_admin",
       "line_numbers": [
-        53,
-        59
+        58,
+        64
       ]
     },
     "apps/siteconfig/views_metadata_operator_hub.py": {
-      "category": "permission_and_admin_or_bridge",
+      "category": "redirect_or_link_to_admin",
       "line_numbers": [
         34,
         38,
@@ -1233,7 +1233,7 @@
     "apps/siteconfig/views_tenant_runtime_hub.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        84
+        85
       ]
     },
     "apps/siteconfig/views_term_publish_evidence.py": {
@@ -1254,9 +1254,9 @@
   "product_admin_bridge_hits_v2": {
     "apps/accounts/context_processors.py": {
       "line_numbers": [
-        616,
-        700,
-        782
+        644,
+        728,
+        810
       ],
       "v2": "needs_model_service_support"
     },
@@ -1264,22 +1264,22 @@
       "line_numbers": [
         232,
         233,
-        392,
-        564,
-        611,
-        612
+        403,
+        575,
+        622,
+        623
       ],
       "v2": "needs_model_service_support"
     },
     "apps/accounts/views.py": {
       "line_numbers": [
-        299,
-        978,
-        1568,
-        1804,
-        2282,
-        2285,
-        2388
+        300,
+        996,
+        1586,
+        1822,
+        2300,
+        2303,
+        2406
       ],
       "v2": "needs_model_service_support"
     },
@@ -1293,7 +1293,7 @@
     },
     "apps/accounts/views_mfa.py": {
       "line_numbers": [
-        169
+        170
       ],
       "v2": "needs_model_service_support"
     },
@@ -1316,10 +1316,10 @@
     },
     "apps/api/search_api.py": {
       "line_numbers": [
-        133,
-        149,
-        156,
-        163
+        134,
+        150,
+        157,
+        164
       ],
       "v2": "needs_model_service_support"
     },
@@ -1376,17 +1376,17 @@
     },
     "apps/evals/views.py": {
       "line_numbers": [
-        2785,
-        3049,
-        3073,
-        3077,
-        3109
+        2787,
+        3051,
+        3075,
+        3079,
+        3111
       ],
       "v2": "needs_model_service_support"
     },
     "apps/finance/admin.py": {
       "line_numbers": [
-        370
+        371
       ],
       "v2": "admin_fallback_only"
     },
@@ -1405,13 +1405,13 @@
     },
     "apps/observability/views.py": {
       "line_numbers": [
-        1374
+        1485
       ],
       "v2": "needs_model_service_support"
     },
     "apps/people/views_backend.py": {
       "line_numbers": [
-        570
+        571
       ],
       "v2": "admin_fallback_only"
     },
@@ -1456,7 +1456,7 @@
         696,
         749,
         750,
-        1021
+        1020
       ],
       "v2": "needs_model_service_support"
     },
@@ -1523,24 +1523,24 @@
     },
     "apps/siteconfig/admin.py": {
       "line_numbers": [
-        538,
-        637,
-        658,
-        699,
-        702,
-        714,
+        539,
+        638,
+        659,
+        700,
+        703,
         715,
-        732,
-        1985,
-        1993
+        716,
+        733,
+        1986,
+        1994
       ],
       "v2": "admin_fallback_only"
     },
     "apps/siteconfig/context_processors.py": {
       "line_numbers": [
-        396,
-        425,
-        428
+        400,
+        429,
+        432
       ],
       "v2": "needs_model_service_support"
     },
@@ -1591,7 +1591,7 @@
     "apps/siteconfig/views.py": {
       "line_numbers": [
         769,
-        1356
+        1359
       ],
       "v2": "needs_model_service_support"
     },
@@ -1609,13 +1609,13 @@
     },
     "apps/siteconfig/views_compliance_exports.py": {
       "line_numbers": [
-        95
+        96
       ],
       "v2": "needs_model_service_support"
     },
     "apps/siteconfig/views_config_mutation_evidence.py": {
       "line_numbers": [
-        43
+        48
       ],
       "v2": "cp_exists_link_only"
     },
@@ -1644,8 +1644,8 @@
     },
     "apps/siteconfig/views_entity_catalog.py": {
       "line_numbers": [
-        38,
-        42
+        40,
+        44
       ],
       "v2": "replace_now"
     },
@@ -1658,8 +1658,8 @@
     },
     "apps/siteconfig/views_metadata_dynamic_fields.py": {
       "line_numbers": [
-        53,
-        59
+        58,
+        64
       ],
       "v2": "cp_exists_link_only"
     },
@@ -1705,7 +1705,7 @@
     },
     "apps/siteconfig/views_tenant_runtime_hub.py": {
       "line_numbers": [
-        84
+        85
       ],
       "v2": "needs_model_service_support"
     },
@@ -1732,7 +1732,7 @@
       513
     ],
     "apps/siteconfig/views_config_mutation_evidence.py": [
-      43
+      48
     ],
     "apps/siteconfig/views_console_domains.py": [
       163,
@@ -1740,12 +1740,12 @@
       165
     ],
     "apps/siteconfig/views_entity_catalog.py": [
-      38,
-      42
+      40,
+      44
     ],
     "apps/siteconfig/views_metadata_dynamic_fields.py": [
-      53,
-      59
+      58,
+      64
     ],
     "apps/siteconfig/views_metadata_operator_hub.py": [
       34,
@@ -1759,9 +1759,9 @@
       "product_py": [
         {
           "lines": [
-            616,
-            700,
-            782
+            644,
+            728,
+            810
           ],
           "path": "apps/accounts/context_processors.py",
           "v2": "needs_model_service_support"
@@ -1770,23 +1770,23 @@
           "lines": [
             232,
             233,
-            392,
-            564,
-            611,
-            612
+            403,
+            575,
+            622,
+            623
           ],
           "path": "apps/accounts/middleware.py",
           "v2": "needs_model_service_support"
         },
         {
           "lines": [
-            299,
-            978,
-            1568,
-            1804,
-            2282,
-            2285,
-            2388
+            300,
+            996,
+            1586,
+            1822,
+            2300,
+            2303,
+            2406
           ],
           "path": "apps/accounts/views.py",
           "v2": "needs_model_service_support"
@@ -1802,7 +1802,7 @@
         },
         {
           "lines": [
-            169
+            170
           ],
           "path": "apps/accounts/views_mfa.py",
           "v2": "needs_model_service_support"
@@ -1827,7 +1827,7 @@
         },
         {
           "lines": [
-            570
+            571
           ],
           "path": "apps/people/views_backend.py",
           "v2": "admin_fallback_only"
@@ -1856,25 +1856,25 @@
         },
         {
           "lines": [
-            538,
-            637,
-            658,
-            699,
-            702,
-            714,
+            539,
+            638,
+            659,
+            700,
+            703,
             715,
-            732,
-            1985,
-            1993
+            716,
+            733,
+            1986,
+            1994
           ],
           "path": "apps/siteconfig/admin.py",
           "v2": "admin_fallback_only"
         },
         {
           "lines": [
-            396,
-            425,
-            428
+            400,
+            429,
+            432
           ],
           "path": "apps/siteconfig/context_processors.py",
           "v2": "needs_model_service_support"
@@ -1932,7 +1932,7 @@
         {
           "lines": [
             769,
-            1356
+            1359
           ],
           "path": "apps/siteconfig/views.py",
           "v2": "needs_model_service_support"
@@ -1953,14 +1953,14 @@
         },
         {
           "lines": [
-            95
+            96
           ],
           "path": "apps/siteconfig/views_compliance_exports.py",
           "v2": "needs_model_service_support"
         },
         {
           "lines": [
-            43
+            48
           ],
           "path": "apps/siteconfig/views_config_mutation_evidence.py",
           "v2": "cp_exists_link_only"
@@ -1993,8 +1993,8 @@
         },
         {
           "lines": [
-            38,
-            42
+            40,
+            44
           ],
           "path": "apps/siteconfig/views_entity_catalog.py",
           "v2": "replace_now"
@@ -2009,8 +2009,8 @@
         },
         {
           "lines": [
-            53,
-            59
+            58,
+            64
           ],
           "path": "apps/siteconfig/views_metadata_dynamic_fields.py",
           "v2": "cp_exists_link_only"
@@ -2042,7 +2042,7 @@
         },
         {
           "lines": [
-            84
+            85
           ],
           "path": "apps/siteconfig/views_tenant_runtime_hub.py",
           "v2": "needs_model_service_support"
@@ -2066,10 +2066,10 @@
       "product_py": [
         {
           "lines": [
-            133,
-            149,
-            156,
-            163
+            134,
+            150,
+            157,
+            164
           ],
           "path": "apps/api/search_api.py",
           "v2": "needs_model_service_support"
@@ -2126,18 +2126,18 @@
         },
         {
           "lines": [
-            2785,
-            3049,
-            3073,
-            3077,
-            3109
+            2787,
+            3051,
+            3075,
+            3079,
+            3111
           ],
           "path": "apps/evals/views.py",
           "v2": "needs_model_service_support"
         },
         {
           "lines": [
-            370
+            371
           ],
           "path": "apps/finance/admin.py",
           "v2": "admin_fallback_only"
@@ -2152,7 +2152,7 @@
         },
         {
           "lines": [
-            1374
+            1485
           ],
           "path": "apps/observability/views.py",
           "v2": "needs_model_service_support"
@@ -2203,7 +2203,7 @@
             696,
             749,
             750,
-            1021
+            1020
           ],
           "path": "apps/schools/middleware.py",
           "v2": "needs_model_service_support"
@@ -2272,8 +2272,8 @@
       "templates": [
         {
           "lines": [
-            171,
-            236
+            182,
+            247
           ],
           "path": "templates/admin/admin_dashboard.html",
           "straggler_class": "admin_fallback_only"
@@ -2302,29 +2302,19 @@
         },
         {
           "lines": [
-            405,
             410,
             411,
             412,
-            420,
             425,
             426,
             427,
-            431,
             436,
-            440,
             445,
-            449,
             454,
-            458,
             463,
-            467,
             472,
-            476,
             481,
-            485,
             490,
-            494,
             499
           ],
           "path": "templates/admin/index.html",
@@ -2370,23 +2360,37 @@
         },
         {
           "lines": [
-            66,
-            82,
-            97
+            55,
+            71,
+            86
           ],
           "path": "templates/components/admin_nav_bridge.html",
           "straggler_class": "needs_model_service_support"
         },
         {
           "lines": [
-            37
+            30
+          ],
+          "path": "templates/migration_cloud/console.html",
+          "straggler_class": "needs_model_service_support"
+        },
+        {
+          "lines": [
+            304
+          ],
+          "path": "templates/partials/portal_sidebar.html",
+          "straggler_class": "needs_model_service_support"
+        },
+        {
+          "lines": [
+            62
           ],
           "path": "templates/partials/shell_chrome_backend_ops_strip.html",
           "straggler_class": "needs_model_service_support"
         },
         {
           "lines": [
-            68
+            69
           ],
           "path": "templates/schools/super_fleet_governed_changes.html",
           "straggler_class": "needs_model_service_support"
@@ -2533,16 +2537,16 @@
       625
     ],
     "apps/schools/super_admin_bridge_registry.py": [
-      556,
-      563,
-      570
+      564,
+      571,
+      578
     ],
     "apps/siteconfig/views.py": [
       769,
-      1356
+      1359
     ],
     "apps/siteconfig/views_compliance_exports.py": [
-      95
+      96
     ],
     "apps/siteconfig/views_report_output_history_evidence.py": [
       46
@@ -2561,8 +2565,8 @@
   "summary": {
     "admin_bridge_hits_by_category": {
       "harmless_django_admin_registration": 4,
-      "permission_and_admin_or_bridge": 34,
-      "redirect_or_link_to_admin": 24
+      "permission_and_admin_or_bridge": 30,
+      "redirect_or_link_to_admin": 28
     },
     "admin_template_files": 67,
     "admin_url_namespaces_by_app_label_segment": {
@@ -2572,7 +2576,7 @@
       "app": 1,
       "auth": 2,
       "automation": 17,
-      "billing": 9,
+      "billing": 10,
       "brand": 7,
       "compliance": 2,
       "evals": 7,
@@ -2596,9 +2600,9 @@
       "schools": 8,
       "siteconfig": 42
     },
-    "approx_product_code_lines_with_admin_substring": 477,
+    "approx_product_code_lines_with_admin_substring": 503,
     "approx_register_calls_in_admin_py": 0,
-    "apps_with_admin_py": 35,
+    "apps_with_admin_py": 37,
     "high_registration_app_labels_gte_3": [],
     "next_recommended_candidate_roadmap_id": "",
     "product_admin_bridge_hits_by_theme": {
@@ -2617,12 +2621,12 @@
       "entity_catalog_template_order": "pass",
       "metadata_console_order": "pass"
     },
-    "template_files_mentioning_admin_url_or_href": 23
+    "template_files_mentioning_admin_url_or_href": 25
   },
   "template_admin_url_reference_hits": {
     "templates/admin/admin_dashboard.html": [
-      171,
-      236
+      182,
+      247
     ],
     "templates/admin/app_index.html": [
       12
@@ -2635,29 +2639,19 @@
       34
     ],
     "templates/admin/index.html": [
-      405,
       410,
       411,
       412,
-      420,
       425,
       426,
       427,
-      431,
       436,
-      440,
       445,
-      449,
       454,
-      458,
       463,
-      467,
       472,
-      476,
       481,
-      485,
       490,
-      494,
       499
     ],
     "templates/admin/index_superadmin.html": [
@@ -2679,12 +2673,18 @@
       9
     ],
     "templates/components/admin_nav_bridge.html": [
-      66,
-      82,
-      97
+      55,
+      71,
+      86
+    ],
+    "templates/migration_cloud/console.html": [
+      30
+    ],
+    "templates/partials/portal_sidebar.html": [
+      304
     ],
     "templates/partials/shell_chrome_backend_ops_strip.html": [
-      37
+      62
     ],
     "templates/partials/tenant_studio_product_strip.html": [
       13
@@ -2696,7 +2696,7 @@
       24
     ],
     "templates/schools/super_fleet_governed_changes.html": [
-      68
+      69
     ],
     "templates/schools/super_platform_operator_hub.html": [
       97
@@ -2742,19 +2742,19 @@
       618
     ],
     "apps/schools/super_admin_bridge_registry.py": [
-      158,
-      168,
-      250,
-      257,
-      264,
-      334,
-      456,
-      598,
-      627,
-      634,
-      655,
-      662,
-      669
+      159,
+      169,
+      251,
+      258,
+      265,
+      335,
+      464,
+      606,
+      635,
+      642,
+      663,
+      670,
+      677
     ],
     "apps/schools/super_views_catalog.py": [
       32,
@@ -2770,14 +2770,14 @@
       439
     ],
     "apps/siteconfig/admin.py": [
-      699,
-      702
+      700,
+      703
     ],
     "apps/siteconfig/forms.py": [
       1433
     ],
     "apps/siteconfig/models.py": [
-      1795
+      1800
     ],
     "apps/siteconfig/views.py": [
       769

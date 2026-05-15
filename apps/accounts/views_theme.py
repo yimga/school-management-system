@@ -43,7 +43,7 @@ def set_theme_preference(request: HttpRequest) -> JsonResponse:
     try:
         # DashboardUserPreference is the canonical source that the siteconfig
         # context processor reads to emit USER_THEME_PREFERENCE on every request.
-        from apps.siteconfig.models_dashboard import DashboardUserPreference
+        from apps.runtime_blueprints.models import DashboardUserPreference
 
         pref, _created = DashboardUserPreference.objects.get_or_create(user=request.user)
         pref.theme_preference = theme

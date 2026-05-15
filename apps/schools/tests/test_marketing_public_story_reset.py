@@ -45,11 +45,10 @@ class MarketingPublicStoryResetTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn(
-            "Offline-ready education operating system for modern schools.", body
+            "Run your school the way your school actually runs.", body
         )
-        # Default outcome-first subheadline (unless CMS overrides landing hero fields).
         self.assertIn(
-            "One truthful picture of enrollment, fees, and learner progress",
+            "One quiet system behind admissions, classrooms, fees",
             body,
         )
         lowered = body.lower()

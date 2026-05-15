@@ -1,12 +1,12 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-05-11T23:47:19.210108+00:00",
+  "generated_at": "2026-05-15T06:38:23.894569+00:00",
   "class_level_allowlist": [
     "apps/platform_runtime/helpers.py",
     "apps/siteconfig/models.py"
   ],
   "totals": {
-    "sitesettings_word": 12,
+    "sitesettings_word": 13,
     "get_solo_paren": 3,
     "sitesettings_objects": 1,
     "import_siteconfig_sitesettings": 0,
@@ -16,7 +16,7 @@
     "get_effective_site_settings": 121,
     "get_platform_site_settings_record": 18,
     "runtime_defaults_get_singleton": 8,
-    "files_with_any_hit": 83
+    "files_with_any_hit": 84
   },
   "by_app": {
     "accounts": {
@@ -148,6 +148,19 @@
       "sitesettings_load": 0,
       "sitesettings_objects": 0,
       "sitesettings_word": 0
+    },
+    "migration_cloud": {
+      "django_get_model_sitesettings": 0,
+      "files": 1,
+      "get_effective_site_settings": 0,
+      "get_platform_site_settings_record": 0,
+      "get_solo_paren": 0,
+      "import_siteconfig_sitesettings": 0,
+      "runtime_defaults_get_singleton": 0,
+      "sitesettings_get_solo": 0,
+      "sitesettings_load": 0,
+      "sitesettings_objects": 0,
+      "sitesettings_word": 1
     },
     "observability": {
       "django_get_model_sitesettings": 0,
@@ -772,6 +785,19 @@
       "sitesettings_get_solo": 0,
       "sitesettings_load": 0,
       "get_effective_site_settings": 1,
+      "get_platform_site_settings_record": 0,
+      "runtime_defaults_get_singleton": 0
+    },
+    {
+      "relpath": "apps/migration_cloud/defaults.py",
+      "sitesettings_word": 1,
+      "get_solo_paren": 0,
+      "sitesettings_objects": 0,
+      "import_siteconfig_sitesettings": 0,
+      "django_get_model_sitesettings": 0,
+      "sitesettings_get_solo": 0,
+      "sitesettings_load": 0,
+      "get_effective_site_settings": 0,
       "get_platform_site_settings_record": 0,
       "runtime_defaults_get_singleton": 0
     },
@@ -1821,6 +1847,19 @@
       "runtime_defaults_get_singleton": 0
     },
     {
+      "relpath": "apps/migration_cloud/defaults.py",
+      "sitesettings_word": 1,
+      "get_solo_paren": 0,
+      "sitesettings_objects": 0,
+      "import_siteconfig_sitesettings": 0,
+      "django_get_model_sitesettings": 0,
+      "sitesettings_get_solo": 0,
+      "sitesettings_load": 0,
+      "get_effective_site_settings": 0,
+      "get_platform_site_settings_record": 0,
+      "runtime_defaults_get_singleton": 0
+    },
+    {
       "relpath": "apps/platform_runtime/ai_providers.py",
       "sitesettings_word": 1,
       "get_solo_paren": 0,
@@ -2143,19 +2182,6 @@
       "sitesettings_load": 0,
       "get_effective_site_settings": 1,
       "get_platform_site_settings_record": 0,
-      "runtime_defaults_get_singleton": 0
-    },
-    {
-      "relpath": "apps/dashboard/admin_context.py",
-      "sitesettings_word": 0,
-      "get_solo_paren": 0,
-      "sitesettings_objects": 0,
-      "import_siteconfig_sitesettings": 0,
-      "django_get_model_sitesettings": 0,
-      "sitesettings_get_solo": 0,
-      "sitesettings_load": 0,
-      "get_effective_site_settings": 1,
-      "get_platform_site_settings_record": 1,
       "runtime_defaults_get_singleton": 0
     }
   ],

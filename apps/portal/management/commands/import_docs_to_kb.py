@@ -391,13 +391,6 @@ class Command(BaseCommand):
                 "icon": "fa-globe",
                 "order": 2,
             },
-            "PHASE_1_2_5_ADMIN_GUIDE.md": {
-                "category": "year-setup",
-                "difficulty": "INTERMEDIATE",
-                "tags": "admin, regional configuration, management",
-                "icon": "fa-user-shield",
-                "order": 3,
-            },
             # Academics
             "MARKSHEET_OCR_SETUP.md": {
                 "category": "academics",
@@ -412,13 +405,6 @@ class Command(BaseCommand):
                 "tags": "marks, ocr, marksheet, install, evaluations",
                 "icon": "fa-camera",
                 "order": 5,
-            },
-            "PHASE_1_2_4_INTERNATIONALIZATION.md": {
-                "category": "getting-started",
-                "difficulty": "ADVANCED",
-                "tags": "i18n, internationalization, languages, regions",
-                "icon": "fa-language",
-                "order": 2,
             },
             # Finance
             "finance-payments.md": {
@@ -436,13 +422,6 @@ class Command(BaseCommand):
                 "order": 2,
             },
             # Reports
-            "PHASE_1_2_7_REPORT_LOCALIZATION.md": {
-                "category": "reports",
-                "difficulty": "INTERMEDIATE",
-                "tags": "reports, localization, regional",
-                "icon": "fa-file-alt",
-                "order": 1,
-            },
             "KB_REPORT_STYLE_PREVIEW.md": {
                 "category": "reports",
                 "difficulty": "BEGINNER",
@@ -472,13 +451,6 @@ class Command(BaseCommand):
                 "tags": "security, compliance, checklist",
                 "icon": "fa-shield-alt",
                 "order": 10,
-            },
-            "PHASE_1_2_8_COMPLIANCE_LEGAL.md": {
-                "category": "approvals-audits",
-                "difficulty": "ADVANCED",
-                "tags": "compliance, legal, audit",
-                "icon": "fa-gavel",
-                "order": 11,
             },
             # Mobile & API
             "MOBILE_API_HANDBOOK.md": {

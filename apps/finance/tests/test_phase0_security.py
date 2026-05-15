@@ -217,6 +217,7 @@ class PaymentValidatorTest(TestCase):
         self.assertFalse(is_valid)
         self.assertIn("positive", error.lower())
 
+    @override_settings(PAYMENT_MAX_AMOUNT=Decimal("1000000000"))
     def test_validate_amount_exceeds_max(self):
         """Test amount exceeding maximum is invalid."""
         is_valid, error = PaymentValidator.validate_amount(Decimal("2000000000"))

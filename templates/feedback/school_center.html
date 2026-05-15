@@ -1,0 +1,97 @@
+{% extends "backend_base.html" %}
+{% block title %}Feedback Center{% endblock %}
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+    <div>
+      <h1 class="h3 mb-1">Voice of Customer Center</h1>
+      <p class="text-muted mb-0">Give feedback, request features, follow roadmap decisions, and see released improvements.</p>
+    </div>
+    <a class="btn btn-outline-primary" href="{% url 'feedback:school_roadmap' %}">Roadmap</a>
+  </div>
+
+  <div class="row g-3">
+    <section class="col-lg-6">
+      <div class="card">
+        <div class="card-header fw-semibold">Give Feedback or Report Issue</div>
+        <div class="card-body">
+          <form method="post" action="{% url 'feedback:school_feedback' %}">
+            {% csrf_token %}
+            <input type="hidden" name="form_kind" value="feedback">
+            {{ feedback_form.as_p }}
+            <button class="btn btn-primary" type="submit">Submit feedback</button>
+          </form>
+        </div>
+      </div>
+    </section>
+    <section class="col-lg-6">
+      <div class="card">
+        <div class="card-header fw-semibold">Request Feature</div>
+        <div class="card-body">
+          <form method="post" action="{% url 'feedback:school_feedback' %}">
+            {% csrf_token %}
+            <input type="hidden" name="form_kind" value="feature">
+            {{ feature_form.as_p }}
+            <button class="btn btn-primary" type="submit">Submit feature request</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="row g-3 mt-1">
+    <section class="col-xl-4">
+      <h2 class="h5">My and School Requests</h2>
+      <div class="list-group">
+        {% for item in feedback_items %}
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between gap-2">
+              <strong>{{ item.title }}</strong>
+              <span class="badge text-bg-secondary">{{ item.status }}</span>
+            </div>
+            <div class="small text-muted">{{ item.get_category_display }} · {{ item.module|default:"general" }} · {{ item.created_at|date:"M j, Y" }}</div>
+          </div>
+        {% empty %}
+          <div class="list-group-item text-muted">No feedback yet.</div>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="col-xl-4">
+      <h2 class="h5">Feature Requests</h2>
+      <div class="list-group">
+        {% for item in feature_requests %}
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between gap-2">
+              <strong>{{ item.title }}</strong>
+              <span class="badge text-bg-info">{{ item.status }}</span>
+            </div>
+            <p class="small mb-2">{{ item.problem_statement|truncatewords:22 }}</p>
+            <form method="post" action="{% url 'feedback:vote_feature' item.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button class="btn btn-sm btn-outline-primary" type="submit">Signal priority</button>
+            </form>
+          </div>
+        {% empty %}
+          <div class="list-group-item text-muted">No feature requests yet.</div>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="col-xl-4">
+      <h2 class="h5">You Said / We Did</h2>
+      <div class="list-group">
+        {% for item in you_said_we_did %}
+          <div class="list-group-item">
+            <div class="small text-muted">You said</div>
+            <p class="mb-2">{{ item.you_said|truncatewords:18 }}</p>
+            <div class="small text-muted">We did</div>
+            <strong>{{ item.we_did|truncatewords:18 }}</strong>
+          </div>
+        {% empty %}
+          <div class="list-group-item text-muted">Released improvements will appear here.</div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

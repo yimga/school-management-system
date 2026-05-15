@@ -11,7 +11,6 @@ from django.conf import settings
 from django.db import models
 from django.db.utils import DatabaseError, OperationalError
 
-from apps.schools.tenant_models import TenantManager, TenantOwnedModel
 
 logger = logging.getLogger(__name__)
 
@@ -268,6 +267,23 @@ class School(models.Model):
         blank=True,
         db_index=True,
         help_text="Canonical ISO 3166-1 alpha-2 country code for onboarding and analytics.",
+    )
+    # Wave E — G4: data residency region. Distinct from `regional_cluster`
+    # (which the existing TenantDatabaseRouter uses to pick a DB alias):
+    # `data_region` is the *regulatory* answer ("EU data must live in EU"),
+    # while `regional_cluster` is the *operational* answer ("which alias to
+    # route this request to"). The verify_data_residency command refuses to
+    # complete if the two disagree.
+    data_region = models.CharField(
+        max_length=32,
+        blank=True,
+        db_index=True,
+        help_text=(
+            "Regulatory data residency region (e.g. 'eu_central', 'us_east', "
+            "'apac_southeast'). Defaults from country_code via "
+            "apps.schools.data_residency.derive_default_region; explicit override "
+            "wins."
+        ),
     )
     subdivision = models.ForeignKey(
         "registries.SubdivisionRegistry",

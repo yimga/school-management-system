@@ -17,6 +17,8 @@ from apps.billing.models import TenantSubscription
 from apps.observability import views as obs_views
 from apps.observability.models import PlatformIncident
 from apps.platform_runtime.views_administration import internal_admin_alias_redirect
+from apps.portal.views_ai_copilot import ai_health
+from apps.portal.views_configure import portal_configure_hub
 from apps.schools.models import School
 from apps.schools.marketing_views import marketing_page
 from apps.schools.control_plane import (
@@ -52,7 +54,9 @@ def offline_page(request):
 
 @require_control_plane_access
 def manager_offline_sync_center(request):
-    return render(request, "platform_runtime/manager_offline_sync_center.html", status=200)
+    return render(
+        request, "platform_runtime/manager_offline_sync_center.html", status=200
+    )
 
 
 def manager_help(request):
@@ -352,9 +356,21 @@ urlpatterns = [
     path("", manager_home, name="home"),
     path("", manager_home, name="manager_home"),
     path("offline/", offline_page, name="offline"),
-    path("offline/sync/", manager_offline_sync_center, name="manager_offline_sync_center"),
+    path(
+        "offline/sync/", manager_offline_sync_center, name="manager_offline_sync_center"
+    ),
     path("-/version/", obs_views.public_version, name="public_version"),
     path("help/", manager_help, name="manager_help"),
+    path(
+        "portal/console/",
+        lambda request: redirect("super:dashboard"),
+        name="portal_console",
+    ),
+    path(
+        "portal/configure/",
+        portal_configure_hub,
+        name="portal_configure",
+    ),
     path("support/", manager_support_request, name="manager_support_request"),
     path("feedback/", manager_feedback, name="manager_feedback"),
     path("notifications/", manager_notifications, name="manager_notifications"),
@@ -406,6 +422,7 @@ urlpatterns = [
     path("ready/", obs_views.public_health, name="ready"),
     path("status/", obs_views.public_health, name="status"),
     path("api/health/", obs_views.api_health, name="api_health"),
+    path("api/ai/health/", ai_health, name="ai_health"),
     path(
         "api/control-plane-preferences/",
         ControlPlanePreferencesAPI.as_view(),
@@ -512,7 +529,9 @@ urlpatterns = [
         {"surface": "kb"},
         name="manager_legacy_kb",
     ),
-    path("legacy-kb/<path:remaining>", manager_legacy_surface_redirect, {"surface": "kb"}),
+    path(
+        "legacy-kb/<path:remaining>", manager_legacy_surface_redirect, {"surface": "kb"}
+    ),
     path(
         "analytics/",
         manager_legacy_surface_redirect,

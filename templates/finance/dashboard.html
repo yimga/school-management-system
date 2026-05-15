@@ -75,6 +75,11 @@
 {% if phase7_de %}
   {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
 {% endif %}
+  {% with finance_metrics|default:None as metrics %}
+    {% if metrics %}
+      {% include "components/rmc_metric_ticker.html" with metrics=metrics %}
+    {% endif %}
+  {% endwith %}
   <div class="finance-dashboard-extra mb-3">
     {% tenant_hook 'FINANCE_DASHBOARD_EXTRA' %}
   </div>
@@ -116,7 +121,7 @@
           </div>
           {% else %}
           {% url 'finance:generate_fees' as empty_action_url %}
-          {% include "components/dashboard_empty_state.html" with icon="bi-receipt" title="No invoices yet" message="Generate fee invoices to see them here." action_url=empty_action_url action_text="Generate fees" %}
+          {% include "components/rmc_empty_state.html" with icon="bi-receipt" title="No invoices yet" message="Generate fee invoices to see them here." primary_url=empty_action_url primary_label="Generate fees" %}
           {% endif %}
         </div>
       </div>
@@ -147,7 +152,7 @@
           </div>
           {% else %}
           {% url 'finance:invoices' as empty_action_url %}
-          {% include "components/dashboard_empty_state.html" with icon="bi-credit-card" title="No payments yet" message="Payments will appear here once invoices are paid." action_url=empty_action_url action_text="View invoices" %}
+          {% include "components/rmc_empty_state.html" with icon="bi-credit-card" title="No payments yet" message="Payments will appear here once invoices are paid." primary_url=empty_action_url primary_label="View invoices" %}
           {% endif %}
         </div>
       </div>

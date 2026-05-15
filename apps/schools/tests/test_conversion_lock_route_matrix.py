@@ -10,9 +10,11 @@ from __future__ import annotations
 import os
 import uuid
 from unittest.mock import patch
+from urllib.parse import urlsplit
 
 from django.contrib.auth import get_user_model
 from django.test import Client, SimpleTestCase, TestCase, override_settings
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.schools.models import School, SchoolMembership
@@ -67,6 +69,16 @@ class ConversionLockRouteMatrixHttpTests(TestCase):
         self.client.login(username=username, password="Test1234!ab")
         return user
 
+    def _mark_mfa_verified(self, user):
+        TOTPDevice.objects.get_or_create(
+            user=user,
+            name="test-device",
+            defaults={"confirmed": True},
+        )
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
+
     def _assert_activation_redirect(self, response):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/activation/first-action/", response["Location"])
@@ -74,9 +86,9 @@ class ConversionLockRouteMatrixHttpTests(TestCase):
     def _assert_not_activation_redirect(self, response):
         if response.status_code == 302:
             loc = response.get("Location", "")
-            self.assertNotIn(
+            self.assertNotEqual(
+                urlsplit(loc).path,
                 "/activation/first-action/",
-                loc,
                 msg=f"unexpected conversion lock redirect: {loc}",
             )
 
@@ -170,6 +182,7 @@ class ConversionLockRouteMatrixHttpTests(TestCase):
         r0 = self.client.get("/authentication/backend/", HTTP_HOST=self.host, follow=False)
         self._assert_activation_redirect(r0)
         record_conversion_first_action(self.school, source="route_matrix", user=u)
+        self._mark_mfa_verified(u)
         r1 = self.client.get("/authentication/backend/", HTTP_HOST=self.host, follow=False)
         self.assertEqual(r1.status_code, 200, msg=r1.get("Location"))
 
@@ -200,6 +213,7 @@ class ConversionLockRouteMatrixHttpTests(TestCase):
             )
             self.client.login(username="matrixadm", password="Test1234!ab")
             record_conversion_first_action(school, source=src, user=u)
+            self._mark_mfa_verified(u)
             r = self.client.get(
                 "/authentication/backend/",
                 HTTP_HOST=f"{school.subdomain}.example.com",

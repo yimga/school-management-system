@@ -211,6 +211,34 @@ def dashboard(request: HttpRequest):
         )
 
     recv = summary.get("receivables")
+    finance_metrics = [
+        {
+            "id": "finance-receivables",
+            "label": "Receivables",
+            "value": recv,
+            "icon": "cash-stack",
+        },
+        {
+            "id": "finance-collected",
+            "label": "Collected",
+            "value": summary.get("paid"),
+            "icon": "wallet2",
+            "tone": "success",
+        },
+        {
+            "id": "finance-overdue",
+            "label": "Overdue",
+            "value": overdue_n,
+            "icon": "exclamation-triangle",
+            "tone": "warning" if overdue_n else "success",
+        },
+        {
+            "id": "finance-invoices",
+            "label": "Recent invoices",
+            "value": len(recent_invoices),
+            "icon": "receipt",
+        },
+    ]
     phase7_de = {
         "eyebrow": "Finance home",
         "headline_label": "Outstanding receivables",
@@ -228,6 +256,7 @@ def dashboard(request: HttpRequest):
         "chart_status_donut_json": json.dumps(chart_status_donut),
         "chart_trend_area_json": json.dumps(chart_trend_area),
         "phase7_de": phase7_de,
+        "finance_metrics": finance_metrics,
         **dashboard_data,
     }
     context.update(

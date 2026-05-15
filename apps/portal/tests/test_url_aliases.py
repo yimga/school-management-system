@@ -25,7 +25,7 @@ class UrlAliasTests(TestCase):
         self.assertTrue(any("/portal/parent/" in url for url in urls))
         self.assertTrue(any("authentication/login" in url for url in urls))
 
-    def test_alias_renders_parent_dashboard_when_authenticated(self):
+    def test_alias_redirects_to_parent_dashboard_when_authenticated(self):
         year = AcademicYear.objects.create(
             name="2025/2026",
             start_date=date(2025, 9, 1),
@@ -65,6 +65,6 @@ class UrlAliasTests(TestCase):
         )
 
         self.client.force_login(parent_user)
-        resp = self.client.get("/portal/student-portal/grades/", follow=True)
-        self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "Family Home")
+        resp = self.client.get("/portal/student-portal/grades/")
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp["Location"], "/portal/parent/")

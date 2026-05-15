@@ -29,6 +29,8 @@ from typing import Any
 
 from django.conf import settings
 
+from services.ai_helpers import normalize_gateway_metadata
+
 logger = logging.getLogger(__name__)
 
 # Typed exceptions for AI gateway invoke (support §2.4 broad-except replacement).
@@ -134,43 +136,6 @@ def _is_policy_denied(user_query: str) -> bool:
     if not text:
         return False
     return any(pattern in text for pattern in PROMPT_INJECTION_PATTERNS)
-
-
-def _normalize_gateway_metadata(metadata: dict[str, Any] | None) -> dict[str, Any]:
-    md = dict(metadata or {})
-    request = md.get("request")
-    school = md.get("school") or getattr(request, "school", None)
-    if school is not None:
-        md.setdefault("school", school)
-    if md.get("school_id") is None and school is not None:
-        school_id = getattr(school, "pk", None) or getattr(school, "id", None)
-        if school_id is not None:
-            md["school_id"] = school_id
-    if md.get("tenant_id") is None and md.get("school_id") is not None:
-        md["tenant_id"] = md["school_id"]
-    if md.get("country_code") in (None, "") and school is not None:
-        country_code = getattr(school, "country_code", None) or getattr(
-            getattr(school, "default_region", None),
-            "code",
-            None,
-        )
-        if country_code:
-            md["country_code"] = country_code
-    if md.get("user_id") is None and request is not None:
-        user = getattr(request, "user", None)
-        user_id = getattr(user, "pk", None) or getattr(user, "id", None)
-        if user_id is not None:
-            md["user_id"] = user_id
-    if md.get("role") is None and request is not None:
-        user = getattr(request, "user", None)
-        role = (
-            getattr(user, "role", None)
-            or getattr(user, "portal_role", None)
-            or getattr(user, "user_type", None)
-        )
-        if role is not None:
-            md["role"] = role
-    return md
 
 
 def get_ai_provider_status() -> dict[str, Any]:
@@ -307,7 +272,7 @@ def generate_ai_response(
     - task routing and fallbacks are consistent
     metadata is kept for logs/observability only and never added to prompt text.
     """
-    normalized_metadata = _normalize_gateway_metadata(metadata)
+    normalized_metadata = normalize_gateway_metadata(metadata)
     if not getattr(settings, "AI_GATEWAY_ENABLED", True):
         if _is_policy_denied(user_query):
             return (
@@ -416,7 +381,7 @@ def get_workflow_clues(
             "setup_recommend",
             prompt,
             user_query=prompt[:200],
-            metadata=_normalize_gateway_metadata(
+            metadata=normalize_gateway_metadata(
                 {
                 "request": request,
                 "school": effective_school,
@@ -475,10 +440,12 @@ def suggest_support_ticket_response(
     try:
         from services.ai_gateway import invoke
 
-        md_ai = _normalize_gateway_metadata(
+        md_ai = normalize_gateway_metadata(
             {
                 "country_code": country_code,
                 "school": school,
+                "school_id": getattr(school, "pk", None) if school is not None else None,
+                "tenant_id": getattr(school, "pk", None) if school is not None else None,
                 "user_id": user_id,
                 "role": role,
             }

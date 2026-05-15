@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from django.core.cache import cache
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase, override_settings
 
 from apps.security.rate_limit import rate_limit

@@ -26,11 +26,12 @@
 
    rmc-metric-ticker.js wires the IntersectionObserver + show/hide behavior. #}
 
+{% with metric_items|default:metrics as ticker_metrics %}
 <section class="rmc-metric-ticker" data-rmc-metric-ticker aria-label="{% trans 'Key metrics' %}">
   <div class="rmc-metric-ticker__sentinel" aria-hidden="true"></div>
   <div class="rmc-metric-ticker__full row g-3">
-    {% for m in metrics %}
-      <div class="col-12 col-md-6 col-lg-{% if metrics|length == 4 %}3{% elif metrics|length <= 3 %}4{% else %}3{% endif %}" data-rmc-kpi="{{ m.id|default:forloop.counter0 }}">
+    {% for m in ticker_metrics %}
+      <div class="col-12 col-md-6 col-lg-{% if ticker_metrics|length == 4 %}3{% elif ticker_metrics|length <= 3 %}4{% else %}3{% endif %}" data-rmc-kpi="{{ m.id|default:forloop.counter0 }}">
         <div class="kpi rmc-metric-ticker__card{% if m.tone %} rmc-metric-ticker__card--{{ m.tone }}{% endif %}">
           <div class="d-flex align-items-start justify-content-between gap-2">
             <span class="label">{{ m.label }}</span>
@@ -49,3 +50,4 @@
      reads the .rmc-metric-ticker__full DOM and projects into this empty container. #}
   <div class="rmc-metric-ticker__pin" data-rmc-metric-pin role="region" aria-label="{% trans 'Pinned metrics' %}" hidden></div>
 </section>
+{% endwith %}

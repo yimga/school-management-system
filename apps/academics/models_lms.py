@@ -35,6 +35,14 @@ def _lms_tenant_upload_to(subpath):
     return upload_to
 
 
+def lms_assignment_attachment_upload_to(instance, filename):
+    return _lms_tenant_upload_to("lms_assignment_attachments")(instance, filename)
+
+
+def lms_submission_attachment_upload_to(instance, filename):
+    return _lms_tenant_upload_to("lms_submission_attachments")(instance, filename)
+
+
 class LMSAssignment(models.Model):
     """A unit of work assigned to one classroom by one teacher."""
 
@@ -111,7 +119,7 @@ class LMSAssignment(models.Model):
         help_text=_("Percentage docked per day late (0 disables)."),
     )
     attachment = models.FileField(
-        upload_to=_lms_tenant_upload_to("lms_assignment_attachments"),
+        upload_to=lms_assignment_attachment_upload_to,
         null=True,
         blank=True,
     )
@@ -173,7 +181,7 @@ class LMSSubmission(models.Model):
     )
     content = models.TextField(blank=True, help_text=_("Text body of the submission."))
     attachment = models.FileField(
-        upload_to=_lms_tenant_upload_to("lms_submission_attachments"),
+        upload_to=lms_submission_attachment_upload_to,
         null=True,
         blank=True,
     )

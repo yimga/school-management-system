@@ -374,11 +374,39 @@ def dashboard(request: HttpRequest):
             }
         ],
     }
+    analytics_metrics = [
+        {
+            "id": "analytics-top-n",
+            "label": "Top-N window",
+            "value": top_n,
+            "icon": "trophy",
+        },
+        {
+            "id": "analytics-weak-subjects",
+            "label": "Weak subjects",
+            "value": len(weak_subject_rows),
+            "icon": "exclamation-triangle",
+            "tone": "warning" if weak_subject_rows else "success",
+        },
+        {
+            "id": "analytics-teacher-rows",
+            "label": "Teacher rows",
+            "value": len(teacher_rows),
+            "icon": "clipboard-check",
+        },
+        {
+            "id": "analytics-specialties",
+            "label": "Specialties",
+            "value": len(specialty_rows),
+            "icon": "diagram-3",
+        },
+    ]
 
     context = {
         "year": year_obj,
         "term": term_obj,
         "phase7_de": phase7_de,
+        "analytics_metrics": analytics_metrics,
         "chart_weak_subjects_json": json.dumps(chart_weak_subjects),
         "chart_specialty_donut_json": json.dumps(chart_specialty_donut),
         "years": AcademicYear.objects.order_by("-start_date"),

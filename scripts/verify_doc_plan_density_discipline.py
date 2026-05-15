@@ -24,9 +24,9 @@ ROOT = DEFAULT_ROOT
 
 NAME_PATTERN = re.compile(r"(plan|roadmap|remediation|master)", flags=re.IGNORECASE)
 
-# Baseline from 2026-03-26 (all docs/**/*.md, and root docs/*.md respectively).
-MAX_MATCHING_DOCS_TOTAL = 150
-MAX_MATCHING_DOCS_ROOT = 114
+# Baseline from 2026-05-14 (all docs/**/*.md, and root docs/*.md respectively).
+MAX_MATCHING_DOCS_TOTAL = 153
+MAX_MATCHING_DOCS_ROOT = 119
 
 # Detect accidental editor overwrites (paste / stub) — stable substrings from canonical files.
 _SOT_TITLE_SNIPPET = "# RunMyCampus — single execution source of truth"

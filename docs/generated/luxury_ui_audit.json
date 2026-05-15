@@ -50,11 +50,11 @@
       ]
     }
   },
-  "generated_at": "2026-05-11T23:47:11.431058+00:00",
+  "generated_at": "2026-05-15T12:09:38.330297+00:00",
   "high_impact_templates_total": 158,
   "inline_styles": {
-    "count": 53,
-    "needs_review_count": 53,
+    "count": 52,
+    "needs_review_count": 52,
     "needs_review_paths": [
       "templates/accounts/backend_dashboard.html",
       "templates/marketplace/tenant_app_catalog.html",
@@ -81,7 +81,6 @@
       "templates/siteconfig/feature_control_panel_content.html",
       "templates/siteconfig/guided_configuration_workflows.html",
       "templates/siteconfig/installed_packages_rollback.html",
-      "templates/siteconfig/maintenance.html",
       "templates/siteconfig/onboarding.html",
       "templates/siteconfig/onboarding_step.html",
       "templates/siteconfig/partials/ccc_guided_activation_strip.html",
@@ -790,8 +789,8 @@
       ]
     },
     "inline_style_cleanup": {
-      "count": 53,
-      "needs_review_count": 53,
+      "count": 52,
+      "needs_review_count": 52,
       "needs_review_paths": [
         "templates/accounts/backend_dashboard.html",
         "templates/marketplace/tenant_app_catalog.html",
@@ -818,7 +817,6 @@
         "templates/siteconfig/feature_control_panel_content.html",
         "templates/siteconfig/guided_configuration_workflows.html",
         "templates/siteconfig/installed_packages_rollback.html",
-        "templates/siteconfig/maintenance.html",
         "templates/siteconfig/onboarding.html",
         "templates/siteconfig/onboarding_step.html",
         "templates/siteconfig/partials/ccc_guided_activation_strip.html",

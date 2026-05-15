@@ -98,6 +98,26 @@ def _serialize_instance_for_conflict(instance, entity_type, fields_subset):
 
 
 def apply_changes(school_id, user, items, *, persist_conflicts=True):
+    """Sentry-traced wrapper. Backs the `sync.conflict_pending` SLO."""
+    from apps.observability.tracing import (
+        finish_transaction, set_transaction_status, start_named_transaction,
+    )
+
+    _txn = start_named_transaction(
+        "sync.delta_apply", op="task.hot_path",
+        school_id=str(school_id) if school_id else "",
+        item_count=len(items) if items else 0,
+    )
+    try:
+        return _apply_changes_inner(school_id, user, items, persist_conflicts=persist_conflicts)
+    except Exception:
+        set_transaction_status(_txn, "internal_error")
+        raise
+    finally:
+        finish_transaction(_txn)
+
+
+def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True):
     """
     Apply delta items for the given tenant (school). Sort by client timestamp;
     for each item: if server record exists and server.updated_at > client_updated_at

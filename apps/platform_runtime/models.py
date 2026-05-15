@@ -2075,3 +2075,7 @@ class PilotDefect(models.Model):
 
     def __str__(self) -> str:
         return f"{self.title} ({self.status})"
+
+
+# Wave D — G3: register the rollout audit models on `platform_runtime`.
+from .models_rollout import SchemaRollout, SchemaRolloutAlias  # noqa: E402,F401

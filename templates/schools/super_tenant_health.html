@@ -96,7 +96,7 @@
           </table>
         </div>
         {% else %}
-        {% include "partials/page_families/empty_state.html" with message="No schools." icon="bi-building" %}
+        {% include "components/rmc_empty_state.html" with icon="bi-building" title=_("No schools") message=_("Nothing here yet.") %}
         {% endif %}
       </div>
     </div>

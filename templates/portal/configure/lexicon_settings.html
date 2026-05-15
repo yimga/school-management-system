@@ -1,0 +1,153 @@
+{% extends "portal_base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Terminology" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3" data-page-archetype="lexicon-settings">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Terminology" %}</h1>
+      <p class="text-muted mb-0">
+        {% blocktrans %}Rename the platform-wide vocabulary to fit your school's traditions.
+        Leave a field blank to keep the platform default.{% endblocktrans %}
+      </p>
+    </div>
+    <div class="text-end">
+      <span class="badge rounded-pill text-bg-secondary">
+        {% blocktrans count count=override_count %}{{ count }} override{% plural %}{{ count }} overrides{% endblocktrans %}
+      </span>
+    </div>
+  </div>
+
+  {% if messages %}
+    <div class="mb-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} rmc-alert" role="alert">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" novalidate class="card rmc-card-elevated p-0 mb-4" data-rmc-lexicon-form>
+    {% csrf_token %}
+    <div class="p-3 border-bottom d-flex flex-wrap align-items-center gap-3">
+      <div class="flex-grow-1">
+        <label for="lexicon-search" class="visually-hidden">{% trans "Search terms" %}</label>
+        <input id="lexicon-search" type="search" class="form-control"
+               placeholder="{% trans 'Search a term (student, class, grade…)' %}"
+               data-rmc-lexicon-filter>
+      </div>
+      <button type="submit" class="btn btn-primary">{% trans "Save terminology" %}</button>
+    </div>
+
+    {% for category, rows in rows_by_category.items %}
+      {% if rows %}
+      <section class="border-bottom" data-rmc-lexicon-category="{{ category }}">
+        <header class="px-3 pt-3 pb-2 d-flex align-items-baseline justify-content-between">
+          <h2 class="h5 mb-0 text-capitalize">{{ category }}</h2>
+          <small class="text-muted">{{ rows|length }} {% trans "terms" %}</small>
+        </header>
+        <div class="table-responsive">
+          <table class="table rmc-data-table mb-0">
+            <thead>
+              <tr>
+                <th scope="col" style="width: 22%;">{% trans "Key" %}</th>
+                <th scope="col" style="width: 28%;">{% trans "Singular" %}</th>
+                <th scope="col" style="width: 28%;">{% trans "Plural" %}</th>
+                <th scope="col" style="width: 22%;">{% trans "Preview" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in rows %}
+                <tr data-rmc-lexicon-row="{{ row.key }}"
+                    data-search-text="{{ row.key }} {{ row.default_singular|lower }} {{ row.default_plural|lower }} {{ row.description|lower }}">
+                  <td>
+                    <div class="fw-semibold">{{ row.key }}</div>
+                    <div class="text-muted small">{{ row.description }}</div>
+                    {% if row.is_overridden %}
+                      <span class="badge text-bg-info mt-1">{% trans "Overridden" %}</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <input type="text"
+                           class="form-control form-control-sm"
+                           name="term[{{ row.key }}][singular]"
+                           value="{{ row.current_singular }}"
+                           placeholder="{{ row.default_singular }}"
+                           data-rmc-lexicon-input="singular"
+                           data-default="{{ row.default_singular }}"
+                           data-key="{{ row.key }}"
+                           autocomplete="off">
+                  </td>
+                  <td>
+                    <input type="text"
+                           class="form-control form-control-sm"
+                           name="term[{{ row.key }}][plural]"
+                           value="{{ row.current_plural }}"
+                           placeholder="{{ row.default_plural }}"
+                           data-rmc-lexicon-input="plural"
+                           data-default="{{ row.default_plural }}"
+                           data-key="{{ row.key }}"
+                           autocomplete="off">
+                  </td>
+                  <td class="text-muted small">
+                    <div>
+                      <span data-rmc-lexicon-preview-singular="{{ row.key }}">{{ row.resolved_singular }}</span> /
+                      <span data-rmc-lexicon-preview-plural="{{ row.key }}">{{ row.resolved_plural }}</span>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      {% endif %}
+    {% endfor %}
+
+    <div class="p-3 d-flex justify-content-end gap-2">
+      <button type="reset" class="btn btn-outline-secondary">{% trans "Discard edits" %}</button>
+      <button type="submit" class="btn btn-primary">{% trans "Save terminology" %}</button>
+    </div>
+  </form>
+
+  <details class="text-muted small">
+    <summary>{% trans "How does this work?" %}</summary>
+    <div class="pt-2">
+      <p>{% blocktrans %}Saved overrides are merged with the platform's 5-layer cascade:
+      registry default → country overlay → curriculum template → district / parent school → your school.
+      Your school's override always wins.{% endblocktrans %}</p>
+      <p>{% blocktrans %}If you leave the plural blank but change the singular, the plural is
+      auto-derived ("Scholar" → "Scholars"). To set both, fill both fields.{% endblocktrans %}</p>
+    </div>
+  </details>
+</div>
+
+<script>
+  // Live preview + filter — no external dependencies, no inline templates.
+  (function () {
+    "use strict";
+    var search = document.getElementById("lexicon-search");
+    if (search) {
+      search.addEventListener("input", function () {
+        var query = search.value.trim().toLowerCase();
+        var rows = document.querySelectorAll("[data-rmc-lexicon-row]");
+        rows.forEach(function (row) {
+          var hay = row.getAttribute("data-search-text") || "";
+          row.style.display = (!query || hay.indexOf(query) !== -1) ? "" : "none";
+        });
+      });
+    }
+    function updatePreview(input) {
+      var key = input.getAttribute("data-key");
+      var slot = input.getAttribute("data-rmc-lexicon-input");
+      var value = (input.value || "").trim() || input.getAttribute("data-default") || "";
+      var target = document.querySelector("[data-rmc-lexicon-preview-" + slot + "='" + key + "']");
+      if (target) target.textContent = value;
+    }
+    document.querySelectorAll("[data-rmc-lexicon-input]").forEach(function (input) {
+      input.addEventListener("input", function () { updatePreview(input); });
+    });
+  })();
+</script>
+{% endblock %}

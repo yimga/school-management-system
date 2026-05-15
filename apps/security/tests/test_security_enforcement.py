@@ -6,6 +6,7 @@ import uuid
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import Permission as FeaturePermission, User
 from apps.people.models import StudentProfile
@@ -18,6 +19,18 @@ from apps.schools.tenant_access import (
 
 _T_HOST = "ns-sec1.runmycampus.com"
 _MGR_HOST = "manager.runmycampus.com"
+
+
+def _force_login_verified(client: Client, user: User) -> None:
+    TOTPDevice.objects.get_or_create(
+        user=user,
+        name="default",
+        defaults={"confirmed": True},
+    )
+    client.force_login(user)
+    session = client.session
+    session["mfa_verified"] = True
+    session.save()
 
 
 @override_settings(
@@ -122,7 +135,7 @@ class ComplianceExportEnforcementTests(TestCase):
         )
         u.feature_permissions.add(self.perm)
         client = Client(HTTP_HOST=_T_HOST)
-        client.force_login(u)
+        _force_login_verified(client, u)
         url = reverse("siteconfig:compliance_exports", urlconf="config.tenant_urls")
         self.assertEqual(client.get(url).status_code, 403)
 
@@ -144,7 +157,7 @@ class SecuritySurfaceDashboardTests(TestCase):
         )
         url = reverse("super:security_surface_dashboard")
         c = Client(HTTP_HOST=_MGR_HOST)
-        c.force_login(super_u)
+        _force_login_verified(c, super_u)
         resp = c.get(url)
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")

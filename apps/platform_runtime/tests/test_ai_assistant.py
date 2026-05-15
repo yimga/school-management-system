@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import Permission as FeaturePermission, User
 from apps.people.models import StudentProfile
@@ -84,7 +85,14 @@ class NorthStarAiAssistantTests(TestCase):
             school=school,
             defaults={"role": User.Role.ADMIN, "is_primary": True},
         )
+        TOTPDevice.objects.create(user=u, name="test-device", confirmed=True)
         return u
+
+    def _force_login_verified(self, user):
+        self.client.force_login(user)
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
 
     def test_ai_disabled_returns_safe_fallback_text(self):
         prev = os.environ.pop("RUNMYCAMPUS_AI_ENABLED", None)
@@ -143,7 +151,7 @@ class NorthStarAiAssistantTests(TestCase):
         prev_ai = os.environ.pop("RUNMYCAMPUS_AI_ENABLED", None)
         try:
             u = self._manage_user(self.school_a)
-            self.client.force_login(u)
+            self._force_login_verified(u)
             url = reverse("siteconfig:northstar_ai_draft", urlconf="config.tenant_urls")
             resp = self.client.post(
                 url,
@@ -168,7 +176,7 @@ class NorthStarAiAssistantTests(TestCase):
 
     def test_api_requires_approval_flag_true(self):
         u = self._manage_user()
-        self.client.force_login(u)
+        self._force_login_verified(u)
         url = reverse("siteconfig:northstar_ai_draft", urlconf="config.tenant_urls")
         resp = self.client.post(
             url,
