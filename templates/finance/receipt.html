@@ -5,14 +5,15 @@
     <meta charset="utf-8" />
     <title>Receipt {{ payment.reference|default:payment.id }}</title>
     <style>
-      body { font-family: "Segoe UI", "Helvetica Neue", sans-serif; margin: 32px; color: #111; }
-      .header { border-bottom: 3px solid {{ primary_color|default:"#4f46e5" }}; padding-bottom: 16px; margin-bottom: 16px; }
-      .header h1 { margin: 0; font-size: 28px; color: {{ primary_color|default:"#4f46e5" }}; }
-      .meta { font-size: 14px; color: #475569; }
+      /* v2.44 — warm-bright receipt palette; tenant primary_color cascade preserved */
+      body { font-family: "Segoe UI", "Helvetica Neue", sans-serif; margin: 32px; color: #2a241e; background: #fdf9f2; }
+      .header { border-bottom: 3px solid {{ primary_color|default:"#c47f1c" }}; padding-bottom: 16px; margin-bottom: 16px; }
+      .header h1 { margin: 0; font-size: 28px; color: {{ primary_color|default:"#c47f1c" }}; }
+      .meta { font-size: 14px; color: #544d44; }
       .section { margin-bottom: 16px; }
-      .section strong { display: block; font-size: 12px; color: #475569; }
+      .section strong { display: block; font-size: 12px; color: #544d44; }
       .table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-      .table th, .table td { border-bottom: 1px solid #cbd5f5; padding: 8px 0; text-align: left; }
+      .table th, .table td { border-bottom: 1px solid rgba(80, 55, 25, 0.12); padding: 8px 0; text-align: left; }
       .table td.text-right { text-align: right; }
       .total { font-size: 18px; font-weight: 600; }
     </style>

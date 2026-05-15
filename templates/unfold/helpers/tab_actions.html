@@ -6,7 +6,7 @@
             <span class="inline-flex" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></span>
         </button>
 
-        <ul class="admin-tab-actions-list hidden flex-col font-medium lg:flex lg:flex-row lg:flex-wrap lg:gap-2 lg:mb-0 lg:mt-0 max-lg:absolute max-lg:right-0 max-lg:top-full max-lg:mt-1 max-lg:min-w-[200px] max-lg:rounded-lg max-lg:shadow-lg max-lg:z-50 max-lg:py-2 max-lg:border" style="background: var(--admin-surface, var(--admin-dashboard-bg, #f8fafc)); color: var(--admin-text, #0f172a); border-color: var(--admin-border, #e2e8f0);" x-bind:class="{'max-lg:!flex': showActions}">
+        <ul class="admin-tab-actions-list hidden flex-col font-medium lg:flex lg:flex-row lg:flex-wrap lg:gap-2 lg:mb-0 lg:mt-0 max-lg:absolute max-lg:right-0 max-lg:top-full max-lg:mt-1 max-lg:min-w-[200px] max-lg:rounded-lg max-lg:shadow-lg max-lg:z-50 max-lg:py-2 max-lg:border" style="background: var(--admin-surface, var(--admin-dashboard-bg, #fffaf0)); color: var(--admin-text, #2a241e); border-color: var(--admin-border, rgba(80,55,25,0.12));" x-bind:class="{'max-lg:!flex': showActions}">
             {% if not actions_list_hide_default and not actions_detail_hide_default %}
                 {% if actions_items %}
                     {{ actions_items }}

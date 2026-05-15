@@ -1,38 +1,41 @@
-/* Incremental polish for global OS homepage (full-bleed marketing main + trust strip). */
+/* v2.44 (2026-05-15) — warm-dark editorial palette for global-OS marketing.
+ * Previous cool slate (#0f172a / #020617) replaced with warm cocoa / warm
+ * charcoal so the dark editorial sections harmonize with the cream platform
+ * shell. The same swap applies to surrounding pill/border tones. */
 .mkt-main.mkt-global-os-main,
 .marketing-home.mkt-global-os {
-  background: radial-gradient(1200px 600px at 10% -10%, rgba(245, 158, 11, 0.08), transparent),
-    linear-gradient(180deg, #020617 0%, #0f172a 35%, #020617 100%);
-  color: #e2e8f0;
+  background: radial-gradient(1200px 600px at 10% -10%, rgba(196, 127, 28, 0.10), transparent),
+    linear-gradient(180deg, #1a1612 0%, #2a241e 35%, #1a1612 100%);
+  color: #f5efe3;
 }
 
 .mkt-glob-strip-dark {
-  background: rgba(15, 23, 42, 0.85);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(26, 22, 18, 0.85);
+  border-bottom: 1px solid rgba(245, 220, 180, 0.18);
 }
 
 .mkt-glob-pill {
-  background: rgba(30, 41, 59, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  color: #f8fafc;
+  background: rgba(42, 36, 30, 0.92);
+  border: 1px solid rgba(245, 220, 180, 0.22);
+  color: #f5efe3;
   font-weight: 500;
   padding: 0.45rem 0.85rem;
 }
 
 .mkt-problem-glob {
-  background: rgba(2, 6, 23, 0.35);
+  background: rgba(13, 10, 7, 0.35);
 }
 
 .mkt-platform-overview-grid .mkt-cap-thumb img {
   width: 100%;
   height: auto;
   border-radius: 0.5rem;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  background: #0f172a;
+  border: 1px solid rgba(245, 220, 180, 0.18);
+  background: #2a241e;
 }
 
 .mkt-offline-glob {
-  border-block: 1px solid rgba(148, 163, 184, 0.15);
+  border-block: 1px solid rgba(245, 220, 180, 0.12);
   padding-block: 3rem;
 }
 
@@ -40,8 +43,8 @@
 .mkt-premium-stock-frame {
   border-radius: 0.75rem;
   overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: #0f172a;
+  border: 1px solid rgba(245, 220, 180, 0.22);
+  background: #2a241e;
 }
 .mkt-premium-stock-img {
   display: block;
