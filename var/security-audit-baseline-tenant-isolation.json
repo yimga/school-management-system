@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-15T21:31:39.325920+00:00",
+  "generated_at": "2026-05-15T22:52:34.770578+00:00",
   "tenant_scoped_models": [
     "AIEmbeddingStore",
     "APIKey",
@@ -20,10 +20,12 @@
     "Applicant",
     "ApprenticePlacement",
     "AssessmentWeights",
+    "AtRiskOutcomeLabel",
     "Attendance",
     "AutomationApprovalQueue",
     "AutomationExecutionLog",
     "AwardSource",
+    "BankAccountChangeRequest",
     "BillingAccount",
     "BillingProcessorSyncEvent",
     "BillingWaiverAuditLog",
@@ -202,7 +204,7 @@
     "WorkflowFailureEvent",
     "WorkflowPackAssignment"
   ],
-  "tenant_model_count": 200,
+  "tenant_model_count": 202,
   "finding_count": 734,
   "findings_per_app": {
     "evals": 118,
@@ -5886,7 +5888,7 @@
     },
     {
       "file": "apps/siteconfig/models_tooling.py",
-      "line": 366,
+      "line": 368,
       "model": "Subject",
       "method": "all",
       "call": "Subject.objects.all(...)",

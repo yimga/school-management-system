@@ -1,0 +1,12 @@
+{% extends "portal_base.html" %}
+{% block title %}No active academic year{% endblock %}
+{% block content %}
+<div class="alert alert-warning">
+  <h1 class="h4 mb-2">No active academic year</h1>
+  <p class="mb-0">
+    {{ school.name }} has no active <code>AcademicYear</code> row.
+    Labels are scoped to an academic year — create one first
+    via <code>/portal/configure/academic-years/</code>.
+  </p>
+</div>
+{% endblock %}

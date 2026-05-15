@@ -499,3 +499,67 @@ class GovernedSavedReport(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} ({self.school_id})"
+
+
+class AtRiskOutcomeLabel(models.Model):
+    """Wave O4: retrospective ground-truth label for at-risk training.
+
+    Set by principals/educators looking back at a student's outcome for
+    an academic year — distinct from `StudentAtRiskSignal` (which is a
+    forward-looking tracking row created when the predictor flags a
+    student). Joins with feature extraction at export time to form a
+    (features, label) training tuple consumable by `train_at_risk.py
+    --csv`.
+
+    Labels are scoped to (student, academic_year) — at most one label
+    per pair, enforced by the unique constraint. Re-labeling replaces
+    the row via update_or_create at the view layer.
+    """
+
+    class Label(models.TextChoices):
+        AT_RISK = "at_risk", "At-risk (outcome confirmed)"
+        NOT_AT_RISK = "not_at_risk", "Not at-risk (false positive / clean term)"
+        RECOVERED = "recovered", "Recovered after intervention"
+        UNKNOWN = "unknown", "Unknown / insufficient data"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="at_risk_outcome_labels",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="at_risk_outcome_labels",
+    )
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.PROTECT,
+        related_name="at_risk_outcome_labels",
+    )
+    label = models.CharField(max_length=20, choices=Label.choices)
+    labeled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="at_risk_labels_set",
+    )
+    labeled_at = models.DateTimeField(auto_now=True)
+    notes = models.TextField(blank=True, default="")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student", "academic_year"],
+                name="uniq_at_risk_outcome_student_year",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["school", "academic_year"]),
+            models.Index(fields=["label"]),
+        ]
+        ordering = ["-labeled_at"]
+        verbose_name = "At-risk outcome label"
+        verbose_name_plural = "At-risk outcome labels"
+
+    def __str__(self) -> str:
+        return f"{self.student_id}@{self.academic_year_id}={self.label}"

@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n static %}
+{% load i18n static institutional_stamp %}
 
 {% block title %}{% trans "Inbox" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
@@ -68,6 +68,9 @@
                 <div class="rmc-inbox__body">
                   <div class="rmc-inbox__title-row">
                     <span class="rmc-inbox__title">{{ notif.title }}</span>
+                    {# Pillar 3 — Verified Communications: tenant-bound stamp.
+                       Renders only when notif.school_id matches request.school. #}
+                    {% institutional_stamp notif %}
                     <time class="rmc-inbox__time" datetime="{{ notif.created_at|date:'c' }}" title="{{ notif.created_at }}">
                       {{ notif.created_at|timesince }}
                     </time>

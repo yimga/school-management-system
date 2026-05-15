@@ -258,6 +258,7 @@ def expire_stale_requests() -> int:
     from .models_dual_auth import BankAccountChangeRequest
 
     now = timezone.now()
+    # tenant-isolation-allow: platform-wide sweeper invoked by Celery beat across all tenants by design (no per-tenant context available)
     return BankAccountChangeRequest.objects.filter(
         state=BankAccountChangeRequest.State.PENDING,
         expires_at__lte=now,

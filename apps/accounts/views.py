@@ -2773,6 +2773,36 @@ def login_view(request):
             password=request.POST.get("password"),
         )
         if user:
+            # Pillar 1 (Identity): per-tenant passkey-only enforcement.
+            # If the user's role is in PASSKEY_ONLY_ROLES, refuse password
+            # auth even when credentials check out — they must come in
+            # through the WebAuthn passkey flow. This prevents password-
+            # phishing or password-stuffing attacks against high-trust
+            # roles (super-admin, finance-admin, …).
+            passkey_only_roles = tuple(
+                str(r).strip().upper()
+                for r in (getattr(settings, "PASSKEY_ONLY_ROLES", ()) or ())
+                if str(r).strip()
+            )
+            user_role = (getattr(user, "role", "") or "").strip().upper()
+            if passkey_only_roles and user_role in passkey_only_roles:
+                messages.error(
+                    request,
+                    _(
+                        "Password sign-in is disabled for your role. "
+                        "Please use your passkey to continue."
+                    ),
+                )
+                # No standalone "passkey-login" landing page exists today —
+                # passkey ceremonies happen at /mfa/passkey/authentication/*
+                # API endpoints invoked from the login page JS. Bounce back
+                # to the login page; the flash message tells the user to use
+                # the "Sign in with passkey" button there.
+                login_url = reverse("accounts:login")
+                if next_url:
+                    return redirect(login_url + "?next=" + next_url)
+                return redirect(login_url)
+
             login(request, user)
 
             # Tenant-aware: ensure session school_id and membership (Phase 2).

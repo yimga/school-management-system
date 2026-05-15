@@ -42,38 +42,83 @@ def _get_context_value(request, *attr_paths, default=None):
     return default
 
 
-def _icons_from_tenant(request) -> list[dict]:
-    """Build the icons[] array preferring tenant logos.
+def _logo_version_token(request) -> str:
+    """Cache buster derived from the active logo so a re-upload invalidates icons.
 
-    Tenant logo URL (when set) is reused for the icon entries. If absent we
-    fall back to the platform-static icon files. Browsers only honor the
-    sizes attribute, not file inspection, so the same URL can satisfy
-    multiple slots; tenants who care about pixel-perfect maskable icons can
-    upload distinct files via their SiteSettings admin.
+    Browsers honor manifest URL identity — pointing at the same path means
+    they may serve a stale install icon for days. By tagging the icon URL
+    with a token derived from the file mtime / size we force a re-fetch
+    when the tenant uploads a new logo.
     """
-    site = getattr(request, "SITE", None)
-    logo_url = ""
-    favicon_url = ""
-    if site is not None:
-        try:
-            logo_url = (
-                getattr(getattr(site, "logo", None), "url", "")
-                or getattr(site, "logo_url", "")
-                or ""
-            )
-        except (AttributeError, ValueError):
-            logo_url = ""
-        try:
-            favicon_url = getattr(site, "favicon_url", "") or ""
-        except (AttributeError, ValueError):
-            favicon_url = ""
+    try:
+        from apps.platform_runtime.helpers import get_effective_site_settings
 
-    big_src = logo_url or "/static/images/icon-512.png"
-    small_src = favicon_url or logo_url or "/static/images/icon-192.png"
+        settings_obj = get_effective_site_settings(request=request)
+    except (ImportError, RuntimeError, Exception):
+        return ""
+    if settings_obj is None:
+        return ""
+    logo = getattr(settings_obj, "logo", None)
+    if not (logo and getattr(logo, "name", "")):
+        return ""
+    try:
+        # Storage.size + storage.modified is cheap on local FS; cloud
+        # backends usually answer .size from object metadata.
+        s = logo.size  # type: ignore[attr-defined]
+        return f"{s}"
+    except (AttributeError, OSError, NotImplementedError):
+        # Fallback to the storage name (changes when re-uploaded under hashed-name).
+        return str(getattr(logo, "name", ""))[-12:]
+
+
+def _icons_from_tenant(request) -> list[dict]:
+    """Build the icons[] array using the per-tenant icon endpoints.
+
+    v2.60 (Tier 1 gap closure): point at the sized endpoints in
+    ``views_manifest_icon`` so every entry actually matches its declared
+    ``sizes`` attribute — Chrome / Edge / Android otherwise refuse to mark
+    the app as installable. The endpoints resize the tenant logo on the
+    fly with Pillow (LANCZOS) or fall back to a tinted monogram square
+    when no logo is on file.
+    """
+    from django.urls import NoReverseMatch, reverse
+
+    v = _logo_version_token(request)
+    qs = f"?v={v}" if v else ""
+
+    def _url(name: str, **kwargs) -> str:
+        try:
+            return reverse(name, kwargs=kwargs) + qs
+        except NoReverseMatch:
+            # Defensive fallback — should only happen pre-urls-registered in tests.
+            size = kwargs.get("size", 192)  # magic-number-allow: pwa-min-icon-size
+            return f"/manifest/icon-{size}.png{qs}"
 
     return [
-        {"src": small_src, "sizes": "192x192", "type": "image/png", "purpose": "any"},
-        {"src": big_src, "sizes": "512x512", "type": "image/png", "purpose": "any maskable"},
+        {
+            "src": _url("pwa_manifest_icon_any", size=192),  # magic-number-allow: pwa-min-icon-size
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any",
+        },
+        {
+            "src": _url("pwa_manifest_icon_any", size=512),  # magic-number-allow: pwa-installable-icon-size
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any",
+        },
+        {
+            "src": _url("pwa_manifest_icon_maskable", size=192),  # magic-number-allow: pwa-min-icon-size
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable",
+        },
+        {
+            "src": _url("pwa_manifest_icon_maskable", size=512),  # magic-number-allow: pwa-installable-icon-size
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable",
+        },
     ]
 
 

@@ -16,12 +16,20 @@
       </div>
       <div class="modal-footer flex-wrap gap-2">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-        <form id="rmcInstallImpactConfirmForm" method="post" action="{{ install_post_url }}" class="d-inline">
+        <form id="rmcInstallImpactConfirmForm" method="post" action="{{ install_post_url }}" class="d-inline w-100">
           {% csrf_token %}
           <input type="hidden" name="install_after_impact_preview" value="1">
           <input type="hidden" name="app_id" id="rmcInstallImpactAppId" value="">
           <input type="hidden" name="school_id" id="rmcInstallImpactSchoolId" value="">
-          <button type="submit" class="btn btn-primary" id="rmcInstallImpactConfirmBtn" disabled>{% trans "Confirm install to sandbox" %}</button>
+          <fieldset id="rmcInstallImpactConsentFieldset" class="rmc-scope-consent w-100 mb-2" data-rmc-scope-consent>
+            <legend class="rmc-scope-consent__legend">{% trans "Per-scope consent" %}</legend>
+            <p class="rmc-scope-consent__hint">{% trans "Tick every scope to acknowledge the access this app will receive on your school's data. Install will be refused if any scope is unchecked." %}</p>
+            <div id="rmcInstallImpactConsentList" class="rmc-scope-consent__list" role="group" aria-label="{% trans 'Permission scopes' %}"></div>
+          </fieldset>
+          <div class="rmc-scope-consent__actions">
+            <button type="submit" class="btn btn-primary" id="rmcInstallImpactConfirmBtn" disabled>{% trans "Confirm install to sandbox" %}</button>
+            <span id="rmcInstallImpactConsentStatus" class="rmc-scope-consent__status" aria-live="polite"></span>
+          </div>
         </form>
       </div>
     </div>
@@ -42,5 +50,9 @@
   "trans_pan_by_dragging_zoom_with_the_mouse_wheel": "{% trans 'Pan by dragging; zoom with the mouse wheel.' %}",
   "trans_rollback": "{% trans 'Rollback' %}",
   "trans_could_not_load_preview": "{% trans 'Could not load preview.' %}",
-  "trans_select_a_school_first_then_preview_impact": "{% trans 'Select a school first, then preview impact.' %}"
+  "trans_select_a_school_first_then_preview_impact": "{% trans 'Select a school first, then preview impact.' %}",
+  "trans_consent_required_n_remaining": "{% trans 'Consent required for {n} more scope(s) before install can proceed.' %}",
+  "trans_consent_complete": "{% trans 'All scopes consented — install enabled.' %}",
+  "trans_consent_no_scopes": "{% trans 'This app declares no scopes — confirm install to proceed.' %}",
+  "trans_consent_required_label": "{% trans 'Required' %}"
 }</script><script src="{% static 'js/_pages/marketplace__partials__install_impact_modal-1.js' %}"></script>

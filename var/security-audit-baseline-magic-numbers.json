@@ -97,7 +97,7 @@
   "excluded_path_fragments": [
     "management/commands/"
   ],
-  "finding_count": 485,
+  "finding_count": 493,
   "findings": [
     {
       "line": 120,
@@ -2680,13 +2680,13 @@
       "value": 160
     },
     {
-      "line": 517,
+      "line": 519,
       "path": "apps/siteconfig/models_tooling.py",
       "snippet": "watermark_text = models.CharField(max_length=150, blank=True)",
       "value": 150
     },
     {
-      "line": 537,
+      "line": 540,
       "path": "apps/siteconfig/models_tooling.py",
       "snippet": "validators=[MinValueValidator(20), MaxValueValidator(180)],",
       "value": 180
@@ -2720,6 +2720,54 @@
       "path": "apps/siteconfig/support_ticket_hooks.py",
       "snippet": "\"reply_body\": body_text[:8000],",
       "value": 8000
+    },
+    {
+      "line": 118,
+      "path": "apps/siteconfig/svg_sanitize.py",
+      "snippet": "head = data[:4096].lstrip()",
+      "value": 4096
+    },
+    {
+      "line": 119,
+      "path": "apps/siteconfig/svg_sanitize.py",
+      "snippet": "return b\"<svg\" in head[:1024] or head.startswith(b\"<?xml\")",
+      "value": 1024
+    },
+    {
+      "line": 219,
+      "path": "apps/siteconfig/svg_sanitize.py",
+      "snippet": "if _DOCTYPE_RE.search(data[:8192]):",
+      "value": 8192
+    },
+    {
+      "line": 221,
+      "path": "apps/siteconfig/svg_sanitize.py",
+      "snippet": "if _ENTITY_RE.search(data[:8192]):",
+      "value": 8192
+    },
+    {
+      "line": 272,
+      "path": "apps/siteconfig/svg_sanitize.py",
+      "snippet": "data = file_obj.read(1024 * 1024 + 1)",
+      "value": 1024
+    },
+    {
+      "line": 272,
+      "path": "apps/siteconfig/svg_sanitize.py",
+      "snippet": "data = file_obj.read(1024 * 1024 + 1)",
+      "value": 1024
+    },
+    {
+      "line": 273,
+      "path": "apps/siteconfig/svg_sanitize.py",
+      "snippet": "if len(data) > 1024 * 1024:",
+      "value": 1024
+    },
+    {
+      "line": 273,
+      "path": "apps/siteconfig/svg_sanitize.py",
+      "snippet": "if len(data) > 1024 * 1024:",
+      "value": 1024
     },
     {
       "line": 139,
@@ -3010,7 +3058,7 @@
       "value": 1500
     }
   ],
-  "generated_at": "2026-05-15T22:00:43+00:00",
+  "generated_at": "2026-05-15T22:52:45+00:00",
   "rule": "Integer literals with abs(value) >= 100 in production code should route through the 7-layer configurability contract (RuntimeDefaults / constants.py / SiteSettings)",
   "scan_dirs": [
     "apps",

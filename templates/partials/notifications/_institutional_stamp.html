@@ -1,0 +1,17 @@
+{% load i18n %}{% comment %}
+  Pillar 3 — Verified Communications: institutional stamp.
+  Tokenized via --brand-primary (checkmark fill) and --surface-bg
+  (inner check). No inline style attributes (CSP enforce mode is on).
+{% endcomment %}
+<span class="rmc-institutional-stamp" role="img"
+      aria-label="{% if tenant_name %}{% blocktrans %}Verified institution: {{ tenant_name }}{% endblocktrans %}{% else %}{% trans "Verified institution" %}{% endif %}"
+      title="{% if tenant_name %}{% blocktrans %}Verified institution: {{ tenant_name }}{% endblocktrans %}{% else %}{% trans "Verified institution" %}{% endif %}">
+  <svg class="rmc-institutional-stamp__icon" xmlns="http://www.w3.org/2000/svg"
+       viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+    <path d="M8 1.5l1.6 1.2 2 .1.5 1.9 1.6 1.2-.7 1.9.7 1.9-1.6 1.2-.5 1.9-2 .1L8 14.5l-1.6-1.2-2-.1-.5-1.9-1.6-1.2.7-1.9-.7-1.9 1.6-1.2.5-1.9 2-.1z" fill="var(--brand-primary, currentColor)"/>
+    <path d="M5.6 8.2l1.7 1.7 3.4-3.6" fill="none" stroke="var(--surface-bg, #ffffff)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <span class="rmc-institutional-stamp__label">
+    {% if tenant_name %}{% blocktrans %}Verified · {{ tenant_name }}{% endblocktrans %}{% else %}{% trans "Verified" %}{% endif %}
+  </span>
+</span>

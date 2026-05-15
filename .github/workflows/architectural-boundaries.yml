@@ -44,6 +44,12 @@ on:
       - "beta/school-management-system/var/security-audit-baseline-magic-numbers.json"
       - "beta/school-management-system/var/security-audit-baseline-subprocess-shell.json"
       - "beta/school-management-system/var/security-audit-baseline-rls-bypass.json"
+      - "beta/school-management-system/apps/platform_runtime/management/commands/verify_platform_readiness.py"
+      - "beta/school-management-system/apps/security/csp_readiness.py"
+      - "beta/school-management-system/apps/analytics/at_risk_readiness.py"
+      - "beta/school-management-system/apps/schools/residency_readiness.py"
+      - "beta/school-management-system/apps/schools/rls_readiness.py"
+      - "beta/school-management-system/scripts/check_documented_baselines.py"
       - ".github/workflows/architectural-boundaries.yml"
   workflow_dispatch: {}
 
@@ -314,3 +320,36 @@ jobs:
         # the JSON moved but the doc didn't.
         run: |
           python scripts/check_documented_baselines.py
+
+  platform-readiness:
+    name: "Platform readiness preflight (csp / at_risk / baselines)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DEBUG: "0"
+      SECRET_KEY: "ci-platform-readiness-not-for-production-use-64chars______________________"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,testserver,runmycampus.com,.runmycampus.com"
+      MULTI_TENANT_BASE_DOMAIN: runmycampus.com
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install runtime dependencies
+        # verify_platform_readiness boots Django to import the readiness
+        # modules. residency / rls are intentionally skipped here — they
+        # need a populated tenants DB and run in operator pre-deploy
+        # workflows (see docs/PLATFORM_READINESS_PREFLIGHTS.md).
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run readiness preflight (csp + at_risk + baselines)
+        # Tier 1 gap closure (v2.60). The N1 preflight was previously
+        # manual-only; this CI gate ensures the same release-blocker
+        # criteria the operator runs pre-deploy are evaluated on every
+        # PR. Exit codes: 0 ready / 1 not-ready / 2 invocation error.
+        run: |
+          python manage.py verify_platform_readiness \
+            --settings=config.settings \
+            --section csp at_risk baselines

@@ -84,6 +84,68 @@ Known debt that is **not** a blocker:
   `scan_inline_style_off_token` (zero-tolerance CI gate post-v2.27).
   Style-CSP buys less defense than script-CSP; not worth gating on.
 
+### `rls` — Row-Level Security runtime preflight (Wave O2)
+
+Backed by `apps/schools/rls_readiness.py::assess_rls_readiness()`.
+
+Checks:
+
+* `TenantMiddleware` wired in `settings.MIDDLEWARE`.
+* `apps.schools.rls_context.set_rls_school_id` is importable.
+* `USE_DJANGO_TENANTS=False` (RLS mode, not schema mode — schema mode
+  silently bypasses RLS policies).
+* **Postgres-only**: `SET app.current_school_id = '0'` succeeds against
+  the default DB. Skipped on SQLite (dev) — the GUC contract is
+  production-only.
+* **Postgres-only**: at least one entry in `pg_policies` for the
+  public schema. Zero policies means migration 0048
+  (`schools.0048_force_rls_on_all_enabled_tables`) didn't run or was
+  rolled back — RLS is structurally broken.
+
+Skipped checks are reported as `skipped` rather than failed — the
+preflight passes on dev/SQLite. To get the full check, run on a
+Postgres-backed deployment.
+
+To investigate suspected RLS regression in production:
+
+1. `python manage.py verify_rls_readiness` on the production DB.
+2. If `pg_policies` count is 0: re-apply migration 0048
+   (it's idempotent under `IF NOT EXISTS` policy syntax).
+3. If `USE_DJANGO_TENANTS=True` on a tenant subdomain that should
+   be RLS-mode: fix env var and restart.
+4. If GUC unsettable: check Postgres role permissions — `SET` on
+   `app.*` requires the role grant.
+
+### `at_risk` — at-risk ML artifact preflight (Wave O1)
+
+Backed by `apps/analytics/at_risk_readiness.py::assess_at_risk_readiness()`.
+
+Three states the predictor can be in:
+
+* `heuristic` — no artifact path configured anywhere. The platform isn't
+  broken; it's using rule-based scoring. Ready=True.
+* `ml-artifact` — path resolves, artifact loads, bundle shape valid.
+  Predictor will use the ML inference path. Ready=True.
+* `misconfigured` — path is set (via `settings.AT_RISK_MODEL_PATH`,
+  env var, or `AT_RISK_MODEL_DIR/at_risk_v1.joblib` auto-discovery)
+  but the file is missing / unloadable / wrong shape. The predictor
+  would **silently fall back to heuristic** without anyone noticing —
+  the dangerous state this preflight catches. Ready=False.
+
+To enable ML mode:
+
+1. `python manage.py train_at_risk_baseline --clear-cache` (writes
+   synthetic baseline to `var/at_risk/at_risk_v1.joblib`), OR
+2. Set `AT_RISK_MODEL_PATH=/path/to/your.joblib` (env or settings).
+3. `python manage.py verify_at_risk_readiness` to confirm mode flipped
+   to `ml-artifact`.
+4. `python manage.py score_student_risk --reload --student <id>` to
+   see the predictor actually use the artifact (`path=ml-artifact`).
+
+For production retraining loop, see
+`apps/analytics/management/commands/export_at_risk_training_data.py`
+(Wave O4) + `/portal/at-risk/labeling/` for label collection.
+
 ### `baselines` — documented scanner baseline drift (Wave N)
 
 Backed by `scripts/check_documented_baselines.py` (this wave).

@@ -376,6 +376,8 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
 
     # ---- CSP (the security middleware exposes these overrides) --------------
     SettingSpec("CSP_ENFORCE", "bool", "True", "security", "Enforce Content-Security-Policy (default True since v2.57; override to False for Report-Only)."),
+    SettingSpec("BANK_ACCOUNT_CHANGES_REQUIRE_DUAL_AUTH", "bool", "True", "security", "When True (default since v2.63), Django-admin edits to BankAccount route through the four-eyes dual-authorization flow (apps.finance.bank_account_dual_auth). A different administrator must approve before the live row is touched."),
+    SettingSpec("BANK_ACCOUNT_CHANGE_REQUEST_TTL_HOURS", "int", "48", "security", "Lifetime of a PENDING BankAccountChangeRequest before it auto-expires (Celery beat sweeps via apps.finance.bank_account_dual_auth.expire_stale_requests)."),
     SettingSpec("CSP_REPORT_URI", "str", '"/security/csp-report/"', "security", "URI browsers POST CSP violation reports to."),
     SettingSpec("CSP_EXTRA_CONNECT_SRC", "tuple[str]", "()", "security", "Additional connect-src origins."),
     SettingSpec("CSP_EXTRA_FRAME_ANCESTORS", "tuple[str]", "()", "security", "Additional frame-ancestors entries."),
@@ -446,6 +448,18 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
 
     # ---- Comms providers ---------------------------------------------------
     SettingSpec("REGIONAL_FROM_EMAIL", "str", '""', "communication", "Per-region overridden DEFAULT_FROM_EMAIL."),
+    SettingSpec(
+        "EMAIL_SIGNING_REQUIRED",
+        "bool",
+        "False",
+        "communication",
+        (
+            "Pillar 3 / Verified Communications: when True, "
+            "AppConfig.ready raises EmailSigningMisconfigured if "
+            "EMAIL_BACKEND is not a known DKIM-signing anymail provider. "
+            "Opt-in for production; leave False in development."
+        ),
+    ),
     SettingSpec("SLACK_WEBHOOK_URL", "str", '""', "communication", "Slack incoming webhook for ops alerts."),
     SettingSpec("SMS_API_TOKEN", "str", '""', "communication", "Generic SMS provider API token."),
     SettingSpec("SMS_API_URL", "str", '""', "communication", "Generic SMS provider base URL."),
@@ -477,6 +491,26 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("TENANT_LIFECYCLE_CHURN_PAYMENT_FAILED_DAYS", "int", "7", "ops", "Days after payment failure before churn signal fires."),
     SettingSpec("TENANT_LIFECYCLE_FIRST_ACTION_STALL_DAYS", "int", "7", "ops", "Days a fresh tenant can stall before nudge."),
     SettingSpec("TENANT_LIFECYCLE_ONBOARDING_STALL_DAYS", "int", "14", "ops", "Days an onboarding tenant can stall before escalation."),
+
+    # ---- Identity / session security --------------------------------------
+    SettingSpec(
+        "SESSION_PINNING_ENABLED",
+        "bool",
+        "True",
+        "security",
+        "Bind authenticated sessions to the (IP, User-Agent hash) captured at first sight; "
+        "flush + CRITICAL audit if a later request from the same session presents a different pair. "
+        "See apps.accounts.middleware_session_pinning.SessionPinningMiddleware.",
+    ),
+    SettingSpec(
+        "PASSKEY_ONLY_ROLES",
+        "tuple[str]",
+        "()",
+        "security",
+        "Role tokens (matched against User.role, case-insensitive) that are forbidden from "
+        "password-form login. Members of these roles must sign in via WebAuthn passkey. "
+        "Enforced in apps.accounts.views.login_view.",
+    ),
 
     # ---- Misc / runbooks ---------------------------------------------------
     SettingSpec("CONTROL_PLANE_RUNBOOKS_URL", "str", '""', "ops", "Public URL where ops runbooks live."),

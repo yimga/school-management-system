@@ -16,14 +16,30 @@ from django.test import TestCase, override_settings
 from apps.analytics.at_risk_readiness import assess_at_risk_readiness
 
 
+class FakeEstimator:
+    """Module-level so joblib.dump can pickle it. (Local classes can't pickle.)"""
+
+    def predict_proba(self, X):
+        return [[0.2, 0.8] for _ in X]
+
+
+class FakeRawEstimator:
+    """Legacy artifact shape — no dict wrapper, just the classifier."""
+
+    def predict(self, X):
+        return [50.0 for _ in X]
+
+
+class FakePredictEstimator:
+    """For 'bundle missing feature_order' test."""
+
+    def predict(self, X):
+        return [0 for _ in X]
+
+
 def _valid_bundle_path(tmpdir: str) -> str:
     """Write a fake-but-valid bundle to disk; return path."""
     out = os.path.join(tmpdir, "at_risk_v1.joblib")
-
-    class FakeEstimator:
-        def predict_proba(self, X):
-            return [[0.2, 0.8] for _ in X]
-
     joblib.dump(
         {
             "model": FakeEstimator(),
@@ -90,13 +106,9 @@ class AtRiskReadinessTests(TestCase):
 
     def test_raw_classifier_artifact_is_ml_mode(self):
         """Legacy artifacts (raw classifier, not dict-wrapped) are accepted."""
-        class FakeRaw:
-            def predict(self, X):
-                return [50.0 for _ in X]
-
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "legacy.joblib")
-            joblib.dump(FakeRaw(), path)
+            joblib.dump(FakeRawEstimator(), path)
             with override_settings(AT_RISK_MODEL_PATH=path):
                 report = assess_at_risk_readiness()
         self.assertEqual(report.mode, "ml-artifact")
@@ -116,10 +128,7 @@ class AtRiskReadinessTests(TestCase):
     def test_bundle_missing_feature_order_is_non_fatal(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "f.joblib")
-            class E:
-                def predict(self, X):
-                    return [0 for _ in X]
-            joblib.dump({"model": E(), "model_version": "v1"}, path)
+            joblib.dump({"model": FakePredictEstimator(), "model_version": "v1"}, path)
             with override_settings(AT_RISK_MODEL_PATH=path):
                 report = assess_at_risk_readiness()
         self.assertEqual(report.mode, "ml-artifact")

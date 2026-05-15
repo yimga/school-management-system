@@ -571,6 +571,7 @@ def install_app(
     run_schema_patches=True,
     install_phase="active",
     skip_compatibility=False,
+    grant_scope_codes=None,
 ):
     """
     Install an app for a school. Creates AppInstallation, optionally runs schema patches,
@@ -635,6 +636,26 @@ def install_app(
         )
     if run_schema_patches:
         run_schema_patches_for_installation(installation)
+    # Pillar 4: persist per-scope grants the admin explicitly consented to.
+    # Sensitive scopes start PENDING (require elevated approval); others go GRANTED.
+    if grant_scope_codes:
+        from apps.marketplace.models import AppScope, ScopeGrant
+
+        consented = {(c or "").strip() for c in grant_scope_codes if (c or "").strip()}
+        for scope in app.scopes.filter(scope_code__in=consented):
+            grant_status = (
+                ScopeGrant.GrantStatus.PENDING
+                if getattr(scope, "sensitive", False)
+                else ScopeGrant.GrantStatus.GRANTED
+            )
+            ScopeGrant.objects.get_or_create(
+                installation=installation,
+                scope=scope,
+                defaults={
+                    "status": grant_status,
+                    "granted_by": installed_by,
+                },
+            )
     impact_snapshot = {}
     try:
         from apps.marketplace.install_impact import build_tenant_install_impact

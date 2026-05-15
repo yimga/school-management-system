@@ -1096,7 +1096,15 @@ def super_install_impact_preview(request):
 @enforce_tenant_security(action="admin", require_school=False)
 @require_POST
 def tenant_install_app(request):
-    """Tenant: install app for current school with scope consent (sensitive scopes → pending)."""
+    """
+    Tenant: install app for current school with **explicit per-scope consent**.
+
+    Pillar 4 (sandboxed marketplace security): the install POST MUST carry one
+    ``consented_scopes`` value per scope the manifest declares. The backend
+    refuses install if any required scope is missing from the consented list,
+    and writes a ``compliance.AuditLog.PERMISSION_GRANT`` capturing the exact
+    scope list the admin acknowledged.
+    """
     school = getattr(request, "school", None)
     if not school:
         messages.error(request, "No school context.")
@@ -1126,14 +1134,57 @@ def tenant_install_app(request):
             ent.get("upgrade_message") or "Plan or module requirements not met for this app.",
         )
         return redirect("tenant_app_catalog")
+
+    # Pillar 4: explicit, per-scope consent gate.
+    declared_scope_codes = sorted(
+        {(s or "").strip() for s in app.scopes.values_list("scope_code", flat=True) if (s or "").strip()}
+    )
+    consented_scopes = sorted(
+        {(s or "").strip() for s in request.POST.getlist("consented_scopes") if (s or "").strip()}
+    )
+    missing_consent = [c for c in declared_scope_codes if c not in consented_scopes]
+    if missing_consent:
+        messages.error(
+            request,
+            "Install blocked: the following permission scope(s) were not "
+            "explicitly confirmed in the consent dialog: "
+            + ", ".join(missing_consent),
+        )
+        return redirect("tenant_app_catalog")
+
     try:
-        install_app(
+        installation = install_app(
             school,
             app,
             installed_by=request.user,
             install_phase=AppInstallation.InstallPhase.SANDBOX,
             skip_compatibility=False,
+            grant_scope_codes=consented_scopes,
         )
+        # Compliance audit: capture the EXACT scope list the admin acknowledged.
+        try:
+            from apps.compliance.models_audit import AuditLog as ComplianceAuditLog
+
+            ComplianceAuditLog.objects.create(
+                user=request.user,
+                action=ComplianceAuditLog.Action.PERMISSION_GRANT,
+                model_name="AppInstallation",
+                object_id=str(installation.pk),
+                object_repr=f"{app.slug} @ {school.slug}",
+                sensitivity=ComplianceAuditLog.Sensitivity.HIGH,
+                new_values={
+                    "app_id": app.pk,
+                    "app_slug": app.slug,
+                    "school_id": str(school.pk),
+                    "school_slug": school.slug,
+                    "installation_id": installation.pk,
+                    "scopes_consented": consented_scopes,
+                },
+                app_label="marketplace",
+                reason="Marketplace install — per-scope consent",
+            )
+        except (ImportError, AttributeError, TypeError, ValueError) as exc:
+            logger.warning("Compliance AuditLog write failed for install: %s", exc)
         messages.success(
             request,
             f"App “{app.name}” has been installed in sandbox mode. Review it, then activate.",

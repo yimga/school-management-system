@@ -31,6 +31,9 @@ from apps.portal.views_ai_copilot import (
 )
 from apps.portal.views_configure import portal_configure_hub
 from apps.portal.views_lexicon import lexicon_settings as portal_lexicon_settings_view
+from apps.portal.views_at_risk_labeling import (
+    at_risk_labeling_queue as portal_at_risk_labeling_view,
+)
 from apps.accounts.views_theme import set_theme_preference
 from config.admin import platform_admin_site
 from apps.schools.competitive_marketing_views import (
@@ -309,6 +312,10 @@ from apps.siteconfig.views_manifest import (  # noqa: E402
     platform_manifest as _platform_manifest,
     portal_manifest as _portal_manifest,
 )
+from apps.siteconfig.views_manifest_icon import (  # noqa: E402
+    icon_any as _manifest_icon_any,
+    icon_maskable as _manifest_icon_maskable,
+)
 from apps.schools.marketing_views_v2 import marketing_landing_v2  # noqa: E402
 
 urlpatterns = [
@@ -323,6 +330,21 @@ urlpatterns = [
     # apps/siteconfig/views_manifest.py for the render logic.
     path("manifest.json", _platform_manifest, name="pwa_manifest_platform"),
     path("manifest-portal.json", _portal_manifest, name="pwa_manifest_portal"),
+    # v2.60 (2026-05-15) — sized PWA icon endpoints. Closes the Tier 1 gap
+    # where the v2.59 manifest pointed at raw tenant logos that rarely
+    # matched the spec-required 192/512 sizes, blocking the install
+    # affordance. See apps/siteconfig/views_manifest_icon.py for the
+    # Pillow resize + monogram fallback path.
+    path(
+        "manifest/icon-<int:size>.png",
+        _manifest_icon_any,
+        name="pwa_manifest_icon_any",
+    ),
+    path(
+        "manifest/icon-<int:size>-maskable.png",
+        _manifest_icon_maskable,
+        name="pwa_manifest_icon_maskable",
+    ),
     path(
         "offline/sync/",
         manager_offline_sync_root_fallback,
@@ -538,6 +560,13 @@ urlpatterns = [
         "portal/configure/lexicon/",
         portal_lexicon_settings_view,
         name="portal_lexicon_settings",
+    ),
+    # Wave O4 (2026-05-15): at-risk outcome labeling queue for retrospective
+    # ML training data (admin/principal/proprietor role gate).
+    path(
+        "portal/at-risk/labeling/",
+        portal_at_risk_labeling_view,
+        name="portal_at_risk_labeling",
     ),
     path("kb/", include(("apps.portal.urls_kb", "kb"), namespace="kb")),
     path("reports/", include(("apps.reports.urls", "reports"), namespace="reports")),

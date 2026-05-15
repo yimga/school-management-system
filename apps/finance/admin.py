@@ -857,6 +857,133 @@ class BankAccountAdmin(ModelAdmin):
         ("Status", {"fields": ("is_active", "notes")}),
     )
 
+    # ---- v2.63 anti-fraud wire-up: route admin saves through dual-auth ----
+    #
+    # Direct admin edits are converted into PENDING BankAccountChangeRequest
+    # rows. A different administrator must approve via the dual-auth service
+    # before the live BankAccount row is touched. Toggle off via the global
+    # setting BANK_ACCOUNT_CHANGES_REQUIRE_DUAL_AUTH=False (default True).
+
+    def _dual_auth_required(self, request) -> bool:
+        return bool(getattr(settings, "BANK_ACCOUNT_CHANGES_REQUIRE_DUAL_AUTH", True))
+
+    def _resolve_school(self, request, obj):
+        # Tenant binding: use the requester's school membership. The platform
+        # already attaches `request.school` via SchoolMiddleware; fall back to
+        # the user's profile school if not set.
+        return (
+            getattr(request, "school", None)
+            or getattr(getattr(request.user, "profile", None), "school", None)
+            or getattr(request.user, "school", None)
+        )
+
+    def _client_ip(self, request):
+        xff = request.META.get("HTTP_X_FORWARDED_FOR")
+        if xff:
+            return xff.split(",")[0].strip()
+        return request.META.get("REMOTE_ADDR")
+
+    def save_model(self, request, obj, form, change):
+        from django.contrib import messages
+
+        from .bank_account_dual_auth import request_bank_account_change
+        from .models_dual_auth import BankAccountChangeRequest
+
+        if not self._dual_auth_required(request):
+            return super().save_model(request, obj, form, change)
+
+        school = self._resolve_school(request, obj)
+        if school is None:
+            # No tenant context — refuse to file a request and warn loudly.
+            messages.error(
+                request,
+                "Bank account changes require a tenant context (no school resolved). "
+                "Set BANK_ACCOUNT_CHANGES_REQUIRE_DUAL_AUTH=False only if you understand the risk.",
+            )
+            return
+
+        reason = (
+            form.cleaned_data.get("notes") if hasattr(form, "cleaned_data") else None
+        ) or "Filed via Django admin save (no inline reason provided)."
+        if change:
+            # UPDATE: payload is the diff between submitted form and DB row.
+            changed = list(getattr(form, "changed_data", []) or [])
+            payload = {f: form.cleaned_data[f] for f in changed if f in form.cleaned_data}
+            # Serialize FK values to ids (JSONField friendly).
+            for k, v in list(payload.items()):
+                if hasattr(v, "pk"):
+                    payload[k] = v.pk
+                    payload[f"{k}_id"] = v.pk
+                    del payload[k]
+            kind = BankAccountChangeRequest.ChangeKind.UPDATE
+            target = self.model.objects.filter(pk=obj.pk).first()
+            req = request_bank_account_change(
+                school=school,
+                change_kind=kind,
+                payload=payload,
+                requester=request.user,
+                reason=str(reason)[:2000],
+                bank_account=target,
+                requester_ip=self._client_ip(request),
+            )
+            messages.warning(
+                request,
+                f"Change filed as PENDING request {req.id} for second-admin approval. "
+                f"Live bank account is unchanged until a peer approves.",
+            )
+            return
+
+        # CREATE: payload is the full form data.
+        payload = {
+            f: form.cleaned_data[f]
+            for f in form.cleaned_data
+            if not f.startswith("_")
+        }
+        for k, v in list(payload.items()):
+            if hasattr(v, "pk"):
+                payload[f"{k}_id"] = v.pk
+                del payload[k]
+        req = request_bank_account_change(
+            school=school,
+            change_kind=BankAccountChangeRequest.ChangeKind.CREATE,
+            payload=payload,
+            requester=request.user,
+            reason=str(reason)[:2000],
+            requester_ip=self._client_ip(request),
+        )
+        messages.warning(
+            request,
+            f"Bank account creation filed as PENDING request {req.id} for "
+            f"second-admin approval. The account will appear in the list once approved.",
+        )
+
+    def delete_model(self, request, obj):
+        from django.contrib import messages
+
+        from .bank_account_dual_auth import request_bank_account_change
+        from .models_dual_auth import BankAccountChangeRequest
+
+        if not self._dual_auth_required(request):
+            return super().delete_model(request, obj)
+        school = self._resolve_school(request, obj)
+        if school is None:
+            messages.error(request, "Bank account deletion requires a tenant context.")
+            return
+        req = request_bank_account_change(
+            school=school,
+            change_kind=BankAccountChangeRequest.ChangeKind.DEACTIVATE,
+            payload={},
+            requester=request.user,
+            reason="Deactivation filed via Django admin delete action.",
+            bank_account=obj,
+            requester_ip=self._client_ip(request),
+        )
+        messages.warning(
+            request,
+            f"Deactivation filed as PENDING request {req.id} for "
+            f"second-admin approval. Account remains active until approved.",
+        )
+
 
 class BankStatementEntryAdmin(ModelAdmin):
     list_display = (
