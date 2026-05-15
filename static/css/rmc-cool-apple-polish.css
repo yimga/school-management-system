@@ -309,9 +309,13 @@
 
 /* Brand container must NEVER truncate. Earlier the navbar-brand inherited
    Bootstrap's flex behavior that allowed flex-shrink, clipping the title
-   to "RunMyCampus Man...". */
-.cp-navbar .navbar-brand,
-.cp-navbar .statement-logo {
+   to "RunMyCampus Man...". `.statement-header` is the shared brand-bar
+   class across cp-navbar (manager), portal topbar, base nav, and marketing
+   nav — one rule, all shells. */
+.statement-header .navbar-brand,
+.statement-header .statement-logo,
+.statement-header .mkt-brand,
+.statement-header .rmc-brand-mark {
   flex-shrink: 0;
   min-width: 0;
   white-space: nowrap;
