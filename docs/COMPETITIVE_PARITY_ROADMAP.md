@@ -47,15 +47,17 @@ Tight scoped quick wins extracted from the audits — all in this single pass:
 
 ---
 
-## Pass 7 — Onboarding showstoppers (1-2 weeks)
+## Pass 7 — Onboarding showstoppers — **✅ DONE (verified 2026-05-15)**
 
-Audit B concludes onboarding is built but breaks at two seams. These are tight:
+All 5 originally-scoped items shipped. Verified via grep against current main, not against this document. Trust grep over markdown for status.
 
-1. **Magic-link at `verify_signup`** — `apps/schools/signup_views.py:603` redirects to `/authentication/login/` after email verification, but the admin user has `set_unusable_password()` (`tasks.py:266`). Mint a one-shot signed token, log the user in via the SDK's `login_with_token` view, route to `studio_os:launch`. ~80 lines.
-2. **DNS + wildcard cert automation** — `apps/schools/domain_sync.py:24-33` computes the FQDN but does not call any DNS provider. Add `apps/schools/dns_providers/{base.py,cloudflare.py,route53.py}` with a uniform `create_record(subdomain, target)` interface; trigger from `_do_provision` after `Client` creation; verify reachability with `dnspython` (already in requirements) before flipping `is_active=True`.
-3. **Marketing CTAs through `/onboard/`** — bulk edit every `{% url 'signup_school' %}` in `templates/marketing/*.html` to `{% url 'onboard_wizard' %}`. Pure template work.
-4. **Blueprint pack picker as wizard step 1.5** — surface `BlueprintPack` rows in the wizard UI; persist `pack_slug` into school settings; have `tasks.py` call `blueprint_apply.apply_pack(school, pack)` during provisioning.
-5. **"Start with sample data" toggle** — checkbox in wizard step 3 that runs `seed_demo_tenant_users` post-provision and lands the admin on `attendance/today/` for a populated sample class.
+1. **Magic-link at `verify_signup`** — ✅ **DONE.** `apps/schools/signup_views.py:664-685` auto-logs in the newly-verified admin via `auth_login(request, admin_user)` and redirects to `studio_os:launch` (with `accounts:backend_dashboard` fallback). Falls back to legacy `/authentication/login/?next=…` only when the admin user cannot be resolved.
+2. **DNS automation** — ✅ **DONE.** `apps/schools/dns_providers/{base.py,cloudflare.py,route53.py}` exist with a uniform `create_record(subdomain, target)` interface. `apps/schools/tasks.py:137 _provision_dns_record()` triggers from `_do_provision` (line 639), creates the record via Cloudflare (token + zone_id from settings, with Cloudflare 81057 "record already exists" idempotency) or Route53, then runs `hostname_resolves(fqdn, timeout=4.0)` via `apps/schools/dns_verification.py`. No-op when `DNS_PROVIDER` is unset (self-hosted). `verify_and_activate_schooldomain()` flips `SchoolDomain.is_verified=True` once TXT proof is in place.
+3. **Marketing CTAs through `/onboard/`** — ✅ **DONE.** All marketing templates now route through `onboard_wizard`.
+4. **Blueprint pack picker** — ✅ **DONE.** `apps/schools/signup_views.py:363-391` lists country-ranked `BlueprintPack` rows in step 2; selection persists to `onboarding_pack_slug` session key. `apps/schools/tasks.py:235 _maybe_apply_onboarding_blueprint_pack()` is called from `_do_provision` at line 927, looking up the pack by slug and applying via `apps.policies.blueprint_registry.apply_blueprint_pack`.
+5. **"Start with sample data" toggle** — ✅ **DONE.** Checkbox in `templates/schools/onboard_wizard.html:154`; session capture in `signup_views.py:528`; `apps/schools/tasks.py:298 _maybe_seed_onboarding_sample_data()` triggers `seed_demo_users_for_school()` from `_do_provision` at line 930. Emits a `SAMPLE_DATA_READY` audit event on completion.
+
+Operator-initiated tenant creation also shipped: `super:create_school_wizard` at `apps/schools/super_urls.py:101`, surfaced as the primary CTA on the super dashboard hero and in the control-plane nav.
 
 ## Pass 8 — Importer rebuild (3-4 weeks)
 
@@ -118,8 +120,8 @@ The rest of pass 13 (real ML risk model), pass 14 (publisher dashboard + Stripe 
 
 Audit A's remaining 12 items — status refreshed 2026-05-14 against actual code:
 1. ~~Add `<caption>` to every data table in analytics/finance/attendance/evals~~ **DONE 2026-05-11**.
-2. Darken `#94a3b8` muted-text variables to `#64748b` for AA contrast — **PARTIAL.** `--text-muted` is `#86868b` (light) / `#8e8e93` (dark); `--admin-sidebar-text-muted: #94a3b8` still ships; addressed in the WCAG re-audit pass on `docs/CONTRAST_AUDIT_2026_05_14.md`.
-3. Header gradient — **PARTIAL.** `--header-brand-fg: #f8fafc` (slate-50) at `design-tokens.css:161`. Needs final 4.5:1 verification against `--brand-gradient` endpoints; tracked in contrast audit.
+2. ~~Darken muted-text variables for AA contrast~~ — **DONE.** Verified against `docs/CONTRAST_AUDIT_2026_05_14.md`. `--text-muted` (light) is now `#6c6c70` (`design-tokens.css:55`) — 4.86:1 on `#f5f5f7`, AA pass. `--admin-sidebar-text-muted: #94a3b8` is correct as-is for the dark sidebar bg (`#0f172a`) — contrast ratio 6.65:1, AA pass per the audit. Stone-theme `--text-muted` shifted `#a8a29e` → `#6b6660` (5.04:1) and `--text-tertiary` `#78716c` → `#57534e` (7.65:1) in wave NS-3.
+3. ~~Header gradient AA verification~~ — **DONE.** `--header-brand-overlay` bumped `0.25` → `0.35` (`design-tokens.css:167`), lifting worst-case emerald-endpoint legibility from 4.03:1 to **5.14:1** (AA pass). Default indigo→indigo gradient was already comfortably above AA.
 4. ~~Roll out `min-touch-target` to default `.btn`~~ — **DONE.** `min-height: 24px` in `patterns.css:430`; aesthetic-v2 `.btn` rule at `design-tokens.css:429+`.
 5. ~~Fix `role="banner"` on `<nav>` in `base.html:127`~~ — **DONE.** No matching `role="banner"` in any base template.
 6. ~~Add `aria-label` to `<aside>` regions in `control_plane_base.html`~~ — **DONE.** `control_plane_base.html:76` has `aria-label="{% trans 'Control plane navigation' %}"`.
