@@ -64,12 +64,14 @@ def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
 
     # Build list of (classroom, subject, teacher_user) from SubjectAssignment + TeacherAssignment
     demands = []
+    # tenant-isolation-allow: scoped via academic_year + term FKs (both tenant-bound; solver receives pre-scoped objects)
     subject_assignments = SubjectAssignment.objects.filter(
         academic_year=academic_year,
         term=term,
     ).select_related("classroom", "subject")
     for sa in subject_assignments:
         ta = (
+            # tenant-isolation-allow: scoped via subject_assignment FK + academic_year FK (tenant-bound)
             TeacherAssignment.objects.filter(
                 subject_assignment=sa,
                 academic_year=academic_year,

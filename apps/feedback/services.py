@@ -368,6 +368,7 @@ def summarize_feedback_by_role():
 
 
 def detect_churn_risk_signals():
+    # tenant-isolation-allow: platform-level churn-risk analytics aggregated across all tenants for super-admin dashboards (results grouped by school below)
     risky = FeedbackSubmission.objects.filter(
         severity__in=[FeedbackSubmission.Severity.HIGH, FeedbackSubmission.Severity.CRITICAL],
         status__in=[FeedbackSubmission.Status.NEW, FeedbackSubmission.Status.TRIAGED],

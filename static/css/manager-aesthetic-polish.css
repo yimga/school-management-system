@@ -499,3 +499,122 @@
 [data-theme="dark"] #cp-main-content .rmc-acx-metric-card__value {
   color: var(--text-primary, #f5efe3);
 }
+
+/* ========================================================================== */
+/* COOL-APPLE PROFILE — v2.51 (2026-05-15)                                     */
+/* ========================================================================== */
+/*
+ * Manager now ships data-rmc-aesthetic="cool-apple" as the SSR default
+ * (control_plane_skeleton.html). The .cp-* tokens defined in
+ * manager-control-plane.css (--cp-panel-bg, --cp-shadow, etc.) were tuned
+ * for a single dark deep-navy state. The mockup the user shared
+ * (aesthetic_preview.html) prescribes:
+ *   - Light: slate-50 body (#f8fafc), white cards, slate-900 text, apple
+ *     hairline + diffused elevation
+ *   - Dark:  deep-navy body (#0b1120), slate-800 cards (#1e293b),
+ *     slate-100 text, hairline + diffused elevation
+ * These rules re-point the cp-* surface tokens to apple-style values when
+ * cool-apple is active, so manager surfaces match the mockup without
+ * touching every individual .cp-* component rule.
+ */
+
+[data-rmc-aesthetic="cool-apple"] {
+  /* Token-level repoint — every .cp-overview-card / .cp-panel / .cp-workstream-card
+     / .cp-health-card / etc. reads these and immediately picks up the apple
+     elevation + hairline + canvas color. */
+  --cp-panel-bg: var(--surface-canvas);
+  --cp-panel-border: var(--hairline-strong);
+  --cp-shadow: var(--apple-elev-2);
+  --cp-bg: var(--surface-bg);
+  --cp-text: var(--text-primary);
+  --cp-muted: var(--text-tertiary);
+}
+
+/* Manager content area inherits the canvas; chrome (navbar/sidebar) stays
+   dark in light mode for the operator-style two-tone shell. */
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content {
+  background-color: var(--surface-bg);
+  color: var(--text-primary);
+}
+
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content .card,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content .rmc-acx-glass-panel,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content .rmc-acx-metric-card,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content .rmc-acx-drawer,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content .studio-os__card,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content .cp-overview-card,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content .cp-panel,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content .cp-readiness-card,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content .cp-health-card,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content .cp-footprint-card,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content .cp-table-card,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content .cp-stack-card,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content .cp-queue-card,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content .cp-workstream-card {
+  background-color: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--apple-elev-1);
+  color: var(--text-primary);
+  border-radius: 16px;  /* Apple squircle radius */
+}
+
+/* Apple focus ring on every focusable element in the manager content area. */
+[data-rmc-aesthetic="cool-apple"] #cp-main-content button:focus-visible,
+[data-rmc-aesthetic="cool-apple"] #cp-main-content a:focus-visible,
+[data-rmc-aesthetic="cool-apple"] #cp-main-content input:focus-visible,
+[data-rmc-aesthetic="cool-apple"] #cp-main-content select:focus-visible,
+[data-rmc-aesthetic="cool-apple"] #cp-main-content textarea:focus-visible,
+[data-rmc-aesthetic="cool-apple"] #cp-main-content [tabindex]:focus-visible {
+  outline: none;
+  box-shadow: var(--apple-focus-ring);
+}
+
+/* Tighten typography tracking the mockup uses. */
+[data-rmc-aesthetic="cool-apple"] #cp-main-content h1,
+[data-rmc-aesthetic="cool-apple"] #cp-main-content .h1,
+[data-rmc-aesthetic="cool-apple"] #cp-main-content .page-h1,
+[data-rmc-aesthetic="cool-apple"] #cp-main-content .cp-hero-title {
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+[data-rmc-aesthetic="cool-apple"] #cp-main-content h2,
+[data-rmc-aesthetic="cool-apple"] #cp-main-content .h2,
+[data-rmc-aesthetic="cool-apple"] #cp-main-content .cp-panel-title {
+  letter-spacing: -0.015em;
+  font-weight: 700;
+}
+
+/* Top navbar gets the apple frosted material treatment so it floats. */
+[data-rmc-aesthetic="cool-apple"] .cp-navbar.statement-header {
+  background: var(--apple-material-bg);
+  border-bottom: 1px solid var(--apple-material-border);
+  backdrop-filter: var(--apple-material);
+  -webkit-backdrop-filter: var(--apple-material);
+}
+
+/* Primary nav pills (Home / Operations / Marketplace / …) — same material treatment. */
+[data-rmc-aesthetic="cool-apple"] .cp-primary-nav {
+  background: var(--apple-material-bg) !important;
+  border-bottom: 1px solid var(--apple-material-border) !important;
+  backdrop-filter: var(--apple-material);
+  -webkit-backdrop-filter: var(--apple-material);
+}
+
+/* Chip row spacing + apple radius. */
+[data-rmc-aesthetic="cool-apple"] [data-rmc-cp-chip-row] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+[data-rmc-aesthetic="cool-apple"] .cp-chip {
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: var(--type-size-caption);
+  font-weight: 600;
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline-strong);
+  color: var(--text-secondary);
+}

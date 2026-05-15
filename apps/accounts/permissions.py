@@ -876,6 +876,7 @@ def can_view_student_data(user, student_id: int) -> bool:
 
     # Get the student
     try:
+        # tenant-isolation-allow: permissions layer relies on RLS-bound session for tenant scoping (see schools migration 0048 + tenants-rls.yml CI gate)
         student = StudentProfile.objects.get(id=student_id)
     except StudentProfile.DoesNotExist:
         return False
@@ -886,6 +887,7 @@ def can_view_student_data(user, student_id: int) -> bool:
         if teacher and student.classroom_id:
             from apps.evals.models import TeacherAssignment
 
+            # tenant-isolation-allow: scoped via teacher + classroom FKs (both tenant-bound) plus RLS-bound session
             return TeacherAssignment.objects.filter(
                 teacher=teacher,
                 is_active=True,
@@ -941,6 +943,7 @@ def can_edit_student_grades(
 
     # Get student
     try:
+        # tenant-isolation-allow: permissions layer relies on RLS-bound session for tenant scoping
         student = StudentProfile.objects.get(id=student_id)
     except StudentProfile.DoesNotExist:
         return False
@@ -950,6 +953,7 @@ def can_edit_student_grades(
         teacher = getattr(user, "teacher_profile", None)
         if not teacher:
             return False
+        # tenant-isolation-allow: scoped via teacher + classroom FKs (both tenant-bound) plus RLS-bound session
         assignment_filter = TeacherAssignment.objects.filter(
             teacher=teacher,
             is_active=True,
@@ -1002,6 +1006,7 @@ def can_view_invoice(user, invoice_id: int) -> bool:
 
     # Get invoice
     try:
+        # tenant-isolation-allow: permissions layer relies on RLS-bound session for tenant scoping
         invoice = Invoice.objects.get(id=invoice_id)
     except Invoice.DoesNotExist:
         return False

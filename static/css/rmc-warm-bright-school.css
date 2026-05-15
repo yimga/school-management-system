@@ -117,19 +117,32 @@
 /* ============================================================ */
 
 [data-rmc-aesthetic="cool-apple"] {
-  --surface-bg:        var(--site-aesthetic-surface-bg, #f5f5f7);
-  --surface-canvas:    var(--site-aesthetic-surface-canvas, #fbfbfd);
+  /* v2.51 (2026-05-15): slate-50 + indigo palette matching the operator
+     mockup. Replaces the Apple-gray (#f5f5f7) preset. */
+  --surface-bg:        var(--site-aesthetic-surface-bg, #f8fafc);     /* slate-50 */
+  --surface-canvas:    var(--site-aesthetic-surface-canvas, #ffffff); /* pure white card */
   --surface-elevated:  #ffffff;
   --surface-popover:   color-mix(in oklab, #ffffff 92%, transparent);
-  --surface-sunken:    #ebebef;
+  --surface-sunken:    #f1f5f9;                                       /* slate-100 */
 
-  --text-primary:   var(--site-aesthetic-text-primary, #1d1d1f);
-  --text-secondary: #424245;
-  --text-tertiary:  #6e6e73;
-  --text-muted:     #6c6c70;
+  --text-primary:   var(--site-aesthetic-text-primary, #0f172a);      /* slate-900 */
+  --text-secondary: #334155;                                          /* slate-700 */
+  --text-tertiary:  #64748b;                                          /* slate-500 */
+  --text-muted:     #94a3b8;                                          /* slate-400 */
 
-  --hairline:        rgba(0, 0, 0, 0.08);
-  --hairline-strong: rgba(0, 0, 0, 0.14);
+  --hairline:        rgba(15, 23, 42, 0.08);
+  --hairline-strong: rgba(15, 23, 42, 0.14);
+
+  /* Apple-style layered elevation: hairline + diffused shadow stacked.
+     Calibrated for light slate canvas. */
+  --elev-1: 0 0 0 1px rgba(15, 23, 42, 0.05),
+            0 1px 2px rgba(15, 23, 42, 0.04);
+  --elev-2: 0 0 0 1px rgba(15, 23, 42, 0.05),
+            0 4px 12px -2px rgba(15, 23, 42, 0.08),
+            0 2px 4px -1px rgba(15, 23, 42, 0.04);
+  --elev-3: 0 0 0 1px rgba(15, 23, 42, 0.06),
+            0 12px 32px -4px rgba(15, 23, 42, 0.10),
+            0 4px 8px -2px rgba(15, 23, 42, 0.05);
 
   /* Cool accents take precedence here unless tenant overrode */
   --accent-honey: var(--site-aesthetic-accent-warm, #d97706);
@@ -139,16 +152,33 @@
 }
 
 [data-rmc-aesthetic="cool-apple"][data-theme="dark"] {
-  --surface-bg:       #000000;
-  --surface-canvas:   #1c1c1e;
-  --surface-elevated: #2c2c2e;
-  --surface-sunken:   #0a0a0c;
-  --text-primary:     #f5f5f7;
-  --text-secondary:   #ebebf5;
-  --text-tertiary:    #aeaeb2;
-  --text-muted:       #8e8e93;
-  --hairline:         rgba(255, 255, 255, 0.10);
-  --hairline-strong:  rgba(255, 255, 255, 0.16);
+  /* v2.51 (2026-05-15): deep-navy slate palette matching the operator
+     mockup (aesthetic_preview.html). Was pure-black Apple iOS palette;
+     replaced with the slate-navy scheme the manager surface is tuned for. */
+  --surface-bg:       #0b1120;           /* deep navy body */
+  --surface-canvas:   #1e293b;           /* slate-800 card */
+  --surface-elevated: #1e293b;           /* same as canvas — single tier */
+  --surface-popover:  color-mix(in oklab, #1e293b 90%, transparent);
+  --surface-sunken:   #060914;           /* near-black sidebar/sunken */
+  --surface-overlay:        rgba(148, 163, 184, 0.06);
+  --surface-overlay-strong: rgba(148, 163, 184, 0.10);
+
+  --text-primary:     #f1f5f9;           /* slate-100 */
+  --text-secondary:   #e2e8f0;           /* slate-200 */
+  --text-tertiary:    #94a3b8;           /* slate-400 */
+  --text-muted:       #64748b;           /* slate-500 */
+
+  --hairline:         rgba(148, 163, 184, 0.16);
+  --hairline-strong:  rgba(148, 163, 184, 0.24);
+
+  /* Elevations from aesthetic_preview.html — layered hairline + diffused
+     shadow, calibrated for dark slate (no warm undertone). */
+  --elev-1: 0 0 0 1px rgba(148, 163, 184, 0.14),
+            0 1px 2px rgba(0, 0, 0, 0.30);
+  --elev-2: 0 0 0 1px rgba(148, 163, 184, 0.16),
+            0 4px 12px -2px rgba(0, 0, 0, 0.40);
+  --elev-3: 0 0 0 1px rgba(148, 163, 184, 0.20),
+            0 12px 32px -4px rgba(0, 0, 0, 0.45);
 }
 
 

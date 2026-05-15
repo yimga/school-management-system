@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-15T21:10:31.976137+00:00",
+  "generated_at": "2026-05-15T21:31:39.325920+00:00",
   "tenant_scoped_models": [
     "AIEmbeddingStore",
     "APIKey",
@@ -203,18 +203,18 @@
     "WorkflowPackAssignment"
   ],
   "tenant_model_count": 200,
-  "finding_count": 742,
+  "finding_count": 734,
   "findings_per_app": {
     "evals": 118,
     "portal": 80,
-    "accounts": 78,
+    "accounts": 73,
     "schools": 65,
     "api": 63,
     "finance": 55,
     "analytics": 50,
     "reports": 39,
     "siteconfig": 35,
-    "academics": 34,
+    "academics": 32,
     "platform_runtime": 23,
     "migration_cloud": 21,
     "people": 15,
@@ -225,7 +225,6 @@
     "apicenter": 8,
     "dashboard": 8,
     "student360": 2,
-    "feedback": 1,
     "metadata": 1
   },
   "findings": [
@@ -395,22 +394,6 @@
       "model": "Subject",
       "method": "filter",
       "call": "Subject.objects.filter(...)",
-      "reason": "no_school_filter"
-    },
-    {
-      "file": "apps/academics/scheduling_solver.py",
-      "line": 67,
-      "model": "SubjectAssignment",
-      "method": "filter",
-      "call": "SubjectAssignment.objects.filter(...)",
-      "reason": "no_school_filter"
-    },
-    {
-      "file": "apps/academics/scheduling_solver.py",
-      "line": 73,
-      "model": "TeacherAssignment",
-      "method": "filter",
-      "call": "TeacherAssignment.objects.filter(...)",
       "reason": "no_school_filter"
     },
     {
@@ -611,46 +594,6 @@
       "model": "SubjectAssignment",
       "method": "filter",
       "call": "SubjectAssignment.objects.filter(...)",
-      "reason": "no_school_filter"
-    },
-    {
-      "file": "apps/accounts/permissions.py",
-      "line": 879,
-      "model": "StudentProfile",
-      "method": "get",
-      "call": "StudentProfile.objects.get(...)",
-      "reason": "no_school_filter"
-    },
-    {
-      "file": "apps/accounts/permissions.py",
-      "line": 889,
-      "model": "TeacherAssignment",
-      "method": "filter",
-      "call": "TeacherAssignment.objects.filter(...)",
-      "reason": "no_school_filter"
-    },
-    {
-      "file": "apps/accounts/permissions.py",
-      "line": 944,
-      "model": "StudentProfile",
-      "method": "get",
-      "call": "StudentProfile.objects.get(...)",
-      "reason": "no_school_filter"
-    },
-    {
-      "file": "apps/accounts/permissions.py",
-      "line": 953,
-      "model": "TeacherAssignment",
-      "method": "filter",
-      "call": "TeacherAssignment.objects.filter(...)",
-      "reason": "no_school_filter"
-    },
-    {
-      "file": "apps/accounts/permissions.py",
-      "line": 1005,
-      "model": "Invoice",
-      "method": "get",
-      "call": "Invoice.objects.get(...)",
       "reason": "no_school_filter"
     },
     {
@@ -3363,14 +3306,6 @@
       "model": "Classroom",
       "method": "filter",
       "call": "Classroom.objects.filter(...)",
-      "reason": "no_school_filter"
-    },
-    {
-      "file": "apps/feedback/services.py",
-      "line": 371,
-      "model": "FeedbackSubmission",
-      "method": "filter",
-      "call": "FeedbackSubmission.objects.filter(...)",
       "reason": "no_school_filter"
     },
     {

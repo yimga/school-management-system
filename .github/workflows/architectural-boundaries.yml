@@ -269,3 +269,29 @@ jobs:
         # undefined class.
         run: |
           python scripts/scan_undefined_css_classes.py --compare
+
+  real-migration-drift:
+    name: "Real migration drift (cosmetic F2 drift filtered)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install runtime dependencies
+        # Required for manage.py makemigrations --dry-run inside the helper.
+        working-directory: beta/school-management-system
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Detect real schema drift
+        # Wave L (v2.48+L1b): `manage.py makemigrations --check` is
+        # noisy after F2's callable inlining (v2.47), reporting ~38
+        # cosmetic AlterField ops on every run. This wrapper filters
+        # those out and exits 1 only when a REAL schema change has
+        # slipped past the migration graph. Without this, operators
+        # can't tell ambient drift from genuine forgotten migrations.
+        run: |
+          python scripts/check_real_migration_drift.py

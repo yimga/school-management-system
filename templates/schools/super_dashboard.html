@@ -24,26 +24,52 @@
   {% url 'super:create_school_wizard' as wcx_create_school_url %}
   {% url 'configuration:center' as wcx_configuration_url %}
   {% url 'super:command_center' as wcx_command_center_url %}
+  {% comment %} v2.51 (2026-05-15) — dashboard redundancy strip.
+     Previously this page rendered THREE separate KPI strips (world_class_summary_strip,
+     cp-overview-grid, cp-health-grid "Executive pulse"), TWO heroes (world_class_page_hero
+     + cp-hero), and TWO External-blockers panels (cmd-health glass + cmd-product-moments
+     risk-blocker-card). Every value was being shown 2-3 times in slightly different
+     visual styles, producing the "buggy / too much going on" effect the user flagged.
+     We now keep ONE hero + ONE consolidated KPI strip + ONE story-card row. Detail
+     remains accessible inside the <details data-rmc-manager-progressive-disclosure>
+     panel further down. {% endcomment %}
   {% include "components/world_class_page_hero.html" with hero_id="super-command-center-title" role=_("Platform operators") title=_("Platform Command Center") subtitle=_("Operate platform health, tenant risk, implementation pipeline, revenue/payment readiness, marketplace governance, security/compliance, and proof ledger from one premium command center.") purpose=_("Platform command center") status=_("UI/UX transformation active") primary_url=wcx_create_school_url primary_label=_("Setup Studio") secondary_url=wcx_configuration_url secondary_label=_("Configuration center") visual_title=_("Operator confidence") visual_body=_("Top risks, external blockers, queues, and recent proof are above the fold before deep configuration opens.") %}
+
+  {% comment %} Chips: at-a-glance platform pulse. Replaces the redundant cp-hero chip row. {% endcomment %}
+  <div class="cp-chip-row mb-3" data-rmc-cp-chip-row="1">
+    <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'warning' }}">{% blocktrans with status=platform_health.overall_status|default:"warning"|upper %}Platform {{ status }}{% endblocktrans %}</span>
+    {% if platform_incidents_url %}
+      <a href="{{ platform_incidents_url }}" class="cp-chip text-decoration-none" title="{% trans 'Open incident console' %}">{% blocktrans with count=platform_incidents|length %}Open incidents {{ count }}{% endblocktrans %}</a>
+    {% else %}
+      <span class="cp-chip">{% blocktrans with count=platform_incidents|length %}Open incidents {{ count }}{% endblocktrans %}</span>
+    {% endif %}
+    <span class="cp-chip">{% blocktrans with live=countries_live_count total=registry_counts.countries %}Countries live {{ live }}/{{ total }}{% endblocktrans %}</span>
+    <span class="cp-chip">{% blocktrans with drift=webhook_stack.unsynced_legacy_groups|default:0 %}Webhook drift {{ drift }}{% endblocktrans %}</span>
+    {% if command_center_url and attention_school_count %}
+      <a href="{{ command_center_url }}" class="cp-chip text-decoration-none" title="{% trans 'Open operational queues' %}">{% blocktrans with count=attention_school_count %}Schools needing attention {{ count }}{% endblocktrans %}</a>
+    {% else %}
+      <span class="cp-chip">{% blocktrans with count=attention_school_count %}Schools needing attention {{ count }}{% endblocktrans %}</span>
+    {% endif %}
+  </div>
+
+  {% comment %} Canonical KPI strip. Replaces summary_strip + platform_readiness_strip
+     + cp-overview-grid + cp-health-grid (all showed overlapping values). {% endcomment %}
   {% include "components/world_class_summary_strip.html" with readiness=north_star_formatted readiness_label=_("North Star") risk=platform_health.overall_status risk_label=_("Platform health") next_step=_("Setup") next_step_label=_("Primary action") blockers=attention_school_count blockers_label=_("Schools needing attention") %}
-  {% include "components/platform_readiness_strip.html" with inline_field_prefix='super-cmd' %}
 
-  {% comment %} Phase G follow-through (2026-05-12): platform-wide section nav strip so this
-     764-line operator dashboard is navigable instead of an endless scroll. {% endcomment %}
-  <nav class="rmc-section-nav rmc-section-nav--horizontal mb-3" aria-label="{% trans 'Control plane sections' %}">
-    <ul class="rmc-section-nav__list">
-      <li><a href="#cmd-health"><i class="bi bi-activity" aria-hidden="true"></i>{% trans "Health" %}</a></li>
-      <li><a href="#cmd-product-moments"><i class="bi bi-stars" aria-hidden="true"></i>{% trans "Product moments" %}</a></li>
-      <li><a href="#cmd-curated"><i class="bi bi-bookmark-star" aria-hidden="true"></i>{% trans "Curated links" %}</a></li>
-    </ul>
-  </nav>
+  {% comment %} Quick-action bar. Single row of operator destinations. {% endcomment %}
+  <div class="ds-action-bar d-flex flex-wrap gap-2 mb-4" role="toolbar" aria-label="{% trans 'Operator quick actions' %}">
+    <a href="{{ command_center_url|default:wcx_command_center_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Queues" %}</a>
+    <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-secondary btn-sm">{% trans "Billing" %}</a>
+    <a href="{% url 'super:migration_cloud' %}" class="btn btn-outline-secondary btn-sm">{% trans "Migration" %}</a>
+    <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-secondary btn-sm">{% trans "Marketplace" %}</a>
+    {% if platform_incidents_url %}<a href="{{ platform_incidents_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Incidents" %}</a>{% endif %}
+    <a href="{% url 'super:export_super_dashboard_pdf' %}{% if current_request_month %}?month={{ current_request_month }}{% endif %}" class="btn btn-outline-secondary btn-sm">{% trans "Export PDF" %}</a>
+  </div>
 
-  <section id="cmd-health" data-rmc-section-anchor class="rmc-wcx-grid mb-4" data-apple-class-command-strip="platform-health schools-needing-attention open-change-requests external-blockers implementation-pipeline">
-    {% include "components/apple_class_metric_card.html" with label=_("Platform Health") value=platform_health.overall_status meta=_("Health first, details behind progressive disclosure") %}
-    {% include "components/apple_class_metric_card.html" with label=_("Schools Needing Attention") value=attention_school_count meta=_("Click through to the filtered queue") %}
-    {% include "components/apple_class_glass_panel.html" with panel_id="super-external-blockers" label=_("External Blockers") title=_("PSP and live proof stay visible") body=_("Payment, settlement, certification, and Render parity claims stay blocked until external evidence exists.") %}
-  </section>
+  {% comment %} Risk drawer (collapsed by default — toggles to full panel on click). {% endcomment %}
   {% include "components/apple_class_quick_profile_drawer.html" with drawer_id="super-risk-drawer" role=_("Risk drawer") title=_("Tenant risk quick profile") body=_("Operators can review owner, risk, proof, and next action from a side panel instead of page hopping.") primary_url=command_center_url primary_label=_("Open risk queue") %}
+
+  {% comment %} Story cards — these tell the situation, not the numbers. {% endcomment %}
   <section id="cmd-product-moments" data-rmc-section-anchor class="rmc-wcx-grid mb-4 rmc-reveal" data-world-class-super-sections="platform-pulse tenant-risk implementation-pipeline revenue-payment-readiness marketplace-governance security-compliance proof-ledger">
     {% include "components/world_class_product_moment_card.html" with title=_("Platform Pulse") outcome=_("Health, incidents, open approvals, and support pressure are visible immediately.") status=platform_health.overall_status action_url=command_center_url action_label=_("Open queues") %}
     {% include "components/world_class_risk_blocker_card.html" with title=_("External blockers") severity="medium" owner=_("Platform operator") boundary=_("PSP, settlement, and live certification remain external proof") next_step=_("Collect proof before claiming readiness") %}
@@ -62,93 +88,13 @@
     </div>
   </div>
   {% endif %}
-  <section class="cp-hero mb-4 rmc-reveal" data-decision-zone="headline">
-    <div class="cp-hero-grid">
-      <div>
-        <div class="cp-eyebrow">{% trans "RunMyCampus Platform" %}</div>
-        {% comment %} Pass 8 UX consistency: was h1; the world_class_page_hero partial (line 27)
-           already provides the single page H1 ("Platform Command Center"). Demoting to
-           h2 keeps the visual prominence (cp-hero-title styling) but fixes the duplicate
-           heading-outline a screen reader would otherwise announce. {% endcomment %}
-        <h2 class="cp-hero-title">{% trans "Control Plane" %}</h2>
-        <p class="cp-hero-copy">
-          {% trans "Operate the platform from one place: provisioning, billing, incidents, readiness, branding, and global rollout. The command center for every school." %}
-        </p>
-        <div class="cp-chip-row">
-          <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'warning' }}">{% blocktrans with status=platform_health.overall_status|default:"warning"|upper %}Platform {{ status }}{% endblocktrans %}</span>
-          {% if platform_incidents_url %}
-          <a href="{{ platform_incidents_url }}" class="cp-chip text-decoration-none" title="{% trans 'Open incident console' %}">{% blocktrans with count=platform_incidents|length %}Open incidents {{ count }}{% endblocktrans %}</a>
-          {% else %}
-          <span class="cp-chip">{% blocktrans with count=platform_incidents|length %}Open incidents {{ count }}{% endblocktrans %}</span>
-          {% endif %}
-          <span class="cp-chip">{% blocktrans with live=countries_live_count total=registry_counts.countries %}Countries live {{ live }}/{{ total }}{% endblocktrans %}</span>
-          <span class="cp-chip">{% blocktrans with drift=webhook_stack.unsynced_legacy_groups|default:0 %}Webhook drift {{ drift }}{% endblocktrans %}</span>
-          {% if command_center_url and attention_school_count %}
-          <a href="{{ command_center_url }}" class="cp-chip text-decoration-none" title="{% trans 'Open operational queues' %}">{% blocktrans with count=attention_school_count %}Schools needing attention {{ count }}{% endblocktrans %}</a>
-          {% else %}
-          <span class="cp-chip">{% blocktrans with count=attention_school_count %}Schools needing attention {{ count }}{% endblocktrans %}</span>
-          {% endif %}
-        </div>
-      </div>
-      <div class="cp-hero-actions ds-action-bar">
-        <div class="cp-action-stack">
-          <div class="cp-hero-stat">
-            <span class="cp-hero-stat-label">{{ north_star_label }}</span>
-            <strong class="cp-hero-stat-value">{{ north_star_formatted }}</strong>
-            <span class="cp-hero-stat-subtitle">{{ revenue_snapshot_month|date:"F Y" }}</span>
-          </div>
-          <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary cp-primary-action">{% trans "Setup Studio" %}</a>
-          <div class="cp-action-row">
-            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="btn btn-outline-light btn-sm">{% trans "Queues" %}</a>
-            <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-light btn-sm">{% trans "Billing" %}</a>
-            <a href="{% url 'super:migration_cloud' %}" class="btn btn-outline-light btn-sm">{% trans "Migration" %}</a>
-            <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">{% trans "Marketplace" %}</a>
-            {% if platform_incidents_url %}<a href="{{ platform_incidents_url }}" class="btn btn-outline-light btn-sm">{% trans "Incidents" %}</a>{% endif %}
-            <a href="{% url 'super:export_super_dashboard_pdf' %}{% if current_request_month %}?month={{ current_request_month }}{% endif %}" class="btn btn-outline-light btn-sm">{% trans "Export PDF" %}</a>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="cp-overview-grid">
-      {% for card in overview_cards %}
-      <article class="cp-overview-card cp-overview-card-{{ card.tone|default:'slate' }}" class="rmc-reveal">
-        <span class="cp-overview-label">{{ card.label }}</span>
-        <strong class="cp-overview-value">{{ card.value }}</strong>
-        <span class="cp-overview-meta">{{ card.meta }}</span>
-      </article>
-      {% endfor %}
-    </div>
-  </section>
-  <section class="cp-panel mb-4 rmc-reveal" aria-label="{% trans 'Executive pulse' %}">
-    <div class="cp-panel-header">
-      <div>
-        <span class="cp-panel-eyebrow">{% trans "Executive pulse" %}</span>
-        <h2 class="cp-panel-title">{% trans "Score, risk, revenue, and system health at a glance" %}</h2>
-      </div>
-    </div>
-    <div class="cp-health-grid">
-      <article class="cp-health-card cp-health-card-neutral rmc-reveal">
-        <span class="cp-health-label">{% trans "North Star score" %}</span>
-        <strong class="cp-health-value">{{ north_star_formatted }}</strong>
-        <span class="cp-health-meta">{{ revenue_snapshot_month|date:"F Y" }}</span>
-      </article>
-      <article class="cp-health-card cp-health-card-warning rmc-reveal">
-        <span class="cp-health-label">{% trans "Operational risk" %}</span>
-        <strong class="cp-health-value">{{ command_center.tenant_churn_risk_count|default:0 }}</strong>
-        <span class="cp-health-meta">{% trans "Schools in risk watch" %}</span>
-      </article>
-      <article class="cp-health-card cp-health-card-success rmc-reveal">
-        <span class="cp-health-label">{% trans "Revenue posture" %}</span>
-        <strong class="cp-health-value">{{ north_star_formatted }}</strong>
-        <span class="cp-health-meta">{% trans "Use month picker below for detail" %}</span>
-      </article>
-      <article class="cp-health-card cp-health-card-neutral rmc-reveal">
-        <span class="cp-health-label">{% trans "System health" %}</span>
-        <strong class="cp-health-value">{{ platform_health.overall_status|default:"unknown"|upper }}</strong>
-        <span class="cp-health-meta">{% blocktrans with incidents=platform_incidents|length approvals=pending_approval_count %}Incidents {{ incidents }} · approvals {{ approvals }}{% endblocktrans %}</span>
-      </article>
-    </div>
-  </section>
+  {% comment %} v2.51 (2026-05-15) — duplicate cp-hero + cp-overview-grid + cp-panel
+     "Executive pulse" removed. Their data lived in world_class_summary_strip,
+     cp-chip-row, and the ds-action-bar above. No information is lost; the
+     visual stacking and apparent "duplicate North Star / Revenue posture /
+     System health" cards are gone. Full operating board (action queue, fleet
+     health, tenant registry, readiness) is still reachable via the
+     "Open detailed operating board" disclosure below. {% endcomment %}
 
   {{ super_dashboard_section_order|json_script:"cp-section-order-json" }}
   <details class="cp-progressive-disclosure mb-4" data-rmc-manager-progressive-disclosure="1">
