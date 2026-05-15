@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block title %}{% trans "HR & Status" %}{% endblock %}
 
@@ -14,7 +15,7 @@
     <div class="card-body">
       <ul class="list-unstyled mb-0">
         <li><strong>{% trans "Position" %}:</strong> {{ teacher_profile.position_title|default:"—" }}</li>
-        <li><strong>{% trans "Department" %}:</strong> {{ teacher_profile.department.name|default:"—" }}</li>
+        <li><strong>{% trans_term "Department" key="department" %}:</strong> {{ teacher_profile.department.name|default:"—" }}</li>
         <li><strong>{% trans "Staff ID" %}:</strong> {{ teacher_profile.staff_id|default:"—" }}</li>
         <li><strong>{% trans "Pay grade" %}:</strong> {{ teacher_profile.pay_grade|default:"—" }}</li>
       </ul>

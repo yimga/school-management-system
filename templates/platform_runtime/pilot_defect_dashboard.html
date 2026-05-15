@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n phase8_tags %}
+{% load terminology_tags %}
 {% block cp_title %}{% trans "Pilot defect closure" %}{% endblock %}
 {% block cp_content %}
 <div class="container-lg py-4" data-decision-engine="surface" data-rmc-pilot-defect-dashboard="{{ page_marker }}">
@@ -61,7 +62,7 @@
           <th>{% trans "ID" %}</th>
           <th>{% trans "Title" %}</th>
           <th>{% trans "Severity" %}</th>
-          <th>{% trans "Module" %}</th>
+          <th>{% trans_term "Module" key="module" %}</th>
           <th>{% trans "SOT batch" %}</th>
           <th>{% trans "Status" %}</th>
         </tr>

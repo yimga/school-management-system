@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load static i18n phase8_tags %}
+{% load terminology_tags %}
 {% load region_format %}
 
 {% block cp_title %}{% trans "Orchestration workbench" %}{% endblock %}
@@ -53,7 +54,7 @@
             <tr>
               <th>ID</th>
               <th>{% trans "Process" %}</th>
-              <th>{% trans "School" %}</th>
+              <th>{% trans_term "School" key="school" %}</th>
               <th>{% trans "Status" %}</th>
               <th>{% trans "SLA" %}</th>
               <th>{% trans "Retries" %}</th>

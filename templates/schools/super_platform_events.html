@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block cp_title %}{% trans "Platform events" %}{% endblock %}
 
@@ -20,7 +21,7 @@
   <div class="table-responsive">
     <table class="table table-sm table-striped table-family align-middle">
       <caption class="visually-hidden">{% trans "Platform event log" %}</caption>
-      <thead><tr><th>{% trans "When" %}</th><th>{% trans "Type" %}</th><th>{% trans "Tenant" %}</th><th>{% trans "School" %}</th><th>{% trans "Payload" %}</th></tr></thead>
+      <thead><tr><th>{% trans "When" %}</th><th>{% trans "Type" %}</th><th>{% trans "Tenant" %}</th><th>{% trans_term "School" key="school" %}</th><th>{% trans "Payload" %}</th></tr></thead>
       <tbody>
         {% for e in events %}
         <tr>

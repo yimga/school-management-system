@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n static %}
+{% load terminology_tags %}
 
 {% block title %}{% trans "Report card builder" %}{% endblock %}
 
@@ -15,7 +16,7 @@
   <table aria-label="Report card style assignments by classroom">
     <thead>
       <tr>
-        <th scope="col">{% trans "Classroom" %}</th>
+        <th scope="col">{% trans_term "Classroom" key="classroom" %}</th>
       </tr>
     </thead>
   </table>

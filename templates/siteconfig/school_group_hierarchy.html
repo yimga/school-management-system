@@ -1,5 +1,6 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block title %}{% trans "School group hierarchy" %} – {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "School group hierarchy" %}{% endblock %}
@@ -25,7 +26,7 @@
   </div>
 
   <div class="card shadow-sm mb-3">
-    <div class="card-header bg-light fw-semibold">{% trans "Parent" %}</div>
+    <div class="card-header bg-light fw-semibold">{% trans_term "Parent" key="parent" %}</div>
     <div class="card-body">
       {% if parent_school %}
       <p class="mb-0"><strong>{{ parent_school.name }}</strong> <span class="text-muted">({{ parent_school.slug }})</span></p>
@@ -60,8 +61,8 @@
     <div class="card-body small">
       {% with g=group_intelligence.group_school att=group_intelligence.attendance rep=group_intelligence.reports hl=group_intelligence.health risks=group_intelligence.risk_signals %}
       {% if g %}
-      <p class="mb-1">{% trans "Campuses" %}: <strong>{{ g.campus_count }}</strong>
-        {% if g.student_count is not None %}· {% trans "Students" %}: <strong>{{ g.student_count }}</strong>{% endif %}</p>
+      <p class="mb-1">{% trans_term "Campuses" key="campus" plural=True %}: <strong>{{ g.campus_count }}</strong>
+        {% if g.student_count is not None %}· {% trans_term "Students" key="student" plural=True %}: <strong>{{ g.student_count }}</strong>{% endif %}</p>
       {% endif %}
       {% if att and att.total_rows is not None %}
       <p class="mb-1 text-muted">{% trans "Attendance records in scope" %}: {{ att.total_rows }}</p>

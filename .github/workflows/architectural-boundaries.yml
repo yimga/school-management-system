@@ -295,3 +295,22 @@ jobs:
         # can't tell ambient drift from genuine forgotten migrations.
         run: |
           python scripts/check_real_migration_drift.py
+
+  documented-baselines:
+    name: "Documented baselines (CLAUDE.md vs var/*.json drift)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Detect doc-vs-baseline drift
+        # Wave N (v2.53+). Every scanner has three numbers that should
+        # agree: CLAUDE.md table, var/security-audit-baseline-*.json,
+        # and live scanner output. CI already catches #2 vs #3 on every
+        # PR; this gate catches #1 vs #2 — the L1a failure mode where
+        # the JSON moved but the doc didn't.
+        run: |
+          python scripts/check_documented_baselines.py

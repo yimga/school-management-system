@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 {% load region_format %}
 {# Section 15.1: Single academic year immutable transcript (read-only). #}
 {% block title %}Transcript {{ snapshot.academic_year_name|default:transcript.academic_year.name }} — {{ student.get_full_name }}{% endblock %}
@@ -20,8 +21,8 @@
     <div class="card-body">
       <table class="table table-sm table-family align-middle" aria-label="{% trans 'Transcript snapshot summary' %}">
         <tbody>
-          <tr><th scope="row" class="text-muted" style="width:12rem;">{% trans "Student" %}</th><td>{{ snapshot.student_name|default:student.get_full_name }}</td></tr>
-          <tr><th scope="row" class="text-muted">{% trans "Academic year" %}</th><td>{{ snapshot.academic_year_name|default:transcript.academic_year.name }}</td></tr>
+          <tr><th scope="row" class="text-muted" style="width:12rem;">{% trans_term "Student" key="student" %}</th><td>{{ snapshot.student_name|default:student.get_full_name }}</td></tr>
+          <tr><th scope="row" class="text-muted">{% trans_term "Academic year" key="academic_year" %}</th><td>{{ snapshot.academic_year_name|default:transcript.academic_year.name }}</td></tr>
           <tr><th scope="row" class="text-muted">{% trans "Annual average" %}</th><td>{{ snapshot.annual_average|floatformat:2|default:"—" }}</td></tr>
           <tr><th scope="row" class="text-muted">{% trans "Class rank" %}</th><td>{{ snapshot.class_rank_display|default:"—" }}</td></tr>
           <tr><th scope="row" class="text-muted">{% trans "Promotion status" %}</th><td>{{ snapshot.promotion_status|default:"—" }}</td></tr>
@@ -31,7 +32,7 @@
       {% if snapshot.term_rows %}
       <h6 class="mt-3">Term breakdown</h6>
       <table class="table table-sm table-bordered" aria-label="{% trans 'Term breakdown' %}">
-        <thead><tr><th scope="col">{% trans "Term" %}</th><th scope="col">{% trans "Average" %}</th><th scope="col">{% trans "Rank" %}</th></tr></thead>
+        <thead><tr><th scope="col">{% trans_term "Term" key="term" %}</th><th scope="col">{% trans "Average" %}</th><th scope="col">{% trans "Rank" %}</th></tr></thead>
         <tbody>
           {% for row in snapshot.term_rows %}
           <tr>

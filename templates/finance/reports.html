@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 {% load region_format %}
 {% load static %}
 
@@ -121,7 +122,7 @@
             <caption class="visually-hidden">{% trans "Overdue by classroom" %}</caption>
             <thead>
               <tr>
-                <th scope="col">{% trans "Classroom" %}</th>
+                <th scope="col">{% trans_term "Classroom" key="classroom" %}</th>
                 <th scope="col" class="text-end">{% trans "Overdue" %}</th>
               </tr>
             </thead>

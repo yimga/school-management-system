@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n static %}
+{% load terminology_tags %}
 {% block title %}{% trans "Report templates (catalog evidence)" %}{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
@@ -32,7 +33,7 @@
   <p class="text-warning">{% trans "No tenant context — open this page on a school host for family-scoped rows." %}</p>
   {% endif %}
   {% if school %}
-  <p class="small text-muted mb-3">{% trans "School" %}: {{ school.name }}</p>
+  <p class="small text-muted mb-3">{% trans_term "School" key="school" %}: {{ school.name }}</p>
   {% endif %}
   <div class="table-responsive mb-3">
     <table class="table table-sm align-middle table-family table-sticky-head" aria-label="{% trans 'Report templates' %}">

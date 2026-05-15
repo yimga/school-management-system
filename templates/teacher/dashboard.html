@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load admin_health evals_extras static region_format i18n phase8_tags %}
+{% load terminology_tags %}
 {% block title %}{% trans "My Teaching Day" %}{% endblock %}
 {% block body_extra_class %}dashboard-page-teacher{% endblock %}
 
@@ -61,7 +62,7 @@
         <li><a href="#teacher-attention"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>{% trans "Attention" %}</a></li>
         <li><a href="#teacher-today"><i class="bi bi-calendar3" aria-hidden="true"></i>{% trans "Today" %}</a></li>
         <li><a href="#teacher-metrics"><i class="bi bi-bar-chart" aria-hidden="true"></i>{% trans "Metrics" %}</a></li>
-        <li><a href="#teacher-classes"><i class="bi bi-mortarboard" aria-hidden="true"></i>{% trans "Classes" %}</a></li>
+        <li><a href="#teacher-classes"><i class="bi bi-mortarboard" aria-hidden="true"></i>{% trans_term "Classes" key="class" plural=True %}</a></li>
       </ul>
     </nav>
 
@@ -131,7 +132,7 @@
           {% endif %}
           <div>
             <div class="tdm-profile-name">{{ request.user.get_full_name|default:request.user.username }}</div>
-            <div class="tdm-profile-meta">{% trans "Teacher" %} | {{ year.name }} | {{ term.label }}</div>
+            <div class="tdm-profile-meta">{% trans_term "Teacher" key="teacher" %} | {{ year.name }} | {{ term.label }}</div>
           </div>
         </div>
         <div class="tdm-profile-actions">
@@ -189,7 +190,7 @@
         <div class="col-12 col-md-6 col-lg-3 rmc-reveal" data-rmc-kpi="attendance-overall">
           <div class="kpi tdm-stat card-glass teal">
             <div class="d-flex align-items-start justify-content-between gap-2">
-              <span class="label tdm-stat-label">{% trans "Attendance" %}</span>
+              <span class="label tdm-stat-label">{% trans_term "Attendance" key="attendance" %}</span>
               <span class="kpi-icon success" aria-hidden="true"><i class="bi bi-people"></i></span>
             </div>
             <div class="value tdm-stat-value" data-rmc-metric-value>{{ widget_data.attendance.overall|default:"0" }}%</div>
@@ -375,7 +376,7 @@
               <p class="text-muted small mb-0">{% trans "No at-risk students." %}</p>
               {% endif %}
               <div class="tdm-action-buttons">
-                <a class="btn btn-soft btn-sm" href="{{ teacher_action_links.message }}">{% trans "Message" %}</a>
+                <a class="btn btn-soft btn-sm" href="{{ teacher_action_links.message }}">{% trans_term "Message" key="message" %}</a>
                 <a class="btn btn-outline-secondary btn-sm" href="{{ teacher_action_links.open_marks }}">{% trans "Open marks" %}</a>
                 <a class="btn btn-outline-primary btn-sm" href="{{ teacher_action_links.flag_hod }}">{% trans "Flag for HOD" %}</a>
               </div>
@@ -589,7 +590,7 @@
                 <div class="tdm-task-title">{% trans "Latest class update" %}</div>
                 <div class="tdm-task-meta">{{ latest_ann.title|truncatewords:8 }} | {{ latest_ann.created_at|date:"M j" }}</div>
               </div>
-              <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:user_messages' %}">{% trans "Messages" %}</a>
+              <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:user_messages' %}">{% trans_term "Messages" key="message" plural=True %}</a>
             </div>
             {% endif %}
             {% endwith %}
@@ -616,7 +617,7 @@
               <div class="tdm-mini-meta">{{ finance_access_message }}</div>
               {% endif %}
               <div class="d-flex gap-1 mt-2">
-                <a class="btn btn-outline-secondary btn-sm flex-fill" href="{% url 'portal:teacher_attendance' %}">{% trans "Attendance" %}</a>
+                <a class="btn btn-outline-secondary btn-sm flex-fill" href="{% url 'portal:teacher_attendance' %}">{% trans_term "Attendance" key="attendance" %}</a>
                 <a class="btn btn-soft btn-sm flex-fill" href="{% url 'portal:teacher_leave' %}">{% trans "Leave" %}</a>
               </div>
             </div>

@@ -1,5 +1,6 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 {% block title %}{% trans "Substitutes" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Substitute / cover assignments" %}{% endblock %}
 {% block content %}
@@ -35,7 +36,7 @@
   <div class="table-responsive">
     <table class="table table-sm table-family align-middle">
       <caption class="visually-hidden">{% trans "Record cover" %}</caption>
-      <thead><tr><th>{% trans "Date" %}</th><th>{% trans "Absent" %}</th><th>{% trans "Cover" %}</th><th>{% trans "Period" %}</th><th>{% trans "Notes" %}</th></tr></thead>
+      <thead><tr><th>{% trans "Date" %}</th><th>{% trans "Absent" %}</th><th>{% trans "Cover" %}</th><th>{% trans_term "Period" key="period" %}</th><th>{% trans "Notes" %}</th></tr></thead>
       <tbody>
         {% for c in covers %}
         <tr>

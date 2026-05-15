@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load admin_health evals_extras static region_format i18n phase8_tags %}
+{% load terminology_tags %}
 {% block title %}{% trans "Family Home" %}{% endblock %}
 {% block body_extra_class %}dashboard-page-parent{% if parent_simplified %} parent-dashboard-simplified{% endif %}{% endblock %}
 
@@ -396,7 +397,7 @@
                   </div>
                   <div class="child-metrics-grid text-center mb-3">
                     <div>
-                      <div class="child-metric-label">{% trans "Attendance" %}</div>
+                      <div class="child-metric-label">{% trans_term "Attendance" key="attendance" %}</div>
                       <div class="child-metric-value {% if card.attendance != None and card.attendance >= 80 %}text-success{% else %}text-warning{% endif %}">{% if can_view_results %}{% if card.attendance != None and card.attendance >= 80 %}{% trans "Good" %}{% else %}{% trans "Needs Attention" %}{% endif %} ({{ card.attendance|default:0 }}%){% else %}--{% endif %}</div>
                     </div>
                     <div>
@@ -414,7 +415,7 @@
                       </div>
                     </div>
                     <div>
-                      <div class="child-metric-label">{% trans "Fees" %}</div>
+                      <div class="child-metric-label">{% trans_term "Fees" key="fee" plural=True %}</div>
                       <div class="child-metric-value {% if card.finance_balance and card.finance_balance > 0 %}text-danger{% else %}text-success{% endif %}">{% if can_view_finance %}{% if card.finance_balance and card.finance_balance > 0 %}{% trans "Pending" %}{% else %}{% trans "Cleared" %}{% endif %}{% else %}--{% endif %}</div>
                     </div>
                   </div>
@@ -453,7 +454,7 @@
                       {% endif %}
                     </h3>
                     <ul class="child-fill-list">
-                      <li><span>{% trans "Attendance" %}</span><strong>{{ focus_child.attendance|default:0 }}%</strong></li>
+                      <li><span>{% trans_term "Attendance" key="attendance" %}</span><strong>{{ focus_child.attendance|default:0 }}%</strong></li>
                       <li><span>{% trans "Missing work" %}</span><strong>{{ focus_child.missing_work|default:0 }}</strong></li>
                       <li><span>{% trans "Fee status" %}</span><strong>{% if can_view_finance %}{% if focus_child.finance_balance and focus_child.finance_balance > 0 %}{% trans "Pending" %}{% else %}{% trans "Cleared" %}{% endif %}{% else %}{% trans "Hidden" %}{% endif %}</strong></li>
                       <li><span>{% trans "Unread messages" %}</span><strong>{{ unread_messages_aggregate|default:0 }}</strong></li>

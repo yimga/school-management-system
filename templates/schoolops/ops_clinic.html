@@ -1,5 +1,6 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 {% block title %}{% trans "Clinic log" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Health records" %}{% endblock %}
 {% block content %}
@@ -10,7 +11,7 @@
   <div class="table-responsive">
     <table class="table table-sm table-family align-middle">
       <caption class="visually-hidden">{% trans "Clinic log" %} — {{ school.name }}</caption>
-      <thead><tr><th>{% trans "When" %}</th><th>{% trans "Student" %}</th><th>{% trans "Type" %}</th><th>{% trans "Notes" %}</th></tr></thead>
+      <thead><tr><th>{% trans "When" %}</th><th>{% trans_term "Student" key="student" %}</th><th>{% trans "Type" %}</th><th>{% trans "Notes" %}</th></tr></thead>
       <tbody>
         {% for r in records %}
         <tr>

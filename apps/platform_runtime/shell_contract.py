@@ -184,8 +184,13 @@ def resolve_shell_contract(request) -> dict[str, Any]:
         "nav_family": c.nav_family,
         "main_region": c.main_region,
         "contract": c,
-        # Manager / control-plane chrome (product label; keep single source for 1008+ sweeps)
-        "control_plane_product_title": "RunMyCampus Manager",
+        # Manager / control-plane chrome (product label; keep single source for 1008+ sweeps).
+        # Title + subtitle split so the brand-mark lockup can show
+        # "RunMyCampus" (title) + "Manager" (uppercase eyebrow). Both consume
+        # SITE-level overrides via the resolver so a tenant rebrand stays
+        # honored; defaults below keep the platform baseline.
+        "control_plane_product_title": "RunMyCampus",
+        "control_plane_product_subtitle": "Manager",
         # HTML / sidebar tokens (1011; descriptive only, safe template fallbacks)
         "portal_shell_root": "portal",
         "portal_default_document_title": "Portal",

@@ -1,6 +1,7 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
-{% block backend_title %}{% trans "Classrooms" %} - Backend{% endblock %}
+{% load terminology_tags %}
+{% block backend_title %}{% trans_term "Classrooms" key="classroom" plural=True %} - Backend{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench">
@@ -18,7 +19,7 @@
             <input type="search" id="classroom-q" name="q" class="form-control form-control-sm" placeholder="{% trans 'Name or code…' %}" value="{{ search }}">
           </div>
           <div class="col-md-2">
-            <label for="classroom-year" class="form-label small">{% trans "Academic year" %}</label>
+            <label for="classroom-year" class="form-label small">{% trans_term "Academic year" key="academic_year" %}</label>
             <select id="classroom-year" name="academic_year" class="form-select form-select-sm">
               <option value="">{% trans "All years" %}</option>
               {% for ay in academic_years %}
@@ -27,7 +28,7 @@
             </select>
           </div>
           <div class="col-md-2">
-            <label for="classroom-dept" class="form-label small">{% trans "Department" %}</label>
+            <label for="classroom-dept" class="form-label small">{% trans_term "Department" key="department" %}</label>
             <select id="classroom-dept" name="department" class="form-select form-select-sm">
               <option value="">{% trans "All departments" %}</option>
               {% for d in departments %}
@@ -53,8 +54,8 @@
                 <tr>
                   <th scope="col">{% trans "Name" %}</th>
                   <th scope="col">{% trans "Code" %}</th>
-                  <th scope="col">{% trans "Academic year" %}</th>
-                  <th scope="col">{% trans "Department" %}</th>
+                  <th scope="col">{% trans_term "Academic year" key="academic_year" %}</th>
+                  <th scope="col">{% trans_term "Department" key="department" %}</th>
                   <th scope="col">{% trans "Third term" %}</th>
                   <th scope="col">{% trans "Actions" %}</th>
                 </tr>

@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load terminology_tags %}
 {% comment %} Preview-aligned KPI strip — patterns.css `.kpi` class renders 14px-radius cards
    with --apple-elev-1 shadow, hover lift, label + tinted icon chip header,
    large tabular-num value. No delta arrows here (no historical-baseline data in
@@ -20,7 +21,7 @@
     <div class="col-12 col-md-6 col-lg-4" data-shell-kpi="active-students">
       <div class="kpi">
         <div class="d-flex align-items-start justify-content-between gap-2">
-          <span class="label">{% trans "Students" %}</span>
+          <span class="label">{% trans_term "Students" key="student" plural=True %}</span>
           <span class="kpi-icon" aria-hidden="true"><i class="bi bi-mortarboard"></i></span>
         </div>
         <div class="value" data-kpi-count="students-active" data-rmc-metric-value>{{ stats.students|default:0 }}</div>
@@ -29,7 +30,7 @@
     <div class="col-12 col-md-6 col-lg-4" data-shell-kpi="guardians-linked">
       <div class="kpi">
         <div class="d-flex align-items-start justify-content-between gap-2">
-          <span class="label">{% trans "Guardians" %}</span>
+          <span class="label">{% trans_term "Guardians" key="guardian" plural=True %}</span>
           <span class="kpi-icon" aria-hidden="true"><i class="bi bi-people"></i></span>
         </div>
         <div class="value" data-kpi-count="guardians" data-rmc-metric-value>{{ stats.guardians|default:0 }}</div>

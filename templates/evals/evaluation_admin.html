@@ -1,6 +1,7 @@
 {% extends "portal_base.html" %}
 {% load static %}
 {% load i18n region_format %}
+{% load terminology_tags %}
 
 {% block title %}{% trans "Evaluation Manager" %}{% endblock %}
 
@@ -33,7 +34,7 @@
             {{ create_form.academic_year }}
           </div>
           <div class="mb-3">
-            <label class="form-label">{% trans "Term" %}</label>
+            <label class="form-label">{% trans_term "Term" key="term" %}</label>
             {{ create_form.term }}
           </div>
           <div class="mb-3">
@@ -41,7 +42,7 @@
             {{ create_form.subject_assignment }}
           </div>
           <div class="mb-3">
-            <label class="form-label">{% trans "Teacher" %}</label>
+            <label class="form-label">{% trans_term "Teacher" key="teacher" %}</label>
             {{ create_form.teacher }}
           </div>
           <button type="submit" class="btn btn-primary">{% trans "Create Evaluations" %}</button>
@@ -60,15 +61,15 @@
               {{ filter_form.year }}
             </div>
             <div class="col-md-4">
-              <label class="form-label small">{% trans "Term" %}</label>
+              <label class="form-label small">{% trans_term "Term" key="term" %}</label>
               {{ filter_form.term }}
             </div>
             <div class="col-md-4">
-              <label class="form-label small">{% trans "Classroom" %}</label>
+              <label class="form-label small">{% trans_term "Classroom" key="classroom" %}</label>
               {{ filter_form.classroom }}
             </div>
             <div class="col-md-6">
-              <label class="form-label small">{% trans "Subject" %}</label>
+              <label class="form-label small">{% trans_term "Subject" key="subject" %}</label>
               {{ filter_form.subject }}
             </div>
             <div class="col-md-3">
@@ -112,11 +113,11 @@
           {{ weights_form.academic_year }}
         </div>
         <div class="col-md-3">
-          <label class="form-label small">{% trans "Term" %}</label>
+          <label class="form-label small">{% trans_term "Term" key="term" %}</label>
           {{ weights_form.term }}
         </div>
         <div class="col-md-3">
-          <label class="form-label small">{% trans "Classroom" %}</label>
+          <label class="form-label small">{% trans_term "Classroom" key="classroom" %}</label>
           {{ weights_form.classroom }}
         </div>
         <div class="col-md-3">
@@ -132,7 +133,7 @@
           {{ weights_form.seq2_weight }}
         </div>
         <div class="col-md-2">
-          <label class="form-label small">{% trans "Exam" %}</label>
+          <label class="form-label small">{% trans_term "Exam" key="exam" %}</label>
           {{ weights_form.exam_weight }}
         </div>
         <div class="col-md-2">
@@ -196,13 +197,13 @@
       <table class="gradebook-table table-family" aria-label="{% trans 'Evaluations: student, class, subject, evidence, and score components' %}">
         <thead>
           <tr>
-            <th scope="col">{% trans "Student" %}</th>
-            <th scope="col">{% trans "Class" %}</th>
-            <th scope="col">{% trans "Subject" %}</th>
+            <th scope="col">{% trans_term "Student" key="student" %}</th>
+            <th scope="col">{% trans_term "Class" key="class" %}</th>
+            <th scope="col">{% trans_term "Subject" key="subject" %}</th>
             <th scope="col" class="text-center">{% trans "Evidence" %}</th>
             <th scope="col" class="num">{% trans "Seq 1" %}</th>
             <th scope="col" class="num">{% trans "Seq 2" %}</th>
-            <th scope="col" class="num">{% trans "Exam" %}</th>
+            <th scope="col" class="num">{% trans_term "Exam" key="exam" %}</th>
             <th scope="col" class="num">{% trans "Mock" %}</th>
             <th scope="col" class="num">{% trans "Practical" %}</th>
             <th scope="col" class="num">{% trans "Total" %}</th>

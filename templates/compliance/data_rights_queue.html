@@ -1,5 +1,6 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block title %}{% trans "Data Rights Queue" %}{% endblock %}
 
@@ -46,8 +47,8 @@
         <thead class="table-light">
           <tr>
             <th>{% trans "ID" %}</th>
-            <th>{% trans "School" %}</th>
-            <th>{% trans "Subject" %}</th>
+            <th>{% trans_term "School" key="school" %}</th>
+            <th>{% trans_term "Subject" key="subject" %}</th>
             <th>{% trans "Status" %}</th>
             <th>{% trans "Created" %}</th>
             <th>{% trans "Due" %}</th>
@@ -103,7 +104,7 @@
         <thead class="table-light">
           <tr>
             <th>{% trans "ID" %}</th>
-            <th>{% trans "School" %}</th>
+            <th>{% trans_term "School" key="school" %}</th>
             <th>{% trans "Scope" %}</th>
             <th>{% trans "Status" %}</th>
             <th>{% trans "Created" %}</th>

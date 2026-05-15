@@ -1,5 +1,6 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block title %}{% trans "Evaluation drill-down" %} #{{ evaluation.id }}{% endblock %}
 
@@ -33,7 +34,7 @@
             <dd class="col-sm-7">{{ evaluation.seq1_score|default:"—" }}</dd>
             <dt class="col-sm-5">{% trans "Sequence 2" %}</dt>
             <dd class="col-sm-7">{{ evaluation.seq2_score|default:"—" }}</dd>
-            <dt class="col-sm-5">{% trans "Exam" %}</dt>
+            <dt class="col-sm-5">{% trans_term "Exam" key="exam" %}</dt>
             <dd class="col-sm-7">{{ evaluation.exam_score|default:"—" }}</dd>
             <dt class="col-sm-5">{% trans "Mock" %}</dt>
             <dd class="col-sm-7">{{ evaluation.mock_score|default:"—" }}</dd>
@@ -54,9 +55,9 @@
         <div class="card-header"><h2 class="h6 mb-0">{% trans "Context" %}</h2></div>
         <div class="card-body">
           <dl class="row mb-0">
-            <dt class="col-sm-5">{% trans "Classroom" %}</dt>
+            <dt class="col-sm-5">{% trans_term "Classroom" key="classroom" %}</dt>
             <dd class="col-sm-7">{{ evaluation.subject_assignment.classroom.name }}</dd>
-            <dt class="col-sm-5">{% trans "Teacher" %}</dt>
+            <dt class="col-sm-5">{% trans_term "Teacher" key="teacher" %}</dt>
             <dd class="col-sm-7">
               {% with t_user=evaluation.teacher.user %}
                 {% if t_user %}{{ t_user.get_full_name|default:t_user.username }}{% else %}{{ evaluation.teacher.position_title|default:"—" }}{% endif %}
@@ -88,7 +89,7 @@
               <th>{% trans "Type" %}</th>
               <th>{% trans "Seq 1" %}</th>
               <th>{% trans "Seq 2" %}</th>
-              <th>{% trans "Exam" %}</th>
+              <th>{% trans_term "Exam" key="exam" %}</th>
               <th>{% trans "Mock" %}</th>
               <th>{% trans "Practical" %}</th>
             </tr>

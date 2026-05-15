@@ -305,6 +305,10 @@ handler404 = page_not_found
 handler500 = server_error
 
 from apps.security.csp_report_view import csp_violation_report  # noqa: E402
+from apps.siteconfig.views_manifest import (  # noqa: E402
+    platform_manifest as _platform_manifest,
+    portal_manifest as _portal_manifest,
+)
 from apps.schools.marketing_views_v2 import marketing_landing_v2  # noqa: E402
 
 urlpatterns = [
@@ -313,6 +317,12 @@ urlpatterns = [
     path("v2/", marketing_landing_v2, name="marketing_landing_v2"),
     path("offline/", offline_page, name="offline"),
     path("sw-asset-manifest.json", service_worker_asset_manifest, name="sw_asset_manifest"),
+    # v2.58 (2026-05-15) — per-tenant PWA manifest endpoints. Replaces the
+    # static manifest.json / manifest-portal.json files so name / theme_color /
+    # icons follow the active tenant's SiteSettings. See
+    # apps/siteconfig/views_manifest.py for the render logic.
+    path("manifest.json", _platform_manifest, name="pwa_manifest_platform"),
+    path("manifest-portal.json", _portal_manifest, name="pwa_manifest_portal"),
     path(
         "offline/sync/",
         manager_offline_sync_root_fallback,

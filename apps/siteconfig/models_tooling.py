@@ -10,6 +10,7 @@ from apps.academics.models import Subject
 from apps.people.models import StudentProfile
 
 from .image_utils import optimize_image
+from .svg_sanitize import validate_svg_safe
 from .models_constants import (
     BACKEND_CONSOLE_THEME_CHOICES,
     LOGO_BG_MODE_CHOICES,
@@ -42,6 +43,7 @@ class ThemePack(models.Model):
         blank=True,
         null=True,
         help_text="Optional: Logo for this theme pack.",
+        validators=[validate_svg_safe],
     )
     background_image = models.ImageField(
         upload_to="branding/themepack/bg/",
@@ -526,6 +528,7 @@ class ReportCardStyle(models.Model):
         blank=True,
         null=True,
         help_text="Optional custom watermark logo used when mode is 'Use style logo'.",
+        validators=[validate_svg_safe],
     )
     watermark_opacity = models.FloatField(
         default=0.08,

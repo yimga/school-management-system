@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n static %}
+{% load terminology_tags %}
 
 {% block title %}{% trans "Attendance & Discipline" %}{% endblock %}
 
@@ -23,7 +24,7 @@
         <div class="table-responsive">
           <table class="table table-sm table-family align-middle">
             <caption class="visually-hidden">{% trans "Absences & tardies" %}</caption>
-            <thead><tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans "Student" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Remarks" %}</th></tr></thead>
+            <thead><tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans_term "Student" key="student" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Remarks" %}</th></tr></thead>
             <tbody>
               {% for a in absences %}
                 <tr>

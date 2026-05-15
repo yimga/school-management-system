@@ -1,5 +1,6 @@
 {% extends "schools/marketing_page_layout.html" %}
 {% load i18n static %}
+{% load terminology_tags %}
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}">
@@ -81,7 +82,7 @@
     <h2 id="mkt-teacher-handoff-heading">{% trans "Connected to academics, families, and insight" %}</h2>
     <p class="section-lead">{% trans "Teaching sits between attendance, grading, parent communication, and how leadership understands school health." %}</p>
     <div class="mkt-teacher-handoff-grid">
-      <a href="{% url 'marketing_platform_attendance' %}">{% trans "Attendance" %}</a>
+      <a href="{% url 'marketing_platform_attendance' %}">{% trans_term "Attendance" key="attendance" %}</a>
       <a href="{% url 'marketing_platform_grading_report_cards' %}">{% trans "Grading & Report Cards" %}</a>
       <a href="{% url 'marketing_platform_communications' %}">{% trans "Communications" %}</a>
       <a href="{% url 'marketing_platform_parent_portal' %}">{% trans "Parent Portal" %}</a>
@@ -95,7 +96,7 @@
     <p class="section-lead">{% trans "A better teacher day improves outcomes for students, families, and leadership—not just the classroom." %}</p>
     <div class="mkt-teacher-roles">
       <div class="mkt-teacher-role">
-        <h3>{% trans "Teachers" %}</h3>
+        <h3>{% trans_term "Teachers" key="teacher" plural=True %}</h3>
         <p>{% trans "Less tab sprawl during prep and during class-adjacent workflows." %}</p>
       </div>
       <div class="mkt-teacher-role">
@@ -103,11 +104,11 @@
         <p>{% trans "Consistent patterns across sections without forcing every teacher into the same rigid form." %}</p>
       </div>
       <div class="mkt-teacher-role">
-        <h3>{% trans "Administrators" %}</h3>
+        <h3>{% trans_term "Administrators" key="administrator" plural=True %}</h3>
         <p>{% trans "Operational adoption and support load improve when the workspace is coherent." %}</p>
       </div>
       <div class="mkt-teacher-role">
-        <h3>{% trans "Parents" %}</h3>
+        <h3>{% trans_term "Parents" key="parent" plural=True %}</h3>
         <p>{% trans "Updates originate from the same records parents already see in the portal." %}</p>
       </div>
       <div class="mkt-teacher-role">

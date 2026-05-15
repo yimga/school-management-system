@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n phase8_tags %}
+{% load terminology_tags %}
 
 {% block cp_title %}{% trans "Security & audit" %}{% endblock %}
 
@@ -66,7 +67,7 @@
     <div class="card-body p-0 table-responsive" style="max-height: 18rem; overflow-y: auto;">
       <table class="table table-sm table-dark mb-0 small">
         <caption class="visually-hidden">{% trans "Impersonation & proxy (platform operator)" %}</caption>
-        <thead><tr><th>{% trans "When (UTC)" %}</th><th>{% trans "Actor" %}</th><th>{% trans "Peer / approval" %}</th><th>{% trans "School" %}</th><th>{% trans "Action" %}</th><th>{% trans "Reason" %}</th><th>{% trans "Read-only" %}</th></tr></thead>
+        <thead><tr><th>{% trans "When (UTC)" %}</th><th>{% trans "Actor" %}</th><th>{% trans "Peer / approval" %}</th><th>{% trans_term "School" key="school" %}</th><th>{% trans "Action" %}</th><th>{% trans "Reason" %}</th><th>{% trans "Read-only" %}</th></tr></thead>
         <tbody>
           {% for row in impersonation_rows %}
           <tr>
@@ -277,7 +278,7 @@
     <div class="card-body p-0 table-responsive" style="max-height: 16rem; overflow-y: auto;">
       <table class="table table-sm table-dark mb-0 small">
         <caption class="visually-hidden">{% trans "Active sessions (sample)" %}</caption>
-        <thead><tr><th>{% trans "Session" %}</th><th>{% trans "Expires" %}</th><th>{% trans "User" %}</th></tr></thead>
+        <thead><tr><th>{% trans_term "Session" key="session" %}</th><th>{% trans "Expires" %}</th><th>{% trans "User" %}</th></tr></thead>
         <tbody>
           {% for s in session_rows %}
           <tr>

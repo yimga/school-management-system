@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n static %}
+{% load terminology_tags %}
 
 {% block cp_title %}{% trans "Workflow Simulator" %}{% endblock %}
 
@@ -50,7 +51,7 @@
         </div>
       </form>
       {% if school %}
-        <p class="mt-3 mb-0"><strong>{% trans "School" %}:</strong> {{ school.name }} ({{ school.slug }})</p>
+        <p class="mt-3 mb-0"><strong>{% trans_term "School" key="school" %}:</strong> {{ school.name }} ({{ school.slug }})</p>
       {% endif %}
     </div>
   </div>

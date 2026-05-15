@@ -132,11 +132,12 @@
       </div>
       <div class="card-body">
         {% load i18n %}
+{% load terminology_tags %}
         <section class="row g-3" aria-label="{% trans 'EMIS quick stats' %}">
           <div class="col-12 col-md-6" data-shell-kpi="emis-total-students">
             <div class="kpi">
               <div class="d-flex align-items-start justify-content-between gap-2">
-                <span class="label">{% trans "Students" %}</span>
+                <span class="label">{% trans_term "Students" key="student" plural=True %}</span>
                 <span class="kpi-icon" aria-hidden="true"><i class="bi bi-mortarboard"></i></span>
               </div>
               <div class="value" id="total-students" data-kpi-count="emis-total-students">-</div>
@@ -145,7 +146,7 @@
           <div class="col-12 col-md-6" data-shell-kpi="emis-total-teachers">
             <div class="kpi">
               <div class="d-flex align-items-start justify-content-between gap-2">
-                <span class="label">{% trans "Teachers" %}</span>
+                <span class="label">{% trans_term "Teachers" key="teacher" plural=True %}</span>
                 <span class="kpi-icon" aria-hidden="true"><i class="bi bi-easel"></i></span>
               </div>
               <div class="value" id="total-teachers" data-kpi-count="emis-total-teachers">-</div>
@@ -154,7 +155,7 @@
           <div class="col-12 col-md-6" data-shell-kpi="emis-total-subjects">
             <div class="kpi">
               <div class="d-flex align-items-start justify-content-between gap-2">
-                <span class="label">{% trans "Subjects" %}</span>
+                <span class="label">{% trans_term "Subjects" key="subject" plural=True %}</span>
                 <span class="kpi-icon" aria-hidden="true"><i class="bi bi-journal-bookmark"></i></span>
               </div>
               <div class="value" id="total-subjects" data-kpi-count="emis-total-subjects">-</div>
@@ -163,7 +164,7 @@
           <div class="col-12 col-md-6" data-shell-kpi="emis-total-classes">
             <div class="kpi">
               <div class="d-flex align-items-start justify-content-between gap-2">
-                <span class="label">{% trans "Classes" %}</span>
+                <span class="label">{% trans_term "Classes" key="class" plural=True %}</span>
                 <span class="kpi-icon" aria-hidden="true"><i class="bi bi-grid-3x3-gap"></i></span>
               </div>
               <div class="value" id="total-classes" data-kpi-count="emis-total-classes">-</div>

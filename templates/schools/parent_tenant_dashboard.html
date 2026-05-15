@@ -1,5 +1,6 @@
 {% extends "backend_base.html" %}
 {% load i18n static phase8_tags %}
+{% load terminology_tags %}
 
 {% block title %}{% trans "Parent tenant dashboard" %} – {{ parent_school.name }}{% endblock %}
 {% block backend_title %}{% trans "Parent tenant dashboard" %}{% endblock %}
@@ -16,12 +17,12 @@
     <div class="dashboard-card-grid dashboard-card-grid--dense mb-4">
       <div class="card shadow-sm text-center">
         <div class="card-body py-3">
-          <strong>{{ total_students }}</strong><br><span class="text-muted small">{% trans "Students" %}</span>
+          <strong>{{ total_students }}</strong><br><span class="text-muted small">{% trans_term "Students" key="student" plural=True %}</span>
         </div>
       </div>
       <div class="card shadow-sm text-center">
         <div class="card-body py-3">
-          <strong>{{ total_teachers }}</strong><br><span class="text-muted small">{% trans "Teachers" %}</span>
+          <strong>{{ total_teachers }}</strong><br><span class="text-muted small">{% trans_term "Teachers" key="teacher" plural=True %}</span>
         </div>
       </div>
       <div class="card shadow-sm text-center">
@@ -36,9 +37,9 @@
           <caption class="visually-hidden">{% trans "Child schools" %} ({{ parent_school.name }})</caption>
           <thead class="table-light">
             <tr>
-              <th>{% trans "School" %}</th>
-              <th>{% trans "Students" %}</th>
-              <th>{% trans "Teachers" %}</th>
+              <th>{% trans_term "School" key="school" %}</th>
+              <th>{% trans_term "Students" key="student" plural=True %}</th>
+              <th>{% trans_term "Teachers" key="teacher" plural=True %}</th>
               <th>{% trans "Invoiced" %}</th>
               <th>{% trans "Paid" %}</th>
             </tr>

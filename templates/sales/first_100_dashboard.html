@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n phase8_tags %}
+{% load terminology_tags %}
 {% block cp_title %}{% trans "First 100 schools" %}{% endblock %}
 {% block cp_content %}
 <div class="container-lg py-4" data-decision-engine="surface" data-rmc-first-100-dashboard="1">
@@ -28,7 +29,7 @@
       <caption class="visually-hidden">{% trans "Stages" %}</caption>
       <thead>
         <tr>
-          <th>{% trans "School" %}</th>
+          <th>{% trans_term "School" key="school" %}</th>
           <th>{% trans "Stage" %}</th>
           <th>{% trans "Decision maker" %}</th>
           <th>{% trans "Owner" %}</th>

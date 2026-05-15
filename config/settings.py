@@ -316,14 +316,16 @@ MIDDLEWARE += [
     # `manage.py verify_data_residency --fix-derive` has been run.
     "apps.schools.middleware_residency.DataResidencyMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # Content-Security-Policy (Report-Only by default; flip CSP_ENFORCE=True
-    # once high-traffic surfaces report zero violations). Last in the chain so
-    # it sees the final rendered response and can attach the header.
+    # Content-Security-Policy (enforced by default after v2.57 — inline-style
+    # backlog hit zero per scan_inline_style_off_token CI gate, so style-src
+    # 'unsafe-inline' was removed from the policy and enforce mode is now safe).
+    # Operators can roll back to Report-Only via CSP_ENFORCE=0.
     "apps.security.csp_middleware.ContentSecurityPolicyMiddleware",
 ]
 
-# CSP defaults — report-only until the inline-style/script footprint is closed.
-CSP_ENFORCE = os.getenv("CSP_ENFORCE", "0") == "1"
+# CSP defaults — enforced by default since v2.57 (inline-style backlog at 0).
+# Override to Report-Only with CSP_ENFORCE=0 if a regression surfaces.
+CSP_ENFORCE = os.getenv("CSP_ENFORCE", "1") == "1"
 
 # Wave E — G4 (Gap 3, 2026-05-15): data residency enforcement toggle.
 # False (default): DataResidencyMiddleware soft-logs cross-region mismatches.

@@ -1,4 +1,5 @@
 {% load i18n static %}
+{% load terminology_tags %}
 <div class="container-fluid py-2 px-0 px-md-2 rmc-shell-content-grid" data-page-archetype="{% if current_mode == 'control' %}decision-console{% else %}studio-workspace{% endif %}" data-shell-studio-region="main" data-rmc-studio-os-embed="true" data-shell-host="{% if request.public_host_kind == 'manager' %}control-plane{% else %}tenant{% endif %}" data-rmc-shell-content-grid="1">
   <a href="#studio-canvas" class="visually-hidden-focusable btn btn-sm btn-outline-primary position-absolute top-0 start-0 m-2 px-3 py-2 rounded z-1" style="z-index: 1060;">{% trans "Skip to Studio content" %}</a>
   {# Primary 8-pill nav is on control_plane_base (manager); do not duplicate here. #}
@@ -72,7 +73,7 @@
             {% if legacy_urls.rbac %}<div class="col-auto"><a href="{{ legacy_urls.rbac }}" class="btn btn-outline-primary btn-sm">{% trans "RBAC & permissions" %}</a></div>{% endif %}
             {% if legacy_urls.feature_control %}<div class="col-auto"><a href="{{ legacy_urls.feature_control }}" class="btn btn-outline-primary btn-sm">{% trans "Feature control" %}</a></div>{% endif %}
             {% if legacy_urls.communication_groups %}<div class="col-auto"><a href="{{ legacy_urls.communication_groups }}" class="btn btn-outline-primary btn-sm">{% trans "Message groups" %}</a></div>{% endif %}
-            {% if legacy_urls.announcement_create %}<div class="col-auto"><a href="{{ legacy_urls.announcement_create }}" class="btn btn-outline-primary btn-sm">{% trans "Announcements" %}</a></div>{% endif %}
+            {% if legacy_urls.announcement_create %}<div class="col-auto"><a href="{{ legacy_urls.announcement_create }}" class="btn btn-outline-primary btn-sm">{% trans_term "Announcements" key="announcement" plural=True %}</a></div>{% endif %}
           </div>
         {% elif current_mode == 'control' %}
           {% include "studio_os/partials/control_mode_canvas.html" %}

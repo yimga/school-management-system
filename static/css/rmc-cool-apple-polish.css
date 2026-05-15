@@ -227,13 +227,22 @@
   justify-content: center;
   width: var(--rmc-bm-size, 32px);
   height: var(--rmc-bm-size, 32px);
-  /* Tenant brand cascade: --brand-gradient is set by RuntimeDefaults +
-     theme-preference-bootstrap.js; falls back to platform indigo→emerald.
-     The --school-primary inside the linear-gradient also cascades. */
+  /* Tenant brand cascade — three-layer fallback chain:
+     (1) `--brand-gradient` — composed by design-tokens.css from
+         --brand-gradient-angle/start/end, where -end is set from the
+         tenant's RuntimeDefaults.brand_gradient_end via the meta-tag
+         bridge. This is what wins when a tenant has *any* explicit
+         brand gradient set. Always defined at :root so this always
+         resolves; the fallback below only fires if a downstream
+         stylesheet unsets it.
+     (2) `linear-gradient(... --school-primary ...)` — defensive
+         fallback if --brand-gradient ever becomes unset.
+     (3) hardcoded indigo→emerald hex — last-resort fallback if even
+         --school-primary is unset (e.g. an isolated component preview). */
   background: var(--brand-gradient,
-    linear-gradient(135deg,
-      var(--school-primary, #4f46e5),
-      color-mix(in oklab, var(--school-primary, #4f46e5) 70%, var(--school-accent, #10b981))
+    linear-gradient(var(--brand-gradient-angle, 135deg),
+      var(--brand-gradient-start, var(--school-primary, #4f46e5)),
+      var(--brand-gradient-end, color-mix(in oklab, var(--school-primary, #4f46e5) 70%, var(--school-accent, #10b981)))
     ));
   /* Apple-style squircle radius scales with size: ~22% of side. */
   border-radius: calc(var(--rmc-bm-size, 32px) * 0.22);

@@ -1,4 +1,5 @@
 {% load static i18n %}
+{% load terminology_tags %}
 <div class="container-fluid py-3 professional-page cp-evidence-page" data-shell-surface="feature-control-panel" data-cp-evidence-surface="feature-control" data-rmc-operator-evidence-surface="1">
   <div class="card shadow-sm border-0 overflow-hidden feature-control-card">
     <div class="card-header feature-control-header bg-light border-bottom py-3 px-4">
@@ -25,7 +26,7 @@
       <div class="alert alert-light border mt-2 mb-0 py-2 px-3 small">
         <strong>{% trans "Capabilities" %}</strong> — {% blocktrans %}grouped by module family below. Each flag is explainable via <strong>Audit log</strong> (who/when); effective state may also depend on runtime, packs, policy, entitlements, and tenant overrides — see Configuration Control Center for the full outcome map.{% endblocktrans %}
         {% if SUPER_ADMIN_UI_ENABLED and request.public_host_kind == 'manager' %}{% if request.user.is_superuser or request.user.role == "SUPERADMIN" %}
-        {% blocktrans %}To <strong>create a new school/site</strong>, use{% endblocktrans %} <a href="{% url 'super:dashboard' %}">{% trans "Schools" %}</a> → {% trans "Create School" %} ({% trans "multi-tenant provisioning" %}).
+        {% blocktrans %}To <strong>create a new school/site</strong>, use{% endblocktrans %} <a href="{% url 'super:dashboard' %}">{% trans_term "Schools" key="school" plural=True %}</a> → {% trans "Create School" %} ({% trans "multi-tenant provisioning" %}).
         {% endif %}{% endif %}
       </div>
       {% if last_saved %}

@@ -1,5 +1,6 @@
 {% extends "backend_base.html" %}
 {% load i18n compliance_tags %}
+{% load terminology_tags %}
 
 {% block title %}{% trans "FERPA disclosure" %} #{{ disclosure.id }}{% endblock %}
 
@@ -26,7 +27,7 @@
         <div class="card-header"><h2 class="h6 mb-0">{% trans "Who & when" %}</h2></div>
         <div class="card-body">
           <dl class="row mb-0">
-            <dt class="col-sm-4">{% trans "Student" %}</dt>
+            <dt class="col-sm-4">{% trans_term "Student" key="student" %}</dt>
             <dd class="col-sm-8">
               {{ disclosure.student.last_name }}, {{ disclosure.student.first_name }}
               <span class="text-muted small">({{ disclosure.student.student_code|default:"—" }})</span>

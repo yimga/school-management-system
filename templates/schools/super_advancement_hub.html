@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block cp_title %}{% trans "Advancement" %} — RunMyCampus Manager{% endblock %}
 
@@ -31,7 +32,7 @@
     <div class="col-md-4 rmc-reveal">
       <div class="card h-100 border-secondary">
         <div class="card-body">
-          <h6 class="card-title">{% trans "Alumni" %}</h6>
+          <h6 class="card-title">{% trans_term "Alumni" key="alumnus" plural=True %}</h6>
           <a href="{{ alumni_list_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
         </div>
       </div>

@@ -1,5 +1,6 @@
 {% extends "schools/marketing_page_layout.html" %}
 {% load i18n static %}
+{% load terminology_tags %}
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}">
@@ -82,7 +83,7 @@
     <h2 id="mkt-parent-handoff-heading">{% trans "Connected to daily school operations" %}</h2>
     <p class="section-lead">{% trans "The parent portal reflects the same records teachers and finance teams maintain—without asking families to learn internal tools." %}</p>
     <div class="mkt-parent-handoff-grid">
-      <a href="{% url 'marketing_platform_attendance' %}">{% trans "Attendance" %}</a>
+      <a href="{% url 'marketing_platform_attendance' %}">{% trans_term "Attendance" key="attendance" %}</a>
       <a href="{% url 'marketing_platform_fees_payments' %}">{% trans "Fees & Payments" %}</a>
       <a href="{% url 'marketing_platform_grading_report_cards' %}">{% trans "Grading & Report Cards" %}</a>
       <a href="{% url 'marketing_platform_communications' %}">{% trans "Communications" %}</a>
@@ -100,11 +101,11 @@
         <p>{% trans "Clarity on phones and desktops without chasing staff for every update." %}</p>
       </div>
       <div class="mkt-parent-role">
-        <h3>{% trans "Administrators" %}</h3>
+        <h3>{% trans_term "Administrators" key="administrator" plural=True %}</h3>
         <p>{% trans "Official channels reduce duplicate inquiries and conflicting messages." %}</p>
       </div>
       <div class="mkt-parent-role">
-        <h3>{% trans "Teachers" %}</h3>
+        <h3>{% trans_term "Teachers" key="teacher" plural=True %}</h3>
         <p>{% trans "Share class-appropriate context responsibly from the same system of record." %}</p>
       </div>
       <div class="mkt-parent-role">

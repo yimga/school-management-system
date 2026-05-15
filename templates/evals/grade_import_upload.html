@@ -1,5 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block title %}{% trans "Grade import" %}{% endblock %}
 
@@ -46,12 +47,12 @@
         <caption class="visually-hidden">{% trans "Preview results" %}</caption>
         <thead>
           <tr>
-            <th>{% trans "Student" %}</th>
+            <th>{% trans_term "Student" key="student" %}</th>
             <th>{% trans "Assignment ID" %}</th>
             <th>{% trans "Term ID" %}</th>
             <th>{% trans "Seq1" %}</th>
             <th>{% trans "Seq2" %}</th>
-            <th>{% trans "Exam" %}</th>
+            <th>{% trans_term "Exam" key="exam" %}</th>
             <th>{% trans "Mock" %}</th>
             <th>{% trans "Practical" %}</th>
             <th>{% trans "Remarks" %}</th>

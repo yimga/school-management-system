@@ -1,5 +1,6 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 {% block title %}{% trans "Timetabling" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Schedules" %}{% endblock %}
 {% block content %}
@@ -9,7 +10,7 @@
   <p class="small text-muted">{% trans "Draft and published master schedules. Generate or validate via API (scheduler) from integrations." %}</p>
   <table class="table table-sm table-family align-middle">
     <caption class="visually-hidden">{% trans "Timetabling" %} — {{ school.name }}</caption>
-    <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Year" %}</th><th>{% trans "Term" %}</th><th>{% trans "Status" %}</th><th>{% trans "Generated" %}</th></tr></thead>
+    <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Year" %}</th><th>{% trans_term "Term" key="term" %}</th><th>{% trans "Status" %}</th><th>{% trans "Generated" %}</th></tr></thead>
     <tbody>
       {% for s in schedules %}
       <tr><td>{{ s.name }}</td><td>{{ s.academic_year.name }}</td><td>{{ s.term.name }}</td><td>{{ s.status }}</td><td>{{ s.generated_at|date:"Y-m-d H:i" }}</td></tr>

@@ -1,5 +1,6 @@
 {% extends 'backend_base.html' %}
 {% load static i18n phase8_tags %}
+{% load terminology_tags %}
 
 {% block title %}Grading Compliance Dashboard{% endblock %}
 
@@ -169,7 +170,7 @@
                   <caption class="visually-hidden">{% trans "Teacher deadline details" %}</caption>
                     <thead class="table-light">
                         <tr>
-                            <th scope="col">{% trans "Subject" %}</th>
+                            <th scope="col">{% trans_term "Subject" key="subject" %}</th>
                             <th scope="col">{% trans "Deadline" %}</th>
                             <th scope="col" class="text-end">{% trans "Days left" %}</th>
                             <th scope="col">{% trans "Submitted" %}</th>

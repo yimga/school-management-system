@@ -12,6 +12,7 @@ from __future__ import annotations
 from django.db import DatabaseError, models
 
 from apps.siteconfig.image_utils import optimize_image
+from apps.siteconfig.svg_sanitize import validate_svg_safe
 
 
 class PlatformGlobalBranding(models.Model):
@@ -33,22 +34,29 @@ class PlatformGlobalBranding(models.Model):
         blank=True,
         null=True,
         help_text="Optional: SVG file for animated or vector background.",
+        validators=[validate_svg_safe],
     )
-    logo = models.ImageField(upload_to="branding/", blank=True, null=True)
+    logo = models.ImageField(
+        upload_to="branding/", blank=True, null=True,
+        validators=[validate_svg_safe],
+    )
     background_image = models.ImageField(
-        upload_to="branding/bg/", blank=True, null=True
+        upload_to="branding/bg/", blank=True, null=True,
+        validators=[validate_svg_safe],
     )
     favicon = models.ImageField(
         upload_to="branding/",
         blank=True,
         null=True,
         help_text="Favicon for browser tabs. Shown across portal, backend, and admin.",
+        validators=[validate_svg_safe],
     )
     sidebar_icon = models.ImageField(
         upload_to="branding/",
         blank=True,
         null=True,
         help_text="Optional small icon shown when the nav sidebar is collapsed.",
+        validators=[validate_svg_safe],
     )
     theme_pack = models.ForeignKey(
         "siteconfig.ThemePack",

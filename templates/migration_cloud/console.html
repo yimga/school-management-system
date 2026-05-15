@@ -15,6 +15,7 @@
 {% endcomment %}
 {% extends "control_plane_skeleton.html" %}{# default; portal override via include if shell==portal #}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block page_title %}{{ page_title|default:"Migration Cloud" }}{% endblock %}
 
@@ -38,7 +39,7 @@
     <thead>
       <tr>
         <th>{% trans "Label" %}</th>
-        <th>{% trans "School" %}</th>
+        <th>{% trans_term "School" key="school" %}</th>
         <th>{% trans "Intake" %}</th>
         <th>{% trans "Status" %}</th>
         <th>{% trans "Tier" %}</th>

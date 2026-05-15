@@ -1,5 +1,6 @@
 {% load static %}
 {% load i18n %}
+{% load terminology_tags %}
 {# Full builder UI: portal page or Output Studio native (POST → siteconfig:reportcard_builder). #}
 <div class="reportcard-builder-root{% if studio_output_native %} studio-output-native-pane{% endif %}" data-page-archetype="operational-workbench" data-shell-surface="reportcard-builder" data-cp-evidence-surface="reportcard-builder"{% if studio_output_native %} data-studio-output-native="builder"{% endif %}>
   <div class="card shadow-sm mb-3 ds-card">
@@ -72,7 +73,7 @@
               <button class="nav-link active" id="styles-tab" data-bs-toggle="pill" data-bs-target="#styles-pane" type="button" role="tab" aria-controls="styles-pane" aria-selected="true">{% trans "Styles" %}</button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link" id="assignments-tab" data-bs-toggle="pill" data-bs-target="#assignments-pane" type="button" role="tab" aria-controls="assignments-pane" aria-selected="false">{% trans "Assignments" %}</button>
+              <button class="nav-link" id="assignments-tab" data-bs-toggle="pill" data-bs-target="#assignments-pane" type="button" role="tab" aria-controls="assignments-pane" aria-selected="false">{% trans_term "Assignments" key="assignment" plural=True %}</button>
             </li>
           </ul>
         </div>
@@ -137,7 +138,7 @@
                   <table class="table table-sm align-middle table-family" aria-label="{% trans 'Report card style assignments by classroom' %}">
                     <thead>
                       <tr>
-                        <th scope="col">{% trans "Classroom" %}</th>
+                        <th scope="col">{% trans_term "Classroom" key="classroom" %}</th>
                         <th scope="col">{% trans "Style" %}</th>
                         <th scope="col" class="text-end">{% trans "Actions" %}</th>
                       </tr>

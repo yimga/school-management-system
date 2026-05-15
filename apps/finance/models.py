@@ -3016,3 +3016,7 @@ class OfflinePaymentIntent(models.Model):
 
     def __str__(self) -> str:
         return f"OfflinePaymentIntent {self.pk} ({self.status})"
+
+
+# v2.57 — register the dual-auth model under the finance app so Django auto-discovers it.
+from .models_dual_auth import BankAccountChangeRequest  # noqa: E402,F401

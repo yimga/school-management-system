@@ -1,4 +1,5 @@
 {% load static i18n %}
+{% load terminology_tags %}
 {# Enhanced user dropdown menu — i18n-wrapped 2026-05-12. #}
 {% firstof NOTIFICATIONS_UNREAD_COUNT unread_notifications_count 0 as rmc_unread_count %}
 <div class="user-dropdown-wrapper">
@@ -42,11 +43,11 @@
           {% elif request.user.role == 'LEADERSHIP' %}
             <i class="bi bi-star"></i> {% trans "Leadership" %}
           {% elif request.user.role == 'TEACHER' %}
-            <i class="bi bi-person-video3"></i> {% trans "Teacher" %}
+            <i class="bi bi-person-video3"></i> {% trans_term "Teacher" key="teacher" %}
           {% elif request.user.role == 'PARENT' %}
-            <i class="bi bi-house-heart"></i> {% trans "Parent" %}
+            <i class="bi bi-house-heart"></i> {% trans_term "Parent" key="parent" %}
           {% elif request.user.role == 'STUDENT' %}
-            <i class="bi bi-backpack"></i> {% trans "Student" %}
+            <i class="bi bi-backpack"></i> {% trans_term "Student" key="student" %}
           {% endif %}
         </div>
       </div>

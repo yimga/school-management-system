@@ -1,5 +1,6 @@
 {% extends "schools/marketing_page_layout.html" %}
 {% load i18n static %}
+{% load terminology_tags %}
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}">
@@ -100,11 +101,11 @@
         <p>{% trans "Structured invoicing, receipts, arrears queues, and exports that stand up to review." %}</p>
       </div>
       <div class="mkt-fees-role">
-        <h3>{% trans "Administrators" %}</h3>
+        <h3>{% trans_term "Administrators" key="administrator" plural=True %}</h3>
         <p>{% trans "Operational alignment across campuses, currencies, and fee categories without shadow spreadsheets." %}</p>
       </div>
       <div class="mkt-fees-role">
-        <h3>{% trans "Parents" %}</h3>
+        <h3>{% trans_term "Parents" key="parent" plural=True %}</h3>
         <p>{% trans "Clear balances and receipts so fee conversations stay factual and calm." %}</p>
       </div>
       <div class="mkt-fees-role">

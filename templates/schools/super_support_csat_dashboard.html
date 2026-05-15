@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load static i18n phase8_tags %}
+{% load terminology_tags %}
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
@@ -56,7 +57,7 @@
     <div class="card-body p-0 table-responsive">
       <table class="table table-sm mb-0 table-family align-middle">
         <caption class="visually-hidden">{% trans "Recent responses" %}</caption>
-        <thead><tr><th>{% trans "Submitted" %}</th><th>{% trans "School" %}</th><th>{% trans "Score" %}</th><th>{% trans "Subject" %}</th></tr></thead>
+        <thead><tr><th>{% trans "Submitted" %}</th><th>{% trans_term "School" key="school" %}</th><th>{% trans "Score" %}</th><th>{% trans_term "Subject" key="subject" %}</th></tr></thead>
         <tbody>
           {% for t in recent %}
           <tr>

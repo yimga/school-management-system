@@ -375,7 +375,7 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("MANAGER_SESSION_COOKIE_NAME", "str", '"rmc_manager_sessionid"', "security", "Name of the manager-host session cookie."),
 
     # ---- CSP (the security middleware exposes these overrides) --------------
-    SettingSpec("CSP_ENFORCE", "bool", "False", "security", "Switch CSP from Report-Only to enforced (Content-Security-Policy header)."),
+    SettingSpec("CSP_ENFORCE", "bool", "True", "security", "Enforce Content-Security-Policy (default True since v2.57; override to False for Report-Only)."),
     SettingSpec("CSP_REPORT_URI", "str", '"/security/csp-report/"', "security", "URI browsers POST CSP violation reports to."),
     SettingSpec("CSP_EXTRA_CONNECT_SRC", "tuple[str]", "()", "security", "Additional connect-src origins."),
     SettingSpec("CSP_EXTRA_FRAME_ANCESTORS", "tuple[str]", "()", "security", "Additional frame-ancestors entries."),

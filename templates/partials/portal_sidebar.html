@@ -1,4 +1,5 @@
 {% load static i18n %}
+{% load terminology_tags %}
 {% load accounts_extras %}
 
 <!-- Collapse toggle (desktop): toggles icon-only strip -->
@@ -35,8 +36,8 @@
   {% if SHOW_ROLE_SWITCHER %}
   <div class="mt-2 small" role="group" aria-labelledby="portal-role-switcher-label">
     <span id="portal-role-switcher-label" class="text-muted d-block mb-1">{% trans "Switch view" %}:</span>
-    <a class="d-block py-1 text-decoration-none{% if EFFECTIVE_PORTAL_ROLE == 'TEACHER' %} fw-semibold{% endif %}" href="{% url 'accounts:switch_portal_role' %}?role=TEACHER" title="{% trans 'Switch to Teacher view' %}" aria-label="{% trans 'Switch to Teacher view' %}">{% trans "Teacher" %}</a>
-    <a class="d-block py-1 text-decoration-none{% if EFFECTIVE_PORTAL_ROLE == 'PARENT' %} fw-semibold{% endif %}" href="{% url 'accounts:switch_portal_role' %}?role=PARENT" title="{% trans 'Switch to Parent view' %}" aria-label="{% trans 'Switch to Parent view' %}">{% trans "Parent" %}</a>
+    <a class="d-block py-1 text-decoration-none{% if EFFECTIVE_PORTAL_ROLE == 'TEACHER' %} fw-semibold{% endif %}" href="{% url 'accounts:switch_portal_role' %}?role=TEACHER" title="{% trans 'Switch to Teacher view' %}" aria-label="{% trans 'Switch to Teacher view' %}">{% trans_term "Teacher" key="teacher" %}</a>
+    <a class="d-block py-1 text-decoration-none{% if EFFECTIVE_PORTAL_ROLE == 'PARENT' %} fw-semibold{% endif %}" href="{% url 'accounts:switch_portal_role' %}?role=PARENT" title="{% trans 'Switch to Parent view' %}" aria-label="{% trans 'Switch to Parent view' %}">{% trans_term "Parent" key="parent" %}</a>
   </div>
   {% endif %}
 </div>
@@ -93,7 +94,7 @@
         <div class="sidebar-section-title">{% trans "Communication" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_feed' %}"><i class="bi bi-newspaper me-2"></i>{% trans "Feed" %}</a>
         <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
-          <span><i class="bi bi-chat-dots me-2"></i>{% trans "Messages" %}</span>
+          <span><i class="bi bi-chat-dots me-2"></i>{% trans_term "Messages" key="message" plural=True %}</span>
           {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
         </a>
         <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}"><i class="bi bi-people me-2"></i>{% trans "Message Groups" %}</a>
@@ -103,7 +104,7 @@
       {% elif request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
         <div class="sidebar-section-title">{% trans "Communication" %}</div>
         <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
-          <span><i class="bi bi-chat-dots me-2"></i>{% trans "Messages" %}</span>
+          <span><i class="bi bi-chat-dots me-2"></i>{% trans_term "Messages" key="message" plural=True %}</span>
           {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
         </a>
         <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}"><i class="bi bi-people me-2"></i>{% trans "Message Groups" %}</a>
@@ -129,7 +130,7 @@
         <div class="sidebar-section-title">{% trans "Operational Tasks" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_bulk_capture_hub' %}"><i class="bi bi-phone me-2"></i>{% trans "Bulk capture" %}</a>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_timetable' %}"><i class="bi bi-calendar-week me-2"></i>{% trans "Timetable" %}</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:teacher_attendance' %}"><i class="bi bi-clipboard-check me-2"></i>{% trans "Attendance" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_attendance' %}"><i class="bi bi-clipboard-check me-2"></i>{% trans_term "Attendance" key="attendance" %}</a>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_disciplinary' %}"><i class="bi bi-shield-exclamation me-2"></i>{% trans "Disciplinary" %}</a>
         <div class="sidebar-section-title">{% trans "HR & Professional Growth" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_wellness' %}"><i class="bi bi-heart me-2"></i>{% trans "Wellness" %}</a>
@@ -155,8 +156,8 @@
         <a class="nav-link nav-pill" href="{% url 'portal:unified_calendar' %}"><i class="bi bi-calendar3 me-2"></i>{% trans "Calendar" %}</a>
         <div class="sidebar-section-title">{% trans "Communication" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_feed' %}"><i class="bi bi-newspaper me-2"></i>{% trans "Feed" %}</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-envelope-paper me-2"></i>{% trans "Messages" %}</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-megaphone me-2"></i>{% trans "Announcements" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-envelope-paper me-2"></i>{% trans_term "Messages" key="message" plural=True %}</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-megaphone me-2"></i>{% trans_term "Announcements" key="announcement" plural=True %}</a>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-file-earmark-text me-2"></i>{% trans "Documents" %}</a>
         <div class="sidebar-section-title">{% trans "Account" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:link_child' %}"><i class="bi bi-link-45deg me-2"></i>{% trans "Link a child" %}</a>
@@ -224,7 +225,7 @@
         <a class="nav-link nav-pill" href="{% url 'siteconfig:request_custom_requirement' %}"><i class="bi bi-lightning-charge me-2"></i>{% trans "Request custom requirement" %}</a>
         {% endif %}
         {% if SUPER_ADMIN_UI_ENABLED and request.public_host_kind == 'manager' %}{% if request.user.is_superuser or request.user.role == "SUPERADMIN" %}
-        <a class="nav-link nav-pill" href="{% url 'super:dashboard' %}"><i class="bi bi-building me-2"></i>{% trans "Schools" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'super:dashboard' %}"><i class="bi bi-building me-2"></i>{% trans_term "Schools" key="school" plural=True %}</a>
         {% endif %}{% endif %}
         
         {% endif %}

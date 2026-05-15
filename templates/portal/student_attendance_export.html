@@ -1,6 +1,7 @@
 {% extends "portal_base.html" %}
 {% load static %}
 {% load i18n %}
+{% load terminology_tags %}
 {% block title %}{% trans "Student attendance export" %}{% endblock %}
 {% block content %}
 <div
@@ -38,7 +39,7 @@
           <input type="date" name="end_date" id="id_end_date" class="form-control" value="{{ filters.end_date|date:"Y-m-d" }}">
         </div>
         <div class="col-md-3">
-          <label class="form-label small" for="id_classroom">{% trans "Class" %}</label>
+          <label class="form-label small" for="id_classroom">{% trans_term "Class" key="class" %}</label>
           <select name="classroom_id" id="id_classroom" class="form-select">
             <option value="">{% trans "All classes" %}</option>
             {% for c in classrooms %}
@@ -47,7 +48,7 @@
           </select>
         </div>
         <div class="col-md-3">
-          <label class="form-label small" for="id_student">{% trans "Student" %}</label>
+          <label class="form-label small" for="id_student">{% trans_term "Student" key="student" %}</label>
           <select name="student_id" id="id_student" class="form-select">
             <option value="">{% trans "All students" %}</option>
             {% for s in students %}

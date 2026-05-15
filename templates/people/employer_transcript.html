@@ -1,9 +1,10 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 {% load region_format %}
-{% block title %}{% trans "Transcript" %} — {{ student.get_full_name }}{% endblock %}
+{% block title %}{% trans_term "Transcript" key="transcript" %} — {{ student.get_full_name }}{% endblock %}
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Transcript" %} — {{ student.get_full_name }}</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans_term "Transcript" key="transcript" %} — {{ student.get_full_name }}</h1>
 <div class="container-fluid py-4" data-page-archetype="record-detail">
   {% url 'portal:employer_dashboard' as dashboard_url %}
   {% include "studio_os/components/page_header.html" with title=_("Transcript") subtitle=student.get_full_name action_url=dashboard_url action_text=_("Back to dashboard") %}
@@ -16,8 +17,8 @@
       <p class="mb-2"><strong>{% trans "Promotion status" %}:</strong> {{ context.promotion_status|default:"—" }}</p>
       {% if context.term_rows %}
       <table class="table table-sm table-family align-middle">
-        <caption class="visually-hidden">{% trans "Transcript" %}</caption>
-        <thead><tr><th>{% trans "Term" %}</th><th>{% trans "Average" %}</th></tr></thead>
+        <caption class="visually-hidden">{% trans_term "Transcript" key="transcript" %}</caption>
+        <thead><tr><th>{% trans_term "Term" key="term" %}</th><th>{% trans "Average" %}</th></tr></thead>
         <tbody>
           {% for row in context.term_rows %}
           <tr><td>{{ row.term }}</td><td>{{ row.avg|floatformat:2|default:"—" }}</td></tr>

@@ -1,4 +1,5 @@
 {% load i18n static %}
+{% load terminology_tags %}
 {% load region_format %}
     {% if active_nav_slug == 'resources' and page_extras.resources_hub_cards %}
     <section class="section-shell mkt-resources-hub-cards" aria-label="{% trans 'Resource areas' %}">
@@ -90,7 +91,7 @@
           </select>
         </div>
         <div class="col-12">
-          <label for="contact-message" class="form-label">{% trans "Message" %} <span class="text-danger">*</span></label>
+          <label for="contact-message" class="form-label">{% trans_term "Message" key="message" %} <span class="text-danger">*</span></label>
           <textarea id="contact-message" name="message" class="form-control" rows="5" maxlength="4000" required></textarea>
         </div>
         <div class="col-12">
@@ -228,7 +229,7 @@
             <input type="text" id="demo-student-count" name="student_count" class="form-control" maxlength="64">
           </div>
           <div class="col-12">
-            <label for="demo-message" class="form-label">{% trans "Message" %}</label>
+            <label for="demo-message" class="form-label">{% trans_term "Message" key="message" %}</label>
             <textarea id="demo-message" name="message" class="form-control" rows="4" maxlength="2000"></textarea>
           </div>
           <div class="col-12">

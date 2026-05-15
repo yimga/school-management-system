@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n control_console %}
+{% load terminology_tags %}
 
 {% block cp_title %}{% trans "Billing accounts" %}{% endblock %}
 
@@ -31,7 +32,7 @@
       <caption class="visually-hidden">{% trans "Billing accounts" %}</caption>
       <thead>
         <tr>
-          <th>{% trans "School" %}</th>
+          <th>{% trans_term "School" key="school" %}</th>
           <th>{% trans "Status" %}</th>
           <th>{% trans "Currency" %}</th>
           <th>{% trans "Processor" %}</th>

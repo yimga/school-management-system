@@ -1,5 +1,6 @@
 {% extends "schools/marketing_base.html" %}
 {% load static i18n %}
+{% load terminology_tags %}
 
 {% block title %}RunMyCampus · Run your school the way your school actually runs{% endblock %}
 
@@ -244,7 +245,7 @@
 
         <li class="mkt-edt-job">
           <div class="mkt-edt-job__copy">
-            <p class="mkt-edt-eyebrow">{% trans "Teachers" %}</p>
+            <p class="mkt-edt-eyebrow">{% trans_term "Teachers" key="teacher" plural=True %}</p>
             <h3 class="mkt-edt-section-headline">
               {% trans "Spend less time on admin." %}
             </h3>
@@ -268,7 +269,7 @@
 
         <li class="mkt-edt-job mkt-edt-job--reverse">
           <div class="mkt-edt-job__copy">
-            <p class="mkt-edt-eyebrow">{% trans "Parents" %}</p>
+            <p class="mkt-edt-eyebrow">{% trans_term "Parents" key="parent" plural=True %}</p>
             <h3 class="mkt-edt-section-headline">
               {% trans "Stay close without another app." %}
             </h3>
@@ -445,8 +446,8 @@
 
         <div class="mkt-edt-lens__tabs" role="tablist">
           <label for="lens-leader"  class="mkt-edt-lens__tab" data-lens="leader">{% trans "School leaders" %}</label>
-          <label for="lens-teacher" class="mkt-edt-lens__tab" data-lens="teacher">{% trans "Teachers" %}</label>
-          <label for="lens-parent"  class="mkt-edt-lens__tab" data-lens="parent">{% trans "Parents" %}</label>
+          <label for="lens-teacher" class="mkt-edt-lens__tab" data-lens="teacher">{% trans_term "Teachers" key="teacher" plural=True %}</label>
+          <label for="lens-parent"  class="mkt-edt-lens__tab" data-lens="parent">{% trans_term "Parents" key="parent" plural=True %}</label>
           <label for="lens-finance" class="mkt-edt-lens__tab" data-lens="finance">{% trans "Finance" %}</label>
           <label for="lens-it"      class="mkt-edt-lens__tab" data-lens="it">{% trans "IT &amp; ops" %}</label>
         </div>

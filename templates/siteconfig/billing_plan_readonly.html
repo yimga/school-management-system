@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n static %}
+{% load terminology_tags %}
 
 {% block title %}{% trans "Plan & entitlements" %}{% endblock %}
 
@@ -165,7 +166,7 @@
       <div class="table-responsive">
         <table class="table table-family table-sm mb-0 align-middle">
           <caption class="visually-hidden">{% trans "Usage meters (recent periods)" %}</caption>
-          <thead class="table-light"><tr><th scope="col">{% trans "Metric" %}</th><th scope="col">{% trans "Period" %}</th><th scope="col" class="text-end">{% trans "Qty" %}</th></tr></thead>
+          <thead class="table-light"><tr><th scope="col">{% trans "Metric" %}</th><th scope="col">{% trans_term "Period" key="period" %}</th><th scope="col" class="text-end">{% trans "Qty" %}</th></tr></thead>
           <tbody>
             {% for m in usage_meters %}
             <tr>

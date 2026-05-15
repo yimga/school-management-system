@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n static %}
+{% load terminology_tags %}
 
 {% block cp_title %}{% trans "Runtime Inspector" %}{% endblock %}
 
@@ -36,7 +37,7 @@
       </ul>
       {% endif %}
       {% if school %}
-      <p class="mt-3 mb-0"><strong>{% trans "School" %}:</strong> {{ school.name }} ({{ school.slug }})</p>
+      <p class="mt-3 mb-0"><strong>{% trans_term "School" key="school" %}:</strong> {{ school.name }} ({{ school.slug }})</p>
       {% endif %}
     </div>
   </div>
@@ -167,7 +168,7 @@
       <h6 class="text-secondary">{% trans "Current entitlements" %}</h6>
       <ul class="list-unstyled small mb-2">
         {% if inspection.entitlements.modules %}
-        <li><strong>{% trans "Modules" %}:</strong> {{ inspection.entitlements.modules|join:", " }}</li>
+        <li><strong>{% trans_term "Modules" key="module" plural=True %}:</strong> {{ inspection.entitlements.modules|join:", " }}</li>
         {% endif %}
         {% for key, value in inspection.entitlements.items %}
         {% if key != "modules" and value is not None %}

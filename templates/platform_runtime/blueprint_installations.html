@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block cp_title %}{% trans "Blueprint Installations" %}{% endblock %}
 
@@ -10,7 +11,7 @@
     <h1 class="h3 mb-2">{% trans "Blueprint installation history" %}</h1>
   </header>
   <div class="table-responsive"><table class="table table-sm align-middle table-family">
-    <thead><tr><th>{% trans "Blueprint" %}</th><th>{% trans "School" %}</th><th>{% trans "Status" %}</th><th>{% trans "Applied" %}</th><th>{% trans "Audit" %}</th><th>{% trans "Action" %}</th></tr></thead>
+    <thead><tr><th>{% trans "Blueprint" %}</th><th>{% trans_term "School" key="school" %}</th><th>{% trans "Status" %}</th><th>{% trans "Applied" %}</th><th>{% trans "Audit" %}</th><th>{% trans "Action" %}</th></tr></thead>
     <tbody>{% for installation in installations %}<tr>
       <td>{{ installation.blueprint_key }}</td><td>{{ installation.school.name }}</td><td>{{ installation.status }}</td><td>{{ installation.applied_at }}</td><td>{{ installation.audit_ref }}</td>
       <td><a href="{% url 'configuration:blueprint_installation_detail' installation.pk %}">{% trans "Open" %}</a></td>

@@ -1,11 +1,12 @@
 {% extends "backend_base.html" %}
 {% load i18n static compliance_tags %}
-{% block backend_title %}{% trans "Classroom" %} — {{ classroom.name }}{% endblock %}
+{% load terminology_tags %}
+{% block backend_title %}{% trans_term "Classroom" key="classroom" %} — {{ classroom.name }}{% endblock %}
 {% block content %}
 <div class="container-fluid py-4" data-page-archetype="record-detail">
   <nav class="mb-3" aria-label="{% trans 'Breadcrumb' %}">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_classroom_list' %}">{% trans "Classrooms" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_classroom_list' %}">{% trans_term "Classrooms" key="classroom" plural=True %}</a></li>
       <li class="breadcrumb-item active" aria-current="page">{{ classroom.name }}</li>
     </ol>
   </nav>
@@ -14,11 +15,11 @@
     <div class="col-md-6 col-lg-4 rmc-reveal">
       <div class="card border-0 shadow-sm rmc-glass-surface h-100">
         <div class="card-body">
-          <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans "Class" %}</p>
+          <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans_term "Class" key="class" %}</p>
           <p class="mb-1 small"><strong>{% trans "Code" %}:</strong> {{ classroom.code|default:"—" }}</p>
-          <p class="mb-1 small"><strong>{% trans "Academic year" %}:</strong> {{ classroom.academic_year.name|default:"—" }}</p>
-          <p class="mb-1 small"><strong>{% trans "Department" %}:</strong> {{ classroom.department.name|default:"—" }}</p>
-          <p class="mb-0 small"><strong>{% trans "Students" %}:</strong> {{ student_count }}</p>
+          <p class="mb-1 small"><strong>{% trans_term "Academic year" key="academic_year" %}:</strong> {{ classroom.academic_year.name|default:"—" }}</p>
+          <p class="mb-1 small"><strong>{% trans_term "Department" key="department" %}:</strong> {{ classroom.department.name|default:"—" }}</p>
+          <p class="mb-0 small"><strong>{% trans_term "Students" key="student" plural=True %}:</strong> {{ student_count }}</p>
         </div>
         <div class="card-footer bg-transparent border-0 d-flex flex-wrap gap-2">
           <a href="{% url 'accounts:backend_student_list' %}?classroom={{ classroom.pk }}" class="btn btn-sm btn-primary">{% trans "View roster" %}</a>

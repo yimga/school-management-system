@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block cp_title %}{% trans "Rollback Blueprint" %}{% endblock %}
 
@@ -16,7 +17,7 @@
   <div class="card border-0 shadow-sm"><div class="card-body">
     <dl class="row small">
       <dt class="col-sm-4">{% trans "Blueprint" %}</dt><dd class="col-sm-8">{{ installation.blueprint_key }}</dd>
-      <dt class="col-sm-4">{% trans "School" %}</dt><dd class="col-sm-8">{{ installation.school.name }}</dd>
+      <dt class="col-sm-4">{% trans_term "School" key="school" %}</dt><dd class="col-sm-8">{{ installation.school.name }}</dd>
       <dt class="col-sm-4">{% trans "Status" %}</dt><dd class="col-sm-8">{{ installation.status }}</dd>
     </dl>
     <form method="post">{% csrf_token %}<input type="hidden" name="confirm" value="yes"><button class="btn btn-danger btn-sm" type="submit" {% if installation.status != "applied" %}disabled{% endif %}>{% trans "Confirm rollback" %}</button></form>

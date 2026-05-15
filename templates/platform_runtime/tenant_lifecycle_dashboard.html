@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n phase8_tags %}
+{% load terminology_tags %}
 
 {% block cp_title %}{% trans "Tenant lifecycle" %}{% endblock %}
 
@@ -143,7 +144,7 @@
       <caption class="visually-hidden">{% trans "Operator adoption (event log)" %}</caption>
       <thead>
         <tr>
-          <th>{% trans "School" %}</th>
+          <th>{% trans_term "School" key="school" %}</th>
           <th>{% trans "State" %}</th>
           <th>{% trans "Severity" %}</th>
           <th>{% trans "Open retention tasks" %}</th>

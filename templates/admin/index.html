@@ -1,5 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load i18n static %}
+{% load terminology_tags %}
 
 {% block extrastyle %}
 {% with ADMIN_THEME=SITE_ADMIN_THEME|default:SITE %}
@@ -369,7 +370,7 @@
     <div class="stat-card">
       <h3>📊 {% trans "Academic Overview" %}</h3>
       <div class="stat-item">
-        <div class="stat-time">{% trans "Students" %}</div>
+        <div class="stat-time">{% trans_term "Students" key="student" plural=True %}</div>
         <div class="stat-title">{% trans "4 Enrolled Students" %}</div>
         <div class="stat-meta">{% trans "Manage student profiles & records" %}</div>
       </div>
@@ -424,7 +425,7 @@
         <div class="app-actions">
           <a href="{% url 'admin:people_studentprofile_changelist' %}" class="app-btn">{% trans "Student profiles" %}</a>
           <a href="{% url 'admin:people_studentguardian_changelist' %}" class="app-btn">{% trans "Student guardians" %}</a>
-          <a href="{% url 'admin:people_teacherprofile_changelist' %}" class="app-btn">{% trans "Teachers" %}</a>
+          <a href="{% url 'admin:people_teacherprofile_changelist' %}" class="app-btn">{% trans_term "Teachers" key="teacher" plural=True %}</a>
         </div>
       </div>
 

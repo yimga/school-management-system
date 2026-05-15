@@ -1,5 +1,6 @@
 {% load static %}
 {% load i18n %}
+{% load terminology_tags %}
 
 <div id="live-report-preview" class="card shadow-sm mb-3">
   <div class="card-header d-flex flex-wrap align-items-start justify-content-between gap-2">
@@ -25,7 +26,7 @@
         <div class="col-lg-3">
           <label for="livePreviewType" class="form-label small mb-1">{% trans "Report type" %}</label>
           <select id="livePreviewType" class="form-select form-select-sm">
-            <option value="term">{% trans "Term" %}</option>
+            <option value="term">{% trans_term "Term" key="term" %}</option>
             <option value="annual">{% trans "Annual" %}</option>
           </select>
         </div>

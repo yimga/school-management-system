@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n static phase8_tags %}
+{% load terminology_tags %}
 
 {% block cp_title %}{% trans "Playbook operator hub" %}{% endblock %}
 
@@ -130,7 +131,7 @@
               <th>{% trans "Started" %}</th>
               <th>{% trans "Status" %}</th>
               <th>{% trans "Playbook" %}</th>
-              <th>{% trans "School" %}</th>
+              <th>{% trans_term "School" key="school" %}</th>
               <th>{% trans "Schema" %}</th>
               <th>{% trans "Audit" %}</th>
             </tr>

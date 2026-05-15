@@ -1,5 +1,6 @@
 {% extends "backend_base.html" %}
 {% load admin_health i18n static region_format phase8_tags %}
+{% load terminology_tags %}
 
 {% block backend_title %}{% trans "School Command Center" %}{% endblock %}
 {% block body_extra_class %}
@@ -803,8 +804,8 @@ backend-shell dashboard-page-backend
         <article class="card backend-v2-panel backend-v2-panel--attendance rmc-reveal" data-widget-id="backend-attendance-today">
           <div class="card-body">
             <div class="backend-v2-panel-head">
-              <h5 class="backend-v2-panel-title mb-0">{% trans "Attendance" %}</h5>
-              <span class="badge text-bg-light">{% trans "Staff" %}</span>
+              <h5 class="backend-v2-panel-title mb-0">{% trans_term "Attendance" key="attendance" %}</h5>
+              <span class="badge text-bg-light">{% trans_term "Staff" key="staff" plural=True %}</span>
             </div>
             <div class="backend-attendance-pulse">
               <div class="backend-attendance-pulse-row">

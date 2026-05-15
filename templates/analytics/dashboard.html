@@ -1,6 +1,7 @@
 {% extends "portal_base.html" %}
 {% block rmc_workspace_os_header %}{% endblock %}
 {% load i18n static region_format phase8_tags %}
+{% load terminology_tags %}
 
 {% block title %}{% trans "Insights Center" %}{% endblock %}
 
@@ -166,7 +167,7 @@
   <div class="card-body">
     <div class="row g-2 align-items-end">
       <div class="col-md-2">
-        <label class="form-label small">{% trans "Academic year" %}</label>
+        <label class="form-label small">{% trans_term "Academic year" key="academic_year" %}</label>
         <select class="form-select" name="year">
           {% for y in years %}
             <option value="{{ y.id }}" {% if y.id == year.id %}selected{% endif %}>{{ y.name }}</option>
@@ -174,7 +175,7 @@
         </select>
       </div>
       <div class="col-md-2">
-        <label class="form-label small">{% trans "Term" %}</label>
+        <label class="form-label small">{% trans_term "Term" key="term" %}</label>
         <select class="form-select" name="term">
           {% for t in terms %}
             <option value="{{ t.id }}" {% if t.id == term.id %}selected{% endif %}>{{ t.get_name_display }}</option>
@@ -182,7 +183,7 @@
         </select>
       </div>
       <div class="col-md-2">
-        <label class="form-label small">{% trans "Classroom" %}</label>
+        <label class="form-label small">{% trans_term "Classroom" key="classroom" %}</label>
         <select class="form-select" name="classroom">
           <option value="">{% trans "All" %}</option>
           {% for c in classrooms %}
@@ -214,7 +215,7 @@
       <div class="col-md-2">
         <label class="form-label small">{% trans "Pass period" %}</label>
         <select class="form-select" name="pass_period">
-          <option value="term" {% if pass_period == "term" %}selected{% endif %}>{% trans "Term" %}</option>
+          <option value="term" {% if pass_period == "term" %}selected{% endif %}>{% trans_term "Term" key="term" %}</option>
           <option value="annual" {% if pass_period == "annual" %}selected{% endif %}>{% trans "Annual" %}</option>
         </select>
       </div>
@@ -358,7 +359,7 @@
           <thead>
             <tr>
               <th scope="col" style="width:80px;">Rank</th>
-              <th scope="col">{% trans "Student" %}</th>
+              <th scope="col">{% trans_term "Student" key="student" %}</th>
               <th scope="col" class="text-end">{% trans "Average" %}</th>
             </tr>
           </thead>
@@ -391,7 +392,7 @@
               <thead>
                 <tr>
                   <th scope="col" style="width:80px;">Rank</th>
-                  <th scope="col">{% trans "Student" %}</th>
+                  <th scope="col">{% trans_term "Student" key="student" %}</th>
                   <th scope="col" class="text-end">{% trans "Average" %}</th>
                 </tr>
               </thead>
@@ -424,7 +425,7 @@
             <thead>
               <tr>
                 <th scope="col" style="width:80px;">Rank</th>
-                <th scope="col">{% trans "Student" %}</th>
+                <th scope="col">{% trans_term "Student" key="student" %}</th>
                 <th scope="col" class="text-end">{% trans "Average" %}</th>
               </tr>
             </thead>
@@ -458,7 +459,7 @@
               <thead>
                 <tr>
                   <th scope="col" style="width:80px;">Rank</th>
-                  <th scope="col">{% trans "Student" %}</th>
+                  <th scope="col">{% trans_term "Student" key="student" %}</th>
                   <th scope="col" class="text-end">{% trans "Average" %}</th>
                 </tr>
               </thead>
@@ -491,7 +492,7 @@
             <thead>
               <tr>
                 <th scope="col" style="width:80px;">Rank</th>
-                <th scope="col">{% trans "Student" %}</th>
+                <th scope="col">{% trans_term "Student" key="student" %}</th>
                 <th scope="col" class="text-end">{% trans "Average" %}</th>
               </tr>
             </thead>
@@ -524,7 +525,7 @@
             <caption class="visually-hidden">{% trans "Weak subject focus" %}</caption>
             <thead>
               <tr>
-                <th scope="col">{% trans "Subject" %}</th>
+                <th scope="col">{% trans_term "Subject" key="subject" %}</th>
                 <th scope="col" class="text-end">{% trans "Average" %}</th>
                 <th scope="col" class="text-end">{% trans "Entries" %}</th>
               </tr>
@@ -555,7 +556,7 @@
             <caption class="visually-hidden">{% trans "Student improvement list" %}</caption>
             <thead>
               <tr>
-                <th scope="col">{% trans "Student" %}</th>
+                <th scope="col">{% trans_term "Student" key="student" %}</th>
                 <th scope="col" class="text-end">{% trans "From" %}</th>
                 <th scope="col" class="text-end">{% trans "To" %}</th>
                 <th scope="col" class="text-end">{% trans "Delta" %}</th>
@@ -591,7 +592,7 @@
             <caption class="visually-hidden">{% trans "Teacher deadline compliance" %}</caption>
             <thead>
               <tr>
-                <th scope="col">{% trans "Teacher" %}</th>
+                <th scope="col">{% trans_term "Teacher" key="teacher" %}</th>
                 <th scope="col" class="text-end">{% trans "Expected" %}</th>
                 <th scope="col" class="text-end">{% trans "On time" %}</th>
                 <th scope="col" class="text-end">{% trans "Late" %}</th>

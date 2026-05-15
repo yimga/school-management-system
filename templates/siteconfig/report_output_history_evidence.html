@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n static %}
+{% load terminology_tags %}
 
 {% block title %}{% trans "Report output history" %}{% endblock %}
 {% block extrastyle %}
@@ -36,7 +37,7 @@
   {% if not school %}
   <p class="text-warning">{% trans "No tenant context — open this page on a school host." %}</p>
   {% else %}
-  <p class="small text-muted mb-3">{% trans "School" %}: {{ school.name }}</p>
+  <p class="small text-muted mb-3">{% trans_term "School" key="school" %}: {{ school.name }}</p>
   {% endif %}
 
   <div class="d-flex flex-wrap gap-2 mb-3 cp-evidence-related" data-rmc-evidence-related-links="1" data-rmc-operator-evidence-related="1" aria-label="{% trans 'Related control-plane links' %}">
@@ -59,10 +60,10 @@
       <thead>
         <tr>
           <th>{% trans "Generated" %}</th>
-          <th>{% trans "Student" %}</th>
+          <th>{% trans_term "Student" key="student" %}</th>
           <th>{% trans "Type" %}</th>
-          <th>{% trans "Academic year" %}</th>
-          <th>{% trans "Term" %}</th>
+          <th>{% trans_term "Academic year" key="academic_year" %}</th>
+          <th>{% trans_term "Term" key="term" %}</th>
           <th>{% trans "PDF" %}</th>
         </tr>
       </thead>

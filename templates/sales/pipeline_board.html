@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 {% block title %}{% trans "Sales pipeline" %}{% endblock %}
 {% block content %}
 {% url 'sales:pipeline_board' as sales_pipeline_url %}
@@ -89,7 +90,7 @@
       <caption class="visually-hidden">{% trans "Sales pipeline" %}</caption>
       <thead class="table-light">
         <tr>
-          <th>{% trans "School" %}</th>
+          <th>{% trans_term "School" key="school" %}</th>
           <th>{% trans "Contact" %}</th>
           <th>{% trans "Email" %}</th>
           <th>{% trans "Stage" %}</th>

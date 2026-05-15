@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load static i18n region_format phase8_tags %}
+{% load terminology_tags %}
 
 {% block cp_title %}{% trans "Control Plane" %}{% endblock %}
 
@@ -437,7 +438,7 @@
                 <table class="table table-family table-sm mb-0 cp-table align-middle">
                   <caption class="visually-hidden">{% trans "Top active countries" %}</caption>
                   <thead>
-                    <tr><th>{% trans "Country" %}</th><th>{% trans "Schools" %}</th><th>{% trans "Students" %}</th><th>{% trans "Revenue" %}</th><th>{% trans "Waived" %}</th></tr>
+                    <tr><th>{% trans "Country" %}</th><th>{% trans_term "Schools" key="school" plural=True %}</th><th>{% trans_term "Students" key="student" plural=True %}</th><th>{% trans "Revenue" %}</th><th>{% trans "Waived" %}</th></tr>
                   </thead>
                   <tbody>
                     {% for row in country_rollup %}
@@ -509,7 +510,7 @@
             <caption class="visually-hidden">{% trans "Search, triage, and drill into every school" %}</caption>
             <thead>
               <tr>
-                <th>{% trans "School" %}</th>
+                <th>{% trans_term "School" key="school" %}</th>
                 <th>{% trans "Geography" %}</th>
                 <th>{% trans "Education footprint" %}</th>
                 <th>{% trans "Brand and domain" %}</th>

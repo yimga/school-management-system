@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 {% load region_format phase8_tags %}
 {% block title %}At-Risk Dashboard{% endblock %}
 {% block content %}
@@ -15,7 +16,7 @@
           <caption class="visually-hidden">{% trans "At-Risk Dashboard" %}</caption>
           <thead>
             <tr>
-              <th scope="col">{% trans "Student" %}</th>
+              <th scope="col">{% trans_term "Student" key="student" %}</th>
               <th scope="col" class="num">{% trans "Score" %}</th>
               <th scope="col">{% trans "Band" %}</th>
               <th scope="col">{% trans "Why" %}</th>
@@ -98,7 +99,7 @@
       <div class="table-responsive">
         <table class="table table-sm table-family align-middle">
           <caption class="visually-hidden">{% trans "Ongoing interventions" %}</caption>
-          <thead><tr><th>{% trans "Student" %}</th><th>{% trans "Action" %}</th><th>{% trans "Trigger" %}</th><th></th></tr></thead>
+          <thead><tr><th>{% trans_term "Student" key="student" %}</th><th>{% trans "Action" %}</th><th>{% trans "Trigger" %}</th><th></th></tr></thead>
           <tbody>
             {% for i in interventions %}
             <tr>

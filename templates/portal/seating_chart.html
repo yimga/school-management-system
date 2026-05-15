@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 {% block title %}Seating chart{% endblock %}
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Seating chart</h1>
@@ -8,7 +9,7 @@
     <div class="card-body">
       <form method="get" action="{% url 'portal:seating_chart' %}" class="row g-2 align-items-end mb-3">
         <div class="col-auto">
-          <label class="form-label small mb-0">{% trans "Class" %}</label>
+          <label class="form-label small mb-0">{% trans_term "Class" key="class" %}</label>
           <select name="classroom" class="form-select">
             <option value="">-- {% trans "Select class" %} --</option>
             {% for c in classrooms %}

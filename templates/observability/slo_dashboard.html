@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 {% load region_format phase8_tags %}
 
 {% block cp_title %}{% trans "SLO dashboard" %}{% endblock %}
@@ -67,7 +68,7 @@
             <tr>
               <th>{% trans "Region" %}</th>
               <th>{% trans "Status" %}</th>
-              <th>{% trans "Schools" %}</th>
+              <th>{% trans_term "Schools" key="school" plural=True %}</th>
               <th>{% trans "Webhook success %" %}</th>
               <th>{% trans "P95 latency (ms)" %}</th>
               <th>{% trans "Sync pending" %}</th>

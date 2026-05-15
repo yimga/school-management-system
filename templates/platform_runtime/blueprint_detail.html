@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block cp_title %}{{ blueprint.name }}{% endblock %}
 
@@ -17,7 +18,7 @@
         <dl class="row small">
           <dt class="col-sm-4">{% trans "Status" %}</dt><dd class="col-sm-8">{{ blueprint.status }}</dd>
           <dt class="col-sm-4">{% trans "Scope" %}</dt><dd class="col-sm-8"><code>{{ blueprint.scope }}</code></dd>
-          <dt class="col-sm-4">{% trans "Modules" %}</dt><dd class="col-sm-8">{{ blueprint.modules|join:", " }}</dd>
+          <dt class="col-sm-4">{% trans_term "Modules" key="module" plural=True %}</dt><dd class="col-sm-8">{{ blueprint.modules|join:", " }}</dd>
           <dt class="col-sm-4">{% trans "Roles" %}</dt><dd class="col-sm-8">{{ blueprint.roles|join:", " }}</dd>
           <dt class="col-sm-4">{% trans "Dashboard packs" %}</dt><dd class="col-sm-8">{{ blueprint.dashboard_packs|join:", " }}</dd>
           <dt class="col-sm-4">{% trans "Workflow packs" %}</dt><dd class="col-sm-8">{{ blueprint.workflow_packs|join:", " }}</dd>

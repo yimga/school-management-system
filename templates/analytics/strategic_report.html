@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block title %}{% trans "Strategic Reporting" %}{% endblock %}
 
@@ -29,7 +30,7 @@
   <div class="col-md-4 rmc-reveal">
     <div class="card h-100">
       <div class="card-body">
-        <h6 class="text-muted text-uppercase small">{% trans "Academic year" %}</h6>
+        <h6 class="text-muted text-uppercase small">{% trans_term "Academic year" key="academic_year" %}</h6>
         <p class="h5 mb-0">{{ active_year.name|default:"—" }}</p>
       </div>
     </div>

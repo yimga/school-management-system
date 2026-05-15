@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n control_console %}
+{% load terminology_tags %}
 
 {% block cp_title %}{% trans "Migration runs" %}{% endblock %}
 
@@ -32,7 +33,7 @@
       <thead>
         <tr>
           <th>{% trans "Type" %}</th>
-          <th>{% trans "School" %}</th>
+          <th>{% trans_term "School" key="school" %}</th>
           <th>{% trans "Status" %}</th>
           <th>{% trans "Rows" %}</th>
           <th>{% trans "Started" %}</th>

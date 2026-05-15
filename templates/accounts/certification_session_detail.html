@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n static region_format %}
+{% load terminology_tags %}
 
 {% block title %}Exam Session{% endblock %}
 
@@ -89,8 +90,8 @@
         <table class="table table-sm align-middle table-family" aria-label="{% trans 'Certification session candidates' %}">
           <thead>
             <tr>
-              <th scope="col">{% trans "Student" %}</th>
-              <th scope="col">{% trans "Classroom" %}</th>
+              <th scope="col">{% trans_term "Student" key="student" %}</th>
+              <th scope="col">{% trans_term "Classroom" key="classroom" %}</th>
               <th scope="col">{% trans "Specialty" %}</th>
               <th scope="col">{% trans "UID (matricule)" %}</th>
               <th scope="col">{% trans "Official CIN" %}</th>

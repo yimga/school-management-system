@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n phase8_tags %}
+{% load terminology_tags %}
 
 {% block cp_title %}{% trans "Policy diff" %}{% endblock %}
 
@@ -40,7 +41,7 @@
   {% endif %}
 
   {% if school %}
-  <p class="mb-2">{% trans "School" %}: <strong>{{ school.name }}</strong></p>
+  <p class="mb-2">{% trans_term "School" key="school" %}: <strong>{{ school.name }}</strong></p>
   {% endif %}
   {% if impact_preview %}
   <div class="card shadow-sm border-secondary mb-2">
@@ -56,7 +57,7 @@
         {% if impact_preview.policy_keys %}<li><strong>{% trans "Policy keys" %}:</strong> {{ impact_preview.policy_keys|join:", " }}</li>{% endif %}
       </ul>
       {% if impact_preview.affected_schools %}
-      <p class="small mb-0"><strong>{% trans "Schools" %}:</strong></p>
+      <p class="small mb-0"><strong>{% trans_term "Schools" key="school" plural=True %}:</strong></p>
       <ul class="small mb-0 list-unstyled">
         {% for s in impact_preview.affected_schools %}
         <li><a href="{{ runtime_inspector_url }}?school_id={{ s.id }}">{{ s.name|default:s.id }}</a></li>

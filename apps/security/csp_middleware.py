@@ -1,19 +1,17 @@
 """Content-Security-Policy middleware.
 
-Ships in **report-only** mode by default so the existing inline-style /
-inline-script footprint isn't broken at flip time. Once the
-``csp_violation_report`` endpoint surfaces zero new violations on the
-high-traffic surfaces, operators flip ``CSP_ENFORCE`` to ``True`` to
-enforce.
+**Enforce mode by default since v2.57.** The inline-style backlog reached
+zero (enforced by ``scan_inline_style_off_token`` zero-tolerance gate
+post-v2.27), so ``style-src`` no longer needs ``'unsafe-inline'`` and
+``CSP_ENFORCE`` defaults to ``True``.
 
-Policy is intentionally conservative — `'self'`-only for scripts and connect.
-Inline styles are allowed via ``unsafe-inline`` because the audits showed
-extensive inline ``style="…"`` use across templates; that should shrink to
-zero over time, after which ``unsafe-inline`` for styles can also be removed.
+Policy is intentionally conservative — `'self'`-only for scripts, styles,
+and connect. Operators can roll back to Report-Only by setting
+``CSP_ENFORCE=0`` in env if a regression surfaces.
 
-Settings (declared in ``config/settings_registry.py`` once finalized):
+Settings (declared in ``config/settings_registry.py``):
 
-- ``CSP_ENFORCE``                  — bool, default False (Report-Only)
+- ``CSP_ENFORCE``                  — bool, default True (enforce)
 - ``CSP_REPORT_URI``               — str, default "/security/csp-report/"
 - ``CSP_EXTRA_SCRIPT_SRC``         — tuple[str], extra script-src origins
 - ``CSP_EXTRA_STYLE_SRC``          — tuple[str], extra style-src origins
@@ -33,7 +31,7 @@ from django.conf import settings
 _DEFAULT_DIRECTIVES: dict[str, tuple[str, ...]] = {
     "default-src": ("'self'",),
     "script-src": ("'self'",),
-    "style-src": ("'self'", "'unsafe-inline'"),  # inline-style backlog
+    "style-src": ("'self'",),  # 'unsafe-inline' removed v2.57 — inline-style backlog at 0
     "img-src": ("'self'", "data:", "https:"),
     "font-src": ("'self'", "data:", "https:"),
     "connect-src": ("'self'",),

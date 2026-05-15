@@ -31,7 +31,7 @@
        gradient squircle monogram. Brand text is wrapped in the component's
        own .rmc-brand-mark__title which does NOT clip. {% endcomment %}
     {% url 'super:dashboard' as bm_dashboard_url %}
-    {% include "components/rmc_brand_mark.html" with size=32 variant="lockup" href=bm_dashboard_url label="RunMyCampus" subtitle="Manager" %}
+    {% include "components/rmc_brand_mark.html" with size=32 variant="lockup" href=bm_dashboard_url label=rmc_shell.control_plane_product_title|default:"RunMyCampus" subtitle=rmc_shell.control_plane_product_subtitle|default:_("Manager") %}
     <button class="navbar-toggler border-light d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#cpSidebarOffcanvas" aria-controls="cpSidebarOffcanvas" aria-label="{% trans 'Open menu' %}">
       <span class="navbar-toggler-icon"></span>
     </button>

@@ -1,6 +1,48 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-15 (v2.54.0 — migration-callable serialization realignment closeout + scanner refinement)
+**Last updated:** 2026-05-15 (v2.58.0 — Wave N: documented-baseline drift checker + unified platform readiness)
+
+## 2026-05-15 — v2.58 Wave N: documented-baseline drift checker + unified readiness
+
+**Status:** SHIPPED. SW bumped to `sms-v2.58.0-wave-n-unified-readiness-preflight-2026-05-15`.
+
+Wave N closes the **doc-vs-baseline drift visibility gap** that bit Wave L1a (CLAUDE.md said 742 long after the JSON baseline had moved to 734, with no automation catching the divergence) and ships the **unified platform readiness command** that orchestrates every per-feature preflight built across Waves K-M behind a single operator-facing surface.
+
+### What landed
+
+| # | Sub-wave | Artifact |
+|---|---|---|
+| N1 | Documented-baseline drift checker | NEW `scripts/check_documented_baselines.py` — parses `CLAUDE.md`'s scanner table, reads each `var/security-audit-baseline-*.json` (handles 3 schemas: top-level `finding_count`, `total`, or `len(findings)`), and exits 1 when the documented integer disagrees with the JSON. Zero-tolerance gates legitimately document "0" without a JSON file; non-zero documented numbers without a JSON baseline are flagged as misleading. **Caught 1 real drift on first run** — `scan_magic_numbers` doc was 482 but JSON had moved to 485; reconciled to 485 in CLAUDE.md. New `documented-baselines` CI gate in `architectural-boundaries.yml`. 19 unit tests in `scripts/tests/test_check_documented_baselines.py`. |
+| N2 | Unified `verify_platform_readiness` command | NEW `apps/platform_runtime/management/commands/verify_platform_readiness.py` — orchestrates the K4 residency preflight + L2 CSP preflight + N1 baseline-drift checker behind a single operator surface. `--section <name>` flag narrows to specific preflights; `--json` for machine consumption. Exit codes: 0 ready, 1 any-not-ready, 2 invocation error. 6 integration tests in `apps/platform_runtime/tests/test_verify_platform_readiness.py`. |
+| N4 | NEW `docs/PLATFORM_READINESS_PREFLIGHTS.md` | SOT for every flip-the-switch ops decision: index of toggles + per-section runbook (`DATA_RESIDENCY_ENFORCE`, `CSP_ENFORCE`) + the baseline drift contract + the "adding a new preflight" pattern. Mirrors the consistent shape every preflight should expose (`ready: bool`, `issue_count()`, structured details). |
+
+### Why this matters
+
+The platform now has 3 boolean toggles that change runtime behavior in production (`DATA_RESIDENCY_ENFORCE`, `CSP_ENFORCE`, `AT_RISK_MODEL_PATH` auto-discovery). Each one had a per-feature preflight after Waves K-M, but operators had no single surface to answer "is this branch shippable?". Wave N provides that surface and catches the class of doc/baseline drift that no other automation owns.
+
+### Honest scope calls
+
+* **N1 caught real drift on first run** (magic-numbers 482→485). That alone justified the wave — it means at least 3 magic-number additions had landed without anyone updating CLAUDE.md, and without N1 nobody would have noticed until the next manual baseline review.
+* **N1 doesn't run scanners by default**. The `--full` mode re-runs every scanner to compare current state vs JSON baseline, but it's opt-in because subprocess invocation is slow (60+ seconds platform-wide). The default mode just compares CLAUDE.md text vs JSON file contents — fast, runs in CI on every PR.
+* **N2 baselines section shells out** to the standalone script as a subprocess rather than importing it. Keeps the orchestrator decoupled from the scanner module's filesystem-walking concerns and runs the script the same way CI does — surfaces script-level regressions, not just import-time errors.
+
+### Deploy
+
+After this lands:
+
+1. Pull the new SW bundle (`sms-v2.58.0-wave-n-unified-readiness-preflight-2026-05-15`).
+2. The new CI job `architectural-boundaries.yml::documented-baselines` runs on every PR; fails when CLAUDE.md and `var/*.json` disagree.
+3. (Ops) `python manage.py verify_platform_readiness` is now the canonical pre-deploy readiness check. Add it to the deploy pipeline if not already wired.
+
+### Cumulative test totals
+
+| Track | Tests |
+|---|---|
+| N1 — drift checker unit tests | 19 |
+| N2 — readiness orchestrator integration tests | 6 |
+| **Wave N subtotal** | **25** |
+
+Across Waves K-N: 28 (K) + 21 (L) + 20 (L-followup + M) + 25 (N) = **94 tests**. Every flip-the-switch toggle is now backed by an executable, CI-enforced readiness check.
 
 ## 2026-05-15 — v2.54 migration-callable serialization realignment closeout
 

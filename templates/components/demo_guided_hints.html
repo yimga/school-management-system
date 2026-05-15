@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load terminology_tags %}
 <details class="alert alert-light border mb-3" data-rmc-demo-guided-hints="1">
   <summary class="fw-semibold">
     {% trans "Demo tour — try these next" %}
@@ -8,7 +9,7 @@
   {% with role=request.user.role|default:''|upper %}
   <div class="d-flex flex-wrap gap-2 mt-2 mb-2" data-rmc-demo-guided-ctas="1">
     {% if role == 'PARENT' %}
-    <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_attendance_discipline' %}">{% trans "Attendance" %}</a>
+    <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_attendance_discipline' %}">{% trans_term "Attendance" key="attendance" %}</a>
     <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_dashboard' %}">{% trans "Grades & results" %}</a>
     {% if demo_parent_child_results_url %}
     <a class="btn btn-sm btn-primary" href="{{ demo_parent_child_results_url }}">{% trans "Generate report" %}</a>

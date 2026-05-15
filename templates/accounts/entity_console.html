@@ -1,5 +1,6 @@
 {% extends "backend_base.html" %}
 {% load static i18n phase8_tags %}
+{% load terminology_tags %}
 
 {% block backend_title %}Entity Console{% endblock %}
 
@@ -102,7 +103,7 @@
           </div>
           <div class="table-responsive">
             <table class="table table-sm align-middle mb-0 table-family">
-              <caption class="visually-hidden">{% trans "Students" %}</caption>
+              <caption class="visually-hidden">{% trans_term "Students" key="student" plural=True %}</caption>
               <thead>
                 <tr class="text-muted">
                   <th>ID</th>

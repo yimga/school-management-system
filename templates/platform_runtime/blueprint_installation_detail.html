@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block cp_title %}{% trans "Blueprint Installation" %}{% endblock %}
 
@@ -11,7 +12,7 @@
   </header>
   <div class="card border-0 shadow-sm"><div class="card-body">
     <dl class="row small">
-      <dt class="col-sm-4">{% trans "School" %}</dt><dd class="col-sm-8">{{ installation.school.name }}</dd>
+      <dt class="col-sm-4">{% trans_term "School" key="school" %}</dt><dd class="col-sm-8">{{ installation.school.name }}</dd>
       <dt class="col-sm-4">{% trans "Status" %}</dt><dd class="col-sm-8">{{ installation.status }}</dd>
       <dt class="col-sm-4">{% trans "Health" %}</dt><dd class="col-sm-8">{{ health.state }}</dd>
       <dt class="col-sm-4">{% trans "Version" %}</dt><dd class="col-sm-8">{{ installation.blueprint_version }}</dd>

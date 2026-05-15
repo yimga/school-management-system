@@ -1,5 +1,6 @@
 {% extends "backend_base.html" %}
 {% load i18n static region_format compliance_tags %}
+{% load terminology_tags %}
 {% block backend_title %}{% trans "Student 360" %} — {{ student.first_name }} {{ student.last_name }}{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
@@ -9,7 +10,7 @@
 <div class="container-fluid py-4 student-360-page" data-page-archetype="record-detail">
   <nav class="mb-3" aria-label="{% trans 'Breadcrumb' %}">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_student_list' %}">{% trans "Students" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_student_list' %}">{% trans_term "Students" key="student" plural=True %}</a></li>
       <li class="breadcrumb-item active" aria-current="page">{{ student.first_name }} {{ student.last_name }}</li>
     </ol>
   </nav>
@@ -58,7 +59,7 @@
     <div class="col-lg-4 col-md-6 rmc-reveal">
       <div class="card border-0 shadow-sm bento-panel h-100" data-bento-tier="ban">
         <div class="card-body">
-          <p class="text-uppercase small text-muted mb-1 fw-semibold">{% trans "Attendance" %}</p>
+          <p class="text-uppercase small text-muted mb-1 fw-semibold">{% trans_term "Attendance" key="attendance" %}</p>
           {% if d.attendance.last_date %}
           <h3 class="h5 mb-1">{{ d.attendance.last_status_display }}</h3>
           <p class="small text-muted mb-0">{{ d.attendance.last_date }} — {{ d.attendance.classroom }}</p>
@@ -110,7 +111,7 @@
           {% endif %}
         </div>
         <div class="card-footer bg-transparent border-top-0 pt-0">
-          <a href="{{ detail_urls.messages }}" class="btn btn-sm btn-outline-secondary">{% trans "Messages" %}</a>
+          <a href="{{ detail_urls.messages }}" class="btn btn-sm btn-outline-secondary">{% trans_term "Messages" key="message" plural=True %}</a>
         </div>
       </div>
     </div>

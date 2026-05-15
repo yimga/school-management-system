@@ -18,6 +18,7 @@ Required context:
   - school_phone, school_email (optional)
 {% endcomment %}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block email_subject_suffix %}{% if days_remaining < 0 %} · {% trans "Fees overdue" %}{% else %} · {% trans "Fee reminder" %}{% endif %}{% endblock %}
 
@@ -49,11 +50,11 @@ Required context:
       <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:{{ brand_email.ink_subtle }};margin-bottom:6px;">{% trans "Outstanding balance" %}</div>
       <div style="font-size:32px;font-weight:700;color:{% if days_remaining < 0 %}{{ brand_email.danger }}{% else %}{{ brand_email.ink }}{% endif %};letter-spacing:-0.025em;font-variant-numeric:tabular-nums;line-height:1.1;">{{ currency }} {{ balance_amount }}</div>
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;font-size:14px;line-height:1.7;margin-top:14px;border-top:1px solid {{ brand_email.rule }};padding-top:12px;">
-        <tr><td style="color:{{ brand_email.ink_subtle }};width:35%;padding-right:8px;padding-top:6px;">{% trans "Student" %}</td><td style="color:{{ brand_email.ink }};font-weight:600;padding-top:6px;">{{ student_name }}</td></tr>
-        <tr><td style="color:{{ brand_email.ink_subtle }};padding-right:8px;">{% trans "Class" %}</td><td style="color:{{ brand_email.ink }};font-weight:500;">{{ class_name }}</td></tr>
-        <tr><td style="color:{{ brand_email.ink_subtle }};padding-right:8px;">{% trans "Term" %}</td><td style="color:{{ brand_email.ink }};font-weight:500;">{{ term_name }}</td></tr>
+        <tr><td style="color:{{ brand_email.ink_subtle }};width:35%;padding-right:8px;padding-top:6px;">{% trans_term "Student" key="student" %}</td><td style="color:{{ brand_email.ink }};font-weight:600;padding-top:6px;">{{ student_name }}</td></tr>
+        <tr><td style="color:{{ brand_email.ink_subtle }};padding-right:8px;">{% trans_term "Class" key="class" %}</td><td style="color:{{ brand_email.ink }};font-weight:500;">{{ class_name }}</td></tr>
+        <tr><td style="color:{{ brand_email.ink_subtle }};padding-right:8px;">{% trans_term "Term" key="term" %}</td><td style="color:{{ brand_email.ink }};font-weight:500;">{{ term_name }}</td></tr>
         <tr><td style="color:{{ brand_email.ink_subtle }};padding-right:8px;">{% trans "Due date" %}</td><td style="color:{% if days_remaining < 0 %}{{ brand_email.danger }}{% else %}{{ brand_email.ink }}{% endif %};font-weight:600;">{{ due_date }}{% if days_remaining < 0 %} · <span style="color:{{ brand_email.danger }};font-size:13px;">{% blocktrans with d=days_remaining|stringformat:"d" %}{{ d }} days overdue{% endblocktrans %}</span>{% endif %}</td></tr>
-        {% if invoice_number %}<tr><td style="color:{{ brand_email.ink_subtle }};padding-right:8px;">{% trans "Invoice" %}</td><td style="color:{{ brand_email.ink }};font-family:ui-monospace,'SF Mono',monospace;font-size:13px;">{{ invoice_number }}</td></tr>{% endif %}
+        {% if invoice_number %}<tr><td style="color:{{ brand_email.ink_subtle }};padding-right:8px;">{% trans_term "Invoice" key="invoice" %}</td><td style="color:{{ brand_email.ink }};font-family:ui-monospace,'SF Mono',monospace;font-size:13px;">{{ invoice_number }}</td></tr>{% endif %}
       </table>
     </td>
   </tr>

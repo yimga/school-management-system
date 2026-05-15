@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n phase8_tags %}
+{% load terminology_tags %}
 {% block cp_title %}{% trans "Pilot evidence" %}{% endblock %}
 {% block cp_content %}
 <div class="container-lg py-4" data-decision-engine="surface" data-rmc-pilot-evidence="{{ page_marker }}">
@@ -22,14 +23,14 @@
           <p class="small text-muted">{{ p.display_reference_note }}</p>
           <dl class="small mb-0">
             <dt>{% trans "Region" %}</dt><dd>{{ p.country_region|default:"—" }}</dd>
-            <dt>{% trans "Modules" %}</dt><dd>{{ p.modules_enabled|join:", "|default:"—" }}</dd>
+            <dt>{% trans_term "Modules" key="module" plural=True %}</dt><dd>{{ p.modules_enabled|join:", "|default:"—" }}</dd>
             <dt>{% trans "Loop" %}</dt>
             <dd>
               <ul class="mb-0 ps-3">
-                <li>{% trans "Attendance" %}: {{ p.attendance_completed|yesno:"yes,no" }}</li>
+                <li>{% trans_term "Attendance" key="attendance" %}: {{ p.attendance_completed|yesno:"yes,no" }}</li>
                 <li>{% trans "Marks" %}: {{ p.marks_completed|yesno:"yes,no" }}</li>
                 <li>{% trans "Report" %}: {{ p.report_generated|yesno:"yes,no" }}</li>
-                <li>{% trans "Invoice" %}: {{ p.invoice_created|yesno:"yes,no" }}</li>
+                <li>{% trans_term "Invoice" key="invoice" %}: {{ p.invoice_created|yesno:"yes,no" }}</li>
                 <li>{% trans "Receipt/payment" %}: {{ p.receipt_or_payment_captured|yesno:"yes,no" }}</li>
                 <li>{% trans "Parent portal" %}: {{ p.parent_portal_viewed|yesno:"yes,no" }}</li>
                 <li>{% trans "Offline sync" %}: {{ p.offline_sync_used|yesno:"yes,no" }}</li>

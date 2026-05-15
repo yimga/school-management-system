@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n static %}
+{% load terminology_tags %}
 {% load region_format phase8_tags %}
 {% block cp_title %}{% trans "Platform billing" %}{% endblock %}
 {% block cp_content %}
@@ -127,7 +128,7 @@
               <caption class="visually-hidden">{% trans "Active subscriptions" %}</caption>
               <thead>
                 <tr>
-                  <th>{% trans "School" %}</th>
+                  <th>{% trans_term "School" key="school" %}</th>
                   <th>{% trans "Status" %}</th>
                   <th>{% trans "Plan" %}</th>
                   <th>{% trans "Amount" %}</th>
@@ -162,9 +163,9 @@
               <caption class="visually-hidden">{% trans "Free trial watchlist" %}</caption>
               <thead>
                 <tr>
-                  <th>{% trans "School" %}</th>
+                  <th>{% trans_term "School" key="school" %}</th>
                   <th>{% trans "Trial end" %}</th>
-                  <th>{% trans "Students" %}</th>
+                  <th>{% trans_term "Students" key="student" plural=True %}</th>
                   <th>{% trans "API requests" %}</th>
                   <th></th>
                 </tr>
@@ -198,7 +199,7 @@
           <thead>
             <tr>
               <th>{% trans "When" %}</th>
-              <th>{% trans "School" %}</th>
+              <th>{% trans_term "School" key="school" %}</th>
               <th>{% trans "Processor" %}</th>
               <th>{% trans "Event" %}</th>
               <th>{% trans "Status" %}</th>
@@ -278,7 +279,7 @@
           <thead>
             <tr>
               <th>{% trans "When" %}</th>
-              <th>{% trans "School" %}</th>
+              <th>{% trans_term "School" key="school" %}</th>
               <th>{% trans "Type" %}</th>
               <th>{% trans "Status" %}</th>
               <th>{% trans "Amount" %}</th>

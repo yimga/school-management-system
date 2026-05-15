@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load static i18n %}
+{% load terminology_tags %}
 {% load region_format %}
 
 {% block title %}{% if current_mode %}{% for m in studio_modes %}{% if m.id == current_mode %}{{ m.label }}{% endif %}{% endfor %} – {% endif %}{% trans "Studio" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
@@ -91,7 +92,7 @@
             {% if legacy_urls.rbac %}<div class="col-auto"><a href="{{ legacy_urls.rbac }}" class="btn btn-outline-primary btn-sm">{% trans "RBAC & permissions" %}</a></div>{% endif %}
             {% if legacy_urls.feature_control %}<div class="col-auto"><a href="{{ legacy_urls.feature_control }}" class="btn btn-outline-primary btn-sm">{% trans "Feature control" %}</a></div>{% endif %}
             {% if legacy_urls.communication_groups %}<div class="col-auto"><a href="{{ legacy_urls.communication_groups }}" class="btn btn-outline-primary btn-sm">{% trans "Message groups" %}</a></div>{% endif %}
-            {% if legacy_urls.announcement_create %}<div class="col-auto"><a href="{{ legacy_urls.announcement_create }}" class="btn btn-outline-primary btn-sm">{% trans "Announcements" %}</a></div>{% endif %}
+            {% if legacy_urls.announcement_create %}<div class="col-auto"><a href="{{ legacy_urls.announcement_create }}" class="btn btn-outline-primary btn-sm">{% trans_term "Announcements" key="announcement" plural=True %}</a></div>{% endif %}
           </div>
         {% elif embed_url %}
           <div class="small text-muted mb-2">{% trans "Loading mode canvas..." %}</div>

@@ -2,14 +2,20 @@
 {# §8.0 + Scroll directive: one premium bar, no horizontal scroll; primary links + More dropdown so nav never overflows #}
 <nav class="navbar navbar-expand-lg navbar-dark mkt-navbar statement-header mkt-navbar-unified" aria-label="{% trans 'Main navigation' %}">
   <div class="container mkt-navbar-container">
-    <a class="navbar-brand fw-bold d-flex align-items-center gap-2 statement-logo mkt-brand" href="{% url 'home' %}">
-      {% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}
-        <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="36" height="36" decoding="async" loading="lazy" style="object-fit: contain;" class="mkt-brand-mark">
-      {% else %}
+    {% comment %} v2.58 (2026-05-15) — marketing brand cell.
+       When PUBLIC_BRAND_MODE is on (manager-preview-as-tenant or marketing
+       white-label), swap the editorial brand for the rmc_brand_mark
+       component so the tenant's actual logo + name shows. Default branch
+       keeps the editorial mark for the public marketing surface. {% endcomment %}
+    {% if PUBLIC_BRAND_MODE %}
+      {% url 'home' as mkt_home_url %}
+      {% include "components/rmc_brand_mark.html" with size=36 variant="lockup" href=mkt_home_url label=PUBLIC_BRAND_NAME|default:SITE.site_name|default:"RunMyCampus" %}
+    {% else %}
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2 statement-logo mkt-brand" href="{% url 'home' %}">
         <img src="{% static 'images/runmycampus-logo-editorial.svg' %}" alt="" width="36" height="36" decoding="async" loading="lazy" class="mkt-brand-mark mkt-brand-mark--editorial">
-      {% endif %}
-      <span class="mkt-brand-wordmark">{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}</span>
-    </a>
+        <span class="mkt-brand-wordmark">RunMyCampus</span>
+      </a>
+    {% endif %}
     <button class="navbar-toggler border-light" type="button" data-bs-toggle="collapse" data-bs-target="#marketingNav" aria-controls="marketingNav" aria-expanded="false" aria-label="{% trans 'Toggle navigation' %}">
       <span class="navbar-toggler-icon"></span>
     </button>

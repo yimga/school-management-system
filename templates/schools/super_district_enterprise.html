@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block cp_title %}{% trans "District & enterprise" %} — Manager{% endblock %}
 
@@ -29,8 +30,8 @@
         <caption class="visually-hidden">{% trans "Live platform rollups" %}</caption>
         <tbody class="small">
           <tr><th scope="row" class="text-white-50">{% trans "Active schools" %}</th><td>{{ platform_rollups.active_schools }}</td></tr>
-          <tr><th scope="row" class="text-white-50">{% trans "Students" %}</th><td>{{ platform_rollups.active_students }}</td></tr>
-          <tr><th scope="row" class="text-white-50">{% trans "Teachers" %}</th><td>{{ platform_rollups.active_teachers }}</td></tr>
+          <tr><th scope="row" class="text-white-50">{% trans_term "Students" key="student" plural=True %}</th><td>{{ platform_rollups.active_students }}</td></tr>
+          <tr><th scope="row" class="text-white-50">{% trans_term "Teachers" key="teacher" plural=True %}</th><td>{{ platform_rollups.active_teachers }}</td></tr>
           <tr><th scope="row" class="text-white-50">{% trans "Guardian links" %}</th><td>{{ platform_rollups.guardian_links }}</td></tr>
           <tr><th scope="row" class="text-white-50">{% trans "Distinct guardian users" %}</th><td>{{ platform_rollups.distinct_guardian_users }}</td></tr>
           <tr><th scope="row" class="text-white-50">{% trans "Schools with parent org" %}</th><td>{{ platform_rollups.schools_with_parent }}</td></tr>
@@ -44,7 +45,7 @@
   <section class="mb-4 rmc-reveal" aria-label="{% trans 'Primary operator paths' %}">
     <h2 class="h6 text-white mb-3">{% trans "Primary paths" %}</h2>
     <div class="d-flex flex-wrap gap-2">
-      {% if schools_list_url %}<a href="{{ schools_list_url }}" class="btn btn-outline-light btn-sm">{% trans "Schools" %}</a>{% endif %}
+      {% if schools_list_url %}<a href="{{ schools_list_url }}" class="btn btn-outline-light btn-sm">{% trans_term "Schools" key="school" plural=True %}</a>{% endif %}
       {% if group_campuses_url %}<a href="{{ group_campuses_url }}" class="btn btn-outline-light btn-sm">{% trans "Group / campuses" %}</a>{% endif %}
       {% if migration_cloud_url %}<a href="{{ migration_cloud_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Migration cloud" %}</a>{% endif %}
       {% if one_sis_url %}<a href="{{ one_sis_url }}" class="btn btn-outline-secondary btn-sm">{% trans "One SIS, any LMS" %}</a>{% endif %}

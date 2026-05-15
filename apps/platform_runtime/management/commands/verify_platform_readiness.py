@@ -38,7 +38,7 @@ from django.core.management.base import BaseCommand
 
 # Sections we know how to run. Operators may opt into a subset with
 # --section, e.g. when one preflight has known transient noise.
-SECTIONS: tuple[str, ...] = ("residency", "csp", "baselines")
+SECTIONS: tuple[str, ...] = ("residency", "csp", "rls", "at_risk", "baselines")
 
 
 class Command(BaseCommand):
@@ -69,6 +69,10 @@ class Command(BaseCommand):
             sections["residency"] = self._residency_section()
         if "csp" in wanted:
             sections["csp"] = self._csp_section()
+        if "rls" in wanted:
+            sections["rls"] = self._rls_section()
+        if "at_risk" in wanted:
+            sections["at_risk"] = self._at_risk_section()
         if "baselines" in wanted:
             sections["baselines"] = self._baselines_section()
 
@@ -137,6 +141,49 @@ class Command(BaseCommand):
                 "violations_last_hour": report.violations_last_hour,
                 "violations_last_24h": report.violations_last_24h,
                 "violations_by_directive_24h": report.violations_by_directive_24h,
+            },
+        }
+
+    def _rls_section(self) -> dict:
+        try:
+            from apps.schools.rls_readiness import assess_rls_readiness
+
+            report = assess_rls_readiness()
+        except (ImportError, RuntimeError) as exc:
+            return {"ready": False, "error": str(exc), "details": {}}
+        return {
+            "ready": report.ready,
+            "issue_count": report.issue_count(),
+            "details": {
+                "backend_vendor": report.backend_vendor,
+                "middleware_wired": report.middleware_wired,
+                "rls_context_importable": report.rls_context_importable,
+                "use_django_tenants_disabled": report.use_django_tenants_disabled,
+                "guc_settable": report.guc_settable,
+                "policy_count": report.policy_count,
+                "skipped_checks": report.skipped_checks,
+                "error_detail": report.error_detail,
+            },
+        }
+
+    def _at_risk_section(self) -> dict:
+        try:
+            from apps.analytics.at_risk_readiness import assess_at_risk_readiness
+
+            report = assess_at_risk_readiness()
+        except (ImportError, RuntimeError) as exc:
+            return {"ready": False, "error": str(exc), "details": {}}
+        return {
+            "ready": report.ready,
+            "issue_count": report.issue_count(),
+            "details": {
+                "mode": report.mode,
+                "resolved_path": report.resolved_path,
+                "artifact_exists": report.artifact_exists,
+                "artifact_loadable": report.artifact_loadable,
+                "bundle_shape_valid": report.bundle_shape_valid,
+                "bundle_model_version": report.bundle_model_version,
+                "error_detail": report.error_detail,
             },
         }
 
@@ -253,6 +300,27 @@ class Command(BaseCommand):
                     "      missing directives: "
                     + ", ".join(details["directives_missing"])
                 )
+        elif name == "rls":
+            self.stdout.write(f"      backend: {details.get('backend_vendor')}")
+            if details.get("policy_count") is not None:
+                self.stdout.write(f"      pg_policies: {details['policy_count']}")
+            if not details.get("use_django_tenants_disabled"):
+                self.stdout.write(self.style.ERROR(
+                    "      WARNING: USE_DJANGO_TENANTS=True — RLS is bypassed!"
+                ))
+            if details.get("error_detail"):
+                self.stdout.write(f"      detail: {details['error_detail']}")
+        elif name == "at_risk":
+            mode = details.get("mode")
+            self.stdout.write(f"      mode: {mode}")
+            if details.get("resolved_path"):
+                self.stdout.write(f"      path: {details['resolved_path']}")
+            if details.get("bundle_model_version"):
+                self.stdout.write(
+                    f"      model_version: {details['bundle_model_version']}"
+                )
+            if details.get("error_detail"):
+                self.stdout.write(f"      detail: {details['error_detail']}")
         elif name == "baselines":
             for entry in details.get("drift") or []:
                 self.stdout.write(

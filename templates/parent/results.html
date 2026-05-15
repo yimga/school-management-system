@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load static i18n region_format %}
+{% load terminology_tags %}
 {# Refactor: workflow (grouped downloads), semantics (dl/section/aria), consistency (spacing, borders), fix messaging→contact_school, responsive actions. See docs/REFACTOR_PARENT_RESULTS_CHANGES.md #}
 {% block title %}{% trans "Results" %} — {{ student.student_code }}{% endblock %}
 
@@ -64,15 +65,15 @@
       <h2 id="student-info-heading" class="visually-hidden">{% trans "Student information" %}</h2>
       <dl class="row mb-0 g-2 g-md-3 small">
         <div class="col-sm-6 col-md-4">
-          <dt class="text-muted fw-normal">{% trans "Student" %}</dt>
+          <dt class="text-muted fw-normal">{% trans_term "Student" key="student" %}</dt>
           <dd class="mb-0">{{ student.last_name }} {{ student.first_name }} ({{ student.student_code }})</dd>
         </div>
         <div class="col-sm-6 col-md-4">
-          <dt class="text-muted fw-normal">{% trans "Class" %}</dt>
+          <dt class="text-muted fw-normal">{% trans_term "Class" key="class" %}</dt>
           <dd class="mb-0">{{ student.classroom.name }} / {{ student.specialty.name }}</dd>
         </div>
         <div class="col-sm-6 col-md-4">
-          <dt class="text-muted fw-normal">{% trans "Year" %} / {% trans "Term" %}</dt>
+          <dt class="text-muted fw-normal">{% trans "Year" %} / {% trans_term "Term" key="term" %}</dt>
           <dd class="mb-0">{{ year.name }} · {{ term.get_name_display }}</dd>
         </div>
       </dl>
@@ -115,8 +116,8 @@
             </div>
             <p class="h3 fw-bold mb-1">{{ summary.average|default:"-"|format_number:2 }}</p>
             <p class="small text-muted mb-0">
-              {% trans "Class" %}: {{ summary.class_position|default:"-" }} / {{ summary.class_size|default:"-" }} ·
-              {% trans "School" %}: {{ summary.school_position|default:"-" }} / {{ summary.school_size|default:"-" }}
+              {% trans_term "Class" key="class" %}: {{ summary.class_position|default:"-" }} / {{ summary.class_size|default:"-" }} ·
+              {% trans_term "School" key="school" %}: {{ summary.school_position|default:"-" }} / {{ summary.school_size|default:"-" }}
             </p>
             {% if summary.teacher_remark %}
               <p class="small mt-2 mb-0"><strong>{% trans "Teacher remark" %}:</strong> {{ summary.teacher_remark }}</p>
@@ -129,7 +130,7 @@
           <div class="card-body">
             <h3 class="h6 text-muted mb-2">{% trans "Weights" %}</h3>
             <p class="small text-muted mb-2">
-              Seq1 {{ weights.seq1_weight }}% · Seq2 {{ weights.seq2_weight }}% · {% trans "Exam" %} {{ weights.exam_weight }}% · Mock {{ weights.mock_weight }}% · {% trans "Pract" %} {{ weights.practical_weight }}%
+              Seq1 {{ weights.seq1_weight }}% · Seq2 {{ weights.seq2_weight }}% · {% trans_term "Exam" key="exam" %} {{ weights.exam_weight }}% · Mock {{ weights.mock_weight }}% · {% trans "Pract" %} {{ weights.practical_weight }}%
             </p>
             <div class="progress" style="height: 6px;" role="progressbar" aria-valuenow="{{ completion_pct }}" aria-valuemin="0" aria-valuemax="100">
               <div class="progress-bar" style="width: {{ completion_pct }}%;"></div>
@@ -164,11 +165,11 @@
           <table class="table table-sm table-striped align-middle table-mobile-cards mb-0 table-family" aria-label="{% trans 'Term results: subject, coefficient, sequence and exam scores, average, and status' %}">
             <thead class="table-light">
               <tr>
-                <th scope="col">{% trans "Subject" %}</th>
+                <th scope="col">{% trans_term "Subject" key="subject" %}</th>
                 <th scope="col">{% trans "Coef" %}</th>
                 <th scope="col">Seq1</th>
                 <th scope="col">Seq2</th>
-                <th scope="col">{% trans "Exam" %}</th>
+                <th scope="col">{% trans_term "Exam" key="exam" %}</th>
                 <th scope="col">Mock</th>
                 <th scope="col">{% trans "Pract" %}</th>
                 <th scope="col">{% trans "Avg" %}</th>

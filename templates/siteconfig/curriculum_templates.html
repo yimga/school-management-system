@@ -43,13 +43,13 @@
         </p>
         {% endif %}
         <dl class="row mb-0">
-          <dt class="col-sm-3">{% trans "Grade" %}</dt>
+          <dt class="col-sm-3">{% trans_term "Grade" key="grade" %}</dt>
           <dd class="col-sm-9">{{ effective_terminology.grade }}</dd>
-          <dt class="col-sm-3">{% trans "GPA" %}</dt>
+          <dt class="col-sm-3">{% trans_term "GPA" key="gpa" %}</dt>
           <dd class="col-sm-9">{{ effective_terminology.gpa }}</dd>
-          <dt class="col-sm-3">{% trans "Term" %}</dt>
+          <dt class="col-sm-3">{% trans_term "Term" key="term" %}</dt>
           <dd class="col-sm-9">{{ effective_terminology.term }}</dd>
-          <dt class="col-sm-3">{% trans "Report card" %}</dt>
+          <dt class="col-sm-3">{% trans_term "Report card" key="report_card" %}</dt>
           <dd class="col-sm-9">{{ effective_terminology.report_card }}</dd>
         </dl>
       </div>

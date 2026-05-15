@@ -1,5 +1,6 @@
 {% extends "schools/marketing_base.html" %}
 {% load static i18n %}
+{% load terminology_tags %}
 {% block marketing_main_extra_classes %}container-fluid px-0 py-0 mkt-global-os-main{% endblock %}
 {% block title %}{{ seo_title|default:"RunMyCampus | Global School Operating Platform" }}{% endblock %}
 {% block extrastyle %}
@@ -746,7 +747,7 @@
         <tbody>
           <tr><th scope="row" class="text-start">{% trans "Student Information System" %}</th><td>✓</td><td>✓</td><td>✓</td></tr>
           <tr><th scope="row" class="text-start">{% trans "Admissions" %}</th><td>—</td><td>✓</td><td>✓</td></tr>
-          <tr><th scope="row" class="text-start">{% trans "Attendance" %}</th><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><th scope="row" class="text-start">{% trans_term "Attendance" key="attendance" %}</th><td>✓</td><td>✓</td><td>✓</td></tr>
           <tr><th scope="row" class="text-start">{% trans "Fees / payments" %}</th><td>✓</td><td>✓</td><td>✓</td></tr>
           <tr><th scope="row" class="text-start">{% trans "Grading / report cards" %}</th><td>{% trans "Core" %}</td><td>✓</td><td>✓</td></tr>
           <tr><th scope="row" class="text-start">{% trans "Offline sync" %}</th><td>—</td><td>{% trans "Add-on" %}</td><td>✓</td></tr>
