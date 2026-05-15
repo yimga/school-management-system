@@ -1,0 +1,441 @@
+/* rmc-warm-bright-school.css
+ *
+ * v2.41 — platform-wide warm/bright/inviting aesthetic shift.
+ *
+ * REASON: previous indigo-on-cool-gray (#f5f5f7) read as "corporate
+ * SaaS" rather than "bright welcoming school." This layer warms every
+ * surface in the cascade — buttermilk cream backgrounds, warm-graphite
+ * text, honey/coral/sage accent palette, softer hairlines + shadows,
+ * larger radii, more breathing room.
+ *
+ * Loaded AFTER design-tokens.css on every shell. Tenant brand
+ * (`--school-primary`, `--brand-gradient`) cascade is preserved
+ * because we never re-define those tokens — the warm shift happens at
+ * the SURFACE / TEXT / HAIRLINE / SHADOW / RADIUS layer.
+ *
+ * Three blocks:
+ *   1. Light mode (default)          — buttermilk + cream + ivory
+ *   2. Dark mode                     — cozy parlor (warm charcoal, NOT pure black)
+ *   3. Stone palette compatibility   — already warm, slight harmony pass
+ *   4. Component grammar overrides   — softer cards, gentler buttons,
+ *                                      bigger radii, friendlier chips
+ *   5. Warm accent system            — .rmc-accent-honey/coral/sage/sky
+ *                                      friendly pills + tone badges
+ *   6. Typography breathing room     — body line-height, heading optical
+ *                                      letter-spacing
+ */
+
+
+/* ============================================================ */
+/* 1. LIGHT MODE — buttermilk + cream + ivory                   */
+/* ============================================================ */
+
+:root,
+[data-theme="light"],
+[data-bs-theme="light"] {
+  /* ---- Surface palette: buttermilk → cream → ivory cascade ---- */
+  --surface-bg: #fdf9f2;                                          /* buttermilk (was cool #f5f5f7) */
+  --surface-canvas: #fffaf0;                                      /* warm ivory (was #fbfbfd) */
+  --surface-elevated: #ffffff;                                    /* pure white (highest elevation) */
+  --surface-popover: color-mix(in oklab, #fffaf0 94%, transparent);
+  --surface-sunken: #f5eedd;                                      /* deeper honey-cream */
+  --surface-overlay: color-mix(in srgb, #c47f1c 5%, transparent);
+  --surface-overlay-strong: color-mix(in srgb, #c47f1c 10%, transparent);
+
+  /* ---- Text: warm-graphite, not cold-slate ---- */
+  --text-primary: #2a241e;                                        /* warm near-black */
+  --text-secondary: #544d44;                                      /* warm taupe */
+  --text-tertiary: #857c70;                                       /* warm gray-tan */
+  --text-muted: #9a9082;                                          /* soft sand muted */
+  --text-on-brand: #ffffff;                                       /* unchanged */
+
+  /* ---- Hairlines: warm thin line, no cool blue undertone ---- */
+  --hairline: rgba(80, 55, 25, 0.08);
+  --hairline-strong: rgba(80, 55, 25, 0.16);
+
+  /* ---- Elevations: warmer + softer shadows ---- */
+  --elev-1: 0 1px 2px rgba(80, 50, 20, 0.05),
+            0 1px 3px rgba(80, 50, 20, 0.04);
+  --elev-2: 0 2px 4px rgba(80, 50, 20, 0.06),
+            0 8px 24px rgba(80, 50, 20, 0.08);
+  --elev-3: 0 4px 8px rgba(80, 50, 20, 0.08),
+            0 16px 40px rgba(80, 50, 20, 0.12);
+
+  /* ---- Radii: bumped one step warmer/softer ---- */
+  --radius-sm: 10px;     /* was 8px */
+  --radius-md: 14px;     /* was 12px */
+  --radius-lg: 18px;     /* was 16px */
+  --radius-xl: 24px;     /* was 20px */
+  /* --radius-pill (999px) stays */
+
+  /* ---- Material: warmer frost ---- */
+  --material-blur: saturate(160%) blur(22px);
+  --material-blur-strong: saturate(160%) blur(30px);
+}
+
+
+/* ============================================================ */
+/* 2. DARK MODE — cozy parlor (warm charcoal, NOT pure black)    */
+/* ============================================================ */
+
+[data-theme="dark"],
+[data-bs-theme="dark"] {
+  --surface-bg: #1a1612;                /* warm charcoal */
+  --surface-canvas: #241e18;            /* warm dark cocoa */
+  --surface-elevated: #2c241d;          /* slightly lighter warm cocoa */
+  --surface-popover: color-mix(in oklab, #2c241d 90%, transparent);
+  --surface-sunken: #0d0a07;
+  --surface-overlay: rgba(245, 220, 180, 0.06);
+  --surface-overlay-strong: rgba(245, 220, 180, 0.10);
+
+  --text-primary: #f5efe3;              /* warm cream text */
+  --text-secondary: #d9d0c2;            /* warm taupe */
+  --text-tertiary: #a8a092;             /* warm tan */
+  --text-muted: #877f72;                /* warm sand muted */
+
+  --hairline: rgba(245, 220, 180, 0.10);
+  --hairline-strong: rgba(245, 220, 180, 0.18);
+
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.35),
+            0 1px 3px rgba(0, 0, 0, 0.20);
+  --elev-2: 0 4px 12px rgba(0, 0, 0, 0.40),
+            0 1px 3px rgba(0, 0, 0, 0.30);
+  --elev-3: 0 12px 32px rgba(0, 0, 0, 0.50),
+            0 4px 8px rgba(0, 0, 0, 0.30);
+}
+
+
+/* ============================================================ */
+/* 3. STONE PALETTE — already warm, harmonize with new defaults  */
+/* ============================================================ */
+
+[data-rmc-palette="stone"] {
+  --surface-bg: #fdf9f2;
+  --surface-canvas: #fffaf0;
+  --surface-sunken: #f5eedd;
+  --hairline: rgba(80, 55, 25, 0.08);
+  --hairline-strong: rgba(80, 55, 25, 0.16);
+}
+[data-rmc-palette="stone"][data-theme="dark"],
+[data-theme="dark"][data-rmc-palette="stone"] {
+  --surface-bg: #1a1612;
+  --surface-canvas: #241e18;
+}
+
+
+/* ============================================================ */
+/* 4. COMPONENT GRAMMAR — softer cards, gentler buttons          */
+/* ============================================================ */
+
+/* Bigger radii on cards so they read as friendly tiles, not legal docs */
+.rmc-card,
+.rmc-card-elevated,
+.cp-evidence-page,
+.cp-evidence-summary,
+.cp-evidence-related,
+.cp-evidence-advanced,
+.cp-health-card-neutral,
+.setup-studio-launch,
+.setup-studio-hero,
+.setup-studio-panel,
+.setup-studio-step,
+.setup-studio-health,
+.setup-studio-preview,
+.tenant-admin-hero,
+.page-family-content-card,
+.feature-category {
+  border-radius: var(--radius-lg);
+  border-color: var(--hairline);
+  background: var(--surface-elevated);
+}
+
+/* Card padding +25% on the marquee surfaces — more breathing room */
+.rmc-card,
+.rmc-card-elevated,
+.cp-evidence-page,
+.cp-evidence-summary,
+.setup-studio-panel,
+.setup-studio-launch,
+.setup-studio-hero,
+.page-family-content-card {
+  padding: 1.75rem;
+}
+@media (max-width: 768px) {
+  .rmc-card,
+  .rmc-card-elevated,
+  .cp-evidence-page,
+  .setup-studio-panel,
+  .setup-studio-launch,
+  .setup-studio-hero,
+  .page-family-content-card {
+    padding: 1.25rem;
+  }
+}
+
+/* Buttons: warm-tint hover overlay; tactile press feedback */
+.rmc-btn,
+.cp-button {
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  border-color: var(--hairline-strong);
+  color: var(--text-primary);
+  transition:
+    background 220ms cubic-bezier(0.32, 0.72, 0, 1),
+    border-color 220ms cubic-bezier(0.32, 0.72, 0, 1),
+    transform 140ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.rmc-btn:hover,
+.cp-button:hover {
+  background: color-mix(in srgb, #c47f1c 4%, var(--surface-elevated));
+  border-color: color-mix(in srgb, #c47f1c 18%, var(--hairline-strong));
+}
+
+/* Hairlines warmer on tables / inputs / dividers */
+hr,
+.table > :not(caption) > * > * {
+  border-color: var(--hairline);
+}
+
+/* Default body background: ALWAYS warm */
+html,
+body {
+  background-color: var(--surface-bg);
+  color: var(--text-primary);
+}
+
+/* Page-level pages adopt warm canvas tone */
+.rmc-page,
+.cp-page,
+.page-shell,
+.tenant-admin-index {
+  background: transparent;
+}
+
+
+/* ============================================================ */
+/* 5. WARM ACCENT SYSTEM — honey / coral / sage / sky            */
+/* ============================================================ */
+
+:root {
+  --accent-honey: #c47f1c;
+  --accent-honey-soft: #f5e0b6;
+  --accent-coral: #d56456;
+  --accent-coral-soft: #fbd9d2;
+  --accent-sage: #7a9b5d;
+  --accent-sage-soft: #dfe9ce;
+  --accent-sky: #5e93b8;
+  --accent-sky-soft: #cee0ec;
+}
+[data-theme="dark"],
+[data-bs-theme="dark"] {
+  --accent-honey: #e6a052;
+  --accent-honey-soft: rgba(230, 160, 82, 0.18);
+  --accent-coral: #e88573;
+  --accent-coral-soft: rgba(232, 133, 115, 0.20);
+  --accent-sage: #9ec07e;
+  --accent-sage-soft: rgba(158, 192, 126, 0.20);
+  --accent-sky: #82b3d4;
+  --accent-sky-soft: rgba(130, 179, 212, 0.20);
+}
+
+/* Tone chips — friendlier than bg-success / bg-warning */
+.rmc-tone {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375em;
+  padding: 0.25em 0.75em;
+  border-radius: var(--radius-pill, 999px);
+  font-size: var(--type-size-micro, 0.72rem);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.rmc-tone--honey  { background: var(--accent-honey-soft); color: var(--accent-honey); }
+.rmc-tone--coral  { background: var(--accent-coral-soft); color: var(--accent-coral); }
+.rmc-tone--sage   { background: var(--accent-sage-soft); color: var(--accent-sage); }
+.rmc-tone--sky    { background: var(--accent-sky-soft);   color: var(--accent-sky); }
+
+/* Friendlier severity overrides for existing alerts */
+.alert-success {
+  background: var(--accent-sage-soft) !important;
+  color: var(--accent-sage) !important;
+  border-color: color-mix(in srgb, var(--accent-sage) 25%, transparent) !important;
+}
+.alert-warning {
+  background: var(--accent-honey-soft) !important;
+  color: var(--accent-honey) !important;
+  border-color: color-mix(in srgb, var(--accent-honey) 25%, transparent) !important;
+}
+.alert-danger {
+  background: var(--accent-coral-soft) !important;
+  color: var(--accent-coral) !important;
+  border-color: color-mix(in srgb, var(--accent-coral) 25%, transparent) !important;
+}
+.alert-info {
+  background: var(--accent-sky-soft) !important;
+  color: var(--accent-sky) !important;
+  border-color: color-mix(in srgb, var(--accent-sky) 25%, transparent) !important;
+}
+
+/* Badges follow same tone-chip language */
+.badge.bg-success    { background: var(--accent-sage)  !important; color: #fff; }
+.badge.bg-warning    { background: var(--accent-honey) !important; color: #fff; }
+.badge.bg-danger     { background: var(--accent-coral) !important; color: #fff; }
+.badge.bg-info       { background: var(--accent-sky)   !important; color: #fff; }
+
+
+/* ============================================================ */
+/* 6. TYPOGRAPHY — breathing room + softer optical sizing        */
+/* ============================================================ */
+
+body {
+  line-height: 1.6;          /* was ~1.5; warmer reading rhythm */
+}
+.rmc-page,
+.cp-page,
+.page-shell {
+  line-height: 1.6;
+}
+
+/* Slightly softer letter-spacing on display sizes so headings feel
+   editorial-warm rather than HIG-tight. */
+.rmc-h1,
+.rmc-page-hero__title,
+.setup-studio-title,
+.tenant-admin-hero,
+h1 {
+  letter-spacing: -0.012em;
+}
+.rmc-h2,
+h2 {
+  letter-spacing: -0.008em;
+}
+
+/* Optional editorial serif headline (opt-in by class) — pairs with
+   warm cream surface for the chapter-opening feel. */
+.rmc-headline-serif {
+  font-family: "Source Serif 4", "Iowan Old Style", "Charter", Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.008em;
+}
+
+
+/* ============================================================ */
+/* 7. EMPTY STATES + REVEALS — keep the joy markers visible      */
+/* ============================================================ */
+
+.rmc-empty,
+.rmc-empty--inline,
+.rmc-empty--row,
+.rmc-empty--compact {
+  background: var(--surface-canvas);
+  border-radius: var(--radius-lg);
+}
+
+/* Make the existing illustration SVGs pop with a soft honey wash */
+.rmc-illustration--connection-lost,
+.rmc-illustration--first-run,
+.rmc-illustration--inbox,
+.rmc-illustration--no-data,
+.rmc-illustration--no-results,
+.rmc-illustration--permission {
+  filter: drop-shadow(0 6px 14px rgba(80, 50, 20, 0.08));
+}
+
+
+/* ============================================================ */
+/* 8. MARKETING SURFACE — keep editorial cream but harmonize     */
+/* ============================================================ */
+
+/* Marketing already runs in cream editorial mode; this just nudges
+   tokens-editorial.css to share the same hairline + shadow values
+   so the platform feels coherent end-to-end. */
+[data-mkt-edition="editorial"] {
+  --hairline: rgba(80, 55, 25, 0.10);
+  --hairline-strong: rgba(80, 55, 25, 0.18);
+}
+
+
+/* ============================================================ */
+/* 9. PORTAL / BACKEND / ADMIN TOKEN BRIDGES                     */
+/* ============================================================ */
+
+/* Portal shell tokens — make sure cards/dropdowns inherit warmth */
+:root,
+[data-theme="light"] {
+  --portal-bg: var(--surface-bg);
+  --portal-card-bg: var(--surface-elevated);
+  --portal-card-bg-elevated: var(--surface-elevated);
+  --portal-search-focus-bg: color-mix(in srgb, var(--surface-elevated) 92%, var(--accent-honey) 8%);
+  --admin-content-surface: var(--surface-elevated);
+}
+[data-theme="dark"] {
+  --portal-bg: var(--surface-bg);
+  --portal-card-bg: var(--surface-elevated);
+  --portal-card-bg-elevated: var(--surface-elevated);
+  --admin-content-surface: var(--surface-elevated);
+}
+
+/* Bootstrap variable bridges — keep platform-Bootstrap utilities
+   (bg-light, bg-secondary, btn-light, badges) in tune with warm scheme. */
+:root,
+[data-bs-theme="light"] {
+  --bs-body-bg: var(--surface-bg);
+  --bs-body-color: var(--text-primary);
+  --bs-secondary-bg: var(--surface-canvas);
+  --bs-secondary-color: var(--text-secondary);
+  --bs-tertiary-bg: var(--surface-sunken);
+  --bs-tertiary-color: var(--text-tertiary);
+  --bs-border-color: var(--hairline);
+  --bs-border-color-translucent: var(--hairline);
+  --bs-light: var(--surface-canvas);
+  --bs-light-rgb: 255, 250, 240;
+  --bs-success: var(--accent-sage);
+  --bs-warning: var(--accent-honey);
+  --bs-danger: var(--accent-coral);
+  --bs-info: var(--accent-sky);
+}
+[data-bs-theme="dark"] {
+  --bs-body-bg: var(--surface-bg);
+  --bs-body-color: var(--text-primary);
+  --bs-secondary-bg: var(--surface-canvas);
+  --bs-tertiary-bg: var(--surface-sunken);
+  --bs-border-color: var(--hairline);
+  --bs-border-color-translucent: var(--hairline);
+}
+
+/* The bg-light / bg-secondary literal classes that templates use for
+   subtle surface lifts should resolve to the warm canvas. */
+.bg-light    { background-color: var(--surface-canvas) !important; color: var(--text-primary) !important; }
+.bg-body     { background-color: var(--surface-bg) !important; }
+.bg-body-tertiary { background-color: var(--surface-sunken) !important; }
+.text-muted  { color: var(--text-tertiary) !important; }
+.border      { border-color: var(--hairline) !important; }
+.text-bg-secondary {
+  background-color: var(--surface-canvas) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Subtle warm wash behind page hero strips — adds the "morning sun
+   through classroom window" feel without overwhelming. */
+.rmc-page-hero,
+.cp-page > .rmc-page__header,
+.rmc-page > .rmc-page__header {
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--accent-honey) 5%, transparent) 0%,
+      transparent 70%);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.5rem 1rem;
+}
+
+
+/* ============================================================ */
+/* 10. REDUCE-MOTION                                             */
+/* ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-btn,
+  .cp-button {
+    transition: none;
+  }
+}
