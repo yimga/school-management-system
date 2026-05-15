@@ -22,7 +22,7 @@
 }
 
 .rmc-mkt-app-card .proof-app-head h3 {
-  font-size: 1.05rem;
+  font-size: var(--type-size-body-l);
   line-height: 1.25;
 }
 
@@ -35,7 +35,7 @@
 }
 
 .rmc-mkt-lifecycle-badges .badge {
-  font-size: 0.72rem;
+  font-size: var(--type-size-micro);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -61,7 +61,7 @@
 }
 
 .rmc-mkt-app-actions .btn-sm {
-  font-size: 0.8125rem;
+  font-size: var(--type-size-caption);
 }
 
 /* Primary filled before outline (visual hierarchy enforced in template order). */
@@ -89,6 +89,6 @@
 }
 
 .rmc-mkt-app-meta-tight .badge {
-  font-size: 0.68rem;
+  font-size: var(--type-size-micro);
   font-weight: 500;
 }

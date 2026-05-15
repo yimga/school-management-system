@@ -15,13 +15,13 @@
 
 .theme-preview-card header h2 {
   margin-bottom: 0.25rem;
-  font-size: 1.05rem;
+  font-size: var(--type-size-body-l);
   letter-spacing: 0.02em;
 }
 
 .theme-preview-card header p {
   margin-bottom: 0.75rem;
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
   color: rgba(248, 250, 252, 0.72);
 }
 
@@ -39,7 +39,7 @@
   border: none;
   background: transparent;
   color: rgba(248, 250, 252, 0.85);
-  font-size: 0.75rem;
+  font-size: var(--type-size-eyebrow);
   font-weight: 600;
   padding: 0.25rem 0.6rem;
   border-radius: 999px;
@@ -88,14 +88,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: var(--type-size-eyebrow);
   color: var(--preview-text-color, var(--color-base-200));
   font-weight: 600;
 }
 
 .preview-nav span {
   display: block;
-  font-size: 0.78rem;
+  font-size: var(--type-size-eyebrow);
   color: var(--preview-text-color, var(--color-base-200));
   padding: 0.35rem 0.6rem;
   border-radius: 9px;
@@ -160,13 +160,13 @@
 .preview-card strong {
   display: block;
   color: var(--preview-accent-color, var(--color-sky-400));
-  font-size: 0.83rem;
+  font-size: var(--type-size-caption);
   margin-bottom: 0.3rem;
 }
 
 .preview-card p {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: var(--type-size-eyebrow);
   color: rgba(248, 250, 252, 0.72);
 }
 
@@ -182,7 +182,7 @@
   border: 1px solid rgba(148, 163, 184, 0.35);
   border-radius: 999px;
   padding: 0.2rem 0.55rem;
-  font-size: 0.68rem;
+  font-size: var(--type-size-micro);
   color: rgba(226, 232, 240, 0.9);
   background: rgba(15, 23, 42, 0.35);
 }
@@ -210,7 +210,7 @@
   display: block;
   margin-bottom: 0.4rem;
   color: var(--preview-accent-color, var(--color-sky-400));
-  font-size: 0.8rem;
+  font-size: var(--type-size-caption);
 }
 
 .preview-chart-bars {
@@ -232,7 +232,7 @@
 }
 
 .theme-preview-card button {
-  font-size: 0.78rem;
+  font-size: var(--type-size-eyebrow);
 }
 
 .contrast-hint {
@@ -241,7 +241,7 @@
   padding: 0.6rem;
   background: rgba(59, 130, 246, 0.12);
   color: color-mix(in oklab, var(--color-indigo-400) 22%, var(--color-base-0));
-  font-size: 0.75rem;
+  font-size: var(--type-size-eyebrow);
 }
 
 .contrast-hint strong {
@@ -281,7 +281,7 @@
 }
 
 .preview-role-selector label {
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
   color: rgba(248, 250, 252, 0.8);
 }
 
@@ -291,18 +291,18 @@
   border: 1px solid rgba(148, 163, 184, 0.4);
   border-radius: 0.5rem;
   padding: 0.35rem 0.75rem;
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
 }
 
 .preview-role-note {
   flex: 1;
-  font-size: 0.75rem;
+  font-size: var(--type-size-eyebrow);
   color: rgba(248, 250, 252, 0.7);
 }
 
 .preview-note {
   margin-top: 0.75rem;
-  font-size: 0.78rem;
+  font-size: var(--type-size-eyebrow);
   color: rgba(248, 250, 252, 0.72);
   border: 1px dashed rgba(148, 163, 184, 0.3);
   padding: 0.65rem;

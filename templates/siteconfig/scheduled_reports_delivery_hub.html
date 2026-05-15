@@ -21,27 +21,27 @@
   {% if school %}
   <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Schedules" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Schedules" %}</div>
       <div class="fw-semibold text-body fs-6">{{ schedule_summary.schedule_total }}</div>
     </div>
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Active" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Active" %}</div>
       <div class="fw-semibold text-body fs-6">{{ schedule_summary.active_count }}</div>
     </div>
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Inactive" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Inactive" %}</div>
       <div class="fw-semibold text-body fs-6">{{ schedule_summary.inactive_count }}</div>
     </div>
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Report keys" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Report keys" %}</div>
       <div class="fw-semibold text-body fs-6">{{ schedule_summary.distinct_report_keys }}</div>
     </div>
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Ran before" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Ran before" %}</div>
       <div class="fw-semibold text-body fs-6">{{ schedule_summary.with_last_run }}</div>
     </div>
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Active · due" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Active · due" %}</div>
       <div class="fw-semibold text-body fs-6">{{ schedule_summary.active_past_due_next }}</div>
     </div>
   </div>

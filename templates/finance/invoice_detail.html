@@ -65,8 +65,8 @@
     </div>
   </div>
 
-  <div class="row g-3 mb-3">
-    <div class="col-md-6">
+  <div class="row g-3 mb-3 rmc-reveal-stagger">
+    <div class="col-md-6 rmc-reveal">
       <div class="card">
         <div class="card-body">
           <h5 class="mb-2">{% trans "Amounts" %}</h5>
@@ -116,7 +116,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-6 rmc-reveal">
       <div class="card h-100">
         <div class="card-body">
           <h5 class="mb-2">{% trans "Payment link" %}</h5>
@@ -438,5 +438,5 @@
   });
 })();
 </script>
-<script src="{% static '_pages/finance__invoice_detail.js' %}"></script>
+<script src="{% static 'js/_pages/finance__invoice_detail.js' %}"></script>
 {% endblock %}

@@ -158,7 +158,7 @@ body.control-plane-shell .admin-login-hero .hero-logo {
   border: 1px solid var(--cp-ultra-border-strong);
   display: grid;
   place-items: center;
-  font-size: 1.5rem;
+  font-size: var(--type-size-headline-m);
   font-weight: 700;
   color: var(--cp-ultra-gold);
   flex-shrink: 0;
@@ -166,7 +166,7 @@ body.control-plane-shell .admin-login-hero .hero-logo {
 
 body.control-plane-shell .manager-login-hero strong,
 body.control-plane-shell .admin-login-hero strong {
-  font-size: 1.2rem;
+  font-size: var(--type-size-body-l);
   font-weight: 700;
   color: var(--cp-ultra-text);
   letter-spacing: -0.02em;
@@ -176,7 +176,7 @@ body.control-plane-shell .manager-login-hero small,
 body.control-plane-shell .admin-login-hero small {
   display: block;
   color: var(--cp-ultra-muted);
-  font-size: 0.875rem;
+  font-size: var(--type-size-caption);
   margin-top: var(--rmc-lit-1992ef2f0f);
   line-height: 1.4;
 }
@@ -224,7 +224,7 @@ body.control-plane-shell .admin-login-card .card-body {
 
 body.control-plane-shell .manager-login-card h2,
 body.control-plane-shell .admin-login-card h2 {
-  font-size: 1.35rem;
+  font-size: var(--type-size-headline-m);
   font-weight: 600;
   color: var(--cp-ultra-text);
   margin-bottom: var(--rmc-lit-b15c288a9f);
@@ -237,7 +237,7 @@ body.control-plane-shell .admin-login-card .form-control {
   border: 1px solid var(--cp-ultra-border);
   color: var(--cp-ultra-text);
   padding: var(--rmc-lit-d1f559869e);
-  font-size: 1rem;
+  font-size: var(--type-size-body);
   transition: border-color var(--cp-ultra-transition), box-shadow var(--cp-ultra-transition), background var(--cp-ultra-transition);
 }
 
@@ -291,7 +291,7 @@ body.control-plane-shell .admin-login-footer a,
 body.control-plane-shell .admin-login-reset a {
   color: var(--cp-ultra-muted);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
 }
 
 body.control-plane-shell .manager-login-footer a:hover,
@@ -317,18 +317,18 @@ body.control-plane-shell #nav-sidebar,
 #nav-sidebar .admin-unfold-sidebar-title {
   font-weight: 700;
   color: var(--cp-ultra-text);
-  font-size: 1.05rem;
+  font-size: var(--type-size-body-l);
 }
 
 #nav-sidebar .admin-unfold-sidebar-subtitle {
   color: var(--cp-ultra-muted);
-  font-size: 0.8rem;
+  font-size: var(--type-size-caption);
 }
 
 #nav-sidebar .admin-sidebar-section-title,
 #nav-sidebar .admin-sidebar-app-title {
   color: var(--cp-ultra-muted) !important;
-  font-size: 0.7rem;
+  font-size: var(--type-size-micro);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 600;
@@ -370,7 +370,7 @@ body.control-plane-shell #nav-sidebar,
 }
 
 #nav-sidebar .admin-sidebar-search-hint {
-  font-size: 0.75rem;
+  font-size: var(--type-size-eyebrow);
   color: var(--cp-ultra-muted);
   padding: var(--rmc-lit-3b3e72785a);
 }
@@ -410,7 +410,7 @@ body.control-plane-shell #nav-sidebar,
 
 .cp-sidebar-nav .cp-nav-group-toggle {
   color: var(--cp-ultra-muted);
-  font-size: 0.7rem;
+  font-size: var(--type-size-micro);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 600;
@@ -419,7 +419,7 @@ body.control-plane-shell #nav-sidebar,
 .cp-sidebar-nav .cp-nav-recent .text-uppercase,
 .cp-sidebar-nav .cp-nav-quick-access .text-uppercase {
   color: var(--cp-ultra-muted);
-  font-size: 0.7rem;
+  font-size: var(--type-size-micro);
   letter-spacing: 0.12em;
 }
 
@@ -452,7 +452,7 @@ body.control-plane-shell #nav-sidebar,
 .cp-navbar .navbar-brand,
 .cp-navbar .statement-logo {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: var(--type-size-body-l);
   letter-spacing: -0.02em;
   flex: 0 0 auto;
   max-width: min(240px, 45vw);
@@ -641,7 +641,7 @@ body.control-plane-shell #nav-sidebar,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: var(--type-size-body-l);
   margin-bottom: var(--rmc-lit-86a04737d1);
 }
 
@@ -702,7 +702,7 @@ body.control-plane-shell #nav-sidebar,
   color: var(--cp-ink-deep);
   font-weight: 600;
   border-radius: var(--rmc-lit-3282c1fa98);
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
 }
 
 .skip-link:focus {

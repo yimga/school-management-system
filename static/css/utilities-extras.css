@@ -4,7 +4,7 @@
  * Adds the utilities templates were reaching for via inline style=:
  *   - .cursor-pointer  (was style="cursor:pointer;" — 12+ sites)
  *   - .ws-pre-wrap     (was style="white-space: pre-wrap;" — 9 sites)
- *   - .icon-lg / .icon-xl / .icon-sm (was style="font-size:1.5rem;" — 12+ sites)
+ *   - .icon-lg / .icon-xl / .icon-sm (was style="font-size:var(--type-size-headline-m);" — 12+ sites)
  *   - .max-w-75p       (was style="max-width: 75%;" — message bubbles)
  *
  * Goal: let templates use semantic class names instead of inline styles, so
@@ -19,9 +19,9 @@
 .ws-nowrap { white-space: nowrap; }
 
 /* Icon sizing — paired with <i class="bi ..."> usage */
-.icon-sm { font-size: 0.875rem; line-height: 1; }
-.icon-lg { font-size: 1.5rem; line-height: 1; }
-.icon-xl { font-size: 2rem; line-height: 1; }
+.icon-sm { font-size: var(--type-size-caption); line-height: 1; }
+.icon-lg { font-size: var(--type-size-headline-m); line-height: 1; }
+.icon-xl { font-size: var(--type-size-headline-l); line-height: 1; }
 
 /* Bubble / chat width caps */
 .max-w-75p { max-width: 75%; }

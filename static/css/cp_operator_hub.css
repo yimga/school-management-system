@@ -43,7 +43,7 @@
 }
 
 .cp-operator-hub .cpoh-eyebrow {
-  font-size: 0.7rem;
+  font-size: var(--type-size-micro);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.45);
@@ -60,7 +60,7 @@
 
 .cp-operator-hub .cpoh-sub {
   color: rgba(226, 232, 240, 0.72);
-  font-size: 0.95rem;
+  font-size: var(--type-size-body);
   line-height: 1.55;
   max-width: 46rem;
   margin: 0;
@@ -72,7 +72,7 @@
 }
 
 .cp-operator-hub .cpoh-section-label {
-  font-size: 0.72rem;
+  font-size: var(--type-size-micro);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.4);
@@ -137,18 +137,18 @@
   border-radius: 0.65rem;
   background: rgba(99, 102, 241, 0.2);
   color: #a5b4fc;
-  font-size: 1.2rem;
+  font-size: var(--type-size-body-l);
 }
 
 .cp-operator-hub .cpoh-tile-title {
   font-weight: 600;
-  font-size: 0.98rem;
+  font-size: var(--type-size-body);
   color: #f1f5f9;
   margin: 0 0 0.25rem;
 }
 
 .cp-operator-hub .cpoh-tile-desc {
-  font-size: 0.82rem;
+  font-size: var(--type-size-caption);
   color: rgba(226, 232, 240, 0.62);
   margin: 0;
   line-height: 1.45;
@@ -214,13 +214,13 @@
 
 .cp-operator-hub .cpoh-app-name {
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: var(--type-size-caption);
   color: #f8fafc;
   margin: 0;
 }
 
 .cp-operator-hub .cpoh-section-title {
-  font-size: 0.8rem;
+  font-size: var(--type-size-caption);
   font-weight: 600;
   color: rgba(248, 250, 252, 0.85);
   margin: 1.25rem 0 0.5rem;
@@ -231,7 +231,7 @@
   padding: 0.55rem 1rem;
   color: rgba(226, 232, 240, 0.78);
   text-decoration: none;
-  font-size: 0.84rem;
+  font-size: var(--type-size-caption);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   transition: background 0.15s ease, color 0.15s ease;
 }

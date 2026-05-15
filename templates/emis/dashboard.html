@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
-<script src="{% static '_pages/emis__dashboard.js' %}"></script>
+<script src="{% static 'js/_pages/emis__dashboard.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -207,9 +207,9 @@
 {{ block.super }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
-<script src="{% static '_pages/emis__dashboard-2.js' %}"></script>
+<script src="{% static 'js/_pages/emis__dashboard-2.js' %}"></script>
 <script type="application/json" id="page-data-emis__dashboard-1">{
   "url_emis_download": "{% url 'emis:download' 0 %}"
-}</script><script src="{% static '_pages/emis__dashboard-1.js' %}"></script>
+}</script><script src="{% static 'js/_pages/emis__dashboard-1.js' %}"></script>
 
 {% endblock %}

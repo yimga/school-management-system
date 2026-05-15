@@ -67,7 +67,7 @@
   border-top: 1px dashed var(--bs-border-color);
 }
 .backend-bento-drill-panel table {
-  font-size: 0.88rem;
+  font-size: var(--type-size-caption);
 }
 .insight-anomaly-strip .card {
   border-radius: 1rem;

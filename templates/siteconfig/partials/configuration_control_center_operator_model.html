@@ -2,8 +2,8 @@
 {# Phase 3 — six-step operator control model (capability → publish/rollback). #}
 {% if operator_control_model %}
 <section class="mb-4 {% if compact %}border rounded p-3 bg-light bg-opacity-10{% endif %}" role="region" aria-labelledby="ccc-operator-model-heading">
-  <h2 id="ccc-operator-model-heading" class="h6 {% if compact %}text-uppercase text-muted{% else %}text-uppercase text-white-50{% endif %} mb-2">{% trans "Operator control model" %}</h2>
-  <p class="small {% if compact %}text-muted{% else %}text-white-50{% endif %} mb-3">{% trans "Replace toggle cemeteries with this path: families → grouped controls → impact → tracing → staging → ship or undo." %}</p>
+  <h2 id="ccc-operator-model-heading" class="rmc-type-eyebrow mb-2">{% trans "Operator control model" %}</h2>
+  <p class="rmc-type-caption mb-3">{% trans "Five steps from a capability to a shipped change: family → grouped controls → see impact → trace → stage → ship or undo." %}</p>
   <ol class="list-group list-group-numbered {% if not compact %}list-group-flush border border-secondary border-opacity-25 rounded overflow-hidden{% endif %}">
     {% for step in operator_control_model %}
     <li class="list-group-item d-flex flex-column gap-2 {% if not compact %}bg-dark bg-opacity-25 text-white border-secondary border-opacity-25{% endif %}">

@@ -41,7 +41,7 @@
     {% if government_aggregates_path %}<p class="small mb-0 text-white-50">{% trans "Government aggregates API (school or staff host)" %}: <code class="text-info">{{ government_aggregates_path }}</code></p>{% endif %}
   </section>
   {% endif %}
-  <section class="mb-4" aria-label="{% trans 'Primary operator paths' %}">
+  <section class="mb-4 rmc-reveal" aria-label="{% trans 'Primary operator paths' %}">
     <h2 class="h6 text-white mb-3">{% trans "Primary paths" %}</h2>
     <div class="d-flex flex-wrap gap-2">
       {% if schools_list_url %}<a href="{{ schools_list_url }}" class="btn btn-outline-light btn-sm">{% trans "Schools" %}</a>{% endif %}
@@ -52,7 +52,7 @@
       {% if trust_center_url %}<a href="{{ trust_center_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Trust center" %}</a>{% endif %}
     </div>
   </section>
-  <section class="mb-4 pt-3 border-top border-secondary" aria-label="{% trans 'ERP coexistence patterns' %}">
+  <section class="mb-4 pt-3 border-top border-secondary rmc-reveal" aria-label="{% trans 'ERP coexistence patterns' %}">
     <h2 class="h6 text-white mb-2">{% trans "Customer ERP coexistence" %}</h2>
     <p class="small text-white-50 mb-2">{% trans "Signed webhooks + API Center subscriptions; customer maps events to their finance system of record." %}</p>
     {% if erp_coexistence_patterns %}
@@ -82,7 +82,7 @@
       {% if wedge_index_url %}<a href="{{ wedge_index_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Wedge index (1–45)" %}</a>{% endif %}
     </div>
   </section>
-  <section class="mb-4 pt-3 border-top border-secondary" aria-label="{% trans 'Finance and geography' %}">
+  <section class="mb-4 pt-3 border-top border-secondary rmc-reveal" aria-label="{% trans 'Finance and geography' %}">
     <h2 class="h6 text-white mb-3">{% trans "Finance, geography, education systems" %}</h2>
     <div class="d-flex flex-wrap gap-2">
       {% if billing_url %}<a href="{{ billing_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Billing" %}</a>{% endif %}

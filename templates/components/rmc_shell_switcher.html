@@ -1,7 +1,7 @@
 {% load i18n %}
-{# Phase F+G (2026-05-12): Console / Configure tenant shell switcher.
+{% comment %} Phase F+G (2026-05-12): Console / Configure tenant shell switcher.
    Same operating-vs-configuring split as platform's /super vs /admin. Drop into
-   any tenant page header to give operators a one-tap mode toggle. #}
+   any tenant page header to give operators a one-tap mode toggle. {% endcomment %}
 {% with current_url=request.path %}
 <div class="rmc-shell-switcher" role="group" aria-label="{% trans 'Workspace mode' %}">
   <a href="{% url 'portal_console' %}"

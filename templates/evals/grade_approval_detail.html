@@ -14,8 +14,8 @@
   <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'evals:grade_approval_list' %}"><i class="bi bi-arrow-left me-1"></i>Back to list</a>
 </div>
 
-<div class="row g-3 mb-4">
-  <div class="col-md-6">
+<div class="row g-3 mb-4 rmc-reveal-stagger">
+  <div class="col-md-6 rmc-reveal">
     <div class="card">
       <div class="card-body">
         <p class="mb-1"><strong>Subject:</strong> {{ approval.subject_assignment }}</p>
@@ -28,7 +28,7 @@
       </div>
     </div>
   </div>
-  <div class="col-md-6">
+  <div class="col-md-6 rmc-reveal">
     <div class="card">
       <div class="card-body">
         <p class="mb-1"><strong>Rows submitted:</strong> {{ approval.summary.submitted_rows }} / {{ approval.summary.total_students }}</p>

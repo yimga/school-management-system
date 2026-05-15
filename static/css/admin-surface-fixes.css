@@ -45,7 +45,7 @@ body.admin-index #main > #header.admin-top-header {
 /* Sidebar hierarchy and sizing. */
 #nav-sidebar .admin-sidebar-section-title,
 #nav-sidebar-apps .admin-sidebar-section-title {
-  font-size: 0.78rem !important;
+  font-size: var(--type-size-eyebrow) !important;
   line-height: 1.25 !important;
   font-weight: 700 !important;
   margin: 0.85rem 1rem 0.45rem !important;
@@ -60,7 +60,7 @@ body.admin-index #main > #header.admin-top-header {
 
 #nav-sidebar .admin-sidebar-app-title a,
 #nav-sidebar-apps .admin-sidebar-app-title a {
-  font-size: 1rem !important;
+  font-size: var(--type-size-body) !important;
   font-weight: 650 !important;
   text-decoration: none !important;
 }
@@ -73,14 +73,14 @@ body.admin-index #main > #header.admin-top-header {
 
 #nav-sidebar .admin-sidebar-model-link,
 #nav-sidebar-apps .admin-sidebar-model-link {
-  font-size: 0.86rem !important;
+  font-size: var(--type-size-caption) !important;
   line-height: 1.25 !important;
   padding: 0.38rem 0.6rem !important;
 }
 
 #nav-sidebar .admin-sidebar-link,
 #nav-sidebar-apps .admin-sidebar-link {
-  font-size: 0.96rem !important;
+  font-size: var(--type-size-body) !important;
 }
 
 /* Search area sizing/alignment. */

@@ -11,8 +11,8 @@
   <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:employee_payslips' %}">My Payslips</a>
 </div>
 
-<div class="row g-3">
-  <div class="col-lg-5">
+<div class="row g-3 rmc-reveal-stagger">
+  <div class="col-lg-5 rmc-reveal">
     <form method="post" class="card">
       {% csrf_token %}
       <div class="card-body">
@@ -40,7 +40,7 @@
       </div>
     </form>
   </div>
-  <div class="col-lg-7">
+  <div class="col-lg-7 rmc-reveal">
     <div class="card">
       <div class="card-body">
         <h5 class="mb-3">History</h5>

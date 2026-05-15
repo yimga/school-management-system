@@ -10,11 +10,11 @@
     <h1 class="h3 mb-2">{{ preview.blueprint_name }} {% trans "preview" %}</h1>
     <p class="text-muted mb-0">{% trans "Preview is read-only. It computes tenant-scoped changes, blockers, rollback posture, and audit requirements before apply." %}</p>
   </header>
-  <div class="row g-3 mb-3">
-    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "Tenant" %}</div><strong>{{ preview.tenant_name|default:preview.tenant }}</strong></div></div></div>
-    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "Can apply" %}</div><strong>{{ preview.can_apply|yesno:"yes,no" }}</strong></div></div></div>
-    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "Confirmation" %}</div><strong>{{ preview.requires_confirmation|yesno:"required,not required" }}</strong></div></div></div>
-    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "External blockers" %}</div><strong>{{ preview.external_required|length }}</strong></div></div></div>
+  <div class="row g-3 mb-3 rmc-reveal-stagger">
+    <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "Tenant" %}</div><strong>{{ preview.tenant_name|default:preview.tenant }}</strong></div></div></div>
+    <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "Can apply" %}</div><strong>{{ preview.can_apply|yesno:"yes,no" }}</strong></div></div></div>
+    <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "Confirmation" %}</div><strong>{{ preview.requires_confirmation|yesno:"required,not required" }}</strong></div></div></div>
+    <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "External blockers" %}</div><strong>{{ preview.external_required|length }}</strong></div></div></div>
   </div>
   <div class="card border-0 shadow-sm mb-3"><div class="card-body">
     <h2 class="h5">{% trans "Changes" %}</h2>
@@ -22,9 +22,9 @@
       {% for change in preview.changes %}<tr><td>{{ change.section }}</td><td>{{ change.operation }}</td><td>{{ change.target }}</td><td>{{ change.rollback }}</td></tr>{% endfor %}
     </tbody></table></div>
   </div></div>
-  <div class="row g-3">
-    <div class="col-lg-6"><div class="card border-0 shadow-sm h-100"><div class="card-body"><h2 class="h6">{% trans "Conflicts" %}</h2><ul class="small mb-0">{% for item in preview.conflicts %}<li>{{ item.code }}: {{ item.message }}</li>{% empty %}<li>{% trans "none" %}</li>{% endfor %}</ul></div></div></div>
-    <div class="col-lg-6"><div class="card border-0 shadow-sm h-100"><div class="card-body"><h2 class="h6">{% trans "External required" %}</h2><ul class="small mb-0">{% for item in preview.external_required %}<li>{{ item }}</li>{% empty %}<li>{% trans "none" %}</li>{% endfor %}</ul></div></div></div>
+  <div class="row g-3 rmc-reveal-stagger">
+    <div class="col-lg-6 rmc-reveal"><div class="card border-0 shadow-sm h-100"><div class="card-body"><h2 class="h6">{% trans "Conflicts" %}</h2><ul class="small mb-0">{% for item in preview.conflicts %}<li>{{ item.code }}: {{ item.message }}</li>{% empty %}<li>{% trans "none" %}</li>{% endfor %}</ul></div></div></div>
+    <div class="col-lg-6 rmc-reveal"><div class="card border-0 shadow-sm h-100"><div class="card-body"><h2 class="h6">{% trans "External required" %}</h2><ul class="small mb-0">{% for item in preview.external_required %}<li>{{ item }}</li>{% empty %}<li>{% trans "none" %}</li>{% endfor %}</ul></div></div></div>
   </div>
   <div class="mt-3 d-flex gap-2">
     <a class="btn btn-outline-secondary btn-sm" href="{% url 'configuration:blueprint_impact' preview.blueprint_key %}{% if selected_school %}?school={{ selected_school.slug }}{% endif %}">{% trans "Impact analysis" %}</a>

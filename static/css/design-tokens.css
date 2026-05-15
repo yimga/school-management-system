@@ -530,10 +530,10 @@
   --signature-canvas-bg: var(--color-base-0);
   --signature-canvas-ink: var(--color-base-900);
 
-  /* Motion */
-  --motion-fast: 150ms ease;
-  --motion-normal: 250ms ease;
-  --motion-slow: 350ms ease;
+  /* Motion — Apple-tier curves live in the v2.26 quiet-luxury layer at the
+     end of this file. The duplicates that used to live here (150/250/350ms
+     plain `ease`) silently clobbered the cubic-bezier values at L70-72 and
+     are deleted as of v2.26 quiet-luxury wave (2026-05-15). */
 
   /* Content-based breakpoints (use in media queries: max-width: var(--bp-mobile) etc.) */
   --bp-narrow: 360px;
@@ -3993,4 +3993,385 @@ main#main-content {
   padding: 2px 8px;
   font-size: 0.75rem;
   line-height: 1.4;
+}
+
+/* ========================================================================== */
+/* v2.26 Apple HIG quiet-luxury layer (2026-05-15)                            */
+/* ========================================================================== */
+/* Effortless, intentional, emotionally engaging. Adds the missing primitives
+   that Apple HIG leans on: named motion curves, discrete durations, an
+   eight-step type ramp with tracking-by-size, breath-scale negative space,
+   44pt tactile floor, retina hairlines, and a scroll-reveal grammar. Layered
+   on top of the v2.X foundation. Every primitive respects
+   prefers-reduced-motion and prefers-reduced-transparency. Tenant brand still
+   wins via the cascade. */
+
+:root {
+  /* Apple motion curves. Named for intent, not just the bezier. */
+  --ease-curtain:       cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-cinematic:     cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-emphasis-out:  cubic-bezier(0.34, 1.2, 0.64, 1);
+  --ease-emphasis-in:   cubic-bezier(0.6, 0, 0.78, 0);
+  --ease-quiet:         cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Apple duration scale. Pair with an ease curve via shorthand or transition. */
+  --dur-instant:    100ms;
+  --dur-quick:      200ms;
+  --dur-swift:      300ms;
+  --dur-curtain:    600ms;
+  --dur-cinematic:  1200ms;
+
+  /* Apple HIG type ramp v2. Eight roles: display to eyebrow. Each pairs
+     size x line-height x tracking per HIG optical-size guidance. */
+  --type-size-display:      clamp(3rem, 6vw + 1rem, 5rem);
+  --type-size-headline-xl:  clamp(2.25rem, 4.5vw + 0.5rem, 3.5rem);
+  --type-size-headline-l:   clamp(1.75rem, 3.5vw + 0.25rem, 2.5rem);
+  --type-size-headline-m:   clamp(1.375rem, 2.5vw, 1.75rem);
+  --type-size-body-l:       clamp(1.0625rem, 1.2vw + 0.5rem, 1.1875rem);
+  --type-size-body:         1rem;
+  --type-size-caption:      0.8125rem;
+  --type-size-eyebrow:      0.75rem;
+  --type-size-micro:        0.65rem;   /* dashboard metadata, table micro-labels */
+
+  --type-lh-display:        1.04;
+  --type-lh-headline-xl:    1.08;
+  --type-lh-headline-l:     1.12;
+  --type-lh-headline-m:     1.2;
+  --type-lh-body-l:         1.5;
+  --type-lh-body:           1.55;
+  --type-lh-caption:        1.4;
+  --type-lh-eyebrow:        1.2;
+
+  --type-tr-display:        -0.022em;
+  --type-tr-headline-xl:    -0.018em;
+  --type-tr-headline-l:     -0.014em;
+  --type-tr-headline-m:     -0.01em;
+  --type-tr-body-l:         -0.003em;
+  --type-tr-body:           0em;
+  --type-tr-caption:        0.005em;
+  --type-tr-eyebrow:        0.12em;
+
+  /* Breath scale (between-section negative space). */
+  --space-breath-xs:  3rem;
+  --space-breath-sm:  4.5rem;
+  --space-breath-md:  6rem;
+  --space-breath-lg:  9rem;
+  --space-breath-xl:  13rem;
+
+  /* 44pt tactile floor (HIG hit target). */
+  --tactile-min:          44px;
+  --tactile-comfortable:  48px;
+  --tactile-generous:     56px;
+
+  /* Reveal grammar (paired with rmc-reveal.js). */
+  --reveal-distance:   24px;
+  --reveal-duration:   var(--dur-curtain);
+  --reveal-ease:       var(--ease-curtain);
+  --reveal-stagger:    90ms;
+}
+
+/* Type ramp classes */
+.rmc-type-display,
+.rmc-type-headline-xl,
+.rmc-type-headline-l,
+.rmc-type-headline-m,
+.rmc-type-body-l,
+.rmc-type-body,
+.rmc-type-caption,
+.rmc-type-eyebrow {
+  font-family: var(--portal-font, Inter, system-ui, -apple-system, "SF Pro Text", sans-serif);
+  font-optical-sizing: auto;
+  text-wrap: balance;
+}
+.rmc-type-display     { font-size: var(--type-size-display);     line-height: var(--type-lh-display);     letter-spacing: var(--type-tr-display);     font-weight: 700; }
+.rmc-type-headline-xl { font-size: var(--type-size-headline-xl); line-height: var(--type-lh-headline-xl); letter-spacing: var(--type-tr-headline-xl); font-weight: 700; }
+.rmc-type-headline-l  { font-size: var(--type-size-headline-l);  line-height: var(--type-lh-headline-l);  letter-spacing: var(--type-tr-headline-l);  font-weight: 700; }
+.rmc-type-headline-m  { font-size: var(--type-size-headline-m);  line-height: var(--type-lh-headline-m);  letter-spacing: var(--type-tr-headline-m);  font-weight: 600; }
+.rmc-type-body-l      { font-size: var(--type-size-body-l);      line-height: var(--type-lh-body-l);      letter-spacing: var(--type-tr-body-l);      font-weight: 400; }
+.rmc-type-body        { font-size: var(--type-size-body);        line-height: var(--type-lh-body);        letter-spacing: var(--type-tr-body);        font-weight: 400; }
+.rmc-type-caption     { font-size: var(--type-size-caption);     line-height: var(--type-lh-caption);     letter-spacing: var(--type-tr-caption);     font-weight: 500; color: var(--text-tertiary, var(--text-muted)); }
+.rmc-type-eyebrow     { font-size: var(--type-size-eyebrow);     line-height: var(--type-lh-eyebrow);     letter-spacing: var(--type-tr-eyebrow);     font-weight: 600; text-transform: uppercase; color: var(--text-tertiary, var(--text-muted)); }
+
+/* Tactile floor utilities */
+.rmc-tactile-44,
+.rmc-tactile-44 > button,
+.rmc-tactile-44 > a {
+  min-block-size:  var(--tactile-min);
+  min-inline-size: var(--tactile-min);
+}
+.rmc-tactile-48 { min-block-size: var(--tactile-comfortable); min-inline-size: var(--tactile-comfortable); }
+.rmc-tactile-56 { min-block-size: var(--tactile-generous);    min-inline-size: var(--tactile-generous); }
+
+/* Breath utilities (between-section padding). */
+.rmc-breath-xs { padding-block: var(--space-breath-xs); }
+.rmc-breath-sm { padding-block: var(--space-breath-sm); }
+.rmc-breath-md { padding-block: var(--space-breath-md); }
+.rmc-breath-lg { padding-block: var(--space-breath-lg); }
+.rmc-breath-xl { padding-block: var(--space-breath-xl); }
+
+/* Scroll reveal grammar (paired with static/js/rmc-reveal.js). */
+.rmc-reveal {
+  opacity: 0;
+  transform: translate3d(0, var(--reveal-distance), 0);
+  transition:
+    opacity var(--reveal-duration) var(--reveal-ease),
+    transform var(--reveal-duration) var(--reveal-ease);
+  will-change: opacity, transform;
+}
+.rmc-reveal.is-revealed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+.rmc-reveal-stagger > .rmc-reveal {
+  transition-delay: calc(var(--reveal-index, 0) * var(--reveal-stagger));
+}
+.rmc-reveal--from-left  { transform: translate3d(calc(-1 * var(--reveal-distance)), 0, 0); }
+.rmc-reveal--from-right { transform: translate3d(var(--reveal-distance), 0, 0); }
+.rmc-reveal--from-left.is-revealed,
+.rmc-reveal--from-right.is-revealed { transform: translate3d(0, 0, 0); }
+.rmc-reveal--scale {
+  opacity: 0;
+  transform: scale(0.96);
+  transition:
+    opacity var(--reveal-duration) var(--reveal-ease),
+    transform var(--reveal-duration) var(--ease-emphasis-out);
+}
+.rmc-reveal--scale.is-revealed { opacity: 1; transform: scale(1); }
+
+/* Accessibility: respect reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .rmc-reveal,
+  .rmc-reveal--scale,
+  .rmc-reveal--from-left,
+  .rmc-reveal--from-right {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .rmc-reveal-stagger > .rmc-reveal { transition-delay: 0ms !important; }
+}
+
+/* Hairline divider grammar (retina-aware). */
+.rmc-hairline,
+.rmc-hairline-top,
+.rmc-hairline-bottom { border: 0 solid var(--hairline); }
+.rmc-hairline        { border-block: 1px solid var(--hairline); }
+.rmc-hairline-top    { border-block-start: 1px solid var(--hairline); }
+.rmc-hairline-bottom { border-block-end: 1px solid var(--hairline); }
+@media (min-resolution: 2dppx) {
+  .rmc-hairline        { border-block-width: 0.5px; }
+  .rmc-hairline-top    { border-block-start-width: 0.5px; }
+  .rmc-hairline-bottom { border-block-end-width: 0.5px; }
+}
+
+/* Hero arrival pattern: pair .rmc-arrival on a wrapper with child .rmc-reveal
+   to get a velvet-curtain hero entrance — eyebrow, title, body, CTA. */
+.rmc-arrival > .rmc-reveal:nth-child(1) { --reveal-index: 0; }
+.rmc-arrival > .rmc-reveal:nth-child(2) { --reveal-index: 1; }
+.rmc-arrival > .rmc-reveal:nth-child(3) { --reveal-index: 2; }
+.rmc-arrival > .rmc-reveal:nth-child(4) { --reveal-index: 3; }
+.rmc-arrival > .rmc-reveal:nth-child(5) { --reveal-index: 4; }
+.rmc-arrival > .rmc-reveal:nth-child(6) { --reveal-index: 5; }
+.rmc-arrival > .rmc-reveal:nth-child(n+7) { --reveal-index: 6; }
+
+/* ========================================================================== */
+/* v2.29 SVG illustration + decoration library (2026-05-15)                   */
+/* ========================================================================== */
+/* Apple-tier line-art for empty states + chapter dividers. SVGs use
+   currentColor for strokes so the parent text color tints them, plus
+   --rmc-illustration-accent for the single accent stroke/fill. */
+.rmc-illustration {
+  display: inline-block;
+  max-inline-size: 180px;
+  inline-size: 100%;
+  block-size: auto;
+  color: var(--text-tertiary, var(--text-muted));
+  --rmc-illustration-accent: var(--brand-accent, #C1573A);
+}
+.rmc-empty__illustration-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 120px;
+  margin-block-end: 1.25rem;
+}
+.rmc-empty__illustration-slot .rmc-illustration {
+  max-inline-size: 200px;
+}
+/* Inherit the editorial accent on marketing surfaces. */
+[data-mkt-edition="editorial"] .rmc-illustration,
+.marketing-surface .rmc-illustration {
+  --rmc-illustration-accent: var(--mkt-edt-accent, #C1573A);
+}
+/* Dividers + corner ornaments sit tighter than full-block illustrations. */
+.rmc-illustration--divider-serif,
+.rmc-illustration--divider-lined,
+.rmc-illustration--divider-flourish {
+  display: block;
+  max-inline-size: 320px;
+  margin-inline: auto;
+  margin-block: var(--space-breath-sm, 4.5rem);
+  color: var(--text-tertiary, var(--hairline-strong));
+}
+.rmc-illustration--corner-ornament {
+  position: absolute;
+  inline-size: 40px;
+  block-size: 40px;
+  pointer-events: none;
+  opacity: 0.7;
+}
+.rmc-illustration--corner-ornament[data-corner="tl"] { inset-block-start: 12px; inset-inline-start: 12px; }
+.rmc-illustration--corner-ornament[data-corner="tr"] { inset-block-start: 12px; inset-inline-end: 12px; transform: scaleX(-1); }
+.rmc-illustration--corner-ornament[data-corner="bl"] { inset-block-end: 12px; inset-inline-start: 12px; transform: scaleY(-1); }
+.rmc-illustration--corner-ornament[data-corner="br"] { inset-block-end: 12px; inset-inline-end: 12px; transform: scale(-1, -1); }
+
+/* ========================================================================== */
+/* v2.32 Marketing hero figure (2026-05-15)                                   */
+/* ========================================================================== */
+/* Editorial framing for the generated hero compositions. Each page opts in
+   via {% include "components/marketing_hero_image.html" with hero_slug="..." %}.
+   The figure: rounded corners, soft shadow, hairline border, single terracotta
+   accent dot, scale-reveal on first paint. */
+.rmc-hero-figure {
+  position: relative;
+  display: block;
+  margin: 0;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  background: var(--surface-elevated, var(--cream-deep, #ECE4D8));
+  border: 1px solid var(--hairline);
+  box-shadow:
+    0 1px 2px rgba(28, 25, 23, 0.04),
+    0 12px 32px -16px rgba(28, 25, 23, 0.12);
+  isolation: isolate;
+}
+.rmc-hero-figure picture,
+.rmc-hero-figure img {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+.rmc-hero-figure__accent {
+  position: absolute;
+  inset-block-end: 18px;
+  inset-inline-start: 18px;
+  inline-size: 12px;
+  block-size: 12px;
+  border-radius: 50%;
+  background: var(--brand-accent, #C1573A);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-accent, #C1573A) 18%, transparent);
+}
+/* On retina displays, sharpen the border + soften the shadow further. */
+@media (min-resolution: 2dppx) {
+  .rmc-hero-figure { border-width: 0.5px; }
+}
+/* Tenant brand wash overlay — page can opt in by adding .rmc-hero-figure--tinted */
+.rmc-hero-figure--tinted::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--brand-primary, #4f46e5) 12%, transparent),
+    transparent 60%
+  );
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  z-index: 1;
+}
+
+/* ========================================================================== */
+/* v2.33 Platform-wide contrast + layout repair layer (2026-05-15)            */
+/* ========================================================================== */
+/* Driven by the manager-dashboard dissection screenshots. Three classes of
+   bug that touched dozens of templates each are repaired with global CSS
+   rather than 209 template edits:
+     1. text-white-50 / text-white-25 / text-muted on dark surfaces fail WCAG
+     2. content-max-960 class is referenced 25x but was never defined
+     3. The harsh indigo→emerald active pill gradient (manager-aesthetic-polish.css)
+        is overridden here with a quieter single-tint + brand-tinted hairline
+   No template touches — overrides cascade through the existing class names. */
+
+/* ---- Contrast repair on dark surfaces ----------------------------------- */
+/* Every manager / control-plane / dark-themed surface tint these utilities up
+   to the same readable tertiary-text color the rest of the v2 system uses.
+   Light surfaces keep Bootstrap's quieter values. */
+[data-theme="dark"] .text-white-50,
+[data-bs-theme="dark"] .text-white-50,
+[data-surface="control-plane"] .text-white-50,
+[data-rmc-premium-shell="control-plane"] .text-white-50,
+.control-plane-shell .text-white-50,
+.cp-surface .text-white-50 {
+  color: var(--text-tertiary, #aeaeb2) !important;
+  opacity: 1 !important;
+}
+[data-theme="dark"] .text-white-25,
+[data-bs-theme="dark"] .text-white-25,
+[data-surface="control-plane"] .text-white-25,
+[data-rmc-premium-shell="control-plane"] .text-white-25,
+.control-plane-shell .text-white-25,
+.cp-surface .text-white-25 {
+  color: var(--text-muted, #8e8e93) !important;
+  opacity: 1 !important;
+}
+/* text-muted on dark surfaces is even worse than text-white-50 (Bootstrap #6c757d
+   on near-black is sub-WCAG). Reroute through the token system. */
+[data-theme="dark"] .text-muted,
+[data-bs-theme="dark"] .text-muted,
+[data-surface="control-plane"] .text-muted,
+[data-rmc-premium-shell="control-plane"] .text-muted,
+.control-plane-shell .text-muted,
+.cp-surface .text-muted {
+  color: var(--text-tertiary, #aeaeb2) !important;
+}
+/* Reset accidental opacity-50 / opacity-75 on TEXT elements — Apple-tier surfaces
+   never rely on opacity for type contrast (use color tokens instead). */
+[data-theme="dark"] :is(h1, h2, h3, h4, h5, h6, p, span, small, a, button).opacity-50,
+[data-theme="dark"] :is(h1, h2, h3, h4, h5, h6, p, span, small, a, button).opacity-75,
+.control-plane-shell :is(h1, h2, h3, h4, h5, h6, p, span, small, a, button).opacity-75,
+.cp-surface :is(h1, h2, h3, h4, h5, h6, p, span, small, a, button).opacity-75 {
+  opacity: 1;
+}
+
+/* ---- content-max-960: fill the empty middle column ---------------------- */
+/* This class was referenced in 25 manager / siteconfig templates but never
+   defined — so the inner content fell back to no max-width, leaving a visible
+   empty band on wide screens. We give it a sane Apple-tier reading-width cap
+   (1440px) + center it so the page actually fills its column. */
+.content-max-960 {
+  max-inline-size: min(1440px, 100%);
+  margin-inline: auto;
+}
+/* Old shorter cap as an opt-in for genuinely long-form reading surfaces. */
+.content-max-narrow {
+  max-inline-size: min(960px, 100%);
+  margin-inline: auto;
+}
+
+/* ---- Quieter primary-nav active pill ------------------------------------ */
+/* Replaces the harsh indigo→emerald gradient from manager-aesthetic-polish.css
+   with a single brand-tinted wash + hairline ring. Reads as "this surface is
+   selected" without yelling. Only applies on dark control-plane surfaces;
+   light surfaces keep the original gradient (where it doesn't visually shout). */
+[data-theme="dark"] .cp-primary-nav__pill--active,
+[data-theme="dark"] .cp-primary-nav__pill[aria-current="page"],
+.control-plane-shell .cp-primary-nav__pill--active,
+.control-plane-shell .cp-primary-nav__pill[aria-current="page"],
+.cp-surface .cp-primary-nav__pill--active,
+.cp-surface .cp-primary-nav__pill[aria-current="page"] {
+  background: color-mix(in srgb, var(--school-primary, #4f46e5) 14%, transparent);
+  border-color: color-mix(in srgb, var(--school-primary, #4f46e5) 32%, transparent);
+  color: var(--color-base-0, #ffffff);
+  font-weight: 600;
+  box-shadow:
+    inset 0 0 0 0.5px color-mix(in srgb, var(--school-primary, #4f46e5) 45%, transparent),
+    0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+[data-theme="dark"] .cp-primary-nav__pill--active:hover,
+.control-plane-shell .cp-primary-nav__pill--active:hover,
+.cp-surface .cp-primary-nav__pill--active:hover {
+  background: color-mix(in srgb, var(--school-primary, #4f46e5) 22%, transparent);
+  filter: none;
 }

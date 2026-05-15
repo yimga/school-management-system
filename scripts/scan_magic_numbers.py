@@ -53,7 +53,26 @@ CONSTANTS_HOME_FRAGMENTS = ("/config/", "/settings/", "/constants/")
 CONSTANTS_HOME_FILENAMES = frozenset({"constants.py", "settings.py", "config.py"})
 
 # Whitelisted scale literals
-ALLOWED_LITERALS = frozenset({0, 1, -1, 2, 10, 100, 1000})
+_SCALE_LITERALS = frozenset({0, 1, -1, 2, 10, 100, 1000})
+
+# RFC-defined HTTP status codes. These are universally understood, not
+# "magic" — `Response(status=404)` is more readable than
+# `Response(status=HTTPStatus.NOT_FOUND)` at most call sites, and they
+# don't drift the way business-rule constants do. Drift detection on
+# these would be pure noise.
+_HTTP_STATUS_CODES = frozenset({
+    # 2xx success
+    200, 201, 202, 203, 204, 205, 206, 207, 208, 226,
+    # 3xx redirection
+    300, 301, 302, 303, 304, 305, 307, 308,
+    # 4xx client error
+    400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413,
+    414, 415, 416, 417, 418, 421, 422, 423, 424, 425, 426, 428, 429, 431, 451,
+    # 5xx server error
+    500, 501, 502, 503, 504, 505, 506, 507, 508, 510, 511,
+})
+
+ALLOWED_LITERALS = _SCALE_LITERALS | _HTTP_STATUS_CODES
 
 THRESHOLD = 100
 YEAR_MIN = 1900

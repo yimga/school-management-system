@@ -14,7 +14,7 @@
     <p class="rmc-muted">{% blocktrans with name=bundle.label|default:bundle.idempotency_key %}Anomalies + low-confidence decisions for {{ name }}.{% endblocktrans %}</p>
   </header>
 
-  <section class="rmc-card">
+  <section class="rmc-card rmc-reveal">
     <h2 class="rmc-h2">
       {% trans "Low-confidence mappings" %}
       <span class="rmc-muted">({{ low_conf_mappings|length }} {% trans "below" %} {{ threshold|floatformat:2 }})</span>
@@ -51,7 +51,7 @@
     {% endif %}
   </section>
 
-  <section class="rmc-card">
+  <section class="rmc-card rmc-reveal">
     <h2 class="rmc-h2">
       {% trans "Quarantine" %}
       <span class="rmc-muted">({{ quarantine_rows|length }})</span>
@@ -82,7 +82,7 @@
     {% endif %}
   </section>
 
-  <section class="rmc-card">
+  <section class="rmc-card rmc-reveal">
     <h2 class="rmc-h2">{% trans "Reconciliation drift" %}</h2>
     {% if drift_domains %}
       <table class="rmc-data-table">

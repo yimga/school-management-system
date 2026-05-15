@@ -26,10 +26,10 @@ body {
   .admin-login-hero { padding: 2rem 2.5rem; }
   .manager-login-hero .hero-logo,
   .admin-login-hero .hero-logo {
-    width: 56px; height: 56px; font-size: 1.6rem;
+    width: 56px; height: 56px; font-size: var(--type-size-headline-m);
   }
   .manager-login-hero strong,
-  .admin-login-hero strong { font-size: 1.35rem; }
+  .admin-login-hero strong { font-size: var(--type-size-headline-m); }
   .manager-login-card,
   .admin-login-card { max-width: 440px; min-width: 380px; }
 }
@@ -73,7 +73,7 @@ body {
   background: linear-gradient(135deg, var(--school-primary), color-mix(in oklab, var(--school-primary) 70%, var(--school-accent)));
   display: grid;
   place-items: center;
-  font-size: 1.4rem;
+  font-size: var(--type-size-headline-m);
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
@@ -82,7 +82,7 @@ body {
 
 .manager-login-hero strong,
 .admin-login-hero strong {
-  font-size: 1.15rem;
+  font-size: var(--type-size-body-l);
   font-weight: 700;
   letter-spacing: -0.015em;
   display: block;
@@ -92,7 +92,7 @@ body {
 .admin-login-hero small {
   display: block;
   color: rgba(241, 245, 249, 0.78);
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
   margin-top: 0.25rem;
   letter-spacing: -0.005em;
 }
@@ -151,7 +151,7 @@ body {
 .manager-login-card .form-label,
 .admin-login-card .form-label {
   color: rgba(241, 245, 249, 0.82);
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
   font-weight: 500;
   letter-spacing: -0.005em;
   margin-bottom: 6px;
@@ -190,7 +190,7 @@ body {
 .admin-login-footer a {
   color: rgba(148, 163, 184, 0.9);
   text-decoration: none;
-  font-size: 0.88rem;
+  font-size: var(--type-size-caption);
   transition: color 150ms ease;
 }
 .manager-login-footer a:hover,
@@ -227,7 +227,7 @@ body {
 .admin-login-card .admin-login-reset a {
   color: rgba(148, 163, 184, 0.9);
   text-decoration: none;
-  font-size: 0.88rem;
+  font-size: var(--type-size-caption);
 }
 .admin-login-reset a:hover,
 .admin-login-card .admin-login-reset a:hover {

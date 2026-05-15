@@ -26,7 +26,7 @@
       <p class="hub-card-desc">{% trans "Each role (admin, teacher, registrar, …) gets a default layout from the template you assign. Operators can still personalize where the product allows." %}</p>
       <a href="{{ config_url }}" class="btn btn-outline-secondary btn-sm" data-action="config-hub-card-assign" data-task="configuration_center" data-task-step="siteconfig:hub-card">{% trans "Open assignment hub" %}</a>
     </article>
-    <article class="hub-action-card">
+    <article class="hub-action-card rmc-reveal">
       <div class="hub-card-icon"><i class="bi bi-list-check" aria-hidden="true"></i></div>
       <h2 class="hub-card-title">{% trans "Coverage & risks" %}</h2>
       <p class="hub-card-desc">{% blocktrans count counter=assignment_count %}You have {{ counter }} role assignment on file.{% plural %}You have {{ counter }} role assignments on file.{% endblocktrans %} {% trans "Roles without assignments rely on platform defaults — review gaps in the assignment hub." %}</p>

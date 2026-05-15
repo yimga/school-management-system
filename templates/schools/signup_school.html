@@ -6,7 +6,7 @@
 <section class="auth-shell" aria-labelledby="signup-title">
   <div class="auth-card" style="max-width:480px">
     <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--school-primary),color-mix(in oklab,var(--school-primary) 70%, var(--school-accent)));color:var(--text-on-brand);display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px;" aria-hidden="true">
-      <i class="bi bi-buildings" style="font-size:1.25rem"></i>
+      <i class="bi bi-buildings" style="font-size:var(--type-size-body-l)"></i>
     </div>
     <h1 id="signup-title">{% trans "Start your school workspace" %}</h1>
     <p class="auth-sub">{% trans "Create your school on RunMyCampus. We'll send a verification link to your email — usually within a minute." %}</p>
@@ -17,7 +17,7 @@
     {% if signup_region_hint %}
       <div class="alert alert-info mb-3" role="status">
         <strong>{% trans "Region preset" %}:</strong> {{ signup_region_hint }}{% if curriculum_hint %} — {{ curriculum_hint }}{% endif %}
-        <div style="font-size:0.78rem;margin-top:4px;color:var(--admin-content-text-muted)">{% trans "Deep link" %}: <code>?region=…&country_code=…&term_preset=UK&curriculum=…</code></div>
+        <div style="font-size:var(--type-size-eyebrow);margin-top:4px;color:var(--admin-content-text-muted)">{% trans "Deep link" %}: <code>?region=…&country_code=…&term_preset=UK&curriculum=…</code></div>
       </div>
     {% endif %}
     {% for message in messages %}<div class="alert alert-{{ message.tags|default:'info' }} mb-3">{{ message }}</div>{% endfor %}
@@ -36,12 +36,12 @@
           <input type="text" name="slug" id="slug" class="form-control" value="{{ slug|default:'' }}" placeholder="{% trans 'greenfield' %}">
           <span class="input-group-text">.runmycampus.com</span>
         </div>
-        <div style="font-size:0.82rem;color:var(--admin-content-text-muted);margin-top:6px">{% trans "Your school workspace lives at this URL. You can connect a custom domain later." %}</div>
+        <div style="font-size:var(--type-size-caption);color:var(--admin-content-text-muted);margin-top:6px">{% trans "Your school workspace lives at this URL. You can connect a custom domain later." %}</div>
       </div>
       <div class="mb-3">
         <label for="email" class="form-label">{% trans "Admin email" %}</label>
         <input type="email" name="email" id="email" class="form-control" value="{{ email|default:'' }}" required placeholder="admin@school.ac.ke" autocomplete="email">
-        <div style="font-size:0.82rem;color:var(--admin-content-text-muted);margin-top:6px">{% trans "We'll send a verification link here. This becomes your sign-in." %}</div>
+        <div style="font-size:var(--type-size-caption);color:var(--admin-content-text-muted);margin-top:6px">{% trans "We'll send a verification link here. This becomes your sign-in." %}</div>
       </div>
       <div class="row g-3 mb-4">
         <div class="col-sm-6">
@@ -59,14 +59,14 @@
 
       <button type="submit" class="btn btn-primary" style="width:100%;padding:11px 14px"><i class="bi bi-rocket-takeoff me-1"></i>{% trans "Create my school workspace" %}</button>
     </form>
-    <p style="font-size:0.85rem;color:var(--admin-content-text-muted);text-align:center;margin:18px 0 0;border-top:1px solid var(--admin-content-border);padding-top:14px">
+    <p style="font-size:var(--type-size-caption);color:var(--admin-content-text-muted);text-align:center;margin:18px 0 0;border-top:1px solid var(--admin-content-border);padding-top:14px">
       {% trans "Already have an account?" %} <a href="{% url 'global_login_discovery' %}" style="color:var(--school-primary);font-weight:500;text-decoration:none">{% trans "Find your school" %}</a>
     </p>
   </div>
 </section>
 
 {% if signup_ref == 'demo' and marketing_demo_tenant_url %}
-<div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px;background:var(--color-base-900);color:var(--color-base-0);text-align:center;font-size:0.88rem;box-shadow:var(--apple-elev-3);display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px;z-index:1030;" role="complementary" data-rmc-signup-demo-return-bar="1">
+<div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px;background:var(--color-base-900);color:var(--color-base-0);text-align:center;font-size:var(--type-size-caption);box-shadow:var(--apple-elev-3);display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px;z-index:1030;" role="complementary" data-rmc-signup-demo-return-bar="1">
   <span><i class="bi bi-eye me-1"></i>{% trans "Exploring the demo?" %}</span>
   <a class="btn btn-sm btn-light" href="{{ marketing_demo_tenant_url }}"><i class="bi bi-arrow-left me-1"></i>{% trans "Return to demo tenant" %}</a>
 </div>

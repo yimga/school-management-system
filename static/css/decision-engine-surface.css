@@ -11,7 +11,7 @@
 }
 
 .de-eyebrow {
-  font-size: 0.72rem;
+  font-size: var(--type-size-micro);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--bs-secondary-color, #64748b);
@@ -28,7 +28,7 @@
 
 .de-kpi-label {
   display: block;
-  font-size: 0.8rem;
+  font-size: var(--type-size-caption);
   color: var(--bs-secondary-color, #64748b);
 }
 
@@ -42,7 +42,7 @@
 
 .de-kpi-meta {
   display: block;
-  font-size: 0.88rem;
+  font-size: var(--type-size-caption);
   margin-top: 0.2rem;
 }
 
@@ -68,7 +68,7 @@
 
 .de-metric-label {
   display: block;
-  font-size: 0.72rem;
+  font-size: var(--type-size-micro);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--bs-secondary-color, #64748b);
@@ -76,18 +76,18 @@
 
 .de-metric-value {
   display: block;
-  font-size: 1.25rem;
+  font-size: var(--type-size-body-l);
   font-weight: 700;
 }
 
 .de-metric-meta {
   display: block;
-  font-size: 0.78rem;
+  font-size: var(--type-size-eyebrow);
   color: var(--bs-secondary-color, #64748b);
 }
 
 .de-panel-title {
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--bs-secondary-color, #64748b);

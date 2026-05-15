@@ -28,7 +28,7 @@
       <a href="{% url 'marketing_pricing' %}">{% trans "Pricing" %}</a>
     </nav>
     {% endif %}
-    <article class="section-shell">
+    <article class="section-shell rmc-reveal">
       <h1 class="section-heading">{{ post.title }}</h1>
       {% if post.published_at %}<p class="text-muted small">{{ post.published_at|date:"F j, Y" }}</p>{% endif %}
       {% if post.excerpt %}<p class="section-lead">{{ post.excerpt }}</p>{% endif %}

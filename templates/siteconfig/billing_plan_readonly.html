@@ -51,22 +51,22 @@
 
   <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Active students" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Active students" %}</div>
       <div class="fw-semibold text-body fs-6">{{ student_count }}</div>
     </div>
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Teacher profiles" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Teacher profiles" %}</div>
       <div class="fw-semibold text-body fs-6">{{ teacher_count }}</div>
     </div>
     {% if plan and plan.max_students %}
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Plan student cap" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Plan student cap" %}</div>
       <div class="fw-semibold text-body fs-6">{{ plan.max_students }}</div>
     </div>
     {% endif %}
     {% if plan and plan.max_staff %}
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Plan staff cap" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Plan staff cap" %}</div>
       <div class="fw-semibold text-body fs-6">{{ plan.max_staff }}</div>
     </div>
     {% endif %}

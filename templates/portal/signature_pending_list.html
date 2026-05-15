@@ -81,7 +81,7 @@
   {% else %}
     <div class="card shadow-sm">
       <div class="card-body text-center py-5">
-        <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
+        <i class="bi bi-check-circle text-success" style="font-size: var(--type-size-display);"></i>
         <h5 class="mt-3">All Caught Up!</h5>
         <p class="text-muted">You have no pending signature requests.</p>
         <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-primary btn-back-primary"><i class="bi bi-arrow-left me-1"></i>Back to Dashboard</a>

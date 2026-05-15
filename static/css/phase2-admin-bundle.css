@@ -9,13 +9,13 @@
   .admin-app-index__back { margin-bottom: 20px; }
   .admin-app-index__back a {
     display: inline-flex; align-items: center; gap: 6px;
-    color: var(--admin-muted, var(--color-base-500)); text-decoration: none; font-size: 14px; font-weight: 600;
+    color: var(--admin-muted, var(--color-base-500)); text-decoration: none; font-size: var(--type-size-caption); font-weight: 600;
     padding: 8px 12px; border-radius: 8px; border: 1px solid var(--admin-border, var(--color-base-200));
     background: var(--admin-surface, var(--color-base-0)); transition: color .2s, border-color .2s, background .2s;
   }
   .admin-app-index__back a:hover { color: var(--admin-text, var(--color-base-900)); border-color: var(--admin-accent, var(--color-sky-500)); background: var(--admin-surface, var(--color-base-0)); }
-  .admin-app-index__title { font-size: 22px; font-weight: 700; color: var(--admin-text, var(--color-base-900)); margin: 0 0 8px; letter-spacing: -0.02em; }
-  .admin-app-index__subtitle { font-size: 14px; color: var(--admin-muted, var(--color-base-500)); margin-bottom: 24px; line-height: 1.5; }
+  .admin-app-index__title { font-size: var(--type-size-headline-m); font-weight: 700; color: var(--admin-text, var(--color-base-900)); margin: 0 0 8px; letter-spacing: -0.02em; }
+  .admin-app-index__subtitle { font-size: var(--type-size-caption); color: var(--admin-muted, var(--color-base-500)); margin-bottom: 24px; line-height: 1.5; }
   .admin-app-index__grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;
   }
@@ -29,32 +29,32 @@
     border-color: var(--admin-border-hover, var(--color-base-400)); box-shadow: var(--admin-shadow-hover, 0 4px 12px rgba(0,0,0,0.08));
   }
   .admin-app-index__card-link {
-    font-size: 15px; font-weight: 600; color: var(--admin-text, var(--color-base-900)); text-decoration: none;
+    font-size: var(--type-size-body); font-weight: 600; color: var(--admin-text, var(--color-base-900)); text-decoration: none;
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
   }
   .admin-app-index__card-link:hover { color: var(--admin-accent, var(--color-sky-500)); }
   .admin-app-index__card-actions { display: flex; gap: 8px; margin-top: auto; }
   .admin-app-index__card-actions a {
-    font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px; text-decoration: none;
+    font-size: var(--type-size-eyebrow); font-weight: 600; padding: 6px 12px; border-radius: 6px; text-decoration: none;
     border: 1px solid var(--admin-border, var(--color-base-200)); color: var(--admin-muted, var(--color-base-500));
     background: transparent; transition: border-color .2s, color .2s;
   }
   .admin-app-index__card-actions a:hover { border-color: var(--admin-accent, var(--color-sky-500)); color: var(--admin-accent, var(--color-sky-500)); }
   .admin-app-index__card-actions a.addlink { border-color: var(--admin-accent, var(--color-sky-500)); color: var(--admin-accent, var(--color-sky-500)); }
   .admin-app-index__card-actions a.addlink:hover { background: var(--admin-accent, var(--color-sky-500)); color: var(--color-base-0); }
-  .admin-app-index__empty { color: var(--admin-muted, var(--color-base-500)); font-size: 14px; padding: 24px; }
+  .admin-app-index__empty { color: var(--admin-muted, var(--color-base-500)); font-size: var(--type-size-caption); padding: 24px; }
 
 /* ========== templates/admin/index_superadmin.html ========== */
 body.admin-manager-shell #content { padding: 0 !important; margin: 0 !important; max-width: none !important; }
   .cp-admin-index { padding: 1.5rem; max-width: 960px; }
   .cp-admin-index .cp-hero { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--cp-panel-border, rgba(255,255,255,0.1)); }
-  .cp-admin-index .cp-hero-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.35rem; }
-  .cp-admin-index .cp-hero-copy { font-size: 0.875rem; color: var(--cp-muted, rgba(255,255,255,0.6)); margin-bottom: 1rem; }
+  .cp-admin-index .cp-hero-title { font-size: var(--type-size-body-l); font-weight: 700; margin-bottom: 0.35rem; }
+  .cp-admin-index .cp-hero-copy { font-size: var(--type-size-caption); color: var(--cp-muted, rgba(255,255,255,0.6)); margin-bottom: 1rem; }
   .cp-admin-app-list { list-style: none; padding: 0; margin: 0; }
   .cp-admin-app-list li { border: 1px solid var(--cp-panel-border, rgba(255,255,255,0.1)); border-radius: 0.5rem; margin-bottom: 0.5rem; padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; }
   .cp-admin-app-list li:hover { background: rgba(255,255,255,0.04); }
   .cp-admin-app-list a { color: inherit; text-decoration: none; }
-  .cp-admin-app-list .app-models { font-size: 0.8rem; color: var(--cp-muted); margin-top: 0.25rem; }
+  .cp-admin-app-list .app-models { font-size: var(--type-size-caption); color: var(--cp-muted); margin-top: 0.25rem; }
 
 /* ========== templates/admin/login.html ========== */
 /* Standalone card so login never looks like the old placeholder; works even if Unfold CSS fails to load */
@@ -80,27 +80,27 @@ body.admin-manager-shell #content { padding: 0 !important; margin: 0 !important;
   html.dark .admin-login-brand,
   [data-theme="dark"] .admin-login-brand { border-bottom-color: var(--color-base-700); }
   .admin-login-brand .brand-name {
-    font-size: 1.25rem;
+    font-size: var(--type-size-body-l);
     font-weight: 700;
     color: var(--school-primary);
     letter-spacing: -0.02em;
   }
   html.dark .admin-login-brand .brand-name { color: var(--color-indigo-400); }
   .admin-login-brand .brand-sub {
-    font-size: 0.8125rem;
+    font-size: var(--type-size-caption);
     color: var(--color-base-500);
     margin-top: 0.25rem;
   }
   html.dark .admin-login-brand .brand-sub { color: var(--color-base-400); }
   .admin-login-title {
-    font-size: 1.125rem;
+    font-size: var(--type-size-body-l);
     font-weight: 600;
     color: var(--color-base-900);
     margin-bottom: 0.25rem;
   }
   html.dark .admin-login-title { color: var(--color-base-100); }
   .admin-login-subtitle {
-    font-size: 0.875rem;
+    font-size: var(--type-size-caption);
     color: var(--color-base-500);
   }
   html.dark .admin-login-subtitle { color: var(--color-base-400); }
@@ -314,7 +314,7 @@ body.admin-manager-shell #content { padding: 0 !important; margin: 0 !important;
       margin-left: 0.5rem;
       padding: 0.05rem 0.5rem;
       border-radius: 999px;
-      font-size: 0.7rem;
+      font-size: var(--type-size-micro);
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -367,7 +367,7 @@ body.admin-manager-shell #content { padding: 0 !important; margin: 0 !important;
     body.app-siteconfig.model-sitesettings.change-form .site-settings-search {
       width: 100%;
       padding: 0.4rem 0.6rem;
-      font-size: 0.8125rem;
+      font-size: var(--type-size-caption);
       border-radius: 6px;
       border: 1px solid var(--admin-content-border, rgba(15, 23, 42, 0.2));
       background: var(--admin-content-bg, var(--color-base-0));
@@ -378,7 +378,7 @@ body.admin-manager-shell #content { padding: 0 !important; margin: 0 !important;
     }
     body.app-siteconfig.model-sitesettings.change-form .site-settings-search-no-match {
       display: block;
-      font-size: 0.75rem;
+      font-size: var(--type-size-eyebrow);
       color: var(--admin-content-text-muted, var(--color-base-500));
       margin-top: 0.25rem;
     }

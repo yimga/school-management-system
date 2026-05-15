@@ -9,8 +9,8 @@
     <div class="text-muted">{% trans "Use the admission number you received from the school." %}</div>
   </div>
 
-  <div class="row g-3 mb-4">
-    <div class="col-lg-6">
+  <div class="row g-3 mb-4 rmc-reveal-stagger">
+    <div class="col-lg-6 rmc-reveal">
       <div class="card shadow-sm border-0">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-3">
@@ -36,7 +36,7 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-6">
+    <div class="col-lg-6 rmc-reveal">
       <div class="card shadow-sm border-0">
         <div class="card-body">
           <p class="text-uppercase small text-muted mb-1">{% trans "Referral & invitations" %}</p>
@@ -201,5 +201,5 @@
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
 {# FormDraftSave.init is called by the page script after the library loads. #}
-<script src="{% static '_pages/parent__link_child.js' %}"></script>
+<script src="{% static 'js/_pages/parent__link_child.js' %}"></script>
 {% endblock %}

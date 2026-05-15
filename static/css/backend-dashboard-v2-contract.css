@@ -607,11 +607,11 @@ body.backend-preset-analytical[data-dashboard-page="backend"] .backend-v2-action
 }
 
 body[data-dashboard-page="backend"] .backend-planner-date-badge {
-  font-size: 0.65rem;
+  font-size: var(--type-size-micro);
 }
 
 body[data-dashboard-page="backend"] .backend-planner-detail {
-  font-size: 0.7rem;
+  font-size: var(--type-size-micro);
 }
 
 

@@ -8,7 +8,7 @@
     <p>Status: {{ change_request.status }}. Risk: {{ change_request.risk_level }}.</p>
   </header>
   <div class="cp-grid cp-grid-2">
-    <article class="cp-card">
+    <article class="cp-card rmc-reveal">
       <h2>Approval</h2>
       <p>Reason: {{ change_request.reason }}</p>
       <p>Notes: {{ change_request.approval_notes }}</p>
@@ -23,7 +23,7 @@
         <button type="submit">Reject</button>
       </form>
     </article>
-    <article class="cp-card">
+    <article class="cp-card rmc-reveal">
       <h2>Rollout</h2>
       <p>External blockers: {{ change_request.external_blockers|join:", " }}</p>
       <form method="post" action="{% url 'configuration:change_request_schedule' change_request.id %}">
@@ -43,7 +43,7 @@
       </form>
     </article>
   </div>
-  <article class="cp-card">
+  <article class="cp-card rmc-reveal">
     <h2>Change Set</h2>
     <pre>{{ change_request.impact_snapshot }}</pre>
   </article>

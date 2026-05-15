@@ -221,13 +221,13 @@ body.portal-backend-dark .portal-layout-wrap #main-content::-webkit-scrollbar-th
   }
   .portal-sidebar-collapsed .nav-link.nav-pill .bi {
     margin: 0 !important;
-    font-size: 1.25rem;
+    font-size: var(--type-size-body-l);
   }
   .portal-sidebar-collapsed .nav-link.nav-pill .badge {
     position: absolute;
     top: 2px;
     right: 2px;
-    font-size: 0.6rem;
+    font-size: var(--type-size-micro);
     padding: 0.1rem 0.35rem;
   }
   .portal-sidebar-collapsed .sidebar-collapsible .sidebar-collapsible-header span,

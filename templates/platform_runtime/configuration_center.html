@@ -10,7 +10,7 @@
   {% include "components/world_class_page_hero.html" with hero_id="configuration-title" role=_("Platform operators") title=_("Platform Configuration Center") subtitle=_("The governed AWS Console for education configuration: operating models, runtime governance, migration, ecosystem, trust, billing, and experience in one low-click workspace.") purpose=_("Governed platform configuration") status=_("UI/UX transformation active") primary_url=wcx_change_requests_url primary_label=_("Review change requests") secondary_url="/internal-admin/" secondary_label=_("Open raw fallback") visual_title=_("Configure without losing control") visual_body=_("Every module shows owner, readiness, scope, next action, and proof so depth stays accessible without exposing tenant-unsafe controls.") %}
   {% include "components/world_class_summary_strip.html" with readiness="78%" readiness_label=_("Repository proof") risk=_("Medium") risk_label=_("Live parity pending") next_step=_("Review") next_step_label=_("Change queue") blockers=_("PSP/live") blockers_label=_("External proof required") %}
   {% include "components/platform_readiness_strip.html" with inline_field_prefix='cfg-center' %}
-  <section class="rmc-wcx-grid mb-4" data-apple-class-configuration-groups="operating-models runtime-governance data-migration ecosystem trust-money experience">
+  <section class="rmc-wcx-grid mb-4 rmc-reveal" data-apple-class-configuration-groups="operating-models runtime-governance data-migration ecosystem trust-money experience">
     {% include "components/apple_class_glass_panel.html" with panel_id="configuration-operating-models" label=_("Operating Models") title=_("Blueprints, packages, packs, policies") body=_("Operators see model readiness before opening advanced configuration.") %}
     {% include "components/apple_class_glass_panel.html" with panel_id="configuration-runtime-governance" label=_("Runtime Governance") title=_("Change requests, rules, registries") body=_("Approvals, health, and drift stay in the command layer.") %}
     {% include "components/apple_class_glass_panel.html" with panel_id="configuration-trust-money" label=_("Trust + Money") title=_("Compliance, security, billing") body=_("External dependencies remain explicit instead of hidden behind status color.") %}
@@ -26,7 +26,7 @@
   <div class="row g-3" data-world-class-module-groups="operating-models runtime-governance data-migration ecosystem trust-money experience">
     {% for module in modules %}
     <div class="col-12 col-xl-6">
-      <article class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-configuration-module="{{ module.key }}" data-world-class-module-card="1">
+      <article class="card border-0 shadow-sm h-100 rmc-wcx-surface rmc-reveal" data-configuration-module="{{ module.key }}" data-world-class-module-card="1">
         <div class="card-body d-flex flex-column gap-3">
           <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
             <div>

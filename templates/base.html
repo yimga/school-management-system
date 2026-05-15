@@ -18,18 +18,19 @@
 
     {% include "partials/rmc_theme_meta.html" %}
     {% include "partials/rmc_social_meta.html" %}
-    {# Theme bootstrap must run before paint to avoid flash-of-wrong-theme.
-       v2 theme system: Light / Dark / System with prefers-color-scheme live response. #}
+    {% comment %} Theme bootstrap must run before paint to avoid flash-of-wrong-theme.
+       v2 theme system: Light / Dark / System with prefers-color-scheme live response. {% endcomment %}
     <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
     <script src="{% static 'js/rmc-lexicon.js' %}" defer></script>
     <script src="{% static 'js/rmc-friction.js' %}" defer></script>
     <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
+    <script src="{% static 'js/rmc-reveal.js' %}" defer></script>
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
     <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
     <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
     <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
-    <script src="{% static '_pages/base.js' %}"></script>
+    <script src="{% static 'js/_pages/base.js' %}"></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
 
     <title>
@@ -44,6 +45,7 @@
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
     <link rel="stylesheet" href="{% static 'css/patterns.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">
@@ -57,11 +59,11 @@
     <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-tables-forms.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
-    {# Retired 2026-05-12 (pass 2 css cleanup):
+    {% comment %} Retired 2026-05-12 (pass 2 css cleanup):
        - ui-alignment-improvements.css: duplicate --spacing-* aliasing --token-space-*
        - no-watermark.css: pure defensive background-image:none overrides; no longer needed
        - topbar-header-polish.css: covered by header-no-spillage.css + statement-header.css
-       - theme-everywhere-dark.css: author labeled "temporary bridge"; replaced by theme-visibility-guard.css #}
+       - theme-everywhere-dark.css: author labeled "temporary bridge"; replaced by theme-visibility-guard.css {% endcomment %}
     {# Retired 2026-05-12 (pass 3 css cleanup): dashboard-high-contrast.css — folded into dashboard-theme-sync.css. #}
     <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
@@ -266,7 +268,7 @@
     <script type="application/json" id="page-data-base-1">{
   "trans_your_changes_affect_this_area": "{% trans "Your changes affect this area" %}",
   "trans_dismiss_highlights": "{% trans "Dismiss highlights" %}"
-}</script><script src="{% static '_pages/base-1.js' %}"></script>
+}</script><script src="{% static 'js/_pages/base-1.js' %}"></script>
     <script src="{% static 'js/preview-highlights.js' %}"></script>
     {% endif %}
     </div>

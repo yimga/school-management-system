@@ -1,8 +1,8 @@
 {% load i18n static %}
-{# Phase G (2026-05-12): platform-wide ⌘K command palette. Mount on every
+{% comment %} Phase G (2026-05-12): platform-wide ⌘K command palette. Mount on every
    authenticated shell. Apple-style frosted popover that lets users jump to
    any page, student, class, fee, setting, or AI action. Uses semantic
-   --surface-popover so it inherits light/dark from the theme system. #}
+   --surface-popover so it inherits light/dark from the theme system. {% endcomment %}
 <div id="rmc-cmdk" class="rmc-cmdk" role="dialog" aria-modal="true" aria-label="{% trans 'Command palette' %}" hidden>
   <div class="rmc-cmdk__backdrop" data-rmc-cmdk-dismiss="1"></div>
   <div class="rmc-cmdk__panel" role="document">

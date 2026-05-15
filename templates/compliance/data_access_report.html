@@ -26,26 +26,26 @@
     </form>
   </header>
 
-  <div class="row g-3 mb-4">
-    <div class="col-md-3">
+  <div class="row g-3 mb-4 rmc-reveal-stagger">
+    <div class="col-md-3 rmc-reveal">
       <div class="card"><div class="card-body">
         <p class="text-muted small mb-1">{% trans "Total accesses" %}</p>
         <p class="h3 mb-0">{{ total_access|default:0 }}</p>
       </div></div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-success-subtle"><div class="card-body">
         <p class="text-muted small mb-1">{% trans "Successful" %}</p>
         <p class="h3 mb-0 text-success">{{ successful|default:0 }}</p>
       </div></div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-danger-subtle"><div class="card-body">
         <p class="text-muted small mb-1">{% trans "Failed" %}</p>
         <p class="h3 mb-0 text-danger">{{ failed|default:0 }}</p>
       </div></div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 rmc-reveal">
       <div class="card"><div class="card-body">
         <p class="text-muted small mb-1">{% trans "Success rate" %}</p>
         <p class="h3 mb-0">{{ success_rate }}</p>
@@ -53,8 +53,8 @@
     </div>
   </div>
 
-  <div class="row g-3">
-    <div class="col-lg-6">
+  <div class="row g-3 rmc-reveal-stagger">
+    <div class="col-lg-6 rmc-reveal">
       <div class="card h-100">
         <div class="card-header"><h2 class="h6 mb-0">{% trans "By user" %}</h2></div>
         <div class="card-body p-0">
@@ -76,7 +76,7 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-6">
+    <div class="col-lg-6 rmc-reveal">
       <div class="card h-100">
         <div class="card-header"><h2 class="h6 mb-0">{% trans "By access type" %}</h2></div>
         <div class="card-body p-0">

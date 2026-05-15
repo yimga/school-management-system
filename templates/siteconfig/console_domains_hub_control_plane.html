@@ -77,7 +77,7 @@
   </section>
 
   {% if platform_config %}
-  <section class="mb-4" aria-labelledby="platform-config-heading">
+  <section class="mb-4 rmc-reveal" aria-labelledby="platform-config-heading">
     <h2 id="platform-config-heading" class="h6 text-uppercase text-white-50 mb-2">{% trans "Platform configuration" %}</h2>
     <p class="small text-white-50 mb-3">{% trans "Site settings, regions, plans, feature toggles, AI registry." %}</p>
     <div class="d-flex flex-wrap gap-2">
@@ -94,7 +94,7 @@
   {% endif %}
 
   {% if operational_links %}
-  <section class="mb-3" aria-labelledby="operational-heading">
+  <section class="mb-3 rmc-reveal" aria-labelledby="operational-heading">
     <h2 id="operational-heading" class="h6 text-uppercase text-white-50 mb-2">{% trans "Quick access" %}</h2>
     <div class="d-flex flex-wrap gap-2">
       {% for op in operational_links %}

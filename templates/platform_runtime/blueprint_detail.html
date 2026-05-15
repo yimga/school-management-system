@@ -10,8 +10,8 @@
     <h1 class="h3 mb-2">{{ blueprint.name }}</h1>
     <p class="text-muted mb-0">{{ blueprint.description }}</p>
   </header>
-  <div class="row g-3">
-    <div class="col-lg-8">
+  <div class="row g-3 rmc-reveal-stagger">
+    <div class="col-lg-8 rmc-reveal">
       <div class="card border-0 shadow-sm"><div class="card-body">
         <h2 class="h5">{% trans "Operating model" %}</h2>
         <dl class="row small">
@@ -31,7 +31,7 @@
         </div>
       </div></div>
     </div>
-    <div class="col-lg-4">
+    <div class="col-lg-4 rmc-reveal">
       <div class="card border-0 shadow-sm"><div class="card-body">
         <h2 class="h6">{% trans "Implementation checklist" %}</h2>
         <ul class="small mb-0">{% for item in blueprint.implementation_checklist %}<li>{{ item }}</li>{% endfor %}</ul>

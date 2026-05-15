@@ -128,7 +128,7 @@
       <div class="theme-experience-left">
         <div class="theme-revert-row mb-2">
           <button type="button" id="theme-revert-to-saved" class="btn btn-outline-secondary btn-sm">
-            <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1rem;">undo</span>
+            <span class="material-symbols-outlined" style="vertical-align: middle; font-size: var(--type-size-body);">undo</span>
             {% trans "Revert to saved" %}
           </button>
           <span class="text-muted small ms-2">{% trans "Restore colors to their saved values." %}</span>
@@ -230,13 +230,13 @@
         <div class="theme-experience-actions mt-1 pt-1 border-top">
           {% if back_url %}
           <a href="{{ back_url }}" class="btn btn-outline-secondary btn-sm">
-            <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1rem;">arrow_back</span>
+            <span class="material-symbols-outlined" style="vertical-align: middle; font-size: var(--type-size-body);">arrow_back</span>
             {% trans "Back to Site Settings" %}
           </a>
           {% endif %}
           <label class="d-inline-flex align-items-center gap-1 mb-0"><input type="checkbox" id="theme-colors-preview-keep" class="me-1"> <span class="small">{% trans "Keep highlights until dismissed" %}</span></label>
           <button type="button" id="theme-colors-live-preview" class="btn btn-outline-primary btn-sm">
-            <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1rem;">visibility</span>
+            <span class="material-symbols-outlined" style="vertical-align: middle; font-size: var(--type-size-body);">visibility</span>
             {% trans "Live preview" %}
           </button>
           <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
@@ -260,4 +260,4 @@
   "trans_preview_failed": "{% trans "Preview failed" %}",
   "trans_preview_opened_in_new_tab": "{% trans "Preview opened in new tab" %}",
   "trans_preview_failed_2": "{% trans "Preview failed" %}"
-}</script><script src="{% static '_pages/siteconfig__partials__theme_colors_page_body-1.js' %}"></script>
+}</script><script src="{% static 'js/_pages/siteconfig__partials__theme_colors_page_body-1.js' %}"></script>

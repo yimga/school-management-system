@@ -16,8 +16,8 @@
   {% if result %}
   <div class="alert {% if result.ok %}alert-success{% else %}alert-warning{% endif %}">{{ result }}</div>
   {% endif %}
-  <div class="row g-3">
-    <div class="col-lg-5">
+  <div class="row g-3 rmc-reveal-stagger">
+    <div class="col-lg-5 rmc-reveal">
       <div class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-world-class-tenant-card="1"><div class="card-body">
         <h1 class="h5">{% trans "Recommended blueprints" %}</h1>
         <ul class="list-unstyled mb-0">{% for blueprint in blueprints %}
@@ -25,7 +25,7 @@
         {% endfor %}</ul>
       </div></div>
     </div>
-    <div class="col-lg-7">
+    <div class="col-lg-7 rmc-reveal">
       <div class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-world-class-tenant-card="1"><div class="card-body">
         <h2 class="h5">{{ preview.blueprint_name }}</h2>
         {% include "components/world_class_readiness_meter.html" with title=_("Blueprint readiness") value="72" caption=_("Tenant-safe preview; platform-only registries stay hidden.") %}

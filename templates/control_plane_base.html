@@ -51,8 +51,8 @@
             <i class="bi bi-gear-wide-connected"></i>
             <span class="d-none d-lg-inline">{% trans "Config center" %}</span>
           </a>
-          {# Phase D (2026-05-12): rich user_dropdown (avatar, role, theme toggle, sectioned menu)
-             replaces the minimal cpUserDropdown for parity across portal / control plane / admin. #}
+          {% comment %} Phase D (2026-05-12): rich user_dropdown (avatar, role, theme toggle, sectioned menu)
+             replaces the minimal cpUserDropdown for parity across portal / control plane / admin. {% endcomment %}
           {% include "components/user_dropdown.html" %}
         {% else %}
           <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
@@ -134,7 +134,7 @@ Targets the existing #cp-main-content landmark (line ~76 below).
 <script src="{% static 'js/authenticated-shell-manager.js' %}"></script>
 <script type="application/json" id="page-data-control_plane_base-1">{
   "url_siteconfig_console_domains_hub": "{% url "siteconfig:console_domains_hub" %}"
-}</script><script src="{% static '_pages/control_plane_base-1.js' %}"></script>
+}</script><script src="{% static 'js/_pages/control_plane_base-1.js' %}"></script>
 <div id="cpTourFab" class="cp-tour-fab d-none position-fixed bottom-0 end-0 p-3">
   <button type="button" class="btn btn-warning btn-sm shadow" id="cpTourStartBtn" aria-label="{% trans 'Start page tour' %}">{% trans "Page tour" %}</button>
 </div>

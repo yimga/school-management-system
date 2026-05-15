@@ -82,7 +82,7 @@
   </div>
   {% endif %}
 
-  <section class="proof-panel">
+  <section class="proof-panel rmc-reveal">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
       <div>
         <h2 class="proof-panel-title">Governed app catalog</h2>
@@ -93,7 +93,7 @@
 
     <div class="proof-catalog-grid" id="app-catalog-list">
       {% for listing in listings %}
-      <article class="proof-app-card" data-rmc-school-select data-phase9-listing-trust data-app-name="{{ listing.app.name|lower }}" data-app-slug="{{ listing.app.slug|lower }}" data-app-desc="{{ listing.app.description|default:''|lower }} {{ listing.category|default:''|lower }}">
+      <article class="proof-app-card rmc-reveal" data-rmc-school-select data-phase9-listing-trust data-app-name="{{ listing.app.name|lower }}" data-app-slug="{{ listing.app.slug|lower }}" data-app-desc="{{ listing.app.description|default:''|lower }} {{ listing.category|default:''|lower }}">
         {% if listing.preview_image_url %}
         <div class="proof-app-preview-img mb-2">
           <img src="{{ listing.preview_image_url }}" alt="" class="img-fluid rounded" style="max-height: 140px; object-fit: cover; width: 100%;" loading="lazy">
@@ -201,7 +201,7 @@
     </div>
   </section>
 
-  <section class="proof-split">
+  <section class="proof-split rmc-reveal">
     <div class="proof-panel">
       <h2 class="proof-panel-title">What the operator sees before install</h2>
       <div class="proof-flow">
@@ -238,5 +238,5 @@
   {% endif %}
 </div>
 
-<script src="{% static '_pages/marketplace__app_catalog.js' %}"></script>
+<script src="{% static 'js/_pages/marketplace__app_catalog.js' %}"></script>
 {% endblock %}

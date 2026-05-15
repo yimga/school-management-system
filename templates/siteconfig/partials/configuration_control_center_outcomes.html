@@ -3,8 +3,8 @@
 {# Use ccc_outcome_compact (not context "compact") for one consistent chrome split. #}
 {% if why_enabled_summary %}
 <section class="mb-4 {% if ccc_outcome_compact %}py-2{% endif %}" role="region" aria-labelledby="ccc-why-heading">
-  <h2 id="ccc-why-heading" class="h6 {% if ccc_outcome_compact %}text-uppercase text-muted{% else %}text-uppercase text-white{% endif %} mb-2">{% trans "Why enabled?" %}</h2>
-  <p class="small {% if ccc_outcome_compact %}text-muted{% else %}text-white-50{% endif %} mb-0">{{ why_enabled_summary }}</p>
+  <h2 id="ccc-why-heading" class="rmc-type-eyebrow mb-2">{% trans "Why enabled?" %}</h2>
+  <p class="rmc-type-caption mb-0">{{ why_enabled_summary }}</p>
 </section>
 {% endif %}
 
@@ -26,7 +26,7 @@
 
 {% if outcome_groups %}
 <section class="mb-4" aria-labelledby="ccc-outcomes-heading">
-  <h2 id="ccc-outcomes-heading" class="h6 {% if ccc_outcome_compact %}text-uppercase text-muted{% else %}text-uppercase text-white-50{% endif %} mb-3">{% trans "Outcomes" %}</h2>
+  <h2 id="ccc-outcomes-heading" class="rmc-type-eyebrow mb-3">{% trans "Outcomes" %}</h2>
   <div class="row g-3">
     {% for group in outcome_groups %}
     <div class="col-12 col-md-6 col-xl-4">
@@ -58,8 +58,8 @@
       </div>
       {% else %}
       <div class="border border-secondary rounded p-3 h-100 bg-dark bg-opacity-25">
-        <div class="fw-semibold text-white mb-1">{{ group.title }}</div>
-        <p class="small text-white-50 mb-2">{{ group.subtitle }}</p>
+        <div class="rmc-type-headline-m fw-semibold text-white mb-1">{{ group.title }}</div>
+        <p class="rmc-type-caption mb-2">{{ group.subtitle }}</p>
         <ul class="list-unstyled small mb-0">
           {% for link in group.links %}
           <li class="mb-2 pb-2 {% if not forloop.last %}border-bottom border-secondary border-opacity-25{% endif %}">

@@ -9,13 +9,13 @@
     <a class="btn btn-sm btn-primary ds-btn" href="{% url 'sales:lead_create' %}">{% trans "Add lead" %}</a>
   </div>
   <p class="text-muted small">{% trans "Founder/operator use only. Not integrated with external CRM. Data lives in the platform database." %}</p>
-  <div class="row g-2 mb-3" data-rmc-sales-kpis="1">
-    <div class="col-6 col-md-2"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Total leads" %}</div><div class="h5 mb-0">{{ total_leads }}</div></div></div></div>
-    <div class="col-6 col-md-2"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Demos scheduled" %}</div><div class="h5 mb-0">{{ demos_scheduled }}</div></div></div></div>
-    <div class="col-6 col-md-2"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Demos completed" %}</div><div class="h5 mb-0">{{ demos_completed }}</div></div></div></div>
-    <div class="col-6 col-md-2"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Decision" %}</div><div class="h5 mb-0">{{ decisions }}</div></div></div></div>
-    <div class="col-6 col-md-2"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Closed" %}</div><div class="h5 mb-0">{{ closed }}</div></div></div></div>
-    <div class="col-6 col-md-2"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Conversion" %}</div><div class="h5 mb-0">{{ conversion_rate }}%</div></div></div></div>
+  <div class="row g-2 mb-3 rmc-reveal-stagger" data-rmc-sales-kpis="1">
+    <div class="col-6 col-md-2 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Total leads" %}</div><div class="h5 mb-0">{{ total_leads }}</div></div></div></div>
+    <div class="col-6 col-md-2 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Demos scheduled" %}</div><div class="h5 mb-0">{{ demos_scheduled }}</div></div></div></div>
+    <div class="col-6 col-md-2 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Demos completed" %}</div><div class="h5 mb-0">{{ demos_completed }}</div></div></div></div>
+    <div class="col-6 col-md-2 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Decision" %}</div><div class="h5 mb-0">{{ decisions }}</div></div></div></div>
+    <div class="col-6 col-md-2 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Closed" %}</div><div class="h5 mb-0">{{ closed }}</div></div></div></div>
+    <div class="col-6 col-md-2 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body py-2"><div class="small text-muted">{% trans "Conversion" %}</div><div class="h5 mb-0">{{ conversion_rate }}%</div></div></div></div>
   </div>
   <div class="alert {% if overdue_followups > 0 %}alert-warning{% else %}alert-light{% endif %} small d-flex flex-wrap justify-content-between gap-2" role="status">
     <span>{% trans "Follow-up queue" %}: <strong>{{ overdue_followups }}</strong> {% trans "overdue" %}, <strong>{{ due_today_followups }}</strong> {% trans "due today" %}</span>

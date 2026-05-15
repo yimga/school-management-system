@@ -188,7 +188,7 @@ body.admin-manager-shell .preview-cue--ready , body.admin-premium-shell .preview
 
 /* Unified navbar: match control plane height and spacing */
 .admin-cp-navbar-unified .container-fluid { max-width: 100%; }
-.admin-cp-navbar-unified .navbar-brand { font-size: 1.1rem; }
+.admin-cp-navbar-unified .navbar-brand { font-size: var(--type-size-body-l); }
 .admin-cp-navbar-unified .btn { border-radius: 999px; }
 
 /* Breadcrumb: same muted style as control plane */
@@ -216,7 +216,7 @@ body.admin-manager-shell #nav-sidebar .admin-sidebar-quick-group-title, body.adm
 body.admin-manager-shell #nav-sidebar .admin-sidebar-section-heading , body.admin-premium-shell #nav-sidebar .admin-sidebar-section-heading {
   text-transform: uppercase !important;
   letter-spacing: 0.1em !important;
-  font-size: 0.7rem !important;
+  font-size: var(--type-size-micro) !important;
   font-weight: 700 !important;
   color: var(--cp-muted) !important;
   margin: 0.75rem 0 0.35rem !important;
@@ -241,7 +241,7 @@ body.admin-manager-shell #nav-sidebar .admin-sidebar-app-title , body.admin-prem
   padding: 0 0.5rem !important;
 }
 body.admin-manager-shell #nav-sidebar .admin-sidebar-app-title a , body.admin-premium-shell #nav-sidebar .admin-sidebar-app-title a {
-  font-size: 0.95rem !important;
+  font-size: var(--type-size-body) !important;
   font-weight: 600 !important;
   padding: 0.4rem 0 !important;
 }
@@ -280,12 +280,12 @@ body.admin-manager-shell #content #changelist .actions , body.admin-premium-shel
 }
 body.admin-manager-shell #content thead th , body.admin-premium-shell #content thead th {
   padding: 0.65rem 0.85rem !important;
-  font-size: 0.8rem !important;
+  font-size: var(--type-size-caption) !important;
   font-weight: 600 !important;
 }
 body.admin-manager-shell #content tbody td , body.admin-premium-shell #content tbody td {
   padding: 0.6rem 0.85rem !important;
-  font-size: 0.9rem !important;
+  font-size: var(--type-size-body) !important;
   vertical-align: middle !important;
 }
 body.admin-manager-shell #content .paginator , body.admin-premium-shell #content .paginator {
@@ -366,7 +366,7 @@ body.admin-manager-shell #content .object-tools a, body.admin-premium-shell #con
 body.admin-manager-shell #content .object-tools li , body.admin-premium-shell #content .object-tools li {
   border-radius: 999px !important;
   padding: 0.45rem 0.9rem !important;
-  font-size: 0.875rem !important;
+  font-size: var(--type-size-caption) !important;
   font-weight: 500 !important;
 }
 body.admin-manager-shell #content .object-tools a:hover , body.admin-premium-shell #content .object-tools a:hover {

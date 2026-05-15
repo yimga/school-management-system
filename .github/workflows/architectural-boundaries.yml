@@ -25,6 +25,14 @@ on:
       - "beta/school-management-system/scripts/scan_magic_numbers.py"
       - "beta/school-management-system/scripts/scan_subprocess_shell_true.py"
       - "beta/school-management-system/scripts/scan_rls_bypass.py"
+      - "beta/school-management-system/scripts/audit_template_render_safety.py"
+      - "beta/school-management-system/scripts/scan_inline_style_off_token.py"
+      - "beta/school-management-system/scripts/scan_undefined_css_classes.py"
+      - "beta/school-management-system/templates/**/*.html"
+      - "beta/school-management-system/static/css/**/*.css"
+      - "beta/school-management-system/static/marketing/css/**/*.css"
+      - "beta/school-management-system/var/security-audit-baseline-inline-style-off-token.json"
+      - "beta/school-management-system/var/security-audit-baseline-undefined-css-classes.json"
       - "beta/school-management-system/var/security-audit-baseline-ai-gateway-boundary.json"
       - "beta/school-management-system/var/security-audit-baseline-sentry-boundary.json"
       - "beta/school-management-system/var/security-audit-baseline-print-statements.json"
@@ -197,3 +205,67 @@ jobs:
       - name: Run scanner --compare
         run: |
           python scripts/scan_rls_bypass.py --compare
+
+  template-render-safety:
+    name: "Template render-safety (leaks / unclosed tags / missing refs)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        # Zero-tolerance gate: any of these is a real bug.
+        #   - multi-line `{# ... #}` (Django supports single-line only)
+        #   - orphan template tokens that would render as visible page text
+        #   - unbalanced {% if/for/block/with/comment/verbatim/... %} tags
+        #   - {% include %} / {% extends %} pointing to a missing template
+        #   - {% static %} pointing to a missing file under static/
+        run: |
+          python scripts/audit_template_render_safety.py --compare
+
+  inline-style-off-token:
+    name: "Apple HIG: inline styles off the token system"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        # Drift-detection gate. Inline `style="font-size:..."` /
+        # `style="color: #..."` / `style="transition: ... cubic-bezier(...)"`
+        # bypass the token system, defeat tenant brand cascade, and break
+        # Apple-tier quiet-luxury consistency. Baseline allows existing debt;
+        # CI fails on any new violation. Mark intentional exceptions with
+        # `<!-- inline-style-allow: <reason> -->` or `inline-style-allow:`
+        # inside the style itself.
+        run: |
+          python scripts/scan_inline_style_off_token.py --compare
+
+  undefined-css-classes:
+    name: "Undefined CSS classes (typos & silent layout bugs)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        # Drift-detection gate. Catches project-prefixed CSS class names
+        # referenced in templates but never defined in any CSS file —
+        # the class of bug that hid `content-max-960` (referenced 25x,
+        # never defined → silent empty-column on every manager page).
+        # Scans both `static/css/` and `static/marketing/css/` for definitions.
+        # Tailwind / Bootstrap / icon-font utilities are allowlisted; only
+        # project-prefixed classes (rmc-, cp-, mkt-, portal-, ccc-, etc.)
+        # are flagged. Baseline allows existing debt; CI fails on any new
+        # undefined class.
+        run: |
+          python scripts/scan_undefined_css_classes.py --compare

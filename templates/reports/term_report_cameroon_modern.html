@@ -72,7 +72,7 @@
         {% if report_style and report_style.header_tagline %}
           <p class="sub text-uppercase small">{{ report_style.header_tagline }}</p>
         {% endif %}
-        <div style="margin-top: 8px; font-size: 9pt; color: #555;">
+        <div style="margin-top: 8px; font-size: 9pt; color: var(--text-secondary);">
           {% if SITE.company_email %}
             <p style="margin: 2px 0;"><strong>Email:</strong> {{ SITE.company_email }}</p>
           {% endif %}
@@ -171,9 +171,9 @@
   {% if qr_code_data_uri %}
   <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
     <div style="flex: 1;">
-      <p style="font-size: 9px; color: #64748b; margin: 0;">
+      <p style="font-size: var(--type-size-micro); color: var(--text-secondary); margin: 0;">
         This report card can be verified by scanning the QR code or visiting:<br>
-        <span style="font-size: 8px; word-break: break-all;">{{ verification_url }}</span>
+        <span style="font-size: var(--type-size-micro); word-break: break-all;">{{ verification_url }}</span>
       </p>
     </div>
     <div style="flex-shrink: 0; margin-left: 16px;">

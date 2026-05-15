@@ -167,10 +167,10 @@
                       {% endif %}
                     </div>
                     {% if item.critical %}
-                    <span class="badge bg-warning text-dark flex-shrink-0 mt-1" style="font-size: 0.65rem;" title="Disabling may affect user access">!</span>
+                    <span class="badge bg-warning text-dark flex-shrink-0 mt-1" style="font-size: var(--type-size-micro);" title="Disabling may affect user access">!</span>
                     {% endif %}
                   </div>
-                  <span class="badge flex-shrink-0 status-badge align-self-center {% if item.enabled %}bg-success{% else %}bg-secondary{% endif %}" style="font-size: 0.7rem;">
+                  <span class="badge flex-shrink-0 status-badge align-self-center {% if item.enabled %}bg-success{% else %}bg-secondary{% endif %}" style="font-size: var(--type-size-micro);">
                     {% if item.enabled %}On{% else %}Off{% endif %}
                   </span>
                 </li>
@@ -241,4 +241,4 @@
   "url_accounts_backend_dashboard": "{% url "accounts:backend_dashboard" %}",
   "var_current_json_safe": "{{ current_json|safe|escapejs }}",
   "var_bulk_presets_json_safe": "{{ bulk_presets_json|safe|escapejs }}"
-}</script><script src="{% static '_pages/siteconfig__feature_control_panel_content-1.js' %}"></script>
+}</script><script src="{% static 'js/_pages/siteconfig__feature_control_panel_content-1.js' %}"></script>

@@ -10,12 +10,12 @@
 </div>
 <div class="row g-3 mb-3">
   <section class="col-md-3"><div class="card"><div class="card-body"><div class="small text-muted">Feedback</div><div class="h4">{{ feedback_items|length }}</div></div></div></section>
-  <section class="col-md-3"><div class="card"><div class="card-body"><div class="small text-muted">Feature Requests</div><div class="h4">{{ feature_requests|length }}</div></div></div></section>
-  <section class="col-md-3"><div class="card"><div class="card-body"><div class="small text-muted">Roadmap Candidates</div><div class="h4">{{ roadmap_candidates|length }}</div></div></div></section>
-  <section class="col-md-3"><div class="card"><div class="card-body"><div class="small text-muted">Churn Risk Schools</div><div class="h4">{{ churn_risk|length }}</div></div></div></section>
+  <section class="col-md-3 rmc-reveal"><div class="card"><div class="card-body"><div class="small text-muted">Feature Requests</div><div class="h4">{{ feature_requests|length }}</div></div></div></section>
+  <section class="col-md-3 rmc-reveal"><div class="card"><div class="card-body"><div class="small text-muted">Roadmap Candidates</div><div class="h4">{{ roadmap_candidates|length }}</div></div></div></section>
+  <section class="col-md-3 rmc-reveal"><div class="card"><div class="card-body"><div class="small text-muted">Churn Risk Schools</div><div class="h4">{{ churn_risk|length }}</div></div></div></section>
 </div>
 <div class="row g-3">
-  <section class="col-xl-8">
+  <section class="col-xl-8 rmc-reveal">
     <div class="card">
       <div class="card-header fw-semibold">Triage Queue</div>
       <div class="table-responsive">
@@ -47,7 +47,7 @@
       </div>
     </div>
   </section>
-  <section class="col-xl-4">
+  <section class="col-xl-4 rmc-reveal">
     <div class="card mb-3"><div class="card-header fw-semibold">Top Pain Points</div><div class="card-body">
       {% for module,count in pain_points %}<span class="badge text-bg-secondary me-1 mb-1">{{ module }} {{ count }}</span>{% empty %}<span class="text-muted">No pain points yet.</span>{% endfor %}
     </div></div>

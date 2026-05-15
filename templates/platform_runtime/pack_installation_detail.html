@@ -4,11 +4,11 @@
 <section class="cp-page" data-page-marker="rmc-pack-installation-detail">
   <header class="cp-page-header"><p class="cp-eyebrow">{{ installation.pack_type }}</p><h1>{{ installation.pack_key }}</h1><p>{{ installation.status }} - health {{ health.state }}</p></header>
   <div class="cp-grid cp-grid-2">
-    <article class="cp-card"><h2>Audit</h2><p>{{ installation.audit_ref }}</p></article>
-    <article class="cp-card"><h2>External blockers</h2><p>{{ installation.external_blockers|join:", " }}</p></article>
-    <article class="cp-card"><h2>Blueprint link</h2><p>{{ installation.blueprint_installation_id|default:"Standalone" }}</p></article>
-    <article class="cp-card"><h2>Upgrade</h2><p>{{ installation.installed_version }} to {{ installation.available_version }}. Available: {{ installation.upgrade_available }}</p></article>
-    <article class="cp-card"><h2>Rollback</h2><a class="cp-button" href="{% url 'configuration:pack_rollback' installation.id %}">Rollback or deactivate</a></article>
+    <article class="cp-card rmc-reveal"><h2>Audit</h2><p>{{ installation.audit_ref }}</p></article>
+    <article class="cp-card rmc-reveal"><h2>External blockers</h2><p>{{ installation.external_blockers|join:", " }}</p></article>
+    <article class="cp-card rmc-reveal"><h2>Blueprint link</h2><p>{{ installation.blueprint_installation_id|default:"Standalone" }}</p></article>
+    <article class="cp-card rmc-reveal"><h2>Upgrade</h2><p>{{ installation.installed_version }} to {{ installation.available_version }}. Available: {{ installation.upgrade_available }}</p></article>
+    <article class="cp-card rmc-reveal"><h2>Rollback</h2><a class="cp-button" href="{% url 'configuration:pack_rollback' installation.id %}">Rollback or deactivate</a></article>
   </div>
 </section>
 {% endblock %}

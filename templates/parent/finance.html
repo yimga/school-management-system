@@ -92,7 +92,7 @@
     </div>
   </section>
 
-  <section class="row g-3 mb-3" aria-label="{% trans 'Account balance summary' %}">
+  <section class="row g-3 mb-3 rmc-reveal" aria-label="{% trans 'Account balance summary' %}">
     <div class="col-12 col-md-6 col-lg-3" data-shell-kpi="parent-finance-total-due">
       <div class="kpi">
         <div class="d-flex align-items-start justify-content-between gap-2">
@@ -261,6 +261,6 @@
   </div>
   </div>
 {% if finance_access_granted %}
-<script src="{% static '_pages/parent__finance.js' %}"></script>
+<script src="{% static 'js/_pages/parent__finance.js' %}"></script>
 {% endif %}
 {% endblock %}

@@ -37,7 +37,7 @@
     {# Right content — each category is an anchor section with entries. #}
     <main class="rmc-settings-pane" data-rmc-settings-pane="1">
       {% for c in categories %}
-        <section id="cat-{{ c.slug }}" class="rmc-settings-section" data-rmc-section-anchor data-rmc-cat="{{ c.slug }}" data-rmc-search-target="{{ c.label }}">
+        <section id="cat-{{ c.slug }}" class="rmc-settings-section rmc-reveal" data-rmc-section-anchor data-rmc-cat="{{ c.slug }}" data-rmc-search-target="{{ c.label }}">
           <header class="rmc-settings-section__head">
             <div class="rmc-settings-section__icon" aria-hidden="true">
               <i class="bi {{ c.icon }}"></i>

@@ -20,18 +20,20 @@
   </script>
   {% include "partials/rmc_theme_meta.html" %}
   {% include "partials/rmc_social_meta.html" %}
-  {# Theme bootstrap must run before paint to avoid flash-of-wrong-theme.
-     v2 theme system: Light / Dark / System with prefers-color-scheme live response. #}
+  {% comment %} Theme bootstrap must run before paint to avoid flash-of-wrong-theme.
+     v2 theme system: Light / Dark / System with prefers-color-scheme live response. {% endcomment %}
   <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
   <script src="{% static 'js/rmc-lexicon.js' %}" defer></script>
   <script src="{% static 'js/rmc-friction.js' %}" defer></script>
   <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
+  <script src="{% static 'js/rmc-reveal.js' %}" defer></script>
   <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
   <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
   <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
   <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
   <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
   <link rel="stylesheet" href="{% static 'css/patterns.css' %}">
   <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">

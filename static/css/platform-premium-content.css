@@ -50,7 +50,7 @@
 }
 
 #main-content .page-wrap h2 {
-  font-size: 1.25rem;
+  font-size: var(--type-size-body-l);
   font-weight: 600;
   margin-top: var(--premium-section-gap);
   margin-bottom: 0.75rem;
@@ -58,7 +58,7 @@
 }
 
 #main-content .page-wrap h3 {
-  font-size: 1.0625rem;
+  font-size: var(--type-size-body-l);
   font-weight: 600;
   margin-top: 1rem;
   margin-bottom: 0.5rem;
@@ -74,7 +74,7 @@
   background: var(--admin-content-thead-bg, var(--color-bg-light));
   color: var(--admin-content-text, var(--color-text-primary));
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: var(--type-size-caption);
   text-transform: none;
   letter-spacing: 0.01em;
   padding: 0.75rem 1rem;
@@ -206,7 +206,7 @@
   padding: 1.5rem;
   text-align: center;
   color: var(--admin-content-text-muted, var(--color-text-muted));
-  font-size: 0.9375rem;
+  font-size: var(--type-size-body);
 }
 
 /* ===== Section spacing for professional-page ===== */

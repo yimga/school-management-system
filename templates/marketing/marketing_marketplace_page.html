@@ -10,7 +10,7 @@
 
 {% block content %}
 <section class="proof-page">
-  <section class="proof-hero">
+  <section class="proof-hero rmc-reveal">
     <div class="proof-hero-grid">
       <div>
         <div class="proof-kicker"><i class="bi bi-grid-3x3-gap"></i> {% trans "Marketplace" %}</div>
@@ -33,46 +33,46 @@
     </div>
   </section>
 
-  <section class="proof-card-grid">
+  <section class="proof-card-grid rmc-reveal">
     {% if page.apps_copy %}
-    <article class="proof-card">
+    <article class="proof-card rmc-reveal">
       <h3>{% trans "Apps" %}</h3>
       <p>{{ page.apps_copy }}</p>
     </article>
     {% endif %}
     {% if page.integrations_copy %}
-    <article class="proof-card">
+    <article class="proof-card rmc-reveal">
       <h3>{% trans "Integrations" %}</h3>
       <p>{{ page.integrations_copy }}</p>
     </article>
     {% endif %}
     {% if page.templates_copy %}
-    <article class="proof-card">
+    <article class="proof-card rmc-reveal">
       <h3>{% trans "Templates" %}</h3>
       <p>{{ page.templates_copy }}</p>
     </article>
     {% endif %}
     {% if page.blueprints_copy %}
-    <article class="proof-card">
+    <article class="proof-card rmc-reveal">
       <h3>{% trans "Blueprints" %}</h3>
       <p>{{ page.blueprints_copy }}</p>
     </article>
     {% endif %}
     {% if page.policy_packs_copy %}
-    <article class="proof-card">
+    <article class="proof-card rmc-reveal">
       <h3>{% trans "Policy packs" %}</h3>
       <p>{{ page.policy_packs_copy }}</p>
     </article>
     {% endif %}
     {% if page.partners_copy %}
-    <article class="proof-card">
+    <article class="proof-card rmc-reveal">
       <h3>{% trans "Partners" %}</h3>
       <p>{{ page.partners_copy }}</p>
     </article>
     {% endif %}
   </section>
 
-  <section class="proof-split">
+  <section class="proof-split rmc-reveal">
     <div class="proof-panel">
       <h2 class="proof-panel-title">{% trans "What the best marketplace UX needs" %}</h2>
       <div class="proof-flow">
@@ -104,7 +104,7 @@
     </div>
   </section>
 
-  <section class="proof-metrics">
+  <section class="proof-metrics rmc-reveal">
     <div class="proof-metric"><strong>{% trans "Apps" %}</strong><span>{% trans "Role-ready extensions" %}</span></div>
     <div class="proof-metric"><strong>{% trans "Blueprints" %}</strong><span>{% trans "Runtime and policy baselines" %}</span></div>
     <div class="proof-metric"><strong>{% trans "Templates" %}</strong><span>{% trans "Reports, forms, branding" %}</span></div>

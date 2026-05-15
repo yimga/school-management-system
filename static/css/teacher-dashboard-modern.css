@@ -62,7 +62,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: var(--type-size-eyebrow);
   color: var(--tdm-muted);
   margin-bottom: 6px;
 }
@@ -80,7 +80,7 @@
   background: color-mix(in srgb, var(--tdm-primary) 12%, var(--color-base-0) 88%);
   color: color-mix(in srgb, var(--tdm-primary) 72%, var(--color-base-900) 28%);
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
   border: 1px solid color-mix(in srgb, var(--tdm-primary) 34%, var(--color-base-300) 66%);
 }
 
@@ -153,7 +153,7 @@
 
 .tdm-profile-meta {
   color: var(--tdm-muted);
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
 }
 
 .tdm-profile-actions {
@@ -191,17 +191,17 @@
 }
 
 .tdm-stat-label {
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
   opacity: 0.9;
 }
 
 .tdm-stat-value {
-  font-size: 1.8rem;
+  font-size: var(--type-size-headline-l);
   font-weight: 800;
 }
 
 .tdm-stat-meta {
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
   opacity: 0.9;
 }
 
@@ -283,7 +283,7 @@
 
 .tdm-class-meta {
   color: var(--tdm-muted);
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
 }
 
 .tdm-progress-row {
@@ -306,7 +306,7 @@
 }
 
 .tdm-progress-label {
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
   color: var(--tdm-text);
 }
 
@@ -357,7 +357,7 @@
 
 .tdm-insight-meta .label {
   color: var(--tdm-muted);
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
 }
 
 .tdm-insight-meta .value {
@@ -462,7 +462,7 @@
 }
 
 .tdm-pulse-item span {
-  font-size: 0.74rem;
+  font-size: var(--type-size-micro);
   line-height: 1.2;
   color: var(--admin-content-text-muted, var(--color-base-500));
   text-transform: uppercase;
@@ -471,7 +471,7 @@
 }
 
 .tdm-pulse-item strong {
-  font-size: 1.08rem;
+  font-size: var(--type-size-body-l);
   line-height: 1.1;
   color: var(--admin-content-text, var(--color-base-900));
 }
@@ -505,13 +505,13 @@
 .tdm-curriculum-top strong {
   display: block;
   min-width: 0;
-  font-size: 0.84rem;
+  font-size: var(--type-size-caption);
   color: var(--admin-content-text, var(--color-base-900));
 }
 
 .tdm-curriculum-top span {
   flex-shrink: 0;
-  font-size: 0.8rem;
+  font-size: var(--type-size-caption);
   font-weight: 700;
   color: var(--admin-content-text-muted, var(--color-base-600));
 }
@@ -527,7 +527,7 @@
 
 .tdm-compact-head h4 {
   margin: 0;
-  font-size: 0.92rem;
+  font-size: var(--type-size-body);
   font-weight: 700;
   color: var(--admin-content-text, var(--color-base-900));
 }
@@ -557,14 +557,14 @@
 
 .tdm-compact-list strong {
   display: block;
-  font-size: 0.88rem;
+  font-size: var(--type-size-caption);
   line-height: 1.2;
   color: var(--admin-content-text, var(--color-base-900));
 }
 
 .tdm-compact-list small {
   display: block;
-  font-size: 0.78rem;
+  font-size: var(--type-size-eyebrow);
   color: var(--admin-content-text-muted, var(--color-base-500));
 }
 
@@ -583,12 +583,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  font-size: 0.82rem;
+  font-size: var(--type-size-caption);
   color: var(--admin-content-text-muted, var(--color-base-600));
 }
 
 .tdm-badge-tile strong {
-  font-size: 1rem;
+  font-size: var(--type-size-body);
   font-weight: 800;
   color: var(--admin-content-text, var(--color-base-900));
 }
@@ -644,7 +644,7 @@
   justify-content: space-between;
   align-items: center;
   color: var(--tdm-muted);
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
   font-weight: 600;
 }
 
@@ -696,7 +696,7 @@
 
 .tdm-task-meta {
   color: var(--tdm-muted);
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
 }
 
 .tdm-announcements {
@@ -715,7 +715,7 @@
 
 .tdm-ann-meta {
   color: var(--tdm-muted);
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
 }
 
 .tdm-mini-grid {
@@ -739,19 +739,19 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: var(--type-size-eyebrow);
   color: var(--tdm-muted);
 }
 
 .tdm-mini-value {
-  font-size: 1.3rem;
+  font-size: var(--type-size-headline-m);
   font-weight: 800;
   color: var(--tdm-text);
 }
 
 .tdm-mini-meta {
   color: var(--tdm-muted);
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
 }
 
 .dashboard-page-teacher .tdm-shell .btn:not(:disabled),
@@ -868,7 +868,7 @@
   margin-bottom: 2px;
 }
 .org-chart-title {
-  font-size: 0.7rem;
+  font-size: var(--type-size-micro);
   line-height: 1.2;
 }
 .org-chart-connector {

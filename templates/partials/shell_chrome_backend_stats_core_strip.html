@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Preview-aligned KPI strip — patterns.css `.kpi` class renders 14px-radius cards
+{% comment %} Preview-aligned KPI strip — patterns.css `.kpi` class renders 14px-radius cards
    with --apple-elev-1 shadow, hover lift, label + tinted icon chip header,
    large tabular-num value. No delta arrows here (no historical-baseline data in
    this strip — that's surfaced separately by analytics widgets).
@@ -7,7 +7,7 @@
    2026-05-12 carried-forward: wrapped in `.rmc-metric-ticker` so the values
    pin into a condensed strip below the topbar once the user scrolls past
    them. rmc-metric-ticker.js handles the IntersectionObserver + mirror; no
-   per-page wiring required. #}
+   per-page wiring required. {% endcomment %}
 <section
   class="rmc-metric-ticker mb-3"
   data-rmc-metric-ticker

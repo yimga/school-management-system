@@ -8,13 +8,22 @@
         {% if request.user.profile_photo %}
           <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.get_full_name }}" width="40" height="40" decoding="async" loading="lazy">
         {% else %}
+          {% comment %} Fallback chain: first+last → first → username → email → role icon.
+             Without this guard, users with only a username (no first/last name) see an
+             empty gradient blob in the topbar — exactly the bug visible in the manager
+             screenshots 2026-05-15. {% endcomment %}
           <div class="avatar-placeholder" style="background: var(--brand-gradient, linear-gradient(135deg, var(--school-primary, #4f46e5), var(--color-indigo-800, #3730a3)));">
-            {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+            {% with fn=request.user.first_name|default:'' ln=request.user.last_name|default:'' un=request.user.username|default:'' em=request.user.email|default:'' %}
+              {% if fn or ln %}{{ fn|first|upper }}{{ ln|first|upper }}
+              {% elif un %}{{ un|slice:":2"|upper }}
+              {% elif em %}{{ em|slice:":2"|upper }}
+              {% else %}<i class="bi bi-person-fill" aria-hidden="true"></i>{% endif %}
+            {% endwith %}
           </div>
         {% endif %}
         <span class="user-status-indicator"></span>
-        {# Improvement A (2026-05-12): AI health micro-dot on the avatar so degraded
-           mode is visible without opening the copilot. Driven by /api/ai/health/. #}
+        {% comment %} Improvement A (2026-05-12): AI health micro-dot on the avatar so degraded
+           mode is visible without opening the copilot. Driven by /api/ai/health/. {% endcomment %}
         <span class="user-avatar-ai-pulse" data-rmc-user-ai-pulse aria-hidden="true" title="{% trans 'AI status' %}"></span>
         {# Improvement B (2026-05-12): unread notification badge (server-rendered). #}
         {% with unread_count=rmc_unread_count|default:0|add:0 %}
@@ -82,9 +91,9 @@
         <i class="bi bi-person"></i> {% trans "Account" %}
       </li>
 
-      {# v2 theme system: Light / Dark / System segmented toggle.
+      {% comment %} v2 theme system: Light / Dark / System segmented toggle.
          Writes to localStorage via window.RMCTheme.set() (theme-preference-bootstrap.js)
-         and lets <html data-theme=...> cascade across every CSS surface. #}
+         and lets <html data-theme=...> cascade across every CSS surface. {% endcomment %}
       <li class="rmc-theme-toggle-row px-3 py-2" role="group" aria-label="{% trans 'Appearance' %}">
         <div class="d-flex align-items-center justify-content-between mb-1">
           <span class="small text-muted"><i class="bi bi-circle-half me-1"></i>{% trans "Appearance" %}</span>
@@ -194,8 +203,8 @@
         </a>
       </li>
       <li>
-        {# v2.6 (2026-05-12): keyboard shortcut cheat sheet trigger. The same
-           overlay opens via `?` anywhere — listing it here makes it discoverable. #}
+        {% comment %} v2.6 (2026-05-12): keyboard shortcut cheat sheet trigger. The same
+           overlay opens via `?` anywhere — listing it here makes it discoverable. {% endcomment %}
         <button class="dropdown-item" type="button" onclick="if (window.RMCShortcuts && window.RMCShortcuts.open) { window.RMCShortcuts.open(); } return false;">
           <i class="bi bi-keyboard"></i>
           <span>{% trans "Keyboard shortcuts" %}</span>
@@ -228,5 +237,5 @@ JSON data island so the inline executable script can be removed
   "logoutUrl": "{% url 'accounts:logout' %}",
   "helpUrl": "{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}"
 }</script>
-<script src="{% static '_pages/components__user_dropdown.js' %}"></script>
+<script src="{% static 'js/_pages/components__user_dropdown.js' %}"></script>
 <script src="{% static 'js/rmc-theme-toggle.js' %}"></script>

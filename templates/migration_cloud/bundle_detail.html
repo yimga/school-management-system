@@ -44,7 +44,7 @@
     <a href="#actions">{% trans "Actions" %}</a>
   </nav>
 
-  <section id="artifacts" class="rmc-card">
+  <section id="artifacts" class="rmc-card rmc-reveal">
     <h2 class="rmc-h2">{% trans "Artifacts" %}</h2>
     <table class="rmc-data-table">
       <thead>
@@ -70,7 +70,7 @@
     </table>
   </section>
 
-  <section id="discovery" class="rmc-card">
+  <section id="discovery" class="rmc-card rmc-reveal">
     <h2 class="rmc-h2">{% trans "Discovery" %}</h2>
     {% if bundle.discovery_summary %}
       <p class="rmc-kv">
@@ -99,7 +99,7 @@
     {% endif %}
   </section>
 
-  <section id="mapping" class="rmc-card rmc-mapping">
+  <section id="mapping" class="rmc-card rmc-mapping rmc-reveal">
     <header class="rmc-mapping__header">
       <h2 class="rmc-h2">{% trans "Mapping" %}</h2>
       <p class="rmc-muted">
@@ -179,7 +179,7 @@
     {% endif %}
   </section>
 
-  <section id="reconciliation" class="rmc-card">
+  <section id="reconciliation" class="rmc-card rmc-reveal">
     <h2 class="rmc-h2">{% trans "Reconciliation" %}</h2>
     {% if reconciliation.overall_parity_pct %}
       <p class="rmc-kv">
@@ -217,7 +217,7 @@
     {% endif %}
   </section>
 
-  <section id="actions" class="rmc-card">
+  <section id="actions" class="rmc-card rmc-reveal">
     <h2 class="rmc-h2">{% trans "Actions" %}</h2>
     <div class="rmc-button-row">
       {% if can_advance %}

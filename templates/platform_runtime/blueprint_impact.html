@@ -19,9 +19,9 @@
       <dt class="col-sm-4">{% trans "External dependencies remaining" %}</dt><dd class="col-sm-8">{{ impact.summary.external_dependencies_remaining|join:", " }}</dd>
     </dl>
   </div></div>
-  <div class="row g-3">
-    <div class="col-lg-6"><div class="card border-0 shadow-sm h-100"><div class="card-body"><h2 class="h6">{% trans "Affected roles" %}</h2><p class="small">{{ impact.summary.roles_gain_access|join:", " }}</p><h2 class="h6">{% trans "Workflows" %}</h2><p class="small">{{ impact.summary.workflows_activate|join:", " }}</p></div></div></div>
-    <div class="col-lg-6"><div class="card border-0 shadow-sm h-100"><div class="card-body"><h2 class="h6">{% trans "Dashboards" %}</h2><p class="small">{{ impact.summary.dashboards_change|join:", " }}</p><h2 class="h6">{% trans "Policies" %}</h2><p class="small">{{ impact.summary.policies_active|join:", " }}</p></div></div></div>
+  <div class="row g-3 rmc-reveal-stagger">
+    <div class="col-lg-6 rmc-reveal"><div class="card border-0 shadow-sm h-100"><div class="card-body"><h2 class="h6">{% trans "Affected roles" %}</h2><p class="small">{{ impact.summary.roles_gain_access|join:", " }}</p><h2 class="h6">{% trans "Workflows" %}</h2><p class="small">{{ impact.summary.workflows_activate|join:", " }}</p></div></div></div>
+    <div class="col-lg-6 rmc-reveal"><div class="card border-0 shadow-sm h-100"><div class="card-body"><h2 class="h6">{% trans "Dashboards" %}</h2><p class="small">{{ impact.summary.dashboards_change|join:", " }}</p><h2 class="h6">{% trans "Policies" %}</h2><p class="small">{{ impact.summary.policies_active|join:", " }}</p></div></div></div>
   </div>
 </section>
 {% endblock %}

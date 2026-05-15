@@ -11,8 +11,8 @@
   </div>
   <p class="small text-muted">{% trans "Drag-drop from the palette is supported; keyboard-first operators can use Add node — behaviour matches the same graph model (parity note: native drag parity only where listed)." %}</p>
   <div class="alert alert-secondary py-2 small mb-3" data-rmc-workflow-invalid-hint="1">{% trans "If validation fails, add a trigger and at least one action path before simulate or publish." %}</div>
-  <div class="row g-3">
-    <div class="col-lg-3">
+  <div class="row g-3 rmc-reveal-stagger">
+    <div class="col-lg-3 rmc-reveal">
       <div class="card shadow-sm">
         <div class="card-body small">
           <h1 class="h6">{% trans "Palette (drag-drop)" %}</h1>
@@ -70,7 +70,7 @@
       </div>
       <p class="small text-muted mt-2">{% trans "Connect edges: click node A then node B (order). Nodes and edges render on the canvas; compiled JSON is shown at right." %}</p>
     </div>
-    <div class="col-lg-3">
+    <div class="col-lg-3 rmc-reveal">
       <div class="card shadow-sm"><div class="card-body small">
         <h2 class="h6">{% trans "Graph JSON" %}</h2>
         <pre id="wf-dsl" class="small bg-light p-2 rounded" style="max-height:200px;overflow:auto;" aria-live="polite">{}</pre>
@@ -97,5 +97,5 @@
   "var_rollback_url": "{{ rollback_url|escapejs }}",
   "var_simulate_url": "{{ simulate_url|escapejs }}",
   "var_school_pk_2": "{{ school.pk|escapejs }}"
-}</script><script src="{% static '_pages/automation__visual_workflow_designer-1.js' %}"></script>
+}</script><script src="{% static 'js/_pages/automation__visual_workflow_designer-1.js' %}"></script>
 {% endblock %}

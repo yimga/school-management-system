@@ -11,7 +11,7 @@
 
 {% block content %}
 <section class="proof-page">
-  <section class="proof-hero">
+  <section class="proof-hero rmc-reveal">
     <div class="proof-hero-grid">
       <div>
         <div class="proof-kicker"><i class="bi bi-person-badge"></i> {{ page.label }}</div>
@@ -34,8 +34,8 @@
     </div>
   </section>
 
-  <section class="proof-card-grid">
-    <article class="proof-card">
+  <section class="proof-card-grid rmc-reveal">
+    <article class="proof-card rmc-reveal">
       <h3>{% trans "Workflows" %}</h3>
       <ul class="proof-bullet-list">
         {% for workflow in page.workflows %}
@@ -43,7 +43,7 @@
         {% endfor %}
       </ul>
     </article>
-    <article class="proof-card">
+    <article class="proof-card rmc-reveal">
       <h3>{% trans "Dashboards" %}</h3>
       <ul class="proof-bullet-list">
         {% for dashboard in page.dashboards %}
@@ -51,7 +51,7 @@
         {% endfor %}
       </ul>
     </article>
-    <article class="proof-card">
+    <article class="proof-card rmc-reveal">
       <h3>{% trans "Outcomes" %}</h3>
       <ul class="proof-bullet-list">
         {% for outcome in page.outcomes %}
@@ -61,7 +61,7 @@
     </article>
   </section>
 
-  <section class="proof-split">
+  <section class="proof-split rmc-reveal">
     <div class="proof-panel">
       <h2 class="proof-panel-title">{% trans "Why this role should switch" %}</h2>
       <ul class="proof-bullet-list">

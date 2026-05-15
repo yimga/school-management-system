@@ -11,7 +11,9 @@
 
 {% block content %}
 <section class="proof-page">
-  <section class="proof-hero">
+  {# v2.37 — editorial hero composition for the migrate surface. #}
+  {% include "components/marketing_hero_image.html" with hero_slug="migrate" priority=True %}
+  <section class="proof-hero rmc-reveal">
     <div class="proof-hero-grid">
       <div>
         <div class="proof-kicker"><i class="bi bi-arrow-left-right"></i> {% trans "Migration" %}</div>
@@ -34,7 +36,7 @@
     </div>
   </section>
 
-  <section class="proof-split">
+  <section class="proof-split rmc-reveal">
     <div class="proof-panel">
       <h2 class="proof-panel-title">{% trans "Why schools switch now" %}</h2>
       <ul class="proof-bullet-list">
@@ -56,34 +58,34 @@
     </div>
   </section>
 
-  <section class="proof-card-grid">
-    <article class="proof-card">
+  <section class="proof-card-grid rmc-reveal">
+    <article class="proof-card rmc-reveal">
       <h3>{% trans "Migration" %}</h3>
       <p>{{ page.migration_cloud_copy }}</p>
     </article>
-    <article class="proof-card">
+    <article class="proof-card rmc-reveal">
       <h3>{% trans "Field mapping" %}</h3>
       <p>{{ page.field_mapping_copy }}</p>
     </article>
-    <article class="proof-card">
+    <article class="proof-card rmc-reveal">
       <h3>{% trans "Validation" %}</h3>
       <p>{{ page.validation_copy }}</p>
     </article>
-    <article class="proof-card">
+    <article class="proof-card rmc-reveal">
       <h3>{% trans "Rollback" %}</h3>
       <p>{{ page.rollback_copy }}</p>
     </article>
-    <article class="proof-card">
+    <article class="proof-card rmc-reveal">
       <h3>{% trans "Operator visibility" %}</h3>
       <p>{% trans "Track dry-runs, validation errors, and launch confidence from one migration portfolio instead of ad hoc spreadsheets." %}</p>
     </article>
-    <article class="proof-card">
+    <article class="proof-card rmc-reveal">
       <h3>{% trans "Role previews before launch" %}</h3>
       <p>{% trans "Check admin shell, teacher dashboard, and parent portal before switching traffic so trust does not break at go-live." %}</p>
     </article>
   </section>
 
-  <section class="proof-split">
+  <section class="proof-split rmc-reveal">
     <div class="proof-panel">
       <h2 class="proof-panel-title">{% trans "Migration flow" %}</h2>
       <div class="proof-flow">

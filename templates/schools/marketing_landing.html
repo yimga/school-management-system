@@ -91,7 +91,7 @@
     </div>
   </section>
 
-  <section class="container py-5" data-world-class-marketing-story="1" aria-labelledby="world-class-product-story-title">
+  <section class="container py-5 rmc-reveal" data-world-class-marketing-story="1" aria-labelledby="world-class-product-story-title">
     <div class="rmc-wcx-hero rmc-wcx-surface">
       <div>
         <div class="rmc-wcx-hero__eyebrow">{% trans "Offline-ready education operating system" %}</div>
@@ -117,7 +117,7 @@
   </section>
 
   {% if trust_badges %}
-  <section class="mkt-section mkt-trust-glob-strip py-4 mkt-glob-strip-dark" aria-label="{% trans 'Global positioning' %}">
+  <section class="mkt-section mkt-trust-glob-strip py-4 mkt-glob-strip-dark rmc-reveal" aria-label="{% trans 'Global positioning' %}">
     <div class="container">
       <div class="d-flex flex-wrap gap-2 justify-content-center">
         {% for pill in trust_badges %}<span class="badge rounded-pill mkt-glob-pill">{{ pill }}</span>{% endfor %}
@@ -126,7 +126,7 @@
   </section>
   {% endif %}
 
-  <section id="problem-statement" class="mkt-section container py-5 mkt-problem-glob mkt-story-pain" aria-label="{% trans 'Operational challenge' %}" data-chapter="2">
+  <section id="problem-statement" class="mkt-section container py-5 mkt-problem-glob mkt-story-pain rmc-reveal" aria-label="{% trans 'Operational challenge' %}" data-chapter="2">
     <h2 class="h3 text-center mb-3">{% trans "The old way: operations scattered everywhere." %}</h2>
     <p class="lead text-center text-muted mx-auto mb-4" style="max-width:44rem">{% trans "Spreadsheets, paper registers, manual fee tracking, disconnected parent communication, duplicate data entry, and one-off apps — leadership never gets one truthful picture of enrollment, cash, or learner progress." %}</p>
     <ul class="row g-3 list-unstyled justify-content-center mkt-pain-grid">
@@ -141,7 +141,7 @@
   </section>
 
   {% if solve_by_challenge %}
-  <section id="pain-to-solution" class="mkt-section container py-4" aria-label="{% trans 'Pain to solution' %}">
+  <section id="pain-to-solution" class="mkt-section container py-4 rmc-reveal" aria-label="{% trans 'Pain to solution' %}">
     <h2 class="mkt-section-heading text-center">{% trans "From daily pain to one operating rhythm" %}</h2>
     <p class="mkt-section-lead text-center">{% trans "Pick the job you need done—each link opens a focused story, not a maze of modules." %}</p>
     <div class="row g-3">
@@ -159,7 +159,7 @@
 
   {# Chapter 2 — Why switch: narrative pillars + proof (Phase 10) #}
   {% if platform_pillar_grid %}
-  <section id="platform-pillars" class="mkt-section mkt-section-pillars mkt-reveal mkt-narrative-chapter" aria-label="{% trans 'Why schools switch' %}" data-chapter="3">
+  <section id="platform-pillars" class="mkt-section mkt-section-pillars mkt-reveal mkt-narrative-chapter rmc-reveal" aria-label="{% trans 'Why schools switch' %}" data-chapter="3">
     <div class="container">
       <h2 class="mkt-section-heading text-center">{% trans "Why schools switch" %}</h2>
       <p class="mkt-section-lead text-center">{% trans "Six outcomes your buyers feel before we talk architecture." %}</p>
@@ -194,7 +194,7 @@
 
   {# Chapter 3 — Platform architecture (pinned layout on desktop) #}
   {% if platform_architecture_diagram_url %}
-  <section id="one-platform" class="mkt-section mkt-reveal mkt-chapter-pinned" aria-label="{% trans 'One platform' %}">
+  <section id="one-platform" class="mkt-section mkt-reveal mkt-chapter-pinned rmc-reveal" aria-label="{% trans 'One platform' %}">
     <div class="mkt-chapter-copy">
       <h2 class="mkt-section-heading">{% trans "One platform. Every school operation." %}</h2>
       <p class="mkt-section-lead">{% trans "Admissions through daily operations share one learner, fee, and guardian thread—technical layers are documented on the Platform page." %}</p>
@@ -210,7 +210,7 @@
 
   {# Hero's journey + linkage proof (Hybrid Narrative Architecture) #}
   {% if marketing_story_journey %}
-  <section id="day-in-the-life" class="mkt-section mkt-reveal mkt-hero-journey" aria-label="{% trans 'Day in the life' %}">
+  <section id="day-in-the-life" class="mkt-section mkt-reveal mkt-hero-journey rmc-reveal" aria-label="{% trans 'Day in the life' %}">
     <div class="container">
       <h2 class="mkt-section-heading">{% trans "From overwhelmed admin to calm operator" %}</h2>
       <p class="mkt-section-lead">{% trans "A short story your team will recognize — then the shift RunMyCampus enables." %}</p>
@@ -226,7 +226,7 @@
   </section>
   {% endif %}
   {% if marketing_data_flow_chain %}
-  <section id="data-flow-linkage" class="mkt-section mkt-reveal" aria-label="{% trans 'Data flow' %}" data-chapter="4">
+  <section id="data-flow-linkage" class="mkt-section mkt-reveal rmc-reveal" aria-label="{% trans 'Data flow' %}" data-chapter="4">
     <div class="container text-center">
       <h2 class="mkt-section-heading">{% trans "One student journey—end to end" %}</h2>
       <p class="mkt-section-lead">{% trans "Inquiry through leadership analytics on one thread: every stage inherits the same learner, fee, and guardian context." %}</p>
@@ -246,7 +246,7 @@
   </section>
   {% endif %}
   {% if admissions_flow %}
-  <section id="admissions-pipeline" class="mkt-section mkt-reveal" aria-label="{% trans 'Admissions pipeline' %}">
+  <section id="admissions-pipeline" class="mkt-section mkt-reveal rmc-reveal" aria-label="{% trans 'Admissions pipeline' %}">
     <div class="container">
       <h2 class="mkt-section-heading">{% trans "Admissions pipeline, end to end" %}</h2>
       <p class="mkt-section-lead">{% trans "From first enquiry to enrolled student—one connected flow on one platform." %}</p>
@@ -262,7 +262,7 @@
   </section>
   {% endif %}
   {% if marketing_apac_story %}
-  <section id="apac-growth" class="mkt-section mkt-reveal" aria-label="{% trans 'Asia-Pacific' %}">
+  <section id="apac-growth" class="mkt-section mkt-reveal rmc-reveal" aria-label="{% trans 'Asia-Pacific' %}">
     <div class="container">
       <div class="mkt-apac-panel">
         <h2 class="mkt-section-heading">{{ marketing_apac_story.headline }}</h2>
@@ -276,7 +276,7 @@
   {% include "marketing/partials/live_flow_preview.html" %}
 
   {% if setup_studio_flow_image_url %}
-  <section id="setup-studio-flow" class="mkt-section mkt-reveal" aria-label="{% trans 'Setup flow' %}">
+  <section id="setup-studio-flow" class="mkt-section mkt-reveal rmc-reveal" aria-label="{% trans 'Setup flow' %}">
     <h2 class="mkt-section-heading">{% trans "Guided setup" %}</h2>
     <p class="mkt-section-lead">{% trans "From signup to launch with health score and role preview." %}</p>
     <div class="text-center">
@@ -286,12 +286,12 @@
   {% endif %}
 
   {% if from_single_to_enterprise %}
-  <section id="from-single-to-enterprise" class="mkt-section mkt-reveal" aria-label="{% trans 'From single school to enterprise' %}">
+  <section id="from-single-to-enterprise" class="mkt-section mkt-reveal rmc-reveal" aria-label="{% trans 'From single school to enterprise' %}">
     <h2 class="mkt-section-heading">{% trans "From single school to enterprise" %}</h2>
     <p class="mkt-section-lead">{% trans "One platform for every stage." %}</p>
     <div class="mkt-platform-grid">
       {% for item in from_single_to_enterprise %}
-      <article class="mkt-platform-card rmc-glass-surface">
+      <article class="mkt-platform-card rmc-glass-surface rmc-reveal">
         <h3>{{ item.stage }}</h3>
         <p>{{ item.summary }}</p>
       </article>
@@ -301,7 +301,7 @@
   {% endif %}
 
   {% if by_the_numbers %}
-  <section id="by-the-numbers" class="mkt-section mkt-numbers-strip mkt-reveal" aria-label="{% trans 'By the numbers' %}">
+  <section id="by-the-numbers" class="mkt-section mkt-numbers-strip mkt-reveal rmc-reveal" aria-label="{% trans 'By the numbers' %}">
     <div class="container">
       <div class="row g-3 text-center">
         {% for stat in by_the_numbers %}
@@ -317,7 +317,7 @@
 
   {# Outcome metrics — stat cards with mini charts (premium depth, not flat boxes) #}
   {% if outcome_metrics %}
-  <section id="outcome-metrics" class="mkt-section mkt-section-outcomes" aria-label="{% trans 'Outcomes' %}">
+  <section id="outcome-metrics" class="mkt-section mkt-section-outcomes rmc-reveal" aria-label="{% trans 'Outcomes' %}">
     <h2 class="mkt-section-heading">{% trans "Outcomes from real schools" %}</h2>
     <p class="mkt-section-lead">{% trans "What schools achieve with RunMyCampus." %}</p>
     <div class="row g-3 g-md-4">
@@ -341,7 +341,7 @@
 
   {# Chapter 5 — Studio OS / pinned product frame (Phase 10) #}
   {% if product_visualization_slides %}
-  <section id="product-visualization" class="mkt-section mkt-reveal mkt-narrative-chapter" aria-label="{% trans 'Studio OS' %}" data-tour="product-visualization">
+  <section id="product-visualization" class="mkt-section mkt-reveal mkt-narrative-chapter rmc-reveal" aria-label="{% trans 'Studio OS' %}" data-tour="product-visualization">
     <div class="container mkt-studio-pinned">
       <div class="mkt-studio-copy">
         <h2 class="mkt-section-heading">{% trans "Studio OS — one shell for every mode" %}</h2>
@@ -378,12 +378,12 @@
 
   {# Product pillars (6) — Learn more links #}
   {% if product_pillars_home %}
-  <section id="product-pillars" class="mkt-section container" aria-label="{% trans 'Platform overview' %}" data-chapter="5">
+  <section id="product-pillars" class="mkt-section container rmc-reveal" aria-label="{% trans 'Platform overview' %}" data-chapter="5">
     <h2 class="mkt-section-heading">{% trans "Six product surfaces your buyers expect to see" %}</h2>
     <p class="mkt-section-lead">{% trans "Command center, classroom, family, finance, records, and governance—each with a dedicated story, not a generic portal." %}</p>
     <div class="mkt-modules-grid mkt-platform-overview-grid">
       {% for pillar in product_pillars_home %}
-      <article class="mkt-module-card mkt-platform-cap-card">
+      <article class="mkt-module-card mkt-platform-cap-card rmc-reveal">
         {% if pillar.screenshot_static %}
         <div class="mkt-module-screenshot mkt-cap-thumb">
           <img src="{% static pillar.screenshot_static %}" alt="{{ pillar.title }}" width="400" height="220" loading="lazy" decoding="async">
@@ -400,12 +400,12 @@
 
   {# 3. Platform modules (fallback) #}
   {% if not product_pillars_home and core_modules %}
-  <section id="platform-overview" class="mkt-section">
+  <section id="platform-overview" class="mkt-section rmc-reveal">
     <h2 class="mkt-section-heading">{% trans "Everything you need to run your school" %}</h2>
     <p class="mkt-section-lead">{% trans "Admissions, academics, finance, communication, and compliance in one platform." %}</p>
     <div class="mkt-modules-grid">
       {% for module in core_modules %}
-        <article class="mkt-module-card">
+        <article class="mkt-module-card rmc-reveal">
           {% if module.screenshot_url %}
             <div class="mkt-module-screenshot"><img src="{% static module.screenshot_url %}" alt="" width="400" height="250" loading="lazy" decoding="async"></div>
           {% endif %}
@@ -419,7 +419,7 @@
 
   {# Chapter 8 — Role experiences + role-home visuals #}
   {% if for_your_role %}
-  <section id="for-your-role" class="mkt-section mkt-reveal mkt-narrative-chapter" aria-label="{% trans 'For your role' %}" data-chapter="6">
+  <section id="for-your-role" class="mkt-section mkt-reveal mkt-narrative-chapter rmc-reveal" aria-label="{% trans 'For your role' %}" data-chapter="6">
     <h2 class="mkt-section-heading">{% trans "Built for how each role actually works" %}</h2>
     <p class="mkt-section-lead">{% trans "Owners, administrators, teachers, parents, finance, and networks each get a credible home—not a shared login with hidden menus." %}</p>
     {% if role_preview_images %}
@@ -438,7 +438,7 @@
     {% endif %}
     <div class="mkt-modules-grid">
       {% for role in for_your_role %}
-      <article class="mkt-module-card">
+      <article class="mkt-module-card rmc-reveal">
         <h3>{{ role.label }}</h3>
         <p>{{ role.summary }}</p>
         <a href="{{ role.path }}" class="btn btn-sm btn-outline-primary">{% trans "Explore" %}</a>
@@ -449,7 +449,7 @@
   {% endif %}
 
   {% if get_started_three_steps %}
-  <section id="get-started" class="mkt-section mkt-reveal" aria-label="{% trans 'Get started' %}">
+  <section id="get-started" class="mkt-section mkt-reveal rmc-reveal" aria-label="{% trans 'Get started' %}">
     <h2 class="mkt-section-heading">{% trans "Implementation path" %}</h2>
     <div class="row g-3">
       {% for step in get_started_three_steps %}
@@ -470,7 +470,7 @@
   {% endif %}
 
   {# Launch your school in minutes — School-in-a-Box (required per Visual Asset plan) #}
-  <section id="launch-in-minutes" class="mkt-section mkt-reveal mkt-narrative-chapter container" aria-label="{% trans 'Global configuration' %}" data-chapter="7">
+  <section id="launch-in-minutes" class="mkt-section mkt-reveal mkt-narrative-chapter container rmc-reveal" aria-label="{% trans 'Global configuration' %}" data-chapter="7">
     <h2 class="mkt-section-heading">{% trans "Global configuration engine" %}</h2>
     <p class="mkt-section-lead">{% trans "Tune academic years, terms and semesters, grading systems, class structures, departments, campuses, currencies, fee categories, discount rules, user roles, approval workflows, communication rules, report templates, and school branding—without fragmenting data." %}</p>
     {% if school_in_a_box_flow_image_url %}
@@ -491,7 +491,7 @@
   </section>
 
   {# 4. Workflow automation #}
-  <section id="workflow-automation" class="mkt-section" aria-label="{% trans 'Workflow automation' %}">
+  <section id="workflow-automation" class="mkt-section rmc-reveal" aria-label="{% trans 'Workflow automation' %}">
     <h2 class="mkt-section-heading">{% trans "Workflow automation" %}</h2>
     <p class="mkt-section-lead">{% trans "From enquiry to graduation—configurable flows without custom code." %}</p>
     <div class="mkt-workflow-diagram" aria-hidden="true">
@@ -518,7 +518,7 @@
     </div>
   </section>
 
-  <section id="offline-ready-glob" class="mkt-section container mkt-offline-glob" aria-label="{% trans 'Offline-ready operations' %}">
+  <section id="offline-ready-glob" class="mkt-section container mkt-offline-glob rmc-reveal" aria-label="{% trans 'Offline-ready operations' %}">
     <div class="row align-items-center g-4">
       <div class="col-lg-7">
         <h2 class="mkt-section-heading">{% trans "Keep school operations moving, even when connectivity is unreliable." %}</h2>
@@ -537,7 +537,7 @@
 
   {# AI Intelligence — required section (Visual Asset plan) #}
   {% if ai_intelligence_features %}
-  <section id="ai-intelligence" class="mkt-section" aria-label="{% trans 'AI Insights' %}" data-tour="ai-intelligence">
+  <section id="ai-intelligence" class="mkt-section rmc-reveal" aria-label="{% trans 'AI Insights' %}" data-tour="ai-intelligence">
     <h2 class="mkt-section-heading">{% trans "AI Insights for Better Education" %}</h2>
     <p class="mkt-section-lead">{% trans "Use data to predict performance, reduce dropout risk, and recommend interventions—so your team can focus on teaching." %}</p>
     {% if data_intelligence_loop_image_url %}
@@ -559,7 +559,7 @@
   {% endif %}
 
   {# Global infrastructure — Built for schools worldwide #}
-  <section id="global-infrastructure" class="mkt-section" aria-label="{% trans 'Global infrastructure' %}" data-tour="global-infrastructure">
+  <section id="global-infrastructure" class="mkt-section rmc-reveal" aria-label="{% trans 'Global infrastructure' %}" data-tour="global-infrastructure">
     <h2 class="mkt-section-heading">{% trans "Built for schools worldwide" %}</h2>
     <p class="mkt-section-lead">{% trans "Deep configuration for academic years, terms, grading scales, currencies, languages, campuses, roles, approvals, templates, and branding—without bolting on regional forks." %}</p>
     {% if global_map_image_url %}
@@ -585,7 +585,7 @@
   </section>
 
   {# 6. Migration angle — Chapter 7 (pinned layout on desktop) #}
-  <section id="migration" class="mkt-section mkt-reveal mkt-chapter-pinned">
+  <section id="migration" class="mkt-section mkt-reveal mkt-chapter-pinned rmc-reveal">
     <div class="mkt-chapter-copy">
       <h2 class="mkt-section-heading">{% trans "Migrate with confidence" %}</h2>
       <p class="mkt-section-lead">{% trans "Move from spreadsheets or legacy stacks with phased rollout, validation, and rollback discipline." %}</p>
@@ -605,7 +605,7 @@
   </section>
 
   {# 7. Marketplace & packs — pinned diagram + apps (Phase 10) #}
-  <section id="ecosystem" class="mkt-section mkt-reveal mkt-narrative-chapter mkt-chapter-pinned" data-tour="ecosystem">
+  <section id="ecosystem" class="mkt-section mkt-reveal mkt-narrative-chapter mkt-chapter-pinned rmc-reveal" data-tour="ecosystem">
     <div class="mkt-chapter-copy">
       {% if app_marketplace_hero %}
       <h2 class="mkt-section-heading">{{ app_marketplace_hero.title }}</h2>
@@ -647,7 +647,7 @@
   </section>
 
   {# Developer platform — compact band #}
-  <section id="developer-platform" class="mkt-section mkt-reveal" aria-label="{% trans 'Developer platform' %}">
+  <section id="developer-platform" class="mkt-section mkt-reveal rmc-reveal" aria-label="{% trans 'Developer platform' %}">
     <div class="container mkt-dev-band">
       <p class="mb-1 fw-semibold">{{ developer_platform_card.title }}</p>
       <p class="small text-muted mb-2">{% if developer_story_summary %}{{ developer_story_summary }}{% else %}{{ developer_platform_card.summary }}{% endif %}</p>
@@ -657,7 +657,7 @@
 
   {# Customer logos #}
   {% if customer_logos %}
-  <section id="customer-logos" class="mkt-section" aria-label="{% trans 'Schools that run on RunMyCampus' %}">
+  <section id="customer-logos" class="mkt-section rmc-reveal" aria-label="{% trans 'Schools that run on RunMyCampus' %}">
     <h2 class="mkt-section-heading">{% trans "Schools and networks that run on RunMyCampus" %}</h2>
     <div class="d-flex flex-wrap justify-content-center align-items-center gap-4">
       {% for logo in customer_logos %}
@@ -675,12 +675,12 @@
 
   {# 9. Customer stories / testimonials — populated only when real entries exist #}
   {% if testimonials or video_testimonials %}
-  <section id="customer-stories" class="mkt-section">
+  <section id="customer-stories" class="mkt-section rmc-reveal">
     <h2 class="mkt-section-heading">{% trans "What schools say about RunMyCampus" %}</h2>
     <p class="mkt-section-lead">{% trans "Outcomes from real operations teams." %}</p>
     <div class="mkt-testimonials-grid">
       {% for t in testimonials %}
-        <article class="mkt-testimonial-card">
+        <article class="mkt-testimonial-card rmc-reveal">
           <div class="mkt-testimonial-stars" aria-hidden="true">{% for i in ""|ljust:t.stars %}★{% endfor %}</div>
           <blockquote>{{ t.quote }}</blockquote>
           <div class="mkt-testimonial-author">{{ t.author }}</div>
@@ -688,7 +688,7 @@
         </article>
       {% endfor %}
       {% for v in video_testimonials %}
-        <article class="mkt-testimonial-card mkt-video-testimonial">
+        <article class="mkt-testimonial-card mkt-video-testimonial rmc-reveal">
           {% if v.url %}
           <a href="{{ v.url }}" target="_blank" rel="noopener noreferrer" class="mkt-video-testimonial-link" aria-label="{% if v.title %}{{ v.title }}{% else %}Watch video testimonial{% endif %}">
             {% if v.thumbnail_url %}<img src="{{ v.thumbnail_url }}" alt="" width="320" height="180" loading="lazy" decoding="async" class="mkt-video-testimonial-thumb">{% endif %}
@@ -712,7 +712,7 @@
 
   {# Second lead magnet #}
   {% if second_lead_magnet %}
-  <section id="second-lead-magnet" class="mkt-section">
+  <section id="second-lead-magnet" class="mkt-section rmc-reveal">
     <h2 class="mkt-section-heading">{{ second_lead_magnet.title }}</h2>
     <p class="mkt-section-lead">{{ second_lead_magnet.summary }}</p>
     <p class="text-center">
@@ -722,12 +722,12 @@
   {% endif %}
 
   {# 10. Pricing snapshot — enterprise path visible #}
-  <section id="pricing-snapshot" class="mkt-section container" aria-label="{% trans 'Pricing' %}">
+  <section id="pricing-snapshot" class="mkt-section container rmc-reveal" aria-label="{% trans 'Pricing' %}">
     <h2 class="mkt-section-heading">{% trans "Starter, Growth, and Enterprise" %}</h2>
     <p class="mkt-section-lead">{% trans "Transparent packaging across the capabilities schools care about—see the full matrix on the pricing page." %}</p>
     <div class="mkt-platform-grid">
       {% for plan in pricing_snapshot %}
-        <article class="mkt-platform-card rmc-glass-surface">
+        <article class="mkt-platform-card rmc-glass-surface rmc-reveal">
           <h3>{{ plan.plan }}</h3>
           <p class="text-muted small mb-2">{{ plan.tagline }}</p>
           <ul class="small mb-2">
@@ -765,12 +765,12 @@
   </section>
 
   {% if post_enrollment_revenue %}
-  <section id="post-enrollment-revenue" class="mkt-section mkt-reveal" aria-label="{% trans 'Post enrollment revenue' %}">
+  <section id="post-enrollment-revenue" class="mkt-section mkt-reveal rmc-reveal" aria-label="{% trans 'Post enrollment revenue' %}">
     <h2 class="mkt-section-heading">{% trans "Revenue beyond tuition" %}</h2>
     <p class="mkt-section-lead">{% trans "Events, courses, and alumni programs—monetized without bolt-on tools." %}</p>
     <div class="mkt-platform-grid">
       {% for item in post_enrollment_revenue %}
-      <article class="mkt-platform-card rmc-glass-surface">
+      <article class="mkt-platform-card rmc-glass-surface rmc-reveal">
         <h3>{{ item.title }}</h3>
         <p class="mb-0">{{ item.body }}</p>
       </article>
@@ -781,7 +781,7 @@
 
   {# Awards & recognition #}
   {% if awards_recognition %}
-  <section id="awards" class="mkt-section" aria-label="{% trans 'Awards and recognition' %}">
+  <section id="awards" class="mkt-section rmc-reveal" aria-label="{% trans 'Awards and recognition' %}">
     <h2 class="mkt-section-heading">{% trans "Awards & recognition" %}</h2>
     <div class="d-flex flex-wrap justify-content-center gap-2">
       {% for award in awards_recognition %}
@@ -793,7 +793,7 @@
 
   {# Gated report CTA #}
   {% if gated_report_cta %}
-  <section id="gated-report" class="mkt-section" aria-label="{% trans 'Download report' %}">
+  <section id="gated-report" class="mkt-section rmc-reveal" aria-label="{% trans 'Download report' %}">
     <h2 class="mkt-section-heading">{{ gated_report_cta.headline }}</h2>
     <p class="text-center">
       <a href="{{ gated_report_cta.url }}" class="btn btn-primary">{{ gated_report_cta.cta_label }}</a>
@@ -803,7 +803,7 @@
 
   {# Events & webinars #}
   {% if events_list %}
-  <section id="events" class="mkt-section" aria-label="{% trans 'Events' %}">
+  <section id="events" class="mkt-section rmc-reveal" aria-label="{% trans 'Events' %}">
     <h2 class="mkt-section-heading">{% trans "Events & webinars" %}</h2>
     <ul class="list-unstyled">
       {% for event in events_list %}
@@ -813,7 +813,7 @@
   </section>
   {% endif %}
   {% if flagship_event %}
-  <section id="flagship-event" class="mkt-section">
+  <section id="flagship-event" class="mkt-section rmc-reveal">
     <h2 class="mkt-section-heading">{{ flagship_event.name }}</h2>
     <p class="mkt-section-lead">{{ flagship_event.summary }}</p>
     <p class="text-center">
@@ -824,7 +824,7 @@
 
   {# Community CTA #}
   {% if community_cta %}
-  <section id="community" class="mkt-section">
+  <section id="community" class="mkt-section rmc-reveal">
     <h2 class="mkt-section-heading">{{ community_cta.label }}</h2>
     <p class="mkt-section-lead">{{ community_cta.summary }}</p>
     <p class="text-center">
@@ -835,7 +835,7 @@
 
   {# 10 reasons link #}
   {% if ten_reasons_page_path %}
-  <section id="10-reasons-cta" class="mkt-section">
+  <section id="10-reasons-cta" class="mkt-section rmc-reveal">
     <h2 class="mkt-section-heading">{% trans "10 reasons schools choose RunMyCampus" %}</h2>
     <p class="text-center">
       <a href="{{ ten_reasons_page_path }}" class="btn btn-outline-primary">{% trans "Read 10 reasons" %}</a>
@@ -844,7 +844,7 @@
   {% endif %}
 
   {% if what_you_get %}
-  <section id="what-you-get" class="mkt-section mkt-reveal" aria-label="{% trans 'What you get' %}">
+  <section id="what-you-get" class="mkt-section mkt-reveal rmc-reveal" aria-label="{% trans 'What you get' %}">
     <h2 class="mkt-section-heading">{% trans "What you get" %}</h2>
     <p class="mkt-section-lead">{% trans "Enterprise expectations, school-sized clarity." %}</p>
     <div class="row g-3">
@@ -862,7 +862,7 @@
 
   {# 11. Trust + security — support & accessibility #}
   {# Chapter 9 — Security & trust + control-plane visual #}
-  <section id="security-compliance" class="mkt-section mkt-reveal mkt-narrative-chapter" data-chapter="8">
+  <section id="security-compliance" class="mkt-section mkt-reveal mkt-narrative-chapter rmc-reveal" data-chapter="8">
     <h2 class="mkt-section-heading">{% trans "Security & trust" %}</h2>
     <p class="mkt-section-lead">{% trans "Strong defaults for schools that need audit-friendly operations—details and scope live on the Trust page." %}</p>
     <div class="mkt-trust-visual-row">
@@ -897,7 +897,7 @@
   </section>
 
   {# 12. Final CTA #}
-  <section id="final-cta" class="mkt-final-cta" aria-label="{% trans 'Call to action' %}" data-chapter="9">
+  <section id="final-cta" class="mkt-final-cta rmc-reveal" aria-label="{% trans 'Call to action' %}" data-chapter="9">
     <h2 class="mkt-section-heading">{{ final_cta_headline }}</h2>
     <p class="text-center text-muted mx-auto mb-4" style="max-width:36rem">{% trans "See how RunMyCampus can unify admissions, academics, finance, communication, reporting, and daily operations for your school or network." %}</p>
     <div class="mkt-hero-ctas justify-content-center flex-wrap">
@@ -910,5 +910,5 @@
 <script src="{% static 'marketing/js/mkt-live-flow.js' %}" defer></script>
 <script src="{% static 'marketing/js/marketing-scroll-core.js' %}" defer></script>
 <script src="{% static 'marketing/js/marketing-landing-scroll.js' %}" defer></script>
-<script src="{% static '_pages/schools__marketing_landing.js' %}"></script>
+<script src="{% static 'js/_pages/schools__marketing_landing.js' %}"></script>
 {% endblock %}

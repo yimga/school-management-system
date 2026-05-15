@@ -43,7 +43,7 @@ Required context:
   <tr>
     <td style="background:{{ brand_email.bg_soft }};border-left:3px solid {{ brand_email.accent }};border-radius:6px;padding:18px 20px;">
       <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:{{ brand_email.ink_subtle }};margin-bottom:10px;">{% trans "What you can do" %}</div>
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;font-size:14.5px;line-height:1.7;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;font-size:var(--type-size-caption);line-height:1.7;">
         {% if user_role == "parent" %}
         <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "View live grades, attendance, and term reports" %}</td></tr>
         <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Track fee balances and pay online" %}</td></tr>

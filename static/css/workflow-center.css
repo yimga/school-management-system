@@ -24,7 +24,7 @@
   border-top: 1px solid var(--workflow-progress-divider, rgba(148, 163, 184, 0.2));
 }
 .workflow-progress-summary .badge {
-  font-size: 0.8rem;
+  font-size: var(--type-size-caption);
   padding: 0.35rem 0.65rem;
 }
 .workflow-grid {
@@ -44,17 +44,17 @@
 }
 .workflow-title {
   font-weight: 800;
-  font-size: 1rem;
+  font-size: var(--type-size-body);
   margin: 0 0 0.25rem;
   color: var(--admin-text);
 }
 .workflow-subtitle {
   margin: 0 0 0.5rem;
   color: var(--admin-muted);
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
 }
 .workflow-progress-label {
-  font-size: 0.8rem;
+  font-size: var(--type-size-caption);
   color: var(--brand-primary);
   font-weight: 600;
   margin-bottom: 0.6rem;
@@ -72,17 +72,17 @@
   border-radius: 999px;
 }
 .workflow-step-icon {
-  font-size: 1.25rem;
+  font-size: var(--type-size-body-l);
   color: var(--brand-primary);
   margin-right: 0.5rem;
 }
 .workflow-step-meta {
-  font-size: 0.8rem;
+  font-size: var(--type-size-caption);
   color: var(--admin-muted);
   margin-bottom: 0.35rem;
 }
 .workflow-tip {
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
   color: var(--admin-muted);
   background: var(--workflow-tip-bg, rgba(99, 102, 241, 0.08));
   border-left: 3px solid var(--brand-primary);
@@ -91,7 +91,7 @@
   margin-top: 0.5rem;
 }
 .workflow-quick-jump {
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
 }
 .workflow-quick-jump a {
   text-decoration: none;

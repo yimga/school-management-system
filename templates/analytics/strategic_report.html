@@ -9,8 +9,8 @@
   {% url 'analytics:dashboard' as back_url %}
   {% include "studio_os/components/page_header.html" with title=_("Strategic Reporting") subtitle=_("Leadership view: enrollment, capacity, and school roadmap.") action_url=back_url action_text=_("Analytics") %}
 
-<div class="row g-3">
-  <div class="col-md-4">
+<div class="row g-3 rmc-reveal-stagger">
+  <div class="col-md-4 rmc-reveal">
     <div class="card h-100">
       <div class="card-body">
         <h6 class="text-muted text-uppercase small">{% trans "Active students" %}</h6>
@@ -18,7 +18,7 @@
       </div>
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-md-4 rmc-reveal">
     <div class="card h-100">
       <div class="card-body">
         <h6 class="text-muted text-uppercase small">{% trans "Active teachers" %}</h6>
@@ -26,7 +26,7 @@
       </div>
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-md-4 rmc-reveal">
     <div class="card h-100">
       <div class="card-body">
         <h6 class="text-muted text-uppercase small">{% trans "Academic year" %}</h6>

@@ -11,18 +11,18 @@
     <p class="text-muted mb-0">{{ module.purpose }}</p>
   </header>
 
-  <div class="row g-3 mb-4">
-    <div class="col-md-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Owner" %}</div><strong>{{ module.owner }}</strong></div></div></div>
-    <div class="col-md-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Scope" %}</div><code>{{ module.scope }}</code></div></div></div>
-    <div class="col-md-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Status" %}</div><strong>{{ module.status }}</strong></div></div></div>
-    <div class="col-md-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Proof" %}</div><a href="{{ module.proof_url }}">{{ module.proof_label }}</a></div></div></div>
+  <div class="row g-3 mb-4 rmc-reveal-stagger">
+    <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Owner" %}</div><strong>{{ module.owner }}</strong></div></div></div>
+    <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Scope" %}</div><code>{{ module.scope }}</code></div></div></div>
+    <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Status" %}</div><strong>{{ module.status }}</strong></div></div></div>
+    <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Proof" %}</div><a href="{{ module.proof_url }}">{{ module.proof_label }}</a></div></div></div>
   </div>
 
   {% if blueprints %}
   <div class="row g-3">
     {% for blueprint in blueprints %}
     <div class="col-12 col-xl-6">
-      <article class="card border-0 shadow-sm h-100" data-blueprint-card="{{ blueprint.name }}">
+      <article class="card border-0 shadow-sm h-100 rmc-reveal" data-blueprint-card="{{ blueprint.name }}">
         <div class="card-body">
           <div class="d-flex justify-content-between gap-2 mb-2">
             <h2 class="h5 mb-0">{{ blueprint.name }}</h2>

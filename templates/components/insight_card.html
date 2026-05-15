@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Insight card — preview-aligned. Patterns.css §12 already styles `.insight-card`
+{% comment %} Insight card — preview-aligned. Patterns.css §12 already styles `.insight-card`
    with a 14px radius card, --apple-elev-1 shadow, 14px gap flex layout, 3px left-border
    tonal accent, and a tinted 40px icon chip. Tones (warning|danger|info) drive
    border-color + icon chip tint + CTA button outline.
@@ -9,7 +9,7 @@
      explanation:  string
      action_url:   url string (optional)
      action_label: string (optional)
-     icon:         bootstrap-icons name without 'bi-' prefix (optional override) #}
+     icon:         bootstrap-icons name without 'bi-' prefix (optional override) {% endcomment %}
 {% with t=tone|default:'info' %}
 <article class="insight-card {{ t }} h-100"
          data-rmc-insight-card="1"

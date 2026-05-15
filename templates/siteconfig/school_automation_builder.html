@@ -8,8 +8,8 @@
 <div class="container-fluid py-4 professional-page" data-page-archetype="operational-workbench">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
 
-  <div class="row g-4">
-    <div class="col-lg-3">
+  <div class="row g-4 rmc-reveal-stagger">
+    <div class="col-lg-3 rmc-reveal">
       <div class="card shadow-sm border-0">
         <div class="card-body">
           <h1 class="h6">{% trans "Palette" %}</h1>
@@ -40,7 +40,7 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-6">
+    <div class="col-lg-6 rmc-reveal">
       <div class="card shadow-sm border-0">
         <div class="card-body">
           <h2 class="h6">{% trans "Canvas" %}</h2>
@@ -54,7 +54,7 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-3">
+    <div class="col-lg-3 rmc-reveal">
       <div class="card shadow-sm border-0">
         <div class="card-body">
           <h2 class="h6">{% trans "Workflow JSON" %}</h2>
@@ -104,5 +104,5 @@
   "url_siteconfig_school_automation_retry_api": "{% url "siteconfig:school_automation_retry_api" %}",
   "trans_connect_mode_on": "{% trans "Connect mode: on" %}",
   "trans_connect_mode_off": "{% trans "Connect mode: off" %}"
-}</script><script src="{% static '_pages/siteconfig__school_automation_builder-1.js' %}"></script>
+}</script><script src="{% static 'js/_pages/siteconfig__school_automation_builder-1.js' %}"></script>
 {% endblock %}

@@ -90,7 +90,7 @@
 
   {% include "partials/shell_chrome_marketplace_tenant_ops_strip.html" %}
 
-  <section class="proof-panel">
+  <section class="proof-panel rmc-reveal">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
       <div>
         <h2 class="proof-panel-title">{% trans "App catalog" %}</h2>
@@ -101,7 +101,7 @@
 
     <div class="proof-catalog-grid" id="tenant-catalog-grid">
       {% for listing in listings %}
-      <article class="proof-app-card" data-phase9-listing-trust data-rmc-mkt-app-card="1" data-rmc-mkt-listing-pipeline-phase="{{ listing.mkt_listing_pipeline_phase|default:'' }}">
+      <article class="proof-app-card rmc-reveal" data-phase9-listing-trust data-rmc-mkt-app-card="1" data-rmc-mkt-listing-pipeline-phase="{{ listing.mkt_listing_pipeline_phase|default:'' }}">
         {% if listing.preview_image_url %}
         <div class="proof-app-preview-img mb-2 border rounded bg-light d-flex align-items-center justify-content-center">
           <img src="{{ listing.preview_image_url }}" alt="{% trans 'App listing preview image' %}" class="img-fluid rounded" style="max-height: 140px; object-fit: contain; width: 100%;" loading="lazy">
@@ -293,7 +293,7 @@
     </div>
   </section>
 
-  <section class="proof-split">
+  <section class="proof-split rmc-reveal">
     <div class="proof-panel">
       <h2 class="proof-panel-title">{% trans "What changed in the install flow" %}</h2>
       <div class="proof-flow">
@@ -325,12 +325,12 @@
     </div>
   </section>
 
-  <section class="proof-panel mt-4" data-phase9-ecosystem-hub>
+  <section class="proof-panel mt-4 rmc-reveal" data-phase9-ecosystem-hub>
     <h2 class="proof-panel-title">{% trans "Migration & interoperability hub" %}</h2>
     <p class="proof-panel-copy mb-3">{% trans "First-class workflows: move data in, wire connectors, govern packs — without leaving the tenant surface." %}</p>
-    <div class="row g-3">
+    <div class="row g-3 rmc-reveal-stagger">
       {% if phase9_links.migration_wizard %}
-      <div class="col-md-6 col-lg-4">
+      <div class="col-md-6 col-lg-4 rmc-reveal">
         <div class="card h-100 border-secondary shadow-sm">
           <div class="card-body">
             <h3 class="h6"><i class="bi bi-cloud-upload me-1" aria-hidden="true"></i>{% trans "Migration Cloud" %}</h3>
@@ -342,7 +342,7 @@
       </div>
       {% endif %}
       {% if phase9_links.district_interop %}
-      <div class="col-md-6 col-lg-4">
+      <div class="col-md-6 col-lg-4 rmc-reveal">
         <div class="card h-100 border-secondary shadow-sm">
           <div class="card-body">
             <h3 class="h6"><i class="bi bi-diagram-3 me-1" aria-hidden="true"></i>{% trans "Interop workbench" %}</h3>
@@ -353,7 +353,7 @@
       </div>
       {% endif %}
       {% if phase9_links.apicenter %}
-      <div class="col-md-6 col-lg-4">
+      <div class="col-md-6 col-lg-4 rmc-reveal">
         <div class="card h-100 border-secondary shadow-sm">
           <div class="card-body">
             <h3 class="h6"><i class="bi bi-plugin me-1" aria-hidden="true"></i>{% trans "API Center" %}</h3>
@@ -364,7 +364,7 @@
       </div>
       {% endif %}
       {% if phase9_links.pack_rollback %}
-      <div class="col-md-6 col-lg-4">
+      <div class="col-md-6 col-lg-4 rmc-reveal">
         <div class="card h-100 border-secondary shadow-sm">
           <div class="card-body">
             <h3 class="h6"><i class="bi bi-box-seam me-1" aria-hidden="true"></i>{% trans "Packs & rollback" %}</h3>
@@ -376,7 +376,7 @@
       </div>
       {% endif %}
       {% if phase9_links.ai_migration_suggest %}
-      <div class="col-md-6 col-lg-4">
+      <div class="col-md-6 col-lg-4 rmc-reveal">
         <div class="card h-100 border-secondary shadow-sm">
           <div class="card-body">
             <h3 class="h6"><i class="bi bi-stars me-1" aria-hidden="true"></i>{% trans "AI-assisted mapping" %}</h3>
@@ -395,7 +395,7 @@
   {% if catalog_install_app_id %}
   <script type="application/json" id="page-data-marketplace__tenant_app_catalog-1">{
   "var_catalog_install_app_id": "{{ catalog_install_app_id|escapejs }}"
-}</script><script src="{% static '_pages/marketplace__tenant_app_catalog-1.js' %}"></script>
+}</script><script src="{% static 'js/_pages/marketplace__tenant_app_catalog-1.js' %}"></script>
   {% endif %}
   {% endif %}
 </div>

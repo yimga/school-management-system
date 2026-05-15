@@ -80,7 +80,7 @@
   </section>
 
   {% if metadata %}
-    <section class="row g-3 mb-3" aria-label="{% trans 'School and branding' %}">
+    <section class="row g-3 mb-3 rmc-reveal" aria-label="{% trans 'School and branding' %}">
       <div class="col-md-6">
         <div class="card h-100 border-0 shadow-sm">
           <div class="card-body py-3">
@@ -105,7 +105,7 @@
   {% endif %}
 
   {% if published and summary %}
-    <section class="row g-3 mb-3" aria-label="{% trans 'Performance summary' %}">
+    <section class="row g-3 mb-3 rmc-reveal" aria-label="{% trans 'Performance summary' %}">
       <div class="col-md-4">
         <div class="card results-summary-card border-0 shadow-sm border-primary border-top border-3">
           <div class="card-body">
@@ -157,7 +157,7 @@
       <i class="bi bi-info-circle me-2" aria-hidden="true"></i>{% trans "Results are not published yet. Please check back later." %}
     </div>
   {% else %}
-    <section class="card results-table-card border-0 shadow-sm" aria-labelledby="results-table-heading">
+    <section class="card results-table-card border-0 shadow-sm rmc-reveal" aria-labelledby="results-table-heading">
       <div class="card-body p-0">
         <h2 id="results-table-heading" class="visually-hidden">{% trans "Subject results" %}</h2>
         <div class="table-responsive">

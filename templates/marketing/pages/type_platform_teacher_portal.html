@@ -43,7 +43,7 @@
     </div>
   </header>
 
-  <section class="mkt-teacher-section" aria-labelledby="mkt-teacher-visual-heading">
+  <section class="mkt-teacher-section rmc-reveal" aria-labelledby="mkt-teacher-visual-heading">
     <h2 id="mkt-teacher-visual-heading">{% trans "One surface for registers, marks, and class context" %}</h2>
     <p class="section-lead">{% trans "Teachers move through attendance, marks, assignments, lesson coverage, and student notes without hopping between disconnected tools." %}</p>
     <div class="mkt-teacher-visual-wrap">
@@ -51,7 +51,7 @@
     </div>
   </section>
 
-  <section class="mkt-teacher-section" aria-labelledby="mkt-teacher-before-after-heading">
+  <section class="mkt-teacher-section rmc-reveal" aria-labelledby="mkt-teacher-before-after-heading">
     <h2 id="mkt-teacher-before-after-heading">{% trans "Before and after a real daily workspace" %}</h2>
     <p class="section-lead">{% trans "Replace duplicate entry and scattered class updates with flows built around the school day." %}</p>
     <div class="mkt-teacher-split">
@@ -77,7 +77,7 @@
     </div>
   </section>
 
-  <section class="mkt-teacher-section" aria-labelledby="mkt-teacher-handoff-heading" data-mkt-teacher-connected-handoff="1">
+  <section class="mkt-teacher-section rmc-reveal" aria-labelledby="mkt-teacher-handoff-heading" data-mkt-teacher-connected-handoff="1">
     <h2 id="mkt-teacher-handoff-heading">{% trans "Connected to academics, families, and insight" %}</h2>
     <p class="section-lead">{% trans "Teaching sits between attendance, grading, parent communication, and how leadership understands school health." %}</p>
     <div class="mkt-teacher-handoff-grid">
@@ -90,7 +90,7 @@
     </div>
   </section>
 
-  <section class="mkt-teacher-section" aria-labelledby="mkt-teacher-roles-heading">
+  <section class="mkt-teacher-section rmc-reveal" aria-labelledby="mkt-teacher-roles-heading">
     <h2 id="mkt-teacher-roles-heading">{% trans "Who benefits" %}</h2>
     <p class="section-lead">{% trans "A better teacher day improves outcomes for students, families, and leadership—not just the classroom." %}</p>
     <div class="mkt-teacher-roles">
@@ -118,12 +118,12 @@
   </section>
 
   {% if page.segments %}
-  <section class="mkt-teacher-section" aria-label="{% trans 'Highlights' %}">
+  <section class="mkt-teacher-section rmc-reveal" aria-label="{% trans 'Highlights' %}">
     <h2>{% trans "What this surface emphasizes" %}</h2>
     <div class="row g-3">
       {% for seg in page.segments %}
       <div class="col-md-4">
-        <article class="segment-card h-100">
+        <article class="segment-card h-100 rmc-reveal">
           <h3 class="h6">{{ seg.title }}</h3>
           <p class="mb-0 text-muted small">{{ seg.body }}</p>
         </article>

@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Sticky scroll-aware metric ticker — Apple Stocks-style pinned KPI row.
+{% comment %} Sticky scroll-aware metric ticker — Apple Stocks-style pinned KPI row.
 
    Wraps a KPI block so that when the user scrolls past it, a condensed mirror
    pins below the topbar; scrolling back unpins. The full block stays at the
@@ -24,7 +24,7 @@
      1. `.rmc-metric-ticker__full` — the full block in flow (with all the affordances)
      2. `.rmc-metric-ticker__pin` — the condensed sticky pinned mirror
 
-   rmc-metric-ticker.js wires the IntersectionObserver + show/hide behavior. #}
+   rmc-metric-ticker.js wires the IntersectionObserver + show/hide behavior. {% endcomment %}
 
 {% with metric_items|default:metrics as ticker_metrics %}
 <section class="rmc-metric-ticker" data-rmc-metric-ticker aria-label="{% trans 'Key metrics' %}">
@@ -46,8 +46,8 @@
     {% endfor %}
   </div>
 
-  {# Condensed mirror — duplicated in JS at runtime so we don't re-template. JS
-     reads the .rmc-metric-ticker__full DOM and projects into this empty container. #}
+  {% comment %} Condensed mirror — duplicated in JS at runtime so we don't re-template. JS
+     reads the .rmc-metric-ticker__full DOM and projects into this empty container. {% endcomment %}
   <div class="rmc-metric-ticker__pin" data-rmc-metric-pin role="region" aria-label="{% trans 'Pinned metrics' %}" hidden></div>
 </section>
 {% endwith %}

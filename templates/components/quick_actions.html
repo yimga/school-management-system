@@ -6,7 +6,7 @@
       <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> {% if contextual_actions %}Next Best Actions{% else %}Quick Actions{% endif %}</h5>
       <div class="small opacity-75">{% if contextual_actions %}Role-aware actions ranked by urgency and workflow state{% else %}Legacy shortcut grid{% endif %}</div>
     </div>
-    <span class="badge quick-actions-badge" style="background: rgba(255,255,255,0.25); color: var(--header-brand-fg, #fff);">{% if contextual_actions %}{{ contextual_actions|length }}{% else %}{{ quick_actions|length|default:10 }}{% endif %}</span>
+    <span class="badge quick-actions-badge" style="background: var(--hairline); color: var(--header-brand-fg, #fff);">{% if contextual_actions %}{{ contextual_actions|length }}{% else %}{{ quick_actions|length|default:10 }}{% endif %}</span>
   </div>
   <div class="card-body p-0">
     {% if contextual_actions %}

@@ -10,8 +10,8 @@
   <h1 class="h4 mb-1">{% trans "Security & trust" %}</h1>
   <p class="text-muted small mb-4">{% blocktrans with s=school.name %}Posture and controls for your account and <strong>{{ s }}</strong>. Provider credentials and AI keys stay server-side only.{% endblocktrans %}</p>
 
-  <div class="row g-3">
-    <div class="col-md-6 col-lg-4">
+  <div class="row g-3 rmc-reveal-stagger">
+    <div class="col-md-6 col-lg-4 rmc-reveal">
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">
           <h2 class="h6 card-title"><span class="bi bi-shield-lock me-2" aria-hidden="true"></span>{% trans "Multi-factor authentication" %}</h2>
@@ -27,7 +27,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-6 col-lg-4 rmc-reveal">
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">
           <h2 class="h6 card-title"><span class="bi bi-laptop me-2" aria-hidden="true"></span>{% trans "Sessions & devices" %}</h2>
@@ -38,7 +38,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-6 col-lg-4 rmc-reveal">
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">
           <h2 class="h6 card-title"><span class="bi bi-clock-history me-2" aria-hidden="true"></span>{% trans "Your security activity" %}</h2>
@@ -49,7 +49,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-6 col-lg-4 rmc-reveal">
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">
           <h2 class="h6 card-title"><span class="bi bi-download me-2" aria-hidden="true"></span>{% trans "Export my security log" %}</h2>
@@ -64,9 +64,9 @@
   {% if show_governance_links %}
   <details class="de-secondary-collapsible mb-3">
     <summary class="small fw-semibold">{% trans "Expand school governance & platform cards" %}</summary>
-    <div class="row g-3">
+    <div class="row g-3 rmc-reveal-stagger">
     <div class="col-12"><h2 class="h6 text-uppercase text-muted mt-2">{% trans "School governance" %}</h2></div>
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-6 col-lg-4 rmc-reveal">
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">
           <h2 class="h6 card-title"><span class="bi bi-people me-2" aria-hidden="true"></span>{% trans "Access review (RBAC)" %}</h2>
@@ -77,7 +77,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-6 col-lg-4 rmc-reveal">
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">
           <h2 class="h6 card-title"><span class="bi bi-clipboard-check me-2" aria-hidden="true"></span>{% trans "Compliance & audit" %}</h2>
@@ -88,7 +88,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-6 col-lg-4 rmc-reveal">
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">
           <h2 class="h6 card-title"><span class="bi bi-key me-2" aria-hidden="true"></span>{% trans "API & integrations" %}</h2>
@@ -99,7 +99,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-6 col-lg-4 rmc-reveal">
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">
           <h2 class="h6 card-title"><span class="bi bi-sliders2-vertical me-2" aria-hidden="true"></span>{% trans "Policy & feature enforcement" %}</h2>
@@ -113,7 +113,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-6 col-lg-4 rmc-reveal">
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">
           <h2 class="h6 card-title"><span class="bi bi-activity me-2" aria-hidden="true"></span>{% trans "Platform events (tenant)" %}</h2>
@@ -124,7 +124,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-6 col-lg-4 rmc-reveal">
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">
           <h2 class="h6 card-title"><span class="bi bi-person-badge me-2" aria-hidden="true"></span>{% trans "Support impersonation log" %}</h2>

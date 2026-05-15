@@ -5,7 +5,7 @@
 
 {% block extrastyle %}
 {{ block.super }}
-<script src="{% static '_pages/accounts__rbac_dashboard.js' %}"></script>
+<script src="{% static 'js/_pages/accounts__rbac_dashboard.js' %}"></script>
 
 {% endblock %}
 
@@ -78,8 +78,8 @@
     </div>
   </div>
 
-  <div class="row g-4">
-    <div class="col-lg-6">
+  <div class="row g-4 rmc-reveal-stagger">
+    <div class="col-lg-6 rmc-reveal">
       <div class="card h-100">
         <div class="card-body">
           <h5 class="mb-3">{% trans "Create Role" %}</h5>
@@ -111,7 +111,7 @@
       </div>
     </div>
 
-    <div class="col-lg-6">
+    <div class="col-lg-6 rmc-reveal">
       <div class="card h-100">
         <div class="card-body">
           <h5 class="mb-3">{% trans "Create Permission" %}</h5>
@@ -138,8 +138,8 @@
     </div>
   </div>
 
-  <div class="row g-4">
-    <div class="col-lg-6">
+  <div class="row g-4 rmc-reveal-stagger">
+    <div class="col-lg-6 rmc-reveal">
       <div class="card h-100">
         <div class="card-body">
           <h5 class="mb-3">{% trans "Assign Direct Permissions" %}</h5>
@@ -162,7 +162,7 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-6">
+    <div class="col-lg-6 rmc-reveal">
       <div class="card h-100">
         <div class="card-body">
           <h5 class="mb-3"><i class="bi bi-clock-history me-2"></i>{% trans "Grant role with expiry" %}</h5>
@@ -348,6 +348,6 @@
 {% if edit_role_form and edit_role_id %}
 <script type="application/json" id="page-data-accounts__rbac_dashboard-1">{
   "url_accounts_rbac": "{% url "accounts:rbac" %}"
-}</script><script src="{% static '_pages/accounts__rbac_dashboard-1.js' %}"></script>
+}</script><script src="{% static 'js/_pages/accounts__rbac_dashboard-1.js' %}"></script>
 {% endif %}
 {% endblock %}

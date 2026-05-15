@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Marketing Bento grid — Apple-style mixed-tile composition.
+{% comment %} Marketing Bento grid — Apple-style mixed-tile composition.
 
    Render with:
      { % include "marketing/partials/mkt_bento.html" with bento=bento % }
@@ -27,7 +27,7 @@
 
    Cells without an explicit `size` flow at "md" (2-col span on desktop, full on mobile).
    The grid uses CSS Grid `grid-template-areas` so order in `cells` determines reading flow.
-   Honors prefers-reduced-motion via no transform on hover. #}
+   Honors prefers-reduced-motion via no transform on hover. {% endcomment %}
 <section class="mkt-edt-section mkt-bento-section" {% if bento.aria_label_id %}aria-labelledby="{{ bento.aria_label_id }}"{% endif %} data-mkt-reveal>
   <div class="mkt-edt-container">
     {% if bento.eyebrow or bento.headline or bento.lead %}

@@ -8,11 +8,11 @@
     <p>{{ pack.description }}</p>
   </header>
   <div class="cp-grid cp-grid-2">
-    <article class="cp-card">
+    <article class="cp-card rmc-reveal">
       <h2>Included Items</h2>
       <ul>{% for item in pack.included_items %}<li>{{ item }}</li>{% endfor %}</ul>
     </article>
-    <article class="cp-card">
+    <article class="cp-card rmc-reveal">
       <h2>Safety</h2>
       <p>Status: {{ pack.status }}</p>
       <p>Safety level: {{ pack.safety_level }}</p>

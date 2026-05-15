@@ -145,7 +145,7 @@
 }
 
 .dashboard-empty-state i {
-  font-size: 2rem;
+  font-size: var(--type-size-headline-l);
   opacity: 0.5;
   margin-bottom: 0.5rem;
 }

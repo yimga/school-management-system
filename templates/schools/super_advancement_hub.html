@@ -26,9 +26,9 @@
       <p class="small text-white-50 mb-0">{% trans "Students, families, alumni, and donors in one graph; same platform, no second CRM. Identity and giving data in one place." %}</p>
     </div>
   </div>
-  <div class="row g-3">
+  <div class="row g-3 rmc-reveal-stagger">
     {% if alumni_list_url %}
-    <div class="col-md-4">
+    <div class="col-md-4 rmc-reveal">
       <div class="card h-100 border-secondary">
         <div class="card-body">
           <h6 class="card-title">{% trans "Alumni" %}</h6>
@@ -38,7 +38,7 @@
     </div>
     {% endif %}
     {% if campaigns_url %}
-    <div class="col-md-4">
+    <div class="col-md-4 rmc-reveal">
       <div class="card h-100 border-secondary">
         <div class="card-body">
           <h6 class="card-title">{% trans "Campaigns" %}</h6>
@@ -48,7 +48,7 @@
     </div>
     {% endif %}
     {% if aid_services_url %}
-    <div class="col-md-4">
+    <div class="col-md-4 rmc-reveal">
       <div class="card h-100 border-secondary">
         <div class="card-body">
           <h6 class="card-title">{% trans "Aid & awards" %}</h6>
@@ -58,7 +58,7 @@
     </div>
     {% endif %}
     {% if tenant_donor_crm_path %}
-    <div class="col-md-6">
+    <div class="col-md-6 rmc-reveal">
       <div class="card h-100 border-success border-opacity-50">
         <div class="card-body">
           <h6 class="card-title">{% trans "Tenant donor CRM (staff)" %}</h6>
@@ -69,7 +69,7 @@
     </div>
     {% endif %}
     {% if phase2_placeholder_url %}
-    <div class="col-md-4">
+    <div class="col-md-4 rmc-reveal">
       <div class="card h-100 border-secondary">
         <div class="card-body">
           <h6 class="card-title">{% trans "Platform donor quick-add" %}</h6>

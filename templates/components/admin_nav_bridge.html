@@ -35,8 +35,8 @@
             <i class="bi bi-box-arrow-up-right"></i>
             <span class="d-none d-lg-inline">{% trans "Public site" %}</span>
           </a>
-          {# Phase D (2026-05-12): rich user_dropdown (avatar, role, theme toggle, sectioned menu)
-             replaces the minimal cpUserDropdownAdmin for parity across portal / control plane / admin. #}
+          {% comment %} Phase D (2026-05-12): rich user_dropdown (avatar, role, theme toggle, sectioned menu)
+             replaces the minimal cpUserDropdownAdmin for parity across portal / control plane / admin. {% endcomment %}
           {% include "components/user_dropdown.html" %}
         {% else %}
           <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>

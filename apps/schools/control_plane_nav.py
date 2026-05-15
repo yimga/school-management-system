@@ -253,6 +253,17 @@ def build_primary_control_plane_nav(request):
                 "is_current": _primary_nav_is_current(path, row["id"]),
             }
         )
+    # Defensive: at most ONE pill may be active. If multiple predicates fire
+    # for the same URL (path overlap between primary_home and a more specific
+    # surface like primary_control), prefer the MORE specific one — i.e. the
+    # later item in `raw` order. Home is the broadest fallback and should
+    # only win when nothing more specific matches.
+    actives = [i for i, item in enumerate(out) if item["is_current"]]
+    if len(actives) > 1:
+        keep = actives[-1]  # most specific surface
+        for i, item in enumerate(out):
+            if i != keep:
+                item["is_current"] = False
     return out
 
 

@@ -3,7 +3,7 @@
 {% block cp_content %}
 <section class="cp-page" data-page-marker="rmc-pack-rollback">
   <header class="cp-page-header"><p class="cp-eyebrow">Rollback</p><h1>{{ installation.pack_key }}</h1><p>Rollback avoids destructive school-data deletion.</p></header>
-  {% if result %}<article class="cp-card"><h2>Result</h2><p>OK: {{ result.ok }}</p><p>{{ result.errors|join:", " }}</p></article>{% endif %}
+  {% if result %}<article class="cp-card rmc-reveal"><h2>Result</h2><p>OK: {{ result.ok }}</p><p>{{ result.errors|join:", " }}</p></article>{% endif %}
   <form method="post" class="cp-card">
     {% csrf_token %}
     <label><input type="checkbox" name="confirm" value="yes"> Confirm rollback/deactivation</label>

@@ -7,8 +7,8 @@
   {% phase8_dashboard_declaration "customersuccess/super_dashboard.html" %}
   {% include "studio_os/components/page_header.html" with eyebrow="Customer Success · 11.3 + 11.4" title="Benchmark & Customer Success" subtitle="Section 11.3 Benchmark intelligence • 11.4 Customer success (health, risk alerts, interventions, workflow failures)." action_url=dashboard_url action_text="Back to dashboard" %}
 
-  <div class="row g-3 mb-4">
-    <div class="col-md-3">
+  <div class="row g-3 mb-4 rmc-reveal-stagger">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-body">
           <div class="text-muted small">Risk alerts (unack.)</div>
@@ -16,7 +16,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-body">
           <div class="text-muted small">Intervention suggestions</div>
@@ -24,7 +24,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-body">
           <div class="text-muted small">Workflow failures (recent)</div>
@@ -32,7 +32,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-body">
           <div class="text-muted small">Schools with health score</div>
@@ -44,8 +44,8 @@
 
   <details class="de-secondary-collapsible mb-2">
   <summary>{% trans "Expand alert, workflow, and health tables" %}</summary>
-  <div class="row g-3">
-    <div class="col-lg-6">
+  <div class="row g-3 rmc-reveal-stagger">
+    <div class="col-lg-6 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-header">Risk alerts</div>
         <div class="card-body p-0">
@@ -70,7 +70,7 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-6">
+    <div class="col-lg-6 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-header">Intervention suggestions</div>
         <div class="card-body p-0">

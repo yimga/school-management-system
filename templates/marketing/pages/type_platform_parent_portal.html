@@ -43,7 +43,7 @@
     </div>
   </header>
 
-  <section class="mkt-parent-section" aria-labelledby="mkt-parent-visual-heading">
+  <section class="mkt-parent-section rmc-reveal" aria-labelledby="mkt-parent-visual-heading">
     <h2 id="mkt-parent-visual-heading">{% trans "What families see on their phones" %}</h2>
     <p class="section-lead">{% trans "A mobile-first layout for fees, attendance, announcements, assignments, and report access—so caregivers do not need five different channels to stay current." %}</p>
     <div class="mkt-parent-visual-wrap">
@@ -51,7 +51,7 @@
     </div>
   </section>
 
-  <section class="mkt-parent-section" aria-labelledby="mkt-parent-before-after-heading">
+  <section class="mkt-parent-section rmc-reveal" aria-labelledby="mkt-parent-before-after-heading">
     <h2 id="mkt-parent-before-after-heading">{% trans "Before and after a single family channel" %}</h2>
     <p class="section-lead">{% trans "Reduce repeated calls and mixed messages by concentrating official school updates in one portal." %}</p>
     <div class="mkt-parent-split">
@@ -78,7 +78,7 @@
     </div>
   </section>
 
-  <section class="mkt-parent-section" aria-labelledby="mkt-parent-handoff-heading" data-mkt-parent-connected-handoff="1">
+  <section class="mkt-parent-section rmc-reveal" aria-labelledby="mkt-parent-handoff-heading" data-mkt-parent-connected-handoff="1">
     <h2 id="mkt-parent-handoff-heading">{% trans "Connected to daily school operations" %}</h2>
     <p class="section-lead">{% trans "The parent portal reflects the same records teachers and finance teams maintain—without asking families to learn internal tools." %}</p>
     <div class="mkt-parent-handoff-grid">
@@ -91,7 +91,7 @@
     </div>
   </section>
 
-  <section class="mkt-parent-section" aria-labelledby="mkt-parent-roles-heading">
+  <section class="mkt-parent-section rmc-reveal" aria-labelledby="mkt-parent-roles-heading">
     <h2 id="mkt-parent-roles-heading">{% trans "Who benefits" %}</h2>
     <p class="section-lead">{% trans "Designed for families first, with knock-on benefits for staff who answer fewer repetitive questions." %}</p>
     <div class="mkt-parent-roles">
@@ -119,12 +119,12 @@
   </section>
 
   {% if page.segments %}
-  <section class="mkt-parent-section" aria-label="{% trans 'Highlights' %}">
+  <section class="mkt-parent-section rmc-reveal" aria-label="{% trans 'Highlights' %}">
     <h2>{% trans "What this surface emphasizes" %}</h2>
     <div class="row g-3">
       {% for seg in page.segments %}
       <div class="col-md-4">
-        <article class="segment-card h-100">
+        <article class="segment-card h-100 rmc-reveal">
           <h3 class="h6">{{ seg.title }}</h3>
           <p class="mb-0 text-muted small">{{ seg.body }}</p>
         </article>

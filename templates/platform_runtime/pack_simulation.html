@@ -8,10 +8,10 @@
     <p>Scenario {{ simulation.scenario }} returned {{ simulation.result }}.</p>
   </header>
   <div class="cp-grid cp-grid-2">
-    <article class="cp-card"><h2>Actions</h2><ul>{% for row in simulation.actions_that_would_run %}<li>{{ row }}</li>{% empty %}<li>No live actions</li>{% endfor %}</ul></article>
-    <article class="cp-card"><h2>Audit</h2><ul>{% for row in simulation.audit_summary.would_emit %}<li>{{ row }}</li>{% endfor %}</ul></article>
-    {% if simulation.widgets %}<article class="cp-card"><h2>Widgets</h2><ul>{% for row in simulation.widgets %}<li>{{ row }}</li>{% endfor %}</ul></article>{% endif %}
-    {% if simulation.rules_evaluated %}<article class="cp-card"><h2>Policy Decision</h2><p>{{ simulation.decision }}</p><ul>{% for row in simulation.rules_evaluated %}<li>{{ row }}</li>{% endfor %}</ul></article>{% endif %}
+    <article class="cp-card rmc-reveal"><h2>Actions</h2><ul>{% for row in simulation.actions_that_would_run %}<li>{{ row }}</li>{% empty %}<li>No live actions</li>{% endfor %}</ul></article>
+    <article class="cp-card rmc-reveal"><h2>Audit</h2><ul>{% for row in simulation.audit_summary.would_emit %}<li>{{ row }}</li>{% endfor %}</ul></article>
+    {% if simulation.widgets %}<article class="cp-card rmc-reveal"><h2>Widgets</h2><ul>{% for row in simulation.widgets %}<li>{{ row }}</li>{% endfor %}</ul></article>{% endif %}
+    {% if simulation.rules_evaluated %}<article class="cp-card rmc-reveal"><h2>Policy Decision</h2><p>{{ simulation.decision }}</p><ul>{% for row in simulation.rules_evaluated %}<li>{{ row }}</li>{% endfor %}</ul></article>{% endif %}
   </div>
 </section>
 {% endblock %}

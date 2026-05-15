@@ -13,14 +13,19 @@
   <h1 class="display-6 fw-bold mb-3">{{ topic.headline }}</h1>
   <p class="lead text-muted mb-4">{{ topic.subheadline }}</p>
 
+  {# v2.37 — editorial hero composition for the standard topic landings. #}
+  {% if topic.slug == "platform" or topic.slug == "solutions" or topic.slug == "pricing" or topic.slug == "why" or topic.slug == "migrate" or topic.slug == "trust" %}
+    {% include "components/marketing_hero_image.html" with hero_slug=topic.slug priority=False %}
+  {% endif %}
+
   {% if topic.role_pain %}
-  <section class="section-shell" aria-label="{% trans 'Who this is for' %}">
+  <section class="section-shell rmc-reveal" aria-label="{% trans 'Who this is for' %}">
     <h2 class="section-heading">{% trans "Who this is for" %}</h2>
     <p class="section-lead">{{ topic.role_pain }}</p>
   </section>
   {% endif %}
 
-  <section class="section-shell">
+  <section class="section-shell rmc-reveal">
     <h2 class="section-heading">{% trans "Why this solution" %}</h2>
     <ul class="mb-0">
       {% for point in topic.focus_points %}
@@ -30,7 +35,7 @@
   </section>
 
   {% if topic.proof_points %}
-  <section class="section-shell" aria-label="{% trans 'Proof points' %}">
+  <section class="section-shell rmc-reveal" aria-label="{% trans 'Proof points' %}">
     <h2 class="section-heading">{% trans "Proof points" %}</h2>
     <ul class="mb-0">
       {% for point in topic.proof_points %}
@@ -40,7 +45,7 @@
   </section>
   {% endif %}
 
-  <section class="section-shell" aria-label="{% trans 'Product in context' %}">
+  <section class="section-shell rmc-reveal" aria-label="{% trans 'Product in context' %}">
     <h2 class="section-heading">{% trans "Product in context" %}</h2>
     <p class="section-lead">{% trans "This solution is delivered through RunMyCampus modules: admissions, academics, finance, communication, and compliance—all in one platform." %}</p>
     {% if topic.product_image_url %}
@@ -51,14 +56,14 @@
   </section>
 
   {% if topic.migration_angle %}
-  <section class="section-shell" aria-label="{% trans 'Migration' %}">
+  <section class="section-shell rmc-reveal" aria-label="{% trans 'Migration' %}">
     <h2 class="section-heading">{% trans "Migration path" %}</h2>
     <p class="section-lead">{{ topic.migration_angle }}</p>
   </section>
   {% endif %}
 
   {% if topic.related_topics %}
-  <section class="section-shell" aria-label="{% trans 'Related solutions' %}">
+  <section class="section-shell rmc-reveal" aria-label="{% trans 'Related solutions' %}">
     <h2 class="section-heading">{% trans "Related solutions" %}</h2>
     <p class="section-lead">{% trans "Explore other solution pages that complement this one." %}</p>
     <div class="d-flex flex-wrap gap-2">
@@ -69,7 +74,7 @@
   </section>
   {% endif %}
 
-  <section class="section-shell border-0 bg-transparent pt-0">
+  <section class="section-shell border-0 bg-transparent pt-0 rmc-reveal">
     <div class="d-flex flex-wrap gap-2">
       <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="demo" data-page="topic">{% trans "Book demo" %}</a>
       <a href="{% url 'onboard_wizard' %}" class="btn btn-outline-primary" data-cta="primary" data-page="topic">{% trans "Start free trial" %}</a>

@@ -54,7 +54,7 @@ body.control-plane-shell .btn {
   gap: 0.35rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  font-size: 0.72rem;
+  font-size: var(--type-size-micro);
   color: var(--cp-sky-300);
   margin-bottom: 0.55rem;
 }
@@ -93,7 +93,7 @@ body.control-plane-shell .btn {
   border: 1px solid rgba(157, 181, 214, 0.18);
   background: rgba(255, 255, 255, 0.05);
   color: var(--cp-text);
-  font-size: 0.82rem;
+  font-size: var(--type-size-caption);
   text-decoration: none;
 }
 
@@ -169,13 +169,13 @@ a.cp-chip:hover {
 
 .cp-hero-stat-value {
   display: block;
-  font-size: 2rem;
+  font-size: var(--type-size-headline-l);
   line-height: 1.05;
   margin: 0.3rem 0;
 }
 
 .cp-hero-stat-subtitle {
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
   color: var(--cp-slate-cool-200);
 }
 
@@ -220,7 +220,7 @@ a.cp-chip:hover {
 .cp-health-value,
 .cp-workstream-metric {
   display: block;
-  font-size: 1.55rem;
+  font-size: var(--type-size-headline-m);
   margin: 0.35rem 0;
   line-height: 1.05;
 }
@@ -289,7 +289,7 @@ a.cp-chip:hover {
 
 .cp-panel-title {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: var(--type-size-headline-m);
   letter-spacing: -0.02em;
 }
 
@@ -307,7 +307,7 @@ a.cp-chip:hover {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.06);
   color: var(--cp-sky-175);
-  font-size: 0.78rem;
+  font-size: var(--type-size-eyebrow);
 }
 a.cp-panel-stat:hover {
   color: var(--cp-sky-175);
@@ -321,7 +321,7 @@ a.cp-panel-stat:hover {
 }
 
 .cp-queue-card-header h3 {
-  font-size: 1rem;
+  font-size: var(--type-size-body);
   margin: 0;
 }
 a.cp-queue-card-header {
@@ -387,7 +387,7 @@ a.cp-queue-card-header:hover {
 .cp-empty-state,
 .cp-empty-inline {
   color: var(--cp-muted);
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
 }
 
 .cp-health-grid,
@@ -415,13 +415,13 @@ a.cp-queue-card-header:hover {
 }
 
 .cp-stack-metric {
-  font-size: 1rem;
+  font-size: var(--type-size-body);
   margin-bottom: 0.45rem;
 }
 
 .cp-stack-detail {
   color: var(--cp-muted);
-  font-size: 0.82rem;
+  font-size: var(--type-size-caption);
   margin-top: 0.8rem;
 }
 
@@ -431,7 +431,7 @@ a.cp-queue-card-header:hover {
 
 .cp-footprint-card strong {
   display: block;
-  font-size: 1.5rem;
+  font-size: var(--type-size-headline-m);
   margin: 0.32rem 0;
 }
 
@@ -444,7 +444,7 @@ a.cp-queue-card-header:hover {
 
 .cp-table thead th {
   color: var(--cp-slate-cool-300);
-  font-size: 0.78rem;
+  font-size: var(--type-size-eyebrow);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   border-bottom-color: rgba(154, 180, 214, 0.16);
@@ -470,7 +470,7 @@ a.cp-queue-card-header:hover {
 
 .cp-toolbar-summary {
   color: var(--cp-muted);
-  font-size: 0.88rem;
+  font-size: var(--type-size-caption);
   text-align: right;
 }
 
@@ -512,7 +512,7 @@ a.cp-queue-card-header:hover {
 
 .cp-workstream-cta {
   color: var(--cp-sky-350);
-  font-size: 0.88rem;
+  font-size: var(--type-size-caption);
 }
 
 .cp-status-badge {
@@ -522,7 +522,7 @@ a.cp-queue-card-header:hover {
   min-width: 5rem;
   padding: 0.28rem 0.64rem;
   border-radius: 999px;
-  font-size: 0.76rem;
+  font-size: var(--type-size-eyebrow);
   font-weight: 700;
   border: 1px solid rgba(171, 190, 216, 0.18);
   background: rgba(255, 255, 255, 0.06);
@@ -576,7 +576,7 @@ a.cp-queue-card-header:hover {
 .cp-month-form label {
   margin: 0;
   color: var(--cp-muted);
-  font-size: 0.86rem;
+  font-size: var(--type-size-caption);
 }
 
 @media (max-width: 1600px) {
@@ -891,7 +891,7 @@ body.control-plane-shell .cp-navbar {
 }
 @media (max-width: 575.98px) {
   .cp-navbar .navbar-brand span {
-    font-size: 0.9rem;
+    font-size: var(--type-size-body);
   }
 }
 

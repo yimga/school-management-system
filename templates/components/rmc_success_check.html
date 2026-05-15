@@ -1,8 +1,8 @@
 {% load i18n %}
-{# Phase W (2026-05-12): spring-physics success checkmark. Drop in after a save/submit/payment.
+{% comment %} Phase W (2026-05-12): spring-physics success checkmark. Drop in after a save/submit/payment.
    Usage:
      {% include "components/rmc_success_check.html" with size="lg" label="Saved" %}
-   Sizes: sm | (default) | lg | xl  #}
+   Sizes: sm | (default) | lg | xl  {% endcomment %}
 {% with size=size|default:'' %}
 <div class="rmc-check{% if size %} rmc-check--{{ size }}{% endif %}"
      role="img"

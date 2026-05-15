@@ -1,7 +1,7 @@
 /* Compatibility stylesheet for tenant configuration density surfaces. */
 .cp-density-table,
 .cp-operator-density {
-  font-size: 0.875rem;
+  font-size: var(--type-size-caption);
 }
 
 .cp-density-table th,

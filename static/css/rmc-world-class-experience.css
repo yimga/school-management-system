@@ -33,7 +33,7 @@
 .rmc-wcx-hero__eyebrow,
 .rmc-wcx-section__eyebrow {
   color: var(--rmc-wcx-muted);
-  font-size: 0.78rem;
+  font-size: var(--type-size-eyebrow);
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -217,13 +217,13 @@ button.cp-context-drawer-toggle i,
 .rmc-wcx-card__meta,
 .rmc-wcx-risk-card__meta {
   color: var(--rmc-wcx-muted);
-  font-size: 0.82rem;
+  font-size: var(--type-size-caption);
 }
 
 .rmc-wcx-metric__value {
   display: block;
   color: var(--rmc-wcx-ink);
-  font-size: 1.35rem;
+  font-size: var(--type-size-headline-m);
   font-weight: 800;
 }
 
@@ -295,7 +295,7 @@ main li,
   border: 1px solid var(--rmc-wcx-border);
   border-radius: var(--rmc-wcx-radius);
   background: var(--rmc-wcx-surface);
-  font-size: 0.82rem;
+  font-size: var(--type-size-caption);
   font-weight: 700;
 }
 
@@ -358,7 +358,7 @@ main li,
 .rmc-acx-layer-label,
 .rmc-acx-metric-card__label {
   color: var(--rmc-wcx-muted);
-  font-size: 0.76rem;
+  font-size: var(--type-size-eyebrow);
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -371,7 +371,7 @@ main li,
   border-radius: 999px;
   border: 1px solid var(--rmc-wcx-border);
   background: color-mix(in srgb, var(--rmc-wcx-surface) 82%, var(--rmc-wcx-accent));
-  font-size: 0.78rem;
+  font-size: var(--type-size-eyebrow);
   font-weight: 800;
 }
 
@@ -382,14 +382,14 @@ main li,
 
 .rmc-acx-metric-card__value {
   display: block;
-  font-size: 1.55rem;
+  font-size: var(--type-size-headline-m);
   font-weight: 850;
   line-height: 1.1;
 }
 
 .rmc-acx-metric-card__meta {
   color: var(--rmc-wcx-muted);
-  font-size: 0.84rem;
+  font-size: var(--type-size-caption);
 }
 
 .rmc-acx-drawer {
@@ -427,7 +427,7 @@ main li,
   border-radius: var(--rmc-wcx-radius);
   border: 1px solid var(--rmc-wcx-border);
   background: color-mix(in srgb, var(--rmc-wcx-surface) 88%, var(--rmc-wcx-accent));
-  font-size: 0.8rem;
+  font-size: var(--type-size-caption);
   font-weight: 800;
   text-align: center;
 }

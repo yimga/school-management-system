@@ -27,7 +27,7 @@
         </div>
       </article>
       {% endwith %}{% elif ins.severity == 'warning' %}{% with tone='warning' icon='clock-history' %}
-      <article class="insight-card {{ tone }} h-100" data-rmc-insight-card="1" data-rmc-insight-tone="{{ tone }}">
+      <article class="insight-card {{ tone }} h-100 rmc-reveal" data-rmc-insight-card="1" data-rmc-insight-tone="{{ tone }}">
         <div class="ico" aria-hidden="true"><i class="bi bi-{{ icon }}"></i></div>
         <div class="insight-card__body" style="flex:1;min-width:0">
           <div class="text-uppercase small text-muted mb-1">{{ ins.audience }}</div>
@@ -39,7 +39,7 @@
         </div>
       </article>
       {% endwith %}{% elif ins.severity == 'success' %}{% with tone='success' icon='check2-circle' %}
-      <article class="insight-card {{ tone }} h-100" data-rmc-insight-card="1" data-rmc-insight-tone="{{ tone }}">
+      <article class="insight-card {{ tone }} h-100 rmc-reveal" data-rmc-insight-card="1" data-rmc-insight-tone="{{ tone }}">
         <div class="ico" aria-hidden="true"><i class="bi bi-{{ icon }}"></i></div>
         <div class="insight-card__body" style="flex:1;min-width:0">
           <div class="text-uppercase small text-muted mb-1">{{ ins.audience }}</div>
@@ -51,7 +51,7 @@
         </div>
       </article>
       {% endwith %}{% else %}{% with tone='info' icon='info-circle' %}
-      <article class="insight-card {{ tone }} h-100" data-rmc-insight-card="1" data-rmc-insight-tone="{{ tone }}">
+      <article class="insight-card {{ tone }} h-100 rmc-reveal" data-rmc-insight-card="1" data-rmc-insight-tone="{{ tone }}">
         <div class="ico" aria-hidden="true"><i class="bi bi-{{ icon }}"></i></div>
         <div class="insight-card__body" style="flex:1;min-width:0">
           <div class="text-uppercase small text-muted mb-1">{{ ins.audience }}</div>

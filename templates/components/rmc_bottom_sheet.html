@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Bottom sheet partial. Mobile-first: slides up from bottom edge, drag-to-
+{% comment %} Bottom sheet partial. Mobile-first: slides up from bottom edge, drag-to-
    dismiss via rmc-bottom-sheet.js. Falls back to centered modal on tablet+.
 
    Usage:
@@ -14,7 +14,7 @@
      - tap backdrop
      - tap × button (data-rmc-sheet-close)
      - swipe down past 30% of height (mobile)
-     - Escape key (native <dialog> behavior) #}
+     - Escape key (native <dialog> behavior) {% endcomment %}
 <dialog class="rmc-sheet" id="{{ sheet_id }}"{% if sheet_aria_label %} aria-label="{{ sheet_aria_label }}"{% endif %}>
   <div class="rmc-sheet__handle" aria-hidden="true"></div>
   {% if sheet_title or sheet_close_label %}

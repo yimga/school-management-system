@@ -4,12 +4,12 @@
     <button type="button" class="btn btn-sm btn-outline-secondary cp-sidebar-compact-toggle" aria-label="{% trans 'Toggle compact sidebar' %}" title="{% trans 'Compact mode' %}"><i class="bi bi-layout-sidebar-inset-reverse"></i></button>
   </div>
   <div class="cp-nav-recent mb-2 d-none" id="cpNavRecentWrap" >
-    <span class="text-uppercase small text-muted opacity-75">{% trans "Recent" %}</span>
+    <span class="cp-nav-section-label rmc-type-eyebrow">{% trans "Recent" %}</span>
     <ul class="nav flex-column gap-1 ps-0 mt-1" id="cpNavRecentList" aria-label="{% trans 'Recently visited pages' %}"></ul>
   </div>
   {% if PINNED_CONTROL_PLANE_ITEMS %}
   <div class="cp-nav-quick-access mb-2">
-    <span class="text-uppercase small text-muted opacity-75">{% trans "Quick access" %}</span>
+    <span class="cp-nav-section-label rmc-type-eyebrow">{% trans "Quick access" %}</span>
     <ul class="nav flex-column gap-1 ps-0 mt-1">
       {% for item in PINNED_CONTROL_PLANE_ITEMS %}
       <li class="nav-item d-flex align-items-center gap-0">
@@ -24,7 +24,7 @@
     {% for group in CONTROL_PLANE_NAV %}
       {% if group.label %}
         <li class="nav-item">
-          <button type="button" class="nav-link text-uppercase small text-muted opacity-75 mt-2 border-0 bg-transparent text-start w-100 d-flex align-items-center cp-nav-group-toggle" data-bs-toggle="collapse" data-bs-target="#cp-nav-grp-{{ forloop.counter }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
+          <button type="button" class="cp-nav-group-toggle nav-link rmc-type-eyebrow mt-3 border-0 bg-transparent text-start w-100 d-flex align-items-center" data-bs-toggle="collapse" data-bs-target="#cp-nav-grp-{{ forloop.counter }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
             <i class="bi bi-chevron-down me-1 cp-nav-group-chevron"></i>
             <span class="cp-nav-label">{% trans group.label %}</span>
           </button>
@@ -33,10 +33,12 @@
           <ul class="nav flex-column gap-1 ps-2 border-0">
       {% endif %}
       {% for item in group.items %}
+        {% if item.id not in PINNED_CONTROL_PLANE_IDS %}
             <li class="nav-item d-flex align-items-center gap-0">
               <a class="nav-link text-white d-flex align-items-center flex-grow-1 {% if request.path == item.url %}active{% endif %}" href="{{ item.url }}"><i class="bi {{ item.icon }} me-2 cp-nav-icon"></i><span class="cp-nav-label">{% trans item.label %}</span></a>
-              <button type="button" class="cp-pin-btn btn btn-link p-0 ms-1 text-white opacity-75 {% if item.id in PINNED_CONTROL_PLANE_IDS %}cp-pin-pinned{% endif %}" data-cp-pin-id="{{ item.id }}" aria-label="{% if item.id in PINNED_CONTROL_PLANE_IDS %}{% trans 'Remove from Quick access' %}{% else %}{% trans 'Add to Quick access' %}{% endif %}" title="{% if item.id in PINNED_CONTROL_PLANE_IDS %}{% trans 'Remove from Quick access' %}{% else %}{% trans 'Add to Quick access' %}{% endif %}"><i class="bi {% if item.id in PINNED_CONTROL_PLANE_IDS %}bi-pin-angle-fill{% else %}bi-pin-angle{% endif %}"></i></button>
+              <button type="button" class="cp-pin-btn btn btn-link p-0 ms-1 text-white opacity-75" data-cp-pin-id="{{ item.id }}" aria-label="{% trans 'Add to Quick access' %}" title="{% trans 'Add to Quick access' %}"><i class="bi bi-pin-angle"></i></button>
             </li>
+        {% endif %}
       {% endfor %}
       {% if group.label %}
           </ul>

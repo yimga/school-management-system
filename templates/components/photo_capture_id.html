@@ -1,0 +1,46 @@
+{% load i18n %}{% comment %}
+Photo capture (ID / verification uploads).
+
+Pairs with static/js/photo-capture-id.js — the script listens for either
+`#photo-capture-btn` or `[data-photo-capture]` and triggers a click on the
+associated file input.
+
+Caller contract (all kwargs optional):
+  input_name           — name attribute on the file input (default: "photo")
+  input_id             — id attribute on the file input  (default: "id_photo")
+  show_upload_fallback — render the "choose from gallery" affordance (bool)
+  capture_help_text    — override the helper copy under the button
+{% endcomment %}
+<div class="rmc-photo-capture" data-rmc-component="photo-capture">
+  <input
+    type="file"
+    name="{{ input_name|default:'photo' }}"
+    id="{{ input_id|default:'id_photo' }}"
+    accept="image/*"
+    capture="environment"
+    class="form-control rmc-photo-capture__input visually-hidden"
+    aria-describedby="{{ input_id|default:'id_photo' }}-help"
+    required
+  >
+  <button
+    type="button"
+    id="photo-capture-btn"
+    class="btn btn-primary btn-lg w-100 d-inline-flex align-items-center justify-content-center gap-2 rmc-photo-capture__trigger"
+    data-photo-capture
+    data-rmc-tactile
+    aria-controls="{{ input_id|default:'id_photo' }}"
+  >
+    <i class="bi bi-camera-fill" aria-hidden="true"></i>
+    <span>{% trans "Take photo" %}</span>
+  </button>
+  <p id="{{ input_id|default:'id_photo' }}-help" class="form-text small text-muted mt-2 mb-0 text-center">
+    {{ capture_help_text|default:_("Your camera will open. The photo is sent securely and cropped to ID size.") }}
+  </p>
+  {% if show_upload_fallback %}
+    <div class="rmc-photo-capture__fallback mt-3 text-center">
+      <label for="{{ input_id|default:'id_photo' }}" class="btn btn-link btn-sm">
+        <i class="bi bi-image me-1" aria-hidden="true"></i>{% trans "Or choose a photo from your gallery" %}
+      </label>
+    </div>
+  {% endif %}
+</div>

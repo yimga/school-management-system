@@ -1,21 +1,21 @@
 {% load static %}
-{# Theme v2 (2026-05-12, Phase J end-to-end): meta tags read by
+{% comment %} Theme v2 (2026-05-12, Phase J end-to-end): meta tags read by
    theme-preference-bootstrap.js to apply the tenant's neutral palette + brand
    gradient choices before paint. Include inside <head> on every shell. Values
-   resolve via SITE.__getattr__ → RuntimeDefaults typed columns. #}
+   resolve via SITE.__getattr__ → RuntimeDefaults typed columns. {% endcomment %}
 <meta name="rmc-neutral-palette" content="{{ SITE.neutral_palette|default:'cool' }}">
 {% if SITE.brand_gradient_end %}<meta name="rmc-brand-gradient-end" content="{{ SITE.brand_gradient_end }}">{% endif %}
 {% if SITE.brand_gradient_angle %}<meta name="rmc-brand-gradient-angle" content="{{ SITE.brand_gradient_angle }}">{% endif %}
 
-{# v2.4 polish (2026-05-12): dark-mode favicon variant so tenants with dark logos
-   stay visible on dark OS themes. Browser auto-selects based on prefers-color-scheme. #}
+{% comment %} v2.4 polish (2026-05-12): dark-mode favicon variant so tenants with dark logos
+   stay visible on dark OS themes. Browser auto-selects based on prefers-color-scheme. {% endcomment %}
 {% if SITE_FAVICON_DARK_URL %}
   <link rel="icon" href="{{ SITE_FAVICON_DARK_URL }}" media="(prefers-color-scheme: dark)" type="image/png">
 {% endif %}
-{# v2 carried-forward (2026-05-12): companion in-page dark logo. Exposed as meta
+{% comment %} v2 carried-forward (2026-05-12): companion in-page dark logo. Exposed as meta
    so theme-preference-bootstrap.js can flip `<html style="--site-logo-dark-url:…">`
    the same way it propagates rmc-neutral / brand-gradient. The `.rmc-logo-adaptive`
-   class in design-tokens.css swaps `background-image` when `[data-resolved-theme="dark"]`. #}
+   class in design-tokens.css swaps `background-image` when `[data-resolved-theme="dark"]`. {% endcomment %}
 {% if SITE_LOGO_DARK_URL %}
   <meta name="rmc-site-logo-dark" content="{{ SITE_LOGO_DARK_URL }}">
 {% endif %}

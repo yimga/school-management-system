@@ -19,7 +19,7 @@
   transform: translateX(-50%) translateY(-6px);
   padding: 0.5rem 0.75rem;
   max-width: 280px;
-  font-size: 0.8125rem;
+  font-size: var(--type-size-caption);
   line-height: 1.4;
   color: var(--admin-content-text, #0f172a);
   background: var(--admin-content-bg, #fff);
@@ -46,7 +46,7 @@
   transform: translateX(-50%) translateY(-6px);
   padding: 0.5rem 0.75rem;
   max-width: 280px;
-  font-size: 0.8125rem;
+  font-size: var(--type-size-caption);
   line-height: 1.4;
   color: var(--admin-content-text, #0f172a);
   background: var(--admin-content-bg, #fff);
@@ -69,7 +69,7 @@
   background: var(--portal-bg, #f8fafc);
   border-radius: var(--dashboard-card-radius, 12px);
   color: var(--portal-text-muted, #64748b);
-  font-size: 0.875rem;
+  font-size: var(--type-size-caption);
 }
 .dashboard-widget-lazy.loaded {
   min-height: 0;

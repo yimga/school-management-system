@@ -1,0 +1,37 @@
+{% load static i18n %}{% comment %}
+Marketing hero figure — Apple-tier abstract composition per page.
+
+Usage:
+  {% include "components/marketing_hero_image.html" with
+     hero_slug="pricing"
+     alt="An ascending stair, suggesting honest pricing."
+     priority=True %}
+
+slug options: home, platform, solutions, pricing, why, migrate, trust
+priority=True   adds fetchpriority="high" + preload (only set for above-fold use)
+
+Renders <picture> with WebP first + JPEG fallback. Sources live at
+static/images/marketing/heroes/hero-<slug>.{webp,jpg}.
+
+Pair with the .rmc-hero-figure CSS class (defined in v2.32 layer of
+design-tokens.css) to get the editorial framing — soft shadow, rounded
+corners, hairline border, terracotta accent dot in the bottom-left corner.
+The figure inherits .rmc-reveal--scale on first viewport entry.
+{% endcomment %}
+{% with slug=hero_slug|default:"home" %}
+{% with webp_path="images/marketing/heroes/hero-"|add:slug|add:".webp" jpg_path="images/marketing/heroes/hero-"|add:slug|add:".jpg" %}
+<figure class="rmc-hero-figure rmc-reveal rmc-reveal--scale" data-hero-slug="{{ slug }}">
+  <picture>
+    <source srcset="{% static webp_path %}" type="image/webp">
+    <img
+      src="{% static jpg_path %}"
+      alt="{{ alt|default:_('Editorial composition introducing this chapter.') }}"
+      {% if priority %}fetchpriority="high" loading="eager"{% else %}loading="lazy"{% endif %}
+      decoding="async"
+      width="1600"
+      height="1000">
+  </picture>
+  <span class="rmc-hero-figure__accent" aria-hidden="true"></span>
+</figure>
+{% endwith %}
+{% endwith %}

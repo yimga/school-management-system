@@ -7,8 +7,8 @@
     <h1>{{ preview.pack_name }}</h1>
     <p>Risk: {{ change_set.risk_level }}. Approval required: {{ change_set.requires_approval }}. Can apply: {{ change_set.can_apply }}.</p>
   </header>
-  {% if result %}<article class="cp-card"><h2>Result</h2><p>OK: {{ result.ok }}</p><p>{{ result.errors|join:", " }}</p></article>{% endif %}
-  <article class="cp-card">
+  {% if result %}<article class="cp-card rmc-reveal"><h2>Result</h2><p>OK: {{ result.ok }}</p><p>{{ result.errors|join:", " }}</p></article>{% endif %}
+  <article class="cp-card rmc-reveal">
     <h2>Change Set</h2>
     <p>Affected roles: {{ change_set.impact_summary.affected_roles|join:", " }}</p>
     <p>External blockers: {{ change_set.external_blockers|join:", " }}</p>

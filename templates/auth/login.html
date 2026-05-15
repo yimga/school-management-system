@@ -57,8 +57,8 @@
       </div>
       {% endif %}
 
-      <div class="row justify-content-center g-4 align-items-stretch {% if TENANT_WALLPAPER_URL %}mx-0{% endif %}">
-        <div class="col-lg-5">
+      <div class="row justify-content-center g-4 align-items-stretch {% if TENANT_WALLPAPER_URL %}mx-0{% endif %} rmc-reveal-stagger">
+        <div class="col-lg-5 rmc-reveal">
           <div class="card shadow-sm login-card" id="preview-login-form" data-preview-label="{% trans 'Sign-in form' %}" data-preview-changes="{% trans 'Form layout and styling' %}">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
@@ -118,7 +118,7 @@
           </div>
         </div>
 
-        <div class="col-lg-5">
+        <div class="col-lg-5 rmc-reveal">
           <div class="card shadow-sm info-card">
             <div>
               <p class="text-uppercase small text-muted mb-1">{% trans "Families & guardians" %}</p>

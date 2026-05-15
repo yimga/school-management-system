@@ -16,6 +16,7 @@
     <script src="{% static 'js/rmc-lexicon.js' %}" defer></script>
     <script src="{% static 'js/rmc-friction.js' %}" defer></script>
     <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
+    <script src="{% static 'js/rmc-reveal.js' %}" defer></script>
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
     <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
@@ -33,6 +34,7 @@
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
     <link rel="stylesheet" href="{% static 'css/patterns.css' %}">
     <link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
@@ -51,20 +53,20 @@
     See memory: reference_css_retirement_audit.md
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/portal-theme-modes.css' %}">
-    {# Retired 2026-05-12 (pass 2 css cleanup):
+    {% comment %} Retired 2026-05-12 (pass 2 css cleanup):
        - platform-fluid-everywhere.css: clamp() typography now in design-tokens.css
        - responsive-performance.css: same — duplicate fluid typography
        - ui-alignment-improvements.css: duplicate --spacing-* aliasing --token-space-*
        - no-watermark.css: pure defensive override
-       - topbar-header-polish.css: covered by header-no-spillage.css + statement-header.css #}
+       - topbar-header-polish.css: covered by header-no-spillage.css + statement-header.css {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-layout-professional.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-premium-content.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
-{# Retired 2026-05-12 (pass 3 css cleanup): dashboard-high-contrast.css + dashboard-crisp-polish.css
-       — unique load-bearing rules folded into dashboard-theme-sync.css (already loaded). #}
+{% comment %} Retired 2026-05-12 (pass 3 css cleanup): dashboard-high-contrast.css + dashboard-crisp-polish.css
+       — unique load-bearing rules folded into dashboard-theme-sync.css (already loaded). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-premium-shell.css' %}">
@@ -90,8 +92,8 @@
 
     <link rel="stylesheet" href="{% static 'css/portal-base-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
-    {# Phase G (2026-05-12): platform-wide long-page grammar — ⌘K palette, sticky
-       section nav, progressive-disclosure collapse, Console/Configure switcher. #}
+    {% comment %} Phase G (2026-05-12): platform-wide long-page grammar — ⌘K palette, sticky
+       section nav, progressive-disclosure collapse, Console/Configure switcher. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
     {# Phase R (2026-05-12): print grammar for report cards / transcripts / invoices. #}
     <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
@@ -108,14 +110,14 @@
         --school-success: {{ SITE.success_color|default:"#28a745" }};
         --school-warning: {{ SITE.warning_color|default:"#f0883e" }};
         --school-danger: {{ SITE.danger_color|default:"#e5484d" }};
-        {# v2 Phase J (2026-05-12): tenant-configurable luminous gradient.
+        {% comment %} v2 Phase J (2026-05-12): tenant-configurable luminous gradient.
            SITE.brand_gradient_end lets the tenant pick the dark end; if absent we
-           default to a deeper shade of the primary computed at the platform default. #}
+           default to a deeper shade of the primary computed at the platform default. {% endcomment %}
         {% if SITE.brand_gradient_end %}--brand-gradient-end: {{ SITE.brand_gradient_end }};{% endif %}
         {% if SITE.brand_gradient_angle %}--brand-gradient-angle: {{ SITE.brand_gradient_angle }};{% endif %}
-        {# v2 theme system: only override --portal-bg if the tenant set a custom background.
+        {% comment %} v2 theme system: only override --portal-bg if the tenant set a custom background.
            Otherwise let it inherit from --surface-bg (Apple off-white) so the inner shell
-           visibly rises out of the canvas. #}
+           visibly rises out of the canvas. {% endcomment %}
         {% if theme.background_color %}--portal-bg: {{ theme.background_color }};{% endif %}
         --portal-font: {{ theme.font_family|default:"Inter, system-ui, sans-serif" }};
         {% if SITE and SITE.header_bg_color %}--header-brand-bg: {{ SITE.header_bg_color }};{% endif %}
@@ -283,22 +285,22 @@
                 {% endif %}
               </a>
               {% endif %}
-              {# Phase F follow-through (2026-05-12): Console / Configure shell switcher
+              {% comment %} Phase F follow-through (2026-05-12): Console / Configure shell switcher
                  visible in every authenticated portal page so operators can toggle modes
-                 from anywhere. Hidden below lg via .d-none .d-lg-inline-flex. #}
+                 from anywhere. Hidden below lg via .d-none .d-lg-inline-flex. {% endcomment %}
               {% if request.user.is_authenticated and not request.public_host_kind == 'manager' %}
                 <span class="d-none d-lg-inline-flex"> {% include "components/rmc_shell_switcher.html" %}</span>
               {% endif %}
               <a class="btn btn-link text-white p-0 topbar-icon-btn" href="{{ help_center_url }}" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
 
-              {# Phase D end-to-end (2026-05-12): portal topbar now uses the same rich
+              {% comment %} Phase D end-to-end (2026-05-12): portal topbar now uses the same rich
                  user_dropdown.html as control plane and admin. The component already
                  includes the Light/Dark/System theme toggle, AI health pulse on the
                  avatar, unread notification badge, admin tools (Compliance, System
                  Health) for staff, help links, and logout — so the standalone
                  themeToggle / adminMenuDropdown / username / logout buttons that
                  used to live here are now redundant and have been removed.
-                 SHOW_HEADER_PROFILE_MENU gate is preserved. #}
+                 SHOW_HEADER_PROFILE_MENU gate is preserved. {% endcomment %}
               {% if SHOW_HEADER_PROFILE_MENU and request.user.is_authenticated %}
                 {% include "components/user_dropdown.html" %}
               {% endif %}
@@ -448,10 +450,10 @@
     Externalised from portal_base.html so the shell is CSP-friendly.
     {% endcomment %}
     <script src="{% static 'js/portal-shell-bootstrap.js' %}" defer></script>
-    {# Legacy inline theme+search+sidebar block fully retired 2026-05-12. Live
+    {% comment %} Legacy inline theme+search+sidebar block fully retired 2026-05-12. Live
        behavior: theme = theme-preference-bootstrap.js + RMCTheme; Ctrl+K =
        rmc-command-palette.js; header search filtering + sidebar resize/collapse
-       = static/js/portal-shell-bootstrap.js. #}
+       = static/js/portal-shell-bootstrap.js. {% endcomment %}
 
     {% comment %}
     SMS_OFFLINE_CONFIG: emitted as a JSON data island (CSP-safe) and parsed
@@ -540,8 +542,8 @@
     {# AI Copilot Assistant - RBAC Compatible #}
     {% include 'components/ai_copilot.html' %}
 
-    {# Phase G (2026-05-12): platform-wide ⌘K command palette (Apple Spotlight-style).
-       Single answer to "long endless nav" — jump to any page or action from any page. #}
+    {% comment %} Phase G (2026-05-12): platform-wide ⌘K command palette (Apple Spotlight-style).
+       Single answer to "long endless nav" — jump to any page or action from any page. {% endcomment %}
     {% if request.user.is_authenticated %}
       {% include 'components/rmc_command_palette.html' %}
       <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>

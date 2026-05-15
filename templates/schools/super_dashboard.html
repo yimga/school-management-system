@@ -28,8 +28,8 @@
   {% include "components/world_class_summary_strip.html" with readiness=north_star_formatted readiness_label=_("North Star") risk=platform_health.overall_status risk_label=_("Platform health") next_step=_("Setup") next_step_label=_("Primary action") blockers=attention_school_count blockers_label=_("Schools needing attention") %}
   {% include "components/platform_readiness_strip.html" with inline_field_prefix='super-cmd' %}
 
-  {# Phase G follow-through (2026-05-12): platform-wide section nav strip so this
-     764-line operator dashboard is navigable instead of an endless scroll. #}
+  {% comment %} Phase G follow-through (2026-05-12): platform-wide section nav strip so this
+     764-line operator dashboard is navigable instead of an endless scroll. {% endcomment %}
   <nav class="rmc-section-nav rmc-section-nav--horizontal mb-3" aria-label="{% trans 'Control plane sections' %}">
     <ul class="rmc-section-nav__list">
       <li><a href="#cmd-health"><i class="bi bi-activity" aria-hidden="true"></i>{% trans "Health" %}</a></li>
@@ -44,7 +44,7 @@
     {% include "components/apple_class_glass_panel.html" with panel_id="super-external-blockers" label=_("External Blockers") title=_("PSP and live proof stay visible") body=_("Payment, settlement, certification, and Render parity claims stay blocked until external evidence exists.") %}
   </section>
   {% include "components/apple_class_quick_profile_drawer.html" with drawer_id="super-risk-drawer" role=_("Risk drawer") title=_("Tenant risk quick profile") body=_("Operators can review owner, risk, proof, and next action from a side panel instead of page hopping.") primary_url=command_center_url primary_label=_("Open risk queue") %}
-  <section id="cmd-product-moments" data-rmc-section-anchor class="rmc-wcx-grid mb-4" data-world-class-super-sections="platform-pulse tenant-risk implementation-pipeline revenue-payment-readiness marketplace-governance security-compliance proof-ledger">
+  <section id="cmd-product-moments" data-rmc-section-anchor class="rmc-wcx-grid mb-4 rmc-reveal" data-world-class-super-sections="platform-pulse tenant-risk implementation-pipeline revenue-payment-readiness marketplace-governance security-compliance proof-ledger">
     {% include "components/world_class_product_moment_card.html" with title=_("Platform Pulse") outcome=_("Health, incidents, open approvals, and support pressure are visible immediately.") status=platform_health.overall_status action_url=command_center_url action_label=_("Open queues") %}
     {% include "components/world_class_risk_blocker_card.html" with title=_("External blockers") severity="medium" owner=_("Platform operator") boundary=_("PSP, settlement, and live certification remain external proof") next_step=_("Collect proof before claiming readiness") %}
     {% include "components/world_class_product_moment_card.html" with title=_("Proof Ledger") outcome=_("Local proof and pending live parity stay separate so buyers see honest readiness.") status=_("Local only") action_url="/docs/generated/live_browser_ux_certification_report.md" action_label=_("View proof") %}
@@ -62,7 +62,7 @@
     </div>
   </div>
   {% endif %}
-  <section class="cp-hero mb-4" data-decision-zone="headline">
+  <section class="cp-hero mb-4 rmc-reveal" data-decision-zone="headline">
     <div class="cp-hero-grid">
       <div>
         <div class="cp-eyebrow">{% trans "RunMyCampus Platform" %}</div>
@@ -111,7 +111,7 @@
     </div>
     <div class="cp-overview-grid">
       {% for card in overview_cards %}
-      <article class="cp-overview-card cp-overview-card-{{ card.tone|default:'slate' }}">
+      <article class="cp-overview-card cp-overview-card-{{ card.tone|default:'slate' }}" class="rmc-reveal">
         <span class="cp-overview-label">{{ card.label }}</span>
         <strong class="cp-overview-value">{{ card.value }}</strong>
         <span class="cp-overview-meta">{{ card.meta }}</span>
@@ -119,7 +119,7 @@
       {% endfor %}
     </div>
   </section>
-  <section class="cp-panel mb-4" aria-label="{% trans 'Executive pulse' %}">
+  <section class="cp-panel mb-4 rmc-reveal" aria-label="{% trans 'Executive pulse' %}">
     <div class="cp-panel-header">
       <div>
         <span class="cp-panel-eyebrow">{% trans "Executive pulse" %}</span>
@@ -127,22 +127,22 @@
       </div>
     </div>
     <div class="cp-health-grid">
-      <article class="cp-health-card cp-health-card-neutral">
+      <article class="cp-health-card cp-health-card-neutral rmc-reveal">
         <span class="cp-health-label">{% trans "North Star score" %}</span>
         <strong class="cp-health-value">{{ north_star_formatted }}</strong>
         <span class="cp-health-meta">{{ revenue_snapshot_month|date:"F Y" }}</span>
       </article>
-      <article class="cp-health-card cp-health-card-warning">
+      <article class="cp-health-card cp-health-card-warning rmc-reveal">
         <span class="cp-health-label">{% trans "Operational risk" %}</span>
         <strong class="cp-health-value">{{ command_center.tenant_churn_risk_count|default:0 }}</strong>
         <span class="cp-health-meta">{% trans "Schools in risk watch" %}</span>
       </article>
-      <article class="cp-health-card cp-health-card-success">
+      <article class="cp-health-card cp-health-card-success rmc-reveal">
         <span class="cp-health-label">{% trans "Revenue posture" %}</span>
         <strong class="cp-health-value">{{ north_star_formatted }}</strong>
         <span class="cp-health-meta">{% trans "Use month picker below for detail" %}</span>
       </article>
-      <article class="cp-health-card cp-health-card-neutral">
+      <article class="cp-health-card cp-health-card-neutral rmc-reveal">
         <span class="cp-health-label">{% trans "System health" %}</span>
         <strong class="cp-health-value">{{ platform_health.overall_status|default:"unknown"|upper }}</strong>
         <span class="cp-health-meta">{% blocktrans with incidents=platform_incidents|length approvals=pending_approval_count %}Incidents {{ incidents }} · approvals {{ approvals }}{% endblocktrans %}</span>
@@ -205,9 +205,9 @@
   </div>
   {% endif %}
 
-  <div class="row g-4">
-    <div class="col-12 col-xxl-8">
-      <section class="cp-panel mb-4" id="cp-action-queue">
+  <div class="row g-4 rmc-reveal-stagger">
+    <div class="col-12 col-xxl-8 rmc-reveal">
+      <section class="cp-panel mb-4 rmc-reveal" id="cp-action-queue">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "Queue board" %}</span>
@@ -220,7 +220,7 @@
           </div>
         </div>
         <div class="cp-queue-grid">
-          <article class="cp-queue-card">
+          <article class="cp-queue-card rmc-reveal">
             <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open operational queues' %}">
               <h3 class="mb-0">{% trans "Pending approvals" %}</h3>
               <span>{{ pending_approval_count }}</span>
@@ -243,7 +243,7 @@
             </div>
           </article>
 
-          <article class="cp-queue-card">
+          <article class="cp-queue-card rmc-reveal">
             {% if platform_incidents_url %}
             <a href="{{ platform_incidents_url }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open incident console' %}">
               <h3 class="mb-0">{% trans "Platform incidents" %}</h3>
@@ -273,7 +273,7 @@
             {% endif %}
           </article>
 
-          <article class="cp-queue-card">
+          <article class="cp-queue-card rmc-reveal">
             <div class="cp-queue-card-header">
               <h3>{% trans "Billing exceptions" %}</h3>
               <span>{{ billing_watchlist|length }}</span>
@@ -294,7 +294,7 @@
             <a href="{% url 'super:billing_dashboard' %}" class="cp-subtle-link">{% trans "Open billing console" %}</a>
           </article>
 
-          <article class="cp-queue-card">
+          <article class="cp-queue-card rmc-reveal">
             <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open operational queues' %}">
               <h3 class="mb-0">{% trans "Support and provisioning" %}</h3>
               <span>{{ stale_support_rows|length }} / {{ provisioning_breach_rows|length }}</span>
@@ -328,7 +328,7 @@
         </div>
       </section>
 
-      <section class="cp-panel mb-4" id="cp-fleet-health">
+      <section class="cp-panel mb-4 rmc-reveal" id="cp-fleet-health">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "Fleet health" %}</span>
@@ -341,7 +341,7 @@
         </div>
         <div class="cp-health-grid">
           {% for card in platform_health_cards %}
-          <article class="cp-health-card cp-health-card-{{ card.tone|default:'neutral' }}">
+          <article class="cp-health-card cp-health-card-{{ card.tone|default:'neutral' }}" class="rmc-reveal">
             <span class="cp-health-label">{{ card.label }}</span>
             <strong class="cp-health-value">{{ card.value }}</strong>
             <span class="cp-health-meta">{{ card.meta }}</span>
@@ -443,7 +443,7 @@
         {% endif %}
       </section>
 
-      <section class="cp-panel mb-4" id="cp-global-footprint">
+      <section class="cp-panel mb-4 rmc-reveal" id="cp-global-footprint">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "Global footprint" %}</span>
@@ -536,7 +536,7 @@
         </div>
       </section>
 
-      <section class="cp-panel" id="cp-tenant-registry">
+      <section class="cp-panel rmc-reveal" id="cp-tenant-registry">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "School registry" %}</span>
@@ -678,8 +678,8 @@
       </section>
     </div>
 
-    <div class="col-12 col-xxl-4">
-      <section class="cp-panel mb-4">
+    <div class="col-12 col-xxl-4 rmc-reveal">
+      <section class="cp-panel mb-4 rmc-reveal">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "Control modules" %}</span>
@@ -698,7 +698,7 @@
         </div>
       </section>
 
-      <section class="cp-panel mb-4" id="cp-readiness">
+      <section class="cp-panel mb-4 rmc-reveal" id="cp-readiness">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "Readiness" %}</span>
@@ -707,7 +707,7 @@
         </div>
         <div class="cp-readiness-grid">
           {% for card in readiness_cards %}
-          <article class="cp-readiness-card cp-readiness-card-{{ card.tone|default:'neutral' }}">
+          <article class="cp-readiness-card cp-readiness-card-{{ card.tone|default:'neutral' }}" class="rmc-reveal">
             <span class="cp-readiness-label">{{ card.label }}</span>
             <strong class="cp-readiness-value">{{ card.value }}</strong>
             <span class="cp-readiness-meta">{{ card.meta }}</span>
@@ -716,7 +716,7 @@
         </div>
       </section>
 
-      <section class="cp-panel mb-4">
+      <section class="cp-panel mb-4 rmc-reveal">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "Risk watch" %}</span>
@@ -738,7 +738,7 @@
         </div>
       </section>
 
-      <section class="cp-panel">
+      <section class="cp-panel rmc-reveal">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "Recent schools" %}</span>
@@ -771,5 +771,5 @@
 <script src="{% static 'js/manager-control-plane.js' %}"></script>
 <script type="application/json" id="page-data-schools__super_dashboard-1">{
   "var_super_dashboard_layout_url_escapejs": "{{ super_dashboard_layout_url|escapejs|escapejs }}"
-}</script><script src="{% static '_pages/schools__super_dashboard-1.js' %}"></script>
+}</script><script src="{% static 'js/_pages/schools__super_dashboard-1.js' %}"></script>
 {% endblock %}

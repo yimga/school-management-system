@@ -1,4 +1,4 @@
-{# Wave A — G1 (lexicon engine, 2026-05-14).
+{% comment %} Wave A — G1 (lexicon engine, 2026-05-14).
 
    Emits a compact <meta name="rmc-lexicon"> tag whose JSON value is the
    tenant's terminology overrides (only keys that differ from the registry
@@ -6,7 +6,7 @@
    RMC.term("student") in client code.
 
    Empty payload renders nothing — keeps the bandwidth cost zero for tenants
-   on platform defaults. #}
+   on platform defaults. {% endcomment %}
 {% if rmc_lexicon_meta %}
   <meta name="rmc-lexicon" content='{{ rmc_lexicon_meta }}'>
 {% endif %}

@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
-<script src="{% static '_pages/analytics__dashboard.js' %}"></script>
+<script src="{% static 'js/_pages/analytics__dashboard.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -268,8 +268,8 @@
   </div>
 </div>
 
-<div class="row g-3 mb-4" data-dashboard-column="main">
-  <div class="col-lg-4" data-widget-id="analytics-top-class-performers">
+<div class="row g-3 mb-4 rmc-reveal-stagger" data-dashboard-column="main">
+  <div class="col-lg-4 rmc-reveal" data-widget-id="analytics-top-class-performers">
     <div class="card shadow-sm h-100">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -298,7 +298,7 @@
       </div>
     </div>
   </div>
-  <div class="col-lg-4" data-widget-id="analytics-weak-subjects">
+  <div class="col-lg-4 rmc-reveal" data-widget-id="analytics-weak-subjects">
     <div class="card shadow-sm h-100">
       <div class="card-body d-flex flex-column">
         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -321,7 +321,7 @@
       </div>
     </div>
   </div>
-  <div class="col-lg-4" data-widget-id="analytics-teacher-compliance">
+  <div class="col-lg-4 rmc-reveal" data-widget-id="analytics-teacher-compliance">
     <div class="card shadow-sm h-100">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -379,8 +379,8 @@
   </div>
 {% endif %}
 
-<div id="insights-secondary" data-rmc-section-anchor class="row g-3 mb-3" data-dashboard-column="secondary">
-  <div class="col-lg-6" data-widget-id="analytics-top-class-term">
+<div id="insights-secondary" data-rmc-section-anchor class="row g-3 mb-3 rmc-reveal-stagger" data-dashboard-column="secondary">
+  <div class="col-lg-6 rmc-reveal" data-widget-id="analytics-top-class-term">
     <div class="card h-100">
       <div class="card-body">
         <h5 class="mb-2">{% trans "Top students (class, term)" %}</h5>
@@ -414,7 +414,7 @@
       </div>
     </div>
   </div>
-  <div class="col-lg-6" data-widget-id="analytics-top-school-term">
+  <div class="col-lg-6 rmc-reveal" data-widget-id="analytics-top-school-term">
     <div class="card h-100">
       <div class="card-body">
         <h5 class="mb-2">{% trans "Top students (school, term)" %}</h5>
@@ -446,8 +446,8 @@
   </div>
 </div>
 
-<div class="row g-3 mb-3" data-dashboard-column="secondary">
-  <div class="col-lg-6" data-widget-id="analytics-top-class-annual">
+<div class="row g-3 mb-3 rmc-reveal-stagger" data-dashboard-column="secondary">
+  <div class="col-lg-6 rmc-reveal" data-widget-id="analytics-top-class-annual">
     <div class="card h-100">
       <div class="card-body">
         <h5 class="mb-2">{% trans "Top students (class, annual)" %}</h5>
@@ -481,7 +481,7 @@
       </div>
     </div>
   </div>
-  <div class="col-lg-6" data-widget-id="analytics-top-school-annual">
+  <div class="col-lg-6 rmc-reveal" data-widget-id="analytics-top-school-annual">
     <div class="card h-100">
       <div class="card-body">
         <h5 class="mb-2">{% trans "Top students (school, annual)" %}</h5>
@@ -513,8 +513,8 @@
   </div>
 </div>
 
-<div id="insights-tertiary" data-rmc-section-anchor class="row g-3 mb-3" data-dashboard-column="tertiary">
-  <div class="col-lg-6" data-widget-id="analytics-weak-subject-focus">
+<div id="insights-tertiary" data-rmc-section-anchor class="row g-3 mb-3 rmc-reveal-stagger" data-dashboard-column="tertiary">
+  <div class="col-lg-6 rmc-reveal" data-widget-id="analytics-weak-subject-focus">
     <div class="card h-100">
       <div class="card-body">
         <h5 class="mb-2">{% trans "Weak subject focus" %}</h5>
@@ -545,7 +545,7 @@
       </div>
     </div>
   </div>
-  <div class="col-lg-6" data-widget-id="analytics-improvement-list">
+  <div class="col-lg-6 rmc-reveal" data-widget-id="analytics-improvement-list">
     <div class="card h-100">
       <div class="card-body">
         <h5 class="mb-2">{% trans "Student improvement list" %}</h5>
@@ -580,8 +580,8 @@
   </div>
 </div>
 
-<div class="row g-3 mb-3" data-dashboard-column="tertiary">
-  <div class="col-lg-6" data-widget-id="analytics-teacher-deadlines">
+<div class="row g-3 mb-3 rmc-reveal-stagger" data-dashboard-column="tertiary">
+  <div class="col-lg-6 rmc-reveal" data-widget-id="analytics-teacher-deadlines">
     <div class="card h-100">
       <div class="card-body">
         <h5 class="mb-2">{% trans "Teacher deadline compliance" %}</h5>
@@ -618,7 +618,7 @@
       </div>
     </div>
   </div>
-  <div class="col-lg-6" data-widget-id="analytics-specialty-pass-rates">
+  <div class="col-lg-6 rmc-reveal" data-widget-id="analytics-specialty-pass-rates">
     <div class="card h-100">
       <div class="card-body">
         <h5 class="mb-2">{% trans "Specialty pass rates" %}</h5>
@@ -658,6 +658,6 @@
 {% block extrajs %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
-<script src="{% static '_pages/analytics__dashboard-2.js' %}"></script>
+<script src="{% static 'js/_pages/analytics__dashboard-2.js' %}"></script>
 </div>
 {% endblock %}

@@ -24,23 +24,23 @@
   {# ───────── 1. HERO ───────── #}
   <section class="mkt-edt-section mkt-edt-hero" aria-labelledby="hero-headline">
     <div class="mkt-edt-container mkt-edt-hero__grid">
-      <div class="mkt-edt-hero__copy">
-        <h1 id="hero-headline" class="mkt-edt-hero-headline">
+      <div class="mkt-edt-hero__copy rmc-arrival">
+        <h1 id="hero-headline" class="mkt-edt-hero-headline rmc-reveal">
           {% trans "Run your school the way your school actually runs." %}
         </h1>
-        <p class="mkt-edt-lead mkt-edt-hero__lead">
+        <p class="mkt-edt-lead mkt-edt-hero__lead rmc-reveal">
           {% trans "One quiet system behind admissions, classrooms, fees, and the message you send a parent at 8:14 a.m." %}
         </p>
-        <div class="mkt-edt-hero__ctas">
-          <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo" data-page="home-v2" data-mkt-tactile>
+        <div class="mkt-edt-hero__ctas rmc-reveal">
+          <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta rmc-tactile-48" data-cta="demo" data-page="home-v2" data-mkt-tactile>
             {% trans "Book a demo" %}
           </a>
-          <a href="{% url 'marketing_resources_product_tour' %}" class="mkt-edt-cta mkt-edt-cta--ghost" data-mkt-tactile>
+          <a href="{% url 'marketing_resources_product_tour' %}" class="mkt-edt-cta mkt-edt-cta--ghost rmc-tactile-48" data-mkt-tactile>
             {% trans "See it live" %}
           </a>
         </div>
 
-        <ul class="mkt-edt-hero__stats" aria-label="{% trans 'Quick proof points' %}">
+        <ul class="mkt-edt-hero__stats rmc-reveal" aria-label="{% trans 'Quick proof points' %}">
           <li class="mkt-edt-hero__stat">
             <span class="mkt-edt-hero__stat-value">8 weeks</span>
             <span class="mkt-edt-hero__stat-label">{% trans "to fully switch from legacy SIS" %}</span>
@@ -59,7 +59,7 @@
         Inline mini-quote — fills the hero's empty left column with a
         human voice instead of dead space.
         {% endcomment %}
-        <figure class="mkt-edt-hero__voice">
+        <figure class="mkt-edt-hero__voice rmc-reveal">
           <svg class="mkt-edt-hero__voice-avatar" viewBox="0 0 40 40" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
             <defs><linearGradient id="hero-av" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FED7AA"/><stop offset="100%" stop-color="#C2410C"/></linearGradient></defs>
             <circle cx="20" cy="20" r="20" fill="url(#hero-av)"/>
@@ -71,19 +71,19 @@
           </blockquote>
         </figure>
 
-        <p class="mkt-edt-hero__trust">
+        <p class="mkt-edt-hero__trust rmc-reveal">
           {% trans "K–12 · International · Networks · Faith-based · Day schools · Low-connectivity" %}
         </p>
       </div>
 
-      <div class="mkt-edt-hero__artifact mkt-edt-hero__artifact--briefing" aria-hidden="true" data-mkt-parallax="0.06">
+      <div class="mkt-edt-hero__artifact mkt-edt-hero__artifact--briefing rmc-reveal rmc-reveal--scale" aria-hidden="true" data-mkt-parallax="0.06">
         {% include "schools/_v2/_artifact_today_briefing.svg.html" %}
       </div>
     </div>
   </section>
 
   {# ───────── 1.25  "TRUSTED ACROSS" CREST STRIP ───────── #}
-  <section class="mkt-edt-crests" aria-labelledby="crests-headline" data-mkt-reveal>
+  <section class="mkt-edt-crests rmc-reveal" aria-labelledby="crests-headline" data-mkt-reveal>
     <div class="mkt-edt-container">
       <p id="crests-headline" class="mkt-edt-crests__caption">
         {% trans "Designed for the shapes schools actually come in." %}
@@ -98,7 +98,7 @@
   <hr class="mkt-edt-rule">
 
   {# ───────── 1.5  STORY: A TUESDAY AT CEDAR RIDGE ───────── #}
-  <section class="mkt-edt-section mkt-edt-narrative" aria-labelledby="story-headline" data-mkt-reveal>
+  <section class="mkt-edt-section mkt-edt-narrative rmc-reveal" aria-labelledby="story-headline" data-mkt-reveal>
     <div class="mkt-edt-container">
       <header class="mkt-edt-narrative__intro">
         <p class="mkt-edt-eyebrow">{% trans "A day at one school" %}</p>
@@ -204,7 +204,7 @@
   <hr class="mkt-edt-rule">
 
   {# ───────── 2. FIVE JOBS ───────── #}
-  <section class="mkt-edt-section" aria-labelledby="jobs-headline">
+  <section class="mkt-edt-section rmc-reveal" aria-labelledby="jobs-headline">
     <div class="mkt-edt-container">
       <header class="mkt-edt-jobs__intro">
         <p class="mkt-edt-eyebrow">{% trans "What people actually do here" %}</p>
@@ -345,7 +345,7 @@
   <hr class="mkt-edt-rule">
 
   {# ───────── 2.5  "WHAT CHANGES" — ROI PANEL ───────── #}
-  <section class="mkt-edt-section mkt-edt-roi" aria-labelledby="roi-headline" data-mkt-reveal>
+  <section class="mkt-edt-section mkt-edt-roi rmc-reveal" aria-labelledby="roi-headline" data-mkt-reveal>
     <div class="mkt-edt-container">
       <header class="mkt-edt-roi__intro">
         <p class="mkt-edt-eyebrow">{% trans "What changes when you switch" %}</p>
@@ -395,7 +395,7 @@
   {% endif %}
 
   {# ───────── 2.75  GEOGRAPHIC MOMENT — WORLD MAP (full-bleed) ───────── #}
-  <section class="mkt-edt-section mkt-edt-globe mkt-edt-globe--fullbleed" aria-labelledby="globe-headline" data-mkt-reveal>
+  <section class="mkt-edt-section mkt-edt-globe mkt-edt-globe--fullbleed rmc-reveal" aria-labelledby="globe-headline" data-mkt-reveal>
     <div class="mkt-edt-container">
       <header class="mkt-edt-globe__intro">
         <p class="mkt-edt-eyebrow">{% trans "Multi-tenant, region-aware" %}</p>
@@ -422,7 +422,7 @@
   <hr class="mkt-edt-rule">
 
   {# 2.9 INTERACTIVE: Switch the lens — CSS-only radio-driven tabbed walkthrough. #}
-  <section class="mkt-edt-section mkt-edt-lens" aria-labelledby="lens-headline" data-mkt-reveal>
+  <section class="mkt-edt-section mkt-edt-lens rmc-reveal" aria-labelledby="lens-headline" data-mkt-reveal>
     <div class="mkt-edt-container">
       <header class="mkt-edt-lens__intro">
         <p class="mkt-edt-eyebrow">{% trans "Switch the lens" %}</p>
@@ -533,7 +533,7 @@
   <hr class="mkt-edt-rule">
 
   {# 2.95 EDITORIAL TESTIMONIAL — charcoal-inverted ground for visual variety. #}
-  <section class="mkt-edt-section mkt-edt-testimonial mkt-edt-testimonial--inverted" aria-labelledby="testimonial-headline" data-mkt-reveal>
+  <section class="mkt-edt-section mkt-edt-testimonial mkt-edt-testimonial--inverted rmc-reveal" aria-labelledby="testimonial-headline" data-mkt-reveal>
     <div class="mkt-edt-container-narrow mkt-edt-testimonial__inner">
       <span class="mkt-edt-testimonial__mark" aria-hidden="true">&ldquo;</span>
       <blockquote class="mkt-edt-testimonial__quote">
@@ -552,7 +552,7 @@
   <hr class="mkt-edt-rule">
 
   {# ───────── 2.96  ILLUSTRATIVE VOICES — 3 testimonial cards ───────── #}
-  <section class="mkt-edt-section mkt-edt-voices" aria-labelledby="voices-headline" data-mkt-reveal>
+  <section class="mkt-edt-section mkt-edt-voices rmc-reveal" aria-labelledby="voices-headline" data-mkt-reveal>
     <div class="mkt-edt-container">
       <header class="mkt-edt-voices__intro">
         <p class="mkt-edt-eyebrow">{% trans "Voices" %}</p>
@@ -623,7 +623,7 @@
   <hr class="mkt-edt-rule">
 
   {# ───────── 2.965  AS FEATURED IN — stylized press strip ───────── #}
-  <section class="mkt-edt-section mkt-edt-press" aria-labelledby="press-headline" data-mkt-reveal>
+  <section class="mkt-edt-section mkt-edt-press rmc-reveal" aria-labelledby="press-headline" data-mkt-reveal>
     <div class="mkt-edt-container">
       <p id="press-headline" class="mkt-edt-press__caption">
         {% trans "Covered in school operations conversations everywhere." %}
@@ -657,7 +657,7 @@
   <hr class="mkt-edt-rule">
 
   {# ───────── 2.97  60-SECOND WALKTHROUGH VIDEO ───────── #}
-  <section class="mkt-edt-section mkt-edt-walkthrough" aria-labelledby="walkthrough-headline" data-mkt-reveal>
+  <section class="mkt-edt-section mkt-edt-walkthrough rmc-reveal" aria-labelledby="walkthrough-headline" data-mkt-reveal>
     <div class="mkt-edt-container">
       <header class="mkt-edt-walkthrough__intro">
         <p class="mkt-edt-eyebrow">{% trans "Sixty seconds" %}</p>
@@ -677,9 +677,11 @@
       {% endcomment %}
       <a href="{% url 'marketing_resources_product_tour' %}" class="mkt-edt-walkthrough__poster" aria-label="{% trans 'Watch the 60-second walkthrough' %}" data-mkt-tactile>
         <figure class="mkt-edt-walkthrough__stage" aria-hidden="true">
+          {% comment %} Poster intentionally omitted — the inlined SVG reel
+             at .mkt-edt-walkthrough__reel below provides the visual fallback
+             until real <source> footage is wired in. {% endcomment %}
           <video
             class="mkt-edt-walkthrough__video"
-            poster="{% static 'images/marketing/walkthrough-poster.png' %}"
             preload="none"
             playsinline
             muted
@@ -721,7 +723,7 @@
   <hr class="mkt-edt-rule">
 
   {# ───────── 3. SWITCHING MOMENT ───────── #}
-  <section class="mkt-edt-section mkt-edt-switching" aria-labelledby="switching-headline" data-mkt-reveal>
+  <section class="mkt-edt-section mkt-edt-switching rmc-reveal" aria-labelledby="switching-headline" data-mkt-reveal>
     <div class="mkt-edt-container-narrow mkt-edt-switching__inner">
       <p class="mkt-edt-eyebrow">{% trans "Coming from somewhere else?" %}</p>
       <h2 id="switching-headline" class="mkt-edt-section-headline mkt-edt-switching__headline">
@@ -739,7 +741,7 @@
   <hr class="mkt-edt-rule">
 
   {# ───────── 3.25  ASYMMETRIC COMPARE: LEGACY vs. RUNMYCAMPUS ───────── #}
-  <section class="mkt-edt-section mkt-edt-compare" aria-labelledby="compare-headline" data-mkt-reveal>
+  <section class="mkt-edt-section mkt-edt-compare rmc-reveal" aria-labelledby="compare-headline" data-mkt-reveal>
     <div class="mkt-edt-container mkt-edt-compare__inner">
       <header class="mkt-edt-compare__intro">
         <p class="mkt-edt-eyebrow">{% trans "Side by side" %}</p>
@@ -749,7 +751,7 @@
       </header>
 
       <div class="mkt-edt-compare__split">
-        <article class="mkt-edt-compare__col mkt-edt-compare__col--legacy">
+        <article class="mkt-edt-compare__col mkt-edt-compare__col--legacy rmc-reveal">
           <header>
             <span class="mkt-edt-compare__tag">{% trans "Legacy stack" %}</span>
             <h3>{% trans "Tabs. Spreadsheets. Chase calls." %}</h3>
@@ -764,7 +766,7 @@
           </ul>
         </article>
 
-        <article class="mkt-edt-compare__col mkt-edt-compare__col--us">
+        <article class="mkt-edt-compare__col mkt-edt-compare__col--us rmc-reveal">
           <header>
             <span class="mkt-edt-compare__tag mkt-edt-compare__tag--us">{% trans "On RunMyCampus" %}</span>
             <h3>{% trans "One thread. Six bells. Quiet." %}</h3>
@@ -789,7 +791,7 @@
   <hr class="mkt-edt-rule">
 
   {# ───────── 4. PRICING TEASER ───────── #}
-  <section class="mkt-edt-section" aria-labelledby="pricing-headline" data-mkt-reveal>
+  <section class="mkt-edt-section rmc-reveal" aria-labelledby="pricing-headline" data-mkt-reveal>
     <div class="mkt-edt-container">
       <header class="mkt-edt-pricing__intro">
         <p class="mkt-edt-eyebrow">{% trans "Pricing" %}</p>
@@ -799,7 +801,7 @@
       </header>
 
       <div class="mkt-edt-pricing">
-        <article class="mkt-edt-plan">
+        <article class="mkt-edt-plan rmc-reveal">
           <header class="mkt-edt-plan__header">
             <h3 class="mkt-edt-plan__name">{% trans "Starter" %}</h3>
             <p class="mkt-edt-plan__line">{% trans "One school, the essentials, ready in days." %}</p>
@@ -818,7 +820,7 @@
           <a href="{% url 'marketing_demo' %}" class="mkt-edt-plan__cta" data-mkt-tactile>{% trans "Start with one school →" %}</a>
         </article>
 
-        <article class="mkt-edt-plan mkt-edt-plan--featured">
+        <article class="mkt-edt-plan mkt-edt-plan--featured rmc-reveal">
           <span class="mkt-edt-plan__badge">{% trans "Most chosen" %}</span>
           <header class="mkt-edt-plan__header">
             <h3 class="mkt-edt-plan__name">{% trans "Growth" %}</h3>
@@ -839,7 +841,7 @@
           <a href="{% url 'marketing_demo' %}" class="mkt-edt-plan__cta" data-mkt-tactile>{% trans "Book a Growth demo →" %}</a>
         </article>
 
-        <article class="mkt-edt-plan">
+        <article class="mkt-edt-plan rmc-reveal">
           <header class="mkt-edt-plan__header">
             <h3 class="mkt-edt-plan__name">{% trans "Enterprise" %}</h3>
             <p class="mkt-edt-plan__line">{% trans "Networks, districts, and schools answering to a board." %}</p>
@@ -871,7 +873,7 @@
   <hr class="mkt-edt-rule">
 
   {# ───────── 5. CLOSE CTA ───────── #}
-  <section class="mkt-edt-section mkt-edt-close" aria-labelledby="close-headline">
+  <section class="mkt-edt-section mkt-edt-close rmc-reveal" aria-labelledby="close-headline">
     <div class="mkt-edt-container-narrow mkt-edt-close__inner">
       <h2 id="close-headline" class="mkt-edt-section-headline mkt-edt-close__headline">
         {% trans "Less software. More school." %}

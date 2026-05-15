@@ -9,7 +9,7 @@
 
 {% block content %}
 <section class="proof-page">
-  <section class="proof-hero">
+  <section class="proof-hero rmc-reveal">
     <div class="proof-hero-grid">
       <div>
         <div class="proof-kicker"><i class="bi bi-shuffle"></i> {% trans "Migration simulator" %}</div>
@@ -29,7 +29,7 @@
   </section>
 
   {% if selected_source %}
-  <section class="proof-split">
+  <section class="proof-split rmc-reveal">
     <div class="proof-panel">
       <h2 class="proof-panel-title">{% trans "Typical timeline" %}</h2>
       <p class="proof-panel-copy">{{ selected_source.typical_timeline }}</p>
@@ -40,9 +40,9 @@
     </div>
   </section>
 
-  <section class="proof-flow">
+  <section class="proof-flow rmc-reveal">
     {% for step in selected_source.steps %}
-    <article class="proof-step">
+    <article class="proof-step rmc-reveal">
       <span class="proof-step-order">{{ step.order }}</span>
       <h3>{{ step.title }}</h3>
       <p>{{ step.description }}</p>
@@ -50,7 +50,7 @@
     {% endfor %}
   </section>
 
-  <section class="proof-panel">
+  <section class="proof-panel rmc-reveal">
     <h2 class="proof-panel-title">{% trans "Field mapping examples" %}</h2>
     <div class="proof-compare-table">
       <table>
@@ -76,7 +76,7 @@
   </section>
   {% endif %}
 
-  <section class="proof-panel">
+  <section class="proof-panel rmc-reveal">
     <div class="proof-hero-actions">
       <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="demo" data-page="migration-simulator">{% trans "Request migration assessment" %}</a>
       <a href="{% url 'migrate_marketing_page' %}" class="btn btn-outline-primary">{% trans "Migration overview" %}</a>

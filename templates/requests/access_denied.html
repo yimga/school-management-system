@@ -10,7 +10,7 @@
   <div class="col-lg-6 mx-auto">
     <div class="card shadow-sm">
       <div class="card-body text-center">
-        <p class="mb-2"><i class="bi bi-shield-exclamation text-warning" style="font-size: 2.5rem;" aria-hidden="true"></i></p>
+        <p class="mb-2"><i class="bi bi-shield-exclamation text-warning" style="font-size: var(--type-size-headline-l);" aria-hidden="true"></i></p>
         <p class="text-muted mb-3">
           You do not have {{ action }} access for the <strong>{{ module|title }}</strong> module.
         </p>
@@ -30,5 +30,5 @@
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
 {# FormDraftSave.init is called by static/js/_pages/requests__access_denied.js after the library loads. #}
-<script src="{% static '_pages/requests__access_denied.js' %}"></script>
+<script src="{% static 'js/_pages/requests__access_denied.js' %}"></script>
 {% endblock %}

@@ -105,7 +105,7 @@ body {
   padding: 0.5rem 0.75rem;
   color: var(--admin-content-text, rgba(226, 232, 240, 0.96));
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
   border-bottom: 1px solid color-mix(in srgb, var(--admin-content-border, rgba(148, 163, 184, 0.35)) 75%, transparent);
   transition: background 0.15s;
 }
@@ -115,9 +115,9 @@ body {
   color: var(--header-brand-fg, var(--color-base-0));
 }
 .header-search-dropdown .search-result-item:last-child { border-bottom: none; }
-.header-search-dropdown .search-result-muted { font-size: 0.8rem; color: color-mix(in srgb, var(--admin-content-text, var(--color-base-300)) 72%, transparent); }
+.header-search-dropdown .search-result-muted { font-size: var(--type-size-caption); color: color-mix(in srgb, var(--admin-content-text, var(--color-base-300)) 72%, transparent); }
 .header-search-dropdown .search-result-empty,
-.header-search-dropdown .search-result-error { padding: 0.75rem; color: color-mix(in srgb, var(--admin-content-text, var(--color-base-300)) 72%, transparent); font-size: 0.9rem; }
+.header-search-dropdown .search-result-error { padding: 0.75rem; color: color-mix(in srgb, var(--admin-content-text, var(--color-base-300)) 72%, transparent); font-size: var(--type-size-body); }
 
 .topbar-actions.d-flex {
   display: grid !important;
@@ -169,7 +169,7 @@ body {
 
 .topbar-offline-status #sms-offline-sync-now-btn {
   margin-left: 0.22rem !important;
-  font-size: 0.78rem !important;
+  font-size: var(--type-size-eyebrow) !important;
 }
 
 .topbar-search.header-search-container {
@@ -203,7 +203,7 @@ body.layout-boxed .container-fluid {
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 0.68rem;
+  font-size: var(--type-size-micro);
   line-height: 1;
   color: var(--portal-search-kbd-fg, rgba(255, 255, 255, 0.88));
   border: 1px solid var(--portal-search-kbd-border, rgba(255, 255, 255, 0.42));
@@ -324,7 +324,7 @@ body.backend-shell .page-wrap {
 }
 
 .widget-title {
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--portal-text-muted);
@@ -461,7 +461,7 @@ body.backend-shell .page-wrap {
 
   .search-bar-wrapper input {
     width: 120px !important;
-    font-size: 0.85rem;
+    font-size: var(--type-size-caption);
   }
 
   .widget-grid {
@@ -475,7 +475,7 @@ body.backend-shell .page-wrap {
   }
 
   .widget-title {
-    font-size: 0.8rem;
+    font-size: var(--type-size-caption);
   }
 
   .sidebar {
@@ -617,7 +617,7 @@ body.backend-shell .page-wrap {
 @media (max-width: var(--bp-below-wide, 1023px)) {
   .communication-link {
     min-width: 140px;
-    font-size: 0.85rem;
+    font-size: var(--type-size-caption);
   }
 }
 
@@ -670,19 +670,19 @@ body.backend-shell .page-wrap {
 }
 
 .dashboard-hero .hero-title {
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
   text-transform: uppercase;
   letter-spacing: 0.2em;
   opacity: 0.85;
 }
 
 .dashboard-hero .hero-value {
-  font-size: 2.5rem;
+  font-size: var(--type-size-headline-l);
   font-weight: 700;
 }
 
 .dashboard-hero .hero-metric {
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
   margin-left: auto;
   text-align: right;
 }
@@ -707,7 +707,7 @@ body.backend-shell .page-wrap {
   color: var(--portal-chathead-fg, var(--color-base-0));
   box-shadow: 0 4px 14px color-mix(in srgb, var(--school-primary) 46%, transparent);
   text-decoration: none;
-  font-size: 1.2rem;
+  font-size: var(--type-size-body-l);
   z-index: 10000;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -723,7 +723,7 @@ body.backend-shell .page-wrap {
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  font-size: 0.7rem;
+  font-size: var(--type-size-micro);
   font-weight: 700;
   line-height: 18px;
   text-align: center;

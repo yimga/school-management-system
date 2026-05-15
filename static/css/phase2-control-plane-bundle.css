@@ -55,16 +55,16 @@
   /* Form: no spill — everything stays inside card */
   .theme-experience-form-card .card-body { border-radius: 0.25rem; padding-left: 0.75rem; padding-right: 0.5rem; }
   .theme-experience-form-body .form-label,
-  .theme-experience-form-body label { font-size: 0.8125rem; margin-bottom: 0.15rem; }
+  .theme-experience-form-body label { font-size: var(--type-size-caption); margin-bottom: 0.15rem; }
   .theme-experience-form-body .form-control,
   .theme-experience-form-body .form-select {
-    font-size: 0.8125rem;
+    font-size: var(--type-size-caption);
     padding: 0.2rem 0.4rem;
     min-height: 1.75rem;
     max-width: 100%;
     box-sizing: border-box;
   }
-  .theme-experience-form-body .form-check-label { font-size: 0.8125rem; }
+  .theme-experience-form-body .form-check-label { font-size: var(--type-size-caption); }
   .theme-experience-form-body .row { margin-left: 0; margin-right: 0; }
   .theme-experience-form-body [class^="col-"] { max-width: 100%; padding-left: 0.5rem; }
   .theme-experience-form-body .form-check { padding-left: 0.5rem; }

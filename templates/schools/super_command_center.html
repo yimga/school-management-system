@@ -67,22 +67,22 @@
   </section>
 
   <div class="cp-overview-grid mb-4">
-    <article class="cp-overview-card cp-overview-card-blue">
+    <article class="cp-overview-card cp-overview-card-blue rmc-reveal">
       <span class="cp-overview-label">{% trans "Pending approvals" %}</span>
       <strong class="cp-overview-value">{{ pending_schools|length }}</strong>
       <span class="cp-overview-meta">{% trans "Schools blocked before activation" %}</span>
     </article>
-    <article class="cp-overview-card cp-overview-card-amber">
+    <article class="cp-overview-card cp-overview-card-amber rmc-reveal">
       <span class="cp-overview-label">{% trans "Support backlog 48h+" %}</span>
       <strong class="cp-overview-value">{{ command_center.support_backlog_48h_count }}</strong>
       <span class="cp-overview-meta">{% blocktrans with n=command_center.support_backlog_7d_count %}{{ n }} older than seven days{% endblocktrans %}</span>
     </article>
-    <article class="cp-overview-card cp-overview-card-crimson">
+    <article class="cp-overview-card cp-overview-card-crimson rmc-reveal">
       <span class="cp-overview-label">{% trans "Live incidents" %}</span>
       <strong class="cp-overview-value">{{ platform_incidents|length }}</strong>
       <span class="cp-overview-meta">{% blocktrans with o=incident_counts.open|default:0 a=incident_counts.acknowledged|default:0 %}{{ o }} open / {{ a }} acknowledged{% endblocktrans %}</span>
     </article>
-    <article class="cp-overview-card cp-overview-card-violet">
+    <article class="cp-overview-card cp-overview-card-violet rmc-reveal">
       <span class="cp-overview-label">{% trans "Billing watchlist" %}</span>
       <strong class="cp-overview-value">{{ billing_watchlist|length }}</strong>
       <span class="cp-overview-meta">{% trans "Past due and suspended subscriptions" %}</span>
@@ -102,7 +102,7 @@
 
   <div class="row g-4">
     <div class="col-12 col-xl-6">
-      <section class="cp-panel">
+      <section class="cp-panel rmc-reveal">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "Approvals" %}</span>
@@ -126,7 +126,7 @@
     </div>
 
     <div class="col-12 col-xl-6">
-      <section class="cp-panel">
+      <section class="cp-panel rmc-reveal">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "Free trials" %}</span>
@@ -150,7 +150,7 @@
     </div>
 
     <div class="col-12 col-xl-6">
-      <section class="cp-panel">
+      <section class="cp-panel rmc-reveal">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "Provisioning" %}</span>
@@ -174,7 +174,7 @@
     </div>
 
     <div class="col-12 col-xl-6">
-      <section class="cp-panel">
+      <section class="cp-panel rmc-reveal">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "Support" %}</span>
@@ -198,7 +198,7 @@
     </div>
 
     <div class="col-12 col-xl-6">
-      <section class="cp-panel">
+      <section class="cp-panel rmc-reveal">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "Incident response" %}</span>
@@ -222,7 +222,7 @@
     </div>
 
     <div class="col-12 col-xl-6">
-      <section class="cp-panel">
+      <section class="cp-panel rmc-reveal">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "Billing" %}</span>
@@ -246,7 +246,7 @@
     </div>
 
     <div class="col-12 col-xl-6">
-      <section class="cp-panel">
+      <section class="cp-panel rmc-reveal">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "Churn risk" %}</span>
@@ -270,7 +270,7 @@
     </div>
 
     <div class="col-12 col-xl-6">
-      <section class="cp-panel">
+      <section class="cp-panel rmc-reveal">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "Stack posture" %}</span>

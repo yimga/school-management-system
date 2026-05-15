@@ -91,7 +91,7 @@ body {
 .portal-body-with-layout thead th,
 .cp-shell-content thead th {
   color: var(--rmc-polish-muted);
-  font-size: 0.78rem;
+  font-size: var(--type-size-eyebrow);
   letter-spacing: 0;
   text-transform: none;
 }

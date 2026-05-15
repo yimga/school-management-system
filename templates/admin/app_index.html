@@ -27,7 +27,7 @@
                 {% if model.admin_url %}
                   <a href="{{ model.admin_url }}" class="admin-app-index__card-link"{% if model.admin_url in request.path %} aria-current="page"{% endif %}>
                     {{ model.name }}
-                    <span class="material-symbols-outlined" style="font-size: 18px;">chevron_right</span>
+                    <span class="material-symbols-outlined" style="font-size: var(--type-size-body-l);">chevron_right</span>
                   </a>
                 {% else %}
                   <span class="admin-app-index__card-link">{{ model.name }}</span>

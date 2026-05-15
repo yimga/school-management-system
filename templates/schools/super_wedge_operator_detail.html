@@ -35,7 +35,7 @@
   </section>
 
   {% if deep_links %}
-  <section class="mb-4" aria-label="{% trans 'Deep links' %}">
+  <section class="mb-4 rmc-reveal" aria-label="{% trans 'Deep links' %}">
     <h2 class="h6 text-white">{% trans "Grouped operator surfaces" %}</h2>
     <div class="d-flex flex-wrap gap-2">
       {% for l in deep_links %}
@@ -46,7 +46,7 @@
   {% endif %}
 
   {% if native_roster_url %}
-  <section class="mb-4" aria-label="{% trans 'Native roster' %}">
+  <section class="mb-4 rmc-reveal" aria-label="{% trans 'Native roster' %}">
     <h2 class="h6 text-white">{% trans "Native Clever / ClassLink" %}</h2>
     <p class="small text-white-50">{% trans "Run live API probes with district credentials (super only)." %}</p>
     <a href="{{ native_roster_url }}" class="btn btn-primary btn-sm">{% trans "Open native roster console" %}</a>

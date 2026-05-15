@@ -75,7 +75,7 @@ body[data-dashboard-page="backend"] [data-widget-id] .card:hover {
 
 /* Size presets: tune density without breaking the underlying layout grid. */
 [data-widget-id][data-widget-size="sm"] {
-  font-size: 0.92rem;
+  font-size: var(--type-size-body);
 }
 [data-widget-id][data-widget-size="sm"] .card-body {
   padding: 0.75rem !important;
@@ -89,7 +89,7 @@ body[data-dashboard-page="backend"] [data-widget-id] .card:hover {
 }
 
 [data-widget-id][data-widget-size="lg"] {
-  font-size: 1.02rem;
+  font-size: var(--type-size-body-l);
 }
 [data-widget-id][data-widget-size="lg"] .card-body {
   padding: 1.25rem !important;
@@ -127,7 +127,7 @@ body[data-dashboard-page="backend"] [data-widget-id] .card:hover {
   width: 2.15rem;
   height: 2.15rem;
   line-height: 2rem;
-  font-size: 1.25rem;
+  font-size: var(--type-size-body-l);
   padding: 0;
   cursor: pointer;
 }
@@ -170,7 +170,7 @@ html[data-theme="light"] .dash-widget-menu {
 }
 
 .dash-widget-row label {
-  font-size: 0.78rem;
+  font-size: var(--type-size-eyebrow);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: rgba(148, 163, 184, 0.9);
@@ -187,7 +187,7 @@ html[data-theme="light"] .dash-widget-row label {
   background: rgba(15, 23, 42, 0.7);
   color: rgba(226, 232, 240, 0.95);
   padding: 0.35rem 0.5rem;
-  font-size: 0.9rem;
+  font-size: var(--type-size-body);
 }
 
 html[data-theme="light"] .dash-widget-row select {
@@ -248,7 +248,7 @@ html[data-theme="light"] .dash-widget-row select {
   cursor: grabbing;
 }
 .dashboard-widget-grip-dots {
-  font-size: 1rem;
+  font-size: var(--type-size-body);
   letter-spacing: -0.2em;
   line-height: 1;
 }
@@ -288,7 +288,7 @@ html[data-theme="light"] .dash-widget-row select {
 /* Mobile: up/down reorder buttons (alternative to drag on touch) */
 .dash-widget-move-btn {
   padding: 0.15rem 0.3rem;
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
   min-width: 1.5rem;
   border: 1px solid rgba(0,0,0,0.1);
   background: rgba(255,255,255,0.9);
@@ -331,7 +331,7 @@ html[data-theme="light"] .dash-widget-row select {
     width: 1.8rem;
     height: 1.8rem;
     line-height: 1.6rem;
-    font-size: 1.1rem;
+    font-size: var(--type-size-body-l);
   }
   
 }

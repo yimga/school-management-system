@@ -8,7 +8,7 @@ For every page-level template that has at least one inline executable
 2. Classifies it:
    - **PURE_JS** — no Django ``{{ }}`` or ``{% %}`` tags inside the script body.
      → Convert to an external ``static/js/_pages/<slug>.js`` file + replace the
-       inline block with ``<script src="{% static '_pages/<slug>.js' %}"></script>``.
+       inline block with ``<script src="{% static 'js/_pages/<slug>.js' %}"></script>``.
    - **DJANGO_INTERPOLATED** — has ``{{ }}`` or ``{% %}``.
      → Skip (operator must convert to a JSON data island manually because the
        payload schema is page-specific). The helper logs the file so an
@@ -130,7 +130,7 @@ def _externalize_pure_js(
         out_path = OUT_DIR / out_name
 
         replacement = (
-            f'<script src="{{% static \'_pages/{out_name}\' %}}"></script>'
+            f'<script src="{{% static \'js/_pages/{out_name}\' %}}"></script>'
         )
         if write:
             OUT_DIR.mkdir(parents=True, exist_ok=True)

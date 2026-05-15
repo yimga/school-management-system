@@ -503,15 +503,15 @@ html[data-bs-theme="dark"] ::selection {
 @media (max-width: 479px) {
   /* Font sizing for small screens */
   h1 {
-    font-size: 1.5rem;
+    font-size: var(--type-size-headline-m);
   }
 
   h2 {
-    font-size: 1.25rem;
+    font-size: var(--type-size-body-l);
   }
 
   h3 {
-    font-size: 1.1rem;
+    font-size: var(--type-size-body-l);
   }
 
   /* Reduce padding on mobile */
@@ -530,7 +530,7 @@ html[data-bs-theme="dark"] ::selection {
   /* Reduce button size */
   .btn {
     padding: var(--rmc-lit-9ef378ee07);
-    font-size: 0.875rem;
+    font-size: var(--type-size-caption);
     min-height: 44px; /* Touch target */
   }
 
@@ -575,7 +575,7 @@ html[data-bs-theme="dark"] ::selection {
 @media (max-width: 767px) {
   /* Optimize spacing for tablets */
   body {
-    font-size: 0.95rem;
+    font-size: var(--type-size-body);
   }
 
   /* Stack containers */
@@ -592,7 +592,7 @@ html[data-bs-theme="dark"] ::selection {
 
   /* Responsive tables */
   table {
-    font-size: 0.85rem;
+    font-size: var(--type-size-caption);
   }
 
   th, td {
@@ -623,7 +623,7 @@ html[data-bs-theme="dark"] ::selection {
 @media (min-width: 1024px) {
   /* Desktop optimizations */
   body {
-    font-size: 1rem;
+    font-size: var(--type-size-body);
   }
 
   /* Sidebar can be fixed on desktop */
@@ -746,10 +746,10 @@ html[data-bs-theme="dark"] ::selection {
 .table-condensed th,
 .table-condensed td {
   padding: var(--rmc-lit-f245eab363);
-  font-size: 0.8125rem;
+  font-size: var(--type-size-caption);
 }
 .table-condensed thead th {
-  font-size: 0.75rem;
+  font-size: var(--type-size-eyebrow);
 }
 
 /* Phase 15.2: Sticky table headers for scrollable tables */

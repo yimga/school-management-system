@@ -1,0 +1,28 @@
+{% load i18n %}<svg
+  class="rmc-illustration rmc-illustration--first-run"
+  viewBox="0 0 240 180"
+  xmlns="http://www.w3.org/2000/svg"
+  role="img"
+  aria-labelledby="rmc-illu-first-run-title"
+  style="--rmc-illustration-accent: var(--rmc-illustration-accent, var(--brand-accent, #C1573A));">
+  <title id="rmc-illu-first-run-title">{% trans "Welcome" %}</title>
+  <!-- Sparkle constellation — quiet welcome. -->
+  <g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" opacity="0.85">
+    <path d="M 120 60
+             L 124 76
+             L 140 80
+             L 124 84
+             L 120 100
+             L 116 84
+             L 100 80
+             L 116 76 Z" fill="currentColor" opacity="0.18" />
+  </g>
+  <!-- Accent sparkles surrounding. -->
+  <g fill="var(--rmc-illustration-accent)">
+    <path d="M 70 132 L 72 138 L 78 140 L 72 142 L 70 148 L 68 142 L 62 140 L 68 138 Z" opacity="0.95" />
+    <path d="M 168 124 L 170 130 L 176 132 L 170 134 L 168 140 L 166 134 L 160 132 L 166 130 Z" opacity="0.85" />
+    <circle cx="92" cy="56" r="2.4" opacity="0.7" />
+    <circle cx="160" cy="60" r="1.8" opacity="0.6" />
+  </g>
+
+</svg>

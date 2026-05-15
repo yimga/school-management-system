@@ -221,7 +221,7 @@
         const previewBtn = document.createElement('button');
         previewBtn.type = 'button';
         previewBtn.className = 'site-settings-preview-btn btn btn-sm border border-base-200 dark:border-base-700 px-3 py-2 rounded-default';
-        previewBtn.innerHTML = '<span class="material-symbols-outlined" style="vertical-align:middle;font-size:1.1rem;">visibility</span> Preview';
+        previewBtn.innerHTML = '<span class="material-symbols-outlined" style="vertical-align:middle;font-size:var(--type-size-body-l);">visibility</span> Preview';
         previewBtn.title = '{% trans "Open site in new tab with current form values (unsaved)" %}';
         var keepWrap = document.createElement('label');
         keepWrap.className = 'd-inline-flex align-items-center gap-1 ms-2';

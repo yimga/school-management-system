@@ -1,5 +1,5 @@
 {% load static %}
-{# Open Graph + Twitter card meta tags. Reads from view context with sensible
+{% comment %} Open Graph + Twitter card meta tags. Reads from view context with sensible
    tenant-aware defaults. Include inside <head> on every shell.
 
    Context variables read (all optional, all have fallbacks):
@@ -11,7 +11,7 @@
      og_type        — "website" (default) | "article" | "profile"
      og_url         — Canonical URL (else request.build_absolute_uri)
      twitter_site   — @handle for the platform brand (env-driven).
-     twitter_creator— @handle for the page author. #}
+     twitter_creator— @handle for the page author. {% endcomment %}
 <meta property="og:type" content="{{ og_type|default:'website' }}">
 <meta property="og:title" content="{{ og_title|default:SITE.site_name|default:'RunMyCampus' }}">
 {% if og_description or seo_description or SITE.meta_description %}

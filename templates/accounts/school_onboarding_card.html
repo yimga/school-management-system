@@ -34,7 +34,7 @@
     </ul>
     {% if rmc_school_health_nudges %}
     <div class="mt-2 pt-2 border-top small" data-rmc-activation-nudges="1">
-      <div class="text-muted text-uppercase mb-1" style="font-size:0.65rem;">{% trans "Suggested next" %}</div>
+      <div class="text-muted text-uppercase mb-1" style="font-size:var(--type-size-micro);">{% trans "Suggested next" %}</div>
       <ul class="mb-0 ps-3">
         {% for n in rmc_school_health_nudges %}
         <li><a href="{{ n.url }}">{{ n.label }}</a></li>

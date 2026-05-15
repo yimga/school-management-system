@@ -45,10 +45,14 @@ BASELINE_PATH = REPO_ROOT / "var" / "security-audit-baseline-role-strings.json"
 ROLE_TOKENS = frozenset({"ADMIN", "TEACHER", "PARENT", "STUDENT", "PROPRIETOR"})
 
 # Canonical SOT modules — role literals are allowed to live here.
+# `permissions.py` owns the ROLE_RANK + STUDENT_DATA_GLOBAL_ROLES hierarchy
+# tables, which are themselves the role-name registry for capability checks
+# (paralleling role_registry.py and User.Role TextChoices).
 SOT_MODULES = frozenset(
     {
         APPS_DIR / "platform_runtime" / "role_registry.py",
         APPS_DIR / "accounts" / "models.py",
+        APPS_DIR / "accounts" / "permissions.py",
     }
 )
 

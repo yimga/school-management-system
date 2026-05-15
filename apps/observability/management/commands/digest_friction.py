@@ -117,8 +117,7 @@ class Command(BaseCommand):
         if school is None or not lines:
             return None
         try:
-            from services.ai_gateway import TaskType  # noqa: PLC0415
-            from services.ai_helpers import invoke_with_request  # noqa: PLC0415
+            from services.ai_helpers import TaskType, invoke_with_request  # noqa: PLC0415
         except ImportError:
             return None
         prompt = (

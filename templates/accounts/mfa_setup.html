@@ -21,11 +21,11 @@
         {# Header — refined hairline + brand-tinted icon, replaces card-header bg-primary #}
         <div style="padding:22px 26px 18px;border-bottom:1px solid var(--admin-content-border);display:flex;gap:14px;align-items:center">
           <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--school-primary),color-mix(in oklab,var(--school-primary) 70%, var(--school-accent)));color:var(--text-on-brand);display:inline-flex;align-items:center;justify-content:center" aria-hidden="true">
-            <i class="bi bi-shield-lock" style="font-size:1.25rem"></i>
+            <i class="bi bi-shield-lock" style="font-size:var(--type-size-body-l)"></i>
           </div>
           <div>
-            <div class="eyebrow" style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--admin-content-text-muted)">{% trans "Account security" %}</div>
-            <h1 style="font-size:1.25rem;font-weight:700;letter-spacing:-0.015em;margin:2px 0 0">{% trans "Multi-factor authentication" %}</h1>
+            <div class="eyebrow" style="font-size:var(--type-size-micro);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--admin-content-text-muted)">{% trans "Account security" %}</div>
+            <h1 style="font-size:var(--type-size-body-l);font-weight:700;letter-spacing:-0.015em;margin:2px 0 0">{% trans "Multi-factor authentication" %}</h1>
           </div>
         </div>
 
@@ -50,7 +50,7 @@
                 <button type="submit" name="enable_mfa" class="btn btn-primary btn-lg"><i class="bi bi-lock me-1"></i>{% trans "Enable MFA (authenticator app)" %}</button>
               </form>
               {% if use_passkey %}
-                <span class="text-muted align-self-center mx-1" style="font-size:0.9rem">{% trans "or" %}</span>
+                <span class="text-muted align-self-center mx-1" style="font-size:var(--type-size-caption)">{% trans "or" %}</span>
                 <button type="button" id="btn-add-passkey-first" class="btn btn-outline-primary btn-lg"><i class="bi bi-fingerprint me-1"></i>{% trans "Add a passkey instead" %}</button>
               {% endif %}
             </div>
@@ -67,7 +67,7 @@
 
             <h2 class="h6 mb-2" style="font-weight:600;letter-spacing:-0.01em">{% trans "Step 2 — Manual entry code (if needed)" %}</h2>
             <div style="background:var(--surface-bg-subtle);padding:14px 16px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px">
-              <code style="font-size:1.05rem;font-weight:600;background:transparent;border:none;padding:0;letter-spacing:0.04em;color:var(--admin-content-text)">{{ secret_key }}</code>
+              <code style="font-size:var(--type-size-body-l);font-weight:600;background:transparent;border:none;padding:0;letter-spacing:0.04em;color:var(--admin-content-text)">{{ secret_key }}</code>
               <button type="button" class="btn btn-sm btn-outline-secondary" onclick="navigator.clipboard.writeText('{{ secret_key }}');this.innerHTML='<i class=&quot;bi bi-check2 me-1&quot;></i>{% trans 'Copied' %}'"><i class="bi bi-clipboard me-1"></i>{% trans "Copy" %}</button>
             </div>
 
@@ -81,7 +81,7 @@
                 <button type="submit" name="verify_token" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>{% trans "Verify & enable" %}</button>
               </div>
             </form>
-            <div style="font-size:0.85rem;color:var(--admin-content-text-muted)"><i class="bi bi-lightbulb me-1"></i>{% trans "Enter the 6-digit code from your authenticator app to complete setup." %}</div>
+            <div style="font-size:var(--type-size-caption);color:var(--admin-content-text-muted)"><i class="bi bi-lightbulb me-1"></i>{% trans "Enter the 6-digit code from your authenticator app to complete setup." %}</div>
 
           {% else %}
             {# State 3: MFA already enabled #}
@@ -97,8 +97,8 @@
             {% if backup_tokens %}
             <div class="content-card" style="background:var(--surface-bg-subtle);box-shadow:none;margin-bottom:22px">
               <div class="eyebrow" style="margin-bottom:6px">{% trans "Backup codes" %}</div>
-              <h3 style="font-size:0.95rem;font-weight:600;margin:0 0 6px">{% trans "Store these securely." %}</h3>
-              <p style="font-size:0.85rem;color:var(--admin-content-text-muted);margin-bottom:12px">{% trans "Each code can be used once if you lose access to your authenticator." %}</p>
+              <h3 style="font-size:var(--type-size-body);font-weight:600;margin:0 0 6px">{% trans "Store these securely." %}</h3>
+              <p style="font-size:var(--type-size-caption);color:var(--admin-content-text-muted);margin-bottom:12px">{% trans "Each code can be used once if you lose access to your authenticator." %}</p>
               <div class="d-flex flex-wrap gap-2">
                 {% for code in backup_tokens %}
                   <span class="badge" data-tone="soft-primary" style="font-family:ui-monospace,'SF Mono','Cascadia Code',monospace;font-size:0.85rem;letter-spacing:0.05em">{{ code }}</span>
@@ -115,13 +115,13 @@
             {% if use_passkey %}
             <hr>
             <h2 class="h6 mt-4 mb-2" style="font-weight:600;letter-spacing:-0.01em"><i class="bi bi-fingerprint me-1"></i>{% trans "Passkeys" %}</h2>
-            <p style="color:var(--admin-content-text-muted);font-size:0.9rem;margin-bottom:14px">{% trans "Sign in with your device (Face ID, Touch ID, or a security key) instead of a code." %}</p>
+            <p style="color:var(--admin-content-text-muted);font-size:var(--type-size-caption);margin-bottom:14px">{% trans "Sign in with your device (Face ID, Touch ID, or a security key) instead of a code." %}</p>
             {% if passkeys %}
             <div class="list-group mb-3">
               {% for pk in passkeys %}
               <div class="list-group-item d-flex justify-content-between align-items-center">
                 <span><i class="bi bi-key me-2 text-muted"></i>{{ pk.name|default:_("Passkey") }}</span>
-                <span class="badge" data-tone="soft-primary" style="font-size:0.75rem">{{ pk.created_at }}</span>
+                <span class="badge" data-tone="soft-primary" style="font-size:var(--type-size-eyebrow)">{{ pk.created_at }}</span>
               </div>
               {% endfor %}
             </div>
@@ -132,7 +132,7 @@
 
             <hr style="margin:28px 0 18px">
             <h2 class="h6" style="font-weight:600;color:var(--ds-danger);letter-spacing:-0.01em"><i class="bi bi-exclamation-circle me-1"></i>{% trans "Disable MFA" %}</h2>
-            <p style="color:var(--admin-content-text-muted);font-size:0.9rem;margin-bottom:14px">{% trans "Disabling MFA removes the second layer of security from your account. Only do this if absolutely necessary." %}</p>
+            <p style="color:var(--admin-content-text-muted);font-size:var(--type-size-caption);margin-bottom:14px">{% trans "Disabling MFA removes the second layer of security from your account. Only do this if absolutely necessary." %}</p>
             {% comment %} Pass 8 Wave 2: replaced jarring native onclick="return confirm(...)" with
                components/confirm_modal.html — themed, ESC-dismissable, role="alertdialog"
                so screen readers treat the disable-MFA action as a security decision. {% endcomment %}
@@ -147,7 +147,7 @@
           {% endif %}
         </div>
 
-        <div style="padding:14px 26px;border-top:1px solid var(--admin-content-border);background:var(--surface-bg-subtle);font-size:0.82rem;color:var(--admin-content-text-muted)">
+        <div style="padding:14px 26px;border-top:1px solid var(--admin-content-border);background:var(--surface-bg-subtle);font-size:var(--type-size-caption);color:var(--admin-content-text-muted)">
           <i class="bi bi-question-circle me-1"></i>{% trans "Need help?" %} {% trans "Contact IT support or refer to the" %} <a href="/docs/security/">{% trans "security documentation" %}</a>.
         </div>
       </div>
@@ -164,6 +164,6 @@
 <script type="application/json" id="page-data-accounts__mfa_setup-1">{
   "url_accounts_passkey_registration_options": "{% url "accounts:passkey_registration_options" %}",
   "url_accounts_passkey_registration_verify": "{% url "accounts:passkey_registration_verify" %}"
-}</script><script src="{% static '_pages/accounts__mfa_setup-1.js' %}"></script>
+}</script><script src="{% static 'js/_pages/accounts__mfa_setup-1.js' %}"></script>
 {% endif %}
 {% endblock %}

@@ -1,0 +1,28 @@
+{% load i18n %}<svg
+  class="rmc-illustration rmc-illustration--connection-lost"
+  viewBox="0 0 240 180"
+  xmlns="http://www.w3.org/2000/svg"
+  role="img"
+  aria-labelledby="rmc-illu-connection-lost-title"
+  style="--rmc-illustration-accent: var(--rmc-illustration-accent, var(--brand-accent, #C1573A));">
+  <title id="rmc-illu-connection-lost-title">{% trans "Connection lost" %}</title>
+  <!-- Cloud with a broken downlink line. -->
+  <g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" opacity="0.8">
+    <path d="M 78 86
+             a 18 18 0 0 1 32 -10
+             a 14 14 0 0 1 26 4
+             a 16 16 0 0 1 6 32
+             L 80 112
+             a 14 14 0 0 1 -2 -26 Z" />
+  </g>
+  <!-- Dashed downlink + small device pictogram. -->
+  <line x1="120" y1="120" x2="120" y2="138"
+        stroke="var(--rmc-illustration-accent)" stroke-width="1.6"
+        stroke-linecap="round" stroke-dasharray="3 4" />
+  <rect x="106" y="140" width="28" height="14" rx="2"
+        fill="none" stroke="currentColor" stroke-width="1.4" opacity="0.7" />
+  <line x1="112" y1="148" x2="128" y2="148"
+        stroke="var(--rmc-illustration-accent)" stroke-width="1.6"
+        stroke-linecap="round" />
+
+</svg>

@@ -97,7 +97,7 @@
 [data-rmc-aesthetic="v2"] .page-sub {
   color: var(--color-base-500, var(--color-base-500));
   margin-top: 2px;
-  font-size: .95rem;
+  font-size: var(--type-size-body);
 }
 [data-rmc-aesthetic="v2"][data-bs-theme="dark"] .page-sub {
   color: var(--color-base-400, var(--color-base-400));
@@ -105,7 +105,7 @@
 [data-rmc-aesthetic="v2"] .eyebrow {
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow, 0.06em);
-  font-size: .72rem;
+  font-size: var(--type-size-micro);
   font-weight: 600;
   color: var(--color-base-500, var(--color-base-500));
 }
@@ -169,7 +169,7 @@
 }
 [data-rmc-aesthetic="v2"] aside.sb .brand-row .name {
   font-weight: 600;
-  font-size: .95rem;
+  font-size: var(--type-size-body);
   letter-spacing: -0.01em;
   line-height: 1.2;
 }
@@ -177,14 +177,14 @@
   display: block;
   font-weight: 400;
   color: var(--color-base-400, var(--color-base-400));
-  font-size: .72rem;
+  font-size: var(--type-size-micro);
   margin-top: 2px;
   letter-spacing: 0;
 }
 [data-rmc-aesthetic="v2"] aside.sb .nav-section {
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow, 0.06em);
-  font-size: .68rem;
+  font-size: var(--type-size-micro);
   font-weight: 600;
   color: var(--color-base-400, var(--color-base-400));
   padding: 14px 14px 6px;
@@ -197,7 +197,7 @@
   padding: 9px 14px;
   color: var(--color-base-300);
   text-decoration: none;
-  font-size: .9rem;
+  font-size: var(--type-size-body);
   font-weight: 500;
   border-radius: 10px;
   margin-bottom: 1px;
@@ -238,7 +238,7 @@
   background: rgba(255, 255, 255, 0.14);
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: .7rem;
+  font-size: var(--type-size-micro);
   font-weight: 600;
 }
 [data-rmc-aesthetic="v2"] aside.sb .user-row {
@@ -264,7 +264,7 @@
   justify-content: center;
   color: var(--color-base-0);
   font-weight: 700;
-  font-size: .78rem;
+  font-size: var(--type-size-eyebrow);
 }
 
 
@@ -287,7 +287,7 @@
 [data-rmc-aesthetic="v2"] .topbar .breadcrumb {
   margin: 0;
   padding: 0;
-  font-size: .875rem;
+  font-size: var(--type-size-caption);
 }
 [data-rmc-aesthetic="v2"] .topbar .topbar-actions {
   margin-left: auto;
@@ -305,7 +305,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: .85rem;
+  font-size: var(--type-size-caption);
   color: var(--color-base-500, var(--color-base-500));
   min-width: 240px;
   cursor: pointer;
@@ -372,7 +372,7 @@
   background: var(--color-base-800);
 }
 [data-rmc-aesthetic="v2"] .kpi .label {
-  font-size: .72rem;
+  font-size: var(--type-size-micro);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow, 0.06em);
@@ -382,14 +382,14 @@
   color: var(--color-base-400, var(--color-base-400));
 }
 [data-rmc-aesthetic="v2"] .kpi .value {
-  font-size: 1.85rem;
+  font-size: var(--type-size-headline-l);
   font-weight: 700;
   letter-spacing: var(--tracking-display, -0.025em);
   margin-top: 6px;
   font-variant-numeric: tabular-nums;
 }
 [data-rmc-aesthetic="v2"] .kpi .delta {
-  font-size: .82rem;
+  font-size: var(--type-size-caption);
   margin-top: 6px;
   font-weight: 500;
 }
@@ -492,7 +492,7 @@
   --bs-breadcrumb-divider: '';
   padding: 0;
   margin: 0;
-  font-size: .875rem;
+  font-size: var(--type-size-caption);
 }
 [data-rmc-aesthetic="v2"] .breadcrumb-item {
   display: inline-flex;
@@ -559,7 +559,7 @@
   border-radius: 5px;
   padding: 2px 6px;
   font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
-  font-size: .75em;
+  font-size: var(--type-size-eyebrow);
   font-weight: 600;
   line-height: 1;
 }
@@ -601,7 +601,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: var(--type-size-body-l);
   background: color-mix(in oklab, var(--school-primary) 14%, transparent);
   color: var(--school-primary);
 }
@@ -618,14 +618,14 @@
   color: var(--ds-success, var(--color-emerald-600));
 }
 [data-rmc-aesthetic="v2"] .insight-card h4 {
-  font-size: 1rem;
+  font-size: var(--type-size-body);
   margin: 0 0 4px;
   font-weight: 600;
 }
 [data-rmc-aesthetic="v2"] .insight-card p {
   color: var(--color-base-500, var(--color-base-500));
   margin: 0 0 8px;
-  font-size: .9rem;
+  font-size: var(--type-size-body);
   line-height: 1.5;
 }
 [data-rmc-aesthetic="v2"][data-bs-theme="dark"] .insight-card p {
@@ -650,7 +650,7 @@
 }
 [data-rmc-aesthetic="v2"] .gradebook-table thead th {
   background: var(--color-base-50, var(--color-base-50));
-  font-size: .72rem;
+  font-size: var(--type-size-micro);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow, 0.06em);
@@ -669,7 +669,7 @@
 [data-rmc-aesthetic="v2"] .gradebook-table tbody td {
   padding: 10px 12px;
   border-bottom: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
-  font-size: .9rem;
+  font-size: var(--type-size-body);
   transition: background var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
 }
 [data-rmc-aesthetic="v2"] .gradebook-table tbody tr:last-child td { border-bottom: none; }
@@ -696,7 +696,7 @@
   justify-content: center;
   color: var(--color-base-0);
   font-weight: 600;
-  font-size: .72rem;
+  font-size: var(--type-size-micro);
   flex-shrink: 0;
 }
 [data-rmc-aesthetic="v2"] .gradebook-table .mark-cell {
@@ -712,7 +712,7 @@
     border-color var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)),
     background var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
   font-family: inherit;
-  font-size: .9rem;
+  font-size: var(--type-size-body);
   font-weight: 500;
 }
 [data-rmc-aesthetic="v2"] .gradebook-table .mark-cell:hover,
@@ -730,7 +730,7 @@
   display: inline-block;
   padding: 2px 8px;
   border-radius: 6px;
-  font-size: .72rem;
+  font-size: var(--type-size-micro);
   font-weight: 600;
 }
 [data-rmc-aesthetic="v2"] .grade-pill.high { background: rgba(16, 185, 129, 0.14); color: var(--school-accent); }
@@ -748,7 +748,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: .82rem;
+  font-size: var(--type-size-caption);
   color: var(--ds-success, var(--color-emerald-600));
 }
 
@@ -784,7 +784,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
+  font-size: var(--type-size-headline-m);
   font-weight: 700;
 }
 [data-rmc-aesthetic="v2"] .family-hero h2 {
@@ -811,14 +811,14 @@
   padding: 14px;
 }
 [data-rmc-aesthetic="v2"] .family-glance .g-cell .l {
-  font-size: .72rem;
+  font-size: var(--type-size-micro);
   opacity: .85;
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow, 0.06em);
   font-weight: 600;
 }
 [data-rmc-aesthetic="v2"] .family-glance .g-cell .v {
-  font-size: 1.5rem;
+  font-size: var(--type-size-headline-m);
   font-weight: 700;
   margin-top: 2px;
   font-variant-numeric: tabular-nums;
@@ -874,25 +874,25 @@
   justify-content: center;
   color: var(--color-base-0);
   font-weight: 700;
-  font-size: 1.4rem;
+  font-size: var(--type-size-headline-m);
 }
 [data-rmc-aesthetic="v2"] .report-header .school h1 {
-  font-size: 1.4rem;
+  font-size: var(--type-size-headline-m);
   margin: 0;
   letter-spacing: var(--tracking-heading, -0.015em);
 }
 [data-rmc-aesthetic="v2"] .report-header .school .addr {
-  font-size: .82rem;
+  font-size: var(--type-size-caption);
   color: var(--color-base-500);
 }
 [data-rmc-aesthetic="v2"] .report-header .term {
   text-align: right;
-  font-size: .85rem;
+  font-size: var(--type-size-caption);
   color: var(--color-base-600);
 }
 [data-rmc-aesthetic="v2"] .report-header .term strong {
   display: block;
-  font-size: 1rem;
+  font-size: var(--type-size-body);
   color: var(--color-base-900);
 }
 [data-rmc-aesthetic="v2"] .report-student {
@@ -913,11 +913,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: var(--type-size-headline-m);
   font-weight: 700;
 }
 [data-rmc-aesthetic="v2"] .report-student h2 {
-  font-size: 1.5rem;
+  font-size: var(--type-size-headline-m);
   margin: 0;
   letter-spacing: var(--tracking-display, -0.025em);
 }
@@ -928,12 +928,12 @@
 }
 [data-rmc-aesthetic="v2"] .report-student .stat { text-align: right; }
 [data-rmc-aesthetic="v2"] .report-student .stat .v {
-  font-size: 1.8rem;
+  font-size: var(--type-size-headline-l);
   font-weight: 700;
   letter-spacing: var(--tracking-display, -0.025em);
 }
 [data-rmc-aesthetic="v2"] .report-student .stat .l {
-  font-size: .75rem;
+  font-size: var(--type-size-eyebrow);
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow, 0.06em);
   color: var(--color-base-500);
@@ -945,7 +945,7 @@
   margin-top: 24px;
 }
 [data-rmc-aesthetic="v2"] .report-grades thead th {
-  font-size: .72rem;
+  font-size: var(--type-size-micro);
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow, 0.06em);
   color: var(--color-base-500);
@@ -958,7 +958,7 @@
 [data-rmc-aesthetic="v2"] .report-grades tbody td {
   padding: 12px 8px;
   border-bottom: 1px solid var(--color-base-100);
-  font-size: .92rem;
+  font-size: var(--type-size-body);
 }
 [data-rmc-aesthetic="v2"] .report-grades tbody td.num {
   text-align: right;
@@ -967,7 +967,7 @@
 }
 [data-rmc-aesthetic="v2"] .report-grades tbody tr:last-child td { border-bottom: none; }
 [data-rmc-aesthetic="v2"] .report-grades tbody td.subject { font-weight: 600; }
-[data-rmc-aesthetic="v2"] .report-grades tbody td.teacher { color: var(--color-base-500); font-size: .82rem; }
+[data-rmc-aesthetic="v2"] .report-grades tbody td.teacher { color: var(--color-base-500); font-size: var(--type-size-caption); }
 
 [data-rmc-aesthetic="v2"] .report-comments {
   margin-top: 24px;
@@ -976,7 +976,7 @@
   border-radius: 10px;
 }
 [data-rmc-aesthetic="v2"] .report-comments h3 {
-  font-size: .85rem;
+  font-size: var(--type-size-caption);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow, 0.06em);
@@ -984,13 +984,13 @@
   margin: 0 0 8px;
 }
 [data-rmc-aesthetic="v2"] .report-comments p {
-  font-size: .92rem;
+  font-size: var(--type-size-body);
   line-height: 1.6;
   margin: 0 0 8px;
 }
 [data-rmc-aesthetic="v2"] .report-comments .signoff {
   margin-top: 14px;
-  font-size: .82rem;
+  font-size: var(--type-size-caption);
   color: var(--color-base-500);
   font-style: italic;
 }
@@ -1001,7 +1001,7 @@
   margin-top: 28px;
   padding-top: 16px;
   border-top: 1px solid var(--color-base-200);
-  font-size: .8rem;
+  font-size: var(--type-size-caption);
   color: var(--color-base-500);
 }
 
@@ -1046,7 +1046,7 @@
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: var(--type-size-body-l);
 }
 [data-rmc-aesthetic="v2"] .login-brand-side h1 {
   font-size: clamp(2rem, 4vw, 2.75rem);
@@ -1055,7 +1055,7 @@
   max-width: 520px;
 }
 [data-rmc-aesthetic="v2"] .login-brand-side p {
-  font-size: 1.05rem;
+  font-size: var(--type-size-body-l);
   opacity: 0.85;
   line-height: 1.6;
   max-width: 480px;
@@ -1068,7 +1068,7 @@
   max-width: 420px;
 }
 [data-rmc-aesthetic="v2"] .login-brand-side .testimonial .who {
-  font-size: .82rem;
+  font-size: var(--type-size-caption);
   opacity: .75;
   margin-top: 8px;
 }
@@ -1088,13 +1088,13 @@
   max-width: 380px;
 }
 [data-rmc-aesthetic="v2"] .login-form h2 {
-  font-size: 1.6rem;
+  font-size: var(--type-size-headline-m);
   letter-spacing: var(--tracking-display, -0.025em);
   margin: 0 0 6px;
 }
 [data-rmc-aesthetic="v2"] .login-form .sub {
   color: var(--color-base-500, var(--color-base-500));
-  font-size: .95rem;
+  font-size: var(--type-size-body);
   margin-bottom: 24px;
 }
 [data-rmc-aesthetic="v2"][data-bs-theme="dark"] .login-form .sub {
@@ -1171,7 +1171,7 @@
 [data-rmc-aesthetic="v2"] .activity-feed .who { font-weight: 600; }
 [data-rmc-aesthetic="v2"] .activity-feed .what {
   color: var(--color-base-500, var(--color-base-500));
-  font-size: .88rem;
+  font-size: var(--type-size-caption);
 }
 [data-rmc-aesthetic="v2"][data-bs-theme="dark"] .activity-feed .what,
 [data-rmc-aesthetic="v2"] .admin-page-wrap .activity-feed .what {
@@ -1200,7 +1200,7 @@
   border-radius: 12px;
   box-shadow: var(--apple-elev-3);
   padding: 12px 14px;
-  font-size: .9rem;
+  font-size: var(--type-size-body);
   font-weight: 500;
   display: flex;
   gap: 10px;
@@ -1229,7 +1229,7 @@
   margin-left: auto;
   cursor: pointer;
   color: var(--color-base-500, var(--color-base-500));
-  font-size: 1rem;
+  font-size: var(--type-size-body);
 }
 @keyframes rmc-toastIn {
   from { transform: translateX(110%); opacity: 0; }
@@ -1304,7 +1304,7 @@
   border: none;
   background: transparent;
   padding: 18px 22px;
-  font-size: 1.0625rem;
+  font-size: var(--type-size-body-l);
   outline: none;
   color: var(--bs-body-color);
   border-bottom: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
@@ -1344,7 +1344,7 @@
 [data-rmc-aesthetic="v2"] .cp-footer {
   border-top: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
   padding: 10px 16px;
-  font-size: .8125rem;
+  font-size: var(--type-size-caption);
   color: var(--color-base-500, var(--color-base-500));
   display: flex;
   justify-content: space-between;
@@ -1434,7 +1434,7 @@
 [data-rmc-aesthetic="v2"] .small.text-uppercase.text-muted {
   letter-spacing: var(--tracking-eyebrow, 0.06em);
   font-weight: 600;
-  font-size: .72rem;
+  font-size: var(--type-size-micro);
 }
 
 /* --- 24.4 Dashboard role-home wrapper ------------------------------------ */
@@ -1478,7 +1478,7 @@
 }
 [data-rmc-aesthetic="v2"] .card .table > thead > tr > th {
   background: var(--color-base-50, var(--color-base-50));
-  font-size: .72rem;
+  font-size: var(--type-size-micro);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow, 0.06em);
@@ -1490,7 +1490,7 @@
   color: var(--color-base-400, var(--color-base-400));
 }
 [data-rmc-aesthetic="v2"] .card .table > tbody > tr > td {
-  font-size: .9rem;
+  font-size: var(--type-size-body);
 }
 [data-rmc-aesthetic="v2"] .card .table.table-hover > tbody > tr:hover > td {
   background: color-mix(in oklab, var(--school-primary) 4%, transparent);
@@ -1529,7 +1529,7 @@
   padding: 8px 14px;
   color: var(--color-base-600, var(--color-base-600));
   font-weight: 500;
-  font-size: .9rem;
+  font-size: var(--type-size-body);
   transition: background var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)), color var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
 }
 [data-rmc-aesthetic="v2"] .nav-tabs .nav-link:hover {
@@ -1604,18 +1604,18 @@
   justify-content: center;
   color: var(--color-base-0);
   font-weight: 700;
-  font-size: .82rem;
+  font-size: var(--type-size-caption);
   flex-shrink: 0;
 }
 [data-rmc-aesthetic="v2"] .sidebar-info h6 {
-  font-size: .92rem;
+  font-size: var(--type-size-body);
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.2;
   margin: 0;
 }
 [data-rmc-aesthetic="v2"] .sidebar-info p {
-  font-size: .72rem;
+  font-size: var(--type-size-micro);
   margin-top: 2px;
   letter-spacing: 0;
   opacity: 0.7;
@@ -1623,7 +1623,7 @@
 [data-rmc-aesthetic="v2"] .sidebar-section-title {
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow, 0.06em);
-  font-size: .68rem;
+  font-size: var(--type-size-micro);
   font-weight: 600;
   opacity: 0.6;
   padding: 14px 14px 6px;
@@ -1635,7 +1635,7 @@
   align-items: center;
   gap: 11px;
   padding: 9px 14px;
-  font-size: .9rem;
+  font-size: var(--type-size-body);
   font-weight: 500;
   border-radius: 10px;
   margin-bottom: 1px;
@@ -1671,7 +1671,7 @@
   justify-content: center;
 }
 [data-rmc-aesthetic="v2"] .rmc-empty-state .rmc-empty-message {
-  font-size: .95rem;
+  font-size: var(--type-size-body);
   line-height: 1.5;
   max-width: 480px;
   margin-left: auto;
@@ -1684,7 +1684,7 @@
   border: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
   color: var(--color-base-700, var(--color-base-700));
   font-weight: 500;
-  font-size: .85rem;
+  font-size: var(--type-size-caption);
   margin: 0 2px;
   transition:
     background var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)),
@@ -1750,14 +1750,14 @@
   padding: 14px;
 }
 [data-rmc-aesthetic="v2"] .dashboard-hero .kpi-label {
-  font-size: .72rem;
+  font-size: var(--type-size-micro);
   opacity: .85;
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow, 0.06em);
   font-weight: 600;
 }
 [data-rmc-aesthetic="v2"] .dashboard-hero .kpi-value {
-  font-size: 1.5rem;
+  font-size: var(--type-size-headline-m);
   font-weight: 700;
   margin-top: 2px;
   font-variant-numeric: tabular-nums;

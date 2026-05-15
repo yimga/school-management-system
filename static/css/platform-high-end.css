@@ -395,7 +395,7 @@ html[data-bs-theme="dark"] .dashboard-header {
 }
 /* Global reach footnote (footer) */
 .brand-global-reach {
-  font-size: 0.8125rem;
+  font-size: var(--type-size-caption);
   letter-spacing: 0.02em;
   opacity: 0.9;
 }

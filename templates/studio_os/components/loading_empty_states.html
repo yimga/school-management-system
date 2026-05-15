@@ -20,10 +20,10 @@ Usage:
 <div class="studio-os-empty-state text-center py-5 px-3" role="status">
   {% if empty_icon %}
   <div class="studio-os-empty-icon mb-3" aria-hidden="true">
-    <i class="bi {{ empty_icon }}" style="font-size: 2.5rem; color: var(--color-base-400, #94a3b8);"></i>
+    <i class="bi {{ empty_icon }}" style="font-size: var(--type-size-headline-l); color: var(--color-base-400, #94a3b8);"></i>
   </div>
   {% endif %}
-  <p class="mb-2 mb-md-3 mb-lg-3" style="color: var(--color-base-600, #475569); font-size: clamp(0.9375rem, 1.5vw, 1rem);">{{ message|default:_("No data yet.") }}</p>
+  <p class="mb-2 mb-md-3 mb-lg-3" style="color: var(--color-base-600, #475569); font-size: var(--type-size-body);">{{ message|default:_("No data yet.") }}</p>
   {% if action_url and action_text %}
   <a class="btn btn-sm btn-primary" href="{{ action_url }}" style="--bs-btn-bg: var(--color-primary-500, #3b82f6); --bs-btn-border-color: var(--color-primary-500);">{{ action_text }}</a>
   {% elif action_html %}

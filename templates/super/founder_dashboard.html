@@ -48,10 +48,10 @@
   </header>
   <!-- rmc-ux-above-fold-end -->
 
-  <section class="mb-4" data-rmc-ux-section="system-pulse" aria-label="{% trans 'System pulse' %}">
+  <section class="mb-4 rmc-reveal" data-rmc-ux-section="system-pulse" aria-label="{% trans 'System pulse' %}">
   <h2 class="h6 text-uppercase text-muted mb-3">{% trans "System pulse" %}</h2>
-  <div class="row g-3 mb-2">
-    <div class="col-md-4" data-rmc-northstar-score="1">
+  <div class="row g-3 mb-2 rmc-reveal-stagger">
+    <div class="col-md-4 rmc-reveal" data-rmc-northstar-score="1">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
           <div class="text-secondary small text-uppercase">{% trans "North Star audit score" %}</div>
@@ -64,7 +64,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-4 rmc-reveal">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
           <div class="text-secondary small text-uppercase">{% trans "Kill test" %}</div>
@@ -72,7 +72,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-4 rmc-reveal">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body" data-rmc-self-heal-status="1">
           <div class="text-secondary small text-uppercase">{% trans "Self-heal" %}</div>
@@ -83,10 +83,10 @@
   </div>
   </section>
 
-  <section class="mb-4" data-rmc-ux-section="growth-activation">
+  <section class="mb-4 rmc-reveal" data-rmc-ux-section="growth-activation">
   <h2 class="h6 text-uppercase text-muted mb-3">{% trans "Growth and activation" %}</h2>
-  <div class="row g-3 mb-4" data-rmc-business-value="1">
-    <div class="col-md-3">
+  <div class="row g-3 mb-4 rmc-reveal-stagger" data-rmc-business-value="1">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-body py-3">
           <div class="text-secondary small">{% trans "Activation rate" %}</div>
@@ -94,7 +94,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-body py-3">
           <div class="text-secondary small">{% trans "Onboarding in progress" %}</div>
@@ -102,7 +102,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-body py-3">
           <div class="text-secondary small">{% trans "Paid penetration" %}</div>
@@ -110,7 +110,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-body py-3">
           <div class="text-secondary small">{% trans "Revenue share drafts" %}</div>
@@ -121,7 +121,7 @@
   </div>
   </section>
 
-  <section class="mb-4" data-rmc-intelligent-insights="founder" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
+  <section class="mb-4 rmc-reveal" data-rmc-intelligent-insights="founder" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
       <h2 class="h5 mb-0">{% trans "What needs attention" %}</h2>
       {% if not rmc_conversion_single_action_enforced|default:False %}
@@ -152,7 +152,7 @@
     </div>
   </section>
 
-  <section class="mb-4" data-rmc-marketplace-monetization="1" data-rmc-ux-section="money-marketplace" aria-label="{% trans 'Money and marketplace' %}">
+  <section class="mb-4 rmc-reveal" data-rmc-marketplace-monetization="1" data-rmc-ux-section="money-marketplace" aria-label="{% trans 'Money and marketplace' %}">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
       <h2 class="h5 mb-0">{% trans "Money and marketplace" %}</h2>
       <span class="badge {% if marketplace_metrics.monetization_verdict == 'REVENUE_READY' %}bg-success{% else %}bg-secondary{% endif %}">
@@ -162,38 +162,38 @@
     <p class="small text-secondary mb-3">
       {% trans "MRR combines core TenantSubscription rows with tenant marketplace app adds (monthly-equivalent). Fees are summed PlatformMarketplaceEarning rows (platform cut). Usage rolls up UsageMeter quantities." %}
     </p>
-    <div class="row g-3">
-      <div class="col-md-3 col-6">
+    <div class="row g-3 rmc-reveal-stagger">
+      <div class="col-md-3 col-6 rmc-reveal">
         <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "MRR (combined est.)" %}</div><div class="h4 mb-0">{{ marketplace_metrics.mrr_combined|default:"0.00" }}</div></div></div>
       </div>
-      <div class="col-md-3 col-6">
+      <div class="col-md-3 col-6 rmc-reveal">
         <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "MRR — platform core" %}</div><div class="h4 mb-0">{{ marketplace_metrics.mrr_platform_core|default:"0.00" }}</div></div></div>
       </div>
-      <div class="col-md-3 col-6">
+      <div class="col-md-3 col-6 rmc-reveal">
         <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "MRR — marketplace apps" %}</div><div class="h4 mb-0">{{ marketplace_metrics.mrr_marketplace_apps|default:"0.00" }}</div></div></div>
       </div>
-      <div class="col-md-3 col-6">
+      <div class="col-md-3 col-6 rmc-reveal">
         <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "App revenue (30d gross)" %}</div><div class="h4 mb-0">{{ marketplace_metrics.marketplace_gross_30d|default:"0.00" }}</div></div></div>
       </div>
-      <div class="col-md-3 col-6">
+      <div class="col-md-3 col-6 rmc-reveal">
         <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Platform fees (30d)" %}</div><div class="h4 mb-0">{{ marketplace_metrics.marketplace_platform_fees_30d|default:"0.00" }}</div></div></div>
       </div>
-      <div class="col-md-3 col-6">
+      <div class="col-md-3 col-6 rmc-reveal">
         <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Usage meter units (30d)" %}</div><div class="h4 mb-0">{{ marketplace_metrics.usage_meter_units_30d|default:0 }}</div></div></div>
       </div>
-      <div class="col-md-3 col-6">
+      <div class="col-md-3 col-6 rmc-reveal">
         <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Churn — marketplace subs" %}</div><div class="h4 mb-0">{{ marketplace_metrics.churn_marketplace_subs_30d|default:0 }}</div></div></div>
       </div>
-      <div class="col-md-3 col-6">
+      <div class="col-md-3 col-6 rmc-reveal">
         <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Churn — platform subs" %}</div><div class="h4 mb-0">{{ marketplace_metrics.churn_platform_subs_30d|default:0 }}</div></div></div>
       </div>
-      <div class="col-md-3 col-6">
+      <div class="col-md-3 col-6 rmc-reveal">
         <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Catalog priced apps %" %}</div><div class="h4 mb-0">{{ marketplace_metrics.catalog_priced_app_ratio_pct|default:0 }}%</div></div></div>
       </div>
     </div>
   </section>
 
-  <section class="mb-4" data-rmc-founder-sales-dashboard="1">
+  <section class="mb-4 rmc-reveal" data-rmc-founder-sales-dashboard="1">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
       <h2 class="h5 mb-0">{% trans "Sales command center" %}</h2>
       {# Strict mode: single primary CTA lives in header toolbar — avoid duplicate pipeline buttons here. #}
@@ -201,32 +201,32 @@
       <a class="btn btn-sm btn-primary" href="{{ sales_pipeline_url }}">{% trans "Open Kanban pipeline" %}</a>
       {% endif %}
     </div>
-    <div class="row g-3">
-      <div class="col-md-2 col-6">
+    <div class="row g-3 rmc-reveal-stagger">
+      <div class="col-md-2 col-6 rmc-reveal">
         <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Total leads" %}</div><div class="h4 mb-0">{{ founder_sales.total_leads|default:0 }}</div></div></div>
       </div>
-      <div class="col-md-2 col-6">
+      <div class="col-md-2 col-6 rmc-reveal">
         <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Demos scheduled" %}</div><div class="h4 mb-0">{{ founder_sales.demo_scheduled|default:0 }}</div></div></div>
       </div>
-      <div class="col-md-2 col-6">
+      <div class="col-md-2 col-6 rmc-reveal">
         <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Demos completed" %}</div><div class="h4 mb-0">{{ founder_sales.demo_completed|default:0 }}</div></div></div>
       </div>
-      <div class="col-md-2 col-6">
+      <div class="col-md-2 col-6 rmc-reveal">
         <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Decision" %}</div><div class="h4 mb-0">{{ founder_sales.decision|default:0 }}</div></div></div>
       </div>
-      <div class="col-md-2 col-6">
+      <div class="col-md-2 col-6 rmc-reveal">
         <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Closed" %}</div><div class="h4 mb-0">{{ founder_sales.closed|default:0 }}</div></div></div>
       </div>
-      <div class="col-md-2 col-6">
+      <div class="col-md-2 col-6 rmc-reveal">
         <div class="card border-0 shadow-sm h-100"><div class="card-body py-3"><div class="small text-secondary">{% trans "Conversion" %}</div><div class="h4 mb-0">{{ founder_sales.conversion_rate_pct|default:0 }}%</div></div></div>
       </div>
     </div>
   </section>
 
-  <section class="mb-4" data-rmc-ux-section="operations-queue" aria-label="{% trans 'Operations queue' %}">
+  <section class="mb-4 rmc-reveal" data-rmc-ux-section="operations-queue" aria-label="{% trans 'Operations queue' %}">
   <h2 class="h6 text-uppercase text-muted mb-3">{% trans "Operations queue" %}</h2>
-  <div class="row g-3 mb-2">
-    <div class="col-md-3">
+  <div class="row g-3 mb-2 rmc-reveal-stagger">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm" data-rmc-post-surface-status="1">
         <div class="card-body py-3">
           <div class="text-secondary small">{% trans "POST surface (product needs review)" %}</div>
@@ -234,7 +234,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm" data-rmc-regional-ui-status="1">
         <div class="card-body py-3">
           <div class="text-secondary small">{% trans "Regional UI violations" %}</div>
@@ -242,7 +242,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-body py-3">
           <div class="text-secondary small">{% trans "Security surface signal" %}</div>
@@ -250,7 +250,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-body py-3">
           <div class="text-secondary small">{% trans "Schools (all)" %}</div>
@@ -259,8 +259,8 @@
       </div>
     </div>
   </div>
-  <div class="row g-3 mb-4">
-    <div class="col-md-3">
+  <div class="row g-3 mb-4 rmc-reveal-stagger">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-body py-3">
           <div class="text-secondary small">{% trans "Open / ack incidents" %}</div>
@@ -268,7 +268,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-body py-3">
           <div class="text-secondary small">{% trans "Billing past_due / suspended" %}</div>
@@ -276,7 +276,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-body py-3">
           <div class="text-secondary small">{% trans "Revenue share (DRAFT)" %}</div>
@@ -287,7 +287,7 @@
   </div>
   </section>
 
-  <section class="mb-4" data-rmc-ux-section="latest-proof" aria-labelledby="slice-h">
+  <section class="mb-4 rmc-reveal" data-rmc-ux-section="latest-proof" aria-labelledby="slice-h">
     <h2 class="h5" id="slice-h">{% trans "North Star slices 15–24 (SOT)" %}</h2>
     <div class="table-responsive">
       <table class="table table-family table-sm table-bordered align-middle">
@@ -317,7 +317,7 @@
   </section>
 
   {% if incident_breakdown %}
-  <section class="mb-4" aria-labelledby="inc-h">
+  <section class="mb-4 rmc-reveal" aria-labelledby="inc-h">
     <h2 class="h5" id="inc-h">{% trans "Platform incidents (all statuses)" %}</h2>
     <ul class="list-group list-group-flush">
       {% for row in incident_breakdown %}
@@ -330,10 +330,10 @@
   </section>
   {% endif %}
 
-  <section class="mb-4" aria-labelledby="obs-h" data-rmc-observability-ledger="1">
+  <section class="mb-4 rmc-reveal" aria-labelledby="obs-h" data-rmc-observability-ledger="1">
     <h2 class="h5" id="obs-h">{% trans "Observability ledger" %}</h2>
-    <div class="row g-3">
-      <div class="col-md-3">
+    <div class="row g-3 rmc-reveal-stagger">
+      <div class="col-md-3 rmc-reveal">
         <div class="card border-0 shadow-sm">
           <div class="card-body py-3">
             <div class="text-secondary small">{% trans "Platform events" %}</div>
@@ -341,7 +341,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3 rmc-reveal">
         <div class="card border-0 shadow-sm">
           <div class="card-body py-3">
             <div class="text-secondary small">{% trans "AI audit rows" %}</div>
@@ -349,7 +349,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3 rmc-reveal">
         <div class="card border-0 shadow-sm">
           <div class="card-body py-3">
             <div class="text-secondary small">{% trans "Ledger northstar rating" %}</div>
@@ -357,7 +357,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3 rmc-reveal">
         <div class="card border-0 shadow-sm">
           <div class="card-body py-3">
             <div class="text-secondary small">{% trans "Ledger self-heal" %}</div>
@@ -369,7 +369,7 @@
   </section>
 
   {% if open_repair_tickets %}
-  <section class="mb-4" aria-labelledby="tix-h">
+  <section class="mb-4 rmc-reveal" aria-labelledby="tix-h">
     <h2 class="h5" id="tix-h">{% trans "Open self-heal repair tickets" %}</h2>
     <ul>
       {% for p in open_repair_tickets %}

@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-unified.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
 {# Retired 2026-05-12 (pass 3 css cleanup): dashboard-premium-compact.css — folded into dashboard-theme-sync.css. #}
-<script src="{% static '_pages/parent__dashboard.js' %}"></script>
+<script src="{% static 'js/_pages/parent__dashboard.js' %}"></script>
 
 {% endblock %}
 
@@ -107,7 +107,7 @@
     <div class="card border-primary shadow-sm mb-4">
       <div class="card-body text-center py-4">
         <div class="mb-3">
-          <i class="bi bi-rocket-takeoff text-primary" style="font-size: 3rem;"></i>
+          <i class="bi bi-rocket-takeoff text-primary" style="font-size: var(--type-size-headline-xl);"></i>
         </div>
         <h3 class="card-title mb-2">{% trans "Get Started" %}</h3>
         <p class="text-muted mb-4">
@@ -258,7 +258,7 @@
     </section>
 
     <!-- Today's Overview -->
-    <section id="parent-glance" data-rmc-section-anchor class="parent-glance-section" aria-labelledby="glance-heading" data-rmc-ux-section="family-summary">
+    <section id="parent-glance" data-rmc-section-anchor class="parent-glance-section rmc-reveal" aria-labelledby="glance-heading" data-rmc-ux-section="family-summary">
       <div class="section-title d-flex align-items-center justify-content-between gap-2 mb-2">
         <h2 id="glance-heading" class="h6 mb-0"><i class="bi bi-grid-3x3-gap"></i> {% trans "Family summary" %}</h2>
       </div>
@@ -295,7 +295,7 @@
     </section>
 
     <!-- Workflow focus -->
-    <section class="card parent-workflow-strip" aria-labelledby="workflow-focus-heading">
+    <section class="card parent-workflow-strip rmc-reveal" aria-labelledby="workflow-focus-heading">
       <div class="card-body">
         <div class="parent-workflow-head">
           <h2 id="workflow-focus-heading"><i class="bi bi-diagram-3 me-1"></i> {% trans "Workflow Focus" %}</h2>
@@ -329,7 +329,7 @@
     </section>
 
     {% if parent_upcoming_events %}
-    <section class="mb-3" aria-labelledby="parent-upcoming-school-heading">
+    <section class="mb-3 rmc-reveal" aria-labelledby="parent-upcoming-school-heading">
       <div class="card border-0 shadow-sm">
         <div class="card-body py-3">
           <h2 id="parent-upcoming-school-heading" class="h6 mb-2"><i class="bi bi-calendar-event" aria-hidden="true"></i> {% trans "Upcoming at school" %}</h2>
@@ -354,7 +354,7 @@
       <div class="col-lg-8" data-dashboard-column="main">
         
         <!-- My Children -->
-        <section data-rmc-section-anchor class="metrics-section dashboard-clear parent-children-section" id="parent-children" aria-labelledby="children-heading" {% if is_rtl %}dir="rtl"{% endif %}>
+        <section data-rmc-section-anchor class="metrics-section dashboard-clear parent-children-section rmc-reveal" id="parent-children" aria-labelledby="children-heading" {% if is_rtl %}dir="rtl"{% endif %}>
           {% with parent_metrics|default:None as metrics %}
             {% if metrics %}
               {% include "components/rmc_metric_ticker.html" with metric_items=metrics %}
@@ -372,10 +372,10 @@
             <h2 id="children-heading" class="h6 mb-0"><i class="bi bi-people-fill"></i> {% trans "My Children" %} {% if links %}({{ links|length }}){% endif %}</h2>
             <a href="{% url 'portal:parent_medal_case' %}" class="btn btn-sm btn-outline-primary">{% trans "Medal case" %}</a>
           </div>
-          <div class="parent-children-grid row g-3">
+          <div class="parent-children-grid row g-3 rmc-reveal-stagger">
             {% for card in child_cards %}
             {% if forloop.counter0 < 2 or child_cards|length <= 2 %}
-            <div class="{% if child_cards|length == 1 %}col-xl-7 col-lg-7 col-md-7 col-12{% else %}col-md-6{% endif %}" data-dashboard-column="main" id="child-card-{{ card.link.student.id }}">
+            <div class="{% if child_cards|length == 1 %}col-xl-7 col-lg-7 col-md-7 col-12{% else %}col-md-6{% endif %} rmc-reveal" data-dashboard-column="main" id="child-card-{{ card.link.student.id }}">
               <div class="card h-100 child-card" data-widget-id="parent-child-{{ forloop.counter0 }}">
                 <div class="card-body">
                   <div class="child-header d-flex align-items-center gap-3 mb-3">
@@ -440,7 +440,7 @@
             {% endif %}
             {% if child_cards|length == 1 %}
             {% with focus_child=child_cards.0 %}
-            <div class="col-xl-5 col-lg-5 col-md-5 col-12" data-dashboard-column="main">
+            <div class="col-xl-5 col-lg-5 col-md-5 col-12 rmc-reveal" data-dashboard-column="main">
               <div class="card h-100 child-fill-card" data-widget-id="parent-single-child-fill">
                 <div class="card-body">
                   <div class="child-fill-section">
@@ -502,7 +502,7 @@
         </section>
 
         <!-- Homework & Upcoming -->
-        <section data-rmc-section-anchor class="metrics-section mt-0" id="parent-next" role="region" aria-labelledby="next-up-heading">
+        <section data-rmc-section-anchor class="metrics-section mt-0 rmc-reveal" id="parent-next" role="region" aria-labelledby="next-up-heading">
           <div class="section-title d-flex flex-wrap align-items-center justify-content-between gap-2">
             <h2 id="next-up-heading" class="h6 mb-0">{% trans "Homework & Upcoming" %}</h2>
             <a href="{% url 'portal:unified_calendar' %}" class="btn btn-sm btn-outline-primary">{% trans "See all" %}</a>
@@ -513,7 +513,7 @@
               <ul class="list-group list-group-flush list-group-flush-sm">
                 {% for item in widget_data.events|slice:":4" %}
                 <li class="list-group-item d-flex align-items-center gap-2 px-0 py-2 small">
-                  <i class="bi bi-circle-fill text-muted" style="font-size: 0.4rem;" aria-hidden="true"></i>
+                  <i class="bi bi-circle-fill text-muted" style="font-size: var(--type-size-micro);" aria-hidden="true"></i>
                   <span class="flex-grow-1">{{ item.title }}</span>
                   <span class="badge bg-secondary">{% if item.when %}{{ item.when }}{% else %}{% trans "Upcoming" %}{% endif %}</span>
                 </li>
@@ -523,7 +523,7 @@
               <ul class="list-group list-group-flush list-group-flush-sm">
                 {% for item in portal_upcoming_assessments|slice:":4" %}
                 <li class="list-group-item d-flex align-items-center gap-2 px-0 py-2 small">
-                  <i class="bi bi-circle-fill text-muted" style="font-size: 0.4rem;" aria-hidden="true"></i>
+                  <i class="bi bi-circle-fill text-muted" style="font-size: var(--type-size-micro);" aria-hidden="true"></i>
                   <span class="flex-grow-1">{{ item.title }}</span>
                   <span class="badge bg-secondary">{{ item.when|default:_("Upcoming") }}</span>
                 </li>
@@ -545,7 +545,7 @@
       </div>
 
       <!-- Right Column - Sidebar (compressed to 3 stacked modules) -->
-      <aside class="col-lg-4 parent-sidebar-col" aria-label="{% trans 'Dashboard sidebar' %}">
+      <aside class="col-lg-4 parent-sidebar-col rmc-reveal" aria-label="{% trans 'Dashboard sidebar' %}">
         <div class="sidebar-sticky parent-sidebar-cards">
           <div class="card parent-sidebar-card mb-2" data-widget-id="parent-contact-and-messages">
             <div class="card-body">

@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Phase N (2026-05-12): platform-wide avatar / identity component.
+{% comment %} Phase N (2026-05-12): platform-wide avatar / identity component.
    Apple-tier identity grammar — used in user_dropdown, comms, gradebook, parent rosters.
 
    Usage (minimal):
@@ -23,7 +23,7 @@
      show_name   — when True render name + role beside the avatar
      role_label  — secondary line under the name
      class       — extra classes
-   #}
+   {% endcomment %}
 {% with size=size|default:40 status=status|default:'' %}
 <span class="rmc-avatar rmc-avatar--{{ size }}{% if status %} rmc-avatar--status-{{ status }}{% endif %} {{ class|default:'' }}"
       data-rmc-avatar-seed="{% firstof seed user.pk user.id name|default:'rmc' %}"

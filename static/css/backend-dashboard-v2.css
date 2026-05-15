@@ -15,7 +15,7 @@ body[data-dashboard-page="backend"] #portalHeader .container-fluid {
 }
 
 body[data-dashboard-page="backend"] #portalHeader .navbar-brand {
-  font-size: 1.05rem;
+  font-size: var(--type-size-body-l);
   font-weight: 700;
   letter-spacing: 0.01em;
 }
@@ -36,12 +36,12 @@ body[data-dashboard-page="backend"] #portalHeader .topbar-search-input {
   border-radius: 12px;
   border: 1px solid color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 30%, rgba(255, 255, 255, 0.3) 70%);
   background: color-mix(in srgb, var(--admin-surface, var(--color-base-900)) 74%, transparent);
-  font-size: 0.94rem;
+  font-size: var(--type-size-body);
 }
 
 body[data-dashboard-page="backend"] #portalHeader .topbar-search-kbd {
   border-radius: 8px;
-  font-size: 0.66rem;
+  font-size: var(--type-size-micro);
   padding: 0.16rem 0.42rem;
 }
 
@@ -181,7 +181,7 @@ body[data-dashboard-page="backend"] .backend-v2-overview-head {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-overview-head h2 {
-  font-size: 1.5rem;
+  font-size: var(--type-size-headline-m);
   line-height: 1.1;
   margin: 0;
   color: var(--admin-text, var(--dashboard-text-strong, var(--color-base-900)));
@@ -190,7 +190,7 @@ body[data-dashboard-page="backend"] .backend-v2-overview-head h2 {
 body[data-dashboard-page="backend"] .backend-v2-overview-sub {
   margin: var(--dash-gap-sm) 0 0;
   color: var(--admin-muted, var(--dashboard-text-muted, var(--color-base-500)));
-  font-size: 0.8125rem;
+  font-size: var(--type-size-caption);
 }
 
 body[data-dashboard-page="backend"] .backend-intent-switcher {
@@ -203,7 +203,7 @@ body[data-dashboard-page="backend"] .backend-intent-switcher {
 body[data-dashboard-page="backend"] .backend-intent-pill {
   display: inline-block;
   padding: 0.25rem 0.6rem;
-  font-size: 0.75rem;
+  font-size: var(--type-size-eyebrow);
   font-weight: 600;
   border-radius: 999px;
   border: 1px solid var(--admin-border, var(--color-base-300));
@@ -283,14 +283,14 @@ body[data-dashboard-page="backend"] .backend-v2-kpi-head {
   justify-content: space-between;
   gap: var(--dash-gap);
   color: var(--admin-subtle, var(--color-base-600));
-  font-size: 0.74rem;
+  font-size: var(--type-size-micro);
   font-weight: 700;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-kpi-value {
   margin-top: var(--dash-gap-sm);
   color: var(--admin-text, var(--color-base-900));
-  font-size: 1.1rem;
+  font-size: var(--type-size-body-l);
   font-weight: 800;
   line-height: 1.15;
 }
@@ -298,7 +298,7 @@ body[data-dashboard-page="backend"] .backend-v2-kpi-value {
 body[data-dashboard-page="backend"] .backend-v2-kpi-meta {
   margin-top: var(--dash-gap-xs);
   color: var(--admin-muted, var(--color-base-500));
-  font-size: 0.74rem;
+  font-size: var(--type-size-micro);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -329,14 +329,14 @@ body[data-dashboard-page="backend"] .backend-v2-metric-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.8rem;
+  font-size: var(--type-size-caption);
   font-weight: 700;
   color: var(--admin-subtle, var(--dashboard-text-muted, var(--color-base-600)));
   margin-bottom: var(--dash-gap-md);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-metric-value {
-  font-size: 1.6rem;
+  font-size: var(--type-size-headline-m);
   line-height: 1;
   font-weight: 800;
   color: var(--admin-text, var(--dashboard-text-strong, var(--color-base-900)));
@@ -347,7 +347,7 @@ body[data-dashboard-page="backend"] .backend-v2-metric-meta {
   display: flex;
   justify-content: space-between;
   gap: var(--dash-gap);
-  font-size: 0.75rem;
+  font-size: var(--type-size-eyebrow);
   color: var(--admin-muted, var(--dashboard-text-muted, var(--color-base-500)));
 }
 
@@ -383,7 +383,7 @@ body[data-dashboard-page="backend"] .backend-v2-welcome-top {
 
 body[data-dashboard-page="backend"] .backend-v2-welcome-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: var(--type-size-headline-m);
   line-height: 1.15;
   color: var(--admin-text, var(--color-base-900));
 }
@@ -391,7 +391,7 @@ body[data-dashboard-page="backend"] .backend-v2-welcome-title {
 body[data-dashboard-page="backend"] .backend-v2-welcome-sub {
   margin: var(--dash-gap-sm) 0 0;
   color: var(--admin-muted, var(--color-base-500));
-  font-size: 0.8125rem;
+  font-size: var(--type-size-caption);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-welcome-controls {
@@ -420,7 +420,7 @@ body[data-dashboard-page="backend"] .backend-v2-chip {
   background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 6%, var(--admin-surface, var(--color-base-0)) 94%);
   color: var(--admin-text, var(--color-base-900));
   text-decoration: none;
-  font-size: 0.8rem;
+  font-size: var(--type-size-caption);
   font-weight: 600;
 }
 
@@ -449,7 +449,7 @@ body[data-dashboard-page="backend"] .backend-v2-action {
   background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 5%, var(--admin-surface, var(--color-base-0)) 95%);
   color: var(--admin-text, var(--color-base-900));
   text-decoration: none;
-  font-size: 0.78rem;
+  font-size: var(--type-size-eyebrow);
   font-weight: 600;
   min-width: 0;
 }
@@ -524,7 +524,7 @@ body[data-dashboard-page="backend"] .backend-v2-progress-ring {
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 0.8rem;
+  font-size: var(--type-size-caption);
   color: var(--admin-text, var(--color-base-900));
   background:
     radial-gradient(closest-side, var(--admin-surface, var(--color-base-0)) 70%, transparent 71% 100%),
@@ -557,13 +557,13 @@ body[data-dashboard-page="backend"] .backend-v2-side-head {
 
 body[data-dashboard-page="backend"] .backend-v2-side-title {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: var(--type-size-body-l);
   color: var(--admin-text, var(--color-base-900));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-side-meta {
   color: var(--admin-muted, var(--color-base-500));
-  font-size: 0.8rem;
+  font-size: var(--type-size-caption);
   margin: var(--dash-pad-side-meta);
 }
 
@@ -583,12 +583,12 @@ body[data-dashboard-page="backend"] .backend-v2-mini {
 
 body[data-dashboard-page="backend"] .backend-v2-mini span {
   display: block;
-  font-size: 0.72rem;
+  font-size: var(--type-size-micro);
   color: var(--admin-muted, var(--color-base-500));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-mini strong {
-  font-size: 1rem;
+  font-size: var(--type-size-body);
   color: var(--admin-text, var(--color-base-900));
 }
 
@@ -600,7 +600,7 @@ body[data-dashboard-page="backend"] .backend-v2-side-time {
   justify-content: space-between;
   gap: var(--dash-gap-2xl);
   color: var(--admin-subtle, var(--color-base-600));
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-side-time strong {
@@ -659,7 +659,7 @@ body.backend-motion-balanced[data-dashboard-page="backend"] .backend-ops-item.is
 body[data-dashboard-page="backend"] .backend-ops-item a {
   color: var(--admin-text, var(--color-base-900));
   text-decoration: none;
-  font-size: 0.83rem;
+  font-size: var(--type-size-caption);
   font-weight: 600;
 }
 
@@ -689,7 +689,7 @@ body[data-dashboard-page="backend"] .backend-quick-link {
   color: var(--admin-text, var(--color-base-900));
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.84rem;
+  font-size: var(--type-size-caption);
 }
 
 body[data-dashboard-page="backend"] .backend-quick-link > span:first-child {
@@ -739,7 +739,7 @@ body[data-dashboard-page="backend"] .backend-cmd-input {
   border-bottom: 1px solid var(--admin-border, var(--color-base-300));
   background: transparent;
   color: var(--admin-text, var(--color-base-900));
-  font-size: 1rem;
+  font-size: var(--type-size-body);
   padding: var(--dash-block-spacing) 1rem;
   outline: none;
 }
@@ -784,7 +784,7 @@ body[data-dashboard-page="backend"] .backend-cmd-item kbd {
   background: var(--admin-surface, var(--color-base-0));
   color: var(--admin-muted, var(--color-base-500));
   padding: var(--dash-gap-xs) var(--dash-gap-lg);
-  font-size: 0.72rem;
+  font-size: var(--type-size-micro);
 }
 
 body[data-dashboard-page="backend"] .backend-cmd-empty {
@@ -871,7 +871,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
 @media (max-width: 720px) {
   body[data-dashboard-page="backend"] .backend-v2-overview-head h2,
   body[data-dashboard-page="backend"] .backend-v2-welcome-title {
-    font-size: 1.65rem;
+    font-size: var(--type-size-headline-m);
   }
 
   body[data-dashboard-page="backend"] .backend-v2-action-grid {
@@ -934,7 +934,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.76rem;
+  font-size: var(--type-size-eyebrow);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   opacity: 0.84;
@@ -962,7 +962,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
   padding: 0.42rem 0.7rem;
   border-radius: 999px;
   background: var(--backend-role-home-chip-bg, rgba(255,255,255,0.14));
-  font-size: 0.83rem;
+  font-size: var(--type-size-caption);
   color: var(--backend-role-home-chip-fg, rgba(255,255,255,0.92));
 }
 .backend-role-home-actions {
@@ -993,7 +993,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
   gap: 0.1rem;
 }
 .backend-role-home-command-hint {
-  font-size: 0.76rem;
+  font-size: var(--type-size-eyebrow);
   color: var(--bs-secondary-color);
 }
 .backend-role-home-primary {
@@ -1044,7 +1044,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
 }
 .backend-role-home-panel h4 {
   margin: 0 0 0.75rem;
-  font-size: 0.95rem;
+  font-size: var(--type-size-body);
 }
 .backend-role-home-list {
   display: grid;
@@ -1058,7 +1058,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
 }
 .backend-role-home-list-item strong {
   display: block;
-  font-size: 0.92rem;
+  font-size: var(--type-size-body);
 }
 .backend-role-home-list-item small,
 .backend-role-home-list-item span {
@@ -1069,7 +1069,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
   text-align: center;
   padding: 0.3rem 0.5rem;
   border-radius: 999px;
-  font-size: 0.74rem;
+  font-size: var(--type-size-micro);
   font-weight: 700;
   background: var(--backend-role-home-pill-bg, rgba(79, 70, 229, 0.1));
   color: var(--brand-primary);
@@ -1110,7 +1110,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
   align-items: center;
   gap: 0.4rem;
   margin-top: 0.55rem;
-  font-size: 0.84rem;
+  font-size: var(--type-size-caption);
 }
 @media (max-width: 1199px) {
   .backend-role-home-grid {

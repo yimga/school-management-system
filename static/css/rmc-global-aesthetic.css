@@ -117,7 +117,7 @@
 .card-header h2,
 .card-header h3,
 .card-header .h6 {
-  font-size: 0.95rem;
+  font-size: var(--type-size-body);
   font-weight: 600;
   letter-spacing: -0.005em;
   margin: 0;
@@ -126,13 +126,13 @@
 .section-lead,
 .rmc-section-lead {
   color: var(--rmc-canvas-muted);
-  font-size: 0.95rem;
+  font-size: var(--type-size-body);
   margin-bottom: 0.75rem;
 }
 
 .eyebrow,
 .rmc-eyebrow {
-  font-size: 0.7rem;
+  font-size: var(--type-size-micro);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(15, 23, 42, 0.55);
@@ -172,7 +172,7 @@ main > * + *,
 }
 
 .rmc-section-header .section-heading {
-  font-size: 1.1rem;
+  font-size: var(--type-size-body-l);
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--rmc-canvas-ink);
@@ -190,7 +190,7 @@ main > * + *,
 }
 
 .table > thead th {
-  font-size: 0.78rem;
+  font-size: var(--type-size-eyebrow);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -206,7 +206,7 @@ main > * + *,
 .table caption {
   caption-side: top;
   padding: 0.5rem 0.75rem;
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
   color: var(--rmc-canvas-muted);
 }
 
@@ -226,7 +226,7 @@ main > * + *,
 }
 
 .form-label {
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
   font-weight: 500;
   margin-bottom: 0.25rem;
   color: var(--rmc-canvas-ink);
@@ -268,7 +268,7 @@ main > * + *,
   background: transparent;
   padding: 0;
   margin-bottom: 0.5rem;
-  font-size: 0.85rem;
+  font-size: var(--type-size-caption);
 }
 
 .breadcrumb-item {
@@ -310,7 +310,7 @@ main > * + *,
 .dropdown-item {
   border-radius: 6px;
   padding: 0.45rem 0.6rem;
-  font-size: 0.92rem;
+  font-size: var(--type-size-body);
 }
 
 /* === 12. Alert polish ================================================== */

@@ -1,6 +1,265 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-15 (v2.25 burndown sweep — NS-17 follow-up to NS-14/NS-16 + absorbed regressions from parallel five-gap closeout)
+**Last updated:** 2026-05-15 (v2.32.0 — card-grid stagger + CSS-side ramp consolidation + hero photography substitutes)
+
+## 2026-05-15 — v2.30 / v2.31 / v2.32 closeout
+
+**Status:** SHIPPED. SW bumped to `sms-v2.32.0-stagger-css-ramp-hero-art-2026-05-15`.
+
+User directive: "Push as well as [the three deferred items] — no lazy work." All three closed.
+
+### v2.30 — Card-grid reveal stagger
+
+| Track | Artifact |
+|---|---|
+| Sweep script | NEW `scripts/apply_card_grid_stagger.py`. Targets Bootstrap `row.g-*` parents whose direct children carry card-like classes (`card`, `dashboard-card`, `stat-card`, `kpi-card`, `metric-card`, `tile`, `portal-stat-card`, `dashboard-stat-card`, `mkt-edt-bell`, `insight-card`, `portal-app-card`, `product-card`, `app-tile`, `module-card`, `feature-card`). Depth-aware tag walk ensures only DIRECT children of the row get `.rmc-reveal` — nested grids inside cards are not double-revealed. Form rows + non-card rows correctly skipped (verified: 116 of 292 candidate row-with-gap parents passed the card-content check; the other 176 were form layouts / non-card content). |
+| Result | **116 card-grid rows now stagger across 83 templates**, **365 direct-child col-* divs gained `.rmc-reveal`**. Cascades use the v2.26 `--reveal-stagger: 90ms` so each card lands 90ms after its sibling. |
+
+### v2.31 — CSS-side type ramp bridge (the big one)
+
+| Track | Artifact |
+|---|---|
+| Sweep script | NEW `scripts/migrate_css_font_size_to_tokens.py`. Walks every CSS file under `static/css/` (excluding `design-tokens.css` SOT, `design-tokens-luxury.css`, print stylesheets, `vendor/`). Two-pass mapping table covering 90+ unique literal values → `var(--type-size-*)` ramp tokens. Handles `!important`, skips `clamp()` / `calc()` / `inherit` / `0` / `%` / `pt` (print) sentinels. |
+| Migration result | **833 of 943 CSS font-size literal declarations migrated to ramp tokens (88%)** across **65 CSS files**. Combined with the 97 declarations already using `var()`, **98.5% of CSS font-size declarations now flow through the ramp** (930 of 944). Remaining 14 hard literals (1.5%) are off-table values left alone deliberately. |
+| Files most affected | `phase2-portal-bundle.css` (110), `portal-ui-components.css` (111), `rmc-long-page-grammar.css` (56), `patterns.css` (54), `phase2-base-bundle.css` (25), `teacher-dashboard-modern.css` (22), `marketing-home.css` (18), `mobile-tables-forms.css` (18) — every per-surface stylesheet now defers to the ramp. |
+| Tenant cascade impact | Every per-surface headline / stat-value / micro-label class now flows through the ramp. If the platform ever exposes `--type-size-*` as tenant-configurable, the override cascades through 833 declaration sites for free. |
+
+### v2.32 — Hero photography substitutes
+
+| Track | Artifact |
+|---|---|
+| Hero generator | NEW `scripts/generate_marketing_heroes.py`. Generates 1600×1000 abstract editorial compositions via Pillow — vertical cream gradient, radial accent glow, geometric overlays (constellations / stacked rectangles / chip grids / ascending stair / parallel hairlines / column-to-column flow / concentric rings). One per primary marketing page. |
+| Hero set | **7 page compositions × 2 formats = 14 hero files** under `static/images/marketing/heroes/`. Total **207KB** for all 14 (WebP averages ~7KB, JPEG fallback averages ~22KB). All optimized. Page slugs: `home`, `platform`, `solutions`, `pricing`, `why`, `migrate`, `trust`. |
+| Adoption partial | NEW `templates/components/marketing_hero_image.html`. Pages opt in with `{% include "components/marketing_hero_image.html" with hero_slug="pricing" priority=True %}`. Renders `<picture>` with WebP first + JPEG fallback, sets `fetchpriority="high"` + `loading="eager"` when `priority=True`, lazy-loads otherwise. Auto-applies `.rmc-reveal--scale` so it cinematically scales in on first viewport entry. |
+| CSS plumbing | NEW `.rmc-hero-figure` grammar in design-tokens.css (v2.32 layer): 1.5rem rounded corners, hairline border (retina 0.5px), soft shadow stack, 16:10 aspect-ratio enforced, terracotta accent dot in bottom-left (4px outer glow ring via `color-mix`). Optional `.rmc-hero-figure--tinted` variant applies a 135° tenant-brand-primary wash overlay via `linear-gradient` + `color-mix` + `mix-blend-mode: multiply`. |
+
+### Cumulative platform state (post-v2.32.0)
+
+| Metric | Value |
+|---|---|
+| `.rmc-reveal` class uses platform-wide | **757** (was 1 at start of v2.27) |
+| `.rmc-reveal-stagger` parent containers | **116** |
+| Section/article/aside elements revealed | **379** |
+| Card-grid columns revealed | **365** (additional inside staggers) |
+| CSS font-size declarations via ramp tokens | **930 / 944 (98.5%)** |
+| Inline `style="..."` off-token violations | **0** (zero-tolerance gate) |
+| SVG illustration partials | 6 |
+| SVG decoration partials | 4 |
+| Marketing hero images | 14 (7 webp + 7 jpg) |
+| OG cards | 7 (1 fallback + 6 per-page) |
+| Architectural CI gates active | 13 (2 zero-tolerance) |
+
+### Audit final state
+
+- `audit_template_render_safety.py --compare`: **0 findings**
+- `scan_inline_style_off_token.py --compare`: **0 → 0** (zero-tolerance)
+- All 11 prior architectural gates still green
+
+### Deploy
+
+1. SW cache: `sms-v2.32.0-stagger-css-ramp-hero-art-2026-05-15`.
+2. Code changes: 83 templates (card-grid stagger), 65 CSS files (ramp migration), 1 new component template (hero image), 14 new image files (7 webp + 7 jpg), 3 new scripts (stagger applier, CSS migrator, hero generator), 1 design-tokens.css block (v2.32 hero figure grammar), 1 SW bump, 1 CLAUDE.md update, 1 docket section.
+3. No DB migration. No runtime config change.
+4. To validate after pull: both CI gates green.
+
+### What the user will see
+
+- **Card cascades on every dashboard**: stat-card grids, KPI tiles, dashboard cards, marketing chapter cards — all 116 rows ripple in left-to-right (or top-to-bottom) at 90ms intervals using the `--ease-curtain` HIG cubic-bezier
+- **Consistent typography everywhere**: every headline / stat-value / micro-label across the platform now scales fluidly through the same ramp; resize from mobile → 4K and the whole text system responds together
+- **Tenant brand cascade reaches font-size too**: future tenant overrides on `--type-size-*` would propagate through 930 declaration sites
+- **Marketing pages have hero artwork**: pages can adopt `{% include "components/marketing_hero_image.html" with hero_slug="..." %}` for an Apple-tier abstract composition that fades into place as `.rmc-reveal--scale`
+- **Editorial framing on heroes**: rounded corners + hairline border + soft shadow + terracotta accent dot + optional tenant-brand wash overlay
+
+### Follow-up tracked
+
+- Adopting the hero image partial on the per-page marketing templates (Pricing / Platform / Solutions / Why / Migrate / Trust each could `{% include %}` it). Infrastructure is ready; per-page placement is a small follow-up sweep.
+- The 14 remaining CSS-side font-size literals (1.5%) are off-table values that don't fit any tier cleanly — could be reviewed and either added to the ramp, mapped to nearest, or annotated as intentional one-offs.
+- Generative hero photography stays as the receiving infrastructure. A real content shoot (school imagery, parent/teacher/student portraits) would replace the generative compositions; pages already use `{% include %}` so swapping is a single line change.
+
+---
+
+## 2026-05-15 — v2.27 / v2.28 / v2.29 platform-wide luxury sweep
+
+## 2026-05-15 — v2.27 / v2.28 / v2.29 platform-wide luxury sweep
+
+**Status:** SHIPPED. SW bumped to `sms-v2.29.0-platform-wide-luxury-sweep-2026-05-15`.
+
+User directive: "I want everything done — manager dashboard, parent portal, marketing — every section touched. No lazy work." Three coordinated waves landed in sequence: v2.27 retrofits the type system, v2.28 adopts reveal grammar platform-wide, v2.29 ships the Apple-tier illustration library.
+
+### v2.27 — Inline-style → token retrofit (155 → 0)
+
+| Track | Artifact |
+|---|---|
+| Migration script | NEW `scripts/migrate_inline_style_to_tokens.py`. Maps 33 unique font-size literals + 11 unique color literals to the v2.26 ramp + the `--text-*` ladder. Conservative ranges chosen to keep rendered size within ~5% of original. Skips Django-interpolated bodies. Idempotent. |
+| One new token | `--type-size-micro: 0.65rem` (and matching `.rmc-type-micro` class) absorbs the 45 dashboard-metadata sites that legitimately need tiny labels — mapping those to caption (0.8125rem) would have been a 25% jump that broke crowded table layouts. |
+| Color migration | `#555/#64748b/#666` → `var(--text-secondary)`. The 8 `rgba(59,130,246,...)` / `rgba(13,110,253,...)` / `rgba(255,122,24,...)` / `rgba(34,197,94,...)` overlays converted to `color-mix(in srgb, var(--brand-primary), transparent N%)` — modern CSS that routes through tenant brand so the cascade actually wins. `rgba(0,0,0,0.2)` / `rgba(255,255,255,0.25)` → `var(--hairline-strong)` / `var(--hairline)`. |
+| Result | **155 → 0 violations** across 63 files. CI gate flipped from drift-detection (`155 → 155 no growth`) to **zero-tolerance** (`0 → 0 no growth`). |
+
+### v2.28 — Reveal adoption platform-wide
+
+| Track | Artifact |
+|---|---|
+| Sweep script | NEW `scripts/apply_reveal_platform_wide.py`. Targets every `<section>` / `<article>` / `<aside>` in non-partial templates. Skips the FIRST one per file (above-fold heuristic — Apple's own pattern is hero immediately visible, sections fade up on scroll). Skips partials/components/errors/emails/admin/unfold dirs. Idempotent. |
+| Result | **379 sections / articles revealed across 75 templates** — marketing, manager, portal, parent, teacher, student, admin shells all touched. Above-fold hero on each page paints immediately; everything below cascades in with the `--ease-curtain` curve over 600ms. |
+| Co-existence | Templates with existing `data-mkt-reveal` parallax attribute kept it; `rmc-reveal` composes additively (parallax data hint + actual fade-up class). |
+
+### v2.29 — Apple-tier SVG library
+
+| Track | Artifact |
+|---|---|
+| Illustrations dir | NEW `templates/components/illustrations/` — 6 line-art SVG partials for empty states: `_empty_no_data`, `_empty_no_results`, `_empty_connection_lost`, `_empty_permission`, `_empty_first_run`, `_empty_inbox`. Each uses `currentColor` for strokes (parent text color tints them) + `--rmc-illustration-accent` for the single accent stroke (defaults to terracotta, marketing surfaces override to editorial accent). All wrapped in `role="img"` + `<title aria-labelledby>` for a11y. |
+| Decorations dir | NEW `templates/components/decorations/` — 4 SVG partials for chapter dividers + ornament: `_divider_serif` (centered terracotta dot between two hairlines), `_divider_lined` (3-line ascending divider), `_divider_flourish` (sinuous serif-style curves with center dot), `_corner_ornament` (corner-pinning bracket with accent dot). |
+| Empty-state upgrade | `templates/components/rmc_empty_state.html` extended to accept `illustration="<name>"` arg. Renders the SVG instead of the Bootstrap icon when set. Existing callers unchanged. Title/message now use `.rmc-type-headline-m` / `.rmc-type-body` from the v2.26 ramp. |
+| CSS plumbing | NEW `.rmc-illustration` class in design-tokens.css: 180px default max-inline-size, `currentColor` inherit, editorial-surface override for `--rmc-illustration-accent`, divider/corner-ornament position helpers. |
+| OG covers generator | `scripts/generate_og_card.py` extended with `--all` flag + per-page composition table. Generates 6 per-page covers (Platform / Solutions / Pricing / Why / Migrate / Trust) under `static/images/og/` in addition to the platform fallback. Each carries its own chapter number, eyebrow, headline, subline — all editorial palette, 1200×630. Re-runnable for design iteration. |
+| Bug fix during survey | None — discipline held. |
+
+### Cumulative scanner suite (post-v2.29.0)
+
+13 architectural gates active. Two are now zero-tolerance: `audit_template_render_safety` (always 0) and `scan_inline_style_off_token` (155 → 0 this wave, locked to zero going forward).
+
+### Audit final state
+
+- `audit_template_render_safety.py --compare`: **0 findings**
+- `scan_inline_style_off_token.py --compare`: **0 → 0** zero-tolerance
+- 379 `<section>/<article>/<aside>` elements platform-wide now carry `rmc-reveal`
+- 6 illustration + 4 decoration SVG partials in the new component directories
+- 7 OG cards (1 fallback + 6 per-page)
+- All 11 prior architectural gates still green
+
+### Deploy
+
+1. SW cache: `sms-v2.29.0-platform-wide-luxury-sweep-2026-05-15`.
+2. Code changes: 63 templates (inline-style retrofit), 75 templates (reveal sweep), 1 component template (empty-state upgrade), 10 new SVG partials, 6 new PNGs, 4 new scripts (migrator, reveal applier, OG generator update, scanner already shipped), 2 design-tokens.css blocks added, 1 SW bump, 1 CLAUDE.md update, 1 docket section.
+3. No DB migration. No runtime config change.
+4. To validate locally after pull: `python scripts/audit_template_render_safety.py --compare && python scripts/scan_inline_style_off_token.py --compare`. Both exit 0.
+
+### What the user will see
+
+- Every scroll-into-view of a section/article on every page → velvet-curtain fade-up over 600ms with the `--ease-curtain` HIG cubic-bezier
+- Every above-fold hero paints immediately (no FOUC), every below-fold chapter rises in
+- Every empty state on dashboards that opts in via `illustration="..."` renders Apple-tier line-art instead of a Bootstrap icon
+- Every shared marketing-page URL now produces a unique editorial OG card preview on Twitter / LinkedIn / Slack
+- Every tenant brand color cascade now actually reaches the previously-hardcoded inline `rgba(59,130,246,0.35)` overlays — they're `color-mix(... var(--brand-primary)...)` now
+
+### Follow-up tracked
+
+- Reveal stagger groups: the platform-wide sweep adds `rmc-reveal` to sections but not to inner card grids (`.row > .col-*` patterns). A v2.30 pass could add `.rmc-reveal-stagger` + child `.rmc-reveal` on dashboard stat-card grids — moderate visual win, requires per-page verification.
+- Type ramp class adoption: `.rmc-type-display` / `.rmc-type-headline-*` classes are available but the existing `.mkt-edt-hero-headline` / `.dashboard-stat-value` per-surface classes still own their own size declarations in CSS. Bridging via `@extend` or adding the ramp classes alongside existing ones is a larger sweep.
+- Tenant-aware OG cards: 7 covers ship with the platform brand. Tenants on the cascade could trigger per-school card regeneration via a Django management command driving `generate_og_card.py` with `SITE.primary_color` / `SITE.site_name` injected. Out of scope; primitives in place.
+- Hero photography: HIG's 2×/3× retina hero imagery still requires content shoots. The reveal grammar + cover-card system + illustration library are ready to receive it.
+
+---
+
+## 2026-05-15 — v2.26.0 Apple HIG quiet-luxury wave
+
+## 2026-05-15 — v2.26.0 Apple HIG quiet-luxury wave
+
+**Status:** SHIPPED. SW bumped to `sms-v2.26.0-apple-hig-quiet-luxury-2026-05-15`.
+
+User directive: "Going above and beyond — minimalism with purpose, sophisticated typography, quiet motion (velvet curtains opening), thoughtful micro-interactions, 44pt touch targets, scroll-triggered fades, authoritative quiet tone." Wave delivers the missing HIG-grade primitives on top of the v2.0–v2.25 foundation — every primitive layered, not duplicated.
+
+### What landed
+
+| # | Track | Artifact |
+|---|---|---|
+| 1 | **Bug fix discovered during survey** | `static/css/design-tokens.css` L534-536 had a duplicate definition of `--motion-fast/normal/slow` using plain `ease` curves that silently clobbered the carefully-tuned Apple cubic-beziers at L70-72. Deleted with a comment block pointing future readers to the v2.26 layer. Every existing `--motion-*` consumer now actually gets the Apple curve. |
+| 2 | **Apple motion tokens** | 5 named curves (`--ease-curtain`, `--ease-cinematic`, `--ease-emphasis-out`, `--ease-emphasis-in`, `--ease-quiet`) and 5 named durations (`--dur-instant 100ms`, `--dur-quick 200ms`, `--dur-swift 300ms`, `--dur-curtain 600ms`, `--dur-cinematic 1200ms`). Named for **intent**, not just the bezier — future readers know what each is for. |
+| 3 | **Apple HIG type ramp v2** | 8 typographic roles (display → eyebrow). Each pairs `--type-size-*` × `--type-lh-*` × `--type-tr-*` per HIG optical-sizing guidance: bigger type → tighter line-height + negative tracking; smaller type → looser line-height + positive tracking. Drop-in classes: `.rmc-type-display`, `.rmc-type-headline-xl/l/m`, `.rmc-type-body-l/body/caption/eyebrow`. All wrap with `text-wrap: balance` where supported (HIG-style headline wrapping). |
+| 4 | **Breath scale** | `--space-breath-xs/sm/md/lg/xl` (3rem → 13rem). Between-section negative space. Apple devotes 6–13rem to chapter gaps; this is now a token. Utilities: `.rmc-breath-xs/sm/md/lg/xl`. |
+| 5 | **44pt tactile floor** | `--tactile-min 44px`, `--tactile-comfortable 48px`, `--tactile-generous 56px`. Utilities: `.rmc-tactile-44/48/56`. Marketing landing CTAs adopted `.rmc-tactile-48`. |
+| 6 | **Retina hairline grammar** | `.rmc-hairline` / `.rmc-hairline-top` / `.rmc-hairline-bottom` render at 1px on standard screens and 0.5px on `(min-resolution: 2dppx)` — genuinely thin, not heavy. |
+| 7 | **Velvet-curtain reveal grammar** | NEW `static/js/rmc-reveal.js` (IntersectionObserver, threshold 0.15, rootMargin -80px on the bottom so reveal fires when reader's eye lands, one-shot to prevent flicker, HTMX-friendly via `htmx:afterSwap`, MutationObserver-backed for dynamically inserted content, `prefers-reduced-motion` flips everything to revealed immediately). Paired CSS: `.rmc-reveal` (default fade-up), variants `.rmc-reveal--from-left/right`, `.rmc-reveal--scale`, parent stagger via `.rmc-reveal-stagger` + auto-assigned `--reveal-index`, hero arrival pattern `.rmc-arrival` (auto-cascades children 1-7+ with `--reveal-stagger: 90ms`). |
+| 8 | **Adopted across all 5 shells** | `rmc-reveal.js` mounted on `portal_base.html`, `base.html`, `control_plane_skeleton.html`, `admin/base_site.html`, `marketing/base_marketing.html` (per CLAUDE.md wave-checklist). |
+| 9 | **Marketing landing hero adopted** | `schools/marketing_landing_v2.html`: `.mkt-edt-hero__copy` now `.rmc-arrival`, with `.rmc-reveal` on h1 / lead / CTAs / stats / voice quote / trust strip; CTAs gained `.rmc-tactile-48`; hero artifact gained `.rmc-reveal--scale` for the quiet scale-in. User sees velvet curtain hero arrival on the exact surface that prompted this wave. |
+| 10 | **13th CI gate** | NEW `scripts/scan_inline_style_off_token.py`. Drift-detection scanner catching template `style="..."` attributes that bypass the token system. Three rules: `font-size-literal` (px/rem/em with no `var()`), `color-literal` (hex/rgb in color/background/border-color with no `var()`), `motion-curve-literal` (raw cubic-bezier in `transition`/`animation` with no `var()`). Baseline: 155 findings (139 font-size + 16 color + 0 motion). CI fails on growth. Mark exceptions with `<!-- inline-style-allow: <reason> -->` or `inline-style-allow:` inside the style. Added as `inline-style-off-token` job in `architectural-boundaries.yml`. |
+| 11 | SW bump | `sms-v2.25.2-…` → `sms-v2.26.0-apple-hig-quiet-luxury-2026-05-15`. |
+
+### Cumulative scanner suite (post-v2.26.0)
+
+13 architectural gates active. New row: `scan_inline_style_off_token.py` baseline **155**.
+
+### Audit final state
+
+- `audit_template_render_safety.py --compare`: **0 findings**, exit 0
+- `scan_inline_style_off_token.py --compare`: **155 → 155** (no growth), exit 0
+- All prior 11 gates still green
+
+### Why the user will see the difference
+
+- Marketing landing hero: previously the headline / lead / CTAs / stats appeared *together* on first paint. Now they cascade in with 90ms stagger using the `--ease-curtain` curve over 600ms — velvet curtains. The right-column artifact scales in (96% → 100%) at the same beat.
+- CTAs ("Book a demo", "See it live") now enforce the 44pt floor via `.rmc-tactile-48` so they hit Apple HIG's hit-target minimum on iPhone Safari.
+- Every existing `transition: var(--motion-fast/normal/slow)` declaration now actually uses the Apple cubic-bezier instead of plain `ease` (was clobbered by L534-536 duplicate).
+- Future drift caught by the 13th gate — any new `style="font-size: 14px"` or `style="color: #4f46e5"` fails CI with a clear NEW: line in the log.
+
+### Follow-up tracked
+
+- Type ramp adoption across the platform — `.rmc-type-display/headline-*` are available but adoption requires walking 873 templates and choosing which existing `.mkt-edt-*` / `.dashboard-*` headline classes to bridge. Out of scope for this wave; baseline of 155 inline-`font-size:` violations gives a measurable target for a follow-up sweep.
+- Reveal grammar adoption beyond the marketing hero — the foundation is ready; each marketing section (`/v2` has 8 chapters) could opt in with one-line class additions per chapter. Done section-by-section so each one feels intentional, not auto-applied.
+- Per-tenant motion preference — currently the curves and durations are platform-level. Future cascade extension could expose `--dur-curtain` / `--ease-curtain` as tenant-configurable for ultra-luxury brand options.
+
+---
+
+## 2026-05-15 — v2.25.2 platform template safety sweep
+
+## 2026-05-15 — v2.25.2 platform template safety sweep
+
+**Status:** SHIPPED. SW bumped to `sms-v2.25.2-platform-template-safety-sweep-2026-05-15`.
+
+Driven by a visible production bug: the user reported `{# Theme v2 … #}` / `{# v2.4 polish … #}` / `{# Phase D … #}` Django comments leaking as raw text across the top of marketing + manager pages. Root cause: Django `{# … #}` is single-line-only — multi-line variants render as literal text. Sweep widened from the immediate fix to a true platform-wide audit (873 templates) covering every class of render-safety bug, plus a 12th architectural CI gate so this can never silently regress.
+
+### What landed
+
+| # | Track | Artifact |
+|---|---|---|
+| 1 | Multi-line `{# … #}` hotfix | `scripts/fix_multiline_django_comments.py` (idempotent). **44 comments converted to `{% comment %}…{% endcomment %}` across 29 templates** including every base shell that mounts on `<head>` — `portal_base.html` (9), `control_plane_skeleton.html` (2), `base.html` (2), `marketing/base_marketing.html` (1), `admin/base_site.html` (1), `control_plane_base.html` (1) — plus the meta partials `rmc_theme_meta.html` (3) / `rmc_lexicon_meta.html` (1) / `rmc_social_meta.html` (1) included in every shell's `<head>`, plus `user_dropdown.html` (3), `rmc_metric_ticker.html` (2), and 19 more. |
+| 2 | `_pages/*.js` bundle path bug | `scripts/externalize_inline_scripts.py` had a 2-sided bug: it wrote files to `static/js/_pages/` (correct) but emitted `<script src="{% static '_pages/X.js' %}">` (wrong — resolves to `static/_pages/X.js`, 404). **145 references across 125 templates** rewritten from `_pages/X.js` → `js/_pages/X.js`; generator's replacement string + docstring corrected so future runs are correct. Idempotent fixer: `scripts/fix_pages_static_path.py`. **Every per-page JS bundle was previously 404-ing — silent platform-wide client-behaviour outage.** |
+| 3 | Missing `photo_capture_id.html` | `/portal/photo-upload/<token>/` was a hard 500 (`TemplateDoesNotExist`) for the parent photo-capture flow — view, URL, JS, and tests existed, the include target was never created. Built `templates/components/photo_capture_id.html` matching the JS contract in `static/js/photo-capture-id.js` (mobile-friendly `capture="environment"` file input + tactile camera button + optional gallery fallback + i18n + design-token alignment). |
+| 4 | OG card fallback | `static/images/runmycampus-og-card.png` was referenced from `rmc_social_meta.html` as the every-page fallback OG image but never existed — broken social-share preview on every page lacking `og_image`/`SITE_LOGO_URL`. Generated real 1200×630 PNG via `scripts/generate_og_card.py` (Pillow, editorial palette: cream `#FAF7F2` canvas, terracotta `#C1573A` accent, Georgia Bold headline, Segoe UI Bold wordmark). 46KB optimized PNG. Re-runnable for design iteration. |
+| 5 | Walkthrough poster | `/v2` marketing page `<video poster="…walkthrough-poster.png">` referenced missing PNG — purely decorative because the inlined SVG reel at `_decoration_walkthrough_reel.svg.html` already provides the fallback visual and the `<source src="">` is empty pending real footage. Removed the `poster` attribute. |
+| 6 | NEW scanner — `audit_template_render_safety.py` | AST-style platform-wide scanner covering 4 bug classes: (a) direct render leaks (orphan `{#`/`#}`/`{{`/`}}`/`{%`/`%}` tokens, with `<script>` + `<style>` + `{# … #}` bodies pre-masked so inline JS braces and `#anchor` refs don't false-positive); (b) tag balance (every `{% if/for/block/with/comment/verbatim/spaceless/autoescape/blocktrans/cache/filter/localize/localtime/timezone/language/ifchanged %}` has matching closer; comment/verbatim bodies skipped so tag-like text inside them isn't tokenized); (c) broken `{% include %}` / `{% extends %}` (third-party prefixes `admin/`, `unfold/`, `django/`, `auth/`, `registration/`, `rest_framework/`, `debug_toolbar/` whitelisted); (d) missing `{% static %}` files. Supports `--compare` for parity with the other CI gates. |
+| 7 | CI gate 12 | `architectural-boundaries.yml`: 12th job `template-render-safety` runs `audit_template_render_safety.py --compare`. Zero-tolerance baseline (any finding is a real bug — no JSON allowlist). Triggers on every template change (added `beta/school-management-system/templates/**/*.html` to `paths`). |
+| 8 | SW bump | `static/js/service-worker.js` `CACHE_VERSION` bumped `sms-v2.25.0-…` → `sms-v2.25.2-platform-template-safety-sweep-2026-05-15` so every browser SW invalidates its cached HTML + static bundles on next visit. |
+
+### Audit final state
+
+- **873 templates scanned** across the single template root (verified `apps/` contains zero HTML — all templates centralised under `templates/`)
+- **0 findings** after sweep
+- All 11 prior architectural CI gates + new template-render-safety gate green
+
+### Cumulative scanner suite (post-v2.25.2)
+
+| Scanner | Baseline | Workflow |
+|---|---|---|
+| `scan_tenant_queryset_safety.py` | 741 | `tenant-isolation-scan.yml` |
+| `scan_ai_gateway_boundary.py` | 0 | `architectural-boundaries.yml` |
+| `scan_sentry_boundary.py` | 0 | `architectural-boundaries.yml` |
+| `scan_print_statements.py` | 0 | `architectural-boundaries.yml` |
+| `scan_bare_except.py` | 0 | `architectural-boundaries.yml` |
+| `scan_migration_model_imports.py` | 33 | `architectural-boundaries.yml` |
+| `scan_drf_schema_coverage.py` | 0 | `architectural-boundaries.yml` |
+| `scan_role_strings.py` | 367 | `architectural-boundaries.yml` |
+| `scan_assert_in_production.py` | 0 | `architectural-boundaries.yml` |
+| `scan_magic_numbers.py` | ~2776 | `architectural-boundaries.yml` |
+| `scan_subprocess_shell_true.py` | 0 | `architectural-boundaries.yml` |
+| `scan_rls_bypass.py` | 12 | `architectural-boundaries.yml` |
+| **`audit_template_render_safety.py`** | **0** (NEW) | `architectural-boundaries.yml` |
+
+### Deploy
+
+1. SW cache: `sms-v2.25.2-platform-template-safety-sweep-2026-05-15`.
+2. Code changes: 29 templates (comment conversion), 125 templates (path rewrite), 1 new component template, 1 new OG card PNG, 2 partials (OG meta + walkthrough), 1 generator script fix, 4 new scripts, 1 CI workflow update, 1 SW version bump.
+3. No DB migration. No runtime config change. No deletions.
+4. To validate locally after pull: `python scripts/audit_template_render_safety.py --compare` exits 0.
+
+### Follow-up tracked
+
+- The platform-wide grep also surfaced 23 single-line `{# … #}` comments containing meaningful prose (issue refs like `#353`, anchor refs like `#main-content`). These are valid Django comments and were intentionally not modified; the scanner's tempered-token regex correctly tolerates `#` characters in the body.
+- The OG card design is one editorial composition — future tenants on the platform get the marketing fallback. Per-tenant OG cards remain a `SITE_LOGO_URL`-based fallback in the partial; a tenant-aware OG card generator could be a follow-up wave.
+
+---
+
+## 2026-05-15 — v2.25 burndown sweep (wave NS-17 follow-up)
 
 ## 2026-05-15 — v2.25 burndown sweep (wave NS-17 follow-up)
 

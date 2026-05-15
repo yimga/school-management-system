@@ -43,13 +43,13 @@
 }
 
 .sysconf-card .hint {
-  font-size: 0.8rem;
+  font-size: var(--type-size-caption);
   color: var(--ds-text-muted, var(--bs-secondary-color));
   margin-top: 0.35rem;
 }
 
 .sysconf-badge {
-  font-size: 0.65rem;
+  font-size: var(--type-size-micro);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }

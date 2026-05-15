@@ -29,8 +29,8 @@
     <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:support_dashboard' %}">{% trans "Back to queue" %}</a>
   </div>
 
-  <div class="row g-3 mb-4">
-    <div class="col-lg-8">
+  <div class="row g-3 mb-4 rmc-reveal-stagger">
+    <div class="col-lg-8 rmc-reveal">
       <div class="card border-0 shadow-sm">
         <div class="card-header">{% trans "Request" %}</div>
         <div class="card-body">
@@ -38,7 +38,7 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-4">
+    <div class="col-lg-4 rmc-reveal">
       {% if tenant_message_admin_url %}
       <div class="card border-0 shadow-sm mb-3">
         <div class="card-header">{% trans "Linked communication" %}</div>

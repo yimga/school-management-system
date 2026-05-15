@@ -12,17 +12,18 @@
   <meta charset="utf-8">
   {% include "partials/rmc_theme_meta.html" %}
   {% include "partials/rmc_social_meta.html" %}
-  {# Theme bootstrap must run before paint to avoid flash-of-wrong-theme.
+  {% comment %} Theme bootstrap must run before paint to avoid flash-of-wrong-theme.
      Marketing surface keeps its editorial palette, but if a logged-in user
-     navigates here their Light/Dark/System preference must still apply. #}
+     navigates here their Light/Dark/System preference must still apply. {% endcomment %}
   <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
   <script src="{% static 'js/rmc-lexicon.js' %}" defer></script>
   <script src="{% static 'js/rmc-friction.js' %}" defer></script>
   <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
+  <script src="{% static 'js/rmc-reveal.js' %}" defer></script>
   <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
   <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
   <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
-  <script src="{% static '_pages/marketing__base_marketing.js' %}"></script>
+  <script src="{% static 'js/_pages/marketing__base_marketing.js' %}"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
   {% block meta_description %}
@@ -41,6 +42,7 @@
   <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
   {# Marketing surface intentionally does not load bootstrap-theme-bridge.css — keeps editorial palette from being overridden by platform indigo/emerald. #}
   <link rel="stylesheet" href="{% static 'css/statement-header.css' %}">

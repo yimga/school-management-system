@@ -10,7 +10,7 @@
 </div>
 {% if sidebar_record_context %}
 <div class="sidebar-record-context rmc-glass-surface mb-3 p-2 small" role="region" aria-label="{% trans 'Record quick links' %}">
-  <div class="text-uppercase text-muted fw-semibold" style="font-size:0.65rem;letter-spacing:0.04em;">{{ sidebar_record_context.title }}</div>
+  <div class="text-uppercase text-muted fw-semibold" style="font-size:var(--type-size-micro);letter-spacing:0.04em;">{{ sidebar_record_context.title }}</div>
   <div class="fw-semibold mb-2 text-truncate" title="{{ sidebar_record_context.subtitle }}">{{ sidebar_record_context.subtitle }}</div>
   {% for link in sidebar_record_context.links %}
   <a class="d-block py-1 text-decoration-none small" href="{{ link.url }}"><i class="bi bi-chevron-right me-1 small"></i>{{ link.label }}</a>
@@ -243,9 +243,9 @@
         {% if recent_activities %}
           {% for activity in recent_activities|slice:":6" %}
             <li class="sidebar-activity-item px-2 py-1 rounded mb-1" style="border-left: 3px solid color-mix(in srgb, var(--stat-admin) 50%, transparent); padding-left: 0.6rem !important;">
-              <span class="fw-semibold d-block" style="font-size: 0.8rem;">{{ activity.user.username }}</span>
+              <span class="fw-semibold d-block" style="font-size: var(--type-size-caption);">{{ activity.user.username }}</span>
               <span class="small text-muted">{{ activity.action }} {{ activity.model }}</span>
-              <span class="badge bg-secondary ms-1" style="font-size: 0.65rem;">{% blocktrans with ago=activity.time_ago %}{{ ago }} ago{% endblocktrans %}</span>
+              <span class="badge bg-secondary ms-1" style="font-size: var(--type-size-micro);">{% blocktrans with ago=activity.time_ago %}{{ ago }} ago{% endblocktrans %}</span>
             </li>
           {% endfor %}
         {% else %}

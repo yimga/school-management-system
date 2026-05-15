@@ -7,7 +7,7 @@
   "excluded_tails": [
     "management/commands"
   ],
-  "finding_count": 367,
+  "finding_count": 272,
   "findings": [
     {
       "line": 44,
@@ -88,521 +88,6 @@
       "line": 29,
       "path": "apps/accounts/mfa_defaults.py",
       "role": "ADMIN"
-    },
-    {
-      "line": 27,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 29,
-      "path": "apps/accounts/permissions.py",
-      "role": "PROPRIETOR"
-    },
-    {
-      "line": 44,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 45,
-      "path": "apps/accounts/permissions.py",
-      "role": "PARENT"
-    },
-    {
-      "line": 46,
-      "path": "apps/accounts/permissions.py",
-      "role": "STUDENT"
-    },
-    {
-      "line": 51,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 63,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 75,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 93,
-      "path": "apps/accounts/permissions.py",
-      "role": "PARENT"
-    },
-    {
-      "line": 94,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 95,
-      "path": "apps/accounts/permissions.py",
-      "role": "STUDENT"
-    },
-    {
-      "line": 97,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 109,
-      "path": "apps/accounts/permissions.py",
-      "role": "PARENT"
-    },
-    {
-      "line": 110,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 112,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 126,
-      "path": "apps/accounts/permissions.py",
-      "role": "PARENT"
-    },
-    {
-      "line": 127,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 128,
-      "path": "apps/accounts/permissions.py",
-      "role": "STUDENT"
-    },
-    {
-      "line": 129,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 139,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 150,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 155,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 167,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 177,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 184,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 187,
-      "path": "apps/accounts/permissions.py",
-      "role": "PROPRIETOR"
-    },
-    {
-      "line": 198,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 201,
-      "path": "apps/accounts/permissions.py",
-      "role": "PROPRIETOR"
-    },
-    {
-      "line": 209,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 214,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 222,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 227,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 237,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 238,
-      "path": "apps/accounts/permissions.py",
-      "role": "PARENT"
-    },
-    {
-      "line": 239,
-      "path": "apps/accounts/permissions.py",
-      "role": "STUDENT"
-    },
-    {
-      "line": 244,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 247,
-      "path": "apps/accounts/permissions.py",
-      "role": "PROPRIETOR"
-    },
-    {
-      "line": 257,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 260,
-      "path": "apps/accounts/permissions.py",
-      "role": "PROPRIETOR"
-    },
-    {
-      "line": 268,
-      "path": "apps/accounts/permissions.py",
-      "role": "PARENT"
-    },
-    {
-      "line": 269,
-      "path": "apps/accounts/permissions.py",
-      "role": "STUDENT"
-    },
-    {
-      "line": 273,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 276,
-      "path": "apps/accounts/permissions.py",
-      "role": "PROPRIETOR"
-    },
-    {
-      "line": 285,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 293,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 296,
-      "path": "apps/accounts/permissions.py",
-      "role": "PROPRIETOR"
-    },
-    {
-      "line": 306,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 308,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 314,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 322,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 330,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 338,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 341,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 342,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 345,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 346,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 349,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 350,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 353,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 354,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 362,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 363,
-      "path": "apps/accounts/permissions.py",
-      "role": "PARENT"
-    },
-    {
-      "line": 364,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 373,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 374,
-      "path": "apps/accounts/permissions.py",
-      "role": "PARENT"
-    },
-    {
-      "line": 375,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 386,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 401,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 418,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 426,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 429,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 430,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 434,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 443,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 446,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 446,
-      "path": "apps/accounts/permissions.py",
-      "role": "PROPRIETOR"
-    },
-    {
-      "line": 447,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 450,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 451,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 459,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 460,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 501,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 504,
-      "path": "apps/accounts/permissions.py",
-      "role": "PROPRIETOR"
-    },
-    {
-      "line": 512,
-      "path": "apps/accounts/permissions.py",
-      "role": "PARENT"
-    },
-    {
-      "line": 512,
-      "path": "apps/accounts/permissions.py",
-      "role": "STUDENT"
-    },
-    {
-      "line": 512,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 619,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 628,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 751,
-      "path": "apps/accounts/permissions.py",
-      "role": "PARENT"
-    },
-    {
-      "line": 751,
-      "path": "apps/accounts/permissions.py",
-      "role": "STUDENT"
-    },
-    {
-      "line": 751,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 840,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 852,
-      "path": "apps/accounts/permissions.py",
-      "role": "PARENT"
-    },
-    {
-      "line": 860,
-      "path": "apps/accounts/permissions.py",
-      "role": "STUDENT"
-    },
-    {
-      "line": 905,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 969,
-      "path": "apps/accounts/permissions.py",
-      "role": "PARENT"
-    },
-    {
-      "line": 973,
-      "path": "apps/accounts/permissions.py",
-      "role": "STUDENT"
-    },
-    {
-      "line": 1043,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 1043,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 1046,
-      "path": "apps/accounts/permissions.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 1049,
-      "path": "apps/accounts/permissions.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 1052,
-      "path": "apps/accounts/permissions.py",
-      "role": "PARENT"
-    },
-    {
-      "line": 1053,
-      "path": "apps/accounts/permissions.py",
-      "role": "STUDENT"
     },
     {
       "line": 18,
@@ -1260,6 +745,46 @@
       "role": "ADMIN"
     },
     {
+      "line": 126,
+      "path": "apps/feedback/models.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 22,
+      "path": "apps/feedback/services.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 28,
+      "path": "apps/feedback/services.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 67,
+      "path": "apps/feedback/services.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 67,
+      "path": "apps/feedback/services.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 87,
+      "path": "apps/feedback/services.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 194,
+      "path": "apps/feedback/services.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 196,
+      "path": "apps/feedback/services.py",
+      "role": "PARENT"
+    },
+    {
       "line": 34,
       "path": "apps/finance/api_views.py",
       "role": "ADMIN"
@@ -1845,7 +1370,7 @@
       "role": "ADMIN"
     }
   ],
-  "generated_at": "2026-05-15T10:41:36+00:00",
+  "generated_at": "2026-05-15T15:25:13+00:00",
   "role_tokens": [
     "ADMIN",
     "PARENT",
@@ -1857,6 +1382,7 @@
   "scan_dir": "apps",
   "sot_modules": [
     "apps/accounts/models.py",
+    "apps/accounts/permissions.py",
     "apps/platform_runtime/role_registry.py"
   ]
 }

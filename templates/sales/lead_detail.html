@@ -57,7 +57,7 @@
   <ul class="list-group mb-2">
     {% for a in activities %}
     <li class="list-group-item small">
-      <div class="text-muted" style="font-size:0.7rem;">{{ a.created_at }}{% if a.created_by %} — {{ a.created_by.get_full_name|default:a.created_by.email }}{% endif %}</div>
+      <div class="text-muted" style="font-size:var(--type-size-micro);">{{ a.created_at }}{% if a.created_by %} — {{ a.created_by.get_full_name|default:a.created_by.email }}{% endif %}</div>
       <div class="text-break">{{ a.body }}</div>
     </li>
     {% empty %}

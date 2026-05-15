@@ -828,7 +828,7 @@ body[data-dashboard-page] .dashboard-kpi-value {
 }
 
 body[data-dashboard-page="backend"] .backend-kpi-grid-2col .dashboard-kpi-value {
-  font-size: 1.15rem;
+  font-size: var(--type-size-body-l);
 }
 
 /* ----- Progress bar polish (compact pill) ----- */

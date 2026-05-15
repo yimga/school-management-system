@@ -9,7 +9,7 @@
 
 {% block content %}
 <section class="proof-page">
-  <section class="proof-hero">
+  <section class="proof-hero rmc-reveal">
     <div class="proof-hero-grid">
       <div>
         <div class="proof-kicker"><i class="bi bi-magic"></i> {% trans "Setup simulator" %}</div>
@@ -32,7 +32,7 @@
     </div>
   </section>
 
-  <section class="proof-split">
+  <section class="proof-split rmc-reveal">
     <div class="proof-panel">
       <h2 class="proof-panel-title">{% trans "What the simulator proves" %}</h2>
       <ul class="proof-bullet-list">
@@ -47,9 +47,9 @@
     </div>
   </section>
 
-  <section class="proof-flow">
+  <section class="proof-flow rmc-reveal">
     {% for step in steps %}
-    <article class="proof-step">
+    <article class="proof-step rmc-reveal">
       <span class="proof-step-order">{{ step.order }}</span>
       <h3>{{ step.title }}</h3>
       <p>{{ step.description }}</p>
@@ -62,20 +62,20 @@
     {% endfor %}
   </section>
 
-  <section class="proof-card-grid">
-    <article class="proof-preview">
+  <section class="proof-card-grid rmc-reveal">
+    <article class="proof-preview rmc-reveal">
       <div class="proof-preview-frame">
         <h4>{% trans "Left rail" %}</h4>
         <p>{% trans "Progress, health score, current step, and launch readiness instead of a loose checklist." %}</p>
       </div>
     </article>
-    <article class="proof-preview">
+    <article class="proof-preview rmc-reveal">
       <div class="proof-preview-frame">
         <h4>{% trans "Center task" %}</h4>
         <p>{% trans "One dominant CTA, recommended defaults, and advanced controls kept secondary." %}</p>
       </div>
     </article>
-    <article class="proof-preview">
+    <article class="proof-preview rmc-reveal">
       <div class="proof-preview-frame">
         <h4>{% trans "Right rail" %}</h4>
         <p>{% trans "Live preview cards for school website, admin shell, teacher dashboard, and parent portal." %}</p>

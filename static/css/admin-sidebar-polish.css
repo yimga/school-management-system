@@ -51,7 +51,7 @@
 /* Section titles: uppercase, spaced, aligned */
 #nav-sidebar .admin-sidebar-section-title,
 #nav-sidebar-apps .admin-sidebar-section-title {
-  font-size: 0.6875rem !important;   /* 11px */
+  font-size: var(--type-size-micro) !important;   /* 11px */
   font-weight: 700 !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
@@ -95,7 +95,7 @@
 /* Muted section title (e.g. Pinned) */
 #nav-sidebar-apps .admin-sidebar-section-title--muted {
   opacity: 0.85;
-  font-size: 0.65rem !important;
+  font-size: var(--type-size-micro) !important;
 }
 #nav-sidebar-apps .admin-sidebar-pinned-item {
   margin: 2px 0;
@@ -126,7 +126,7 @@
   padding: 10px var(--sidebar-px) !important;
   margin: 2px var(--sidebar-px) !important;
   border-radius: 8px !important;
-  font-size: 0.875rem !important;
+  font-size: var(--type-size-caption) !important;
   min-height: 40px;
   align-items: center;
   gap: 12px !important;
@@ -145,7 +145,7 @@
 #nav-sidebar-apps .admin-sidebar-icon {
   width: 20px !important;
   height: 20px !important;
-  font-size: 1.25rem !important;
+  font-size: var(--type-size-body-l) !important;
   flex-shrink: 0 !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -167,7 +167,7 @@
 }
 #nav-sidebar .admin-sidebar-app-title a,
 #nav-sidebar-apps .admin-sidebar-app-title a {
-  font-size: 0.875rem !important;
+  font-size: var(--type-size-caption) !important;
   font-weight: 600 !important;
   text-decoration: none !important;
   color: var(--color-base-700, var(--color-base-700)) !important;
@@ -208,7 +208,7 @@
 #nav-sidebar-apps .admin-sidebar-model-link {
   padding: 8px 12px !important;
   margin: 2px 0 !important;
-  font-size: 0.8125rem !important;
+  font-size: var(--type-size-caption) !important;
   border-radius: 6px !important;
 }
 
@@ -220,7 +220,7 @@
 #nav-sidebar-apps .admin-sidebar-section-title--secondary {
   margin: var(--sidebar-section) var(--sidebar-px) 8px !important;
   padding: 0 !important;
-  font-size: 0.6875rem !important;
+  font-size: var(--type-size-micro) !important;
   font-weight: 700 !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
@@ -240,7 +240,7 @@
   margin: 0;
   border: none;
   border-radius: 8px;
-  font-size: 0.8125rem;
+  font-size: var(--type-size-caption);
   font-weight: 600;
   color: var(--color-base-600, var(--color-base-600));
   background: transparent;
@@ -278,7 +278,7 @@
 /* Search hint: aligned, subtle */
 .admin-sidebar-search-hint {
   padding: 6px var(--sidebar-px) 10px !important;
-  font-size: 0.6875rem !important;
+  font-size: var(--type-size-micro) !important;
 }
 
 /* User block at bottom: same padding scale */
@@ -302,7 +302,7 @@
 
 /* ----- Section headings in app list (People, Academic, etc.) ----- */
 #nav-sidebar-apps .admin-sidebar-section-heading {
-  font-size: 0.6875rem !important;
+  font-size: var(--type-size-micro) !important;
   font-weight: 700 !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
@@ -325,7 +325,7 @@
   justify-content: space-between;
   margin: 8px var(--sidebar-px) 4px !important;
   padding: 8px var(--sidebar-px) !important;
-  font-size: 0.75rem !important;
+  font-size: var(--type-size-eyebrow) !important;
   font-weight: 700 !important;
   letter-spacing: 0.04em !important;
   color: var(--color-base-600, var(--color-base-600)) !important;

@@ -17,20 +17,20 @@
     <p class="text-muted mb-0">{% trans "Automated consistency checks: orphaned references, missing audit trails, and suspicious sessions." %}</p>
   </header>
 
-  <div class="row g-3 mb-3">
-    <div class="col-md-4">
+  <div class="row g-3 mb-3 rmc-reveal-stagger">
+    <div class="col-md-4 rmc-reveal">
       <div class="card"><div class="card-body">
         <p class="text-muted small mb-1">{% trans "Total issues" %}</p>
         <p class="h3 mb-0">{{ total_issues|default:0 }}</p>
       </div></div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-4 rmc-reveal">
       <div class="card border-danger-subtle"><div class="card-body">
         <p class="text-muted small mb-1">{% trans "Critical" %}</p>
         <p class="h3 mb-0 text-danger">{{ critical_count|default:0 }}</p>
       </div></div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-4 rmc-reveal">
       <div class="card border-warning-subtle"><div class="card-body">
         <p class="text-muted small mb-1">{% trans "High severity" %}</p>
         <p class="h3 mb-0 text-warning">{{ high_count|default:0 }}</p>

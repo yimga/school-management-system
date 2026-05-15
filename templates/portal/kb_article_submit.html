@@ -174,7 +174,7 @@
                             </label>
                             <div class="upload-area border-2 border-dashed p-4 text-center bg-light rounded" 
                                  id="uploadArea">
-                                <i class="bi bi-cloud-upload text-muted mb-3" style="font-size:3rem;"></i><br>
+                                <i class="bi bi-cloud-upload text-muted mb-3" style="font-size:var(--type-size-headline-xl);"></i><br>
                                 <p class="text-muted">Drag and drop files here or click to browse</p>
                                 <input type="file" id="fileInput" name="attachments" multiple accept="image/*,.pdf,.doc,.docx" 
                                        style="display: none;">
@@ -236,5 +236,5 @@
     </div>
 </div>
 
-<script src="{% static '_pages/portal__kb_article_submit.js' %}"></script>
+<script src="{% static 'js/_pages/portal__kb_article_submit.js' %}"></script>
 {% endblock %}

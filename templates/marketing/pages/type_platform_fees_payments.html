@@ -43,7 +43,7 @@
     </div>
   </header>
 
-  <section class="mkt-fees-section" aria-labelledby="mkt-fees-visual-heading">
+  <section class="mkt-fees-section rmc-reveal" aria-labelledby="mkt-fees-visual-heading">
     <h2 id="mkt-fees-visual-heading">{% trans "Your finance workspace at a glance" %}</h2>
     <p class="section-lead">{% trans "See collection health, invoice status, receipts, arrears, and parent-facing balances in one governed surface—without spreadsheet reconciliation as the source of truth." %}</p>
     <div class="mkt-fees-visual-wrap">
@@ -51,7 +51,7 @@
     </div>
   </section>
 
-  <section class="mkt-fees-section" aria-labelledby="mkt-fees-before-after-heading">
+  <section class="mkt-fees-section rmc-reveal" aria-labelledby="mkt-fees-before-after-heading">
     <h2 id="mkt-fees-before-after-heading">{% trans "Before and after centralized school finance" %}</h2>
     <p class="section-lead">{% trans "Move from fragmented fee records to one auditable flow across campuses and academic years." %}</p>
     <div class="mkt-fees-split">
@@ -78,7 +78,7 @@
     </div>
   </section>
 
-  <section class="mkt-fees-section" aria-labelledby="mkt-fees-handoff-heading" data-mkt-fees-connected-handoff="1">
+  <section class="mkt-fees-section rmc-reveal" aria-labelledby="mkt-fees-handoff-heading" data-mkt-fees-connected-handoff="1">
     <h2 id="mkt-fees-handoff-heading">{% trans "Connected across admissions, portals, and governance" %}</h2>
     <p class="section-lead">{% trans "Finance should not be an island: billing ties back to enrollment, academic structure, and how families experience the school." %}</p>
     <div class="mkt-fees-handoff-grid">
@@ -91,7 +91,7 @@
     </div>
   </section>
 
-  <section class="mkt-fees-section" aria-labelledby="mkt-fees-roles-heading">
+  <section class="mkt-fees-section rmc-reveal" aria-labelledby="mkt-fees-roles-heading">
     <h2 id="mkt-fees-roles-heading">{% trans "Who benefits" %}</h2>
     <p class="section-lead">{% trans "One finance workspace with role-appropriate visibility—not everyone sees the same ledgers." %}</p>
     <div class="mkt-fees-roles">
@@ -119,12 +119,12 @@
   </section>
 
   {% if page.segments %}
-  <section class="mkt-fees-section" aria-label="{% trans 'Highlights' %}">
+  <section class="mkt-fees-section rmc-reveal" aria-label="{% trans 'Highlights' %}">
     <h2>{% trans "What this surface emphasizes" %}</h2>
     <div class="row g-3">
       {% for seg in page.segments %}
       <div class="col-md-4">
-        <article class="segment-card h-100">
+        <article class="segment-card h-100 rmc-reveal">
           <h3 class="h6">{{ seg.title }}</h3>
           <p class="mb-0 text-muted small">{{ seg.body }}</p>
         </article>

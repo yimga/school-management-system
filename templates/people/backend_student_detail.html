@@ -16,9 +16,9 @@
 
   {% include "studio_os/components/page_header.html" with title=student_display_name subtitle="Student 360 — one record across modules" %}
 
-  <div class="row g-3 student-360-bento mt-2">
+  <div class="row g-3 student-360-bento mt-2 rmc-reveal-stagger">
     {% with d=record.data %}
-    <div class="col-lg-4 col-md-6">
+    <div class="col-lg-4 col-md-6 rmc-reveal">
       <div class="card border-0 shadow-sm bento-panel h-100" data-bento-tier="ban">
         <div class="card-body">
           <p class="text-uppercase small text-muted mb-1 fw-semibold">{% trans "Profile" %}</p>
@@ -35,7 +35,7 @@
       </div>
     </div>
 
-    <div class="col-lg-4 col-md-6">
+    <div class="col-lg-4 col-md-6 rmc-reveal">
       <div class="card border-0 shadow-sm bento-panel h-100" data-bento-tier="trend">
         <div class="card-body">
           <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans "Academics" %}</p>
@@ -55,7 +55,7 @@
       </div>
     </div>
 
-    <div class="col-lg-4 col-md-6">
+    <div class="col-lg-4 col-md-6 rmc-reveal">
       <div class="card border-0 shadow-sm bento-panel h-100" data-bento-tier="ban">
         <div class="card-body">
           <p class="text-uppercase small text-muted mb-1 fw-semibold">{% trans "Attendance" %}</p>
@@ -69,7 +69,7 @@
       </div>
     </div>
 
-    <div class="col-lg-6">
+    <div class="col-lg-6 rmc-reveal">
       <div class="card border-0 shadow-sm bento-panel h-100" data-bento-tier="drill-down">
         <div class="card-body">
           <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans "Finance" %}</p>
@@ -97,7 +97,7 @@
       </div>
     </div>
 
-    <div class="col-lg-6">
+    <div class="col-lg-6 rmc-reveal">
       <div class="card border-0 shadow-sm bento-panel h-100" data-bento-tier="drill-down">
         <div class="card-body">
           <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans "Communications" %}</p>

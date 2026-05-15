@@ -18,26 +18,26 @@
       <span class="badge {% if growth.verdict == 'READY' %}bg-success{% else %}bg-secondary{% endif %}">{{ growth.verdict }}</span>
     </div>
     <p class="small text-muted">{{ growth.funnel_completeness_note }}</p>
-    <div class="row g-3 mb-3">
-      <div class="col-md-3">
+    <div class="row g-3 mb-3 rmc-reveal-stagger">
+      <div class="col-md-3 rmc-reveal">
         <div class="card"><div class="card-body">
           <div class="text-muted small">{% trans "Conversion (visit→subscription started, 30d)" %}</div>
           <div class="fs-5 fw-semibold">{% if growth.conversion_visit_to_subscription_pct is not None %}{{ growth.conversion_visit_to_subscription_pct }}%{% else %}—{% endif %}</div>
         </div></div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3 rmc-reveal">
         <div class="card"><div class="card-body">
           <div class="text-muted small">{% trans "Activation rate (live DB)" %}</div>
           <div class="fs-5 fw-semibold">{% if growth.activation_rate_pct_live_db is not None %}{{ growth.activation_rate_pct_live_db }}%{% else %}—{% endif %}</div>
         </div></div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3 rmc-reveal">
         <div class="card"><div class="card-body">
           <div class="text-muted small">{% trans "Median time to value (min)" %}</div>
           <div class="fs-5 fw-semibold">{% if growth.time_to_value_median_minutes is not None %}{{ growth.time_to_value_median_minutes }}{% else %}—{% endif %} <span class="small text-muted">(n={{ growth.time_to_value_sample_size }})</span></div>
         </div></div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3 rmc-reveal">
         <div class="card"><div class="card-body">
           <div class="text-muted small">{% trans "Paying schools (active subscription with billed amount, billing app)" %}</div>
           <div class="fs-5 fw-semibold">{{ growth.paying_schools_billed_gt_zero|default:"—" }}</div>
@@ -54,8 +54,8 @@
     <div class="alert alert-warning py-2 small mb-0">{% trans "Insufficient visit volume in the last 30 days for stable conversion benchmarks." %}</div>
     {% endif %}
     {% if growth.time_to_value_fast_path %}
-    <div class="row g-3 mb-3">
-      <div class="col-md-6">
+    <div class="row g-3 mb-3 rmc-reveal-stagger">
+      <div class="col-md-6 rmc-reveal">
         <div class="card"><div class="card-body">
           <div class="text-muted small">{% trans "Time-to-value ≤10 min (first result after onboarding/demo signal)" %}</div>
           <div class="fs-6 fw-semibold">
@@ -66,7 +66,7 @@
           </div>
         </div></div>
       </div>
-      <div class="col-md-6">
+      <div class="col-md-6 rmc-reveal">
         <div class="card"><div class="card-body">
           <div class="text-muted small">{% trans "Churn risk (at_risk) in lifecycle sample" %}</div>
           <div class="fs-6 fw-semibold">{{ growth.lifecycle_distribution_sample.at_risk|default:0 }}</div>
@@ -77,7 +77,7 @@
   </section>
 
   {% if growth.lifecycle_distribution_sample %}
-  <section class="mb-4" aria-label="{% trans 'Tenant lifecycle distribution' %}">
+  <section class="mb-4 rmc-reveal" aria-label="{% trans 'Tenant lifecycle distribution' %}">
     <h2 class="h5 mb-3">{% trans "Tenant lifecycle (recent schools sample)" %}</h2>
     <p class="small text-muted">{% trans "Derived from funnel + billing + health; not a billing ledger." %}</p>
     <div class="table-responsive">
@@ -94,7 +94,7 @@
   </section>
   {% endif %}
 
-  <section class="mb-4">
+  <section class="mb-4 rmc-reveal">
     <h2 class="h5 mb-3">{% trans "Stage counts (last 30 days)" %}</h2>
     <div class="table-responsive">
       <table class="table table-sm table-bordered">
@@ -109,7 +109,7 @@
     </div>
   </section>
 
-  <section class="mb-4">
+  <section class="mb-4 rmc-reveal">
     <h2 class="h5 mb-3">{% trans "Drop-offs (forward rate, 30d)" %}</h2>
     <div class="table-responsive">
       <table class="table table-sm table-family align-middle">
@@ -129,10 +129,10 @@
   </section>
   {% endif %}
 
-  <section class="mb-4">
+  <section class="mb-4 rmc-reveal">
     <h2 class="h5 mb-3">{% trans "All time" %}</h2>
-    <div class="row g-3">
-      <div class="col-md-3">
+    <div class="row g-3 rmc-reveal-stagger">
+      <div class="col-md-3 rmc-reveal">
         <div class="card">
           <div class="card-body">
             <div class="text-muted small">{% trans "Visit (landing)" %}</div>
@@ -140,7 +140,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3 rmc-reveal">
         <div class="card">
           <div class="card-body">
             <div class="text-muted small">{% trans "Discovery (find school)" %}</div>
@@ -148,7 +148,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3 rmc-reveal">
         <div class="card">
           <div class="card-body">
             <div class="text-muted small">{% trans "Signup" %}</div>
@@ -156,7 +156,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3 rmc-reveal">
         <div class="card">
           <div class="card-body">
             <div class="text-muted small">{% trans "Activation" %}</div>
@@ -169,28 +169,28 @@
 
   <details class="de-secondary-collapsible mb-3">
   <summary>{% trans "Expand period breakdowns and channel metrics" %}</summary>
-  <section class="mb-4">
+  <section class="mb-4 rmc-reveal">
     <h2 class="h5 mb-3">{% trans "Last 7 days" %}</h2>
-    <div class="row g-3">
-      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Visit" %}</span><div class="fw-bold">{{ last7.visit|default:0 }}</div></div></div></div>
-      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Discovery" %}</span><div class="fw-bold">{{ last7.discovery|default:0 }}</div></div></div></div>
-      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Signup" %}</span><div class="fw-bold">{{ last7.signup|default:0 }}</div></div></div></div>
-      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Activation" %}</span><div class="fw-bold">{{ last7.activation|default:0 }}</div></div></div></div>
+    <div class="row g-3 rmc-reveal-stagger">
+      <div class="col-md-3 rmc-reveal"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Visit" %}</span><div class="fw-bold">{{ last7.visit|default:0 }}</div></div></div></div>
+      <div class="col-md-3 rmc-reveal"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Discovery" %}</span><div class="fw-bold">{{ last7.discovery|default:0 }}</div></div></div></div>
+      <div class="col-md-3 rmc-reveal"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Signup" %}</span><div class="fw-bold">{{ last7.signup|default:0 }}</div></div></div></div>
+      <div class="col-md-3 rmc-reveal"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Activation" %}</span><div class="fw-bold">{{ last7.activation|default:0 }}</div></div></div></div>
     </div>
   </section>
 
-  <section class="mb-4">
+  <section class="mb-4 rmc-reveal">
     <h2 class="h5 mb-3">{% trans "Last 30 days" %}</h2>
-    <div class="row g-3">
-      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Visit" %}</span><div class="fw-bold">{{ last30.visit|default:0 }}</div></div></div></div>
-      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Discovery" %}</span><div class="fw-bold">{{ last30.discovery|default:0 }}</div></div></div></div>
-      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Signup" %}</span><div class="fw-bold">{{ last30.signup|default:0 }}</div></div></div></div>
-      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Activation" %}</span><div class="fw-bold">{{ last30.activation|default:0 }}</div></div></div></div>
+    <div class="row g-3 rmc-reveal-stagger">
+      <div class="col-md-3 rmc-reveal"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Visit" %}</span><div class="fw-bold">{{ last30.visit|default:0 }}</div></div></div></div>
+      <div class="col-md-3 rmc-reveal"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Discovery" %}</span><div class="fw-bold">{{ last30.discovery|default:0 }}</div></div></div></div>
+      <div class="col-md-3 rmc-reveal"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Signup" %}</span><div class="fw-bold">{{ last30.signup|default:0 }}</div></div></div></div>
+      <div class="col-md-3 rmc-reveal"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Activation" %}</span><div class="fw-bold">{{ last30.activation|default:0 }}</div></div></div></div>
     </div>
   </section>
 
   {% if channel_breakdown %}
-  <section class="mb-4">
+  <section class="mb-4 rmc-reveal">
     <h2 class="h5 mb-3">{% trans "By channel (last 30 days)" %}</h2>
     <p class="text-muted small">{% trans "Breakdown by utm_source / utm_medium. Use ?utm_source=...&utm_medium=... on landing and signup URLs to attribute traffic." %}</p>
     <div class="table-responsive">

@@ -57,13 +57,13 @@
 
   {# 2. Micro-demos — scroll-driven, one outcome per frame #}
   {% if product_visualization_slides %}
-  <section id="mkt-product-demos" class="mkt-product-section mkt-product-demos mkt-reveal" aria-label="{% trans 'Product in action' %}" data-chapter="2">
+  <section id="mkt-product-demos" class="mkt-product-section mkt-product-demos mkt-reveal rmc-reveal" aria-label="{% trans 'Product in action' %}" data-chapter="2">
     <div class="mkt-product-section-inner">
       <h2 class="mkt-product-section-heading">{% trans "See it work — not just read about it" %}</h2>
       <p class="mkt-product-section-lead">{% trans "Outcome-focused micro-demos: each frame shows a real capability, not a generic screenshot." %}</p>
       <div class="mkt-product-demos-grid mkt-reveal-stagger" role="list">
         {% for slide in product_visualization_slides %}
-        <article class="mkt-product-demo-card" role="listitem" data-demo-index="{{ forloop.counter }}">
+        <article class="mkt-product-demo-card rmc-reveal" role="listitem" data-demo-index="{{ forloop.counter }}">
           <div class="mkt-product-demo-frame">
             {% if slide.image_url %}
             <img src="{{ slide.image_url }}" alt="{{ slide.title }}" width="600" height="360" loading="lazy" decoding="async">
@@ -81,7 +81,7 @@
   {% endif %}
 
   {# 3. Pinned chapter — Studio OS / Control Plane (narrative + sticky visual) #}
-  <section id="mkt-product-studio" class="mkt-product-section mkt-chapter-pinned mkt-reveal" aria-label="{% trans 'Studio OS' %}" data-chapter="3">
+  <section id="mkt-product-studio" class="mkt-product-section mkt-chapter-pinned mkt-reveal rmc-reveal" aria-label="{% trans 'Studio OS' %}" data-chapter="3">
     <div class="mkt-product-section-inner">
       <div class="mkt-chapter-copy">
         <h2 class="mkt-product-section-heading">{% trans "Studio OS: one workspace for every operator" %}</h2>
@@ -104,7 +104,7 @@
   </section>
 
   {# 4. Migration / developer — outcome-focused copy #}
-  <section id="mkt-product-migration" class="mkt-product-section mkt-reveal" aria-label="{% trans 'Migration and APIs' %}" data-chapter="4">
+  <section id="mkt-product-migration" class="mkt-product-section mkt-reveal rmc-reveal" aria-label="{% trans 'Migration and APIs' %}" data-chapter="4">
     <div class="mkt-product-section-inner">
       <h2 class="mkt-product-section-heading">{% trans "Built for operators who ship" %}</h2>
       <p class="mkt-product-section-lead">{% trans "Migration for data; API Center for integrations. No black boxes—governed, auditable, and documented." %}</p>
@@ -128,12 +128,12 @@
 
   {# 5. Outcomes strip — numbers and trust #}
   {% if page_extras.metrics %}
-  <section id="mkt-product-outcomes" class="mkt-product-section mkt-product-outcomes-strip mkt-reveal" aria-label="{% trans 'Outcomes' %}" data-chapter="5">
+  <section id="mkt-product-outcomes" class="mkt-product-section mkt-product-outcomes-strip mkt-reveal rmc-reveal" aria-label="{% trans 'Outcomes' %}" data-chapter="5">
     <div class="mkt-product-section-inner">
       <h2 class="mkt-product-section-heading">{% trans "Outcomes, not feature lists" %}</h2>
       <div class="mkt-product-metrics mkt-reveal-stagger">
         {% for metric in page_extras.metrics %}
-        <article class="mkt-product-metric">
+        <article class="mkt-product-metric rmc-reveal">
           <span class="mkt-product-metric-value">{{ metric.value }}</span>
           <span class="mkt-product-metric-label">{{ metric.label }}</span>
           {% if metric.detail %}<span class="mkt-product-metric-detail">{{ metric.detail }}</span>{% endif %}
@@ -146,13 +146,13 @@
 
   {# 6. Platform surface map — segments from page #}
   {% if page.segments %}
-  <section id="mkt-product-capabilities" class="mkt-product-section mkt-reveal" aria-label="{% trans 'Platform surface map' %}" data-chapter="6">
+  <section id="mkt-product-capabilities" class="mkt-product-section mkt-reveal rmc-reveal" aria-label="{% trans 'Platform surface map' %}" data-chapter="6">
     <div class="mkt-product-section-inner">
       <h2 class="mkt-product-section-heading">{% trans "How the platform composes for your school" %}</h2>
       <p class="mkt-product-section-lead">{% trans "Each pillar is a buyer-visible surface—not an internal module code name." %}</p>
       <div class="mkt-product-segments mkt-reveal-stagger">
         {% for segment in page.segments %}
-        <article class="mkt-product-segment">
+        <article class="mkt-product-segment rmc-reveal">
           <h3 class="h6">{{ segment.title }}</h3>
           <p class="mb-0 text-muted">{{ segment.body }}</p>
         </article>
@@ -163,7 +163,7 @@
   {% endif %}
 
   {# 7. Final CTA #}
-  <section id="mkt-product-final-cta" class="mkt-product-final-cta mkt-reveal" aria-label="{% trans 'Get started' %}">
+  <section id="mkt-product-final-cta" class="mkt-product-final-cta mkt-reveal rmc-reveal" aria-label="{% trans 'Get started' %}">
     <h2 class="mkt-product-section-heading">{% trans "Run your campus on one platform" %}</h2>
     <p class="mkt-product-section-lead">{% trans "Book a walkthrough to map rollout, integrations, and honest payment posture for your campuses." %}</p>
     <div class="mkt-product-hero-ctas">
@@ -174,7 +174,7 @@
     </div>{# /.mkt-product-story-content #}
 
   {# Pinned product frame: one sticky visual that updates per chapter (GAP.1) #}
-  <aside id="mkt-product-pinned-frame" class="mkt-product-pinned-frame" aria-label="{% trans 'Product visual by section' %}" data-active-chapter="1">
+  <aside id="mkt-product-pinned-frame" class="mkt-product-pinned-frame rmc-reveal" aria-label="{% trans 'Product visual by section' %}" data-active-chapter="1">
     <div class="mkt-product-pinned-panel active" data-chapter="1">
       {% if hero_dashboard_image_url %}
       <img src="{{ hero_dashboard_image_url }}" alt="{% trans 'Platform overview' %}" width="600" height="338" loading="lazy" decoding="async">

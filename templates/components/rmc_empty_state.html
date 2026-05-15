@@ -1,21 +1,30 @@
 {% load i18n %}
-{# Phase L (2026-05-12): platform-wide empty-state component.
+{% comment %} Phase L (2026-05-12) + v2.29 (2026-05-15): platform-wide empty-state component.
    Usage:
      {% include "components/rmc_empty_state.html" with
-        icon="bi-people"
+        illustration="no_data"     {# v2.29: SVG illustration, falls back to icon #}
+        icon="bi-people"            {# Bootstrap icon if no illustration #}
         title="No students yet"
         message="Add your first student to start tracking attendance and grades."
         primary_label="Add student"
         primary_url=add_student_url
         secondary_label="Bulk import"
         secondary_url=bulk_import_url %}
-   All variables optional; icon defaults to bi-inbox. #}
+   illustration options: no_data, no_results, connection_lost, permission, first_run, inbox
+   When illustration is set, the SVG renders in place of the icon.
+   All variables optional; icon defaults to bi-inbox. {% endcomment %}
 <div class="rmc-empty" role="status" aria-live="polite">
-  <div class="rmc-empty__icon" aria-hidden="true">
-    <i class="bi {{ icon|default:'bi-inbox' }}"></i>
+  <div class="rmc-empty__icon rmc-empty__illustration-slot" aria-hidden="true">
+    {% if illustration == "no_data" %}{% include "components/illustrations/_empty_no_data.html" %}
+    {% elif illustration == "no_results" %}{% include "components/illustrations/_empty_no_results.html" %}
+    {% elif illustration == "connection_lost" %}{% include "components/illustrations/_empty_connection_lost.html" %}
+    {% elif illustration == "permission" %}{% include "components/illustrations/_empty_permission.html" %}
+    {% elif illustration == "first_run" %}{% include "components/illustrations/_empty_first_run.html" %}
+    {% elif illustration == "inbox" %}{% include "components/illustrations/_empty_inbox.html" %}
+    {% else %}<i class="bi {{ icon|default:'bi-inbox' }}"></i>{% endif %}
   </div>
-  {% if title %}<h3 class="rmc-empty__title">{{ title }}</h3>{% endif %}
-  {% if message %}<p class="rmc-empty__message">{{ message }}</p>{% endif %}
+  {% if title %}<h3 class="rmc-empty__title rmc-type-headline-m">{{ title }}</h3>{% endif %}
+  {% if message %}<p class="rmc-empty__message rmc-type-body">{{ message }}</p>{% endif %}
   {% if primary_url or secondary_url %}
   <div class="rmc-empty__actions">
     {% if primary_url and primary_label %}

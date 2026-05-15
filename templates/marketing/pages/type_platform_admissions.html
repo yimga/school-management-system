@@ -43,7 +43,7 @@
     </div>
   </header>
 
-  <section class="mkt-adm-section" aria-labelledby="mkt-adm-pipeline-heading">
+  <section class="mkt-adm-section rmc-reveal" aria-labelledby="mkt-adm-pipeline-heading">
     <h2 id="mkt-adm-pipeline-heading">{% trans "Pipeline you can run in the open" %}</h2>
     <p class="section-lead">{% trans "Each applicant moves through clear stages with documents, reviews, and decisions visible to the right people—without losing context in email threads." %}</p>
     <div class="mkt-adm-pipeline-wrap">
@@ -51,7 +51,7 @@
     </div>
   </section>
 
-  <section class="mkt-adm-section" aria-labelledby="mkt-adm-before-after-heading">
+  <section class="mkt-adm-section rmc-reveal" aria-labelledby="mkt-adm-before-after-heading">
     <h2 id="mkt-adm-before-after-heading">{% trans "Before and after a connected admissions desk" %}</h2>
     <p class="section-lead">{% trans "Replace fragmented follow-up with one system of record for the enrollment journey." %}</p>
     <div class="mkt-adm-split">
@@ -78,7 +78,7 @@
     </div>
   </section>
 
-  <section class="mkt-adm-section" aria-labelledby="mkt-adm-handoff-heading">
+  <section class="mkt-adm-section rmc-reveal" aria-labelledby="mkt-adm-handoff-heading">
     <h2 id="mkt-adm-handoff-heading">{% trans "Connected handoff across the operating system" %}</h2>
     <p class="section-lead">{% trans "Admissions is the front door: it should feed the rest of school operations without re-keying data." %}</p>
     <div class="mkt-adm-handoff-grid">
@@ -91,7 +91,7 @@
     </div>
   </section>
 
-  <section class="mkt-adm-section" aria-labelledby="mkt-adm-roles-heading">
+  <section class="mkt-adm-section rmc-reveal" aria-labelledby="mkt-adm-roles-heading">
     <h2 id="mkt-adm-roles-heading">{% trans "Who benefits" %}</h2>
     <p class="section-lead">{% trans "Purpose-built visibility for every stakeholder in the enrollment lifecycle." %}</p>
     <div class="mkt-adm-roles">
@@ -119,12 +119,12 @@
   </section>
 
   {% if page.segments %}
-  <section class="mkt-adm-section" aria-label="{% trans 'Highlights' %}">
+  <section class="mkt-adm-section rmc-reveal" aria-label="{% trans 'Highlights' %}">
     <h2>{% trans "What this surface emphasizes" %}</h2>
     <div class="row g-3">
       {% for seg in page.segments %}
       <div class="col-md-4">
-        <article class="segment-card h-100">
+        <article class="segment-card h-100 rmc-reveal">
           <h3 class="h6">{{ seg.title }}</h3>
           <p class="mb-0 text-muted small">{{ seg.body }}</p>
         </article>

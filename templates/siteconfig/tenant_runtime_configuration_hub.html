@@ -20,35 +20,35 @@
   {% if school %}
   <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Effective fields" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Effective fields" %}</div>
       <div class="fw-semibold text-body fs-6">{{ summary_effective_n|default:0 }}</div>
     </div>
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Region fields" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Region fields" %}</div>
       <div class="fw-semibold text-body fs-6">{{ summary_region_n|default:0 }}</div>
     </div>
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Flags on" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Flags on" %}</div>
       <div class="fw-semibold text-body fs-6">{{ summary_flags_n|default:0 }}</div>
     </div>
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Config slices" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Config slices" %}</div>
       <div class="fw-semibold text-body fs-6">{{ summary_config_n|default:0 }}</div>
     </div>
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Setup gaps" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Setup gaps" %}</div>
       <div class="fw-semibold text-body fs-6">{{ summary_missing_n|default:0 }}</div>
     </div>
     <div class="border rounded-2 px-2 py-2 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 12rem; max-width: 18rem;" role="region" aria-label="{% trans 'Regional UI' %}" data-rmc-regional-ui-status="1">
-      <div class="text-uppercase text-muted mb-1" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Regional UI" %}</div>
+      <div class="text-uppercase text-muted mb-1" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Regional UI" %}</div>
       <div class="fw-semibold text-body">
         {% trans "Locale" %}: {{ rmc_locale|default:'en' }} · {% trans "Direction" %}: {{ rmc_text_direction|default:'ltr' }}
       </div>
       {% if region %}
-      <div class="text-muted mt-1" style="font-size:0.75rem;">{% trans "Region profile" %}: {{ region_name }} · {% trans "Region code" %}: {{ region_code }}</div>
+      <div class="text-muted mt-1" style="font-size:var(--type-size-eyebrow);">{% trans "Region profile" %}: {{ region_name }} · {% trans "Region code" %}: {{ region_code }}</div>
       {% endif %}
       {% if grading_scale %}
-      <div class="text-muted mt-1" style="font-size:0.75rem;">{% trans "Terminology / grading context" %}: {{ grading_scale }}</div>
+      <div class="text-muted mt-1" style="font-size:var(--type-size-eyebrow);">{% trans "Terminology / grading context" %}: {{ grading_scale }}</div>
       {% endif %}
     </div>
   </div>

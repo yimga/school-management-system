@@ -27,7 +27,7 @@
 }
 
 .cp-outcome-pill {
-  font-size: 0.65rem;
+  font-size: var(--type-size-micro);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }

@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="{% static 'css/dashboard-clear.css' %}">
 <link rel="stylesheet" href="{% static 'css/teacher-dashboard-modern.css' %}">
 {# Retired 2026-05-12 (pass 3 css cleanup): dashboard-premium-compact.css — folded into dashboard-theme-sync.css. #}
-<script src="{% static '_pages/teacher__dashboard.js' %}"></script>
+<script src="{% static 'js/_pages/teacher__dashboard.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -65,7 +65,7 @@
       </ul>
     </nav>
 
-    <section id="teacher-attention" data-rmc-section-anchor class="mb-3" data-rmc-intelligent-insights="teacher" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
+    <section id="teacher-attention" data-rmc-section-anchor class="mb-3 rmc-reveal" data-rmc-intelligent-insights="teacher" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
         <h2 class="h6 mb-0">{% trans "What needs attention" %}</h2>
         <span class="small text-muted">{% trans "Focused guidance from attendance, marks, and workflow signals" %}</span>
@@ -93,7 +93,7 @@
         {% endif %}
       </div>
     </section>
-    <section id="teacher-today" data-rmc-section-anchor class="tdm-hero card-glass" data-decision-zone="headline" data-rmc-ux-section="today-plan" aria-label="{% trans 'Teaching plan for today' %}">
+    <section id="teacher-today" data-rmc-section-anchor class="tdm-hero card-glass rmc-reveal" data-decision-zone="headline" data-rmc-ux-section="today-plan" aria-label="{% trans 'Teaching plan for today' %}">
       <div class="tdm-hero__text">
         <p class="tdm-eyebrow">{% trans "Teacher workspace" %}</p>
         {% comment %} Pass 8: previously hardcoded "Good afternoon" regardless of the user's local time.
@@ -159,14 +159,14 @@
     </div>
     {% endif %}
 
-    {# v2.6 (2026-05-12): teacher KPI strip wrapped in .rmc-metric-ticker so the
+    {% comment %} v2.6 (2026-05-12): teacher KPI strip wrapped in .rmc-metric-ticker so the
        Classes/Syllabus/Attendance/Alerts numbers pin to the topbar when the
        user scrolls past them. The auto-grid layout is kept inside the
-       __full container so the visual strip remains identical above the fold. #}
-    <section id="teacher-metrics" data-rmc-section-anchor class="rmc-metric-ticker mb-3" data-rmc-metric-ticker data-decision-zone="supporting-metrics" data-rmc-ux-section="today-metrics" aria-label="{% trans 'Today metrics' %}">
+       __full container so the visual strip remains identical above the fold. {% endcomment %}
+    <section id="teacher-metrics" data-rmc-section-anchor class="rmc-metric-ticker mb-3 rmc-reveal" data-rmc-metric-ticker data-decision-zone="supporting-metrics" data-rmc-ux-section="today-metrics" aria-label="{% trans 'Today metrics' %}">
       <div class="rmc-metric-ticker__sentinel" aria-hidden="true"></div>
-      <div class="rmc-metric-ticker__full row g-3">
-        <div class="col-12 col-md-6 col-lg-3" data-rmc-kpi="classes-today">
+      <div class="rmc-metric-ticker__full row g-3 rmc-reveal-stagger">
+        <div class="col-12 col-md-6 col-lg-3 rmc-reveal" data-rmc-kpi="classes-today">
           <div class="kpi tdm-stat card-glass purple">
             <div class="d-flex align-items-start justify-content-between gap-2">
               <span class="label tdm-stat-label">{% trans "Classes today" %}</span>
@@ -176,7 +176,7 @@
             <div class="tdm-stat-meta">{% trans "Active subjects" %}</div>
           </div>
         </div>
-        <div class="col-12 col-md-6 col-lg-3" data-rmc-kpi="syllabus-progress">
+        <div class="col-12 col-md-6 col-lg-3 rmc-reveal" data-rmc-kpi="syllabus-progress">
           <div class="kpi tdm-stat card-glass blue">
             <div class="d-flex align-items-start justify-content-between gap-2">
               <span class="label tdm-stat-label">{% trans "Syllabus progress" %}</span>
@@ -186,7 +186,7 @@
             <div class="tdm-stat-meta">{% trans "All classes" %}</div>
           </div>
         </div>
-        <div class="col-12 col-md-6 col-lg-3" data-rmc-kpi="attendance-overall">
+        <div class="col-12 col-md-6 col-lg-3 rmc-reveal" data-rmc-kpi="attendance-overall">
           <div class="kpi tdm-stat card-glass teal">
             <div class="d-flex align-items-start justify-content-between gap-2">
               <span class="label tdm-stat-label">{% trans "Attendance" %}</span>
@@ -196,7 +196,7 @@
             <div class="tdm-stat-meta">{% trans "Overall" %}</div>
           </div>
         </div>
-        <div class="col-12 col-md-6 col-lg-3" data-rmc-kpi="alerts-action-needed">
+        <div class="col-12 col-md-6 col-lg-3 rmc-reveal" data-rmc-kpi="alerts-action-needed">
           <div class="kpi tdm-stat card-glass orange">
             <div class="d-flex align-items-start justify-content-between gap-2">
               <span class="label tdm-stat-label">{% trans "Alerts" %}</span>
@@ -210,7 +210,7 @@
       <div class="rmc-metric-ticker__pin" data-rmc-metric-pin role="region" aria-label="{% trans 'Pinned metrics' %}" hidden></div>
     </section>
 
-    <section id="teacher-classes" data-rmc-section-anchor class="tdm-main-grid">
+    <section id="teacher-classes" data-rmc-section-anchor class="tdm-main-grid rmc-reveal">
       <div class="tdm-main-left">
         <div class="card-glass tdm-panel" data-rmc-ux-section="my-classes">
           <div class="tdm-panel-head">
@@ -226,7 +226,7 @@
           <div class="tdm-class-grid">
             {% for a in assignments|slice:":2" %}
               {% with p=progress|get_item:a.id %}
-              <article class="tdm-class-card card-glass">
+              <article class="tdm-class-card card-glass rmc-reveal">
                 <header class="tdm-class-top">
                   <div>
                     <div class="tdm-class-title">{{ a.subject_assignment.subject.name }}</div>
@@ -294,7 +294,7 @@
             </div>
           </div>
           <div class="tdm-compact-stack">
-            <article class="tdm-compact-card">
+            <article class="tdm-compact-card rmc-reveal">
               <div class="tdm-compact-head">
                 <h4>{% trans "Student attention queue" %}</h4>
                 <span class="badge rounded-pill text-bg-light">{{ ews_list|length|default:0 }}</span>
@@ -315,7 +315,7 @@
               <p class="text-muted small mb-0">{% trans "No at-risk students detected today." %}</p>
               {% endif %}
             </article>
-            <article class="tdm-compact-card">
+            <article class="tdm-compact-card rmc-reveal">
               <div class="tdm-compact-head">
                 <h4>{% trans "Syllabus status" %}</h4>
                 <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:teacher_syllabus_hub' %}">{% trans "Open" %}</a>
@@ -327,7 +327,7 @@
                 <div class="tdm-badge-tile"><span>{% trans "Approved" %}</span><strong>{{ syllabus_status_summary.approved|default:0 }}</strong></div>
               </div>
             </article>
-            <article class="tdm-compact-card">
+            <article class="tdm-compact-card rmc-reveal">
               <div class="tdm-compact-head">
                 <h4>{% trans "Upcoming deadlines" %}</h4>
                 <span class="badge rounded-pill text-bg-light">{{ dashboard_events|length|default:0 }}</span>
@@ -354,7 +354,7 @@
             </article>
           </div>
           <div class="tdm-action-grid" aria-label="{% trans 'Teacher action blocks' %}">
-            <article class="tdm-action-card">
+            <article class="tdm-action-card rmc-reveal">
               <div class="tdm-compact-head">
                 <h4>{% trans "At-risk follow-up" %}</h4>
                 <span class="badge rounded-pill text-bg-light">{{ teacher_followup_items|length|default:0 }}</span>
@@ -380,7 +380,7 @@
                 <a class="btn btn-outline-primary btn-sm" href="{{ teacher_action_links.flag_hod }}">{% trans "Flag for HOD" %}</a>
               </div>
             </article>
-            <article class="tdm-action-card">
+            <article class="tdm-action-card rmc-reveal">
               <div class="tdm-compact-head">
                 <h4>{% trans "This week deadlines" %}</h4>
                 <span class="badge rounded-pill text-bg-light">{{ teacher_deadline_items|length|default:0 }}</span>
@@ -422,7 +422,7 @@
             </article>
           </div>
           <div class="tdm-balance-row" aria-label="{% trans 'Teaching pulse and curriculum progress' %}">
-            <article class="tdm-balance-card">
+            <article class="tdm-balance-card rmc-reveal">
               <div class="tdm-compact-head">
                 <h4>{% trans "Teaching pulse" %}</h4>
                 <span class="badge rounded-pill text-bg-light">{{ workflow_summary.completion_pct|default:0 }}%</span>
@@ -446,7 +446,7 @@
                 </div>
               </div>
             </article>
-            <article class="tdm-balance-card">
+            <article class="tdm-balance-card rmc-reveal">
               <div class="tdm-compact-head">
                 <h4>{% trans "Curriculum progress snapshot" %}</h4>
                 <a class="btn btn-outline-secondary btn-sm" href="{% url 'evals:teacher_marks_list' %}">{% trans "Open classes" %}</a>
@@ -473,7 +473,7 @@
         </div>
       </div>
 
-      <aside class="tdm-main-right">
+      <aside class="tdm-main-right rmc-reveal">
         {% if teacher_org_tree and teacher_org_tree.diagram_levels or org_chain %}
         <div class="card-glass tdm-panel">
           <div class="tdm-panel-head">
@@ -632,5 +632,5 @@
 {% block extrajs %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
-<script src="{% static '_pages/teacher__dashboard-2.js' %}"></script>
+<script src="{% static 'js/_pages/teacher__dashboard-2.js' %}"></script>
 {% endblock %}

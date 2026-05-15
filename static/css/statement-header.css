@@ -87,7 +87,7 @@
   min-width: var(--statement-logo-min-width, 150px);
   font-family: var(--statement-logo-font, "Inter", system-ui, sans-serif);
   font-weight: var(--statement-logo-weight, 700);
-  font-size: 1.25rem;
+  font-size: var(--type-size-body-l);
   letter-spacing: var(--luxury-letter-spacing-tight, -0.02em);
   color: var(--statement-header-fg);
   text-decoration: none;
@@ -151,7 +151,7 @@
 .cp-navbar .navbar-brand span,
 .cp-navbar .statement-logo span {
   white-space: nowrap;
-  font-size: 1.1rem;
+  font-size: var(--type-size-body-l);
   font-weight: 600;
 }
 

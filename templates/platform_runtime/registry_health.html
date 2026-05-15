@@ -11,10 +11,10 @@
     <p class="text-muted mb-0">{% trans "Owner, proof, test, route, stale-generation, drift, and external-blocker posture for platform registries." %}</p>
   </header>
 
-  <div class="row g-3 mb-4">
-    <div class="col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "High severity" %}</div><strong>{{ health.high_count }}</strong></div></div></div>
-    <div class="col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Medium severity" %}</div><strong>{{ health.medium_count }}</strong></div></div></div>
-    <div class="col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Status" %}</div><strong>{% if health.ok %}{% trans "Healthy" %}{% else %}{% trans "Needs review" %}{% endif %}</strong></div></div></div>
+  <div class="row g-3 mb-4 rmc-reveal-stagger">
+    <div class="col-md-4 rmc-reveal"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "High severity" %}</div><strong>{{ health.high_count }}</strong></div></div></div>
+    <div class="col-md-4 rmc-reveal"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Medium severity" %}</div><strong>{{ health.medium_count }}</strong></div></div></div>
+    <div class="col-md-4 rmc-reveal"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">{% trans "Status" %}</div><strong>{% if health.ok %}{% trans "Healthy" %}{% else %}{% trans "Needs review" %}{% endif %}</strong></div></div></div>
   </div>
 
   <div class="table-responsive" tabindex="0" role="region" aria-label="{% trans 'Registry health table' %}">

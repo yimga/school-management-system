@@ -55,22 +55,22 @@
   </section>
 
   <div class="cp-overview-grid mb-4">
-    <article class="cp-overview-card cp-overview-card-blue">
+    <article class="cp-overview-card cp-overview-card-blue rmc-reveal">
       <span class="cp-overview-label">Verified publishers</span>
       <strong class="cp-overview-value">{{ metrics.publishers_verified }}</strong>
       <span class="cp-overview-meta">{{ metrics.publishers_total|add:"-"|add:metrics.publishers_verified }} still need verification</span>
     </article>
-    <article class="cp-overview-card cp-overview-card-amber">
+    <article class="cp-overview-card cp-overview-card-amber rmc-reveal">
       <span class="cp-overview-label">Pending listings</span>
       <strong class="cp-overview-value">{{ metrics.pending_listings }}</strong>
       <span class="cp-overview-meta">Apps blocked from install until review closes</span>
     </article>
-    <article class="cp-overview-card cp-overview-card-crimson">
+    <article class="cp-overview-card cp-overview-card-crimson rmc-reveal">
       <span class="cp-overview-label">Kill-switched apps</span>
       <strong class="cp-overview-value">{{ metrics.kill_switch_apps }}</strong>
       <span class="cp-overview-meta">Immediate blast-radius containment</span>
     </article>
-    <article class="cp-overview-card cp-overview-card-violet">
+    <article class="cp-overview-card cp-overview-card-violet rmc-reveal">
       <span class="cp-overview-label">Third-party apps</span>
       <strong class="cp-overview-value">{{ metrics.third_party_apps }}</strong>
       <span class="cp-overview-meta">{{ metrics.pending_security_reviews }} still awaiting security review</span>
@@ -90,7 +90,7 @@
 
   <div class="row g-4">
     <div class="col-12 col-xxl-5">
-      <section class="cp-panel">
+      <section class="cp-panel rmc-reveal">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">Review queue</span>
@@ -115,7 +115,7 @@
         </div>
       </section>
 
-      <section class="cp-panel mt-4">
+      <section class="cp-panel mt-4 rmc-reveal">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">Payout queue</span>
@@ -143,7 +143,7 @@
     </div>
 
     <div class="col-12 col-xxl-7">
-      <section class="cp-panel">
+      <section class="cp-panel rmc-reveal">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">Catalog posture</span>

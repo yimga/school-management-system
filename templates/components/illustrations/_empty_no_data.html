@@ -1,0 +1,21 @@
+{% load i18n %}<svg
+  class="rmc-illustration rmc-illustration--no-data"
+  viewBox="0 0 240 180"
+  xmlns="http://www.w3.org/2000/svg"
+  role="img"
+  aria-labelledby="rmc-illu-no-data-title"
+  style="--rmc-illustration-accent: var(--rmc-illustration-accent, var(--brand-accent, #C1573A));">
+  <title id="rmc-illu-no-data-title">{% trans "No data yet" %}</title>
+  <!-- Document with folded corner. -->
+  <g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" opacity="0.8">
+    <path d="M 70 36 L 134 36 L 162 64 L 162 144 L 70 144 Z" />
+    <path d="M 134 36 L 134 64 L 162 64" />
+    <line x1="86"  y1="84"  x2="146" y2="84" />
+    <line x1="86"  y1="100" x2="146" y2="100" />
+    <line x1="86"  y1="116" x2="124" y2="116" />
+  </g>
+  <!-- Accent dot in the lower right (sparkle hint). -->
+  <circle cx="178" cy="138" r="3" fill="var(--rmc-illustration-accent)" />
+  <circle cx="186" cy="128" r="1.6" fill="var(--rmc-illustration-accent)" opacity="0.6" />
+
+</svg>

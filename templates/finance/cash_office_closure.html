@@ -9,8 +9,8 @@
 {% url 'finance:payments' as cash_closure_back_url %}
 {% include "studio_os/components/page_header.html" with title="Cash Office Closure" subtitle="Daily reconciliation between cash desk receipts and bank deposit." action_url=cash_closure_back_url action_text="Back to Payments" %}
 
-<div class="row g-3 mb-3">
-  <div class="col-md-4">
+<div class="row g-3 mb-3 rmc-reveal-stagger">
+  <div class="col-md-4 rmc-reveal">
     <div class="card h-100">
       <div class="card-body">
         <div class="small text-muted">Cash received (digital records)</div>
@@ -18,7 +18,7 @@
       </div>
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-md-4 rmc-reveal">
     <div class="card h-100">
       <div class="card-body">
         <div class="small text-muted">Expected cash at close</div>
@@ -26,7 +26,7 @@
       </div>
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-md-4 rmc-reveal">
     <div class="card h-100">
       <div class="card-body">
         <div class="small text-muted">Discrepancy preview</div>
@@ -38,8 +38,8 @@
   </div>
 </div>
 
-<div class="row g-3">
-  <div class="col-lg-7">
+<div class="row g-3 rmc-reveal-stagger">
+  <div class="col-lg-7 rmc-reveal">
     <div class="card">
       <div class="card-body">
         <h5 class="mb-3">Close cashier day</h5>
@@ -83,7 +83,7 @@
     </div>
   </div>
 
-  <div class="col-lg-5">
+  <div class="col-lg-5 rmc-reveal">
     <div class="card">
       <div class="card-body">
         <h5 class="mb-3">Recent closures</h5>
@@ -119,5 +119,5 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script src="{% static '_pages/finance__cash_office_closure.js' %}"></script>
+<script src="{% static 'js/_pages/finance__cash_office_closure.js' %}"></script>
 {% endblock %}

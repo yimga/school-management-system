@@ -40,7 +40,7 @@ body.backend-shell .portal-sidebar-col .sidebar {
   }
 
   body.backend-shell .portal-sidebar-col.portal-sidebar-collapsed .nav-link.nav-pill .bi {
-    font-size: 1.1rem;
+    font-size: var(--type-size-body-l);
   }
 
   body.backend-shell .portal-sidebar-col.portal-sidebar-collapsed .portal-sidebar-collapse-wrap {

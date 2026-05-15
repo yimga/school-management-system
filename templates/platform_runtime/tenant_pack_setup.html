@@ -10,11 +10,11 @@
   {% include "components/world_class_guided_stepper.html" %}
   {% include "components/apple_class_visual_workflow_path.html" with path_id="tenant-pack-flow" title="Tenant Pack Flow" %}
   {% if result %}<section class="panel"><h1>Result</h1><p>OK: {{ result.ok }}</p><p>{{ result.errors|join:", " }}</p><p>{{ result.status }}</p></section>{% endif %}
-  <section class="panel">
+  <section class="panel rmc-reveal">
     <h2>Recommended packs</h2>
     <div class="grid">
       {% for pack in packs %}
-        <article class="card rmc-wcx-surface" data-world-class-tenant-card="1">
+        <article class="card rmc-wcx-surface rmc-reveal" data-world-class-tenant-card="1">
           <h3>{{ pack.name }}</h3>
           <p>{{ pack.pack_type }} - {{ pack.safety_level }}</p>
           <p>{{ pack.target_roles|join:", " }}</p>
@@ -24,7 +24,7 @@
       {% endfor %}
     </div>
   </section>
-  <section class="panel">
+  <section class="panel rmc-reveal">
     <h2>Selected preview</h2>
     {% include "components/world_class_readiness_meter.html" with title="Pack readiness" value="70" caption="Tenant-safe pack preview with approval and external blocker honesty." %}
     <p>{{ preview.pack_name }} - risk {{ change_set.risk_level }} - approval required {{ change_set.requires_approval }}</p>
@@ -44,7 +44,7 @@
       {% endif %}
     </form>
   </section>
-  <section class="panel">
+  <section class="panel rmc-reveal">
     <h2>Installed packs</h2>
     <ul>
       {% for row in installations %}

@@ -92,7 +92,7 @@
   align-items: center;
   padding: var(--rmc-lit-9d27242270);
   border-radius:var(--rmc-lit-64f83df636);
-  font-size: 0.75rem;
+  font-size: var(--type-size-eyebrow);
   font-weight: 500;
 }
 .table-status-chip--success { background: var(--ds-success-bg); color: var(--ds-success); }

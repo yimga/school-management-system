@@ -39,7 +39,7 @@
   {% endif %}
 
   {% if page.problem_section %}
-  <section class="section-shell mkt-inst-problem" aria-label="{% trans 'Challenge' %}">
+  <section class="section-shell mkt-inst-problem rmc-reveal" aria-label="{% trans 'Challenge' %}">
     <div class="row g-4 align-items-start">
       <div class="col-lg-8">
         <h2 class="section-heading">{{ page.problem_section.title }}</h2>
@@ -56,7 +56,7 @@
   {% endif %}
 
   {% if page.recommended_modules %}
-  <section class="section-shell" aria-label="{% trans 'Recommended modules' %}">
+  <section class="section-shell rmc-reveal" aria-label="{% trans 'Recommended modules' %}">
     <h2 class="section-heading">{% if institution_segment_slug == 'international-schools' %}{% trans "Operational modules for global cohorts" %}{% elif institution_segment_slug == 'multi-campus' %}{% trans "Governance modules networks standardize on" %}{% elif institution_segment_slug == 'faith-based-schools' %}{% trans "Trust-building modules for families and finance" %}{% elif institution_segment_slug == 'private-schools' %}{% trans "Growth and retention modules private schools lean on" %}{% elif institution_segment_slug == 'growing-school-networks' %}{% trans "Repeatable modules for every new campus" %}{% elif institution_segment_slug == 'k12-schools' or institution_segment_slug == 'k12' %}{% trans "Day-to-day modules K–12 teams run together" %}{% else %}{% trans "Recommended platform modules" %}{% endif %}</h2>
     {% comment %} Pass 8 UX consistency: removed the meta caption "Each tile opens the matching
        RunMyCampus capability page." It described the navigation pattern in the second
@@ -80,7 +80,7 @@
   {% endif %}
 
   {% if page.workflow_diagram_static %}
-  <section class="section-shell text-center" aria-label="{% trans 'Workflow overview' %}">
+  <section class="section-shell text-center rmc-reveal" aria-label="{% trans 'Workflow overview' %}">
     <h2 class="section-heading">{% trans "Workflow overview" %}</h2>
     <p class="section-lead">{% trans "Illustrative flow across operational surfaces—not a substitute for your tenant configuration." %}</p>
     <img src="{% static page.workflow_diagram_static %}" alt="{% trans 'Workflow illustration for this solution segment' %}" class="img-fluid rounded mkt-inst-diagram" width="720" height="420" loading="lazy" decoding="async">
@@ -88,11 +88,11 @@
   {% endif %}
 
   {% if page.workflow_examples %}
-  <section class="section-shell" aria-label="{% trans 'Workflow examples' %}">
+  <section class="section-shell rmc-reveal" aria-label="{% trans 'Workflow examples' %}">
     <h2 class="section-heading">{% trans "Workflow examples" %}</h2>
     <div class="mkt-platform-grid">
       {% for item in page.workflow_examples %}
-        <article class="mkt-platform-card">
+        <article class="mkt-platform-card rmc-reveal">
           <h3>{{ item.title }}</h3>
           <p class="mb-0 text-muted">{{ item.body }}</p>
         </article>
@@ -102,20 +102,20 @@
   {% endif %}
 
   {% if page.compliance_angle %}
-  <section class="section-shell" aria-label="{% trans 'Compliance' %}">
+  <section class="section-shell rmc-reveal" aria-label="{% trans 'Compliance' %}">
     <h2 class="section-heading">{% trans "Compliance & governance note" %}</h2>
     <p class="section-lead mb-0">{{ page.compliance_angle }}</p>
   </section>
   {% endif %}
 
   {% if page.migration_pathway %}
-  <section class="section-shell" aria-label="{% trans 'Migration pathway' %}">
+  <section class="section-shell rmc-reveal" aria-label="{% trans 'Migration pathway' %}">
     <h2 class="section-heading">{% trans "Migration pathway" %}</h2>
     <p class="section-lead mb-0">{{ page.migration_pathway }}</p>
   </section>
   {% endif %}
 
-  <section class="section-shell border-0 bg-transparent pt-0">
+  <section class="section-shell border-0 bg-transparent pt-0 rmc-reveal">
     <div class="segment-card d-flex flex-wrap gap-2 justify-content-between align-items-center">
       <div>
         <p class="fw-semibold mb-1">{% trans "Ready for the next step?" %}</p>

@@ -21,7 +21,7 @@ backend-shell dashboard-page-backend
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
 <!-- Include navigation bridge styles -->
-<script src="{% static '_pages/accounts__backend_dashboard.js' %}"></script>
+<script src="{% static 'js/_pages/accounts__backend_dashboard.js' %}"></script>
   {% comment %} Pass 8 Wave 2: Promoted the static .backend-role-home-* rule set (~220 lines) to
      static/css/backend-dashboard-v2.css. Only the per-tenant CSS variable assignments
      stay inline here because they bind to Django template variables (theme.primary_color,
@@ -60,8 +60,8 @@ backend-shell dashboard-page-backend
   {% include "partials/backend_portal_breadcrumb_actions.html" %}
   {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
 
-  {# Phase F+G (2026-05-12): tenant shell switcher + sticky section nav so this
-     942-line dashboard is navigable instead of an endless scroll. #}
+  {% comment %} Phase F+G (2026-05-12): tenant shell switcher + sticky section nav so this
+     942-line dashboard is navigable instead of an endless scroll. {% endcomment %}
   <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
     {% include "components/rmc_shell_switcher.html" %}
     <nav class="rmc-section-nav rmc-section-nav--horizontal" aria-label="{% trans 'Dashboard sections' %}">
@@ -150,7 +150,7 @@ backend-shell dashboard-page-backend
     </div>
     {% endif %}
     <div class="backend-v2-grid {% if not backend_module_visibility.admin_portal %}backend-v2-grid--single{% endif %}">
-      <section class="backend-v2-main">
+      <section class="backend-v2-main rmc-reveal">
         {% if backend_module_visibility.overview %}
         <div class="backend-v2-overview" data-widget-id="backend-v2-overview">
           <div class="backend-v2-overview-head">
@@ -262,7 +262,7 @@ backend-shell dashboard-page-backend
           {% if overview_cards %}
           <div class="backend-bento-asymmetric">
             {% with m=overview_cards.0 %}
-            <article class="backend-bento-hero rmc-glass-surface backend-v2-metric backend-v2-metric--tone-1 {% if m.status == 'danger' %}is-danger{% endif %}">
+            <article class="backend-bento-hero rmc-glass-surface backend-v2-metric backend-v2-metric--tone-1 {% if m.status == 'danger' %}is-danger{% endif %}" class="rmc-reveal">
               <div class="backend-v2-metric-title"><span>{{ m.title }}</span><i class="bi {{ m.icon }}"></i></div>
               <div class="backend-v2-metric-value">{{ m.value }}</div>
               {% if m.sparkline_points %}
@@ -278,7 +278,7 @@ backend-shell dashboard-page-backend
             <div class="backend-bento-stack">
               {% for metric in overview_cards %}
               {% if not forloop.first %}
-              <article class="backend-v2-metric backend-v2-metric--tone-{{ forloop.counter }} {% if metric.status == 'danger' %}is-danger{% endif %}">
+              <article class="backend-v2-metric backend-v2-metric--tone-{{ forloop.counter }} {% if metric.status == 'danger' %}is-danger{% endif %}" class="rmc-reveal">
                 <div class="backend-v2-metric-title"><span>{{ metric.title }}</span><i class="bi {{ metric.icon }}"></i></div>
                 <div class="backend-v2-metric-value">{{ metric.value }}</div>
                 {% if metric.sparkline_points %}
@@ -336,7 +336,7 @@ backend-shell dashboard-page-backend
           {% elif kpi_strip_cards %}
           <div class="backend-bento-asymmetric">
             {% with item=kpi_strip_cards.0 %}
-            <article class="backend-bento-hero rmc-glass-surface backend-v2-kpi backend-v2-kpi--tone-1">
+            <article class="backend-bento-hero rmc-glass-surface backend-v2-kpi backend-v2-kpi--tone-1 rmc-reveal">
               <div class="backend-v2-kpi-head"><span>{{ item.label }}</span><i class="bi {{ item.icon }}"></i></div>
               <div class="backend-v2-kpi-value">{{ item.value }}</div>
               <div class="backend-v2-kpi-meta">{{ item.meta }}</div>
@@ -345,7 +345,7 @@ backend-shell dashboard-page-backend
             <div class="backend-bento-stack">
               {% for item in kpi_strip_cards %}
               {% if not forloop.first %}
-              <article class="backend-v2-kpi backend-v2-kpi--tone-{{ forloop.counter }} {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}">
+              <article class="backend-v2-kpi backend-v2-kpi--tone-{{ forloop.counter }} {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}" class="rmc-reveal">
                 <div class="backend-v2-kpi-head"><span>{{ item.label }}</span><i class="bi {{ item.icon }}"></i></div>
                 <div class="backend-v2-kpi-value">{{ item.value }}</div>
                 <div class="backend-v2-kpi-meta">{{ item.meta }}</div>
@@ -375,7 +375,7 @@ backend-shell dashboard-page-backend
           {% if kpi_strip_cards and overview_cards %}
           <div class="backend-v2-kpi-strip mt-3" data-widget-id="backend-overview-kpis" data-bento-tier="trend">
             {% for item in kpi_strip_cards %}
-            <article class="backend-v2-kpi backend-v2-kpi--tone-{{ forloop.counter }} {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}">
+            <article class="backend-v2-kpi backend-v2-kpi--tone-{{ forloop.counter }} {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}" class="rmc-reveal">
               <div class="backend-v2-kpi-head">
                 <span>{{ item.label }}</span>
                 <i class="bi {{ item.icon }}"></i>
@@ -550,7 +550,7 @@ backend-shell dashboard-page-backend
       </section>
 
       {% if backend_module_visibility.admin_portal %}
-      <aside class="backend-v2-side">
+      <aside class="backend-v2-side rmc-reveal">
         <div class="backend-v2-side-card" data-widget-id="backend-v2-admin-portal">
           <div class="backend-v2-side-head">
             <h3 class="backend-v2-side-title">{% trans "Admin Portal" %}</h3>
@@ -625,7 +625,7 @@ backend-shell dashboard-page-backend
           {% if chart_finance_status_json %}
           {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title=_("Outstanding Fees") chart_data=chart_finance_status_json show_export=False fill_container=True aria_label=_("Outstanding fees by invoice status") %}
           {% else %}
-          <article class="card backend-v2-panel backend-v2-panel--empty">
+          <article class="card backend-v2-panel backend-v2-panel--empty rmc-reveal">
             <div class="card-body">
               <h5 class="backend-v2-panel-title mb-1">{% trans "Outstanding Fees" %}</h5>
               <div class="rmc-empty rmc-empty--inline" role="status">
@@ -642,7 +642,7 @@ backend-shell dashboard-page-backend
         {% endif %}
 
         {% if backend_module_visibility.at_risk_students %}
-        <article class="card backend-v2-panel {% if not at_risk_students %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-at-risk-students">
+        <article class="card backend-v2-panel {% if not at_risk_students %}backend-v2-panel--empty{% endif %} rmc-reveal" data-widget-id="backend-at-risk-students">
           <div class="card-body">
             <div class="backend-v2-panel-head">
               <h5 class="backend-v2-panel-title mb-0">{% trans "At-Risk Students" %}</h5>
@@ -686,7 +686,7 @@ backend-shell dashboard-page-backend
           {% if chart_enrollment_trend_json %}
           {% include "components/dashboard_chart.html" with chart_id="backendEnrollmentTrendChart" chart_type="line" chart_title=_("Enrollment Trends") chart_data=chart_enrollment_trend_json show_export=False fill_container=True aria_label=_("Enrollment trend over recent months") %}
           {% else %}
-          <article class="card backend-v2-panel backend-v2-panel--empty">
+          <article class="card backend-v2-panel backend-v2-panel--empty rmc-reveal">
             <div class="card-body">
               <h5 class="backend-v2-panel-title mb-1">{% trans "Enrollment Trends" %}</h5>
               <p class="small text-muted mb-0">{% trans "No enrollment trend data yet. Add students with join dates to see trends." %}</p>
@@ -698,7 +698,7 @@ backend-shell dashboard-page-backend
         {% endif %}
 
         {% if backend_module_visibility.recent_admissions %}
-        <article class="card backend-v2-panel" data-widget-id="backend-recent-admissions">
+        <article class="card backend-v2-panel rmc-reveal" data-widget-id="backend-recent-admissions">
           <div class="card-body">
             <div class="backend-v2-panel-head">
               <h5 class="backend-v2-panel-title mb-0">{% trans "Recent Admissions" %}</h5>
@@ -733,7 +733,7 @@ backend-shell dashboard-page-backend
         {% endif %}
 
         {% if backend_module_visibility.recent_activity %}
-        <article class="card backend-v2-panel" data-widget-id="backend-recent-activity">
+        <article class="card backend-v2-panel rmc-reveal" data-widget-id="backend-recent-activity">
           <div class="card-body">
             <div class="backend-v2-panel-head">
               <h5 class="backend-v2-panel-title mb-0">{% trans "Recent Activity" %}</h5>
@@ -765,7 +765,7 @@ backend-shell dashboard-page-backend
         {% endif %}
 
         {% if backend_module_visibility.top_performing %}
-        <article class="card backend-v2-panel" data-widget-id="backend-top-performing">
+        <article class="card backend-v2-panel rmc-reveal" data-widget-id="backend-top-performing">
           <div class="card-body">
             <div class="backend-v2-panel-head">
               <h5 class="backend-v2-panel-title mb-0">{% trans "Top-Performing" %}</h5>
@@ -800,7 +800,7 @@ backend-shell dashboard-page-backend
         {% endif %}
 
         {% if backend_module_visibility.attendance_today %}
-        <article class="card backend-v2-panel backend-v2-panel--attendance" data-widget-id="backend-attendance-today">
+        <article class="card backend-v2-panel backend-v2-panel--attendance rmc-reveal" data-widget-id="backend-attendance-today">
           <div class="card-body">
             <div class="backend-v2-panel-head">
               <h5 class="backend-v2-panel-title mb-0">{% trans "Attendance" %}</h5>
@@ -826,7 +826,7 @@ backend-shell dashboard-page-backend
         {% endif %}
 
         {% if backend_main_module_count == 0 %}
-        <article class="card backend-v2-panel backend-v2-panel--empty" data-widget-id="backend-modules-disabled">
+        <article class="card backend-v2-panel backend-v2-panel--empty rmc-reveal" data-widget-id="backend-modules-disabled">
           <div class="card-body">
             <h5 class="backend-v2-panel-title mb-1">{% trans "Dashboard Modules Hidden" %}</h5>
             <p class="small text-muted mb-0">{% trans "Enable backend modules in Feature Control to populate this workspace." %}</p>
@@ -837,7 +837,7 @@ backend-shell dashboard-page-backend
     </div>
 
     {% if backend_show_workspace_rail %}
-    <aside class="backend-v2-rail" data-widget-id="backend-command-sidebar">
+    <aside class="backend-v2-rail rmc-reveal" data-widget-id="backend-command-sidebar">
       <div class="card mb-3 backend-v2-rail-card">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
@@ -919,7 +919,7 @@ backend-shell dashboard-page-backend
             <a class="badge bg-light text-dark text-decoration-none" href="{% url 'portal:unified_calendar' %}">{% trans "View calendar" %}</a>
           </div>
           <div class="backend-planner-sections">
-            <section class="backend-planner-section">
+            <section class="backend-planner-section rmc-reveal">
               <div class="backend-planner-section-head">
                 <span class="small fw-semibold text-muted">{% trans "Upcoming events" %}</span>
               </div>
@@ -982,6 +982,6 @@ backend-shell dashboard-page-backend
   "trans_next_2": "{% trans 'Next' %}",
   "var_tour_steps_api_url_escapejs": "{{ tour_steps_api_url|escapejs|escapejs }}",
   "var_tour_complete_url_escapejs": "{{ tour_complete_url|escapejs|escapejs }}"
-}</script><script src="{% static '_pages/accounts__backend_dashboard-1.js' %}"></script>
+}</script><script src="{% static 'js/_pages/accounts__backend_dashboard-1.js' %}"></script>
   {% endif %}
 {% endblock %}

@@ -10,7 +10,7 @@
 
 {% block content %}
 <section class="proof-page">
-  <section class="proof-hero">
+  <section class="proof-hero rmc-reveal">
     <div class="proof-hero-grid">
       <div>
         <div class="proof-kicker"><i class="bi bi-code-square"></i> {% trans "Developer platform" %}</div>
@@ -40,16 +40,16 @@
     </div>
   </section>
 
-  <section class="proof-card-grid">
+  <section class="proof-card-grid rmc-reveal">
     {% for sec in page.sections %}
-    <article class="proof-card">
+    <article class="proof-card rmc-reveal">
       <h3>{{ sec.title }}</h3>
       <p>{{ sec.body }}</p>
     </article>
     {% endfor %}
   </section>
 
-  <section class="proof-split">
+  <section class="proof-split rmc-reveal">
     <div class="proof-panel">
       <h2 class="proof-panel-title">{% trans "Why this matters for the platform story" %}</h2>
       <ul class="proof-bullet-list">

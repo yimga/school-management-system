@@ -88,10 +88,10 @@
   -webkit-backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
   backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
   padding: 0.5rem 0.75rem !important;
-  font-size: 0.85rem !important;
+  font-size: var(--type-size-caption) !important;
   font-variant-numeric: tabular-nums;
 }
-.chart-tooltip .tooltip-label { color: var(--chart-tooltip-muted); font-size: 0.78rem; }
+.chart-tooltip .tooltip-label { color: var(--chart-tooltip-muted); font-size: var(--type-size-eyebrow); }
 .chart-tooltip .tooltip-value { color: var(--chart-tooltip-text); font-weight: 600; }
 
 /* Semantic series colors (tenant-cascading) */
@@ -120,9 +120,9 @@
   gap: 0.5rem;
   font-variant-numeric: tabular-nums;
 }
-.rmc-kpi-trend__value { font-size: 1.4rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; }
+.rmc-kpi-trend__value { font-size: var(--type-size-headline-m); font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; }
 .rmc-kpi-trend__delta {
-  font-size: 0.78rem;
+  font-size: var(--type-size-eyebrow);
   padding: 0.05rem 0.4rem;
   border-radius: var(--radius-pill);
   background: var(--surface-overlay);

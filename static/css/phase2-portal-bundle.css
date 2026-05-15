@@ -6,7 +6,7 @@
 
 /* ========== templates/accounts/mfa_setup.html ========== */
 code {
-        font-size: 1.1rem;
+        font-size: var(--type-size-body-l);
         letter-spacing: 2px;
     }
 
@@ -190,14 +190,14 @@ code {
     }
 
     .metric-value {
-        font-size: 28px;
+        font-size: var(--type-size-headline-m);
         font-weight: bold;
         color: var(--color-base-800);
         margin: 10px 0;
     }
 
     .metric-label {
-        font-size: 12px;
+        font-size: var(--type-size-eyebrow);
         color: var(--color-base-500);
     }
 
@@ -240,7 +240,7 @@ code {
     .sensitivity-badge {
         padding: 4px 8px;
         border-radius: 4px;
-        font-size: 11px;
+        font-size: var(--type-size-eyebrow);
         font-weight: bold;
     }
 
@@ -322,7 +322,7 @@ code {
         background: var(--color-base-100);
         border-radius: 999px;
         color: var(--color-base-800);
-        font-size: 12px;
+        font-size: var(--type-size-eyebrow);
         text-decoration: none;
         border: 1px solid var(--color-base-300);
         transition: background 0.2s;
@@ -359,7 +359,7 @@ code {
         position: absolute;
         right: 8px;
         top: -18px;
-        font-size: 11px;
+        font-size: var(--type-size-eyebrow);
         color: var(--color-base-800);
         font-weight: 600;
     }
@@ -375,7 +375,7 @@ code {
     }
 
     .threat-actions .last-checked {
-        font-size: 12px;
+        font-size: var(--type-size-eyebrow);
         color: var(--color-base-500);
         margin-bottom: 10px;
     }
@@ -393,7 +393,7 @@ code {
         border: none;
         border-radius: 4px;
         cursor: pointer;
-        font-size: 13px;
+        font-size: var(--type-size-caption);
         transition: background 0.2s;
     }
 
@@ -403,7 +403,7 @@ code {
 
     .btn-sm {
         padding: 4px 10px;
-        font-size: 12px;
+        font-size: var(--type-size-eyebrow);
     }
 
     .blocked-list {
@@ -411,7 +411,7 @@ code {
     }
 
     .blocked-list h4 {
-        font-size: 13px;
+        font-size: var(--type-size-caption);
         margin-bottom: 8px;
         color: var(--color-base-800);
     }
@@ -425,7 +425,7 @@ code {
     .blocked-list li {
         padding: 6px 0;
         border-bottom: 1px solid var(--color-base-100);
-        font-size: 13px;
+        font-size: var(--type-size-caption);
     }
 
     .blocked-list li:last-child {
@@ -437,7 +437,7 @@ code {
         color: white;
         padding: 2px 6px;
         border-radius: 10px;
-        font-size: 11px;
+        font-size: var(--type-size-eyebrow);
         margin-left: 6px;
     }
 
@@ -588,12 +588,12 @@ code {
 }
 
 .stat-value {
-    font-size: 24px;
+    font-size: var(--type-size-headline-m);
     font-weight: bold;
 }
 
 .stat-label {
-    font-size: 12px;
+    font-size: var(--type-size-eyebrow);
     text-transform: uppercase;
     color: var(--color-base-500);
 }
@@ -610,7 +610,7 @@ code {
 .error-item {
     padding: 8px;
     border-bottom: 1px solid var(--color-base-200);
-    font-size: 12px;
+    font-size: var(--type-size-eyebrow);
     font-family: monospace;
 }
 
@@ -725,7 +725,7 @@ code {
   }
 
   .dashboard-eyebrow {
-    font-size: 0.7rem;
+    font-size: var(--type-size-micro);
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: var(--color-base-500);
@@ -742,7 +742,7 @@ code {
 
   .parent-dashboard-header p,
   .dashboard-hero p {
-    font-size: 0.95rem;
+    font-size: var(--type-size-body);
     color: var(--admin-content-text-muted, var(--color-base-600));
     margin: 0;
   }
@@ -778,12 +778,12 @@ code {
 
     .parent-dashboard-header h1,
     .dashboard-hero h1 {
-      font-size: 1.2rem;
+      font-size: var(--type-size-body-l);
     }
 
     .parent-dashboard-header p,
     .dashboard-hero p {
-      font-size: 0.85rem;
+      font-size: var(--type-size-caption);
       line-height: 1.4;
     }
 
@@ -806,7 +806,7 @@ code {
 
     .parent-dashboard-header h1,
     .dashboard-hero h1 {
-      font-size: 1.35rem;
+      font-size: var(--type-size-headline-m);
     }
   }
 
@@ -842,14 +842,14 @@ code {
 
   .stat-value {
     display: block;
-    font-size: 2rem;
+    font-size: var(--type-size-headline-l);
     font-weight: 700;
     margin-bottom: 0.3rem;
   }
 
   .stat-label {
     display: block;
-    font-size: 0.75rem;
+    font-size: var(--type-size-eyebrow);
     text-transform: uppercase;
     opacity: 0.85;
     letter-spacing: 0.05em;
@@ -869,19 +869,19 @@ code {
     justify-content: space-between;
   }
   .summary-meta .summary-label {
-    font-size: 0.75rem;
+    font-size: var(--type-size-eyebrow);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--color-base-500);
     display: block;
   }
   .summary-meta .summary-value {
-    font-size: 1.35rem;
+    font-size: var(--type-size-headline-m);
     font-weight: 700;
     color: var(--color-base-900);
   }
   .summary-icon {
-    font-size: 1.35rem;
+    font-size: var(--type-size-headline-m);
     opacity: 0.85;
   }
 
@@ -894,14 +894,14 @@ code {
     align-items: center;
     gap: 0.75rem;
     margin-bottom: 1.25rem;
-    font-size: 1.2rem;
+    font-size: var(--type-size-body-l);
     font-weight: 600;
     padding-bottom: 0.75rem;
     border-bottom: 2px solid var(--color-base-200);
   }
 
   .section-title i {
-    font-size: 1.3rem;
+    font-size: var(--type-size-headline-m);
     color: var(--primary);
   }
 
@@ -933,7 +933,7 @@ code {
   }
 
   .metric-title {
-    font-size: 0.85rem;
+    font-size: var(--type-size-caption);
     text-transform: uppercase;
     color: var(--color-base-500);
     font-weight: 600;
@@ -941,19 +941,19 @@ code {
   }
 
   .metric-icon {
-    font-size: 1.5rem;
+    font-size: var(--type-size-headline-m);
     color: var(--primary);
   }
 
   .metric-value {
-    font-size: 1.7rem;
+    font-size: var(--type-size-headline-m);
     font-weight: 700;
     color: var(--primary);
     margin-bottom: 0.35rem;
   }
 
   .metric-desc {
-    font-size: 0.85rem;
+    font-size: var(--type-size-caption);
     color: var(--color-base-500);
   }
 
@@ -1021,18 +1021,18 @@ code {
     justify-content: center;
     color: white;
     font-weight: 700;
-    font-size: 1.2rem;
+    font-size: var(--type-size-body-l);
     flex-shrink: 0;
   }
 
   .child-info h3 {
-    font-size: 0.95rem;
+    font-size: var(--type-size-body);
     font-weight: 600;
     margin: 0 0 0.2rem 0;
   }
 
   .child-info p {
-    font-size: 0.8rem;
+    font-size: var(--type-size-caption);
     color: var(--color-base-500);
     margin: 0;
   }
@@ -1090,7 +1090,7 @@ code {
 
   .child-fill-head {
     margin: 0 0 0.45rem;
-    font-size: 0.86rem;
+    font-size: var(--type-size-caption);
     font-weight: 700;
     color: var(--admin-content-text, var(--color-base-900));
     display: flex;
@@ -1122,7 +1122,7 @@ code {
 
   .child-fill-list span {
     color: var(--admin-content-text-muted, var(--color-base-500));
-    font-size: 0.72rem;
+    font-size: var(--type-size-micro);
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
@@ -1131,7 +1131,7 @@ code {
 
   .child-fill-list strong {
     color: var(--admin-content-text, var(--color-base-900));
-    font-size: 0.8rem;
+    font-size: var(--type-size-caption);
     font-weight: 700;
     white-space: nowrap;
   }
@@ -1162,7 +1162,7 @@ code {
 
   .child-fill-deadlines strong {
     display: block;
-    font-size: 0.8rem;
+    font-size: var(--type-size-caption);
     color: var(--admin-content-text, var(--color-base-900));
     white-space: nowrap;
     overflow: hidden;
@@ -1171,7 +1171,7 @@ code {
 
   .child-fill-deadlines small {
     display: block;
-    font-size: 0.72rem;
+    font-size: var(--type-size-micro);
     color: var(--admin-content-text-muted, var(--color-base-500));
   }
 
@@ -1195,11 +1195,11 @@ code {
     }
 
     .child-metric-value {
-      font-size: 1.1rem;
+      font-size: var(--type-size-body-l);
     }
 
     .child-metric-label {
-      font-size: 0.65rem;
+      font-size: var(--type-size-micro);
     }
   }
 
@@ -1211,7 +1211,7 @@ code {
     .child-actions .btn {
       width: 100%;
       padding: 0.6rem;
-      font-size: 0.85rem;
+      font-size: var(--type-size-caption);
       min-height: 40px;
     }
 
@@ -1233,14 +1233,14 @@ code {
 
   .child-metric-value {
     display: block;
-    font-size: 1.3rem;
+    font-size: var(--type-size-headline-m);
     font-weight: 700;
     color: var(--primary);
   }
 
   .child-metric-label {
     display: block;
-    font-size: 0.7rem;
+    font-size: var(--type-size-micro);
     text-transform: uppercase;
     color: var(--color-base-500);
     letter-spacing: 0.05em;
@@ -1254,7 +1254,7 @@ code {
 
   .child-actions .btn {
     flex: 1;
-    font-size: 0.78rem;
+    font-size: var(--type-size-eyebrow);
     padding: 0.48rem 0.7rem;
   }
 
@@ -1282,12 +1282,12 @@ code {
 
   .fee-status-card .amount {
     font-weight: 700;
-    font-size: 1rem;
+    font-size: var(--type-size-body);
     line-height: 1.15;
   }
 
   .fee-status-card .label {
-    font-size: 0.72rem;
+    font-size: var(--type-size-micro);
     color: var(--color-base-500);
     letter-spacing: 0.02em;
   }
@@ -1296,7 +1296,7 @@ code {
     height: 38px;
     padding: 0 10px;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: var(--type-size-body);
   }
 
   .stat-chip {
@@ -1356,17 +1356,17 @@ code {
     }
 
     .fee-status-card .amount {
-      font-size: 0.9rem;
+      font-size: var(--type-size-body);
     }
 
     .fee-status-card .label {
-      font-size: 0.65rem;
+      font-size: var(--type-size-micro);
     }
 
     .fee-status-card .btn {
       height: 36px;
       padding: 0 8px;
-      font-size: 0.8rem;
+      font-size: var(--type-size-caption);
       width: 100%;
       margin-top: 0.5rem;
     }
@@ -1438,7 +1438,7 @@ code {
   }
 
   .announcement-meta {
-    font-size: 0.78rem;
+    font-size: var(--type-size-eyebrow);
     color: var(--color-base-500);
   }
 
@@ -1454,13 +1454,13 @@ code {
   }
 
   .activity-title {
-    font-size: 0.9rem;
+    font-size: var(--type-size-body);
     font-weight: 500;
     color: var(--color-base-900);
   }
 
   .activity-meta {
-    font-size: 0.8rem;
+    font-size: var(--type-size-caption);
     color: var(--color-base-500);
     margin-top: 0.2rem;
   }
@@ -1522,7 +1522,7 @@ code {
   }
 
   .quick-tools-title {
-    font-size: 0.85rem;
+    font-size: var(--type-size-caption);
     text-transform: uppercase;
     font-weight: 700;
     color: var(--color-base-500);
@@ -1537,7 +1537,7 @@ code {
     border-radius: 10px;
     padding: 0.75rem 1rem;
     margin-bottom: 0.75rem;
-    font-size: 0.9rem;
+    font-size: var(--type-size-body);
     text-align: left;
     transition: all 0.3s ease;
   }
@@ -1560,7 +1560,7 @@ code {
   }
 
   .tool-item i {
-    font-size: 1.1rem;
+    font-size: var(--type-size-body-l);
   }
 
   .contact-box {
@@ -1571,7 +1571,7 @@ code {
   }
 
   .contact-title {
-    font-size: 0.75rem;
+    font-size: var(--type-size-eyebrow);
     text-transform: uppercase;
     font-weight: 700;
     color: var(--color-base-500);
@@ -1581,7 +1581,7 @@ code {
 
   .contact-item {
     margin-bottom: 0.75rem;
-    font-size: 0.9rem;
+    font-size: var(--type-size-body);
   }
 
   .contact-item:last-child {
@@ -1609,7 +1609,7 @@ code {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: var(--type-size-body-l);
     font-weight: 700;
   }
 
@@ -1618,13 +1618,13 @@ code {
   }
 
   .metric-value {
-    font-size: 2rem;
+    font-size: var(--type-size-headline-l);
     font-weight: 700;
     margin-bottom: 0.25rem;
   }
 
   .metric-label {
-    font-size: 0.85rem;
+    font-size: var(--type-size-caption);
     color: var(--color-base-500);
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -1657,7 +1657,7 @@ code {
   }
 
   .summary-label {
-    font-size: 0.7rem;
+    font-size: var(--type-size-micro);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-weight: 700;
@@ -1665,7 +1665,7 @@ code {
   }
 
   .summary-value {
-    font-size: 1.1rem;
+    font-size: var(--type-size-body-l);
     font-weight: 700;
     color: var(--color-base-900);
   }
@@ -1677,7 +1677,7 @@ code {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: var(--type-size-body);
   }
 
   .tile-blue .summary-icon { background: rgba(59, 130, 246, 0.15); color: var(--color-indigo-600); }
@@ -1737,7 +1737,7 @@ code {
     max-height: 140px;
   }
   .parent-chart-compact .dashboard-chart-header .card-title {
-    font-size: 0.95rem;
+    font-size: var(--type-size-body);
   }
 
   /* Workflow-first compact layout overrides */
@@ -1777,7 +1777,7 @@ code {
 
   .parent-workflow-head h2 {
     margin: 0;
-    font-size: 1rem;
+    font-size: var(--type-size-body);
     font-weight: 700;
     color: var(--color-base-900);
   }
@@ -1790,7 +1790,7 @@ code {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 0.82rem;
+    font-size: var(--type-size-caption);
     color: var(--color-base-600);
     margin-bottom: 0.35rem;
     font-weight: 600;
@@ -1810,7 +1810,7 @@ code {
   }
 
   .parent-workflow-focus {
-    font-size: 0.87rem;
+    font-size: var(--type-size-caption);
     color: var(--color-base-700);
     margin-bottom: 0.65rem;
   }
@@ -1880,14 +1880,14 @@ code {
 
   .parent-rail-item strong {
     display: block;
-    font-size: 0.85rem;
+    font-size: var(--type-size-caption);
     color: var(--admin-content-text, var(--color-base-900));
     line-height: 1.25;
   }
 
   .parent-rail-item small {
     display: block;
-    font-size: 0.75rem;
+    font-size: var(--type-size-eyebrow);
     color: var(--admin-content-text-muted, var(--color-base-500));
     line-height: 1.3;
   }
@@ -1911,13 +1911,13 @@ code {
 
   .parent-rail-metric span {
     color: var(--admin-content-text-muted, var(--color-base-600));
-    font-size: 0.78rem;
+    font-size: var(--type-size-eyebrow);
     font-weight: 600;
   }
 
   .parent-rail-metric strong {
     color: var(--admin-content-text, var(--color-base-900));
-    font-size: 1rem;
+    font-size: var(--type-size-body);
     font-weight: 800;
   }
 
@@ -2019,7 +2019,7 @@ code {
   }
 
   .wizard-step-label {
-    font-size: 0.75rem;
+    font-size: var(--type-size-eyebrow);
     text-align: center;
     color: var(--color-base-500);
     font-weight: 500;
@@ -2053,7 +2053,7 @@ code {
   }
 
   .wizard-step-title {
-    font-size: 1.25rem;
+    font-size: var(--type-size-body-l);
     font-weight: 600;
     margin-bottom: 0.5rem;
     color: var(--color-base-900);
@@ -2061,7 +2061,7 @@ code {
 
   .wizard-step-description {
     color: var(--color-base-500);
-    font-size: 0.9rem;
+    font-size: var(--type-size-body);
     margin-bottom: 1.5rem;
   }
 
@@ -2082,7 +2082,7 @@ code {
   .student-confirmation p {
     margin: 0;
     color: color-mix(in oklab, var(--color-sky-500) 36%, var(--color-base-900));
-    font-size: 0.9rem;
+    font-size: var(--type-size-body);
   }
 
   .wizard-actions {
@@ -2105,7 +2105,7 @@ code {
   }
 
   .optional-section-title {
-    font-size: 0.85rem;
+    font-size: var(--type-size-caption);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--color-base-500);
@@ -2128,11 +2128,11 @@ code {
     .wizard-step-number {
       width: 36px;
       height: 36px;
-      font-size: 0.9rem;
+      font-size: var(--type-size-body);
     }
 
     .wizard-step-label {
-      font-size: 0.7rem;
+      font-size: var(--type-size-micro);
     }
 
     .wizard-actions {
@@ -2173,7 +2173,7 @@ code {
     padding-top: 0.75rem;
     border-top: 1px solid rgba(148,163,184,0.2);
   }
-  .workflow-progress-summary .badge { font-size: 0.8rem; padding: 0.35rem 0.65rem; }
+  .workflow-progress-summary .badge { font-size: var(--type-size-caption); padding: 0.35rem 0.65rem; }
   .workflow-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -2187,18 +2187,18 @@ code {
     overflow: hidden;
   }
   .workflow-card .card-body { padding: 1.1rem 1.1rem; }
-  .workflow-title { font-weight: 800; font-size: 1rem; margin: 0 0 0.25rem; color: var(--color-base-900); }
-  .workflow-subtitle { margin: 0 0 0.5rem; color: var(--color-base-500); font-size: 0.9rem; }
-  .workflow-progress-label { font-size: 0.8rem; color: var(--school-primary); font-weight: 600; margin-bottom: 0.6rem; }
+  .workflow-title { font-weight: 800; font-size: var(--type-size-body); margin: 0 0 0.25rem; color: var(--color-base-900); }
+  .workflow-subtitle { margin: 0 0 0.5rem; color: var(--color-base-500); font-size: var(--type-size-body); }
+  .workflow-progress-label { font-size: var(--type-size-caption); color: var(--school-primary); font-weight: 600; margin-bottom: 0.6rem; }
   .workflow-links { display: flex; flex-wrap: wrap; gap: 0.5rem; }
   .workflow-links a { border-radius: 999px; font-weight: 650; }
-  .workflow-step-icon { font-size: 1.25rem; color: var(--color-indigo-500); margin-right: 0.5rem; }
-  .workflow-step-meta { font-size: 0.8rem; color: var(--color-base-500); margin-bottom: 0.35rem; }
+  .workflow-step-icon { font-size: var(--type-size-body-l); color: var(--color-indigo-500); margin-right: 0.5rem; }
+  .workflow-step-meta { font-size: var(--type-size-caption); color: var(--color-base-500); margin-bottom: 0.35rem; }
   .workflow-tip {
-    font-size: 0.85rem; color: var(--color-base-600); background: rgba(99, 102, 241, 0.08);
+    font-size: var(--type-size-caption); color: var(--color-base-600); background: rgba(99, 102, 241, 0.08);
     border-left: 3px solid var(--color-indigo-500); padding: 0.4rem 0.6rem; border-radius: 0 8px 8px 0; margin-top: 0.5rem;
   }
-  .workflow-quick-jump { font-size: 0.9rem; }
+  .workflow-quick-jump { font-size: var(--type-size-body); }
   .workflow-quick-jump a { text-decoration: none; color: var(--color-base-600); }
   .workflow-quick-jump a:hover { color: var(--color-indigo-500); }
   @media (max-width: 575px) {
@@ -2233,7 +2233,7 @@ code {
 
 /* ========== templates/portal/faq_detail.html ========== */
 .faq-answer {
-    font-size: 1rem;
+    font-size: var(--type-size-body);
     line-height: 1.8;
     color: var(--color-base-600);
 }
@@ -2262,7 +2262,7 @@ code {
 }
 
 .faq-answer {
-    font-size: 0.95rem;
+    font-size: var(--type-size-body);
     line-height: 1.6;
     color: var(--color-base-600);
 }
@@ -2294,7 +2294,7 @@ textarea {
 
 .invalid-feedback {
     color: var(--color-red-600);
-    font-size: 0.875rem;
+    font-size: var(--type-size-caption);
 }
 
 /* ========== templates/portal/kb_article.html ========== */
@@ -2338,7 +2338,7 @@ textarea {
   .kb-toc-list .kb-toc-h4 { padding-left: 1.5rem; }
   .kb-toc-list a.active { font-weight: 600; color: var(--bs-primary, var(--school-primary)); }
   .article-content .kb-heading-wrap { display: flex; align-items: baseline; gap: 0.35rem; }
-  .article-content .kb-heading-wrap .kb-copy-link { opacity: 0.5; font-size: 0.75rem; text-decoration: none; }
+  .article-content .kb-heading-wrap .kb-copy-link { opacity: 0.5; font-size: var(--type-size-eyebrow); text-decoration: none; }
   .article-content .kb-heading-wrap:hover .kb-copy-link { opacity: 1; }
   /* Print: focus on article content, hide chrome */
   @media print {
@@ -2367,7 +2367,7 @@ textarea {
 
 /* block 2 */
 .article-content {
-    font-size: 1rem;
+    font-size: var(--type-size-body);
     line-height: 1.8;
     color: var(--color-base-600);
 }
@@ -2421,7 +2421,7 @@ textarea:focus {
 
 .invalid-feedback {
     color: var(--color-red-600);
-    font-size: 0.875rem;
+    font-size: var(--type-size-caption);
 }
 
 .border-2 {
@@ -2624,16 +2624,16 @@ textarea:focus {
   /* Form: no spill — everything stays inside card */
   .theme-experience-form-card .card-body { border-radius: 0.25rem; padding-left: 0.75rem; padding-right: 0.5rem; }
   .theme-experience-form-body .form-label,
-  .theme-experience-form-body label { font-size: 0.8125rem; margin-bottom: 0.15rem; }
+  .theme-experience-form-body label { font-size: var(--type-size-caption); margin-bottom: 0.15rem; }
   .theme-experience-form-body .form-control,
   .theme-experience-form-body .form-select {
-    font-size: 0.8125rem;
+    font-size: var(--type-size-caption);
     padding: 0.2rem 0.4rem;
     min-height: 1.75rem;
     max-width: 100%;
     box-sizing: border-box;
   }
-  .theme-experience-form-body .form-check-label { font-size: 0.8125rem; }
+  .theme-experience-form-body .form-check-label { font-size: var(--type-size-caption); }
   .theme-experience-form-body .row { margin-left: 0; margin-right: 0; }
   .theme-experience-form-body [class^="col-"] { max-width: 100%; padding-left: 0.5rem; }
   .theme-experience-form-body .form-check { padding-left: 0.5rem; }
@@ -2661,7 +2661,7 @@ textarea:focus {
   .workflow-edge-svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
   .workflow-node-card {
     position: absolute; z-index: 2; min-width: 120px; cursor: grab;
-    border-radius: .375rem; padding: .35rem .5rem; font-size: .8rem;
+    border-radius: .375rem; padding: .35rem .5rem; font-size: var(--type-size-caption);
     background: var(--color-base-0); border: 1px solid var(--bs-border-color, var(--color-base-200));
     box-shadow: 0 1px 3px rgba(0,0,0,.08);
   }
@@ -2739,7 +2739,7 @@ textarea:focus {
   }
 
   .wizard-step-label {
-    font-size: 0.7rem;
+    font-size: var(--type-size-micro);
     text-align: center;
     color: var(--color-base-500);
     font-weight: 500;
@@ -2773,7 +2773,7 @@ textarea:focus {
   }
 
   .wizard-step-title {
-    font-size: 1.25rem;
+    font-size: var(--type-size-body-l);
     font-weight: 600;
     margin-bottom: 0.5rem;
     color: var(--color-base-900);
@@ -2781,7 +2781,7 @@ textarea:focus {
 
   .wizard-step-description {
     color: var(--color-base-500);
-    font-size: 0.9rem;
+    font-size: var(--type-size-body);
     margin-bottom: 1.5rem;
   }
 
@@ -2818,11 +2818,11 @@ textarea:focus {
     .wizard-step-number {
       width: 36px;
       height: 36px;
-      font-size: 0.9rem;
+      font-size: var(--type-size-body);
     }
 
     .wizard-step-label {
-      font-size: 0.65rem;
+      font-size: var(--type-size-micro);
     }
 
     .wizard-actions {
@@ -2903,7 +2903,7 @@ textarea:focus {
   }
 
   .wizard-step-label {
-    font-size: 0.75rem;
+    font-size: var(--type-size-eyebrow);
     text-align: center;
     color: var(--color-base-500);
     font-weight: 500;
@@ -2937,7 +2937,7 @@ textarea:focus {
   }
 
   .wizard-step-title {
-    font-size: 1.25rem;
+    font-size: var(--type-size-body-l);
     font-weight: 600;
     margin-bottom: 0.5rem;
     color: var(--color-base-900);
@@ -2945,7 +2945,7 @@ textarea:focus {
 
   .wizard-step-description {
     color: var(--color-base-500);
-    font-size: 0.9rem;
+    font-size: var(--type-size-body);
     margin-bottom: 1.5rem;
   }
 
@@ -2974,7 +2974,7 @@ textarea:focus {
     .wizard-step-number {
       width: 36px;
       height: 36px;
-      font-size: 0.9rem;
+      font-size: var(--type-size-body);
     }
 
     .wizard-actions {
@@ -3004,7 +3004,7 @@ textarea:focus {
     padding-top: 0.75rem;
     border-top: 1px solid rgba(148,163,184,0.2);
   }
-  .workflow-progress-summary .badge { font-size: 0.8rem; padding: 0.35rem 0.65rem; }
+  .workflow-progress-summary .badge { font-size: var(--type-size-caption); padding: 0.35rem 0.65rem; }
   .workflow-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -3018,18 +3018,18 @@ textarea:focus {
     overflow: hidden;
   }
   .workflow-card .card-body { padding: 1.1rem 1.1rem; }
-  .workflow-title { font-weight: 800; font-size: 1rem; margin: 0 0 0.25rem; color: var(--color-base-900); }
-  .workflow-subtitle { margin: 0 0 0.5rem; color: var(--color-base-500); font-size: 0.9rem; }
-  .workflow-progress-label { font-size: 0.8rem; color: var(--school-primary); font-weight: 600; margin-bottom: 0.6rem; }
+  .workflow-title { font-weight: 800; font-size: var(--type-size-body); margin: 0 0 0.25rem; color: var(--color-base-900); }
+  .workflow-subtitle { margin: 0 0 0.5rem; color: var(--color-base-500); font-size: var(--type-size-body); }
+  .workflow-progress-label { font-size: var(--type-size-caption); color: var(--school-primary); font-weight: 600; margin-bottom: 0.6rem; }
   .workflow-links { display: flex; flex-wrap: wrap; gap: 0.5rem; }
   .workflow-links a { border-radius: 999px; font-weight: 650; }
-  .workflow-step-icon { font-size: 1.25rem; color: var(--color-indigo-500); margin-right: 0.5rem; }
-  .workflow-step-meta { font-size: 0.8rem; color: var(--color-base-500); margin-bottom: 0.35rem; }
+  .workflow-step-icon { font-size: var(--type-size-body-l); color: var(--color-indigo-500); margin-right: 0.5rem; }
+  .workflow-step-meta { font-size: var(--type-size-caption); color: var(--color-base-500); margin-bottom: 0.35rem; }
   .workflow-tip {
-    font-size: 0.85rem; color: var(--color-base-600); background: rgba(99, 102, 241, 0.08);
+    font-size: var(--type-size-caption); color: var(--color-base-600); background: rgba(99, 102, 241, 0.08);
     border-left: 3px solid var(--color-indigo-500); padding: 0.4rem 0.6rem; border-radius: 0 8px 8px 0; margin-top: 0.5rem;
   }
-  .workflow-quick-jump { font-size: 0.9rem; }
+  .workflow-quick-jump { font-size: var(--type-size-body); }
   .workflow-quick-jump a { text-decoration: none; color: var(--color-base-600); }
   .workflow-quick-jump a:hover { color: var(--color-indigo-500); }
   @media (max-width: 575px) {

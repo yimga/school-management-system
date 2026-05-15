@@ -29,8 +29,8 @@
     <strong>{% trans "Guardians CSV" %}:</strong> guardian_user, student, relationship, can_view_results, can_view_finance.
   </div>
 
-  <div class="row g-4">
-    <div class="col-lg-6">
+  <div class="row g-4 rmc-reveal-stagger">
+    <div class="col-lg-6 rmc-reveal">
       <div class="card shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
@@ -48,7 +48,7 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-6">
+    <div class="col-lg-6 rmc-reveal">
       <div class="card shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
@@ -73,5 +73,5 @@
 {% block extra_js %}
   {{ block.super }}
   <script src="{% static 'js/entity-orchestrator.js' %}"></script>
-  <script src="{% static '_pages/accounts__entity_import.js' %}"></script>
+  <script src="{% static 'js/_pages/accounts__entity_import.js' %}"></script>
 {% endblock %}

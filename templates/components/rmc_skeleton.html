@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Phase L (2026-05-12): skeleton loader matching a specific layout shape.
+{% comment %} Phase L (2026-05-12): skeleton loader matching a specific layout shape.
    Usage:
      {% include "components/rmc_skeleton.html" with layout="card-grid" rows=4 %}
    Layouts:
@@ -8,7 +8,7 @@
      - table        : table-shaped skeleton (matches .rmc-data-table)
      - form         : grouped form fields
      - article      : title + body paragraph (KB articles)
-   #}
+   {% endcomment %}
 {% with rows=rows|default:5 layout=layout|default:'list' %}
 <div class="rmc-skeleton-block" data-layout="{{ layout }}" aria-busy="true" aria-label="{% trans 'Loading content' %}">
   {% if layout == 'card-grid' %}

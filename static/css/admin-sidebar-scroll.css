@@ -207,7 +207,7 @@ body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-thumb:hover {
 }
 
 .admin-sidebar-section-title {
-  font-size: 0.75rem;
+  font-size: var(--type-size-eyebrow);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -233,14 +233,14 @@ body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-thumb:hover {
   gap: 0.5rem;
   padding: 0.6rem 0.75rem;
   border-radius: 6px;
-  font-size: 0.875rem;
+  font-size: var(--type-size-caption);
   color: var(--color-base-700, #334155);
   text-decoration: none;
   transition: background 0.15s, color 0.15s;
 }
 
 .admin-sidebar-icon {
-  font-size: 1.125rem;
+  font-size: var(--type-size-body-l);
   flex-shrink: 0;
 }
 
@@ -265,7 +265,7 @@ body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-thumb:hover {
 }
 
 .admin-sidebar-chevron {
-  font-size: 1.25rem;
+  font-size: var(--type-size-body-l);
   flex-shrink: 0;
   transition: transform 0.2s;
   color: var(--color-base-400, #94a3b8);
@@ -359,7 +359,7 @@ body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary-600, var(--color-primary));
   color: white;
   border-radius: 4px;
-  font-size: 0.875rem;
+  font-size: var(--type-size-caption);
 }
 
 .admin-sidebar-skip:focus {

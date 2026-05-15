@@ -14,16 +14,16 @@
   {% if school %}
   <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Templates" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Templates" %}</div>
       <div class="fw-semibold text-body fs-6">{{ template_total }}</div>
     </div>
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "With export handler" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "With export handler" %}</div>
       <div class="fw-semibold text-body fs-6">{{ template_with_handler }}</div>
     </div>
     {% if report_template_family %}
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 14rem;">
-      <div class="text-uppercase" style="font-size:0.65rem; letter-spacing:0.04em;">{% trans "Template family" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Template family" %}</div>
       <div class="fw-semibold text-body text-truncate" style="max-width: 12rem" title="{{ report_template_family }}">{{ report_template_family }}</div>
     </div>
     {% endif %}
