@@ -62,10 +62,10 @@ body {
   margin-top: 4px;
   max-height: 320px;
   overflow-y: auto;
-  background: var(--admin-content-surface, var(--portal-card-bg, rgba(15, 23, 42, 0.96)));
+  background: var(--admin-content-surface, var(--portal-card-bg, rgba(26, 22, 18, 0.96)));
   border-radius: 8px;
   box-shadow: 0 8px 24px var(--portal-search-dropdown-shadow, rgba(0,0,0,0.2));
-  border: 1px solid var(--admin-content-border, rgba(148, 163, 184, 0.35));
+  border: 1px solid var(--admin-content-border, rgba(168, 160, 146, 0.35));
   z-index: 1050;
 }
 
@@ -106,7 +106,7 @@ body {
   color: var(--admin-content-text, rgba(226, 232, 240, 0.96));
   text-decoration: none;
   font-size: var(--type-size-body);
-  border-bottom: 1px solid color-mix(in srgb, var(--admin-content-border, rgba(148, 163, 184, 0.35)) 75%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--admin-content-border, rgba(168, 160, 146, 0.35)) 75%, transparent);
   transition: background 0.15s;
 }
 .header-search-dropdown .search-result-item:hover,
@@ -207,7 +207,7 @@ body.layout-boxed .container-fluid {
   line-height: 1;
   color: var(--portal-search-kbd-fg, rgba(255, 255, 255, 0.88));
   border: 1px solid var(--portal-search-kbd-border, rgba(255, 255, 255, 0.42));
-  background: var(--portal-search-kbd-bg, rgba(15, 23, 42, 0.34));
+  background: var(--portal-search-kbd-bg, rgba(26, 22, 18, 0.34));
   border-radius: 999px;
   padding: 0.12rem 0.42rem;
   pointer-events: none;
@@ -342,12 +342,12 @@ body.backend-shell .page-wrap {
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-  background: var(--portal-sidebar-scroll-thumb, rgba(15,23,42,0.2));
+  background: var(--portal-sidebar-scroll-thumb, rgba(26, 22, 18,0.2));
   border-radius: 3px;
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover {
-  background: var(--portal-sidebar-scroll-thumb-hover, rgba(15,23,42,0.3));
+  background: var(--portal-sidebar-scroll-thumb-hover, rgba(26, 22, 18,0.3));
 }
 
 /* Resizable sidebar: CSS variable + flex on desktop */
@@ -395,7 +395,7 @@ body.backend-shell .page-wrap {
     bottom: 20%;
     width: 2px;
     border-radius: 1px;
-    background: var(--portal-resize-handle-line, rgba(15,23,42,0.15));
+    background: var(--portal-resize-handle-line, rgba(26, 22, 18,0.15));
     transition: background 0.15s ease;
   }
   .portal-resize-handle:hover::after,
@@ -434,8 +434,8 @@ body.backend-shell .page-wrap {
   padding: var(--rmc-shell-rhythm-y);
   max-width: var(--rmc-shell-max-width);
   margin-inline: auto;
-  border: var(--border-width-hairline, 0.5px) solid var(--hairline, var(--portal-page-wrap-border, rgba(15,23,42,.08)));
-  box-shadow: var(--elev-1, 0 1px 2px rgba(15,23,42,0.06));
+  border: var(--border-width-hairline, 0.5px) solid var(--hairline, var(--portal-page-wrap-border, rgba(26, 22, 18,.08)));
+  box-shadow: var(--elev-1, 0 1px 2px rgba(26, 22, 18,0.06));
 }
 
 .rmc-shell-content-grid {
@@ -913,7 +913,7 @@ body.portal-sidebar-tone-dark .sidebar {
 body.portal-sidebar-tone-light .sidebar {
   border-radius: 18px;
   background: var(--portal-sidebar-light-bg, rgba(255, 255, 255, 0.92));
-  border: 1px solid var(--portal-sidebar-light-border, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--portal-sidebar-light-border, rgba(26, 22, 18, 0.08));
   position: sticky;
   top: calc(var(--portal-shell-sticky-offset, 4.75rem) + 0.75rem);
   max-height: calc(100vh - var(--portal-shell-sticky-offset, 4.75rem) - 1.5rem);

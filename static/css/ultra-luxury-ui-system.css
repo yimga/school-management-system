@@ -124,9 +124,9 @@ body.portal-body-with-layout .btn-outline-secondary {
 body.control-plane-shell .card:not(.border-danger):not(.border-warning),
 body.portal-body-with-layout .card:not(.border-danger):not(.border-warning) {
   border-radius: var(--lux-radius-lg, 0.75rem);
-  border: 1px solid var(--lux-color-border, rgba(15, 23, 42, 0.12));
-  box-shadow: var(--lux-shadow-hairline, 0 0 0 1px rgba(15, 23, 42, 0.08)),
-    var(--lux-shadow-elevated, 0 6px 18px rgba(15, 23, 42, 0.06));
+  border: 1px solid var(--lux-color-border, rgba(26, 22, 18, 0.12));
+  box-shadow: var(--lux-shadow-hairline, 0 0 0 1px rgba(26, 22, 18, 0.08)),
+    var(--lux-shadow-elevated, 0 6px 18px rgba(26, 22, 18, 0.06));
   overflow: clip;
   transition: box-shadow var(--rmc-ul-t-base) var(--rmc-ul-ease),
     border-color var(--rmc-ul-t-base) var(--rmc-ul-ease);
@@ -134,7 +134,7 @@ body.portal-body-with-layout .card:not(.border-danger):not(.border-warning) {
 
 body.control-plane-shell .card.border-0.shadow-sm,
 body.portal-body-with-layout .card.border-0.shadow-sm {
-  border: 1px solid var(--lux-color-border, rgba(15, 23, 42, 0.12)) !important;
+  border: 1px solid var(--lux-color-border, rgba(26, 22, 18, 0.12)) !important;
 }
 
 body.control-plane-shell .card .card-body {
@@ -182,7 +182,7 @@ body.control-plane-shell .form-control:focus,
 body.control-plane-shell .form-select:focus,
 body.portal-body-with-layout .form-control:focus,
 body.portal-body-with-layout .form-select:focus {
-  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 0 0 3px rgba(26, 22, 18, 0.08);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -250,7 +250,7 @@ body.control-plane-shell .proof-page .proof-strip-card {
 
 body.control-plane-shell .proof-page .proof-app-card:hover {
   transform: none;
-  box-shadow: var(--lux-shadow-floating, 0 14px 30px rgba(15, 23, 42, 0.12));
+  box-shadow: var(--lux-shadow-floating, 0 14px 30px rgba(26, 22, 18, 0.12));
 }
 
 body.backend-shell.dashboard-page-backend .container-fluid,

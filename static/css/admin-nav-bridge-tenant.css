@@ -8,7 +8,7 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  background: var(--header-brand-bg, linear-gradient(120deg, #0f172a 0%, #1e293b 55%, #334155 100%));
+  background: var(--header-brand-bg, linear-gradient(120deg, #1a1612 0%, #241e18 55%, #2c241d 100%));
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 0.55rem 1rem;
   display: flex;
@@ -125,7 +125,7 @@
 }
 
 .admin-nav-bridge__stat-card {
-  background: rgba(15, 23, 42, 0.35);
+  background: rgba(26, 22, 18, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   padding: 0.6rem 0.75rem;

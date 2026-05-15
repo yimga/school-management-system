@@ -31,12 +31,12 @@
 #cp-main-content .rmc-acx-metric-card,
 #cp-main-content .studio-os__card {
   background-color: var(--color-base-0);
-  border-color: rgba(15, 23, 42, 0.08);
+  border-color: rgba(26, 22, 18, 0.08);
 }
 
 #cp-main-content .card-header {
-  background-color: rgba(15, 23, 42, 0.03);
-  border-bottom-color: rgba(15, 23, 42, 0.08);
+  background-color: rgba(26, 22, 18, 0.03);
+  border-bottom-color: rgba(26, 22, 18, 0.08);
   color: var(--color-base-900);
 }
 
@@ -45,7 +45,7 @@
 .studio-os__toolbar {
   padding: 0.5rem 0.75rem;
   background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(26, 22, 18, 0.08);
   border-radius: 12px;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -60,14 +60,14 @@
 
 .studio-os__toolbar .form-control-sm,
 .studio-os__toolbar .btn-sm {
-  border-color: rgba(15, 23, 42, 0.18);
+  border-color: rgba(26, 22, 18, 0.18);
 }
 
 /* === Studio mode rail ==================================================== */
 
 #cp-main-content .studio-os__rail {
   background: var(--color-base-0);
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(26, 22, 18, 0.08);
   border-radius: 12px;
   padding: 0.5rem;
   display: flex;
@@ -80,7 +80,7 @@
   font-size: var(--type-size-micro);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(15, 23, 42, 0.55);
+  color: rgba(26, 22, 18, 0.55);
   padding: 0.5rem 0.75rem 0.25rem;
 }
 
@@ -154,7 +154,7 @@
 .cp-sidebar-col .cp-sidebar-inner .text-uppercase {
   font-size: var(--type-size-micro) !important;
   letter-spacing: 0.1em;
-  color: rgba(148, 163, 184, 0.7) !important;
+  color: rgba(168, 160, 146, 0.7) !important;
   margin-top: 0.75rem;
   margin-bottom: 0.25rem;
 }
@@ -179,13 +179,13 @@
 #cp-main-content .rmc-os-page-header {
   border-radius: 12px;
   padding: 1rem 1.25rem;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 1px 2px rgba(26, 22, 18, 0.04);
 }
 
 #cp-main-content .rmc-os-page-header .text-uppercase {
   font-size: var(--type-size-micro);
   letter-spacing: 0.08em;
-  color: rgba(15, 23, 42, 0.55) !important;
+  color: rgba(26, 22, 18, 0.55) !important;
 }
 
 #cp-main-content .rmc-os-page-header__title {
@@ -346,7 +346,7 @@
   cursor: pointer;
   padding: 0.4rem 0.6rem;
   border-radius: 6px;
-  color: rgba(148, 163, 184, 0.85);
+  color: rgba(168, 160, 146, 0.85);
   font-size: var(--type-size-micro);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -367,12 +367,12 @@
 }
 
 #cp-main-content .breadcrumb .breadcrumb-item {
-  color: rgba(15, 23, 42, 0.6);
+  color: rgba(26, 22, 18, 0.6);
   font-size: var(--type-size-caption);
 }
 
 #cp-main-content .breadcrumb .breadcrumb-item a {
-  color: rgba(15, 23, 42, 0.6);
+  color: rgba(26, 22, 18, 0.6);
   text-decoration: none;
 }
 
@@ -382,6 +382,6 @@
 }
 
 #cp-main-content .breadcrumb .breadcrumb-item.active {
-  color: rgba(15, 23, 42, 0.85);
+  color: rgba(26, 22, 18, 0.85);
   font-weight: 500;
 }

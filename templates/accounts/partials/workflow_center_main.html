@@ -24,7 +24,7 @@
     </div>
     {% endif %}
     {% if steps %}
-    <div class="workflow-quick-jump mt-2 pt-2" style="border-top: 1px solid var(--workflow-quick-jump-divider, rgba(148,163,184,0.2));">
+    <div class="workflow-quick-jump mt-2 pt-2" style="border-top: 1px solid var(--workflow-quick-jump-divider, rgba(168, 160, 146,0.2));">
       <span class="text-muted me-2">{% trans "Jump to:" %}</span>
       {% for step in steps %}
         <a href="#step-{{ step.step_key }}" class="me-2"><i class="bi {{ step.icon|default:'bi-circle' }} me-1"></i>{{ step.title }}</a>

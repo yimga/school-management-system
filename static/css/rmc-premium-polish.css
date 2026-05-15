@@ -7,12 +7,12 @@
 
 :root {
   --rmc-polish-radius: var(--rmc-premium-radius, 8px);
-  --rmc-polish-line: var(--rmc-premium-line, rgba(15, 23, 42, 0.1));
-  --rmc-polish-shadow-soft: 0 16px 42px rgba(15, 23, 42, 0.08);
+  --rmc-polish-line: var(--rmc-premium-line, rgba(26, 22, 18, 0.1));
+  --rmc-polish-shadow-soft: 0 16px 42px rgba(26, 22, 18, 0.08);
   --rmc-polish-shadow-focus: 0 0 0 0.18rem rgba(37, 99, 235, 0.2);
   --rmc-polish-surface: rgba(255, 255, 255, 0.92);
   --rmc-polish-ink: var(--rmc-premium-ink, #111827);
-  --rmc-polish-muted: var(--rmc-premium-muted, #64748b);
+  --rmc-polish-muted: var(--rmc-premium-muted, #857c70);
 }
 
 body {
@@ -128,6 +128,6 @@ body {
   .portal-body-with-layout .card,
   .cp-shell-content .card,
   .marketing-surface [class*="card"] {
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
+    box-shadow: 0 10px 28px rgba(26, 22, 18, 0.07);
   }
 }

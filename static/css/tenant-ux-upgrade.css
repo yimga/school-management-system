@@ -9,7 +9,7 @@ html[data-surface="tenant"] .portal-main-col .card,
 html[data-surface="tenant"] #main-content .card {
   border-radius: var(--platform-premium-radius, 14px);
   box-shadow: var(--platform-premium-shadow);
-  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--portal-border, rgba(26, 22, 18, 0.08));
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 html[data-surface="tenant"] .card:hover,
@@ -20,7 +20,7 @@ html[data-surface="tenant"][data-theme="dark"] .card,
 html[data-surface="tenant"] body.portal-backend-dark .card,
 html[data-surface="tenant"] body.portal-backend-dark #main-content .card {
   box-shadow: var(--platform-premium-shadow-dark);
-  border-color: rgba(148, 163, 184, 0.15);
+  border-color: rgba(168, 160, 146, 0.15);
 }
 html[data-surface="tenant"][data-theme="dark"] .card:hover,
 html[data-surface="tenant"] body.portal-backend-dark .card:hover {
@@ -35,14 +35,14 @@ html[data-surface="tenant"] .hub-card,
 html[data-surface="tenant"] .page-wrap {
   border-radius: var(--platform-premium-radius, 14px);
   box-shadow: var(--platform-premium-shadow);
-  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--portal-border, rgba(26, 22, 18, 0.08));
 }
 html[data-surface="tenant"] body.portal-backend-dark .page-wrap,
 html[data-surface="tenant"] body.portal-backend-dark .dashboard-section,
 html[data-surface="tenant"] body.portal-backend-dark .workflow-hero,
 html[data-surface="tenant"] body.portal-backend-dark .hub-card {
   box-shadow: var(--platform-premium-shadow-dark);
-  border-color: rgba(148, 163, 184, 0.15);
+  border-color: rgba(168, 160, 146, 0.15);
 }
 
 /* Tables: density and header styling */
@@ -59,7 +59,7 @@ html[data-surface="tenant"] .portal-main-col .table thead th {
   text-transform: uppercase;
   font-size: var(--type-size-eyebrow);
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--portal-border, rgba(15, 23, 42, 0.12));
+  border-bottom: 1px solid var(--portal-border, rgba(26, 22, 18, 0.12));
 }
 html[data-surface="tenant"] #main-content .table tbody td,
 html[data-surface="tenant"] .portal-main-col .table tbody td {
@@ -77,7 +77,7 @@ html[data-surface="tenant"] #main-content .form-select,
 html[data-surface="tenant"] .portal-main-col .form-control,
 html[data-surface="tenant"] .portal-main-col .form-select {
   border-radius: 8px;
-  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.12));
+  border: 1px solid var(--portal-border, rgba(26, 22, 18, 0.12));
   padding: 0.5rem 0.75rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -141,7 +141,7 @@ html[data-surface="tenant"] .portal-main-col .alert {
 /* List groups */
 html[data-surface="tenant"] #main-content .list-group-item,
 html[data-surface="tenant"] .portal-main-col .list-group-item {
-  border-color: var(--portal-border, rgba(15, 23, 42, 0.08));
+  border-color: var(--portal-border, rgba(26, 22, 18, 0.08));
   padding: 0.75rem 1rem;
 }
 html[data-surface="tenant"] #main-content .list-group-item:first-child,
@@ -165,7 +165,7 @@ html[data-surface="tenant"] .portal-main-col .badge {
 html[data-surface="tenant"] .dropdown-menu {
   border-radius: var(--platform-premium-radius-sm, 10px);
   box-shadow: var(--platform-premium-shadow);
-  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--portal-border, rgba(26, 22, 18, 0.08));
 }
 html[data-surface="tenant"] .dropdown-item:hover {
   background: color-mix(in srgb, var(--school-primary) 10%, transparent);

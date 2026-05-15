@@ -125,7 +125,7 @@
 }
 [data-mkt-edition="editorial"][data-mkt-section="resources"],
 [data-mkt-edition="editorial"][data-mkt-section="developers"] {
-  --mkt-edt-signature: #475569;
+  --mkt-edt-signature: #544d44;
   --mkt-edt-signature-soft: rgba(71, 85, 105, 0.07);
 }
 [data-mkt-edition="editorial"][data-mkt-section="trust"] {

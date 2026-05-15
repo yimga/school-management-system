@@ -15,8 +15,8 @@
   --dashboard-surface-soft: color-mix(in srgb, var(--color-base-0) 84%, var(--dashboard-theme-primary) 16%);
   --dashboard-border: rgba(99, 115, 129, 0.28);
   --dashboard-border: color-mix(in srgb, var(--dashboard-theme-primary) 24%, color-mix(in oklab, var(--color-primary-300) 30%, var(--color-base-100)) 76%);
-  --dashboard-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
-  --dashboard-shadow-soft: 0 10px 22px rgba(15, 23, 42, 0.09);
+  --dashboard-shadow: 0 16px 34px rgba(26, 22, 18, 0.12);
+  --dashboard-shadow-soft: 0 10px 22px rgba(26, 22, 18, 0.09);
 
   --dashboard-text-strong: var(--color-base-900);
   --dashboard-text-muted: var(--color-base-600);
@@ -27,8 +27,8 @@
 html[data-theme="dark"],
 html[data-bs-theme="dark"],
 body.portal-backend-dark {
-  --dashboard-surface: rgba(15, 23, 42, 0.82);
-  --dashboard-surface-soft: rgba(15, 23, 42, 0.7);
+  --dashboard-surface: rgba(26, 22, 18, 0.82);
+  --dashboard-surface-soft: rgba(26, 22, 18, 0.7);
   --dashboard-border: color-mix(in srgb, var(--dashboard-theme-primary) 36%, var(--color-base-700) 64%);
   --dashboard-shadow: 0 18px 40px rgba(2, 8, 23, 0.6);
   --dashboard-shadow-soft: 0 12px 24px rgba(2, 8, 23, 0.45);

@@ -15,7 +15,7 @@
 :root {
   --chart-stroke-default: 1.5px;
   --chart-stroke-thin: 1px;
-  --chart-axis-muted: var(--text-tertiary, #94a3b8);
+  --chart-axis-muted: var(--text-tertiary, #a8a092);
   --chart-grid: transparent;
   --chart-baseline: var(--hairline);
   --chart-tooltip-bg: var(--surface-popover);

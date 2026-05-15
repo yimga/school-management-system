@@ -6,11 +6,11 @@
 .sysconf-hero {
   background: linear-gradient(
     135deg,
-    var(--color-base-900, #0f172a) 0%,
+    var(--color-base-900, #1a1612) 0%,
     color-mix(in srgb, var(--color-primary-900, #1e3a5f) 85%, var(--color-base-900)) 45%,
     color-mix(in srgb, var(--stat-admin, #312e81) 70%, var(--color-base-900)) 100%
   );
-  color: var(--color-base-50, #f8fafc);
+  color: var(--color-base-50, #fffaf0);
   border-radius: var(--ds-radius-lg, var(--token-radius-lg, 12px));
   padding: var(--token-space-5, 1.25rem) var(--token-space-6, 1.5rem);
   margin-bottom: var(--token-space-5, 1.25rem);
@@ -23,7 +23,7 @@
 }
 
 .sysconf-card {
-  border: 1px solid var(--ds-border, var(--bs-border-color, #e2e8f0));
+  border: 1px solid var(--ds-border, var(--bs-border-color, #ede4d6));
   border-radius: var(--ds-radius-md, var(--token-radius-md, 10px));
   padding: var(--token-space-4, 1rem);
   background: var(--ds-surface-raised, var(--bs-body-bg, #fff));
@@ -32,8 +32,8 @@
 }
 
 .sysconf-card:hover {
-  box-shadow: var(--ds-shadow-md, 0 4px 20px rgba(15, 23, 42, 0.08));
-  border-color: color-mix(in srgb, var(--color-primary-500, #6366f1) 35%, transparent);
+  box-shadow: var(--ds-shadow-md, 0 4px 20px rgba(26, 22, 18, 0.08));
+  border-color: color-mix(in srgb, var(--color-primary-500, #c47f1c) 35%, transparent);
 }
 
 .sysconf-card a.primary-link {
@@ -64,5 +64,5 @@
 
 html[data-theme="dark"] .sysconf-card,
 html[data-bs-theme="dark"] .sysconf-card {
-  background: var(--ds-surface-raised, var(--color-base-800, #1e293b));
+  background: var(--ds-surface-raised, var(--color-base-800, #241e18));
 }

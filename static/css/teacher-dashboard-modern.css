@@ -8,7 +8,7 @@
     color-mix(in srgb, var(--tint-sky-soft) 86%, var(--tdm-primary) 14%) 70%
   );
   --tdm-card: var(--dashboard-surface, rgba(255, 255, 255, 0.84));
-  --tdm-border: var(--dashboard-border, rgba(148, 163, 184, 0.28));
+  --tdm-border: var(--dashboard-border, rgba(168, 160, 146, 0.28));
   --tdm-shadow: var(--dashboard-shadow, 0 20px 60px rgba(62, 83, 173, 0.18));
   --tdm-radius: 18px;
   --tdm-text: var(--dashboard-text-strong, var(--color-base-900));
@@ -253,7 +253,7 @@
 .tdm-panel-foot {
   margin-top: 12px;
   padding-top: 10px;
-  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  border-top: 1px solid rgba(168, 160, 146, 0.2);
 }
 
 .tdm-class-grid {
@@ -547,7 +547,7 @@
   align-items: flex-start;
   gap: 8px;
   padding-top: 8px;
-  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  border-top: 1px solid rgba(168, 160, 146, 0.2);
 }
 
 .tdm-compact-list li:first-child {
@@ -594,28 +594,28 @@
 }
 
 :root[data-theme="dark"] .tdm-compact-card {
-  background: rgba(15, 23, 42, 0.72);
-  border-color: rgba(148, 163, 184, 0.26);
+  background: rgba(26, 22, 18, 0.72);
+  border-color: rgba(168, 160, 146, 0.26);
 }
 
 :root[data-theme="dark"] .tdm-compact-list li {
-  border-top-color: rgba(148, 163, 184, 0.24);
+  border-top-color: rgba(168, 160, 146, 0.24);
 }
 
 :root[data-theme="dark"] .tdm-badge-tile {
-  background: rgba(30, 41, 59, 0.72);
-  border-color: rgba(148, 163, 184, 0.35);
+  background: rgba(36, 30, 24, 0.72);
+  border-color: rgba(168, 160, 146, 0.35);
 }
 
 :root[data-theme="dark"] .tdm-balance-card {
-  background: rgba(15, 23, 42, 0.72);
-  border-color: rgba(148, 163, 184, 0.26);
+  background: rgba(26, 22, 18, 0.72);
+  border-color: rgba(168, 160, 146, 0.26);
 }
 
 :root[data-theme="dark"] .tdm-pulse-item,
 :root[data-theme="dark"] .tdm-curriculum-list li {
-  background: rgba(30, 41, 59, 0.72);
-  border-color: rgba(148, 163, 184, 0.35);
+  background: rgba(36, 30, 24, 0.72);
+  border-color: rgba(168, 160, 146, 0.35);
 }
 
 .tdm-main-right {

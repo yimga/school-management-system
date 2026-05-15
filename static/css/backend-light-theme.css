@@ -13,17 +13,17 @@ body.portal-backend-light[data-bs-theme="light"] {
   background: linear-gradient(135deg, #f8f4fc 0%, var(--color-bg-primary, #fff) 50%, #faf5ff 100%) !important;
   color: #1a1a2e !important;
   /* Semantic variables for templates and JS */
-  --backend-text: #0f172a;
-  --backend-text-muted: #475569;
+  --backend-text: #1a1612;
+  --backend-text-muted: #544d44;
   --backend-surface: #ffffff;
-  --backend-surface-alt: #f8fafc;
-  --backend-border: rgba(148, 163, 184, 0.3);
-  --admin-text: #0f172a;
-  --admin-muted: #475569;
-  --admin-dashboard-bg: #f8fafc;
+  --backend-surface-alt: #fffaf0;
+  --backend-border: rgba(168, 160, 146, 0.3);
+  --admin-text: #1a1612;
+  --admin-muted: #544d44;
+  --admin-dashboard-bg: #fffaf0;
   --admin-surface: #ffffff;
-  --admin-surface-alt: #f1f5f9;
-  --admin-border: rgba(148, 163, 184, 0.25);
+  --admin-surface-alt: #f5eedd;
+  --admin-border: rgba(168, 160, 146, 0.25);
   --brand-primary: var(--school-primary);
   --brand-accent: var(--school-accent);
   --brand-success: var(--school-success, #22c55e);
@@ -37,15 +37,15 @@ body.portal-backend-light[data-bs-theme="light"] {
   --chart-color-5: rgba(168, 85, 247, 0.85);
   --chart-color-6: rgba(6, 182, 212, 0.85);
   --chart-bg: #ffffff;
-  --chart-grid: rgba(15, 23, 42, 0.1);
-  --chart-text: #475569;
+  --chart-grid: rgba(26, 22, 18, 0.1);
+  --chart-text: #544d44;
 }
 
 body.portal-backend-light .card,
 body.portal-backend-light .workflow-card,
 body.portal-backend-light .workflow-hero {
   background: var(--color-bg-primary, #fff) !important;
-  border-color: rgba(148, 163, 184, 0.25) !important;
+  border-color: rgba(168, 160, 146, 0.25) !important;
   color: #1a1a2e !important;
 }
 
@@ -53,52 +53,52 @@ body.portal-backend-light .workflow-hero h2,
 body.portal-backend-light .workflow-title,
 body.portal-backend-light .card-title,
 body.portal-backend-light h1, body.portal-backend-light h2, body.portal-backend-light h3 {
-  color: #0f172a !important;
+  color: #1a1612 !important;
 }
 
 body.portal-backend-light .workflow-hero p,
 body.portal-backend-light .workflow-subtitle,
 body.portal-backend-light .text-muted {
-  color: #475569 !important;
+  color: #544d44 !important;
 }
 
 body.portal-backend-light .sidebar {
   background: rgba(255, 255, 255, 0.95) !important;
-  border-color: rgba(15, 23, 42, 0.1) !important;
+  border-color: rgba(26, 22, 18, 0.1) !important;
 }
 
 body.portal-backend-light .sidebar .nav-link.nav-pill,
 body.portal-backend-light .sidebar .sidebar-section-title,
 body.portal-backend-light .sidebar .sidebar-info h6,
 body.portal-backend-light .sidebar .sidebar-info p {
-  color: #334155 !important;
+  color: #2c241d !important;
 }
 
 body.portal-backend-light .sidebar .nav-link.nav-pill:hover,
 body.portal-backend-light .sidebar .nav-link.nav-pill.active,
 body.portal-backend-light .sidebar .nav-link.nav-pill[aria-current="page"] {
-  color: var(--school-primary, #0f172a) !important;
+  color: var(--school-primary, #1a1612) !important;
 }
 body.portal-backend-light .sidebar .nav-link.nav-pill.active,
 body.portal-backend-light .sidebar .nav-link.nav-pill[aria-current="page"] {
-  background: color-mix(in srgb, var(--school-primary, #6366f1) 12%, transparent) !important;
+  background: color-mix(in srgb, var(--school-primary, #c47f1c) 12%, transparent) !important;
 }
 body.portal-backend-light .sidebar-avatar {
-  background: linear-gradient(135deg, var(--school-primary, #6366f1), var(--school-accent, #22c55e)) !important;
+  background: linear-gradient(135deg, var(--school-primary, #c47f1c), var(--school-accent, #22c55e)) !important;
 }
 
 body.portal-backend-light .breadcrumb,
 body.portal-backend-light .breadcrumb-item a {
-  color: #64748b !important;
+  color: #857c70 !important;
 }
 
 body.portal-backend-light .breadcrumb-item.active {
-  color: #0f172a !important;
+  color: #1a1612 !important;
 }
 
 body.portal-backend-light .btn-outline-primary,
 body.portal-backend-light .btn-outline-secondary {
-  border-color: color-mix(in srgb, var(--brand-primary) 45%, #94a3b8 55%);
+  border-color: color-mix(in srgb, var(--brand-primary) 45%, #a8a092 55%);
   color: var(--brand-primary);
 }
 
@@ -106,7 +106,7 @@ body.portal-backend-light .btn-outline-primary:hover,
 body.portal-backend-light .btn-outline-secondary:hover {
   background: color-mix(in srgb, var(--brand-primary) 10%, #ffffff 90%);
   border-color: var(--brand-primary);
-  color: color-mix(in srgb, var(--brand-primary) 75%, #0f172a 25%);
+  color: color-mix(in srgb, var(--brand-primary) 75%, #1a1612 25%);
 }
 
 body.portal-backend-light .btn-primary {
@@ -117,10 +117,10 @@ body.portal-backend-light .btn-primary {
 body.portal-backend-light .btn-primary:hover {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--brand-primary) 80%, #0f172a 20%),
-    color-mix(in srgb, var(--brand-accent) 80%, #0f172a 20%)
+    color-mix(in srgb, var(--brand-primary) 80%, #1a1612 20%),
+    color-mix(in srgb, var(--brand-accent) 80%, #1a1612 20%)
   );
-  border-color: color-mix(in srgb, var(--brand-primary) 80%, #0f172a 20%);
+  border-color: color-mix(in srgb, var(--brand-primary) 80%, #1a1612 20%);
 }
 
 body.portal-backend-light .nav-pill:hover,
@@ -148,18 +148,18 @@ body.portal-backend-light select,
 body.portal-backend-light textarea {
   background-color: var(--color-bg-primary, #fff) !important;
   color: #1a1a2e !important;
-  border-color: rgba(148, 163, 184, 0.35) !important;
+  border-color: rgba(168, 160, 146, 0.35) !important;
 }
 
 body.portal-backend-light .list-group-item {
-  border-color: rgba(148, 163, 184, 0.25) !important;
+  border-color: rgba(168, 160, 146, 0.25) !important;
 }
 
 body.portal-backend-light .table,
 body.portal-backend-light .table th,
 body.portal-backend-light .table td {
   color: #1a1a2e !important;
-  border-color: rgba(148, 163, 184, 0.3) !important;
+  border-color: rgba(168, 160, 146, 0.3) !important;
 }
 
 body.portal-backend-light .table-striped tbody tr:nth-of-type(odd) {
@@ -170,7 +170,7 @@ body.portal-backend-light .table-striped tbody tr:nth-of-type(odd) {
 html[data-bs-theme="dark"] body.portal-backend-light .page-wrap,
 html[data-bs-theme="dark"] body.portal-backend-light .dropdown-menu {
   background: var(--color-bg-primary, #fff) !important;
-  border-color: rgba(148, 163, 184, 0.25) !important;
+  border-color: rgba(168, 160, 146, 0.25) !important;
   color: #1a1a2e !important;
 }
 
@@ -180,7 +180,7 @@ html[data-bs-theme="dark"] body.portal-backend-light .dropdown-item {
 
 html[data-bs-theme="dark"] body.portal-backend-light .dropdown-item:hover {
   background: color-mix(in srgb, var(--brand-primary) 10%, #ffffff 90%) !important;
-  color: #0f172a !important;
+  color: #1a1612 !important;
 }
 
 /* Admin nav bridge: theme-aware for light backend (softer bar) */
@@ -194,12 +194,12 @@ body.portal-backend-light .admin-nav-bridge__location {
 }
 body.portal-backend-light .admin-nav-bridge__switch-btn {
   background: #fff !important;
-  color: #0f172a !important;
+  color: #1a1612 !important;
   border: 1px solid rgba(255, 255, 255, 0.5) !important;
 }
 body.portal-backend-light .admin-nav-bridge__switch-btn:hover {
-  background: #f8fafc !important;
-  color: #0f172a !important;
+  background: #fffaf0 !important;
+  color: #1a1612 !important;
 }
 body.portal-backend-light .admin-nav-bridge__home-btn {
   background: rgba(255, 255, 255, 0.2) !important;

@@ -17,7 +17,7 @@ body.portal-backend-black {
   --admin-dashboard-bg: #0a0a0a;
   --admin-sidebar-bg: #050505;
   --admin-surface: #171717;
-  --brand-primary: #3b82f6;
+  --brand-primary: #c47f1c;
   --brand-success: #22c55e;
   --brand-danger: #ef4444;
 }
@@ -42,16 +42,16 @@ body.portal-backend-black .dropdown-menu { background: var(--backend-surface) !i
 /* ---- INK: deep black #030712 ---- */
 body.portal-backend-ink {
   background: #030712 !important;
-  color: #f8fafc !important;
-  --header-brand-bg: linear-gradient(90deg, #030712 0%, #0f172a 50%, #1e293b 100%);
-  --header-brand-fg: #f8fafc;
-  --backend-text: #f8fafc;
-  --backend-text-muted: #94a3b8;
-  --backend-surface: #0f172a;
-  --backend-surface-alt: #1e293b;
+  color: #fffaf0 !important;
+  --header-brand-bg: linear-gradient(90deg, #030712 0%, #1a1612 50%, #241e18 100%);
+  --header-brand-fg: #fffaf0;
+  --backend-text: #fffaf0;
+  --backend-text-muted: #a8a092;
+  --backend-surface: #1a1612;
+  --backend-surface-alt: #241e18;
   --backend-border: rgba(248, 250, 252, 0.1);
   --admin-dashboard-bg: #030712;
-  --admin-surface: #0f172a;
+  --admin-surface: #1a1612;
 }
 body.portal-backend-ink .topbar,
 body.portal-backend-ink .navbar.topbar { background: var(--header-brand-bg) !important; color: var(--header-brand-fg) !important; }
@@ -171,18 +171,18 @@ body.portal-backend-graphite .dropdown-menu { background: var(--backend-surface)
 
 /* ---- STEEL: blue-grey (industrial) ---- */
 body.portal-backend-steel {
-  background: #1e293b !important;
-  color: #e2e8f0 !important;
-  --header-brand-bg: linear-gradient(90deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-  --header-brand-fg: #e2e8f0;
-  --backend-text: #e2e8f0;
-  --backend-text-muted: #94a3b8;
-  --backend-surface: #334155;
-  --backend-surface-alt: #475569;
-  --backend-border: rgba(148, 163, 184, 0.25);
-  --admin-dashboard-bg: #1e293b;
-  --admin-sidebar-bg: #0f172a;
-  --admin-surface: #334155;
+  background: #241e18 !important;
+  color: #ede4d6 !important;
+  --header-brand-bg: linear-gradient(90deg, #1a1612 0%, #241e18 50%, #2c241d 100%);
+  --header-brand-fg: #ede4d6;
+  --backend-text: #ede4d6;
+  --backend-text-muted: #a8a092;
+  --backend-surface: #2c241d;
+  --backend-surface-alt: #544d44;
+  --backend-border: rgba(168, 160, 146, 0.25);
+  --admin-dashboard-bg: #241e18;
+  --admin-sidebar-bg: #1a1612;
+  --admin-surface: #2c241d;
   --brand-primary: #60a5fa;
 }
 body.portal-backend-steel .topbar,
@@ -241,16 +241,16 @@ body.portal-backend-amber .dropdown-menu { background: var(--backend-surface) !i
 /* ---- MIDNIGHT: deep blue-black ---- */
 body.portal-backend-midnight {
   background: #0a0f1a !important;
-  color: #e2e8f0 !important;
-  --backend-text: #e2e8f0;
-  --backend-text-muted: #94a3b8;
-  --backend-surface: #0f172a;
-  --backend-surface-alt: #1e293b;
+  color: #ede4d6 !important;
+  --backend-text: #ede4d6;
+  --backend-text-muted: #a8a092;
+  --backend-surface: #1a1612;
+  --backend-surface-alt: #241e18;
   --backend-border: rgba(71, 85, 105, 0.4);
   --admin-dashboard-bg: #0a0f1a;
   --admin-sidebar-bg: #050810;
-  --admin-surface: #0f172a;
-  --brand-primary: #3b82f6;
+  --admin-surface: #1a1612;
+  --brand-primary: #c47f1c;
   --brand-success: #22c55e;
   --brand-danger: #ef4444;
   --chart-color-1: rgba(59, 130, 246, 0.85);
@@ -259,8 +259,8 @@ body.portal-backend-midnight {
   --chart-color-4: rgba(239, 68, 68, 0.85);
   --chart-color-5: rgba(168, 85, 247, 0.85);
   --chart-color-6: rgba(6, 182, 212, 0.85);
-  --header-brand-bg: linear-gradient(90deg, #050810 0%, #0a0f1a 50%, #0f172a 100%);
-  --header-brand-fg: #e2e8f0;
+  --header-brand-bg: linear-gradient(90deg, #050810 0%, #0a0f1a 50%, #1a1612 100%);
+  --header-brand-fg: #ede4d6;
 }
 body.portal-backend-midnight .topbar,
 body.portal-backend-midnight .navbar.topbar { background: var(--header-brand-bg) !important; color: var(--header-brand-fg) !important; }
@@ -320,18 +320,18 @@ body.portal-backend-ocean .dropdown-menu { background: var(--backend-surface) !i
 
 /* ---- SLATE: medium grey ---- */
 body.portal-backend-slate {
-  background: #334155 !important;
-  color: #f1f5f9 !important;
-  --backend-text: #f1f5f9;
-  --backend-text-muted: #cbd5e1;
-  --backend-surface: #475569;
-  --backend-surface-alt: #64748b;
-  --backend-border: rgba(148, 163, 184, 0.3);
-  --admin-dashboard-bg: #334155;
-  --admin-sidebar-bg: #1e293b;
-  --admin-surface: #475569;
-  --header-brand-bg: linear-gradient(90deg, #1e293b 0%, #334155 50%, #475569 100%);
-  --header-brand-fg: #f1f5f9;
+  background: #2c241d !important;
+  color: #f5eedd !important;
+  --backend-text: #f5eedd;
+  --backend-text-muted: #d9d0c2;
+  --backend-surface: #544d44;
+  --backend-surface-alt: #857c70;
+  --backend-border: rgba(168, 160, 146, 0.3);
+  --admin-dashboard-bg: #2c241d;
+  --admin-sidebar-bg: #241e18;
+  --admin-surface: #544d44;
+  --header-brand-bg: linear-gradient(90deg, #241e18 0%, #2c241d 50%, #544d44 100%);
+  --header-brand-fg: #f5eedd;
 }
 body.portal-backend-slate .topbar,
 body.portal-backend-slate .navbar.topbar { background: var(--header-brand-bg) !important; color: var(--header-brand-fg) !important; }
@@ -384,14 +384,14 @@ body.portal-backend-indigo {
   background: #1e1b4b !important;
   color: #e0e7ff !important;
   --backend-text: #e0e7ff;
-  --backend-text-muted: #a5b4fc;
+  --backend-text-muted: #e6a052;
   --backend-surface: #312e81;
   --backend-surface-alt: #3730a3;
   --backend-border: rgba(129, 140, 248, 0.25);
   --admin-dashboard-bg: #1e1b4b;
   --admin-sidebar-bg: #0f0d2e;
   --admin-surface: #312e81;
-  --brand-primary: #818cf8;
+  --brand-primary: #c47f1c;
   --brand-success: #34d399;
   --header-brand-bg: linear-gradient(90deg, #0f0d2e 0%, #1e1b4b 50%, #312e81 100%);
   --header-brand-fg: #e0e7ff;
@@ -447,7 +447,7 @@ body.portal-backend-sand .card-title { color: var(--backend-text) !important; }
 
 /* ---- SNOW: cool light ---- */
 body.portal-backend-snow {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f8fafc 100%) !important;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #fffaf0 100%) !important;
   color: #0c4a6e !important;
   --backend-text: #0c4a6e;
   --backend-text-muted: #0369a1;

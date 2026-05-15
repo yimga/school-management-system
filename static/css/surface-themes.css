@@ -12,8 +12,8 @@ body.marketing-surface {
   --surface-bg-muted: var(--color-base-100);
   --type-hero: clamp(1.75rem, 4vw, 2.75rem);
   --type-section: clamp(1.25rem, 2.8vw, 1.5rem);
-  --shell-elevation-1: 0 2px 12px rgba(15, 23, 42, 0.06);
-  --shell-elevation-2: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --shell-elevation-1: 0 2px 12px rgba(26, 22, 18, 0.06);
+  --shell-elevation-2: 0 8px 24px rgba(26, 22, 18, 0.08);
   --mkt-spacing-section: clamp(3rem, 6vw, 5rem);
   --mkt-spacing-block: clamp(1.5rem, 3vw, 2.5rem);
 }
@@ -38,8 +38,8 @@ body.admin-ops-surface {
   --surface-bg-base: var(--color-base-0);
   --surface-bg-subtle: var(--color-base-50);
   --surface-bg-muted: var(--color-base-100);
-  --shell-elevation-1: 0 2px 8px rgba(15, 23, 42, 0.06);
-  --shell-elevation-2: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shell-elevation-1: 0 2px 8px rgba(26, 22, 18, 0.06);
+  --shell-elevation-2: 0 4px 12px rgba(26, 22, 18, 0.08);
   --type-table: 0.875rem;
   --table-density-comfortable: 0.5rem 0.75rem;
 }
@@ -50,7 +50,7 @@ body.tenant-surface {
   /* Uses design-tokens defaults + portal/school theme overrides from base templates */
   --surface-bg-base: var(--portal-bg, color-mix(in oklab, var(--color-sky-500) 4%, var(--color-base-0)));
   --surface-bg-subtle: rgba(255, 255, 255, 0.8);
-  --surface-bg-muted: rgba(15, 23, 42, 0.04);
+  --surface-bg-muted: rgba(26, 22, 18, 0.04);
 }
 
 /* ========== Onboarding wizards (extends base.html; /setup-studio/, /onboard/*) ========== */
@@ -58,5 +58,5 @@ html[data-surface="onboarding"] {
   /* Same token plane as tenant; distinct surface for shell classifier + future overrides */
   --surface-bg-base: var(--portal-bg, color-mix(in oklab, var(--color-sky-500) 4%, var(--color-base-0)));
   --surface-bg-subtle: rgba(255, 255, 255, 0.8);
-  --surface-bg-muted: rgba(15, 23, 42, 0.04);
+  --surface-bg-muted: rgba(26, 22, 18, 0.04);
 }

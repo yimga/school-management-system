@@ -60,7 +60,7 @@
   z-index: 1010;
   margin-top: auto;
   padding: 0.65rem 1rem;
-  background: rgba(15, 23, 42, 0.95);
+  background: rgba(26, 22, 18, 0.95);
   border-top: 1px solid rgba(125, 152, 187, 0.22);
   backdrop-filter: blur(8px);
 }

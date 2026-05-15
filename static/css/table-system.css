@@ -40,14 +40,14 @@
 }
 .table-family thead th {
   font-weight: 600;
-  background: var(--surface-bg-muted, #f1f5f9);
-  border-bottom: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  background: var(--surface-bg-muted, #f5eedd);
+  border-bottom: 1px solid var(--portal-border, rgba(26, 22, 18, 0.08));
   white-space: normal;
   vertical-align: middle;
   letter-spacing: 0.01em;
 }
 .table-family tbody tr:hover {
-  background: var(--surface-bg-subtle, rgba(15, 23, 42, 0.03));
+  background: var(--surface-bg-subtle, rgba(26, 22, 18, 0.03));
 }
 .table-family td {
   vertical-align: middle;
@@ -83,7 +83,7 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  background: var(--surface-bg-muted, #f1f5f9);
+  background: var(--surface-bg-muted, #f5eedd);
 }
 
 /* Status chips (semantic; replace ad-hoc badge colors where possible) */
@@ -112,7 +112,7 @@
 }
 .table-responsive.table-sticky-first .table-family thead th:first-child {
   z-index: 2;
-  background: var(--surface-bg-muted, #f1f5f9);
+  background: var(--surface-bg-muted, #f5eedd);
 }
 
 /* Mobile: horizontal scroll hint */

@@ -65,9 +65,9 @@
   border-radius: 999px;
   font-size: var(--type-size-eyebrow);
   font-weight: 700;
-  color: #334155;
-  background: #f8fafc;
-  border: 1px solid rgba(51, 65, 85, 0.2);
+  color: #2c241d;
+  background: #fffaf0;
+  border: 1px solid rgba(44, 36, 29, 0.2);
 }
 .org-chart-name {
   margin-bottom: 2px;

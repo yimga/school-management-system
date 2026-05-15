@@ -50,13 +50,13 @@
   /* v2 theme system: alias card grammar through Apple semantic surfaces so a
      single token edit cascades. Specific values are fallbacks only. */
   --rmc-card-radius: var(--radius-md, 12px);
-  --rmc-card-border: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(15, 23, 42, 0.08));
-  --rmc-card-shadow: var(--elev-1, 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.02));
-  --rmc-card-shadow-hover: var(--elev-2, 0 8px 24px -8px rgba(15, 23, 42, 0.12), 0 2px 4px rgba(15, 23, 42, 0.04));
+  --rmc-card-border: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(26, 22, 18, 0.08));
+  --rmc-card-shadow: var(--elev-1, 0 1px 2px rgba(26, 22, 18, 0.04), 0 1px 1px rgba(26, 22, 18, 0.02));
+  --rmc-card-shadow-hover: var(--elev-2, 0 8px 24px -8px rgba(26, 22, 18, 0.12), 0 2px 4px rgba(26, 22, 18, 0.04));
   --rmc-card-pad: clamp(0.875rem, 1vw + 0.5rem, 1.25rem);
   --rmc-canvas-bg: var(--surface-bg, #f6f7fb);
-  --rmc-canvas-ink: var(--text-primary, #0f172a);
-  --rmc-canvas-muted: var(--text-tertiary, rgba(15, 23, 42, 0.65));
+  --rmc-canvas-ink: var(--text-primary, #1a1612);
+  --rmc-canvas-muted: var(--text-tertiary, rgba(26, 22, 18, 0.65));
 }
 
 /* Apply the card grammar broadly. Bootstrap default `.card` gets the
@@ -86,7 +86,7 @@
 
 .card-header:not(.card-unstyled .card-header) {
   border-bottom: var(--rmc-card-border);
-  background: rgba(15, 23, 42, 0.02);
+  background: rgba(26, 22, 18, 0.02);
   font-weight: 600;
   letter-spacing: -0.005em;
 }
@@ -96,7 +96,7 @@
 }
 
 .card-footer {
-  background: rgba(15, 23, 42, 0.02);
+  background: rgba(26, 22, 18, 0.02);
   border-top: var(--rmc-card-border);
 }
 
@@ -135,7 +135,7 @@
   font-size: var(--type-size-micro);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(15, 23, 42, 0.55);
+  color: rgba(26, 22, 18, 0.55);
   font-weight: 600;
   margin-bottom: 0.25rem;
 }
@@ -186,7 +186,7 @@ main > * + *,
 }
 
 .table > thead {
-  background: rgba(15, 23, 42, 0.03);
+  background: rgba(26, 22, 18, 0.03);
 }
 
 .table > thead th {
@@ -195,7 +195,7 @@ main > * + *,
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--rmc-canvas-muted);
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  border-bottom: 1px solid rgba(26, 22, 18, 0.08);
   padding: 0.625rem 0.75rem;
 }
 
@@ -214,7 +214,7 @@ main > * + *,
 
 .form-control,
 .form-select {
-  border-color: rgba(15, 23, 42, 0.15);
+  border-color: rgba(26, 22, 18, 0.15);
   border-radius: 8px;
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
@@ -258,8 +258,8 @@ main > * + *,
 
 .badge.text-bg-secondary,
 .badge.bg-secondary {
-  background: rgba(15, 23, 42, 0.08) !important;
-  color: rgba(15, 23, 42, 0.75) !important;
+  background: rgba(26, 22, 18, 0.08) !important;
+  color: rgba(26, 22, 18, 0.75) !important;
 }
 
 /* === 10. Breadcrumb polish ============================================= */
@@ -296,13 +296,13 @@ main > * + *,
 .dropdown-menu {
   /* v2 Apple popover recipe: hairline border + soft elevation + frosted material.
      `max-width: min(...)` caps width like Apple's HIG (no full-width submenus). */
-  border: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(15, 23, 42, 0.1));
+  border: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(26, 22, 18, 0.1));
   border-radius: var(--radius-md, 12px);
   background: var(--surface-popover, var(--surface-elevated, #ffffff));
   color: var(--text-primary);
   -webkit-backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
   backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
-  box-shadow: var(--elev-3, 0 12px 32px -8px rgba(15, 23, 42, 0.18));
+  box-shadow: var(--elev-3, 0 12px 32px -8px rgba(26, 22, 18, 0.18));
   padding: 0.35rem;
   max-width: min(360px, calc(100vw - 1rem));
 }

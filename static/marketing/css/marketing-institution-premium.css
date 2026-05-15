@@ -1,7 +1,7 @@
 /* Premium solution (institution) pages — depth without tenant chrome */
 .mkt-institution-premium .mkt-inst-module-card {
   transition: transform 0.15s ease, border-color 0.15s ease;
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border: 1px solid rgba(168, 160, 146, 0.35);
 }
 .mkt-institution-premium .mkt-inst-module-card:hover {
   transform: translateY(-2px);

@@ -3,7 +3,7 @@
 body.marketing-surface .mt-1 > .mb-0.small,
 body.marketing-surface .mt-1 > .small.mb-0,
 body.marketing-surface .mt-1 > .mb-0 {
-  color: #f8fafc !important;
+  color: #fffaf0 !important;
 }
 
 body.marketing-surface .mkt-main > section.container header .text-muted,
@@ -16,8 +16,8 @@ body.marketing-surface .btn-outline-primary,
 body.marketing-surface .btn.btn-outline-primary,
 body.marketing-surface .btn-outline-secondary,
 body.marketing-surface .btn.btn-outline-secondary {
-  color: #0f172a !important;
-  border-color: #0f172a !important;
+  color: #1a1612 !important;
+  border-color: #1a1612 !important;
   background-color: #ffffff !important;
 }
 
@@ -29,26 +29,26 @@ body.marketing-surface .btn-outline-secondary:hover,
 body.marketing-surface .btn.btn-outline-secondary:hover,
 body.marketing-surface .btn-outline-secondary:focus-visible,
 body.marketing-surface .btn.btn-outline-secondary:focus-visible {
-  background-color: #1d4ed8;
-  border-color: #1d4ed8;
+  background-color: #a06814;
+  border-color: #a06814;
   color: #ffffff !important;
 }
 
 body.marketing-surface .btn-primary,
 body.marketing-surface .btn.btn-primary {
-  color: #0f172a;
+  color: #1a1612;
 }
 
 body.marketing-surface .btn-light,
 body.marketing-surface .btn.btn-light {
-  background-color: #f8fafc;
-  border-color: #f8fafc;
-  color: #0f172a;
+  background-color: #fffaf0;
+  border-color: #fffaf0;
+  color: #1a1612;
 }
 
 body.marketing-surface .btn-outline-light,
 body.marketing-surface .btn.btn-outline-light {
-  color: #0f172a !important;
+  color: #1a1612 !important;
   border-color: #ffffff;
   background-color: #ffffff;
 }
@@ -59,18 +59,18 @@ body.marketing-surface .btn-outline-light:focus-visible,
 body.marketing-surface .btn.btn-outline-light:focus-visible {
   background-color: #ffffff;
   border-color: #ffffff;
-  color: #0f172a;
+  color: #1a1612;
 }
 
 body.marketing-surface .mkt-glob-pill,
 body.marketing-surface .badge.mkt-glob-pill {
-  background-color: #1e293b !important;
-  color: #f8fafc !important;
+  background-color: #241e18 !important;
+  color: #fffaf0 !important;
 }
 
 body.marketing-surface.marketing-home .mkt-platform-cap-card h3,
 body.marketing-surface .marketing-home .mkt-platform-cap-card h3 {
-  color: #0f172a !important;
+  color: #1a1612 !important;
 }
 
 body.marketing-surface .section-lead,
@@ -86,7 +86,7 @@ body.marketing-surface .highlight-list,
 body.marketing-surface .agenda-list li,
 body.marketing-surface .case-impact,
 body.marketing-surface .timeline-phase .phase-owner {
-  color: #334155 !important;
+  color: #2c241d !important;
 }
 
 body.marketing-surface .detail-hero .detail-eyebrow,
@@ -111,16 +111,16 @@ body.marketing-surface .mkt-main > section.container > .lead.text-muted {
 body.marketing-surface .table th,
 body.marketing-surface .table thead th,
 body.marketing-surface .compare-table th {
-  color: #334155;
+  color: #2c241d;
 }
 
 body.marketing-surface .table-dark th,
 body.marketing-surface .table-dark td {
-  color: #f8fafc;
+  color: #fffaf0;
 }
 
 body.marketing-surface .mkt-adm-card {
-  background-color: #0f172a;
+  background-color: #1a1612;
 }
 
 body.marketing-surface .mkt-adm-card ul,
@@ -128,18 +128,18 @@ body.marketing-surface .mkt-adm-card li,
 body.marketing-surface .mkt-parent-card ul,
 body.marketing-surface .mkt-parent-card li,
 body.marketing-surface .mkt-adm-handoff-grid a {
-  color: #f8fafc !important;
+  color: #fffaf0 !important;
 }
 
 body.marketing-surface .mkt-parent-card {
-  background-color: #0f172a;
+  background-color: #1a1612;
 }
 
 body.marketing-surface .mkt-adm-cta .btn-outline-light,
 body.marketing-surface .mkt-adm-cta .btn.btn-outline-light {
   background-color: #ffffff;
   border-color: #ffffff;
-  color: #0f172a;
+  color: #1a1612;
 }
 
 body.marketing-surface footer.mkt-footer .text-muted,
@@ -154,7 +154,7 @@ body.marketing-surface .mkt-footer .small.mb-0,
 body.marketing-surface .mt-1 > .mb-0.small,
 body.marketing-surface .mt-1 > .small.mb-0,
 body.marketing-surface .mt-1 > .mb-0 {
-  color: #f8fafc !important;
+  color: #fffaf0 !important;
 }
 
 body.marketing-surface .mkt-product-viz-scroll:focus-visible,
@@ -176,8 +176,8 @@ body.marketing-surface .mkt-parent-card,
 body.marketing-surface .mkt-teacher-card,
 body.marketing-surface .mkt-premium-problem-panel,
 body.marketing-surface .mkt-workflow-step {
-  color: #f8fafc !important;
-  background: #0f172a !important;
+  color: #fffaf0 !important;
+  background: #1a1612 !important;
   border-color: rgba(203, 213, 225, 0.45) !important;
 }
 
@@ -186,7 +186,7 @@ body.marketing-surface .mkt-parent-card h3,
 body.marketing-surface .mkt-teacher-card h3,
 body.marketing-surface .mkt-premium-problem-panel h3,
 body.marketing-surface .mkt-workflow-step span {
-  color: #f8fafc !important;
+  color: #fffaf0 !important;
 }
 
 body.marketing-surface .mkt-fees-card li,
@@ -194,7 +194,7 @@ body.marketing-surface .mkt-parent-card li,
 body.marketing-surface .mkt-teacher-card li,
 body.marketing-surface .mkt-premium-problem-panel p,
 body.marketing-surface .mkt-premium-problem-panel li {
-  color: #e2e8f0 !important;
+  color: #ede4d6 !important;
 }
 
 body.marketing-surface .mkt-fees-card--before h3,
@@ -210,15 +210,15 @@ body.marketing-surface .mkt-teacher-card--after h3 {
 }
 
 body.marketing-surface .mkt-workflow-index {
-  color: #0f172a !important;
+  color: #1a1612 !important;
   background: #facc15 !important;
 }
 
 body.marketing-surface .mkt-fees-handoff-grid a,
 body.marketing-surface .mkt-parent-handoff-grid a,
 body.marketing-surface .mkt-teacher-handoff-grid a {
-  color: #f8fafc !important;
-  background: #0f172a !important;
+  color: #fffaf0 !important;
+  background: #1a1612 !important;
   border-color: rgba(203, 213, 225, 0.45) !important;
 }
 
@@ -229,10 +229,10 @@ body.marketing-surface .mkt-parent-handoff-grid a:focus-visible,
 body.marketing-surface .mkt-teacher-handoff-grid a:hover,
 body.marketing-surface .mkt-teacher-handoff-grid a:focus-visible {
   color: #ffffff !important;
-  background: #1e293b !important;
+  background: #241e18 !important;
 }
 
 body.marketing-surface .mkt-premium-stock-frame .text-muted,
 body.marketing-surface .mkt-premium-stock-frame p.small {
-  color: #cbd5e1 !important;
+  color: #d9d0c2 !important;
 }

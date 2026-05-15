@@ -6,7 +6,7 @@
   --cpoh-card-bg: rgba(255, 255, 255, 0.04);
   --cpoh-card-border: rgba(125, 152, 187, 0.22);
   --cpoh-card-hover: rgba(99, 102, 241, 0.12);
-  --cpoh-glow: 0 12px 40px rgba(15, 23, 42, 0.45);
+  --cpoh-glow: 0 12px 40px rgba(26, 22, 18, 0.45);
 }
 
 .cp-operator-hub .cpoh-hero {
@@ -16,7 +16,7 @@
   background: linear-gradient(
     135deg,
     rgba(99, 102, 241, 0.14) 0%,
-    rgba(15, 23, 42, 0.65) 48%,
+    rgba(26, 22, 18, 0.65) 48%,
     rgba(34, 197, 94, 0.08) 100%
   );
   border: 1px solid var(--cpoh-card-border);
@@ -54,7 +54,7 @@
   font-size: clamp(1.35rem, 2.5vw, 1.75rem);
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #f8fafc;
+  color: #fffaf0;
   margin: 0.35rem 0 0.5rem;
 }
 
@@ -136,14 +136,14 @@
   justify-content: center;
   border-radius: 0.65rem;
   background: rgba(99, 102, 241, 0.2);
-  color: #a5b4fc;
+  color: #e6a052;
   font-size: var(--type-size-body-l);
 }
 
 .cp-operator-hub .cpoh-tile-title {
   font-weight: 600;
   font-size: var(--type-size-body);
-  color: #f1f5f9;
+  color: #f5eedd;
   margin: 0 0 0.25rem;
 }
 
@@ -167,7 +167,7 @@
   list-style: none;
   padding: 1rem 1.25rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: #ede4d6;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -215,7 +215,7 @@
 .cp-operator-hub .cpoh-app-name {
   font-weight: 600;
   font-size: var(--type-size-caption);
-  color: #f8fafc;
+  color: #fffaf0;
   margin: 0;
 }
 

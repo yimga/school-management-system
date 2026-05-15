@@ -42,7 +42,7 @@
 
 .hub-page .hub-copy {
   font-size: var(--type-size-body);
-  color: var(--admin-content-text-muted, #64748b);
+  color: var(--admin-content-text-muted, #857c70);
   margin: 0;
   max-width: 52ch;
 }
@@ -91,7 +91,7 @@
 
 .hub-page .hub-action-card .hub-card-desc {
   font-size: var(--type-size-caption);
-  color: var(--admin-content-text-muted, #64748b);
+  color: var(--admin-content-text-muted, #857c70);
   margin: 0 0 1rem;
   flex: 1;
 }

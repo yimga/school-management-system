@@ -233,7 +233,7 @@ body.control-plane-shell .admin-login-card h2 {
 body.control-plane-shell .manager-login-card .form-control,
 body.control-plane-shell .admin-login-card .form-control {
   border-radius: var(--rmc-lit-cc76ee6d59);
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(26, 22, 18, 0.6);
   border: 1px solid var(--cp-ultra-border);
   color: var(--cp-ultra-text);
   padding: var(--rmc-lit-d1f559869e);
@@ -245,7 +245,7 @@ body.control-plane-shell .manager-login-card .form-control:focus,
 body.control-plane-shell .admin-login-card .form-control:focus {
   border-color: var(--cp-ultra-gold);
   box-shadow: var(--rmc-lit-c092dd4476);
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(26, 22, 18, 0.8);
 }
 
 body.control-plane-shell .manager-login-card .form-control:focus-visible,
@@ -491,7 +491,7 @@ body.control-plane-shell #nav-sidebar,
 .cp-navbar .form-control-sm {
   border-radius: var(--rmc-lit-cc76ee6d59);
   border: 1px solid var(--cp-ultra-border);
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(26, 22, 18, 0.6);
   color: var(--cp-ultra-text);
 }
 

@@ -101,7 +101,7 @@ body[data-dashboard-page="backend"] [data-widget-id] .card:hover {
 /* Variants */
 [data-widget-id][data-widget-variant="flat"] {
   box-shadow: none !important;
-  border-color: rgba(148, 163, 184, 0.22) !important;
+  border-color: rgba(168, 160, 146, 0.22) !important;
   background: rgba(255, 255, 255, 0.02) !important;
 }
 
@@ -120,7 +120,7 @@ body[data-dashboard-page="backend"] [data-widget-id] .card:hover {
 
 .dash-widget-gear {
   appearance: none;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid rgba(168, 160, 146, 0.25);
   background: rgba(2, 6, 23, 0.55);
   color: rgba(226, 232, 240, 0.92);
   border-radius: 999px;
@@ -134,7 +134,7 @@ body[data-dashboard-page="backend"] [data-widget-id] .card:hover {
 
 html[data-theme="light"] .dash-widget-gear {
   background: rgba(255, 255, 255, 0.9);
-  color: rgba(15, 23, 42, 0.92);
+  color: rgba(26, 22, 18, 0.92);
 }
 
 .dash-widget-menu {
@@ -144,7 +144,7 @@ html[data-theme="light"] .dash-widget-gear {
   min-width: 180px;
   padding: 0.6rem 0.7rem;
   border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid rgba(168, 160, 146, 0.25);
   background: rgba(2, 6, 23, 0.88);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
 }
@@ -173,7 +173,7 @@ html[data-theme="light"] .dash-widget-menu {
   font-size: var(--type-size-eyebrow);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(148, 163, 184, 0.9);
+  color: rgba(168, 160, 146, 0.9);
 }
 
 html[data-theme="light"] .dash-widget-row label {
@@ -183,8 +183,8 @@ html[data-theme="light"] .dash-widget-row label {
 .dash-widget-row select {
   width: 100%;
   border-radius: 10px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(168, 160, 146, 0.25);
+  background: rgba(26, 22, 18, 0.7);
   color: rgba(226, 232, 240, 0.95);
   padding: 0.35rem 0.5rem;
   font-size: var(--type-size-body);
@@ -192,7 +192,7 @@ html[data-theme="light"] .dash-widget-row label {
 
 html[data-theme="light"] .dash-widget-row select {
   background: rgba(255, 255, 255, 1);
-  color: rgba(15, 23, 42, 0.95);
+  color: rgba(26, 22, 18, 0.95);
 }
 
 /* Drag-and-drop visual feedback (cursor on grip only) */
@@ -234,7 +234,7 @@ html[data-theme="light"] .dash-widget-row select {
   align-items: center;
   justify-content: center;
   cursor: grab;
-  color: rgba(148, 163, 184, 0.7);
+  color: rgba(168, 160, 146, 0.7);
   border-radius: 6px;
   z-index: 4;
   user-select: none;

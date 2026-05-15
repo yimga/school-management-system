@@ -9,14 +9,14 @@
   --rmc-wcx-danger: var(--bs-danger, var(--color-red-600));
   --rmc-wcx-radius: 8px;
   --rmc-acx-glass: color-mix(in srgb, var(--rmc-wcx-surface) 84%, transparent);
-  --rmc-acx-shadow: 0 22px 70px rgba(15, 23, 42, 0.12);
+  --rmc-acx-shadow: 0 22px 70px rgba(26, 22, 18, 0.12);
 }
 
 .rmc-wcx-surface {
   background: var(--rmc-wcx-surface);
   border: 1px solid var(--rmc-wcx-border);
   border-radius: var(--rmc-wcx-radius);
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 18px 50px rgba(26, 22, 18, 0.08);
 }
 
 .rmc-wcx-hero {
@@ -162,7 +162,7 @@ button.cp-context-drawer-toggle i,
 }
 
 #cp-main-content .rmc-wcx-hero .btn-outline-primary {
-  background: rgba(15, 23, 42, 0.72);
+  background: rgba(26, 22, 18, 0.72);
   border-color: var(--color-primary-100);
 }
 

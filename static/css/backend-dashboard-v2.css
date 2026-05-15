@@ -928,7 +928,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
     radial-gradient(circle at top right, var(--backend-role-home-radial, rgba(255,255,255,0.22)), transparent 40%),
     linear-gradient(135deg, var(--backend-role-home-accent-start, var(--brand-primary, var(--color-indigo-600))), var(--backend-role-home-accent-end, var(--brand-accent, var(--color-emerald-500))));
   color: var(--backend-role-home-copy-fg, var(--color-base-0));
-  box-shadow: 0 24px 60px var(--backend-role-home-copy-shadow, rgba(15, 23, 42, 0.18));
+  box-shadow: 0 24px 60px var(--backend-role-home-copy-shadow, rgba(26, 22, 18, 0.18));
 }
 .backend-role-home-eyebrow {
   display: inline-flex;
@@ -975,12 +975,12 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
   justify-content: space-between;
   gap: 0.7rem;
   padding: 0.95rem 1rem;
-  border: 1px solid var(--backend-role-home-command-border, rgba(148, 163, 184, 0.35));
+  border: 1px solid var(--backend-role-home-command-border, rgba(168, 160, 146, 0.35));
   border-radius: 18px;
   background: var(--backend-role-home-command-bg, rgba(255,255,255,0.94));
   color: inherit;
   text-decoration: none;
-  box-shadow: 0 18px 34px var(--backend-role-home-command-shadow, rgba(15, 23, 42, 0.08));
+  box-shadow: 0 18px 34px var(--backend-role-home-command-shadow, rgba(26, 22, 18, 0.08));
 }
 .backend-role-home-command:hover {
   text-decoration: none;
@@ -1015,7 +1015,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
   padding: 1rem 1.05rem;
   border-radius: 18px;
   background: var(--backend-role-home-primary-bg, rgba(255,255,255,0.98));
-  box-shadow: 0 18px 34px var(--backend-role-home-primary-shadow, rgba(15, 23, 42, 0.08));
+  box-shadow: 0 18px 34px var(--backend-role-home-primary-shadow, rgba(26, 22, 18, 0.08));
   border: 1px solid var(--backend-role-home-primary-border, rgba(226,232,240,0.92));
   color: inherit;
   text-decoration: none;
@@ -1039,7 +1039,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
   padding: 1rem 1rem 0.95rem;
   border-radius: 22px;
   background: var(--backend-role-home-panel-bg, rgba(255,255,255,0.94));
-  box-shadow: 0 16px 40px var(--backend-role-home-panel-shadow, rgba(15, 23, 42, 0.08));
+  box-shadow: 0 16px 40px var(--backend-role-home-panel-shadow, rgba(26, 22, 18, 0.08));
   border: 1px solid var(--backend-role-home-panel-border, rgba(226, 232, 240, 0.9));
 }
 .backend-role-home-panel h4 {
@@ -1095,7 +1095,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
   gap: 0.45rem;
   padding: 0.7rem 0.9rem;
   border-radius: 14px;
-  border: 1px solid var(--backend-role-home-destination-border, rgba(148, 163, 184, 0.22));
+  border: 1px solid var(--backend-role-home-destination-border, rgba(168, 160, 146, 0.22));
   background: var(--backend-role-home-destination-bg, rgba(255,255,255,0.78));
   color: inherit;
   text-decoration: none;

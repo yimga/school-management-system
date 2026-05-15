@@ -282,7 +282,7 @@
     right: 0;
     bottom: 70px;
     transform: translateX(10%);
-    background: rgba(15, 23, 42, 0.85);
+    background: rgba(26, 22, 18, 0.85);
     color: var(--color-base-0);
     font-size: var(--type-size-eyebrow);
     padding: 4px 8px;
@@ -400,7 +400,7 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #cbd5e1;
+    background: #d9d0c2;
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
   }
   .ai-copilot-status[data-state="ok"] .ai-status-dot { background: var(--ds-success, #22c55e); }
@@ -996,7 +996,7 @@ html[data-bs-theme="dark"] .dashboard-empty-message {
 }
 .footer-card {
   background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  border: 1px solid rgba(168, 160, 146, 0.18);
   border-radius: 14px;
   padding: 0.5rem 0.7rem;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
@@ -1012,7 +1012,7 @@ html[data-bs-theme="dark"] .dashboard-empty-message {
   width: 46px;
   height: 46px;
   border-radius: 10px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border: 1px solid rgba(168, 160, 146, 0.35);
 }
 .brand-title {
   font-weight: 700;
@@ -1116,13 +1116,13 @@ html[data-bs-theme="dark"] .dashboard-empty-message {
   gap: 0.28rem;
   flex-wrap: wrap;
   justify-content: flex-start;
-  border-top: 1px solid rgba(148, 163, 184, 0.16);
+  border-top: 1px solid rgba(168, 160, 146, 0.16);
   padding-top: 0.28rem;
 }
 .status-pill {
   padding: 0.18rem 0.68rem;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid rgba(168, 160, 146, 0.25);
   background: rgba(255, 255, 255, 0.04);
   font-size: var(--type-size-micro);
 }
@@ -1144,7 +1144,7 @@ html[data-bs-theme="dark"] .dashboard-empty-message {
   flex-wrap: wrap;
   font-size: var(--type-size-micro);
   color: rgba(226, 232, 240, 0.7);
-  border-top: 1px solid rgba(148, 163, 184, 0.16);
+  border-top: 1px solid rgba(168, 160, 146, 0.16);
   padding-top: 0.24rem;
 }
 .meta-powered strong {
@@ -1165,7 +1165,7 @@ html[data-bs-theme="dark"] .dashboard-empty-message {
     grid-template-columns: 1fr;
   }
   .footer-grid-accordion .footer-details {
-    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    border-bottom: 1px solid rgba(168, 160, 146, 0.2);
   }
   .footer-grid-accordion .footer-details:last-child {
     border-bottom: none;
@@ -2575,7 +2575,7 @@ html[data-bs-theme="dark"] .dashboard-empty-message {
   color: var(--text-primary);
   -webkit-backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
   backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
-  box-shadow: var(--elev-3, 0 12px 32px rgba(15,23,42,0.18));
+  box-shadow: var(--elev-3, 0 12px 32px rgba(26, 22, 18,0.18));
   opacity: 0;
   transform: translateY(-12px) scale(0.96);
   transition: opacity var(--motion-normal), transform var(--motion-spring);
@@ -2729,7 +2729,7 @@ html[data-bs-theme="dark"] .dashboard-empty-message {
 /* Dark mode: same type identity, adjusted surfaces */
 :root[data-theme="dark"] .toast-notification,
 html[data-bs-theme="dark"] .toast-notification {
-  border-color: var(--admin-content-border, rgba(148,163,184,0.2));
+  border-color: var(--admin-content-border, rgba(168, 160, 146,0.2));
 }
 :root[data-theme="dark"] .toast-success,
 html[data-bs-theme="dark"] .toast-success {
@@ -2850,7 +2850,7 @@ html[data-bs-theme="dark"] .toast-undo {
 .navbar-dark .user-dropdown-trigger {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.12);
-  color: var(--header-brand-fg, #f5f5f7);
+  color: var(--header-brand-fg, #fdf9f2);
   -webkit-backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
   backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
 }
@@ -2864,7 +2864,7 @@ html[data-bs-theme="dark"] .toast-undo {
 .cp-navbar .user-dropdown-trigger .user-name,
 .admin-cp-navbar-unified .user-dropdown-trigger .user-name,
 .navbar-dark .user-dropdown-trigger .user-name {
-  color: var(--header-brand-fg, #f5f5f7);
+  color: var(--header-brand-fg, #fdf9f2);
   font-weight: 600;
 }
 .cp-navbar .user-dropdown-trigger .user-role-badge,
@@ -3013,7 +3013,7 @@ html[data-bs-theme="dark"] .toast-undo {
 }
 .rmc-theme-toggle-row .rmc-theme-btn i { font-size: var(--type-size-body); line-height: 1; }
 .rmc-theme-toggle-row .rmc-theme-btn:hover {
-  background: var(--surface-overlay, rgba(15,23,42,0.04));
+  background: var(--surface-overlay, rgba(26, 22, 18,0.04));
   color: var(--text-primary, var(--admin-content-text));
 }
 .rmc-theme-toggle-row .rmc-theme-btn.active,
@@ -3212,7 +3212,7 @@ html[data-bs-theme="dark"] .toast-undo {
   .weather-divider {
     width: 1px;
     height: 24px;
-    background: rgba(15, 23, 42, 0.2);
+    background: rgba(26, 22, 18, 0.2);
     flex-shrink: 0;
   }
 

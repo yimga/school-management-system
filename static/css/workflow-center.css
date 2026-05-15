@@ -1,7 +1,7 @@
 /* Workflow Center — shared by backend full page and Studio embed (accounts/workflow_center*.html). */
 .workflow-hero {
   background: linear-gradient(135deg, var(--workflow-hero-bg-start, rgba(102, 126, 234, 0.14)), var(--workflow-hero-bg-end, rgba(118, 75, 162, 0.12)));
-  border: 1px solid var(--workflow-hero-border, rgba(148, 163, 184, 0.22));
+  border: 1px solid var(--workflow-hero-border, rgba(168, 160, 146, 0.22));
   border-radius: 18px;
   padding: 1.25rem 1.25rem;
   margin-bottom: 1rem;
@@ -21,7 +21,7 @@
   gap: 0.75rem;
   margin-top: 0.75rem;
   padding-top: 0.75rem;
-  border-top: 1px solid var(--workflow-progress-divider, rgba(148, 163, 184, 0.2));
+  border-top: 1px solid var(--workflow-progress-divider, rgba(168, 160, 146, 0.2));
 }
 .workflow-progress-summary .badge {
   font-size: var(--type-size-caption);
@@ -36,7 +36,7 @@
   border: 1px solid var(--admin-border);
   border-radius: 18px;
   background: var(--admin-surface);
-  box-shadow: 0 8px 24px var(--workflow-card-shadow, rgba(15, 23, 42, 0.06));
+  box-shadow: 0 8px 24px var(--workflow-card-shadow, rgba(26, 22, 18, 0.06));
   overflow: hidden;
 }
 .workflow-card .card-body {
@@ -103,7 +103,7 @@
 .workflow-progress-bar {
   height: 6px;
   border-radius: 3px;
-  background: var(--workflow-progress-bar-bg, rgba(148, 163, 184, 0.25));
+  background: var(--workflow-progress-bar-bg, rgba(168, 160, 146, 0.25));
 }
 @media (max-width: 575px) {
   .workflow-hero {

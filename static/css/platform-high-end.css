@@ -22,7 +22,7 @@
   --rmc-lit-cd9da089fd: var(--platform-premium-shadow-dark);
   --rmc-lit-d5c68f3a57: 1.25rem;
   --rmc-lit-d6a349e182: 0.75rem;
-  --rmc-lit-ddb43c922a: var(--lux-shadow-hairline, 0 0 0 1px rgba(15, 23, 42, 0.08));
+  --rmc-lit-ddb43c922a: var(--lux-shadow-hairline, 0 0 0 1px rgba(26, 22, 18, 0.08));
   --rmc-lit-ddec53ab03: var(--platform-sidebar-radius);
   --rmc-lit-ef1608ba77: var(--platform-premium-shadow-hover);
   --rmc-lit-fec2baec80: 0.875rem 1rem;
@@ -61,8 +61,8 @@ main[role="main"] {
 :root {
   --platform-premium-radius: var(--lux-radius-xl, 1rem);
   --platform-premium-radius-sm: var(--lux-radius-md, 0.5rem);
-  --platform-premium-shadow: var(--lux-shadow-elevated, 0 6px 18px rgba(15, 23, 42, 0.08));
-  --platform-premium-shadow-hover: var(--lux-shadow-floating, 0 14px 30px rgba(15, 23, 42, 0.12));
+  --platform-premium-shadow: var(--lux-shadow-elevated, 0 6px 18px rgba(26, 22, 18, 0.08));
+  --platform-premium-shadow-hover: var(--lux-shadow-floating, 0 14px 30px rgba(26, 22, 18, 0.12));
   --platform-premium-shadow-dark: var(--lux-shadow-elevated, 0 8px 20px rgba(0, 0, 0, 0.3));
   --platform-premium-shadow-dark-hover: var(--lux-shadow-floating, 0 18px 36px rgba(0, 0, 0, 0.4));
   --platform-sidebar-radius: var(--lux-radius-lg, 0.75rem);
@@ -101,12 +101,12 @@ html[data-theme="dark"] ::selection {
 /* Portal / tenant backend sidebar (partials/portal_sidebar) */
 .portal-sidebar-col .sidebar {
   border-radius:var(--rmc-lit-ddec53ab03);
-  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--portal-border, rgba(26, 22, 18, 0.08));
   box-shadow:var(--rmc-lit-a88e95397c);
 }
 html[data-bs-theme="dark"] .portal-sidebar-col .sidebar,
 body.portal-backend-dark .portal-sidebar-col .sidebar {
-  border-color: rgba(148, 163, 184, 0.2);
+  border-color: rgba(168, 160, 146, 0.2);
   box-shadow:var(--rmc-lit-cd9da089fd);
 }
 .sidebar-header,
@@ -120,7 +120,7 @@ body.portal-backend-dark .portal-sidebar-col .sidebar {
 .sidebar-section-title {
   letter-spacing: 0.08em;
   font-weight: 700;
-  color: var(--portal-text-muted, var(--luxury-text-muted, #475569));
+  color: var(--portal-text-muted, var(--luxury-text-muted, #544d44));
 }
 .nav-link.nav-pill {
   border-radius:var(--rmc-lit-1790534eb5);
@@ -151,7 +151,7 @@ body.portal-backend-dark .portal-sidebar-col .sidebar {
 }
 .cp-sidebar-nav .nav-link:hover {
   background: rgba(16, 185, 129, 0.12);
-  color: #f1f5f9;
+  color: #f5eedd;
 }
 .cp-sidebar-nav .nav-link:focus-visible {
   outline: 2px solid var(--platform-gold, var(--school-accent));
@@ -221,7 +221,7 @@ body.portal-backend-dark .card:hover,
 .dashboard-chart-wrapper {
   border-radius:var(--rmc-lit-1790534eb5);
   overflow: hidden;
-  background: var(--admin-content-bg, #f8fafc);
+  background: var(--admin-content-bg, #fffaf0);
 }
 .dashboard-chart-container {
   border-radius:var(--rmc-lit-9d4a3474f2);
@@ -230,7 +230,7 @@ body.portal-backend-dark .card:hover,
 html[data-bs-theme="dark"] .dashboard-chart-wrapper,
 [data-theme="dark"] .dashboard-chart-wrapper,
 body.portal-backend-dark .dashboard-chart-wrapper {
-  background: var(--admin-content-surface, #1e293b);
+  background: var(--admin-content-surface, #241e18);
 }
 
 /* Control plane panels and hero blocks */

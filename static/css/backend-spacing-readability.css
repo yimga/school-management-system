@@ -161,7 +161,7 @@ body.portal-backend-dark .form-control:focus-visible,
 body.portal-backend-light .form-control:focus-visible,
 body.portal-backend-dark .form-select:focus-visible,
 body.portal-backend-light .form-select:focus-visible {
-  outline: 2px solid var(--focus-ring-color, #6366f1);
+  outline: 2px solid var(--focus-ring-color, #c47f1c);
   outline-offset: 2px;
 }
 

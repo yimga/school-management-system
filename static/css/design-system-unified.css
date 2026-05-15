@@ -56,8 +56,8 @@
   --color-bg-dark: color-mix(in oklab, var(--color-indigo-900) 50%, var(--color-base-950));
   
   /* Borders */
-  --color-border: rgba(15, 23, 42, 0.08);
-  --color-border-light: rgba(15, 23, 42, 0.04);
+  --color-border: rgba(26, 22, 18, 0.08);
+  --color-border-light: rgba(26, 22, 18, 0.04);
   
   /* Status Colors */
   --color-success: var(--color-emerald-500);
@@ -90,11 +90,11 @@
   /* ============================================
      SHADOWS - Consistent elevation system
      ============================================ */
-  --shadow-sm: var(--lux-shadow-hairline, 0 0 0 1px rgba(15, 23, 42, 0.08));
-  --shadow-md: var(--lux-shadow-elevated, 0 6px 18px rgba(15, 23, 42, 0.08));
-  --shadow-lg: var(--lux-shadow-floating, 0 14px 30px rgba(15, 23, 42, 0.12));
-  --shadow-xl: var(--lux-shadow-floating, 0 14px 30px rgba(15, 23, 42, 0.12));
-  --shadow-2xl: var(--lux-shadow-floating, 0 14px 30px rgba(15, 23, 42, 0.12));
+  --shadow-sm: var(--lux-shadow-hairline, 0 0 0 1px rgba(26, 22, 18, 0.08));
+  --shadow-md: var(--lux-shadow-elevated, 0 6px 18px rgba(26, 22, 18, 0.08));
+  --shadow-lg: var(--lux-shadow-floating, 0 14px 30px rgba(26, 22, 18, 0.12));
+  --shadow-xl: var(--lux-shadow-floating, 0 14px 30px rgba(26, 22, 18, 0.12));
+  --shadow-2xl: var(--lux-shadow-floating, 0 14px 30px rgba(26, 22, 18, 0.12));
   
   /* Inset shadows for card borders */
   --shadow-inset-light: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
@@ -175,8 +175,8 @@ html[data-bs-theme="light"] {
   --color-bg-primary: var(--color-base-0);
   --color-bg-light: var(--color-base-50);
   --color-bg-lighter: color-mix(in oklab, var(--color-base-200) 50%, var(--color-base-50));
-  --color-border: rgba(15, 23, 42, 0.08);
-  --color-border-light: rgba(15, 23, 42, 0.04);
+  --color-border: rgba(26, 22, 18, 0.08);
+  --color-border-light: rgba(26, 22, 18, 0.04);
   --color-success-light: rgba(16, 185, 129, 0.1);
   --color-warning-light: rgba(245, 158, 11, 0.1);
   --color-danger-light: rgba(239, 68, 68, 0.1);
@@ -192,8 +192,8 @@ body.portal-backend-dark {
   --color-bg-primary: var(--color-base-900);
   --color-bg-light: var(--color-base-800);
   --color-bg-lighter: var(--color-base-700);
-  --color-border: rgba(148, 163, 184, 0.25);
-  --color-border-light: rgba(148, 163, 184, 0.12);
+  --color-border: rgba(168, 160, 146, 0.25);
+  --color-border-light: rgba(168, 160, 146, 0.12);
   /* Dark: brand tints from school primary (one product family) */
   --color-primary: color-mix(in srgb, var(--school-primary) 70%, var(--color-base-0));
   --color-primary-light: color-mix(in srgb, var(--school-primary) 45%, var(--color-base-0));
@@ -725,16 +725,16 @@ html[data-bs-theme="dark"] ::selection {
 }
 .btn-back-secondary {
   color: var(--color-text-muted, var(--color-base-500));
-  border-color: var(--color-border, rgba(15, 23, 42, 0.08));
+  border-color: var(--color-border, rgba(26, 22, 18, 0.08));
 }
 .btn-back-secondary:hover {
   background-color: var(--color-bg-light, var(--color-base-50));
   color: var(--color-text-primary, var(--color-base-900));
-  border-color: var(--color-border, rgba(15, 23, 42, 0.08));
+  border-color: var(--color-border, rgba(26, 22, 18, 0.08));
 }
 .btn-back-outline {
   color: var(--color-text-muted, var(--color-base-500));
-  border: 1px solid var(--color-border, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--color-border, rgba(26, 22, 18, 0.08));
   background: transparent;
 }
 .btn-back-outline:hover {
@@ -847,7 +847,7 @@ html[data-bs-theme="dark"] .table-zebra tbody tr:nth-of-type(even) {
 
 /* Actionable insight cards (AI-native UI layer) */
 .insight-card {
-  border: 1px solid var(--color-border, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--color-border, rgba(26, 22, 18, 0.08));
   border-left-width: 3px;
   border-radius:var(--rmc-lit-ef12b23bea);
 }

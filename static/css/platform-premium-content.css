@@ -8,9 +8,9 @@
 /* ===== Scope: main content only ===== */
 #main-content .page-wrap {
   --premium-card-radius: var(--radius-md, 12px);
-  --premium-card-shadow: var(--shadow-md, 0 4px 12px rgba(15, 23, 42, 0.08));
-  --premium-card-shadow-hover: var(--shadow-lg, 0 8px 24px rgba(15, 23, 42, 0.12));
-  --premium-border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  --premium-card-shadow: var(--shadow-md, 0 4px 12px rgba(26, 22, 18, 0.08));
+  --premium-card-shadow-hover: var(--shadow-lg, 0 8px 24px rgba(26, 22, 18, 0.12));
+  --premium-border: 1px solid var(--portal-border, rgba(26, 22, 18, 0.08));
   --premium-section-gap: 1.25rem;
 }
 
@@ -83,7 +83,7 @@
 
 #main-content .page-wrap .table tbody td {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--portal-border, rgba(15, 23, 42, 0.06));
+  border-bottom: 1px solid var(--portal-border, rgba(26, 22, 18, 0.06));
   vertical-align: middle;
 }
 
@@ -106,7 +106,7 @@
 }
 
 #main-content .page-wrap .table-bordered tbody td {
-  border-right: 1px solid var(--portal-border, rgba(15, 23, 42, 0.06));
+  border-right: 1px solid var(--portal-border, rgba(26, 22, 18, 0.06));
 }
 
 #main-content .page-wrap .table-bordered tbody td:last-child {
@@ -133,14 +133,14 @@
 }
 
 #main-content .page-wrap .alert-info {
-  border-color: color-mix(in srgb, var(--color-info, #3b82f6) 35%, transparent);
+  border-color: color-mix(in srgb, var(--color-info, #c47f1c) 35%, transparent);
 }
 
 /* ===== Form groups: spacing and focus ===== */
 #main-content .page-wrap .form-control,
 #main-content .page-wrap .form-select {
   border-radius: 8px;
-  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.12));
+  border: 1px solid var(--portal-border, rgba(26, 22, 18, 0.12));
   padding: 0.5rem 0.75rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -183,7 +183,7 @@
 
 /* ===== List groups ===== */
 #main-content .page-wrap .list-group-item {
-  border-color: var(--portal-border, rgba(15, 23, 42, 0.08));
+  border-color: var(--portal-border, rgba(26, 22, 18, 0.08));
   padding: 0.75rem 1rem;
 }
 

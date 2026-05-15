@@ -276,7 +276,7 @@
   align-items: center;
   gap: 14px;
   padding: 12px 24px;
-  border-bottom: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border-bottom: 1px solid var(--bs-border-color, rgba(26, 22, 18, 0.08));
   background: var(--apple-material-bg, rgba(255, 255, 255, 0.78));
   -webkit-backdrop-filter: saturate(180%) blur(20px);
           backdrop-filter: saturate(180%) blur(20px);
@@ -299,7 +299,7 @@
 /* Search pill (cmd-k trigger) */
 [data-rmc-aesthetic="v2"] .search-pill {
   background: var(--color-base-100, var(--color-base-100));
-  border: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--bs-border-color, rgba(26, 22, 18, 0.08));
   border-radius: 10px;
   padding: 6px 12px;
   display: flex;
@@ -329,7 +329,7 @@
 [data-rmc-aesthetic="v2"] .card-x {
   background: var(--color-base-0, var(--color-base-0));
   border-radius: 14px;
-  box-shadow: var(--apple-elev-1, 0 0 0 1px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.04));
+  box-shadow: var(--apple-elev-1, 0 0 0 1px rgba(26, 22, 18, 0.05), 0 1px 2px rgba(26, 22, 18, 0.04));
   padding: 18px;
 }
 [data-rmc-aesthetic="v2"][data-bs-theme="dark"] .card-x {
@@ -447,12 +447,12 @@
 [data-rmc-aesthetic="v2"] .btn-danger,
 [data-rmc-aesthetic="v2"] .btn-warning {
   border: none;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  box-shadow: 0 1px 2px rgba(26, 22, 18, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 [data-rmc-aesthetic="v2"] .btn-primary:hover {
   box-shadow:
     0 6px 16px -2px color-mix(in oklab, var(--bs-primary) 35%, transparent),
-    0 2px 4px rgba(15, 23, 42, 0.06);
+    0 2px 4px rgba(26, 22, 18, 0.06);
 }
 [data-rmc-aesthetic="v2"] .btn:focus-visible,
 [data-rmc-aesthetic="v2"] a:focus-visible {
@@ -467,14 +467,14 @@
 [data-rmc-aesthetic="v2"] .form-control,
 [data-rmc-aesthetic="v2"] .form-select {
   border-radius: 10px;
-  border-color: var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border-color: var(--bs-border-color, rgba(26, 22, 18, 0.08));
   transition:
     border-color var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)),
     box-shadow var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
 }
 [data-rmc-aesthetic="v2"] .form-control:focus,
 [data-rmc-aesthetic="v2"] .form-select:focus {
-  border-color: color-mix(in oklab, var(--school-primary) 60%, var(--bs-border-color, rgba(15, 23, 42, 0.08)));
+  border-color: color-mix(in oklab, var(--school-primary) 60%, var(--bs-border-color, rgba(26, 22, 18, 0.08)));
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--school-primary) 18%, transparent);
 }
 
@@ -554,7 +554,7 @@
 [data-rmc-aesthetic="v2"] kbd {
   background: var(--color-base-100, var(--color-base-100));
   color: var(--color-base-900, var(--color-base-900));
-  border: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--bs-border-color, rgba(26, 22, 18, 0.08));
   border-bottom-width: 2px;
   border-radius: 5px;
   padding: 2px 6px;
@@ -657,7 +657,7 @@
   color: var(--color-base-500, var(--color-base-500));
   padding: 10px 12px;
   text-align: left;
-  border-bottom: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border-bottom: 1px solid var(--bs-border-color, rgba(26, 22, 18, 0.08));
   position: sticky;
   top: 0;
 }
@@ -668,7 +668,7 @@
 [data-rmc-aesthetic="v2"] .gradebook-table thead th.num { text-align: right; }
 [data-rmc-aesthetic="v2"] .gradebook-table tbody td {
   padding: 10px 12px;
-  border-bottom: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border-bottom: 1px solid var(--bs-border-color, rgba(26, 22, 18, 0.08));
   font-size: var(--type-size-body);
   transition: background var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
 }
@@ -719,7 +719,7 @@
 [data-rmc-aesthetic="v2"] .gradebook-table .mark-cell:focus {
   outline: none;
   background: var(--color-base-50, var(--color-base-50));
-  border-color: var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border-color: var(--bs-border-color, rgba(26, 22, 18, 0.08));
 }
 [data-rmc-aesthetic="v2"] .gradebook-table .mark-cell:focus {
   border-color: var(--school-primary);
@@ -1112,7 +1112,7 @@
 }
 [data-rmc-aesthetic="v2"] .admin-page-wrap .topbar {
   background: rgba(11, 17, 32, 0.78);
-  border-bottom-color: rgba(148, 163, 184, 0.16);
+  border-bottom-color: rgba(168, 160, 146, 0.16);
 }
 [data-rmc-aesthetic="v2"] .admin-page-wrap .breadcrumb-item { color: var(--color-base-400, var(--color-base-400)); }
 [data-rmc-aesthetic="v2"] .admin-page-wrap .breadcrumb-item.active { color: var(--color-base-100); }
@@ -1144,7 +1144,7 @@
   display: flex;
   gap: 12px;
   padding: 12px 0;
-  border-bottom: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border-bottom: 1px solid var(--bs-border-color, rgba(26, 22, 18, 0.08));
 }
 [data-rmc-aesthetic="v2"] .activity-feed .item:last-child { border-bottom: none; }
 [data-rmc-aesthetic="v2"] .activity-feed .item .ico {
@@ -1196,7 +1196,7 @@
   background: var(--apple-material-bg, rgba(255, 255, 255, 0.78));
   -webkit-backdrop-filter: saturate(180%) blur(20px);
           backdrop-filter: saturate(180%) blur(20px);
-  border: 1px solid var(--apple-material-border, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--apple-material-border, rgba(26, 22, 18, 0.08));
   border-radius: 12px;
   box-shadow: var(--apple-elev-3);
   padding: 12px 14px;
@@ -1307,7 +1307,7 @@
   font-size: var(--type-size-body-l);
   outline: none;
   color: var(--bs-body-color);
-  border-bottom: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border-bottom: 1px solid var(--bs-border-color, rgba(26, 22, 18, 0.08));
 }
 [data-rmc-aesthetic="v2"] .cp-results {
   max-height: 56vh;
@@ -1342,7 +1342,7 @@
   color: var(--school-primary);
 }
 [data-rmc-aesthetic="v2"] .cp-footer {
-  border-top: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border-top: 1px solid var(--bs-border-color, rgba(26, 22, 18, 0.08));
   padding: 10px 16px;
   font-size: var(--type-size-caption);
   color: var(--color-base-500, var(--color-base-500));
@@ -1412,7 +1412,7 @@
 /* Card headers — match the eyebrow/title grammar inside cards. */
 [data-rmc-aesthetic="v2"] .card .card-header {
   background: transparent;
-  border-bottom: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border-bottom: 1px solid var(--bs-border-color, rgba(26, 22, 18, 0.08));
   font-weight: 600;
   letter-spacing: -0.01em;
   padding: 14px 20px;
@@ -1466,7 +1466,7 @@
    its layout/links (which are role-aware). */
 [data-rmc-aesthetic="v2"] nav#portalHeader.topbar-sticky,
 [data-rmc-aesthetic="v2"] nav.navbar.topbar-sticky {
-  border-bottom: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border-bottom: 1px solid var(--bs-border-color, rgba(26, 22, 18, 0.08));
   -webkit-backdrop-filter: saturate(180%) blur(20px);
           backdrop-filter: saturate(180%) blur(20px);
 }
@@ -1483,7 +1483,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow, 0.06em);
   color: var(--color-base-500, var(--color-base-500));
-  border-bottom: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border-bottom: 1px solid var(--bs-border-color, rgba(26, 22, 18, 0.08));
 }
 [data-rmc-aesthetic="v2"][data-bs-theme="dark"] .card .table > thead > tr > th {
   background: rgba(255, 255, 255, 0.04);
@@ -1520,7 +1520,7 @@
 
 /* --- 24.10 Bootstrap nav-tabs (used on messages, settings, etc.) --------- */
 [data-rmc-aesthetic="v2"] .nav-tabs {
-  border-bottom: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border-bottom: 1px solid var(--bs-border-color, rgba(26, 22, 18, 0.08));
   gap: 2px;
 }
 [data-rmc-aesthetic="v2"] .nav-tabs .nav-link {
@@ -1548,7 +1548,7 @@
 /* --- 24.11 Bootstrap list-group (used on calendar, message threads) ----- */
 [data-rmc-aesthetic="v2"] .list-group-flush > .list-group-item {
   padding: 12px 0;
-  border-color: var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border-color: var(--bs-border-color, rgba(26, 22, 18, 0.08));
   transition: background var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
 }
 
@@ -1681,7 +1681,7 @@
 /* --- 24.17 Pagination polish (cascades to 12 partial uses) ---------------*/
 [data-rmc-aesthetic="v2"] .pagination .page-link {
   border-radius: 8px;
-  border: 1px solid var(--bs-border-color, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--bs-border-color, rgba(26, 22, 18, 0.08));
   color: var(--color-base-700, var(--color-base-700));
   font-weight: 500;
   font-size: var(--type-size-caption);

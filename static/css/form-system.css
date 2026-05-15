@@ -3,7 +3,7 @@
   --rmc-lit-21736bd0d5: var(--token-space-md) var(--token-space-lg);
   --rmc-lit-5681c5ada2: 0.35rem;
   --rmc-lit-58ae3d9026: var(--token-space-lg, 1rem);
-  --rmc-lit-64aa107875: inset 0 1px 1px rgba(15, 23, 42, 0.02);
+  --rmc-lit-64aa107875: inset 0 1px 1px rgba(26, 22, 18, 0.02);
   --rmc-lit-7a585cbd3b: var(--token-space-md, 1rem);
   --rmc-lit-8823f3caf9: 0.625rem;
   --rmc-lit-9a1ff83196: 0 0 0 0.2rem color-mix(in srgb, var(--school-primary, var(--color-indigo-600)) 28%, transparent);
@@ -23,7 +23,7 @@
 .form-section {
   margin-bottom:var(--rmc-lit-da03e7b658);
   padding-bottom:var(--rmc-lit-58ae3d9026);
-  border-bottom: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border-bottom: 1px solid var(--portal-border, rgba(26, 22, 18, 0.08));
 }
 .form-section:last-child {
   border-bottom: 0;
@@ -59,7 +59,7 @@
 .ui-premium-surface .form-select {
   min-height: 2.5rem;
   border-radius: var(--rmc-lit-8823f3caf9);
-  border: 1px solid var(--ds-border, rgba(15, 23, 42, 0.14));
+  border: 1px solid var(--ds-border, rgba(26, 22, 18, 0.14));
   box-shadow: var(--rmc-lit-64aa107875);
   transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
 }
@@ -137,7 +137,7 @@
   gap:var(--rmc-lit-e46426049f);
   margin-top:var(--rmc-lit-58ae3d9026);
   padding-top:var(--rmc-lit-7a585cbd3b);
-  border-top: 1px solid var(--ds-border, var(--portal-border, rgba(15, 23, 42, 0.08)));
+  border-top: 1px solid var(--ds-border, var(--portal-border, rgba(26, 22, 18, 0.08)));
 }
 .form-actions.ds-action-bar {
   margin-top:var(--rmc-lit-a17cd62e2c);
@@ -158,10 +158,10 @@
   display: inline-block;
   margin-inline-start: 0.4rem;
   font-size: var(--type-micro, 0.75rem);
-  color: var(--form-help-color, rgba(15, 23, 42, 0.6));
+  color: var(--form-help-color, rgba(26, 22, 18, 0.6));
 }
 .form-system .form-text {
-  color: var(--form-help-color, rgba(15, 23, 42, 0.6));
+  color: var(--form-help-color, rgba(26, 22, 18, 0.6));
   font-size: var(--type-micro, 0.75rem);
 }
 .form-system .invalid-feedback {
@@ -193,7 +193,7 @@
   font-size: var(--type-micro, 0.75rem);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--portal-text-muted, rgba(15, 23, 42, 0.6));
+  color: var(--portal-text-muted, rgba(26, 22, 18, 0.6));
   font-weight: 600;
 }
 .list-filter-bar .input-group-text,

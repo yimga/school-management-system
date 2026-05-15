@@ -18,7 +18,7 @@
   --mkt-text-muted: var(--color-base-500);
   --mkt-text-inverse: var(--color-base-50);
   --mkt-surface: var(--color-base-0);
-  --mkt-border: rgba(15, 23, 42, 0.08);
+  --mkt-border: rgba(26, 22, 18, 0.08);
 
   /* Radii → token-radius (product) */
   --mkt-radius-sm: var(--token-radius-sm);
@@ -65,7 +65,7 @@ html[data-bs-theme="dark"][data-surface="marketing"] {
   --mkt-text: var(--color-base-100);
   --mkt-text-muted: var(--color-base-400);
   --mkt-surface: var(--color-base-900);
-  --mkt-border: rgba(148, 163, 184, 0.2);
+  --mkt-border: rgba(168, 160, 146, 0.2);
   --mkt-hero-bg: var(--color-base-900);
   --mkt-hero-bg-mid: var(--color-base-800);
   --mkt-hero-bg-end: var(--color-base-700);
@@ -83,7 +83,7 @@ html[data-bs-theme="dark"][data-surface="marketing"] {
     --mkt-text: var(--color-base-100);
     --mkt-text-muted: var(--color-base-400);
     --mkt-surface: var(--color-base-900);
-    --mkt-border: rgba(148, 163, 184, 0.2);
+    --mkt-border: rgba(168, 160, 146, 0.2);
     --mkt-hero-bg: var(--color-base-900);
     --mkt-hero-bg-mid: var(--color-base-800);
     --mkt-hero-bg-end: var(--color-base-700);

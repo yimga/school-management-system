@@ -2,11 +2,11 @@
   /* Luxury audit bridge: literal → token refs (definitions exempt from audit scan) */
   --rmc-lit-5681c5ada2: 0.35rem;
   --rmc-lit-58ae3d9026: var(--token-space-lg, 1rem);
-  --rmc-lit-6fffc1b0d4: var(--shell-elevation-2, 0 4px 16px rgba(15, 23, 42, 0.08));
+  --rmc-lit-6fffc1b0d4: var(--shell-elevation-2, 0 4px 16px rgba(26, 22, 18, 0.08));
   --rmc-lit-716221b690: 999px;
   --rmc-lit-7a585cbd3b: var(--token-space-md, 1rem);
   --rmc-lit-86a04737d1: 0.5rem;
-  --rmc-lit-89f8c4820a: var(--shell-elevation-1, 0 2px 8px rgba(15, 23, 42, 0.06));
+  --rmc-lit-89f8c4820a: var(--shell-elevation-1, 0 2px 8px rgba(26, 22, 18, 0.06));
   --rmc-lit-a7b504a2ac: 0.25rem;
   --rmc-lit-b0537a48dd: var(--token-radius-md, 12px);
   --rmc-lit-c0c5a64eee: 0.75rem;
@@ -21,7 +21,7 @@
 .card-grammar {
   border-radius:var(--rmc-lit-b0537a48dd);
   box-shadow:var(--rmc-lit-89f8c4820a);
-  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--portal-border, rgba(26, 22, 18, 0.08));
   overflow: clip;
 }
 
@@ -95,8 +95,8 @@
 .card--settings .card-header {
   font-weight: 600;
   font-size: var(--type-body, 1rem);
-  background: var(--surface-bg-subtle, #f8fafc);
-  border-bottom: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  background: var(--surface-bg-subtle, #fffaf0);
+  border-bottom: 1px solid var(--portal-border, rgba(26, 22, 18, 0.08));
 }
 .card--settings .list-group-item {
   border-left: 0;
@@ -106,7 +106,7 @@
 /* Premium defaults for high-impact pages without layout rewrites */
 .ui-premium-surface .card:not(.card-grammar) {
   border-radius:var(--rmc-lit-b0537a48dd);
-  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--portal-border, rgba(26, 22, 18, 0.08));
   box-shadow:var(--rmc-lit-89f8c4820a);
 }
 .ui-premium-surface .card:not(.card-grammar):hover {

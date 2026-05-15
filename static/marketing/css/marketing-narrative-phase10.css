@@ -63,13 +63,13 @@
   justify-content: center;
   gap: 0.5rem 1rem;
   padding: 1rem 0;
-  border-top: 1px solid rgba(148, 163, 184, 0.2);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  border-top: 1px solid rgba(168, 160, 146, 0.2);
+  border-bottom: 1px solid rgba(168, 160, 146, 0.2);
 }
 
 .marketing-home.mkt-narrative-phase10 .mkt-institution-strip a {
   font-size: 0.9rem;
-  color: var(--mkt-text-muted, #64748b);
+  color: var(--mkt-text-muted, #857c70);
   text-decoration: none;
 }
 
@@ -114,8 +114,8 @@
   scroll-snap-align: start;
   border-radius: 12px;
   overflow: hidden;
-  background: var(--mkt-surface, #1e293b);
-  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.12);
+  background: var(--mkt-surface, #241e18);
+  box-shadow: 0 8px 28px rgba(26, 22, 18, 0.12);
 }
 
 .marketing-home.mkt-narrative-phase10 .mkt-role-visual-card img {
@@ -128,7 +128,7 @@
   font-size: 0.75rem;
   padding: 0.35rem 0.5rem;
   text-align: center;
-  color: #e2e8f0;
+  color: #ede4d6;
 }
 
 /* Security / trust visual band */
@@ -151,9 +151,9 @@
 .marketing-home.mkt-narrative-phase10 .mkt-dev-band {
   background: linear-gradient(
     90deg,
-    rgba(15, 23, 42, 0.04),
+    rgba(26, 22, 18, 0.04),
     rgba(99, 102, 241, 0.08),
-    rgba(15, 23, 42, 0.04)
+    rgba(26, 22, 18, 0.04)
   );
   border-radius: 12px;
   padding: 1rem 1.25rem;

@@ -27,8 +27,8 @@
       background:
         radial-gradient(circle at 15% 0%, color-mix(in srgb, var(--school-primary) 25%, transparent), transparent 34%),
         radial-gradient(circle at 90% 0%, color-mix(in srgb, var(--school-accent) 20%, transparent), transparent 33%),
-        linear-gradient(150deg, #0f172a, #1e293b);
-      color: #f8fafc;
+        linear-gradient(150deg, #1a1612, #241e18);
+      color: #fffaf0;
       box-shadow: 0 16px 42px rgba(2, 6, 23, 0.34);
     }
     .detail-eyebrow {
@@ -244,7 +244,7 @@
     }
     .topic-grid a:hover {
       border-color: color-mix(in srgb, var(--school-primary) 44%, var(--portal-border));
-      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 10px 22px rgba(26, 22, 18, 0.08);
     }
     .timeline-phase { border-left: 3px solid var(--school-primary); padding-left: 1rem; margin-bottom: 1rem; }
     .timeline-phase .phase-owner { font-size: var(--type-size-caption); text-transform: uppercase; letter-spacing: 0.06em; color: var(--portal-text-muted); }
@@ -260,7 +260,7 @@
       padding: 0.95rem;
       background:
         radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--school-primary) 16%, transparent), transparent 35%),
-        linear-gradient(135deg, color-mix(in srgb, var(--admin-content-bg) 90%, #0f172a 10%), color-mix(in srgb, var(--admin-content-bg) 84%, #1e293b 16%));
+        linear-gradient(135deg, color-mix(in srgb, var(--admin-content-bg) 90%, #1a1612 10%), color-mix(in srgb, var(--admin-content-bg) 84%, #241e18 16%));
       color: color-mix(in srgb, var(--admin-content-text) 88%, #ffffff 12%);
     }
     .close-cta p {

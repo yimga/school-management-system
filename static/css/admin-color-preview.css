@@ -79,7 +79,7 @@
 }
 
 .theme-pack-catalog[open] .theme-pack-catalog-body::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.5);
+  background: rgba(133, 124, 112, 0.5);
   border-radius: 999px;
 }
 
@@ -94,7 +94,7 @@
 }
 
 .admin-dashboard-palette-card:hover {
-  border-color: var(--color-border, rgba(15, 23, 42, 0.15));
+  border-color: var(--color-border, rgba(26, 22, 18, 0.15));
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -170,7 +170,7 @@
 }
 
 .theme-pack-catalog-scroll::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.4);
+  background: rgba(133, 124, 112, 0.4);
   border-radius: 999px;
 }
 
@@ -186,7 +186,7 @@
 
 .theme-pack-active-legend .badge {
   font-size: var(--type-size-micro);
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border: 1px solid rgba(168, 160, 146, 0.35);
 }
 
 /* Grouped palette applets (Theme & Experience) */
@@ -211,32 +211,32 @@ body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog,
 body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-card,
 body.app-siteconfig.model-sitesettings.change-form .theme-pack-filter-row .form-control {
   background: var(--admin-content-surface, #ffffff);
-  color: var(--admin-content-text, #0f172a);
-  border-color: var(--admin-content-border, rgba(15, 23, 42, 0.14));
+  color: var(--admin-content-text, #1a1612);
+  border-color: var(--admin-content-border, rgba(26, 22, 18, 0.14));
 }
 
 body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-card {
-  background: color-mix(in srgb, var(--admin-content-surface, #ffffff) 94%, var(--school-primary, #3b82f6) 6%);
+  background: color-mix(in srgb, var(--admin-content-surface, #ffffff) 94%, var(--school-primary, #c47f1c) 6%);
 }
 
 body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-name,
 body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-group-title,
 body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog summary,
 body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .help {
-  color: var(--admin-content-text, #0f172a);
+  color: var(--admin-content-text, #1a1612);
 }
 
 body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-card .admin-dashboard-palette-name {
-  color: var(--card-fg, var(--admin-content-text, #0f172a));
+  color: var(--card-fg, var(--admin-content-text, #1a1612));
 }
 
 body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-card .admin-dashboard-palette-desc {
-  color: var(--card-fg, var(--admin-content-text-muted, #64748b));
+  color: var(--card-fg, var(--admin-content-text-muted, #857c70));
 }
 
 body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-desc,
 body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog-hint {
-  color: var(--admin-content-text-muted, #64748b);
+  color: var(--admin-content-text-muted, #857c70);
 }
 
 :root[data-theme="dark"] body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog,
@@ -245,7 +245,7 @@ html[data-bs-theme="dark"] body.app-siteconfig.model-sitesettings.change-form .t
 html[data-bs-theme="dark"] body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-card,
 :root[data-theme="dark"] body.app-siteconfig.model-sitesettings.change-form .theme-pack-filter-row .form-control,
 html[data-bs-theme="dark"] body.app-siteconfig.model-sitesettings.change-form .theme-pack-filter-row .form-control {
-  background: var(--admin-content-surface, #1e293b);
-  color: var(--admin-content-text, #f1f5f9);
-  border-color: var(--admin-content-border, rgba(148, 163, 184, 0.26));
+  background: var(--admin-content-surface, #241e18);
+  color: var(--admin-content-text, #f5eedd);
+  border-color: var(--admin-content-border, rgba(168, 160, 146, 0.26));
 }

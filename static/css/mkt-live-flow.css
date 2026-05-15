@@ -36,7 +36,7 @@
   min-height: 220px;
   padding: 1rem;
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.04);
+  background: rgba(26, 22, 18, 0.04);
 }
 .marketing-home .mkt-live-demo-main {
   background: rgba(255, 255, 255, 0.06);
@@ -65,12 +65,12 @@
   border-radius: 999px;
   padding: 0.4rem 1rem;
   font-size: var(--type-size-caption);
-  border: 1px solid rgba(148, 163, 184, 0.4);
+  border: 1px solid rgba(168, 160, 146, 0.4);
   background: transparent;
   cursor: pointer;
 }
 .mkt-live-tabs button.is-active {
-  background: var(--color-primary-500, #2563eb);
+  background: var(--color-primary-500, #c47f1c);
   color: #fff;
   border-color: transparent;
 }

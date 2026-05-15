@@ -592,7 +592,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(26, 22, 18, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -686,12 +686,12 @@ html[data-bs-theme="dark"] .alert-warning,
 html[data-bs-theme="dark"] .alert-info,
 :root[data-theme="dark"] .alert-success,
 html[data-bs-theme="dark"] .alert-success {
-  color: #e2e8f0 !important;
+  color: #ede4d6 !important;
 }
 
 :root[data-theme="dark"] .badge,
 html[data-bs-theme="dark"] .badge {
-  color: #f1f5f9 !important;
+  color: #f5eedd !important;
 }
 
 /* ============================================

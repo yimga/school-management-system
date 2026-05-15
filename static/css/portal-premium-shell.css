@@ -24,7 +24,7 @@ body[data-dashboard-page] #main-content .card,
 body[data-dashboard-page] .portal-main-col .card {
   border-radius:var(--rmc-lit-070430c991);
   box-shadow:var(--rmc-lit-a88e95397c);
-  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--portal-border, rgba(26, 22, 18, 0.08));
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 body.portal-backend-dark.backend-shell #main-content .card,
@@ -32,7 +32,7 @@ body.portal-backend-dark.backend-shell .portal-main-col .card,
 body.portal-backend-dark[data-dashboard-page] #main-content .card,
 body.portal-backend-dark[data-dashboard-page] .portal-main-col .card {
   box-shadow:var(--rmc-lit-cd9da089fd);
-  border-color: rgba(148, 163, 184, 0.15);
+  border-color: rgba(168, 160, 146, 0.15);
 }
 body.backend-shell #main-content .card:hover,
 body.backend-shell .portal-main-col .card:hover,
@@ -56,7 +56,7 @@ body[data-dashboard-page] #main-content .workflow-hero,
 body[data-dashboard-page] #main-content .hub-card {
   border-radius:var(--rmc-lit-070430c991);
   box-shadow:var(--rmc-lit-a88e95397c);
-  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--portal-border, rgba(26, 22, 18, 0.08));
 }
 body.portal-backend-dark.backend-shell #main-content .dashboard-section,
 body.portal-backend-dark.backend-shell #main-content .workflow-hero,
@@ -65,7 +65,7 @@ body.portal-backend-dark[data-dashboard-page] #main-content .dashboard-section,
 body.portal-backend-dark[data-dashboard-page] #main-content .workflow-hero,
 body.portal-backend-dark[data-dashboard-page] #main-content .hub-card {
   box-shadow:var(--rmc-lit-cd9da089fd);
-  border-color: rgba(148, 163, 184, 0.15);
+  border-color: rgba(168, 160, 146, 0.15);
 }
 
 /* Sidebar: same premium radius and shadow as control plane */

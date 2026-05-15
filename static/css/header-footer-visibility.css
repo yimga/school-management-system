@@ -46,7 +46,7 @@
 }
 
 .dashboard-footer .segment-links a:hover {
-  color: var(--footer-text-muted, #94a3b8) !important;
+  color: var(--footer-text-muted, #a8a092) !important;
 }
 
 .dashboard-footer .segment-title,
@@ -62,7 +62,7 @@
 /* Admin sidebar navigation header – ensure visibility */
 #nav-sidebar .navigation_header,
 #nav-sidebar [class*="navigation_header"] {
-  border-bottom-color: var(--admin-sidebar-border, rgba(148, 163, 184, 0.2)) !important;
+  border-bottom-color: var(--admin-sidebar-border, rgba(168, 160, 146, 0.2)) !important;
 }
 
 #nav-sidebar .admin-sidebar-logo-wrap a,
@@ -77,9 +77,9 @@
 #nav-sidebar .sidebar-footer,
 #nav-sidebar .sidebar-user,
 #nav-sidebar .admin-sidebar-footer {
-  background: var(--admin-sidebar-bg, #0f172a) !important;
-  border-top-color: var(--admin-sidebar-border, rgba(148, 163, 184, 0.2)) !important;
-  color: var(--admin-sidebar-text, #f1f5f9) !important;
+  background: var(--admin-sidebar-bg, #1a1612) !important;
+  border-top-color: var(--admin-sidebar-border, rgba(168, 160, 146, 0.2)) !important;
+  color: var(--admin-sidebar-text, #f5eedd) !important;
 }
 #nav-sidebar #user-tools a,
 #nav-sidebar #user-tools button,
@@ -88,12 +88,12 @@
 #nav-sidebar .sidebar-user a,
 #nav-sidebar .admin-sidebar-footer a,
 #nav-sidebar .admin-sidebar-footer__user {
-  color: var(--admin-sidebar-text, #f1f5f9) !important;
+  color: var(--admin-sidebar-text, #f5eedd) !important;
 }
 #nav-sidebar .admin-sidebar-footer__user span,
 #nav-sidebar .admin-user-meta,
 #nav-sidebar .admin-user-code {
-  color: var(--admin-sidebar-text-muted, #94a3b8) !important;
+  color: var(--admin-sidebar-text-muted, #a8a092) !important;
 }
 /* Light themes: ensure footer text visible */
 body.portal-backend-light #nav-sidebar .admin-sidebar-footer,
@@ -101,13 +101,13 @@ body.portal-backend-sand #nav-sidebar .admin-sidebar-footer,
 body.portal-backend-snow #nav-sidebar .admin-sidebar-footer,
 body.portal-backend-cream #nav-sidebar .admin-sidebar-footer,
 body.portal-backend-lavender #nav-sidebar .admin-sidebar-footer {
-  background: var(--admin-sidebar-surface, #1e293b) !important;
-  color: #0f172a !important;
+  background: var(--admin-sidebar-surface, #241e18) !important;
+  color: #1a1612 !important;
 }
 body.portal-backend-light #nav-sidebar .admin-sidebar-footer a,
 body.portal-backend-sand #nav-sidebar .admin-sidebar-footer a,
 body.portal-backend-snow #nav-sidebar .admin-sidebar-footer a,
 body.portal-backend-cream #nav-sidebar .admin-sidebar-footer a,
 body.portal-backend-lavender #nav-sidebar .admin-sidebar-footer a {
-  color: #0f172a !important;
+  color: #1a1612 !important;
 }

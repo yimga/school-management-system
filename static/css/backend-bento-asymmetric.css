@@ -52,7 +52,7 @@
 }
 .backend-bento-chart-wide:hover,
 .backend-bento-chart-wide.is-expanded {
-  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 12px 36px rgba(26, 22, 18, 0.08);
 }
 .backend-bento-chart-wide .backend-bento-spark-combo {
   display: flex;

@@ -8,7 +8,7 @@
     color-mix(in srgb, var(--bs-primary, var(--school-primary)) 6%, #fff) 0%,
     #fff 48%
   );
-  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 12px 40px rgba(26, 22, 18, 0.06);
 }
 .student-360-bento .bento-panel[data-bento-tier="trend"] {
   border-radius: 1.25rem;
