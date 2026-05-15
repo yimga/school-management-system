@@ -382,6 +382,58 @@ class RuntimeDefaults(models.Model):
             "both themes. Tenant-overridable via BrandProfile.logo_dark_url."
         ),
     )
+    # v2.42 (2026-05-15): Warm-bright-school aesthetic — curated palette profile
+    # plus six fine-grained token overrides. Each field cascades through the
+    # standard pipeline (RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES → EXACT_FIELD_OWNERS
+    # → SiteSettings.brand_payload → context processor → meta-tag bridge → CSS
+    # custom property on <html>). Blank = platform-default warm-bright values
+    # baked into rmc-warm-bright-school.css.
+    aesthetic_profile = models.CharField(
+        max_length=24,
+        blank=True,
+        null=True,
+        help_text=(
+            "Curated platform aesthetic: 'warm-bright' (cream + honey, the default), "
+            "'cool-apple' (slate + indigo, legacy quiet-luxury), or 'stone' "
+            "(warm-graphite editorial). Drives `data-rmc-aesthetic` on <html>."
+        ),
+    )
+    aesthetic_surface_bg = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Hex page background. Blank = profile default (#fdf9f2 buttermilk on warm-bright).",
+    )
+    aesthetic_surface_canvas = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Hex card canvas background. Blank = profile default (#fffaf0 warm ivory).",
+    )
+    aesthetic_text_primary = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Hex primary body text color. Blank = profile default (#2a241e warm graphite).",
+    )
+    aesthetic_accent_warm = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Hex friendly-warm accent (honey/amber range). Blank = #c47f1c.",
+    )
+    aesthetic_accent_success = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Hex success accent (sage/olive range). Blank = #7a9b5d.",
+    )
+    aesthetic_accent_danger = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Hex danger accent (coral/terracotta range). Blank = #d56456.",
+    )
     grade_approval_enabled = models.BooleanField(
         null=True,
         blank=True,

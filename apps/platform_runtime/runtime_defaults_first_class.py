@@ -73,6 +73,14 @@ RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES: tuple[str, ...] = (
     "neutral_palette",
     # 2026-05-12 carried-forward: companion dark logo for `[data-resolved-theme="dark"]`.
     "site_logo_dark_url",
+    # v2.42 (2026-05-15) — warm-bright aesthetic configurability closeout.
+    "aesthetic_profile",
+    "aesthetic_surface_bg",
+    "aesthetic_surface_canvas",
+    "aesthetic_text_primary",
+    "aesthetic_accent_warm",
+    "aesthetic_accent_success",
+    "aesthetic_accent_danger",
     "grade_approval_enabled",
     "grade_approval_auto_validate",
     "enable_practical_assessment",

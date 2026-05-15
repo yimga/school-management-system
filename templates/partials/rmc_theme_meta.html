@@ -7,6 +7,15 @@
 {% if SITE.brand_gradient_end %}<meta name="rmc-brand-gradient-end" content="{{ SITE.brand_gradient_end }}">{% endif %}
 {% if SITE.brand_gradient_angle %}<meta name="rmc-brand-gradient-angle" content="{{ SITE.brand_gradient_angle }}">{% endif %}
 
+{# v2.42 (2026-05-15): warm-bright aesthetic configurability via 7-layer cascade. #}
+<meta name="rmc-aesthetic-profile" content="{{ SITE.aesthetic_profile|default:'warm-bright' }}">
+{% if SITE.aesthetic_surface_bg %}<meta name="rmc-aesthetic-surface-bg" content="{{ SITE.aesthetic_surface_bg }}">{% endif %}
+{% if SITE.aesthetic_surface_canvas %}<meta name="rmc-aesthetic-surface-canvas" content="{{ SITE.aesthetic_surface_canvas }}">{% endif %}
+{% if SITE.aesthetic_text_primary %}<meta name="rmc-aesthetic-text-primary" content="{{ SITE.aesthetic_text_primary }}">{% endif %}
+{% if SITE.aesthetic_accent_warm %}<meta name="rmc-aesthetic-accent-warm" content="{{ SITE.aesthetic_accent_warm }}">{% endif %}
+{% if SITE.aesthetic_accent_success %}<meta name="rmc-aesthetic-accent-success" content="{{ SITE.aesthetic_accent_success }}">{% endif %}
+{% if SITE.aesthetic_accent_danger %}<meta name="rmc-aesthetic-accent-danger" content="{{ SITE.aesthetic_accent_danger }}">{% endif %}
+
 {% comment %} v2.4 polish (2026-05-12): dark-mode favicon variant so tenants with dark logos
    stay visible on dark OS themes. Browser auto-selects based on prefers-color-scheme. {% endcomment %}
 {% if SITE_FAVICON_DARK_URL %}

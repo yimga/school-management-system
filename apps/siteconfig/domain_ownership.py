@@ -55,6 +55,16 @@ EXACT_FIELD_OWNERS: Final[dict[str, str]] = {
     "brand_gradient_angle": "brand_experience",
     "neutral_palette": "brand_experience",
     "site_logo_dark_url": "brand_experience",
+    # v2.42 (2026-05-15): warm-bright aesthetic configurability — curated
+    # profile + 6 fine-grained token overrides. All "brand_experience"
+    # so they cascade through the BrandProfile / SiteSettings overlay.
+    "aesthetic_profile": "brand_experience",
+    "aesthetic_surface_bg": "brand_experience",
+    "aesthetic_surface_canvas": "brand_experience",
+    "aesthetic_text_primary": "brand_experience",
+    "aesthetic_accent_warm": "brand_experience",
+    "aesthetic_accent_success": "brand_experience",
+    "aesthetic_accent_danger": "brand_experience",
     "public_brand_primary_color": "brand_experience",
     "public_brand_accent_color": "brand_experience",
     "use_dark_mode": "brand_experience",

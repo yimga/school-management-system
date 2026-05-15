@@ -32,22 +32,28 @@
 
 :root,
 [data-theme="light"],
-[data-bs-theme="light"] {
-  /* ---- Surface palette: buttermilk → cream → ivory cascade ---- */
-  --surface-bg: #fdf9f2;                                          /* buttermilk (was cool #f5f5f7) */
-  --surface-canvas: #fffaf0;                                      /* warm ivory (was #fbfbfd) */
-  --surface-elevated: #ffffff;                                    /* pure white (highest elevation) */
-  --surface-popover: color-mix(in oklab, #fffaf0 94%, transparent);
-  --surface-sunken: #f5eedd;                                      /* deeper honey-cream */
-  --surface-overlay: color-mix(in srgb, #c47f1c 5%, transparent);
-  --surface-overlay-strong: color-mix(in srgb, #c47f1c 10%, transparent);
+[data-bs-theme="light"],
+[data-rmc-aesthetic="warm-bright"] {
+  /* ---- Surface palette: buttermilk → cream → ivory cascade ----
+     Tenant-overridable via --site-aesthetic-* (set by
+     theme-preference-bootstrap.js from <meta rmc-aesthetic-*>
+     emitted by partials/rmc_theme_meta.html, which reads from
+     RuntimeDefaults typed columns). Blank columns fall back to
+     the platform default hex baked here. */
+  --surface-bg:        var(--site-aesthetic-surface-bg, #fdf9f2);     /* buttermilk */
+  --surface-canvas:    var(--site-aesthetic-surface-canvas, #fffaf0); /* warm ivory */
+  --surface-elevated:  #ffffff;                                       /* pure white (highest elevation) */
+  --surface-popover:   color-mix(in oklab, var(--surface-canvas) 94%, transparent);
+  --surface-sunken:    #f5eedd;                                       /* deeper honey-cream */
+  --surface-overlay:        color-mix(in srgb, var(--accent-honey, #c47f1c) 5%, transparent);
+  --surface-overlay-strong: color-mix(in srgb, var(--accent-honey, #c47f1c) 10%, transparent);
 
   /* ---- Text: warm-graphite, not cold-slate ---- */
-  --text-primary: #2a241e;                                        /* warm near-black */
-  --text-secondary: #544d44;                                      /* warm taupe */
-  --text-tertiary: #857c70;                                       /* warm gray-tan */
-  --text-muted: #9a9082;                                          /* soft sand muted */
-  --text-on-brand: #ffffff;                                       /* unchanged */
+  --text-primary:   var(--site-aesthetic-text-primary, #2a241e);     /* warm near-black */
+  --text-secondary: #544d44;                                          /* warm taupe */
+  --text-tertiary:  #857c70;                                          /* warm gray-tan */
+  --text-muted:     #9a9082;                                          /* soft sand muted */
+  --text-on-brand:  #ffffff;
 
   /* ---- Hairlines: warm thin line, no cool blue undertone ---- */
   --hairline: rgba(80, 55, 25, 0.08);
@@ -102,6 +108,47 @@
             0 1px 3px rgba(0, 0, 0, 0.30);
   --elev-3: 0 12px 32px rgba(0, 0, 0, 0.50),
             0 4px 8px rgba(0, 0, 0, 0.30);
+}
+
+
+/* ============================================================ */
+/* 2b. COOL-APPLE PROFILE — opt-out for tenants who want the     */
+/*     legacy slate/indigo quiet-luxury aesthetic               */
+/* ============================================================ */
+
+[data-rmc-aesthetic="cool-apple"] {
+  --surface-bg:        var(--site-aesthetic-surface-bg, #f5f5f7);
+  --surface-canvas:    var(--site-aesthetic-surface-canvas, #fbfbfd);
+  --surface-elevated:  #ffffff;
+  --surface-popover:   color-mix(in oklab, #ffffff 92%, transparent);
+  --surface-sunken:    #ebebef;
+
+  --text-primary:   var(--site-aesthetic-text-primary, #1d1d1f);
+  --text-secondary: #424245;
+  --text-tertiary:  #6e6e73;
+  --text-muted:     #6c6c70;
+
+  --hairline:        rgba(0, 0, 0, 0.08);
+  --hairline-strong: rgba(0, 0, 0, 0.14);
+
+  /* Cool accents take precedence here unless tenant overrode */
+  --accent-honey: var(--site-aesthetic-accent-warm, #d97706);
+  --accent-sage:  var(--site-aesthetic-accent-success, #10b981);
+  --accent-coral: var(--site-aesthetic-accent-danger, #ef4444);
+  --accent-sky:   #0ea5e9;
+}
+
+[data-rmc-aesthetic="cool-apple"][data-theme="dark"] {
+  --surface-bg:       #000000;
+  --surface-canvas:   #1c1c1e;
+  --surface-elevated: #2c2c2e;
+  --surface-sunken:   #0a0a0c;
+  --text-primary:     #f5f5f7;
+  --text-secondary:   #ebebf5;
+  --text-tertiary:    #aeaeb2;
+  --text-muted:       #8e8e93;
+  --hairline:         rgba(255, 255, 255, 0.10);
+  --hairline-strong:  rgba(255, 255, 255, 0.16);
 }
 
 
@@ -217,14 +264,18 @@ body {
 /* ============================================================ */
 
 :root {
-  --accent-honey: #c47f1c;
-  --accent-honey-soft: #f5e0b6;
-  --accent-coral: #d56456;
-  --accent-coral-soft: #fbd9d2;
-  --accent-sage: #7a9b5d;
-  --accent-sage-soft: #dfe9ce;
-  --accent-sky: #5e93b8;
-  --accent-sky-soft: #cee0ec;
+  /* Tenant-overridable via --site-aesthetic-accent-* (RuntimeDefaults columns:
+     aesthetic_accent_warm / _success / _danger). Soft variants derived from
+     the base via color-mix so a tenant override automatically updates the chip. */
+  --accent-honey:  var(--site-aesthetic-accent-warm, #c47f1c);
+  --accent-coral:  var(--site-aesthetic-accent-danger, #d56456);
+  --accent-sage:   var(--site-aesthetic-accent-success, #7a9b5d);
+  --accent-sky:    #5e93b8;
+
+  --accent-honey-soft: color-mix(in srgb, var(--accent-honey) 22%, var(--surface-elevated, #fff));
+  --accent-coral-soft: color-mix(in srgb, var(--accent-coral) 22%, var(--surface-elevated, #fff));
+  --accent-sage-soft:  color-mix(in srgb, var(--accent-sage)  22%, var(--surface-elevated, #fff));
+  --accent-sky-soft:   color-mix(in srgb, var(--accent-sky)   22%, var(--surface-elevated, #fff));
 }
 [data-theme="dark"],
 [data-bs-theme="dark"] {

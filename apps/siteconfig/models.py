@@ -1061,6 +1061,14 @@ class SiteSettings(models.Model):
                 "brand_gradient_angle",
                 "neutral_palette",
                 "site_logo_dark_url",
+                # v2.42 (2026-05-15) warm-bright aesthetic configurability.
+                "aesthetic_profile",
+                "aesthetic_surface_bg",
+                "aesthetic_surface_canvas",
+                "aesthetic_text_primary",
+                "aesthetic_accent_warm",
+                "aesthetic_accent_success",
+                "aesthetic_accent_danger",
                 "base_font_size",
             ),
         )

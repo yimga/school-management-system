@@ -88,6 +88,37 @@
     if (logoDarkMeta && logoDarkMeta.getAttribute("content")) {
       root.style.setProperty("--site-logo-dark-url", "url(\"" + logoDarkMeta.getAttribute("content") + "\")");
     }
+
+    /* v2.42 (2026-05-15): aesthetic-profile cascade.
+       Projects rmc-aesthetic-profile + 6 token overrides from <meta> into:
+         - data-rmc-aesthetic="<profile>" attribute on <html>
+         - --site-aesthetic-* CSS custom properties on <html>
+       The CSS layer (rmc-warm-bright-school.css) consumes these via
+       var(--site-aesthetic-surface-bg, <profile-default>) so tenant
+       overrides always win, blank fields fall back to the platform default. */
+    var aestheticMeta = document.querySelector('meta[name="rmc-aesthetic-profile"]');
+    var profile = (aestheticMeta && (aestheticMeta.getAttribute("content") || "").trim().toLowerCase()) || "warm-bright";
+    if (profile !== "warm-bright" && profile !== "cool-apple" && profile !== "stone") {
+      profile = "warm-bright";
+    }
+    root.setAttribute("data-rmc-aesthetic", profile);
+
+    var aestheticOverrides = [
+      ["rmc-aesthetic-surface-bg",      "--site-aesthetic-surface-bg"],
+      ["rmc-aesthetic-surface-canvas",  "--site-aesthetic-surface-canvas"],
+      ["rmc-aesthetic-text-primary",    "--site-aesthetic-text-primary"],
+      ["rmc-aesthetic-accent-warm",     "--site-aesthetic-accent-warm"],
+      ["rmc-aesthetic-accent-success",  "--site-aesthetic-accent-success"],
+      ["rmc-aesthetic-accent-danger",   "--site-aesthetic-accent-danger"],
+    ];
+    for (var i = 0; i < aestheticOverrides.length; i++) {
+      var metaName = aestheticOverrides[i][0];
+      var cssVar = aestheticOverrides[i][1];
+      var m = document.querySelector('meta[name="' + metaName + '"]');
+      if (m && m.getAttribute("content")) {
+        root.style.setProperty(cssVar, m.getAttribute("content"));
+      }
+    }
   }
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", applyNeutralPalette);

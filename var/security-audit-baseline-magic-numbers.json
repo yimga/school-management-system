@@ -3353,379 +3353,379 @@
       "value": 255
     },
     {
-      "line": 421,
+      "line": 473,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=128,",
       "value": 128
     },
     {
-      "line": 427,
+      "line": 479,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=128,",
       "value": 128
     },
     {
-      "line": 433,
+      "line": 485,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=128,",
       "value": 128
     },
     {
-      "line": 439,
+      "line": 491,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=128,",
       "value": 128
     },
     {
-      "line": 445,
+      "line": 497,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=128,",
       "value": 128
     },
     {
-      "line": 451,
+      "line": 503,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=128,",
       "value": 128
     },
     {
-      "line": 457,
+      "line": 509,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=128,",
       "value": 128
     },
     {
-      "line": 541,
+      "line": 593,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=512,",
       "value": 512
     },
     {
-      "line": 553,
+      "line": 605,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=320,",
       "value": 320
     },
     {
-      "line": 559,
+      "line": 611,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=255,",
       "value": 255
     },
     {
-      "line": 790,
+      "line": 842,
       "path": "apps/platform_runtime/models.py",
       "snippet": "label = models.CharField(max_length=128)",
       "value": 128
     },
     {
-      "line": 792,
+      "line": 844,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=512,",
       "value": 512
     },
     {
-      "line": 824,
+      "line": 876,
       "path": "apps/platform_runtime/models.py",
       "snippet": "label = models.CharField(max_length=128)",
       "value": 128
     },
     {
-      "line": 826,
+      "line": 878,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=512,",
       "value": 512
     },
     {
-      "line": 859,
+      "line": 911,
       "path": "apps/platform_runtime/models.py",
       "snippet": "label = models.CharField(max_length=128)",
       "value": 128
     },
     {
-      "line": 861,
+      "line": 913,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=512,",
       "value": 512
     },
     {
-      "line": 893,
+      "line": 945,
       "path": "apps/platform_runtime/models.py",
       "snippet": "label = models.CharField(max_length=128)",
       "value": 128
     },
     {
-      "line": 895,
+      "line": 947,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=512,",
       "value": 512
     },
     {
-      "line": 927,
+      "line": 979,
       "path": "apps/platform_runtime/models.py",
       "snippet": "label = models.CharField(max_length=128)",
       "value": 128
     },
     {
-      "line": 929,
+      "line": 981,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=512,",
       "value": 512
     },
     {
-      "line": 961,
+      "line": 1013,
       "path": "apps/platform_runtime/models.py",
       "snippet": "label = models.CharField(max_length=128)",
       "value": 128
     },
     {
-      "line": 963,
+      "line": 1015,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=512,",
       "value": 512
     },
     {
-      "line": 995,
+      "line": 1047,
       "path": "apps/platform_runtime/models.py",
       "snippet": "label = models.CharField(max_length=128)",
       "value": 128
     },
     {
-      "line": 997,
+      "line": 1049,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=512,",
       "value": 512
     },
     {
-      "line": 1029,
+      "line": 1081,
       "path": "apps/platform_runtime/models.py",
       "snippet": "label = models.CharField(max_length=128)",
       "value": 128
     },
     {
-      "line": 1031,
+      "line": 1083,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=512,",
       "value": 512
     },
     {
-      "line": 1063,
+      "line": 1115,
       "path": "apps/platform_runtime/models.py",
       "snippet": "label = models.CharField(max_length=128)",
       "value": 128
     },
     {
-      "line": 1065,
+      "line": 1117,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=512,",
       "value": 512
     },
     {
-      "line": 1096,
+      "line": 1148,
       "path": "apps/platform_runtime/models.py",
       "snippet": "label = models.CharField(max_length=128)",
       "value": 128
     },
     {
-      "line": 1098,
+      "line": 1150,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=512,",
       "value": 512
     },
     {
-      "line": 1129,
+      "line": 1181,
       "path": "apps/platform_runtime/models.py",
       "snippet": "label = models.CharField(max_length=128)",
       "value": 128
     },
     {
-      "line": 1131,
+      "line": 1183,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=512,",
       "value": 512
     },
     {
-      "line": 1162,
+      "line": 1214,
       "path": "apps/platform_runtime/models.py",
       "snippet": "label = models.CharField(max_length=128)",
       "value": 128
     },
     {
-      "line": 1164,
+      "line": 1216,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=512,",
       "value": 512
     },
     {
-      "line": 1195,
+      "line": 1247,
       "path": "apps/platform_runtime/models.py",
       "snippet": "label = models.CharField(max_length=128)",
       "value": 128
     },
     {
-      "line": 1197,
+      "line": 1249,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=512,",
       "value": 512
     },
     {
-      "line": 1276,
+      "line": 1328,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=128, blank=True, default=\"\", db_index=True",
       "value": 128
     },
     {
-      "line": 1316,
+      "line": 1368,
       "path": "apps/platform_runtime/models.py",
       "snippet": "blueprint_key = models.CharField(max_length=120, db_index=True)",
       "value": 120
     },
     {
-      "line": 1343,
+      "line": 1395,
       "path": "apps/platform_runtime/models.py",
       "snippet": "audit_ref = models.CharField(max_length=128, blank=True, default=\"\")",
       "value": 128
     },
     {
-      "line": 1344,
+      "line": 1396,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=160, db_index=True)",
       "value": 160
     },
     {
-      "line": 1391,
+      "line": 1443,
       "path": "apps/platform_runtime/models.py",
       "snippet": "pack_key = models.CharField(max_length=120, db_index=True)",
       "value": 120
     },
     {
-      "line": 1421,
+      "line": 1473,
       "path": "apps/platform_runtime/models.py",
       "snippet": "audit_ref = models.CharField(max_length=128, blank=True, default=\"\")",
       "value": 128
     },
     {
-      "line": 1422,
+      "line": 1474,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=180, db_index=True)",
       "value": 180
     },
     {
-      "line": 1475,
+      "line": 1527,
       "path": "apps/platform_runtime/models.py",
       "snippet": "target_key = models.CharField(max_length=160, db_index=True)",
       "value": 160
     },
     {
-      "line": 1525,
+      "line": 1577,
       "path": "apps/platform_runtime/models.py",
       "snippet": "execution_window = models.CharField(max_length=120, blank=True, default=\"\")",
       "value": 120
     },
     {
-      "line": 1527,
+      "line": 1579,
       "path": "apps/platform_runtime/models.py",
       "snippet": "audit_ref = models.CharField(max_length=128, blank=True, default=\"\")",
       "value": 128
     },
     {
-      "line": 1528,
+      "line": 1580,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=180, blank=True, default=\"\", db_index=True)",
       "value": 180
     },
     {
-      "line": 1550,
+      "line": 1602,
       "path": "apps/platform_runtime/models.py",
       "snippet": "name = models.CharField(max_length=120, blank=True)",
       "value": 120
     },
     {
-      "line": 1555,
+      "line": 1607,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=256,",
       "value": 256
     },
     {
-      "line": 1680,
+      "line": 1732,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=512,",
       "value": 512
     },
     {
-      "line": 1797,
+      "line": 1849,
       "path": "apps/platform_runtime/models.py",
       "snippet": "trigger = models.CharField(max_length=128, blank=True, default=\"\")",
       "value": 128
     },
     {
-      "line": 1798,
+      "line": 1850,
       "path": "apps/platform_runtime/models.py",
       "snippet": "condition_summary = models.CharField(max_length=256, blank=True, default=\"\")",
       "value": 256
     },
     {
-      "line": 1803,
+      "line": 1855,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=160, unique=True)",
       "value": 160
     },
     {
-      "line": 1841,
+      "line": 1893,
       "path": "apps/platform_runtime/models.py",
       "snippet": "trigger = models.CharField(max_length=128, blank=True, default=\"\")",
       "value": 128
     },
     {
-      "line": 1925,
+      "line": 1977,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=128, blank=True, default=\"\")",
       "value": 128
     },
     {
-      "line": 1963,
+      "line": 2015,
       "path": "apps/platform_runtime/models.py",
       "snippet": "task_step = models.CharField(max_length=128, blank=True, default=\"\")",
       "value": 128
     },
     {
-      "line": 1964,
+      "line": 2016,
       "path": "apps/platform_runtime/models.py",
       "snippet": "action_code = models.CharField(max_length=128, blank=True, default=\"\")",
       "value": 128
     },
     {
-      "line": 1983,
+      "line": 2035,
       "path": "apps/platform_runtime/models.py",
       "snippet": "path = models.CharField(max_length=512, blank=True, default=\"\")",
       "value": 512
     },
     {
-      "line": 1985,
+      "line": 2037,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=128,",
       "value": 128
     },
     {
-      "line": 2030,
+      "line": 2082,
       "path": "apps/platform_runtime/models.py",
       "snippet": "title = models.CharField(max_length=240)",
       "value": 240
     },
     {
-      "line": 2032,
+      "line": 2084,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=120,",
       "value": 120
     },
     {
-      "line": 2045,
+      "line": 2097,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=120,",
       "value": 120
     },
     {
-      "line": 2055,
+      "line": 2107,
       "path": "apps/platform_runtime/models.py",
       "snippet": "linked_test = models.CharField(max_length=256, blank=True)",
       "value": 256
@@ -6719,7 +6719,7 @@
       "value": 1500
     }
   ],
-  "generated_at": "2026-05-15T15:27:53+00:00",
+  "generated_at": "2026-05-15T17:50:52+00:00",
   "rule": "Integer literals with abs(value) >= 100 in production code should route through the 7-layer configurability contract (RuntimeDefaults / constants.py / SiteSettings)",
   "scan_dirs": [
     "apps",
