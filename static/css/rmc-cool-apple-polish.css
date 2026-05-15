@@ -172,3 +172,341 @@
 [data-rmc-aesthetic="cool-apple"] :is(#main-content, #cp-main-content, #content, [data-rmc-shell-main]) > div.container-fluid > section {
   margin-bottom: 1.5rem;
 }
+
+/* ========================================================================== */
+/* BRAND MARK — v2.56 (2026-05-15)                                             */
+/* ========================================================================== */
+/*
+ * Platform brand-mark grammar (templates/components/rmc_brand_mark.html).
+ * Crisp from 16px favicon to 80px hero. Tenant SiteSettings.logo overrides
+ * the platform default; otherwise we render the gradient squircle monogram.
+ * Available on EVERY shell because rmc-cool-apple-polish.css is loaded
+ * platform-wide.
+ *
+ * Sizes consumed via the --rmc-bm-size custom property set inline by the
+ * include tag, so the same CSS handles 16/20/24/28/32/40/56/80 without per-
+ * size classes.
+ */
+
+.rmc-brand-mark-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.rmc-brand-mark-link:hover,
+.rmc-brand-mark-link:focus-visible {
+  color: inherit;
+  text-decoration: none;
+}
+
+.rmc-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* Variants — mark (squircle only) vs lockup (squircle + wordmark).
+   Defined explicitly so the undefined-css scanner is happy with the
+   dynamic .rmc-brand-mark--{{ variant }} suffix in the component. */
+.rmc-brand-mark--mark {
+  gap: 0;
+}
+
+.rmc-brand-mark--lockup {
+  gap: 0.65rem;
+}
+
+.rmc-brand-mark__squircle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--rmc-bm-size, 32px);
+  height: var(--rmc-bm-size, 32px);
+  /* Tenant brand cascade: --brand-gradient is set by RuntimeDefaults +
+     theme-preference-bootstrap.js; falls back to platform indigo→emerald.
+     The --school-primary inside the linear-gradient also cascades. */
+  background: var(--brand-gradient,
+    linear-gradient(135deg,
+      var(--school-primary, #4f46e5),
+      color-mix(in oklab, var(--school-primary, #4f46e5) 70%, var(--school-accent, #10b981))
+    ));
+  /* Apple-style squircle radius scales with size: ~22% of side. */
+  border-radius: calc(var(--rmc-bm-size, 32px) * 0.22);
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+  /* Subtle inset highlight for premium feel (mimics the mockup). */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 1px 2px rgba(15, 23, 42, 0.18);
+}
+
+.rmc-brand-mark__glyph {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.rmc-brand-mark__tenant-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.rmc-brand-mark__wordmark {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.1;
+  min-width: 0;
+}
+
+.rmc-brand-mark__title {
+  font-weight: 700;
+  font-size: calc(var(--rmc-bm-size, 32px) * 0.5);
+  letter-spacing: -0.015em;
+  color: var(--text-primary, inherit);
+  white-space: nowrap;
+  /* Brand text must never clip — that was the original bug. */
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.rmc-brand-mark__subtitle {
+  font-size: calc(var(--rmc-bm-size, 32px) * 0.32);
+  font-weight: 500;
+  color: var(--text-tertiary, inherit);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 0.15em;
+  white-space: nowrap;
+}
+
+/* When the mark sits inside the dark cp-navbar, force the wordmark text
+   to read as light against the dark gradient. */
+.cp-navbar .rmc-brand-mark__title,
+.cp-navbar .rmc-brand-mark__subtitle,
+[data-resolved-theme="dark"] .cp-navbar .rmc-brand-mark__title,
+[data-resolved-theme="dark"] .cp-navbar .rmc-brand-mark__subtitle {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+[data-resolved-theme="dark"] .rmc-brand-mark__squircle {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 1px 2px rgba(0, 0, 0, 0.40);
+}
+
+/* ========================================================================== */
+/* TOPBAR FIXES — v2.56                                                        */
+/* ========================================================================== */
+
+/* Brand container must NEVER truncate. Earlier the navbar-brand inherited
+   Bootstrap's flex behavior that allowed flex-shrink, clipping the title
+   to "RunMyCampus Man...". */
+.cp-navbar .navbar-brand,
+.cp-navbar .statement-logo {
+  flex-shrink: 0;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: visible;
+  max-width: none;
+}
+
+/* Topbar actions area should grow to fill the wasted whitespace between
+   brand and the right-side button cluster. */
+.cp-navbar .cp-topbar-actions {
+  flex-grow: 1;
+}
+
+/* Search wrap: claim more of the corridor so the placeholder isn't cramped.
+   The previous narrow width was the reason "(⌘K)" was getting clipped. */
+.cp-navbar .cp-topbar-search-wrap {
+  flex-grow: 1;
+  max-width: 520px;
+  min-width: 240px;
+  margin-right: auto;
+}
+
+/* Search input — apple style: rounded pill, subtle border, light/dark aware. */
+.cp-navbar .cp-topbar-search-input {
+  border-radius: 999px;
+  padding: 0.5rem 2.75rem 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.92);
+  height: 38px;
+}
+
+.cp-navbar .cp-topbar-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.cp-navbar .cp-topbar-search-input:focus {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(129, 140, 248, 0.55);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18);
+  outline: none;
+  color: #ffffff;
+}
+
+/* Trailing keyboard-shortcut hint inside the search field (replaces the
+   "(⌘K)" suffix that was being clipped from the placeholder). */
+.cp-topbar-search-wrap .cp-search-kbd {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-family: var(--bs-font-monospace, ui-monospace, monospace);
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1;
+  user-select: none;
+}
+
+.cp-topbar-search-wrap .cp-search-kbd[data-rmc-hide-when-focused] {
+  transition: opacity 120ms var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+.cp-topbar-search-wrap .cp-topbar-search-input:focus ~ .cp-search-kbd {
+  opacity: 0;
+}
+
+/* ========================================================================== */
+/* ACTIVE PRIMARY NAV PILL — v2.56                                             */
+/* ========================================================================== */
+/*
+ * The current page's pill needs to be unmistakeable. Previous styling was a
+ * slightly darker tone-on-tone that read as "another pill" rather than
+ * "this is where you are." Apple HIG pattern: filled gradient + soft shadow
+ * + downward 1px translate.
+ */
+.cp-primary-nav__pill--active,
+.cp-primary-nav__pill[aria-current="page"] {
+  background: linear-gradient(135deg,
+    var(--school-primary, #4f46e5),
+    color-mix(in oklab, var(--school-primary, #4f46e5) 65%, var(--school-accent, #10b981))
+  ) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  font-weight: 600;
+  box-shadow:
+    0 4px 12px -2px color-mix(in oklab, var(--school-primary, #4f46e5) 35%, transparent),
+    0 1px 0 rgba(255, 255, 255, 0.18) inset;
+  position: relative;
+}
+
+.cp-primary-nav__pill--active i,
+.cp-primary-nav__pill[aria-current="page"] i {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* ========================================================================== */
+/* NOTIFICATION BELL + INLINE THEME TOGGLE — v2.56                             */
+/* ========================================================================== */
+
+.cp-topbar-bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.92);
+  text-decoration: none;
+  transition: background 140ms var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+.cp-topbar-bell:hover,
+.cp-topbar-bell:focus-visible {
+  background: rgba(255, 255, 255, 0.10);
+  color: #ffffff;
+  outline: none;
+}
+
+.cp-topbar-bell__badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 0 0 2px rgba(11, 17, 32, 0.85);
+}
+
+.cp-topbar-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  transition: background 140ms var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+.cp-topbar-theme-toggle:hover,
+.cp-topbar-theme-toggle:focus-visible {
+  background: rgba(255, 255, 255, 0.10);
+  color: #ffffff;
+  outline: none;
+}
+
+/* Hide the moon when light is active; hide the sun when dark is active.
+   The icon hierarchy reads "click to switch to the OTHER mode." */
+.cp-topbar-theme-toggle .bi-moon-stars,
+.cp-topbar-theme-toggle .bi-sun-fill {
+  display: none;
+}
+
+[data-resolved-theme="light"] .cp-topbar-theme-toggle .bi-moon-stars {
+  display: inline-block;
+}
+
+[data-resolved-theme="dark"] .cp-topbar-theme-toggle .bi-sun-fill {
+  display: inline-block;
+}
+
+/* ========================================================================== */
+/* CONSOLIDATED TOP CHROME — v2.56                                             */
+/* ========================================================================== */
+/*
+ * The previous two-bar stack (navbar + cp-primary-nav with its own border)
+ * ate ~120px vertical. Pull them together visually: drop the navbar border
+ * and tighten the primary-nav padding so they read as one floating chrome.
+ */
+.cp-navbar.statement-header {
+  border-bottom: none;
+  padding-block: 0.5rem;
+}
+
+.cp-primary-nav {
+  padding-block: 0.4rem !important;
+}
+

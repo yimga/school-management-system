@@ -24,21 +24,26 @@
 <div class="cp-shell-content d-flex flex-column flex-grow-1 min-h-0" data-shell-layout="control-plane" data-rmc-layout-token="{{ rmc_shell.layout_token|default:'control-plane' }}" data-rmc-premium-shell="control-plane" data-rmc-page-purpose="operator-command-center" data-rmc-shell-content-grid="1" data-rmc-os-shell="control-plane" data-rmc-os-role="{{ rmc_os_shell.role_cluster|default:'operator' }}" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}>
 <nav class="navbar navbar-expand-lg navbar-dark cp-navbar cp-navbar--surface statement-header flex-shrink-0" data-rmc-shell-header="control-plane">
   <div class="container-fluid px-3 d-flex flex-wrap align-items-center gap-2">
-    <a class="navbar-brand fw-bold d-flex align-items-center gap-2 text-white statement-logo" href="{% url 'super:dashboard' %}">
-      {% if PUBLIC_BRAND_FAVICON_URL %}
-        <img class="cp-navbar-brand-img" src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="32" height="32" decoding="async">
-      {% else %}
-        <img class="cp-navbar-brand-img" src="{% static 'images/runmycampus-icon.png' %}" alt="" width="32" height="32" decoding="async">
-      {% endif %}
-      <span data-rmc-shell-title="{{ rmc_shell.control_plane_product_title|default:'RunMyCampus Manager' }}">{{ rmc_shell.control_plane_product_title|default:"RunMyCampus Manager" }}</span>
-    </a>
+    {% comment %} v2.56 (2026-05-15) — proper brand mark.
+       Replaces the 32px raster placeholder favicon + the truncating
+       `<span>` with the rmc_brand_mark component lockup variant. Tenant
+       SITE.logo cascades automatically; platform default renders the
+       gradient squircle monogram. Brand text is wrapped in the component's
+       own .rmc-brand-mark__title which does NOT clip. {% endcomment %}
+    {% url 'super:dashboard' as bm_dashboard_url %}
+    {% include "components/rmc_brand_mark.html" with size=32 variant="lockup" href=bm_dashboard_url label="RunMyCampus" subtitle="Manager" %}
     <button class="navbar-toggler border-light d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#cpSidebarOffcanvas" aria-controls="cpSidebarOffcanvas" aria-label="{% trans 'Open menu' %}">
       <span class="navbar-toggler-icon"></span>
     </button>
     {# Always show topbar actions (no collapse below lg) so search, shortcuts, and user menu work on mobile #}
     <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 ms-lg-auto justify-content-end cp-topbar-actions w-100 w-lg-auto mt-2 mt-lg-0" id="cpNavbarContent">
       <div class="cp-header-search cp-topbar-search-wrap position-relative flex-grow-1 flex-lg-grow-0">
-          <input type="search" class="cp-topbar-search-input form-control form-control-sm bg-dark border-secondary text-white w-100" placeholder="{% trans 'Search schools, incidents…' %} (Ctrl+K)" aria-label="{% trans 'Search' %} (Ctrl+K)" id="cpSearchInput" autocomplete="off">
+          {% comment %} v2.56 (2026-05-15) — placeholder no longer carries the keyboard
+             hint (the "(Ctrl+K)" suffix was the source of the truncation visible in
+             the manager screenshot). The hint is now a separate <kbd> badge inside
+             the input, hidden when focused. {% endcomment %}
+          <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" placeholder="{% trans 'Search schools, incidents…' %}" aria-label="{% trans 'Search schools, incidents' %} ({% trans 'press Ctrl+K' %})" id="cpSearchInput" autocomplete="off">
+          <kbd class="cp-search-kbd" aria-hidden="true" data-rmc-hide-when-focused>{% trans "Ctrl K" %}</kbd>
           <div id="cpSearchResults" class="dropdown-menu position-absolute start-0 mt-1 shadow cp-search-results-panel cp-search-results-panel--sized" aria-label="Search results"></div>
         </div>
         <button type="button" class="btn btn-sm btn-outline-light d-inline-flex align-items-center flex-shrink-0" onclick="typeof window.cpShowShortcutsHelp === 'function' && window.cpShowShortcutsHelp();" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts (?)' %}"><span aria-hidden="true">?</span><span class="ms-1 d-none d-lg-inline">{% trans "Shortcuts" %}</span></button>
@@ -51,6 +56,30 @@
             <i class="bi bi-gear-wide-connected"></i>
             <span class="d-none d-lg-inline">{% trans "Config center" %}</span>
           </a>
+          {% comment %} v2.56 (2026-05-15) — notification bell.
+             Surfaces platform incidents directly in the topbar so operators see
+             alerts before having to drill into Queues. Badge count reads the
+             same `platform_incidents` context the page hero / chip row use. {% endcomment %}
+          {% if platform_incidents_url %}
+            <a href="{{ platform_incidents_url }}" class="cp-topbar-bell" aria-label="{% blocktrans count count=platform_incidents|length %}{{ count }} open incident{% plural %}{{ count }} open incidents{% endblocktrans %}" title="{% trans 'Open incident console' %}">
+              <i class="bi bi-bell" aria-hidden="true"></i>
+              {% if platform_incidents|length %}<span class="cp-topbar-bell__badge" aria-hidden="true">{{ platform_incidents|length }}</span>{% endif %}
+            </a>
+          {% else %}
+            <a href="{% url 'super:command_center' %}" class="cp-topbar-bell" aria-label="{% trans 'Notifications and queues' %}" title="{% trans 'Notifications and queues' %}">
+              <i class="bi bi-bell" aria-hidden="true"></i>
+              {% if attention_school_count %}<span class="cp-topbar-bell__badge" aria-hidden="true">{{ attention_school_count }}</span>{% endif %}
+            </a>
+          {% endif %}
+          {% comment %} v2.56 (2026-05-15) — inline theme toggle.
+             One-click sun/moon swap. Hidden icon flips based on data-resolved-
+             theme via CSS, so the user always sees the OTHER mode's icon. The
+             dropdown still has the full Light / Dark / System / Aesthetic
+             pickers for the rare case the user wants more control. {% endcomment %}
+          <button type="button" class="cp-topbar-theme-toggle" data-rmc-theme-cycle aria-label="{% trans 'Toggle light and dark mode' %}" title="{% trans 'Toggle light and dark mode' %}">
+            <i class="bi bi-moon-stars" aria-hidden="true"></i>
+            <i class="bi bi-sun-fill" aria-hidden="true"></i>
+          </button>
           {% comment %} Phase D (2026-05-12): rich user_dropdown (avatar, role, theme toggle, sectioned menu)
              replaces the minimal cpUserDropdown for parity across portal / control plane / admin. {% endcomment %}
           {% include "components/user_dropdown.html" %}

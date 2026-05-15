@@ -84,8 +84,24 @@
     }
   }
 
+  /* v2.56 (2026-05-15) — inline 1-click theme cycle for topbar.
+     The dropdown picker reads the *preference* (light/dark/system). The inline
+     toggle reads the *resolved* theme and flips it. If preference was "system"
+     and resolved is "light", clicking sets preference to "dark" (and vice
+     versa) so the next click cycles cleanly. */
+  function onInlineCycleClick(e) {
+    if (!e.target.closest) { return; }
+    var btn = e.target.closest("[data-rmc-theme-cycle]");
+    if (!btn) { return; }
+    e.preventDefault();
+    if (!window.RMCTheme) { return; }
+    var resolved = window.RMCTheme.resolved();
+    window.RMCTheme.set(resolved === "dark" ? "light" : "dark");
+  }
+
   function init() {
     document.addEventListener("click", onClick, false);
+    document.addEventListener("click", onInlineCycleClick, false);
     window.addEventListener("rmc:theme-change", refresh);
     window.addEventListener("rmc:aesthetic-change", refreshAesthetic);
     refresh();

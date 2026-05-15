@@ -1,0 +1,55 @@
+{% load static %}
+{% comment %}
+============================================================================
+rmc_brand_mark.html — platform brand mark component (v2.56).
+
+Properly engineered for every size: 16px favicon → 80px hero. Inline SVG
+so it stays crisp at any DPI and consumes theme tokens.
+
+Inputs (all optional):
+  size       — pixel size (default 32). Use 16/20/24/28/32/40/56/80.
+  variant    — "mark" (default, just the squircle monogram) or
+               "lockup" (squircle + wordmark to the right).
+  monogram   — single character override (default: first letter of
+               SITE.site_name, falling back to "R").
+  href       — wrap in <a> with this href.
+  label      — accessible name (default: SITE.site_name|"RunMyCampus").
+
+Behaviour:
+  - Tenant override: when SITE.logo is set we render the tenant's
+    raster logo inside the squircle frame instead of the SVG monogram.
+    Same frame, so the chrome layout stays identical.
+  - Platform default: gradient squircle (var(--brand-gradient) which
+    cascades from tenant brand or platform indigo→emerald) with a
+    white serif-leaning monogram.
+  - Theme-aware: the squircle background reads from the gradient
+    cascade; the inner glyph stays white in both light and dark.
+  - Configurability contract honored: nothing hardcoded; tenant
+    cascade wins, platform default is the fallback.
+============================================================================
+{% endcomment %}
+{% with bm_size=size|default:32 bm_variant=variant|default:"mark" %}
+{% if href %}<a href="{{ href }}" class="rmc-brand-mark-link" aria-label="{{ label|default:SITE.site_name|default:'RunMyCampus' }}">{% endif %}
+<span class="{% if bm_variant == 'lockup' %}rmc-brand-mark rmc-brand-mark--lockup{% else %}rmc-brand-mark rmc-brand-mark--mark{% endif %}" style="--rmc-bm-size: {{ bm_size }}px;" data-rmc-brand-mark="1">
+  <span class="rmc-brand-mark__squircle" aria-hidden="true">
+    {% if SITE.logo %}
+      {# Tenant-provided logo wins; frame stays the same so layout is stable. #}
+      <img src="{{ SITE.logo.url }}" alt="" decoding="async" loading="lazy" class="rmc-brand-mark__tenant-logo">
+    {% else %}
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true" class="rmc-brand-mark__glyph">
+        {# Monogram — geometric letterform; reads at 16px and 80px alike. #}
+        <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+              font-family="'Inter','SF Pro Display',system-ui,-apple-system,sans-serif"
+              font-weight="800" font-size="20" letter-spacing="-0.04em" fill="currentColor">{{ monogram|default:SITE.site_name|first|default:"R"|upper }}</text>
+      </svg>
+    {% endif %}
+  </span>
+  {% if bm_variant == "lockup" %}
+    <span class="rmc-brand-mark__wordmark">
+      <span class="rmc-brand-mark__title">{{ label|default:SITE.site_name|default:"RunMyCampus" }}</span>
+      {% if subtitle %}<span class="rmc-brand-mark__subtitle">{{ subtitle }}</span>{% endif %}
+    </span>
+  {% endif %}
+</span>
+{% if href %}</a>{% endif %}
+{% endwith %}
