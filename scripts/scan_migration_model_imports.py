@@ -2,15 +2,30 @@
 """Migration live-model-import scanner.
 
 Enforces the Django rule: migration files (``apps/*/migrations/*.py``)
-must NOT import models directly from ``apps.X.models``. Inside
-``RunPython`` operations, use ``apps.get_model("X", "Y")`` instead — the
-historical-state proxy that respects the migration graph. A direct live
-import bypasses Django's frozen-state guarantee and breaks migration
-replay when the live model later diverges from the migration's state.
+must NOT capture live model **classes** via ``from apps.X.models import Y``.
+Inside ``RunPython`` operations, use ``apps.get_model("X", "Y")`` instead —
+the historical-state proxy that respects the migration graph. ``from X
+import Y`` binds ``Y`` to the live class at import time, bypassing Django's
+frozen-state guarantee and breaking migration replay when the live model
+later diverges.
 
-Schema operations (``CreateModel``, ``AddField``, etc.) reference models
-via string identifiers, not imports — so a live import in a migration
-file is a near-certain bug except for very rare static utilities.
+What this scanner allows (intentionally):
+
+* ``import apps.X.models`` — bare module import. Used by Django's own
+  auto-generated migrations to serialize callable defaults like
+  ``default=apps.billing.models._platform_default_currency``. The reference
+  is resolved lazily at call time (row insert), and module-level helper
+  functions (not classes) are stable across the migration graph. This is
+  the correct, idiomatic pattern Django itself produces.
+
+What this scanner flags (the actual anti-pattern):
+
+* ``from apps.X.models import Y`` — captures ``Y`` (a live class) at
+  module-import time. Any later schema-altering migration that changes
+  ``Y`` invalidates the captured reference. Schema operations
+  (``CreateModel``, ``AddField``, etc.) reference models via string
+  identifiers, so a ``from X import Y`` in a migration is almost
+  always a bug.
 
 Output mirrors the other boundary scanners.
 """
@@ -39,6 +54,14 @@ def _iter_migration_files():
 
 
 def _live_model_imports(tree: ast.AST) -> list[tuple[int, str]]:
+    """Flag only ``from apps.X.models import Y`` (live class capture).
+
+    Bare ``import apps.X.models`` is intentionally allowed — Django's
+    auto-generated migrations use this for callable serialization
+    (e.g. ``default=apps.billing.models._platform_default_currency``)
+    and the reference resolves lazily at row-insert time, not at
+    migration-import time.
+    """
     hits: list[tuple[int, str]] = []
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom):
@@ -47,12 +70,6 @@ def _live_model_imports(tree: ast.AST) -> list[tuple[int, str]]:
             if module.startswith("apps.") and (".models" in module or module.endswith(".models")):
                 names = ", ".join(alias.name for alias in node.names)
                 hits.append((node.lineno, f"from {module} import {names}"))
-        elif isinstance(node, ast.Import):
-            for alias in node.names:
-                if alias.name.startswith("apps.") and (
-                    ".models" in alias.name or alias.name.endswith(".models")
-                ):
-                    hits.append((node.lineno, f"import {alias.name}"))
     return hits
 
 

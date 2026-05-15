@@ -1,6 +1,7 @@
 {% extends "portal_base.html" %}
 {% load static %}
 {% load i18n %}
+{% load terminology_tags %}
 {% block title %}Take teacher attendance{% endblock %}
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Take teacher attendance</h1>
@@ -42,7 +43,7 @@
               <caption class="visually-hidden">Teachers – {{ date_value }}</caption>
               <thead class="table-light">
                 <tr>
-                  <th scope="col">{% trans "Teacher" %}</th>
+                  <th scope="col">{% trans_term "Teacher" key="teacher" %}</th>
                   <th scope="col">{% trans "Status" %}</th>
                 </tr>
               </thead>

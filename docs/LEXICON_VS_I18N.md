@@ -36,15 +36,78 @@ Add {% term "student" capitalize=True %}            ← correct
 
 ## Migration policy
 
-**No bulk rewrite of existing `{% trans %}` sites.** The lexicon engine
-is opt-in per template. Spot-fix on touch — when you're already in a
-file for another reason and you spot an unwrapped tenant-overridable
-noun, swap it.
+**No bulk rewrite of existing `{% trans %}` sites with `{% term %}`.**
+The two answer different questions and `{% term %}` strips i18n coverage.
 
-Existing `{% trans "Student" %}` sites are a separate decision: leaving
-them preserves i18n coverage for the (currently small) set of non-English
-deployments. Converting them is a deliberate trade — make it a wave of
-its own, not a side-effect of a polish pass.
+**There is now a third tag** (Wave M, 2026-05-15) that solves both at once:
+`{% trans_term %}`. Use it for canonical lexicon terms when you also
+want i18n fallback when no override is in effect.
+
+## The hybrid `{% trans_term %}` tag (Wave M)
+
+Replaces `{% trans "Student" %}` for canonical lexicon terms. Semantics:
+
+```django
+{% trans_term "Student" key="student" %}
+```
+
+1. Look up `key="student"` in the lexicon cascade
+   (country → curriculum → ancestors → school → classroom).
+2. **If a tenant override is in effect** (resolved value differs from
+   the registry default), use the override **literally**. Tenant
+   branding is locale-agnostic — a tenant who chose "Scholar" gets
+   "Scholar" in every locale.
+3. **If no override is in effect**, fall through to `gettext("Student")`
+   for normal i18n catalog translation. English serves "Student";
+   French catalog serves "Élève"; etc.
+
+This unlocks the bulk `{% trans %}` → `{% term %}` adoption K2 explicitly
+rejected. Converting `{% trans "Student" %}` → `{% trans_term "Student" key="student" %}`
+is now a safe operation: tenant override wins when present, i18n catalog
+applies when absent.
+
+### When to use which
+
+| Surface | Tag |
+|---|---|
+| Canonical lexicon term, no i18n catalog needed | `{% term "student" %}` |
+| Canonical lexicon term, want i18n fallback when no override | `{% trans_term "Student" key="student" %}` (Wave M) |
+| Non-lexicon string (verbs, system messages, error copy) | `{% trans "Save" %}` |
+| Pure-display label, no override or translation expected | plain text |
+
+### Coherence rule
+
+The `source` argument (the gettext catalog key) **should equal the
+registry default** for `key`. Otherwise the no-override branch shows
+the catalog string while the override branch shows the lexicon value
+— same template renders different strings depending on whether a
+tenant has overridden, which is surprising. Coherent:
+
+```django
+{% trans_term "Student" key="student" %}          ← source matches registry default
+{% trans_term "Students" key="student" plural=True %}
+```
+
+Incoherent (don't):
+```django
+{% trans_term "Pupil" key="student" %}            ← source disagrees with default
+```
+
+### Migration playbook
+
+To convert a `{% trans %}` site:
+
+1. Verify the source string is a canonical lexicon key
+   (`apps/siteconfig/lexicon_catalog.LEXICON_REGISTRY`). If not, leave
+   as `{% trans %}`.
+2. Add `{% load terminology_tags %}` if not already loaded.
+3. Replace `{% trans "Student" %}` with `{% trans_term "Student" key="student" %}`.
+4. Plural: `{% trans "Students" %}` → `{% trans_term "Students" key="student" plural=True %}`.
+5. No `.po` catalog change required — the gettext fallback uses the
+   same `source` string the original `{% trans %}` did.
+
+**Adoption is still incremental — no bulk rewrite.** Convert sites
+you're already touching for other reasons.
 
 ## When `{% term %}` will help most
 

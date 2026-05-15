@@ -13,11 +13,13 @@
   {% include "components/world_class_page_hero.html" with hero_id="school-settings-title" role=_("School administrators") title=_("School Configuration Center") subtitle=_("A tenant-safe setup cockpit for school settings, blueprints, packs, imports, apps, money, workflows, offline posture, audit, and security.") purpose=_("Tenant-safe school setup") status=_("Tenant scoped only") primary_url="/school/setup/blueprints/" primary_label=_("Continue setup") secondary_url="/school/audit/" secondary_label=_("Review audit trail") visual_title=_("Know exactly what to do next") visual_body=_("School readiness, blockers, and next best action stay visible without exposing platform-only actions.") %}
   {% include "components/world_class_summary_strip.html" with readiness="74%" readiness_label=_("School readiness") risk=_("Visible") risk_label=_("Tenant blockers") next_step=_("Setup") next_step_label=_("Blueprints and packs") blockers=_("External") blockers_label=_("Payments and integrations honest") %}
   {% include "components/platform_readiness_strip.html" with inline_field_prefix='school-cfg' tenant_label=request.tenant.display_name|default:'' %}
-  <section class="rmc-wcx-grid mb-4" data-apple-class-school-readiness="score next-best-action setup-progress risk-cards guided-checklist">
-    {% include "components/apple_class_metric_card.html" with label=_("School Readiness Score") value="74%" meta=_("Setup, data, security, money, and offline posture") %}
-    {% include "components/apple_class_glass_panel.html" with panel_id="school-next-best-action" label=_("Today") title=_("Next Best Action") body=_("Finish the highest-risk setup item before opening advanced settings.") %}
-    {% include "components/apple_class_quick_profile_drawer.html" with drawer_id="school-setup-drawer" role=_("Setup drawer") title=_("Fix setup in place") body=_("School admins can open guided steps from the current page without page hopping.") primary_url="/school/setup/imports/" primary_label=_("Open imports") %}
-  </section>
+  {% comment %} v2.53 (2026-05-15) — duplicate apple_class_metric_card "School
+     Readiness Score 74%" + glass_panel "Today / Next Best Action" stripped
+     here. Both values lived in the world_class_summary_strip above. The
+     setup drawer survives as a collapsed teaser so school admins still get
+     a guided-step affordance without losing the surface to a redundant
+     metric panel. {% endcomment %}
+  {% include "components/apple_class_quick_profile_drawer.html" with drawer_id="school-setup-drawer" role=_("Setup drawer") title=_("Fix setup in place") body=_("School admins can open guided steps from the current page without page hopping.") primary_url="/school/setup/imports/" primary_label=_("Open imports") %}
 
   <div class="row g-3">
     {% for section in sections %}

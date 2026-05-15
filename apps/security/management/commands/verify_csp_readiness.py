@@ -103,11 +103,29 @@ class Command(BaseCommand):
                 "defense than script-CSP; not a blocker."
             ))
 
+        # Wave L-followup: runtime telemetry summary (informational).
+        self.stdout.write("")
+        self.stdout.write("Runtime violations (cache-backed, ephemeral):")
+        self.stdout.write(
+            f"  last 1h:   {report.violations_last_hour}"
+        )
+        self.stdout.write(
+            f"  last 24h:  {report.violations_last_24h}"
+        )
+        if report.violations_by_directive_24h:
+            self.stdout.write("  by directive (24h):")
+            for directive, count in sorted(
+                report.violations_by_directive_24h.items(),
+                key=lambda pair: (-pair[1], pair[0]),
+            ):
+                self.stdout.write(f"    {directive:24s}  {count}")
+
         self.stdout.write("")
         if report.ready:
             self.stdout.write(self.style.SUCCESS(
                 "READY — config preflight clean.\n"
-                "Next: monitor 'csp_violation' warning logs for an "
+                "Next: monitor 'csp_violation' warning logs (canonical) and "
+                "the runtime counters above (best-effort) for an "
                 "ops-appropriate window (7+ days for production) before "
                 "setting CSP_ENFORCE=1."
             ))

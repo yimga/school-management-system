@@ -1,0 +1,174 @@
+/* rmc-cool-apple-polish.css
+ *
+ * v2.53 (2026-05-15) — platform-wide Apple-style polish layer for the
+ * cool-apple aesthetic. Loaded after rmc-warm-bright-school.css on every
+ * shell (portal_base, base, control_plane_skeleton, admin/base_site,
+ * marketing/base_marketing) so the SAME Apple grammar applies to tenant,
+ * operator, marketing, and admin surfaces alike.
+ *
+ * The previous wave (v2.52) scoped these rules to `#cp-main-content` —
+ * manager-only. The user flagged this: platform-wide means EVERY shell,
+ * not just the manager. This layer rebroadcasts the same Apple treatment
+ * across the universal main-content selector list:
+ *
+ *   #main-content        — portal_base, base, marketing
+ *   #cp-main-content     — control_plane_skeleton (manager)
+ *   #content             — Django admin
+ *   [data-rmc-shell-main] — any shell decorating its main wrapper
+ *
+ * All rules gate on `[data-rmc-aesthetic="cool-apple"]` so tenants who
+ * keep warm-bright (the default) see no change.
+ *
+ * Reference: aesthetic_preview.html (the mockup the user provided).
+ * Tokens consumed: --apple-elev-{1,2,3}, --apple-focus-ring,
+ * --apple-material-bg, --apple-material-border, --apple-material,
+ * --hairline, --hairline-strong, --surface-canvas, --text-primary,
+ * --text-secondary, --text-tertiary. All defined in design-tokens.css
+ * + rmc-warm-bright-school.css and theme-cascading.
+ */
+
+/* === Surface tokens repoint when cool-apple is active ==================== *
+ * The pre-existing .cp-* CSS variables (--cp-panel-bg, --cp-shadow, etc.)
+ * stay dark-deep-navy by default. When cool-apple is the active aesthetic
+ * we re-point them to the Apple equivalents so every .cp-* card across the
+ * manager surface automatically gets the Apple grammar without per-rule
+ * rewrites. (This block already existed in manager-aesthetic-polish.css;
+ * re-stating here so the file is self-contained — duplicate values don't
+ * affect cascade.) */
+[data-rmc-aesthetic="cool-apple"] {
+  --cp-panel-bg: var(--surface-canvas);
+  --cp-panel-border: var(--hairline-strong);
+  --cp-shadow: var(--apple-elev-2);
+  --cp-bg: var(--surface-bg);
+  --cp-text: var(--text-primary);
+  --cp-muted: var(--text-tertiary);
+}
+
+/* === Main content area background + card surfaces ======================== *
+ * Universal selector list catches every shell's main wrapper. The cards
+ * inside each shell adopt the Apple squircle radius + layered elevation. */
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #main-content,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #cp-main-content,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] #content,
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] [data-rmc-shell-main] {
+  background-color: var(--surface-bg);
+  color: var(--text-primary);
+}
+
+/* Card grammar — every card-like surface inside the main content area. */
+[data-rmc-aesthetic="cool-apple"][data-theme="light"] :is(#main-content, #cp-main-content, #content, [data-rmc-shell-main]) :is(.card, .rmc-acx-glass-panel, .rmc-acx-metric-card, .rmc-acx-drawer, .rmc-zero-click, .rmc-os-page-header, .rmc-wcx-surface, .studio-os__card, .cp-overview-card, .cp-panel, .cp-readiness-card, .cp-health-card, .cp-footprint-card, .cp-table-card, .cp-stack-card, .cp-queue-card, .cp-workstream-card, .rmc-wcx-metric, .rmc-wcx-card) {
+  background-color: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--apple-elev-1);
+  color: var(--text-primary);
+  border-radius: 16px;
+}
+
+/* Dark mode — same selectors, dark Apple elevations. */
+[data-rmc-aesthetic="cool-apple"][data-theme="dark"] :is(#main-content, #cp-main-content, #content, [data-rmc-shell-main]) :is(.card, .rmc-acx-glass-panel, .rmc-acx-metric-card, .rmc-acx-drawer, .rmc-zero-click, .rmc-os-page-header, .rmc-wcx-surface, .studio-os__card, .cp-overview-card, .cp-panel, .cp-readiness-card, .cp-health-card, .cp-footprint-card, .cp-table-card, .cp-stack-card, .cp-queue-card, .cp-workstream-card, .rmc-wcx-metric, .rmc-wcx-card) {
+  background-color: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--apple-elev-1);
+  color: var(--text-primary);
+  border-radius: 16px;
+}
+
+/* === Apple focus ring on every focusable element across all surfaces ===== */
+[data-rmc-aesthetic="cool-apple"] :is(#main-content, #cp-main-content, #content, [data-rmc-shell-main]) :is(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--apple-focus-ring);
+  border-radius: 8px;
+}
+
+/* === Typography tracking — display + heading hierarchy =================== *
+ * Applies across every shell's main content area when cool-apple is on.
+ * The body baseline (-0.005em) is already set in design-tokens.css; here
+ * we tighten display and headings to the mockup spec. */
+[data-rmc-aesthetic="cool-apple"] :is(#main-content, #cp-main-content, #content, [data-rmc-shell-main]) :is(h1, .h1, .display-1, .display-2, .page-h1, .cp-hero-title) {
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+[data-rmc-aesthetic="cool-apple"] :is(#main-content, #cp-main-content, #content, [data-rmc-shell-main]) :is(h2, .h2, .cp-panel-title) {
+  letter-spacing: -0.015em;
+  font-weight: 700;
+}
+
+[data-rmc-aesthetic="cool-apple"] :is(#main-content, #cp-main-content, #content, [data-rmc-shell-main]) :is(h3, .h3, h4, .h4) {
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+
+/* === Top-of-page chrome — apple frosted material ========================= */
+[data-rmc-aesthetic="cool-apple"] :is(.cp-navbar.statement-header, .portal-topbar, .mkt-topbar, .navbar-brand-bar) {
+  background: var(--apple-material-bg);
+  border-bottom: 1px solid var(--apple-material-border);
+  backdrop-filter: var(--apple-material);
+  -webkit-backdrop-filter: var(--apple-material);
+}
+
+[data-rmc-aesthetic="cool-apple"] .cp-primary-nav {
+  background: var(--apple-material-bg) !important;
+  border-bottom: 1px solid var(--apple-material-border) !important;
+  backdrop-filter: var(--apple-material);
+  -webkit-backdrop-filter: var(--apple-material);
+}
+
+/* === Chips — apple pill grammar ========================================== */
+[data-rmc-aesthetic="cool-apple"] [data-rmc-cp-chip-row] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+[data-rmc-aesthetic="cool-apple"] .cp-chip {
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: var(--type-size-caption);
+  font-weight: 600;
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline-strong);
+  color: var(--text-secondary);
+}
+
+/* === Buttons — apple radius + subtle hover lift ========================== *
+ * Bootstrap .btn keeps its base; we just lift the radius to apple spec and
+ * add a soft hover translate. */
+[data-rmc-aesthetic="cool-apple"] :is(#main-content, #cp-main-content, #content, [data-rmc-shell-main]) .btn {
+  border-radius: 10px;
+  transition: transform var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)),
+              box-shadow var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+[data-rmc-aesthetic="cool-apple"] :is(#main-content, #cp-main-content, #content, [data-rmc-shell-main]) .btn:hover:not(:disabled):not(.disabled) {
+  transform: translateY(-1px);
+}
+
+[data-rmc-aesthetic="cool-apple"] :is(#main-content, #cp-main-content, #content, [data-rmc-shell-main]) .btn:active:not(:disabled):not(.disabled) {
+  transform: translateY(0);
+}
+
+/* === Inputs — apple grammar (rounded + hairline + focus glow) ============ */
+[data-rmc-aesthetic="cool-apple"] :is(#main-content, #cp-main-content, #content, [data-rmc-shell-main]) :is(.form-control, .form-select) {
+  border-radius: 10px;
+  border-color: var(--hairline-strong);
+  background-color: var(--surface-canvas);
+  color: var(--text-primary);
+  transition: border-color var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)),
+              box-shadow var(--dur-fast, 150ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+[data-rmc-aesthetic="cool-apple"] :is(#main-content, #cp-main-content, #content, [data-rmc-shell-main]) :is(.form-control, .form-select):focus {
+  border-color: color-mix(in oklab, var(--school-primary) 60%, var(--hairline-strong));
+  box-shadow: var(--apple-focus-ring);
+  outline: none;
+}
+
+/* === Sticky page-hero spacing rhythm ===================================== *
+ * Apple-style sections breathe more. Slight padding bump on hero + section
+ * containers when cool-apple is active. */
+[data-rmc-aesthetic="cool-apple"] :is(#main-content, #cp-main-content, #content, [data-rmc-shell-main]) > section,
+[data-rmc-aesthetic="cool-apple"] :is(#main-content, #cp-main-content, #content, [data-rmc-shell-main]) > div.container-fluid > section {
+  margin-bottom: 1.5rem;
+}

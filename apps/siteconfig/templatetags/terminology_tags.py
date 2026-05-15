@@ -102,6 +102,69 @@ def term_lower(context, key, plural=False, school=None, classroom=None):
     return value.lower() if value else value
 
 
+# --- Hybrid lexicon × i18n surface (Wave M) --------------------------------
+
+
+@register.simple_tag(takes_context=True)
+def trans_term(
+    context, source, key, plural=False, school=None, capitalize=False, classroom=None
+):
+    """Hybrid lexicon × i18n resolver. Replaces ``{% trans "Student" %}`` for
+    canonical lexicon terms.
+
+    Semantics — most-specific-wins between the two axes:
+
+    1. Look up ``key`` in the lexicon cascade
+       (country → curriculum → ancestors → school → classroom).
+    2. If a tenant override is in effect (resolved value differs from
+       the registry default), return the override **literally**. Tenant
+       branding is locale-agnostic — a tenant who chose "Scholar" gets
+       "Scholar" in every locale.
+    3. If no override is in effect, fall through to ``gettext(source)``
+       so normal i18n catalog translation applies. English serves
+       "Student"; French catalog serves "Élève"; etc.
+
+    Usage:
+        {% trans_term "Student" key="student" %}
+        {% trans_term "Students" key="student" plural=True %}
+        {% trans_term "Teacher" key="teacher" capitalize=True %}
+
+    ``source`` is the English catalog key (the same string you'd pass to
+    ``{% trans %}``). For coherent no-override fallback, ``source`` should
+    equal the registry default for ``key`` — otherwise the no-override
+    branch displays the catalog string while the override branch displays
+    the lexicon value, which may surprise readers.
+    """
+    from django.utils.translation import gettext
+
+    from apps.siteconfig.lexicon_catalog import (
+        default_plural,
+        default_singular,
+    )
+    from apps.siteconfig.terminology_service import resolve_term
+
+    resolved = resolve_term(
+        _school_from_context(context, school),
+        str(key),
+        plural=bool(plural),
+        classroom=_classroom_from_context(context, classroom),
+    )
+
+    default = (
+        default_plural(str(key)) if plural else default_singular(str(key))
+    )
+    if resolved == default:
+        # No tenant override — route through gettext for i18n.
+        result = gettext(source) if source else default
+    else:
+        # Tenant override present — use it literally (locale-agnostic).
+        result = resolved
+
+    if capitalize and result:
+        return result[:1].upper() + result[1:]
+    return result
+
+
 # --- Legacy per-key tags (back-compat) -------------------------------------
 
 
@@ -140,4 +203,5 @@ __all__ = [
     "term",
     "term_label",
     "term_lower",
+    "trans_term",
 ]

@@ -59,6 +59,16 @@ class CspReadinessReport:
     style_src_has_unsafe_inline: bool = False
     """Surfaced as a warning, not a blocker."""
 
+    # Wave L-followup: runtime telemetry from cache-backed counters.
+    # These are informational only — they don't influence ``ready`` /
+    # ``issue_count`` because the cache backend may be unreachable, the
+    # TTL may have expired, or the platform may not have served enough
+    # traffic to accumulate signal. The operator interprets them
+    # alongside the log stream.
+    violations_last_hour: int = 0
+    violations_last_24h: int = 0
+    violations_by_directive_24h: dict[str, int] = field(default_factory=dict)
+
     def issue_count(self) -> int:
         return (
             (0 if self.middleware_wired else 1)
@@ -146,6 +156,20 @@ def assess_csp_readiness() -> CspReadinessReport:
     report.script_src_has_unsafe_inline = "'unsafe-inline'" in script_src
     report.script_src_has_unsafe_eval = "'unsafe-eval'" in script_src
     report.style_src_has_unsafe_inline = "'unsafe-inline'" in style_src
+
+    # Wave L-followup: pull cache-backed runtime counters. Reading is
+    # best-effort — cache misses / backend offline return 0 and are
+    # treated as "no signal" rather than "no violations".
+    from apps.security.csp_violation_counter import (
+        violations_by_directive_in_last_hours,
+        violations_in_last_hours,
+    )
+
+    report.violations_last_hour = violations_in_last_hours(hours=1)
+    report.violations_last_24h = violations_in_last_hours(hours=24)
+    report.violations_by_directive_24h = violations_by_directive_in_last_hours(
+        hours=24
+    )
 
     report.ready = report.issue_count() == 0
     return report
