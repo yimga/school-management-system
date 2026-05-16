@@ -1,7 +1,8 @@
 {% load i18n %}
   {% if output_left_rail %}
   <div class="d-flex gap-3 flex-wrap flex-lg-nowrap studio-os__output-wrap">
-    <nav class="studio-os__output-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Outputs' %}" style="width: min(12.5rem, 100%); min-width: 0;">
+    {# v2.68: rail is the primary nav on lg+; tabs below take over on small screens. #}
+    <nav class="studio-os__output-rail flex-shrink-0 mb-2 mb-lg-0 d-none d-lg-block" aria-label="{% trans 'Outputs' %}" style="width: min(12.5rem, 100%); min-width: 0;">
       <div class="studio-os__card py-2">
         <div class="h6 mb-2">{% trans "Outputs" %}</div>
         <ul class="list-unstyled small mb-0" id="output-rail-list">
@@ -16,7 +17,7 @@
       </div>
     </nav>
     <div class="flex-grow-1 min-w-0">
-      <nav class="studio-os__output-tabs mb-2" aria-label="{% trans 'Output sections' %}">
+      <nav class="studio-os__output-tabs mb-2 d-lg-none" aria-label="{% trans 'Output sections' %}">
         <ul class="nav nav-tabs flex-nowrap overflow-x-auto pb-0" style="scrollbar-width: thin;">
           {% for item in output_left_rail %}
           <li class="nav-item text-nowrap">

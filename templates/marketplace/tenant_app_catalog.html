@@ -24,7 +24,16 @@
   {% include "components/world_class_page_hero.html" with hero_id="tenant-app-catalog-title" role=_("School administrators") title=_("School App Catalog") subtitle=_("Sandbox-first school app installation with visible scopes, billing model, install impact, webhook health, partner status, and uninstall posture.") purpose=_("Tenant app catalog") status=_("Tenant-safe") primary_url="#tenant-catalog-grid" primary_label=_("Browse apps") secondary_url="/school/settings/" secondary_label=_("School configuration") visual_title=_("Install without surprises") visual_body=_("Paid and plan-gated apps show honest upgrade and external settlement posture before activation.") %}
   {% include "components/world_class_summary_strip.html" with readiness="Sandbox" readiness_label=_("Preview first") risk=_("Scopes") risk_label=_("Consent required") next_step=_("Browse") next_step_label=_("Low-click install") blockers=_("Billing") blockers_label=_("External PSP honest") %}
   {% include "components/platform_readiness_strip.html" with inline_field_prefix='tenant-app-catalog' tenant_label=request.tenant.display_name|default:'' %}
-  {% include "components/apple_class_dependency_graph.html" with graph_id="tenant-app-scope-graph" title=_("Permission scope visual") source=_("App") dependency=_("Consent and billing") target=_("School install") %}
+  {# v2.68 Wave A: dependency graph is reference material — collapse so the catalog grid is the first thing admins see. #}
+  <details class="studio-os__card studio-os__card--disclosure mb-3 px-3 py-2" role="region" aria-labelledby="tenant-app-scope-graph-heading">
+    <summary class="d-flex align-items-center gap-2 py-1" style="cursor: pointer; list-style: revert;">
+      <span id="tenant-app-scope-graph-heading" class="fw-semibold small">{% trans "Permission scope visual" %}</span>
+      <span class="text-muted small">{% trans "How app consent and billing flow to school install." %}</span>
+    </summary>
+    <div class="pt-3 pb-1">
+      {% include "components/apple_class_dependency_graph.html" with graph_id="tenant-app-scope-graph" title=_("Permission scope visual") source=_("App") dependency=_("Consent and billing") target=_("School install") %}
+    </div>
+  </details>
   <section class="proof-hero">
     <div class="proof-hero-grid">
       <div>

@@ -16,7 +16,16 @@
   {% include "components/world_class_page_hero.html" with hero_id="platform-app-catalog-title" role=_("Platform marketplace operators") title=_("App Catalog Governance") subtitle=_("Review app status, permission scopes, sandbox posture, billing model, install impact, webhook health, partner trust, and rollback posture before activation.") purpose=_("Marketplace governance") status=_("Sandbox first") primary_url="#app-catalog-list" primary_label=_("Browse installable apps") secondary_url="/super/marketplace-governance/" secondary_label=_("Marketplace governance") visual_title=_("Install impact before commit") visual_body=_("No settlement or PSP readiness is implied unless external proof exists.") %}
   {% include "components/world_class_summary_strip.html" with readiness="Sandbox" readiness_label=_("Install impact") risk=_("Scopes") risk_label=_("Permission review") next_step=_("Preview") next_step_label=_("Impact modal") blockers=_("Settlement") blockers_label=_("External honesty") %}
   {% include "components/platform_readiness_strip.html" with inline_field_prefix='app-catalog' %}
-  {% include "components/apple_class_dependency_graph.html" with graph_id="app-permission-scope-graph" title=_("App permission scope visual") source=_("App") dependency=_("Scopes and sandbox") target=_("Tenant install impact") %}
+  {# v2.68 Wave A: dependency graph is reference material, not the install path. Collapse so the catalog grid is the first thing operators see. #}
+  <details class="studio-os__card studio-os__card--disclosure mb-3 px-3 py-2" role="region" aria-labelledby="app-catalog-scope-graph-heading">
+    <summary class="d-flex align-items-center gap-2 py-1" style="cursor: pointer; list-style: revert;">
+      <span id="app-catalog-scope-graph-heading" class="fw-semibold small">{% trans "App permission scope visual" %}</span>
+      <span class="text-muted small">{% trans "How app scopes flow to tenant install impact." %}</span>
+    </summary>
+    <div class="pt-3 pb-1">
+      {% include "components/apple_class_dependency_graph.html" with graph_id="app-permission-scope-graph" title=_("App permission scope visual") source=_("App") dependency=_("Scopes and sandbox") target=_("Tenant install impact") %}
+    </div>
+  </details>
   <section class="proof-hero">
     <div class="proof-hero-grid">
       <div>

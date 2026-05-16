@@ -77,16 +77,23 @@
     </article>
   </div>
 
-  <div class="row g-3 mb-4">
-    <div class="col-lg-6">
-      {% url 'api:ai-marketplace-recommend' as api_mkt_rec %}
-      {% include "components/ai_json_api_card.html" with api_url=api_mkt_rec card_title=_("Marketplace recommendation (JSON)") card_hint=_('POST {"query":"..."} or {"institution_type":"..."}. Response includes recommendations and rationale (JSON).') field_id="govMktJson" default_body='{"query":"K-12 district prioritizing SIS interoperability and attendance dashboards"}' %}
+  {# v2.68 Wave A: AI advisors are optional tools, not the operator's main path. Collapse by default to reclaim ~400px above the review queue. #}
+  <details class="studio-os__card studio-os__card--disclosure mb-4 px-3 py-2" role="region" aria-labelledby="gov-ai-advisors-heading">
+    <summary class="d-flex align-items-center gap-2 py-1" style="cursor: pointer; list-style: revert;">
+      <span id="gov-ai-advisors-heading" class="fw-semibold small">{% trans "AI advisors" %}</span>
+      <span class="text-muted small">{% trans "Marketplace recommendations and trust/compliance assistant — advisory only." %}</span>
+    </summary>
+    <div class="row g-3 mt-2">
+      <div class="col-lg-6">
+        {% url 'api:ai-marketplace-recommend' as api_mkt_rec %}
+        {% include "components/ai_json_api_card.html" with api_url=api_mkt_rec card_title=_("Marketplace recommendation (JSON)") card_hint=_('POST {"query":"..."} or {"institution_type":"..."}. Response includes recommendations and rationale (JSON).') field_id="govMktJson" default_body='{"query":"K-12 district prioritizing SIS interoperability and attendance dashboards"}' %}
+      </div>
+      <div class="col-lg-6">
+        {% url 'api:ai-trust-compliance-assistant' as api_ai_trust_gov %}
+        {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_trust_gov card_title=_("Trust & compliance assistant") card_hint=_("Listing review, security reviews, and obligations — advisory only; not legal advice.") field_id="govTrustAiQ" %}
+      </div>
     </div>
-    <div class="col-lg-6">
-      {% url 'api:ai-trust-compliance-assistant' as api_ai_trust_gov %}
-      {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_trust_gov card_title=_("Trust & compliance assistant") card_hint=_("Listing review, security reviews, and obligations — advisory only; not legal advice.") field_id="govTrustAiQ" %}
-    </div>
-  </div>
+  </details>
 
   <div class="row g-4">
     <div class="col-12 col-xxl-5">
