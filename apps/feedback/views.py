@@ -276,3 +276,57 @@ def add_to_roadmap(request, pk):
     )
     messages.success(request, "Roadmap item created.")
     return redirect("feedback:product_roadmap")
+
+
+@login_required
+def help_center(request):
+    """Role-aware Help Center landing — bridges KB / feedback / contact / release notes / pulse.
+
+    Single entry point for in-app users. Marketing contact lives at /contact/; this surface is
+    inside the authenticated shell so role-aware shortcuts and tenant-scoped data show first.
+    """
+    role = (get_user_role(request.user) or "").lower()
+    school = get_request_school(request)
+    is_op = is_operator(request.user)
+    recent_release_notes = list(
+        ReleaseNote.objects.filter(
+            is_public=True, published_at__isnull=False
+        ).order_by("-published_at")[:5]
+    )
+    pinned_feedback_route = "feedback:school_feedback"
+    if role == "teacher":
+        pinned_feedback_route = "feedback:teacher_feedback"
+    elif role == "parent":
+        pinned_feedback_route = "feedback:parent_feedback"
+    elif role == "student":
+        pinned_feedback_route = "feedback:student_feedback"
+    return render(
+        request,
+        "feedback/help_center.html",
+        {
+            "role": role,
+            "school": school,
+            "is_operator": is_op,
+            "release_notes": recent_release_notes,
+            "pinned_feedback_route": pinned_feedback_route,
+            "you_said_we_did": generate_you_said_we_did_items(school)[:5] if school else [],
+        },
+    )
+
+
+def release_notes_public(request):
+    """Public release-notes feed (no login required) — only `is_public=True` items.
+
+    Tenant viewers see the same global feed (release notes are platform-level, not per-tenant).
+    Operators see a richer view inside `feedback:product_roadmap`.
+    """
+    notes = list(
+        ReleaseNote.objects.filter(
+            is_public=True, published_at__isnull=False
+        ).prefetch_related("feature_requests").order_by("-published_at")[:100]
+    )
+    return render(
+        request,
+        "feedback/release_notes_public.html",
+        {"release_notes": notes},
+    )

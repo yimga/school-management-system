@@ -1,0 +1,60 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Release notes" %}{% endblock %}
+{% block backend_title %}{% trans "Release notes" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" data-page-archetype="reading-list">
+  {% include "studio_os/components/page_header.html" with title=_("Release notes") subtitle=_("What's new on RunMyCampus. We ship every couple of weeks.") %}
+
+  <div class="row g-3">
+    <section class="col-lg-9">
+      {% if release_notes %}
+        <ul class="list-unstyled">
+          {% for note in release_notes %}
+            <li class="card shadow-sm mb-3">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+                  <h2 class="h5 mb-0">{{ note.title }}</h2>
+                  {% if note.published_at %}
+                    <span class="badge bg-light text-dark">{{ note.published_at|date:"Y-m-d" }}</span>
+                  {% endif %}
+                </div>
+                <p class="mb-2">{{ note.summary|linebreaksbr }}</p>
+                {% with related=note.feature_requests.all %}
+                  {% if related %}
+                    <details class="small">
+                      <summary class="text-muted">{% blocktrans count counter=related.count %}{{ counter }} related request{% plural %}{{ counter }} related requests{% endblocktrans %}</summary>
+                      <ul class="mt-2 mb-0">
+                        {% for fr in related %}
+                          <li>{{ fr.title }}</li>
+                        {% endfor %}
+                      </ul>
+                    </details>
+                  {% endif %}
+                {% endwith %}
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="rmc-empty rmc-empty--block" role="status">
+          <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-journal-text"></i></div>
+          <p class="rmc-empty__message">{% trans "No public release notes yet. We'll post here as waves ship." %}</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <aside class="col-lg-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h3 class="h6">{% trans "Got feedback?" %}</h3>
+          <p class="small text-muted">{% trans "Tell us what should ship next. Your input drives the roadmap." %}</p>
+          <a href="{% url 'feedback:school_feedback' %}" class="btn btn-primary btn-sm">{% trans "Send feedback" %}</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

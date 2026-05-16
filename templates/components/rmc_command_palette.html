@@ -45,7 +45,11 @@
           {% if cmdk_portal_configure_url %}{"label": "{% trans 'Configure (settings)' %}", "url": "{{ cmdk_portal_configure_url }}", "icon": "bi-sliders", "keywords": "settings configuration runtime"},{% endif %}
           {"label": "{% trans 'My Profile' %}", "url": "{% url 'accounts:user_profile' %}", "icon": "bi-person-circle", "keywords": "account user"},
           {"label": "{% trans 'Notifications' %}", "url": "{% url 'accounts:user_notifications' %}", "icon": "bi-bell", "keywords": "alerts"},
-          {"label": "{% trans 'Help Center' %}", "url": "{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}", "icon": "bi-life-preserver", "keywords": "support docs"}
+          {% url 'feedback:help_center' as cmdk_help_center_url %}
+          {% if cmdk_help_center_url %}{"label": "{% trans 'Help Center' %}", "url": "{{ cmdk_help_center_url }}", "icon": "bi-life-preserver", "keywords": "support docs feedback contact"},{% endif %}
+          {% url 'feedback:release_notes_public' as cmdk_release_notes_url %}
+          {% if cmdk_release_notes_url %}{"label": "{% trans 'Release notes' %}", "url": "{{ cmdk_release_notes_url }}", "icon": "bi-stars", "keywords": "changelog whats new updates"},{% endif %}
+          {"label": "{% trans 'Knowledge base' %}", "url": "{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}", "icon": "bi-book", "keywords": "docs guide articles"}
         {% endif %}
       ]
     },

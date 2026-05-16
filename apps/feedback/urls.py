@@ -19,4 +19,6 @@ urlpatterns = [
     path("super/product-roadmap/", views.product_roadmap, name="product_roadmap"),
     path("super/feedback/<int:pk>/action/", views.operator_feedback_action, name="operator_feedback_action"),
     path("super/feature/<int:pk>/roadmap/", views.add_to_roadmap, name="add_to_roadmap"),
+    path("help/", views.help_center, name="help_center"),
+    path("release-notes/", views.release_notes_public, name="release_notes_public"),
 ]

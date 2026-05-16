@@ -1,0 +1,118 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Help Center" %}{% endblock %}
+{% block backend_title %}{% trans "Help Center" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=_("Help Center") subtitle=_("Get unblocked fast. Browse guides, share feedback, see what shipped.") %}
+
+  <div class="row g-3 mb-4">
+    <section class="col-md-6 col-lg-3">
+      <a href="{% url 'kb:kb_home' %}" class="card shadow-sm h-100 text-decoration-none">
+        <div class="card-body">
+          <i class="bi bi-book rmc-type-display-sm" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "Knowledge base" %}</h2>
+          <p class="small text-muted mb-0">{% trans "Step-by-step guides for every role." %}</p>
+        </div>
+      </a>
+    </section>
+    <section class="col-md-6 col-lg-3">
+      <a href="{% url pinned_feedback_route %}" class="card shadow-sm h-100 text-decoration-none">
+        <div class="card-body">
+          <i class="bi bi-chat-square-text rmc-type-display-sm" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "Send feedback" %}</h2>
+          <p class="small text-muted mb-0">{% trans "Report a bug, request a feature, share a suggestion." %}</p>
+        </div>
+      </a>
+    </section>
+    <section class="col-md-6 col-lg-3">
+      <a href="{% url 'feedback:release_notes_public' %}" class="card shadow-sm h-100 text-decoration-none">
+        <div class="card-body">
+          <i class="bi bi-stars rmc-type-display-sm" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "What's new" %}</h2>
+          <p class="small text-muted mb-0">{% trans "Latest releases and changelog." %}</p>
+        </div>
+      </a>
+    </section>
+    <section class="col-md-6 col-lg-3">
+      {% url 'marketing_contact' as marketing_contact_url %}
+      <a href="{% if marketing_contact_url %}{{ marketing_contact_url }}{% else %}{% url pinned_feedback_route %}{% endif %}" class="card shadow-sm h-100 text-decoration-none">
+        <div class="card-body">
+          <i class="bi bi-life-preserver rmc-type-display-sm" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "Contact support" %}</h2>
+          <p class="small text-muted mb-0">{% trans "Reach a human. We answer in 1 business day." %}</p>
+        </div>
+      </a>
+    </section>
+  </div>
+
+  <div class="row g-3">
+    <section class="col-lg-7">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">
+          <h2 class="h6 mb-0">{% trans "What's new" %}</h2>
+        </div>
+        <div class="card-body p-0">
+          {% if release_notes %}
+            <ul class="list-group list-group-flush">
+              {% for note in release_notes %}
+                <li class="list-group-item">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <strong>{{ note.title }}</strong>
+                      <p class="small text-muted mb-0">{{ note.summary|truncatewords:24 }}</p>
+                    </div>
+                    {% if note.published_at %}
+                      <small class="text-muted ms-3">{{ note.published_at|date:"Y-m-d" }}</small>
+                    {% endif %}
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+            <div class="card-footer text-end">
+              <a href="{% url 'feedback:release_notes_public' %}" class="btn btn-link btn-sm p-0">{% trans "See all release notes" %} →</a>
+            </div>
+          {% else %}
+            <div class="rmc-empty rmc-empty--inline px-3 py-4" role="status">
+              <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-journal-text"></i></div>
+              <p class="rmc-empty__message mb-0">{% trans "No release notes yet. We'll post here when the next wave ships." %}</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <section class="col-lg-5">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">
+          <h2 class="h6 mb-0">{% trans "You said. We did." %}</h2>
+        </div>
+        <div class="card-body p-0">
+          {% if you_said_we_did %}
+            <ul class="list-group list-group-flush">
+              {% for entry in you_said_we_did %}
+                <li class="list-group-item small">
+                  <strong>{{ entry.feedback_title|default:entry.title }}</strong>
+                  <div class="text-muted">{{ entry.outcome|default:entry.summary|truncatewords:18 }}</div>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="rmc-empty rmc-empty--inline px-3 py-4" role="status">
+              <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-chat-square-quote"></i></div>
+              <p class="rmc-empty__message mb-0">{% trans "Submit feedback and we'll close the loop here when it ships." %}</p>
+            </div>
+          {% endif %}
+          {% if is_operator %}
+            <div class="card-footer">
+              <a href="{% url 'feedback:voice_of_customer' %}" class="btn btn-link btn-sm p-0">{% trans "Operator: voice of customer" %} →</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
