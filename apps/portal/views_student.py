@@ -25,10 +25,9 @@ from .models import PortalFeatureItem
 from .views_common import PORTAL_FEATURES_META
 
 
+@login_required
 def student_portal_grades(request: HttpRequest):
     """Student role home (Phase 7); other roles use the family dashboard."""
-    if not request.user.is_authenticated:
-        return redirect_to_login(next=request.get_full_path())
     if get_user_role(request.user) == User.Role.STUDENT:
         return student_learning_home(request)
     return redirect("portal:parent_dashboard")

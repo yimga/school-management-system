@@ -22,46 +22,107 @@ Output:
 
 ## Headline numbers
 
-| Metric                         | Count |
-|--------------------------------|------:|
-| URL → view rows                | 633   |
-| Views indexed across apps      | 1,197 |
-| Login-gated                    | 539   |
-| Role-gated                     | 56    |
-| Permission-gated (feature)     | 91    |
-| Candidate-anonymous            | 56    |
-| Unresolved view symbol         | 38    |
+| Metric                         | v2.80 | v2.82 |
+|--------------------------------|------:|------:|
+| URL → view rows                | 633   | 633   |
+| Views indexed across apps      | 1,197 | 1,197 |
+| Login-gated                    | 539   | **559** |
+| Role-gated                     | 56    | **74**  |
+| Permission-gated (feature)     | 91    | 91    |
+| Candidate-anonymous            | 56    | **36** |
+| Unresolved view symbol         | 38    | 38    |
+
+v2.82 improvements:
+- Scanner now recognizes 12 more project-specific auth decorators
+  (`require_super_access_with_host`, `require_super_access`,
+  `require_control_plane_access`, `require_school`, `require_school_permission`,
+  `require_feature`, `require_parent_child_access`, `finance_access_required`,
+  `evaluation_access_required`, `mfa_required`, `observability_auth_required`,
+  `webhook_security_required`). This recategorized 18 routes from
+  candidate-anonymous to login/role-gated (no code change — same routes,
+  better classification).
+- 2 real refactors: `student_portal_grades` and `regulatory_export` had
+  inline `if not request.user.is_authenticated` checks that the AST can't
+  see. Converted both to `@login_required` decorators — pure refactor,
+  same behavior, now auditable from the function signature.
 
 "Login-gated" + "candidate-anonymous" don't sum to 633 because a
 view can be DRF-permission-gated without `@login_required`, etc.
 
-## Candidate-anonymous: review hit-list
+## Candidate-anonymous: review hit-list (v2.82 update)
 
-56 routes have no detected `@login_required` / `@role_required` /
-`@permission_required` decorator and no DRF `permission_classes`.
-**This does NOT mean they're unprotected** — many are intentional
-public surfaces, and others are protected by middleware (RLS,
-TenantContextMiddleware, custom auth handlers).
+**36 routes** remain after v2.82's triage and decorator-recognition
+expansion. **This does NOT mean they're unprotected** — most are
+intentional public surfaces, and a handful are protected by middleware
+or inline-auth checks the AST can't see.
 
-Rough triage of the 56:
+Rough triage of the 36:
 
 | Bucket                              | Approx | Notes                                                                 |
 |-------------------------------------|------:|------------------------------------------------------------------------|
-| Intentional public (auth flow, marketing, KB, FAQ, release notes, healthz, webhooks) | ~40 | Verified safe by spot-check |
-| Magic-link / token-auth (photo-upload, badge-verify, OIDC/SAML callbacks) | ~7 | Authorize via token in URL, not session |
-| Admissions / applicant-facing | ~3 | Anonymous applicants by design |
-| **Worth review** | **~6** | publisher_dashboard, publisher_app_detail, metadata_search_api, metadata_governance_ui, metadata_lineage_api, metadata_lineage_graph_ui |
+| Auth flow itself (login/logout/redirect, OIDC, SAML) | 10 | Cannot be auth-gated by definition |
+| Public knowledge base (KB, FAQ, articles, downloads, search) | 9 | Explicitly public — KB is the help center |
+| Token-auth (photo-upload UUID, badge verify, report share token, WOPI) | 9 | Authorize via token in URL, not session |
+| Public marketing / release notes / admissions | 3 | Intentional |
+| Webhooks (payment provider) | 1 | HMAC-verified inline |
+| Onboarding magic-links (teacher / student / parent medal case) | 3 | Token-driven entry points |
+| Studio audit JSON (intentional graceful-degrade) | 1 | `studio_audit_api` returns `{audit: []}` for non-authorized users |
 
-The 6 routes worth review are in `apps/marketplace/urls.py` and
-`apps/metadata/urls.py`. They render dashboards / governance UIs
-that should plausibly require login (or operator role). Confirm
-each is either:
-- Protected by middleware (then we leave a `# rbac-allow: <reason>`
-  marker for next-time-the-scanner-runs honesty), OR
-- Genuinely a gap (add the right decorator).
+### v2.82 confirmed fixes
 
-This is a **scanner**, not a verdict. The 6 routes are starting
-points for a code review, not bug reports.
+| Route                       | Was                                                | Now                                |
+|-----------------------------|----------------------------------------------------|------------------------------------|
+| `student_portal_grades`     | Inline `if not authenticated: redirect_to_login`   | `@login_required` decorator        |
+| `regulatory_export`         | Inline `if not authenticated: redirect`            | `@login_required` decorator        |
+
+Both were already authenticated — the refactor just makes the auth
+visible at the function signature so reviewers (and the AST scanner)
+can see it.
+
+### v2.82 confirmed-protected via custom decorators (originally flagged)
+
+The 6 marketplace/metadata routes flagged in v2.80 turned out to be
+protected by `@require_super_access_with_host` — a project-specific
+control-plane gate that requires (1) manager host or `/super/` path
+AND (2) authenticated user AND (3) SUPERADMIN role. The scanner was
+just blind to that decorator name. Adding it to `KNOWN_AUTH_DECORATORS`
+recategorizes all 6 plus 12 others.
+
+| Route                          | Decorator                                  |
+|--------------------------------|--------------------------------------------|
+| `publisher_dashboard`          | `@require_super_access_with_host`          |
+| `publisher_app_detail`         | `@require_super_access_with_host`          |
+| `metadata_search_api`          | `@require_super_access_with_host`          |
+| `metadata_governance_ui`       | `@require_super_access_with_host`          |
+| `metadata_lineage_api`         | `@require_super_access_with_host`          |
+| `metadata_lineage_graph_ui`    | `@require_super_access_with_host`          |
+
+This is the value of the matrix: surface candidates, then a code
+review either confirms protection (and the scanner learns) or
+finds a real gap (and the code gets fixed).
+
+## CI gate (v2.82)
+
+The scanner now exits 1 when the candidate-anonymous count exceeds
+a passed-in maximum:
+
+```pwsh
+python scripts/audit_role_permission_matrix.py --max-candidate-anonymous 36
+```
+
+This is wired into `.github/workflows/architectural-boundaries.yml`
+as a new `rbac-matrix` job. **Baseline pinned at 36.** Any new route
+that lands without a recognized auth decorator (or middleware
+documentation via `# rbac-allow: <reason>`) makes the CI gate fail.
+
+### How to update the gate
+
+When you legitimately reduce the count (by fixing a route or by
+teaching the scanner about a new decorator), open
+`.github/workflows/architectural-boundaries.yml`, find the
+`rbac-matrix` job, and lower the `--max-candidate-anonymous` value.
+**Never raise the number** — that silences the scanner. Triage every
+new entry first.
 
 ## Unresolved: 38 routes
 

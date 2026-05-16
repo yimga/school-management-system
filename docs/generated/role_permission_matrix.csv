@@ -337,12 +337,12 @@ webhook/<slug:connector_slug>/<int:integration_id>/,webhooks.webhook_receiver,ap
 admin/redirect-uris/,views.redirect_uri_registry,apps/integrations_marketplace/urls.py,apps/integrations_marketplace/views.py,func,login_required,,,1,0,0,0,0
 governance/,views.governance_console,apps/marketplace/urls.py,apps/marketplace/views.py,func,login_required | user_passes_test(_control_plane_access),,,1,0,0,0,0
 reviews/<int:review_id>/action/,views.marketplace_review_action,apps/marketplace/urls.py,apps/marketplace/views.py,func,login_required | user_passes_test(_control_plane_access) | require_POST,,,1,0,0,0,0
-publisher/,publisher_dashboard,apps/marketplace/urls.py,apps/marketplace/views_publisher.py,func,require_super_access_with_host | require_GET,,,0,0,0,1,0
-publisher/<slug:slug>/,publisher_app_detail,apps/marketplace/urls.py,apps/marketplace/views_publisher.py,func,require_super_access_with_host | require_GET,,,0,0,0,1,0
-search/,metadata_search_api,apps/metadata/urls.py,apps/metadata/views.py,func,require_super_access_with_host | require_http_methods(['GET']),,,0,0,0,1,0
-governance/,metadata_governance_ui,apps/metadata/urls.py,apps/metadata/views.py,func,require_super_access_with_host | require_http_methods(['GET']),,,0,0,0,1,0
-lineage/,metadata_lineage_api,apps/metadata/urls.py,apps/metadata/views.py,func,require_super_access_with_host | require_http_methods(['GET']),,,0,0,0,1,0
-lineage/graph/,metadata_lineage_graph_ui,apps/metadata/urls.py,apps/metadata/views.py,func,require_super_access_with_host | require_http_methods(['GET']),,,0,0,0,1,0
+publisher/,publisher_dashboard,apps/marketplace/urls.py,apps/marketplace/views_publisher.py,func,require_super_access_with_host | require_GET,,,1,1,0,0,0
+publisher/<slug:slug>/,publisher_app_detail,apps/marketplace/urls.py,apps/marketplace/views_publisher.py,func,require_super_access_with_host | require_GET,,,1,1,0,0,0
+search/,metadata_search_api,apps/metadata/urls.py,apps/metadata/views.py,func,require_super_access_with_host | require_http_methods(['GET']),,,1,1,0,0,0
+governance/,metadata_governance_ui,apps/metadata/urls.py,apps/metadata/views.py,func,require_super_access_with_host | require_http_methods(['GET']),,,1,1,0,0,0
+lineage/,metadata_lineage_api,apps/metadata/urls.py,apps/metadata/views.py,func,require_super_access_with_host | require_http_methods(['GET']),,,1,1,0,0,0
+lineage/graph/,metadata_lineage_graph_ui,apps/metadata/urls.py,apps/metadata/views.py,func,require_super_access_with_host | require_http_methods(['GET']),,,1,1,0,0,0
 workbench/,views.operator_workbench,apps/orchestration/urls.py,apps/orchestration/views.py,func,staff_member_required,,,1,0,0,0,0
 runs/<int:run_id>/retry/,views.retry_run,apps/orchestration/urls.py,apps/orchestration/views.py,func,staff_member_required,,,1,0,0,0,0
 ,dashboard,apps/payroll/urls.py,apps/analytics/views.py,func,staff_member_required,,,1,0,0,0,0
@@ -409,7 +409,7 @@ teacher/disciplinary/,teacher_disciplinary,apps/portal/urls.py,apps/portal/views
 teacher/training-log/,teacher_training_log,apps/portal/urls.py,apps/portal/views_teacher.py,func,teacher_portal_required | role_required(User.Role.TEACHER),,User.Role.TEACHER,1,1,0,0,0
 parent/attendance-discipline/,parent_attendance_discipline,apps/portal/urls.py,apps/portal/views_parent.py,func,parent_portal_required | role_required(User.Role.PARENT),,User.Role.PARENT,1,1,0,0,0
 student/onboarding/,student_onboarding_wizard,apps/portal/urls.py,apps/portal/views_onboarding.py,func,,,,0,0,0,1,0
-student-portal/grades/,student_portal_grades,apps/portal/urls.py,apps/portal/views_student.py,func,,,,0,0,0,1,0
+student-portal/grades/,student_portal_grades,apps/portal/urls.py,apps/portal/views_student.py,func,login_required,,,1,0,0,0,0
 admissions/application-status/,admissions_application_status,apps/portal/urls.py,apps/portal/views_student.py,func,,,,0,0,0,1,0
 attendance/student/,take_student_attendance,apps/portal/urls.py,apps/portal/views_teacher.py,func,login_required,,,1,0,0,0,0
 attendance/student/export/,student_attendance_export,apps/portal/urls.py,apps/portal/views_attendance_export.py,func,login_required | enforce_tenant_security,,,1,0,0,0,0
@@ -480,15 +480,15 @@ verify-hash/,verify_report_hash,apps/reports/urls.py,apps/reports/views.py,func,
 publish/,publish_term_results,apps/reports/urls.py,apps/reports/views.py,func,staff_member_required,,,1,0,0,0,0
 statistical-return/,statistical_return,apps/reports/urls.py,apps/reports/views.py,func,staff_member_required,,,1,0,0,0,0
 promotion-preview/,promotion_preview,apps/reports/urls.py,apps/reports/views.py,func,staff_member_required,,,1,0,0,0,0
-regulatory-export/,regulatory_export,apps/reports/urls.py,apps/reports/views.py,func,,,,0,0,0,1,0
+regulatory-export/,regulatory_export,apps/reports/urls.py,apps/reports/views.py,func,login_required,,,1,0,0,0,0
 ,requests_dashboard,apps/requests/urls.py,apps/requests/views.py,func,login_required | user_passes_test(_can_manage_requests),,,1,0,0,0,0
 module-access/,request_module_access,apps/requests/urls.py,apps/requests/views.py,func,login_required,,,1,0,0,0,0
 <uuid:request_id>/,request_detail,apps/requests/urls.py,apps/requests/views.py,func,login_required | user_passes_test(_can_manage_requests),,,1,0,0,0,0
-,views.pipeline_board,apps/sales/urls.py,apps/sales/views.py,func,require_control_plane_access,,,0,0,0,1,0
-first-100/,views.first_100_schools_dashboard,apps/sales/urls.py,apps/sales/views.py,func,require_control_plane_access,,,0,0,0,1,0
-leads/new/,views.lead_create,apps/sales/urls.py,apps/sales/views.py,func,"require_control_plane_access | require_http_methods(['GET', 'POST'])",,,0,0,0,1,0
-leads/<int:pk>/,views.lead_detail,apps/sales/urls.py,apps/sales/views.py,func,"require_control_plane_access | require_http_methods(['GET', 'POST'])",,,0,0,0,1,0
-leads/<int:pk>/stage/,views.update_stage,apps/sales/urls.py,apps/sales/views.py,func,require_control_plane_access | require_POST,,,0,0,0,1,0
+,views.pipeline_board,apps/sales/urls.py,apps/sales/views.py,func,require_control_plane_access,,,1,1,0,0,0
+first-100/,views.first_100_schools_dashboard,apps/sales/urls.py,apps/sales/views.py,func,require_control_plane_access,,,1,1,0,0,0
+leads/new/,views.lead_create,apps/sales/urls.py,apps/sales/views.py,func,"require_control_plane_access | require_http_methods(['GET', 'POST'])",,,1,1,0,0,0
+leads/<int:pk>/,views.lead_detail,apps/sales/urls.py,apps/sales/views.py,func,"require_control_plane_access | require_http_methods(['GET', 'POST'])",,,1,1,0,0,0
+leads/<int:pk>/stage/,views.update_stage,apps/sales/urls.py,apps/sales/views.py,func,require_control_plane_access | require_POST,,,1,1,0,0,0
 ,views.event_hub,apps/school_events/urls.py,apps/school_events/views.py,func,login_required,,,1,0,0,0,0
 <slug:slug>/,views.event_detail,apps/school_events/urls.py,apps/school_events/views.py,func,login_required,,,1,0,0,0,0
 <slug:slug>/register/,views.register_for_event,apps/school_events/urls.py,apps/school_events/views.py,func,login_required | require_POST,,,1,0,0,0,0
@@ -497,10 +497,10 @@ onboarding/step/complete/,onboarding_step_mark_complete,apps/siteconfig/urls.py,
 onboarding/step/<str:step_key>/,onboarding_step_detail,apps/siteconfig/urls.py,apps/siteconfig/views_school_onboarding.py,func,login_required,,,1,0,0,0,0
 onboarding/,school_activation_onboarding,apps/siteconfig/urls.py,apps/siteconfig/views_school_onboarding.py,func,login_required,,,1,0,0,0,0
 console/,console_domains_hub,apps/siteconfig/urls.py,apps/siteconfig/views_console_domains.py,func,staff_member_required,,,1,0,0,0,0
-metadata/operator-hub/,metadata_operator_hub,apps/siteconfig/urls.py,apps/siteconfig/views_metadata_operator_hub.py,func,require_super_access_with_host,,,0,0,0,1,0
-metadata/entity-catalog/,entity_catalog_overview,apps/siteconfig/urls.py,apps/siteconfig/views_entity_catalog.py,func,require_super_access_with_host,,,0,0,0,1,0
-metadata/dynamic-fields/,metadata_dynamic_fields_operator,apps/siteconfig/urls.py,apps/siteconfig/views_metadata_dynamic_fields.py,func,require_super_access_with_host,,,0,0,0,1,0
-metadata/config-mutation-audit/,config_mutation_audit_evidence,apps/siteconfig/urls.py,apps/siteconfig/views_config_mutation_evidence.py,func,require_super_access_with_host,,,0,0,0,1,0
+metadata/operator-hub/,metadata_operator_hub,apps/siteconfig/urls.py,apps/siteconfig/views_metadata_operator_hub.py,func,require_super_access_with_host,,,1,1,0,0,0
+metadata/entity-catalog/,entity_catalog_overview,apps/siteconfig/urls.py,apps/siteconfig/views_entity_catalog.py,func,require_super_access_with_host,,,1,1,0,0,0
+metadata/dynamic-fields/,metadata_dynamic_fields_operator,apps/siteconfig/urls.py,apps/siteconfig/views_metadata_dynamic_fields.py,func,require_super_access_with_host,,,1,1,0,0,0
+metadata/config-mutation-audit/,config_mutation_audit_evidence,apps/siteconfig/urls.py,apps/siteconfig/views_config_mutation_evidence.py,func,require_super_access_with_host,,,1,1,0,0,0
 configuration/runtime/,tenant_runtime_configuration_hub,apps/siteconfig/urls.py,apps/siteconfig/views_tenant_runtime_hub.py,func,login_required | permission_required('settings.manage') | require_http_methods(['GET']),,,1,0,1,0,0
 configuration/guided/,guided_configuration_workflows,apps/siteconfig/urls.py,apps/siteconfig/views_guided_configuration.py,func,login_required | permission_required('settings.manage') | require_http_methods(['GET']),,,1,0,1,0,0
 schools/group-hierarchy/,school_group_hierarchy,apps/siteconfig/urls.py,apps/siteconfig/views_school_group_hierarchy.py,func,login_required | permission_required('settings.manage') | require_http_methods(['GET']),,,1,0,1,0,0
@@ -513,9 +513,9 @@ grading-scales/bands/,grading_scale_bands_operator_view,apps/siteconfig/urls.py,
 curriculum/templates/,curriculum_templates_operator_view,apps/siteconfig/urls.py,apps/siteconfig/views_curriculum_templates.py,func,login_required,,,1,0,0,0,0
 compliance/exports/,compliance_exports_view,apps/siteconfig/urls.py,apps/siteconfig/views_compliance_exports.py,func,login_required | permission_required('settings.manage') | enforce_tenant_security,,,1,0,1,0,0
 compliance/exports/<slug:export_key>/download/,compliance_export_download_view,apps/siteconfig/urls.py,apps/siteconfig/views_compliance_exports.py,func,login_required | permission_required('settings.manage') | enforce_tenant_security,,,1,0,1,0,0
-grading-scales/region-scales/,region_grading_scales_view,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,require_super_access_with_host,,,0,0,0,1,0
-regions/validation/,region_validation_dashboard,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,require_super_access_with_host,,,0,0,0,1,0
-regions/comparison/,region_comparison_view,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,require_super_access_with_host,,,0,0,0,1,0
+grading-scales/region-scales/,region_grading_scales_view,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,require_super_access_with_host,,,1,1,0,0,0
+regions/validation/,region_validation_dashboard,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,require_super_access_with_host,,,1,1,0,0,0
+regions/comparison/,region_comparison_view,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,require_super_access_with_host,,,1,1,0,0,0
 modules/,module_market,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,login_required,,,1,0,0,0,0
 installed-packages/,tenant_installed_packages_rollback,apps/siteconfig/urls.py,apps/siteconfig/views_package_rollback.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,1,0,0,0,0
 preview/clear/,clear_preview,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,permission_required('settings.manage'),,,1,0,1,0,0

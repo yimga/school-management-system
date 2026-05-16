@@ -14,6 +14,7 @@ import csv
 import hashlib
 from types import SimpleNamespace
 
+from django.contrib.auth.decorators import login_required
 from apps.accounts.decorators import role_required, parent_portal_required
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Term
@@ -1300,6 +1301,7 @@ def _regulatory_export_school(request: HttpRequest):
     return _report_scope_school(request)
 
 
+@login_required
 def regulatory_export(request: HttpRequest):
     """
     Regulatory / MoE export: list presets (WAEC, Bulletin de Notes, Ofsted, etc.)
@@ -1309,8 +1311,6 @@ def regulatory_export(request: HttpRequest):
     from apps.reports.moe_presets import get_moe_presets
     from apps.reports.services import build_regulatory_export
 
-    if not request.user.is_authenticated:
-        return redirect(settings.LOGIN_URL + "?next=" + request.path)
     if not (
         request.user.is_staff
         or (getattr(request.user, "role", "") or "").upper()

@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-05-16T11:11:40.512582+00:00",
+  "generated_at": "2026-05-16T11:28:17.014836+00:00",
   "generated_by": "scripts/audit_role_permission_matrix.py",
   "row_count": 633,
   "views_indexed": 1197,
   "summary": {
-    "login_gated": 539,
-    "role_gated": 56,
+    "login_gated": 559,
+    "role_gated": 74,
     "permission_gated": 91,
-    "candidate_anonymous": 56,
+    "candidate_anonymous": 36,
     "unresolved": 38
   },
   "rows": [
@@ -6068,10 +6068,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "publisher/<slug:slug>/",
@@ -6086,10 +6086,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "search/",
@@ -6104,10 +6104,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "governance/",
@@ -6122,10 +6122,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "lineage/",
@@ -6140,10 +6140,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "lineage/graph/",
@@ -6158,10 +6158,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "workbench/",
@@ -7407,14 +7407,16 @@
       "urls_file": "apps/portal/urls.py",
       "view_file": "apps/portal/views_student.py",
       "kind": "func",
-      "decorators": [],
+      "decorators": [
+        "login_required"
+      ],
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "admissions/application-status/",
@@ -8638,14 +8640,16 @@
       "urls_file": "apps/reports/urls.py",
       "view_file": "apps/reports/views.py",
       "kind": "func",
-      "decorators": [],
+      "decorators": [
+        "login_required"
+      ],
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "",
@@ -8712,10 +8716,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "first-100/",
@@ -8729,10 +8733,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "leads/new/",
@@ -8747,10 +8751,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "leads/<int:pk>/",
@@ -8765,10 +8769,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "leads/<int:pk>/stage/",
@@ -8783,10 +8787,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "",
@@ -8938,10 +8942,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "metadata/entity-catalog/",
@@ -8955,10 +8959,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "metadata/dynamic-fields/",
@@ -8972,10 +8976,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "metadata/config-mutation-audit/",
@@ -8989,10 +8993,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "configuration/runtime/",
@@ -9229,10 +9233,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "regions/validation/",
@@ -9246,10 +9250,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "regions/comparison/",
@@ -9263,10 +9267,10 @@
       "drf_permission_classes": [],
       "roles_required": [],
       "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
+      "login_gated": true,
+      "role_gated": true,
       "permission_gated": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "modules/",

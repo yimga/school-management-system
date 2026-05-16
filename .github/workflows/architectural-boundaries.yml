@@ -50,6 +50,8 @@ on:
       - "beta/school-management-system/apps/schools/residency_readiness.py"
       - "beta/school-management-system/apps/schools/rls_readiness.py"
       - "beta/school-management-system/scripts/check_documented_baselines.py"
+      - "beta/school-management-system/scripts/audit_role_permission_matrix.py"
+      - "beta/school-management-system/apps/**/urls*.py"
       - ".github/workflows/architectural-boundaries.yml"
   workflow_dispatch: {}
 
@@ -353,3 +355,24 @@ jobs:
           python manage.py verify_platform_readiness \
             --settings=config.settings \
             --section csp at_risk baselines
+
+  rbac-matrix:
+    name: RBAC matrix (candidate-anonymous gate)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run RBAC matrix scanner with baseline gate
+        # v2.82: any NEW candidate-anonymous route (no @login_required,
+        # @role_required, @permission_required, or DRF permission_classes
+        # detectable by AST) makes the gate fail. Pin to the current
+        # documented count. If the new route is intentionally public,
+        # add the right decorator; if it's protected by middleware,
+        # add a # rbac-allow: <reason> marker. Never raise this number
+        # without triaging every new entry.
+        run: |
+          python scripts/audit_role_permission_matrix.py --max-candidate-anonymous 36

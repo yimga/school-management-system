@@ -27,6 +27,7 @@ Honest caveats:
 """
 from __future__ import annotations
 
+import argparse
 import ast
 import csv
 import json
@@ -41,21 +42,39 @@ OUT_JSON = ROOT / "docs" / "generated" / "role_permission_matrix.json"
 OUT_CSV = ROOT / "docs" / "generated" / "role_permission_matrix.csv"
 
 KNOWN_AUTH_DECORATORS = {
+    # Django built-ins / DRF
     "login_required",
+    "staff_member_required",
+    "user_passes_test",
+    "require_POST",
+    "require_GET",
+    "require_http_methods",
+    # apps/accounts/decorators.py
     "role_required",
     "permission_required",
     "object_permission_required",
     "invoice_access_required",
     "student_detail_access_required",
     "portal_toggle_required",
-    "staff_member_required",
-    "user_passes_test",
-    "require_POST",
-    "require_GET",
-    "require_http_methods",
+    # apps/schools/control_plane.py — control-plane / super-surface gates
+    "require_super_access_with_host",
+    "require_super_access",
+    "require_control_plane_access",
     "control_plane_only",
     "superadmin_required",
     "school_admin_required",
+    # apps/schools/* + apps/portal/* tenant / feature gates
+    "require_school",
+    "require_school_permission",
+    "require_feature",
+    "require_parent_child_access",
+    # apps/accounts/permissions.py — finance / evaluation / mfa gates
+    "finance_access_required",
+    "evaluation_access_required",
+    "mfa_required",
+    # other custom gates
+    "observability_auth_required",
+    "webhook_security_required",
 }
 
 
@@ -152,13 +171,50 @@ def scan_urls_file(path: Path) -> list[tuple[str, str, str]]:
     return out
 
 
+_AUTH_GATING_NAMES = {
+    "login_required",
+    "permission_required",
+    "role_required",
+    "staff_member_required",
+    "require_super_access_with_host",
+    "require_super_access",
+    "require_control_plane_access",
+    "control_plane_only",
+    "superadmin_required",
+    "school_admin_required",
+    "require_school",
+    "require_school_permission",
+    "require_feature",
+    "require_parent_child_access",
+    "finance_access_required",
+    "evaluation_access_required",
+    "invoice_access_required",
+    "student_detail_access_required",
+    "object_permission_required",
+    "mfa_required",
+    "observability_auth_required",
+    "webhook_security_required",
+}
+_ROLE_GATING_NAMES = {
+    "role_required",
+    "require_super_access_with_host",
+    "require_super_access",
+    "require_control_plane_access",
+    "control_plane_only",
+    "superadmin_required",
+    "school_admin_required",
+    "finance_access_required",
+    "evaluation_access_required",
+}
+
+
 def _classify(row: dict) -> dict:
     decs = [d["name"] for d in row["decorators"]]
     drf = row["drf_permission_classes"]
-    login_gated = any(
-        n in decs for n in ("login_required", "permission_required", "role_required", "staff_member_required")
-    ) or any(p in drf for p in ("IsAuthenticated", "IsAdminUser"))
-    role_gated = any(n == "role_required" for n in decs) or any(
+    login_gated = any(n in decs for n in _AUTH_GATING_NAMES) or any(
+        p in drf for p in ("IsAuthenticated", "IsAdminUser")
+    )
+    role_gated = any(n in decs for n in _ROLE_GATING_NAMES) or any(
         cls in drf for cls in (
             "IsTeacherOrAdmin", "IsTeacher", "IsParent", "IsStudent",
             "IsStudentOrParent", "IsBursar", "IsAdminLike", "RoleBasedPermission",
@@ -183,6 +239,20 @@ def _role_args(row: dict) -> list[str]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--max-candidate-anonymous",
+        type=int,
+        default=None,
+        metavar="N",
+        help=(
+            "Exit 1 if the candidate_anonymous count exceeds N. Use this in CI to gate "
+            "against new unprotected routes. Pin to the current count and let it ratchet "
+            "down as routes are fixed."
+        ),
+    )
+    args = parser.parse_args()
+
     view_index: dict[str, dict] = {}
     for views_path in APPS.rglob("views*.py"):
         if "/tests/" in str(views_path).replace("\\", "/"):
@@ -270,6 +340,27 @@ def main() -> int:
     print(f"  unresolved-view:      {summary['unresolved']} (view_symbol not found in views*.py)")
     print(f"  json:                 {OUT_JSON.relative_to(ROOT).as_posix()}")
     print(f"  csv:                  {OUT_CSV.relative_to(ROOT).as_posix()}")
+
+    if args.max_candidate_anonymous is not None:
+        count = summary["candidate_anonymous"]
+        if count > args.max_candidate_anonymous:
+            print(
+                f"\nFAIL: candidate_anonymous count {count} exceeds gate "
+                f"{args.max_candidate_anonymous}. A new route is missing auth.",
+                file=sys.stderr,
+            )
+            print(
+                "If the new route is intentionally public, add an auth decorator "
+                "(or document a middleware-based protection). To raise the gate, "
+                "first triage every new entry — never silence the scanner.",
+                file=sys.stderr,
+            )
+            return 1
+        if count < args.max_candidate_anonymous:
+            print(
+                f"\nNOTE: candidate_anonymous count {count} is BELOW gate "
+                f"{args.max_candidate_anonymous}. Consider tightening the gate to {count}."
+            )
     return 0
 
 
