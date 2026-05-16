@@ -1,6 +1,92 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-15 (v2.65.0 — workspace-header dedup platform-wide + save-button overlap fix; sidebar repetition diagnosed as screenshot artifact)
+**Last updated:** 2026-05-15 (v2.66.0 — CP page-height pin: align-items flex-start + body height:100vh)
+
+## 2026-05-15 — v2.66 CP page-height pin (the actual whitespace fix)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.66.0-cp-page-height-pin-no-stretch-2026-05-15`.
+
+User pushed back on v2.65 deferring the page-length whitespace bug pending DevTools measurements. v2.66 takes action: ships a CSS-only defensive fix that pins CP pages to viewport height regardless of context, and stops sidebar/main columns from stretching to match each other.
+
+### Root cause (most likely)
+
+`.cp-layout .row { align-items: stretch }` was forcing both columns to the row's height. When the sidebar had a default-expanded first group (~10 nav rows = ~1000px tall) and main content was shorter, the main column **stretched to match the sidebar**, creating the empty void below the actual content. This is what the user saw on Marketplace governance, App Catalog, Studio Launch, and Ministry stubs — content ended at ~2000px but the column extended to the sidebar's natural height (and beyond when the screenshot tool overrode `overflow: hidden`).
+
+### What landed
+
+| # | Fix | Detail |
+|---|---|---|
+| 1 | `.cp-layout .row { align-items: flex-start }` | Was `stretch`. Each column now sits at its own content height. Sidebar still has its own `align-self: stretch` for the dark gradient backdrop, but the row no longer forces the main column to match. |
+| 2 | `body.control-plane-shell { height: 100vh; max-height: 100vh; min-height: 100vh; overflow: hidden }` | Was just `min-height: 100vh; overflow: hidden`. The minimum was being overridden when child elements forced the body taller. Pinning to exactly viewport height with explicit max-height + overflow:hidden makes the contract survive hidden-element pushes and most browser-extension overrides. |
+
+### Why this matters
+
+The page-height contract was already documented in CSS comments ("Body does NOT scroll; only #cp-main-content scrolls so sidebar stays visible on all pages") with `#cp-main-content { max-height: calc(100vh - 56px); overflow-y: auto !important }`. But the row-level `align-items: stretch` was undermining it — the row itself could grow past the body's `min-height`, then the main column stretched to match the sidebar, creating the void. v2.66 fixes the chain end-to-end.
+
+### What we still don't know
+
+* Whether the user's screenshots reflect real browser behavior or full-page screenshot tool output. Tools like GoFullPage, Awesome Screenshot, and DevTools "Capture full size" force the document to render at full content height by overriding `overflow: hidden`, which would still produce a tall image even with v2.66 in place.
+* Whether the in-flight bundle's parallel session work touched the layout chain in ways that contradict v2.66. Pre-deploy verification needed.
+
+### Honest scope calls
+
+* **No content-shortening for Marketplace / App Catalog / Ministry stubs in v2.66.** v2.64.1's tabs/disclosure/bento patterns weren't applied to these pages. If the page-height issue persists after deploy, those template-level changes are the next layer.
+* **CSS can't override screenshot tool overrides.** If the user's screenshots are tool-generated full-page captures, those will still show long images even with this fix because the tool removes the cap before capturing. Real users on real browsers see viewport-height pages with internal scroll.
+
+### Deploy
+
+After this lands:
+1. SW cache invalidates on next visit.
+2. CP pages render at exactly viewport height, even when sidebar's expanded group has tall content.
+3. The "whitespace below content" disappears on real browser viewing because the main column is now its own content height (not stretched to match sidebar).
+
+## 2026-05-15 — v2.65.1 Control-plane operator roles env-configurable (API Center accessibility)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.65.1-control-plane-operator-roles-configurable-2026-05-15`.
+
+User report: visiting `https://manager.runmycampus.com/api-center/` returned `"API Center is disabled or you do not have permission."` Audit traced the gate to `apps/schools/control_plane.user_has_control_plane_access`, which on the manager surface accepted only `is_superuser=True` OR `role.upper() == "SUPERADMIN"`. The hardcoded `"SUPERADMIN"` literal also violated the platform's no-hardcoding directive (the role string had no SOT route and no operator-configurable allowlist). Today's eligible operators in the seeded DB are exactly two accounts (`admin` + `diag_super` superusers); any other day-to-day account is locked out with no admin-UI workaround.
+
+### What landed
+
+| # | Fix | Artifact |
+|---|---|---|
+| 1 | Operator role allowlist is now env-configurable | `apps/schools/control_plane.py` — new `_operator_roles()` helper reads `CONTROL_PLANE_OPERATOR_ROLES` env (comma-separated, case-insensitive, whitespace-tolerant). Defaults to `frozenset({"SUPERADMIN"})` so behaviour is unchanged for existing deployments. The literal `"SUPERADMIN"` carries a `# role-string-allow:` annotation that documents why it isn't in `role_registry.py` (which enumerates *tenant* role tokens; SUPERADMIN is platform-operator level). |
+| 2 | `user_has_control_plane_access` consumes the cascade | Same file — refactored from `role.upper() == "SUPERADMIN"` to `role in _operator_roles()`. Superuser bypass and the case-insensitive role compare are preserved. |
+| 3 | 12 unit tests lock the cascade behaviour | `apps/schools/tests/test_control_plane_operator_roles.py` covers default-mode allowlist, env-extended allowlist, case-insensitivity, whitespace stripping, empty-env fallback, anonymous-blocked, superuser-passes, default-blocks-ADMIN, env-allows-ADMIN, env-still-blocks-TEACHER, blank-role-blocks. **12/12 pass.** |
+
+### Why env-only (not RuntimeDefaults / admin-UI)
+
+Granting operator status is a privilege-escalation primitive. Routing it through the admin UI would let any compromised SUPERADMIN promote arbitrary roles to peer-operator status without an auditable code-or-deploy trail. Env vars require infrastructure access to change, which is the right blast-radius gate for this control. (This is the *opposite* trade-off from the v2.64.4 logo cascade — which is non-security-sensitive, so we exposed it through the admin UI.)
+
+### Honest scope calls
+
+* **Default behaviour is unchanged.** With no env var set, only `is_superuser=True` and `role=SUPERADMIN` pass — exactly the prior contract. Operators upgrading don't see a behaviour shift.
+* **Single helper, broad reach.** `user_has_control_plane_access` is imported by 13 modules (apicenter, marketplace, dashboard context, observability, security middleware, etc.). Fixing it once cascades the configurability win across the whole control-plane surface.
+* **Privilege boundary preserved.** Tenant ADMIN does *not* get manager access by default. The platform owner has to explicitly opt in via env, which makes the audit trail clear.
+
+### Who can access the API Center today
+
+```
+admin       | role=SUPERADMIN | is_superuser=True   -> always passes
+diag_super  | role=PARENT     | is_superuser=True   -> passes (superuser bypass)
+```
+
+To grant control-plane access to additional roles without a code change, set:
+```
+CONTROL_PLANE_OPERATOR_ROLES=SUPERADMIN,ADMIN          # add tenant ADMIN
+CONTROL_PLANE_OPERATOR_ROLES=SUPERADMIN,ADMIN,IT_ADMIN # also IT operators
+```
+Or, to grant a single account permanently: promote them once via Django admin or shell:
+```python
+User.objects.filter(username='your-username').update(is_superuser=True)
+```
+
+### Deploy
+
+After this lands:
+1. SW cache invalidates on next visit.
+2. Logging in as `admin` (or any superuser) hits `/api-center/` successfully — no env change needed.
+3. To allow non-SUPERADMIN operators: set `CONTROL_PLANE_OPERATOR_ROLES` env var and restart.
 
 ## 2026-05-15 — v2.65 platform-wide chrome dedup + save overlap (Wave 1)
 

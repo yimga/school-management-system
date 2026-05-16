@@ -686,10 +686,19 @@ a.cp-queue-card-header:hover {
 
 /* ========== Layout: fixed sidebar + scrollable main only ========== */
 /* Body does NOT scroll; only #cp-main-content scrolls so sidebar stays visible on all pages */
+/* v2.66 (2026-05-15): tightened to `height: 100vh` + `max-height: 100vh` from
+   just `min-height: 100vh`. The minimum was being overridden when child
+   elements forced the body taller (some hidden modals/offcanvases were in
+   normal flow under specific viewport widths). Pinning to exactly viewport
+   height with explicit max-height + overflow:hidden is the only contract
+   that survives browser-extension or hidden-element height pushes. Real
+   users see one viewport with internal scroll on #cp-main-content. */
 body.control-plane-shell {
   display: flex;
   flex-direction: column;
+  height: 100vh;
   min-height: 100vh;
+  max-height: 100vh;
   overflow: hidden;
   overflow-x: clip;
   max-width: 100vw;
@@ -735,7 +744,18 @@ body.control-plane-shell .cp-navbar {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
-  align-items: stretch;
+  /* v2.66 (2026-05-15): was `align-items: stretch` which forced both
+     columns to match the row's height. When the sidebar had 15 group
+     headers (~1000px) and the main content was shorter, the main column
+     stretched to match the sidebar's height — creating the empty void
+     below the actual content that the user reported across multiple
+     pages (Marketplace governance, App Catalog, Studio Launch, Ministry
+     stubs). `flex-start` lets each column be its own content height;
+     the scroll-cap (max-height: calc(100vh - 56px)) on #cp-main-content
+     still pins the page to viewport in normal browsing, and the
+     sidebar's own `align-self: stretch` keeps it filling its own column
+     for the dark gradient backdrop. */
+  align-items: flex-start;
   flex-wrap: nowrap;
 }
 /* Sidebar: visible at lg+ desktop only; on mobile, d-none keeps it hidden so main can take full width */

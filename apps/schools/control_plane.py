@@ -7,6 +7,7 @@ the same operator contract.
 """
 
 import logging
+import os
 from functools import wraps
 
 from django.db import DatabaseError, IntegrityError
@@ -15,18 +16,48 @@ from django.http import HttpResponseForbidden
 logger = logging.getLogger(__name__)
 
 
+def _operator_roles() -> frozenset[str]:
+    """
+    Read the env-configurable allowlist of role tokens that grant control-plane
+    access on the manager surface.
+
+    Cascade (env-only by design — see the rationale comment below):
+        env var CONTROL_PLANE_OPERATOR_ROLES (comma-separated, case-insensitive)
+        -> default ("SUPERADMIN",)
+
+    Why env-only and not RuntimeDefaults / admin-UI: granting operator status is
+    a privilege-escalation primitive. Routing it through the admin UI would let
+    any compromised SUPERADMIN promote arbitrary roles to peer-operator status
+    without an auditable code-or-deploy trail. Env vars require infrastructure
+    access to change, which is the right blast-radius gate for this control.
+    """
+    raw = os.getenv("CONTROL_PLANE_OPERATOR_ROLES", "").strip()
+    if not raw:
+        # role-string-allow: control-plane operator default; SUPERADMIN is the
+        # platform-owner role token, not in role_registry (which enumerates
+        # tenant-role tokens only - ADMIN/TEACHER/PARENT/STUDENT/PROPRIETOR).
+        return frozenset({"SUPERADMIN"})
+    return frozenset(part.strip().upper() for part in raw.split(",") if part.strip())
+
+
 def user_has_control_plane_access(user) -> bool:
     """
     Return True only for platform operators.
 
     Control-plane access is intentionally narrower than tenant staff access:
     tenant staff/admin users must not gain manager-host capabilities.
+
+    Operator-eligible identities:
+      - Django superusers (``is_superuser=True``)
+      - Users whose role is in CONTROL_PLANE_OPERATOR_ROLES (env-driven; see
+        ``_operator_roles`` for the cascade).
     """
     if not getattr(user, "is_authenticated", False):
         return False
     if getattr(user, "is_superuser", False):
         return True
-    return (getattr(user, "role", "") or "").upper() == "SUPERADMIN"
+    role = (getattr(user, "role", "") or "").upper()
+    return bool(role) and role in _operator_roles()
 
 
 def _user_has_super_access(user):
