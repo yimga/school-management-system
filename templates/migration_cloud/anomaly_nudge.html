@@ -4,7 +4,7 @@
 {% block page_title %}{{ page_title }}{% endblock %}
 
 {% block content %}
-<section class="rmc-page rmc-page--migration-cloud-review">
+<main class="rmc-page rmc-page--migration-cloud-review" id="main">
   <header class="rmc-page__header">
     <a class="rmc-back"
        href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}{% endif %}">
@@ -113,5 +113,5 @@
       </div>
     {% endif %}
   </section>
-</section>
+</main>
 {% endblock %}

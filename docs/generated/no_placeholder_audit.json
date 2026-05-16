@@ -1,19 +1,12 @@
 {
-  "generated_at": "2026-05-16T10:30:27.458149+00:00",
+  "generated_at": "2026-05-16T10:41:12.708419+00:00",
   "generated_by": "scripts/audit_no_placeholder.py",
   "templates_scanned": 895,
-  "finding_count": 3,
+  "finding_count": 2,
   "by_kind": {
-    "coming-soon": 1,
     "sample-data": 2
   },
   "findings": [
-    {
-      "file": "templates/portal/seating_chart.html",
-      "line": 27,
-      "kind": "coming-soon",
-      "snippet": "<strong>{% trans \"Coming soon\" %}</strong> \u2014 {% trans \"Visual seating layout and drag-to-reorder will be available here. Use Take student attendance for roll ca"
-    },
     {
       "file": "templates/schools/onboard_wizard.html",
       "line": 156,

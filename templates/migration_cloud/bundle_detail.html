@@ -17,12 +17,13 @@
 {% block page_title %}{{ page_title }}{% endblock %}
 
 {% block content %}
-<section class="rmc-page rmc-page--migration-cloud-detail"
-         data-mc-bundle-id="{{ bundle.pk }}"
-         data-mc-shell="{{ shell }}"
-         data-mc-feedback-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_feedback' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_feedback' bundle_id=bundle.pk %}{% endif %}"
-         data-mc-save-profile-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_save_profile' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_save_profile' bundle_id=bundle.pk %}{% endif %}"
-         data-mc-csrf="{{ csrf_token }}">
+<main class="rmc-page rmc-page--migration-cloud-detail"
+      id="main"
+      data-mc-bundle-id="{{ bundle.pk }}"
+      data-mc-shell="{{ shell }}"
+      data-mc-feedback-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_feedback' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_feedback' bundle_id=bundle.pk %}{% endif %}"
+      data-mc-save-profile-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_save_profile' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_save_profile' bundle_id=bundle.pk %}{% endif %}"
+      data-mc-csrf="{{ csrf_token }}">
   <header class="rmc-page__header">
     <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:console' %}{% else %}{% url 'migration_cloud_super:console' %}{% endif %}"
        class="rmc-back">{% trans "← All migrations" %}</a>
@@ -268,7 +269,7 @@
     </div>
     <p class="rmc-mapping__status" data-mc-status role="status" aria-live="polite"></p>
   </section>
-</section>
+</main>
 
 <script src="{{ STATIC_URL }}js/migration_cloud_wizard.js" defer></script>
 {% endblock %}

@@ -23,9 +23,8 @@
       </form>
       {% if classroom %}
         <p class="text-muted mb-2">{% trans "Seating chart for" %} {{ classroom.name }}</p>
-        <div class="alert alert-info mb-0">
-          <strong>{% trans "Coming soon" %}</strong> — {% trans "Visual seating layout and drag-to-reorder will be available here. Use Take student attendance for roll call." %}
-        </div>
+        <p class="text-muted mb-2">{% trans "A visual seating layout for this class is on the roadmap. In the meantime, attendance can be taken from the dedicated roll-call view." %}</p>
+        <a href="{% url 'portal:take_student_attendance' %}?classroom={{ classroom.id }}" class="btn btn-outline-primary">{% trans "Take attendance for this class" %}</a>
       {% else %}
         <p class="text-muted mb-0">{% trans "Select a class to view its seating chart." %}</p>
       {% endif %}
