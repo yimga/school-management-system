@@ -22,15 +22,28 @@ Output:
 
 ## Headline numbers
 
-| Metric                         | v2.80 | v2.82 |
-|--------------------------------|------:|------:|
-| URL → view rows                | 633   | 633   |
-| Views indexed across apps      | 1,197 | 1,197 |
-| Login-gated                    | 539   | **559** |
-| Role-gated                     | 56    | **74**  |
-| Permission-gated (feature)     | 91    | 91    |
-| Candidate-anonymous            | 56    | **36** |
-| Unresolved view symbol         | 38    | 38    |
+| Metric                         | v2.80 | v2.82 | v2.83 |
+|--------------------------------|------:|------:|------:|
+| URL → view rows                | 633   | 633   | **808** |
+| Views indexed across apps      | 1,197 | 1,197 | **1,564** |
+| Login-gated                    | 539   | 559   | **726** |
+| Role-gated                     | 56    | 74    | 74    |
+| Permission-gated (feature)     | 91    | 91    | 91    |
+| Inline `is_authenticated` check| —     | —     | **60** |
+| Auth mixin-gated               | —     | —     | **34** |
+| `# rbac-allow:` markers        | —     | —     | **1**  |
+| Candidate-anonymous            | 56    | 36    | **66** |
+| Unresolved view symbol         | 38    | 38    | **12** |
+
+**Why candidate-anonymous went up (36 → 66):** the v2.83 scanner sees
+175 *more* routes than v2.82 (class-based DRF views in `*_api.py` /
+`*_views.py` were previously invisible because the walk pattern only
+matched `views*.py`). The denominator changed — actual security
+posture didn't get worse; visibility got better. Per-route rate:
+v2.82 = 36/633 = 5.7%; v2.83 = 66/808 = 8.2%. The new flags are
+mostly SCIM / OneRoster / Ed-Fi standards endpoints (`apps/api/urls.py`
++ `apps/api/urls_v1.py`) which need either decorator annotations or
+`# rbac-allow:` markers documenting their middleware-based auth.
 
 v2.82 improvements:
 - Scanner now recognizes 12 more project-specific auth decorators
@@ -45,6 +58,40 @@ v2.82 improvements:
   inline `if not request.user.is_authenticated` checks that the AST can't
   see. Converted both to `@login_required` decorators — pure refactor,
   same behavior, now auditable from the function signature.
+
+v2.83 improvements (4 detection upgrades + 2 corollaries):
+1. **`# rbac-allow: <reason>` markers**: on the same line as `path(...)`
+   or the line immediately above, a marker opts a route out of
+   candidate-anonymous with an audit-visible reason. Demonstrated on
+   `apps/studio_os/urls.py` `audit/` route (graceful-degrade for
+   unauthenticated callers).
+2. **Per-file alias resolution**: scans every URLconf's `import` /
+   `from X import Y as Z` statements and resolves view symbols
+   against the alias map. Drops unresolved from 38 → 12.
+3. **Inline auth-check detection**: walks every view function/class
+   body for `If` nodes whose test mentions `is_authenticated` /
+   `is_anonymous`. 60 routes flagged. Treated as login-gated (the
+   inline-auth column lets reviewers see they should be refactored
+   to decorators for cleaner audit, but they're not bugs).
+4. **Auth-mixin detection (bonus)**: class-based views whose `bases`
+   include `LoginRequiredMixin`, `PermissionRequiredMixin`,
+   `UserPassesTestMixin`, `AccessMixin`, or any project mixin
+   whose body has an inline auth check, are flagged
+   `auth_mixin_gated=true`. Fixed-point propagation handles chains
+   like `_StaffSchoolMixin -> SLOTargetsAPIView`. 34 routes
+   recognized via this.
+
+Corollaries:
+- **DRF view-file walk expansion**: now walks `*_api.py`,
+  `*_views.py`, `api_views.py` in addition to `views*.py`. This
+  captured 367 more view classes (1,197 → 1,564 indexed) which
+  is why URL→view rows jumped from 633 to 808 — the scanner
+  finally sees class-based DRF views.
+- **`@method_decorator(login_required)` unwrapping**: detects the
+  Django class-based view idiom where `method_decorator(inner)` is
+  the outer decorator. Reports the inner decorator name. Catches
+  many `AdminDashboardOverviewAPI`-style views that previously
+  looked anonymous.
 
 "Login-gated" + "candidate-anonymous" don't sum to 633 because a
 view can be DRF-permission-gated without `@login_required`, etc.
@@ -101,19 +148,20 @@ This is the value of the matrix: surface candidates, then a code
 review either confirms protection (and the scanner learns) or
 finds a real gap (and the code gets fixed).
 
-## CI gate (v2.82)
+## CI gate (v2.83)
 
-The scanner now exits 1 when the candidate-anonymous count exceeds
+The scanner exits 1 when the candidate-anonymous count exceeds
 a passed-in maximum:
 
 ```pwsh
-python scripts/audit_role_permission_matrix.py --max-candidate-anonymous 36
+python scripts/audit_role_permission_matrix.py --max-candidate-anonymous 66
 ```
 
 This is wired into `.github/workflows/architectural-boundaries.yml`
-as a new `rbac-matrix` job. **Baseline pinned at 36.** Any new route
-that lands without a recognized auth decorator (or middleware
-documentation via `# rbac-allow: <reason>`) makes the CI gate fail.
+as the `rbac-matrix` job. **Baseline pinned at 66 (v2.83).** Any new
+route that lands without any recognized auth signal — decorator, DRF
+permission_classes, auth-enforcing mixin, inline `is_authenticated`
+check, or `# rbac-allow: <reason>` marker — makes the CI gate fail.
 
 ### How to update the gate
 

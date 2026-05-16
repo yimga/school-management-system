@@ -157,7 +157,7 @@ urlpatterns = [
     path("recommendations/", studio_recommendations_api, name="recommendations"),
     path("control/impact/", studio_control_impact, name="control_impact"),
     path("control/ai-cleanup/", studio_ai_cleanup, name="ai_cleanup"),
-    path("audit/", studio_audit_api, name="audit"),
+    path("audit/", studio_audit_api, name="audit"),  # rbac-allow: graceful-degrade returns empty audit list for unauthenticated callers (intentional vs 403 to keep dashboards rendering)
     path("rollback/", studio_rollback, name="rollback"),
     path(
         "api/school-infrastructure/preview/",
