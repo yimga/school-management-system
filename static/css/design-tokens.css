@@ -3538,12 +3538,36 @@ html[data-rmc-density="spacious"] .rmc-data-table tbody td {
   color: var(--text-primary);
 }
 .rmc-segmented__btn.is-active,
-.rmc-segmented__btn[aria-pressed="true"] {
+.rmc-segmented__btn.active,
+.rmc-segmented__btn[aria-pressed="true"],
+.rmc-segmented__btn[aria-selected="true"] {
   background: var(--surface-elevated);
   color: var(--text-primary);
   box-shadow: var(--elev-1);
 }
 .rmc-segmented__btn:active { transform: scale(0.97); }
+
+/* v2.63 Wave A1: scrollable variant for tab bars that may overflow narrow
+   viewports (e.g. Feature control's 9+ category tabs). Pill grammar
+   unchanged; container becomes a horizontal scroller with hidden bars and
+   inertial momentum on touch. Prevents the tab bar from wrapping into 2-3
+   rows on mobile, which would re-introduce the height problem the tabs
+   were supposed to fix. */
+.rmc-segmented--scrollable {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  max-width: 100%;
+}
+.rmc-segmented--scrollable::-webkit-scrollbar { height: 4px; }
+.rmc-segmented--scrollable::-webkit-scrollbar-thumb {
+  background: var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+}
+.rmc-segmented--scrollable .rmc-segmented__btn { flex: 0 0 auto; }
 
 /* ===== v2 carried-forward (2026-05-12): adaptive logo swap. Apply
    `.rmc-logo-adaptive` to any element that uses the tenant's logo as a

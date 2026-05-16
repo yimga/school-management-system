@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-15T22:52:34.770578+00:00",
+  "generated_at": "2026-05-16T00:15:43.663553+00:00",
   "tenant_scoped_models": [
     "AIEmbeddingStore",
     "APIKey",
@@ -205,11 +205,11 @@
     "WorkflowPackAssignment"
   ],
   "tenant_model_count": 202,
-  "finding_count": 734,
+  "finding_count": 730,
   "findings_per_app": {
     "evals": 118,
     "portal": 80,
-    "accounts": 73,
+    "accounts": 69,
     "schools": 65,
     "api": 63,
     "finance": 55,
@@ -836,38 +836,6 @@
       "model": "Invoice",
       "method": "filter",
       "call": "Invoice.objects.filter(...)",
-      "reason": "no_school_filter"
-    },
-    {
-      "file": "apps/accounts/views.py",
-      "line": 2799,
-      "model": "SchoolMembership",
-      "method": "filter",
-      "call": "SchoolMembership.objects.filter(...)",
-      "reason": "no_school_filter"
-    },
-    {
-      "file": "apps/accounts/views.py",
-      "line": 2804,
-      "model": "SchoolMembership",
-      "method": "filter",
-      "call": "SchoolMembership.objects.filter(...)",
-      "reason": "no_school_filter"
-    },
-    {
-      "file": "apps/accounts/views.py",
-      "line": 2913,
-      "model": "SchoolMembership",
-      "method": "filter",
-      "call": "SchoolMembership.objects.filter(...)",
-      "reason": "no_school_filter"
-    },
-    {
-      "file": "apps/accounts/views.py",
-      "line": 2987,
-      "model": "SchoolMembership",
-      "method": "filter",
-      "call": "SchoolMembership.objects.filter(...)",
       "reason": "no_school_filter"
     },
     {

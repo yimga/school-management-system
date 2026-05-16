@@ -40,3 +40,49 @@
 .studio-os__platform-outcomes-label {
   letter-spacing: 0.04em;
 }
+
+/* v2.63 (Wave B3, 2026-05-15): replace the flex-wrap layout for the
+   Governance rail + Capability panel with an explicit CSS grid. The flex
+   layout's wrap behavior at intermediate viewport widths (~700-1000px)
+   caused the rail to wrap ABOVE the panel and visually overlap the panel
+   header — user reported this in the v2.62 retro as a "Governance dropdown
+   floating wrong." Grid keeps the rail locked side-by-side until the
+   viewport narrows below the breakpoint, then falls back to stacked. */
+.studio-os__control-wrap {
+  display: grid;
+  grid-template-columns: minmax(180px, 13rem) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+@media (max-width: 991px) {
+  /* Below the lg breakpoint: stack the rail above the panel. The rail
+     becomes a compact horizontal-scroll chip row at this size so it
+     doesn't dominate vertical space. */
+  .studio-os__control-wrap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .studio-os__control-rail--sized {
+    width: 100%;
+  }
+  .studio-os__control-rail .studio-os__card {
+    overflow-x: auto;
+  }
+  .studio-os__control-rail #control-rail-list {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+  }
+  .studio-os__control-rail #control-rail-list li {
+    flex: 0 0 auto;
+    margin: 0;
+  }
+}
+
+/* Desktop: rail sticks to viewport top-edge so as the user scrolls
+   through the long capability list, governance links remain reachable. */
+@media (min-width: 992px) {
+  .studio-os__control-rail--sized {
+    position: sticky;
+    top: 1rem;
+  }
+}

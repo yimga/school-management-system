@@ -2826,11 +2826,13 @@ def login_view(request):
                 from apps.schools.models import SchoolMembership
 
                 primary = (
+                    # tenant-isolation-allow: login flow — selecting which tenant the user belongs to (no school context yet); filtered by user
                     SchoolMembership.objects.filter(user=user, is_primary=True)
                     .select_related("school")
                     .first()
                 )
                 first_m = (
+                    # tenant-isolation-allow: login flow — selecting first available tenant for the user; filtered by user
                     SchoolMembership.objects.filter(user=user)
                     .select_related("school")
                     .first()
@@ -2940,6 +2942,7 @@ def login_view(request):
 
                     if is_base_domain(request):
                         m = (
+                            # tenant-isolation-allow: post-login redirect — picking the user's primary tenant subdomain to redirect to
                             SchoolMembership.objects.filter(user=user)
                             .select_related("school")
                             .order_by("-is_primary")
@@ -3014,6 +3017,7 @@ def school_picker(request):
     from apps.schools.models import SchoolMembership
 
     memberships = (
+        # tenant-isolation-allow: school picker — listing the user's tenant memberships to choose from
         SchoolMembership.objects.filter(user=request.user)
         .select_related("school")
         .order_by("-is_primary", "school__name")

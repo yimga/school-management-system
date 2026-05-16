@@ -68,8 +68,8 @@
                 <div class="rmc-inbox__body">
                   <div class="rmc-inbox__title-row">
                     <span class="rmc-inbox__title">{{ notif.title }}</span>
-                    {# Pillar 3 — Verified Communications: tenant-bound stamp.
-                       Renders only when notif.school_id matches request.school. #}
+                    {% comment %} Pillar 3 — Verified Communications: tenant-bound stamp.
+                       Renders only when notif.school_id matches request.school. {% endcomment %}
                     {% institutional_stamp notif %}
                     <time class="rmc-inbox__time" datetime="{{ notif.created_at|date:'c' }}" title="{{ notif.created_at }}">
                       {{ notif.created_at|timesince }}

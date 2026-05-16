@@ -16,7 +16,8 @@ class ConfigurationAppleClassExperienceTests(SimpleTestCase):
             "Runtime Governance",
             "Trust + Money",
             "apple_class_data_quality_meter.html",
-            "Browser proof pending",
+            "module.readiness_score",
+            "module.readiness_label",
         ):
             with self.subTest(token=token):
                 self.assertIn(token, text)

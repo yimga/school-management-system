@@ -10,6 +10,7 @@ from apps.accounts.permissions import tenant_operator_hub_eligible
 from apps.platform_runtime.administration_catalog import (
     BLUEPRINTS,
     TENANT_CONFIGURATION_SECTIONS,
+    compute_configuration_summary,
     enriched_modules,
     module_by_key,
     resolved_pack_rows,
@@ -59,6 +60,7 @@ def configuration_center(request):
         "platform_runtime/configuration_center.html",
         {
             "modules": enriched_modules(),
+            "summary": compute_configuration_summary(),
             "page_marker": "rmc-platform-configuration-center",
             "os_center_key": "platform_configuration_center",
             "center_purpose": "Governed facade over existing SiteConfig, Studio OS, marketplace, metadata, runtime, security, billing, and automation systems.",

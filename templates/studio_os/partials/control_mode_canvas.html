@@ -2,32 +2,39 @@
 {% load i18n %}
 
 {% if control_outcome_sections %}
+{% comment %} v2.63 Wave A3: the 9 Control Studio outcome sections used to stack
+   vertically (~1350px). Render as a responsive bento grid — auto-fit
+   minmax(280px, 1fr) so we get 3 cols on wide screens, 2 on tablet, 1
+   on mobile. Each section becomes a compact card with header + chiplet
+   row of outcomes. The "Sources" line drops to a tooltip-hover (kept in
+   the DOM for assistive tech) so we don't double the card height. {% endcomment %}
 <div class="studio-os__card mb-3 py-3 px-3" role="region" aria-labelledby="control-studio-outcomes-heading">
-  <h2 id="control-studio-outcomes-heading" class="h6 mb-1">{% trans "Control Studio" %}</h2>
-  {% if why_enabled_summary %}<p class="small text-muted mb-3">{{ why_enabled_summary }}</p>{% endif %}
-  {% for sec in control_outcome_sections %}
-  <div class="mb-3 pb-3 {% if not forloop.last %}border-bottom border-secondary-subtle{% endif %}">
-    <div class="fw-semibold small">{{ sec.title }}</div>
-    <div class="small text-muted mb-2">{{ sec.subtitle }}</div>
-    <div class="d-flex flex-wrap gap-2 align-items-center">
-      {% for link in sec.links %}
-      <div class="d-inline-flex flex-wrap align-items-center gap-1">
-        <a href="{{ link.url }}" class="btn btn-sm btn-outline-primary" {% if request.public_host_kind == 'manager' %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ link.label }}</a>
-        {% if link.stability == 'danger' %}
-        <span class="badge text-bg-danger cp-outcome-pill">{% trans "danger" %}</span>
-        {% elif link.stability == 'beta' %}
-        <span class="badge text-bg-warning text-dark cp-outcome-pill">{% trans "beta" %}</span>
-        {% else %}
-        <span class="badge text-bg-secondary cp-outcome-pill">{% trans "stable" %}</span>
-        {% endif %}
-        {% if link.sources %}
-        <span class="small text-muted">{% trans "Sources" %}: {{ link.sources|join:", " }}</span>
-        {% endif %}
-      </div>
-      {% endfor %}
-    </div>
+  <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2 mb-2">
+    <h2 id="control-studio-outcomes-heading" class="h6 mb-0">{% trans "Control Studio" %}</h2>
+    {% if why_enabled_summary %}<p class="small text-muted mb-0 flex-grow-1">{{ why_enabled_summary }}</p>{% endif %}
   </div>
-  {% endfor %}
+  <div class="rmc-bento rmc-bento--outcomes" data-control-outcome-bento="1">
+    {% for sec in control_outcome_sections %}
+    <article class="rmc-bento__cell rmc-bento__cell--outcome">
+      <header class="rmc-bento__cell-head">
+        <div class="fw-semibold small">{{ sec.title }}</div>
+        {% if sec.subtitle %}<div class="text-muted" style="font-size: var(--type-size-micro);">{{ sec.subtitle }}</div>{% endif %}
+      </header>
+      <div class="d-flex flex-wrap gap-1 mt-2" role="group" aria-label="{{ sec.title }} {% trans 'outcomes' %}">
+        {% for link in sec.links %}
+        <a href="{{ link.url }}"
+           class="btn btn-sm btn-outline-primary rmc-bento__chip"
+           {% if request.public_host_kind == 'manager' %}target="_blank" rel="noopener noreferrer"{% endif %}
+           {% if link.sources %}title="{% trans 'Sources' %}: {{ link.sources|join:', ' }}"{% endif %}>
+          {{ link.label }}
+          {% if link.stability == 'danger' %}<span class="badge text-bg-danger ms-1 cp-outcome-pill">{% trans "danger" %}</span>
+          {% elif link.stability == 'beta' %}<span class="badge text-bg-warning text-dark ms-1 cp-outcome-pill">{% trans "beta" %}</span>{% endif %}
+        </a>
+        {% endfor %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
 </div>
 {% elif control_outcome_hub %}
 <div class="studio-os__card mb-3 py-2 px-3" role="region" aria-label="{% trans 'Operator outcomes' %}">
@@ -41,11 +48,23 @@
 {% endif %}
 
 {% if operator_control_model %}
-<div class="studio-os__card mb-3 py-3 px-3" role="region" aria-labelledby="control-studio-operator-model-heading">
-  {% with compact=1 %}
-  {% include "siteconfig/partials/configuration_control_center_operator_model.html" %}
-  {% endwith %}
-</div>
+{% comment %} v2.63 Wave A2: the operator control model is 6 numbered paragraphs of
+   educational copy explaining the control framework (capability families,
+   grouped controls, impact summaries, source tracing, staged changes,
+   publish + rollback). Operators see this on every visit even after they
+   know the model. Collapse to a <details> disclosure so it's available
+   but not occupying ~900px of scroll. Closed by default. {% endcomment %}
+<details class="studio-os__card studio-os__card--disclosure mb-3 px-3 py-2" role="region" aria-labelledby="control-studio-operator-model-heading">
+  <summary class="d-flex align-items-center gap-2 py-1" style="cursor: pointer; list-style: revert;">
+    <span class="fw-semibold small">{% trans "About the operator control model" %}</span>
+    <span class="text-muted small">{% trans "Five steps from a capability to a stopped change." %}</span>
+  </summary>
+  <div class="pt-3 pb-1">
+    {% with compact=1 %}
+    {% include "siteconfig/partials/configuration_control_center_operator_model.html" %}
+    {% endwith %}
+  </div>
+</details>
 {% endif %}
 
 <div class="d-flex gap-3 flex-wrap flex-lg-nowrap studio-os__control-wrap">

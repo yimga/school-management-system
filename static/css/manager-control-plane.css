@@ -916,6 +916,39 @@ body.control-plane-shell .cp-navbar {
 .cp-nav-group-chevron {
   transition: transform 0.2s ease;
 }
+
+/* v2.63 (Wave B2, 2026-05-15): defensive collapse-state enforcement.
+   Bootstrap's .collapse rules hide non-.show collapses, but if Bootstrap
+   CSS load order shifts (or a higher-specificity rule wins by accident)
+   every group renders expanded, multiplying the sidebar height. The user
+   reported this exact symptom in the v2.62 retro: "BLUEPRINTS & POLICIES"
+   appearing repeated dozens of times in screenshots. This rule pins the
+   collapse contract regardless of CSS loading order. */
+.cp-sidebar-nav .nav-item.collapse:not(.show) {
+  display: none !important;
+}
+/* Also enforce compact width for the nav so even if all groups did
+   somehow expand, the sidebar can't push past the 280px column. The
+   nav becomes its own scroll container instead of the page. */
+#cp-sidebar-col {
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.cp-sidebar-nav {
+  /* Tighter row height + smaller chevron padding so the full 15-group
+     header list is visible at once on a 1080p viewport without scrolling
+     past the topbar. */
+  font-size: var(--type-size-xs, 0.8125rem);
+}
+.cp-sidebar-nav .cp-nav-group-toggle {
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+}
+.cp-sidebar-nav .nav-link {
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+}
 .cp-sidebar-compact-toggle {
   color: var(--cp-muted);
   border-color: var(--cp-panel-border);

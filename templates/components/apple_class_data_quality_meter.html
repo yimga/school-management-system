@@ -3,8 +3,8 @@
     <h2 id="{{ meter_id|default:'apple-data-quality-title' }}" class="h6 mb-0">{{ title|default:"Data quality" }}</h2>
     {% include "components/apple_class_status_pill.html" with status=status|default:"needs-review" label=status_label|default:"Needs review" %}
   </div>
-  <div class="rmc-wcx-readiness__bar mt-2" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ value|default:'72' }}" aria-label="{{ title|default:'Data quality' }}">
-    <div class="rmc-wcx-readiness__fill" style="--rmc-readiness-value: {{ value|default:'72' }}%;"></div>
+  <div class="rmc-wcx-readiness__bar mt-2" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ value|default:'0' }}" aria-label="{{ title|default:'Data quality' }}">
+    <div class="rmc-wcx-readiness__fill" style="--rmc-readiness-value: {{ value|default:'0' }}%;"></div>
   </div>
   <p class="small text-muted mb-0 mt-2">{{ body|default:"Duplicates, invalid rows, and quarantine posture are summarized before apply." }}</p>
 </section>

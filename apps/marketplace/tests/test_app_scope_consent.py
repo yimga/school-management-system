@@ -144,8 +144,19 @@ class MarketplaceInstallScopeConsentTests(TestCase):
 
     def setUp(self):
         from django.test import Client
+        from django_otp.plugins.otp_totp.models import TOTPDevice
 
         self.client = Client(HTTP_HOST=_TENANT_HOST_A, raise_request_exception=False)
+        # Bypass MFA gate (the marketplace install routes go through it).
+        TOTPDevice.objects.get_or_create(
+            user=self.admin_a, name="test-device", defaults={"confirmed": True}
+        )
+
+    def _login_admin_a(self):
+        self.client.login(username="scope_admin_a", password="test-harness-1")
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
 
     def _install_url(self):
         return reverse("tenant_install_app", urlconf="config.tenant_urls")
@@ -170,18 +181,25 @@ class MarketplaceInstallScopeConsentTests(TestCase):
         # Modal partial must contain the consent fieldset that the JS populates.
         from pathlib import Path
 
-        partial = Path(__file__).resolve().parent.parent.parent.parent / (
-            "templates/marketplace/partials/install_impact_modal.html"
-        )
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        partial = repo_root / "templates/marketplace/partials/install_impact_modal.html"
         text = partial.read_text(encoding="utf-8")
         self.assertIn("rmcInstallImpactConsentList", text)
-        self.assertIn('name="consented_scopes"', text)
+        self.assertIn("rmc-scope-consent", text)
         # Submit must be disabled by default until JS verifies consent.
         self.assertIn("disabled", text)
+        # JS file injects a checkbox per scope under name="consented_scopes".
+        js_path = repo_root / (
+            "static/js/_pages/marketplace__partials__install_impact_modal-1.js"
+        )
+        js_text = js_path.read_text(encoding="utf-8")
+        self.assertIn('"consented_scopes"', js_text)
+        self.assertIn("renderConsent", js_text)
+        self.assertIn("refreshConsentGate", js_text)
 
     # ----- Test 2: install REFUSED when any scope is unconfirmed -----
     def test_install_refuses_when_scope_not_confirmed(self):
-        self.client.login(username="scope_admin_a", password="test-harness-1")
+        self._login_admin_a()
         # Confirm only 2 of 3 scopes — install must be refused.
         resp = self.client.post(
             self._install_url(),
@@ -209,7 +227,7 @@ class MarketplaceInstallScopeConsentTests(TestCase):
         )
 
     def test_install_refuses_when_no_scopes_confirmed(self):
-        self.client.login(username="scope_admin_a", password="test-harness-1")
+        self._login_admin_a()
         resp = self.client.post(
             self._install_url(),
             {
@@ -228,7 +246,7 @@ class MarketplaceInstallScopeConsentTests(TestCase):
 
     # ----- Test 3: install SUCCEEDS when all scopes confirmed -----
     def test_install_succeeds_when_all_scopes_confirmed(self):
-        self.client.login(username="scope_admin_a", password="test-harness-1")
+        self._login_admin_a()
         resp = self.client.post(
             self._install_url(),
             {
@@ -243,12 +261,15 @@ class MarketplaceInstallScopeConsentTests(TestCase):
             HTTP_HOST=_TENANT_HOST_A,
         )
         self.assertEqual(resp.status_code, 302)
+        # Pull flash messages without rendering the redirect target.
+        from django.contrib.messages import get_messages
+        msgs = "; ".join(str(m) for m in get_messages(resp.wsgi_request))
         installation = AppInstallation.objects.filter(
             school=self.school_a, app=self.app
         ).first()
         self.assertIsNotNone(
             installation,
-            "Install must succeed when all manifest scopes are explicitly consented.",
+            f"Install must succeed when all scopes consented. Redirect → {resp.url}; messages: {msgs!r}",
         )
         # Sandbox-first.
         self.assertEqual(
@@ -274,7 +295,7 @@ class MarketplaceInstallScopeConsentTests(TestCase):
 
     # ----- Test 4: AuditLog records the EXACT consented-scope list -----
     def test_audit_log_records_consented_scopes(self):
-        self.client.login(username="scope_admin_a", password="test-harness-1")
+        self._login_admin_a()
         consented = ["attendance:read", "students:write", "grades:read"]
         self.client.post(
             self._install_url(),
@@ -306,7 +327,7 @@ class MarketplaceInstallScopeConsentTests(TestCase):
     # ----- Test 5: tenant isolation — A's consent does NOT install for B -----
     def test_consent_is_tenant_scoped(self):
         """Admin A confirms install for school A. School B must not be touched."""
-        self.client.login(username="scope_admin_a", password="test-harness-1")
+        self._login_admin_a()
         self.client.post(
             self._install_url(),
             {

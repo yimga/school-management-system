@@ -8,7 +8,7 @@
   {% phase8_dashboard_declaration "platform_runtime/configuration_center.html" %}
   {% url 'configuration:change_requests' as wcx_change_requests_url %}
   {% include "components/world_class_page_hero.html" with hero_id="configuration-title" role=_("Platform operators") title=_("Platform Configuration Center") subtitle=_("The governed AWS Console for education configuration: operating models, runtime governance, migration, ecosystem, trust, billing, and experience in one low-click workspace.") purpose=_("Governed platform configuration") status=_("UI/UX transformation active") primary_url=wcx_change_requests_url primary_label=_("Review change requests") secondary_url="/internal-admin/" secondary_label=_("Open raw fallback") visual_title=_("Configure without losing control") visual_body=_("Every module shows owner, readiness, scope, next action, and proof so depth stays accessible without exposing tenant-unsafe controls.") %}
-  {% include "components/world_class_summary_strip.html" with readiness="78%" readiness_label=_("Repository proof") risk=_("Medium") risk_label=_("Live parity pending") next_step=_("Review") next_step_label=_("Change queue") blockers=_("PSP/live") blockers_label=_("External proof required") %}
+  {% include "components/world_class_summary_strip.html" with readiness=summary.readiness_display readiness_label=summary.readiness_label risk=summary.risk_level risk_label=summary.risk_label next_step=summary.next_step next_step_label=summary.next_step_label blockers=summary.blockers_display blockers_label=summary.blockers_label %}
   {% include "components/platform_readiness_strip.html" with inline_field_prefix='cfg-center' %}
   <section class="rmc-wcx-grid mb-4 rmc-reveal" data-apple-class-configuration-groups="operating-models runtime-governance data-migration ecosystem trust-money experience">
     {% include "components/apple_class_glass_panel.html" with panel_id="configuration-operating-models" label=_("Operating Models") title=_("Blueprints, packages, packs, policies") body=_("Operators see model readiness before opening advanced configuration.") %}
@@ -34,7 +34,7 @@
               <h1 class="h5 mb-1">{{ module.title }}</h1>
               <p class="small text-muted mb-0">{{ module.purpose }}</p>
             </div>
-            <span class="badge bg-light text-dark border">{{ module.status }}</span>
+            <span class="badge bg-{{ module.status_tone }}-subtle text-{{ module.status_tone }}-emphasis border" data-module-status-tone="{{ module.status_tone }}">{{ module.status_label }}</span>
           </div>
           <dl class="row small mb-0">
             <dt class="col-sm-3">{% trans "Owner" %}</dt>
@@ -46,12 +46,12 @@
             <dt class="col-sm-3">{% trans "Proof" %}</dt>
             <dd class="col-sm-9"><a href="{{ module.proof_url }}">{{ module.proof_label }}</a></dd>
             <dt class="col-sm-3">{% trans "Readiness" %}</dt>
-            <dd class="col-sm-9"><span data-world-class-readiness-score="1">72%</span> {% trans "local proof, browser QA required" %}</dd>
+            <dd class="col-sm-9"><span data-world-class-readiness-score="1">{{ module.readiness_score }}%</span> {{ module.readiness_label }}</dd>
             <dt class="col-sm-3">{% trans "Next action" %}</dt>
             <dd class="col-sm-9">{{ module.primary_action }}</dd>
           </dl>
           {% if module.detail %}<p class="small text-muted mb-0">{{ module.detail }}</p>{% endif %}
-          {% include "components/apple_class_data_quality_meter.html" with meter_id=module.key title=_("Module readiness") value="72" status="external-required" status_label=_("Browser proof pending") body=_("Readiness includes local tests, route proof, owner clarity, and remaining live/browser evidence.") %}
+          {% include "components/apple_class_data_quality_meter.html" with meter_id=module.key title=_("Module readiness") value=module.readiness_score status=module.readiness_token status_label=module.readiness_label body=_("Readiness derives from module status: ready, partial, external_required, beta, or danger.") %}
           <div class="mt-auto d-flex flex-wrap gap-2">
             <a class="btn btn-primary btn-sm" href="{{ module.configuration_url }}">{{ module.primary_action }}</a>
             <a class="btn btn-outline-secondary btn-sm" href="{{ module.existing_route_url }}">{% trans "Open existing system" %}</a>

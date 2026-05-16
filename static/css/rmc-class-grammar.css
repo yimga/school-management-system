@@ -1541,3 +1541,126 @@
 .rmc-install-impact-graph {
   min-height: 200px;
 }
+
+/* ============================================================ */
+/* v2.63 (2026-05-15) — Bento grid primitive.
+ *
+ * Replaces the vertical stack of "outcome sections" on Studio Control
+ * (was ~1350px tall for 9 sections; bento drops it to ~450px on 3 cols,
+ * ~700px on 2 cols, ~1350px collapsed on mobile — same as before, by
+ * design, since mobile has no horizontal room).
+ *
+ * Auto-fit minmax means columns redistribute dynamically: 3 cols at
+ * ≥960px container width, 2 cols at ≥640px, 1 col below. No media
+ * queries needed — the grid does it. */
+/* ============================================================ */
+.rmc-bento {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-3, 0.75rem);
+  align-items: stretch;
+}
+.rmc-bento__cell {
+  background: var(--surface-elevated, var(--bs-tertiary-bg, rgba(255,255,255,0.04)));
+  border: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(255,255,255,0.08));
+  border-radius: var(--radius-md, 12px);
+  padding: var(--space-3, 0.75rem) var(--space-3, 0.75rem) var(--space-4, 1rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+  min-width: 0;
+}
+.rmc-bento__cell-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+/* Outcome variant — chip-row is tight, head is one-line title + dim subtitle. */
+.rmc-bento__cell--outcome .rmc-bento__chip {
+  font-size: var(--type-size-xs, 0.8125rem);
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-pill, 999px);
+}
+.rmc-bento--outcomes {
+  /* Outcomes pack denser than generic bento — 240px minmax. */
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+/* v2.63 — Feature control segmented tabs. The bar itself is .rmc-segmented;
+   these add the panel-switching behavior on top. Hidden panes use
+   .feature-category--hidden (display:none with d-none fallback) so the form
+   POST still sends every input value regardless of which tab is showing. */
+.feature-cat-tabs {
+  margin-bottom: var(--space-3, 0.75rem);
+}
+.feature-cat-tab {
+  /* Inherits rmc-segmented__btn — these are layout hooks only. */
+  white-space: nowrap;
+}
+.feature-cat-tab__label {
+  /* Truncate long category labels in narrow viewports rather than wrap. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 12ch;
+}
+.feature-cat-tab__count {
+  font-size: var(--type-size-micro, 0.6875rem);
+  padding: 0.1rem 0.35rem;
+}
+.feature-cat-tab--all {
+  /* All-categories tab: dim chrome so it doesn't compete with regular tabs. */
+  opacity: 0.85;
+}
+.feature-cat-tab--all:hover { opacity: 1; }
+.feature-categories-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+}
+.feature-category--tabbed {
+  /* Becomes a single-column block instead of the 3-col bootstrap grid. */
+  width: 100%;
+}
+.feature-category--hidden {
+  /* Belt-and-braces with d-none. Keeps inputs in DOM for form submission. */
+  display: none !important;
+}
+
+/* v2.63 — Studio cards that double as <details> disclosures. Same surface
+   as studio-os__card but with the summary-row cursor + reset of native
+   triangle marker so the chevron we add via :before stays clean. */
+.studio-os__card--disclosure summary {
+  list-style: none;
+}
+.studio-os__card--disclosure summary::-webkit-details-marker { display: none; }
+.studio-os__card--disclosure summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 0.4rem;
+  transition: transform var(--motion-fast, 120ms) var(--ease-standard, ease);
+  color: var(--text-secondary);
+  font-size: 0.85em;
+}
+.studio-os__card--disclosure[open] summary::before { transform: rotate(90deg); }
+
+/* Parallel work — institutional stamp partial (templates/partials/notifications/_institutional_stamp.html). */
+.rmc-institutional-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-overlay, rgba(255,255,255,0.04));
+  border: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(255,255,255,0.08));
+  color: var(--text-secondary, #555);
+  font-size: var(--type-size-micro, 0.6875rem);
+}
+.rmc-institutional-stamp__icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-tertiary, var(--text-secondary, #888));
+}
+.rmc-institutional-stamp__label {
+  letter-spacing: 0.02em;
+}

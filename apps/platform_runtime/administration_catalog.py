@@ -10,8 +10,60 @@ from dataclasses import dataclass, field
 from typing import Iterable
 
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext_lazy as _
 
 from apps.platform_runtime.blueprint_contract import list_blueprints
+
+
+MODULE_STATUS_READINESS: dict[str, dict[str, object]] = {
+    "ready": {
+        "score": 100,
+        "token": "ready",
+        "tone": "success",
+        "label": _("Ready"),
+        "readiness_label": _("Local proof complete"),
+    },
+    "partial": {
+        "score": 60,
+        "token": "partial",
+        "tone": "warning",
+        "label": _("Partial"),
+        "readiness_label": _("External proof required"),
+    },
+    "external_required": {
+        "score": 40,
+        "token": "external-required",
+        "tone": "info",
+        "label": _("External"),
+        "readiness_label": _("External dependency"),
+    },
+    "beta": {
+        "score": 80,
+        "token": "beta",
+        "tone": "info",
+        "label": _("Beta"),
+        "readiness_label": _("Stabilizing"),
+    },
+    "danger": {
+        "score": 20,
+        "token": "danger",
+        "tone": "danger",
+        "label": _("Danger"),
+        "readiness_label": _("Needs intervention"),
+    },
+}
+
+DEFAULT_MODULE_READINESS: dict[str, object] = {
+    "score": 50,
+    "token": "needs-review",
+    "tone": "secondary",
+    "label": _("Needs review"),
+    "readiness_label": _("Awaiting proof"),
+}
+
+
+def _readiness_for(status: str) -> dict[str, object]:
+    return MODULE_STATUS_READINESS.get(status, DEFAULT_MODULE_READINESS)
 
 
 @dataclass(frozen=True)
@@ -380,9 +432,10 @@ TENANT_CONFIGURATION_SECTIONS: tuple[dict[str, str], ...] = (
 )
 
 
-def enriched_modules() -> list[dict[str, str]]:
-    modules: list[dict[str, str]] = []
+def enriched_modules() -> list[dict[str, object]]:
+    modules: list[dict[str, object]] = []
     for module in CONFIGURATION_MODULES:
+        readiness = _readiness_for(module.status)
         modules.append(
             {
                 "key": module.key,
@@ -391,6 +444,11 @@ def enriched_modules() -> list[dict[str, str]]:
                 "owner": module.owner,
                 "scope": module.scope,
                 "status": module.status,
+                "status_label": readiness["label"],
+                "status_tone": readiness["tone"],
+                "readiness_score": readiness["score"],
+                "readiness_token": readiness["token"],
+                "readiness_label": readiness["readiness_label"],
                 "primary_action": module.primary_action,
                 "existing_route_label": module.existing_route.label,
                 "existing_route_url": resolve_surface_link(module.existing_route),
@@ -403,8 +461,61 @@ def enriched_modules() -> list[dict[str, str]]:
     return modules
 
 
-def module_by_key(key: str) -> dict[str, str] | None:
+def module_by_key(key: str) -> dict[str, object] | None:
     return next((m for m in enriched_modules() if m["key"] == key), None)
+
+
+def compute_configuration_summary() -> dict[str, object]:
+    modules = enriched_modules()
+    total = len(modules)
+    if total == 0:
+        return {
+            "readiness_pct": 0,
+            "readiness_display": "0%",
+            "readiness_label": _("No modules registered"),
+            "risk_level": _("Unknown"),
+            "risk_label": _("Catalog empty"),
+            "next_step": _("Review"),
+            "next_step_label": _("Change queue"),
+            "blockers_count": 0,
+            "blockers_display": "0",
+            "blockers_label": _("No external dependencies"),
+            "external_blocker_keys": [],
+        }
+    ready_count = sum(1 for m in modules if m["status"] == "ready")
+    external_modules = [m for m in modules if m["status"] in {"external_required", "partial"}]
+    blockers_count = len(external_modules)
+    readiness_pct = round(100 * ready_count / total)
+    if readiness_pct >= 90:
+        risk_level = _("Low")
+        risk_label = _("Repository proof complete")
+    elif readiness_pct >= 70:
+        risk_level = _("Medium")
+        risk_label = _("Live parity pending")
+    else:
+        risk_level = _("High")
+        risk_label = _("Multiple modules unproven")
+    if blockers_count == 0:
+        blockers_display = _("None")
+        blockers_label = _("No external dependencies")
+    else:
+        blockers_display = ", ".join(
+            sorted({str(m["status"]).replace("_", "/") for m in external_modules})
+        )
+        blockers_label = _("External proof required")
+    return {
+        "readiness_pct": readiness_pct,
+        "readiness_display": f"{readiness_pct}%",
+        "readiness_label": _("Repository proof"),
+        "risk_level": risk_level,
+        "risk_label": risk_label,
+        "next_step": _("Review"),
+        "next_step_label": _("Change queue"),
+        "blockers_count": blockers_count,
+        "blockers_display": blockers_display,
+        "blockers_label": blockers_label,
+        "external_blocker_keys": [m["key"] for m in external_modules],
+    }
 
 
 def resolved_pack_rows(pack_key: str) -> list[dict[str, object]]:

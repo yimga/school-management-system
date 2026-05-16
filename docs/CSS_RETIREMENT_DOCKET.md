@@ -1,6 +1,124 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-15 (v2.62.0 — Tier 1 gap closeout: PWA icon endpoint + SVG retro-sanitization command + readiness CI gate)
+**Last updated:** 2026-05-15 (v2.64.1 — Studio Control shorten: capability tabs + model disclosure + outcomes bento + workspace-header dedup + sidebar collapse pin + governance grid)
+
+## 2026-05-15 — v2.64.1 Studio Control shorten (Wave A + Wave B)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.64.1-control-studio-shorten-2026-05-15`. Patch follow-on to v2.64.0 anti-fraud (separate parallel wave; bundled in same commit to keep CI green).
+
+User reported `manager.runmycampus.com/studio/control/` was 5985px tall — 6 viewport-heights of scroll for a single page — plus visual bugs (apparent sidebar repetition, redundant page header, governance rail overlapping panel). Honest diagnosis: the height was real (the page tried to render every outcome panel + every operator-model paragraph + every feature toggle inline at once), and the visual artifacts were a mix of redundant chrome + flex-wrap mis-positioning.
+
+### What landed
+
+| # | Sub-wave | Artifact |
+|---|---|---|
+| A1 | Capability families → tabbed | `templates/siteconfig/feature_control_panel_content.html` swaps the 3-col `col-12 col-lg-6 col-xl-4` Bootstrap grid for a `.rmc-segmented` tab bar at top + `.feature-categories-stack` showing one category at a time. Search bypasses the tab so cross-category matches still surface. New "All" tab for power users who want every category at once. JS handles tab clicks + reapplies visibility when search activates/clears. New CSS in `rmc-class-grammar.css` + `.rmc-segmented--scrollable` modifier in `design-tokens.css`. |
+| A2 | Operator control model → details | `templates/studio_os/partials/control_mode_canvas.html` wraps the 6-paragraph model card in a `<details class="studio-os__card studio-os__card--disclosure">` closed by default with summary "About the operator control model — Five steps from a capability to a stopped change." CSS chevron animation in `rmc-class-grammar.css`. |
+| A3 | Outcome panels → bento | Same template's outcome-sections loop converts from a vertical stack to `.rmc-bento .rmc-bento--outcomes` grid (auto-fit minmax 240px → 3 cols at ≥960px / 2 at ≥640px / 1 mobile). Each section becomes `<article class="rmc-bento__cell--outcome">` with chip-row outcomes; "Sources" line drops to `title=` tooltip on the chip (kept in DOM for assistive tech). NEW `.rmc-bento` primitive in `rmc-class-grammar.css`. |
+| B1 | Workspace-header dedup | `control_plane_base.html` wraps the unconditional `{% include "components/rmc_os_page_header.html" %}` in a new `{% block cp_workspace_header %}` block. `studio_os/shell_control_plane.html` overrides it with empty content because Studio renders its own h1 + toolbar. Other CP pages keep the header (no behavioral change). |
+| B2 | Sidebar collapse pin | `manager-control-plane.css` adds defensive `.cp-sidebar-nav .nav-item.collapse:not(.show) { display: none !important; }` so collapse contract is enforced even if Bootstrap CSS load order shifts. Plus tighter row-height + chevron padding so the 15-group header list fits a 1080p viewport, and `#cp-sidebar-col { max-height: calc(100vh - 4rem); overflow-y: auto; }` so the sidebar becomes its own scroll container. |
+| B3 | Governance dropdown positioning | `studio-control-mode-canvas.css` replaces the `.studio-os__control-wrap` flex-wrap layout with explicit CSS grid `grid-template-columns: minmax(180px, 13rem) minmax(0, 1fr)`. Locks rail + panel side-by-side until viewport narrows below 992px, then stacks. Desktop adds `position: sticky; top: 1rem` to the rail. |
+
+### Length reduction (estimated, pre-deploy verification needed)
+
+* Outcome panels: ~1350px → ~450px (3-col bento)
+* Operator model: ~900px → ~40px (closed disclosure)
+* Capability families: ~2500px → ~350px (single tab visible)
+* Total: **~5985px → ~2000px** (3× shorter)
+
+### Honest scope calls
+
+* **A1 search overrides tab.** When the user types in the search box, all categories that have at least one matching row become visible regardless of which tab is selected. The form still POSTs every input value because the hidden panes are `display: none` (DOM stays intact), not removed.
+* **B1 only suppresses on Studio.** Other CP pages (super dashboard, command center, etc.) still render the workspace header. The dedup is opt-out per-shell, not platform-wide.
+* **B2 is defensive, not diagnostic.** Without inspect-element on the live render, the most likely explanation for the apparent sidebar repetition was Bootstrap collapse not enforcing display:none. The CSS rule pins it. If the symptom persists, next layer is the per-request `CONTROL_PLANE_NAV` cache.
+* **A3 chip tooltip vs separate sources line.** Old layout had "Sources: X, Y, Z" as a separate text line, doubling card height. New layout puts the content on the chip's `title=` attribute — visible on hover, accessible via title attribute, but no longer occupying vertical space.
+
+### Deploy
+
+After this lands:
+1. SW cache invalidates on next visit.
+2. Studio Control page should render in ~2 viewport-heights instead of 6.
+3. Other shells unchanged — fixes are scoped to `.cp-sidebar-nav` and `.studio-os__control-wrap` selectors only.
+
+## 2026-05-15 — v2.64 anti-fraud four-pillars closeout (Pillars 1-4)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.64.0-anti-fraud-four-pillars-2026-05-15`.
+
+End-to-end closure of every tracked anti-fraud follow-up from v2.60. **All four security pillars** from the security-architect prompt — phishing-resistant identity, payment interception protection, verified communications, sandboxed marketplace — now have concrete primitives shipped. **54 new tests, all green.** Three pillars done by parallel agents in isolation; one pillar (admin wire-up) by the coordinator. Tenant scanner re-baselined for safe login-flow membership lookups annotated with reasons.
+
+### What landed by pillar
+
+#### Pillar 1 — Phishing-resistant identity
+
+| Artifact | Detail |
+|---|---|
+| `apps/accounts/middleware_session_pinning.py` (NEW) | `SessionPinningMiddleware` — binds sessions to `(IP, sha256(UA)[:16])`. Mismatch on subsequent request → `session.flush()` + CRITICAL `AuditLog` (ACCESS_DENIED) + warning log. Allowlists `/static/`, `/media/`, `/admin/jsi18n/`. Per-tenant hook `SiteSettings.session_pinning_enabled` (field follow-up tracked). |
+| `apps/accounts/views.py:2776-2799` | Passkey-only-enforcement guard inside the `login_view` after `authenticate()`. When `user.role.upper() ∈ PASSKEY_ONLY_ROLES`, refuses password auth with translated flash and redirects to `accounts:login` (the JS on the login page drives the WebAuthn ceremony). |
+| `config/settings.py` MIDDLEWARE | `SessionPinningMiddleware` added in both lists (lines 281 + 1996), immediately after `AuthenticationMiddleware`, before `RequireMFAMiddleware`. |
+| `config/settings_registry.py` | NEW `SESSION_PINNING_ENABLED` (bool, default True) + `PASSKEY_ONLY_ROLES` (tuple[str], default `()`). |
+| Tests | `apps/accounts/tests/test_session_pinning.py` (7) + `apps/accounts/tests/test_passkey_only_enforcement.py` (4) — **11/11 passing.** |
+
+#### Pillar 2 — Payment interception protection (admin wire-up to v2.60 service)
+
+| Artifact | Detail |
+|---|---|
+| `apps/finance/admin.py` `BankAccountAdmin` | `save_model` + `delete_model` overridden — direct admin edits convert to PENDING `BankAccountChangeRequest` rows. UPDATE diff via `form.changed_data`; CREATE full payload; FK fields serialized as `_id`. Tenant resolved via `request.school` → `user.profile.school` → `user.school`. No-tenant guard refuses to file. |
+| `config/settings_registry.py` | NEW `BANK_ACCOUNT_CHANGES_REQUIRE_DUAL_AUTH` (bool, default True) + `BANK_ACCOUNT_CHANGE_REQUEST_TTL_HOURS` (int, default 48). |
+| Tests | NEW `apps/finance/tests/test_bank_account_admin_dual_auth.py` — 5 tests (UPDATE files PENDING, CREATE files PENDING, DELETE files DEACTIVATE, dual-auth-OFF saves directly, no-tenant refuses). Combined with v2.60's 15 model+service tests: **20/20 passing.** |
+
+#### Pillar 3 — Verified communications
+
+| Artifact | Detail |
+|---|---|
+| `apps/communication/email_signing.py` (NEW) | DKIM posture module. `email_signing_status()` → `{backend, signs_dkim, provider}`. `assert_dkim_configured()` → soft-warn or raise `EmailSigningMisconfigured` based on `EMAIL_SIGNING_REQUIRED`. Knows the 11 anymail backends that DKIM-sign (Mailgun/SendGrid/Postmark/Mailjet/SES/SparkPost/Mandrill/MailerSend/Sendinblue/Brevo/Resend) plus the non-signing matrix (console/locmem/dummy/filebased/smtp). |
+| `apps/communication/management/commands/check_email_signing.py` (NEW) | Operator/CI preflight — exit 0 if DKIM signing OK, exit 1 if not. |
+| `apps/communication/apps.py` `ready()` | Calls `assert_dkim_configured()`; soft-warns in dev (DEBUG=True), raises in prod when `EMAIL_SIGNING_REQUIRED=True`. |
+| `apps/communication/templatetags/institutional_stamp.py` (NEW) | `{% institutional_stamp notification %}` simple_tag — renders inline-SVG checkmark + "Verified [tenant]" label only when notification's `school_id` matches current request's tenant; gracefully empty otherwise (never throws). |
+| `templates/partials/notifications/_institutional_stamp.html` (NEW) | Token-driven (no inline `style=""` — CSP enforce is on). |
+| `templates/accounts/notifications.html:73` | Adopted `{% institutional_stamp notif %}` in inbox row. |
+| `config/settings_registry.py` | NEW `EMAIL_SIGNING_REQUIRED` (bool, default False — opt-in for prod). |
+| Tests | `apps/communication/tests/test_email_signing.py` (9) + `apps/communication/tests/test_institutional_stamp.py` (7) — **16/16 passing.** |
+
+#### Pillar 4 — Sandboxed marketplace (install-time scope consent UI)
+
+Audit verdict: **(b)** — install endpoint existed and gated on impact-preview ack, but bypassed granular per-scope consent. Consent fixed end-to-end.
+
+| Artifact | Detail |
+|---|---|
+| `apps/marketplace/views.py` `tenant_install_app` | Now requires `consented_scopes[]` POST list to cover EVERY manifest scope; refuses install if any scope unconfirmed. Writes `compliance.AuditLog.PERMISSION_GRANT` (HIGH) with `new_values={app_id, app_slug, school_id, school_slug, installation_id, scopes_consented}`. |
+| `apps/marketplace/services.py` `install_app` | Accepts `grant_scope_codes=`; persists `ScopeGrant` rows in same atomic install (sensitive scopes → PENDING, others → GRANTED). |
+| `templates/marketplace/partials/install_impact_modal.html` | NEW `<fieldset>` per-scope consent UI; submit disabled until JS verifies all checkboxes. Token-driven, CSP-friendly. |
+| `static/js/_pages/marketplace__partials__install_impact_modal-1.js` | NEW `renderConsent()` + `refreshConsentGate()` — injects checkboxes per manifest scope, gates submit. **Pre-existing JS syntax errors fixed** (12 broken `(window.__RMC_PAGE_DATA__[…])` substitutions that didn't parse). Removed inline `style="min-height:200px"`. |
+| `static/css/rmc-class-grammar.css` | NEW `.rmc-scope-consent` grammar (`__legend / __hint / __list / __item / .is-sensitive / __checkbox / __code / __desc / __badge / __actions / __status`) + `.rmc-install-impact-graph`. All token-driven (`var(--surface-*)`, `var(--hairline)`, `var(--space-*)`, `var(--ease-*)`, `color-mix`). |
+| Scopes catalog | Verified count: **50** (memory said 46; expansion since NS-4 confirmed via `len(MARKETPLACE_SCOPES)`). |
+| Tests | `apps/marketplace/tests/test_app_scope_consent.py` — 7 tests (consent UI, refuse-when-unconfirmed, succeed-when-all-confirmed, audit log records, tenant-scoped, etc.) — **7/7 passing**, **+11 regression tests** in adjacent files (`test_governance`, `test_tenant_marketplace_post_security`) all OK. |
+
+### Login-flow tenant annotations (parallel-work absorption)
+
+4 `SchoolMembership.objects.filter(user=...)` lookups in `apps/accounts/views.py` flagged by tenant scanner — these are by-design cross-tenant during login (the user doesn't HAVE a tenant context yet; we're picking which school to log them into). All 4 annotated with `# tenant-isolation-allow:` reasons. Tenant baseline re-baselined.
+
+### Verified end-to-end
+
+- **All 11 architectural CI gates `--compare` exit 0**
+- **54 new tests passing** (11+20+16+7) + 11 marketplace regression tests OK
+- `python manage.py check` → 0 issues
+- New `BankAccountChangeRequest` model + migration loads cleanly under Django bootstrap
+- DKIM preflight correctly identifies the platform's `console` backend in dev (warns) and would block deploy in prod under `EMAIL_SIGNING_REQUIRED=True`
+
+### Tracked follow-ups (post-v2.64)
+
+- **Pillar 1**: add `SiteSettings.session_pinning_enabled` field + migration so per-tenant override is real (middleware already reads it via `getattr` with default True)
+- **Pillar 2**: pending-request inbox UI in super-admin shell; Stripe Connect payout-method changes via same dual-auth flow
+- **Pillar 3**: provision actual anymail backend in production (DKIM signing is provider-side); publish DKIM + SPF + DMARC TXT records on `runmycampus.com`; add `school_id` FK to `Notification` model so the Institutional Stamp can match (today it gracefully shows nothing for legacy notifications)
+- **Pillar 4**: super-admin install path retains the no-consent shortcut by design (operates on behalf of school under tighter rails); document this explicitly
+
+### Deploy
+
+1. SW cache: `sms-v2.64.0-anti-fraud-four-pillars-2026-05-15`.
+2. **NEW migration** from v2.60 still applies: `apps/finance/0062_bankaccountchangerequest.py`. No new migration in v2.64.
+3. **CSP enforce mode is on (since v2.57)** — JS files written by Pillar 4 are external (`/static/js/_pages/...`), inline-style=0 verified.
+4. **Browsers will block** inline scripts + non-self origins on every HTML response.
+5. **Operators must provision** anymail backend + DKIM DNS records before flipping `EMAIL_SIGNING_REQUIRED=True` in prod.
 
 ## 2026-05-15 — v2.62 Tier 1 gap closeout (T1.1 / T1.2 / T1.3)
 

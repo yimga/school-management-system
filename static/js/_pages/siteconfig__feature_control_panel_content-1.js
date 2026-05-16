@@ -159,11 +159,66 @@
     });
   });
 
+  // v2.63 Wave A1: capability families segmented tabs. The 3-col grid was
+  // dumping all ~9 categories at once (~2500px). Show one at a time;
+  // search bypasses the tab to surface matches across all categories.
+  const catTabBar = document.querySelector('[data-feature-cat-tabs="1"]');
+  const catTabs = catTabBar ? Array.from(catTabBar.querySelectorAll('.feature-cat-tab')) : [];
+  let activeCatId = catTabs.length ? (catTabs[0].dataset.cat || '') : '';
+  let isSearchActive = false;
+
+  function applyCategoryVisibility() {
+    if (isSearchActive) {
+      // Search active: ignore tab selection, show every category that has any matches.
+      form.querySelectorAll('.feature-category').forEach(function(cat) {
+        cat.classList.remove('d-none');
+        cat.classList.remove('feature-category--hidden');
+      });
+      return;
+    }
+    if (activeCatId === '__all__') {
+      form.querySelectorAll('.feature-category').forEach(function(cat) {
+        cat.classList.remove('d-none');
+        cat.classList.remove('feature-category--hidden');
+      });
+      return;
+    }
+    form.querySelectorAll('.feature-category').forEach(function(cat) {
+      const matches = (cat.dataset.category || '') === activeCatId;
+      cat.classList.toggle('d-none', !matches);
+      cat.classList.toggle('feature-category--hidden', !matches);
+    });
+  }
+
+  function setActiveCategory(catId) {
+    activeCatId = catId || activeCatId;
+    catTabs.forEach(function(tab) {
+      const isActive = (tab.dataset.cat || '') === activeCatId;
+      tab.classList.toggle('active', isActive);
+      tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    applyCategoryVisibility();
+  }
+
+  catTabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      setActiveCategory(tab.dataset.cat || activeCatId);
+    });
+  });
+
+  // Initialise — first tab active, others hidden via the d-none we added in
+  // the template. Calling apply once ensures the "All" pane is correctly
+  // gated even when nothing was clicked yet.
+  if (catTabs.length) {
+    applyCategoryVisibility();
+  }
+
   if (search && form) {
     search.addEventListener('input', function() {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(function() {
         const q = (search.value || '').toLowerCase().trim();
+        isSearchActive = !!q;
         let anyVisible = false;
         form.querySelectorAll('.feature-category').forEach(function(cat) {
           let visibleCount = 0;
@@ -178,6 +233,8 @@
           if (visibleCount > 0) anyVisible = true;
         });
         noResults.classList.toggle('d-none', !!q && !anyVisible);
+        // Reapply tab visibility now that isSearchActive may have changed.
+        applyCategoryVisibility();
       }, 200);
     });
   }

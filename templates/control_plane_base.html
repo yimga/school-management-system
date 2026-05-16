@@ -126,7 +126,15 @@ Targets the existing #cp-main-content landmark (line ~76 below).
         {% block breadcrumb_actions %}{% endblock %}
       {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
       {% if request.user.is_authenticated %}
+      {% comment %} v2.63 (Wave B1, 2026-05-15): wrapped in a block so child shells can
+         suppress the workspace header when they already render their own
+         page-title chrome. Studio overrides this in shell_control_plane.html
+         to kill the "RunMyCampus workspace / Studio / Super Administrator"
+         strip that duplicated information already in the breadcrumb +
+         studio toolbar. {% endcomment %}
+      {% block cp_workspace_header %}
       {% include "components/rmc_os_page_header.html" %}
+      {% endblock %}
       <div class="d-flex flex-wrap justify-content-end gap-2 mb-3" data-rmc-os-primary-action-slot="1" data-rmc-primary-action-slot="1">
         {% block rmc_os_shell_primary_action %}{% endblock %}
       </div>
