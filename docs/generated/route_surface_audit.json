@@ -439,7 +439,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1585,
+          "line": 1614,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -448,7 +448,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3109,
+          "line": 3138,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -457,7 +457,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2307,
+          "line": 2336,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -466,7 +466,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2312,
+          "line": 2341,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -475,7 +475,7 @@
         },
         {
           "kind": "reverse",
-          "line": 843,
+          "line": 872,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -484,7 +484,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3134,
+          "line": 3163,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -2693,7 +2693,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2329,
+          "line": 2358,
           "name": "accounts:dismiss_first_login_checklist",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\n            \"accounts:dismiss_first_login_checklist\"\n        )",
@@ -3192,7 +3192,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2738,
+          "line": 2767,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -3201,7 +3201,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3011,
+          "line": 3040,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -3210,7 +3210,7 @@
         },
         {
           "kind": "reverse",
-          "line": 890,
+          "line": 919,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -3219,7 +3219,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2801,
+          "line": 2830,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -3616,13 +3616,71 @@
       "view": "apps.accounts.views.logout_view"
     },
     {
+      "name": "accounts:mark_all_notifications_read",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 45,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 60,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 65,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 76,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 18,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "templates/accounts/notifications.html",
+          "raw": "{% url 'accounts:mark_all_notifications_read' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/authentication/notifications/mark-all-read/",
+      "view": "apps.accounts.views.mark_all_notifications_read"
+    },
+    {
       "name": "accounts:mark_tour_complete",
       "permission_requirement": "control_plane",
       "reasons": [],
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2339,
+          "line": 2368,
           "name": "accounts:mark_tour_complete",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:mark_tour_complete\")",
@@ -3661,7 +3719,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2922,
+          "line": 2951,
           "name": "accounts:mfa_setup",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:mfa_setup\")",
@@ -3719,7 +3777,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2930,
+          "line": 2959,
           "name": "accounts:mfa_verify",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:mfa_verify\")",
@@ -4006,7 +4064,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2723,
+          "line": 2752,
           "name": "accounts:oidc_start",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:oidc_start\", args=[ref])",
@@ -4359,7 +4417,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2863,
+          "line": 2892,
           "name": "accounts:password_change",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:password_change\")",
@@ -4408,7 +4466,7 @@
       "reverse_usage": [
         {
           "kind": "reverse_lazy",
-          "line": 171,
+          "line": 172,
           "name": "accounts:password_change_done",
           "path": "apps/accounts/urls.py",
           "raw": "reverse_lazy(\"accounts:password_change_done\")",
@@ -4417,7 +4475,7 @@
         },
         {
           "kind": "reverse_lazy",
-          "line": 2632,
+          "line": 2661,
           "name": "accounts:password_change_done",
           "path": "apps/accounts/views.py",
           "raw": "reverse_lazy(\"accounts:password_change_done\")",
@@ -4571,7 +4629,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1030,
+          "line": 1059,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -4580,7 +4638,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1014,
+          "line": 1043,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -4589,7 +4647,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1016,
+          "line": 1045,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -4598,7 +4656,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1018,
+          "line": 1047,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -4607,7 +4665,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3060,
+          "line": 3089,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -4616,7 +4674,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2973,
+          "line": 3002,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -4625,7 +4683,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3033,
+          "line": 3062,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -4773,7 +4831,7 @@
         },
         {
           "kind": "template_url",
-          "line": 17,
+          "line": 25,
           "name": "accounts:redirect",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:redirect' %}",
@@ -5122,7 +5180,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2721,
+          "line": 2750,
           "name": "accounts:saml_start",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:saml_start\", args=[ref])",
@@ -5161,7 +5219,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2824,
+          "line": 2853,
           "name": "accounts:school_picker",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:school_picker\")",
@@ -5440,7 +5498,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1841,
+          "line": 1870,
           "name": "accounts:user_messages",
           "path": "apps/accounts/views.py",
           "raw": "reverse('accounts:user_messages')",
@@ -5507,7 +5565,7 @@
         },
         {
           "kind": "template_url",
-          "line": 525,
+          "line": 529,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -5597,6 +5655,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 524,
+          "name": "accounts:user_notifications",
+          "path": "apps/accounts/views.py",
+          "raw": "reverse(\"accounts:user_notifications\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 92,
           "name": "accounts:user_notifications",
           "path": "apps/platform_runtime/tests/test_closing_slice_demo_mode.py",
@@ -5609,6 +5676,24 @@
           "line": 103,
           "name": "accounts:user_notifications",
           "path": "apps/platform_runtime/tests/test_closing_slice_demo_mode.py",
+          "raw": "reverse(\"accounts:user_notifications\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 72,
+          "name": "accounts:user_notifications",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:user_notifications\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 82,
+          "name": "accounts:user_notifications",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
           "raw": "reverse(\"accounts:user_notifications\")",
           "reason": "",
           "status": "OK"
@@ -5628,7 +5713,7 @@
         },
         {
           "kind": "template_url",
-          "line": 26,
+          "line": 34,
           "name": "accounts:user_notifications",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -5637,7 +5722,7 @@
         },
         {
           "kind": "template_url",
-          "line": 29,
+          "line": 37,
           "name": "accounts:user_notifications",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -5646,7 +5731,7 @@
         },
         {
           "kind": "template_url",
-          "line": 32,
+          "line": 40,
           "name": "accounts:user_notifications",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -5664,7 +5749,7 @@
         },
         {
           "kind": "template_url",
-          "line": 45,
+          "line": 47,
           "name": "accounts:user_notifications",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -5848,7 +5933,7 @@
         },
         {
           "kind": "template_url",
-          "line": 44,
+          "line": 46,
           "name": "accounts:user_profile",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -8141,7 +8226,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1586,
+          "line": 1615,
           "name": "admin:index",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"admin:index\")",
@@ -16058,6 +16143,45 @@
       "view": "django.contrib.contenttypes.views.shortcut"
     },
     {
+      "name": "ai_copilot_query",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 143,
+          "name": "ai_copilot_query",
+          "path": "templates/base.html",
+          "raw": "{% url 'ai_copilot_query' as ai_copilot_endpoint %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 72,
+          "name": "ai_copilot_query",
+          "path": "templates/control_plane_skeleton.html",
+          "raw": "{% url 'ai_copilot_query' as ai_copilot_cp %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 158,
+          "name": "ai_copilot_query",
+          "path": "templates/portal_base.html",
+          "raw": "{% url 'ai_copilot_query' as ai_copilot_endpoint %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/api/ai-copilot/validate/",
+      "view": "apps.portal.views_ai_copilot.ai_copilot_query"
+    },
+    {
       "name": "ai_health",
       "permission_requirement": "control_plane",
       "reasons": [],
@@ -16126,7 +16250,7 @@
         },
         {
           "kind": "reverse",
-          "line": 95,
+          "line": 181,
           "name": "api_operational_slo_dashboard",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"api_operational_slo_dashboard\")",
@@ -16330,7 +16454,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 87,
+          "line": 173,
           "name": "apicenter:dashboard",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"apicenter:dashboard\")",
@@ -19033,7 +19157,7 @@
         },
         {
           "kind": "template_url",
-          "line": 46,
+          "line": 52,
           "name": "kb:kb_home",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'kb:kb_home' %}",
@@ -19072,6 +19196,15 @@
           "line": 18,
           "name": "kb:kb_home",
           "path": "templates/errors/404.html",
+          "raw": "{% url 'kb:kb_home' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 13,
+          "name": "kb:kb_home",
+          "path": "templates/feedback/help_center.html",
           "raw": "{% url 'kb:kb_home' %}",
           "reason": "",
           "status": "OK"
@@ -19579,7 +19712,7 @@
         },
         {
           "kind": "template_url",
-          "line": 46,
+          "line": 52,
           "name": "manager_help",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'manager_help' %}",
@@ -20058,7 +20191,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 271,
+          "line": 267,
           "name": "platform_incidents_console",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"platform_incidents_console\")",
@@ -20067,7 +20200,7 @@
         },
         {
           "kind": "reverse",
-          "line": 149,
+          "line": 145,
           "name": "platform_incidents_console",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"platform_incidents_console\")",
@@ -20299,66 +20432,6 @@
       "view": "apps.platform_runtime.views_tenant_lifecycle.tenant_lifecycle_dashboard"
     },
     {
-      "name": "portal_configure",
-      "permission_requirement": "control_plane",
-      "reasons": [],
-      "reverse_usage": [],
-      "scope": "manager",
-      "status": "OK",
-      "template_usage": [
-        {
-          "kind": "template_url",
-          "line": 43,
-          "name": "portal_configure",
-          "path": "templates/components/rmc_command_palette.html",
-          "raw": "{% url 'portal_configure' %}",
-          "reason": "",
-          "status": "OK"
-        },
-        {
-          "kind": "template_url",
-          "line": 14,
-          "name": "portal_configure",
-          "path": "templates/components/rmc_shell_switcher.html",
-          "raw": "{% url 'portal_configure' %}",
-          "reason": "",
-          "status": "OK"
-        }
-      ],
-      "url_path": "/portal/configure/",
-      "view": "apps.portal.views_configure.portal_configure_hub"
-    },
-    {
-      "name": "portal_console",
-      "permission_requirement": "control_plane",
-      "reasons": [],
-      "reverse_usage": [],
-      "scope": "manager",
-      "status": "OK",
-      "template_usage": [
-        {
-          "kind": "template_url",
-          "line": 42,
-          "name": "portal_console",
-          "path": "templates/components/rmc_command_palette.html",
-          "raw": "{% url 'portal_console' %}",
-          "reason": "",
-          "status": "OK"
-        },
-        {
-          "kind": "template_url",
-          "line": 7,
-          "name": "portal_console",
-          "path": "templates/components/rmc_shell_switcher.html",
-          "raw": "{% url 'portal_console' %}",
-          "reason": "",
-          "status": "OK"
-        }
-      ],
-      "url_path": "/portal/console/",
-      "view": "config.manager_urls.<lambda>"
-    },
-    {
       "name": "public_version",
       "permission_requirement": "control_plane",
       "reasons": [],
@@ -20368,6 +20441,70 @@
       "template_usage": [],
       "url_path": "/-/version/",
       "view": "apps.observability.views.public_version"
+    },
+    {
+      "name": "pwa_manifest_icon_any",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/manifest/icon-<int:size>.png",
+      "view": "apps.siteconfig.views_manifest_icon.icon_any"
+    },
+    {
+      "name": "pwa_manifest_icon_maskable",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/manifest/icon-<int:size>-maskable.png",
+      "view": "apps.siteconfig.views_manifest_icon.icon_maskable"
+    },
+    {
+      "name": "pwa_manifest_platform",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 148,
+          "name": "pwa_manifest_platform",
+          "path": "templates/portal_base.html",
+          "raw": "{% url 'pwa_manifest_platform' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/manifest.json",
+      "view": "apps.siteconfig.views_manifest.platform_manifest"
+    },
+    {
+      "name": "pwa_manifest_portal",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 34,
+          "name": "pwa_manifest_portal",
+          "path": "templates/portal_base.html",
+          "raw": "{% url 'pwa_manifest_portal' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/manifest-portal.json",
+      "view": "apps.siteconfig.views_manifest.portal_manifest"
     },
     {
       "name": "ready",
@@ -23999,7 +24136,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 43,
+          "line": 129,
           "name": "siteconfig:guided_onboarding",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"siteconfig:guided_onboarding\")",
@@ -24213,7 +24350,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 341,
+          "line": 337,
           "name": "siteconfig:metadata_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"siteconfig:metadata_operator_hub\")",
@@ -26773,7 +26910,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2337,
+          "line": 2366,
           "name": "siteconfig:tour_steps_api",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"siteconfig:tour_steps_api\")",
@@ -26852,7 +26989,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1592,
+          "line": 1621,
           "name": "siteconfig:user_preferences",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"siteconfig:user_preferences\")",
@@ -27271,7 +27408,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 353,
+          "line": 359,
           "name": "studio_os:approval_hub",
           "path": "apps/accounts/urls.py",
           "raw": "reverse(\"studio_os:approval_hub\")",
@@ -27775,7 +27912,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 194,
+          "line": 190,
           "name": "studio_os:control",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:control\")",
@@ -28571,7 +28708,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 325,
+          "line": 331,
           "name": "studio_os:import_hub",
           "path": "apps/accounts/urls.py",
           "raw": "reverse(\"studio_os:import_hub\")",
@@ -28580,7 +28717,7 @@
         },
         {
           "kind": "reverse",
-          "line": 844,
+          "line": 873,
           "name": "studio_os:import_hub",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"studio_os:import_hub\")",
@@ -28638,7 +28775,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 201,
+          "line": 197,
           "name": "studio_os:launch",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:launch\")",
@@ -28852,7 +28989,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 187,
+          "line": 183,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -28861,7 +28998,7 @@
         },
         {
           "kind": "reverse",
-          "line": 208,
+          "line": 204,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -29297,7 +29434,7 @@
         },
         {
           "kind": "template_url",
-          "line": 83,
+          "line": 84,
           "name": "studio_os:output",
           "path": "templates/studio_os/partials/output_mode_canvas.html",
           "raw": "{% url 'studio_os:output' %}",
@@ -29848,7 +29985,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 348,
+          "line": 354,
           "name": "studio_os:workflow_center",
           "path": "apps/accounts/urls.py",
           "raw": "reverse(\"studio_os:workflow_center\")",
@@ -29902,7 +30039,7 @@
         },
         {
           "kind": "reverse",
-          "line": 39,
+          "line": 125,
           "name": "studio_os:workflow_center",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"studio_os:workflow_center\")",
@@ -30224,7 +30361,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 570,
+          "line": 574,
           "name": "super:advancement_hub",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:advancement_hub\")",
@@ -30245,7 +30382,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 480,
+          "line": 484,
           "name": "super:advancement_phase2_placeholder",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:advancement_phase2_placeholder\")",
@@ -30335,7 +30472,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 229,
+          "line": 225,
           "name": "super:analytics_overview",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:analytics_overview\")",
@@ -30764,7 +30901,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 264,
+          "line": 260,
           "name": "super:app_catalog",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:app_catalog\")",
@@ -30804,7 +30941,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 236,
+          "line": 245,
           "name": "super:app_catalog",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:app_catalog' as super_app_catalog_post_url %}",
@@ -30879,7 +31016,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 306,
+          "line": 302,
           "name": "super:backlog_unlock_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:backlog_unlock_center\")",
@@ -30957,7 +31094,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 243,
+          "line": 239,
           "name": "super:billing_dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:billing_dashboard\")",
@@ -30966,7 +31103,7 @@
         },
         {
           "kind": "reverse",
-          "line": 172,
+          "line": 168,
           "name": "super:billing_dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse('super:billing_dashboard')",
@@ -31069,7 +31206,7 @@
         },
         {
           "kind": "template_url",
-          "line": 137,
+          "line": 144,
           "name": "super:billing_dashboard",
           "path": "templates/marketplace/governance_console.html",
           "raw": "{% url 'super:billing_dashboard' as billing_url %}",
@@ -31123,7 +31260,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 257,
+          "line": 253,
           "name": "super:blueprint_marketplace",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:blueprint_marketplace\")",
@@ -31190,7 +31327,7 @@
         },
         {
           "kind": "template_url",
-          "line": 36,
+          "line": 45,
           "name": "super:blueprint_marketplace",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:blueprint_marketplace' %}",
@@ -31199,7 +31336,7 @@
         },
         {
           "kind": "template_url",
-          "line": 43,
+          "line": 52,
           "name": "super:blueprint_marketplace",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:blueprint_marketplace' %}",
@@ -31248,7 +31385,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 236,
+          "line": 232,
           "name": "super:command_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:command_center\")",
@@ -31405,7 +31542,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 86,
+          "line": 172,
           "name": "super:compliance_overview",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:compliance_overview\")",
@@ -31644,7 +31781,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 278,
+          "line": 274,
           "name": "super:create_school_wizard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:create_school_wizard\")",
@@ -31830,7 +31967,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 215,
+          "line": 211,
           "name": "super:dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -31839,7 +31976,7 @@
         },
         {
           "kind": "reverse",
-          "line": 130,
+          "line": 126,
           "name": "super:dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse('super:dashboard')",
@@ -31857,7 +31994,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1324,
+          "line": 1353,
           "name": "super:dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32244,7 +32381,7 @@
         },
         {
           "kind": "reverse",
-          "line": 116,
+          "line": 202,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32253,7 +32390,7 @@
         },
         {
           "kind": "reverse",
-          "line": 28,
+          "line": 112,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32262,7 +32399,7 @@
         },
         {
           "kind": "reverse",
-          "line": 85,
+          "line": 171,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32271,7 +32408,7 @@
         },
         {
           "kind": "reverse",
-          "line": 260,
+          "line": 346,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32289,7 +32426,7 @@
         },
         {
           "kind": "reverse",
-          "line": 272,
+          "line": 276,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32298,7 +32435,7 @@
         },
         {
           "kind": "reverse",
-          "line": 339,
+          "line": 343,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32307,7 +32444,7 @@
         },
         {
           "kind": "reverse",
-          "line": 403,
+          "line": 407,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32316,7 +32453,7 @@
         },
         {
           "kind": "reverse",
-          "line": 451,
+          "line": 455,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32325,7 +32462,7 @@
         },
         {
           "kind": "reverse",
-          "line": 485,
+          "line": 489,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32334,7 +32471,7 @@
         },
         {
           "kind": "reverse",
-          "line": 569,
+          "line": 573,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32343,7 +32480,7 @@
         },
         {
           "kind": "reverse",
-          "line": 589,
+          "line": 593,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32352,7 +32489,7 @@
         },
         {
           "kind": "reverse",
-          "line": 721,
+          "line": 725,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32361,7 +32498,7 @@
         },
         {
           "kind": "reverse",
-          "line": 793,
+          "line": 797,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32370,7 +32507,7 @@
         },
         {
           "kind": "reverse",
-          "line": 870,
+          "line": 874,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32379,7 +32516,7 @@
         },
         {
           "kind": "reverse",
-          "line": 903,
+          "line": 907,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32388,7 +32525,7 @@
         },
         {
           "kind": "reverse",
-          "line": 926,
+          "line": 930,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32397,7 +32534,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1007,
+          "line": 1011,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -32761,7 +32898,7 @@
         },
         {
           "kind": "template_url",
-          "line": 34,
+          "line": 43,
           "name": "super:dashboard",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:dashboard' %}",
@@ -32770,7 +32907,7 @@
         },
         {
           "kind": "template_url",
-          "line": 41,
+          "line": 50,
           "name": "super:dashboard",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:dashboard' %}",
@@ -33294,7 +33431,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 68,
+          "line": 154,
           "name": "super:district_enterprise",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:district_enterprise\")",
@@ -33597,7 +33734,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 313,
+          "line": 309,
           "name": "super:fleet_governed_changes",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:fleet_governed_changes\")",
@@ -33702,7 +33839,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 285,
+          "line": 281,
           "name": "super:geography",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:geography\")",
@@ -33711,7 +33848,7 @@
         },
         {
           "kind": "reverse",
-          "line": 73,
+          "line": 159,
           "name": "super:geography",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:geography\")",
@@ -34070,7 +34207,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 250,
+          "line": 246,
           "name": "super:marketplace_governance",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:marketplace_governance\")",
@@ -34092,7 +34229,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 35,
+          "line": 44,
           "name": "super:marketplace_governance",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:marketplace_governance' %}",
@@ -34101,7 +34238,7 @@
         },
         {
           "kind": "template_url",
-          "line": 42,
+          "line": 51,
           "name": "super:marketplace_governance",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:marketplace_governance' %}",
@@ -34137,7 +34274,7 @@
         },
         {
           "kind": "template_url",
-          "line": 188,
+          "line": 195,
           "name": "super:marketplace_governance",
           "path": "templates/marketplace/governance_console.html",
           "raw": "{% url 'super:marketplace_governance' as gov_url %}",
@@ -34183,6 +34320,17 @@
       ],
       "url_path": "/super/marketplace/",
       "view": "apps.marketplace.views.governance_console"
+    },
+    {
+      "name": "super:marketplace_governance_alias",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/super/marketplace-governance/",
+      "view": "django.views.generic.base.RedirectView"
     },
     {
       "name": "super:marketplace_incident_dashboard",
@@ -34396,7 +34544,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 37,
+          "line": 46,
           "name": "super:marketplace_sandbox_inspector",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:marketplace_sandbox_inspector' %}",
@@ -34405,7 +34553,7 @@
         },
         {
           "kind": "template_url",
-          "line": 44,
+          "line": 53,
           "name": "super:marketplace_sandbox_inspector",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:marketplace_sandbox_inspector' %}",
@@ -34868,7 +35016,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 299,
+          "line": 295,
           "name": "super:operator_policy",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:operator_policy\")",
@@ -35558,7 +35706,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 94,
+          "line": 180,
           "name": "super:platform_events",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:platform_events\")",
@@ -35579,7 +35727,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 320,
+          "line": 316,
           "name": "super:platform_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:platform_operator_hub\")",
@@ -35718,7 +35866,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 327,
+          "line": 323,
           "name": "super:playbook_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:playbook_operator_hub\")",
@@ -36323,7 +36471,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 334,
+          "line": 330,
           "name": "super:runtime_truth_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:runtime_truth_hub\")",
@@ -36417,7 +36565,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 222,
+          "line": 218,
           "name": "super:schools_list",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:schools_list\")",
@@ -37612,7 +37760,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 292,
+          "line": 288,
           "name": "super:trust_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:trust_center\")",
@@ -37630,7 +37778,7 @@
         },
         {
           "kind": "reverse",
-          "line": 117,
+          "line": 203,
           "name": "super:trust_center",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:trust_center\")",
@@ -37639,7 +37787,7 @@
         },
         {
           "kind": "reverse",
-          "line": 29,
+          "line": 113,
           "name": "super:trust_center",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:trust_center\")",
@@ -37648,7 +37796,7 @@
         },
         {
           "kind": "reverse",
-          "line": 261,
+          "line": 347,
           "name": "super:trust_center",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:trust_center\")",
@@ -37998,7 +38146,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 348,
+          "line": 344,
           "name": "super:workflow_simulator",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:workflow_simulator\")",
@@ -38888,7 +39036,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1585,
+          "line": 1614,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -38897,7 +39045,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3109,
+          "line": 3138,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -38906,7 +39054,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2307,
+          "line": 2336,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -38915,7 +39063,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2312,
+          "line": 2341,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -38924,7 +39072,7 @@
         },
         {
           "kind": "reverse",
-          "line": 843,
+          "line": 872,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -38933,7 +39081,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3134,
+          "line": 3163,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -41142,7 +41290,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2329,
+          "line": 2358,
           "name": "accounts:dismiss_first_login_checklist",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\n            \"accounts:dismiss_first_login_checklist\"\n        )",
@@ -41641,7 +41789,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2738,
+          "line": 2767,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -41650,7 +41798,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3011,
+          "line": 3040,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -41659,7 +41807,7 @@
         },
         {
           "kind": "reverse",
-          "line": 890,
+          "line": 919,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -41668,7 +41816,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2801,
+          "line": 2830,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -42065,13 +42213,71 @@
       "view": "apps.accounts.views.logout_view"
     },
     {
+      "name": "accounts:mark_all_notifications_read",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 45,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 60,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 65,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 76,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 18,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "templates/accounts/notifications.html",
+          "raw": "{% url 'accounts:mark_all_notifications_read' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/authentication/notifications/mark-all-read/",
+      "view": "apps.accounts.views.mark_all_notifications_read"
+    },
+    {
       "name": "accounts:mark_tour_complete",
       "permission_requirement": "public",
       "reasons": [],
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2339,
+          "line": 2368,
           "name": "accounts:mark_tour_complete",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:mark_tour_complete\")",
@@ -42110,7 +42316,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2922,
+          "line": 2951,
           "name": "accounts:mfa_setup",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:mfa_setup\")",
@@ -42168,7 +42374,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2930,
+          "line": 2959,
           "name": "accounts:mfa_verify",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:mfa_verify\")",
@@ -42455,7 +42661,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2723,
+          "line": 2752,
           "name": "accounts:oidc_start",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:oidc_start\", args=[ref])",
@@ -42808,7 +43014,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2863,
+          "line": 2892,
           "name": "accounts:password_change",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:password_change\")",
@@ -42857,7 +43063,7 @@
       "reverse_usage": [
         {
           "kind": "reverse_lazy",
-          "line": 171,
+          "line": 172,
           "name": "accounts:password_change_done",
           "path": "apps/accounts/urls.py",
           "raw": "reverse_lazy(\"accounts:password_change_done\")",
@@ -42866,7 +43072,7 @@
         },
         {
           "kind": "reverse_lazy",
-          "line": 2632,
+          "line": 2661,
           "name": "accounts:password_change_done",
           "path": "apps/accounts/views.py",
           "raw": "reverse_lazy(\"accounts:password_change_done\")",
@@ -43020,7 +43226,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1030,
+          "line": 1059,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -43029,7 +43235,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1014,
+          "line": 1043,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -43038,7 +43244,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1016,
+          "line": 1045,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -43047,7 +43253,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1018,
+          "line": 1047,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -43056,7 +43262,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3060,
+          "line": 3089,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -43065,7 +43271,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2973,
+          "line": 3002,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -43074,7 +43280,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3033,
+          "line": 3062,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -43222,7 +43428,7 @@
         },
         {
           "kind": "template_url",
-          "line": 17,
+          "line": 25,
           "name": "accounts:redirect",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:redirect' %}",
@@ -43571,7 +43777,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2721,
+          "line": 2750,
           "name": "accounts:saml_start",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:saml_start\", args=[ref])",
@@ -43610,7 +43816,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2824,
+          "line": 2853,
           "name": "accounts:school_picker",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:school_picker\")",
@@ -43889,7 +44095,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1841,
+          "line": 1870,
           "name": "accounts:user_messages",
           "path": "apps/accounts/views.py",
           "raw": "reverse('accounts:user_messages')",
@@ -43956,7 +44162,7 @@
         },
         {
           "kind": "template_url",
-          "line": 525,
+          "line": 529,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -44046,6 +44252,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 524,
+          "name": "accounts:user_notifications",
+          "path": "apps/accounts/views.py",
+          "raw": "reverse(\"accounts:user_notifications\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 92,
           "name": "accounts:user_notifications",
           "path": "apps/platform_runtime/tests/test_closing_slice_demo_mode.py",
@@ -44058,6 +44273,24 @@
           "line": 103,
           "name": "accounts:user_notifications",
           "path": "apps/platform_runtime/tests/test_closing_slice_demo_mode.py",
+          "raw": "reverse(\"accounts:user_notifications\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 72,
+          "name": "accounts:user_notifications",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:user_notifications\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 82,
+          "name": "accounts:user_notifications",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
           "raw": "reverse(\"accounts:user_notifications\")",
           "reason": "",
           "status": "OK"
@@ -44077,7 +44310,7 @@
         },
         {
           "kind": "template_url",
-          "line": 26,
+          "line": 34,
           "name": "accounts:user_notifications",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -44086,7 +44319,7 @@
         },
         {
           "kind": "template_url",
-          "line": 29,
+          "line": 37,
           "name": "accounts:user_notifications",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -44095,7 +44328,7 @@
         },
         {
           "kind": "template_url",
-          "line": 32,
+          "line": 40,
           "name": "accounts:user_notifications",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -44113,7 +44346,7 @@
         },
         {
           "kind": "template_url",
-          "line": 45,
+          "line": 47,
           "name": "accounts:user_notifications",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -44297,7 +44530,7 @@
         },
         {
           "kind": "template_url",
-          "line": 44,
+          "line": 46,
           "name": "accounts:user_profile",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -46590,7 +46823,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1586,
+          "line": 1615,
           "name": "admin:index",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"admin:index\")",
@@ -55999,7 +56232,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 82,
+          "line": 88,
           "name": "api:ai-marketplace-recommend",
           "path": "templates/marketplace/governance_console.html",
           "raw": "{% url 'api:ai-marketplace-recommend' as api_mkt_rec %}",
@@ -56300,7 +56533,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 86,
+          "line": 92,
           "name": "api:ai-trust-compliance-assistant",
           "path": "templates/marketplace/governance_console.html",
           "raw": "{% url 'api:ai-trust-compliance-assistant' as api_ai_trust_gov %}",
@@ -56605,7 +56838,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2441,
+          "line": 2470,
           "name": "api:api-insight-anomalies",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"api:api-insight-anomalies\")",
@@ -59457,7 +59690,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 93,
+          "line": 101,
           "name": "api:notification-read",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'api:notification-read' notif.id %}",
@@ -59480,7 +59713,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 93,
+          "line": 101,
           "name": "api:notification-read",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'api:notification-read' notif.id %}",
@@ -59503,7 +59736,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 93,
+          "line": 101,
           "name": "api:notification-read",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'api:notification-read' notif.id %}",
@@ -59526,7 +59759,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 93,
+          "line": 101,
           "name": "api:notification-read",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'api:notification-read' notif.id %}",
@@ -61259,7 +61492,7 @@
         },
         {
           "kind": "reverse",
-          "line": 95,
+          "line": 181,
           "name": "api_operational_slo_dashboard",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"api_operational_slo_dashboard\")",
@@ -62290,7 +62523,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 87,
+          "line": 173,
           "name": "apicenter:dashboard",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"apicenter:dashboard\")",
@@ -65849,7 +66082,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2246,
+          "line": 2275,
           "name": "evals:grade_import_template",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"evals:grade_import_template\")",
@@ -65925,7 +66158,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2245,
+          "line": 2274,
           "name": "evals:grade_import_upload",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"evals:grade_import_upload\")",
@@ -66574,6 +66807,46 @@
       "view": "apps.feedback.views.contextual_feedback"
     },
     {
+      "name": "feedback:help_center",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 34,
+          "name": "feedback:help_center",
+          "path": "apps/feedback/tests/test_help_center_and_release_notes.py",
+          "raw": "reverse(\"feedback:help_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 48,
+          "name": "feedback:help_center",
+          "path": "apps/feedback/tests/test_help_center_and_release_notes.py",
+          "raw": "reverse(\"feedback:help_center\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 48,
+          "name": "feedback:help_center",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'feedback:help_center' as cmdk_help_center_url %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/help/",
+      "view": "apps.feedback.views.help_center"
+    },
+    {
       "name": "feedback:operator_feedback_action",
       "permission_requirement": "public",
       "reasons": [],
@@ -66649,6 +66922,64 @@
       "view": "apps.feedback.views.pulse_survey"
     },
     {
+      "name": "feedback:release_notes_public",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 41,
+          "name": "feedback:release_notes_public",
+          "path": "apps/feedback/tests/test_help_center_and_release_notes.py",
+          "raw": "reverse(\"feedback:release_notes_public\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 49,
+          "name": "feedback:release_notes_public",
+          "path": "apps/feedback/tests/test_help_center_and_release_notes.py",
+          "raw": "reverse(\"feedback:release_notes_public\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 50,
+          "name": "feedback:release_notes_public",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'feedback:release_notes_public' as cmdk_release_notes_url %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 31,
+          "name": "feedback:release_notes_public",
+          "path": "templates/feedback/help_center.html",
+          "raw": "{% url 'feedback:release_notes_public' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 75,
+          "name": "feedback:release_notes_public",
+          "path": "templates/feedback/help_center.html",
+          "raw": "{% url 'feedback:release_notes_public' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/release-notes/",
+      "view": "apps.feedback.views.release_notes_public"
+    },
+    {
       "name": "feedback:school_feedback",
       "permission_requirement": "public",
       "reasons": [],
@@ -66666,6 +66997,15 @@
       "scope": "public",
       "status": "OK",
       "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 54,
+          "name": "feedback:school_feedback",
+          "path": "templates/feedback/release_notes_public.html",
+          "raw": "{% url 'feedback:school_feedback' %}",
+          "reason": "",
+          "status": "OK"
+        },
         {
           "kind": "template_url",
           "line": 18,
@@ -66769,7 +67109,17 @@
       ],
       "scope": "public",
       "status": "OK",
-      "template_usage": [],
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 110,
+          "name": "feedback:voice_of_customer",
+          "path": "templates/feedback/help_center.html",
+          "raw": "{% url 'feedback:voice_of_customer' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "url_path": "/super/voice-of-customer/",
       "view": "apps.feedback.views.voice_of_customer"
     },
@@ -69070,6 +69420,110 @@
       "view": "apps.schools.marketing_views.institution_marketing_page"
     },
     {
+      "name": "integrations_marketplace:disconnect",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 69,
+          "name": "integrations_marketplace:disconnect",
+          "path": "templates/integrations_marketplace/hub.html",
+          "raw": "{% url 'integrations_marketplace:disconnect' connector_slug=c.slug %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/integrations/disconnect/<slug:connector_slug>/",
+      "view": "apps.integrations_marketplace.views.disconnect"
+    },
+    {
+      "name": "integrations_marketplace:disconnect_campus",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/integrations/disconnect/<slug:connector_slug>/<int:campus_id>/",
+      "view": "apps.integrations_marketplace.views.disconnect"
+    },
+    {
+      "name": "integrations_marketplace:hub",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 245,
+          "name": "integrations_marketplace:hub",
+          "path": "apps/integrations_marketplace/views.py",
+          "raw": "reverse(\n        \"integrations_marketplace:hub\"\n    )",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 138,
+          "name": "integrations_marketplace:hub",
+          "path": "apps/integrations_marketplace/views.py",
+          "raw": "reverse(\n            \"integrations_marketplace:hub\"\n        )",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/integrations/",
+      "view": "apps.integrations_marketplace.views.integrations_hub"
+    },
+    {
+      "name": "integrations_marketplace:oauth_callback",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 286,
+          "name": "integrations_marketplace:oauth_callback",
+          "path": "apps/integrations_marketplace/oauth.py",
+          "raw": "reverse(\n            \"integrations_marketplace:oauth_callback\",\n            kwargs={\"connector_slug\": connector.slug},\n        )",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/integrations/callback/<slug:connector_slug>/",
+      "view": "apps.integrations_marketplace.views.oauth_callback"
+    },
+    {
+      "name": "integrations_marketplace:oauth_connect",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 61,
+          "name": "integrations_marketplace:oauth_connect",
+          "path": "templates/integrations_marketplace/hub.html",
+          "raw": "{% url 'integrations_marketplace:oauth_connect' connector_slug=c.slug %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/integrations/connect/<slug:connector_slug>/",
+      "view": "apps.integrations_marketplace.views.oauth_connect"
+    },
+    {
       "name": "internal_admin",
       "permission_requirement": "public",
       "reasons": [],
@@ -69975,7 +70429,7 @@
         },
         {
           "kind": "template_url",
-          "line": 46,
+          "line": 52,
           "name": "kb:kb_home",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'kb:kb_home' %}",
@@ -70014,6 +70468,15 @@
           "line": 18,
           "name": "kb:kb_home",
           "path": "templates/errors/404.html",
+          "raw": "{% url 'kb:kb_home' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 13,
+          "name": "kb:kb_home",
+          "path": "templates/feedback/help_center.html",
           "raw": "{% url 'kb:kb_home' %}",
           "reason": "",
           "status": "OK"
@@ -70950,7 +71413,7 @@
         },
         {
           "kind": "template_url",
-          "line": 46,
+          "line": 52,
           "name": "manager_help",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'manager_help' %}",
@@ -71389,6 +71852,15 @@
       "scope": "public",
       "status": "OK",
       "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 40,
+          "name": "marketing_contact",
+          "path": "templates/feedback/help_center.html",
+          "raw": "{% url 'marketing_contact' as marketing_contact_url %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
         {
           "kind": "template_url",
           "line": 62,
@@ -75567,7 +76039,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 804,
+          "line": 833,
           "name": "portal:ai_draft_parent_message",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"portal:ai_draft_parent_message\")",
@@ -75599,7 +76071,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 826,
+          "line": 903,
           "name": "portal:api_offline_enqueue",
           "path": "apps/siteconfig/context_processors.py",
           "raw": "reverse(\"portal:api_offline_enqueue\")",
@@ -75620,7 +76092,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 827,
+          "line": 904,
           "name": "portal:api_offline_process",
           "path": "apps/siteconfig/context_processors.py",
           "raw": "reverse(\"portal:api_offline_process\")",
@@ -76456,7 +76928,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 825,
+          "line": 902,
           "name": "portal:offline_sync_conflicts",
           "path": "apps/siteconfig/context_processors.py",
           "raw": "reverse(\"portal:offline_sync_conflicts\")",
@@ -76504,7 +76976,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 824,
+          "line": 901,
           "name": "portal:offline_sync_queue",
           "path": "apps/siteconfig/context_processors.py",
           "raw": "reverse(\"portal:offline_sync_queue\")",
@@ -76713,7 +77185,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 561,
+          "line": 590,
           "name": "portal:parent_contact_school",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"portal:parent_contact_school\")",
@@ -76722,7 +77194,7 @@
         },
         {
           "kind": "reverse",
-          "line": 651,
+          "line": 680,
           "name": "portal:parent_contact_school",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"portal:parent_contact_school\")",
@@ -76731,7 +77203,7 @@
         },
         {
           "kind": "reverse",
-          "line": 742,
+          "line": 771,
           "name": "portal:parent_contact_school",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"portal:parent_contact_school\")",
@@ -76933,7 +77405,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1584,
+          "line": 1613,
           "name": "portal:parent_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"portal:parent_dashboard\")",
@@ -80178,8 +80650,8 @@
           "line": 43,
           "name": "portal_configure",
           "path": "templates/components/rmc_command_palette.html",
-          "raw": "{% url 'portal_configure' %}",
-          "reason": "",
+          "raw": "{% url 'portal_configure' as cmdk_portal_configure_url %}",
+          "reason": "requires template context arguments",
           "status": "OK"
         },
         {
@@ -80208,8 +80680,8 @@
           "line": 42,
           "name": "portal_console",
           "path": "templates/components/rmc_command_palette.html",
-          "raw": "{% url 'portal_console' %}",
-          "reason": "",
+          "raw": "{% url 'portal_console' as cmdk_portal_console_url %}",
+          "reason": "requires template context arguments",
           "status": "OK"
         },
         {
@@ -80854,7 +81326,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1838,
+          "line": 1867,
           "name": "requests:dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"requests:dashboard\")",
@@ -84738,7 +85210,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 43,
+          "line": 129,
           "name": "siteconfig:guided_onboarding",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"siteconfig:guided_onboarding\")",
@@ -84952,7 +85424,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 341,
+          "line": 337,
           "name": "siteconfig:metadata_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"siteconfig:metadata_operator_hub\")",
@@ -87512,7 +87984,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2337,
+          "line": 2366,
           "name": "siteconfig:tour_steps_api",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"siteconfig:tour_steps_api\")",
@@ -87591,7 +88063,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1592,
+          "line": 1621,
           "name": "siteconfig:user_preferences",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"siteconfig:user_preferences\")",
@@ -88010,7 +88482,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 353,
+          "line": 359,
           "name": "studio_os:approval_hub",
           "path": "apps/accounts/urls.py",
           "raw": "reverse(\"studio_os:approval_hub\")",
@@ -88514,7 +88986,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 194,
+          "line": 190,
           "name": "studio_os:control",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:control\")",
@@ -89310,7 +89782,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 325,
+          "line": 331,
           "name": "studio_os:import_hub",
           "path": "apps/accounts/urls.py",
           "raw": "reverse(\"studio_os:import_hub\")",
@@ -89319,7 +89791,7 @@
         },
         {
           "kind": "reverse",
-          "line": 844,
+          "line": 873,
           "name": "studio_os:import_hub",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"studio_os:import_hub\")",
@@ -89377,7 +89849,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 201,
+          "line": 197,
           "name": "studio_os:launch",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:launch\")",
@@ -89591,7 +90063,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 187,
+          "line": 183,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -89600,7 +90072,7 @@
         },
         {
           "kind": "reverse",
-          "line": 208,
+          "line": 204,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -90036,7 +90508,7 @@
         },
         {
           "kind": "template_url",
-          "line": 83,
+          "line": 84,
           "name": "studio_os:output",
           "path": "templates/studio_os/partials/output_mode_canvas.html",
           "raw": "{% url 'studio_os:output' %}",
@@ -90587,7 +91059,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 348,
+          "line": 354,
           "name": "studio_os:workflow_center",
           "path": "apps/accounts/urls.py",
           "raw": "reverse(\"studio_os:workflow_center\")",
@@ -90641,7 +91113,7 @@
         },
         {
           "kind": "reverse",
-          "line": 39,
+          "line": 125,
           "name": "studio_os:workflow_center",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"studio_os:workflow_center\")",
@@ -90963,7 +91435,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 570,
+          "line": 574,
           "name": "super:advancement_hub",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:advancement_hub\")",
@@ -90984,7 +91456,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 480,
+          "line": 484,
           "name": "super:advancement_phase2_placeholder",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:advancement_phase2_placeholder\")",
@@ -91074,7 +91546,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 229,
+          "line": 225,
           "name": "super:analytics_overview",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:analytics_overview\")",
@@ -91503,7 +91975,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 264,
+          "line": 260,
           "name": "super:app_catalog",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:app_catalog\")",
@@ -91543,7 +92015,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 236,
+          "line": 245,
           "name": "super:app_catalog",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:app_catalog' as super_app_catalog_post_url %}",
@@ -91618,7 +92090,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 306,
+          "line": 302,
           "name": "super:backlog_unlock_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:backlog_unlock_center\")",
@@ -91696,7 +92168,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 243,
+          "line": 239,
           "name": "super:billing_dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:billing_dashboard\")",
@@ -91705,7 +92177,7 @@
         },
         {
           "kind": "reverse",
-          "line": 172,
+          "line": 168,
           "name": "super:billing_dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse('super:billing_dashboard')",
@@ -91808,7 +92280,7 @@
         },
         {
           "kind": "template_url",
-          "line": 137,
+          "line": 144,
           "name": "super:billing_dashboard",
           "path": "templates/marketplace/governance_console.html",
           "raw": "{% url 'super:billing_dashboard' as billing_url %}",
@@ -91862,7 +92334,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 257,
+          "line": 253,
           "name": "super:blueprint_marketplace",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:blueprint_marketplace\")",
@@ -91929,7 +92401,7 @@
         },
         {
           "kind": "template_url",
-          "line": 36,
+          "line": 45,
           "name": "super:blueprint_marketplace",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:blueprint_marketplace' %}",
@@ -91938,7 +92410,7 @@
         },
         {
           "kind": "template_url",
-          "line": 43,
+          "line": 52,
           "name": "super:blueprint_marketplace",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:blueprint_marketplace' %}",
@@ -91987,7 +92459,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 236,
+          "line": 232,
           "name": "super:command_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:command_center\")",
@@ -92144,7 +92616,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 86,
+          "line": 172,
           "name": "super:compliance_overview",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:compliance_overview\")",
@@ -92383,7 +92855,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 278,
+          "line": 274,
           "name": "super:create_school_wizard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:create_school_wizard\")",
@@ -92569,7 +93041,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 215,
+          "line": 211,
           "name": "super:dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -92578,7 +93050,7 @@
         },
         {
           "kind": "reverse",
-          "line": 130,
+          "line": 126,
           "name": "super:dashboard",
           "path": "config/manager_urls.py",
           "raw": "reverse('super:dashboard')",
@@ -92596,7 +93068,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1324,
+          "line": 1353,
           "name": "super:dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -92983,7 +93455,7 @@
         },
         {
           "kind": "reverse",
-          "line": 116,
+          "line": 202,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -92992,7 +93464,7 @@
         },
         {
           "kind": "reverse",
-          "line": 28,
+          "line": 112,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93001,7 +93473,7 @@
         },
         {
           "kind": "reverse",
-          "line": 85,
+          "line": 171,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93010,7 +93482,7 @@
         },
         {
           "kind": "reverse",
-          "line": 260,
+          "line": 346,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93028,7 +93500,7 @@
         },
         {
           "kind": "reverse",
-          "line": 272,
+          "line": 276,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93037,7 +93509,7 @@
         },
         {
           "kind": "reverse",
-          "line": 339,
+          "line": 343,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93046,7 +93518,7 @@
         },
         {
           "kind": "reverse",
-          "line": 403,
+          "line": 407,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93055,7 +93527,7 @@
         },
         {
           "kind": "reverse",
-          "line": 451,
+          "line": 455,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93064,7 +93536,7 @@
         },
         {
           "kind": "reverse",
-          "line": 485,
+          "line": 489,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93073,7 +93545,7 @@
         },
         {
           "kind": "reverse",
-          "line": 569,
+          "line": 573,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93082,7 +93554,7 @@
         },
         {
           "kind": "reverse",
-          "line": 589,
+          "line": 593,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93091,7 +93563,7 @@
         },
         {
           "kind": "reverse",
-          "line": 721,
+          "line": 725,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93100,7 +93572,7 @@
         },
         {
           "kind": "reverse",
-          "line": 793,
+          "line": 797,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93109,7 +93581,7 @@
         },
         {
           "kind": "reverse",
-          "line": 870,
+          "line": 874,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93118,7 +93590,7 @@
         },
         {
           "kind": "reverse",
-          "line": 903,
+          "line": 907,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93127,7 +93599,7 @@
         },
         {
           "kind": "reverse",
-          "line": 926,
+          "line": 930,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93136,7 +93608,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1007,
+          "line": 1011,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_wedge.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -93500,7 +93972,7 @@
         },
         {
           "kind": "template_url",
-          "line": 34,
+          "line": 43,
           "name": "super:dashboard",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:dashboard' %}",
@@ -93509,7 +93981,7 @@
         },
         {
           "kind": "template_url",
-          "line": 41,
+          "line": 50,
           "name": "super:dashboard",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:dashboard' %}",
@@ -94033,7 +94505,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 68,
+          "line": 154,
           "name": "super:district_enterprise",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:district_enterprise\")",
@@ -94336,7 +94808,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 313,
+          "line": 309,
           "name": "super:fleet_governed_changes",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:fleet_governed_changes\")",
@@ -94441,7 +94913,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 285,
+          "line": 281,
           "name": "super:geography",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:geography\")",
@@ -94450,7 +94922,7 @@
         },
         {
           "kind": "reverse",
-          "line": 73,
+          "line": 159,
           "name": "super:geography",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:geography\")",
@@ -94809,7 +95281,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 250,
+          "line": 246,
           "name": "super:marketplace_governance",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:marketplace_governance\")",
@@ -94831,7 +95303,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 35,
+          "line": 44,
           "name": "super:marketplace_governance",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:marketplace_governance' %}",
@@ -94840,7 +95312,7 @@
         },
         {
           "kind": "template_url",
-          "line": 42,
+          "line": 51,
           "name": "super:marketplace_governance",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:marketplace_governance' %}",
@@ -94876,7 +95348,7 @@
         },
         {
           "kind": "template_url",
-          "line": 188,
+          "line": 195,
           "name": "super:marketplace_governance",
           "path": "templates/marketplace/governance_console.html",
           "raw": "{% url 'super:marketplace_governance' as gov_url %}",
@@ -94922,6 +95394,17 @@
       ],
       "url_path": "/super/marketplace/",
       "view": "apps.marketplace.views.governance_console"
+    },
+    {
+      "name": "super:marketplace_governance_alias",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/super/marketplace-governance/",
+      "view": "django.views.generic.base.RedirectView"
     },
     {
       "name": "super:marketplace_incident_dashboard",
@@ -95135,7 +95618,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 37,
+          "line": 46,
           "name": "super:marketplace_sandbox_inspector",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:marketplace_sandbox_inspector' %}",
@@ -95144,7 +95627,7 @@
         },
         {
           "kind": "template_url",
-          "line": 44,
+          "line": 53,
           "name": "super:marketplace_sandbox_inspector",
           "path": "templates/marketplace/app_catalog.html",
           "raw": "{% url 'super:marketplace_sandbox_inspector' %}",
@@ -95607,7 +96090,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 299,
+          "line": 295,
           "name": "super:operator_policy",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:operator_policy\")",
@@ -96297,7 +96780,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 94,
+          "line": 180,
           "name": "super:platform_events",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:platform_events\")",
@@ -96318,7 +96801,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 320,
+          "line": 316,
           "name": "super:platform_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:platform_operator_hub\")",
@@ -96457,7 +96940,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 327,
+          "line": 323,
           "name": "super:playbook_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:playbook_operator_hub\")",
@@ -97062,7 +97545,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 334,
+          "line": 330,
           "name": "super:runtime_truth_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:runtime_truth_hub\")",
@@ -97156,7 +97639,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 222,
+          "line": 218,
           "name": "super:schools_list",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:schools_list\")",
@@ -98351,7 +98834,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 292,
+          "line": 288,
           "name": "super:trust_center",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:trust_center\")",
@@ -98369,7 +98852,7 @@
         },
         {
           "kind": "reverse",
-          "line": 117,
+          "line": 203,
           "name": "super:trust_center",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:trust_center\")",
@@ -98378,7 +98861,7 @@
         },
         {
           "kind": "reverse",
-          "line": 29,
+          "line": 113,
           "name": "super:trust_center",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:trust_center\")",
@@ -98387,7 +98870,7 @@
         },
         {
           "kind": "reverse",
-          "line": 261,
+          "line": 347,
           "name": "super:trust_center",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"super:trust_center\")",
@@ -98737,7 +99220,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 348,
+          "line": 344,
           "name": "super:workflow_simulator",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"super:workflow_simulator\")",
@@ -99275,7 +99758,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1585,
+          "line": 1614,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -99284,7 +99767,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3109,
+          "line": 3138,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -99293,7 +99776,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2307,
+          "line": 2336,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -99302,7 +99785,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2312,
+          "line": 2341,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -99311,7 +99794,7 @@
         },
         {
           "kind": "reverse",
-          "line": 843,
+          "line": 872,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -99320,7 +99803,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3134,
+          "line": 3163,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -101529,7 +102012,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2329,
+          "line": 2358,
           "name": "accounts:dismiss_first_login_checklist",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\n            \"accounts:dismiss_first_login_checklist\"\n        )",
@@ -102028,7 +102511,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2738,
+          "line": 2767,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -102037,7 +102520,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3011,
+          "line": 3040,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -102046,7 +102529,7 @@
         },
         {
           "kind": "reverse",
-          "line": 890,
+          "line": 919,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -102055,7 +102538,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2801,
+          "line": 2830,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -102452,13 +102935,71 @@
       "view": "apps.accounts.views.logout_view"
     },
     {
+      "name": "accounts:mark_all_notifications_read",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 45,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 60,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 65,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 76,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public_host",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 18,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "templates/accounts/notifications.html",
+          "raw": "{% url 'accounts:mark_all_notifications_read' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/authentication/notifications/mark-all-read/",
+      "view": "apps.accounts.views.mark_all_notifications_read"
+    },
+    {
       "name": "accounts:mark_tour_complete",
       "permission_requirement": "public",
       "reasons": [],
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2339,
+          "line": 2368,
           "name": "accounts:mark_tour_complete",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:mark_tour_complete\")",
@@ -102497,7 +103038,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2922,
+          "line": 2951,
           "name": "accounts:mfa_setup",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:mfa_setup\")",
@@ -102555,7 +103096,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2930,
+          "line": 2959,
           "name": "accounts:mfa_verify",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:mfa_verify\")",
@@ -102842,7 +103383,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2723,
+          "line": 2752,
           "name": "accounts:oidc_start",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:oidc_start\", args=[ref])",
@@ -103195,7 +103736,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2863,
+          "line": 2892,
           "name": "accounts:password_change",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:password_change\")",
@@ -103244,7 +103785,7 @@
       "reverse_usage": [
         {
           "kind": "reverse_lazy",
-          "line": 171,
+          "line": 172,
           "name": "accounts:password_change_done",
           "path": "apps/accounts/urls.py",
           "raw": "reverse_lazy(\"accounts:password_change_done\")",
@@ -103253,7 +103794,7 @@
         },
         {
           "kind": "reverse_lazy",
-          "line": 2632,
+          "line": 2661,
           "name": "accounts:password_change_done",
           "path": "apps/accounts/views.py",
           "raw": "reverse_lazy(\"accounts:password_change_done\")",
@@ -103407,7 +103948,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1030,
+          "line": 1059,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -103416,7 +103957,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1014,
+          "line": 1043,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -103425,7 +103966,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1016,
+          "line": 1045,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -103434,7 +103975,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1018,
+          "line": 1047,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -103443,7 +103984,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3060,
+          "line": 3089,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -103452,7 +103993,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2973,
+          "line": 3002,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -103461,7 +104002,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3033,
+          "line": 3062,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -103609,7 +104150,7 @@
         },
         {
           "kind": "template_url",
-          "line": 17,
+          "line": 25,
           "name": "accounts:redirect",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:redirect' %}",
@@ -103958,7 +104499,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2721,
+          "line": 2750,
           "name": "accounts:saml_start",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:saml_start\", args=[ref])",
@@ -103997,7 +104538,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2824,
+          "line": 2853,
           "name": "accounts:school_picker",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:school_picker\")",
@@ -104276,7 +104817,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1841,
+          "line": 1870,
           "name": "accounts:user_messages",
           "path": "apps/accounts/views.py",
           "raw": "reverse('accounts:user_messages')",
@@ -104343,7 +104884,7 @@
         },
         {
           "kind": "template_url",
-          "line": 525,
+          "line": 529,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -104433,6 +104974,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 524,
+          "name": "accounts:user_notifications",
+          "path": "apps/accounts/views.py",
+          "raw": "reverse(\"accounts:user_notifications\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 92,
           "name": "accounts:user_notifications",
           "path": "apps/platform_runtime/tests/test_closing_slice_demo_mode.py",
@@ -104445,6 +104995,24 @@
           "line": 103,
           "name": "accounts:user_notifications",
           "path": "apps/platform_runtime/tests/test_closing_slice_demo_mode.py",
+          "raw": "reverse(\"accounts:user_notifications\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 72,
+          "name": "accounts:user_notifications",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:user_notifications\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 82,
+          "name": "accounts:user_notifications",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
           "raw": "reverse(\"accounts:user_notifications\")",
           "reason": "",
           "status": "OK"
@@ -104464,7 +105032,7 @@
         },
         {
           "kind": "template_url",
-          "line": 26,
+          "line": 34,
           "name": "accounts:user_notifications",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -104473,7 +105041,7 @@
         },
         {
           "kind": "template_url",
-          "line": 29,
+          "line": 37,
           "name": "accounts:user_notifications",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -104482,7 +105050,7 @@
         },
         {
           "kind": "template_url",
-          "line": 32,
+          "line": 40,
           "name": "accounts:user_notifications",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -104500,7 +105068,7 @@
         },
         {
           "kind": "template_url",
-          "line": 45,
+          "line": 47,
           "name": "accounts:user_notifications",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -104684,7 +105252,7 @@
         },
         {
           "kind": "template_url",
-          "line": 44,
+          "line": 46,
           "name": "accounts:user_profile",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -106606,6 +107174,15 @@
       "scope": "public_host",
       "status": "OK",
       "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 40,
+          "name": "marketing_contact",
+          "path": "templates/feedback/help_center.html",
+          "raw": "{% url 'marketing_contact' as marketing_contact_url %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
         {
           "kind": "template_url",
           "line": 62,
@@ -111001,7 +111578,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1585,
+          "line": 1614,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -111010,7 +111587,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3109,
+          "line": 3138,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -111019,7 +111596,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2307,
+          "line": 2336,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -111028,7 +111605,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2312,
+          "line": 2341,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -111037,7 +111614,7 @@
         },
         {
           "kind": "reverse",
-          "line": 843,
+          "line": 872,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -111046,7 +111623,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3134,
+          "line": 3163,
           "name": "accounts:backend_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -113255,7 +113832,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2329,
+          "line": 2358,
           "name": "accounts:dismiss_first_login_checklist",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\n            \"accounts:dismiss_first_login_checklist\"\n        )",
@@ -113754,7 +114331,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2738,
+          "line": 2767,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -113763,7 +114340,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3011,
+          "line": 3040,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -113772,7 +114349,7 @@
         },
         {
           "kind": "reverse",
-          "line": 890,
+          "line": 919,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -113781,7 +114358,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2801,
+          "line": 2830,
           "name": "accounts:login",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:login\")",
@@ -114178,13 +114755,71 @@
       "view": "apps.accounts.views.logout_view"
     },
     {
+      "name": "accounts:mark_all_notifications_read",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 45,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 60,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 65,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 76,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:mark_all_notifications_read\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 18,
+          "name": "accounts:mark_all_notifications_read",
+          "path": "templates/accounts/notifications.html",
+          "raw": "{% url 'accounts:mark_all_notifications_read' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/authentication/notifications/mark-all-read/",
+      "view": "apps.accounts.views.mark_all_notifications_read"
+    },
+    {
       "name": "accounts:mark_tour_complete",
       "permission_requirement": "public",
       "reasons": [],
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2339,
+          "line": 2368,
           "name": "accounts:mark_tour_complete",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:mark_tour_complete\")",
@@ -114223,7 +114858,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2922,
+          "line": 2951,
           "name": "accounts:mfa_setup",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:mfa_setup\")",
@@ -114281,7 +114916,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2930,
+          "line": 2959,
           "name": "accounts:mfa_verify",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:mfa_verify\")",
@@ -114568,7 +115203,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2723,
+          "line": 2752,
           "name": "accounts:oidc_start",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:oidc_start\", args=[ref])",
@@ -114921,7 +115556,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2863,
+          "line": 2892,
           "name": "accounts:password_change",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:password_change\")",
@@ -114970,7 +115605,7 @@
       "reverse_usage": [
         {
           "kind": "reverse_lazy",
-          "line": 171,
+          "line": 172,
           "name": "accounts:password_change_done",
           "path": "apps/accounts/urls.py",
           "raw": "reverse_lazy(\"accounts:password_change_done\")",
@@ -114979,7 +115614,7 @@
         },
         {
           "kind": "reverse_lazy",
-          "line": 2632,
+          "line": 2661,
           "name": "accounts:password_change_done",
           "path": "apps/accounts/views.py",
           "raw": "reverse_lazy(\"accounts:password_change_done\")",
@@ -115133,7 +115768,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1030,
+          "line": 1059,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -115142,7 +115777,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1014,
+          "line": 1043,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -115151,7 +115786,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1016,
+          "line": 1045,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -115160,7 +115795,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1018,
+          "line": 1047,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -115169,7 +115804,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3060,
+          "line": 3089,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -115178,7 +115813,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2973,
+          "line": 3002,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -115187,7 +115822,7 @@
         },
         {
           "kind": "reverse",
-          "line": 3033,
+          "line": 3062,
           "name": "accounts:redirect",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:redirect\")",
@@ -115335,7 +115970,7 @@
         },
         {
           "kind": "template_url",
-          "line": 17,
+          "line": 25,
           "name": "accounts:redirect",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:redirect' %}",
@@ -115684,7 +116319,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2721,
+          "line": 2750,
           "name": "accounts:saml_start",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:saml_start\", args=[ref])",
@@ -115723,7 +116358,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2824,
+          "line": 2853,
           "name": "accounts:school_picker",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"accounts:school_picker\")",
@@ -116002,7 +116637,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1841,
+          "line": 1870,
           "name": "accounts:user_messages",
           "path": "apps/accounts/views.py",
           "raw": "reverse('accounts:user_messages')",
@@ -116069,7 +116704,7 @@
         },
         {
           "kind": "template_url",
-          "line": 525,
+          "line": 529,
           "name": "accounts:user_messages",
           "path": "templates/portal_base.html",
           "raw": "{% url 'accounts:user_messages' %}",
@@ -116159,6 +116794,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 524,
+          "name": "accounts:user_notifications",
+          "path": "apps/accounts/views.py",
+          "raw": "reverse(\"accounts:user_notifications\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 92,
           "name": "accounts:user_notifications",
           "path": "apps/platform_runtime/tests/test_closing_slice_demo_mode.py",
@@ -116171,6 +116815,24 @@
           "line": 103,
           "name": "accounts:user_notifications",
           "path": "apps/platform_runtime/tests/test_closing_slice_demo_mode.py",
+          "raw": "reverse(\"accounts:user_notifications\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 72,
+          "name": "accounts:user_notifications",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
+          "raw": "reverse(\"accounts:user_notifications\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 82,
+          "name": "accounts:user_notifications",
+          "path": "apps/accounts/tests/test_notification_center_polish.py",
           "raw": "reverse(\"accounts:user_notifications\")",
           "reason": "",
           "status": "OK"
@@ -116190,7 +116852,7 @@
         },
         {
           "kind": "template_url",
-          "line": 26,
+          "line": 34,
           "name": "accounts:user_notifications",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -116199,7 +116861,7 @@
         },
         {
           "kind": "template_url",
-          "line": 29,
+          "line": 37,
           "name": "accounts:user_notifications",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -116208,7 +116870,7 @@
         },
         {
           "kind": "template_url",
-          "line": 32,
+          "line": 40,
           "name": "accounts:user_notifications",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -116226,7 +116888,7 @@
         },
         {
           "kind": "template_url",
-          "line": 45,
+          "line": 47,
           "name": "accounts:user_notifications",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -116410,7 +117072,7 @@
         },
         {
           "kind": "template_url",
-          "line": 44,
+          "line": 46,
           "name": "accounts:user_profile",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -124289,7 +124951,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1586,
+          "line": 1615,
           "name": "admin:index",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"admin:index\")",
@@ -132065,7 +132727,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 82,
+          "line": 88,
           "name": "api:ai-marketplace-recommend",
           "path": "templates/marketplace/governance_console.html",
           "raw": "{% url 'api:ai-marketplace-recommend' as api_mkt_rec %}",
@@ -132366,7 +133028,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 86,
+          "line": 92,
           "name": "api:ai-trust-compliance-assistant",
           "path": "templates/marketplace/governance_console.html",
           "raw": "{% url 'api:ai-trust-compliance-assistant' as api_ai_trust_gov %}",
@@ -132671,7 +133333,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2441,
+          "line": 2470,
           "name": "api:api-insight-anomalies",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"api:api-insight-anomalies\")",
@@ -135523,7 +136185,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 93,
+          "line": 101,
           "name": "api:notification-read",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'api:notification-read' notif.id %}",
@@ -135546,7 +136208,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 93,
+          "line": 101,
           "name": "api:notification-read",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'api:notification-read' notif.id %}",
@@ -135569,7 +136231,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 93,
+          "line": 101,
           "name": "api:notification-read",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'api:notification-read' notif.id %}",
@@ -135592,7 +136254,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 93,
+          "line": 101,
           "name": "api:notification-read",
           "path": "templates/accounts/notifications.html",
           "raw": "{% url 'api:notification-read' notif.id %}",
@@ -137335,7 +137997,7 @@
         },
         {
           "kind": "reverse",
-          "line": 95,
+          "line": 181,
           "name": "api_operational_slo_dashboard",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"api_operational_slo_dashboard\")",
@@ -138312,7 +138974,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 87,
+          "line": 173,
           "name": "apicenter:dashboard",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"apicenter:dashboard\")",
@@ -141050,7 +141712,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2246,
+          "line": 2275,
           "name": "evals:grade_import_template",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"evals:grade_import_template\")",
@@ -141126,7 +141788,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2245,
+          "line": 2274,
           "name": "evals:grade_import_upload",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"evals:grade_import_upload\")",
@@ -144800,7 +145462,7 @@
         },
         {
           "kind": "template_url",
-          "line": 46,
+          "line": 52,
           "name": "kb:kb_home",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'kb:kb_home' %}",
@@ -144839,6 +145501,15 @@
           "line": 18,
           "name": "kb:kb_home",
           "path": "templates/errors/404.html",
+          "raw": "{% url 'kb:kb_home' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 13,
+          "name": "kb:kb_home",
+          "path": "templates/feedback/help_center.html",
           "raw": "{% url 'kb:kb_home' %}",
           "reason": "",
           "status": "OK"
@@ -145379,7 +146050,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 270,
+          "line": 279,
           "name": "marketplace:app_purchase_intent",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'marketplace:app_purchase_intent' listing.app.pk as purchase_intent_url %}",
@@ -145934,7 +146605,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 804,
+          "line": 833,
           "name": "portal:ai_draft_parent_message",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"portal:ai_draft_parent_message\")",
@@ -145966,7 +146637,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 826,
+          "line": 903,
           "name": "portal:api_offline_enqueue",
           "path": "apps/siteconfig/context_processors.py",
           "raw": "reverse(\"portal:api_offline_enqueue\")",
@@ -145987,7 +146658,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 827,
+          "line": 904,
           "name": "portal:api_offline_process",
           "path": "apps/siteconfig/context_processors.py",
           "raw": "reverse(\"portal:api_offline_process\")",
@@ -146823,7 +147494,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 825,
+          "line": 902,
           "name": "portal:offline_sync_conflicts",
           "path": "apps/siteconfig/context_processors.py",
           "raw": "reverse(\"portal:offline_sync_conflicts\")",
@@ -146871,7 +147542,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 824,
+          "line": 901,
           "name": "portal:offline_sync_queue",
           "path": "apps/siteconfig/context_processors.py",
           "raw": "reverse(\"portal:offline_sync_queue\")",
@@ -147080,7 +147751,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 561,
+          "line": 590,
           "name": "portal:parent_contact_school",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"portal:parent_contact_school\")",
@@ -147089,7 +147760,7 @@
         },
         {
           "kind": "reverse",
-          "line": 651,
+          "line": 680,
           "name": "portal:parent_contact_school",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"portal:parent_contact_school\")",
@@ -147098,7 +147769,7 @@
         },
         {
           "kind": "reverse",
-          "line": 742,
+          "line": 771,
           "name": "portal:parent_contact_school",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"portal:parent_contact_school\")",
@@ -147300,7 +147971,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1584,
+          "line": 1613,
           "name": "portal:parent_dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"portal:parent_dashboard\")",
@@ -150497,8 +151168,8 @@
           "line": 43,
           "name": "portal_configure",
           "path": "templates/components/rmc_command_palette.html",
-          "raw": "{% url 'portal_configure' %}",
-          "reason": "",
+          "raw": "{% url 'portal_configure' as cmdk_portal_configure_url %}",
+          "reason": "requires template context arguments",
           "status": "OK"
         },
         {
@@ -150527,8 +151198,8 @@
           "line": 42,
           "name": "portal_console",
           "path": "templates/components/rmc_command_palette.html",
-          "raw": "{% url 'portal_console' %}",
-          "reason": "",
+          "raw": "{% url 'portal_console' as cmdk_portal_console_url %}",
+          "reason": "requires template context arguments",
           "status": "OK"
         },
         {
@@ -151016,7 +151687,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1838,
+          "line": 1867,
           "name": "requests:dashboard",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"requests:dashboard\")",
@@ -154844,7 +155515,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 43,
+          "line": 129,
           "name": "siteconfig:guided_onboarding",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"siteconfig:guided_onboarding\")",
@@ -155058,7 +155729,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 341,
+          "line": 337,
           "name": "siteconfig:metadata_operator_hub",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"siteconfig:metadata_operator_hub\")",
@@ -157618,7 +158289,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2337,
+          "line": 2366,
           "name": "siteconfig:tour_steps_api",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"siteconfig:tour_steps_api\")",
@@ -157697,7 +158368,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1592,
+          "line": 1621,
           "name": "siteconfig:user_preferences",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"siteconfig:user_preferences\")",
@@ -158127,7 +158798,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 353,
+          "line": 359,
           "name": "studio_os:approval_hub",
           "path": "apps/accounts/urls.py",
           "raw": "reverse(\"studio_os:approval_hub\")",
@@ -158631,7 +159302,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 194,
+          "line": 190,
           "name": "studio_os:control",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:control\")",
@@ -159427,7 +160098,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 325,
+          "line": 331,
           "name": "studio_os:import_hub",
           "path": "apps/accounts/urls.py",
           "raw": "reverse(\"studio_os:import_hub\")",
@@ -159436,7 +160107,7 @@
         },
         {
           "kind": "reverse",
-          "line": 844,
+          "line": 873,
           "name": "studio_os:import_hub",
           "path": "apps/accounts/views.py",
           "raw": "reverse(\"studio_os:import_hub\")",
@@ -159494,7 +160165,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 201,
+          "line": 197,
           "name": "studio_os:launch",
           "path": "config/manager_urls.py",
           "raw": "reverse(\"studio_os:launch\")",
@@ -159708,7 +160379,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 187,
+          "line": 183,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -159717,7 +160388,7 @@
         },
         {
           "kind": "reverse",
-          "line": 208,
+          "line": 204,
           "name": "studio_os:output",
           "path": "config/manager_urls.py",
           "raw": "reverse('studio_os:output')",
@@ -160153,7 +160824,7 @@
         },
         {
           "kind": "template_url",
-          "line": 83,
+          "line": 84,
           "name": "studio_os:output",
           "path": "templates/studio_os/partials/output_mode_canvas.html",
           "raw": "{% url 'studio_os:output' %}",
@@ -160704,7 +161375,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 348,
+          "line": 354,
           "name": "studio_os:workflow_center",
           "path": "apps/accounts/urls.py",
           "raw": "reverse(\"studio_os:workflow_center\")",
@@ -160758,7 +161429,7 @@
         },
         {
           "kind": "reverse",
-          "line": 39,
+          "line": 125,
           "name": "studio_os:workflow_center",
           "path": "apps/schools/super_views_trust_surface.py",
           "raw": "reverse(\"studio_os:workflow_center\")",
@@ -161257,7 +161928,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 392,
+          "line": 401,
           "name": "tenant_install_app",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_install_app' as tenant_install_app_url %}",
@@ -161318,7 +161989,7 @@
         },
         {
           "kind": "template_url",
-          "line": 53,
+          "line": 62,
           "name": "tenant_installed_apps",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_installed_apps' %}",
@@ -161327,7 +161998,7 @@
         },
         {
           "kind": "template_url",
-          "line": 58,
+          "line": 67,
           "name": "tenant_installed_apps",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_installed_apps' %}",
@@ -161336,7 +162007,7 @@
         },
         {
           "kind": "template_url",
-          "line": 99,
+          "line": 108,
           "name": "tenant_installed_apps",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_installed_apps' %}",
@@ -161345,7 +162016,7 @@
         },
         {
           "kind": "template_url",
-          "line": 260,
+          "line": 269,
           "name": "tenant_installed_apps",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_installed_apps' %}",
@@ -161354,7 +162025,7 @@
         },
         {
           "kind": "template_url",
-          "line": 261,
+          "line": 270,
           "name": "tenant_installed_apps",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_installed_apps' %}",
@@ -161363,7 +162034,7 @@
         },
         {
           "kind": "template_url",
-          "line": 264,
+          "line": 273,
           "name": "tenant_installed_apps",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_installed_apps' %}",
@@ -161372,7 +162043,7 @@
         },
         {
           "kind": "template_url",
-          "line": 286,
+          "line": 295,
           "name": "tenant_installed_apps",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_installed_apps' as installed_apps_url %}",
@@ -161443,7 +162114,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 54,
+          "line": 63,
           "name": "tenant_scope_consent",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_scope_consent' %}",
@@ -161452,7 +162123,7 @@
         },
         {
           "kind": "template_url",
-          "line": 59,
+          "line": 68,
           "name": "tenant_scope_consent",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_scope_consent' %}",
@@ -161461,7 +162132,7 @@
         },
         {
           "kind": "template_url",
-          "line": 274,
+          "line": 283,
           "name": "tenant_scope_consent",
           "path": "templates/marketplace/tenant_app_catalog.html",
           "raw": "{% url 'tenant_scope_consent' %}",
@@ -161562,12 +162233,12 @@
   ],
   "summary": {
     "broken_count": 0,
-    "reverse_usages": 2282,
+    "reverse_usages": 2297,
     "risk_count": 0,
-    "routes_audited": 6065,
+    "routes_audited": 6081,
     "status": "ROUTE SYSTEM CERTIFIED",
     "template_href_action_usages": 237,
-    "template_url_usages": 1950
+    "template_url_usages": 1961
   },
   "urlconfs": {
     "manager": "config.manager_urls",

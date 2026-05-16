@@ -1,11 +1,18 @@
 {
-  "generated_at": "2026-05-15T12:09:19.421047+00:00",
+  "generated_at": "2026-05-16T10:28:59.643659+00:00",
   "rows": [
     {
       "bucket": "product",
       "classification": "protected_candidate",
       "file": "apps/accounts/views.py",
-      "line": "3064",
+      "line": "500",
+      "protective_decorator_nearby": true
+    },
+    {
+      "bucket": "product",
+      "classification": "protected_candidate",
+      "file": "apps/accounts/views.py",
+      "line": "3127",
       "protective_decorator_nearby": true
     },
     {
@@ -585,6 +592,13 @@
     {
       "bucket": "product",
       "classification": "protected_candidate",
+      "file": "apps/integrations_marketplace/views.py",
+      "line": "256",
+      "protective_decorator_nearby": true
+    },
+    {
+      "bucket": "product",
+      "classification": "protected_candidate",
       "file": "apps/marketplace/views.py",
       "line": "216",
       "protective_decorator_nearby": true
@@ -635,28 +649,28 @@
       "bucket": "product",
       "classification": "protected_candidate",
       "file": "apps/marketplace/views.py",
-      "line": "1149",
+      "line": "1200",
       "protective_decorator_nearby": true
     },
     {
       "bucket": "product",
       "classification": "protected_candidate",
       "file": "apps/marketplace/views.py",
-      "line": "1243",
+      "line": "1294",
       "protective_decorator_nearby": true
     },
     {
       "bucket": "product",
       "classification": "protected_candidate",
       "file": "apps/marketplace/views.py",
-      "line": "1268",
+      "line": "1319",
       "protective_decorator_nearby": true
     },
     {
       "bucket": "product",
       "classification": "protected_candidate",
       "file": "apps/marketplace/views.py",
-      "line": "1386",
+      "line": "1437",
       "protective_decorator_nearby": true
     },
     {
@@ -909,6 +923,13 @@
       "classification": "protected_candidate",
       "file": "apps/portal/views_ai_gateway.py",
       "line": "1808",
+      "protective_decorator_nearby": true
+    },
+    {
+      "bucket": "product",
+      "classification": "protected_candidate",
+      "file": "apps/portal/views_at_risk_labeling.py",
+      "line": "109",
       "protective_decorator_nearby": true
     },
     {
@@ -1524,7 +1545,7 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/security/csp_report_view.py",
-      "line": "34",
+      "line": "75",
       "protective_decorator_nearby": false
     },
     {
@@ -1782,15 +1803,15 @@
   ],
   "schema_version": 1,
   "summary_by_bucket": {
-    "product": 250,
+    "product": 253,
     "scripts": 4
   },
   "summary_by_classification": {
     "needs_review": 90,
-    "protected_candidate": 160,
+    "protected_candidate": 163,
     "scripts_cli": 4
   },
   "totals": {
-    "hits": 254
+    "hits": 257
   }
 }

@@ -1,0 +1,178 @@
+{
+  "generated_at": "2026-05-16T10:31:38.665585+00:00",
+  "generated_by": "scripts/audit_navigation_simplification.py",
+  "source_file": "apps/schools/control_plane_nav.py",
+  "oversize_threshold": 7,
+  "group_count": 15,
+  "total_items": 60,
+  "biggest_group_size": 6,
+  "oversize_group_count": 0,
+  "oversize_groups": [],
+  "groups": [
+    {
+      "group": "Platform Overview",
+      "item_count": 3,
+      "items": [
+        "super_dashboard",
+        "super_command_center",
+        "super_ai_gateway_console"
+      ],
+      "oversize": false
+    },
+    {
+      "group": "Studio OS",
+      "item_count": 3,
+      "items": [
+        "studio_os_shell",
+        "studio_os",
+        "studio_os_control"
+      ],
+      "oversize": false
+    },
+    {
+      "group": "Tenants",
+      "item_count": 4,
+      "items": [
+        "super_schools_list",
+        "super_provision",
+        "super_tenant_health",
+        "super_district_enterprise"
+      ],
+      "oversize": false
+    },
+    {
+      "group": "Curriculum & region",
+      "item_count": 5,
+      "items": [
+        "super_curriculum_packs",
+        "super_geography",
+        "super_education_systems",
+        "super_learning_delivery",
+        "super_ministry_stubs"
+      ],
+      "oversize": false
+    },
+    {
+      "group": "Runtime & Governance",
+      "item_count": 6,
+      "items": [
+        "super_incidents",
+        "super_runtime_inspector",
+        "super_runtime_truth_hub",
+        "super_wedge_index",
+        "super_workflow_simulator",
+        "super_playbook_operator_hub"
+      ],
+      "oversize": false
+    },
+    {
+      "group": "Blueprints & Policies",
+      "item_count": 4,
+      "items": [
+        "super_registries",
+        "super_metadata_catalog",
+        "super_blueprints",
+        "super_policies"
+      ],
+      "oversize": false
+    },
+    {
+      "group": "Workflows & Dashboards",
+      "item_count": 2,
+      "items": [
+        "super_workflow_packs",
+        "super_dashboard_packs"
+      ],
+      "oversize": false
+    },
+    {
+      "group": "Marketplace",
+      "item_count": 5,
+      "items": [
+        "super_governance",
+        "super_blueprint_marketplace",
+        "super_app_catalog",
+        "super_package_rollout",
+        "super_customer_success"
+      ],
+      "oversize": false
+    },
+    {
+      "group": "Migration & Integrations",
+      "item_count": 3,
+      "items": [
+        "super_migration",
+        "apicenter_dashboard",
+        "super_one_sis_any_lms"
+      ],
+      "oversize": false
+    },
+    {
+      "group": "Observability & Billing",
+      "item_count": 4,
+      "items": [
+        "super_usage",
+        "super_pulse",
+        "super_analytics",
+        "super_billing"
+      ],
+      "oversize": false
+    },
+    {
+      "group": "Support & Success",
+      "item_count": 2,
+      "items": [
+        "super_support",
+        "super_support_csat"
+      ],
+      "oversize": false
+    },
+    {
+      "group": "Trust & Compliance",
+      "item_count": 4,
+      "items": [
+        "super_trust_center",
+        "super_compliance",
+        "compliance_audit_center",
+        "compliance_audit_trail"
+      ],
+      "oversize": false
+    },
+    {
+      "group": "Operator tools",
+      "item_count": 4,
+      "items": [
+        "super_platform_operator_hub",
+        "super_operator_policy",
+        "super_backlog_unlock_center",
+        "super_fleet_governed_changes"
+      ],
+      "oversize": false
+    },
+    {
+      "group": "Tenant config defaults",
+      "item_count": 5,
+      "items": [
+        "config_console",
+        "cp_tenant_runtime_hub",
+        "cp_theme_experience",
+        "cp_feature_control",
+        "cp_region_grading_scales"
+      ],
+      "oversize": false
+    },
+    {
+      "group": "Metadata & audit",
+      "item_count": 6,
+      "items": [
+        "cp_metadata_operator_hub",
+        "cp_entity_catalog",
+        "cp_metadata_dynamic_fields",
+        "cp_config_mutation_audit_evidence",
+        "cp_region_validation",
+        "cp_region_comparison"
+      ],
+      "oversize": false
+    }
+  ]
+}
