@@ -74,7 +74,7 @@ AST-based scanners + CI workflows enforce platform contracts on every PR. Update
 
 | Scanner | Baseline | Workflow | Rule |
 |---|---|---|---|
-| `scan_tenant_queryset_safety.py` | 734 (v2.48+L1a; was 742 at v2.47 — the 8 sites in `scheduling_solver.py` (2), `accounts/permissions.py` (5), `feedback/services.py` (1) are now per-call-site annotated rather than absorbed into baseline) | `tenant-isolation-scan.yml` | Tenant-scoped models need `school=` / `school_id=` / `school__isnull=` kwargs on `.filter/.get/.all/.update/.delete`. Mark safe cross-tenant queries with `# tenant-isolation-allow: <reason>`. |
+| `scan_tenant_queryset_safety.py` | 730 (reconciled 2026-05-15 from JSON; was doc-734/JSON-730 — N1 doc-drift caught it; was 742 at v2.47 — the 8 sites in `scheduling_solver.py` (2), `accounts/permissions.py` (5), `feedback/services.py` (1) are now per-call-site annotated rather than absorbed into baseline) | `tenant-isolation-scan.yml` | Tenant-scoped models need `school=` / `school_id=` / `school__isnull=` kwargs on `.filter/.get/.all/.update/.delete`. Mark safe cross-tenant queries with `# tenant-isolation-allow: <reason>`. |
 | `scan_ai_gateway_boundary.py` | 0 | `architectural-boundaries.yml` | App code routes AI through `services.ai_helpers`, not `services.ai_gateway` directly. |
 | `scan_sentry_boundary.py` | 0 | `architectural-boundaries.yml` | `sentry_sdk` is fenced inside `apps/observability/`. |
 | `scan_print_statements.py` | 0 | `architectural-boundaries.yml` | Use `logging`, not `print()`, in `apps/` and `services/` outside management commands. |

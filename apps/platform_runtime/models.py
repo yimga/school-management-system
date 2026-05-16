@@ -625,6 +625,33 @@ class RuntimeDefaults(models.Model):
         null=True,
         help_text="CTAs and links on public shells (e.g. #f59e0b).",
     )
+    public_brand_logo_url = models.URLField(
+        max_length=512,
+        blank=True,
+        null=True,
+        help_text=(
+            "Platform logo shown on the manager / marketing shell brand mark "
+            "(squircle). Cascade winner over PUBLIC_BRAND_LOGO_URL env var."
+        ),
+    )
+    public_brand_logo_dark_url = models.URLField(
+        max_length=512,
+        blank=True,
+        null=True,
+        help_text=(
+            "Dark-mode variant of the platform logo. Falls back to the light "
+            "URL when blank so a single upload still renders on dark shells."
+        ),
+    )
+    public_brand_favicon_url = models.URLField(
+        max_length=512,
+        blank=True,
+        null=True,
+        help_text=(
+            "Favicon used on every public shell. Cascade winner over "
+            "PUBLIC_BRAND_FAVICON_URL env var."
+        ),
+    )
 
     class Meta:
         app_label = "platform_runtime"

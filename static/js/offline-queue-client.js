@@ -254,7 +254,8 @@
     flushIfOnline();
   });
   window.addEventListener('offline', updateBar);
-  document.addEventListener('DOMContentLoaded', function () {
+
+  function boot() {
     updateBar();
     flushIfOnline();
     setInterval(function () {
@@ -266,5 +267,11 @@
         if (extra > 0) updateBar();
       });
     }
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 })();

@@ -264,9 +264,33 @@
 .rmc-brand-mark__tenant-logo {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
+
+/* When a real logo image is present, the squircle backdrop becomes a quiet
+   neutral surface so the artwork reads cleanly instead of fighting the
+   indigo->emerald monogram gradient. The CSS-only light/dark swap below
+   keeps the JS-free contract from the partial. */
+.rmc-brand-mark--has-image .rmc-brand-mark__squircle {
+  background: var(--surface-elevated, rgba(255, 255, 255, 0.92));
+  padding: calc(var(--rmc-bm-size, 32px) * 0.08);
+}
+.cp-navbar .rmc-brand-mark--has-image .rmc-brand-mark__squircle,
+[data-resolved-theme="dark"] .rmc-brand-mark--has-image .rmc-brand-mark__squircle {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* JS-free light/dark image swap — both <img> tags ship in the DOM; the
+   resolved theme picks which one is visible. Default state shows the
+   light variant; dark theme reveals the dark variant and hides the light.
+   When only one variant was configured, the partial omits the other tag
+   so there's nothing to hide. */
+.rmc-brand-mark__tenant-logo--dark { display: none; }
+[data-resolved-theme="dark"] .rmc-brand-mark__tenant-logo--light,
+.cp-navbar .rmc-brand-mark__tenant-logo--light { display: none; }
+[data-resolved-theme="dark"] .rmc-brand-mark__tenant-logo--dark,
+.cp-navbar .rmc-brand-mark__tenant-logo--dark { display: block; }
 
 .rmc-brand-mark__wordmark {
   display: inline-flex;
@@ -347,10 +371,13 @@
   margin-right: auto;
 }
 
-/* Search input — apple style: rounded pill, subtle border, light/dark aware. */
+/* Search input — apple style: rounded pill, subtle border, light/dark aware.
+   Right padding reserves space for the trailing "Ctrl K" kbd chip; the
+   previous 2.75rem was too tight on Latin builds and the chip bled under
+   the placeholder ("Search schools, incidentctrl Ks" in 2026-05-15 shots). */
 .cp-navbar .cp-topbar-search-input {
   border-radius: 999px;
-  padding: 0.5rem 2.75rem 0.5rem 1rem;
+  padding: 0.5rem 4.25rem 0.5rem 1rem;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.10);
   color: rgba(255, 255, 255, 0.92);
@@ -453,11 +480,16 @@
 
 .cp-topbar-bell__badge {
   position: absolute;
-  top: -2px;
-  right: -2px;
+  top: 0;
+  right: 0;
+  /* Anchor the badge at the bell's top-right corner and nudge it outward by
+     ~35% in each axis. Keeps the badge visibly attached to the bell at any
+     count width (1-digit "5", 2-digit "20", 3-char "99+") without the prior
+     top:-2/right:-2 offsets that drifted up into the navbar's clip region. */
+  transform: translate(35%, -35%);
   min-width: 18px;
   height: 18px;
-  padding: 0 4px;
+  padding: 0 5px;
   border-radius: 999px;
   background: #ef4444;
   color: #ffffff;

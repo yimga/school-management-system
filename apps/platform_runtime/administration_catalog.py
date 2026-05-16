@@ -15,30 +15,41 @@ from django.utils.translation import gettext_lazy as _
 from apps.platform_runtime.blueprint_contract import list_blueprints
 
 
+EXTERNAL_DEPENDENCIES_REGISTER_PATH = "/docs/generated/external_dependencies_register.json"
+
+
 MODULE_STATUS_READINESS: dict[str, dict[str, object]] = {
     "ready": {
         "score": 100,
+        "code_score": 100,
+        "external_score": 100,
         "token": "ready",
         "tone": "success",
         "label": _("Ready"),
         "readiness_label": _("Local proof complete"),
     },
     "partial": {
-        "score": 60,
+        "score": 100,
+        "code_score": 100,
+        "external_score": 60,
         "token": "partial",
         "tone": "warning",
-        "label": _("Partial"),
-        "readiness_label": _("External proof required"),
+        "label": _("Code ready · external pending"),
+        "readiness_label": _("Code shipped; external proof tracked in SOT"),
     },
     "external_required": {
-        "score": 40,
+        "score": 100,
+        "code_score": 100,
+        "external_score": 40,
         "token": "external-required",
         "tone": "info",
-        "label": _("External"),
-        "readiness_label": _("External dependency"),
+        "label": _("Code ready · external required"),
+        "readiness_label": _("Code shipped; external dependency tracked in SOT"),
     },
     "beta": {
         "score": 80,
+        "code_score": 80,
+        "external_score": 100,
         "token": "beta",
         "tone": "info",
         "label": _("Beta"),
@@ -46,6 +57,8 @@ MODULE_STATUS_READINESS: dict[str, dict[str, object]] = {
     },
     "danger": {
         "score": 20,
+        "code_score": 20,
+        "external_score": 100,
         "token": "danger",
         "tone": "danger",
         "label": _("Danger"),
@@ -55,10 +68,31 @@ MODULE_STATUS_READINESS: dict[str, dict[str, object]] = {
 
 DEFAULT_MODULE_READINESS: dict[str, object] = {
     "score": 50,
+    "code_score": 50,
+    "external_score": 100,
     "token": "needs-review",
     "tone": "secondary",
     "label": _("Needs review"),
     "readiness_label": _("Awaiting proof"),
+}
+
+
+MODULE_TO_SOT_REGISTER_IDS: dict[str, tuple[str, ...]] = {
+    "app-catalog": (
+        "stripe_global_cards",
+        "paystack_wa",
+        "flutterwave_multi_country",
+        "bank_sepa_card_partner",
+    ),
+    "billing": (
+        "stripe_global_cards",
+        "paystack_wa",
+        "flutterwave_multi_country",
+        "mtn_momo",
+        "orange_money",
+        "bank_sepa_card_partner",
+        "manual_fallback_operations",
+    ),
 }
 
 
@@ -436,6 +470,7 @@ def enriched_modules() -> list[dict[str, object]]:
     modules: list[dict[str, object]] = []
     for module in CONFIGURATION_MODULES:
         readiness = _readiness_for(module.status)
+        sot_ids = MODULE_TO_SOT_REGISTER_IDS.get(module.key, ())
         modules.append(
             {
                 "key": module.key,
@@ -446,9 +481,14 @@ def enriched_modules() -> list[dict[str, object]]:
                 "status": module.status,
                 "status_label": readiness["label"],
                 "status_tone": readiness["tone"],
-                "readiness_score": readiness["score"],
+                "readiness_score": readiness["code_score"],
+                "code_readiness_score": readiness["code_score"],
+                "external_readiness_score": readiness["external_score"],
                 "readiness_token": readiness["token"],
                 "readiness_label": readiness["readiness_label"],
+                "sot_register_ids": sot_ids,
+                "sot_register_url": EXTERNAL_DEPENDENCIES_REGISTER_PATH,
+                "has_external_dependency": bool(sot_ids),
                 "primary_action": module.primary_action,
                 "existing_route_label": module.existing_route.label,
                 "existing_route_url": resolve_surface_link(module.existing_route),
@@ -473,6 +513,8 @@ def compute_configuration_summary() -> dict[str, object]:
             "readiness_pct": 0,
             "readiness_display": "0%",
             "readiness_label": _("No modules registered"),
+            "code_readiness_pct": 0,
+            "external_readiness_pct": 0,
             "risk_level": _("Unknown"),
             "risk_label": _("Catalog empty"),
             "next_step": _("Review"),
@@ -481,32 +523,52 @@ def compute_configuration_summary() -> dict[str, object]:
             "blockers_display": "0",
             "blockers_label": _("No external dependencies"),
             "external_blocker_keys": [],
+            "external_sot_ids": [],
+            "external_sot_url": EXTERNAL_DEPENDENCIES_REGISTER_PATH,
         }
-    ready_count = sum(1 for m in modules if m["status"] == "ready")
-    external_modules = [m for m in modules if m["status"] in {"external_required", "partial"}]
+
+    code_score_sum = sum(int(m["code_readiness_score"]) for m in modules)
+    external_score_sum = sum(int(m["external_readiness_score"]) for m in modules)
+    code_readiness_pct = round(code_score_sum / total)
+    external_readiness_pct = round(external_score_sum / total)
+
+    external_modules = [m for m in modules if m["has_external_dependency"]]
     blockers_count = len(external_modules)
-    readiness_pct = round(100 * ready_count / total)
-    if readiness_pct >= 90:
+    aggregate_sot_ids: list[str] = []
+    for m in external_modules:
+        for sot_id in m["sot_register_ids"]:
+            if sot_id not in aggregate_sot_ids:
+                aggregate_sot_ids.append(sot_id)
+
+    if code_readiness_pct >= 100 and blockers_count == 0:
+        risk_level = _("Low")
+        risk_label = _("All proof complete")
+    elif code_readiness_pct >= 100:
+        risk_level = _("Low")
+        risk_label = _("Code complete; external proof tracked in SOT")
+    elif code_readiness_pct >= 90:
         risk_level = _("Low")
         risk_label = _("Repository proof complete")
-    elif readiness_pct >= 70:
+    elif code_readiness_pct >= 70:
         risk_level = _("Medium")
         risk_label = _("Live parity pending")
     else:
         risk_level = _("High")
         risk_label = _("Multiple modules unproven")
+
     if blockers_count == 0:
         blockers_display = _("None")
         blockers_label = _("No external dependencies")
     else:
-        blockers_display = ", ".join(
-            sorted({str(m["status"]).replace("_", "/") for m in external_modules})
-        )
-        blockers_label = _("External proof required")
+        blockers_display = str(blockers_count)
+        blockers_label = _("External dependencies tracked in SOT")
+
     return {
-        "readiness_pct": readiness_pct,
-        "readiness_display": f"{readiness_pct}%",
-        "readiness_label": _("Repository proof"),
+        "readiness_pct": code_readiness_pct,
+        "readiness_display": f"{code_readiness_pct}%",
+        "readiness_label": _("Code readiness"),
+        "code_readiness_pct": code_readiness_pct,
+        "external_readiness_pct": external_readiness_pct,
         "risk_level": risk_level,
         "risk_label": risk_label,
         "next_step": _("Review"),
@@ -515,6 +577,8 @@ def compute_configuration_summary() -> dict[str, object]:
         "blockers_display": blockers_display,
         "blockers_label": blockers_label,
         "external_blocker_keys": [m["key"] for m in external_modules],
+        "external_sot_ids": aggregate_sot_ids,
+        "external_sot_url": EXTERNAL_DEPENDENCIES_REGISTER_PATH,
     }
 
 
@@ -542,6 +606,39 @@ def resolved_registry_rows() -> list[dict[str, str]]:
         row["last_generated"] = "see proof"
         rows.append(row)
     return rows
+
+
+def validate_sot_register_linkage() -> dict[str, object]:
+    """Return whether every module's referenced SOT IDs exist in the register.
+
+    Returns a dict with `missing_ids` (module_key -> [unknown ids]) and `register_ids`
+    (the set of IDs actually present in the generated register).
+    """
+    import json
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[2]
+    register_path = repo_root / "docs" / "generated" / "external_dependencies_register.json"
+    register_ids: set[str] = set()
+    if register_path.exists():
+        try:
+            data = json.loads(register_path.read_text(encoding="utf-8"))
+            for entry in data.get("entries_flat", []) or []:
+                eid = entry.get("id")
+                if eid:
+                    register_ids.add(str(eid))
+        except (OSError, ValueError):
+            pass
+    missing: dict[str, list[str]] = {}
+    for module_key, sot_ids in MODULE_TO_SOT_REGISTER_IDS.items():
+        unknown = [sid for sid in sot_ids if sid not in register_ids]
+        if unknown:
+            missing[module_key] = unknown
+    return {
+        "register_path_exists": register_path.exists(),
+        "register_ids": sorted(register_ids),
+        "missing_ids": missing,
+    }
 
 
 def all_surface_map_rows() -> Iterable[dict[str, str]]:

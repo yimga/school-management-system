@@ -63,3 +63,47 @@ class ExternalDependenciesRegisterTests(SimpleTestCase):
         self.assertIn("metadata health command", md)
         self.assertIn("without PSP", md)
         self.assertIn("External action", md)
+
+    def test_configuration_module_sot_links_are_valid(self):
+        """Every module->SOT id referenced in administration_catalog must exist in the register."""
+        from apps.platform_runtime.administration_catalog import (
+            MODULE_TO_SOT_REGISTER_IDS,
+            validate_sot_register_linkage,
+        )
+
+        result = validate_sot_register_linkage()
+        self.assertTrue(
+            result["register_path_exists"],
+            "Generated external_dependencies_register.json must exist",
+        )
+        self.assertEqual(
+            result["missing_ids"],
+            {},
+            msg=(
+                "Configuration modules reference SOT ids that are not in the generated register. "
+                f"Module->SOT map: {MODULE_TO_SOT_REGISTER_IDS}. Missing: {result['missing_ids']}"
+            ),
+        )
+
+    def test_external_required_modules_have_sot_linkage(self):
+        """Any module whose status is partial/external_required must declare SOT register ids."""
+        from apps.platform_runtime.administration_catalog import (
+            MODULE_TO_SOT_REGISTER_IDS,
+            enriched_modules,
+        )
+
+        for module in enriched_modules():
+            if module["status"] in {"partial", "external_required"}:
+                with self.subTest(module=module["key"]):
+                    self.assertIn(
+                        module["key"],
+                        MODULE_TO_SOT_REGISTER_IDS,
+                        msg=(
+                            f"Module {module['key']!r} is {module['status']!r} but has no entry "
+                            "in MODULE_TO_SOT_REGISTER_IDS — external dependency must be tracked."
+                        ),
+                    )
+                    self.assertTrue(
+                        MODULE_TO_SOT_REGISTER_IDS[module["key"]],
+                        msg=f"Module {module['key']!r} declares an empty SOT id tuple.",
+                    )

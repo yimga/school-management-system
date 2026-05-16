@@ -49,6 +49,13 @@
             <dd class="col-sm-9"><span data-world-class-readiness-score="1">{{ module.readiness_score }}%</span> {{ module.readiness_label }}</dd>
             <dt class="col-sm-3">{% trans "Next action" %}</dt>
             <dd class="col-sm-9">{{ module.primary_action }}</dd>
+            {% if module.has_external_dependency %}
+            <dt class="col-sm-3">{% trans "External SOT" %}</dt>
+            <dd class="col-sm-9">
+              <a href="{{ module.sot_register_url }}" data-module-sot-link="1">{% trans "External dependencies register" %}</a>
+              <span class="text-muted">— {% for sid in module.sot_register_ids %}<code>{{ sid }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}</span>
+            </dd>
+            {% endif %}
           </dl>
           {% if module.detail %}<p class="small text-muted mb-0">{{ module.detail }}</p>{% endif %}
           {% include "components/apple_class_data_quality_meter.html" with meter_id=module.key title=_("Module readiness") value=module.readiness_score status=module.readiness_token status_label=module.readiness_label body=_("Readiness derives from module status: ready, partial, external_required, beta, or danger.") %}

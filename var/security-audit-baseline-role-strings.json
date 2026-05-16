@@ -870,12 +870,12 @@
       "role": "ADMIN"
     },
     {
-      "line": 356,
+      "line": 390,
       "path": "apps/platform_runtime/administration_catalog.py",
       "role": "ADMIN"
     },
     {
-      "line": 368,
+      "line": 402,
       "path": "apps/platform_runtime/administration_catalog.py",
       "role": "TEACHER"
     },
@@ -1105,17 +1105,17 @@
       "role": "PARENT"
     },
     {
-      "line": 1077,
+      "line": 1154,
       "path": "apps/siteconfig/context_processors.py",
       "role": "ADMIN"
     },
     {
-      "line": 1123,
+      "line": 1200,
       "path": "apps/siteconfig/context_processors.py",
       "role": "TEACHER"
     },
     {
-      "line": 1131,
+      "line": 1208,
       "path": "apps/siteconfig/context_processors.py",
       "role": "PARENT"
     },
@@ -1370,7 +1370,7 @@
       "role": "ADMIN"
     }
   ],
-  "generated_at": "2026-05-16T00:15:48+00:00",
+  "generated_at": "2026-05-16T01:23:45+00:00",
   "role_tokens": [
     "ADMIN",
     "PARENT",

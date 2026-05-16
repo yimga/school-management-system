@@ -1558,37 +1558,37 @@
       "value": 320
     },
     {
-      "line": 1396,
+      "line": 1423,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=160, db_index=True)",
       "value": 160
     },
     {
-      "line": 1474,
+      "line": 1501,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=180, db_index=True)",
       "value": 180
     },
     {
-      "line": 1527,
+      "line": 1554,
       "path": "apps/platform_runtime/models.py",
       "snippet": "target_key = models.CharField(max_length=160, db_index=True)",
       "value": 160
     },
     {
-      "line": 1580,
+      "line": 1607,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=180, blank=True, default=\"\", db_index=True)",
       "value": 180
     },
     {
-      "line": 1855,
+      "line": 1882,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=160, unique=True)",
       "value": 160
     },
     {
-      "line": 2082,
+      "line": 2109,
       "path": "apps/platform_runtime/models.py",
       "snippet": "title = models.CharField(max_length=240)",
       "value": 240
@@ -2422,31 +2422,31 @@
       "value": 32000
     },
     {
-      "line": 153,
+      "line": 239,
       "path": "apps/schools/super_views_trust_surface.py",
       "snippet": "if (to_date - from_date).days > 365:",
       "value": 365
     },
     {
-      "line": 255,
+      "line": 341,
       "path": "apps/schools/super_views_trust_surface.py",
       "snippet": "e[\"payload_preview\"] = ps if len(ps) <= 240 else ps[:240] + \"\u2026\"",
       "value": 240
     },
     {
-      "line": 255,
+      "line": 341,
       "path": "apps/schools/super_views_trust_surface.py",
       "snippet": "e[\"payload_preview\"] = ps if len(ps) <= 240 else ps[:240] + \"\u2026\"",
       "value": 240
     },
     {
-      "line": 518,
+      "line": 522,
       "path": "apps/schools/super_views_wedge.py",
       "snippet": "email=(request.POST.get(\"email\") or \"\").strip()[:254],",
       "value": 254
     },
     {
-      "line": 1001,
+      "line": 1005,
       "path": "apps/schools/super_views_wedge.py",
       "snippet": "return json.dumps(obj, indent=2, default=str)[:12000]",
       "value": 12000
@@ -3058,7 +3058,7 @@
       "value": 1500
     }
   ],
-  "generated_at": "2026-05-15T22:52:45+00:00",
+  "generated_at": "2026-05-16T01:23:53+00:00",
   "rule": "Integer literals with abs(value) >= 100 in production code should route through the 7-layer configurability contract (RuntimeDefaults / constants.py / SiteSettings)",
   "scan_dirs": [
     "apps",

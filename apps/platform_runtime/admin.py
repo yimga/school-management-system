@@ -122,6 +122,9 @@ class RuntimeDefaultsBrandForm(forms.ModelForm):
             "branded_domain",
             "public_brand_primary_color",
             "public_brand_accent_color",
+            "public_brand_logo_url",
+            "public_brand_logo_dark_url",
+            "public_brand_favicon_url",
             "cache_rankings_interval_minutes",
             "preview_mode_enabled",
             "preview_note",
@@ -149,6 +152,15 @@ class RuntimeDefaultsBrandForm(forms.ModelForm):
             ),
             "public_brand_accent_color": forms.TextInput(
                 attrs={"placeholder": "#f59e0b"}
+            ),
+            "public_brand_logo_url": forms.URLInput(
+                attrs={"placeholder": "https://cdn.example.com/brand/logo.png"}
+            ),
+            "public_brand_logo_dark_url": forms.URLInput(
+                attrs={"placeholder": "https://cdn.example.com/brand/logo-dark.png"}
+            ),
+            "public_brand_favicon_url": forms.URLInput(
+                attrs={"placeholder": "https://cdn.example.com/brand/favicon.png"}
             ),
             "sms_api_key": forms.PasswordInput(
                 render_value=True,
@@ -199,6 +211,9 @@ class RuntimeDefaultsAdmin(ModelAdmin):
                     "branded_domain",
                     "public_brand_primary_color",
                     "public_brand_accent_color",
+                    "public_brand_logo_url",
+                    "public_brand_logo_dark_url",
+                    "public_brand_favicon_url",
                 )
             },
         ),

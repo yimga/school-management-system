@@ -21,12 +21,98 @@ from django.views.decorators.http import require_http_methods
 
 def super_compliance_overview(request):
     """Phase 13: Control-plane compliance governance — policy pack, audit review, export risk."""
+
+    def _safe_reverse(name: str) -> str:
+        try:
+            return reverse(name)
+        except NoReverseMatch:
+            return ""
+
+    actions = [
+        {
+            "key": "audit_export",
+            "title": "Audit export",
+            "description": "Download audit-log evidence packs scoped by date, actor, and tenant.",
+            "url": _safe_reverse("super:audit_export"),
+            "icon": "bi-file-earmark-arrow-down",
+            "category": "audit",
+        },
+        {
+            "key": "platform_events",
+            "title": "Platform event log",
+            "description": "Search platform-wide event records — sensitive actions, actors, timestamps.",
+            "url": _safe_reverse("super:platform_events"),
+            "icon": "bi-search",
+            "category": "audit",
+        },
+        {
+            "key": "compliance_dashboard",
+            "title": "Compliance dashboard",
+            "description": "Overview of compliance posture across tenants, regions, and document status.",
+            "url": _safe_reverse("compliance:dashboard"),
+            "icon": "bi-clipboard-check",
+            "category": "compliance",
+        },
+        {
+            "key": "data_rights_queue",
+            "title": "Data rights queue",
+            "description": "Review and resolve subject access, export, and erasure requests.",
+            "url": _safe_reverse("compliance:data_rights_queue"),
+            "icon": "bi-person-lock",
+            "category": "consent",
+        },
+        {
+            "key": "data_portability_export",
+            "title": "GDPR data portability",
+            "description": "Initiate and track GDPR-compliant subject data exports.",
+            "url": _safe_reverse("compliance:data_portability_export"),
+            "icon": "bi-box-arrow-up-right",
+            "category": "consent",
+        },
+        {
+            "key": "erasure_request",
+            "title": "GDPR erasure request",
+            "description": "Open or follow up an erasure request through the four-eyes approval flow.",
+            "url": _safe_reverse("compliance:erasure_request"),
+            "icon": "bi-trash3",
+            "category": "consent",
+        },
+        {
+            "key": "compliance_exports",
+            "title": "Compliance export jobs",
+            "description": "Track scheduled compliance export jobs and download artifacts.",
+            "url": _safe_reverse("siteconfig:compliance_exports"),
+            "icon": "bi-archive",
+            "category": "audit",
+        },
+        {
+            "key": "policy_diff",
+            "title": "Policy bundle diff",
+            "description": "Compare policy bundles between schools and the canonical platform policy pack.",
+            "url": _safe_reverse("super:policy_diff"),
+            "icon": "bi-shield-check",
+            "category": "policy",
+        },
+        {
+            "key": "operator_policy",
+            "title": "Operator policy",
+            "description": "Configure operator-side policy: retention windows, evidence requirements.",
+            "url": _safe_reverse("super:operator_policy"),
+            "icon": "bi-sliders",
+            "category": "policy",
+        },
+    ]
+
+    actions = [a for a in actions if a["url"]]
+    sot_register_url = "/docs/generated/external_dependencies_register.json"
     return render(
         request,
         "schools/super_compliance_overview.html",
         {
             "dashboard_url": reverse("super:dashboard"),
             "trust_center_url": reverse("super:trust_center"),
+            "actions": actions,
+            "sot_register_url": sot_register_url,
         },
     )
 

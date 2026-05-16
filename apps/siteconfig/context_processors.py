@@ -737,6 +737,31 @@ def site_settings(request):
                 )
         except OPTIONAL_CONTEXT_ERRORS:
             ctx["PRIMARY_CONTROL_PLANE_NAV"] = []
+    # v2.65 Wave 1a (2026-05-15): platform-wide gate for the redundant
+    # "RunMyCampus workspace / role" strip that rmc_os_page_header.html
+    # renders. Pages whose canvas has its own h1 + page-context (Studio
+    # shells, Marketplace governance, Ministry / accreditation stubs, App
+    # Catalog Governance, Migration Center, Configuration Center) get the
+    # flag turned on so the strip is suppressed. v2.64.1's B1 only handled
+    # Studio Control via a block override; this URL-prefix list generalizes
+    # it. Per-view code can opt in/out by setting page_provides_own_h1 in
+    # its template context (this just provides the platform default).
+    p = (request.path or "").strip()
+    own_h1_prefixes = (
+        "/studio/",                      # Studio shell renders own toolbar + h1 in shell_main_content.html
+        "/super/marketplace-cms/",       # Marketplace governance has own h1
+        "/super/marketplace/",           # marketplace governance alias
+        "/super/wedge/",                 # Ministry / accreditation stubs
+        "/super/marketplace-app-catalog/",
+        "/super/migration/",             # Migration Cloud operator console
+        "/portal/configure/",            # Tenant settings hub (Apple Settings IA)
+        "/siteconfig/console/",          # Configuration Control Center
+    )
+    ctx.setdefault(
+        "page_provides_own_h1",
+        any(p.startswith(prefix) for prefix in own_h1_prefixes),
+    )
+
     ctx["PUBLIC_BRAND_NAME"] = "RunMyCampus"
     ctx["PUBLIC_BRAND_DOMAIN"] = "runmycampus.com"
     ctx["PUBLIC_BRAND_TAGLINE"] = (
@@ -779,12 +804,64 @@ def site_settings(request):
         ctx["TENANT_WALLPAPER_URL"] = ""
         ctx["SITE_PRIMARY_COLOR"] = None
         ctx["SITE_ACCENT_COLOR"] = None
-        ctx["PUBLIC_BRAND_LOGO_URL"] = static(
-            "images/runmycampus-icon.png"
-        )  # Use icon; full logo only where explicitly needed
-        ctx["PUBLIC_BRAND_LOGO_DARK_URL"] = static("images/runmycampus-icon.png")
-        ctx["PUBLIC_BRAND_FAVICON_URL"] = static("images/runmycampus-icon.png")
-        ctx["SITE_FAVICON_URL"] = static("images/runmycampus-icon.png")
+        # Public-brand logo URLs follow the same 3-layer cascade as the colors
+        # above: RuntimeDefaults (admin-configurable via Manager Config Center)
+        # -> env override (deploy-time) -> in-repo platform default. The
+        # brand-mark squircle is square; we feed it the icon (square mark)
+        # rather than the wide horizontal logo, which would crop. The full
+        # horizontal lockup is composed by the partial: squircle (icon) +
+        # wordmark text rendered separately.
+        _rd_logo = ""
+        _rd_logo_dark = ""
+        _rd_favicon = ""
+        try:
+            from apps.platform_runtime.models import RuntimeDefaults
+
+            _rd = RuntimeDefaults.get_singleton()
+            if _rd is not None:
+                _rd_logo = str(getattr(_rd, "public_brand_logo_url", None) or "").strip()
+                _rd_logo_dark = str(
+                    getattr(_rd, "public_brand_logo_dark_url", None) or ""
+                ).strip()
+                _rd_favicon = str(
+                    getattr(_rd, "public_brand_favicon_url", None) or ""
+                ).strip()
+                if not _rd_logo or not _rd_logo_dark or not _rd_favicon:
+                    _rd_payload = getattr(_rd, "payload", None) or {}
+                    if isinstance(_rd_payload, dict):
+                        if not _rd_logo:
+                            _rd_logo = str(
+                                _rd_payload.get("public_brand_logo_url") or ""
+                            ).strip()
+                        if not _rd_logo_dark:
+                            _rd_logo_dark = str(
+                                _rd_payload.get("public_brand_logo_dark_url") or ""
+                            ).strip()
+                        if not _rd_favicon:
+                            _rd_favicon = str(
+                                _rd_payload.get("public_brand_favicon_url") or ""
+                            ).strip()
+        except OPTIONAL_CONTEXT_ERRORS:
+            pass
+        _platform_logo_default = static("images/runmycampus-icon.png")
+        _platform_logo_dark_default = static("images/runmycampus-icon.png")
+        _platform_icon_default = static("images/runmycampus-icon.png")
+        ctx["PUBLIC_BRAND_LOGO_URL"] = (
+            _rd_logo
+            or os.getenv("PUBLIC_BRAND_LOGO_URL", "").strip()
+            or _platform_logo_default
+        )
+        ctx["PUBLIC_BRAND_LOGO_DARK_URL"] = (
+            _rd_logo_dark
+            or os.getenv("PUBLIC_BRAND_LOGO_DARK_URL", "").strip()
+            or _platform_logo_dark_default
+        )
+        ctx["PUBLIC_BRAND_FAVICON_URL"] = (
+            _rd_favicon
+            or os.getenv("PUBLIC_BRAND_FAVICON_URL", "").strip()
+            or _platform_icon_default
+        )
+        ctx["SITE_FAVICON_URL"] = ctx["PUBLIC_BRAND_FAVICON_URL"]
     else:
         ctx["PUBLIC_BRAND_LOGO_URL"] = ""
         ctx["PUBLIC_BRAND_LOGO_DARK_URL"] = ""

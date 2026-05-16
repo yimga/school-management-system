@@ -265,6 +265,10 @@ def super_district_enterprise(request):
         compute_platform_identity_rollups,
     )
 
+    erp_sample = erp_coexistence.sample_webhook_envelope(
+        event="enrollment.synced",
+        school_id="demo-school",
+    )
     return render(
         request,
         "schools/super_district_enterprise.html",

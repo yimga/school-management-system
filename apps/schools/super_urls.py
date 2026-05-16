@@ -1,6 +1,7 @@
 from functools import partial
 
 from django.urls import path
+from django.views.generic import RedirectView
 from apps.marketplace import views as marketplace_views
 from apps.marketplace.views_publisher import (
     publisher_app_detail as marketplace_publisher_app_detail,
@@ -399,6 +400,11 @@ urlpatterns = [
         "marketplace/",
         require_super_access_with_host(marketplace_views.governance_console),
         name="marketplace_governance",
+    ),
+    path(
+        "marketplace-governance/",
+        RedirectView.as_view(pattern_name="super:marketplace_governance", permanent=False),
+        name="marketplace_governance_alias",
     ),
     path(
         "marketplace/reviews/<int:review_id>/action/",

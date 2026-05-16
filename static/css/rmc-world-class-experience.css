@@ -465,6 +465,27 @@ main li,
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  /* v2.65 Wave 1b (2026-05-15): the input was using Bootstrap's
+     `form-control { width: 100% }` which inside a flex row defaults to
+     `flex: 0 1 auto` with auto basis = the form-control's intrinsic
+     width (often equal to the container), shoving the button into a
+     wrap or visually overlapping it on certain Chromium builds. Pin
+     the input to `flex: 1 1 0` (truly grow from zero, share space with
+     siblings) and the button to `flex: 0 0 auto` (never shrink, never
+     grow). User reported the overlap on the Tenant display name +
+     Support contact email fields in the platform readiness strip. */
+}
+.rmc-acx-inline-edit__control > input,
+.rmc-acx-inline-edit__control > .form-control,
+.rmc-acx-inline-edit__control > select,
+.rmc-acx-inline-edit__control > textarea {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+}
+.rmc-acx-inline-edit__control > button,
+.rmc-acx-inline-edit__control > .btn {
+  flex: 0 0 auto;
 }
 
 .rmc-acx-workflow-path {

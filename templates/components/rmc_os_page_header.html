@@ -1,4 +1,12 @@
 {% load i18n %}
+{% comment %} v2.65 (Wave 1a, 2026-05-15): platform-wide opt-out gate for the
+   "RunMyCampus workspace / role" strip. Pages whose canvas already declares
+   its own h1 + page-context (Studio shells, Marketplace governance, Ministry
+   stubs, App Catalog, Migration Center, etc.) set
+   `page_provides_own_h1 = True` (via context processor or per-view) to
+   suppress this redundant chrome. v2.64.1's B1 only handled Studio Control
+   via a block override; this gate generalizes the dedup. {% endcomment %}
+{% if page_provides_own_h1 %}{# suppress workspace header #}{% else %}
 {# Operational center mode: pass os_center_key, center_eyebrow, center_title, center_purpose (optional status_badge_*). #}
 {% if os_center_key or center_title %}
 <div class="rmc-os-page-header rmc-os-page-header--operational-center rounded-2 border px-3 py-2 mb-2 bg-body-tertiary bg-opacity-10"
@@ -42,3 +50,4 @@
   </div>
 </div>
 {% endif %}
+{% endif %}{# end page_provides_own_h1 #}

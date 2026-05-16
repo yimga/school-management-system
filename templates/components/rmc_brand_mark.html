@@ -1,40 +1,60 @@
 {% load static %}
 {% comment %}
 ============================================================================
-rmc_brand_mark.html — platform brand mark component (v2.56).
+rmc_brand_mark.html — platform brand mark component (v2.64.3).
 
 Properly engineered for every size: 16px favicon → 80px hero. Inline SVG
 so it stays crisp at any DPI and consumes theme tokens.
 
 Inputs (all optional):
-  size       — pixel size (default 32). Use 16/20/24/28/32/40/56/80.
-  variant    — "mark" (default, just the squircle monogram) or
-               "lockup" (squircle + wordmark to the right).
-  monogram   — single character override (default: first letter of
-               SITE.site_name, falling back to "R").
-  href       — wrap in <a> with this href.
-  label      — accessible name (default: SITE.site_name|"RunMyCampus").
+  size           — pixel size (default 32). Use 16/20/24/28/32/40/56/80.
+  variant        — "mark" (default, just the squircle monogram) or
+                   "lockup" (squircle + wordmark to the right).
+  monogram       — single character override (default: first letter of
+                   SITE.site_name, falling back to "R").
+  href           — wrap in <a> with this href.
+  label          — accessible name (default: SITE.site_name|"RunMyCampus").
+  subtitle       — secondary line in the lockup wordmark.
+  logo_url       — explicit override for the light-mode logo image.
+  logo_dark_url  — explicit override for the dark-mode logo image.
 
-Behaviour:
-  - Tenant override: when SITE.logo is set we render the tenant's
-    raster logo inside the squircle frame instead of the SVG monogram.
-    Same frame, so the chrome layout stays identical.
-  - Platform default: gradient squircle (var(--brand-gradient) which
-    cascades from tenant brand or platform indigo→emerald) with a
-    white serif-leaning monogram.
-  - Theme-aware: the squircle background reads from the gradient
-    cascade; the inner glyph stays white in both light and dark.
-  - Configurability contract honored: nothing hardcoded; tenant
-    cascade wins, platform default is the fallback.
+Logo resolution cascade (7-layer configurability contract):
+  1. Caller override:           logo_url      / logo_dark_url   (partial args)
+  2. Tenant SiteSettings:       SITE_LOGO_URL / SITE_LOGO_DARK_URL
+                                (resolved in apps/siteconfig/context_processors.py
+                                via ThemePack -> BrandProfile -> SiteSettings
+                                -> RuntimeDefaults `site_logo_dark_url`)
+  3. Platform / manager brand:  PUBLIC_BRAND_LOGO_URL / PUBLIC_BRAND_LOGO_DARK_URL
+                                (set when running on manager.runmycampus.com)
+  4. Final fallback:            SVG monogram (gradient squircle + first
+                                letter of SITE.site_name, defaulting to "R")
+
+  Dark URL additionally falls back to the resolved light URL when not
+  explicitly configured, so a single uploaded logo still renders on dark
+  shells without a broken-image icon.
+
+Prior bug (pre-v2.64.3): the partial checked `SITE.logo` (a non-existent
+ImageField on SiteSettings) and silently fell through to the monogram SVG
+even when SITE_LOGO_URL / PUBLIC_BRAND_LOGO_URL were configured — which is
+why the manager topbar shipped without a real logo.
 ============================================================================
 {% endcomment %}
 {% with bm_size=size|default:32 bm_variant=variant|default:"mark" %}
+{% comment %}Resolve the effective light + dark logo URLs through the cascade.
+   `firstof` returns the first non-empty value; an explicit empty string at
+   a higher layer correctly defers to the next layer below.{% endcomment %}
+{% firstof logo_url SITE_LOGO_URL PUBLIC_BRAND_LOGO_URL "" as bm_logo_url %}
+{% firstof logo_dark_url SITE_LOGO_DARK_URL PUBLIC_BRAND_LOGO_DARK_URL bm_logo_url "" as bm_logo_dark_url %}
 {% if href %}<a href="{{ href }}" class="rmc-brand-mark-link" aria-label="{{ label|default:SITE.site_name|default:'RunMyCampus' }}">{% endif %}
-<span class="{% if bm_variant == 'lockup' %}rmc-brand-mark rmc-brand-mark--lockup{% else %}rmc-brand-mark rmc-brand-mark--mark{% endif %}" style="--rmc-bm-size: {{ bm_size }}px;" data-rmc-brand-mark="1">
+<span class="{% if bm_variant == 'lockup' %}rmc-brand-mark rmc-brand-mark--lockup{% else %}rmc-brand-mark rmc-brand-mark--mark{% endif %}{% if bm_logo_url or bm_logo_dark_url %} rmc-brand-mark--has-image{% endif %}" style="--rmc-bm-size: {{ bm_size }}px;" data-rmc-brand-mark="1">
   <span class="rmc-brand-mark__squircle" aria-hidden="true">
-    {% if SITE.logo %}
-      {# Tenant-provided logo wins; frame stays the same so layout is stable. #}
-      <img src="{{ SITE.logo.url }}" alt="" decoding="async" loading="lazy" class="rmc-brand-mark__tenant-logo">
+    {% if bm_logo_url or bm_logo_dark_url %}
+      {% comment %}Both light + dark images render; CSS hides the wrong one based
+         on [data-resolved-theme] so the swap is JS-free. When only one URL is
+         configured, the cascade above mirrors it into the missing slot so
+         both <img> tags have a valid src.{% endcomment %}
+      {% if bm_logo_url %}<img src="{{ bm_logo_url }}" alt="" decoding="async" loading="lazy" class="rmc-brand-mark__tenant-logo rmc-brand-mark__tenant-logo--light" data-rmc-brand-variant="light">{% endif %}
+      {% if bm_logo_dark_url %}<img src="{{ bm_logo_dark_url }}" alt="" decoding="async" loading="lazy" class="rmc-brand-mark__tenant-logo rmc-brand-mark__tenant-logo--dark" data-rmc-brand-variant="dark">{% endif %}
     {% else %}
       <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true" class="rmc-brand-mark__glyph">
         {# Monogram — geometric letterform; reads at 16px and 80px alike. #}

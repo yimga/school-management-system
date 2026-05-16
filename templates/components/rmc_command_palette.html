@@ -39,8 +39,10 @@
       "label": "{% trans 'Navigate' %}",
       "items": [
         {% if request.user.is_authenticated %}
-          {"label": "{% trans 'Console (everyday)' %}", "url": "{% url 'portal_console' %}", "icon": "bi-speedometer2", "keywords": "dashboard backend operator"},
-          {"label": "{% trans 'Configure (settings)' %}", "url": "{% url 'portal_configure' %}", "icon": "bi-sliders", "keywords": "settings configuration runtime"},
+          {% url 'portal_console' as cmdk_portal_console_url %}
+          {% url 'portal_configure' as cmdk_portal_configure_url %}
+          {% if cmdk_portal_console_url %}{"label": "{% trans 'Console (everyday)' %}", "url": "{{ cmdk_portal_console_url }}", "icon": "bi-speedometer2", "keywords": "dashboard backend operator"},{% endif %}
+          {% if cmdk_portal_configure_url %}{"label": "{% trans 'Configure (settings)' %}", "url": "{{ cmdk_portal_configure_url }}", "icon": "bi-sliders", "keywords": "settings configuration runtime"},{% endif %}
           {"label": "{% trans 'My Profile' %}", "url": "{% url 'accounts:user_profile' %}", "icon": "bi-person-circle", "keywords": "account user"},
           {"label": "{% trans 'Notifications' %}", "url": "{% url 'accounts:user_notifications' %}", "icon": "bi-bell", "keywords": "alerts"},
           {"label": "{% trans 'Help Center' %}", "url": "{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}", "icon": "bi-life-preserver", "keywords": "support docs"}

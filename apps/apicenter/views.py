@@ -22,12 +22,12 @@ from .models import APIAuditLog, APIKey, APIQuota, _hash_secret
 
 
 def _api_center_allowed(request):
-    """Require enable_api_center flag and api_center.manage permission (or ADMIN/IT_ADMIN)."""
+    """Allow manager-host operators by control-plane access alone; tenant access additionally requires the enable_api_center flag and api_center.manage permission (or ADMIN/IT_ADMIN)."""
+    if getattr(request, "public_host_kind", None) == "manager":
+        return user_has_control_plane_access(getattr(request, "user", None))
     flags = get_effective_flags(request)
     if not flags.get("enable_api_center", False):
         return False
-    if getattr(request, "public_host_kind", None) == "manager":
-        return user_has_control_plane_access(getattr(request, "user", None))
     if getattr(request.user, "is_superuser", False):
         return True
     if getattr(request.user, "has_feature_permission", lambda _: False)(

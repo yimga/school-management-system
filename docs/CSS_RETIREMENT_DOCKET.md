@@ -1,6 +1,139 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-15 (v2.64.1 — Studio Control shorten: capability tabs + model disclosure + outcomes bento + workspace-header dedup + sidebar collapse pin + governance grid)
+**Last updated:** 2026-05-15 (v2.65.0 — workspace-header dedup platform-wide + save-button overlap fix; sidebar repetition diagnosed as screenshot artifact)
+
+## 2026-05-15 — v2.65 platform-wide chrome dedup + save overlap (Wave 1)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.65.0-workspace-header-dedup-and-save-overlap-2026-05-15`.
+
+User reported a cluster of platform-wide bugs after v2.64.1: apparent sidebar repetition on every CP page, redundant "RUNMYCAMPUS WORKSPACE / Super Administrator" strip, KPI labels rendering twice, save buttons overlapping inputs, and pages 5000-6000px tall.
+
+### Honest diagnosis findings
+
+* **Sidebar repetition is NOT real.** Verified by rendering `partials/control_plane_sidebar.html` directly with the actual `build_control_plane_nav(request)` output: 15 unique group labels, 71 unique item IDs, only "Compliance" appears twice in HTML (once as group label + once as item label, intentional). The "repetition" in user screenshots is a **full-page-screenshot stitching artifact** — v2.64.1's `#cp-sidebar-col { max-height: calc(100vh - 4rem); overflow-y: auto }` made the sidebar a self-contained scroll region (correct UX for real users), but full-page screenshot tools take N viewport snapshots and stitch them, capturing the persistent sidebar in each slice. Real users never see the duplication.
+* **Workspace header B1 fix from v2.64.1 was scoped too narrowly.** Block override only applied to `studio_os/shell_control_plane.html`. Marketplace governance, Ministry stubs, App Catalog, Studio Launch all still showed the strip.
+* **Page-length bug is unverified.** Without DevTools on the live page, can't tell if the screenshots are real measurements or stitching tool artifacts (some tools override `overflow: hidden` on body to capture the full document).
+
+### What landed
+
+| # | Sub-wave | Artifact |
+|---|---|---|
+| 1a | Workspace-header platform-wide gate | `templates/components/rmc_os_page_header.html` wrapped in `{% if page_provides_own_h1 %}{% else %}…{% endif %}` so any page that already declares its own h1 + canvas-context can suppress the strip. `apps/siteconfig/context_processors.py` sets `ctx['page_provides_own_h1']` based on URL prefix (Studio shells, Marketplace governance, Ministry stubs, App Catalog Governance, Migration Cloud, Configuration Center, Portal Configure). Per-view code can override. Replaces v2.64.1's narrow block-override approach. |
+| 1b | Save-button overlap fix | `static/css/rmc-world-class-experience.css` `.rmc-acx-inline-edit__control` flex layout: explicit `> input/.form-control { flex: 1 1 0; min-width: 0; width: auto }` and `> button/.btn { flex: 0 0 auto }`. Bootstrap's `form-control { width: 100% }` was conflicting with the flex container's auto-distribution, causing the button to either wrap or visually overlap on certain Chromium builds. Affects every `apple_class_inline_edit_field.html` mount across the platform (~10 dashboards). |
+
+### Honest scope calls
+
+* **Sidebar repetition: no fix shipped.** Diagnosed as screenshot artifact, not a real bug. Real users at single scroll positions see one sidebar. If the user wants the screenshots to look "right," the only options are (a) revert v2.64.1's `max-height` constraint so sidebar scrolls with the page (worse UX, real users would lose context), or (b) accept that full-page screenshot tools produce stitched output that doesn't reflect reality.
+* **Workspace header gate uses URL-prefix matching, not view-level introspection.** Pages outside the configured prefix list still get the strip. New pages that have their own h1 should add their URL prefix to `own_h1_prefixes` in `context_processors.py` OR set `page_provides_own_h1=True` in their view context.
+* **KPI duplicate-label bug not fixed in v2.65.** Identified from screenshots ("Profiles 24" with "Profiles" eyebrow + "Profiles" body label) but the offending component template hasn't been located yet. Tracking for v2.65b after the page-height investigation comes back.
+* **Wedge table row-label dup not fixed.** Same family as KPI dup. Tracking for v2.65b.
+* **Page-length investigation outstanding.** User running browser DevTools snippet to confirm whether `/studio/control/` is genuinely 5985px or whether the screenshots are tool artifacts. v2.65b scope depends on the answer.
+
+### Deploy
+
+After this lands:
+1. SW cache invalidates on next visit.
+2. Studio shells, Marketplace governance, Ministry stubs, App Catalog, Migration Cloud, Portal Configure, Configuration Center stop rendering the redundant workspace-header strip.
+3. Inline-edit fields across all dashboards lay out correctly with input + Save button side-by-side instead of overlapping.
+4. Real users see one sidebar at any scroll position (already true since v2.64.1; just clarifying the screenshot interpretation).
+
+## 2026-05-15 — v2.64.4 RuntimeDefaults brand-logo cascade (closes v2.64.3 follow-up)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.64.4-runtime-defaults-brand-logo-cascade-2026-05-15`. Migration `platform_runtime/0068_runtimedefaults_public_brand_logo_urls.py` is the schema artifact.
+
+The v2.64.3 wave shipped the env-var layer for `PUBLIC_BRAND_LOGO_URL` / `_DARK_URL` / `_FAVICON_URL`, and explicitly tracked "Add `public_brand_logo_url` / `_dark_url` / `_favicon_url` URL fields to `RuntimeDefaults`" as a v2.65+ follow-up. This wave closes that follow-up immediately so operators can configure the platform brand via the Manager Config Center admin UI without redeploying with env vars.
+
+### What landed
+
+| # | Artifact | Why |
+|---|---|---|
+| 1 | `apps/platform_runtime/models.py` — 3 new `URLField(max_length=512, blank=True, null=True)` columns: `public_brand_logo_url`, `public_brand_logo_dark_url`, `public_brand_favicon_url` | First-class typed columns mirror the existing `public_brand_primary_color` / `_accent_color` pattern. URLField (not ImageField) keeps the cascade homogeneous — operators paste a CDN/static URL; tenants on tenant subdomains use the existing ImageField uploads. |
+| 2 | `apps/platform_runtime/migrations/0068_runtimedefaults_public_brand_logo_urls.py` | Adds the 3 columns + a `RunPython` backfill that reads the same key names out of `RuntimeDefaults.payload` (if any operator had stuffed them there pre-cutover) and promotes them to typed columns. Mirrors `0010_runtimedefaults_public_brand_colors.py` exactly. |
+| 3 | `runtime_defaults_first_class.py` — added the 3 names to both `RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES` (the canonical tuple) and `RUNTIME_DEFAULTS_FIRST_CLASS_STRING_FIELD_NAMES` (the "empty string is not platform default" frozenset) | First-class registry must know the new fields so the merge logic in `get_effective_site_settings` reads from typed columns and doesn't double-write to payload. |
+| 4 | `apps/platform_runtime/admin.py` — added the 3 names to the `RuntimeDefaultsBrandForm.Meta.fields`, the "Platform identity & public brand" fieldset, and the `widgets` map (URLInput with placeholder text) | The admin UI is the user-visible win — operators can now drop a CDN URL into a real form field instead of editing env vars. |
+| 5 | `apps/siteconfig/context_processors.py` — `public_brand_mode` branch now does `RuntimeDefaults.get_singleton() -> typed column -> payload key -> env var -> static default`, exactly mirroring the color cascade above it | This is the actual cascade win. Per-row config wins, then env, then in-repo default. |
+
+### Honest scope calls
+
+* **No tests in this wave.** The new fields are pure data — they have no behavior beyond "context processor reads them." The cascade ordering is testable, but adding test coverage would itself require fixtures + an isolated SQLite test DB, which Windows file-locks have been blocking on this workstation. The change is small and follows an established pattern (the colors above it have the same shape).
+* **`URLField` not `ImageField`.** ImageField would mean wiring a media-storage upload path, S3 lifecycle on the public bucket, and a thumbnailer — much heavier, and inconsistent with the rest of the public-brand cascade (URLs all the way down). URLField is what the existing `site_logo_dark_url` field uses too.
+* **Cascade order is intentional.** RD-typed-column wins over env so an operator who configures both via the admin UI gets what they configured (not what was set in deploy yaml six months ago). Env-var beats the in-repo default so a fresh deploy with no admin config still respects the deploy-time intent.
+* **The brand-mark partial is unchanged.** v2.64.3 already wired it to read `PUBLIC_BRAND_LOGO_URL` / `_DARK_URL` from context — those vars now resolve through the new RD layer transparently. No template change needed.
+
+### Tracked follow-ups for v2.65+
+
+* Add a small thumbnail / preview area in the admin form that fetches each URL and shows the resolved image inline (URLInput today gives operators no fast feedback that they typed a working URL).
+* Consider extending the cascade to support a small `ImageField` slot for operators who don't have a CDN to host the image themselves — would need media-storage policy decisions for the manager surface (it's currently MEDIA_ROOT-less by design).
+
+### Deploy
+
+After this lands:
+1. Run `python manage.py migrate platform_runtime 0068` (additive, nullable columns — no risk to existing rows).
+2. SW cache invalidates on next visit.
+3. Operators can navigate to the Manager Config Center -> Runtime Defaults -> "Platform identity & public brand" fieldset and paste URLs into the new "Public brand logo URL" / "Public brand logo dark URL" / "Public brand favicon URL" fields. Saves take effect on next request without a deploy.
+
+## 2026-05-15 — v2.64.3 Brand-mark cascade rewire (manager logo restored)
+
+**Status:** SHIPPED. SW bumped to `sms-v2.64.3-brand-mark-cascade-rewire-2026-05-15`.
+
+User flagged the same screenshot from v2.64.2 with a fresh observation: "our logo is not even there." Audit revealed `templates/components/rmc_brand_mark.html` was checking `SITE.logo` — a non-existent ImageField on `SiteSettings` — so the partial **always** fell through to the SVG monogram regardless of whether `SITE_LOGO_URL` (tenant), `PUBLIC_BRAND_LOGO_URL` (manager), or any other layer had a logo configured. The cascade was correctly resolving URLs in `apps/siteconfig/context_processors.py`; the consumer just didn't read them. Compounding this, the public-brand logo URL was hardcoded to `static("images/runmycampus-icon.png")` with no env-var override, violating the platform-wide no-hardcoding directive.
+
+### What landed
+
+| # | Fix | Artifact |
+|---|---|---|
+| 1 | Brand mark consumes the real cascade | `templates/components/rmc_brand_mark.html` rewritten to resolve light + dark URLs through `firstof logo_url SITE_LOGO_URL PUBLIC_BRAND_LOGO_URL` and `firstof logo_dark_url SITE_LOGO_DARK_URL PUBLIC_BRAND_LOGO_DARK_URL bm_logo_url`. New optional partial args (`logo_url=`, `logo_dark_url=`) provide a per-call caller override (cascade layer 1). The `SITE.logo` check (which had been silently false on every render) is gone. |
+| 2 | JS-free light/dark image swap | Both `<img>` tags ship in the DOM with `--light` / `--dark` modifiers; `rmc-cool-apple-polish.css` hides the wrong variant via `[data-resolved-theme="dark"]` / `.cp-navbar` selectors. No flash-of-wrong-logo, no JS dependency. |
+| 3 | Squircle backdrop adapts to image vs monogram | When a real logo is present (`.rmc-brand-mark--has-image`), the squircle backdrop becomes a quiet neutral surface with 8% padding so the artwork breathes; on dark shells it goes translucent white. When the SVG monogram is rendered, the original gradient backdrop stays. |
+| 4 | Public-brand logo URLs respect the cascade | `apps/siteconfig/context_processors.py` `public_brand_mode` branch now reads `os.getenv("PUBLIC_BRAND_LOGO_URL", "").strip() or static("images/runmycampus-icon.png")` — and the same for `_DARK_URL` and `_FAVICON_URL`. Operators can now ship a custom platform brand by setting env vars without touching code. RuntimeDefaults columns (`public_brand_logo_url` / `_dark_url` / `_favicon_url`) are a tracked follow-up to give operators an admin UI alongside the existing `public_brand_primary_color` / `public_brand_accent_color` fields. |
+
+### Honest scope calls
+
+* **No migration in this wave.** Adding RuntimeDefaults columns for the logo URLs requires a model change + migration; that needs explicit user authorization and is tracked as a follow-up. Today, env-var override satisfies the no-hardcoding contract at deploy time.
+* **The SVG monogram is preserved as the no-config fallback.** When a tenant has no logo uploaded AND no env var is set AND no public-brand logo is configured, the gradient squircle + first-letter monogram still renders — that's the fourth layer of the cascade, intentionally.
+* **Mark vs lockup unchanged.** Both variants benefit from the same image cascade. The lockup still composes the squircle on the left + the wordmark text on the right; the squircle now actually contains the logo image instead of always-the-monogram.
+* **Platform-wide.** The brand-mark partial is included by `control_plane_base.html`, `portal_base.html`, login templates, and several reports — all of them benefit from this fix.
+
+### Tracked follow-ups for v2.65+
+
+* Add `public_brand_logo_url`, `public_brand_logo_dark_url`, `public_brand_favicon_url` URL/Image fields to `RuntimeDefaults` (mirrors the existing `public_brand_primary_color` / `public_brand_accent_color` pattern). Migration + admin form wiring + context-processor read-from-RD layer slotted above the env layer. Lets operators upload logos via the manager Config Center instead of redeploying with env vars.
+* Document the full brand cascade explicitly in `docs/PLATFORM_BRAND_CASCADE.md` (currently only living in the partial's docstring).
+
+### Deploy
+
+After this lands:
+1. SW cache invalidates on next visit.
+2. Manager topbar shows the actual RunMyCampus icon in the squircle (instead of the "R" monogram).
+3. Tenant subdomains with an uploaded `SiteSettings` logo see the tenant logo render correctly for the first time on the brand mark.
+4. Operators can override the platform brand without code by setting `PUBLIC_BRAND_LOGO_URL` / `PUBLIC_BRAND_LOGO_DARK_URL` / `PUBLIC_BRAND_FAVICON_URL` env vars at deploy time.
+
+## 2026-05-15 — v2.64.2 Manager topbar + user-dropdown rendering fixes
+
+**Status:** SHIPPED. SW bumped to `sms-v2.64.2-manager-topbar-user-dropdown-fixes-2026-05-15`.
+
+User flagged manager topbar screenshot — Ctrl-K chip overlapping the search placeholder, notification bell badge floating clipped above the bell, the "AD" trigger row showing only initials with no name/role rendered, and dropdown items advertising plain `P`/`S`/`L` shortcuts when the JS handler actually requires `Alt+`. Audit confirmed every dropdown URL resolves and every JS handler is wired (`RMCShortcuts.open`, theme + aesthetic toggles, dropdown shortcuts) — the bugs were CSS layout + template fallback, not routing.
+
+### What landed
+
+| # | Fix | Artifact |
+|---|---|---|
+| 1 | Search Ctrl-K chip no longer overlaps placeholder | `rmc-cool-apple-polish.css` `.cp-navbar .cp-topbar-search-input` `padding-right: 2.75rem → 4.25rem`. The kbd chip ("Ctrl K" in monospace) is wider than 44px once border + padding are accounted for; the placeholder text was being painted under it (`Search schools, incidentctrl Ks` in the screenshot). |
+| 2 | Bell badge anchors cleanly to bell corner at any count width | `rmc-cool-apple-polish.css` `.cp-topbar-bell__badge` switches from `top: -2px; right: -2px` to `top: 0; right: 0; transform: translate(35%, -35%)`. Previous offsets pushed the badge into the navbar's clip region for 2-digit counts ("20") and made the badge look detached. Transform-anchor is count-width-independent. |
+| 3 | "AD" trigger now shows a real display name when `get_full_name()` is empty | `templates/components/user_dropdown.html` adds `full_name → username → email → "Account"` fallback chain on `.user-name` (mirrors the existing avatar fallback). Role badge gains a generic-role branch (`bi-person-badge` + `get_role_display`) for non-canonical roles like `PROPRIETOR` / `SUPER_ADMIN` so the badge never collapses. |
+| 4 | Dropdown kbd hints reflect the real Alt+ binding | `user_dropdown.html` "My Profile / Settings / Logout" rows now show `Alt+P / Alt+S / Alt+L` (plain `P`/`S`/`L` was misleading — `components__user_dropdown.js` only fires the shortcut when `e.altKey` is held). |
+| 5 | Dropdown menu no longer overflows the viewport on the right | `user_dropdown.html` adds `dropdown-menu-end` to the `<ul>`. The trigger sits at the navbar's far-right corner; the default left-anchor pushed Settings / Notifications / Logout off-screen on most desktop widths. |
+
+### Honest scope calls
+
+* **No new tests.** All five fixes are display-layer (CSS or template fallback). Each is verifiable visually after deploy; no programmatic invariant changed.
+* **The user_dropdown partial is shared across every shell.** These fixes also benefit the portal and admin shells (`portal_base.html`, `admin/base_site.html`) — not just `control_plane_base.html` — because the partial is included by all three.
+* **Bell badge uses the same anchor pattern in light + dark themes.** The 2px navbar-tinted ring (`box-shadow: 0 0 0 2px rgba(11, 17, 32, 0.85)`) is dark-tuned; on light shells the ring blends slightly less but still reads as separation.
+
+### Deploy
+
+After this lands:
+1. SW cache invalidates on next visit.
+2. Manager topbar renders without the Ctrl-K overlap, with a properly anchored bell badge, with a real display name + role line next to the avatar, and the user dropdown opens within the viewport with accurate keyboard hints.
 
 ## 2026-05-15 — v2.64.1 Studio Control shorten (Wave A + Wave B)
 

@@ -36,7 +36,17 @@
         {% endwith %}
       </div>
       <div class="user-info">
-        <div class="user-name">{{ request.user.get_full_name }}</div>
+        {% comment %}Display-name fallback chain mirrors the avatar's so users with no
+           first/last name don't end up with an empty trigger row next to
+           their initials (the bug visible in manager screenshots 2026-05-15).{% endcomment %}
+        <div class="user-name">
+          {% with full_name=request.user.get_full_name %}
+            {% if full_name %}{{ full_name }}
+            {% elif request.user.username %}{{ request.user.username }}
+            {% elif request.user.email %}{{ request.user.email }}
+            {% else %}{% trans "Account" %}{% endif %}
+          {% endwith %}
+        </div>
         <div class="user-role-badge">
           {% if request.user.role == 'ADMIN' %}
             <i class="bi bi-shield-check"></i> {% trans "Admin" %}
@@ -48,13 +58,23 @@
             <i class="bi bi-house-heart"></i> {% trans_term "Parent" key="parent" %}
           {% elif request.user.role == 'STUDENT' %}
             <i class="bi bi-backpack"></i> {% trans_term "Student" key="student" %}
+          {% elif request.user.role %}
+            {% comment %}Non-canonical roles (PROPRIETOR, SUPER_ADMIN, ...) get a generic
+               person icon + the role label so the badge never collapses.{% endcomment %}
+            <i class="bi bi-person-badge"></i> {{ request.user.get_role_display|default:request.user.role|title }}
+          {% else %}
+            <i class="bi bi-person"></i> {% trans "Member" %}
           {% endif %}
         </div>
       </div>
       <i class="bi bi-chevron-down dropdown-arrow"></i>
     </button>
 
-    <ul class="dropdown-menu user-dropdown-menu" aria-labelledby="userDropdownBtn">
+    {% comment %}`dropdown-menu-end` aligns the menu's right edge with the trigger so it
+       doesn't overflow the viewport when the trigger sits at the navbar's
+       far-right corner (the default left-align cuts off Settings/Logout
+       items off-screen on most desktop widths).{% endcomment %}
+    <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu" aria-labelledby="userDropdownBtn">
       <!-- User stats section -->
       <li class="user-stats">
         <div class="stat-item">
@@ -141,14 +161,14 @@
         <a class="dropdown-item" href="{% url 'accounts:user_profile' %}">
           <i class="bi bi-person-circle"></i>
           <span>{% trans "My Profile" %}</span>
-          <kbd>P</kbd>
+          <kbd>Alt</kbd>+<kbd>P</kbd>
         </a>
       </li>
       <li>
         <a class="dropdown-item" href="{% url 'siteconfig:user_preferences' %}">
           <i class="bi bi-gear"></i>
           <span>{% trans "Settings" %}</span>
-          <kbd>S</kbd>
+          <kbd>Alt</kbd>+<kbd>S</kbd>
         </a>
       </li>
       <li>
@@ -243,7 +263,7 @@
         <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
           <i class="bi bi-box-arrow-right"></i>
           <span>{% trans "Logout" %}</span>
-          <kbd>L</kbd>
+          <kbd>Alt</kbd>+<kbd>L</kbd>
         </a>
       </li>
     </ul>
