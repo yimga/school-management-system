@@ -1,0 +1,15 @@
+{
+  "name": "rmc-playwright-tests",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Playwright integration tests for RunMyCampus — runs against a staging tenant (default: gilead-school). Not a unit test suite; this is end-to-end browser automation that proves a school can operate the platform end-to-end.",
+  "scripts": {
+    "test": "playwright test",
+    "test:proof": "playwright test first-school-operating-proof.spec.ts",
+    "install-browsers": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "typescript": "^5.6.0"
+  }
+}

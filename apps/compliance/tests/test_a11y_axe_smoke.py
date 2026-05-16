@@ -116,9 +116,10 @@ class HomepageAxeSmokeTests(LiveServerTestCase):
     # uses Django's standard test-client session machinery and pipes the
     # session cookie into the Chrome driver.
     # 2026-05-14 wave NS-3: explicit 10-template matrix.
-    # 6 public + 6 auth = 12 templates spanning all 4 dashboard shells +
-    # 2 user-flow hotspots (finance/invoices, evals/admin) where regressions
-    # are most likely.
+    # 2026-05-16 wave v2.80: widened to 14 authenticated routes — 4 dashboard
+    # shells + finance/students + people + studio_os + super (control plane) +
+    # app catalog (governance + tenant) + at-risk labeling + help center +
+    # notifications. Each shell + each high-traffic CRUD surface gets scanned.
     AUTH_ROUTES = [
         "/portal/",
         "/portal/teacher/",
@@ -126,6 +127,14 @@ class HomepageAxeSmokeTests(LiveServerTestCase):
         "/backend/",
         "/portal/finance/invoices/",
         "/portal/configure/",
+        "/studio/",
+        "/super/",
+        "/super/marketplace-app-catalog/",
+        "/portal/marketplace/app-catalog/",
+        "/portal/notifications/",
+        "/help/",
+        "/portal/at-risk/labeling/",
+        "/release-notes/",
     ]
 
     def _login_via_session(self):
