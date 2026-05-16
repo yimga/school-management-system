@@ -112,16 +112,13 @@
 
   <div class="row g-3 mb-4">
     <div class="col-lg-4">
-      {% url 'api:ai-observability-assistant' as api_ai_obs %}
-      {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_obs card_title=_("Observability & SLO assistant") card_hint=_("For operators: health endpoints, SLO dashboard, and runbook-style hints. No live secrets.") field_id="cpObsAiQ" %}
+      {% include "components/ai_guided_assistant_card.html" with assistant_key="observability_assistant" card_title=_("Observability & SLO assistant") card_hint=_("For operators: health endpoints, SLO dashboard, and runbook-style hints. No live secrets.") %}
     </div>
     <div class="col-lg-4">
-      {% url 'api:ai-billing-usage-explain' as api_ai_bill %}
-      {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_bill card_title=_("Billing & usage explainer") card_hint=_("SKUs, entitlements, and usage concepts. Do not paste payment card or bank data.") field_id="cpBillAiQ" %}
+      {% include "components/ai_guided_assistant_card.html" with assistant_key="billing_usage_explain" card_title=_("Billing & usage explainer") card_hint=_("SKUs, entitlements, and usage concepts. Do not paste payment card or bank data.") %}
     </div>
     <div class="col-lg-4">
-      {% url 'api:ai-trust-compliance-assistant' as api_ai_trust %}
-      {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_trust card_title=_("Trust & compliance assistant") card_hint=_("High-level trust-center and audit posture. Not legal advice.") field_id="cpTrustAiQ" %}
+      {% include "components/ai_guided_assistant_card.html" with assistant_key="trust_compliance_assistant" card_title=_("Trust & compliance assistant") card_hint=_("High-level trust-center and audit posture. Not legal advice.") %}
     </div>
   </div>
 

@@ -72,11 +72,5 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-(function() {
-  var form = document.getElementById('finance-access-bulk-form');
-  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
-})();
-</script>
 <script src="{% static 'js/_pages/finance__access_bulk.js' %}"></script>
 {% endblock %}

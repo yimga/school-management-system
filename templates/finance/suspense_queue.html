@@ -80,13 +80,5 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-(function() {
-  if (!window.FormDraftSave) return;
-  document.querySelectorAll('form.suspense-claim-form[data-draft-key]').forEach(function(form) {
-    window.FormDraftSave.init(form);
-  });
-})();
-</script>
 <script src="{% static 'js/_pages/finance__suspense_queue.js' %}"></script>
 {% endblock %}

@@ -11,7 +11,7 @@ from django.conf import settings
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponseForbidden, JsonResponse
 from django.urls import reverse, reverse_lazy, NoReverseMatch
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils import translation
@@ -494,6 +494,73 @@ def user_notifications(request):
     }
 
     return render(request, "accounts/notifications.html", context)
+
+
+@login_required
+def notification_preferences(request):
+    """User-facing notification channel preferences.
+
+    Wave 8 (v2.83). Lets every authenticated user pick which channels
+    (Email / SMS / App / WhatsApp) deliver their notifications, plus opt
+    in/out of the weekly digest. Backed by `siteconfig.UserPreference`
+    (existing model, no migration). Apple Settings-app style.
+    """
+    from apps.siteconfig.models_tooling import UserPreference
+
+    pref, _created = UserPreference.objects.get_or_create(user=request.user)
+    available_channels = [c.value for c in UserPreference.NotificationChannel]
+
+    if request.method == "POST":
+        selected = request.POST.getlist("notification_channels")
+        # Filter to only allowed values (defensive against client tampering).
+        cleaned = [c for c in selected if c in available_channels]
+        pref.notification_channels = cleaned
+        pref.receive_weekly_summary = bool(request.POST.get("receive_weekly_summary"))
+        pref.save(update_fields=["notification_channels", "receive_weekly_summary"])
+        messages.success(request, _("Notification preferences updated."))
+        return redirect("accounts:notification_preferences")
+
+    enabled_channels = set(pref.notification_channels or [])
+    return render(
+        request,
+        "accounts/notification_preferences.html",
+        {
+            "preference": pref,
+            "channel_choices": [
+                (c.value, c.label, c.value in enabled_channels)
+                for c in UserPreference.NotificationChannel
+            ],
+        },
+    )
+
+
+@login_required
+@require_POST
+def mark_all_notifications_read(request):
+    """SSR action: mark all of the caller's unread notifications read, then redirect back.
+
+    Mirrors `apps.api.notification_api.NotificationViewSet.mark_all_read` but
+    server-rendered (no fetch/JS), so it works inside the Apple Mail-style inbox
+    without requiring page-data wiring.
+    """
+    from apps.finance.models import Notification
+
+    count = (
+        Notification.objects.filter(recipient=request.user, is_read=False)
+        .update(is_read=True)
+    )
+    if count:
+        messages.success(
+            request,
+            _("Marked %(count)d notification as read.") % {"count": count}
+            if count == 1
+            else _("Marked %(count)d notifications as read.") % {"count": count},
+        )
+    else:
+        messages.info(request, _("Nothing to mark — your inbox is already clear."))
+
+    target = request.META.get("HTTP_REFERER") or reverse("accounts:user_notifications")
+    return redirect(target)
 
 
 def _direct_conversations(user, limit=50):

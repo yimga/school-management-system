@@ -1,6 +1,206 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-15 (v2.66.0 — CP page-height pin: align-items flex-start + body height:100vh)
+**Last updated:** 2026-05-16 (v2.82.0 — Marketing Phase 0 visual-truth: walkthrough reel bug fix + empty `<source>` removed + "From" pricing prefix + visible illustrative-pill disclosures + asset-parity CI gate + auto dark-mode override retired + typography legibility floor)
+
+## 2026-05-16 — v2.82 Marketing Phase 0 visual-truth
+
+**Status:** SHIPPED. SW bumped to `sms-v2.82.0-marketing-phase0-visual-truth-2026-05-16`.
+
+Phase 0 of the marketing-redesign plan (`~/.claude/plans/i-want-you-to-twinkly-spark.md`). The screenshot review surfaced concrete rendering bugs + doc/code drift that prior closure reports missed — this wave closes them before the larger Phase 1 design work begins. Strictly truth-audit and high-impact fixes; no new surfaces.
+
+### What landed
+
+| # | File | What it does |
+|---|---|---|
+| 1 | `static/marketing/css/marketing-landing-v2.css` | Adds `.reel-scene` + `@keyframes reelCycle` + per-scene delay rules + `prefers-reduced-motion` fallback. The rules previously lived only in `static/css/phase2-base-bundle.css`, which `base_marketing.html` does NOT load — every walkthrough scene rendered at `opacity: 1` and the text stacked. Co-locating the rules on the marketing bundle fixes the bug at source. |
+| 2 | `templates/schools/marketing_landing_v2.html` | Removes the orphan `<video>` + `<source src="">` block that produced an empty-URL request and decode warnings. The inlined SVG reel is the canonical visual until real walkthrough footage exists. |
+| 3 | `templates/schools/marketing_landing_v2.html` (`mkt-edt-plan__price`) | Adds `mkt-edt-plan__price-prefix` "From" qualifier in front of `£3` and `£6` so the home hero teaser doesn't present exact figures as final, locked pricing. |
+| 4 | `templates/schools/marketing_landing_v2.html` (voices + press sections) | Adds `mkt-edt-illustrative-pill` chip in each section header so buyers can't mistake placeholder testimonials/press marks for real attribution. Strengthens disclosure copy. Removes the small footer note that was easy to miss. |
+| 5 | `static/marketing/css/marketing-landing-v2.css` (`.mkt-edt-illustrative-pill`, `.mkt-edt-voices__intro-note`, `.mkt-edt-plan__price-prefix`) | Defines the three new classes introduced above — `scan_undefined_css_classes` (zero-tolerance) stays green. |
+| 6 | `static/marketing/css/tokens-editorial.css` | Retires the `@media (prefers-color-scheme: dark)` auto-override. Marketing is now light-default; dark only via explicit `html[data-theme="dark"]` toggle (Phase 4 ships the toggle UI). Closes the "all your screenshots look dark" failure mode. |
+| 7 | `static/marketing/css/marketing-shell.css` | Legibility floor pass on three demonstrably-too-small surfaces: nav mega-menu column titles `0.68rem → 0.8125rem` + nav mega-link blurbs `0.8rem → 0.875rem` + compare-table headers `0.76rem → 0.8125rem`. Contrast bumped on two text-on-dark-nav surfaces from `0.55/0.62` alpha to `0.78`. Apple-tier full polish remains Phase 1+ work; this is the floor that prevents the "everything looks too small" complaint. |
+| 8 | `scripts/check_marketing_assets_claimed_vs_present.py` (NEW) | AST-free doc/asset parity scanner. Parses `docs/` + `CLAUDE.md` for asset filenames matching `(platform\|solution\|module\|...)\-<slug>\.svg`. Asserts each claimed asset exists on disk AND is referenced from at least one template/view/JSON. Exits 1 on unjustified drift. Explicit `PLANNED_ASSETS` allowlist (7 entries) for known-future deliverables; `LEGACY_KEPT_ASSETS` allowlist (3 entries) for retained placeholders. Caught the 7 claimed-but-missing assets the prior closure reports said existed. Runs in ~5s after the prebuilt file-index optimization (was timing out at 60s in naive O(N×M) mode). |
+| 9 | `apps/schools/tests/test_marketing_phase0_visual_truth.py` (NEW) | 7-test Django regression suite locking in every Phase 0 fix: `.reel-scene` keyframes present on marketing CSS · empty `<source>` absent · illustrative pill in voices + press sections · `From` prefix on both Starter + Growth prices · auto dark @media block retired (explicit toggle path preserved) · asset-parity scanner exits 0 · home renders with all Phase 0 markers when served live. Full Playwright visual-truth suite deferred to Phase 1 (Playwright infrastructure does not yet exist in the repo). |
+| 10 | `static/js/service-worker.js` | `CACHE_VERSION` bumped to `sms-v2.82.0-marketing-phase0-visual-truth-2026-05-16` so the new CSS deploys without stale-cache. |
+
+### The honest before/after
+
+Before this wave, the home screenshot showed:
+- All 5 walkthrough scenes stacked on top of each other — text overlaps, unreadable.
+- Near-black background despite the editorial cream intent (auto dark-mode override firing).
+- Tiny nav category labels (~11px) and tiny mega-menu blurb copy (~12.8px) against low-contrast `rgba(248, 250, 252, 0.55)` text.
+- Exact `£3` / `£6` prices presented unconditionally on the home hero teaser.
+- Three voice cards + a small footer disclosure that buyers could easily mistake for real testimonials.
+- Closure reports claiming 7 dashboard SVG assets (`platform-admissions-readiness-board.svg`, etc.) existed when they did not — a "documentation ahead of code" failure mode the existing CI gates could not catch.
+
+After this wave:
+- Walkthrough cycles through scenes one at a time (5s intervals), respects reduced-motion.
+- Marketing is light-default; dark only via explicit toggle (toggle UI lands in Phase 4).
+- Nav labels at the legibility floor; mega-menu blurbs at 14px with raised contrast.
+- "From £3" / "From £6" qualified — exact pricing still on `/pricing/` but the home doesn't lock it in.
+- Voices + press sections carry a visible `Illustrative` pill chip + explicit explanatory copy. Buyers can't be confused.
+- New `marketing-asset-parity` CI gate catches the doc/code drift class — green after explicit allowlists for the 7 known-planned assets (each with a reason naming the Phase-1 archetype it will support).
+- Phase 0 regression test suite locks every fix.
+
+### Verification
+
+- Direct file-inspection assertion script (no Django boot): **5/5 PASS** — `.reel-scene` rules present, empty `<source>` gone, illustrative pills present, `From` prefix on both prices, auto dark `@media` block retired.
+- `python scripts/check_marketing_assets_claimed_vs_present.py` → **OK: every claimed asset exists and every present asset is referenced.** Runtime ~5s.
+- `python scripts/audit_template_render_safety.py` → **Total findings: 0** (multi-line comment fix verified — switched the in-template explanatory block from `{# ... #}` to `{% comment %} ... {% endcomment %}` since `{# ... #}` is single-line only per the zero-tolerance gate).
+- `python -c "import ast; ast.parse(open('apps/schools/tests/test_marketing_phase0_visual_truth.py', encoding='utf-8').read())"` → clean.
+- `python -c "import ast; ast.parse(open('scripts/check_marketing_assets_claimed_vs_present.py', encoding='utf-8').read())"` → clean.
+
+### Discovered during Phase 0 (pre-existing, not from this wave)
+
+`scan_undefined_css_classes --compare` reports 3 NEW undefined classes — all from earlier waves, not from Phase 0 edits:
+
+- `.rmc-type-display-sm` (4×) — `templates/feedback/help_center.html:15` (from v2.68 Help Center)
+- `.rmc-integration-mark--` (2×) — `templates/integrations_marketplace/hub.html:55` (from v2.77 integrations followups; the `--<slug>` suffix variants likely render dynamically)
+- `.rmc-empty--block` (1×) — `templates/feedback/release_notes_public.html:42` (from v2.68 Release Notes)
+
+These are real CI red flags but pre-date this wave — flagging here so the next wave that touches those surfaces can close them.
+
+### Deploy
+
+1. Static collect on the marketing CSS bundle (`collectstatic` if used; otherwise the file-system serve picks up changes immediately).
+2. Service worker `CACHE_VERSION` bump ensures clients invalidate the old CSS on next reload.
+3. No data migrations.
+4. No env-var changes.
+5. New CI gate to wire: `marketing-asset-parity` step running `python scripts/check_marketing_assets_claimed_vs_present.py` — exits non-zero on doc/asset drift.
+
+### Phase 1 follow-ups (not in scope here)
+
+Per the approved plan (`~/.claude/plans/i-want-you-to-twinkly-spark.md`):
+
+- Reposition voices below pricing teaser + introduce real product-proof block in their displaced upper-page region.
+- Build the 7 Phase-1 dashboard archetypes (admissions readiness board, fees collection cockpit, parent day-in-life, teacher classroom desk, faith community hub, growing-network playbook, private growth engine) — close out the `PLANNED_ASSETS` allowlist.
+- Verb-based nav (Run / Teach / Pay / Communicate / Grow) replaces the noun nav.
+- Bell-clock elevated to platform brand-mark companion.
+- Three cinematic dark sections introduced (walkthrough + global campuses + voices).
+- Per-page archetype templates (no two top-nav pages share section order).
+- Bootstrap Playwright + ship full visual-truth e2e suite.
+
+## 2026-05-16 — v2.77 Integrations marketplace followups closeout
+
+**Status:** SHIPPED. SW bumped to `sms-v2.77.0-integrations-marketplace-followups-closeout-2026-05-16`.
+
+Closes 11 of 12 v2.72 follow-ups end-to-end in one wave per user directive ("please get all these done end to end"). The 12th — applying migration `siteconfig.0175` to production — was blocked by the classifier; user runs `python manage.py migrate siteconfig 0175` to complete the wave.
+
+### What landed
+
+| # | File | What it does |
+|---|---|---|
+| 1 | `static/css/rmc-class-grammar.css` | Adds `rmc-card-soft`, `rmc-alert`, `rmc-integration-mark` + 28 per-slug brand-color rules (`.rmc-integration-mark--<slug>`). Closes the `scan_undefined_css_classes` zero-tolerance gate that v2.72 was set to trip. CSP-clean (no inline styles). |
+| 2 | `apps/integrations_marketplace/views.py` (`_user_can_manage`) | `role-string-allow:` annotation explaining the SOT exemption — mirrors `views_lexicon._user_can_edit`. Keeps `scan_role_strings` at baseline 272. |
+| 3 | `apps/integrations_marketplace/token_refresh.py` (NEW, ~210 lines) | `refresh_due_oauth_tokens()` + `refresh_single(row)`. Per-row state machine: due → POST `grant_type=refresh_token` → handle 4xx (incl. `invalid_grant` → flip `is_active=False`) → record `expires_at` / `last_refresh_attempt_at` / `last_refresh_error`. Optional Celery wrapper imports lazily. **Without this, every OAuth integration silently breaks ~1h after first connect.** |
+| 4 | `apps/integrations_marketplace/management/commands/refresh_oauth_tokens.py` (NEW) | `python manage.py refresh_oauth_tokens [--dry-run] [--strict] [--json]`. Cron-friendly. |
+| 5 | `apps/communication/integrations.py` | `WhatsAppIntegration(school=...)` and `ZoomIntegration(school=...)` now resolve credentials through the v2.72 cascade. Legacy `settings.ZOOM_API_KEY` / `settings.WHATSAPP_API_TOKEN` paths preserved as final fallback for non-tenant callers (Celery beat, mgmt cmds, control-plane). `CommunicationService(school=...)` threads the tenant through both. **This is the bridge old → new — without it, v2.72 was plumbed but no caller used it.** |
+| 6 | `apps/portal/views_configure.py` | Added "Connections" tile (icon `bi-link-45deg`) under the existing "Integrations" category, linking to `integrations_marketplace:hub`. Operators now discover the hub from the standard Portal Settings catalog. |
+| 7 | `apps/integrations_marketplace/webhooks.py` (NEW, ~180 lines) + URL `/integrations/webhook/<slug>/<integration_id>/` | Generic HMAC-SHA256 verifier (5-min replay window) + Slack-specific verifier (`X-Slack-Signature` v0 scheme). `WEBHOOK_HANDLERS` registry pattern (`@register_webhook_handler("slack")`). Returns 204 when no handler is registered — upstream won't retry forever. |
+| 8 | `apps/integrations_marketplace/views.py` (`integrations_hub`) + `templates/integrations_marketplace/hub.html` | Hub now accepts `?campus=<id>`; campus picker appears when school has campuses; cascade resolver re-keyed to (school, campus); Connect/Disconnect buttons thread `campus_id` through. Operators can override Zoom for "North Campus" without affecting any other campus. |
+| 9 | `apps/integrations_marketplace/email_backend.py` | `_tenant_anymail_settings()` context manager wraps `import_string(backend_cls)(...).send_messages(...)` in `override_settings(ANYMAIL={...merged...})` so each tenant's Mailgun / SendGrid / Postmark / SES / SparkPost / Brevo / Mandrill / MailerSend / Mailjet / Resend API key actually isolates per-send. `_ANYMAIL_KEY_MAP` maps `ServiceIntegration.config` keys → canonical `settings.ANYMAIL` keys per provider. Closes the partial-isolation gap I called out in v2.72 honesty audit. |
+| 10 | `apps/integrations_marketplace/connector_registry.py` | Added 6 legacy bridge connectors (whatsapp, push, sms, stripe, badges, lms) so the hub shows one unified catalog of 29 connectors (was 23). Plus new category constants surfaced in `category_order`. |
+| 11 | Brand-color squares ship via the per-slug CSS rules in #1. True SVG brand sprites deferred to next polish wave — squares are visually clean, CSP-safe, and trademark-issue-free. |
+| 12 | `apps/integrations_marketplace/views.py` (`redirect_uri_registry`) + URL `/integrations/admin/redirect-uris/` + `templates/integrations_marketplace/redirect_uri_registry.html` | Staff/superuser surface listing every OAuth connector's absolute redirect URI to paste into the upstream's marketplace console (Zoom App Marketplace, Google Cloud Console, Microsoft Entra ID, Slack Apps), plus the env-var names for client_id/client_secret and a "set"/"not set" badge. Read-only — no mutations. |
+
+### Cascade now actually delivers
+
+Before this wave, v2.72 had the plumbing but the existing `ZoomIntegration` was still reading `settings.ZOOM_API_KEY` globally — so even with a connected per-tenant Zoom row, calls still used the platform-shared key. After v2.77, the chain is end-to-end:
+
+  Teacher schedules class
+    → `CommunicationService(school=request.school).zoom.create_meeting(...)`
+    → `_resolve_connector_config_safe("zoom", school=request.school)`
+    → resolver walks campus → school → parent_school → env_default
+    → returns `ResolvedConnector(source="school", config={"access_token": "tenant-tok"})`
+    → `ZoomIntegration.get_token()` returns the OAuth bearer (not the legacy JWT)
+    → `requests.post("…/users/{host_email}/meetings", headers={"Authorization": f"Bearer {tok}"})`
+
+And separately:
+
+  Celery beat (hourly): `apps.integrations_marketplace.token_refresh.refresh_due_oauth_tokens_task`
+    → For every active OAuth row whose access token expires in <10 min:
+       POST grant_type=refresh_token, update `config.access_token` / `expires_at`
+    → On 400 invalid_grant: flip is_active=False, surface in hub as "Reconnect required"
+
+### Verification
+
+- All 13 new + modified Python files AST-parse clean.
+- `python manage.py check` → "System check identified no issues (0 silenced)".
+- `python manage.py test apps.integrations_marketplace.tests.test_connector_registry` → **13/13 PASS** after adding 6 bridged connectors (29 connectors total now; every connector's shape still validated).
+
+### Deploy
+
+1. `python manage.py migrate siteconfig 0175` (additive, no backfill, instant — still blocked by classifier in the session, run manually).
+2. Set per-connector env vars (`INTEGRATIONS_ZOOM_CLIENT_ID`, etc.) — see `/integrations/admin/redirect-uris/` as a superuser for the full list.
+3. Add Celery beat schedule (`'refresh-oauth-tokens': {'task': 'integrations_marketplace.refresh_due_oauth_tokens', 'schedule': crontab(minute='*/30')}`).
+4. (Optional) flip `EMAIL_BACKEND = "apps.integrations_marketplace.email_backend.PerTenantEmailBackend"` for per-tenant transactional mail routing.
+
+### Follow-ups (small, optional)
+
+- True SVG brand sprites per connector (current: CSS-token brand color squares).
+- Token-refresh dashboard widget for SUPERADMIN showing connector health.
+- `redirect_uri_registry` → CSV / JSON download for ops handoff.
+
+## 2026-05-16 — v2.72 Integrations marketplace end-to-end
+
+**Status:** SHIPPED. SW bumped to `sms-v2.72.0-integrations-marketplace-end-to-end-2026-05-16`.
+
+User asked to verify schools/tenants can integrate external tools (Outlook, Teams, Meet, Zoom, etc.) and how that handles multi-school / multi-campus tenants. Audit found the data model was per-school-ready (`ServiceIntegration.school` FK) but four structural gaps were blocking the actual feature:
+
+1. **No connector registry** — Zoom + WhatsApp were hand-rolled in `apps/communication/integrations.py`; Teams, Meet, Outlook, Slack, etc. were missing entirely.
+2. **No OAuth UI** — even the registered Zoom integration was settings-driven (`ZOOM_API_KEY` global), not per-school authorize-flow driven.
+3. **No multi-campus / multi-school cascade** — `ServiceIntegration` was school-only; no per-campus override, no parent-school inheritance for districts.
+4. **Email backend was global** — `EMAIL_BACKEND` was platform-wide, even though `email_signing.py` already documented 11 Anymail-compatible providers.
+
+Wave v2.72 closes all four end-to-end, owned by the existing `apps/integrations_marketplace/` north-star app.
+
+### What landed
+
+| # | File | What it does |
+|---|---|---|
+| 1 | `apps/integrations_marketplace/connector_registry.py` (NEW, ~470 lines) | SOT for 23 first-party connectors: meetings (zoom, microsoft_teams, google_meet, webex), calendars (google_calendar, outlook_calendar), mailboxes (gmail, outlook_mail), 11 transactional-mail providers (mailgun/sendgrid/postmark/ses/sparkpost/brevo/mandrill/mailersend/mailjet/resend + generic SMTP), chat (slack, microsoft_teams_chat, discord). Each row advertises auth_kind, OAuth endpoints, default scopes (least-privilege), PKCE flag, anymail backend dotted path. Frozen dataclass. Env-driven client credentials via `INTEGRATIONS_<UPPER_SLUG>_CLIENT_ID`. |
+| 2 | `apps/siteconfig/models_platform_catalog.py` (`ServiceIntegration`) | Added 2 fields: `campus` (nullable FK → `schoolops.Campus`) + `connector_slug` (CharField). Both additive/nullable — zero migration risk. |
+| 3 | `apps/siteconfig/migrations/0175_serviceintegration_campus_and_connector_slug.py` (NEW) | AddField pair, deps `siteconfig.0174` + `schoolops.0003`. |
+| 4 | `apps/integrations_marketplace/resolver.py` (NEW) | 4-step cascade `resolve_connector_config(slug, school, campus)`: per-campus → per-school → `parent_school` chain walk (district / group rollups) → env `INTEGRATIONS_<SLUG>_DEFAULT_CONFIG` JSON. Returns frozen `ResolvedConnector` dataclass with explicit `source` field so callers can attribute "this came from the parent district". Tenant-isolated via `school=` kwarg on every `.filter` (no `tenant-isolation-allow` annotations needed). |
+| 5 | `apps/integrations_marketplace/oauth.py` (NEW) | Provider-agnostic OAuth2 dance: `build_authorize_redirect` (signed `TimestampSigner` state w/ 10-min TTL, optional PKCE via SHA-256, session double-bind), `validate_callback_state` (rejects bad-signature / slug-mismatch / session-mismatch), `build_token_exchange_payload` (transport-free for testability), `persist_oauth_tokens` (idempotent `update_or_create` at `(school, campus, service_name)` scope). |
+| 6 | `apps/integrations_marketplace/views.py` (NEW) | `integrations_hub` (catalog + connection status), `oauth_connect` (start), `oauth_callback` (finish), `disconnect` (per-school + per-campus URL variants). All `@login_required` + role-gated (admin/principal/proprietor + staff/superuser). |
+| 7 | `apps/integrations_marketplace/urls.py` (NEW) + wired into `config/urls.py` | Mounts at `/integrations/`. |
+| 8 | `apps/integrations_marketplace/email_backend.py` (NEW) | `PerTenantEmailBackend` — Django `EMAIL_BACKEND` dispatcher that, on every `send_messages()`, resolves the tenant from explicit kwarg / thread-local, walks the cascade for any `transactional_mail` connector, and delegates to its Anymail backend. Falls back to `EMAIL_BACKEND_FALLBACK` when no tenant or no provider. Dormant until operators set `EMAIL_BACKEND = "apps.integrations_marketplace.email_backend.PerTenantEmailBackend"` — safe to ship un-adopted. |
+| 9 | `templates/integrations_marketplace/{hub,no_tenant,forbidden}.html` (NEW × 3) | Apple-grammar hub UI: grouped by category, badge per connection (Connected / Inherited from parent / Not connected), Reconnect / Disconnect buttons, multi-school/multi-campus help footer. Extends `portal_base.html`. |
+| 10 | `apps/integrations_marketplace/tests/` (NEW, 4 files, 43 tests) | `test_connector_registry.py` (13 — every connector shape-validated; **13/13 pass**), `test_resolver_cascade.py` (15 — covers per-scope, parent-school chain, inactive-skip, env-default, invalid-JSON-ignored, hub listing), `test_oauth_flow.py` (10 — signing round-trip, PKCE flag, refusal reasons, persistence idempotency), `test_email_backend.py` (5 — provider routing, SMTP kwargs pass-through). |
+
+### Multi-school / multi-campus semantics
+
+Cascade resolution order (frozen contract):
+
+1. **Per-campus row** — `ServiceIntegration(school=X, campus=Y, connector_slug=Z)` — campus admin can route just one campus's video room to a different sub-account.
+2. **Per-school row** — `(school=X, campus=NULL, connector_slug=Z)` — applies to every campus of the school by default.
+3. **Per-parent-school chain** — walks `School.parent_school` recursively. A parent district configures Zoom once and every child school inherits unless overridden. Multi-level (grandparent → parent → child) supported.
+4. **Platform env default** — `INTEGRATIONS_<UPPER_SLUG>_DEFAULT_CONFIG` (JSON). Useful for shared-app deployments (one Zoom marketplace app, per-tenant tokens).
+
+A `ResolvedConnector.source` field carries which level actually won (`"campus" | "school" | "parent_school:<id>" | "env_default" | "none"`) so UIs can show "Inherited from district".
+
+### Why env-only client_id/secret (not RuntimeDefaults like the brand-logo cascade in v2.64.4)
+
+OAuth client credentials are a privilege-escalation primitive: an admin with OAuth-app-edit rights could rewrite the platform's Zoom client to a hostile one and harvest every tenant's tokens on next refresh. Env requires infrastructure access — same blast-radius argument as `CONTROL_PLANE_OPERATOR_ROLES` in v2.65.1.
+
+### Verification
+
+- All 13 new Python files + 1 modified model + 1 modified urls.py AST-parse clean.
+- `python manage.py check` — "System check identified no issues (0 silenced)".
+- `python manage.py test apps.integrations_marketplace.tests.test_connector_registry` — **13/13 pass** (SimpleTestCase, no DB needed).
+- Migration 0175 is additive/nullable; same shape as 0068 brand-logo-url columns which applied successfully.
+
+### Follow-ups (not blocking)
+
+- Wire `PerTenantEmailBackend` into `EMAIL_BACKEND` when an operator chooses to adopt per-tenant routing. Today it's available but not the default — flip the setting and the cascade lights up.
+- Per-campus hub UI (the hub today shows school-level state; a `/integrations/?campus=<id>` view would surface campus overrides separately). The resolver supports it; the UI is one additional template loop.
+- Token refresh worker (`refresh_token` is persisted; a daily Celery task can re-issue access tokens before expiry).
+- Slack / Discord webhook signing — the connectors are registered but webhook *inbound* signature verification (HMAC SHA-256) reuses the existing `WebhookSubscription` + Zoom-style verifier in `apps/communication/integrations.py`.
+
+### Deploy
+
+Apply `siteconfig.0175` (additive, no backfill, instant). Optionally set `INTEGRATIONS_ZOOM_CLIENT_ID` / `_CLIENT_SECRET` per connector you want to enable. Browse to `/integrations/` as an admin/principal/proprietor to see the hub.
 
 ## 2026-05-15 — v2.66 CP page-height pin (the actual whitespace fix)
 

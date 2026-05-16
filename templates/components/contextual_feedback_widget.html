@@ -1,3 +1,4 @@
+{% load static %}
 {% if request.user.is_authenticated %}
 {% url 'feedback:contextual' as voc_contextual_url %}
 {% if voc_contextual_url %}
@@ -37,15 +38,6 @@
     <i class="bi bi-chat-square-text" aria-hidden="true"></i>
   </button>
 </div>
-<script>
-(function(){
-  var widget = document.querySelector('.voc-widget');
-  if (!widget) return;
-  var toggle = widget.querySelector('[data-voc-toggle]');
-  toggle.addEventListener('click', function(){
-    widget.dataset.open = widget.dataset.open === 'true' ? 'false' : 'true';
-  });
-})();
-</script>
+<script src="{% static 'js/voc-widget.js' %}"></script>
 {% endif %}
 {% endif %}

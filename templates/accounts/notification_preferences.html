@@ -1,0 +1,61 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Notification preferences" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 56rem;" data-rmc-page="notification-preferences">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Notification preferences" %}</h1>
+      <p class="text-tertiary mb-0">{% trans "Pick how the platform should reach you when something needs your attention." %}</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'accounts:user_notifications' %}">
+      <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Back to inbox" %}
+    </a>
+  </div>
+
+  <form method="post" class="card shadow-sm">
+    {% csrf_token %}
+    <div class="card-body">
+      <h2 class="h5 mb-3">{% trans "Channels" %}</h2>
+      <p class="small text-muted mb-3">{% trans "Choose one or more channels. Critical alerts always send via App regardless of this setting." %}</p>
+      <div class="d-flex flex-column gap-2 mb-4">
+        {% for value, label, is_on in channel_choices %}
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              name="notification_channels"
+              value="{{ value }}"
+              id="notif-channel-{{ value|lower }}"
+              {% if is_on %}checked{% endif %}>
+            <label class="form-check-label" for="notif-channel-{{ value|lower }}">
+              {{ label }}
+            </label>
+          </div>
+        {% endfor %}
+      </div>
+
+      <h2 class="h5 mb-3">{% trans "Digests" %}</h2>
+      <div class="form-check mb-4">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          name="receive_weekly_summary"
+          value="1"
+          id="notif-weekly-summary"
+          {% if preference.receive_weekly_summary %}checked{% endif %}>
+        <label class="form-check-label" for="notif-weekly-summary">
+          {% trans "Send me a weekly summary on Friday afternoon." %}
+        </label>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'accounts:user_notifications' %}">{% trans "Cancel" %}</a>
+        <button type="submit" class="btn btn-primary">{% trans "Save preferences" %}</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

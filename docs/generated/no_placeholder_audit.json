@@ -1,23 +1,8 @@
 {
-  "generated_at": "2026-05-16T10:41:12.708419+00:00",
+  "generated_at": "2026-05-16T11:58:20.418334+00:00",
   "generated_by": "scripts/audit_no_placeholder.py",
-  "templates_scanned": 895,
-  "finding_count": 2,
-  "by_kind": {
-    "sample-data": 2
-  },
-  "findings": [
-    {
-      "file": "templates/schools/onboard_wizard.html",
-      "line": 156,
-      "kind": "sample-data",
-      "snippet": "<strong>{% trans \"Start with sample data\" %}</strong>"
-    },
-    {
-      "file": "templates/siteconfig/report_library.html",
-      "line": 30,
-      "kind": "sample-data",
-      "snippet": "<p class=\"text-muted small mb-0\">Preview seeded sample data and inspect pack dependencies before rollout.</p>"
-    }
-  ]
+  "templates_scanned": 899,
+  "finding_count": 0,
+  "by_kind": {},
+  "findings": []
 }

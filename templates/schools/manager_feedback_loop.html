@@ -1,0 +1,115 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Feedback loop · live usage" %}{% endblock %}
+
+{% block cp_content %}
+<main id="main" class="container-fluid py-4" data-rmc-page="feedback-loop" data-page-archetype="operator-report">
+  <header class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Feedback loop · live usage" %}</h1>
+      <p class="text-tertiary mb-0">
+        {% trans "Live consumption view of friction events, feedback submissions, and AI assistant interactions across the platform." %}
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <span class="badge text-bg-secondary">{{ total_signal_7d }} {% trans "signals (7d)" %}</span>
+      {% if feedback.critical_open %}
+      <span class="badge text-bg-danger">{{ feedback.critical_open }} {% trans "critical open" %}</span>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if is_empty %}
+  <div class="alert alert-light border" role="status">
+    <h2 class="h5 mb-2">{% trans "No live signal yet." %}</h2>
+    <p class="text-tertiary mb-0">
+      {% trans "The harness is wired and listening. The moment users start interacting with the platform, friction events, feedback submissions, and AI conversations will appear here. This is intentional — empty state today is honest signal." %}
+    </p>
+  </div>
+  {% endif %}
+
+  <div class="row g-3">
+    <section class="col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-light fw-semibold small">{% trans "Friction events" %}</div>
+        <div class="card-body small">
+          <p class="mb-1">
+            <strong>{{ friction.count_7d }}</strong> {% trans "in last 7d" %}
+            <span class="text-tertiary">· {{ friction.count_30d }} {% trans "in 30d" %}</span>
+          </p>
+          {% if friction.by_view %}
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr><th>{% trans "View" %}</th><th>{% trans "Kind" %}</th><th class="text-end">{% trans "Count" %}</th></tr>
+            </thead>
+            <tbody>
+              {% for row in friction.by_view %}
+              <tr>
+                <td><code>{{ row.view_name }}</code></td>
+                <td>{{ row.kind }}</td>
+                <td class="text-end">{{ row.n }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% elif friction.available %}
+            <p class="text-tertiary mb-0">{% trans "No friction rolled up in the last 7 days." %}</p>
+          {% else %}
+            <p class="text-tertiary mb-0">{% trans "Friction telemetry not available — model may not be migrated." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <section class="col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-light fw-semibold small">{% trans "Feedback submissions" %}</div>
+        <div class="card-body small">
+          <p class="mb-1">
+            <strong>{{ feedback.count_7d }}</strong> {% trans "in last 7d" %}
+            <span class="text-tertiary">· {{ feedback.count_30d }} {% trans "in 30d" %}</span>
+          </p>
+          {% if feedback.by_category %}
+          <table class="table table-sm mb-2">
+            <thead>
+              <tr><th>{% trans "Category" %}</th><th class="text-end">{% trans "Count" %}</th></tr>
+            </thead>
+            <tbody>
+              {% for row in feedback.by_category %}
+              <tr><td>{{ row.category }}</td><td class="text-end">{{ row.n }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <p class="text-tertiary mb-0">
+            {% trans "Severity" %}:
+            {% for row in feedback.by_severity %}
+              {{ row.severity }} ({{ row.n }}){% if not forloop.last %}, {% endif %}
+            {% empty %}
+              {% trans "—" %}
+            {% endfor %}
+          </p>
+          {% else %}
+            <p class="text-tertiary mb-0">{% trans "No submissions in the last 7 days." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <section class="col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-light fw-semibold small">{% trans "AI assistant interactions" %}</div>
+        <div class="card-body small">
+          <p class="mb-1">
+            <strong>{{ ai.interactions_7d }}</strong> {% trans "in last 7d" %}
+            <span class="text-tertiary">· {{ ai.interactions_30d }} {% trans "in 30d" %}</span>
+          </p>
+          <p class="text-tertiary mb-0">
+            {% trans "From compliance.AuditLog for portal.AICopilot. Acceptance/correction rates live in the AI governance dashboard." %}
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+{% endblock %}

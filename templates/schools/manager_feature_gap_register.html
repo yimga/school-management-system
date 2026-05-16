@@ -1,0 +1,87 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Feature Gap Register" %}{% endblock %}
+
+{% block cp_content %}
+<main id="main" class="container-fluid py-4" data-rmc-page="feature-gap-register" data-page-archetype="operator-report">
+  <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Feature Gap Register" %}</h1>
+      <p class="text-tertiary mb-0">
+        {% trans "What we say we ship vs what's demonstrably wired up. Every shipped row must resolve a proof (route, model, mgmt command, or CI gate)." %}
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <span class="badge text-bg-success">{{ shipped }} {% trans "shipped" %}</span>
+      <span class="badge text-bg-secondary">{{ total }} {% trans "total" %}</span>
+      {% if broken %}
+      <span class="badge text-bg-danger">{{ broken }} {% trans "broken proofs" %}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  {% for group in rows_by_domain %}
+  <section class="mb-4">
+    <h2 class="h5 mb-2 text-uppercase text-tertiary small">{{ group.domain }}</h2>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle small">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Feature" %}</th>
+            <th scope="col">{% trans "Status" %}</th>
+            <th scope="col">{% trans "Proof" %}</th>
+            <th scope="col">{% trans "Public promise" %}</th>
+            <th scope="col">{% trans "Notes" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in group.features %}
+          <tr {% if r.is_broken %}class="table-danger"{% endif %}>
+            <td>
+              <div class="fw-semibold">{{ r.label }}</div>
+              <code class="text-tertiary small">{{ r.feature_slug }}</code>
+            </td>
+            <td>
+              {% if r.status == "shipped" %}
+                <span class="badge text-bg-success">{% trans "shipped" %}</span>
+              {% elif r.status == "in_progress" %}
+                <span class="badge text-bg-warning text-dark">{% trans "in progress" %}</span>
+              {% else %}
+                <span class="badge text-bg-secondary">{% trans "planned" %}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if r.proof_url %}
+                <a href="{{ r.proof_url }}"><code>{{ r.proof_route_name }}</code></a>
+              {% elif r.proof_route_name %}
+                <code>{{ r.proof_route_name }}</code>
+                {% if r.proof_error %}<div class="text-danger small">{{ r.proof_error }}</div>{% endif %}
+              {% elif r.proof_model %}
+                <code>{{ r.proof_model }}</code>
+                {% if r.proof_error %}<div class="text-danger small">{{ r.proof_error }}</div>{% endif %}
+              {% elif r.proof_ci_gate %}
+                <code>{{ r.proof_ci_gate }}</code> <span class="text-tertiary small">{% trans "(CI gate)" %}</span>
+              {% elif r.proof_management_command %}
+                <code>manage.py {{ r.proof_management_command }}</code>
+              {% else %}
+                <span class="text-tertiary small">{% trans "—" %}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if r.public_promise %}
+                <span class="badge text-bg-info">{% trans "yes" %}</span>
+              {% else %}
+                <span class="text-tertiary small">{% trans "internal" %}</span>
+              {% endif %}
+            </td>
+            <td class="text-tertiary">{{ r.notes }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endfor %}
+</main>
+{% endblock %}

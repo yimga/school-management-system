@@ -1,0 +1,115 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Integrations" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3" data-page-archetype="integrations-hub">
+
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Integrations" %}</h1>
+      <p class="text-muted mb-0">
+        {% blocktrans %}Connect the external tools your school already uses — meetings, calendars, chat, and email. Connections are scoped per school and (optionally) per campus.{% endblocktrans %}
+      </p>
+    </div>
+    <a href="#disconnect-help" class="small text-decoration-none text-muted">{% trans "How to disconnect" %}</a>
+  </div>
+
+  {% if available_campuses %}
+    <form method="get" class="d-flex align-items-center gap-2 mb-3" data-rmc-scope-picker>
+      <label for="campus-scope" class="form-label small text-muted mb-0">{% trans "Scope" %}:</label>
+      <select id="campus-scope" name="campus" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">{% trans "Whole school (all campuses)" %}</option>
+        {% for c in available_campuses %}
+          <option value="{{ c.pk }}" {% if selected_campus and selected_campus.pk == c.pk %}selected{% endif %}>
+            {% trans "Campus" %}: {{ c.name }}
+          </option>
+        {% endfor %}
+      </select>
+      {% if selected_campus %}
+        <span class="badge text-bg-info-subtle text-info-emphasis">
+          {% blocktrans with campus_name=selected_campus.name %}Campus overrides: {{ campus_name }}{% endblocktrans %}
+        </span>
+      {% endif %}
+    </form>
+  {% endif %}
+
+  {% if messages %}
+    <div class="mb-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} rmc-alert" role="alert">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% for section in sections %}
+    <section class="card rmc-card-elevated mb-4" data-rmc-integrations-category="{{ section.slug }}">
+      <header class="card-header bg-transparent border-bottom-0 pt-3 pb-2">
+        <h2 class="h5 mb-0">{{ section.label }}</h2>
+      </header>
+      <div class="list-group list-group-flush">
+        {% for entry in section.entries %}
+          {% with c=entry.connector %}
+          <div class="list-group-item d-flex flex-wrap align-items-center gap-3 py-3">
+            <div class="{{ c.brand_mark_class }}" aria-hidden="true"></div>
+            <div class="flex-grow-1 min-w-0">
+              <div class="d-flex align-items-center gap-2">
+                <strong class="rmc-type-body">{{ c.label }}</strong>
+                {% if entry.is_configured %}
+                  <span class="badge text-bg-success-subtle text-success-emphasis">{% trans "Connected" %}</span>
+                  {% if entry.source != "school" and entry.source != "campus" %}
+                    <span class="badge text-bg-secondary" title="{% trans 'Inherited from parent school or platform default' %}">{{ entry.source }}</span>
+                  {% endif %}
+                {% else %}
+                  <span class="badge text-bg-secondary">{% trans "Not connected" %}</span>
+                {% endif %}
+              </div>
+              <div class="small text-muted">
+                {{ c.category_label }} ·
+                {% if c.is_oauth %}{% trans "OAuth 2.0" %}{% else %}{{ c.auth_kind|capfirst }}{% endif %}
+                {% if c.documentation_url %}
+                  · <a href="{{ c.documentation_url }}" target="_blank" rel="noopener" class="text-decoration-none">{% trans "Docs" %}</a>
+                {% endif %}
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              {% if c.is_oauth %}
+                {% if selected_campus %}
+                  <a class="btn btn-sm btn-primary"
+                     href="{% url 'integrations_marketplace:oauth_connect' connector_slug=c.slug %}?campus={{ selected_campus.pk }}">
+                    {% if entry.is_configured and entry.source == "campus" %}{% trans "Reconnect (campus)" %}{% else %}{% trans "Connect (campus override)" %}{% endif %}
+                  </a>
+                {% else %}
+                  <a class="btn btn-sm btn-primary"
+                     href="{% url 'integrations_marketplace:oauth_connect' connector_slug=c.slug %}">
+                    {% if entry.is_configured %}{% trans "Reconnect" %}{% else %}{% trans "Connect" %}{% endif %}
+                  </a>
+                {% endif %}
+              {% else %}
+                <span class="small text-muted">{% trans "Configure in API Center" %}</span>
+              {% endif %}
+              {% if entry.is_configured %}
+                <form method="post"
+                      action="{% if selected_campus and entry.source == 'campus' %}{% url 'integrations_marketplace:disconnect_campus' connector_slug=c.slug campus_id=selected_campus.pk %}{% else %}{% url 'integrations_marketplace:disconnect' connector_slug=c.slug %}{% endif %}"
+                      class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Disconnect" %}</button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+          {% endwith %}
+        {% endfor %}
+      </div>
+    </section>
+  {% endfor %}
+
+  <section id="disconnect-help" class="card rmc-card-soft p-3">
+    <h2 class="h6 mb-2">{% trans "Multi-school / multi-campus" %}</h2>
+    <p class="small text-muted mb-0">
+      {% blocktrans %}A connection at the school level applies to every campus by default. To override for one campus, open the campus settings and connect from there — the campus-level connection takes precedence over the school-level one. Districts with parent schools cascade in the same direction: parent &rarr; child school &rarr; campus.{% endblocktrans %}
+    </p>
+  </section>
+</div>
+{% endblock %}

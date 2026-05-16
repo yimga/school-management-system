@@ -356,6 +356,25 @@ jobs:
             --settings=config.settings \
             --section csp at_risk baselines
 
+  emotional-ux-signals:
+    name: Emotional UX signals (ratchet-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run emotional UX scanner with ratchet baseline
+        # v2.86: heuristic proxies for bad emotional UX (hostile error copy,
+        # naked exception leakage, alarming numbers without context, hostile
+        # empty states, imperative tone without reason). Ratchet-only:
+        # baseline pinned in var/security-audit-baseline-emotional-ux.json.
+        # Mark intentional sites with `<!-- ux-allow: <reason> -->`. Lower
+        # the baseline as you fix; NEVER raise it to silence the scanner.
+        run: python scripts/audit_emotional_ux_signals.py
+
   rbac-matrix:
     name: RBAC matrix (candidate-anonymous gate)
     runs-on: ubuntu-latest
@@ -376,4 +395,4 @@ jobs:
         # middleware/RLS, add `# rbac-allow: <reason>` on the same line
         # as path(...). NEVER raise this number to silence the scanner.
         run: |
-          python scripts/audit_role_permission_matrix.py --max-candidate-anonymous 66
+          python scripts/audit_role_permission_matrix.py --max-candidate-anonymous 0

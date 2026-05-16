@@ -156,12 +156,12 @@ urlpatterns = [
     path("parent/feed/", parent_feed, name="parent_feed"),
     path("teacher/feed/", teacher_feed, name="teacher_feed"),
     path("parent/contact-school/", parent_contact_school, name="parent_contact_school"),
-    path("parent/medal-case/", parent_medal_case, name="parent_medal_case"),
+    path("parent/medal-case/", parent_medal_case, name="parent_medal_case"),  # rbac-allow: inline-auth (login redirect inside view)
     path(
         "parent/child/<int:student_id>/id/", child_digital_id, name="child_digital_id"
     ),
     path("teacher/my-id/", my_digital_id, name="my_digital_id"),
-    path("badge/verify/", badge_verify, name="badge_verify"),
+    path("badge/verify/", badge_verify, name="badge_verify"),  # rbac-allow: public badge-verifier — anyone with the badge URL can verify authenticity
     path("support/hub/", support_help_hub, name="support_help_hub"),
     path(
         "support/ticket/<uuid:ticket_id>/",
@@ -271,26 +271,26 @@ urlpatterns = [
         name="staff_contact_request_detail",
     ),
     # Photo upload from another device
-    path("photo-upload/generate/", photo_upload_generate, name="photo_upload_generate"),
+    path("photo-upload/generate/", photo_upload_generate, name="photo_upload_generate"),  # rbac-allow: inline-auth (login redirect inside view)
     path(
         "photo-upload/generate-for-profile/",
         photo_upload_generate_for_profile,
         name="photo_upload_generate_for_profile",
     ),
-    path(
+    path(  # rbac-allow: UUID token in URL is the auth (single-use phone upload link)
         "photo-upload/<uuid:token>/", photo_upload_phone_page, name="photo_upload_phone"
     ),
-    path(
+    path(  # rbac-allow: UUID token in URL is the auth (single-use phone upload link)
         "photo-upload/<uuid:token>/upload/",
         photo_upload_upload,
         name="photo_upload_upload",
     ),
-    path(
+    path(  # rbac-allow: UUID token in URL is the auth (single-use phone upload link)
         "photo-upload/<uuid:token>/status/",
         photo_upload_status,
         name="photo_upload_status",
     ),
-    path("photo-upload/<uuid:token>/qr/", photo_upload_qr, name="photo_upload_qr"),
+    path("photo-upload/<uuid:token>/qr/", photo_upload_qr, name="photo_upload_qr"),  # rbac-allow: UUID token in URL is the auth (single-use phone upload link)
     path(
         "photo-upload/send-link/student/<int:student_id>/",
         photo_upload_send_link_page,

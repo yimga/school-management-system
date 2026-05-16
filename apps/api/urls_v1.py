@@ -56,12 +56,12 @@ urlpatterns = [
         MigrationJobErrorsCsvView.as_view(),
         name="migration-job-errors-csv",
     ),
-    path(
+    path(  # rbac-allow: api-key middleware-auth (request.app_api_key / oauth_access_pair)
         "platform/integration-context/",
         views_v1_platform.IntegrationContextView.as_view(),
         name="platform-integration-context",
     ),
-    path(
+    path(  # rbac-allow: api-key middleware-auth (request.app_api_key / oauth_access_pair)
         "platform/scoped-ping/",
         views_v1_platform.IntegrationScopedPingView.as_view(),
         name="platform-scoped-ping",
@@ -97,7 +97,7 @@ urlpatterns = [
         views_v1.RiskThresholdsConfigView.as_view(),
         name="config-risk-thresholds",
     ),
-    path(
+    path(  # rbac-allow: api-key middleware-auth (B2B integration context)
         "tenants/<uuid:id>/modules",
         views_v1.TenantModulesView.as_view(),
         name="tenants-modules",
@@ -112,12 +112,12 @@ urlpatterns = [
         views_v1.StudentTransferView.as_view(),
         name="student-transfer",
     ),
-    path(
+    path(  # rbac-allow: api-key middleware-auth (B2B finance integration)
         "finance/generate-batch",
         views_v1.FinanceGenerateBatchView.as_view(),
         name="finance-generate-batch",
     ),
-    path(
+    path(  # rbac-allow: api-key middleware-auth (B2B finance integration)
         "finance/exchange-rate",
         views_v1.FinanceExchangeRateView.as_view(),
         name="finance-exchange-rate",
@@ -147,7 +147,7 @@ urlpatterns = [
         views_v1_intervention.InterventionGenerateRoadmapView.as_view(),
         name="intervention-generate-roadmap",
     ),
-    path(
+    path(  # rbac-allow: api-key middleware-auth (B2B applicant intake)
         "enrollment/apply",
         views_v1.EnrollmentApplyView.as_view(),
         name="enrollment-apply",
@@ -228,7 +228,7 @@ urlpatterns = [
     ),
     path("rosetta/scales", views_v1.RosettaScalesView.as_view(), name="rosetta-scales"),
     # Plan V: Parent Wallet top-up
-    path(
+    path(  # rbac-allow: api-key middleware-auth (B2B wallet top-up)
         "finance/wallet/top-up",
         views_v1.FinanceWalletTopUpView.as_view(),
         name="finance-wallet-top-up",
@@ -262,7 +262,7 @@ urlpatterns = [
         views_v1.PaymentDisputeListView.as_view(),
         name="finance-disputes-list",
     ),
-    path(
+    path(  # rbac-allow: api-key middleware-auth (B2B dispute intake)
         "finance/disputes/create",
         views_v1.PaymentDisputeCreateView.as_view(),
         name="finance-disputes-create",
@@ -273,12 +273,12 @@ urlpatterns = [
         name="finance-disputes-resolve",
     ),
     # Tenant scheduled-report delivery (hub + list; persistence phased after BI model cutover)
-    path(
+    path(  # rbac-allow: api-key middleware-auth (B2B scheduled-report consumer)
         "reports/scheduled",
         views_v1.ScheduledReportsListView.as_view(),
         name="reports-scheduled-list",
     ),
-    path(
+    path(  # rbac-allow: api-key middleware-auth (B2B scheduled-report consumer)
         "reports/scheduled/<int:id>",
         views_v1.ScheduledReportDetailView.as_view(),
         name="reports-scheduled-detail",

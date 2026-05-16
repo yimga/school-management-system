@@ -569,6 +569,16 @@ urlpatterns = [
         name="portal_at_risk_labeling",
     ),
     path("kb/", include(("apps.portal.urls_kb", "kb"), namespace="kb")),
+    # Wave v2.69 (2026-05-16): integrations marketplace hub + OAuth dance for
+    # per-school / per-campus external connectors (Zoom, Teams, Meet, Outlook,
+    # Gmail, Calendar, Slack, transactional mail providers).
+    path(
+        "integrations/",
+        include(
+            ("apps.integrations_marketplace.urls", "integrations_marketplace"),
+            namespace="integrations_marketplace",
+        ),
+    ),
     path("reports/", include(("apps.reports.urls", "reports"), namespace="reports")),
     path(
         "analytics/",

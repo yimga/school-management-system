@@ -1,0 +1,128 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Lane-2 readiness" %}{% endblock %}
+
+{% block cp_content %}
+<main id="main" class="container-fluid py-4" data-rmc-page="lane2-readiness" data-page-archetype="operator-report">
+  <header class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Lane-2 readiness" %}</h1>
+      <p class="text-tertiary mb-0">
+        {% trans "Internal scoreboard for external commercial work: payments providers, SOC2 controls, and pilot tracker." %}
+      </p>
+    </div>
+  </header>
+
+  <section class="mb-5" aria-labelledby="lane2-psp">
+    <h2 class="h5 mb-2" id="lane2-psp">{% trans "Payments providers (PSP)" %}</h2>
+    <div class="d-flex flex-wrap gap-2 mb-2">
+      <span class="badge text-bg-success">{{ psp_counts.live|default:0 }} {% trans "live" %}</span>
+      <span class="badge text-bg-warning text-dark">{{ psp_counts.in_progress|default:0 }} {% trans "in progress" %}</span>
+      <span class="badge text-bg-secondary">{{ psp_counts.planned|default:0 }} {% trans "planned" %}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle">
+        <thead>
+          <tr>
+            <th>{% trans "Provider" %}</th><th>{% trans "Region" %}</th>
+            <th>{% trans "Status" %}</th><th>{% trans "Capabilities" %}</th>
+            <th>{% trans "Currencies" %}</th><th>{% trans "Notes" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in psps %}
+          <tr>
+            <td><div class="fw-semibold">{{ p.label }}</div><code class="text-tertiary small">{{ p.psp_slug }}</code></td>
+            <td>{{ p.region }}</td>
+            <td>
+              {% if p.adapter_status == "live" %}<span class="badge text-bg-success">{% trans "live" %}</span>
+              {% elif p.adapter_status == "in_progress" %}<span class="badge text-bg-warning text-dark">{% trans "in progress" %}</span>
+              {% else %}<span class="badge text-bg-secondary">{% trans "planned" %}</span>{% endif %}
+            </td>
+            <td class="small">{{ p.capabilities|join:", " }}</td>
+            <td class="small">{{ p.settlement_currencies|join:", " }}</td>
+            <td class="text-tertiary small">{{ p.notes }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="mb-5" aria-labelledby="lane2-soc2">
+    <h2 class="h5 mb-2" id="lane2-soc2">{% trans "SOC2 control register" %}</h2>
+    <div class="d-flex flex-wrap gap-2 mb-2">
+      <span class="badge text-bg-success">{{ soc2_counts.implemented|default:0 }} {% trans "implemented" %}</span>
+      <span class="badge text-bg-warning text-dark">{{ soc2_counts.partial|default:0 }} {% trans "partial" %}</span>
+      <span class="badge text-bg-secondary">{{ soc2_counts.planned|default:0 }} {% trans "planned" %}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle">
+        <thead>
+          <tr>
+            <th>{% trans "Control" %}</th><th>{% trans "Category" %}</th>
+            <th>{% trans "Status" %}</th><th>{% trans "Evidence" %}</th>
+            <th>{% trans "Notes" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in soc2_rows %}
+          <tr>
+            <td><div class="fw-semibold">{{ c.control_id }}</div><div class="small text-tertiary">{{ c.label }}</div></td>
+            <td>{{ c.category }}</td>
+            <td>
+              {% if c.status == "implemented" %}<span class="badge text-bg-success">{% trans "implemented" %}</span>
+              {% elif c.status == "partial" %}<span class="badge text-bg-warning text-dark">{% trans "partial" %}</span>
+              {% else %}<span class="badge text-bg-secondary">{% trans "planned" %}</span>{% endif %}
+            </td>
+            <td class="small">
+              {% if c.evidence_url %}<a href="{{ c.evidence_url }}"><code>{{ c.evidence_route_name }}</code></a><br>{% endif %}
+              {% if c.evidence_model %}<code>{{ c.evidence_model }}</code><br>{% endif %}
+              {% if c.evidence_scanner %}<code>{{ c.evidence_scanner }}</code>{% endif %}
+            </td>
+            <td class="text-tertiary small">{{ c.notes }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="lane2-pilots">
+    <h2 class="h5 mb-2" id="lane2-pilots">{% trans "Pilot tracker" %}</h2>
+    <div class="d-flex flex-wrap gap-2 mb-2">
+      {% for stage, n in pilot_counts.items %}
+      <span class="badge text-bg-secondary">{{ n }} {{ stage }}</span>
+      {% endfor %}
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle">
+        <thead>
+          <tr>
+            <th>{% trans "Pilot" %}</th><th>{% trans "Stage" %}</th>
+            <th>{% trans "Region / type" %}</th><th>{% trans "Blockers" %}</th>
+            <th>{% trans "Next gate" %}</th><th>{% trans "Target" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in pilots %}
+          <tr>
+            <td><div class="fw-semibold">{{ p.label }}</div><code class="text-tertiary small">{{ p.pilot_slug }}</code></td>
+            <td>{{ p.stage }}</td>
+            <td class="small">{{ p.region }} · {{ p.institution_type }}</td>
+            <td class="small">
+              {% if p.blocking_features %}{% trans "Features:" %} {{ p.blocking_features|join:", " }}<br>{% endif %}
+              {% if p.blocking_psps %}{% trans "PSPs:" %} {{ p.blocking_psps|join:", " }}{% endif %}
+              {% if not p.blocking_features and not p.blocking_psps %}<span class="text-tertiary">{% trans "—" %}</span>{% endif %}
+            </td>
+            <td class="text-tertiary small">{{ p.next_gate }}</td>
+            <td class="small">{{ p.target_go_live_quarter }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+{% endblock %}

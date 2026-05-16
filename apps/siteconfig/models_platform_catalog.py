@@ -842,6 +842,28 @@ class ServiceIntegration(models.Model):
         on_delete=models.CASCADE,
         related_name="service_integrations",
     )
+    campus = models.ForeignKey(
+        "schoolops.Campus",
+        on_delete=models.CASCADE,
+        related_name="service_integrations",
+        null=True,
+        blank=True,
+        help_text=(
+            "Optional campus scope. NULL = applies to all campuses of the school. "
+            "Campus rows override the school-level row in the cascade resolver."
+        ),
+    )
+    connector_slug = models.CharField(
+        max_length=64,
+        blank=True,
+        help_text=(
+            "Stable connector identifier from "
+            "`apps.integrations_marketplace.connector_registry` "
+            "(e.g. 'zoom', 'microsoft_teams', 'sendgrid'). When set, the row "
+            "participates in the per-school/per-campus cascade and is wired up "
+            "by `resolve_connector_config()` without name-fuzzy matching."
+        ),
+    )
     service_name = models.CharField(
         max_length=100, help_text="e.g. Moodle, Stripe, Google Classroom"
     )

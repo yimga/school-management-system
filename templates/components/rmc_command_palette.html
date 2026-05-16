@@ -49,6 +49,10 @@
           {% if cmdk_help_center_url %}{"label": "{% trans 'Help Center' %}", "url": "{{ cmdk_help_center_url }}", "icon": "bi-life-preserver", "keywords": "support docs feedback contact"},{% endif %}
           {% url 'feedback:release_notes_public' as cmdk_release_notes_url %}
           {% if cmdk_release_notes_url %}{"label": "{% trans 'Release notes' %}", "url": "{{ cmdk_release_notes_url }}", "icon": "bi-stars", "keywords": "changelog whats new updates"},{% endif %}
+          {% url 'compliance:data_quality_center' as cmdk_data_quality_url %}
+          {% if cmdk_data_quality_url %}{"label": "{% trans 'Data Quality Center' %}", "url": "{{ cmdk_data_quality_url }}", "icon": "bi-shield-check", "keywords": "data quality completeness reachability issues"},{% endif %}
+          {% url 'siteconfig:ai_center' as cmdk_ai_center_url %}
+          {% if cmdk_ai_center_url %}{"label": "{% trans 'AI Center' %}", "url": "{{ cmdk_ai_center_url }}", "icon": "bi-stars", "keywords": "ai assistant chat copilot domain help"},{% endif %}
           {"label": "{% trans 'Knowledge base' %}", "url": "{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}", "icon": "bi-book", "keywords": "docs guide articles"}
         {% endif %}
       ]

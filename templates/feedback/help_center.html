@@ -12,7 +12,7 @@
     <section class="col-md-6 col-lg-3">
       <a href="{% url 'kb:kb_home' %}" class="card shadow-sm h-100 text-decoration-none">
         <div class="card-body">
-          <i class="bi bi-book rmc-type-display-sm" aria-hidden="true"></i>
+          <i class="bi bi-book fs-1" aria-hidden="true"></i>
           <h2 class="h6 mt-2">{% trans "Knowledge base" %}</h2>
           <p class="small text-muted mb-0">{% trans "Step-by-step guides for every role." %}</p>
         </div>
@@ -21,7 +21,7 @@
     <section class="col-md-6 col-lg-3">
       <a href="{% url pinned_feedback_route %}" class="card shadow-sm h-100 text-decoration-none">
         <div class="card-body">
-          <i class="bi bi-chat-square-text rmc-type-display-sm" aria-hidden="true"></i>
+          <i class="bi bi-chat-square-text fs-1" aria-hidden="true"></i>
           <h2 class="h6 mt-2">{% trans "Send feedback" %}</h2>
           <p class="small text-muted mb-0">{% trans "Report a bug, request a feature, share a suggestion." %}</p>
         </div>
@@ -30,7 +30,7 @@
     <section class="col-md-6 col-lg-3">
       <a href="{% url 'feedback:release_notes_public' %}" class="card shadow-sm h-100 text-decoration-none">
         <div class="card-body">
-          <i class="bi bi-stars rmc-type-display-sm" aria-hidden="true"></i>
+          <i class="bi bi-stars fs-1" aria-hidden="true"></i>
           <h2 class="h6 mt-2">{% trans "What's new" %}</h2>
           <p class="small text-muted mb-0">{% trans "Latest releases and changelog." %}</p>
         </div>
@@ -40,7 +40,7 @@
       {% url 'marketing_contact' as marketing_contact_url %}
       <a href="{% if marketing_contact_url %}{{ marketing_contact_url }}{% else %}{% url pinned_feedback_route %}{% endif %}" class="card shadow-sm h-100 text-decoration-none">
         <div class="card-body">
-          <i class="bi bi-life-preserver rmc-type-display-sm" aria-hidden="true"></i>
+          <i class="bi bi-life-preserver fs-1" aria-hidden="true"></i>
           <h2 class="h6 mt-2">{% trans "Contact support" %}</h2>
           <p class="small text-muted mb-0">{% trans "Reach a human. We answer in 1 business day." %}</p>
         </div>

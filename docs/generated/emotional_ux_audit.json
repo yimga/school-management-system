@@ -1,0 +1,54 @@
+{
+  "generated_at": "2026-05-16T13:06:33.479229+00:00",
+  "finding_count": 5,
+  "by_kind": {
+    "hostile-error-copy": 4,
+    "alarming-number-no-context": 1
+  },
+  "by_severity": {
+    "warning": 4,
+    "info": 1
+  },
+  "findings": [
+    {
+      "file": "templates/customersuccess/super_dashboard.html",
+      "line": 108,
+      "severity": "warning",
+      "kind": "hostile-error-copy",
+      "snippet": "<thead class=\"table-light\"><tr><th>School</th><th>Workflow</th><th>Error</th><th>When</th></tr></thead>",
+      "fix": "Add a next-step verb (try, retry, contact, reload). Tell the user what to do next."
+    },
+    {
+      "file": "templates/evals/grade_import_upload_v2.html",
+      "line": 107,
+      "severity": "info",
+      "kind": "alarming-number-no-context",
+      "snippet": "<h3 class=\"text-danger\" id=\"invalidRowsCount\">0</h3>",
+      "fix": "A red number alone reads as scary. Add an aria-label or a small descriptor (e.g., 'overdue this term')."
+    },
+    {
+      "file": "templates/evals/import_job_monitor.html",
+      "line": 35,
+      "severity": "warning",
+      "kind": "hostile-error-copy",
+      "snippet": "<option value=\"failed\" {% if status == 'failed' %}selected{% endif %}>Failed</option>",
+      "fix": "Add a next-step verb (try, retry, contact, reload). Tell the user what to do next."
+    },
+    {
+      "file": "templates/evals/import_job_monitor.html",
+      "line": 79,
+      "severity": "warning",
+      "kind": "hostile-error-copy",
+      "snippet": "<small>Failed</small>",
+      "fix": "Add a next-step verb (try, retry, contact, reload). Tell the user what to do next."
+    },
+    {
+      "file": "templates/evals/import_job_monitor.html",
+      "line": 132,
+      "severity": "warning",
+      "kind": "hostile-error-copy",
+      "snippet": "<div class=\"stat-label\">Failed</div>",
+      "fix": "Add a next-step verb (try, retry, contact, reload). Tell the user what to do next."
+    }
+  ]
+}

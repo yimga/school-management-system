@@ -165,37 +165,37 @@
       "role": "ADMIN"
     },
     {
-      "line": 928,
+      "line": 995,
       "path": "apps/accounts/views.py",
       "role": "PARENT"
     },
     {
-      "line": 932,
+      "line": 999,
       "path": "apps/accounts/views.py",
       "role": "TEACHER"
     },
     {
-      "line": 2375,
+      "line": 2442,
       "path": "apps/accounts/views.py",
       "role": "ADMIN"
     },
     {
-      "line": 2377,
+      "line": 2444,
       "path": "apps/accounts/views.py",
       "role": "PROPRIETOR"
     },
     {
-      "line": 2380,
+      "line": 2447,
       "path": "apps/accounts/views.py",
       "role": "PARENT"
     },
     {
-      "line": 2380,
+      "line": 2447,
       "path": "apps/accounts/views.py",
       "role": "STUDENT"
     },
     {
-      "line": 2380,
+      "line": 2447,
       "path": "apps/accounts/views.py",
       "role": "TEACHER"
     },
@@ -1370,7 +1370,7 @@
       "role": "ADMIN"
     }
   ],
-  "generated_at": "2026-05-16T01:23:45+00:00",
+  "generated_at": "2026-05-16T13:09:31+00:00",
   "role_tokens": [
     "ADMIN",
     "PARENT",

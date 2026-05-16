@@ -222,7 +222,7 @@ urlpatterns = [
         InstitutionProfileSuggestView.as_view(),
         name="api-institution-suggest",
     ),
-    path(
+    path(  # rbac-allow: public terminology pack — read-only, no PII
         "learning/terminology/",
         TerminologyPackView.as_view(),
         name="api-learning-terminology",
@@ -248,12 +248,12 @@ urlpatterns = [
         name="api-learning-wedge-benchmarks",
     ),
     # JWT Authentication
-    path(
+    path(  # rbac-allow: token-issuance endpoint — auth happens via credentials in body, rate-limited
         "auth/token/",
         RateLimitedTokenObtainPairView.as_view(),
         name="token_obtain_pair",
     ),
-    path(
+    path(  # rbac-allow: token-refresh endpoint — auth via refresh-token in body, rate-limited
         "auth/token/refresh/",
         RateLimitedTokenRefreshView.as_view(),
         name="token_refresh",
@@ -290,24 +290,24 @@ urlpatterns = [
         "portal-preferences/", PortalPreferencesAPI.as_view(), name="portal-preferences"
     ),
     # Phase 5: Admissions CRM — Lead Capture (public POST by school_slug)
-    path("admissions/lead/", LeadCaptureAPI.as_view(), name="lead-capture"),
+    path("admissions/lead/", LeadCaptureAPI.as_view(), name="lead-capture"),  # rbac-allow: public lead-capture from marketing forms — school_slug in body, rate-limited
     # Interoperability hub (B6: first-class product surface) + per-standard endpoints
     path("interop/", interop_hub, name="interop-hub"),
     path("interop/oneroster/", oneroster_readiness, name="interop-oneroster"),
     path("interop/lti13/", lti13_readiness, name="interop-lti13"),
-    path("interop/edfi/students/", edfi_students, name="interop-edfi-students"),
-    path(
+    path("interop/edfi/students/", edfi_students, name="interop-edfi-students"),  # rbac-allow: middleware-api-key-auth (Ed-Fi standard B2B)
+    path(  # rbac-allow: middleware-api-key-auth (Ed-Fi standard B2B)
         "interop/edfi/studentSchoolAssociations/",
         edfi_student_school_associations,
         name="interop-edfi-associations",
     ),
-    path("interop/edfi/grades/", edfi_grades, name="interop-edfi-grades"),
+    path("interop/edfi/grades/", edfi_grades, name="interop-edfi-grades"),  # rbac-allow: middleware-api-key-auth (Ed-Fi standard B2B)
     path("interop/edfi/", edfi_readiness, name="interop-edfi"),
-    path("interop/ceds/students/", ceds_students, name="interop-ceds-students"),
-    path(
+    path("interop/ceds/students/", ceds_students, name="interop-ceds-students"),  # rbac-allow: middleware-api-key-auth (CEDS standard B2B)
+    path(  # rbac-allow: middleware-api-key-auth (CEDS standard B2B)
         "interop/ceds/enrollments/", ceds_enrollments, name="interop-ceds-enrollments"
     ),
-    path("interop/ceds/grades/", ceds_grades, name="interop-ceds-grades"),
+    path("interop/ceds/grades/", ceds_grades, name="interop-ceds-grades"),  # rbac-allow: middleware-api-key-auth (CEDS standard B2B)
     path("interop/ceds/", ceds_readiness, name="interop-ceds"),
     path(
         "interop/district-readiness/sample/",
@@ -315,33 +315,33 @@ urlpatterns = [
         name="interop-district-readiness-sample",
     ),
     # SCIM 2.0 baseline (tenant-scoped provisioning)
-    path(
+    path(  # rbac-allow: SCIM standard — bearer-token auth via middleware (RFC 7644)
         "scim/v2/ServiceProviderConfig",
         scim_service_provider_config,
         name="scim-service-provider-config",
     ),
-    path("scim/v2/Users", scim_users, name="scim-users"),
-    path("scim/v2/Users/<str:user_id>", scim_user_detail, name="scim-user-detail"),
-    path("scim/v2/Groups", scim_groups, name="scim-groups"),
-    path("scim/v2/Groups/<str:group_id>", scim_group_detail, name="scim-group-detail"),
+    path("scim/v2/Users", scim_users, name="scim-users"),  # rbac-allow: SCIM bearer-token middleware-auth
+    path("scim/v2/Users/<str:user_id>", scim_user_detail, name="scim-user-detail"),  # rbac-allow: SCIM bearer-token middleware-auth
+    path("scim/v2/Groups", scim_groups, name="scim-groups"),  # rbac-allow: SCIM bearer-token middleware-auth
+    path("scim/v2/Groups/<str:group_id>", scim_group_detail, name="scim-group-detail"),  # rbac-allow: SCIM bearer-token middleware-auth
     # OneRoster 1.1 baseline roster exchange
-    path("oneroster/v1p1/manifest", oneroster_manifest, name="oneroster-manifest"),
-    path(
+    path("oneroster/v1p1/manifest", oneroster_manifest, name="oneroster-manifest"),  # rbac-allow: OneRoster bearer-token middleware-auth
+    path(  # rbac-allow: OneRoster bearer-token middleware-auth
         "oneroster/v1p1/academicSessions",
         oneroster_academic_sessions,
         name="oneroster-academic-sessions",
     ),
-    path("oneroster/v1p1/classes", oneroster_classes, name="oneroster-classes"),
-    path("oneroster/v1p1/students", oneroster_students, name="oneroster-students"),
-    path("oneroster/v1p1/teachers", oneroster_teachers, name="oneroster-teachers"),
-    path(
+    path("oneroster/v1p1/classes", oneroster_classes, name="oneroster-classes"),  # rbac-allow: OneRoster bearer-token middleware-auth
+    path("oneroster/v1p1/students", oneroster_students, name="oneroster-students"),  # rbac-allow: OneRoster bearer-token middleware-auth
+    path("oneroster/v1p1/teachers", oneroster_teachers, name="oneroster-teachers"),  # rbac-allow: OneRoster bearer-token middleware-auth
+    path(  # rbac-allow: OneRoster bearer-token middleware-auth
         "oneroster/v1p1/enrollments",
         oneroster_enrollments,
         name="oneroster-enrollments",
     ),
-    path("oneroster/v1p1/orgs", oneroster_orgs, name="oneroster-orgs"),
-    path("oneroster/v1p1/courses", oneroster_courses, name="oneroster-courses"),
-    path("oneroster/v1p1/users", oneroster_users, name="oneroster-users"),
+    path("oneroster/v1p1/orgs", oneroster_orgs, name="oneroster-orgs"),  # rbac-allow: OneRoster bearer-token middleware-auth
+    path("oneroster/v1p1/courses", oneroster_courses, name="oneroster-courses"),  # rbac-allow: OneRoster bearer-token middleware-auth
+    path("oneroster/v1p1/users", oneroster_users, name="oneroster-users"),  # rbac-allow: OneRoster bearer-token middleware-auth
     path(
         "oneroster/v1p1/roster-webhook",
         oneroster_roster_webhook,

@@ -556,10 +556,16 @@
   <section class="mkt-edt-section mkt-edt-voices rmc-reveal" aria-labelledby="voices-headline" data-mkt-reveal>
     <div class="mkt-edt-container">
       <header class="mkt-edt-voices__intro">
-        <p class="mkt-edt-eyebrow">{% trans "Voices" %}</p>
+        <p class="mkt-edt-eyebrow">
+          {% trans "Voices" %}
+          <span class="mkt-edt-illustrative-pill" aria-label="{% trans 'Illustrative placeholders' %}">{% trans "Illustrative" %}</span>
+        </p>
         <h2 id="voices-headline" class="mkt-edt-section-headline">
           {% trans "How heads of school describe a Tuesday." %}
         </h2>
+        <p class="mkt-edt-voices__intro-note">
+          {% trans "These are example scenarios for the redesign. We'll replace each card with a named head of school once they've agreed to be quoted publicly." %}
+        </p>
       </header>
 
       <ul class="mkt-edt-voices__grid" data-mkt-reveal-stagger>
@@ -615,9 +621,6 @@
         </li>
       </ul>
 
-      <p class="mkt-edt-voices__note">
-        {% trans "Illustrative voices for the redesign. Real customer quotes — with photos and full names — will replace these as schools agree to be named." %}
-      </p>
     </div>
   </section>
 
@@ -628,7 +631,8 @@
     <div class="mkt-edt-container">
       <p id="press-headline" class="mkt-edt-press__caption">
         {% trans "Covered in school operations conversations everywhere." %}
-        <span>{% trans "Illustrative press marks — real coverage replaces these as it lands." %}</span>
+        <span class="mkt-edt-illustrative-pill" aria-label="{% trans 'Illustrative placeholders' %}">{% trans "Illustrative" %}</span>
+        <span>{% trans "These are placeholder marks for the redesign. Real coverage will replace them as it lands." %}</span>
       </p>
       <ul class="mkt-edt-press__strip" aria-hidden="true">
         <li class="mkt-edt-press__mark">
@@ -681,16 +685,11 @@
           {% comment %} Poster intentionally omitted — the inlined SVG reel
              at .mkt-edt-walkthrough__reel below provides the visual fallback
              until real <source> footage is wired in. {% endcomment %}
-          <video
-            class="mkt-edt-walkthrough__video"
-            preload="none"
-            playsinline
-            muted
-            loop
-            disableremoteplayback>
-            {# Real walkthrough <source> drops in here once footage is ready. #}
-            <source src="" type="video/mp4">
-          </video>
+          {% comment %} <video> + empty <source> intentionally absent — they created an empty
+             <source src=""> request and some browsers logged decode warnings. The
+             inlined SVG reel below is the canonical visual until real walkthrough
+             footage is wired in. Drop a <video> block back in here (with a real
+             <source>) once footage exists. {% endcomment %}
           <div class="mkt-edt-walkthrough__reel">
             {% include "schools/_v2/_decoration_walkthrough_reel.svg.html" %}
           </div>
@@ -808,6 +807,7 @@
             <p class="mkt-edt-plan__line">{% trans "One school, the essentials, ready in days." %}</p>
           </header>
           <div class="mkt-edt-plan__price">
+            <span class="mkt-edt-plan__price-prefix">{% trans "From" %}</span>
             <span class="mkt-edt-plan__price-figure">£3</span>
             <span class="mkt-edt-plan__price-unit">{% trans "/ student / month" %}</span>
           </div>
@@ -828,6 +828,7 @@
             <p class="mkt-edt-plan__line">{% trans "Admissions, fees, comms, workflows — the working school." %}</p>
           </header>
           <div class="mkt-edt-plan__price">
+            <span class="mkt-edt-plan__price-prefix">{% trans "From" %}</span>
             <span class="mkt-edt-plan__price-figure">£6</span>
             <span class="mkt-edt-plan__price-unit">{% trans "/ student / month" %}</span>
           </div>

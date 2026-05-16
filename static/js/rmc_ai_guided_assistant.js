@@ -108,4 +108,6 @@
 
   /* After all deferred partials/cards are in the DOM */
   window.addEventListener("load", scan);
+  /* AI Center picker swaps data-ai-url + clears data-rmc-ai-bound, then fires this. */
+  document.addEventListener("rmc:ai-guided-rebind", scan);
 })();

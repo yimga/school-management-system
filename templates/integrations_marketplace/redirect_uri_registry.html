@@ -1,0 +1,62 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "OAuth redirect URIs" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="h3 mb-2">{% trans "OAuth redirect URIs" %}</h1>
+  <p class="text-muted">
+    {% blocktrans %}Paste each connector's redirect URI into its upstream marketplace console (Zoom App Marketplace, Google Cloud Console, Microsoft Entra ID, Slack Apps, etc.). Then set the client credentials as environment variables and restart the app.{% endblocktrans %}
+  </p>
+  <p class="text-muted small">{% trans "Base URL" %}: <code>{{ base_url }}</code></p>
+
+  <div class="table-responsive">
+    <table class="table rmc-data-table align-middle">
+      <thead>
+        <tr>
+          <th>{% trans "Connector" %}</th>
+          <th>{% trans "Redirect URI" %}</th>
+          <th>{% trans "Client ID env" %}</th>
+          <th>{% trans "Client secret env" %}</th>
+          <th>{% trans "Docs" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="{{ row.connector.brand_mark_class }}" aria-hidden="true"></div>
+                <strong>{{ row.connector.label }}</strong>
+              </div>
+            </td>
+            <td><code class="small">{{ row.redirect_uri }}</code></td>
+            <td>
+              {% if row.has_client_id %}
+                <span class="badge text-bg-success-subtle text-success-emphasis">{% trans "set" %}</span>
+              {% else %}
+                <span class="badge text-bg-warning-subtle text-warning-emphasis">{% trans "not set" %}</span>
+              {% endif %}
+              <code class="small d-block text-muted">{{ row.env_id_var }}</code>
+            </td>
+            <td>
+              {% if row.has_client_secret %}
+                <span class="badge text-bg-success-subtle text-success-emphasis">{% trans "set" %}</span>
+              {% else %}
+                <span class="badge text-bg-warning-subtle text-warning-emphasis">{% trans "not set" %}</span>
+              {% endif %}
+              <code class="small d-block text-muted">{{ row.env_secret_var }}</code>
+            </td>
+            <td>
+              {% if row.connector.documentation_url %}
+                <a href="{{ row.connector.documentation_url }}" target="_blank" rel="noopener" class="small">{% trans "Open docs" %}</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

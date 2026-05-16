@@ -429,14 +429,5 @@
 
 {% block extra_js %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-<script>
-(function() {
-  if (!window.FormDraftSave) return;
-  ['invoice-detail-main-form', 'receipt-upload-form'].forEach(function(id) {
-    var form = document.getElementById(id);
-    if (form) window.FormDraftSave.init(form);
-  });
-})();
-</script>
 <script src="{% static 'js/_pages/finance__invoice_detail.js' %}"></script>
 {% endblock %}

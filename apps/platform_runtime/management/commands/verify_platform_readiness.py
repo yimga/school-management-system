@@ -38,7 +38,9 @@ from django.core.management.base import BaseCommand
 
 # Sections we know how to run. Operators may opt into a subset with
 # --section, e.g. when one preflight has known transient noise.
-SECTIONS: tuple[str, ...] = ("residency", "csp", "rls", "at_risk", "baselines")
+SECTIONS: tuple[str, ...] = (
+    "residency", "csp", "rls", "at_risk", "baselines", "first_school",
+)
 
 
 class Command(BaseCommand):
@@ -75,6 +77,8 @@ class Command(BaseCommand):
             sections["at_risk"] = self._at_risk_section()
         if "baselines" in wanted:
             sections["baselines"] = self._baselines_section()
+        if "first_school" in wanted:
+            sections["first_school"] = self._first_school_section()
 
         overall_ready = all(s.get("ready") for s in sections.values())
         any_invocation_error = any(s.get("error") for s in sections.values())
@@ -183,6 +187,34 @@ class Command(BaseCommand):
                 "artifact_loadable": report.artifact_loadable,
                 "bundle_shape_valid": report.bundle_shape_valid,
                 "bundle_model_version": report.bundle_model_version,
+                "error_detail": report.error_detail,
+            },
+        }
+
+    def _first_school_section(self) -> dict:
+        """Wave 7 (v2.80): at least one tenant must meet the operating minimum.
+
+        Calls ``apps.schools.first_school_readiness.assess_first_school_readiness``
+        and surfaces the count of operating-ready tenants. The platform is not
+        "ready to host a school" if zero tenants pass all minimum-operating
+        criteria.
+        """
+        try:
+            from apps.schools.first_school_readiness import (
+                assess_first_school_readiness,
+            )
+
+            report = assess_first_school_readiness()
+        except (ImportError, RuntimeError) as exc:
+            return {"ready": False, "error": str(exc), "details": {}}
+        return {
+            "ready": report.ready,
+            "issue_count": report.issue_count(),
+            "details": {
+                "schools_total": report.schools_total,
+                "schools_operating_ready": report.schools_operating_ready,
+                "tenants_ready": report.tenants_ready[:20],
+                "tenants_not_ready": report.tenants_not_ready[:20],
                 "error_detail": report.error_detail,
             },
         }

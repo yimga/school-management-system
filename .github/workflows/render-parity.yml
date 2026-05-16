@@ -1,0 +1,49 @@
+# Render parity — compares deployed routes against the local inventory and
+# flags 5xx regressions or missing routes. Closes "render parity partial"
+# from section O of the master prompt.
+#
+# Manual trigger only. Requires:
+#   RMC_DEPLOYED_BASE_URL    e.g. https://gilead-school.staging.runmycampus.com
+# Optional:
+#   RMC_DEPLOYED_AUTH_COOKIE optional session cookie for authenticated probes
+#
+# Without secrets the check skips cleanly so it's safe to land before
+# credentials are configured.
+
+name: render-parity
+
+on:
+  workflow_dispatch:
+    inputs:
+      override_base_url:
+        description: "Override RMC_DEPLOYED_BASE_URL for this run (leave empty to use the secret)"
+        required: false
+        default: ""
+
+defaults:
+  run:
+    working-directory: beta/school-management-system
+
+jobs:
+  parity:
+    name: Probe deployed routes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      RMC_DEPLOYED_BASE_URL: ${{ inputs.override_base_url != '' && inputs.override_base_url || secrets.RMC_DEPLOYED_BASE_URL }}
+      RMC_DEPLOYED_AUTH_COOKIE: ${{ secrets.RMC_DEPLOYED_AUTH_COOKIE }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Announce configuration state
+        run: |
+          if [ -z "$RMC_DEPLOYED_BASE_URL" ]; then
+            echo "RMC_DEPLOYED_BASE_URL not set — parity check will skip cleanly."
+          else
+            echo "Probing $RMC_DEPLOYED_BASE_URL"
+          fi
+      - name: Run render-parity probe
+        run: python scripts/check_render_parity.py

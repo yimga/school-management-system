@@ -74,7 +74,7 @@ urlpatterns = [
         name="notify_guardians_new_invoices",
     ),
     path("trial-balance/", trial_balance, name="trial_balance"),
-    path(
+    path(  # rbac-allow: payment provider webhook — HMAC signature verified inside the view
         "payments/webhook/<str:provider_slug>/",
         payment_provider_webhook,
         name="payment_webhook",

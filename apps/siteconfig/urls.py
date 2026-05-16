@@ -100,6 +100,7 @@ from .views_compliance_exports import (
 )
 from .views_northstar_ai import northstar_ai_draft_api
 from .views_ai_governance import ai_governance
+from .views_ai_center import ai_center
 from .views_billing_plan import billing_plan_readonly
 from .views_billing_stripe import billing_checkout_start, billing_customer_portal
 from .views_tour import tour_steps_api
@@ -185,6 +186,11 @@ urlpatterns = [
         "ai/governance/",
         ai_governance,
         name="ai_governance",
+    ),
+    path(
+        "ai-center/",
+        ai_center,
+        name="ai_center",
     ),
     path("grading-settings/", grading_settings, name="grading_settings"),
     path(

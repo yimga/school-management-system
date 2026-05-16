@@ -22,12 +22,15 @@ from apps.compliance.views_queue import (
     reject_erase,
 )
 from apps.compliance.views_ferpa import ferpa_disclosure_detail
+from apps.compliance.views_data_quality import data_quality_center
 
 app_name = "compliance"
 
 urlpatterns = [
     # Dashboard view
     path("dashboard/", ComplianceDashboardView.as_view(), name="dashboard"),
+    # Wave 5 (v2.76): Data Quality Center — tenant-scoped completeness checks.
+    path("data-quality/", data_quality_center, name="data_quality_center"),
     # Pass 9.C: operator-facing GDPR/FERPA queue with SLA tracking.
     path("data-rights/queue/", data_rights_queue, name="data_rights_queue"),
     # Pass 9.E: single-disclosure detail view for FERPA §99.32 evidence trail.

@@ -71,6 +71,134 @@ def manager_notifications(request):
     return redirect("super:command_center")
 
 
+@require_control_plane_access
+def manager_public_to_product_matrix(request):
+    """Wave 6 (v2.77): operator-facing matrix of public promises vs product delivery.
+
+    Reads from `apps.schools.public_product_promise_matrix.PUBLIC_TO_PRODUCT_PROMISES`
+    and resolves every `public_route_name` + `product_route_name` so the operator
+    can verify each promise still lands somewhere real. Drift here = marketing
+    overshoot.
+    """
+    from django.urls import NoReverseMatch, reverse
+    from apps.schools.public_product_promise_matrix import (
+        all_promises,
+        status_counts,
+    )
+
+    rows = []
+    for promise in all_promises():
+        public_url = None
+        public_resolve_error = None
+        try:
+            public_url = reverse(promise["public_route_name"])
+        except NoReverseMatch as e:
+            public_resolve_error = str(e)
+
+        product_url = None
+        product_resolve_error = None
+        product_name = promise.get("product_route_name")
+        if product_name:
+            try:
+                product_url = reverse(
+                    product_name, kwargs=promise.get("product_route_kwargs") or {}
+                )
+            except NoReverseMatch as e:
+                product_resolve_error = str(e)
+
+        rows.append(
+            {
+                **promise,
+                "public_url": public_url,
+                "public_resolve_error": public_resolve_error,
+                "product_url": product_url,
+                "product_resolve_error": product_resolve_error,
+                "is_broken": bool(
+                    public_resolve_error
+                    or (product_name and product_resolve_error)
+                ),
+            }
+        )
+
+    return render(
+        request,
+        "schools/manager_public_to_product_matrix.html",
+        {
+            "rows": rows,
+            "counts": status_counts(),
+            "broken_count": sum(1 for r in rows if r["is_broken"]),
+        },
+    )
+
+
+@require_control_plane_access
+def manager_feature_gap_register(request):
+    """Operator-facing feature-gap register surface.
+
+    Reads from `apps.schools.feature_gap_register.FEATURE_REGISTER` and resolves
+    each row's proof (route / model / mgmt command / CI gate). Drift here = we
+    are claiming a feature with no working proof.
+    """
+    from django.apps import apps as django_apps
+    from django.urls import NoReverseMatch, reverse
+    from apps.schools.feature_gap_register import features_by_domain
+
+    rows_by_domain = []
+    total = 0
+    shipped = 0
+    broken = 0
+    for domain, features in sorted(features_by_domain().items()):
+        domain_rows = []
+        for f in features:
+            total += 1
+            proof_resolved = False
+            proof_url = None
+            proof_error = None
+            if f.proof_route_name:
+                try:
+                    proof_url = reverse(f.proof_route_name)
+                    proof_resolved = True
+                except NoReverseMatch as e:
+                    proof_error = str(e)
+            elif f.proof_model:
+                try:
+                    app_label, model_name = f.proof_model.split(".", 1)
+                    django_apps.get_model(app_label, model_name)
+                    proof_resolved = True
+                except (LookupError, ValueError) as e:
+                    proof_error = str(e)
+            elif f.proof_ci_gate or f.proof_management_command:
+                proof_resolved = True
+            else:
+                proof_error = "No proof source declared."
+
+            is_broken = f.status == "shipped" and not proof_resolved
+            if f.status == "shipped":
+                shipped += 1
+            if is_broken:
+                broken += 1
+            domain_rows.append(
+                {
+                    **f.to_dict(),
+                    "proof_url": proof_url,
+                    "proof_error": proof_error,
+                    "is_broken": is_broken,
+                }
+            )
+        rows_by_domain.append({"domain": domain, "features": domain_rows})
+
+    return render(
+        request,
+        "schools/manager_feature_gap_register.html",
+        {
+            "rows_by_domain": rows_by_domain,
+            "total": total,
+            "shipped": shipped,
+            "broken": broken,
+        },
+    )
+
+
 def manager_legacy_surface_redirect(request, surface: str, remaining: str = ""):
     del remaining
     destination = (
@@ -378,6 +506,26 @@ urlpatterns = [
     path("support/", manager_support_request, name="manager_support_request"),
     path("feedback/", manager_feedback, name="manager_feedback"),
     path("notifications/", manager_notifications, name="manager_notifications"),
+    path(
+        "public-to-product/",
+        manager_public_to_product_matrix,
+        name="manager_public_to_product_matrix",
+    ),
+    path(
+        "feature-gap-register/",
+        manager_feature_gap_register,
+        name="manager_feature_gap_register",
+    ),
+    path(
+        "feedback-loop/",
+        __import__("config.manager_feedback_loop", fromlist=["manager_feedback_loop"]).manager_feedback_loop,
+        name="manager_feedback_loop",
+    ),
+    path(
+        "lane2-readiness/",
+        __import__("config.manager_lane2_readiness", fromlist=["manager_lane2_readiness"]).manager_lane2_readiness,
+        name="manager_lane2_readiness",
+    ),
     path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
     path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
     path("admin/", platform_admin_site.urls),

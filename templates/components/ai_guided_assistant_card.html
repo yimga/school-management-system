@@ -1,35 +1,26 @@
 {% load i18n static %}
-{# Reusable guided-assistant card; requires api_url, optional studio_mode for Studio OS. #}
-<div
-  class="card border-0 shadow-sm mb-3"
-  data-rmc-ai-guided
-  data-ai-url="{{ api_url }}"
-  {% if studio_mode %}data-studio-mode="{{ studio_mode }}"{% endif %}
+{% comment %}
+  Compact CTA that opens the unified AI Center pre-focused on the right assistant.
+  Replaces the prior in-place chat card. The AI Center is the single canonical
+  chat shell so per-page noise / broken-on-some-roles cards go away.
+
+  Required: card_title. Optional: card_hint, assistant_key (deep-links).
+  Backwards-compat: api_url, studio_mode, field_id are accepted but ignored.
+{% endcomment %}
+{% url 'siteconfig:ai_center' as _rmc_ai_center_url %}
+{% if _rmc_ai_center_url %}
+<a
+  class="card border-0 shadow-sm mb-3 text-decoration-none d-block"
+  href="{{ _rmc_ai_center_url }}{% if assistant_key %}?focus={{ assistant_key }}{% endif %}"
+  data-rmc-ai-center-link
 >
-  <div class="card-header py-2 d-flex align-items-center gap-2">
-    <i class="bi bi-stars text-primary" aria-hidden="true"></i>
-    <span class="fw-semibold small">{{ card_title }}</span>
+  <div class="card-body small d-flex align-items-start gap-3">
+    <i class="bi bi-stars text-primary fs-5 mt-1" aria-hidden="true"></i>
+    <div class="flex-grow-1">
+      <div class="fw-semibold">{{ card_title }}</div>
+      {% if card_hint %}<div class="text-muted mt-1">{{ card_hint }}</div>{% endif %}
+      <div class="text-primary small mt-2">{% trans "Open in AI Center" %} →</div>
+    </div>
   </div>
-  <div class="card-body small">
-    <p class="text-muted mb-2">{{ card_hint }}</p>
-    <label class="form-label visually-hidden" for="{{ field_id }}">{% trans "Question" %}</label>
-    <textarea
-      id="{{ field_id }}"
-      class="form-control form-control-sm mb-2"
-      rows="2"
-      data-rmc-ai-query
-      placeholder="{% trans 'What should we verify or do next?' %}"
-    ></textarea>
-    <button type="button" class="btn btn-primary btn-sm" data-rmc-ai-run>{% trans "Ask assistant" %}</button>
-    {% comment %} Output is hidden until the assistant has run; the consumer script removes
-       the `hidden` attribute on first response so we don't render an empty box. {% endcomment %}
-    <pre
-      class="small bg-light text-dark p-2 mt-2 rounded border mb-0"
-      style="max-height: 16rem; overflow: auto; white-space: pre-wrap;"
-      data-rmc-ai-out
-      aria-live="polite"
-      hidden
-    ></pre>
-  </div>
-</div>
-<script src="{% static 'js/rmc_ai_guided_assistant.js' %}" defer></script>
+</a>
+{% endif %}

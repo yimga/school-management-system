@@ -90,8 +90,7 @@
         {% include "components/ai_json_api_card.html" with api_url=api_mig_suggest card_title=_("Migration mapping suggest (JSON API)") card_hint=_("POST JSON with source_fields and target_fields (or source_sample / target_schema). Use generic column names only; do not paste live PII.") field_id="cpMigMapJson" default_body='{"source_fields":["StudentId","LastName","GradeLevel"],"target_fields":["external_id","family_name","grade_code"]}' %}
       </div>
       <div class="col-lg-6">
-        {% url 'api:ai-trust-compliance-assistant' as api_ai_trust_mig %}
-        {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_trust_mig card_title=_("Trust & compliance (migration context)") card_hint=_("Structured guidance for governed exports, audit posture, and operator checklists. Not legal advice.") field_id="cpMigTrustAiQ" %}
+        {% include "components/ai_guided_assistant_card.html" with assistant_key="trust_compliance_assistant" card_title=_("Trust & compliance (migration context)") card_hint=_("Structured guidance for governed exports, audit posture, and operator checklists. Not legal advice.") %}
       </div>
     </div>
 

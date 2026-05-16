@@ -89,8 +89,7 @@
         {% include "components/ai_json_api_card.html" with api_url=api_mkt_rec card_title=_("Marketplace recommendation (JSON)") card_hint=_('POST {"query":"..."} or {"institution_type":"..."}. Response includes recommendations and rationale (JSON).') field_id="govMktJson" default_body='{"query":"K-12 district prioritizing SIS interoperability and attendance dashboards"}' %}
       </div>
       <div class="col-lg-6">
-        {% url 'api:ai-trust-compliance-assistant' as api_ai_trust_gov %}
-        {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_trust_gov card_title=_("Trust & compliance assistant") card_hint=_("Listing review, security reviews, and obligations — advisory only; not legal advice.") field_id="govTrustAiQ" %}
+        {% include "components/ai_guided_assistant_card.html" with assistant_key="trust_compliance_assistant" card_title=_("Trust & compliance assistant") card_hint=_("Listing review, security reviews, and obligations — advisory only; not legal advice.") %}
       </div>
     </div>
   </details>

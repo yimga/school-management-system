@@ -7,5 +7,10 @@
 {% endblock %}
 
 {% block studio_canvas %}
-{% include "studio_os/partials/automation_mode_canvas.html" %}
+<section data-page-archetype="studio-os-automation" aria-labelledby="studio-automation-hero">
+  <div id="studio-automation-hero">
+    {% include "studio_os/partials/_mode_hero.html" with mode_label=_("Automation") mode_purpose=_("Workflows, triggers, simulations, and conflict detection. Preview before publishing; rollback is one click.") primary_cta_url=automation_workflow_center_pane_url primary_cta_label=_("Workflow center") secondary_cta_url=automation_simulation_pane_url secondary_cta_label=_("Simulation engine") %}
+  </div>
+  {% include "studio_os/partials/automation_mode_canvas.html" %}
+</section>
 {% endblock %}

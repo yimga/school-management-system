@@ -22,6 +22,8 @@ from .views import (
     user_documentation,
     user_messages,
     user_notifications,
+    mark_all_notifications_read,
+    notification_preferences,
     user_profile,
 )
 from .views_migration import (
@@ -143,8 +145,8 @@ except ImportError:
 app_name = "accounts"
 
 urlpatterns = [
-    path("", auth_root_redirect, name="root"),
-    path("login/", login_view, name="login"),
+    path("", auth_root_redirect, name="root"),  # rbac-allow: pre-auth dispatcher
+    path("login/", login_view, name="login"),  # rbac-allow: login page must be anonymous-reachable
     path("logout/", logout_view, name="logout"),
     path("impersonate/", impersonate_entry, name="impersonate_entry"),
     path("end-impersonation/", end_impersonation, name="end_impersonation"),
@@ -180,6 +182,16 @@ urlpatterns = [
         name="password_change_done",
     ),
     path("notifications/", user_notifications, name="user_notifications"),
+    path(
+        "notifications/mark-all-read/",
+        mark_all_notifications_read,
+        name="mark_all_notifications_read",
+    ),
+    path(
+        "notifications/preferences/",
+        notification_preferences,
+        name="notification_preferences",
+    ),
     path("messages/", user_messages, name="user_messages"),
     path("messages/direct/compose/", direct_compose, name="direct_compose"),
     path("messages/direct/<int:user_id>/", direct_thread, name="direct_thread"),
@@ -435,12 +447,12 @@ urlpatterns = [
         sessions_revoke,
         name="sessions_revoke",
     ),
-    path("oidc/start/<str:integration_ref>/", oidc_start, name="oidc_start"),
-    path("oidc/callback/<int:integration_id>/", oidc_callback, name="oidc_callback"),
-    path("oidc/logout/<int:integration_id>/", oidc_logout, name="oidc_logout"),
-    path("saml/start/<str:integration_ref>/", saml_start, name="saml_start"),
-    path("saml/acs/<int:integration_id>/", saml_acs, name="saml_acs"),
-    path("saml/metadata/<int:integration_id>/", saml_metadata, name="saml_metadata"),
+    path("oidc/start/<str:integration_ref>/", oidc_start, name="oidc_start"),  # rbac-allow: pre-auth OIDC kickoff (user not logged in yet)
+    path("oidc/callback/<int:integration_id>/", oidc_callback, name="oidc_callback"),  # rbac-allow: pre-auth OIDC callback (state-token auth)
+    path("oidc/logout/<int:integration_id>/", oidc_logout, name="oidc_logout"),  # rbac-allow: post-logout OIDC redirect
+    path("saml/start/<str:integration_ref>/", saml_start, name="saml_start"),  # rbac-allow: pre-auth SAML kickoff (user not logged in yet)
+    path("saml/acs/<int:integration_id>/", saml_acs, name="saml_acs"),  # rbac-allow: pre-auth SAML assertion-consumer (signature-verified by view)
+    path("saml/metadata/<int:integration_id>/", saml_metadata, name="saml_metadata"),  # rbac-allow: SAML metadata XML must be publicly fetchable
     # Backend UI for People Management
     path("backend/students/", backend_student_list, name="backend_student_list")
     if BACKEND_PEOPLE_AVAILABLE

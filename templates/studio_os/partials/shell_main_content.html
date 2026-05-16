@@ -25,8 +25,7 @@
     </div>
   </div>
 
-  {% url 'api:ai-studio-os-assistant' as api_studio_ai %}
-  {% include "components/ai_guided_assistant_card.html" with api_url=api_studio_ai card_title=_("Studio guided assistant") card_hint=_("Suggests next steps across Experience, Automation, Outputs, Launch, and Control. Publishing still requires explicit preview and human confirmation.") studio_mode=current_mode|default:"" field_id="studioOsAiQ" %}
+  {% include "components/ai_guided_assistant_card.html" with assistant_key="studio_os_assistant" card_title=_("Studio guided assistant") card_hint=_("Suggests next steps across Experience, Automation, Outputs, Launch, and Control. Publishing still requires explicit preview and human confirmation.") %}
 
   <div class="studio-os">
     <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}" role="navigation">

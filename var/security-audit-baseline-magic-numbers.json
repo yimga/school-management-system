@@ -97,7 +97,7 @@
   "excluded_path_fragments": [
     "management/commands/"
   ],
-  "finding_count": 493,
+  "finding_count": 496,
   "findings": [
     {
       "line": 120,
@@ -848,6 +848,24 @@
       "path": "apps/finance/views_payments.py",
       "snippet": ").strip()[:160]",
       "value": 160
+    },
+    {
+      "line": 59,
+      "path": "apps/integrations_marketplace/oauth.py",
+      "snippet": "_STATE_MAX_AGE_SECONDS = 600  # 10 minutes",
+      "value": 600
+    },
+    {
+      "line": 54,
+      "path": "apps/integrations_marketplace/token_refresh.py",
+      "snippet": "REFRESH_WINDOW_SECONDS = 600         # refresh tokens that expire in <10 min",
+      "value": 600
+    },
+    {
+      "line": 55,
+      "path": "apps/integrations_marketplace/token_refresh.py",
+      "snippet": "DEFAULT_LIFETIME_SECONDS = 3600      # assume 1h when upstream returns no expires_in",
+      "value": 3600
     },
     {
       "line": 120,
@@ -3058,7 +3076,7 @@
       "value": 1500
     }
   ],
-  "generated_at": "2026-05-16T01:23:53+00:00",
+  "generated_at": "2026-05-16T13:09:25+00:00",
   "rule": "Integer literals with abs(value) >= 100 in production code should route through the 7-layer configurability contract (RuntimeDefaults / constants.py / SiteSettings)",
   "scan_dirs": [
     "apps",

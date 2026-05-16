@@ -1,0 +1,101 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Public-to-Product Promise Matrix" %}{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4" data-rmc-page="public-to-product-matrix">
+  <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Public-to-Product Promise Matrix" %}</h1>
+      <p class="text-tertiary mb-0">
+        {% trans "Every public promise should land at a real product route. Drift here is marketing overshoot." %}
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <span class="badge text-bg-success">
+        {% blocktrans count counter=counts.shipped %}{{ counter }} shipped{% plural %}{{ counter }} shipped{% endblocktrans %}
+      </span>
+      <span class="badge text-bg-warning text-dark">
+        {% blocktrans count counter=counts.in-flight %}{{ counter }} in flight{% plural %}{{ counter }} in flight{% endblocktrans %}
+      </span>
+      <span class="badge text-bg-secondary">
+        {% blocktrans count counter=counts.planned %}{{ counter }} planned{% plural %}{{ counter }} planned{% endblocktrans %}
+      </span>
+      {% if broken_count %}
+      <span class="badge text-bg-danger">
+        {% blocktrans count counter=broken_count %}{{ counter }} broken{% plural %}{{ counter }} broken{% endblocktrans %}
+      </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Promise" %}</th>
+          <th scope="col">{% trans "Public route" %}</th>
+          <th scope="col">{% trans "Product delivery" %}</th>
+          <th scope="col">{% trans "Status" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr {% if row.is_broken %}class="table-danger"{% endif %}>
+            <td>
+              <div class="fw-medium">{{ row.promise }}</div>
+              {% if row.notes %}<div class="small text-tertiary">{{ row.notes }}</div>{% endif %}
+            </td>
+            <td>
+              {% if row.public_url %}
+                <a href="{{ row.public_url }}" target="_blank" rel="noopener">
+                  <code class="small">{{ row.public_route_name }}</code>
+                  <i class="bi bi-box-arrow-up-right small ms-1" aria-hidden="true"></i>
+                </a>
+              {% else %}
+                <code class="small text-danger">{{ row.public_route_name }}</code>
+                {% if row.public_resolve_error %}
+                  <div class="small text-danger">{{ row.public_resolve_error }}</div>
+                {% endif %}
+              {% endif %}
+            </td>
+            <td>
+              {% if row.product_route_name %}
+                {% if row.product_url %}
+                  <a href="{{ row.product_url }}">
+                    <code class="small">{{ row.product_route_name }}</code>
+                  </a>
+                {% else %}
+                  <code class="small text-danger">{{ row.product_route_name }}</code>
+                  {% if row.product_resolve_error %}
+                    <div class="small text-danger">{{ row.product_resolve_error }}</div>
+                  {% endif %}
+                {% endif %}
+              {% else %}
+                <span class="text-tertiary small">{% trans "static (no product route)" %}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if row.status == 'shipped' %}
+                <span class="badge text-bg-success">{% trans "Shipped" %}</span>
+              {% elif row.status == 'in-flight' %}
+                <span class="badge text-bg-warning text-dark">{% trans "In flight" %}</span>
+              {% else %}
+                <span class="badge text-bg-secondary">{% trans "Planned" %}</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if not broken_count %}
+    <p class="small text-muted mt-3" role="status">
+      <i class="bi bi-shield-check me-1" aria-hidden="true"></i>
+      {% trans "All shipped promises resolve to real routes. Marketing and product are aligned." %}
+    </p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -147,10 +147,8 @@
     </div>
   </div>
 
-  {% url 'api:ai-interop-assistant' as api_ai_interop %}
-  {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_interop card_title=_("Interop guided assistant") card_hint=_("Structured guidance for OneRoster, LTI, SSO discovery, and native vendor flows. Never paste API secrets here.") field_id="distInteropAiQ" %}
-  {% url 'api:ai-runtime-config-explain' as api_ai_rt %}
-  {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_rt card_title=_("Runtime & feature flags") card_hint=_("Explains effective configuration using non-secret context from this school when available.") field_id="distRuntimeAiQ" %}
+  {% include "components/ai_guided_assistant_card.html" with assistant_key="report_comment_assistant" card_title=_("Interop guided assistant") card_hint=_("Structured guidance for OneRoster, LTI, SSO discovery, and native vendor flows. Never paste API secrets here.") %}
+  {% include "components/ai_guided_assistant_card.html" with assistant_key="config_copilot" card_title=_("Runtime & feature flags") card_hint=_("Explains effective configuration using non-secret context from this school when available.") %}
 
   <div class="card border-0 shadow-sm mb-3">
     <div class="card-header fw-semibold">{% trans "Security: webhooks, IP allowlist, scopes, export profile" %}</div>

@@ -1,0 +1,89 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Data Quality Center" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-rmc-page="data-quality-center" data-page-archetype="operator-report">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Data Quality Center" %}</h1>
+      <p class="text-tertiary mb-0">
+        {% if counts.total %}
+          {% blocktrans count counter=counts.total %}{{ counter }} issue found across {{ school }}{% plural %}{{ counter }} issues found across {{ school }}{% endblocktrans %}
+        {% else %}
+          {% trans "No completeness or reachability issues detected. Data looks clean." %}
+        {% endif %}
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary" href="{% url 'siteconfig:onboarding' %}">
+        <i class="bi bi-list-check me-1"></i>{% trans "Activation checklist" %}
+      </a>
+      <a class="btn btn-outline-primary" href="{% url 'feedback:help_center' %}">
+        <i class="bi bi-life-preserver me-1"></i>{% trans "Help Center" %}
+      </a>
+    </div>
+  </div>
+
+  {# Severity counters — Apple Mail-style filter pill row #}
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-3" role="group" aria-label="{% trans 'Severity summary' %}">
+    <span class="badge text-bg-danger">
+      {% blocktrans count counter=counts.blocker %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}
+    </span>
+    <span class="badge text-bg-warning text-dark">
+      {% blocktrans count counter=counts.warning %}{{ counter }} warning{% plural %}{{ counter }} warnings{% endblocktrans %}
+    </span>
+    <span class="badge text-bg-info text-dark">
+      {% blocktrans count counter=counts.info %}{{ counter }} info{% plural %}{{ counter }} info{% endblocktrans %}
+    </span>
+  </div>
+
+  {% if counts.total %}
+    <div class="rmc-inbox" data-rmc-inbox="data-quality">
+      {% for issue in issues %}
+        <section class="rmc-inbox__group" data-severity="{{ issue.severity }}">
+          <article class="rmc-inbox__item card shadow-sm mb-3" data-issue-key="{{ issue.key }}">
+            <div class="card-body">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                <h2 class="h5 mb-0">
+                  {% if issue.severity == 'blocker' %}
+                    <i class="bi bi-exclamation-triangle-fill text-danger me-1" aria-hidden="true"></i>
+                  {% elif issue.severity == 'warning' %}
+                    <i class="bi bi-exclamation-circle-fill text-warning me-1" aria-hidden="true"></i>
+                  {% else %}
+                    <i class="bi bi-info-circle-fill text-info me-1" aria-hidden="true"></i>
+                  {% endif %}
+                  {{ issue.title }}
+                </h2>
+                <span class="badge text-bg-light">
+                  {% blocktrans count counter=issue.record_count %}{{ counter }} record{% plural %}{{ counter }} records{% endblocktrans %}
+                </span>
+              </div>
+              <p class="mb-2">{{ issue.description }}</p>
+              {% if issue.fix_hint %}
+                <p class="small text-muted mb-2">
+                  <i class="bi bi-lightbulb me-1" aria-hidden="true"></i>
+                  <strong>{% trans "How to fix:" %}</strong> {{ issue.fix_hint }}
+                </p>
+              {% endif %}
+              {% if issue.record_sample_ids %}
+                <details class="small">
+                  <summary class="text-muted">{% blocktrans count counter=issue.record_sample_ids|length %}First {{ counter }} affected ID{% plural %}First {{ counter }} affected IDs{% endblocktrans %}</summary>
+                  <code class="d-block mt-2">{{ issue.record_sample_ids|join:", " }}</code>
+                </details>
+              {% endif %}
+            </div>
+          </article>
+        </section>
+      {% endfor %}
+    </div>
+  {% else %}
+    {% include "components/rmc_empty_state.html" with
+       icon="bi-shield-check"
+       title=_("Data is clean")|stringformat:"s"
+       message=_("Every registered completeness and reachability check passed for this tenant. Re-run after the next import to confirm.")|stringformat:"s"
+    %}
+  {% endif %}
+</div>
+{% endblock %}

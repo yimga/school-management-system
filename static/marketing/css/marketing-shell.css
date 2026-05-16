@@ -142,11 +142,11 @@ body.marketing-surface,
   overflow-y: auto;
 }
 .mkt-navbar .mkt-mega-menu .mkt-mega-col-title {
-  font-size: 0.68rem;
+  font-size: 0.8125rem; /* Phase 0: was 0.68rem (~11px); too small for nav labels. WCAG-AA floor. */
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(248, 250, 252, 0.55);
+  color: rgba(248, 250, 252, 0.78); /* Phase 0: was 0.55 alpha; raised for contrast ratio against dark nav background. */
   margin-bottom: 0.65rem;
 }
 .mkt-navbar .mkt-mega-menu .mkt-mega-link {
@@ -168,10 +168,10 @@ body.marketing-surface,
 }
 .mkt-navbar .mkt-mega-menu .mkt-mega-link .mkt-mega-blurb {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.875rem; /* Phase 0: was 0.8rem (~12.8px); raised to 14px floor for nav copy. */
   font-weight: 400;
-  line-height: 1.35;
-  color: rgba(248, 250, 252, 0.62);
+  line-height: 1.45;
+  color: rgba(248, 250, 252, 0.78); /* Phase 0: was 0.62 alpha; raised for contrast against dark nav surface. */
   margin-top: 0.2rem;
 }
 /* Full-width mega panels: static positioning on the LI so the menu can span the bar. */
@@ -521,7 +521,7 @@ body.marketing-surface .btn.btn-outline-primary:hover {
   font-size: 0.9rem;
 }
 .compare-table th {
-  font-size: 0.76rem;
+  font-size: 0.8125rem; /* Phase 0: was 0.76rem (~12.16px); raised to 13px legibility floor for table headers. */
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--mkt-text-muted);

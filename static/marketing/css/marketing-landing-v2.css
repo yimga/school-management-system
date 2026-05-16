@@ -1327,7 +1327,29 @@ body[data-mkt-edition="editorial"] main {
   flex-direction: column;
   gap: var(--mkt-edt-space-1);
   margin-bottom: var(--mkt-edt-space-4);
-  max-width: 38rem;
+  max-width: 42rem;
+}
+[data-mkt-edition="editorial"] .mkt-edt-voices__intro-note {
+  margin: 0.5rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--mkt-edt-ink-subtle, #6B7280);
+  max-width: 36rem;
+}
+[data-mkt-edition="editorial"] .mkt-edt-illustrative-pill {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.55rem;
+  font-family: var(--mkt-edt-font-body, "Inter", system-ui, sans-serif);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #92400E;
+  background: #FEF3C7;
+  border: 1px solid #FCD34D;
+  border-radius: 9999px;
+  vertical-align: middle;
 }
 [data-mkt-edition="editorial"] .mkt-edt-voices__grid {
   list-style: none;
@@ -1733,6 +1755,16 @@ body[data-mkt-edition="editorial"] main {
   padding-bottom: var(--mkt-edt-space-3);
   border-bottom: 1px solid var(--mkt-edt-rule);
 }
+[data-mkt-edition="editorial"] .mkt-edt-plan__price-prefix {
+  font-family: var(--mkt-edt-font-body, "Inter", system-ui, sans-serif);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mkt-edt-ink-subtle, #6B7280);
+  margin-right: 0.35rem;
+  align-self: center;
+}
 [data-mkt-edition="editorial"] .mkt-edt-plan__price-figure {
   font-family: var(--mkt-edt-font-display);
   font-optical-sizing: auto;
@@ -2007,4 +2039,45 @@ body[data-mkt-edition="editorial"] main {
 }
 [data-mkt-edition="editorial"] .mkt-bento__cell--ink .mkt-bento__cta { color: color-mix(in oklab, var(--mkt-edt-accent, #C2410C) 30%, var(--mkt-edt-bg, #FAF7F2)); }
 [data-mkt-edition="editorial"] .mkt-bento__cell--ink .mkt-bento__cta:hover { color: var(--mkt-edt-bg, #FAF7F2); }
+
+/* ============================================================
+   60-second walkthrough reel — auto-cycling SVG scenes.
+   Source: templates/schools/_v2/_decoration_walkthrough_reel.svg.html
+   Previously the rules lived only in static/css/phase2-base-bundle.css,
+   which the marketing surface does not load, so every scene rendered
+   simultaneously and the text stacked. Co-located here so the marketing
+   surface actually receives them.
+   ============================================================ */
+[data-mkt-edition="editorial"] .reel-scene {
+  opacity: 0;
+  animation: reelCycle 25s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+[data-mkt-edition="editorial"] .reel-scene--1 { animation-delay:  0s; }
+[data-mkt-edition="editorial"] .reel-scene--2 { animation-delay:  5s; }
+[data-mkt-edition="editorial"] .reel-scene--3 { animation-delay: 10s; }
+[data-mkt-edition="editorial"] .reel-scene--4 { animation-delay: 15s; }
+[data-mkt-edition="editorial"] .reel-scene--5 { animation-delay: 20s; }
+
+@keyframes reelCycle {
+  0%   { opacity: 0; transform: translate3d(0, 12px, 0); }
+  4%   { opacity: 1; transform: none; }
+  20%  { opacity: 1; transform: none; }
+  24%  { opacity: 0; transform: translate3d(0, -12px, 0); }
+  100% { opacity: 0; transform: translate3d(0, 12px, 0); }
+}
+
+[data-mkt-edition="editorial"] .reel-progress {
+  transform-origin: left center;
+  animation: reelProgress 25s linear infinite;
+}
+@keyframes reelProgress {
+  0%   { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt-edition="editorial"] .reel-scene { animation: none; opacity: 1; }
+  [data-mkt-edition="editorial"] .reel-scene:not(.reel-scene--1) { display: none; }
+  [data-mkt-edition="editorial"] .reel-progress { animation: none; transform: none; }
+}
 

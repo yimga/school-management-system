@@ -1,0 +1,128 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "AI Center" %}{% endblock %}
+
+{% block content %}
+<main id="main" class="container py-3" data-page-archetype="ai-center" data-shell-surface="ai-center" style="max-width: 64rem;">
+  <header class="mb-3">
+    <h1 class="h3 mb-1">{% trans "AI Center" %}</h1>
+    <p class="text-muted small mb-0">
+      {% trans "Every governed AI assistant in one place. Pick a domain on the left; ask on the right. All requests route through the same audited gateway." %}
+      {% if ai_governance_url %}
+        <a href="{{ ai_governance_url }}" class="ms-1">{% trans "Governance settings" %} →</a>
+      {% endif %}
+    </p>
+  </header>
+
+  {% if provider_status %}
+  <div class="alert alert-light border d-flex align-items-center gap-3 py-2 mb-3" role="status" aria-live="polite">
+    <span class="badge text-bg-{% if provider_status.has_live_provider %}success{% else %}secondary{% endif %}">
+      {% if provider_status.has_live_provider %}{% trans "Live provider ready" %}{% else %}{% trans "Rules fallback only" %}{% endif %}
+    </span>
+    <small class="text-muted mb-0">
+      {% trans "Preference order" %}: <code>{{ provider_status.preference|join:", " }}</code>
+      {% if provider_status.rules_fallback_enabled %}· {% trans "Fallback enabled" %}{% endif %}
+    </small>
+  </div>
+  {% endif %}
+
+  <div class="row g-3" data-rmc-ai-center>
+    <aside class="col-lg-4" aria-label="{% trans 'Pick an assistant' %}">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light py-2 fw-semibold small">{% trans "Assistants" %}</div>
+        <div class="list-group list-group-flush" role="tablist">
+          {% for a in assistants %}
+            <button
+              type="button"
+              class="list-group-item list-group-item-action d-flex flex-column align-items-start py-2"
+              role="tab"
+              aria-selected="{% if default_assistant and a.assistant_key == default_assistant.assistant_key %}true{% else %}false{% endif %}"
+              data-rmc-ai-center-pick
+              data-assistant-key="{{ a.assistant_key }}"
+              data-api-url="{{ a.api_url|default:'' }}"
+              data-label="{{ a.label }}"
+              data-hint="{{ a.hint|default:'' }}"
+              {% if a.studio_mode %}data-studio-mode="{{ a.studio_mode }}"{% endif %}
+              {% if not a.is_ready %}disabled aria-disabled="true"{% endif %}
+            >
+              <span class="fw-semibold small d-flex align-items-center gap-2">
+                <i class="bi bi-stars text-primary" aria-hidden="true"></i>
+                {{ a.label }}
+              </span>
+              <span class="text-muted small mt-1">{{ a.domain }}</span>
+              {% if not a.is_ready %}
+                <span class="badge text-bg-secondary mt-1">
+                  {% if not a.api_url %}{% trans "No backend bound" %}{% else %}{% trans "Permission required" %}{% endif %}
+                </span>
+              {% endif %}
+            </button>
+          {% endfor %}
+        </div>
+      </div>
+    </aside>
+
+    <section class="col-lg-8" aria-labelledby="ai-center-active-label">
+      <div class="card border-0 shadow-sm" data-rmc-ai-center-panel>
+        <div class="card-header d-flex align-items-center gap-2 py-2">
+          <i class="bi bi-stars text-primary" aria-hidden="true"></i>
+          <span class="fw-semibold small" id="ai-center-active-label" data-rmc-ai-center-label>
+            {% if default_assistant %}{{ default_assistant.label }}{% else %}{% trans "Pick an assistant" %}{% endif %}
+          </span>
+        </div>
+        <div class="card-body small">
+          <p class="text-muted mb-2" data-rmc-ai-center-hint>
+            {% if default_assistant %}{{ default_assistant.hint }}{% else %}{% trans "Choose an assistant on the left to begin." %}{% endif %}
+          </p>
+
+          <form
+            class="mb-2"
+            data-rmc-ai-guided
+            data-ai-url="{{ default_assistant.api_url|default:'' }}"
+            {% if default_assistant.studio_mode %}data-studio-mode="{{ default_assistant.studio_mode }}"{% endif %}
+            onsubmit="return false"
+          >
+            <label class="form-label visually-hidden" for="aiCenterQuery">{% trans "Question" %}</label>
+            <textarea
+              id="aiCenterQuery"
+              class="form-control form-control-sm mb-2"
+              rows="3"
+              data-rmc-ai-query
+              placeholder="{% trans 'What should we verify or do next?' %}"
+            ></textarea>
+            <div class="d-flex align-items-center gap-2">
+              <button type="button" class="btn btn-primary btn-sm" data-rmc-ai-run>
+                {% trans "Ask assistant" %}
+              </button>
+              <span class="text-muted small">
+                {% trans "Operator drafts only; do not paste secrets, payment data, or PII." %}
+              </span>
+            </div>
+            <pre
+              class="small bg-light text-dark p-2 mt-2 rounded border mb-0"
+              style="max-height: 24rem; overflow: auto; white-space: pre-wrap;"
+              data-rmc-ai-out
+              aria-live="polite"
+              hidden
+            ></pre>
+          </form>
+
+          {% if default_assistant.entry_urls %}
+          <div class="border-top pt-2 mt-2">
+            <p class="text-muted small mb-1">{% trans "Surfaces where this assistant is most useful:" %}</p>
+            <ul class="small mb-0">
+              {% for eu in default_assistant.entry_urls %}
+                <li><a href="{{ eu.url }}">{{ eu.name }}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="{% static 'js/rmc_ai_guided_assistant.js' %}" defer></script>
+<script src="{% static 'js/_pages/siteconfig__ai_center.js' %}" defer></script>
+{% endblock %}

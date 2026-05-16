@@ -2,6 +2,13 @@
 Phase 7 Task 8: Third-Party Integrations (WhatsApp, Zoom, Communication)
 
 §2.4: Broad except replaced with typed exception tuples and structured logging.
+
+Wave v2.76 (2026-05-16) — `WhatsAppIntegration(school=...)` and
+`ZoomIntegration(school=...)` now resolve credentials through the v2.72
+connector cascade (campus → school → parent_school chain → env). The legacy
+"read from `django.conf.settings`" path remains as a final fallback so
+`CommunicationService()` (called without a tenant) keeps working in non-tenant
+contexts (Celery beat, management commands, control-plane).
 """
 
 from __future__ import annotations
@@ -11,6 +18,28 @@ import logging
 from json import JSONDecodeError
 
 from django.conf import settings
+
+
+def _resolve_connector_config_safe(connector_slug, *, school):
+    """Import-safely call the resolver; returns dict-like or empty dict.
+
+    Wrapped because `apps.communication.integrations` may import during the
+    Django app-config phase, before `apps.integrations_marketplace` is ready.
+    """
+    if school is None:
+        return {}
+    try:
+        from apps.integrations_marketplace.resolver import resolve_connector_config
+
+        resolved = resolve_connector_config(connector_slug, school=school)
+        if resolved and resolved.is_configured and resolved.is_active:
+            return dict(resolved.config or {})
+    except Exception:  # noqa: BLE001 — never let resolver-side faults break sends
+        logger.exception(
+            "Connector cascade lookup failed for %s; falling back to global settings.",
+            connector_slug,
+        )
+    return {}
 
 logger = logging.getLogger(__name__)
 
@@ -54,12 +83,28 @@ class IntegrationService(ABC):
 
 
 class WhatsAppIntegration(IntegrationService):
-    """WhatsApp Business API integration."""
+    """WhatsApp Business API integration.
 
-    def __init__(self):
-        self.api_token = settings.WHATSAPP_API_TOKEN
-        self.api_url = settings.WHATSAPP_API_URL
-        self.phone_number = settings.WHATSAPP_BUSINESS_NUMBER
+    Wave v2.76: prefers per-tenant config from the connector cascade when a
+    `school=` is passed; falls back to the global `settings.WHATSAPP_*` values
+    (the historical behaviour).
+    """
+
+    def __init__(self, school=None):
+        cfg = _resolve_connector_config_safe("whatsapp", school=school)
+        self.api_token = (
+            cfg.get("access_token") or cfg.get("api_token")
+            or getattr(settings, "WHATSAPP_API_TOKEN", "")
+        )
+        self.api_url = (
+            cfg.get("api_url") or cfg.get("endpoint_url")
+            or getattr(settings, "WHATSAPP_API_URL", "")
+        )
+        self.phone_number = (
+            cfg.get("phone_number_id") or cfg.get("phone_number")
+            or getattr(settings, "WHATSAPP_BUSINESS_NUMBER", "")
+        )
+        self._school = school
 
     def send_message(self, recipient, message, template=None, **kwargs):
         """
@@ -182,15 +227,30 @@ class WhatsAppIntegration(IntegrationService):
 
 
 class ZoomIntegration(IntegrationService):
-    """Zoom meeting integration."""
+    """Zoom meeting integration.
 
-    def __init__(self):
-        self.api_key = settings.ZOOM_API_KEY
-        self.api_secret = settings.ZOOM_API_SECRET
+    Wave v2.76: prefers per-tenant OAuth token from the v2.72 connector cascade
+    when a `school=` is passed (uses `access_token` directly — Zoom OAuth flows
+    through the hub at /integrations/connect/zoom/). Falls back to the legacy
+    JWT-from-settings flow for non-tenant contexts.
+    """
+
+    def __init__(self, school=None):
+        cfg = _resolve_connector_config_safe("zoom", school=school)
+        self._school = school
+        # v2.72 OAuth path: per-tenant access_token (refreshed by the worker).
+        self._access_token = (cfg.get("access_token") or "").strip()
+        # Legacy JWT path (kept for backwards compat / non-tenant callers).
+        self.api_key = cfg.get("api_key") or getattr(settings, "ZOOM_API_KEY", "")
+        self.api_secret = (
+            cfg.get("api_secret") or getattr(settings, "ZOOM_API_SECRET", "")
+        )
         self.api_url = "https://api.zoom.us/v2"
 
     def get_token(self):
-        """Return a short-lived JWT for Zoom API calls (create_meeting, check_health, etc.)."""
+        """Return an OAuth bearer (v2.72 cascade) or short-lived JWT (legacy)."""
+        if self._access_token:
+            return self._access_token
         import jwt
         from datetime import datetime, timedelta
 
@@ -327,11 +387,18 @@ class ZoomIntegration(IntegrationService):
 
 
 class CommunicationService:
-    """Central service for managing all communications."""
+    """Central service for managing all communications.
 
-    def __init__(self):
-        self.whatsapp = WhatsAppIntegration()
-        self.zoom = ZoomIntegration()
+    Wave v2.76: accepts an optional `school` so each provider resolves through
+    the per-tenant cascade. Callers in app code should always pass `school=`;
+    legacy/global callers (Celery beat, mgmt cmds, control-plane) can omit it
+    and the legacy global-settings fallback kicks in.
+    """
+
+    def __init__(self, school=None):
+        self.school = school
+        self.whatsapp = WhatsAppIntegration(school=school)
+        self.zoom = ZoomIntegration(school=school)
         self.providers = {
             "whatsapp": self.whatsapp,
             "zoom": self.zoom,

@@ -19,8 +19,7 @@
 
   <div class="row g-3 mb-4">
     <div class="col-lg-6">
-      {% url 'api:ai-billing-usage-explain' as api_ai_bill_dash %}
-      {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_bill_dash card_title=_("Billing & usage explainer") card_hint=_("SKUs, entitlements, and usage concepts. Do not paste payment card or bank data.") field_id="billDashAiQ" %}
+      {% include "components/ai_guided_assistant_card.html" with assistant_key="billing_usage_explain" card_title=_("Billing & usage explainer") card_hint=_("SKUs, entitlements, and usage concepts. Do not paste payment card or bank data.") %}
     </div>
     <div class="col-lg-6">
       {% url 'api:ai-data-quality-assistant' as api_ai_dq %}

@@ -1,0 +1,28 @@
+{% load i18n %}
+{% comment %}
+  Shared mode-hero used by Launch, Experience, Automation, Output, Control.
+  Adds consistent grammar: one-line purpose, primary affordance, optional health pill.
+
+  Required: mode_label, mode_purpose. Optional: primary_cta_url + primary_cta_label,
+  secondary_cta_url + secondary_cta_label, mode_health_label (string),
+  mode_health_status (`ok` | `warn` | `bad`).
+{% endcomment %}
+<header class="mb-3 d-flex flex-wrap align-items-end justify-content-between gap-2">
+  <div>
+    <h2 class="h5 mb-1">{{ mode_label }}</h2>
+    <p class="small text-muted mb-0">{{ mode_purpose }}</p>
+  </div>
+  <div class="d-flex flex-wrap align-items-center gap-2">
+    {% if mode_health_label %}
+      <span class="badge text-bg-{% if mode_health_status == 'ok' %}success{% elif mode_health_status == 'warn' %}warning text-dark{% elif mode_health_status == 'bad' %}danger{% else %}secondary{% endif %} align-self-center">
+        {{ mode_health_label }}
+      </span>
+    {% endif %}
+    {% if secondary_cta_url and secondary_cta_label %}
+      <a class="btn btn-sm btn-outline-secondary" href="{{ secondary_cta_url }}">{{ secondary_cta_label }}</a>
+    {% endif %}
+    {% if primary_cta_url and primary_cta_label %}
+      <a class="btn btn-sm btn-primary" href="{{ primary_cta_url }}">{{ primary_cta_label }}</a>
+    {% endif %}
+  </div>
+</header>

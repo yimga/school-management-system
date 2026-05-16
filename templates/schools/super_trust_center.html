@@ -29,8 +29,7 @@
   {% include "schools/partials/beachhead_operator_checklist.html" %}
   <div class="row g-3 mb-3">
     <div class="col-lg-6">
-      {% url 'api:ai-trust-compliance-assistant' as api_ai_trust_cp %}
-      {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_trust_cp card_title=_("Trust & compliance guided assistant") card_hint=_("MFA, audit export, API governance — high-level operator guidance. Not legal advice.") field_id="trustCenterAiQ" %}
+      {% include "components/ai_guided_assistant_card.html" with assistant_key="trust_compliance_assistant" card_title=_("Trust & compliance guided assistant") card_hint=_("MFA, audit export, API governance — high-level operator guidance. Not legal advice.") %}
     </div>
     <div class="col-lg-6">
       {% url 'api:ai-policy-explain' as api_policy_explain %}

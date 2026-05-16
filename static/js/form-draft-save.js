@@ -427,4 +427,20 @@
     syncPendingSubmissions: syncPendingSubmissions,
     showUnsyncedBannerIfAny: showUnsyncedBannerIfAny
   };
+
+  // CSP-clean auto-init: any form that opts in via data-draft-key picks up
+  // draft-save automatically, so per-page <script> shims are not required.
+  // Templates that previously did `FormDraftSave.init(document.getElementById(...))`
+  // can just declare `data-draft-key="..."` on the <form> and this hook does the rest.
+  function _autoInitFormDraftSave() {
+    var forms = document.querySelectorAll('form[data-draft-key]');
+    for (var i = 0; i < forms.length; i++) {
+      window.FormDraftSave.init(forms[i]);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _autoInitFormDraftSave);
+  } else {
+    _autoInitFormDraftSave();
+  }
 })();

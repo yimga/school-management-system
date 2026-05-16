@@ -1320,6 +1320,14 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 86400.0,
         "options": {"expires": 3600},
     },
+    # v2.79: refresh per-tenant OAuth tokens before they expire. Without this,
+    # every connected integration breaks ~1h after first connect.
+    # Cadence chosen to fit inside the 10-min `_is_due()` window with margin.
+    "integrations-refresh-oauth-tokens": {
+        "task": "integrations_marketplace.refresh_due_oauth_tokens",
+        "schedule": 300.0,  # Every 5 minutes
+        "options": {"expires": 240},
+    },
 }
 # Public demo refresh: set ENSURE_DEMO_CRON_SLUG (e.g. demo-school) and run Celery beat.
 _ensure_demo_cron_slug = (os.getenv("ENSURE_DEMO_CRON_SLUG") or "").strip()

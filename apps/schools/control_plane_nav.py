@@ -406,6 +406,12 @@ def build_control_plane_nav(request):
                 "url_name": "super:ai_gateway_console",
                 "icon": "bi-stars",
             },
+            {
+                "id": "ai_center",
+                "label": "AI Center",
+                "url_name": "siteconfig:ai_center",
+                "icon": "bi-stars",
+            },
         ],
     )
     add_group(
@@ -432,7 +438,7 @@ def build_control_plane_nav(request):
         ],
     )
     add_group(
-        "Schools",
+        "Tenants",
         [
             {
                 "id": "super_schools_list",
@@ -447,6 +453,23 @@ def build_control_plane_nav(request):
                 "icon": "bi-plus-circle",
             },
             {
+                "id": "super_tenant_health",
+                "label": "School Health",
+                "url_name": "super:tenant_health",
+                "icon": "bi-heart-pulse",
+            },
+            {
+                "id": "super_district_enterprise",
+                "label": "District & enterprise",
+                "url_name": "super:district_enterprise",
+                "icon": "bi-buildings",
+            },
+        ],
+    )
+    add_group(
+        "Curriculum & region",
+        [
+            {
                 "id": "super_curriculum_packs",
                 "label": "Curriculum & region packs",
                 "url_name": "super:curriculum_packs",
@@ -454,7 +477,7 @@ def build_control_plane_nav(request):
             },
             {
                 "id": "super_geography",
-                "label": "Geography (region packs by continent)",
+                "label": "Geography",
                 "url_name": "super:geography",
                 "icon": "bi-globe2",
             },
@@ -472,21 +495,9 @@ def build_control_plane_nav(request):
             },
             {
                 "id": "super_ministry_stubs",
-                "label": "Ministry report stubs (by institution type)",
+                "label": "Ministry report stubs",
                 "url_name": "super:ministry_report_stubs",
                 "icon": "bi-file-earmark-text",
-            },
-            {
-                "id": "super_district_enterprise",
-                "label": "District & enterprise",
-                "url_name": "super:district_enterprise",
-                "icon": "bi-buildings",
-            },
-            {
-                "id": "super_tenant_health",
-                "label": "School Health",
-                "url_name": "super:tenant_health",
-                "icon": "bi-heart-pulse",
             },
         ],
     )
@@ -613,7 +624,7 @@ def build_control_plane_nav(request):
         ],
     )
     add_group(
-        "Migration Cloud",
+        "Migration & Integrations",
         [
             {
                 "id": "super_migration",
@@ -621,11 +632,6 @@ def build_control_plane_nav(request):
                 "url_name": "super:migration_cloud",
                 "icon": "bi-cloud-arrow-up",
             },
-        ],
-    )
-    add_group(
-        "Integrations",
-        [
             {
                 "id": "apicenter_dashboard",
                 "label": "API Center",
@@ -641,7 +647,7 @@ def build_control_plane_nav(request):
         ],
     )
     add_group(
-        "Observability",
+        "Observability & Billing",
         [
             {
                 "id": "super_usage",
@@ -660,6 +666,12 @@ def build_control_plane_nav(request):
                 "label": "Analytics",
                 "url_name": "super:analytics_overview",
                 "icon": "bi-graph-up",
+            },
+            {
+                "id": "super_billing",
+                "label": "Billing",
+                "url_name": "super:billing_dashboard",
+                "icon": "bi-credit-card",
             },
         ],
     )
@@ -681,7 +693,7 @@ def build_control_plane_nav(request):
         ],
     )
     add_group(
-        "Security & Trust",
+        "Trust & Compliance",
         [
             {
                 "id": "super_trust_center",
@@ -689,11 +701,6 @@ def build_control_plane_nav(request):
                 "url_name": "super:trust_center",
                 "icon": "bi-shield-lock",
             },
-        ],
-    )
-    add_group(
-        "Compliance",
-        [
             {
                 "id": "super_compliance",
                 "label": "Compliance",
@@ -714,134 +721,159 @@ def build_control_plane_nav(request):
             },
         ],
     )
+    # 2026-05-15 wave Z: split the historical 16-item "Platform settings & admin"
+    # block into three intent-named groups (Operator tools / Tenant config defaults /
+    # Metadata & audit) plus an Advanced footer. Each group fits on one screen when
+    # expanded; the chevron-collapsed default keeps the spine browseable.
     add_group(
-        "Billing & Usage",
+        "Operator tools",
         [
             {
-                "id": "super_billing",
-                "label": "Billing",
-                "url_name": "super:billing_dashboard",
-                "icon": "bi-credit-card",
+                "id": "super_platform_operator_hub",
+                "label": "Platform operator hub",
+                "url_name": "super:platform_operator_hub",
+                "icon": "bi-grid-3x3-gap",
+            },
+            {
+                "id": "super_operator_policy",
+                "label": "Operator policy",
+                "url_name": "super:operator_policy",
+                "icon": "bi-shield-check",
+            },
+            {
+                "id": "super_backlog_unlock_center",
+                "label": "Backlog unlock center",
+                "url_name": "super:backlog_unlock_center",
+                "icon": "bi-unlock",
+            },
+            {
+                "id": "super_fleet_governed_changes",
+                "label": "Fleet governed changes",
+                "url_name": "super:fleet_governed_changes",
+                "icon": "bi-clipboard-check",
             },
         ],
     )
-    # Parity with templates/admin/app_list.html quick links on manager host:
-    # operators who live on /super/ can reach the same surfaces without hunting /admin/.
-    _platform_settings_admin = [
-        {
-            "id": "super_platform_operator_hub",
-            "label": "Platform operator hub",
-            "url_name": "super:platform_operator_hub",
-            "icon": "bi-grid-3x3-gap",
-        },
-        {
-            "id": "super_operator_policy",
-            "label": "Operator policy",
-            "url_name": "super:operator_policy",
-            "icon": "bi-shield-check",
-        },
-        {
-            "id": "super_backlog_unlock_center",
-            "label": "Backlog unlock center",
-            "url_name": "super:backlog_unlock_center",
-            "icon": "bi-unlock",
-        },
-        {
-            "id": "super_fleet_governed_changes",
-            "label": "Fleet governed changes",
-            "url_name": "super:fleet_governed_changes",
-            "icon": "bi-clipboard-check",
-        },
-        {
-            "id": "config_console",
-            "label": "Config center",
-            "url_name": "siteconfig:console_domains_hub",
-            "icon": "bi-gear-wide-connected",
-        },
-        {
-            "id": "cp_tenant_runtime_hub",
-            "label": "Tenant runtime & settings",
-            "url_name": "siteconfig:tenant_runtime_configuration_hub",
-            "icon": "bi-diagram-3",
-        },
-        {
-            "id": "cp_region_grading_scales",
-            "label": "Region grading scales matrix",
-            "url_name": "siteconfig:region_grading_scales",
-            "icon": "bi-table",
-        },
-        {
-            "id": "cp_region_validation",
-            "label": "Region validation",
-            "url_name": "siteconfig:region_validation",
-            "icon": "bi-ui-checks-grid",
-        },
-        {
-            "id": "cp_region_comparison",
-            "label": "Region comparison",
-            "url_name": "siteconfig:region_comparison",
-            "icon": "bi-columns-gap",
-        },
-        {
-            "id": "cp_theme_experience",
-            "label": "Fleet theme & experience defaults",
-            "url_name": "siteconfig:theme_colors",
-            "icon": "bi-palette",
-        },
-        {
-            "id": "cp_feature_control",
-            "label": "Feature control",
-            "url_name": "siteconfig:feature_control_panel",
-            "icon": "bi-toggle2-on",
-        },
-        {
-            "id": "cp_metadata_operator_hub",
-            "label": "Metadata & lineage hub",
-            "url_name": "siteconfig:metadata_operator_hub",
-            "icon": "bi-share",
-        },
-        {
-            "id": "cp_entity_catalog",
-            "label": "Entity catalog (table)",
-            "url_name": "siteconfig:entity_catalog_overview",
-            "icon": "bi-diagram-3-fill",
-        },
-        {
-            "id": "cp_metadata_dynamic_fields",
-            "label": "Dynamic fields (EAV)",
-            "url_name": "siteconfig:metadata_dynamic_fields_operator",
-            "icon": "bi-input-cursor-text",
-        },
-        {
-            "id": "cp_config_mutation_audit_evidence",
-            "label": "Config mutation audit (evidence)",
-            "url_name": "siteconfig:config_mutation_audit_evidence",
-            "icon": "bi-clipboard-data",
-        },
-        {
-            "id": "cp_platform_backoffice",
-            "label": "Advanced Django admin (model CRUD)",
-            "url_name": "admin:index",
-            "icon": "bi-database",
-        },
-    ]
-    _platform_settings_admin.extend(_platform_admin_bridge_nav_items())
-    _platform_settings_admin.append(
+    add_group(
+        "Tenant config defaults",
+        [
+            {
+                "id": "config_console",
+                "label": "Config center",
+                "url_name": "siteconfig:console_domains_hub",
+                "icon": "bi-gear-wide-connected",
+            },
+            {
+                "id": "cp_tenant_runtime_hub",
+                "label": "Tenant runtime & settings",
+                "url_name": "siteconfig:tenant_runtime_configuration_hub",
+                "icon": "bi-diagram-3",
+            },
+            {
+                "id": "cp_theme_experience",
+                "label": "Fleet theme & experience defaults",
+                "url_name": "siteconfig:theme_colors",
+                "icon": "bi-palette",
+            },
+            {
+                "id": "cp_feature_control",
+                "label": "Feature control",
+                "url_name": "siteconfig:feature_control_panel",
+                "icon": "bi-toggle2-on",
+            },
+            {
+                "id": "cp_region_grading_scales",
+                "label": "Region grading scales",
+                "url_name": "siteconfig:region_grading_scales",
+                "icon": "bi-table",
+            },
+        ],
+    )
+    add_group(
+        "Metadata & audit",
+        [
+            {
+                "id": "cp_metadata_operator_hub",
+                "label": "Metadata & lineage hub",
+                "url_name": "siteconfig:metadata_operator_hub",
+                "icon": "bi-share",
+            },
+            {
+                "id": "cp_entity_catalog",
+                "label": "Entity catalog",
+                "url_name": "siteconfig:entity_catalog_overview",
+                "icon": "bi-diagram-3-fill",
+            },
+            {
+                "id": "cp_metadata_dynamic_fields",
+                "label": "Dynamic fields (EAV)",
+                "url_name": "siteconfig:metadata_dynamic_fields_operator",
+                "icon": "bi-input-cursor-text",
+            },
+            {
+                "id": "cp_config_mutation_audit_evidence",
+                "label": "Config mutation audit",
+                "url_name": "siteconfig:config_mutation_audit_evidence",
+                "icon": "bi-clipboard-data",
+            },
+            {
+                "id": "cp_region_validation",
+                "label": "Region validation",
+                "url_name": "siteconfig:region_validation",
+                "icon": "bi-ui-checks-grid",
+            },
+            {
+                "id": "cp_region_comparison",
+                "label": "Region comparison",
+                "url_name": "siteconfig:region_comparison",
+                "icon": "bi-columns-gap",
+            },
+            {
+                "id": "cp_public_to_product_matrix",
+                "label": "Public-to-Product matrix",
+                "url_name": "manager_public_to_product_matrix",
+                "icon": "bi-grid-3x3-gap",
+            },
+            {
+                "id": "cp_feature_gap_register",
+                "label": "Feature gap register",
+                "url_name": "manager_feature_gap_register",
+                "icon": "bi-clipboard-check",
+            },
+            {
+                "id": "cp_feedback_loop",
+                "label": "Feedback loop · live usage",
+                "url_name": "manager_feedback_loop",
+                "icon": "bi-graph-up",
+            },
+            {
+                "id": "cp_lane2_readiness",
+                "label": "Lane-2 readiness (PSP / SOC2 / pilots)",
+                "url_name": "manager_lane2_readiness",
+                "icon": "bi-flag",
+            },
+        ],
+    )
+
+    _advanced = [
         {
             "id": "cp_report_library",
             "label": "Platform Studio · Reports",
             "url_name": "studio_os:output",
             "query": "pane=reports",
             "icon": "bi-journal-text",
-        }
-    )
-    # Phase 1: role-aware sidebar — raw Django admin is superuser-only; hide link for other staff.
-    if not getattr(request.user, "is_superuser", False):
-        _platform_settings_admin = [
-            item
-            for item in _platform_settings_admin
-            if item.get("id") != "cp_platform_backoffice"
-        ]
-    add_group("Platform settings & admin", _platform_settings_admin)
+        },
+    ]
+    _advanced.extend(_platform_admin_bridge_nav_items())
+    if getattr(request.user, "is_superuser", False):
+        _advanced.append(
+            {
+                "id": "cp_platform_backoffice",
+                "label": "Advanced Django admin",
+                "url_name": "admin:index",
+                "icon": "bi-database",
+            }
+        )
+    add_group("Advanced", _advanced)
 
     return groups
