@@ -53,8 +53,13 @@ class Command(BaseCommand):
         parser.add_argument("--artifact", default=None)
         parser.add_argument("--model-version", default=None)
         parser.add_argument(
-            "--operator-username", required=True,
-            help="User whose action this is attributed to in audit fields.",
+            "--operator-username", default=None,
+            help=(
+                "User whose action this is attributed to in audit fields. "
+                "When omitted, falls back to the first superuser, then to "
+                "the user 'admin' if present. Predeploy invocations can "
+                "skip this flag safely."
+            ),
         )
         parser.add_argument(
             "--no-promote", action="store_true",
@@ -70,19 +75,32 @@ class Command(BaseCommand):
             or ""
         ).strip()
         if not artifact:
-            raise CommandError(
-                "No artifact path. Pass --artifact or set AT_RISK_MODEL_PATH."
-            )
+            # Graceful skip: predeploy should not fail when the legacy
+            # artifact path isn't configured on this environment. The
+            # registry is empty; runtime falls back to the heuristic baseline.
+            self.stdout.write(self.style.WARNING(
+                "No AT_RISK_MODEL_PATH and no --artifact given. "
+                "Nothing to register; skipping."
+            ))
+            return
         artifact_path = Path(artifact)
         if not artifact_path.exists():
-            raise CommandError(f"Artifact not found at {artifact_path}.")
+            self.stdout.write(self.style.WARNING(
+                f"Artifact path '{artifact_path}' does not exist on disk. "
+                "Skipping registry bootstrap."
+            ))
+            return
 
-        try:
-            operator = User.objects.get(username=opts["operator_username"])
-        except User.DoesNotExist as exc:
-            raise CommandError(
-                f"No user '{opts['operator_username']}'."
-            ) from exc
+        # Resolve operator: explicit --operator-username → first superuser →
+        # the conventional 'admin' user (created by seed_render_users).
+        operator = self._resolve_operator(opts.get("operator_username"))
+        if operator is None:
+            self.stdout.write(self.style.WARNING(
+                "No operator user available (tried explicit username, first "
+                "superuser, and username='admin'). Skipping registry bootstrap; "
+                "re-run after seed_render_users has provisioned the admin user."
+            ))
+            return
 
         digest = _sha256_of(artifact_path)
         version = opts.get("model_version") or (
@@ -127,6 +145,31 @@ class Command(BaseCommand):
         if previous is not None:
             msg += f"; archived previous '{previous.model_version}'"
         self.stdout.write(self.style.SUCCESS(msg + "."))
+
+    def _resolve_operator(self, explicit_username: str | None):
+        """Return a User instance for audit attribution, or None.
+
+        Priority:
+          1. The explicit --operator-username argument (if it resolves).
+          2. The first superuser by date_joined.
+          3. The user with username='admin' (seed_render_users convention).
+        """
+        if explicit_username:
+            try:
+                return User.objects.get(username=explicit_username)
+            except User.DoesNotExist:
+                pass
+        first_super = (
+            User.objects.filter(is_superuser=True, is_active=True)
+            .order_by("date_joined", "pk")
+            .first()
+        )
+        if first_super is not None:
+            return first_super
+        try:
+            return User.objects.get(username="admin")
+        except User.DoesNotExist:
+            return None
 
     def _read_trained_at(self, artifact_path: Path):
         """Best-effort trained_at; mtime fallback."""

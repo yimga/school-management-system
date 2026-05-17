@@ -39,6 +39,25 @@ if [[ "${SKIP_DB_MIGRATIONS:-0}" != "1" ]]; then
   else
     run "${PYTHON_BIN}" manage.py migrate --noinput
   fi
+
+  # v3.15 — post-migrate verification gate. Walks every app's migration graph
+  # and confirms every node is applied. Also detects model-vs-migrations drift
+  # (the "automation has changes" warning from older deploys). Warning-only by
+  # default so a benign cosmetic drift doesn't block deploys; flip
+  # STRICT_MIGRATION_VERIFY=1 to make it fail-loud.
+  if [[ "${STRICT_MIGRATION_VERIFY:-0}" == "1" ]]; then
+    if [[ "${TENANT_MODE}" == "1" ]]; then
+      run "${PYTHON_BIN}" manage.py verify_all_migrations_applied --strict --include-tenant
+    else
+      run "${PYTHON_BIN}" manage.py verify_all_migrations_applied --strict
+    fi
+  else
+    if [[ "${TENANT_MODE}" == "1" ]]; then
+      run "${PYTHON_BIN}" manage.py verify_all_migrations_applied --include-tenant || true
+    else
+      run "${PYTHON_BIN}" manage.py verify_all_migrations_applied || true
+    fi
+  fi
 fi
 
 # (TENANT_MODE remains set for use below when re-running tenant migrations before import_ui_config)
@@ -115,8 +134,21 @@ run "${PYTHON_BIN}" manage.py seed_render_users
 # fresh DBs fall through to the env-var-pointed artifact (or the heuristic
 # fallback), and `verify_ai_ml_readiness` reports `production` as failing.
 # Skipped automatically when the registry already has a PRODUCTION row.
+# v3.14: --operator-username is now optional — the cmd auto-resolves to the
+# first superuser (admin), and missing/no artifact paths are graceful skips
+# instead of fatal CommandErrors. Predeploy can invoke this without args.
 if [[ "${RUN_BOOTSTRAP_AT_RISK_REGISTRY:-1}" == "1" ]]; then
   run "${PYTHON_BIN}" manage.py bootstrap_at_risk_registry
+fi
+
+# Platform-wide public-schema seeding. Idempotent — every step routes through
+# update_or_create / get_or_create so re-runs are safe. The --skip-tenants flag
+# prevents demo data from being created in real tenant schemas; per-tenant demo
+# seeding is operator-driven via SEED_DEMO=1 (handled separately below).
+# Set RUN_PLATFORM_SEED=0 to opt out of the orchestrator (default ON because
+# the user asked for "platform-wide seeding, no exception").
+if [[ "${RUN_PLATFORM_SEED:-1}" == "1" ]]; then
+  run "${PYTHON_BIN}" manage.py seed_platform_complete --skip-tenants --continue-on-error
 fi
 
 # Risk-digest recipients. Opt-in (default 0) because it discovers ADMIN/
