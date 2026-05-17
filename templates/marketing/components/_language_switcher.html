@@ -1,7 +1,9 @@
 {% load i18n %}
-{# Marketing-surface language switcher. Posts to Django's `set_language` view
-   with `?next=` set to the current path so the user stays where they were.
-   Lists are derived from settings.LANGUAGES via `get_available_languages`. #}
+{% comment %}
+Marketing-surface language switcher. Posts to Django's `set_language` view
+with `?next=` set to the current path so the user stays where they were.
+Lists are derived from settings.LANGUAGES via `get_available_languages`.
+{% endcomment %}
 {% get_current_language as CURRENT_LANGUAGE %}
 {% get_available_languages as LANGUAGES_AVAILABLE %}
 {% get_language_info_list for LANGUAGES_AVAILABLE as LANG_LIST %}

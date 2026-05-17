@@ -18,10 +18,13 @@
       <a href="{{ request.path }}" class="btn btn-sm btn-outline-secondary">{% trans "Refresh" %}</a>
     </div>
 
-    {% comment %}2. Filter / search — single row; scope by source/category via expandable list{% endcomment %}
+    {% comment %}2. Filter / search — single row; scope by source/category via expandable list.
+       v3.16 (2026-05-17): replaced broken /docs/*.md hardcoded link (Django serves
+       no /docs/ static markdown route, so it 404'd → manager 404 page recovery
+       button took the user to /super/). Points to the working blueprints catalog. {% endcomment %}
     <div class="mb-3">
       <p class="text-muted small mb-0">
-        <a href="{% url 'super:migration_cloud' %}">Migration Cloud</a> &rarr; Registry. See <a href="/docs/RunMyCampus_Migration_Cloud_Complete_System_Blueprint.md">Migration Cloud Blueprint</a> for the full profile library.
+        <a href="{% url 'super:migration_cloud' %}">Migration Cloud</a> &rarr; Registry. See the <a href="{% url 'super:blueprints_catalog' %}">Blueprints catalog</a> for the full profile library.
       </p>
     </div>
 
@@ -41,7 +44,7 @@
             </div>
             <div class="d-flex align-items-center gap-2">
               <span class="badge bg-secondary">{{ profile.domain }}</span>
-              <a href="{{ migration_cloud_url }}?profile={{ profile.slug }}" class="btn btn-sm btn-primary">{% trans "Use in Cloud" %}</a>
+              <a href="{% url 'super:migration_cloud' %}?profile={{ profile.slug }}" class="btn btn-sm btn-primary">{% trans "Use in Cloud" %}</a>
             </div>
           </li>
           {% endfor %}

@@ -31,6 +31,22 @@ nav.cp-navbar .container-fluid {
   overflow-y: visible;
 }
 
+/* v3.16 (2026-05-17) — dropdown escape hatch.
+   `overflow-x: clip` still establishes a clipping containing block for
+   absolutely positioned descendants, so Bootstrap dropdowns (positioned via
+   Popper.js as `position: absolute` inside the trigger's offset parent) get
+   cut off at the navbar's edge. Mirror the marketing :has(.mega-menu.show)
+   pattern: when any dropdown inside the header is shown, lift overflow on
+   the container chain so the menu escapes. Tested on Chrome/Firefox/Safari —
+   :has() is baseline-modern across all three since 2023. */
+.cp-shell-content .cp-navbar:has(.dropdown-menu.show),
+nav.cp-navbar:has(.dropdown-menu.show),
+.cp-shell-content .cp-navbar:has(.dropdown-menu.show) .container-fluid,
+nav.cp-navbar:has(.dropdown-menu.show) .container-fluid {
+  overflow-x: visible;
+  overflow-y: visible;
+}
+
 /* Portal / tenant: #portalHeader (portal_base.html) */
 #portalHeader.topbar.statement-header,
 nav#portalHeader.statement-header {
@@ -45,6 +61,13 @@ nav#portalHeader.statement-header {
   max-width: 100%;
   min-width: 0;
   overflow-x: clip;
+  overflow-y: visible;
+}
+/* v3.16 dropdown escape hatch — see comment above .cp-navbar block. */
+#portalHeader:has(.dropdown-menu.show),
+#portalHeader:has(.dropdown-menu.show) .container-fluid,
+#portalHeader:has(.dropdown-menu.show) .navbar-collapse {
+  overflow-x: visible;
   overflow-y: visible;
 }
 
