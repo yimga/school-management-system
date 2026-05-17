@@ -1,17 +1,27 @@
 (function(){
-  var pageDataEl=document.getElementById("page-data-components__ai_copilot-1");
-  window.__RMC_PAGE_DATA__=window.__RMC_PAGE_DATA__||{};
-  if(pageDataEl){try{window.__RMC_PAGE_DATA__["components__ai_copilot-1"]=JSON.parse(pageDataEl.textContent||"{}")}catch(_e){}}
+  var KEY = "components__ai_copilot-1";
+  var pageDataEl = document.getElementById("page-data-" + KEY);
+  window.__RMC_PAGE_DATA__ = window.__RMC_PAGE_DATA__ || {};
+  if (pageDataEl) {
+    try {
+      window.__RMC_PAGE_DATA__[KEY] = JSON.parse(pageDataEl.textContent || "{}");
+    } catch (_e) {
+      window.__RMC_PAGE_DATA__[KEY] = {};
+    }
+  }
+  var DATA = window.__RMC_PAGE_DATA__[KEY] || {};
 document.addEventListener('DOMContentLoaded', function() {
   const wrappers = document.querySelectorAll('.ai-copilot-wrapper');
   if (!wrappers.length) return;
 
-  const AI_BACKEND_ENABLED = '(window.__RMC_PAGE_DATA__["components__ai_copilot-1"]||{})["var_ai_backend_enabled_yesno_true_false"]' === 'true';
-  const AI_PROVIDER_NAME = '(window.__RMC_PAGE_DATA__["components__ai_copilot-1"]||{})["var_ai_provider_name_default"]';
+  const AI_BACKEND_ENABLED = (DATA["var_ai_backend_enabled_yesno_true_false"] || "false") === 'true';
+  const AI_PROVIDER_NAME = DATA["var_ai_provider_name_default"] || "";
   const AI_COPILOT_URL = (document.body && document.body.getAttribute('data-ai-copilot-url')) || '/api/ai-copilot/validate/';
-  const AI_PERMISSIONS = {{ AI_PERMISSIONS|default:"{}"|safe }};
-  const USER_ROLE = '(window.__RMC_PAGE_DATA__["components__ai_copilot-1"]||{})["var_user_role_default_user"]';
-  const CSRF_TOKEN = '(window.__RMC_PAGE_DATA__["components__ai_copilot-1"]||{})["var_csrf_token"]';
+  let AI_PERMISSIONS = {};
+  try { AI_PERMISSIONS = JSON.parse(DATA["var_ai_permissions_json"] || "{}"); }
+  catch (_e) { AI_PERMISSIONS = {}; }
+  const USER_ROLE = DATA["var_user_role_default_user"] || "USER";
+  const CSRF_TOKEN = DATA["var_csrf_token"] || "";
 
   function forceCopilotPosition(wrapper) {
     const isSmall = window.matchMedia && window.matchMedia('(max-width: 576px)').matches;
@@ -49,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function buildContextualPrompt(userMessage) {
     const userRole = USER_ROLE;
-    const userName = '(window.__RMC_PAGE_DATA__["components__ai_copilot-1"]||{})["var_request_user_first_name_default_request_user_username"]';
+    const userName = DATA["var_request_user_first_name_default_request_user_username"] || "there";
     let context = `You are an AI assistant for a school management system. `;
 
     if (userRole === 'ADMIN' || userRole === 'LEADERSHIP') {

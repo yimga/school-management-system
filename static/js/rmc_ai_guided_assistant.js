@@ -105,21 +105,41 @@
   function bindCard(card) {
     if (card.getAttribute("data-rmc-ai-bound") === "1") return;
     card.setAttribute("data-rmc-ai-bound", "1");
-    var url = card.getAttribute("data-ai-url");
     var out = card.querySelector("[data-rmc-ai-out]");
     var ta = card.querySelector("[data-rmc-ai-query]");
     var btn = card.querySelector("[data-rmc-ai-run]");
-    if (!url || !btn) return;
+    if (!btn) return;
     function _showOut(content) {
       if (!out) return;
       out.textContent = content;
       out.hidden = false;
       out.classList.remove("d-none");
     }
+    var originalBtnHTML = btn.innerHTML;
+    function _setBusy(busy) {
+      if (busy) {
+        btn.disabled = true;
+        btn.setAttribute("aria-busy", "true");
+        btn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Thinking…';
+      } else {
+        btn.disabled = false;
+        btn.removeAttribute("aria-busy");
+        btn.innerHTML = originalBtnHTML;
+      }
+    }
     btn.addEventListener("click", function () {
+      var url = card.getAttribute("data-ai-url");
+      if (!url) {
+        _showOut(
+          "Pick an assistant on the left first, then ask your question."
+        );
+        return;
+      }
       var q = ta && ta.value ? ta.value.trim() : "";
       if (!q) {
         _showOut("Enter a question.");
+        if (ta) ta.focus();
         return;
       }
       if (typeof navigator !== "undefined" && navigator.onLine === false) {
@@ -132,9 +152,8 @@
       var payload = { query: q };
       var mode = card.getAttribute("data-studio-mode");
       if (mode) payload.studio_mode = mode;
-      btn.disabled = true;
-      btn.setAttribute("aria-busy", "true");
-      _showOut("…");
+      _setBusy(true);
+      _showOut("Thinking…");
       fetch(url, {
         method: "POST",
         credentials: "same-origin",
@@ -147,8 +166,7 @@
       })
         .then(parseResponse)
         .then(function (res) {
-          btn.disabled = false;
-          btn.removeAttribute("aria-busy");
+          _setBusy(false);
           if (!out) return;
           if (!res.ok || !res.data || !res.data.success) {
             _showOut(friendlyError(res.data, res.status));
@@ -158,10 +176,19 @@
           var meta = res.data.meta || {};
           var cites = res.data.citations;
           renderGuided(out, g, meta, cites);
+          if (card.closest("[data-rmc-ai-center]")) {
+            document.dispatchEvent(
+              new CustomEvent("rmc:ai-guided-answered", {
+                detail: {
+                  question: q,
+                  answer: String(g.summary || "").slice(0, 500),
+                },
+              })
+            );
+          }
         })
         .catch(function () {
-          btn.disabled = false;
-          btn.removeAttribute("aria-busy");
+          _setBusy(false);
           _showOut("Network error. Check your connection and try again.");
         });
     });

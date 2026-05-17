@@ -54,12 +54,29 @@
   function bindCard(card) {
     if (card.getAttribute("data-rmc-json-bound") === "1") return;
     card.setAttribute("data-rmc-json-bound", "1");
-    var url = card.getAttribute("data-ai-url");
     var ta = card.querySelector("[data-rmc-ai-json-body]");
     var btn = card.querySelector("[data-rmc-ai-json-run]");
     var out = card.querySelector("[data-rmc-ai-json-out]");
-    if (!url || !btn) return;
+    if (!btn) return;
+    var originalBtnHTML = btn.innerHTML;
+    function setBusy(busy) {
+      if (busy) {
+        btn.disabled = true;
+        btn.setAttribute("aria-busy", "true");
+        btn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Running…';
+      } else {
+        btn.disabled = false;
+        btn.removeAttribute("aria-busy");
+        btn.innerHTML = originalBtnHTML;
+      }
+    }
     btn.addEventListener("click", function () {
+      var url = card.getAttribute("data-ai-url");
+      if (!url) {
+        if (out) out.textContent = "AI endpoint not configured for this card.";
+        return;
+      }
       var raw = ta && ta.value ? ta.value.trim() : "{}";
       var body;
       try {
@@ -68,9 +85,8 @@
         if (out) out.textContent = "Invalid JSON: " + e;
         return;
       }
-      btn.disabled = true;
-      btn.setAttribute("aria-busy", "true");
-      if (out) out.textContent = "…";
+      setBusy(true);
+      if (out) out.textContent = "Running…";
       fetch(url, {
         method: "POST",
         credentials: "same-origin",
@@ -93,8 +109,7 @@
           });
         })
         .then(function (res) {
-          btn.disabled = false;
-          btn.removeAttribute("aria-busy");
+          setBusy(false);
           if (!out) return;
           if (res.status === 401 || res.status === 403) {
             out.textContent = "Session expired or permission denied. Refresh and sign in.";
@@ -103,8 +118,7 @@
           out.textContent = formatPayload(res.data, res.status);
         })
         .catch(function () {
-          btn.disabled = false;
-          btn.removeAttribute("aria-busy");
+          setBusy(false);
           if (out) out.textContent = "Network error. Check connection and retry.";
         });
     });
@@ -113,6 +127,28 @@
   function scan() {
     document.querySelectorAll("[data-rmc-ai-json-api]").forEach(bindCard);
   }
+
+  function runAllGatewayCards() {
+    var cards = document.querySelectorAll(
+      "#ai-gw-accordion [data-rmc-ai-json-api] [data-rmc-ai-json-run]"
+    );
+    var idx = 0;
+    function next() {
+      if (idx >= cards.length) return;
+      cards[idx].click();
+      idx += 1;
+      if (idx < cards.length) {
+        window.setTimeout(next, 400);
+      }
+    }
+    next();
+  }
+
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-rmc-ai-gateway-test-all]");
+    if (!btn) return;
+    runAllGatewayCards();
+  });
 
   window.addEventListener("load", scan);
 })();

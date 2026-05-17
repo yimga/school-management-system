@@ -157,6 +157,7 @@
   "var_user_role_default_user": "{{ USER_ROLE|default:"USER"|escapejs }}",
   "var_csrf_token": "{{ csrf_token|escapejs }}",
   "var_request_user_first_name_default_request_user_username": "{{ request.user.first_name|default:request.user.username|escapejs }}",
+  "var_ai_permissions_json": "{{ AI_PERMISSIONS|default:"{}"|escapejs }}",
   "ai_health_url": "{% url 'ai_health' %}"
 }</script><script src="{% static 'js/_pages/components__ai_copilot-1.js' %}"></script>
 <script src="{% static 'js/rmc-ai-health-pill.js' %}"></script>
