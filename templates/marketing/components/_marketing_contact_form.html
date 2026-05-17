@@ -1,0 +1,51 @@
+{% load i18n %}
+{% load terminology_tags %}
+<section id="contact-form-block" class="mkt-v3-form-block" aria-label="{% trans 'Contact form' %}">
+  <h2 class="mkt-v3-section-headline">{% trans "Send a message" %}</h2>
+  {% if request.GET.submitted %}
+    <div class="mkt-edt-alert mkt-edt-alert--success" role="alert" aria-live="polite">{% trans "Thanks—we received your note and will respond as soon as possible." %}</div>
+  {% elif request.GET.error %}
+    <div class="mkt-edt-alert mkt-edt-alert--warning" role="alert" aria-live="polite">{% trans "Something went wrong. Please retry or email from your workspace if you are already a customer." %}</div>
+  {% endif %}
+  <form method="post" action="{% url 'marketing_contact_submit' %}" class="mkt-v3-form row g-3" data-form-name="contact">
+    {% csrf_token %}
+    <div aria-hidden="true" class="mkt-v3-form__honeypot">
+      <label for="contact-website-url">{% trans "Leave this field empty" %}</label>
+      <input type="text" id="contact-website-url" name="website_url" tabindex="-1" autocomplete="off">
+    </div>
+    <div class="col-md-6">
+      <label for="contact-name" class="form-label">{% trans "Name" %} <span class="text-danger">*</span></label>
+      <input type="text" id="contact-name" name="name" class="form-control" maxlength="256" required autocomplete="name">
+    </div>
+    <div class="col-md-6">
+      <label for="contact-email" class="form-label">{% trans "Email" %} <span class="text-danger">*</span></label>
+      <input type="email" id="contact-email" name="email" class="form-control" maxlength="256" required autocomplete="email">
+    </div>
+    <div class="col-md-6">
+      <label for="contact-school" class="form-label">{% trans "School or organization" %}</label>
+      <input type="text" id="contact-school" name="school" class="form-control" maxlength="256" autocomplete="organization">
+    </div>
+    <div class="col-md-6">
+      <label for="contact-country" class="form-label">{% trans "Country" %}</label>
+      <input type="text" id="contact-country" name="country" class="form-control" maxlength="128" autocomplete="country-name">
+    </div>
+    <div class="col-12">
+      <label for="contact-inquiry-type" class="form-label">{% trans "Inquiry type" %} <span class="text-danger">*</span></label>
+      <select id="contact-inquiry-type" name="inquiry_type" class="form-select" required>
+        <option value="" disabled selected>{% trans "Select…" %}</option>
+        <option value="sales">{% trans "Sales" %}</option>
+        <option value="implementation">{% trans "Implementation" %}</option>
+        <option value="support">{% trans "Support" %}</option>
+        <option value="partnership">{% trans "Partnership" %}</option>
+        <option value="general">{% trans "General" %}</option>
+      </select>
+    </div>
+    <div class="col-12">
+      <label for="contact-message" class="form-label">{% trans_term "Message" key="message" %} <span class="text-danger">*</span></label>
+      <textarea id="contact-message" name="message" class="form-control" rows="5" maxlength="4000" required></textarea>
+    </div>
+    <div class="col-12">
+      <button type="submit" class="mkt-edt-cta">{% trans "Submit inquiry" %}</button>
+    </div>
+  </form>
+</section>

@@ -360,6 +360,11 @@ urlpatterns = [
     path("version.json", obs_views.public_version, name="public_version_json"),
     # Language switcher (Django i18n; POST language then redirect)
     path("i18n/setlang/", set_language, name="set_language"),
+    path(
+        "i18n/setlang/persist/",
+        __import__("apps.accounts.views_i18n", fromlist=["set_language_persist"]).set_language_persist,
+        name="set_language_persist",
+    ),
     path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
     path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
     # Admin interfaces - /admin/ only for superuser/staff
@@ -823,14 +828,12 @@ urlpatterns = [
     ),
     path(
         "platform/workflows/",
-        marketing_page,
-        {"page_slug": "platform-workflows"},
+        RedirectView.as_view(url="/run/workflows/", permanent=True),
         name="marketing_platform_workflows",
     ),
     path(
         "platform/offline-first/",
-        marketing_page,
-        {"page_slug": "platform-offline-first"},
+        RedirectView.as_view(url="/run/offline/", permanent=True),
         name="marketing_platform_offline_first",
     ),
     path(

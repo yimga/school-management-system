@@ -1,5 +1,93 @@
 {% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-pricing{% endblock %}
+{% block extrajs %}{{ block.super }}<script src="{% static 'marketing/js/pricing-currency.js' %}" defer></script>{% endblock %}
 {% block marketing_page_inner %}
-{% include "marketing/partials/marketing_inner_pricing.html" %}
+<article class="mkt-v3-page mkt-v3-page--pricing" data-mkt-pricing>
+  <header class="mkt-v3-page__hero mkt-edt-container rmc-reveal">
+    <p class="mkt-v3-eyebrow">{% trans "Pricing" %}</p>
+    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
+    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
+    {% include "marketing/components/_currency_switcher.html" %}
+  </header>
+
+  <section class="mkt-edt-container mkt-v3-pricing-plans rmc-reveal" aria-labelledby="pricing-plans-heading">
+    <h2 id="pricing-plans-heading" class="visually-hidden">{% trans "Plan tiers" %}</h2>
+    <div class="mkt-v3-pricing-plans__grid">
+      {% for plan in pricing_snapshot %}
+      <article class="mkt-v3-pricing-plan" data-mkt-plan="{{ plan.plan|lower }}">
+        <h3 class="mkt-v3-pricing-plan__name">{{ plan.plan }}</h3>
+        <p class="mkt-v3-pricing-plan__tagline">{{ plan.tagline }}</p>
+        <p class="mkt-v3-pricing-plan__price" data-mkt-price-stub aria-live="polite">
+          <span class="mkt-v3-pricing-plan__price-label">{% trans "From" %}</span>
+          <span class="mkt-v3-pricing-plan__price-value" data-plan="{{ plan.plan|lower }}">—</span>
+          <span class="mkt-v3-pricing-plan__price-unit">{% trans "/ student / month" %}</span>
+        </p>
+        <ul class="mkt-v3-pricing-plan__highlights">
+          {% for bullet in plan.highlights %}
+          <li>{{ bullet }}</li>
+          {% endfor %}
+        </ul>
+        <a href="{{ plan.cta_path }}" class="mkt-edt-cta mkt-edt-cta--secondary" data-cta="pricing">{{ plan.cta_label }}</a>
+      </article>
+      {% endfor %}
+    </div>
+    <p class="mkt-v3-pricing-plans__note small">{% trans "Illustrative bands — exact commercial terms confirmed during procurement." %}</p>
+  </section>
+
+  {% if page_extras.pricing_plan_comparison %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="pricing-matrix-heading">
+    <h2 id="pricing-matrix-heading" class="mkt-v3-section-headline">{% trans "Capability comparison" %}</h2>
+    <div class="mkt-v3-pricing-matrix__scroll">
+      <table class="mkt-v3-pricing-matrix">
+        <caption class="visually-hidden">{% trans "Plan capability matrix" %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Capability" %}</th>
+            {% for plan_label in page_extras.pricing_plan_comparison.plans %}
+            <th scope="col">{{ plan_label }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in page_extras.pricing_plan_comparison.rows %}
+          <tr>
+            <th scope="row">{{ row.feature }}</th>
+            <td>{{ row.starter }}</td>
+            <td>{{ row.growth }}</td>
+            <td>{{ row.enterprise }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal mkt-v3-page__section--with-advisor" aria-labelledby="pricing-addons-heading">
+    <h2 id="pricing-addons-heading" class="mkt-v3-section-headline">{% trans "Add-ons" %}</h2>
+    <div class="mkt-v3-page__section-grid">
+      <div class="mkt-v3-page__section-figure mkt-advisor-figure mkt-advisor-figure--muted" aria-hidden="true">
+        {% include "marketing/components/_advisor_character.html" with pose="explaining" size=180 accessible_label="" %}
+      </div>
+      <ul class="mkt-v3-pricing-addons mkt-v3-page__section-body">
+        <li><strong>{% trans "Migration Cloud" %}</strong> — {% trans "Phased cutover, dry-run sandbox, dedicated migration lead." %}</li>
+        <li><strong>{% trans "Marketplace apps" %}</strong> — {% trans "Governed partner tiles — activate per campus." %}</li>
+        <li><strong>{% trans "Premium support" %}</strong> — {% trans "Enterprise SLA, operator command center access." %}</li>
+      </ul>
+    </div>
+  </section>
+
+  {% if page_extras.faqs %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="pricing-faq-heading">
+    <h2 id="pricing-faq-heading" class="mkt-v3-section-headline">{% trans "FAQ" %}</h2>
+    {% include "marketing/components/_faq_accordion.html" with faqs=page_extras.faqs %}
+  </section>
+  {% endif %}
+
+  <section class="mkt-edt-container mkt-v3-page__close rmc-reveal">
+    <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a pricing walkthrough" %}</a>
+  </section>
+</article>
 {% endblock %}

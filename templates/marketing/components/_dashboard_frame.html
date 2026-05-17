@@ -1,0 +1,17 @@
+{% load i18n %}
+<figure class="mkt-v3-dashboard-frame"{% if frame_id %} id="{{ frame_id }}"{% endif %}>
+  <div class="mkt-v3-dashboard-frame__chrome" aria-hidden="true">
+    <span class="mkt-v3-dashboard-frame__dot"></span>
+    <span class="mkt-v3-dashboard-frame__dot"></span>
+    <span class="mkt-v3-dashboard-frame__dot"></span>
+    <span class="mkt-v3-dashboard-frame__title">{{ frame_title|default:"RunMyCampus" }}</span>
+  </div>
+  <div class="mkt-v3-dashboard-frame__surface">
+    {% if dashboard_partial %}
+      {% include dashboard_partial %}
+    {% endif %}
+  </div>
+  {% if frame_caption %}
+  <figcaption class="mkt-v3-product-proof__caption">{{ frame_caption }}</figcaption>
+  {% endif %}
+</figure>

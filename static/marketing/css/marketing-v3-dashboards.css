@@ -1,0 +1,54 @@
+/**
+ * Marketing v3 — browser-framed dashboard screenshots and tiles.
+ */
+
+.mkt-v3-dashboard-frame {
+  background: var(--mkt-tile, #fff);
+  border: 1px solid var(--mkt-edt-rule);
+  border-radius: 0.75rem;
+  box-shadow: 0 18px 48px rgba(15, 27, 45, 0.08);
+  overflow: hidden;
+}
+
+.mkt-v3-dashboard-frame__chrome {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--mkt-edt-rule);
+  background: color-mix(in srgb, var(--mkt-edt-bg, #FAF7F2) 88%, #fff);
+}
+
+.mkt-v3-dashboard-frame__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--mkt-edt-rule);
+}
+
+.mkt-v3-dashboard-frame__dot:nth-child(1) { background: #FCA5A5; }
+.mkt-v3-dashboard-frame__dot:nth-child(2) { background: #FCD34D; }
+.mkt-v3-dashboard-frame__dot:nth-child(3) { background: #86EFAC; }
+
+.mkt-v3-dashboard-frame__title {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--mkt-edt-ink-muted);
+  font-family: var(--mkt-edt-font-body, Inter, system-ui, sans-serif);
+}
+
+.mkt-v3-dashboard-frame__surface {
+  padding: 0.75rem;
+}
+
+.mkt-v3-dashboard-frame__surface svg,
+.mkt-v3-dashboard-frame__surface img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.mkt-edt-voices--compact .mkt-edt-voices__grid {
+  grid-template-columns: 1fr;
+  max-width: 40rem;
+}

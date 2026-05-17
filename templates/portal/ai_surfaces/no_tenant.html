@@ -1,0 +1,8 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Not available" %}{% endblock %}
+{% block content %}
+<div class="alert alert-warning">
+  {% trans "This page must be accessed via a school subdomain." %}
+</div>
+{% endblock %}

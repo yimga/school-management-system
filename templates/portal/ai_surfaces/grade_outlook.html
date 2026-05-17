@@ -1,0 +1,46 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% load terminology_tags %}
+{% block title %}{% trans "Grade outlook" %}: {{ student.first_name }} {{ student.last_name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+  <div>
+    <div class="eyebrow">{{ student.first_name }} {{ student.last_name }}</div>
+    <h1 class="page-h1 mb-0">{% trans "Grade outlook" %}</h1>
+    <p class="page-sub mb-0">
+      {% blocktrans %}Predicted end-of-term grade per subject, with a confidence band. Updated nightly.{% endblocktrans %}
+    </p>
+  </div>
+</div>
+
+{% if not any_predictions %}
+  <div class="alert alert-info">
+    {% trans "No grade predictions for this student yet. The nightly batch runs after the day's evaluations are saved." %}
+  </div>
+{% else %}
+  <div class="row g-3">
+    {% for row in predictions_by_subject %}
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="eyebrow">{% term "Subject" %}</div>
+            <h2 class="h5 mb-2">{{ row.subject.name }}</h2>
+            <div class="display-5 fw-light mb-1">{{ row.prediction.predicted_grade|floatformat:1 }}</div>
+            {% if row.prediction.confidence_low is not None and row.prediction.confidence_high is not None %}
+              <div class="small text-muted mb-2">
+                {% trans "Range" %}: {{ row.prediction.confidence_low|floatformat:1 }} – {{ row.prediction.confidence_high|floatformat:1 }}
+              </div>
+            {% endif %}
+            <p class="small text-muted mb-0">{{ row.prediction.reason_summary }}</p>
+            {% if row.prediction.model_version %}
+              <p class="small text-muted mt-2 mb-0">
+                <code>{{ row.prediction.model_version }}</code>
+              </p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

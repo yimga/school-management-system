@@ -4,7 +4,7 @@
 {% block title %}{% trans "AI Center" %}{% endblock %}
 
 {% block content %}
-<main id="main" class="container py-3" data-page-archetype="ai-center" data-shell-surface="ai-center" style="max-width: 64rem;">
+<div class="container py-3" data-page-archetype="ai-center" data-shell-surface="ai-center" style="max-width: 64rem;">
   <header class="mb-3">
     <h1 class="h3 mb-1">{% trans "AI Center" %}</h1>
     <p class="text-muted small mb-0">
@@ -16,15 +16,47 @@
   </header>
 
   {% if provider_status %}
-  <div class="alert alert-light border d-flex align-items-center gap-3 py-2 mb-3" role="status" aria-live="polite">
-    <span class="badge text-bg-{% if provider_status.has_live_provider %}success{% else %}secondary{% endif %}">
-      {% if provider_status.has_live_provider %}{% trans "Live provider ready" %}{% else %}{% trans "Rules fallback only" %}{% endif %}
+  <div class="alert alert-light border d-flex flex-wrap align-items-center gap-2 py-2 mb-3"
+       data-rmc-ai-health-root
+       data-health-url="{% url 'ai_health' %}"
+       role="status"
+       aria-live="polite">
+    <span
+      data-rmc-ai-health-pill
+      data-state="{% if provider_status.has_live_provider %}ok{% else %}degraded{% endif %}"
+      id="aiCenterHealthPill"
+    >
+      <span
+        class="badge text-bg-{% if provider_status.has_live_provider %}success{% else %}warning{% endif %}"
+        data-rmc-ai-health-badge
+      >
+        {% if provider_status.has_live_provider %}{% trans "Live provider ready" %}{% else %}{% trans "Degraded — grounded hints until Ollama is connected" %}{% endif %}
+      </span>
+      <small class="text-muted mb-0 ms-1" data-rmc-ai-health-text>
+        {% trans "Preference order" %}: <code>{{ provider_status.preference|join:", " }}</code>
+        {% if provider_status.rules_fallback_enabled %}· {% trans "Fallback enabled" %}{% endif %}
+      </small>
     </span>
-    <small class="text-muted mb-0">
-      {% trans "Preference order" %}: <code>{{ provider_status.preference|join:", " }}</code>
-      {% if provider_status.rules_fallback_enabled %}· {% trans "Fallback enabled" %}{% endif %}
+    <small class="text-muted mb-0 d-none" data-rmc-ai-browser-offline>
+      {% trans "Browser offline — attendance and grades can still queue when offline mode is on; AI answers need connectivity to the school server." %}
     </small>
   </div>
+  {% endif %}
+
+  {% if show_operator_ollama_setup %}
+  <details class="mb-3 small border rounded p-2 bg-light">
+    <summary class="fw-semibold">{% trans "Operator: connect live Ollama (optional)" %}</summary>
+    <p class="text-muted mb-2 mt-2">
+      {% trans "Offline-first mode queues attendance and grades on devices; it does not run AI locally. Live answers need Ollama reachable from the app server." %}
+    </p>
+    <pre class="small mb-2 bg-white border rounded p-2 mb-0"><code>ollama serve
+ollama pull llama3
+# .env on the Django host
+AI_GATEWAY_ENABLED=1
+OLLAMA_ENDPOINT=http://localhost:11434/api/generate
+OLLAMA_MODEL=llama3</code></pre>
+    <p class="text-muted mb-0">{% trans "Verify:" %} <code>python scripts/verify_ollama_live.py --invoke</code> · {% trans "Docs:" %} <code>docs/OLLAMA_OPERATIONS_AND_UPDATES.md</code></p>
+  </details>
   {% endif %}
 
   <div class="row g-3" data-rmc-ai-center>
@@ -99,8 +131,7 @@
               </span>
             </div>
             <pre
-              class="small bg-light text-dark p-2 mt-2 rounded border mb-0"
-              style="max-height: 24rem; overflow: auto; white-space: pre-wrap;"
+              class="small bg-light text-dark p-2 mt-2 rounded border mb-0 rmc-ai-guided-out"
               data-rmc-ai-out
               aria-live="polite"
               hidden
@@ -121,8 +152,9 @@
       </div>
     </section>
   </div>
-</main>
+</div>
 
 <script src="{% static 'js/rmc_ai_guided_assistant.js' %}" defer></script>
+<script src="{% static 'js/rmc-ai-health-pill.js' %}" defer></script>
 <script src="{% static 'js/_pages/siteconfig__ai_center.js' %}" defer></script>
 {% endblock %}

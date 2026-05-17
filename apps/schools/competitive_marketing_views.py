@@ -22,15 +22,10 @@ def _pricing_payload():
 
 @require_GET
 def marketing_trust_dedicated(request):
-    ctx = {
-        "seo_title": "Trust center — security, compliance posture, and honesty about external dependencies",
-        "contact_sales_url": reverse("marketing_contact"),
-        "status_placeholder_url": "https://status.runmycampus.com/",
-        "security_packet_anchor": reverse("marketing_security_packet_request"),
-        "procurement_checklist_url": reverse("marketing_procurement_checklist"),
-        "implementation_assurance_url": reverse("marketing_implementation_assurance"),
-    }
-    return render(request, "marketing/trust_center.html", ctx)
+    """Public /trust/ — v3 marketing shell via trust-center page definition."""
+    from apps.schools.marketing_views import marketing_page
+
+    return marketing_page(request, "trust-center")
 
 
 _STORIES = {

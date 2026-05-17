@@ -122,13 +122,18 @@
     {% endif %}
 
     {% if page_extras.product_tour_stops %}
-    <section class="section-shell" aria-label="{% trans 'Product tour stops' %}">
-      <h2 class="section-heading">{% trans "Tour highlights" %}</h2>
-      <p class="section-lead">{% trans "Walk the surfaces your leadership, staff, families, and finance team rely on." %}</p>
+    <section class="section-shell" aria-label="{% trans 'Product tour stops' %}" data-tour="mkt-product-tour-intro" data-marketing-tour-context="marketing_product_tour">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <div>
+          <h2 class="section-heading mb-1">{% trans "Platform overview" %}</h2>
+          <p class="section-lead mb-0">{% trans "Walk the surfaces your leadership, staff, families, and finance team rely on." %}</p>
+        </div>
+        <button type="button" class="btn btn-warning btn-sm" data-tour-trigger="marketing_product_tour">{% trans "Start interactive tour" %}</button>
+      </div>
       <div class="row g-4">
         {% for stop in page_extras.product_tour_stops %}
         <div class="col-md-4">
-          <article class="segment-card h-100">
+          <article class="segment-card h-100" data-tour="product-tour-{{ forloop.counter0 }}">
             {% if stop.static_visual %}
             {% comment %} Visual treatment uses a subtle hairline border instead of a dark navy fill —
                the SVG placeholders here are light-fill diagrams that disappear against a dark

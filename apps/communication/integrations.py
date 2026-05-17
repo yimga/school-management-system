@@ -386,6 +386,173 @@ class ZoomIntegration(IntegrationService):
             return False
 
 
+# ---------------------------------------------------------------------------
+# v3.4 — chat connector send helpers (Slack / Teams / Discord).
+#
+# Mirror the WhatsAppIntegration shape (school-aware constructor + send_*
+# methods) so per-tenant code can `SlackIntegration(school=…).send_message(...)`
+# the same way it sends WhatsApp. Each pulls credentials via the connector
+# cascade (with the legacy `settings.<PROVIDER>_*` env fallback).
+# ---------------------------------------------------------------------------
+
+
+class SlackIntegration(IntegrationService):
+    """Slack chat send via OAuth `chat:write`. Uses `chat.postMessage` REST."""
+
+    def __init__(self, school=None):
+        cfg = _resolve_connector_config_safe("slack", school=school)
+        self.access_token = (
+            cfg.get("access_token")
+            or getattr(settings, "SLACK_BOT_TOKEN", "")
+        )
+        self.default_channel = (
+            cfg.get("default_channel")
+            or getattr(settings, "SLACK_DEFAULT_CHANNEL", "")
+        )
+
+    def send_message(self, recipient, message, **kwargs):
+        """`recipient` is the Slack channel id/name (or None to use default).
+        `message` is the message body text. Returns bool."""
+        target = (recipient or self.default_channel or "").strip() if recipient or self.default_channel else ""
+        if not self.access_token or not target or not message:
+            return False
+        try:
+            import requests
+            resp = requests.post(
+                "https://slack.com/api/chat.postMessage",
+                headers={
+                    "Authorization": f"Bearer {self.access_token}",
+                    "Content-Type": "application/json; charset=utf-8",
+                },
+                json={"channel": target, "text": message},
+                timeout=10,
+            )
+            ok = resp.status_code == 200 and resp.json().get("ok", False)
+            if not ok:
+                logger.warning("Slack send failed: %s", resp.text[:300])
+            return bool(ok)
+        except (_REQUESTS_ERRORS + _COMMUNICATION_INTEGRATION_ERRORS) as exc:
+            logger.warning("Slack send transport error: %s", exc)
+            return False
+
+    def verify_webhook(self, request):
+        # Real verification lives in apps.integrations_marketplace.webhooks
+        # (_verify_slack_signature). Return True at this surface — the
+        # marketplace receiver pre-verifies before dispatching to any handler.
+        return True
+
+    def check_health(self):
+        if not self.access_token:
+            return False
+        try:
+            import requests
+            resp = requests.get(
+                "https://slack.com/api/auth.test",
+                headers={"Authorization": f"Bearer {self.access_token}"},
+                timeout=10,
+            )
+            return resp.status_code == 200 and resp.json().get("ok", False)
+        except (_REQUESTS_ERRORS + _COMMUNICATION_INTEGRATION_ERRORS):
+            return False
+
+
+class TeamsIntegration(IntegrationService):
+    """Microsoft Teams chat send via Graph `/v1.0/chats/<id>/messages`."""
+
+    def __init__(self, school=None):
+        cfg = _resolve_connector_config_safe("microsoft_teams_chat", school=school)
+        self.access_token = (
+            cfg.get("access_token")
+            or getattr(settings, "TEAMS_ACCESS_TOKEN", "")
+        )
+        self.default_chat_id = (
+            cfg.get("default_chat_id")
+            or getattr(settings, "TEAMS_DEFAULT_CHAT_ID", "")
+        )
+
+    def send_message(self, recipient, message, **kwargs):
+        """`recipient` is the Teams chat id (or None for default)."""
+        target = (recipient or self.default_chat_id or "").strip() if recipient or self.default_chat_id else ""
+        if not self.access_token or not target or not message:
+            return False
+        try:
+            import requests
+            resp = requests.post(
+                f"https://graph.microsoft.com/v1.0/chats/{target}/messages",
+                headers={
+                    "Authorization": f"Bearer {self.access_token}",
+                    "Content-Type": "application/json",
+                },
+                json={"body": {"contentType": "text", "content": message}},
+                timeout=10,
+            )
+            ok = resp.status_code in (200, 201)
+            if not ok:
+                logger.warning("Teams send failed: %s %s", resp.status_code, resp.text[:300])
+            return bool(ok)
+        except (_REQUESTS_ERRORS + _COMMUNICATION_INTEGRATION_ERRORS) as exc:
+            logger.warning("Teams send transport error: %s", exc)
+            return False
+
+    def verify_webhook(self, request):
+        return True  # see SlackIntegration.verify_webhook
+
+    def check_health(self):
+        if not self.access_token:
+            return False
+        try:
+            import requests
+            resp = requests.get(
+                "https://graph.microsoft.com/v1.0/me",
+                headers={"Authorization": f"Bearer {self.access_token}"},
+                timeout=10,
+            )
+            return resp.status_code == 200
+        except (_REQUESTS_ERRORS + _COMMUNICATION_INTEGRATION_ERRORS):
+            return False
+
+
+class DiscordIntegration(IntegrationService):
+    """Discord chat send via incoming webhook (no OAuth required)."""
+
+    def __init__(self, school=None):
+        cfg = _resolve_connector_config_safe("discord", school=school)
+        self.webhook_url = (
+            cfg.get("webhook_url")
+            or getattr(settings, "DISCORD_WEBHOOK_URL", "")
+        )
+
+    def send_message(self, recipient, message, **kwargs):
+        """`recipient` is unused (Discord webhooks post to the configured URL).
+        `message` is the message body. Pass `username=` in kwargs to override.
+        """
+        if not self.webhook_url or not message:
+            return False
+        body = {"content": message}
+        username = kwargs.get("username")
+        if username:
+            body["username"] = username
+        try:
+            import requests
+            resp = requests.post(self.webhook_url, json=body, timeout=10)
+            # Discord returns 204 on success.
+            ok = resp.status_code in (200, 204)
+            if not ok:
+                logger.warning("Discord send failed: %s %s", resp.status_code, resp.text[:300])
+            return bool(ok)
+        except (_REQUESTS_ERRORS + _COMMUNICATION_INTEGRATION_ERRORS) as exc:
+            logger.warning("Discord send transport error: %s", exc)
+            return False
+
+    def verify_webhook(self, request):
+        return True  # see SlackIntegration.verify_webhook
+
+    def check_health(self):
+        # Discord webhooks don't expose a health endpoint; presence of URL is
+        # the only sync-check we have.
+        return bool(self.webhook_url)
+
+
 class CommunicationService:
     """Central service for managing all communications.
 

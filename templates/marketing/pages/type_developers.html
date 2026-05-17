@@ -1,0 +1,29 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-developers{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-v3-page mkt-v3-page--developers">
+  <header class="mkt-v3-page__hero mkt-edt-container rmc-reveal">
+    <p class="mkt-v3-eyebrow">{% trans "Developers" %}</p>
+    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
+    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
+    <div class="mkt-v3-archetype__ctas">
+      <a href="{% url 'developer_api' %}" class="mkt-edt-cta">{% trans "API reference" %}</a>
+      <a href="{% url 'developer_hub' %}" class="mkt-edt-link">{% trans "Developer hub →" %}</a>
+    </div>
+  </header>
+  {% if page.segments %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal">
+    <div class="mkt-v3-segment-grid">
+      {% for seg in page.segments %}
+      <article class="mkt-v3-segment-card">
+        <h2 class="h5">{{ seg.title }}</h2>
+        <p>{{ seg.body }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</article>
+{% endblock %}

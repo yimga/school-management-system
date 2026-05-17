@@ -89,6 +89,13 @@
       </div>
     </div>
 
+    <ul class="mkt-footer-trust-badges list-unstyled d-flex flex-wrap gap-2 small text-muted mt-3 mb-0" aria-label="{% trans 'Trust and compliance' %}">
+      <li>{% trans "FERPA" %}</li>
+      <li>{% trans "GDPR" %}</li>
+      <li>{% trans "POPIA" %}</li>
+      <li>{% trans "180 currencies" %}</li>
+    </ul>
+
     {# Brand seal moment — large editorial wordmark over the legal strip. #}
     <div class="mkt-footer-seal mt-5 pt-4 border-top">
       <div class="mkt-footer-seal__mark">
@@ -100,7 +107,7 @@
 
     {# Legal strip — quiet bottom row. #}
     <div class="mkt-footer-legal mt-3 pt-3 border-top d-flex flex-wrap gap-3 align-items-center justify-content-between">
-      <div class="mkt-footer-copy">© <span data-mkt-year>{% now "Y" %}</span> {% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}. {% trans "All rights reserved." %}</div>
+      <div class="mkt-footer-copy">© <span data-mkt-year>{% now "Y" %}</span> {% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}. {% trans "All rights reserved." %} <span class="mkt-footer-kbd-hint">· {% trans "Press" %} <kbd>?</kbd> {% trans "for keyboard shortcuts" %}</span></div>
       <ul class="mkt-footer-legal-links list-unstyled d-flex flex-wrap gap-3 m-0 small">
         <li><a href="{% url 'marketing_security_compliance' %}">{% trans "Security" %}</a></li>
         <li><a href="{% url 'marketing_trust_center' %}">{% trans "Trust Center" %}</a></li>

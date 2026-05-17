@@ -1,0 +1,78 @@
+{% load i18n %}
+<section class="mkt-edt-section mkt-v3-section mkt-v3-bell-clock-wrap rmc-reveal" aria-labelledby="bell-clock-headline" data-mkt-reveal>
+  <div class="mkt-edt-container">
+    <header>
+      <p class="mkt-edt-eyebrow mkt-v3-eyebrow">{% trans "Tuesday · Cedar Ridge Academy" %}</p>
+      <h2 id="bell-clock-headline" class="mkt-edt-section-headline mkt-v3-section-headline">
+        {% trans "Six bells. Six surfaces." %}
+      </h2>
+      <p class="mkt-edt-lead mkt-v3-lead">
+        {% trans "Scroll the day — each bell pairs with the dashboard your staff actually opens." %}
+      </p>
+    </header>
+
+    <div class="mkt-v3-bell-clock" data-mkt-bell-clock>
+      <nav class="mkt-v3-bell-clock__rail" aria-label="{% trans 'School day bells' %}">
+        <ol class="mkt-v3-bell-clock__steps">
+          <li class="mkt-v3-bell-clock__step is-active" data-bell-step="0" aria-current="step">
+            <span class="mkt-v3-bell-clock__dot" aria-hidden="true"></span>
+            <span class="mkt-v3-bell-clock__time">7:42</span>
+            <span class="mkt-v3-bell-clock__label">{% trans "First light" %}</span>
+          </li>
+          <li class="mkt-v3-bell-clock__step" data-bell-step="1">
+            <span class="mkt-v3-bell-clock__dot" aria-hidden="true"></span>
+            <span class="mkt-v3-bell-clock__time">8:15</span>
+            <span class="mkt-v3-bell-clock__label">{% trans "First bell" %}</span>
+          </li>
+          <li class="mkt-v3-bell-clock__step" data-bell-step="2">
+            <span class="mkt-v3-bell-clock__dot" aria-hidden="true"></span>
+            <span class="mkt-v3-bell-clock__time">10:30</span>
+            <span class="mkt-v3-bell-clock__label">{% trans "Stand-up" %}</span>
+          </li>
+          <li class="mkt-v3-bell-clock__step" data-bell-step="3">
+            <span class="mkt-v3-bell-clock__dot" aria-hidden="true"></span>
+            <span class="mkt-v3-bell-clock__time">12:00</span>
+            <span class="mkt-v3-bell-clock__label">{% trans "Lunch" %}</span>
+          </li>
+          <li class="mkt-v3-bell-clock__step" data-bell-step="4">
+            <span class="mkt-v3-bell-clock__dot" aria-hidden="true"></span>
+            <span class="mkt-v3-bell-clock__time">15:15</span>
+            <span class="mkt-v3-bell-clock__label">{% trans "Last bell" %}</span>
+          </li>
+          <li class="mkt-v3-bell-clock__step" data-bell-step="5">
+            <span class="mkt-v3-bell-clock__dot" aria-hidden="true"></span>
+            <span class="mkt-v3-bell-clock__time">17:30</span>
+            <span class="mkt-v3-bell-clock__label">{% trans "Closed" %}</span>
+          </li>
+        </ol>
+      </nav>
+
+      <div class="mkt-v3-bell-clock__panels">
+        <article class="mkt-v3-bell-clock__panel" data-bell-panel="0">
+          <p><strong>{% trans "Olu opens the kitchen window." %}</strong> {% trans "Today's plan is already staged." %}</p>
+          {% include "marketing/components/_dashboard_frame.html" with frame_title="Daily briefing" dashboard_partial="schools/_v2/_artifact_today_briefing.svg.html" %}
+        </article>
+        <article class="mkt-v3-bell-clock__panel" data-bell-panel="1" hidden>
+          <p><strong>{% trans "Year 5B's roll marks in nine seconds." %}</strong></p>
+          {% include "marketing/components/_dashboard_frame.html" with frame_title="Attendance" dashboard_partial="schools/_v2/_artifact_teacher_attendance.svg.html" %}
+        </article>
+        <article class="mkt-v3-bell-clock__panel" data-bell-panel="2" hidden>
+          <p><strong>{% trans "Permission slips clear in five minutes." %}</strong></p>
+          {% include "marketing/components/_dashboard_frame.html" with frame_title="Communications" dashboard_partial="schools/_v2/_artifact_parent_phone_compact.svg.html" %}
+        </article>
+        <article class="mkt-v3-bell-clock__panel" data-bell-panel="3" hidden>
+          <p><strong>{% trans "The ledger reconciles before lunch." %}</strong></p>
+          {% include "marketing/components/_dashboard_frame.html" with frame_title="Finance" dashboard_partial="schools/_v2/_artifact_finance_dashboard.svg.html" %}
+        </article>
+        <article class="mkt-v3-bell-clock__panel" data-bell-panel="4" hidden>
+          <p><strong>{% trans "Forty-seven buses leave on time." %}</strong></p>
+          {% include "marketing/components/_dashboard_frame.html" with frame_title="Operations" dashboard_partial="schools/_v2/_artifact_leader_overview.svg.html" %}
+        </article>
+        <article class="mkt-v3-bell-clock__panel" data-bell-panel="5" hidden>
+          <p><strong>{% trans "Tomorrow is already staged." %}</strong></p>
+          {% include "marketing/components/_dashboard_frame.html" with frame_title="IT health" dashboard_partial="schools/_v2/_artifact_it_health.svg.html" %}
+        </article>
+      </div>
+    </div>
+  </div>
+</section>

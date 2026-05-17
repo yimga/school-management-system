@@ -1,0 +1,8 @@
+{% load i18n static %}
+<div id="rmc-launch-splash" class="rmc-launch-splash" hidden aria-hidden="true">
+  <div class="rmc-launch-splash__inner">
+    {% include "components/_bell_clock_mark.html" with size=72 filled_segments=3 extra_class="rmc-launch-splash__mark" %}
+    <p class="rmc-launch-splash__wordmark">{% trans "RunMyCampus" %}</p>
+    <p class="rmc-launch-splash__tagline">{% trans "Between the bells" %}</p>
+  </div>
+</div>

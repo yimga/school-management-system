@@ -1,0 +1,91 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-trust-center{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-v3-page mkt-v3-page--trust-center" data-mkt-trust-center="1" data-world-class-trust-page="1" data-apple-class-trust-page="1">
+  <header class="mkt-v3-page__hero mkt-edt-container rmc-reveal">
+    <p class="mkt-v3-eyebrow">{% trans "Trust" %}</p>
+    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
+    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
+    <div class="mkt-v3-archetype__ctas">
+      <a href="{% url 'marketing_security_packet_request' %}" class="mkt-edt-cta" data-cta="security-packet">{% trans "Request security packet" %}</a>
+      <a href="{% url 'marketing_procurement_checklist' %}" class="mkt-edt-link">{% trans "Procurement checklist →" %}</a>
+    </div>
+  </header>
+
+  {% if page.segments %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="trust-pillars-heading">
+    <h2 id="trust-pillars-heading" class="visually-hidden">{% trans "Trust pillars" %}</h2>
+    <div class="mkt-v3-segment-grid">
+      {% for seg in page.segments %}
+      <article class="mkt-v3-segment-card" data-world-class-trust-card="{{ seg.title|slugify }}">
+        <h3 class="h5">{{ seg.title }}</h3>
+        <p>{{ seg.body }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if page_extras.architecture_summary %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="trust-arch-heading">
+    <h2 id="trust-arch-heading" class="mkt-v3-section-headline">{% trans "Architecture & isolation" %}</h2>
+    <p class="mkt-v3-lead">{{ page_extras.architecture_summary }}</p>
+    {% if page_extras.encryption_copy %}
+    <p>{{ page_extras.encryption_copy }}</p>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if page_extras.integration_trust_categories %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="trust-integrations-heading">
+    <h2 id="trust-integrations-heading" class="mkt-v3-section-headline">{% trans "Integration trust categories" %}</h2>
+    <div class="mkt-v3-segment-grid">
+      {% for cat in page_extras.integration_trust_categories %}
+      <article class="mkt-v3-segment-card">
+        <p class="mkt-v3-eyebrow mb-1">{{ cat.icon }}</p>
+        <h3 class="h6">{{ cat.name }}</h3>
+        <p class="small mb-0">{{ cat.summary }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if page_extras.sla_uptime %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="trust-uptime-heading">
+    <h2 id="trust-uptime-heading" class="mkt-v3-section-headline">{% trans "Availability posture" %}</h2>
+    <p>{{ page_extras.sla_uptime.sla_summary }}</p>
+    <p class="small text-muted mb-2">{% trans "Target" %}: {{ page_extras.sla_uptime.uptime_target }} — {{ page_extras.sla_uptime.support_summary }}</p>
+    {% if page_extras.sla_uptime.status_url %}
+    <a class="mkt-edt-link" href="{{ page_extras.sla_uptime.status_url }}" rel="noopener noreferrer">{% trans "Status page →" %}</a>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="trust-deep-dives-heading">
+    <h2 id="trust-deep-dives-heading" class="mkt-v3-section-headline">{% trans "Compliance deep dives" %}</h2>
+    <ul class="mkt-v3-link-list">
+      <li><a href="{% url 'marketing_trust_ferpa' %}">{% trans "FERPA & student records" %}</a></li>
+      <li><a href="{% url 'marketing_trust_gdpr' %}">{% trans "GDPR & UK GDPR" %}</a></li>
+      <li><a href="{% url 'marketing_trust_retention' %}">{% trans "Retention schedules" %}</a></li>
+      <li><a href="{% url 'marketing_trust_incidents' %}">{% trans "Incident response" %}</a></li>
+    </ul>
+  </section>
+
+  <section class="mkt-edt-container mkt-v3-page__close mkt-v3-page__close--with-advisor rmc-reveal">
+    <div class="mkt-v3-page__close-figure mkt-advisor-figure mkt-advisor-figure--muted" aria-hidden="true">
+      {% include "marketing/components/_advisor_character.html" with pose="intro" size=180 accessible_label="" %}
+    </div>
+    <div class="mkt-v3-page__close-copy">
+      <p class="mkt-v3-lead">{% trans "We document posture honestly — certifications and live PSP rails only when externally verified." %}</p>
+      <div class="d-flex flex-wrap gap-2 justify-content-center">
+        <a href="{% url 'marketing_security_packet_request' %}" class="mkt-edt-cta">{% trans "Request security packet" %}</a>
+        <a href="{% url 'marketing_implementation_assurance' %}" class="mkt-edt-cta mkt-edt-cta--secondary">{% trans "Implementation assurance" %}</a>
+        <a href="{% url 'marketing_contact' %}" class="mkt-edt-link">{% trans "Contact sales →" %}</a>
+      </div>
+    </div>
+  </section>
+</article>
+{% endblock %}

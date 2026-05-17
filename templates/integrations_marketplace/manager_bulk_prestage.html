@@ -1,0 +1,49 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Bulk pre-stage integrations" %} · Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3" data-page-archetype="manager-bulk-prestage">
+
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Bulk pre-stage integrations" %}</h1>
+      <p class="text-muted mb-0">
+        {% blocktrans %}District-level provisioning. Pick an OAuth connector and the schools that should have it pre-staged. A pending-OAuth row is created at the school scope; each school admin completes the OAuth dance from their own hub.{% endblocktrans %}
+      </p>
+    </div>
+  </div>
+
+  <form method="post" class="card rmc-card-soft p-3" style="max-width: 720px">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="connector_slug" class="form-label">{% trans "Connector" %}</label>
+      <select name="connector_slug" id="connector_slug" class="form-select form-select-sm" required>
+        <option value="">{% trans "— choose connector —" %}</option>
+        {% for c in connectors %}
+          {% if not c.deprecated %}
+            <option value="{{ c.slug }}">{{ c.label }} ({{ c.slug }})</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="school_ids" class="form-label">{% trans "Schools" %}</label>
+      <select name="school_ids" id="school_ids" class="form-select" multiple size="10" required>
+        {% for s in schools %}
+          <option value="{{ s.pk }}">{{ s.name }}</option>
+        {% endfor %}
+      </select>
+      <div class="form-text">{% trans "Hold Ctrl/⌘ to select multiple." %}</div>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary btn-sm">{% trans "Pre-stage" %}</button>
+    </div>
+    <p class="small text-muted mt-3 mb-0">
+      {% blocktrans %}Idempotent: schools that already have an existing row for this connector are skipped. The response is JSON — copy it into a deploy ticket if needed.{% endblocktrans %}
+    </p>
+  </form>
+
+</div>
+{% endblock %}

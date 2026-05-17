@@ -1,0 +1,18 @@
+{% load i18n %}
+{# Canonical bell-clock brand mark — do not hand-roll SVG elsewhere (scan_bell_clock_consistency). #}
+<svg class="mkt-bell-clock-mark{% if extra_class %} {{ extra_class }}{% endif %}"
+     width="{{ size|default:32 }}"
+     height="{{ size|default:32 }}"
+     viewBox="0 0 32 32"
+     role="img"
+     aria-label="{{ accessible_label|default:'School day bell clock' }}">
+  <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
+  {% with seg=filled_segments|default:1 %}
+  <circle cx="16" cy="5" r="2" fill="{% if seg >= 1 %}currentColor{% else %}transparent{% endif %}" stroke="currentColor" stroke-width="0.75"/>
+  <circle cx="24.5" cy="9" r="2" fill="{% if seg >= 2 %}currentColor{% else %}transparent{% endif %}" stroke="currentColor" stroke-width="0.75"/>
+  <circle cx="27" cy="16" r="2" fill="{% if seg >= 3 %}currentColor{% else %}transparent{% endif %}" stroke="currentColor" stroke-width="0.75"/>
+  <circle cx="24.5" cy="23" r="2" fill="{% if seg >= 4 %}currentColor{% else %}transparent{% endif %}" stroke="currentColor" stroke-width="0.75"/>
+  <circle cx="16" cy="27" r="2" fill="{% if seg >= 5 %}currentColor{% else %}transparent{% endif %}" stroke="currentColor" stroke-width="0.75"/>
+  <circle cx="7.5" cy="23" r="2" fill="{% if seg >= 6 %}currentColor{% else %}transparent{% endif %}" stroke="currentColor" stroke-width="0.75"/>
+  {% endwith %}
+</svg>

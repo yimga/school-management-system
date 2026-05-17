@@ -119,7 +119,7 @@
         <div class="col-12 col-md-6 col-lg-3" data-shell-kpi="analytics-teacher-compliance">
           <div class="kpi">
             <div class="d-flex align-items-start justify-content-between gap-2">
-              <span class="label">{% trans "Teacher compliance" %}</span>
+              <span class="label">{% term "teacher" capitalize=True %} {% trans "compliance" %}</span>
               <span class="kpi-icon" aria-hidden="true"><i class="bi bi-easel"></i></span>
             </div>
             <div class="value" data-kpi-count="analytics-teacher-compliance">{{ teacher_stats|length }}</div>
@@ -128,7 +128,7 @@
         <div class="col-12 col-md-6 col-lg-3" data-shell-kpi="analytics-students-improved">
           <div class="kpi">
             <div class="d-flex align-items-start justify-content-between gap-2">
-              <span class="label">{% trans "Students improved" %}</span>
+              <span class="label">{% term "student" plural=True capitalize=True %} {% trans "improved" %}</span>
               <span class="kpi-icon success" aria-hidden="true"><i class="bi bi-graph-up-arrow"></i></span>
             </div>
             <div class="value" data-kpi-count="analytics-students-improved">{{ improvement_rows|length }}</div>
@@ -136,7 +136,7 @@
         </div>
       </div>
       <div class="d-flex flex-wrap gap-2 mt-3">
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:parent_dashboard' %}">{% trans "Parent portal" %}</a>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:parent_dashboard' %}">{% term "parent" capitalize=True %} {% trans "portal" %}</a>
         <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:rbac' %}">{% trans "RBAC tools" %}</a>
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:dashboard' %}">{% trans "Finance console" %}</a>
       </div>
@@ -147,7 +147,7 @@
       <p class="small text-muted mb-3">{% blocktrans with subject=specialty_rates.0.subject|default:_("No data available") count=specialty_rates|length %}Popular subject: {{ subject }} — trending across {{ count }} specializations.{% endblocktrans %}</p>
       <ul class="list-group list-group-flush mb-3">
         <li class="list-group-item py-2 d-flex justify-content-between align-items-center">
-          <span>{% trans "Teacher compliance" %}</span>
+          <span>{% term "teacher" capitalize=True %} {% trans "compliance" %}</span>
           <span class="badge bg-success">{{ teacher_rows|length }}</span>
         </li>
         <li class="list-group-item py-2 d-flex justify-content-between align-items-center">
@@ -326,7 +326,7 @@
     <div class="card shadow-sm h-100">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <h5 class="mb-0">{% trans "Teacher compliance" %}</h5>
+          <h5 class="mb-0">{% term "teacher" capitalize=True %} {% trans "compliance" %}</h5>
           <span class="badge bg-success">{{ teacher_stats|length }}</span>
         </div>
         <div class="d-flex flex-column gap-1 small mb-3">
@@ -549,11 +549,11 @@
   <div class="col-lg-6 rmc-reveal" data-widget-id="analytics-improvement-list">
     <div class="card h-100">
       <div class="card-body">
-        <h5 class="mb-2">{% trans "Student improvement list" %}</h5>
+        <h5 class="mb-2">{% term "student" capitalize=True %} {% trans "improvement list" %}</h5>
         <div class="text-muted small mb-2">{% trans "Students whose averages improved between terms." %}</div>
         <div class="table-responsive">
           <table class="table table-sm align-middle table-family">
-            <caption class="visually-hidden">{% trans "Student improvement list" %}</caption>
+            <caption class="visually-hidden">{% term "student" capitalize=True %} {% trans "improvement list" %}</caption>
             <thead>
               <tr>
                 <th scope="col">{% trans_term "Student" key="student" %}</th>
@@ -585,11 +585,11 @@
   <div class="col-lg-6 rmc-reveal" data-widget-id="analytics-teacher-deadlines">
     <div class="card h-100">
       <div class="card-body">
-        <h5 class="mb-2">{% trans "Teacher deadline compliance" %}</h5>
+        <h5 class="mb-2">{% term "teacher" capitalize=True %} {% trans "deadline compliance" %}</h5>
         <div class="text-muted small mb-2">{% trans "Based on selected deadline mode." %}</div>
         <div class="table-responsive">
           <table class="table table-sm align-middle table-family">
-            <caption class="visually-hidden">{% trans "Teacher deadline compliance" %}</caption>
+            <caption class="visually-hidden">{% term "teacher" capitalize=True %} {% trans "deadline compliance" %}</caption>
             <thead>
               <tr>
                 <th scope="col">{% trans_term "Teacher" key="teacher" %}</th>

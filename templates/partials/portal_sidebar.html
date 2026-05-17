@@ -117,11 +117,11 @@
       {% endif %}
       {% if request.user.role == 'TEACHER' %}
         <div class="sidebar-section-title">{% trans "Communication" %}</div>
-        <a class="nav-link nav-pill" href="{% url 'communication:class_announcement_create' %}"><i class="bi bi-journal-text me-2"></i>{% trans "Class Announcement" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'communication:class_announcement_create' %}"><i class="bi bi-journal-text me-2"></i>{% term "class" capitalize=True %} {% trans "Announcement" %}</a>
         <div class="sidebar-section-title">{% trans "My Workflow" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>{% trans "My Workflow" %}</a>
-        <div class="sidebar-section-title">{% trans "Teacher Workspace" %}</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:teacher_dashboard_alias' %}"><i class="bi bi-grid me-2"></i>{% trans "Assigned Classes" %}</a>
+        <div class="sidebar-section-title">{% term "teacher" capitalize=True %} {% trans "Workspace" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_dashboard_alias' %}"><i class="bi bi-grid me-2"></i>{% trans "Assigned" %} {% term "class" plural=True capitalize=True %}</a>
         <a class="nav-link nav-pill" href="{% url 'academics:teacher_syllabus_hub' %}"><i class="bi bi-journal-richtext me-2"></i>{% trans "Course Syllabi" %}</a>
         <a class="nav-link nav-pill" href="{% url 'portal:portal_syllabus' %}"><i class="bi bi-journal-bookmark me-2"></i>{% trans "Syllabus Coverage" %}</a>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_lesson_notes' %}"><i class="bi bi-journal-text me-2"></i>{% trans "Lesson Notes" %}</a>
@@ -144,7 +144,7 @@
         <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-house me-2"></i>{% trans "Family Home" %}</a>
         <div class="sidebar-section-title">{% trans "My Workflow" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>{% trans "My Workflow" %}</a>
-        <div class="sidebar-section-title">{% trans "Student Overview" %}</div>
+        <div class="sidebar-section-title">{% term "student" capitalize=True %} {% trans "Overview" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}#children"><i class="bi bi-people me-2"></i>{% trans "My Children" %}</a>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_medal_case' %}"><i class="bi bi-award me-2"></i>{% trans "Medal case" %}</a>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_attendance_discipline' %}"><i class="bi bi-clipboard-check me-2"></i>{% trans "Attendance & Discipline" %}</a>
@@ -186,14 +186,14 @@
         {% endif %}
         {% endif %}
         <div class="sidebar-section-title">{% trans "People & Access" %}</div>
-        <a class="nav-link nav-pill" href="{% url 'accounts:backend_student_list' %}"><i class="bi bi-person-lines-fill me-2"></i>{% trans "Student Profiles" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'accounts:backend_student_list' %}"><i class="bi bi-person-lines-fill me-2"></i>{% term "student" capitalize=True %} {% trans "Profiles" %}</a>
         {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
         <a class="nav-link nav-pill" href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-gear-wide me-2"></i>{% trans "Config center" %}</a>
         {% endif %}
         <a class="nav-link nav-pill" href="{% url 'accounts:rbac' %}"><i class="bi bi-diagram-3 me-2"></i>{% trans "RBAC & Access Control" %}</a>
         <div class="sidebar-section-title">{% trans "Academic Management" %}</div>
         <a class="nav-link nav-pill" href="{% url 'evals:evaluation_admin' %}"><i class="bi bi-clipboard-data me-2"></i>{% trans "Evaluation Admin" %}</a>
-        <a class="nav-link nav-pill" href="{% url 'evals:class_ranking' %}"><i class="bi bi-trophy me-2"></i>{% trans "Class Ranking" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'evals:class_ranking' %}"><i class="bi bi-trophy me-2"></i>{% term "class" capitalize=True %} {% trans "Ranking" %}</a>
         <a class="nav-link nav-pill" href="{% url 'evals:school_ranking' %}"><i class="bi bi-bar-chart-line me-2"></i>{% trans "School Ranking" %}</a>
         <a class="nav-link nav-pill" href="{% url 'reports:publish_term_results' %}"><i class="bi bi-megaphone me-2"></i>{% trans "Publish Results" %}</a>
         <a class="nav-link nav-pill" href="{% url 'accounts:certification_home' %}"><i class="bi bi-award me-2"></i>{% trans "Certification & Exams" %}</a>

@@ -74,3 +74,29 @@
   border: 1px solid var(--admin-border, var(--color-base-200));
   color: var(--admin-text, var(--color-base-900));
 }
+
+/* Batch 1246: Unfold → platform semantic tokens (manager + tenant admin) */
+html[data-surface="control-plane"] .unfold-sidebar,
+html[data-surface="control-plane"] #nav-sidebar {
+  background: var(--surface-elevated, var(--admin-sidebar-bg, #fff));
+  color: var(--text-primary, var(--admin-sidebar-text));
+}
+
+html[data-surface="control-plane"] .unfold-main {
+  background: var(--surface-canvas, var(--admin-dashboard-bg));
+}
+
+html[data-surface="control-plane"] input[type="text"],
+html[data-surface="control-plane"] input[type="email"],
+html[data-surface="control-plane"] input[type="url"],
+html[data-surface="control-plane"] input[type="number"],
+html[data-surface="control-plane"] select,
+html[data-surface="control-plane"] textarea {
+  border-radius: var(--radius-sm, 8px);
+  border-color: var(--hairline, var(--admin-border));
+}
+
+html[data-surface="control-plane"] .cp-admin-index .cp-hero {
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid var(--hairline, var(--color-base-200));
+}

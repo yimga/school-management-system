@@ -1,0 +1,16 @@
+{% load i18n %}
+<div class="mkt-v3-currency" data-mkt-currency-switcher>
+  <label class="mkt-v3-currency__label" for="mkt-currency-select">{% trans "Display currency" %}</label>
+  <select id="mkt-currency-select" class="mkt-v3-currency__select" aria-describedby="mkt-currency-note">
+    <option value="USD">USD ($)</option>
+    <option value="GBP">GBP (£)</option>
+    <option value="EUR">EUR (€)</option>
+    <option value="XAF">XAF (FCFA)</option>
+    <option value="XOF">XOF (CFA)</option>
+    <option value="NGN">NGN (₦)</option>
+    <option value="KES">KES (Ksh)</option>
+    <option value="ZAR">ZAR (R)</option>
+    <option value="GHS">GHS (GH₵)</option>
+  </select>
+  <p id="mkt-currency-note" class="mkt-v3-currency__note small">{% trans "Illustrative list — billing supports 180+ ISO currencies; confirm commercial terms with sales." %}</p>
+</div>

@@ -15,6 +15,14 @@ from pathlib import Path
 
 import polib
 
+# Map LANGUAGES code → POSIX-locale directory name (Django runtime convention).
+# Mirrors django.utils.translation.to_locale without booting Django here.
+def _to_locale_dir(code: str) -> str:
+    if "-" not in code:
+        return code
+    lang, _, region = code.partition("-")
+    return f"{lang}_{region.upper()}"
+
 # Calls we treat as translatable string sources (first string positional).
 _GETTEXT_NAMES = frozenset(
     {
@@ -271,7 +279,10 @@ def merge_locale_catalogs(
     keep = set(discovered)
 
     for code, _name in languages:
-        lc_dir = locale_root / code / "LC_MESSAGES"
+        # Use POSIX-locale dir name (pt-br → pt_BR) so Django's runtime can
+        # actually load the catalog. The LANGUAGES code stays as the BCP47-like
+        # form for settings, URL, and Accept-Language matching.
+        lc_dir = locale_root / _to_locale_dir(code) / "LC_MESSAGES"
         po_path = lc_dir / "django.po"
         mo_path = lc_dir / "django.mo"
 

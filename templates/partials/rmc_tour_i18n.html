@@ -1,0 +1,9 @@
+{% load i18n %}
+<script type="application/json" id="rmc-tour-i18n">{
+  "skip": "{% filter escapejs %}{% trans "Skip" %}{% endfilter %}",
+  "next": "{% filter escapejs %}{% trans "Next" %}{% endfilter %}",
+  "done": "{% filter escapejs %}{% trans "Done" %}{% endfilter %}",
+  "start_tour": "{% filter escapejs %}{% trans "Page tour" %}{% endfilter %}",
+  "target_missing": "{% filter escapejs %}{% trans "This step target is not visible on this page." %}{% endfilter %}",
+  "step_of": "{% filter escapejs %}{% trans "Step %(current)s of %(total)s" %}{% endfilter %}"
+}</script>

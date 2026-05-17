@@ -1,0 +1,84 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Webhook rejections" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3" data-page-archetype="integrations-rejections">
+
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Webhook rejections" %}</h1>
+      <p class="text-muted mb-0">
+        {% blocktrans %}Inbound deliveries that didn't pass HMAC verification or the rate limit. Mirror of the verified events log; use this to triage "why are upstream deliveries failing".{% endblocktrans %}
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'integrations_marketplace:events' %}" class="btn btn-sm btn-outline-secondary">{% trans "Verified events" %}</a>
+      <a href="{% url 'integrations_marketplace:hub' %}" class="btn btn-sm btn-outline-secondary">{% trans "Back to hub" %}</a>
+    </div>
+  </div>
+
+  {% if counts_by_reason %}
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      {% for reason, count in counts_by_reason %}
+        <span class="badge text-bg-warning-subtle text-warning-emphasis">
+          <code>{{ reason }}</code>: {{ count }}
+        </span>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="get" class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <label for="connector-filter" class="form-label small text-muted mb-0">{% trans "Connector" %}:</label>
+    <select id="connector-filter" name="connector" class="form-select form-select-sm" onchange="this.form.submit()">
+      <option value="">{% trans "All" %}</option>
+      {% for c in connectors %}
+        <option value="{{ c }}" {% if connector_filter == c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+    <label for="reason-filter" class="form-label small text-muted mb-0 ms-3">{% trans "Reason" %}:</label>
+    <input id="reason-filter" name="reason" type="text"
+           class="form-control form-control-sm" style="max-width: 240px"
+           placeholder="e.g. signature_mismatch" value="{{ reason_filter }}">
+    <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Filter" %}</button>
+    {% if connector_filter or reason_filter %}
+      <a href="{% url 'integrations_marketplace:rejections' %}" class="small text-muted">{% trans "Clear" %}</a>
+    {% endif %}
+    <span class="small text-muted ms-auto">
+      {% blocktrans count counter=events|length %}{{ counter }} rejection{% plural %}{{ counter }} rejections{% endblocktrans %}
+    </span>
+  </form>
+
+  {% if events %}
+    <div class="table-responsive">
+      <table class="table rmc-data-table align-middle">
+        <thead>
+          <tr>
+            <th>{% trans "When" %}</th>
+            <th>{% trans "Connector" %}</th>
+            <th>{% trans "Reason" %}</th>
+            <th>{% trans "Client IP" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ev in events %}
+            <tr>
+              <td><span class="small text-muted">{{ ev.timestamp|date:"Y-m-d H:i:s" }}</span></td>
+              <td><strong>{{ ev.connector }}</strong></td>
+              <td><code class="small">{{ ev.reason }}</code></td>
+              <td><code class="small text-muted">{{ ev.client_ip }}</code></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="rmc-empty" role="status">
+      <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-shield-check"></i></div>
+      <p class="rmc-empty__message">{% trans "No rejected deliveries recorded. Every inbound webhook passed verification — that's the right state to be in." %}</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

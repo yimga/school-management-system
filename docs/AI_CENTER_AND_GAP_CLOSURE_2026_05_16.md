@@ -98,6 +98,20 @@ Closes `end_to_end_feature_gap_register` from section N. The SOT is the spec.
 
 **Verified**: every shipped feature resolves its proof.
 
+## Batch 1249 — offline-first vs Ollama UX (2026-05-16)
+
+**Problem:** Users could confuse tenant offline-first (attendance/grades queue) with AI working offline, or miss when Ollama is down vs the browser being offline.
+
+**Fix:** AI Center polls `/api/ai/health/` (same contract as copilot); shows browser-offline hint and disables Ask; guided assistant explains offline vs server AI before fetch. Nested `<main>` removed (portal_base landmark). Operator still connects Ollama on the app host (Lane 2).
+
+## Batch 1247 — guided assistant reliability (2026-05-16)
+
+**Problem:** Rules-only mode returned plain strings from `invoke()` while guided `/api/ai/*` views expected a `guided` dict → `success: true` with empty `summary`.
+
+**Fix:** `services/ai_guided_fallback.py` + `_rules_invoke_result()` in `services/ai_gateway.py`; RAG snippets in gateway metadata; `rmc_ai_guided_assistant.js` and `rmc_ai_json_api_card.js` human-readable output; gateway console provider health strip.
+
+**Verify:** `apps.portal.tests.test_guided_assistant_rules_fallback`, `apps.portal.tests.test_ai_guided_fallback_unit`, `apps.siteconfig.tests.test_ai_center` (includes rules-mode POST).
+
 ## Still genuinely not done (not in this wave)
 
 | Item | Why |

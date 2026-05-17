@@ -1,0 +1,26 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}">{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-offline-first mkt-platform-theme--platform-offline-first{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-v3-archetype" data-mkt-archetype="offline-first">
+  <header class="mkt-v3-archetype__hero mkt-edt-container">
+    <p class="mkt-v3-eyebrow">{% trans "Offline-first capture" %}</p>
+    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
+    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
+    <div class="mkt-v3-archetype__ctas">
+      <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
+      <a href="{% url 'marketing_run_hub' %}" class="mkt-edt-link">{% trans "Back to Run →" %}</a>
+    </div>
+  </header>
+  {% include "marketing/components/_dashboard_frame.html" with frame_title="Sync queue" dashboard_partial="schools/_v2/_artifact_leader_overview.svg.html" %}
+  <section class="mkt-edt-container mkt-v3-archetype__wins">
+    <h2>{% trans "Marks and fees when the link drops" %}</h2>
+    <ul>
+      <li>{% trans "Attendance and grades queue locally, reconcile on reconnect." %}</li>
+      <li>{% trans "Bursar receipts captured without waiting for fibre." %}</li>
+      <li>{% trans "Conflict resolution the office can trust." %}</li>
+    </ul>
+  </section>
+</article>
+{% endblock %}

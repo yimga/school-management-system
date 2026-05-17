@@ -19,12 +19,26 @@ def super_ai_gateway_console(request):
     Control plane: one page of JSON POST consoles for every productized /api/ai/* endpoint
     that is not embedded elsewhere (plus shared review-loop feedback).
     """
+    from apps.portal.ai_provider import get_public_ai_provider_status, probe_ai_provider_reachable
+
+    provider_status = get_public_ai_provider_status()
+    health_probe = probe_ai_provider_reachable()
+    ai_center_url = None
+    from django.urls import NoReverseMatch
+
+    try:
+        ai_center_url = reverse("siteconfig:ai_center")
+    except NoReverseMatch:
+        ai_center_url = None
     return render(
         request,
         "schools/super_ai_gateway_console.html",
         {
             "dashboard_url": reverse("super:dashboard"),
             "ai_model_hub_url": reverse("super:ai_model_hub"),
+            "provider_status": provider_status,
+            "health_probe": health_probe,
+            "ai_center_url": ai_center_url,
         },
     )
 

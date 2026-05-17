@@ -52,3 +52,19 @@
   <meta name="twitter:site" content="{{ SITE.twitter_handle|default:TWITTER_SITE_HANDLE }}">
 {% endif %}
 {% if twitter_creator %}<meta name="twitter:creator" content="{{ twitter_creator }}">{% endif %}
+
+{# Hreflang: emits per-locale alternate URLs so search engines surface the right
+   language version. Reads either `hreflang_entries` (a list of {hreflang, href} dicts
+   set by the view) OR falls back to enumerating LANGUAGES against the current path. #}
+{% if hreflang_entries %}
+  {% for entry in hreflang_entries %}
+  <link rel="alternate" hreflang="{{ entry.hreflang }}" href="{{ entry.href }}">
+  {% endfor %}
+{% else %}
+  {% load i18n %}
+  {% get_available_languages as HREFLANG_LANGS %}
+  {% for code in HREFLANG_LANGS %}
+  <link rel="alternate" hreflang="{{ code }}" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}?lang={{ code }}">
+  {% endfor %}
+  <link rel="alternate" hreflang="x-default" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+{% endif %}

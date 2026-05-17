@@ -1,0 +1,8 @@
+{% load i18n %}
+<div class="mkt-v3-logo-carousel" data-mkt-horizontal-carousel tabindex="0" role="region" aria-label="{% trans 'Schools on RunMyCampus' %}">
+  <div class="mkt-v3-logo-carousel__track">
+    {% for item in carousel_items %}
+    <span class="mkt-v3-logo-carousel__item">{{ item }}</span>
+    {% endfor %}
+  </div>
+</div>

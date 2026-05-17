@@ -1,0 +1,295 @@
+/* Phase 4 — bell-clock product surfaces (spinner, launch splash). */
+
+.rmc-bell-clock-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-500, var(--mkt-accent, #c2410c));
+}
+
+.rmc-bell-clock-spinner__mark {
+  animation: rmcBellClockSpin 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
+@keyframes rmcBellClockSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.rmc-launch-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-bg, var(--mkt-surface, #faf7f2));
+  color: var(--text-primary, var(--mkt-ink, #0f1b2d));
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.rmc-launch-splash.is-dismissed {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.rmc-launch-splash__inner {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rmc-launch-splash__mark {
+  width: 3rem;
+  height: 3rem;
+  object-fit: contain;
+}
+
+.rmc-launch-splash__wordmark {
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.rmc-launch-splash__tagline {
+  font-size: 0.875rem;
+  color: var(--text-muted, var(--mkt-ink-2, #475569));
+  margin: 0;
+}
+
+.htmx-progress-bar .rmc-bell-clock-spinner {
+  display: none;
+}
+
+.htmx-request .htmx-progress-bar .rmc-bell-clock-spinner,
+body.htmx-request .htmx-progress-bar .rmc-bell-clock-spinner {
+  display: inline-flex;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-bell-clock-spinner__mark {
+    animation: none;
+  }
+  .rmc-launch-splash {
+    transition: none;
+  }
+}
+
+/* Phase 4 #5 — empty-state default illustration: quiet low-opacity bell-clock.
+   Used as the fallback when no `illustration=` and no `icon=` are passed to
+   rmc_empty_state.html. The mark sits at low opacity so it reads as ambience,
+   not a literal "loading" signal. */
+.rmc-empty__bell-clock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted, var(--mkt-ink-2, #475569));
+}
+
+.rmc-empty__bell-clock--quiet {
+  opacity: 0.45;
+}
+
+/* Phase 4 — notification micro-mark next to time-stamped events.
+   Small bell-clock prepended to <time> inside the inbox list. */
+.rmc-inbox__bell-clock {
+  display: inline-block;
+  vertical-align: -0.15em;
+  margin-right: 0.25rem;
+  color: var(--text-muted, var(--mkt-ink-2, #475569));
+  opacity: 0.7;
+}
+
+/* Phase 4 — scale-signal: animated bell-clock ring next to "Running across N schools".
+   The ring's outline animates so the count reads as a live signal, not a static stat. */
+.mkt-scale-signal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--mkt-rule, rgba(15, 27, 45, 0.10));
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--mkt-ink, #0F1B2D);
+  background: var(--mkt-tile, #FFFFFF);
+}
+
+.mkt-scale-signal__mark {
+  color: var(--mkt-accent, #C2410C);
+  animation: mktScaleSignalPulse 2.4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
+.mkt-scale-signal__count {
+  font-weight: 600;
+}
+
+.mkt-scale-signal__label {
+  color: var(--mkt-ink-2, #475569);
+}
+
+@keyframes mktScaleSignalPulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-scale-signal__mark {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* RTL: in Arabic / Hebrew / Persian / Urdu, the advisor figure on the side
+   should swap to the mirror position. The grid layouts in marketing-v3-narrative.css
+   already work logically; this just flips the figure column's visual anchor. */
+body.bidi-rtl .mkt-edt-close__figure,
+body.bidi-rtl .mkt-v3-page__close-figure,
+body.bidi-rtl .mkt-v3-page__section-figure,
+body.bidi-rtl .mkt-v3-archetype__wins-figure,
+body.bidi-rtl .mkt-v3-demo-form-wrap__figure {
+  justify-self: end;
+}
+
+/* RTL: arrow glyphs in CTA text ("Book a demo →") should flip direction. */
+body.bidi-rtl .mkt-edt-cta::after,
+body.bidi-rtl .mkt-edt-link::after {
+  content: "";
+}
+
+/* Error-page advisor — small, centered above the 404 / 500 hero copy. */
+.error-page--with-advisor .error-page__figure {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  opacity: 0.85;
+}
+
+/* Editorial advisor character — base styles. Shared across all shells so the
+   partial renders correctly even on surfaces that don't load the marketing-v3
+   stylesheet (e.g. the 404 page). Layout rules that pair the figure with
+   marketing-page content live in `static/marketing/css/marketing-v3-narrative.css`. */
+.mkt-advisor-figure {
+  display: inline-flex;
+  color: var(--mkt-ink, var(--text-primary, #0F1B2D));
+  animation: mktAdvisorFloat 7s ease-in-out infinite;
+}
+
+.mkt-advisor-figure--muted {
+  color: var(--mkt-ink-2, var(--text-muted, #475569));
+}
+
+.mkt-advisor-figure--on-dark {
+  color: var(--mkt-ink-inv, #F5F1EA);
+}
+
+.mkt-advisor {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Pose modifier selectors — base BEM modifiers for every pose, kept empty so
+   selectors like `.mkt-advisor--intro` resolve cleanly and per-pose tweaks have
+   a stable hook. */
+.mkt-advisor--intro,
+.mkt-advisor--listening,
+.mkt-advisor--explaining,
+.mkt-advisor--welcoming,
+.mkt-advisor--reviewing,
+.mkt-advisor--thinking,
+.mkt-advisor--celebrating,
+.mkt-advisor--pointing-up {
+  /* per-pose overrides may be added here; baseline empty */
+}
+
+/* One-time reveal: figure scales up from 96% on first paint, fades in. */
+.mkt-advisor-figure--reveal {
+  animation: mktAdvisorReveal 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
+             mktAdvisorFloat 7s ease-in-out 600ms infinite;
+}
+
+@keyframes mktAdvisorFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes mktAdvisorReveal {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-advisor-figure,
+  .mkt-advisor-figure--reveal {
+    animation: none;
+  }
+}
+
+/* Brand-color variant — when PUBLIC_BRAND_MODE is on, the advisor takes the
+   tenant's primary brand color. The scarf gradient inside the SVG stays as
+   declared (it's a separate decorative accent), so this only shifts the ink. */
+.mkt-advisor-figure--brand {
+  color: var(--mkt-primary, var(--color-primary-500, #C2410C));
+}
+
+/* Tiny variant for icon-companion scale (16-24px). Removes float, keeps the
+   line work readable at small sizes. */
+.mkt-advisor-figure--tiny {
+  animation: none;
+  vertical-align: middle;
+}
+
+/* Blink micro-animation — applied to the eyes through the figure wrapper.
+   Most CSS animations target specific paths inside the SVG, but in this
+   editorial figure the "eyes" are the glasses. Instead we apply a subtle
+   opacity pulse to the whole figure every 8 seconds — telegraphs aliveness
+   without being twitchy. Stays suspended under prefers-reduced-motion. */
+.mkt-advisor-figure--alive {
+  animation: mktAdvisorFloat 7s ease-in-out infinite,
+             mktAdvisorBreathe 8s ease-in-out infinite;
+}
+
+@keyframes mktAdvisorBreathe {
+  0%, 100% { filter: brightness(1); }
+  48% { filter: brightness(1); }
+  50% { filter: brightness(0.92); }
+  52% { filter: brightness(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-advisor-figure--alive {
+    animation: none;
+  }
+}
+
+/* Phase 4 — marketing section divider ornament.
+   Replaces the editorial hr rule on the home page with a tiny bell-clock ornament
+   centered between sections. Used as <div class="mkt-section-divider">…</div>. */
+.mkt-section-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 2.5rem auto;
+  color: var(--mkt-ink-2, #475569);
+  opacity: 0.5;
+}
+
+.mkt-section-divider__mark {
+  flex: 0 0 auto;
+}
+
+.mkt-section-divider::before,
+.mkt-section-divider::after {
+  content: "";
+  flex: 0 0 3rem;
+  height: 1px;
+  background: var(--mkt-rule, rgba(15, 27, 45, 0.10));
+  margin: 0 0.75rem;
+}
+

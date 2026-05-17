@@ -1,0 +1,28 @@
+{% load i18n %}
+<section class="mkt-edt-section mkt-v3-section mkt-v3-product-proof rmc-reveal" aria-labelledby="product-proof-headline" data-mkt-reveal>
+  <div class="mkt-edt-container">
+    <header>
+      <p class="mkt-edt-eyebrow mkt-v3-eyebrow">{% trans "Product proof" %}</p>
+      <h2 id="product-proof-headline" class="mkt-edt-section-headline mkt-v3-section-headline">
+        {% trans "Real surfaces — not illustrations." %}
+      </h2>
+      <p class="mkt-edt-lead mkt-v3-lead">
+        {% trans "Every claim pairs with the dashboard your staff opens between the bells." %}
+      </p>
+    </header>
+    <div class="mkt-v3-product-proof__grid">
+      <div class="mkt-v3-product-proof__card">
+        {% include "marketing/components/_dashboard_frame.html" with frame_title="Daily briefing" dashboard_partial="schools/_v2/_artifact_today_briefing.svg.html" %}
+        <p class="mkt-v3-product-proof__caption">{% trans "Morning plan staged before first bell." %}</p>
+      </div>
+      <div class="mkt-v3-product-proof__card">
+        {% include "marketing/components/_dashboard_frame.html" with frame_title="Fees & ledger" dashboard_partial="schools/_v2/_artifact_finance_dashboard.svg.html" %}
+        <p class="mkt-v3-product-proof__caption">{% trans "Collected and outstanding — reconciled hourly." %}</p>
+      </div>
+      <div class="mkt-v3-product-proof__card">
+        {% include "marketing/components/_dashboard_frame.html" with frame_title="Parent inbox" dashboard_partial="schools/_v2/_artifact_parent_phone_compact.svg.html" %}
+        <p class="mkt-v3-product-proof__caption">{% trans "One thread — slip, attendance, fee." %}</p>
+      </div>
+    </div>
+  </div>
+</section>

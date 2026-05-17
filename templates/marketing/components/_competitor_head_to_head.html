@@ -1,0 +1,37 @@
+{% load i18n %}
+{# Why-switch capability matrix — illustrative competitor posture (not a certification). #}
+<div class="mkt-v3-competitor-matrix rmc-reveal">
+  <p class="mkt-v3-competitor-matrix__disclosure">
+    <span class="mkt-edt-illustrative-pill">{% trans "Illustrative" %}</span>
+    {% trans "Procurement teams use this as a conversation starter — confirm specifics in your evaluation." %}
+  </p>
+  <div class="mkt-v3-competitor-matrix__scroll">
+    <table class="mkt-v3-competitor-matrix__table">
+      <caption class="visually-hidden">{% trans "Head-to-head capability comparison" %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Capability" %}</th>
+          <th scope="col">{% trans "PowerSchool" %}</th>
+          <th scope="col">{% trans "Blackbaud" %}</th>
+          <th scope="col">{% trans "Veracross" %}</th>
+          <th scope="col">{% trans "RunMyCampus" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">{% trans "Unified student + finance data" %}</th><td>○</td><td>○</td><td>◐</td><td>●</td></tr>
+        <tr><th scope="row">{% trans "Tenant isolation by subdomain" %}</th><td>○</td><td>◐</td><td>○</td><td>●</td></tr>
+        <tr><th scope="row">{% trans "Offline-first capture" %}</th><td>○</td><td>○</td><td>○</td><td>●</td></tr>
+        <tr><th scope="row">{% trans "Parent inbox on official channel" %}</th><td>◐</td><td>◐</td><td>◐</td><td>●</td></tr>
+        <tr><th scope="row">{% trans "Multi-currency fee ledger" %}</th><td>◐</td><td>◐</td><td>○</td><td>●</td></tr>
+        <tr><th scope="row">{% trans "Workflow automation depth" %}</th><td>◐</td><td>◐</td><td>○</td><td>●</td></tr>
+        <tr><th scope="row">{% trans "Migration dry-run sandbox" %}</th><td>○</td><td>◐</td><td>○</td><td>●</td></tr>
+        <tr><th scope="row">{% trans "Operator command center" %}</th><td>○</td><td>◐</td><td>○</td><td>●</td></tr>
+        <tr><th scope="row">{% trans "API + webhook catalog" %}</th><td>◐</td><td>◐</td><td>◐</td><td>●</td></tr>
+        <tr><th scope="row">{% trans "Regional compliance defaults" %}</th><td>◐</td><td>◐</td><td>◐</td><td>●</td></tr>
+        <tr><th scope="row">{% trans "Real-time leadership dashboards" %}</th><td>◐</td><td>◐</td><td>○</td><td>●</td></tr>
+        <tr><th scope="row">{% trans "Governed app marketplace" %}</th><td>○</td><td>○</td><td>○</td><td>●</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="mkt-v3-competitor-matrix__legend small">{% trans "● Strong · ◐ Partial · ○ Limited (illustrative)" %}</p>
+</div>

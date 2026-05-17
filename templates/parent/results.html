@@ -62,7 +62,7 @@
   {# ----- Student context (single card, semantic list) ----- #}
   <section class="card mb-3 results-student-card" aria-labelledby="student-info-heading">
     <div class="card-body py-3">
-      <h2 id="student-info-heading" class="visually-hidden">{% trans "Student information" %}</h2>
+      <h2 id="student-info-heading" class="visually-hidden">{% term "student" capitalize=True %} {% trans "information" %}</h2>
       <dl class="row mb-0 g-2 g-md-3 small">
         <div class="col-sm-6 col-md-4">
           <dt class="text-muted fw-normal">{% trans_term "Student" key="student" %}</dt>
@@ -85,7 +85,7 @@
       <div class="col-md-6">
         <div class="card h-100 border-0 shadow-sm">
           <div class="card-body py-3">
-            <h3 class="h6 text-muted text-uppercase mb-2">{% trans "School geography" %}</h3>
+            <h3 class="h6 text-muted text-uppercase mb-2">{% term "school" capitalize=True %} {% trans "geography" %}</h3>
             <p class="small mb-0">
               {% trans "Country" %}: {{ metadata.country|default:_("Not set") }} ·
               {% trans "Region" %}: {{ metadata.region|default:_("Not set") }} ·
@@ -120,7 +120,7 @@
               {% trans_term "School" key="school" %}: {{ summary.school_position|default:"-" }} / {{ summary.school_size|default:"-" }}
             </p>
             {% if summary.teacher_remark %}
-              <p class="small mt-2 mb-0"><strong>{% trans "Teacher remark" %}:</strong> {{ summary.teacher_remark }}</p>
+              <p class="small mt-2 mb-0"><strong>{% term "teacher" capitalize=True %} {% trans "remark" %}:</strong> {{ summary.teacher_remark }}</p>
             {% endif %}
           </div>
         </div>

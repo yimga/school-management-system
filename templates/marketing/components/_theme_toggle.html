@@ -1,0 +1,11 @@
+{% load i18n %}
+<button type="button"
+        class="mkt-v3-theme-toggle"
+        data-mkt-theme-toggle
+        data-label-dark="{% trans 'Switch to dark mode' %}"
+        data-label-light="{% trans 'Switch to light mode' %}"
+        aria-pressed="false"
+        aria-label="{% trans 'Switch to dark mode' %}">
+  <span aria-hidden="true">◐</span>
+  <span class="visually-hidden">{% trans "Theme" %}</span>
+</button>

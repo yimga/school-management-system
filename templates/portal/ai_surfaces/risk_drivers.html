@@ -1,0 +1,74 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% load terminology_tags %}
+{% block title %}{% trans "Risk drivers" %}: {{ student.first_name }} {{ student.last_name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+  <div>
+    <div class="eyebrow">{{ student.first_name }} {{ student.last_name }}</div>
+    <h1 class="page-h1 mb-0">{% trans "Top risk drivers" %}</h1>
+    <p class="page-sub mb-0">
+      {% blocktrans %}The features that contributed most to today's score, ranked by the model's importance for this prediction.{% endblocktrans %}
+    </p>
+  </div>
+  {% if risk_factor %}
+    <div class="text-end">
+      <div class="display-6 mb-0">{{ risk_factor.score|floatformat:1 }}</div>
+      <div class="small text-muted">
+        {% trans "Band" %}: <span class="badge bg-{% if risk_factor.band == 'red' %}danger{% elif risk_factor.band == 'amber' %}warning{% else %}success{% endif %}">{{ risk_factor.band }}</span>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+{% if not risk_factor %}
+  <div class="alert alert-info">
+    {% trans "No risk score has been computed for this student yet. The nightly scorer runs once a day." %}
+  </div>
+{% elif not has_ml_explanation %}
+  <div class="alert alert-info">
+    {% trans "This score was served by the heuristic baseline (no ML model in production)." %}
+    <br>
+    <span class="small text-muted">{{ risk_factor.reason_summary }}</span>
+  </div>
+{% else %}
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">{% trans "Feature" %}</th>
+              <th scope="col">{% trans "Student's value" %}</th>
+              <th scope="col">{% trans "Direction" %}</th>
+              <th scope="col" class="text-end">{% trans "Importance" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in contributions %}
+              <tr>
+                <td><code>{{ c.name }}</code></td>
+                <td>{{ c.value|floatformat:2 }}</td>
+                <td>
+                  {% if c.direction == "elevates" %}
+                    <span class="badge bg-danger">{% trans "Elevates risk" %}</span>
+                  {% else %}
+                    <span class="badge bg-success">{% trans "Lowers risk" %}</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">{{ c.importance|floatformat:3 }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <p class="small text-muted mt-2">
+    {% trans "Importance is global to the model, not unique to this prediction. Direction reflects this student's value vs the cohort baseline." %}
+  </p>
+  <p class="small text-muted">
+    {% trans "Model version" %}: <code>{{ risk_factor.model_version|default:"—" }}</code>
+  </p>
+{% endif %}
+{% endblock %}

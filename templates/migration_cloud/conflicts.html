@@ -1,0 +1,95 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--migration-cloud-conflicts" id="main">
+  <header class="rmc-page__header">
+    <a class="rmc-back"
+       href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}{% endif %}">
+      {% trans "← Back to bundle" %}
+    </a>
+    <h1 class="rmc-h1">{% trans "Upsert conflicts" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Rows that already exist on the tenant whose values disagree with the inbound bundle. Pick a resolution for each — silent overwrite is never the default." %}
+    </p>
+  </header>
+
+  <section class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Pending review" %} <span class="rmc-muted">({{ pending|length }})</span></h2>
+    {% if not pending %}
+      <p class="rmc-empty">{% trans "No pending conflicts. The apply step will overwrite cleanly." %}</p>
+    {% else %}
+      <table class="rmc-data-table">
+        <thead>
+          <tr>
+            <th>{% trans "Model" %}</th>
+            <th>{% trans "Canonical PK" %}</th>
+            <th>{% trans "Legacy ID" %}</th>
+            <th>{% trans "Changed fields" %}</th>
+            <th>{% trans "Action" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in pending %}
+          <tr data-mc-conflict-id="{{ c.pk }}">
+            <td><code>{{ c.canonical_model }}</code></td>
+            <td><code>{{ c.canonical_pk }}</code></td>
+            <td>{{ c.legacy_id|default:"—" }}</td>
+            <td>{{ c.changed_fields|join:", " }}</td>
+            <td>
+              <button type="button" data-mc-resolve="OVERWRITE" class="rmc-btn rmc-btn--sm rmc-btn--ghost">{% trans "Overwrite" %}</button>
+              <button type="button" data-mc-resolve="PRESERVE" class="rmc-btn rmc-btn--sm rmc-btn--ghost">{% trans "Preserve" %}</button>
+              <button type="button" data-mc-resolve="MERGE" class="rmc-btn rmc-btn--sm rmc-btn--ghost">{% trans "Merge" %}</button>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="5">
+              <details>
+                <summary>{% trans "Existing vs incoming" %}</summary>
+                <pre>existing: {{ c.existing_values }}
+incoming: {{ c.incoming_values }}</pre>
+              </details>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </section>
+
+  {% if resolved %}
+  <section class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Recently resolved" %}</h2>
+    <ul class="rmc-stack">
+      {% for c in resolved %}
+        <li><code>{{ c.canonical_model }}#{{ c.canonical_pk }}</code> → <strong>{{ c.resolution }}</strong></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</main>
+
+<script>
+(function () {
+  var url = "{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_conflicts' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_conflicts' bundle_id=bundle.pk %}{% endif %}";
+  var csrf = "{{ csrf_token }}";
+  document.querySelectorAll("[data-mc-resolve]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var row = btn.closest("tr");
+      var id = row && row.getAttribute("data-mc-conflict-id");
+      var resolution = btn.getAttribute("data-mc-resolve");
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+        credentials: "same-origin",
+        body: JSON.stringify({ conflict_id: id, resolution: resolution }),
+      }).then(function (r) {
+        if (r.ok) row.style.opacity = "0.4";
+      });
+    });
+  });
+})();
+</script>
+{% endblock %}

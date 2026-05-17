@@ -1,0 +1,20 @@
+{% load i18n %}
+{# Platform field / feature explainer — Bootstrap popover on info icon #}
+<span class="rmc-info-tag{% if extra_class %} {{ extra_class }}{% endif %}">
+  <button
+    type="button"
+    class="rmc-info-tag__btn btn btn-link p-0 align-baseline"
+    data-bs-toggle="popover"
+    data-bs-trigger="focus"
+    data-bs-placement="{{ placement|default:'top' }}"
+    data-bs-title="{{ title }}"
+    data-bs-content="{{ body }}"
+    {% if entity %}data-rmc-info-entity="{{ entity }}"{% endif %}
+    {% if field %}data-rmc-info-field="{{ field }}"{% endif %}
+    {% if feature %}data-rmc-info-feature="{{ feature }}"{% endif %}
+    aria-label="{% trans 'More information' %}: {{ title|default:label }}"
+  >
+    <i class="bi bi-info-circle" aria-hidden="true"></i>
+    <span class="visually-hidden">{{ title|default:label }}</span>
+  </button>
+</span>

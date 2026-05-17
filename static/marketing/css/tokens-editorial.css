@@ -295,6 +295,34 @@
   transform: translateY(-1px);
 }
 
+[data-mkt-edition="editorial"] .mkt-edt-cta--secondary {
+  background: transparent;
+  color: var(--mkt-edt-ink);
+  border-color: var(--mkt-edt-ink);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-cta--secondary:hover {
+  background: var(--mkt-edt-ink);
+  color: var(--mkt-edt-bg);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-alert {
+  border-radius: var(--mkt-edt-radius-md);
+  border: 1px solid var(--mkt-edt-rule);
+  padding: 0.75rem 1rem;
+  font-size: var(--mkt-edt-type-body-s, 0.875rem);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-alert--success {
+  border-color: color-mix(in srgb, var(--mkt-edt-accent) 40%, var(--mkt-edt-rule));
+  background: color-mix(in srgb, var(--mkt-edt-accent) 10%, var(--mkt-edt-bg));
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-alert--warning {
+  border-color: color-mix(in srgb, var(--mkt-edt-warning, #d97706) 35%, var(--mkt-edt-rule));
+  background: color-mix(in srgb, var(--mkt-edt-warning, #d97706) 12%, var(--mkt-edt-bg));
+}
+
 /* Tertiary text link — replaces the third hero button */
 [data-mkt-edition="editorial"] .mkt-edt-link {
   font-family: var(--mkt-edt-font-body);
@@ -463,6 +491,12 @@
 [data-mkt-edition="editorial"] .mkt-footer-copy {
   font-size: var(--mkt-edt-type-micro);
   color: var(--mkt-edt-ink-subtle);
+}
+[data-mkt-edition="editorial"] .mkt-footer-kbd-hint {
+  color: var(--mkt-edt-ink-subtle);
+}
+[data-mkt-edition="editorial"] .mkt-footer-kbd-hint kbd {
+  font-size: 0.7rem;
 }
 [data-mkt-edition="editorial"] .mkt-navbar .nav-link,
 [data-mkt-edition="editorial"] .mkt-navbar .navbar-nav .nav-link {

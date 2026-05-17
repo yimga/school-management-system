@@ -1,0 +1,26 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}">{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-workflows mkt-platform-theme--platform-workflows{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-v3-archetype" data-mkt-archetype="workflow-automation">
+  <header class="mkt-v3-archetype__hero mkt-edt-container">
+    <p class="mkt-v3-eyebrow">{% trans "Workflow automation" %}</p>
+    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
+    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
+    <div class="mkt-v3-archetype__ctas">
+      <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
+      <a href="{% url 'marketing_grow_hub' %}" class="mkt-edt-link">{% trans "Back to Grow →" %}</a>
+    </div>
+  </header>
+  {% include "marketing/components/_dashboard_frame.html" with frame_title="Approval queue" dashboard_partial="schools/_v2/_artifact_it_health.svg.html" %}
+  <section class="mkt-edt-container mkt-v3-archetype__wins">
+    <h2>{% trans "Approvals without hallway chase" %}</h2>
+    <ul>
+      <li>{% trans "Stage gates for admissions, finance, and HR on one spine." %}</li>
+      <li>{% trans "Escalations route to the right role before the bell rings." %}</li>
+      <li>{% trans "Audit trail on every handoff — no shadow spreadsheets." %}</li>
+    </ul>
+  </section>
+</article>
+{% endblock %}

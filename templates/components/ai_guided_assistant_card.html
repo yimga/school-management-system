@@ -7,11 +7,11 @@
   Required: card_title. Optional: card_hint, assistant_key (deep-links).
   Backwards-compat: api_url, studio_mode, field_id are accepted but ignored.
 {% endcomment %}
-{% url 'siteconfig:ai_center' as _rmc_ai_center_url %}
-{% if _rmc_ai_center_url %}
+{% url 'siteconfig:ai_center' as rmc_ai_center_url %}
+{% if rmc_ai_center_url %}
 <a
   class="card border-0 shadow-sm mb-3 text-decoration-none d-block"
-  href="{{ _rmc_ai_center_url }}{% if assistant_key %}?focus={{ assistant_key }}{% endif %}"
+  href="{{ rmc_ai_center_url }}{% if assistant_key %}?focus={{ assistant_key }}{% endif %}"
   data-rmc-ai-center-link
 >
   <div class="card-body small d-flex align-items-start gap-3">

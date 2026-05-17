@@ -19,17 +19,17 @@ class WorldClassMarketingExperienceTests(SimpleTestCase):
 
     def test_pricing_and_trust_keep_external_claims_honest(self):
         pricing = (ROOT / "templates" / "marketing" / "pricing_packages.html").read_text(encoding="utf-8")
-        trust = (ROOT / "templates" / "marketing" / "trust_center.html").read_text(encoding="utf-8")
+        trust = (ROOT / "templates" / "marketing" / "pages" / "type_trust_center.html").read_text(encoding="utf-8")
         self.assertIn("data-world-class-billing-impact-preview", pricing)
         self.assertIn("external PSP readiness", pricing)
-        self.assertIn("without claiming certifications", trust)
-        self.assertIn("SOC 2, ISO, PCI, PSP, settlement, and live parity claims stay blocked", trust)
+        self.assertIn("externally verified", trust)
+        self.assertIn("data-mkt-trust-center", trust)
         forbidden = ("SOC 2 certified", "ISO certified", "PCI certified", "settlement proven")
         for phrase in forbidden:
             self.assertNotIn(phrase, pricing + trust)
 
     def test_marketing_links_are_not_dummy_actions(self):
-        for rel in ("templates/schools/marketing_landing.html", "templates/marketing/pricing_packages.html", "templates/marketing/trust_center.html"):
+        for rel in ("templates/schools/marketing_landing.html", "templates/marketing/pricing_packages.html", "templates/marketing/pages/type_trust_center.html"):
             with self.subTest(rel=rel):
                 text = (ROOT / rel).read_text(encoding="utf-8")
                 self.assertNotIn('href="#"', text)

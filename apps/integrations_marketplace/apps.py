@@ -7,3 +7,54 @@ class IntegrationsMarketplaceConfig(AppConfig):
     verbose_name = (
         "Integrations & Marketplace (providers, connectors, install metadata)"
     )
+
+    def ready(self) -> None:
+        # v2.79 — pull webhook handlers in so the `@register_webhook_handler`
+        # decorators run. Without this the WEBHOOK_HANDLERS dict stays empty
+        # and the inbound receiver always falls through to "no handler" / 204.
+        # Import is wrapped because contributors may opt connectors in/out by
+        # editing webhook_handlers.py and a transient ImportError shouldn't
+        # crash the worker boot.
+        try:
+            from apps.integrations_marketplace import webhook_handlers  # noqa: F401
+        except Exception:  # noqa: BLE001 — log + continue, handlers are best-effort
+            import logging
+            logging.getLogger(__name__).exception(
+                "integrations_marketplace: failed to import webhook_handlers"
+            )
+
+        # v3.4 — wire the auto-subscribe receiver to `connector_connected` so
+        # a successful OAuth dance triggers the upstream push-subscription.
+        try:
+            from apps.integrations_marketplace import subscription_subscribe  # noqa: F401
+        except Exception:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).exception(
+                "integrations_marketplace: failed to wire auto-subscribe"
+            )
+
+        # v2.79 — bind Celery `task_prerun` / `task_postrun` signal handlers so
+        # async sends pick up the per-task tenant context (the middleware does
+        # this for sync request flow; tasks need a parallel hook).
+        try:
+            from apps.integrations_marketplace import celery_tenant_binding  # noqa: F401
+        except Exception:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).exception(
+                "integrations_marketplace: failed to bind celery tenant signals"
+            )
+
+        # v2.79 — startup advisory check: warn if OAUTH_CALLBACK_BASE_URL is
+        # unset in a production-looking environment so operators don't ship a
+        # broken OAuth dance silently.
+        try:
+            from apps.integrations_marketplace.startup_checks import (
+                warn_if_oauth_callback_base_url_missing,
+            )
+
+            warn_if_oauth_callback_base_url_missing()
+        except Exception:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).exception(
+                "integrations_marketplace: startup advisory check crashed"
+            )

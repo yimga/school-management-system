@@ -16,11 +16,35 @@
 <div class="container-fluid py-4" data-page-archetype="operational-workbench">
   {% trans "Productized /api/ai/* endpoints" as gw_subtitle %}
   {% include "studio_os/components/page_header.html" with title=_("AI gateway console") subtitle=gw_subtitle action_url=dashboard_url action_text=_("Back to dashboard") %}
+  {% if provider_status %}
+  <div class="alert alert-light border d-flex flex-wrap align-items-center gap-3 py-2 mb-3" role="status" aria-live="polite">
+    <span class="badge text-bg-{% if provider_status.has_live_provider and health_probe.reachable %}success{% elif provider_status.has_live_provider %}warning{% else %}secondary{% endif %}">
+      {% if provider_status.has_live_provider and health_probe.reachable %}{% trans "Live provider ready" %}
+      {% elif provider_status.has_live_provider %}{% trans "Provider configured — checking reachability" %}
+      {% else %}{% trans "Rules fallback (connect Ollama for live answers)" %}{% endif %}
+    </span>
+    <small class="text-muted mb-0">
+      {% trans "Preference" %}: <code>{{ provider_status.preference|join:", " }}</code>
+      {% if ai_center_url %}· <a href="{{ ai_center_url }}">{% trans "Open AI Center" %}</a>{% endif %}
+      {% if ai_model_hub_url %}· <a href="{{ ai_model_hub_url }}">{% trans "AI model hub" %}</a>{% endif %}
+    </small>
+  </div>
+  {% endif %}
+  <details class="small mb-3 border rounded p-2 bg-light">
+    <summary class="fw-semibold">{% trans "Operator: live Ollama setup" %}</summary>
+    <p class="text-muted mb-2 mt-2">
+      {% trans "Keep tenant offline-first enabled for low connectivity. Run Ollama on the Django host (or LAN). AI on teacher devices still needs server reachability." %}
+    </p>
+    <pre class="small bg-white border rounded p-2 mb-2"><code>ollama serve
+ollama pull llama3
+AI_GATEWAY_ENABLED=1
+OLLAMA_ENDPOINT=http://localhost:11434/api/generate
+OLLAMA_MODEL=llama3
+python scripts/verify_ollama_live.py --invoke</code></pre>
+    <p class="text-muted mb-0"><code>docs/OLLAMA_OPERATIONS_AND_UPDATES.md</code></p>
+  </details>
   <p class="small text-muted mb-2">
     {% trans "Each card POSTs JSON to the gateway (CSRF, same-origin). Staff-only and tenant-scoped rules apply per endpoint — see docs/AI_DOMAIN_ASSISTANT_REGISTRY.md." %}
-    {% if ai_model_hub_url %}
-    <a href="{{ ai_model_hub_url }}" class="fw-semibold">{% trans "AI model hub" %}</a>
-    {% endif %}
   </p>
   <div class="d-flex flex-wrap gap-2 mb-4" aria-label="{% trans 'Related control-plane surfaces' %}">
     <a href="{% url 'super:command_center' %}" class="btn btn-outline-secondary btn-sm">{% trans "Mission queues" %}</a>

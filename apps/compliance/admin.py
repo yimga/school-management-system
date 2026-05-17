@@ -197,12 +197,38 @@ def _erase_mark_rejected(modeladmin, request, queryset):
     messages.warning(request, f"{updated} erasure request(s) REJECTED.")
 
 
-@admin.action(description="Mark selected erasure requests as COMPLETED")
+@admin.action(description="Mark selected erasure requests as COMPLETED (status only — does not scrub data)")
 def _erase_mark_completed(modeladmin, request, queryset):
+    """Legacy: status-only flip. Use `_erase_approve_and_fulfill` to actually scrub PII."""
     updated = queryset.filter(status=EraseRequest.Status.APPROVED).update(
         status=EraseRequest.Status.COMPLETED, completed_at=timezone.now()
     )
-    messages.success(request, f"{updated} erasure request(s) marked COMPLETED.")
+    messages.success(request, f"{updated} erasure request(s) marked COMPLETED (no scrub).")
+
+
+@admin.action(description="Approve & fulfill: scrub PII and mark COMPLETED")
+def _erase_approve_and_fulfill(modeladmin, request, queryset):
+    from .gdpr_services import fulfill_pending_erasure
+
+    fulfilled = 0
+    skipped = 0
+    errors = []
+    for er in queryset:
+        result = fulfill_pending_erasure(
+            er.pk, fulfilled_by_user_id=getattr(request.user, "id", None)
+        )
+        if result.get("ok"):
+            fulfilled += 1
+        else:
+            skipped += 1
+            errors.append(f"#{er.pk}: {result.get('error') or 'unknown error'}")
+    if fulfilled:
+        messages.success(request, f"{fulfilled} erasure request(s) fulfilled and COMPLETED.")
+    if skipped:
+        messages.warning(
+            request,
+            f"{skipped} erasure request(s) not fulfilled: " + "; ".join(errors[:5]),
+        )
 
 
 class EraseRequestAdmin(admin.ModelAdmin):
@@ -223,7 +249,12 @@ class EraseRequestAdmin(admin.ModelAdmin):
     )
     date_hierarchy = "created_at"
     readonly_fields = ("created_at", "completed_at")
-    actions = [_erase_mark_approved, _erase_mark_rejected, _erase_mark_completed]
+    actions = [
+        _erase_mark_approved,
+        _erase_mark_rejected,
+        _erase_approve_and_fulfill,
+        _erase_mark_completed,
+    ]
     list_per_page = 50
 
 

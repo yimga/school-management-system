@@ -1,0 +1,26 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}">{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-grading{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-v3-archetype" data-mkt-archetype="gradebook-reports">
+  <header class="mkt-v3-archetype__hero mkt-edt-container">
+    <p class="mkt-v3-eyebrow">{% trans "Gradebook & report cards" %}</p>
+    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
+    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
+    <div class="mkt-v3-archetype__ctas">
+      <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
+      <a href="{% url 'marketing_teach_hub' %}" class="mkt-edt-link">{% trans "Back to Teach →" %}</a>
+    </div>
+  </header>
+  {% include "marketing/components/_dashboard_frame.html" with frame_title="Gradebook" dashboard_partial="schools/_v2/_artifact_teacher_attendance.svg.html" %}
+  <section class="mkt-edt-container mkt-v3-archetype__wins">
+    <h2>{% trans "Marks to reports without Friday-night exports" %}</h2>
+    <ul>
+      <li>{% trans "Assessment ladder parents can follow in the portal." %}</li>
+      <li>{% trans "Report packs footnoted and signed at 3 p.m." %}</li>
+      <li>{% trans "Class cards tied to live enrollments — no re-keying." %}</li>
+    </ul>
+  </section>
+</article>
+{% endblock %}

@@ -89,44 +89,14 @@
     h: { url: '/super/tenant-health/', label: 'School Health' },
     p: { url: '/super/pulse/', label: 'Pulse' }
   };
-  var helpEl = null;
   function showHelp() {
-    if (helpEl) {
-      helpEl.style.display = 'flex';
-      return;
+    if (window.RMCShortcuts && typeof window.RMCShortcuts.open === 'function') {
+      window.RMCShortcuts.open();
     }
-    helpEl = document.createElement('div');
-    helpEl.id = 'cp-keyboard-help';
-    helpEl.className = 'cp-keyboard-help-overlay';
-    helpEl.setAttribute('role', 'dialog');
-    helpEl.setAttribute('aria-label', 'Keyboard shortcuts');
-    var t = '<div class="rounded shadow-lg p-4 bg-dark text-white cp-keyboard-help-panel">';
-    t += '<h3 class="h6 mb-3">Keyboard shortcuts</h3>';
-    t += '<p class="small text-muted mb-2">Press <kbd>g</kbd> then one of:</p><ul class="list-unstyled small mb-0">';
-    for (var k in shortcuts) {
-      t += '<li><kbd>g</kbd> <kbd>' + k + '</kbd> &rarr; ' + (shortcuts[k].label || shortcuts[k].url) + '</li>';
-    }
-    t += '</ul><p class="small text-muted mt-2 mb-0">Press <kbd>?</kbd> to toggle this help. <kbd>Esc</kbd> to close.</p></div>';
-    helpEl.innerHTML = t;
-    helpEl.addEventListener('click', function (e) {
-      if (e.target === helpEl) hideHelp();
-    });
-    document.body.appendChild(helpEl);
-    document.addEventListener('keydown', function onEsc(e) {
-      if (e.key === 'Escape') {
-        hideHelp();
-        document.removeEventListener('keydown', onEsc);
-      }
-    });
-  }
-  function hideHelp() {
-    if (helpEl) helpEl.style.display = 'none';
   }
   window.cpShowShortcutsHelp = showHelp;
   document.addEventListener('keydown', function (e) {
     if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
-      e.preventDefault();
-      showHelp();
       return;
     }
     if (e.key === 'g' && !e.ctrlKey && !e.metaKey && !e.altKey) {

@@ -1,6 +1,95 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-16 (v2.82.0 — Marketing Phase 0 visual-truth: walkthrough reel bug fix + empty `<source>` removed + "From" pricing prefix + visible illustrative-pill disclosures + asset-parity CI gate + auto dark-mode override retired + typography legibility floor)
+**Last updated:** 2026-05-16 (v3.7.0 — Migration Cloud Tier 1+2+3 complete end-to-end: financial guardrail, asset pipeline, ID-mapping audit, PII redaction, conflict UI, diff-mode re-ingest, atomic apply, DAG progress + SSE, sandbox, preflight, network resilience, auto-rollback, plus 9 Tier 3 long-tail features)
+
+## 2026-05-16 — v3.7.0 Migration Cloud Tier 1 / Tier 2 / Tier 3 closeout
+
+**Status:** SHIPPED. SW bump pending; module count: 9 new files in `apps/migration_cloud/` + 1 migration + 4 new templates + 1 test module + 22 new URL routes + 22 new view classes.
+
+Closes all 23 items from the sms-v3.7 / v3.8 / v3.9 roadmap in a single coordinated wave per operator request ("complete these respectively end to end till everything is complete all gaps close all bugs patched, validation ran to ensure nothing is missed then code hygiene").
+
+**Tier 1 — confidence-critical:**
+- **#1 Financial reconciliation guardrail** — `apps/migration_cloud/guardrails.py` (`FinancialMismatchError`, `evaluate_expected_totals`, `compute_observed_totals`, `enforce_financial_guardrail`). New `MigrationBundle.expected_totals` JSONField. Orchestrator runs the guardrail after rows land but before flipping APPLIED; mismatch aborts with rollback when `apply_atomic=False`, transaction.rollback when `True`. `?atomic_bundle=1` opt-in via `MigrationCloudBundleSettingsView`.
+- **#2 Asset pipeline** — `apps/migration_cloud/asset_pipeline.py` (`register_asset`, `fetch_pending_assets`, `asset_storage_path`). New `MigrationAsset` model with PENDING/FETCHING/STORED/FAILED lifecycle. Celery task `fetch_assets_task` + `enqueue_fetch_assets` helper. Storage at `MEDIA_ROOT/migration_cloud/assets/<tenant>/<entity>/<legacy_id>.<ext>`. Supports file/http(s)/s3/data URI schemes. Landers auto-detect 5 asset-kind URLs (photo, immunization, report_card, transcript, id_card) per row via `detect_and_register_assets`.
+- **#3 MigrationIdMapping audit table** — new model `(bundle, school, legacy_namespace, legacy_id, canonical_model, canonical_pk, domain)`. Landers persist via `record_id_mapping` (student + finance landers wired; others fall through to `custom_fields`). New `MigrationCloudIdMappingLookupView` answers "what's the new ID for old ID X?" with `?legacy_id=PS-1029&namespace=powerschool`.
+- **#4 PII redaction enforcement in AI bridge** — `redact_pii_for_prompt` strips SSN/email/phone/CC/ISO-date patterns. `_tenant_allows_pii` consults tenant's `external_student_pii_allowed` policy. `_invoke` refuses to send `high_pii` prompts when policy denies (caller falls back to deterministic heuristics) and always redacts before sending.
+- **#5 Conflict resolution UI** — new `MigrationConflict` model + `MigrationCloudConflictsView` + `templates/migration_cloud/conflicts.html`. Landers call `detect_conflict` before upsert; an existing row whose non-empty fields would change creates a PENDING conflict row. Operator picks `OVERWRITE` / `PRESERVE` / `MERGE` from the UI; `conflict_resolution_for` returns the operator's last-resolved decision and the lander skips the update when `PRESERVE`.
+- **#6 Diff-mode re-ingest** — `apps/migration_cloud/diff_mode.py` (`recommended_diff_since`, `row_passes_diff_filter`). New `MigrationBundle.diff_mode` (`full`/`since`) + `diff_since` DateTimeField. Orchestrator's `_iter_canonical_rows` filters by 12 known timestamp columns. New `MigrationCloudDiffModeView` for setup with auto-suggested threshold from prior successful bundle.
+
+**Tier 2 — completeness + operator UX:**
+- **#7 All-or-nothing apply** — `MigrationBundle.apply_atomic` flag wraps the apply in `transaction.atomic()`. Toggled via `MigrationCloudBundleSettingsView`.
+- **#8 DAG-style progress view** — `MigrationProgressEvent` model + `apps/migration_cloud/progress.py` (`emit`, `refresh_snapshot`, `stream_events_since`). `MigrationCloudProgressView` renders per-stage timeline from `templates/migration_cloud/progress.html`. `progress_snapshot` JSONField on bundle for fast re-rendering.
+- **#9 SSE progress streaming** — `MigrationCloudProgressStreamView` returns `StreamingHttpResponse` with `text/event-stream`. Client reconnects automatically; `?after_id=<n>` resume.
+- **#10 Sandbox tenant clone** — `apps/migration_cloud/sandbox.py` (`clone_bundle_to_sandbox`, `promote_sandbox_to_origin`, `discard_sandbox`). New `sandbox_of` FK for lineage. Sandbox gets a throwaway `sandbox-<pk>-<token>` schema_name; artifacts are shared (content-addressed). `MigrationCloudSandboxView` with `?action=clone|promote|discard`.
+- **#11 Pre-flight capacity check** — `apps/migration_cloud/preflight.py` (`check_capacity`, `check_disk_space`, `check_cross_bundle_fks`, `run_all`). Plan limits per SLA tier (small/mid/large/state). `MigrationCloudPreflightView` runs the full report and stores on `bundle.size_summary["preflight"]`.
+- **#12 Cross-bundle validation** — `check_cross_bundle_fks` walks `MigrationIdMapping` to verify every `*_external_id` reference resolves. Wired into `preflight.run_all`.
+- **#13 Auto-rollback on parity drift** — `MigrationBundle.parity_drift_rollback_pct` threshold. `reconcile_bundle` calls `_auto_rollback_bundle` when overall parity falls below threshold; flips bundle to FAILED with summary detail.
+- **#14 Network resilience for URL/SFTP/S3** — `apps/migration_cloud/network_resilience.py` (`fetch_with_resume`, `retry`, `FetchError`). HTTP Range resume, exponential backoff with jitter, deterministic SHA256 checksum verification. Supports http/https/sftp/s3/file schemes.
+
+**Tier 3 — long-tail:**
+- **#15-23** — `apps/migration_cloud/tier3.py`: `merge_bundles`, `generate_handoff_doc` + `templates/migration_cloud/handoff_doc.html`, `lockout_legacy_source`, `estimate_token_spend`, `suggest_profiles_for`, `export_tenant_to_canonical` (CSV zip), `stage_rollout_plan` + `advance_rollout_stage`, `ocr_confidence_warning`, `sla_tier_targets`. Each exposed via its own view + URL route under both super and portal shells.
+
+**Migration:** `apps/migration_cloud/migrations/0003_tier1_models.py` adds 7 fields to `MigrationBundle` + creates 4 new models (`MigrationIdMapping`, `MigrationAsset`, `MigrationProgressEvent`, `MigrationConflict`). Depends on `schools/0048_force_rls_on_all_enabled_tables`.
+
+**Test coverage:** `apps/migration_cloud/tests/test_v3_7_tier1_tier2_tier3.py` — 30+ tests across all 23 features. Bug-patches discovered during testing folded back into the main modules.
+
+**Deploy checklist (operator):**
+1. `python manage.py migrate migration_cloud 0003_tier1_models`
+2. Optional: set `parity_drift_rollback_pct` per bundle for auto-rollback opt-in
+3. Optional: set `apply_atomic=True` for high-stakes bundles
+4. Operators landing financial data: set `expected_totals` before APPLY to engage the guardrail
+
+
+
+## 2026-05-16 — v3.6.2 Header cleanup + cp1252 + shadow lifecycle
+
+**Status:** SHIPPED. SW bumped to `sms-v3.6.2-header-cleanup-cp1252-shadow-2026-05-16`.
+
+Cleanup wave landing 3 fixes plus operator-runbook SOT:
+
+**1. Windows cp1252 unicode crashes in mgmt cmds.**
+- `apps/analytics/management/commands/verify_ai_ml_readiness.py` used `✓ / ○ / ✗` glyphs → ASCII `[OK ] / [opt] / [ - ]`.
+- `apps/analytics/management/commands/score_shadow_at_risk.py` used `↑ / ↓` arrows → `promote= / demote=`. This bug was load-bearing: the try/except wrapping `_populate` was catching the print-time crash and rewriting `outcome=OK` back to `outcome=FAILED` — so every Windows shadow run was incorrectly marked failed even when the work completed.
+
+**2. `scan_undefined_css_classes` baseline 18 → 0.**
+- `templates/components/rmc_operator_surface_strip.html` had 2 missing list-wrapper modifiers (`__spine`, `__paired-list`). Added explicit definitions to `static/css/admin-cp-parity.css`.
+- `templates/migration_cloud/intake_new.html` shipped 16 BEM classes (`rmc-form__*`, `rmc-input`, `rmc-input--*`, `rmc-banner`, etc.) without ever defining the styles. Added ~80-line token-driven CSS block to `static/css/rmc-class-grammar.css`.
+- `templates/marketing/pages/type_trust_center.html` referenced `.mkt-v3-page--trust-center` page modifier not yet declared. Added to existing modifier list in `static/marketing/css/marketing-v3-pages.css`.
+
+**3. Real ML artifact shadow-scored against legacy heuristic baseline.**
+- `at_risk_v2_2026q2` (trained on 5k synthetic samples; ROC AUC 0.852, AP 0.889) registered as CANDIDATE in v3.06.
+- `score_shadow_at_risk --school=gilead-school --candidate-version at_risk_v2_2026q2` ran clean; `AtRiskShadowRun id=2 outcome=ok`.
+- Dev DB only has 1-2 active students per tenant so the statistics aren't actionable, but the lifecycle is end-to-end demonstrated. Production data will yield real promotion evidence.
+
+**4. Predeploy script tightened.**
+- `scripts/release/render_predeploy.sh` gained `bootstrap_at_risk_registry` (gated by `RUN_BOOTSTRAP_AT_RISK_REGISTRY=1`, default 1, idempotent) and `seed_default_digest_recipients` (gated by `RUN_SEED_DIGEST_RECIPIENTS`, default 0, opt-in).
+- `.env.example` documents both new env vars.
+
+**5. NEW operator SOT: `docs/OPERATOR_RUNBOOK_2026_05_16.md`.**
+- Answers "where do I run each command — local, Render shell, or auto?"
+- Categorized: Predeploy (auto), Celery beat (auto), one-time setup (Render shell), verification (either), on-demand maintenance (Render shell), destructive (Render shell + approval), local-only (never on Render).
+- Three quick-start recipes: fresh environment, new ML candidate, GDPR erase request.
+
+**Audit suite after fixes:**
+- `audit_template_render_safety`: 0/959
+- `scan_undefined_css_classes`: 0/0
+- `scan_inline_style_off_token`: 0
+- `audit_no_placeholder`: 0/959
+
+**Files touched:**
+- MOD `apps/analytics/management/commands/verify_ai_ml_readiness.py`
+- MOD `apps/analytics/management/commands/score_shadow_at_risk.py`
+- MOD `static/css/admin-cp-parity.css` (+8 lines)
+- MOD `static/css/rmc-class-grammar.css` (+86 lines)
+- MOD `static/marketing/css/marketing-v3-pages.css` (+1 line)
+- MOD `scripts/release/render_predeploy.sh` (+16 lines: 2 new gated blocks)
+- MOD `.env.example` (+10 lines: 2 new env stanzas)
+- MOD `static/js/service-worker.js` (CACHE_VERSION bump)
+- NEW `docs/OPERATOR_RUNBOOK_2026_05_16.md`
+
+**Memory:** `project_header_cleanup_cp1252_shadow_v3_6_2_2026_05_16.md`.
+
+---
 
 ## 2026-05-16 — v2.82 Marketing Phase 0 visual-truth
 
@@ -79,6 +168,34 @@ Per the approved plan (`~/.claude/plans/i-want-you-to-twinkly-spark.md`):
 - Three cinematic dark sections introduced (walkthrough + global campuses + voices).
 - Per-page archetype templates (no two top-nav pages share section order).
 - Bootstrap Playwright + ship full visual-truth e2e suite.
+
+## 2026-05-16 — v2.99 backlog closeout (admin depth + marketing v3 page hooks)
+
+**Status:** SHIPPED. SW `sms-v2.99.0-backlog-closeout-admin-mkt-v3-2026-05-16`.
+
+| # | File | What |
+|---|------|------|
+| 1 | `static/marketing/css/marketing-v3-pages.css` | `.mkt-v3-page` + `--company` / `--resources` / `--developers` / `--persona` / etc. |
+| 2 | `static/css/admin-cp-parity.css` | Full Phase B/C: `data-rmc-admin-shell`, index heroes, tenant index, messages, empty changelist |
+| 3 | `templates/admin/index_tenant.html` | Retired inline `<style>` block → parity CSS |
+| 4 | `templates/admin/index_superadmin.html` | `admin-index-hero rmc-card` on platform index hero |
+
+**SOT:** §11.4 batch **1248**.
+
+## 2026-05-16 — v2.7.1 AI guided fallback + admin control-plane parity
+
+**Status:** SHIPPED. SW `sms-v2.7.1-ai-guided-fallback-admin-parity-2026-05-16`.
+
+| # | File | What |
+|---|------|------|
+| 1 | `services/ai_guided_fallback.py` | Structured `guided_assistant` payload when live LLM unavailable |
+| 2 | `services/ai_gateway.py` | `_rules_invoke_result()` on all rules paths |
+| 3 | `static/js/rmc_ai_guided_assistant.js` | Human errors + degraded messaging (AI Center) |
+| 4 | `static/js/rmc_ai_json_api_card.js` | Guided response formatting (gateway console cards) |
+| 5 | `static/css/admin-cp-parity.css` | Platform `/admin/` token-aligned tables/forms/filters |
+| 6 | `templates/admin/base_site.html` | `cool-apple` aesthetic + parity stylesheet |
+
+**SOT:** §11.4 batches **1247** (AI reliability) + **1246** (admin visual parity).
 
 ## 2026-05-16 — v2.77 Integrations marketplace followups closeout
 

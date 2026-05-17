@@ -1,0 +1,55 @@
+{% extends "schools/marketing_base.html" %}
+{% load i18n static %}
+{% block title %}{{ seo_title }}{% endblock %}
+{% block marketing_main_extra_classes %}container-fluid px-0 py-0{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">{% endblock %}
+{% block content %}
+<div class="mkt-v3-root mkt-v3-verb-hub" data-mkt-verb="{{ marketing_verb }}">
+  <section class="mkt-v3-section mkt-edt-container">
+    <p class="mkt-v3-eyebrow">{% trans "RunMyCampus" %}</p>
+    {% if marketing_verb == "run" %}
+    <h1 class="mkt-v3-section-headline">{% trans "Run the school" %}</h1>
+    <p class="mkt-v3-lead">{% trans "Operations, admissions, attendance, and analytics — one command map." %}</p>
+    {% elif marketing_verb == "teach" %}
+    <h1 class="mkt-v3-section-headline">{% trans "Teach" %}</h1>
+    <p class="mkt-v3-lead">{% trans "Classroom surfaces teachers actually open between bells." %}</p>
+    {% elif marketing_verb == "pay" %}
+    <h1 class="mkt-v3-section-headline">{% trans "Pay" %}</h1>
+    <p class="mkt-v3-lead">{% trans "Fees, reconciliation, and the bursar's daily cockpit." %}</p>
+    {% elif marketing_verb == "communicate" %}
+    <h1 class="mkt-v3-section-headline">{% trans "Communicate" %}</h1>
+    <p class="mkt-v3-lead">{% trans "Parent inbox, announcements, and newsletters on one thread." %}</p>
+    {% else %}
+    <h1 class="mkt-v3-section-headline">{% trans "Grow" %}</h1>
+    <p class="mkt-v3-lead">{% trans "Marketplace, migration, and developer APIs." %}</p>
+    {% endif %}
+    <a href="{% url 'marketing_demo' %}" class="mkt-v3-cta">{% trans "Book a demo" %}</a>
+  </section>
+
+  {% if verb_hub_links %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="verb-hub-links-heading">
+    <h2 id="verb-hub-links-heading" class="mkt-v3-section-headline">{% trans "Start here" %}</h2>
+    <div class="mkt-v3-segment-grid">
+      {% for link in verb_hub_links %}
+      <article class="mkt-v3-segment-card">
+        <h3 class="h6"><a href="{{ link.path }}">{{ link.label }}</a></h3>
+        {% if link.blurb %}<p class="small mb-0">{{ link.blurb }}</p>{% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if marketing_verb == "run" and module_rail_modules %}
+  {% include "marketing/components/_module_rail.html" %}
+  {% endif %}
+
+  <section class="mkt-edt-container mkt-v3-page__close rmc-reveal">
+    <div class="d-flex flex-wrap gap-3 justify-content-center">
+      <a href="{% url 'marketing_why_switch' %}" class="mkt-edt-link">{% trans "Why switch →" %}</a>
+      <a href="{% url 'marketing_pricing' %}" class="mkt-edt-link">{% trans "Pricing →" %}</a>
+      <a href="{% url 'marketing_trust_dedicated' %}" class="mkt-edt-link">{% trans "Trust center →" %}</a>
+    </div>
+  </section>
+</div>
+{% endblock %}

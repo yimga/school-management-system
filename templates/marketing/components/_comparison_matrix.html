@@ -1,0 +1,32 @@
+{% load i18n %}
+{# Phase 3 comparison matrix — reusable on home and why-switch surfaces. #}
+<div class="mkt-edt-compare__split mkt-v3-comparison-matrix">
+  <article class="mkt-edt-compare__col mkt-edt-compare__col--legacy rmc-reveal">
+    <header>
+      <span class="mkt-edt-compare__tag">{% trans "Legacy stack" %}</span>
+      <h3>{% trans "Tabs. Spreadsheets. Chase calls." %}</h3>
+    </header>
+    <ul>
+      <li><span class="mkt-edt-compare__bad" aria-hidden="true">✕</span> {% trans "Five logins for SIS, attendance, fees, comms, reports." %}</li>
+      <li><span class="mkt-edt-compare__bad" aria-hidden="true">✕</span> {% trans "Bursar reconciles last week's deposits on a Tuesday morning." %}</li>
+      <li><span class="mkt-edt-compare__bad" aria-hidden="true">✕</span> {% trans "Permission slips chased one paper at a time, by phone." %}</li>
+      <li><span class="mkt-edt-compare__bad" aria-hidden="true">✕</span> {% trans "Parents use WhatsApp because the official app keeps crashing." %}</li>
+      <li><span class="mkt-edt-compare__bad" aria-hidden="true">✕</span> {% trans "Mid-term reports leave the building at 11 p.m. on Friday." %}</li>
+      <li><span class="mkt-edt-compare__bad" aria-hidden="true">✕</span> {% trans "IT firefights when SSO drops; nobody knew until staff did." %}</li>
+    </ul>
+  </article>
+  <article class="mkt-edt-compare__col mkt-edt-compare__col--us rmc-reveal">
+    <header>
+      <span class="mkt-edt-compare__tag mkt-edt-compare__tag--us">{% trans "On RunMyCampus" %}</span>
+      <h3>{% trans "One thread. Six bells. Quiet." %}</h3>
+    </header>
+    <ul>
+      <li><span class="mkt-edt-compare__good" aria-hidden="true">✓</span> {% trans "One sign-in for the whole school day, across every role." %}</li>
+      <li><span class="mkt-edt-compare__good" aria-hidden="true">✓</span> {% trans "The ledger reconciles itself hourly — finance reviews, doesn't recompute." %}</li>
+      <li><span class="mkt-edt-compare__good" aria-hidden="true">✓</span> {% trans "Permission slips clear in five minutes via the link parents already have." %}</li>
+      <li><span class="mkt-edt-compare__good" aria-hidden="true">✓</span> {% trans "Messages stay on the official channel — auto-translated, audit-logged." %}</li>
+      <li><span class="mkt-edt-compare__good" aria-hidden="true">✓</span> {% trans "Mid-term reports auto-deliver at 3 p.m., footnoted and signed." %}</li>
+      <li><span class="mkt-edt-compare__good" aria-hidden="true">✓</span> {% trans "IT sees an SSO blip before staff feels it — and rolls back without a ticket." %}</li>
+    </ul>
+  </article>
+</div>

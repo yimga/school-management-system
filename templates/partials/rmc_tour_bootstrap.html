@@ -1,0 +1,11 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/rmc-tour.css' %}">
+{% include "partials/rmc_tour_i18n.html" %}
+{# Resolve tour APIs defensively — the `siteconfig` namespace is loaded on tenant/manager urlconfs but not on `config.public_urls`. Onboarding pages render under public_urls, so we must not crash if these URLs are unreachable. #}
+{% url 'siteconfig:tour_steps_api' as tour_steps_api_url %}
+{% url 'siteconfig:tour_analytics_api' as tour_analytics_api_url %}
+{% if tour_steps_api_url and tour_analytics_api_url %}
+<script src="{% static 'js/rmc-tour.js' %}" defer data-tour-steps-api="{{ tour_steps_api_url }}" data-tour-analytics-api="{{ tour_analytics_api_url }}"></script>
+{% endif %}
+{% url 'siteconfig:tour_info_tag_api' as tour_info_api_url %}
+<script src="{% static 'js/rmc-info-tag.js' %}" defer{% if tour_info_api_url %} data-tour-info-api="{{ tour_info_api_url }}"{% endif %}></script>

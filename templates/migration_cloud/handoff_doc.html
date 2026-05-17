@@ -1,0 +1,57 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--migration-cloud-handoff" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{{ doc.title }}</h1>
+    <p class="rmc-muted">{{ doc.generated_at }} · {% trans "Bundle" %} #{{ doc.bundle_id }} · {{ doc.status }}</p>
+  </header>
+
+  <section class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Summary" %}</h2>
+    <ul class="rmc-stat-list">
+      <li>{% trans "School" %}: <strong>{{ doc.school_name|default:"—" }}</strong></li>
+      <li>{% trans "Source platform" %}: <strong>{{ doc.source }}</strong></li>
+      <li>{% trans "Artifacts" %}: <strong>{{ doc.artifacts }}</strong></li>
+      <li>{% trans "Rows created" %}: <strong>{{ doc.totals.created }}</strong></li>
+      <li>{% trans "Rows updated" %}: <strong>{{ doc.totals.updated }}</strong></li>
+      <li>{% trans "Quarantined" %}: <strong>{{ doc.totals.quarantined }}</strong></li>
+    </ul>
+  </section>
+
+  <section class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Reconciliation" %}</h2>
+    <p>{% trans "Overall parity" %}: <strong>{{ doc.reconciliation.overall_parity_pct|default:"—" }}%</strong>
+       ({{ doc.reconciliation.per_domain_count }} {% trans "domains compared" %}).</p>
+  </section>
+
+  <section class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Financial guardrail" %}</h2>
+    <p>
+      {% if doc.financial_guardrail.enforced %}
+        {% trans "Enforced" %}: <strong>{{ doc.financial_guardrail.ok|yesno:"PASS,FAIL" }}</strong>
+        ({{ doc.financial_guardrail.checks }} {% trans "checks" %})
+      {% else %}
+        {% trans "Not enforced for this bundle (no expected_totals supplied)." %}
+      {% endif %}
+    </p>
+  </section>
+
+  <section class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Assets + open items" %}</h2>
+    <ul class="rmc-stat-list">
+      <li>{% trans "Assets stored" %}: <strong>{{ doc.assets.stored }}</strong></li>
+      <li>{% trans "Assets failed" %}: <strong>{{ doc.assets.failed }}</strong></li>
+      <li>{% trans "Conflicts pending review" %}: <strong>{{ doc.open_action_items.conflicts_pending }}</strong></li>
+    </ul>
+  </section>
+
+  <section class="rmc-card rmc-card--muted">
+    <h2 class="rmc-h2">{% trans "FERPA notice" %}</h2>
+    <p>{{ doc.ferpa_notice }}</p>
+  </section>
+</main>
+{% endblock %}

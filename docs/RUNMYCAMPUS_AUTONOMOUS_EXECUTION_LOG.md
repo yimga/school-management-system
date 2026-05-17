@@ -1,5 +1,61 @@
 # RunMyCampus autonomous execution log
 
+## Slice - batch 1254 guided tour + marketing v3 verb routes (2026-05-17)
+
+**A. Scope:** Close guided-tour platform (shared runner, role catalogs, APIs, info tags) and marketing v3 verb-route HTTP regressions called out in session follow-ups.
+
+**B. Implementation:** `rmc-tour.js` / `rmc-tour.css`; `tour_catalog.py`, `tour_context.py`, `views_tour*.py`, migration `0176`; `rmc_info_tag` partial + `ui_field_help.py`; shell bootstrap partials; `public_urls.py` regional route ordering; `base.html` shortcuts i18n order; teacher portal `mkt-v3-archetype`; `ModuleAccessMiddleware` + MFA bypass for `/siteconfig/api/tour-*`.
+
+**C. Tests:** `test_tour_platform` + `test_tour_steps_control_plane` **20/20**; `test_marketing_v3_phases` subset **4/4** (i18n wiring, verb hub links, trust/verb HTTP markers).
+
+**D. Gates:** Tenant-subdomain test clients + TOTP/MFA session pattern for tour API tests.
+
+**E. SW:** `sms-v3.6.4-tour-info-tags-complete-2026-05-16`.
+
+**F. Verdict:** **BATCH 1254 DONE**. Batch **1185** marketing layout tranche remains **PARTIAL**; hosted Playwright smoke not in this slice.
+
+## Slice - batch 1249 AI Center offline + Ollama health UX (2026-05-16)
+
+**A. Scope:** Product clarity for offline-first vs live Ollama — no conflation in UX; repo-contained (Lane 2 Ollama install unchanged).
+
+**B. Implementation:** `templates/siteconfig/ai_center.html` — health root + browser-offline hint; no nested main; `rmc-ai-guided-out` class. `static/js/rmc-ai-health-pill.js` — multi-target pills + AI Center root URL. `static/js/_pages/siteconfig__ai_center.js` — online/offline disables Ask. `static/js/rmc_ai_guided_assistant.js` — offline preflight message. `static/css/rmc-class-grammar.css` — `.rmc-ai-guided-out`.
+
+**C. Tests:** `test_ai_center` — asserts `data-rmc-ai-health-root`, `api/ai/health/`, `data-rmc-ai-browser-offline`.
+
+**D. Gates:** `audit_template_render_safety` **0**; `scan_undefined_css_classes` **0**; `scan_inline_style_off_token` **0**; JS syntax OK.
+
+**E. SW:** `sms-v3.0.0-ai-center-offline-ollama-ux-2026-05-16`.
+
+**F. Verdict:** **BATCH 1249 DONE**. Operator Ollama host setup remains Lane 2.
+
+## Slice - batch 1248 honest backlog closeout (2026-05-16)
+
+**A. Scope:** Verify and close backlog items previously marked partial: undefined `mkt-v3-page--*` CSS, admin Phase B/C depth, tenant admin index inline CSS, AI integration test coverage, `InvokeTests` DB allowance.
+
+**B. Marketing:** `marketing-v3-pages.css` — base `.mkt-v3-page` + modifiers for company/resources/developers/persona/demo/contact/why-switch/pricing.
+
+**C. Admin:** `admin-cp-parity.css` — `data-rmc-admin-shell` changelist/changeform/messages/empty; manager `cp-hero` card; tenant index styles; removed inline block from `index_tenant.html`; `index_superadmin.html` `admin-index-hero rmc-card`.
+
+**D. Tests:** `test_guided_assistant_endpoints_rules_mode_nonempty` (3 guided endpoints); `InvokeTests.databases = {"default"}`.
+
+**E. Gates:** `scan_undefined_css_classes` **0** (baseline rewritten); `audit_template_render_safety` **0**; `verify_shell_architecture_matrix` **PASS**; `audit_luxury_ui_surface` **15/15**; `InvokeTests` **23/23 OK** (audit mocked); `test_guided_assistant_rules_fallback` **3/3 OK**; `test_ai_center` **7/7 OK** (MFA session + tenant `pwa_manifest_platform` URL parity in `config/tenant_urls.py`).
+
+**F. Verdict:** **BATCH 1248 DONE**. Live Ollama remains Lane 2 operator config.
+
+## Slice - batches 1247 + 1246 AI reliability and admin parity (2026-05-16)
+
+**A. Scope:** Batch 1247 — AI Center and gateway console return non-empty guided answers in rules-only mode. Batch 1246 — platform `/admin/` visual parity (`admin-cp-parity.css`, `cool-apple` aesthetic).
+
+**B. Backend:** `services/ai_guided_fallback.py`, `_rules_invoke_result()` in `services/ai_gateway.py`, RAG metadata in `_gateway_response`, view empty-summary repair.
+
+**C. Frontend:** `rmc_ai_guided_assistant.js` human errors; gateway console provider strip; AI Center degraded banner.
+
+**D. Tests:** `test_guided_assistant_rules_fallback.py`, updated `test_ai_gateway.py` guided schema failure expectation.
+
+**E. Gates:** `audit_template_render_safety` **0 findings**; Django smoke invoke rules guided **OK**.
+
+**F. Verdict:** **BATCHES 1247 + 1246 DONE (REPO SCOPE)**. Live Ollama answers still require operator Ollama configuration (Lane 2 / env).
+
 ## Slice - SOT items 2-6 repo hardening (2026-05-13)
 
 **A. Scope:** Proceeded from SOT follow-up items 2-6: tenant isolation depth, deploy parity, SOC2/PCI proof honesty, pilot scorecard evidence rules, and repo-side verifier hardening. Lane 2 live PSP/pilot/auditor proof stayed external.

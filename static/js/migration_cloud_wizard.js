@@ -240,4 +240,206 @@
       el.classList.remove("rmc-mapping__row--drop-target");
     });
   });
+
+  // Confirmation prompt for destructive forms (live apply, etc.).
+  document.querySelectorAll("form[data-mc-confirm]").forEach(function (form) {
+    form.addEventListener("submit", function (ev) {
+      var msg = form.getAttribute("data-mc-confirm");
+      if (msg && !window.confirm(msg)) {
+        ev.preventDefault();
+      }
+    });
+  });
+
+  // --- AI migration plan ----------------------------------------------------
+  // Click 'Generate / refresh' on the AI plan card → GET the ai-plan endpoint
+  // → render structured plan: stages, mapping stats, risk flags, narrative.
+  // Falls back to the deterministic summary when AI is disabled or returns no
+  // narrative, so the panel is always useful, never empty when the data exists.
+  (function wireAiPlan() {
+    var card = document.getElementById("ai-plan");
+    if (!card) return;
+    var url = card.getAttribute("data-mc-ai-plan-url");
+    var btn = card.querySelector("[data-mc-ai-plan-refresh]");
+    var slot = card.querySelector("[data-mc-ai-plan-content]");
+    if (!url || !btn || !slot) return;
+
+    function escape(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function renderPlan(plan) {
+      if (!plan) {
+        slot.innerHTML = "<p class=\"rmc-empty__body\">No plan returned.</p>";
+        return;
+      }
+      var stats = plan.mapping_stats || {};
+      var stages = (plan.stages || []).map(function (s) {
+        return "<li class=\"rmc-stage rmc-stage--" + escape(s.status) + "\">" +
+          escape(s.name) + "</li>";
+      }).join("");
+      var risks = (plan.risk_flags || []).map(function (r) {
+        return "<li>" + escape(r) + "</li>";
+      }).join("");
+      var domains = Object.entries(plan.domain_breakdown || {}).map(function (kv) {
+        return "<li>" + escape(kv[0]) + ": <strong>" + escape(kv[1]) + "</strong></li>";
+      }).join("");
+      var narrative = plan.narrative
+        ? "<blockquote class=\"rmc-ai-narrative\">" + escape(plan.narrative) + "</blockquote>"
+        : "<p class=\"rmc-empty__body\">" +
+            (plan.ai_available === false
+              ? "AI narrative not available (platform AI disabled or unreachable). Deterministic summary above is authoritative."
+              : "No narrative returned.") +
+          "</p>";
+      slot.innerHTML =
+        "<dl class=\"rmc-ai-plan__grid\">" +
+          "<dt>Source platform</dt><dd>" + escape(plan.source) + "</dd>" +
+          "<dt>Artifacts</dt><dd>" + escape(plan.artifact_count) + "</dd>" +
+        "</dl>" +
+        "<h3 class=\"rmc-h3\">Stages</h3>" +
+        "<ul class=\"rmc-stage-list\">" + stages + "</ul>" +
+        "<h3 class=\"rmc-h3\">Mapping stats</h3>" +
+        "<ul class=\"rmc-stat-list\">" +
+          "<li>High confidence: <strong>" + escape(stats.high_confidence) + "</strong></li>" +
+          "<li>Review needed: <strong>" + escape(stats.review_needed) + "</strong></li>" +
+          "<li>Custom fields: <strong>" + escape(stats.custom_fields) + "</strong></li>" +
+        "</ul>" +
+        (domains
+          ? "<h3 class=\"rmc-h3\">Artifact domains</h3><ul class=\"rmc-stat-list\">" + domains + "</ul>"
+          : "") +
+        (risks
+          ? "<h3 class=\"rmc-h3\">Risk flags</h3><ul class=\"rmc-stat-list rmc-stat-list--warn\">" + risks + "</ul>"
+          : "") +
+        "<h3 class=\"rmc-h3\">Narrative</h3>" + narrative;
+    }
+
+    btn.addEventListener("click", function () {
+      btn.disabled = true;
+      slot.innerHTML = "<p class=\"rmc-empty__body\">Generating plan…</p>";
+      fetch(url, { credentials: "same-origin", headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (data) { renderPlan(data && data.plan); })
+        .catch(function (err) {
+          slot.innerHTML =
+            "<p class=\"rmc-empty__body\">Plan generation failed: " +
+            escape(err && err.message) + "</p>";
+        })
+        .finally(function () { btn.disabled = false; });
+    });
+
+    // --- Conversational column-mapping override ---------------------------
+    var rebindUrl = card.getAttribute("data-mc-ai-rebind-url");
+    var rebindForm = card.querySelector("[data-mc-ai-rebind-form]");
+    var rebindStatus = card.querySelector("[data-mc-ai-rebind-status]");
+    if (rebindUrl && rebindForm && rebindStatus) {
+      rebindForm.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var cmd = rebindForm.querySelector("input[name=command]").value;
+        rebindStatus.textContent = "Parsing and applying…";
+        fetch(rebindUrl, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": (root.getAttribute("data-mc-csrf") || ""),
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ command: cmd }),
+        })
+          .then(function (r) { return r.json().then(function (d) { d.__status = r.status; return d; }); })
+          .then(function (data) {
+            if (data.applied) {
+              rebindStatus.innerHTML =
+                "<strong>Applied:</strong> " + escape(data.parsed.source_column) +
+                " → " + escape(data.parsed.canonical_field) +
+                " (" + (data.artifacts_updated || []).length + " artifact(s); method=" +
+                escape(data.method) + ").";
+              rebindForm.reset();
+            } else {
+              rebindStatus.textContent = "Did not apply: " + (data.reason || "unknown");
+            }
+          })
+          .catch(function (err) {
+            rebindStatus.textContent = "Rebind failed: " + (err && err.message);
+          });
+      });
+    }
+
+    // --- Bundle Q&A ------------------------------------------------------
+    var askUrl = card.getAttribute("data-mc-ai-ask-url");
+    var askForm = card.querySelector("[data-mc-ai-ask-form]");
+    var askHistory = card.querySelector("[data-mc-ai-ask-history]");
+    if (askUrl && askForm && askHistory) {
+      askForm.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var qInput = askForm.querySelector("input[name=question]");
+        var question = qInput.value;
+        if (!question.trim()) return;
+        var entry = document.createElement("div");
+        entry.className = "rmc-ai-ask__entry";
+        entry.innerHTML =
+          "<div class=\"rmc-ai-ask__q\"><strong>Q:</strong> " + escape(question) + "</div>" +
+          "<div class=\"rmc-ai-ask__a\"><em>Thinking…</em></div>";
+        askHistory.prepend(entry);
+        fetch(askUrl, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": (root.getAttribute("data-mc-csrf") || ""),
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ question: question }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var a = entry.querySelector(".rmc-ai-ask__a");
+            if (data.ai_available && data.answer) {
+              a.innerHTML = "<strong>A:</strong> " + escape(data.answer) +
+                " <small>(confidence " + Math.round((data.confidence || 0) * 100) + "%)</small>";
+            } else {
+              a.innerHTML = "<em>AI not available or no answer. " +
+                "Inspect the discovery / mapping panels for raw data.</em>";
+            }
+          })
+          .catch(function (err) {
+            entry.querySelector(".rmc-ai-ask__a").textContent = "Failed: " + (err && err.message);
+          });
+        qInput.value = "";
+      });
+    }
+
+    // --- Reconciliation narrative ----------------------------------------
+    var recUrl = card.getAttribute("data-mc-ai-reconcile-url");
+    var recBtn = card.querySelector("[data-mc-ai-reconcile-refresh]");
+    var recSlot = card.querySelector("[data-mc-ai-reconcile-content]");
+    if (recUrl && recBtn && recSlot) {
+      recBtn.addEventListener("click", function () {
+        recBtn.disabled = true;
+        recSlot.innerHTML = "<p class=\"rmc-empty__body\">Generating…</p>";
+        fetch(recUrl, { credentials: "same-origin", headers: { Accept: "application/json" } })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.ai_available && data.narrative) {
+              recSlot.innerHTML =
+                "<blockquote class=\"rmc-ai-narrative\">" + escape(data.narrative) + "</blockquote>" +
+                "<p><small>Overall parity: " + escape(data.overall_parity_pct) + "%</small></p>";
+            } else {
+              recSlot.innerHTML =
+                "<p class=\"rmc-empty__body\">Narrative unavailable: " +
+                escape(data.reason || "AI gateway disabled") + "</p>";
+            }
+          })
+          .catch(function (err) {
+            recSlot.innerHTML = "<p class=\"rmc-empty__body\">Failed: " +
+              escape(err && err.message) + "</p>";
+          })
+          .finally(function () { recBtn.disabled = false; });
+      });
+    }
+  })();
 })();

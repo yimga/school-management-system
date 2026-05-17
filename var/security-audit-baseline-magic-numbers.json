@@ -856,13 +856,13 @@
       "value": 600
     },
     {
-      "line": 54,
+      "line": 71,
       "path": "apps/integrations_marketplace/token_refresh.py",
       "snippet": "REFRESH_WINDOW_SECONDS = 600         # refresh tokens that expire in <10 min",
       "value": 600
     },
     {
-      "line": 55,
+      "line": 72,
       "path": "apps/integrations_marketplace/token_refresh.py",
       "snippet": "DEFAULT_LIFETIME_SECONDS = 3600      # assume 1h when upstream returns no expires_in",
       "value": 3600
@@ -2308,37 +2308,37 @@
       "value": 81057
     },
     {
-      "line": 1838,
+      "line": 1847,
       "path": "apps/schools/marketing_views.py",
       "snippet": "hero_subheadline = _cms_s[:1200]",
       "value": 1200
     },
     {
-      "line": 1841,
+      "line": 1850,
       "path": "apps/schools/marketing_views.py",
       "snippet": "hero_ai_line = _cms_ai[:1200]",
       "value": 1200
     },
     {
-      "line": 2258,
+      "line": 2267,
       "path": "apps/schools/marketing_views.py",
       "snippet": "\"seo_description\": (post.excerpt or post.title)[:160],",
       "value": 160
     },
     {
-      "line": 2417,
+      "line": 2434,
       "path": "apps/schools/marketing_views.py",
       "snippet": "message_for_store = (message + suffix).strip()[:4000]",
       "value": 4000
     },
     {
-      "line": 2484,
+      "line": 2501,
       "path": "apps/schools/marketing_views.py",
       "snippet": "message = (request.POST.get(\"message\") or \"\").strip()[:4000]",
       "value": 4000
     },
     {
-      "line": 2541,
+      "line": 2558,
       "path": "apps/schools/marketing_views.py",
       "snippet": "artifact_needs = (request.POST.get(\"artifact_needs\") or \"\").strip()[:4000]",
       "value": 4000
@@ -3076,7 +3076,7 @@
       "value": 1500
     }
   ],
-  "generated_at": "2026-05-16T13:09:25+00:00",
+  "generated_at": "2026-05-16T15:21:38+00:00",
   "rule": "Integer literals with abs(value) >= 100 in production code should route through the 7-layer configurability contract (RuntimeDefaults / constants.py / SiteSettings)",
   "scan_dirs": [
     "apps",

@@ -261,46 +261,71 @@ class MarketingLandingContextTests(TestCase):
     def test_landing_renders_required_visual_assets(self):
         resp = self.client.get("/marketing/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
-        # Homepage now renders the editorial v2 visual system with inline SVG artifacts.
+        # v3 marketing redesign (Phase 0/1): home now uses schoolhouse + v3
+        # primitives. The legacy editorial-only sections (crests, frieze, job
+        # artifact, lens panel) were retired during the voices+walkthrough
+        # repositioning; the remaining stable v3 markers are the hero artifact,
+        # the walkthrough reel, the bell-clock sticky pin, persona tabs, and
+        # the product-proof block.
         self.assertContains(resp, "marketing/css/marketing-landing-v2.css")
         self.assertContains(resp, "mkt-edt-hero__artifact")
-        self.assertContains(resp, "mkt-edt-crests__strip")
-        self.assertContains(resp, "mkt-edt-frieze")
-        self.assertContains(resp, "mkt-edt-job__artifact")
-        self.assertContains(resp, "mkt-edt-lens__panel")
         self.assertContains(resp, "mkt-edt-walkthrough__reel")
+        self.assertContains(resp, "mkt-v3-bell-clock")
+        self.assertContains(resp, "mkt-v3-persona-tabs")
+        self.assertContains(resp, "mkt-v3-product-proof")
 
     def test_landing_renders_admissions_flow_post_enrollment_and_what_you_get(self):
-        """MARKETING_PAGE_AUDIT: context keys must surface on HTML (was context-only)."""
+        """MARKETING_PAGE_AUDIT: context keys must surface on HTML (was context-only).
+
+        v3 redesign (Phase 0/1) replaced the static legacy hero copy with a
+        rotating headline + Tuesday eyebrow + cedar-ridge narrative spine.
+        Stable markers: rotating-headline prefix, Tuesday eyebrow, primary CTA,
+        compare-block "One platform that bends..." copy, and the v3 bell-clock
+        sticky pin (verifies the Tuesday narrative is wired).
+        """
         resp = self.client.get("/marketing/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "Run your school the way your school actually runs.")
-        self.assertContains(resp, "A Tuesday at Cedar Ridge Academy.")
-        self.assertContains(resp, "What people actually do here")
-        self.assertContains(resp, "One platform. Nothing to babysit.")
+        self.assertContains(resp, "Run your school the way")
+        self.assertContains(resp, "Tuesday · Cedar Ridge Academy")
         self.assertContains(resp, "One platform that bends to each campus.")
         self.assertContains(resp, "Book a demo")
+        self.assertContains(resp, "mkt-v3-bell-clock")
 
     def test_landing_nav_has_product_and_solutions_dropdowns(self):
+        """v3 redesign (Phase 3): verb-first nav.
+
+        Replaces "Product" / "Solutions" with Run / Teach / Pay / Communicate /
+        Grow. Each verb opens a mega-menu (still uses Bootstrap dropdown-toggle
+        + mkt-mega-menu chrome). Pricing + Why switch live in the right
+        cluster. The trust pill stays.
+        """
         resp = self.client.get("/marketing/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn("dropdown-toggle", body)
-        # Mega-menu header (replaces legacy compact nav dropdown panel).
+        # Mega-menu header (each verb dropdown renders as a mega menu).
         self.assertIn("mkt-mega-menu", body)
-        self.assertIn("/platform/student-information-system/", body)
-        self.assertIn("/for-private-schools/", body)
-        self.assertIn("/offline-first/", body)
+        # Verb-first nav: Run / Teach / Pay / Communicate / Grow.
+        self.assertIn("/run/", body)
+        self.assertIn("/teach/", body)
+        self.assertIn("/pay/", body)
+        self.assertIn("/communicate/", body)
+        # Utility cluster + trust pill.
+        self.assertIn("/pricing/", body)
+        self.assertIn("/why-switch/", body)
         self.assertIn("Platform status", body)
         self.assertIn("/trust/", body)
 
     def test_landing_includes_platform_visual_assets_without_placeholder_video_urls(self):
+        """v3 redesign (Phase 0/1): editorial frieze section retired; the
+        product-proof block + walkthrough reel now carry the visual rhythm."""
         resp = self.client.get("/marketing/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn("marketing/css/marketing-landing-v2.css", body)
         self.assertIn("mkt-edt-hero__artifact", body)
-        self.assertIn("mkt-edt-frieze", body)
+        self.assertIn("mkt-v3-product-proof", body)
+        self.assertIn("mkt-edt-walkthrough__reel", body)
         self.assertNotIn("youtube.com/watch?v=YE7VzlLtp-4", body)
 
 
@@ -327,66 +352,49 @@ class MarketingPageExtrasTests(TestCase):
     def test_platform_page_returns_200(self):
         resp = self.client.get("/platform/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "images/marketing/platform-diagram-marketing.svg")
+        self.assertContains(resp, "mkt-v3-platform-overview")
+        self.assertContains(resp, "data-mkt-module-rail")
 
     def test_products_analytics_page_returns_200_and_has_visual(self):
         resp = self.client.get("/products/analytics/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "images/marketing/platform-diagram-marketing.svg")
+        self.assertContains(resp, "data-rmc-page-slug")
+        self.assertContains(resp, "products-analytics")
+        self.assertContains(resp, "platform-diagram-marketing.svg")
 
     def test_onboard_wizard_returns_200(self):
         resp = self.client.get("/onboard/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
 
-    def test_platform_admissions_differentiated_layout_and_pipeline_asset(self):
-        resp = self.client.get("/platform/admissions/", HTTP_HOST=self.host)
-        self.assertEqual(resp.status_code, 200)
-        body = resp.content.decode("utf-8", errors="replace")
-        self.assertIn('data-mkt-platform-admissions="1"', body)
-        self.assertIn("platform-admissions-pipeline.svg", body)
-        self.assertIn("data-mkt-admissions-pipeline-visual", body)
-        self.assertIn(
-            "Turn every inquiry into an organized enrollment journey.", body
+    def test_legacy_platform_module_urls_redirect_to_persona_hubs(self):
+        """Marketing v3: module detail URLs permanently redirect to Run/Teach/Pay/Communicate hubs."""
+        cases = (
+            ("/platform/admissions/", "/run/admissions/"),
+            ("/platform/attendance/", "/run/attendance/"),
+            ("/platform/analytics/", "/run/analytics/"),
+            ("/platform/workflows/", "/run/workflows/"),
+            ("/platform/offline-first/", "/run/offline/"),
+            ("/platform/fees-payments/", "/pay/fees/"),
+            ("/platform/parent-portal/", "/communicate/inbox/"),
+            ("/platform/teacher-portal/", "/teach/workspace/"),
+            ("/platform/communications/", "/communicate/announcements/"),
+            ("/platform/grading-report-cards/", "/teach/gradebook/"),
         )
-        self.assertIn("marketing-platform-admissions.css", body)
+        for old_path, expected_path in cases:
+            resp = self.client.get(old_path, HTTP_HOST=self.host)
+            self.assertEqual(resp.status_code, 301, msg=old_path)
+            location = resp.headers.get("Location") or ""
+            self.assertTrue(
+                location.endswith(expected_path),
+                msg=f"{old_path} -> {location!r}, want */{expected_path}",
+            )
 
-    def test_platform_fees_payments_differentiated_layout(self):
-        resp = self.client.get("/platform/fees-payments/", HTTP_HOST=self.host)
+    def test_platform_student_portal_still_renders_detail_page(self):
+        resp = self.client.get("/platform/student-portal/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
-        body = resp.content.decode("utf-8", errors="replace")
-        self.assertIn('data-mkt-platform-fees-payments="1"', body)
-        self.assertIn("platform-fees-payments-dashboard.svg", body)
-        self.assertIn("data-mkt-fees-dashboard-visual", body)
-        self.assertIn("data-mkt-fees-connected-handoff", body)
-        self.assertIn(
-            "Every invoice, receipt, and balance in one finance workspace.", body
-        )
-        self.assertIn("marketing-platform-fees-payments.css", body)
-
-    def test_platform_parent_portal_differentiated_layout(self):
-        resp = self.client.get("/platform/parent-portal/", HTTP_HOST=self.host)
-        self.assertEqual(resp.status_code, 200)
-        body = resp.content.decode("utf-8", errors="replace")
-        self.assertIn('data-mkt-platform-parent-portal="1"', body)
-        self.assertIn("platform-parent-mobile-portal.svg", body)
-        self.assertIn("data-mkt-parent-portal-visual", body)
-        self.assertIn("data-mkt-parent-connected-handoff", body)
-        self.assertIn("Give families a clear window into school life.", body)
-        self.assertIn("marketing-platform-parent-portal.css", body)
-
-    def test_platform_teacher_portal_differentiated_layout(self):
-        resp = self.client.get("/platform/teacher-portal/", HTTP_HOST=self.host)
-        self.assertEqual(resp.status_code, 200)
-        body = resp.content.decode("utf-8", errors="replace")
-        self.assertIn('data-mkt-platform-teacher-portal="1"', body)
-        self.assertIn("platform-teacher-workspace.svg", body)
-        self.assertIn("data-mkt-teacher-workspace-visual", body)
-        self.assertIn("data-mkt-teacher-connected-handoff", body)
-        self.assertIn(
-            "One classroom workspace for attendance, marks, assignments, and progress.",
-            body,
-        )
-        self.assertIn("marketing-platform-teacher-portal.css", body)
+        self.assertContains(resp, "data-mkt-archetype")
+        self.assertContains(resp, "mkt-page-platform-student-portal")
+        self.assertContains(resp, "mkt-v3-dashboard-frame")
 
 
 class MarketingJsonLoaderTests(SimpleTestCase):
@@ -527,12 +535,15 @@ class MarketingAbVariantTests(TestCase):
         self.assertNotIn("Start Free Trial", hero_part)
 
     def test_legacy_hero_variant_b_session_keeps_v2_homepage_stable(self):
+        """v3 redesign (Phase 0/1): legacy A/B variant B should still resolve
+        to the home page. The exact-string hero copy was replaced by the
+        rotating-headline component; the editorial body marker remains."""
         session = self.client.session
         session["marketing_ab_variant"] = "B"
         session.save()
         resp = self.client.get("/marketing/", HTTP_HOST=self.host, secure=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "Run your school the way your school actually runs.")
+        self.assertContains(resp, "Run your school the way")
         self.assertContains(resp, 'data-mkt-edition="editorial"')
 
 

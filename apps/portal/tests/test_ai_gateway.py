@@ -40,7 +40,16 @@ class TaskTiersTests(SimpleTestCase):
 
 
 class InvokeTests(SimpleTestCase):
-    databases = {"default"}
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._audit_patcher = patch("services.ai_gateway._audit_log")
+        cls._audit_patcher.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._audit_patcher.stop()
+        super().tearDownClass()
 
     @override_settings(AI_GATEWAY_ENABLED=True)
     @patch(
@@ -67,6 +76,22 @@ class InvokeTests(SimpleTestCase):
         self.assertIn("query", result or "")
         self.assertEqual(meta.get("provider"), "rules")
         self.assertTrue(meta.get("fallback"))
+
+    @override_settings(AI_GATEWAY_ENABLED=True, AI_ALLOW_RULES_FALLBACK=True)
+    @patch(
+        "services.ai_gateway._call_ollama",
+        return_value=(None, {"error": "unavailable"}),
+    )
+    def test_invoke_rules_guided_returns_dict(self, _mock_ollama):
+        result, meta = invoke(
+            TaskType.STUDIO_OS_ASSISTANT,
+            "Prompt",
+            user_query="How do I theme the portal?",
+            response_schema="guided_assistant",
+        )
+        self.assertIsInstance(result, dict)
+        self.assertGreater(len(result.get("summary") or ""), 30)
+        self.assertEqual(meta.get("provider"), "rules")
 
     @override_settings(AI_GATEWAY_ENABLED=True, AI_ALLOW_RULES_FALLBACK=True)
     def test_invoke_respects_allowed_backends(self):
@@ -134,17 +159,11 @@ class InvokeTests(SimpleTestCase):
         result, meta = invoke(
             TaskType.INTEROP_ASSISTANT,
             "Assist",
+            user_query="How do I use interop?",
             response_schema="guided_assistant",
         )
-        self.assertEqual(
-            result,
-            {
-                "summary": "",
-                "actions": [],
-                "cautions": [],
-                "references": [],
-            },
-        )
+        self.assertIsInstance(result, dict)
+        self.assertGreater(len(result.get("summary") or ""), 30)
         self.assertTrue(meta.get("schema_validation_failed"))
 
     @patch(

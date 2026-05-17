@@ -1,0 +1,31 @@
+{% load i18n %}
+<div class="mkt-v3-solutions-overview" data-mkt-page="solutions-overview">
+  <header class="mkt-edt-container mkt-v3-section rmc-reveal" data-mkt-reveal>
+    <p class="mkt-v3-eyebrow">{% trans "What changes for everyone in the building" %}</p>
+    <h2 class="mkt-v3-section-headline">{% trans "Five roles. Five Tuesdays." %}</h2>
+    <p class="mkt-v3-lead">{% trans "Same school day — different surfaces. Pick a role to see the dashboard they actually open." %}</p>
+  </header>
+
+  {% if solutions_personas %}
+  <section class="mkt-v3-section" data-mkt-persona-tabs>
+    <div class="mkt-edt-container">
+      <div class="mkt-v3-persona-tabs" role="tablist" aria-label="{% trans 'School roles' %}">
+        {% for persona in solutions_personas %}
+        <button type="button" class="mkt-v3-persona-tabs__btn" role="tab" data-persona-tab="{{ persona.slug }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"{% if not forloop.first %} tabindex="-1"{% endif %}>{{ persona.name }}</button>
+        {% endfor %}
+      </div>
+      <div class="mkt-v3-persona-tabs__panels">
+        {% for persona in solutions_personas %}
+        <article class="mkt-v3-persona-tabs__panel" data-persona-panel="{{ persona.slug }}" role="tabpanel"{% if not forloop.first %} hidden{% endif %}>
+          <p class="mkt-edt-lead">{{ persona.lead }}</p>
+          {% if persona.dashboard_partial %}
+          {% include "marketing/components/_dashboard_frame.html" with frame_title=persona.name dashboard_partial=persona.dashboard_partial %}
+          {% endif %}
+          <p><a href="{{ persona.url }}" class="mkt-edt-link">{% blocktrans with role=persona.name %}Read the full Tuesday for the {{ role }} →{% endblocktrans %}</a></p>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+</div>

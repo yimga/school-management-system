@@ -24,9 +24,9 @@
       <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 mkt-nav-primary mkt-nav-primary--mega">
         {% for item in marketing_navbar_primary %}
           {% if forloop.counter <= marketing_navbar_visible_count|default:7 %}
-          <li class="nav-item {% if item.children %}dropdown mkt-nav-dropdown{% if item.mega_columns %} mkt-nav-dropdown--mega{% endif %}{% endif %}">
-            {% if item.children %}
-            <a class="nav-link px-2 dropdown-toggle" href="{{ item.path }}" id="mktNavDd{{ forloop.counter }}" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-boundary="viewport" data-bs-display="dynamic" data-bs-offset="0,8" aria-expanded="false" aria-haspopup="true" data-menu-name="{{ item.label }}">{{ item.label }}</a>
+          <li class="nav-item {% if item.children or item.mega_columns %}dropdown mkt-nav-dropdown{% if item.mega_columns %} mkt-nav-dropdown--mega{% endif %}{% endif %}">
+            {% if item.children or item.mega_columns %}
+            <a class="nav-link px-2 dropdown-toggle" href="{{ item.path }}" id="mktNavDd{{ forloop.counter }}" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-boundary="viewport" data-bs-display="dynamic" data-bs-offset="0,8" aria-expanded="false" aria-haspopup="true" data-menu-name="{{ item.label }}">{{ item.label }}{% if item.bridge_label %}<span class="mkt-nav-bridge">{{ item.bridge_label }}</span>{% endif %}</a>
             {% if item.mega_columns %}
             <ul class="dropdown-menu dropdown-menu-dark mkt-mega-menu" aria-labelledby="mktNavDd{{ forloop.counter }}">
               <li class="px-0 py-0">
@@ -109,11 +109,15 @@
         {% endif %}
       </ul>
       <div class="d-flex align-items-center gap-2 flex-shrink-0">
+        {% if not PUBLIC_BRAND_MODE %}
+        {% include "marketing/components/_theme_toggle.html" %}
+        {% endif %}
         <a class="mkt-status-pill" href="{% url 'marketing_trust_dedicated' %}" data-mkt-status aria-label="{% trans 'Platform status' %}" title="{% trans 'Platform status' %}">
           <span class="mkt-status-pill__dot" aria-hidden="true"></span>
           <span class="mkt-status-pill__label" data-mkt-status-label>{% trans "All systems operational" %}</span>
         </a>
-        <a class="nav-link text-white-50 py-1 px-2 small" href="{% url 'global_login_discovery' %}">{% trans "Login" %}</a>
+        {% if not PUBLIC_BRAND_MODE %}{% include "marketing/components/_language_switcher.html" %}{% endif %}
+        <a class="nav-link mkt-nav-utility py-1 px-2 small" href="{% url 'global_login_discovery' %}">{% trans "Login" %}</a>
         <a class="btn btn-cta-primary btn-sm" href="{% url 'marketing_demo' %}" data-cta="demo" data-page="header">{% trans "Book demo" %}</a>
       </div>
     </div>

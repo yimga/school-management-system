@@ -11,8 +11,16 @@ from apps.schools.marketing_views import (
 
 class MarketingNavContractTests(SimpleTestCase):
     def test_navbar_primary_has_six_top_labels(self):
+        from apps.schools.marketing_v3_surfaces import marketing_verb_nav_enabled
+
         nav = _marketing_navbar_primary()
-        labels = [item["label"] for item in nav]
+        labels = [str(item["label"]) for item in nav]
+        if marketing_verb_nav_enabled():
+            self.assertIn("Run", labels)
+            self.assertIn("Teach", labels)
+            self.assertIn("Pricing", labels)
+            self.assertGreaterEqual(len(labels), 5)
+            return
         self.assertEqual(
             labels,
             [
@@ -26,6 +34,10 @@ class MarketingNavContractTests(SimpleTestCase):
         )
 
     def test_solutions_dropdown_maps_buyer_segments(self):
+        from apps.schools.marketing_v3_surfaces import marketing_verb_nav_enabled
+
+        if marketing_verb_nav_enabled():
+            self.skipTest("verb nav replaces legacy Solutions mega menu")
         nav = _marketing_navbar_primary()
         sol = next(i for i in nav if i["label"] == "Solutions")
         child_labels = [c["label"] for c in sol["children"] if not c.get("is_header")]

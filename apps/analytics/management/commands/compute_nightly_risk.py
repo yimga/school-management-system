@@ -9,9 +9,16 @@ from django.core.management.base import BaseCommand
 from django.db import DatabaseError, OperationalError
 from django.utils import timezone
 
-from apps.analytics.models import RiskFactor
+from apps.analytics.models import (
+    AtRiskInferenceRun,
+    AtRiskModelArtifact,
+    RiskFactor,
+)
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.schools.models import School
+
+_RED_BAND_MIN = 80
+_AMBER_BAND_MIN = 50
 
 # Typed exceptions for nightly risk inference (import, DB, service); §2.4 broad-except policy.
 _COMPUTE_NIGHTLY_RISK_ERRORS = (
@@ -57,6 +64,12 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"Wrote {total} risk factor(s)."))
 
     def _process_school(self, school, dry_run):
+        run = None
+        if not dry_run:
+            run = AtRiskInferenceRun.objects.create(
+                school=school,
+                artifact=AtRiskModelArtifact.current_production(),
+            )
         try:
             from apps.analytics.ml_inference import run_risk_inference_batch
 
@@ -68,6 +81,11 @@ class Command(BaseCommand):
                 extra={"command": "compute_nightly_risk", "error": str(e)},
             )
             self.stderr.write(self.style.ERROR(f"School {school.id}: {e}"))
+            if run is not None:
+                run.outcome = AtRiskInferenceRun.Outcome.FAILED
+                run.error_summary = str(e)[:5000]
+                run.finished_at = timezone.now()
+                run.save(update_fields=["outcome", "error_summary", "finished_at"])
             return 0
 
         # Pass 13: entitlement gate — only run LLM-explained reasons for tenants
@@ -75,6 +93,9 @@ class Command(BaseCommand):
         ai_explain_enabled = _is_ai_risk_explain_enabled(school)
 
         count = 0
+        scores_for_summary: list[float] = []
+        observed_version = ""
+        red = amber = green = 0
         for student, score, reason, model_version in results:
             if dry_run:
                 self.stdout.write(
@@ -87,6 +108,25 @@ class Command(BaseCommand):
                 final_reason = _llm_explained_reason(
                     school=school, student=student, score=score, reason=reason
                 )
+            # Wave 3: capture per-prediction model feature contributions so
+            # the portal "Why" column can show top drivers instead of the
+            # canned heuristic line. Cheap when model exposes
+            # feature_importances_; returns [] for heuristic path.
+            contributions: list[dict] = []
+            try:
+                from apps.analytics.ml.at_risk_model import (
+                    _load_model, explain_score,
+                )
+                from apps.analytics.ml.at_risk_features import extract_features
+
+                ml_model = _load_model()
+                if ml_model is not None:
+                    contributions = explain_score(
+                        ml_model, extract_features(student)
+                    )
+            except _COMPUTE_NIGHTLY_RISK_ERRORS:
+                # Never fail the batch on an explainability error.
+                contributions = []
             RiskFactor.objects.update_or_create(
                 school=school,
                 student=student,
@@ -94,10 +134,53 @@ class Command(BaseCommand):
                     "score": score,
                     "reason_summary": final_reason,
                     "model_version": model_version or "",
+                    "feature_contributions": contributions,
                     "computed_at": timezone.now(),
                 },
             )
             count += 1
+            s = float(score)
+            scores_for_summary.append(s)
+            if s >= _RED_BAND_MIN:
+                red += 1
+            elif s >= _AMBER_BAND_MIN:
+                amber += 1
+            else:
+                green += 1
+            if model_version and not observed_version:
+                observed_version = str(model_version)
+        if run is not None:
+            mean = sum(scores_for_summary) / len(scores_for_summary) if scores_for_summary else None
+            median = p95 = None
+            if scores_for_summary:
+                ordered = sorted(scores_for_summary)
+                mid = len(ordered) // 2
+                median = (
+                    ordered[mid]
+                    if len(ordered) % 2
+                    else (ordered[mid - 1] + ordered[mid]) / 2
+                )
+                p95_index = max(0, int(round(0.95 * (len(ordered) - 1))))
+                p95 = ordered[p95_index]
+            outcome = AtRiskInferenceRun.Outcome.OK
+            if not observed_version:
+                outcome = AtRiskInferenceRun.Outcome.HEURISTIC_FALLBACK
+            run.outcome = outcome
+            run.students_scored = count
+            run.students_red_band = red
+            run.students_amber_band = amber
+            run.students_green_band = green
+            run.mean_score = mean
+            run.median_score = median
+            run.p95_score = p95
+            run.model_version_snapshot = observed_version
+            run.finished_at = timezone.now()
+            run.save(update_fields=[
+                "outcome", "students_scored",
+                "students_red_band", "students_amber_band", "students_green_band",
+                "mean_score", "median_score", "p95_score",
+                "model_version_snapshot", "finished_at",
+            ])
         return count
 
 

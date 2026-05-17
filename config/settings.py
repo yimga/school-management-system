@@ -267,6 +267,13 @@ MIDDLEWARE = [
     "apps.schools.middleware.RlsResetOnExceptionMiddleware",  # RESET app.current_school_id on response or exception
     "apps.tenancy.middleware.TenantContextMiddleware",  # Attach request.tenant_ctx (TenantContext)
     "apps.platform_runtime.middleware.TenantRuntimeMiddleware",  # Attach request.tenant_runtime (TenantRuntime)
+    # v2.79: bind request.school into the email-backend thread-local so any
+    # send_mail() inside this request picks up the tenant's Anymail provider
+    # via PerTenantEmailBackend. Without this, per-tenant mail is only
+    # honored when callers explicitly thread `school=` through, which is
+    # essentially never. Clears in process_response + process_exception so
+    # pooled worker threads don't leak tenants across requests.
+    "apps.integrations_marketplace.middleware.TenantEmailBindingMiddleware",
     "apps.schools.middleware.TenantFreezeMiddleware",  # Section 8.6: redirect frozen schools to /account-frozen/
     "apps.schools.middleware.SentryTenantTagMiddleware",  # Phase H: tag Sentry with school_id
     "apps.schools.middleware.TenantLastActivityMiddleware",  # Phase H: optional last_activity per tenant
@@ -390,6 +397,7 @@ TEMPLATES = [
                 "apps.accounts.context_processors.sidebar_record_context",
                 "apps.schools.context_processors.marketing_base_url",  # MARKETING_BASE_URL for cross-host links
                 "apps.schools.context_processors.conversion_enforcement_context",
+                "apps.schools.context_processors.operator_surface_ia_context",
                 "apps.portal.context_processors.announcements",  # Global announcements banner
                 "apps.portal.context_processors.platform_status_strip",  # Public-safe platform incident strip
                 "apps.siteconfig.context_processors.ai_copilot_settings",  # AI Copilot API key
@@ -1328,6 +1336,21 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 300.0,  # Every 5 minutes
         "options": {"expires": 240},
     },
+    # v2.100: renew calendar/mail push subscriptions before they expire.
+    # Google Calendar channels last ~30d, Graph subscriptions ~3d — without
+    # this, push delivery silently stops and tenants get no notifications.
+    "integrations-renew-push-subscriptions": {
+        "task": "integrations_marketplace.renew_due_subscriptions",
+        "schedule": 3600.0,  # Hourly is plenty given the 1-day renewal window.
+        "options": {"expires": 3300},
+    },
+    # v2.100: fetch new messages for OAuth-connected mailboxes (gmail / outlook_mail).
+    # Inbound-mail tenants depend on this to see anything land in their app.
+    "integrations-fetch-mailboxes": {
+        "task": "integrations_marketplace.fetch_due_mailboxes",
+        "schedule": 300.0,  # Every 5 minutes — tunable per provider quota.
+        "options": {"expires": 240},
+    },
 }
 # Public demo refresh: set ENSURE_DEMO_CRON_SLUG (e.g. demo-school) and run Celery beat.
 _ensure_demo_cron_slug = (os.getenv("ENSURE_DEMO_CRON_SLUG") or "").strip()
@@ -1402,6 +1425,39 @@ if os.getenv("ENABLE_AI_QUALITY_SCORECARD_BEAT", "").strip().lower() in (
     CELERY_BEAT_SCHEDULE["ai-quality-scorecard-weekly"] = {
         "task": "siteconfig.ai_quality_scorecard_beat",
         "schedule": 604800.0,
+        "options": {"expires": 3600},
+    }
+
+# AI/ML predictive batches (Waves 1-10). Each opt-in via env var so a
+# fresh deploy doesn't start scoring before operators have an artifact.
+if os.getenv("ENABLE_AT_RISK_NIGHTLY_BEAT", "").strip().lower() in ("1", "true", "yes"):
+    CELERY_BEAT_SCHEDULE["analytics-compute-nightly-risk"] = {
+        "task": "analytics.compute_nightly_risk",
+        "schedule": 86400.0,
+        "options": {"expires": 7200},
+    }
+if os.getenv("ENABLE_GRADE_PREDICTION_NIGHTLY_BEAT", "").strip().lower() in ("1", "true", "yes"):
+    CELERY_BEAT_SCHEDULE["analytics-compute-nightly-grade-predictions"] = {
+        "task": "analytics.compute_nightly_grade_predictions",
+        "schedule": 86400.0,
+        "options": {"expires": 7200},
+    }
+if os.getenv("ENABLE_STUDENT_EMBEDDINGS_BEAT", "").strip().lower() in ("1", "true", "yes"):
+    CELERY_BEAT_SCHEDULE["analytics-build-student-embeddings"] = {
+        "task": "analytics.build_student_embeddings",
+        "schedule": 86400.0,
+        "options": {"expires": 7200},
+    }
+if os.getenv("ENABLE_RISK_DIGEST_BEAT", "").strip().lower() in ("1", "true", "yes"):
+    CELERY_BEAT_SCHEDULE["analytics-send-risk-digest-daily"] = {
+        "task": "analytics.send_risk_digest_all",
+        "schedule": 86400.0,
+        "options": {"expires": 3600},
+    }
+if os.getenv("ENABLE_AT_RISK_DRIFT_WATCHDOG_BEAT", "").strip().lower() in ("1", "true", "yes"):
+    CELERY_BEAT_SCHEDULE["analytics-at-risk-drift-watchdog"] = {
+        "task": "analytics.check_at_risk_drift_watchdog",
+        "schedule": 86400.0,
         "options": {"expires": 3600},
     }
 
@@ -1716,7 +1772,18 @@ USE_TZ = True
 LANGUAGE_CODE = os.getenv("LANGUAGE_CODE", "en")
 LANGUAGES = [
     ("en", "English"),
+    ("es", "Español (Spanish)"),
     ("fr", "Français (French)"),
+    ("pt-br", "Português Brasil"),
+    ("de", "Deutsch (German)"),
+    ("it", "Italiano (Italian)"),
+    ("ru", "Русский (Russian)"),
+    ("tr", "Türkçe (Turkish)"),
+    ("ja", "日本語 (Japanese)"),
+    ("zh-hans", "简体中文 (Chinese Simplified)"),
+    ("zh-hant", "繁體中文 (Chinese Traditional)"),
+    ("hi", "हिन्दी (Hindi)"),
+    ("ar", "العربية (Arabic)"),
     ("pid", "Pidgin English"),
     ("sw", "Kiswahili"),
     ("ha", "Hausa"),

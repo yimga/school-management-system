@@ -1,0 +1,121 @@
+"""Live progress tracking for the DAG view + SSE stream.
+
+Emits ``MigrationProgressEvent`` rows and updates
+``MigrationBundle.progress_snapshot`` as the pipeline + orchestrator walk
+through stages. Callers (pipeline, orchestrator, asset pipeline) push
+events via the lightweight :func:`emit` helper; the DAG view + SSE
+endpoint subscribe to the bundle's event stream.
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from django.utils import timezone
+
+from .models import MigrationBundle, MigrationProgressEvent
+
+logger = logging.getLogger(__name__)
+
+
+_STANDARD_STAGES = (
+    "PENDING", "INGESTING", "PROFILED", "CLASSIFIED",
+    "MAPPED", "APPLYING", "APPLIED", "RECONCILED",
+)
+
+
+def emit(
+    *,
+    bundle_id: int,
+    kind: str,
+    stage: str = "",
+    message: str = "",
+    detail: dict[str, Any] | None = None,
+) -> None:
+    """Append a progress event. Never blocks the caller on a write failure."""
+    try:
+        MigrationProgressEvent.objects.create(
+            bundle_id=bundle_id,
+            kind=kind,
+            stage=stage[:32],
+            message=message[:2000],
+            detail=detail or {},
+        )
+    except Exception:  # noqa: BLE001
+        logger.debug("progress.emit failed", exc_info=True)
+
+
+def refresh_snapshot(*, bundle: MigrationBundle) -> dict[str, Any]:
+    """Recompute the live progress snapshot from the event stream.
+
+    Snapshot shape::
+
+        {
+            "stages": [
+                {"name": "INGESTING", "status": "done", "pct": 100,
+                 "started": iso, "finished": iso, "rows": 1240},
+                ...
+            ],
+            "updated_at": iso,
+        }
+    """
+    events = list(
+        MigrationProgressEvent.objects.filter(bundle=bundle).order_by("created_at")
+    )
+    by_stage: dict[str, dict[str, Any]] = {
+        name: {"name": name, "status": "pending", "pct": 0, "rows": 0}
+        for name in _STANDARD_STAGES
+    }
+    current_idx = _STANDARD_STAGES.index(bundle.status) if bundle.status in _STANDARD_STAGES else -1
+    for i, name in enumerate(_STANDARD_STAGES):
+        if i < current_idx:
+            by_stage[name]["status"] = "done"
+            by_stage[name]["pct"] = 100
+        elif i == current_idx:
+            by_stage[name]["status"] = "current"
+
+    for ev in events:
+        s = ev.stage or ev.detail.get("stage", "")
+        if s not in by_stage:
+            continue
+        if ev.kind == "stage_started":
+            by_stage[s].setdefault("started", ev.created_at.isoformat())
+        elif ev.kind == "stage_finished":
+            by_stage[s]["finished"] = ev.created_at.isoformat()
+            by_stage[s]["status"] = "done"
+            by_stage[s]["pct"] = 100
+            if ev.detail.get("rows"):
+                by_stage[s]["rows"] = int(ev.detail["rows"])
+        elif ev.kind == "artifact_progress":
+            pct = int(ev.detail.get("pct") or 0)
+            if pct > by_stage[s]["pct"]:
+                by_stage[s]["pct"] = pct
+            if ev.detail.get("rows"):
+                by_stage[s]["rows"] = max(by_stage[s].get("rows", 0), int(ev.detail["rows"]))
+
+    snapshot = {
+        "stages": [by_stage[name] for name in _STANDARD_STAGES],
+        "updated_at": timezone.now().isoformat(),
+        "current_status": bundle.status,
+    }
+    bundle.progress_snapshot = snapshot
+    bundle.save(update_fields=["progress_snapshot", "updated_at"])
+    return snapshot
+
+
+def stream_events_since(*, bundle_id: int, after_id: int = 0):
+    """Generator of (event_id, payload) tuples for SSE. Stateless — one query per call."""
+    events = (
+        MigrationProgressEvent.objects.filter(bundle_id=bundle_id, id__gt=after_id)
+        .order_by("id")[:500]
+    )
+    for ev in events:
+        yield ev.pk, {
+            "id": ev.pk,
+            "kind": ev.kind,
+            "stage": ev.stage,
+            "message": ev.message,
+            "detail": ev.detail,
+            "at": ev.created_at.isoformat(),
+        }

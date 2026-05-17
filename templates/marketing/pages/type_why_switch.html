@@ -1,0 +1,52 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-why-switch{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-v3-page mkt-v3-page--why-switch">
+  <header class="mkt-v3-page__hero mkt-edt-container rmc-reveal">
+    <p class="mkt-v3-eyebrow">{% trans "Why switch" %}</p>
+    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
+    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
+    <p class="mkt-v3-page__platforms">{% trans "Coming from PowerSchool · Blackbaud · Veracross · Infinite Campus · spreadsheets" %}</p>
+    <div class="mkt-v3-archetype__ctas">
+      <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a migration consult" %}</a>
+      <a href="{% url 'marketing_pricing' %}" class="mkt-edt-link">{% trans "See pricing →" %}</a>
+    </div>
+  </header>
+
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="why-compare-heading">
+    <h2 id="why-compare-heading" class="mkt-v3-section-headline">{% trans "Head-to-head" %}</h2>
+    {% include "marketing/components/_competitor_head_to_head.html" %}
+  </section>
+
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="why-legacy-heading">
+    <h2 id="why-legacy-heading" class="mkt-v3-section-headline">{% trans "A Tuesday on the legacy stack" %}</h2>
+    {% include "marketing/components/_comparison_matrix.html" %}
+  </section>
+
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal mkt-v3-page__section--with-advisor" aria-labelledby="why-migrate-heading">
+    <h2 id="why-migrate-heading" class="mkt-v3-section-headline">{% trans "Migration timeline" %}</h2>
+    <div class="mkt-v3-page__section-grid">
+      <div class="mkt-v3-page__section-figure mkt-advisor-figure mkt-advisor-figure--muted" aria-hidden="true">
+        {% include "marketing/components/_advisor_character.html" with pose="listening" size=180 accessible_label="" %}
+      </div>
+      <div class="mkt-v3-page__section-body">
+        {% include "marketing/components/_migration_timeline.html" %}
+      </div>
+    </div>
+  </section>
+
+  {% if page_extras.faqs %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="why-faq-heading">
+    <h2 id="why-faq-heading" class="mkt-v3-section-headline">{% trans "Common questions" %}</h2>
+    {% include "marketing/components/_faq_accordion.html" with faqs=page_extras.faqs %}
+  </section>
+  {% endif %}
+
+  <section class="mkt-edt-container mkt-v3-page__close rmc-reveal">
+    <p class="mkt-v3-lead">{% trans "Staff should not feel the day the system changed." %}</p>
+    <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Plan your cutover" %}</a>
+  </section>
+</article>
+{% endblock %}

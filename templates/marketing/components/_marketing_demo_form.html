@@ -1,0 +1,61 @@
+{% load i18n %}
+{% load terminology_tags %}
+<section class="mkt-v3-form-block" aria-label="{% trans 'Request a demo' %}">
+  <h2 class="mkt-v3-section-headline">{% trans "Request a demo" %}</h2>
+  <p class="mkt-v3-lead">{% trans "Tell us about your school and we'll schedule a walkthrough within one business day." %}</p>
+  {% if request.GET.submitted %}
+    <div class="mkt-edt-alert mkt-edt-alert--success" role="alert" aria-live="polite">{% trans "Thanks! We've received your request and will be in touch soon." %}</div>
+  {% elif request.GET.error %}
+    <div class="mkt-edt-alert mkt-edt-alert--warning" role="alert" aria-live="polite">{% trans "Something went wrong. Please try again or contact us directly." %}</div>
+  {% endif %}
+  <form method="post" action="{% url 'marketing_book_demo_submit' %}" class="mkt-v3-form row g-3" data-form-name="demo">
+    {% csrf_token %}
+    <div aria-hidden="true" class="mkt-v3-form__honeypot">
+      <label for="demo-website-url">{% trans "Leave this field empty" %}</label>
+      <input type="text" id="demo-website-url" name="website_url" tabindex="-1" autocomplete="off">
+    </div>
+    <div class="col-md-6">
+      <label for="demo-name" class="form-label">{% trans "Name" %}</label>
+      <input type="text" id="demo-name" name="name" class="form-control" maxlength="256" required>
+    </div>
+    <div class="col-md-6">
+      <label for="demo-email" class="form-label">{% trans "Email" %}</label>
+      <input type="email" id="demo-email" name="email" class="form-control" maxlength="256" required>
+    </div>
+    <div class="col-md-6">
+      <label for="demo-phone" class="form-label">{% trans "Phone" %}</label>
+      <input type="tel" id="demo-phone" name="phone" class="form-control" maxlength="64" autocomplete="tel">
+    </div>
+    <div class="col-md-6">
+      <label for="demo-school" class="form-label">{% trans "School or organization" %}</label>
+      <input type="text" id="demo-school" name="school" class="form-control" maxlength="256">
+    </div>
+    <div class="col-md-6">
+      <label for="demo-country" class="form-label">{% trans "Country" %}</label>
+      <input type="text" id="demo-country" name="country" class="form-control" maxlength="64" autocomplete="country">
+    </div>
+    <div class="col-md-6">
+      <label for="demo-school-type" class="form-label">{% trans "School type" %}</label>
+      <select id="demo-school-type" name="school_type" class="form-select">
+        <option value="">{% trans "Select type" %}</option>
+        <option value="independent">{% trans "Independent / private" %}</option>
+        <option value="international">{% trans "International" %}</option>
+        <option value="faith-based">{% trans "Faith-based" %}</option>
+        <option value="multi-campus">{% trans "Multi-campus / network" %}</option>
+        <option value="public">{% trans "Public / state-funded" %}</option>
+        <option value="other">{% trans "Other" %}</option>
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label for="demo-student-count" class="form-label">{% trans "Approximate student count" %}</label>
+      <input type="number" id="demo-student-count" name="student_count" class="form-control" min="1" max="100000" inputmode="numeric">
+    </div>
+    <div class="col-12">
+      <label for="demo-message" class="form-label">{% trans_term "Message" key="message" %}</label>
+      <textarea id="demo-message" name="message" class="form-control" rows="4" maxlength="2000"></textarea>
+    </div>
+    <div class="col-12">
+      <button type="submit" class="mkt-edt-cta" data-cta="demo">{% trans "Submit request" %}</button>
+    </div>
+  </form>
+</section>

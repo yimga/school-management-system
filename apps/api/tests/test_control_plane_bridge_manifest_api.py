@@ -63,3 +63,7 @@ class ControlPlaneBridgeManifestAPITests(TestCase):
         self.assertIn("admin_url", bridges[0])
         self.assertIn("super_bridge_path", bridges[0])
         self.assertIn("/super/operator-policy/", data.get("operator_policy", ""))
+        self.assertIn("paired_super_first", data)
+        self.assertIn("surface_spine", data)
+        self.assertTrue(data.get("surface_parity_ok"))
+        self.assertIn("/super/platform-operator-hub/", data.get("platform_operator_hub", ""))

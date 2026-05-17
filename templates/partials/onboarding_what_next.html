@@ -21,7 +21,7 @@
     <a class="btn btn-outline-primary btn-sm" href="{{ cta.url }}">{% if cta.icon %}<i class="bi {{ cta.icon }} me-1"></i>{% endif %}{{ cta.label }}</a>
     {% endfor %}
     {% if tour_steps_api_url %}
-    <button type="button" class="btn btn-outline-secondary btn-sm" data-tour-trigger="backend_dashboard" data-tour-steps-url="{{ tour_steps_api_url }}" data-action="onboarding-tour-start" data-task="onboarding" data-task-step="onboarding:tour">{% trans "Take a quick tour" %}</button>
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-tour-trigger="backend_dashboard" data-tour-steps-url="{{ tour_steps_api_url }}" data-tour-complete-url="{{ tour_complete_url }}" data-action="onboarding-tour-start" data-task="onboarding" data-task-step="onboarding:tour">{% trans "Take a quick tour" %}</button>
     {% endif %}
   </div>
 </div>

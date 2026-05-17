@@ -99,6 +99,7 @@ body.marketing-surface,
 }
 .mkt-navbar .nav-link {
   color: rgba(248, 250, 252, 0.92) !important;
+  font-size: 0.9375rem;
   padding: 0.5rem 0.75rem !important;
   border-radius: var(--mkt-radius-sm);
   transition: color 0.2s ease, background 0.2s ease;
@@ -232,14 +233,22 @@ body.marketing-surface .btn.btn-outline-primary:hover {
 }
 
 /* ----- Footer ----- */
+/* v3 schoolhouse: the marketing footer renders OUTSIDE the
+   `data-mkt-edition="editorial"` wrapper, so the editorial tokens override
+   does not cascade into it. Paint the shell rule with light-surface tokens
+   directly so footer text meets WCAG AA without relying on the editorial
+   override. The dark variant survives as a tenant-level opt-in via
+   `data-mkt-edition="editorial"` on body for legacy templates. */
 .mkt-footer {
-  background: var(--mkt-primary);
-  color: var(--mkt-text-inverse);
+  background: var(--mkt-surface, #FAF7F2);
+  color: var(--mkt-ink, #0F1B2D);
   padding: var(--mkt-spacing-xl) var(--mkt-spacing-md);
   margin-top: var(--mkt-spacing-2xl);
+  border-top: 1px solid var(--mkt-rule, rgba(15, 27, 45, 0.10));
 }
-.mkt-footer a { color: rgba(248, 250, 252, 0.9); text-decoration: none; }
-.mkt-footer a:hover { color: var(--mkt-on-primary); }
+/* v3 schoolhouse: footer is light-surface; links must be dark ink for contrast. */
+.mkt-footer a { color: var(--mkt-ink, #0F1B2D); text-decoration: none; }
+.mkt-footer a:hover { color: var(--mkt-accent, #C2410C); }
 .mkt-footer-section { margin-bottom: var(--mkt-spacing-md); }
 .mkt-footer-section h4 {
   font-size: 0.875rem;
@@ -247,12 +256,16 @@ body.marketing-surface .btn.btn-outline-primary:hover {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-bottom: var(--mkt-spacing-sm);
-  color: rgba(248, 250, 252, 0.7);
+  /* v3 schoolhouse: footer renders on cream surface; previous near-white
+     color (0.7 of #f8fafc) was invisible (~1.0:1 contrast). Use ink-2 slate
+     so h4 headers clear WCAG AA (4.5:1+) on the ivory ground. */
+  color: var(--mkt-ink-2, #475569);
 }
 .mkt-footer-links { list-style: none; padding: 0; margin: 0; }
-.mkt-footer-links li { margin-bottom: 0.35rem; }
+.mkt-footer-links li { margin-bottom: 0.35rem; font-size: 0.875rem; }
+.mkt-footer-links a { font-size: 0.875rem; }
 .mkt-footer-brand { font-weight: 700; margin-top: var(--mkt-spacing-lg); font-size: 1rem; }
-.mkt-footer-tagline { font-size: 0.875rem; color: rgba(248, 250, 252, 0.7); margin-top: 0.25rem; }
+.mkt-footer-tagline { font-size: 0.875rem; color: var(--mkt-ink-2, #475569); margin-top: 0.25rem; }
 
 /* ----- Marketing home (landing) ----- */
 .marketing-home {

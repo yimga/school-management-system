@@ -20,15 +20,14 @@
 {% block marketing_main_extra_classes %}container-fluid px-0 py-0{% endblock %}
 
 {% block content %}
-<div data-mkt-edition="editorial" class="mkt-edt-root" id="mkt-edt-root">
+<div data-mkt-edition="editorial" data-mkt-schoolhouse="true" class="mkt-edt-root mkt-v3-root" id="mkt-edt-root" data-marketing-tour-context="marketing_home">
 
   {# ───────── 1. HERO ───────── #}
-  <section class="mkt-edt-section mkt-edt-hero" aria-labelledby="hero-headline">
+  <section class="mkt-edt-section mkt-edt-hero" aria-labelledby="hero-headline" data-tour="mkt-hero">
     <div class="mkt-edt-container mkt-edt-hero__grid">
       <div class="mkt-edt-hero__copy rmc-arrival">
-        <h1 id="hero-headline" class="mkt-edt-hero-headline rmc-reveal">
-          {% trans "Run your school the way your school actually runs." %}
-        </h1>
+        <p class="mkt-edt-eyebrow mkt-v3-eyebrow">{% trans "Tuesday · Cedar Ridge Academy" %}</p>
+        {% include "marketing/components/_rotating_headline.html" %}
         <p class="mkt-edt-lead mkt-edt-hero__lead rmc-reveal">
           {% trans "One quiet system behind admissions, classrooms, fees, and the message you send a parent at 8:14 a.m." %}
         </p>
@@ -39,6 +38,7 @@
           <a href="{% url 'marketing_resources_product_tour' %}" class="mkt-edt-cta mkt-edt-cta--ghost rmc-tactile-48" data-mkt-tactile>
             {% trans "See it live" %}
           </a>
+          <button type="button" class="mkt-edt-cta mkt-edt-cta--ghost rmc-tactile-48" data-tour-trigger="marketing_home">{% trans "Platform overview" %}</button>
         </div>
 
         <ul class="mkt-edt-hero__stats rmc-reveal" aria-label="{% trans 'Quick proof points' %}">
@@ -56,297 +56,31 @@
           </li>
         </ul>
 
-        {% comment %}
-        Inline mini-quote — fills the hero's empty left column with a
-        human voice instead of dead space.
-        {% endcomment %}
-        <figure class="mkt-edt-hero__voice rmc-reveal">
-          <svg class="mkt-edt-hero__voice-avatar" viewBox="0 0 40 40" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-            <defs><linearGradient id="hero-av" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FED7AA"/><stop offset="100%" stop-color="#C2410C"/></linearGradient></defs>
-            <circle cx="20" cy="20" r="20" fill="url(#hero-av)"/>
-            <text x="20" y="26" font-family="Source Serif 4, Iowan Old Style, serif" font-size="16" font-weight="500" fill="#FAF7F2" text-anchor="middle">O</text>
-          </svg>
-          <blockquote>
-            <p>{% trans "Tomorrow is already staged. The system between the bells went quiet — and the school got loud again." %}</p>
-            <cite>{% trans "Olu Adebayo · Head of School (illustrative)" %}</cite>
-          </blockquote>
-        </figure>
-
         <p class="mkt-edt-hero__trust rmc-reveal">
           {% trans "K–12 · International · Networks · Faith-based · Day schools · Low-connectivity" %}
         </p>
       </div>
 
-      <div class="mkt-edt-hero__artifact mkt-edt-hero__artifact--briefing rmc-reveal rmc-reveal--scale" aria-hidden="true" data-mkt-parallax="0.06">
-        {% include "schools/_v2/_artifact_today_briefing.svg.html" %}
+      <div class="mkt-edt-hero__artifact rmc-reveal rmc-reveal--scale" data-mkt-parallax="0.06">
+        {% include "marketing/components/_dashboard_frame.html" with frame_title="Daily briefing" dashboard_partial="schools/_v2/_artifact_today_briefing.svg.html" %}
       </div>
     </div>
   </section>
 
-  {# ───────── 1.25  "TRUSTED ACROSS" CREST STRIP ───────── #}
-  <section class="mkt-edt-crests rmc-reveal" aria-labelledby="crests-headline" data-mkt-reveal>
-    <div class="mkt-edt-container">
-      <p id="crests-headline" class="mkt-edt-crests__caption">
-        {% trans "Designed for the shapes schools actually come in." %}
-        <span>{% trans "Independent K–12, faith-based, international, networks, low-connectivity, day schools." %}</span>
-      </p>
-      <div class="mkt-edt-crests__strip" aria-hidden="true">
-        {% include "schools/_v2/_decoration_school_crests.svg.html" %}
-      </div>
-    </div>
-  </section>
+  {% include "marketing/components/_bell_clock_sticky.html" %}
 
   <hr class="mkt-edt-rule">
 
-  {# ───────── 1.5  STORY: A TUESDAY AT CEDAR RIDGE ───────── #}
-  <section class="mkt-edt-section mkt-edt-narrative rmc-reveal" aria-labelledby="story-headline" data-mkt-reveal>
-    <div class="mkt-edt-container">
-      <header class="mkt-edt-narrative__intro">
-        <p class="mkt-edt-eyebrow">{% trans "A day at one school" %}</p>
-        <h2 id="story-headline" class="mkt-edt-section-headline">
-          {% trans "A Tuesday at Cedar Ridge Academy." %}
-        </h2>
-        <p class="mkt-edt-lead">
-          {% trans "Five people, six bells, one quiet system. Here's how a real day actually moves." %}
-        </p>
-      </header>
-
-      <ol class="mkt-edt-bells">
-        <li class="mkt-edt-bell">
-          <div class="mkt-edt-bell__stamp">
-            <span class="mkt-edt-bell__time">7:42<span class="mkt-edt-bell__ampm">a.m.</span></span>
-            <span class="mkt-edt-bell__hour">{% trans "Before the bell" %}</span>
-          </div>
-          <div class="mkt-edt-bell__story">
-            <p>
-              <strong>{% trans "Olu opens the kitchen window." %}</strong>
-              {% trans "RunMyCampus has already staged today's plan: cover for Ms Akande, a reminder out to the Y9 trip families, and the four parents whose fees fell due overnight." %}
-            </p>
-          </div>
-        </li>
-
-        <li class="mkt-edt-bell">
-          <div class="mkt-edt-bell__stamp">
-            <span class="mkt-edt-bell__time">8:15<span class="mkt-edt-bell__ampm">a.m.</span></span>
-            <span class="mkt-edt-bell__hour">{% trans "First bell" %}</span>
-          </div>
-          <div class="mkt-edt-bell__story">
-            <p>
-              <strong>{% trans "Year 5B's roll marks itself in nine seconds." %}</strong>
-              {% trans "Maya is present. Aisha is absent — her mum is already in the inbox, no chase call needed." %}
-            </p>
-          </div>
-        </li>
-
-        <li class="mkt-edt-bell">
-          <div class="mkt-edt-bell__stamp">
-            <span class="mkt-edt-bell__time">10:30<span class="mkt-edt-bell__ampm">a.m.</span></span>
-            <span class="mkt-edt-bell__hour">{% trans "Stand-up" %}</span>
-          </div>
-          <div class="mkt-edt-bell__story">
-            <p>
-              <strong>{% trans "Permission slips for Y9 history clear in five minutes." %}</strong>
-              {% trans "Twenty-seven of twenty-eight back. The last family gets a quiet nudge — no admin, no spreadsheet, no rerun." %}
-            </p>
-          </div>
-        </li>
-
-        <li class="mkt-edt-bell">
-          <div class="mkt-edt-bell__stamp">
-            <span class="mkt-edt-bell__time">12:00<span class="mkt-edt-bell__ampm">p.m.</span></span>
-            <span class="mkt-edt-bell__hour">{% trans "Lunch" %}</span>
-          </div>
-          <div class="mkt-edt-bell__story">
-            <p>
-              <strong>{% trans "The kitchen counts 412 hot meals." %}</strong>
-              {% trans "Three dietary flags are surfaced for chef. The finance ledger reconciles before the bell — no end-of-day catch-up." %}
-            </p>
-          </div>
-        </li>
-
-        <li class="mkt-edt-bell">
-          <div class="mkt-edt-bell__stamp">
-            <span class="mkt-edt-bell__time">3:15<span class="mkt-edt-bell__ampm">p.m.</span></span>
-            <span class="mkt-edt-bell__hour">{% trans "Last bell" %}</span>
-          </div>
-          <div class="mkt-edt-bell__story">
-            <p>
-              <strong>{% trans "Forty-seven buses leave." %}</strong>
-              {% trans "Imani's phone hums quietly on the train home: 'Maya is on the 47.' No app to open. No worry to swallow." %}
-            </p>
-          </div>
-        </li>
-
-        <li class="mkt-edt-bell">
-          <div class="mkt-edt-bell__stamp">
-            <span class="mkt-edt-bell__time">5:30<span class="mkt-edt-bell__ampm">p.m.</span></span>
-            <span class="mkt-edt-bell__hour">{% trans "Day closed" %}</span>
-          </div>
-          <div class="mkt-edt-bell__story">
-            <p>
-              <strong>{% trans "Olu closes her laptop." %}</strong>
-              {% trans "Tomorrow's plan is already staged — register sheets, the Parents' evening rota, and the mid-term reports that go out at three." %}
-            </p>
-          </div>
-        </li>
-      </ol>
-
-      <p class="mkt-edt-narrative__caption">
-        {% trans "Fictional school for illustration. The rhythm is real — these are the surfaces every RunMyCampus tenant runs daily." %}
-      </p>
-    </div>
-
-    {# Decorative frieze — chapter break between story and role sections. #}
-    <figure class="mkt-edt-frieze" aria-hidden="true">
-      {% include "schools/_v2/_decoration_school_frieze.svg.html" %}
-    </figure>
-  </section>
+  {% include "marketing/components/_persona_tabs.html" %}
 
   <hr class="mkt-edt-rule">
 
-  {# ───────── 2. FIVE JOBS ───────── #}
-  <section class="mkt-edt-section rmc-reveal" aria-labelledby="jobs-headline">
-    <div class="mkt-edt-container">
-      <header class="mkt-edt-jobs__intro">
-        <p class="mkt-edt-eyebrow">{% trans "What people actually do here" %}</p>
-        <h2 id="jobs-headline" class="mkt-edt-section-headline">
-          {% trans "Five people. One quiet system." %}
-        </h2>
-        <p class="mkt-edt-lead">
-          {% trans "Every role gets the surface they need — and nothing they don't." %}
-        </p>
-      </header>
-
-      <ol class="mkt-edt-jobs" data-mkt-reveal-stagger>
-
-        <li class="mkt-edt-job mkt-edt-job--reverse">
-          <div class="mkt-edt-job__copy">
-            <p class="mkt-edt-eyebrow">{% trans "School leaders" %}</p>
-            <h3 class="mkt-edt-section-headline">
-              {% trans "See the whole school in one view." %}
-            </h3>
-            <p class="mkt-edt-lead">
-              {% trans "Attendance, fees, behaviour, staffing — one honest summary, refreshed quietly while you make tea." %}
-            </p>
-            <ul class="mkt-edt-job__bullets">
-              <li>{% trans "Attendance, fees, incidents, and staffing in one panel — live, no refresh." %}</li>
-              <li>{% trans "Incidents triaged by severity so the ones that need you surface first." %}</li>
-              <li>{% trans "Weekly report drafted automatically — board-ready, footnoted, exportable." %}</li>
-            </ul>
-            <div class="mkt-edt-job__metric">
-              <span class="mkt-edt-job__metric-value">4 min</span>
-              <span class="mkt-edt-job__metric-label">{% trans "morning brief instead of forty — every operating day" %}</span>
-            </div>
-          </div>
-          <div class="mkt-edt-job__artifact" aria-hidden="true">
-            {% include "schools/_v2/_artifact_leader_overview.svg.html" %}
-          </div>
-        </li>
-
-        <li class="mkt-edt-job">
-          <div class="mkt-edt-job__copy">
-            <p class="mkt-edt-eyebrow">{% trans_term "Teachers" key="teacher" plural=True %}</p>
-            <h3 class="mkt-edt-section-headline">
-              {% trans "Spend less time on admin." %}
-            </h3>
-            <p class="mkt-edt-lead">
-              {% trans "Roll calls, marks, comments, and the message home — done in the gaps between lessons." %}
-            </p>
-            <ul class="mkt-edt-job__bullets">
-              <li>{% trans "Roll mark in nine seconds — auto-saved and shared with the office immediately." %}</li>
-              <li>{% trans "Absences flagged with the family pre-notified — no chase calls during break." %}</li>
-              <li>{% trans "Gradebook, comments, and home messages from one screen between lessons." %}</li>
-            </ul>
-            <div class="mkt-edt-job__metric">
-              <span class="mkt-edt-job__metric-value">32 hrs</span>
-              <span class="mkt-edt-job__metric-label">{% trans "given back to every teacher, every term" %}</span>
-            </div>
-          </div>
-          <div class="mkt-edt-job__artifact" aria-hidden="true">
-            {% include "schools/_v2/_artifact_teacher_attendance.svg.html" %}
-          </div>
-        </li>
-
-        <li class="mkt-edt-job mkt-edt-job--reverse">
-          <div class="mkt-edt-job__copy">
-            <p class="mkt-edt-eyebrow">{% trans_term "Parents" key="parent" plural=True %}</p>
-            <h3 class="mkt-edt-section-headline">
-              {% trans "Stay close without another app." %}
-            </h3>
-            <p class="mkt-edt-lead">
-              {% trans "Today's pickup time, tomorrow's permission slip, and Term 2's invoice — in the place a parent already looks." %}
-            </p>
-            <ul class="mkt-edt-job__bullets">
-              <li>{% trans "Permission slips, fees, and attendance in one card — open the link, no install." %}</li>
-              <li>{% trans "Messages stay on the official channel — no WhatsApp roulette, no forwarded screenshots." %}</li>
-              <li>{% trans "One view per family — every child, every account, every reminder in one place." %}</li>
-            </ul>
-            <div class="mkt-edt-job__metric">
-              <span class="mkt-edt-job__metric-value">0 apps</span>
-              <span class="mkt-edt-job__metric-label">{% trans "added to a parent's phone to make the school work" %}</span>
-            </div>
-          </div>
-          <div class="mkt-edt-job__artifact mkt-edt-job__artifact--phone" aria-hidden="true">
-            {% include "schools/_v2/_artifact_parent_phone_compact.svg.html" %}
-          </div>
-        </li>
-
-        <li class="mkt-edt-job">
-          <div class="mkt-edt-job__copy">
-            <p class="mkt-edt-eyebrow">{% trans "Finance" %}</p>
-            <h3 class="mkt-edt-section-headline">
-              {% trans "Fees, payments, reports — done." %}
-            </h3>
-            <p class="mkt-edt-lead">
-              {% trans "Reconciliation that ties out at month-end, with the right reminder to the right family at the right time." %}
-            </p>
-            <ul class="mkt-edt-job__bullets">
-              <li>{% trans "Collected, outstanding, paid — auto-reconciling against the ledger every hour." %}</li>
-              <li>{% trans "Overdue nudges in the family's preferred channel, audit-logged end-to-end." %}</li>
-              <li>{% trans "Stripe, GoCardless, mobile money, bank transfer — one dashboard, one source of truth." %}</li>
-            </ul>
-            <div class="mkt-edt-job__metric">
-              <span class="mkt-edt-job__metric-value">94%</span>
-              <span class="mkt-edt-job__metric-label">{% trans "of term fees collected by week three on average" %}</span>
-            </div>
-          </div>
-          <div class="mkt-edt-job__artifact" aria-hidden="true">
-            {% include "schools/_v2/_artifact_finance_dashboard.svg.html" %}
-          </div>
-        </li>
-
-        <li class="mkt-edt-job mkt-edt-job--reverse">
-          <div class="mkt-edt-job__copy">
-            <p class="mkt-edt-eyebrow">{% trans "IT &amp; operations" %}</p>
-            <h3 class="mkt-edt-section-headline">
-              {% trans "One platform. Nothing to babysit." %}
-            </h3>
-            <p class="mkt-edt-lead">
-              {% trans "Single sign-on, audit trails, and integrations that stay green — so your team can stop firefighting." %}
-            </p>
-            <ul class="mkt-edt-job__bullets">
-              <li>{% trans "Uptime, SSO, payments, messaging — one panel, surfaced before staff notice." %}</li>
-              <li>{% trans "Role permissions and tenant isolation visible end-to-end, no spreadsheet audits." %}</li>
-              <li>{% trans "FERPA, GDPR, POPIA-aligned defaults with a public trust centre and live status page." %}</li>
-            </ul>
-            <div class="mkt-edt-job__metric">
-              <span class="mkt-edt-job__metric-value">99.97%</span>
-              <span class="mkt-edt-job__metric-label">{% trans "rolling-90-day tenant uptime across 47 schools" %}</span>
-            </div>
-          </div>
-          <div class="mkt-edt-job__artifact" aria-hidden="true">
-            {% include "schools/_v2/_artifact_it_health.svg.html" %}
-          </div>
-        </li>
-
-      </ol>
-    </div>
-  </section>
+  {% include "marketing/components/_product_proof_block.html" %}
 
   <hr class="mkt-edt-rule">
 
   {# ───────── 2.5  "WHAT CHANGES" — ROI PANEL ───────── #}
-  <section class="mkt-edt-section mkt-edt-roi rmc-reveal" aria-labelledby="roi-headline" data-mkt-reveal>
+  <section class="mkt-edt-section mkt-edt-roi rmc-reveal" aria-labelledby="roi-headline" data-mkt-reveal data-tour="mkt-roi">
     <div class="mkt-edt-container">
       <header class="mkt-edt-roi__intro">
         <p class="mkt-edt-eyebrow">{% trans "What changes when you switch" %}</p>
@@ -387,282 +121,12 @@
     </div>
   </section>
 
-  <hr class="mkt-edt-rule">
-
-  {# ───────── 2.6  BENTO — mixed-tile composition (2026-05-12 carried-forward) ───────── #}
-  {% if landing_bento %}
-    {% include "marketing/partials/mkt_bento.html" with bento=landing_bento %}
-    <hr class="mkt-edt-rule">
-  {% endif %}
-
-  {# ───────── 2.75  GEOGRAPHIC MOMENT — WORLD MAP (full-bleed) ───────── #}
-  <section class="mkt-edt-section mkt-edt-globe mkt-edt-globe--fullbleed rmc-reveal" aria-labelledby="globe-headline" data-mkt-reveal>
-    <div class="mkt-edt-container">
-      <header class="mkt-edt-globe__intro">
-        <p class="mkt-edt-eyebrow">{% trans "Multi-tenant, region-aware" %}</p>
-        <h2 id="globe-headline" class="mkt-edt-section-headline">
-          {% trans "Your school's hour. Your school's currency. Your school's calendar." %}
-        </h2>
-        <p class="mkt-edt-lead">
-          {% trans "Run on local time, in the right language, with the academic structure your country actually uses. No forks. No regional plug-ins. One platform that bends to each campus." %}
-        </p>
-      </header>
-      <div class="mkt-edt-globe__map" aria-hidden="true">
-        {% include "schools/_v2/_decoration_world_map.svg.html" %}
-      </div>
-      <ul class="mkt-edt-globe__chips" aria-label="{% trans 'Localisation surfaces' %}">
-        <li>{% trans "180 currencies" %}</li>
-        <li>{% trans "29 languages" %}</li>
-        <li>{% trans "All major SIS imports" %}</li>
-        <li>{% trans "FERPA · GDPR · POPIA aligned" %}</li>
-        <li>{% trans "Offline-first where the network drops" %}</li>
-      </ul>
-    </div>
-  </section>
-
-  <hr class="mkt-edt-rule">
-
-  {# 2.9 INTERACTIVE: Switch the lens — CSS-only radio-driven tabbed walkthrough. #}
-  <section class="mkt-edt-section mkt-edt-lens rmc-reveal" aria-labelledby="lens-headline" data-mkt-reveal>
-    <div class="mkt-edt-container">
-      <header class="mkt-edt-lens__intro">
-        <p class="mkt-edt-eyebrow">{% trans "Switch the lens" %}</p>
-        <h2 id="lens-headline" class="mkt-edt-section-headline">
-          {% trans "Same school day. Five different views." %}
-        </h2>
-        <p class="mkt-edt-lead">
-          {% trans "Click a role. Every surface is real, every bullet describes something you can show your team in a demo today." %}
-        </p>
-      </header>
-
-      <fieldset class="mkt-edt-lens__switcher" aria-label="{% trans 'Choose a role to preview' %}">
-        <legend class="visually-hidden">{% trans "Choose a role to preview" %}</legend>
-
-        <input type="radio" name="lens" id="lens-leader" class="mkt-edt-lens__input" checked>
-        <input type="radio" name="lens" id="lens-teacher" class="mkt-edt-lens__input">
-        <input type="radio" name="lens" id="lens-parent" class="mkt-edt-lens__input">
-        <input type="radio" name="lens" id="lens-finance" class="mkt-edt-lens__input">
-        <input type="radio" name="lens" id="lens-it" class="mkt-edt-lens__input">
-
-        <div class="mkt-edt-lens__tabs" role="tablist">
-          <label for="lens-leader"  class="mkt-edt-lens__tab" data-lens="leader">{% trans "School leaders" %}</label>
-          <label for="lens-teacher" class="mkt-edt-lens__tab" data-lens="teacher">{% trans_term "Teachers" key="teacher" plural=True %}</label>
-          <label for="lens-parent"  class="mkt-edt-lens__tab" data-lens="parent">{% trans_term "Parents" key="parent" plural=True %}</label>
-          <label for="lens-finance" class="mkt-edt-lens__tab" data-lens="finance">{% trans "Finance" %}</label>
-          <label for="lens-it"      class="mkt-edt-lens__tab" data-lens="it">{% trans "IT &amp; ops" %}</label>
-        </div>
-
-        <div class="mkt-edt-lens__stage">
-          <div class="mkt-edt-lens__monitor" aria-live="polite">
-            <div class="mkt-edt-lens__monitor-bar" aria-hidden="true">
-              <span class="mkt-edt-lens__monitor-dot mkt-edt-lens__monitor-dot--r"></span>
-              <span class="mkt-edt-lens__monitor-dot mkt-edt-lens__monitor-dot--y"></span>
-              <span class="mkt-edt-lens__monitor-dot mkt-edt-lens__monitor-dot--g"></span>
-              <span class="mkt-edt-lens__monitor-url">runmycampus.com</span>
-            </div>
-            <div class="mkt-edt-lens__viewport">
-              <div class="mkt-edt-lens__panel" data-lens="leader" role="tabpanel" aria-hidden="false">
-                {% include "schools/_v2/_artifact_leader_overview.svg.html" %}
-              </div>
-              <div class="mkt-edt-lens__panel" data-lens="teacher" role="tabpanel" aria-hidden="true">
-                {% include "schools/_v2/_artifact_teacher_attendance.svg.html" %}
-              </div>
-              <div class="mkt-edt-lens__panel mkt-edt-lens__panel--phone" data-lens="parent" role="tabpanel" aria-hidden="true">
-                {% include "schools/_v2/_artifact_parent_phone.svg.html" %}
-              </div>
-              <div class="mkt-edt-lens__panel" data-lens="finance" role="tabpanel" aria-hidden="true">
-                {% include "schools/_v2/_artifact_finance_dashboard.svg.html" %}
-              </div>
-              <div class="mkt-edt-lens__panel" data-lens="it" role="tabpanel" aria-hidden="true">
-                {% include "schools/_v2/_artifact_it_health.svg.html" %}
-              </div>
-            </div>
-          </div>
-
-          {# Side rail — bullets that change with the lens #}
-          <div class="mkt-edt-lens__rail">
-            <div class="mkt-edt-lens__copy" data-lens="leader">
-              <h3>{% trans "What a leader sees" %}</h3>
-              <ul>
-                <li>{% trans "Attendance, fees, behaviour, and staffing in one honest summary." %}</li>
-                <li>{% trans "Incidents triaged by severity — the ones that need you, surfaced first." %}</li>
-                <li>{% trans "Today's events, the week's risks, the term's trend. No tab-hunting." %}</li>
-              </ul>
-            </div>
-            <div class="mkt-edt-lens__copy" data-lens="teacher">
-              <h3>{% trans "What a teacher sees" %}</h3>
-              <ul>
-                <li>{% trans "Roll mark in nine seconds. Auto-saved, auto-shared with the office." %}</li>
-                <li>{% trans "Absences flagged with the family already notified — no chase call." %}</li>
-                <li>{% trans "Marks, comments, and home messages from one screen between lessons." %}</li>
-              </ul>
-            </div>
-            <div class="mkt-edt-lens__copy" data-lens="parent">
-              <h3>{% trans "What a parent sees" %}</h3>
-              <ul>
-                <li>{% trans "Today's permission slip. Today's attendance. Today's fee, in one card." %}</li>
-                <li>{% trans "No app to install. The link they already have works on any phone." %}</li>
-                <li>{% trans "Messages from school stay on the official channel — not WhatsApp roulette." %}</li>
-              </ul>
-            </div>
-            <div class="mkt-edt-lens__copy" data-lens="finance">
-              <h3>{% trans "What finance sees" %}</h3>
-              <ul>
-                <li>{% trans "Collected, outstanding, and paid — auto-reconciling against the ledger every hour." %}</li>
-                <li>{% trans "Overdue families nudged in their preferred channel, without bursar admin." %}</li>
-                <li>{% trans "Audit-friendly trail: invoice → reminder → receipt → ledger entry, every step logged." %}</li>
-              </ul>
-            </div>
-            <div class="mkt-edt-lens__copy" data-lens="it">
-              <h3>{% trans "What IT sees" %}</h3>
-              <ul>
-                <li>{% trans "Tenant uptime, SSO health, payments and messaging — one panel, no firefighting." %}</li>
-                <li>{% trans "Integration providers stay green; outages surface before staff notice." %}</li>
-                <li>{% trans "Audit log, role permissions, and tenant isolation visible end-to-end." %}</li>
-              </ul>
-            </div>
-
-            <a href="{% url 'marketing_resources_product_tour' %}" class="mkt-edt-link mkt-edt-lens__deeplink">
-              {% trans "See the full product tour →" %}
-            </a>
-          </div>
-        </div>
-      </fieldset>
-    </div>
-  </section>
-
-  <hr class="mkt-edt-rule">
-
-  {# 2.95 EDITORIAL TESTIMONIAL — charcoal-inverted ground for visual variety. #}
-  <section class="mkt-edt-section mkt-edt-testimonial mkt-edt-testimonial--inverted rmc-reveal" aria-labelledby="testimonial-headline" data-mkt-reveal>
-    <div class="mkt-edt-container-narrow mkt-edt-testimonial__inner">
-      <span class="mkt-edt-testimonial__mark" aria-hidden="true">&ldquo;</span>
-      <blockquote class="mkt-edt-testimonial__quote">
-        <p id="testimonial-headline">
-          {% trans "We didn't need more software. We needed the system between the bells to go quiet — so the people running the school could hear each other again." %}
-        </p>
-      </blockquote>
-      <figcaption class="mkt-edt-testimonial__attribution">
-        <span class="mkt-edt-testimonial__name">{% trans "Olu Adebayo" %}</span>
-        <span class="mkt-edt-testimonial__role">{% trans "Head of School, Cedar Ridge Academy" %}</span>
-        <span class="mkt-edt-testimonial__note">{% trans "Illustrative voice. Real voices will go here once schools agree to be named." %}</span>
-      </figcaption>
-    </div>
-  </section>
-
-  <hr class="mkt-edt-rule">
-
-  {# ───────── 2.96  ILLUSTRATIVE VOICES — 3 testimonial cards ───────── #}
-  <section class="mkt-edt-section mkt-edt-voices rmc-reveal" aria-labelledby="voices-headline" data-mkt-reveal>
-    <div class="mkt-edt-container">
-      <header class="mkt-edt-voices__intro">
-        <p class="mkt-edt-eyebrow">
-          {% trans "Voices" %}
-          <span class="mkt-edt-illustrative-pill" aria-label="{% trans 'Illustrative placeholders' %}">{% trans "Illustrative" %}</span>
-        </p>
-        <h2 id="voices-headline" class="mkt-edt-section-headline">
-          {% trans "How heads of school describe a Tuesday." %}
-        </h2>
-        <p class="mkt-edt-voices__intro-note">
-          {% trans "These are example scenarios for the redesign. We'll replace each card with a named head of school once they've agreed to be quoted publicly." %}
-        </p>
-      </header>
-
-      <ul class="mkt-edt-voices__grid" data-mkt-reveal-stagger>
-        <li class="mkt-edt-voices__card">
-          <div class="mkt-edt-voices__avatar" aria-hidden="true">
-            <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
-              <defs><linearGradient id="av-1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FED7AA"/><stop offset="100%" stop-color="#C2410C"/></linearGradient></defs>
-              <circle cx="28" cy="28" r="28" fill="url(#av-1)"/>
-              <text x="28" y="36" font-family="Source Serif 4, Iowan Old Style, serif" font-size="24" font-weight="500" fill="#FAF7F2" text-anchor="middle">OA</text>
-            </svg>
-          </div>
-          <blockquote class="mkt-edt-voices__quote">
-            {% trans "We didn't need more software. We needed the system between the bells to go quiet — so the people running the school could hear each other again." %}
-          </blockquote>
-          <figcaption class="mkt-edt-voices__attr">
-            <span class="mkt-edt-voices__name">{% trans "Olu Adebayo" %}</span>
-            <span class="mkt-edt-voices__role">{% trans "Head of School · Cedar Ridge Academy" %}</span>
-          </figcaption>
-        </li>
-
-        <li class="mkt-edt-voices__card">
-          <div class="mkt-edt-voices__avatar" aria-hidden="true">
-            <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
-              <defs><linearGradient id="av-2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#BBF7D0"/><stop offset="100%" stop-color="#166534"/></linearGradient></defs>
-              <circle cx="28" cy="28" r="28" fill="url(#av-2)"/>
-              <text x="28" y="36" font-family="Source Serif 4, Iowan Old Style, serif" font-size="24" font-weight="500" fill="#FAF7F2" text-anchor="middle">MK</text>
-            </svg>
-          </div>
-          <blockquote class="mkt-edt-voices__quote">
-            {% trans "By week three of Term 2 we'd recovered 94% of fees without our bursar making a single chase call. The work just… happens." %}
-          </blockquote>
-          <figcaption class="mkt-edt-voices__attr">
-            <span class="mkt-edt-voices__name">{% trans "Mei Kwan" %}</span>
-            <span class="mkt-edt-voices__role">{% trans "Director of Finance · Hollow Creek School" %}</span>
-          </figcaption>
-        </li>
-
-        <li class="mkt-edt-voices__card">
-          <div class="mkt-edt-voices__avatar" aria-hidden="true">
-            <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
-              <defs><linearGradient id="av-3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#C7D2FE"/><stop offset="100%" stop-color="#544d44"/></linearGradient></defs>
-              <circle cx="28" cy="28" r="28" fill="url(#av-3)"/>
-              <text x="28" y="36" font-family="Source Serif 4, Iowan Old Style, serif" font-size="24" font-weight="500" fill="#FAF7F2" text-anchor="middle">JR</text>
-            </svg>
-          </div>
-          <blockquote class="mkt-edt-voices__quote">
-            {% trans "Migration took eight weeks. The staffroom honestly didn't notice the day we cut over — that was the goal, and they hit it." %}
-          </blockquote>
-          <figcaption class="mkt-edt-voices__attr">
-            <span class="mkt-edt-voices__name">{% trans "James Reyes" %}</span>
-            <span class="mkt-edt-voices__role">{% trans "Network IT Lead · Riverbend Network" %}</span>
-          </figcaption>
-        </li>
-      </ul>
-
-    </div>
-  </section>
-
-  <hr class="mkt-edt-rule">
-
-  {# ───────── 2.965  AS FEATURED IN — stylized press strip ───────── #}
-  <section class="mkt-edt-section mkt-edt-press rmc-reveal" aria-labelledby="press-headline" data-mkt-reveal>
-    <div class="mkt-edt-container">
-      <p id="press-headline" class="mkt-edt-press__caption">
-        {% trans "Covered in school operations conversations everywhere." %}
-        <span class="mkt-edt-illustrative-pill" aria-label="{% trans 'Illustrative placeholders' %}">{% trans "Illustrative" %}</span>
-        <span>{% trans "These are placeholder marks for the redesign. Real coverage will replace them as it lands." %}</span>
-      </p>
-      <ul class="mkt-edt-press__strip" aria-hidden="true">
-        <li class="mkt-edt-press__mark">
-          <span class="mkt-edt-press__serif">The</span>
-          <span class="mkt-edt-press__big">Schoolwire</span>
-          <span class="mkt-edt-press__caption-small">REVIEW · 2026</span>
-        </li>
-        <li class="mkt-edt-press__mark mkt-edt-press__mark--sans">
-          EDU<strong>weekly</strong>
-        </li>
-        <li class="mkt-edt-press__mark mkt-edt-press__mark--serif">
-          <em>Campus Operator</em>
-        </li>
-        <li class="mkt-edt-press__mark mkt-edt-press__mark--mark">
-          ◆ K12 Magazine
-        </li>
-        <li class="mkt-edt-press__mark mkt-edt-press__mark--alt">
-          <strong>BURSAR</strong><span>quarterly</span>
-        </li>
-        <li class="mkt-edt-press__mark mkt-edt-press__mark--sans">
-          The <strong>Head</strong>·Teacher
-        </li>
-      </ul>
-    </div>
-  </section>
-
-  <hr class="mkt-edt-rule">
+  <div class="mkt-section-divider" role="presentation" aria-hidden="true">
+    <span class="mkt-section-divider__mark">{% include "components/_bell_clock_mark.html" with size=24 filled_segments=3 accessible_label="" %}</span>
+  </div>
 
   {# ───────── 2.97  60-SECOND WALKTHROUGH VIDEO ───────── #}
-  <section class="mkt-edt-section mkt-edt-walkthrough rmc-reveal" aria-labelledby="walkthrough-headline" data-mkt-reveal>
+  <section class="mkt-edt-section mkt-edt-walkthrough mkt-v3-cinematic rmc-reveal" aria-labelledby="walkthrough-headline" data-mkt-reveal data-mkt-section="walkthrough" data-tour="mkt-walkthrough">
     <div class="mkt-edt-container">
       <header class="mkt-edt-walkthrough__intro">
         <p class="mkt-edt-eyebrow">{% trans "Sixty seconds" %}</p>
@@ -722,6 +186,40 @@
 
   <hr class="mkt-edt-rule">
 
+  {# ───────── 2.75  GEOGRAPHIC MOMENT — WORLD MAP (full-bleed) ───────── #}
+  <section class="mkt-edt-section mkt-edt-globe mkt-edt-globe--fullbleed mkt-v3-cinematic rmc-reveal" aria-labelledby="globe-headline" data-mkt-reveal data-mkt-section="global">
+    <div class="mkt-edt-container">
+      <header class="mkt-edt-globe__intro">
+        <p class="mkt-edt-eyebrow">{% trans "Multi-tenant, region-aware" %}</p>
+        <h2 id="globe-headline" class="mkt-edt-section-headline">
+          {% trans "Your school's hour. Your school's currency. Your school's calendar." %}
+        </h2>
+        <p class="mkt-edt-lead">
+          {% trans "Run on local time, in the right language, with the academic structure your country actually uses. No forks. No regional plug-ins. One platform that bends to each campus." %}
+        </p>
+        {# Phase 4 — bell-clock scale signal: live-count signal, not a static stat. #}
+        <p class="mkt-scale-signal" aria-label="{% trans 'Platform scale' %}">
+          <span class="mkt-scale-signal__mark" aria-hidden="true">{% include "components/_bell_clock_mark.html" with size=16 filled_segments=4 accessible_label="" %}</span>
+          <span>{% blocktrans %}Running across <span class="mkt-scale-signal__count">{{ marketing_scale_school_count|default:"40+" }}</span> schools in <span class="mkt-scale-signal__count">{{ marketing_scale_country_count|default:"12" }}</span> countries{% endblocktrans %}</span>
+        </p>
+      </header>
+      <div class="mkt-edt-globe__map" aria-hidden="true">
+        {% include "schools/_v2/_decoration_world_map.svg.html" %}
+      </div>
+      <ul class="mkt-edt-globe__chips" aria-label="{% trans 'Localisation surfaces' %}">
+        <li>{% trans "180 currencies" %}</li>
+        <li>{% trans "29 languages" %}</li>
+        <li>{% trans "All major SIS imports" %}</li>
+        <li>{% trans "FERPA · GDPR · POPIA aligned" %}</li>
+        <li>{% trans "Offline-first where the network drops" %}</li>
+      </ul>
+    </div>
+  </section>
+
+  <hr class="mkt-edt-rule">
+
+
+
   {# ───────── 3. SWITCHING MOMENT ───────── #}
   <section class="mkt-edt-section mkt-edt-switching rmc-reveal" aria-labelledby="switching-headline" data-mkt-reveal>
     <div class="mkt-edt-container-narrow mkt-edt-switching__inner">
@@ -732,9 +230,12 @@
       <p class="mkt-edt-lead mkt-edt-switching__lead">
         {% trans "We map the data, dry-run it, and bring you across in phases — so the staffroom doesn't notice the day it switched." %}
       </p>
-      <a href="{% url 'marketing_platform_migration_cloud' %}" class="mkt-edt-link">
-        {% trans "How a migration actually goes →" %}
-      </a>
+      {% include "marketing/components/_migration_timeline.html" %}
+      <p class="mt-3">
+        <a href="{% url 'marketing_grow_migration' %}" class="mkt-edt-link">
+          {% trans "How a migration actually goes →" %}
+        </a>
+      </p>
     </div>
   </section>
 
@@ -750,37 +251,7 @@
         </h2>
       </header>
 
-      <div class="mkt-edt-compare__split">
-        <article class="mkt-edt-compare__col mkt-edt-compare__col--legacy rmc-reveal">
-          <header>
-            <span class="mkt-edt-compare__tag">{% trans "Legacy stack" %}</span>
-            <h3>{% trans "Tabs. Spreadsheets. Chase calls." %}</h3>
-          </header>
-          <ul>
-            <li><span class="mkt-edt-compare__bad">✕</span> {% trans "Five logins for SIS, attendance, fees, comms, reports." %}</li>
-            <li><span class="mkt-edt-compare__bad">✕</span> {% trans "Bursar reconciles last week's deposits on a Tuesday morning." %}</li>
-            <li><span class="mkt-edt-compare__bad">✕</span> {% trans "Permission slips chased one paper at a time, by phone." %}</li>
-            <li><span class="mkt-edt-compare__bad">✕</span> {% trans "Parents use WhatsApp because the official app keeps crashing." %}</li>
-            <li><span class="mkt-edt-compare__bad">✕</span> {% trans "Mid-term reports leave the building at 11 p.m. on Friday." %}</li>
-            <li><span class="mkt-edt-compare__bad">✕</span> {% trans "IT firefights when SSO drops; nobody knew until staff did." %}</li>
-          </ul>
-        </article>
-
-        <article class="mkt-edt-compare__col mkt-edt-compare__col--us rmc-reveal">
-          <header>
-            <span class="mkt-edt-compare__tag mkt-edt-compare__tag--us">{% trans "On RunMyCampus" %}</span>
-            <h3>{% trans "One thread. Six bells. Quiet." %}</h3>
-          </header>
-          <ul>
-            <li><span class="mkt-edt-compare__good">✓</span> {% trans "One sign-in for the whole school day, across every role." %}</li>
-            <li><span class="mkt-edt-compare__good">✓</span> {% trans "The ledger reconciles itself hourly — finance reviews, doesn't recompute." %}</li>
-            <li><span class="mkt-edt-compare__good">✓</span> {% trans "Permission slips clear in five minutes via the link parents already have." %}</li>
-            <li><span class="mkt-edt-compare__good">✓</span> {% trans "Messages stay on the official channel — auto-translated, audit-logged." %}</li>
-            <li><span class="mkt-edt-compare__good">✓</span> {% trans "Mid-term reports auto-deliver at 3 p.m., footnoted and signed." %}</li>
-            <li><span class="mkt-edt-compare__good">✓</span> {% trans "IT sees an SSO blip before staff feel it — and rolls back without a ticket." %}</li>
-          </ul>
-        </article>
-      </div>
+      {% include "marketing/components/_comparison_matrix.html" %}
 
       <p class="mkt-edt-compare__caption">
         {% trans "Same Tuesday. Same school. Two systems between the bells." %}
@@ -788,10 +259,12 @@
     </div>
   </section>
 
-  <hr class="mkt-edt-rule">
+  <div class="mkt-section-divider" role="presentation" aria-hidden="true">
+    <span class="mkt-section-divider__mark">{% include "components/_bell_clock_mark.html" with size=24 filled_segments=5 accessible_label="" %}</span>
+  </div>
 
   {# ───────── 4. PRICING TEASER ───────── #}
-  <section class="mkt-edt-section rmc-reveal" aria-labelledby="pricing-headline" data-mkt-reveal>
+  <section class="mkt-edt-section rmc-reveal" aria-labelledby="pricing-headline" data-mkt-reveal data-tour="mkt-pricing">
     <div class="mkt-edt-container">
       <header class="mkt-edt-pricing__intro">
         <p class="mkt-edt-eyebrow">{% trans "Pricing" %}</p>
@@ -807,9 +280,8 @@
             <p class="mkt-edt-plan__line">{% trans "One school, the essentials, ready in days." %}</p>
           </header>
           <div class="mkt-edt-plan__price">
-            <span class="mkt-edt-plan__price-prefix">{% trans "From" %}</span>
-            <span class="mkt-edt-plan__price-figure">£3</span>
-            <span class="mkt-edt-plan__price-unit">{% trans "/ student / month" %}</span>
+            <span class="mkt-edt-plan__price-figure">{% trans "Starter" %}</span>
+            <span class="mkt-edt-plan__price-unit">{% trans "· custom on /pricing/" %}</span>
           </div>
           <ul class="mkt-edt-plan__features">
             <li>{% trans "Student records, admissions, attendance" %}</li>
@@ -828,9 +300,8 @@
             <p class="mkt-edt-plan__line">{% trans "Admissions, fees, comms, workflows — the working school." %}</p>
           </header>
           <div class="mkt-edt-plan__price">
-            <span class="mkt-edt-plan__price-prefix">{% trans "From" %}</span>
-            <span class="mkt-edt-plan__price-figure">£6</span>
-            <span class="mkt-edt-plan__price-unit">{% trans "/ student / month" %}</span>
+            <span class="mkt-edt-plan__price-figure">{% trans "Growth" %}</span>
+            <span class="mkt-edt-plan__price-unit">{% trans "· custom on /pricing/" %}</span>
           </div>
           <ul class="mkt-edt-plan__features">
             <li>{% trans "Everything in Starter, plus:" %}</li>
@@ -872,21 +343,55 @@
     </div>
   </section>
 
+  <div class="mkt-section-divider" role="presentation" aria-hidden="true">
+    <span class="mkt-section-divider__mark">{% include "components/_bell_clock_mark.html" with size=24 filled_segments=6 accessible_label="" %}</span>
+  </div>
+
+  <section class="mkt-edt-section mkt-edt-voices mkt-edt-voices--compact mkt-v3-cinematic rmc-reveal" aria-labelledby="voices-headline" data-mkt-reveal>
+    <div class="mkt-edt-container-narrow">
+      <header class="mkt-edt-voices__intro">
+        <p class="mkt-edt-eyebrow">
+          {% trans "Voices" %}
+          <span class="mkt-edt-illustrative-pill" aria-label="{% trans 'Illustrative placeholders' %}">{% trans "Illustrative" %}</span>
+        </p>
+        <h2 id="voices-headline" class="mkt-edt-section-headline">
+          {% trans "How heads of school describe a Tuesday." %}
+        </h2>
+      </header>
+      <ul class="mkt-edt-voices__grid">
+        <li class="mkt-edt-voices__card">
+          <blockquote class="mkt-edt-voices__quote">
+            {% trans "We didn't need more software. We needed the system between the bells to go quiet." %}
+          </blockquote>
+          <figcaption class="mkt-edt-voices__attr">
+            <span class="mkt-edt-voices__name">{% trans "Olu Adebayo" %}</span>
+            <span class="mkt-edt-voices__role">{% trans "Head of School · Cedar Ridge Academy" %}</span>
+          </figcaption>
+        </li>
+      </ul>
+    </div>
+  </section>
+
   <hr class="mkt-edt-rule">
 
   {# ───────── 5. CLOSE CTA ───────── #}
   <section class="mkt-edt-section mkt-edt-close rmc-reveal" aria-labelledby="close-headline">
-    <div class="mkt-edt-container-narrow mkt-edt-close__inner">
-      <h2 id="close-headline" class="mkt-edt-section-headline mkt-edt-close__headline">
-        {% trans "Less software. More school." %}
-      </h2>
-      <div class="mkt-edt-close__ctas">
-        <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo" data-page="home-v2-close">
-          {% trans "Book a demo" %}
-        </a>
-        <a href="{% url 'marketing_contact' %}" class="mkt-edt-link">
-          {% trans "Talk to a human →" %}
-        </a>
+    <div class="mkt-edt-container-narrow mkt-edt-close__inner mkt-edt-close__inner--with-advisor">
+      <div class="mkt-edt-close__figure mkt-advisor-figure mkt-advisor-figure--muted" aria-hidden="true">
+        {% include "marketing/components/_advisor_character.html" with pose="intro" size=200 accessible_label="" %}
+      </div>
+      <div class="mkt-edt-close__copy">
+        <h2 id="close-headline" class="mkt-edt-section-headline mkt-edt-close__headline">
+          {% trans "Less software. More school." %}
+        </h2>
+        <div class="mkt-edt-close__ctas">
+          <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo" data-page="home-v2-close">
+            {% trans "Book a demo" %}
+          </a>
+          <a href="{% url 'marketing_contact' %}" class="mkt-edt-link">
+            {% trans "Talk to a human →" %}
+          </a>
+        </div>
       </div>
     </div>
   </section>

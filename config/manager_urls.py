@@ -526,6 +526,24 @@ urlpatterns = [
         __import__("config.manager_lane2_readiness", fromlist=["manager_lane2_readiness"]).manager_lane2_readiness,
         name="manager_lane2_readiness",
     ),
+    # v2.94 — cross-school integrations rollup for the operations team.
+    path(
+        "integrations-rollup/",
+        __import__(
+            "apps.integrations_marketplace.manager_views",
+            fromlist=["manager_integrations_rollup"],
+        ).manager_integrations_rollup,
+        name="manager_integrations_rollup",
+    ),
+    # v3.4 — district-level bulk pre-stage of OAuth integrations.
+    path(
+        "integrations-bulk-prestage/",
+        __import__(
+            "apps.integrations_marketplace.manager_views",
+            fromlist=["manager_bulk_prestage"],
+        ).manager_bulk_prestage,
+        name="manager_integrations_bulk_prestage",
+    ),
     path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
     path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
     path("admin/", platform_admin_site.urls),

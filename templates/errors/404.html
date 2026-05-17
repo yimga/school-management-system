@@ -4,8 +4,11 @@
 {% block title %}{% trans "Page not found" %}{% endblock %}
 
 {% block content %}
-<section class="error-page" aria-labelledby="error-title">
+<section class="error-page error-page--with-advisor" aria-labelledby="error-title">
   <div>
+    <div class="error-page__figure mkt-advisor-figure mkt-advisor-figure--muted" aria-hidden="true">
+      {% include "marketing/components/_advisor_character.html" with pose="listening" size=160 accessible_label="" %}
+    </div>
     <div class="error-code-display" aria-hidden="true">404</div>
     <h1 id="error-title" class="error-title">{% trans "That page isn't here." %}</h1>
     <p class="error-message">{% trans "The link may be old, scoped to a different host, or missing required context. Try one of the stable entry points below." %}</p>

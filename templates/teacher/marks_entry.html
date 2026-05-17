@@ -3,8 +3,8 @@
 {% block title %}Enter Marks{% endblock %}
 
 {% block content %}
-<div class="rmc-task-scope" data-task="teacher_marks_entry" data-task-step="marks:page">
-<div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+<div class="rmc-task-scope" data-task="teacher_marks_entry" data-task-step="marks:page" data-rmc-page="teacher-gradebook">
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3" data-tour="gradebook-header">
   <div>
     {# Aesthetic-v2 page-header grammar. Styled by patterns.css. #}
     <div class="eyebrow">{% if year and term %}{{ year.name }} · {{ term.get_name_display }}{% else %}{% trans "Mark entry" %}{% endif %}</div>
@@ -245,7 +245,7 @@
         {% csrf_token %}
         <input type="hidden" name="subject_assignment_id" value="{{ sa.id }}">
 
-        <table class="gradebook-table table-family" aria-label="Marks entry by student">
+        <table class="gradebook-table table-family" aria-label="Marks entry by student" data-tour="gradebook-grid">
           <thead>
             <tr>
               <th scope="col">Student</th>

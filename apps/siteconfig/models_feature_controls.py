@@ -95,7 +95,7 @@ class FeatureToggleState(models.Model):
 
 
 class TourStep(models.Model):
-    """In-app onboarding tour step; track which users have seen which step."""
+    """In-app onboarding tour step for a tenant and surface context."""
 
     school = models.ForeignKey(
         "schools.School",
@@ -104,20 +104,47 @@ class TourStep(models.Model):
         null=True,
         blank=True,
     )
+    context = models.CharField(
+        max_length=80,
+        default="backend_dashboard",
+        db_index=True,
+        help_text="Tour context key, e.g. backend_dashboard, studio_os.",
+    )
     code = models.CharField(
         max_length=80,
         db_index=True,
-        help_text="e.g. dashboard_welcome, grades_first_time",
+        help_text="Step id; should match a data-tour attribute when selector is blank.",
     )
     title = models.CharField(max_length=255, blank=True)
+    body = models.TextField(
+        blank=True,
+        help_text="Optional longer copy shown in the tour tooltip.",
+    )
+    selector = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="CSS selector for spotlight; defaults to [data-tour='<code>'] when blank.",
+    )
+    sort_order = models.PositiveIntegerField(default=0)
+    roles = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Optional comma-separated roles (ADMIN, TEACHER, …). Empty = all roles.",
+    )
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["code"]
-        unique_together = [("school", "code")]
+        ordering = ["context", "sort_order", "code"]
+        unique_together = [("school", "context", "code")]
 
     def __str__(self):
-        return f"{self.code}: {self.title or self.code}"
+        return f"{self.context}/{self.code}: {self.title or self.code}"
+
+    def resolved_selector(self) -> str:
+        if self.selector:
+            return self.selector
+        return f"[data-tour='{self.code}']"
 
 
 class FeatureUsageEvent(models.Model):

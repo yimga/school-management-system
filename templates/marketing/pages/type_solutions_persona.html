@@ -1,0 +1,32 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-solutions-persona mkt-persona--{{ persona.slug }}{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-v3-page mkt-v3-page--persona">
+  <header class="mkt-v3-page__hero mkt-edt-container rmc-reveal">
+    <p class="mkt-v3-eyebrow">{% trans "Solutions" %}</p>
+    <h1 class="mkt-v3-section-headline">{{ persona.name }}</h1>
+    <p class="mkt-v3-lead">{{ persona.lead }}</p>
+    <div class="mkt-v3-archetype__ctas">
+      <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
+      <a href="{% url 'marketing_solutions' %}" class="mkt-edt-link">{% trans "All solutions →" %}</a>
+    </div>
+  </header>
+  {% if persona.dashboard_partial %}
+  {% include "marketing/components/_dashboard_frame.html" with frame_title=persona.name dashboard_partial=persona.dashboard_partial %}
+  {% endif %}
+  {% if persona.bullets %}
+  <section class="mkt-edt-container mkt-v3-archetype__wins rmc-reveal mkt-v3-archetype__wins--with-advisor">
+    <div class="mkt-v3-archetype__wins-figure mkt-advisor-figure mkt-advisor-figure--muted" aria-hidden="true">
+      {% include "marketing/components/_advisor_character.html" with pose="listening" size=180 accessible_label="" %}
+    </div>
+    <ul>
+      {% for item in persona.bullets %}
+      <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</article>
+{% endblock %}

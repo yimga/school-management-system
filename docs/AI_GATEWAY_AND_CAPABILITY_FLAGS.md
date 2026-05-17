@@ -28,11 +28,18 @@
 
 ---
 
-## 4. Completion gate (§2.3)
+## 4. Guided assistant degraded mode (batch 1247)
+
+- Rules-tier and final fallback paths use `_rules_invoke_result()` so `guided_assistant` never returns a bare string to views.
+- Operator surfaces: `/siteconfig/ai-center/`, `/super/ai-gateway-console/`, and embedded `ai_guided_assistant_card` CTAs.
+- Setup: see [OLLAMA_OPERATIONS_AND_UPDATES.md](OLLAMA_OPERATIONS_AND_UPDATES.md).
+
+## 5. Completion gate (§2.3)
 
 - [x] No provider secret reaches the browser (lint + tests).
 - [x] All AI calls flow through backend gateway (services.ai_gateway / portal.ai_provider → gateway).
 - [x] Capability flags exposed to UI; secrets never in template/JS.
+- [x] Guided assistants return non-empty structured answers in rules-only mode (batch 1247).
 
 ---
 

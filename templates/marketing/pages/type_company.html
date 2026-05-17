@@ -1,5 +1,57 @@
 {% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-company{% endblock %}
 {% block marketing_page_inner %}
-{% include "marketing/partials/marketing_inner_default.html" %}
+<article class="mkt-v3-page mkt-v3-page--company">
+  <header class="mkt-v3-page__hero mkt-edt-container rmc-reveal">
+    <p class="mkt-v3-eyebrow">{% trans "Company" %}</p>
+    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
+    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
+    {% if page_extras.trust_strip %}
+    <ul class="mkt-v3-trust-strip">
+      {% for item in page_extras.trust_strip %}
+      <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </header>
+  {% if page_extras.trust_strip %}
+  <section class="mkt-edt-container rmc-reveal">
+    {% include "marketing/components/_logo_carousel.html" with carousel_items=page_extras.trust_strip %}
+  </section>
+  {% endif %}
+  {% if page_extras.company_pillars %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal">
+    <div class="mkt-v3-segment-grid">
+      {% for pillar in page_extras.company_pillars %}
+      <article class="mkt-v3-segment-card">
+        <h2 class="h5">{{ pillar.title }}</h2>
+        <p>{{ pillar.body }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% elif page.segments %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal">
+    <div class="mkt-v3-segment-grid">
+      {% for seg in page.segments %}
+      <article class="mkt-v3-segment-card">
+        <h2 class="h5">{{ seg.title }}</h2>
+        <p>{{ seg.body }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+  <section class="mkt-edt-container mkt-v3-page__close rmc-reveal mkt-v3-page__close--with-advisor">
+    <div class="mkt-v3-page__close-figure mkt-advisor-figure mkt-advisor-figure--muted" aria-hidden="true">
+      {% include "marketing/components/_advisor_character.html" with pose="intro" size=200 accessible_label="" %}
+    </div>
+    <div class="mkt-v3-page__close-copy">
+      <a href="{% url 'marketing_contact' %}" class="mkt-edt-cta">{% trans "Talk to us" %}</a>
+      <a href="{% url 'marketing_demo' %}" class="mkt-edt-link ms-3">{% trans "Book a demo →" %}</a>
+    </div>
+  </section>
+</article>
 {% endblock %}

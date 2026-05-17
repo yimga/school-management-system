@@ -17,6 +17,10 @@ from apps.schools.super_admin_bridge_registry import (
     PLATFORM_ADMIN_BRIDGE_ORDER,
     PLATFORM_ADMIN_BRIDGES,
 )
+from apps.schools.super_admin_paired_surfaces import (
+    SUPER_FIRST_PAIRED_SPECS,
+    build_surface_parity_matrix,
+)
 
 
 class _ControlPlaneOperatorMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -59,12 +63,40 @@ class ControlPlaneBridgeManifestAPIView(_ControlPlaneOperatorMixin, View):
             }
             bridges.append(entry)
 
+        paired_super = []
+        for spec in SUPER_FIRST_PAIRED_SPECS:
+            super_url_name = (spec.get("super_url_name") or "").strip()
+            bridge_key = (spec.get("bridge_key") or "").strip()
+            entry = {
+                "slug": spec["slug"],
+                "label": str(spec["label"]),
+                "super_url_name": super_url_name or None,
+                "super_url": reverse(super_url_name) if super_url_name else None,
+                "bridge_key": bridge_key or None,
+            }
+            if bridge_key:
+                try:
+                    entry["admin_bridge_path"] = reverse(
+                        "super:admin_bridge", kwargs={"bridge_key": bridge_key}
+                    )
+                except NoReverseMatch:
+                    entry["admin_bridge_path"] = ""
+            paired_super.append(entry)
+
+        parity = build_surface_parity_matrix()
         payload = {
-            "version": "2026.03.17",
+            "version": "2026.05.16",
             "document": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md §2.1.1",
             "bridge_count": len(bridges),
             "bridges": bridges,
+            "paired_super_first": paired_super,
+            "surface_spine": parity.get("spine", []),
+            "surface_parity_ok": bool(parity.get("spine_ok"))
+            and bool(parity.get("pairs_ok")),
             "operator_policy": reverse("super:operator_policy"),
+            "platform_operator_hub": reverse("super:platform_operator_hub"),
+            "configuration_center": reverse("configuration:center"),
+            "platform_admin_index": reverse("admin:index"),
             "slo_targets_api": reverse("api:api-br-slo-targets"),
         }
         return JsonResponse(payload)

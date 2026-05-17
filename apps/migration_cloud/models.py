@@ -164,6 +164,60 @@ class MigrationBundle(models.Model):
         blank=True,
         help_text="Phase U8 output: per-domain parity counts, sampling, scorecards.",
     )
+    expected_totals = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Operator-supplied financial control totals enforced before APPLIED. "
+            "Shape: {'finance.invoice_total_amount': '125000.00', 'students.count': 1240}. "
+            "Mismatch aborts the apply with a FinancialMismatchError."
+        ),
+    )
+    progress_snapshot = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Live per-stage progress for the DAG view: "
+            "{'stages': [{'name': 'INGESTING', 'pct': 100, 'rows': 1240, 'started': ..., "
+            "'finished': ...}, ...], 'updated_at': iso}."
+        ),
+    )
+    diff_mode = models.CharField(
+        max_length=16,
+        choices=[
+            ("full", "Full re-ingest (default)"),
+            ("since", "Diff mode: only rows changed since last successful bundle"),
+        ],
+        default="full",
+        help_text="Diff-mode re-ingest: 'since' uses last_successful_apply_at to skip unchanged rows.",
+    )
+    diff_since = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When diff_mode='since', source rows older than this timestamp are skipped.",
+    )
+    apply_atomic = models.BooleanField(
+        default=False,
+        help_text=(
+            "All-or-nothing apply opt-in. When True, the orchestrator wraps the whole apply "
+            "in a single transaction so any quarantine-bearing artifact rolls back the bundle."
+        ),
+    )
+    parity_drift_rollback_pct = models.FloatField(
+        default=0.0,
+        help_text=(
+            "Auto-rollback threshold. When > 0, reconciliation that yields overall parity below "
+            "this percentage triggers an automatic rollback of the apply's MigrationRun rows."
+        ),
+    )
+    sandbox_of = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sandbox_clones",
+        help_text="When set, this bundle is a sandbox copy of another bundle, isolated under a throwaway schema.",
+    )
     triggered_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -302,3 +356,247 @@ class MigrationArtifact(models.Model):
 
     def __str__(self) -> str:
         return f"{self.path_within_bundle} ({self.detected_format})"
+
+
+class MigrationIdMapping(models.Model):
+    """Audit table mapping legacy source IDs to canonical tenant rows.
+
+    Recorded by every lander upsert so months later an operator can answer
+    "what's the new ID for old ID X?" without grepping landers or replaying
+    the bundle. Tenant-scoped by ``school_id`` so the cross-tenant query
+    is impossible.
+    """
+
+    bundle = models.ForeignKey(
+        MigrationBundle,
+        on_delete=models.CASCADE,
+        related_name="id_mappings",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="migration_id_mappings",
+    )
+    legacy_namespace = models.CharField(
+        max_length=64,
+        db_index=True,
+        help_text="Source-system namespace (e.g. 'powerschool', 'blackbaud', 'unknown_custom').",
+    )
+    legacy_id = models.CharField(
+        max_length=128,
+        db_index=True,
+        help_text="The original external_id / source-system row identifier.",
+    )
+    canonical_model = models.CharField(
+        max_length=128,
+        db_index=True,
+        help_text="Dotted path of the canonical model the row landed in (e.g. 'apps.people.StudentProfile').",
+    )
+    canonical_pk = models.CharField(
+        max_length=64,
+        db_index=True,
+        help_text="Primary key of the canonical row (stringified for cross-type tolerance).",
+    )
+    domain = models.CharField(max_length=32, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["legacy_namespace", "legacy_id"]),
+            models.Index(fields=["canonical_model", "canonical_pk"]),
+            models.Index(fields=["bundle", "domain"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["legacy_namespace", "legacy_id", "canonical_model", "school"],
+                name="uniq_id_mapping_per_school_namespace",
+            ),
+        ]
+        verbose_name = "Migration ID mapping"
+        verbose_name_plural = "Migration ID mappings"
+
+    def __str__(self) -> str:
+        return f"{self.legacy_namespace}:{self.legacy_id} → {self.canonical_model}#{self.canonical_pk}"
+
+
+class AssetStatus(models.TextChoices):
+    PENDING = "PENDING", "Pending"
+    FETCHING = "FETCHING", "Fetching from source"
+    STORED = "STORED", "Stored"
+    FAILED = "FAILED", "Failed"
+
+
+class MigrationAsset(models.Model):
+    """One binary asset (student photo, immunization scan, report-card PDF, …).
+
+    Created by the asset pipeline worker when an artifact row references an
+    external file URL. Files land under
+    ``MEDIA_ROOT/migration_cloud/assets/<tenant>/<entity>/<external_id>.<ext>``
+    keyed by the canonical entity the asset belongs to.
+    """
+
+    bundle = models.ForeignKey(
+        MigrationBundle,
+        on_delete=models.CASCADE,
+        related_name="assets",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="migration_assets",
+    )
+    entity_kind = models.CharField(
+        max_length=64,
+        db_index=True,
+        help_text="Canonical entity the asset belongs to (e.g. 'student', 'guardian', 'invoice').",
+    )
+    legacy_id = models.CharField(
+        max_length=128,
+        db_index=True,
+        help_text="external_id of the row this asset belongs to.",
+    )
+    asset_kind = models.CharField(
+        max_length=32,
+        db_index=True,
+        help_text="Discriminator (e.g. 'photo', 'immunization', 'report_card', 'transcript').",
+    )
+    source_uri = models.TextField(
+        blank=True,
+        help_text="Where the asset was fetched from (http(s):// / s3:// / file:// / data:base64).",
+    )
+    stored_path = models.TextField(
+        blank=True,
+        help_text="MEDIA_ROOT-relative path of the stored asset.",
+    )
+    sha256 = models.CharField(max_length=64, blank=True, db_index=True)
+    byte_size = models.BigIntegerField(default=0)
+    mime_type = models.CharField(max_length=128, blank=True)
+    status = models.CharField(
+        max_length=16,
+        choices=AssetStatus.choices,
+        default=AssetStatus.PENDING,
+        db_index=True,
+    )
+    error = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["bundle", "status"]),
+            models.Index(fields=["entity_kind", "legacy_id"]),
+            models.Index(fields=["sha256"]),
+        ]
+        verbose_name = "Migration asset"
+        verbose_name_plural = "Migration assets"
+
+    def __str__(self) -> str:
+        return f"{self.entity_kind}/{self.legacy_id}.{self.asset_kind} [{self.status}]"
+
+
+class MigrationProgressEvent(models.Model):
+    """Append-only timeline of progress events for the DAG view and SSE stream.
+
+    The orchestrator + pipeline emit one row per stage transition (and one
+    per N rows for big artifacts) so the UI can stream live progress.
+    Bounded retention: the cleanup management command prunes events older
+    than 30 days.
+    """
+
+    KIND_CHOICES = [
+        ("stage_started", "Stage started"),
+        ("stage_finished", "Stage finished"),
+        ("artifact_progress", "Artifact progress"),
+        ("rollback", "Rollback"),
+        ("warning", "Warning"),
+        ("info", "Info"),
+    ]
+
+    bundle = models.ForeignKey(
+        MigrationBundle,
+        on_delete=models.CASCADE,
+        related_name="progress_events",
+    )
+    kind = models.CharField(max_length=32, choices=KIND_CHOICES, db_index=True)
+    stage = models.CharField(max_length=32, blank=True, db_index=True)
+    message = models.TextField(blank=True)
+    detail = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["bundle", "created_at"]),
+            models.Index(fields=["bundle", "stage"]),
+        ]
+        verbose_name = "Migration progress event"
+        verbose_name_plural = "Migration progress events"
+
+    def __str__(self) -> str:
+        return f"[{self.kind}] {self.stage or '-'}: {self.message[:60]}"
+
+
+class ConflictResolution(models.TextChoices):
+    PENDING = "PENDING", "Pending operator review"
+    OVERWRITE = "OVERWRITE", "Overwrite existing"
+    PRESERVE = "PRESERVE", "Preserve existing (skip)"
+    MERGE = "MERGE", "Merge fields"
+
+
+class MigrationConflict(models.Model):
+    """Upsert conflict that surfaced during apply — operator review surface.
+
+    Created when a lander would `update_or_create` an existing row whose
+    canonical-field values disagree with the inbound row. Replaces silent
+    overwrite — the operator sees the diff and chooses overwrite / preserve /
+    merge before the lander commits.
+    """
+
+    bundle = models.ForeignKey(
+        MigrationBundle,
+        on_delete=models.CASCADE,
+        related_name="conflicts",
+    )
+    domain = models.CharField(max_length=32, db_index=True)
+    canonical_model = models.CharField(max_length=128, db_index=True)
+    canonical_pk = models.CharField(max_length=64, db_index=True)
+    legacy_id = models.CharField(max_length=128, db_index=True, blank=True)
+    existing_values = models.JSONField(default=dict, blank=True)
+    incoming_values = models.JSONField(default=dict, blank=True)
+    changed_fields = models.JSONField(default=list, blank=True)
+    resolution = models.CharField(
+        max_length=16,
+        choices=ConflictResolution.choices,
+        default=ConflictResolution.PENDING,
+        db_index=True,
+    )
+    resolved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="resolved_migration_conflicts",
+    )
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["bundle", "resolution"]),
+            models.Index(fields=["canonical_model", "canonical_pk"]),
+        ]
+        verbose_name = "Migration conflict"
+        verbose_name_plural = "Migration conflicts"
+
+    def __str__(self) -> str:
+        return f"{self.canonical_model}#{self.canonical_pk} [{self.resolution}]"
+
+
+class FinancialMismatchError(Exception):
+    """Raised by the financial guardrail when expected totals diverge from observed."""

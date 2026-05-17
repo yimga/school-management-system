@@ -494,15 +494,20 @@ body.portal-backend-dark .card,
               box-shadow var(--luxury-motion-duration) var(--luxury-motion-ease);
 }
 
-/* Remove cheap defaults: no bright blue links where we use luxury palette */
-a:not(.btn):not(.nav-link):not(.dropdown-item) {
+/* Remove cheap defaults: no bright blue links where we use luxury palette.
+   Exclude marketing CTAs (.mkt-edt-cta / .mkt-edt-plan__cta) — those carry
+   their own dark-on-cream / cream-on-dark contrast pair scoped to the
+   editorial palette and the :not chain above was outranking them by
+   specificity (3 :not's vs 1 attr+class), producing dark-on-dark on the
+   Book-a-demo button. The exclusion preserves luxury-text on body copy. */
+a:not(.btn):not(.nav-link):not(.dropdown-item):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-mega-link) {
   color: var(--luxury-text, #1A1A1A);
 }
-html[data-theme="dark"] a:not(.btn):not(.nav-link):not(.dropdown-item),
-body.portal-backend-dark a:not(.btn):not(.nav-link):not(.dropdown-item) {
+html[data-theme="dark"] a:not(.btn):not(.nav-link):not(.dropdown-item):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-mega-link),
+body.portal-backend-dark a:not(.btn):not(.nav-link):not(.dropdown-item):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-mega-link) {
   color: var(--luxury-text, #F5F5F5);
 }
-a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
+a:not(.btn):not(.nav-link):not(.dropdown-item):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-mega-link):hover {
   color: var(--luxury-primary, #0A0A0A);
   transition: color var(--luxury-motion-duration) var(--luxury-motion-ease);
 }

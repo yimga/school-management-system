@@ -1,0 +1,407 @@
+{
+  "version": "2026.05.16.1",
+  "spine": [
+    {
+      "surface": "super",
+      "url_name": "super:dashboard",
+      "label": "Control plane",
+      "url": "/super/",
+      "ok": true
+    },
+    {
+      "surface": "super",
+      "url_name": "super:platform_operator_hub",
+      "label": "Operator hub",
+      "url": "/super/platform-operator-hub/",
+      "ok": true
+    },
+    {
+      "surface": "configuration",
+      "url_name": "configuration:center",
+      "label": "Config center",
+      "url": "/configuration/",
+      "ok": true
+    },
+    {
+      "surface": "admin",
+      "url_name": "admin:index",
+      "label": "Platform admin",
+      "url": "/admin/",
+      "ok": true
+    },
+    {
+      "surface": "super",
+      "url_name": "super:operator_policy",
+      "label": "Surface policy",
+      "url": "/super/operator-policy/",
+      "ok": true
+    }
+  ],
+  "super_first_pairs": [
+    {
+      "slug": "schools",
+      "label": "Schools",
+      "super_url_name": "super:schools_list",
+      "super_url": "/super/schools/",
+      "bridge_key": "schools_school",
+      "admin_bridge_url": "/super/admin-bridge/schools_school/",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "slug": "site_settings",
+      "label": "Site settings",
+      "super_url_name": "super:site_settings_list",
+      "super_url": "/super/config/site-settings/",
+      "bridge_key": null,
+      "admin_bridge_url": null,
+      "bridge_registered": false,
+      "ok": true
+    },
+    {
+      "slug": "regions",
+      "label": "Regions",
+      "super_url_name": "super:regions_list",
+      "super_url": "/super/config/regions/",
+      "bridge_key": null,
+      "admin_bridge_url": null,
+      "bridge_registered": false,
+      "ok": true
+    },
+    {
+      "slug": "grading",
+      "label": "Grading scales",
+      "super_url_name": "super:grading_list",
+      "super_url": "/super/config/grading/",
+      "bridge_key": null,
+      "admin_bridge_url": null,
+      "bridge_registered": false,
+      "ok": true
+    },
+    {
+      "slug": "plans",
+      "label": "Plans & add-ons",
+      "super_url_name": "super:plans_list",
+      "super_url": "/super/config/plans/",
+      "bridge_key": null,
+      "admin_bridge_url": null,
+      "bridge_registered": false,
+      "ok": true
+    },
+    {
+      "slug": "feature_toggles",
+      "label": "Feature toggles",
+      "super_url_name": "super:feature_toggles_list",
+      "super_url": "/super/config/feature-toggles/",
+      "bridge_key": "feature_toggle_states",
+      "admin_bridge_url": "/super/admin-bridge/feature_toggle_states/",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "slug": "incidents",
+      "label": "Incidents",
+      "super_url_name": "super:incidents_list",
+      "super_url": "/super/incidents/",
+      "bridge_key": "platform_incidents_admin",
+      "admin_bridge_url": "/super/admin-bridge/platform_incidents_admin/",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "slug": "billing_accounts",
+      "label": "Billing accounts",
+      "super_url_name": "super:billing_accounts_list",
+      "super_url": "/super/billing-accounts/",
+      "bridge_key": "billing_billingaccount",
+      "admin_bridge_url": "/super/admin-bridge/billing_billingaccount/",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "slug": "migration_runs",
+      "label": "Migration runs",
+      "super_url_name": "super:migration_runs_list",
+      "super_url": "/super/migration-runs/",
+      "bridge_key": "migration_runs_admin",
+      "admin_bridge_url": "/super/admin-bridge/migration_runs_admin/",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "slug": "integrations",
+      "label": "Integrations",
+      "super_url_name": null,
+      "super_url": null,
+      "bridge_key": "integrations",
+      "admin_bridge_url": "/super/admin-bridge/integrations/",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "slug": "marketplace_governance",
+      "label": "Marketplace governance",
+      "super_url_name": "super:marketplace_governance",
+      "super_url": "/super/marketplace/",
+      "bridge_key": "marketplace_apps",
+      "admin_bridge_url": "/super/admin-bridge/marketplace_apps/",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "slug": "security_hub",
+      "label": "Security hub",
+      "super_url_name": "super:security_hub",
+      "super_url": "/super/security/",
+      "bridge_key": "compliance_audit_log",
+      "admin_bridge_url": "/super/admin-bridge/compliance_audit_log/",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "slug": "trust_center",
+      "label": "Trust center",
+      "super_url_name": "super:trust_center",
+      "super_url": "/super/trust/",
+      "bridge_key": "platform_event_logs",
+      "admin_bridge_url": "/super/admin-bridge/platform_event_logs/",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "slug": "runtime_defaults",
+      "label": "Runtime defaults",
+      "super_url_name": null,
+      "super_url": null,
+      "bridge_key": "runtime_defaults",
+      "admin_bridge_url": "/super/admin-bridge/runtime_defaults/",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "slug": "fleet_governed_changes",
+      "label": "Fleet governed changes",
+      "super_url_name": "super:fleet_governed_changes",
+      "super_url": "/super/fleet-governed-changes/",
+      "bridge_key": "fleet_governed_changes",
+      "admin_bridge_url": "/super/admin-bridge/fleet_governed_changes/",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "slug": "ai_model_hub",
+      "label": "AI model hub",
+      "super_url_name": "super:ai_model_hub",
+      "super_url": "/super/ai-model-hub/",
+      "bridge_key": "ai_model_registry",
+      "admin_bridge_url": "/super/admin-bridge/ai_model_registry/",
+      "bridge_registered": true,
+      "ok": true
+    }
+  ],
+  "super_view_bindings": [
+    {
+      "super_url_name": "super:app_catalog",
+      "super_url": "/super/marketplace/apps/",
+      "bridge_key": "marketplace_apps",
+      "bridge_registered": true,
+      "admin_bridge_url": "/super/admin-bridge/marketplace_apps/",
+      "ok": true
+    },
+    {
+      "super_url_name": "super:blueprint_marketplace",
+      "super_url": "/super/marketplace/blueprints/",
+      "bridge_key": "marketplace_listings",
+      "bridge_registered": true,
+      "admin_bridge_url": "/super/admin-bridge/marketplace_listings/",
+      "ok": true
+    },
+    {
+      "super_url_name": "super:enterprise_security_command_center",
+      "super_url": "/super/enterprise-security-command-center/",
+      "bridge_key": "compliance_audit_log",
+      "bridge_registered": true,
+      "admin_bridge_url": "/super/admin-bridge/compliance_audit_log/",
+      "ok": true
+    },
+    {
+      "super_url_name": "super:marketplace_compatibility",
+      "super_url": "/super/marketplace/compatibility/",
+      "bridge_key": "marketplace_apps",
+      "bridge_registered": true,
+      "admin_bridge_url": "/super/admin-bridge/marketplace_apps/",
+      "ok": true
+    },
+    {
+      "super_url_name": "super:marketplace_governance",
+      "super_url": "/super/marketplace/",
+      "bridge_key": "marketplace_apps",
+      "bridge_registered": true,
+      "admin_bridge_url": "/super/admin-bridge/marketplace_apps/",
+      "ok": true
+    },
+    {
+      "super_url_name": "super:marketplace_incident_dashboard",
+      "super_url": "/super/marketplace/incidents/",
+      "bridge_key": "platform_incidents_admin",
+      "bridge_registered": true,
+      "admin_bridge_url": "/super/admin-bridge/platform_incidents_admin/",
+      "ok": true
+    },
+    {
+      "super_url_name": "super:marketplace_installation_health",
+      "super_url": "/super/marketplace/health/",
+      "bridge_key": "marketplace_apps",
+      "bridge_registered": true,
+      "admin_bridge_url": "/super/admin-bridge/marketplace_apps/",
+      "ok": true
+    },
+    {
+      "super_url_name": "super:marketplace_sandbox_inspector",
+      "super_url": "/super/marketplace/sandbox/",
+      "bridge_key": "marketplace_apps",
+      "bridge_registered": true,
+      "admin_bridge_url": "/super/admin-bridge/marketplace_apps/",
+      "ok": true
+    },
+    {
+      "super_url_name": "super:security_command_center",
+      "super_url": "/super/security/command-center/",
+      "bridge_key": "compliance_audit_log",
+      "bridge_registered": true,
+      "admin_bridge_url": "/super/admin-bridge/compliance_audit_log/",
+      "ok": true
+    },
+    {
+      "super_url_name": "super:security_hub",
+      "super_url": "/super/security/",
+      "bridge_key": "compliance_audit_log",
+      "bridge_registered": true,
+      "admin_bridge_url": "/super/admin-bridge/compliance_audit_log/",
+      "ok": true
+    },
+    {
+      "super_url_name": "super:security_surface_dashboard",
+      "super_url": "/super/security/surface/",
+      "bridge_key": "compliance_audit_log",
+      "bridge_registered": true,
+      "admin_bridge_url": "/super/admin-bridge/compliance_audit_log/",
+      "ok": true
+    },
+    {
+      "super_url_name": "super:trust_center",
+      "super_url": "/super/trust/",
+      "bridge_key": "platform_event_logs",
+      "bridge_registered": true,
+      "admin_bridge_url": "/super/admin-bridge/platform_event_logs/",
+      "ok": true
+    }
+  ],
+  "super_path_prefix_bindings": [
+    {
+      "path_prefix": "/super/marketplace/",
+      "bridge_key": "marketplace_apps",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "path_prefix": "/super/security/",
+      "bridge_key": "compliance_audit_log",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "path_prefix": "/super/trust/",
+      "bridge_key": "platform_event_logs",
+      "bridge_registered": true,
+      "ok": true
+    }
+  ],
+  "browser_probes": [
+    {
+      "slug": "super_dashboard",
+      "path_name": "super:dashboard",
+      "path": "/super/",
+      "expect_strip": true,
+      "expect_paired": false,
+      "paired_operator": false,
+      "ok": true
+    },
+    {
+      "slug": "super_schools",
+      "path_name": "super:schools_list",
+      "path": "/super/schools/",
+      "expect_strip": true,
+      "expect_paired": true,
+      "paired_operator": false,
+      "ok": true
+    },
+    {
+      "slug": "super_marketplace",
+      "path_name": "super:marketplace_governance",
+      "path": "/super/marketplace/",
+      "expect_strip": true,
+      "expect_paired": true,
+      "paired_operator": false,
+      "ok": true
+    },
+    {
+      "slug": "super_security",
+      "path_name": "super:security_hub",
+      "path": "/super/security/",
+      "expect_strip": true,
+      "expect_paired": true,
+      "paired_operator": false,
+      "ok": true
+    },
+    {
+      "slug": "configuration_center",
+      "path_name": "configuration:center",
+      "path": "/configuration/",
+      "expect_strip": true,
+      "expect_paired": false,
+      "paired_operator": false,
+      "ok": true
+    },
+    {
+      "slug": "admin_index",
+      "path_name": "admin:index",
+      "path": "/admin/",
+      "expect_strip": true,
+      "expect_paired": false,
+      "paired_operator": false,
+      "ok": true
+    },
+    {
+      "slug": "admin_schools",
+      "path_name": "admin:schools_school_changelist",
+      "path": "/admin/schools/school/",
+      "expect_strip": true,
+      "expect_paired": true,
+      "paired_operator": true,
+      "ok": true
+    },
+    {
+      "slug": "admin_marketplace_apps",
+      "path_name": "admin:integrations_marketplace_marketplaceapp_changelist",
+      "path": "/admin/integrations_marketplace/marketplaceapp/",
+      "expect_strip": true,
+      "expect_paired": true,
+      "paired_operator": true,
+      "ok": true
+    },
+    {
+      "slug": "admin_compliance_audit",
+      "path_name": "admin:compliance_auditlog_changelist",
+      "path": "/admin/compliance/auditlog/",
+      "expect_strip": true,
+      "expect_paired": true,
+      "paired_operator": true,
+      "ok": true
+    }
+  ],
+  "spine_ok": true,
+  "pairs_ok": true,
+  "bindings_ok": true,
+  "browser_probes_ok": true
+}

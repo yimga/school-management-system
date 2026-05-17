@@ -1,0 +1,87 @@
+{
+  "version": "2026.05.16.1",
+  "source_matrix": "docs\\generated\\super_admin_surface_matrix.json",
+  "probes": [
+    {
+      "slug": "super_dashboard",
+      "path_name": "super:dashboard",
+      "path": "/super/",
+      "expect_strip": true,
+      "expect_paired": false,
+      "paired_operator": false,
+      "ok": true
+    },
+    {
+      "slug": "super_schools",
+      "path_name": "super:schools_list",
+      "path": "/super/schools/",
+      "expect_strip": true,
+      "expect_paired": true,
+      "paired_operator": false,
+      "ok": true
+    },
+    {
+      "slug": "super_marketplace",
+      "path_name": "super:marketplace_governance",
+      "path": "/super/marketplace/",
+      "expect_strip": true,
+      "expect_paired": true,
+      "paired_operator": false,
+      "ok": true
+    },
+    {
+      "slug": "super_security",
+      "path_name": "super:security_hub",
+      "path": "/super/security/",
+      "expect_strip": true,
+      "expect_paired": true,
+      "paired_operator": false,
+      "ok": true
+    },
+    {
+      "slug": "configuration_center",
+      "path_name": "configuration:center",
+      "path": "/configuration/",
+      "expect_strip": true,
+      "expect_paired": false,
+      "paired_operator": false,
+      "ok": true
+    },
+    {
+      "slug": "admin_index",
+      "path_name": "admin:index",
+      "path": "/admin/",
+      "expect_strip": true,
+      "expect_paired": false,
+      "paired_operator": false,
+      "ok": true
+    },
+    {
+      "slug": "admin_schools",
+      "path_name": "admin:schools_school_changelist",
+      "path": "/admin/schools/school/",
+      "expect_strip": true,
+      "expect_paired": true,
+      "paired_operator": true,
+      "ok": true
+    },
+    {
+      "slug": "admin_marketplace_apps",
+      "path_name": "admin:integrations_marketplace_marketplaceapp_changelist",
+      "path": "/admin/integrations_marketplace/marketplaceapp/",
+      "expect_strip": true,
+      "expect_paired": true,
+      "paired_operator": true,
+      "ok": true
+    },
+    {
+      "slug": "admin_compliance_audit",
+      "path_name": "admin:compliance_auditlog_changelist",
+      "path": "/admin/compliance/auditlog/",
+      "expect_strip": true,
+      "expect_paired": true,
+      "paired_operator": true,
+      "ok": true
+    }
+  ]
+}

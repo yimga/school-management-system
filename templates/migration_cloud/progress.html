@@ -1,0 +1,59 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--migration-cloud-progress" id="main">
+  <header class="rmc-page__header">
+    <a class="rmc-back"
+       href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}{% endif %}">
+      {% trans "← Back to bundle" %}
+    </a>
+    <h1 class="rmc-h1">{% trans "Pipeline progress" %}</h1>
+  </header>
+
+  <section class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Stages" %}</h2>
+    <ol class="rmc-stage-list">
+      {% for stage in snapshot.stages %}
+        <li class="rmc-stage{% if stage.status == 'done' %} rmc-stage--done{% elif stage.status == 'current' %} rmc-stage--current{% else %} rmc-stage--pending{% endif %}">
+          <strong>{{ stage.name }}</strong>
+          <span class="rmc-muted">{{ stage.status }}</span>
+          {% if stage.pct %}<span class="rmc-muted">— {{ stage.pct }}%</span>{% endif %}
+          {% if stage.started %}<small>{% trans "started" %} {{ stage.started }}</small>{% endif %}
+          {% if stage.finished %}<small>{% trans "finished" %} {{ stage.finished }}</small>{% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+    <p class="rmc-muted">{% trans "Snapshot updated" %}: {{ snapshot.updated_at }}</p>
+  </section>
+
+  <section class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Recent events" %}</h2>
+    <ul class="rmc-stack" id="mc-progress-events">
+      {% for ev in recent_events %}
+        <li><time>{{ ev.created_at|date:"Y-m-d H:i:s" }}</time> · <code>{{ ev.kind }}</code> · <strong>{{ ev.stage }}</strong> — {{ ev.message }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+</main>
+
+<script>
+(function () {
+  if (!window.EventSource) return;
+  var url = "{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_progress_stream' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_progress_stream' bundle_id=bundle.pk %}{% endif %}";
+  var list = document.getElementById("mc-progress-events");
+  if (!list) return;
+  var src = new EventSource(url);
+  src.onmessage = function (ev) {
+    try {
+      var data = JSON.parse(ev.data);
+      var li = document.createElement("li");
+      li.innerHTML = "<time>" + (data.at || "") + "</time> · <code>" + (data.kind || "") + "</code> · <strong>" + (data.stage || "") + "</strong> — " + (data.message || "");
+      list.insertBefore(li, list.firstChild);
+    } catch (_) { /* swallow */ }
+  };
+})();
+</script>
+{% endblock %}

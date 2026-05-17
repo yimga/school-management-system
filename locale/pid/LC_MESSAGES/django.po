@@ -25787,3 +25787,2724 @@ msgstr ""
 
 msgid "Advanced admin fallback: open migration bundles in Django admin"
 msgstr ""
+
+msgid "(CI gate)"
+msgstr ""
+
+msgid "(empty)"
+msgstr ""
+
+msgid "1. How is the data arriving?"
+msgstr ""
+
+msgid "2. Paste the remote location"
+msgstr ""
+
+msgid "2. Stage the bundle for follow-up"
+msgstr ""
+
+msgid "2. Upload file(s)"
+msgstr ""
+
+msgid "3. Tell the classifier what it's looking at (optional)"
+msgstr ""
+
+msgid "A Tuesday on the legacy stack"
+msgstr ""
+
+msgid ""
+"A connection at the school level applies to every campus by default. To "
+"override for one campus, open the campus settings and connect from there — "
+"the campus-level connection takes precedence over the school-level one. "
+"Districts with parent schools cascade in the same direction: parent &rarr; "
+"child school &rarr; campus."
+msgstr ""
+
+msgid "A custom scope set is active for this connection."
+msgstr ""
+
+msgid "A day for IT →"
+msgstr ""
+
+msgid "A day for the bursar →"
+msgstr ""
+
+msgid "A day for the head →"
+msgstr ""
+
+msgid "A day for the parent →"
+msgstr ""
+
+msgid "A day for the teacher →"
+msgstr ""
+
+msgid "A quick visual tour of the platform surfaces."
+msgstr ""
+
+msgid ""
+"A visual seating layout for this class is on the roadmap. In the meantime, "
+"attendance can be taken from the dedicated roll-call view."
+msgstr ""
+
+msgid "AI Center"
+msgstr ""
+
+msgid "AI advisors"
+msgstr ""
+
+msgid "AI assistant interactions"
+msgstr ""
+
+msgid "AI migration plan"
+msgstr ""
+
+msgid "AI plan"
+msgstr ""
+
+msgid "AI-powered"
+msgstr ""
+
+msgid "API + webhook catalog"
+msgstr ""
+
+msgid "API and webhooks."
+msgstr ""
+
+msgid "API reference"
+msgstr ""
+
+msgid "About the operator control model"
+msgstr ""
+
+msgid ""
+"Accepted schemes: http://, https://, sftp://user:pass@host/path, "
+"s3://bucket/key."
+msgstr ""
+
+msgid "Accessible on low bandwidth — same thread as parents."
+msgstr ""
+
+msgid "Activation checklist"
+msgstr ""
+
+msgid "Aesthetic"
+msgstr ""
+
+msgid ""
+"After saving, you'll need to reconnect the integration for the new scope set"
+" to take effect — OAuth scopes are negotiated at consent time, not on the "
+"fly."
+msgstr ""
+
+msgid ""
+"Alerts need action; warnings are time-sensitive; updates are informational."
+msgstr ""
+
+msgid "All changes synced."
+msgstr ""
+
+msgid "All connectors"
+msgstr ""
+
+msgid "All keyboard shortcuts"
+msgstr ""
+
+msgid "All proof complete"
+msgstr ""
+
+msgid "All scopes consented — install enabled."
+msgstr ""
+
+msgid ""
+"All shipped promises resolve to real routes. Marketing and product are "
+"aligned."
+msgstr ""
+
+msgid "All solutions →"
+msgstr ""
+
+msgid "All-campuses rollup"
+msgstr ""
+
+msgid "Announcement"
+msgstr ""
+
+msgid ""
+"Any platform, any size. Known competitors auto-detect; unknown vendors and "
+"custom in-house products route through the universal intake — unmappable "
+"fields land in custom_fields.* and stay queryable."
+msgstr ""
+
+msgid "App permission scope visual"
+msgstr ""
+
+msgid "Applicant queue"
+msgstr ""
+
+msgid "Applicant search"
+msgstr ""
+
+msgid "Applicant stage"
+msgstr ""
+
+msgid "Apply (live)"
+msgstr ""
+
+msgid "Apply invoice filters"
+msgstr ""
+
+msgid "Apply rebind"
+msgstr ""
+
+msgid "Approvals without hallway chase"
+msgstr ""
+
+msgid "Architecture & isolation"
+msgstr ""
+
+msgid "Ask"
+msgstr ""
+
+msgid "Ask the AI about this bundle"
+msgstr ""
+
+msgid "Assessment ladder parents can follow in the portal."
+msgstr ""
+
+msgid "Assessment ladder parents can follow."
+msgstr ""
+
+msgid "Assets + open items"
+msgstr ""
+
+msgid "Assets failed"
+msgstr ""
+
+msgid "Assets stored"
+msgstr ""
+
+msgid "Assignments and tasks surfaced by your teachers."
+msgstr ""
+
+msgid "Attach source"
+msgstr ""
+
+msgid "Attendance and grades queue locally, reconcile on reconnect."
+msgstr ""
+
+msgid "Audit trail finance leadership can defend."
+msgstr ""
+
+msgid "Audit trail on every handoff — no shadow spreadsheets."
+msgstr ""
+
+msgid "Automation without shadow IT."
+msgstr ""
+
+msgid "Availability posture"
+msgstr ""
+
+msgid "Awaiting proof"
+msgstr ""
+
+msgid "Back to Communicate →"
+msgstr ""
+
+msgid "Back to Grow →"
+msgstr ""
+
+msgid "Back to Run →"
+msgstr ""
+
+msgid "Back to Teach →"
+msgstr ""
+
+msgid "Back to hub"
+msgstr ""
+
+msgid "Back to inbox"
+msgstr ""
+
+msgid "Base URL"
+msgstr ""
+
+msgid "Baseline vs candidate"
+msgstr ""
+
+msgid "Bell by bell, class by class"
+msgstr ""
+
+msgid "Between the bells"
+msgstr ""
+
+msgid "Between the bells · Sent by RunMyCampus"
+msgstr ""
+
+msgid "Binary assets"
+msgstr ""
+
+msgid "Bind"
+msgstr ""
+
+msgid "Bind to school"
+msgstr ""
+
+msgid "Blackbaud"
+msgstr ""
+
+msgid "Book a demo →"
+msgstr ""
+
+msgid "Book a migration consult"
+msgstr ""
+
+msgid "Book a pricing walkthrough"
+msgstr ""
+
+msgid "Branding, terms, grading, and tenant-wide settings."
+msgstr ""
+
+msgid ""
+"Browser offline — attendance and grades can still queue when offline mode is"
+" on; AI answers need connectivity to the school server."
+msgstr ""
+
+msgid "Bulk pre-stage integrations"
+msgstr ""
+
+msgid ""
+"Bundle is staged for the <strong>{{ method }}</strong> intake method. "
+"Provide the endpoint or handle below so the pipeline can pull from it."
+msgstr ""
+
+msgid "Bundle surfaces"
+msgstr ""
+
+msgid "Bursar"
+msgstr ""
+
+msgid "Bursar receipts captured without waiting for fibre."
+msgstr ""
+
+msgid "Bursar's daily dashboard."
+msgstr ""
+
+msgid "Campus"
+msgstr ""
+
+msgid "Campus overrides: {{ campus_name }}"
+msgstr ""
+
+msgid "Canonical PK"
+msgstr ""
+
+msgid "Card"
+msgstr ""
+
+msgid "Catalog empty"
+msgstr ""
+
+msgid "Change queue"
+msgstr ""
+
+msgid "Changed fields"
+msgstr ""
+
+msgid "Channel grid, one thread"
+msgstr ""
+
+msgid "Channels"
+msgstr ""
+
+msgid "Choose an assistant on the left to begin."
+msgstr ""
+
+msgid "Choose language"
+msgstr ""
+
+msgid ""
+"Choose one or more channels. Critical alerts always send via App regardless "
+"of this setting."
+msgstr ""
+
+msgid ""
+"Choose the narrowest set of scopes that lets your school use the "
+"integration. You can only narrow — not widen — the default set the platform "
+"requested at registration."
+msgstr ""
+
+msgid "Class cards tied to live enrollments — no re-keying."
+msgstr ""
+
+msgid "Class cards tied to live enrollments."
+msgstr ""
+
+msgid "Classroom command center."
+msgstr ""
+
+msgid "Classroom surfaces teachers actually open between bells."
+msgstr ""
+
+msgid ""
+"Click 'Generate / refresh' to ask the platform AI for a plain-English plan "
+"and risk-flag summary based on this bundle's discovery + mapping output."
+msgstr ""
+
+msgid "Client ID env"
+msgstr ""
+
+msgid "Client IP"
+msgstr ""
+
+msgid "Client secret env"
+msgstr ""
+
+msgid "Close dialog, sheet, or palette"
+msgstr ""
+
+msgid "Code complete; external proof tracked in SOT"
+msgstr ""
+
+msgid "Code readiness"
+msgstr ""
+
+msgid "Code ready · external pending"
+msgstr ""
+
+msgid "Code ready · external required"
+msgstr ""
+
+msgid "Code shipped; external dependency tracked in SOT"
+msgstr ""
+
+msgid "Code shipped; external proof tracked in SOT"
+msgstr ""
+
+msgid "Cohort drill-downs."
+msgstr ""
+
+msgid "Collected and outstanding — reconciled hourly."
+msgstr ""
+
+msgid "Collected vs outstanding — hourly."
+msgstr ""
+
+msgid "Collected, outstanding, reconciled — hourly, not end-of-day."
+msgstr ""
+
+msgid "Collected, outstanding, reconciled — hourly."
+msgstr ""
+
+msgid ""
+"Coming from PowerSchool · Blackbaud · Veracross · Infinite Campus · "
+"spreadsheets"
+msgstr ""
+
+msgid "Common questions"
+msgstr ""
+
+msgid "Communicate"
+msgstr ""
+
+msgid "Compliance and audit entry points"
+msgstr ""
+
+msgid "Compliance deep dives"
+msgstr ""
+
+msgid "Configure in API Center"
+msgstr ""
+
+msgid "Conflict resolution the office can trust."
+msgstr ""
+
+msgid "Conflicts pending review"
+msgstr ""
+
+msgid "Connect"
+msgstr ""
+
+msgid "Connect (campus override)"
+msgstr ""
+
+msgid "Connect SIS exports, webhooks, and monitor sync posture."
+msgstr ""
+
+msgid ""
+"Connect the external tools your school already uses — meetings, calendars, "
+"chat, and email. Connections are scoped per school and (optionally) per "
+"campus."
+msgstr ""
+
+msgid "Connected"
+msgstr ""
+
+msgid "Connection lost"
+msgstr ""
+
+msgid "Connector"
+msgstr ""
+
+msgid "Consent required for {n} more scope(s) before install can proceed."
+msgstr ""
+
+msgid "Contact sales →"
+msgstr ""
+
+msgid "Conversational column rebind"
+msgstr ""
+
+msgid "Cool Apple"
+msgstr ""
+
+msgid "Cool Apple — slate + indigo, quiet-luxury SaaS"
+msgstr ""
+
+msgid "Corner ornament"
+msgstr ""
+
+msgid "Create bundle and start"
+msgstr ""
+
+msgid ""
+"Credentials are NOT stored here — wire them through the platform secrets "
+"vault and reference the secret ID in the notes if needed."
+msgstr ""
+
+msgid "Cross-school integrations rollup"
+msgstr ""
+
+msgid "Ctrl K"
+msgstr ""
+
+msgid "Curated partner tiles."
+msgstr ""
+
+msgid "Currencies"
+msgstr ""
+
+msgid "Curriculum on the learner spine."
+msgstr ""
+
+msgid "Curriculum, assessment, and reporting on one spine."
+msgstr ""
+
+msgid "Daily register and late patterns."
+msgstr ""
+
+msgid "Daily rhythm register"
+msgstr ""
+
+msgid "Daily rhythm register class by class."
+msgstr ""
+
+msgid "Data Quality Center"
+msgstr ""
+
+msgid ""
+"Database: postgres://… / mysql://… / mssql://… Mailbox: mailbox@host.tld. "
+"OAuth folder: gdrive://… / onedrive://… / dropbox://… / https://…. API: "
+"https://api.example.com/…"
+msgstr ""
+
+msgid "Default scopes"
+msgstr ""
+
+msgid "Degraded — grounded hints until Ollama is connected"
+msgstr ""
+
+msgid "Delivery telemetry operators can trust."
+msgstr ""
+
+msgid "Delivery telemetry operators trust."
+msgstr ""
+
+msgid "Developer hub →"
+msgstr ""
+
+msgid "Digests"
+msgstr ""
+
+msgid "Discard edits"
+msgstr ""
+
+msgid "Disconnect"
+msgstr ""
+
+msgid "Disconnected"
+msgstr ""
+
+msgid "Disconnected (configured but inactive)"
+msgstr ""
+
+msgid "Dismiss help or modal"
+msgstr ""
+
+msgid "Display currency"
+msgstr ""
+
+msgid ""
+"District-level provisioning. Pick an OAuth connector and the schools that "
+"should have it pre-staged. A pending-OAuth row is created at the school "
+"scope; each school admin completes the OAuth dance from their own hub."
+msgstr ""
+
+msgid "Docs:"
+msgstr ""
+
+msgid ""
+"Draft, sent, partial, paid, or overdue — drives reminders and parent "
+"visibility."
+msgstr ""
+
+msgid "Dry-run"
+msgstr ""
+
+msgid "Early-warning panels before crises land in email."
+msgstr ""
+
+msgid "Early-warning panels."
+msgstr ""
+
+msgid "Editorial rhythm without Mailchimp."
+msgstr ""
+
+msgid "Education OS"
+msgstr ""
+
+msgid "Eight modules. One operating rhythm."
+msgstr ""
+
+msgid "Elevates risk"
+msgstr ""
+
+msgid "Email, SMS, and inbox in one thread."
+msgstr ""
+
+msgid "Email, SMS, and inbox without duplicate sends."
+msgstr ""
+
+msgid "Enforced"
+msgstr ""
+
+msgid ""
+"Enrollment, collection, and academic signals for board-ready conversations."
+msgstr ""
+
+msgid "Enrollment, guardians, and class context stay linked."
+msgstr ""
+
+msgid "Enter and review marks for your classes."
+msgstr ""
+
+msgid "Enterprise SLA, operator command center access."
+msgstr ""
+
+msgid "Escalations route to the right role before the bell rings."
+msgstr ""
+
+msgid ""
+"Every active school × every configured integration. Operations-only view — "
+"read-only."
+msgstr ""
+
+msgid ""
+"Every claim pairs with the dashboard your staff opens between the bells."
+msgstr ""
+
+msgid ""
+"Every connector × every campus, in one table. Click any cell to jump to the "
+"campus-scoped hub for that connection."
+msgstr ""
+
+msgid ""
+"Every governed AI assistant in one place. Pick a domain on the left; ask on "
+"the right. All requests route through the same audited gateway."
+msgstr ""
+
+msgid ""
+"Every public promise should land at a real product route. Drift here is "
+"marketing overshoot."
+msgstr ""
+
+msgid "Existing vs incoming"
+msgstr ""
+
+msgid ""
+"Experience, Automation, Outputs, Launch, and Control — one workspace per "
+"job."
+msgstr ""
+
+msgid "Explore {{ name }} →"
+msgstr ""
+
+msgid "External SOT"
+msgstr ""
+
+msgid ""
+"External compliance dependencies (SOC2, PCI, data residency) are tracked in "
+"the <a href=\"{{ sot_url }}\">external dependencies register</a>."
+msgstr ""
+
+msgid "External dependencies register"
+msgstr ""
+
+msgid "External dependencies tracked in SOT"
+msgstr ""
+
+msgid "FERPA"
+msgstr ""
+
+msgid "FERPA & student records"
+msgstr ""
+
+msgid "FERPA notice"
+msgstr ""
+
+msgid "Faith-based"
+msgstr ""
+
+msgid "Fallback enabled"
+msgstr ""
+
+msgid "Family thread stays on one record."
+msgstr ""
+
+msgid "Feature"
+msgstr ""
+
+msgid "Feature Gap Register"
+msgstr ""
+
+msgid "Feature categories"
+msgstr ""
+
+msgid "Features:"
+msgstr ""
+
+msgid "Fee plans, receipts, and arrears on one ledger."
+msgstr ""
+
+msgid "Feedback loop · live usage"
+msgstr ""
+
+msgid "Feedback submissions"
+msgstr ""
+
+msgid "Feeds attendance, fees, and reports without re-keying."
+msgstr ""
+
+msgid "Fees & invoicing"
+msgstr ""
+
+msgid "Fees, reconciliation, and the bursar's daily cockpit."
+msgstr ""
+
+msgid "Fetch pending assets"
+msgstr ""
+
+msgid "Filter by connector"
+msgstr ""
+
+msgid "Filter shortcuts"
+msgstr ""
+
+msgid "Finance access"
+msgstr ""
+
+msgid "Finance cockpit"
+msgstr ""
+
+msgid "Finance cockpit for the bursar's day."
+msgstr ""
+
+msgid "Financial guardrail"
+msgstr ""
+
+msgid "Find applicants by name, reference, or status."
+msgstr ""
+
+msgid ""
+"First {{ counter }} affected ID{% plural %}First {{ counter }} affected IDs"
+msgstr ""
+
+msgid "Five roles"
+msgstr ""
+
+msgid "Five roles. Five Tuesdays."
+msgstr ""
+
+msgid ""
+"Five steps from a capability to a shipped change: family → grouped controls "
+"→ see impact → trace → stage → ship or undo."
+msgstr ""
+
+msgid "Five steps from a capability to a stopped change."
+msgstr ""
+
+msgid "Focus Studio search"
+msgstr ""
+
+msgid "Focus applicant search"
+msgstr ""
+
+msgid "Focus invoice search"
+msgstr ""
+
+msgid "Focus next gradebook row"
+msgstr ""
+
+msgid "Focus previous gradebook row"
+msgstr ""
+
+msgid "Focus search field"
+msgstr ""
+
+msgid "Forty-seven buses leave on time."
+msgstr ""
+
+msgid "Friction events"
+msgstr ""
+
+msgid "Friction telemetry not available — model may not be migrated."
+msgstr ""
+
+msgid ""
+"From compliance.AuditLog for portal.AICopilot. Acceptance/correction rates "
+"live in the AI governance dashboard."
+msgstr ""
+
+msgid "GDPR"
+msgstr ""
+
+msgid "GDPR & UK GDPR"
+msgstr ""
+
+msgid "Gateway reconciliation without end-of-month panic."
+msgstr ""
+
+msgid "Generate / refresh"
+msgstr ""
+
+msgid ""
+"Generate a 4-5 sentence summary of the reconciliation report, jargon-free, "
+"for forwarding to the school principal."
+msgstr ""
+
+msgid "Generate narrative"
+msgstr ""
+
+msgid "Global"
+msgstr ""
+
+msgid "Go to Studio OS"
+msgstr ""
+
+msgid "Go to billing"
+msgstr ""
+
+msgid "Go to command center"
+msgstr ""
+
+msgid "Go to config center"
+msgstr ""
+
+msgid "Go to home / dashboard"
+msgstr ""
+
+msgid "Go to migration"
+msgstr ""
+
+msgid "Go to notifications"
+msgstr ""
+
+msgid "Go to operator dashboard"
+msgstr ""
+
+msgid "Go to orchestration"
+msgstr ""
+
+msgid "Go to profile / settings"
+msgstr ""
+
+msgid "Go to pulse"
+msgstr ""
+
+msgid "Go to school health"
+msgstr ""
+
+msgid "Go to support"
+msgstr ""
+
+msgid "Go to usage"
+msgstr ""
+
+msgid "Got feedback?"
+msgstr ""
+
+msgid "Governance console for IT."
+msgstr ""
+
+msgid "Governance settings"
+msgstr ""
+
+msgid "Governed app catalog."
+msgstr ""
+
+msgid "Governed app marketplace"
+msgstr ""
+
+msgid "Governed apps and integration depth."
+msgstr ""
+
+msgid "Governed partner tiles — activate per campus."
+msgstr ""
+
+msgid "Grade approval"
+msgstr ""
+
+msgid "Grade outlook"
+msgstr ""
+
+msgid "Gradebook"
+msgstr ""
+
+msgid "Gradebook & report cards"
+msgstr ""
+
+msgid "Grades and comments without leaving the class view."
+msgstr ""
+
+msgid "Grow"
+msgstr ""
+
+msgid "Guided setup for academics, people, and go-live readiness."
+msgstr ""
+
+msgid "Handoff doc"
+msgstr ""
+
+msgid "Head"
+msgstr ""
+
+msgid "Head of school"
+msgstr ""
+
+msgid "Head-to-head"
+msgstr ""
+
+msgid "Head-to-head capability comparison"
+msgstr ""
+
+msgid "Heads-view dashboards with cohort drill-down."
+msgstr ""
+
+msgid "Heads-view dashboards."
+msgstr ""
+
+msgid "Hold Ctrl/⌘ to select multiple."
+msgstr ""
+
+msgid ""
+"How RunMyCampus connects admissions, classrooms, fees, and family messaging."
+msgstr ""
+
+msgid "How app consent and billing flow to school install."
+msgstr ""
+
+msgid "How app scopes flow to tenant install impact."
+msgstr ""
+
+msgid "How does this work?"
+msgstr ""
+
+msgid "How many artifacts are there, and what domains do they cover?"
+msgstr ""
+
+msgid "How to disconnect"
+msgstr ""
+
+msgid "How to fix:"
+msgstr ""
+
+msgid "IT"
+msgstr ""
+
+msgid "IT lead"
+msgstr ""
+
+msgid ""
+"IT sees an SSO blip before staff feels it — and rolls back without a ticket."
+msgstr ""
+
+msgid ""
+"Idempotent: schools that already have an existing row for this connector are"
+" skipped. The response is JSON — copy it into a deploy ticket if needed."
+msgstr ""
+
+msgid "Identify vendor"
+msgstr ""
+
+msgid ""
+"If you leave the plural blank but change the singular, the plural is auto-"
+"derived (\"Scholar\" → \"Scholars\"). To set both, fill both fields."
+msgstr ""
+
+msgid "Illustrative"
+msgstr ""
+
+msgid ""
+"Illustrative bands — exact commercial terms confirmed during procurement."
+msgstr ""
+
+msgid ""
+"Illustrative list — billing supports 180+ ISO currencies; confirm commercial"
+" terms with sales."
+msgstr ""
+
+msgid "Illustrative placeholders"
+msgstr ""
+
+msgid "Importance"
+msgstr ""
+
+msgid ""
+"Importance is global to the model, not unique to this prediction. Direction "
+"reflects this student's value vs the cohort baseline."
+msgstr ""
+
+msgid "In flight"
+msgstr ""
+
+msgid ""
+"Inbound deliveries that didn't pass HMAC verification or the rate limit. "
+"Mirror of the verified events log; use this to triage \"why are upstream "
+"deliveries failing\"."
+msgstr ""
+
+msgid "Inbox at zero"
+msgstr ""
+
+msgid "Inbox filters"
+msgstr ""
+
+msgid "Independent / private"
+msgstr ""
+
+msgid "Inherited from parent school or platform default"
+msgstr ""
+
+msgid "Integration tags operators understand."
+msgstr ""
+
+msgid "Integration trust categories"
+msgstr ""
+
+msgid "Integrations & health"
+msgstr ""
+
+msgid ""
+"Integrations are tenant-scoped. Open this page from inside a school's portal"
+" subdomain."
+msgstr ""
+
+msgid "Integrations rollup"
+msgstr ""
+
+msgid ""
+"Internal scoreboard for external commercial work: payments providers, SOC2 "
+"controls, and pilot tracker."
+msgstr ""
+
+msgid "International"
+msgstr ""
+
+msgid "Invoice filters"
+msgstr ""
+
+msgid "Invoice list"
+msgstr ""
+
+msgid "Invoice reference"
+msgstr ""
+
+msgid "Invoice status"
+msgstr ""
+
+msgid "Isolation operators can prove"
+msgstr ""
+
+msgid "Jump between attention, today, metrics, and classes."
+msgstr ""
+
+msgid "Jump to frequent tasks without leaving the dashboard."
+msgstr ""
+
+msgid ""
+"Keep tenant offline-first enabled for low connectivity. Run Ollama on the "
+"Django host (or LAN). AI on teacher devices still needs server reachability."
+msgstr ""
+
+msgid "Label (operator-visible)"
+msgstr ""
+
+msgid "Lane-2 readiness"
+msgstr ""
+
+msgid "Late patterns surfaced before the office phones."
+msgstr ""
+
+msgid "Late patterns surfaced early."
+msgstr ""
+
+msgid "Latest releases and changelog."
+msgstr ""
+
+msgid "Leadership KPIs"
+msgstr ""
+
+msgid "Leadership intelligence center"
+msgstr ""
+
+msgid "Leadership intelligence center."
+msgstr ""
+
+msgid "Leadership intelligence without tab hunting."
+msgstr ""
+
+msgid ""
+"Leave blank for in-house / unknown platforms — the classifier auto-detects "
+"known competitors and falls back to 'unknown_custom' with AI-assisted column"
+" mapping."
+msgstr ""
+
+msgid "Ledger ties out hourly."
+msgstr ""
+
+msgid "Legacy ID"
+msgstr ""
+
+msgid ""
+"Live consumption view of friction events, feedback submissions, and AI "
+"assistant interactions across the platform."
+msgstr ""
+
+msgid ""
+"Live database, OAuth folder, mailbox, and vendor API methods require "
+"operator-supplied credentials. We'll create an empty bundle now; attach the "
+"source from the bundle detail page once credentials are exchanged."
+msgstr ""
+
+msgid "Live parity pending"
+msgstr ""
+
+msgid "Live provider ready"
+msgstr ""
+
+msgid "Local proof complete"
+msgstr ""
+
+msgid ""
+"Look up the numeric School ID from the Schools admin. The bundle's "
+"schema_name auto-populates from the school."
+msgstr ""
+
+msgid "Lowers risk"
+msgstr ""
+
+msgid "Map your data"
+msgstr ""
+
+msgid "Mark all notifications as read"
+msgstr ""
+
+msgid "Mark all read"
+msgstr ""
+
+msgid "Marked %(count)d notification as read."
+msgstr ""
+
+msgid "Marked %(count)d notifications as read."
+msgstr ""
+
+msgid "Marketplace apps"
+msgstr ""
+
+msgid ""
+"Marketplace recommendations and trust/compliance assistant — advisory only."
+msgstr ""
+
+msgid "Marketplace, migration, and developer APIs."
+msgstr ""
+
+msgid "Marks and comments between lessons."
+msgstr ""
+
+msgid "Marks and fees when the link drops"
+msgstr ""
+
+msgid "Marks grid"
+msgstr ""
+
+msgid "Marks to reports without Friday-night exports"
+msgstr ""
+
+msgid "Marks, attendance, and workflow signals prioritized for today."
+msgstr ""
+
+msgid "Match"
+msgstr ""
+
+msgid "Medical, conduct, and documents without duplicate files."
+msgstr ""
+
+msgid "Member"
+msgstr ""
+
+msgid "Merge"
+msgstr ""
+
+msgid "Message orchestration across channels."
+msgstr ""
+
+msgid "Message orchestration center"
+msgstr ""
+
+msgid "Migration dry-run sandbox"
+msgstr ""
+
+msgid "Migration timeline"
+msgstr ""
+
+msgid "Model version"
+msgstr ""
+
+msgid "More information"
+msgstr ""
+
+msgid "Morning brief with live attendance and fee posture."
+msgstr ""
+
+msgid "Morning plan staged before first bell."
+msgstr ""
+
+msgid "Multi-campus / network"
+msgstr ""
+
+msgid "Multi-currency fee ledger"
+msgstr ""
+
+msgid "Multi-school / multi-campus"
+msgstr ""
+
+msgid "Multi-school networks"
+msgstr ""
+
+msgid ""
+"Multiple files allowed. CSV, TSV, XLSX, JSON, XML, SQL dumps, PDFs, archives"
+" — drop what you have."
+msgstr ""
+
+msgid "Multiple modules unproven"
+msgstr ""
+
+msgid "My children"
+msgstr ""
+
+msgid "Navigation"
+msgstr ""
+
+msgid "Needs intervention"
+msgstr ""
+
+msgid "Newsletters"
+msgstr ""
+
+msgid "Next applicant page"
+msgstr ""
+
+msgid "Next gate"
+msgstr ""
+
+msgid "Next result in palette or list"
+msgstr ""
+
+msgid "Nine-second roll marks between periods."
+msgstr ""
+
+msgid "Nine-second roll marks."
+msgstr ""
+
+msgid ""
+"No assets registered yet. Landers register asset URLs as they land rows; "
+"rerun apply or open the bundle detail to see live status."
+msgstr ""
+
+msgid "No backend bound"
+msgstr ""
+
+msgid "No completeness or reachability issues detected. Data looks clean."
+msgstr ""
+
+msgid ""
+"No compliance routes are currently resolvable in this deployment. Verify the"
+" compliance app is installed and routes are wired."
+msgstr ""
+
+msgid "No data yet"
+msgstr ""
+
+msgid "No external dependencies"
+msgstr ""
+
+msgid "No extra app install for families."
+msgstr ""
+
+msgid "No friction rolled up in the last 7 days."
+msgstr ""
+
+msgid ""
+"No grade predictions for this student yet. The nightly batch runs after the "
+"day's evaluations are saved."
+msgstr ""
+
+msgid "No live signal yet."
+msgstr ""
+
+msgid "No matches"
+msgstr ""
+
+msgid ""
+"No matches found. Try a different phrasing — search is semantic, so \"kids "
+"missing class often\" works as well as a name."
+msgstr ""
+
+msgid "No modules registered"
+msgstr ""
+
+msgid "No pending conflicts. The apply step will overwrite cleanly."
+msgstr ""
+
+msgid "No public release notes yet. We'll post here as waves ship."
+msgstr ""
+
+msgid ""
+"No rejected deliveries recorded. Every inbound webhook passed verification —"
+" that's the right state to be in."
+msgstr ""
+
+msgid "No release notes yet. We'll post here when the next wave ships."
+msgstr ""
+
+msgid ""
+"No risk score has been computed for this student yet. The nightly scorer "
+"runs once a day."
+msgstr ""
+
+msgid "No submissions in the last 7 days."
+msgstr ""
+
+msgid "No webhook deliveries recorded for {{ c }} yet."
+msgstr ""
+
+msgid ""
+"No webhook deliveries recorded yet. Once an upstream provider posts to a "
+"configured connector, verified deliveries will appear here."
+msgstr ""
+
+msgid "Not available"
+msgstr ""
+
+msgid "Not connected"
+msgstr ""
+
+msgid "Not enforced for this bundle (no expected_totals supplied)."
+msgstr ""
+
+msgid "Not sure of the source platform? Upload a screenshot."
+msgstr ""
+
+msgid "Nothing to mark — your inbox is already clear."
+msgstr ""
+
+msgid "Notification list"
+msgstr ""
+
+msgid "Notification preferences"
+msgstr ""
+
+msgid "Notification preferences updated."
+msgstr ""
+
+msgid "Notification severity"
+msgstr ""
+
+msgid "Notifications and queues"
+msgstr ""
+
+msgid "OAUTH_CALLBACK_BASE_URL advisory"
+msgstr ""
+
+msgid "OAuth 2.0"
+msgstr ""
+
+msgid "OAuth redirect URIs"
+msgstr ""
+
+msgid "OAuth scopes"
+msgstr ""
+
+msgid ""
+"OCR runs locally; only the extracted text is sent to the AI gateway. Returns"
+" a vendor guess + confidence you can drop into the source-hint field below."
+msgstr ""
+
+msgid "Office and classroom share one register."
+msgstr ""
+
+msgid "Official channel beats group chat."
+msgstr ""
+
+msgid "Offline-first capture"
+msgstr ""
+
+msgid ""
+"Offline-first mode queues attendance and grades on devices; it does not run "
+"AI locally. Live answers need Ollama reachable from the app server."
+msgstr ""
+
+msgid "One board-ready export — no spreadsheet stitching."
+msgstr ""
+
+msgid "One card for attendance, fees, and messages."
+msgstr ""
+
+msgid "One honest summary — attendance, fees, behaviour, staffing."
+msgstr ""
+
+msgid "One record, every bell"
+msgstr ""
+
+msgid "One register for classroom and front office."
+msgstr ""
+
+msgid "One tap to attendance, marks, syllabus, and messaging."
+msgstr ""
+
+msgid "One thread — slip, attendance, fee."
+msgstr ""
+
+msgid ""
+"Only school administrators and principals can edit terminology. Ask your "
+"school admin if you need to change a term."
+msgstr ""
+
+msgid ""
+"Only school admins, principals, and proprietors can manage integrations."
+msgstr ""
+
+msgid "Open AI Center"
+msgstr ""
+
+msgid "Open AI copilot assistant"
+msgstr ""
+
+msgid "Open Studio command palette"
+msgstr ""
+
+msgid "Open an invoice to record payments or print receipts."
+msgstr ""
+
+msgid "Open command palette"
+msgstr ""
+
+msgid "Open docs"
+msgstr ""
+
+msgid "Open first invoice"
+msgstr ""
+
+msgid "Open first notification link"
+msgstr ""
+
+msgid "Open in AI Center"
+msgstr ""
+
+msgid "Open items to jump to the related record or action."
+msgstr ""
+
+msgid "Open this shortcuts panel"
+msgstr ""
+
+msgid ""
+"Operational view surfaces live KPIs; setup view emphasizes go-live "
+"checklist."
+msgstr ""
+
+msgid "Operations, admissions, attendance, and analytics — one command map."
+msgstr ""
+
+msgid "Operator command center"
+msgstr ""
+
+msgid "Operator drafts only; do not paste secrets, payment data, or PII."
+msgstr ""
+
+msgid "Operator hub"
+msgstr ""
+
+msgid "Operator notes (visible on audit log)"
+msgstr ""
+
+msgid "Operator quick actions"
+msgstr ""
+
+msgid ""
+"Operator-only. Bind the bundle to a specific school now, or leave blank and "
+"bind from the detail page after the school is provisioned."
+msgstr ""
+
+msgid "Operator: connect live Ollama (optional)"
+msgstr ""
+
+msgid "Operator: live Ollama setup"
+msgstr ""
+
+msgid "Operator: voice of customer"
+msgstr ""
+
+msgid "Or choose a photo from your gallery"
+msgstr ""
+
+msgid "Overall parity"
+msgstr ""
+
+msgid "Overridden"
+msgstr ""
+
+msgid "Overview of school health, KPIs, and what needs attention."
+msgstr ""
+
+msgid "Overwrite"
+msgstr ""
+
+msgid "POPIA"
+msgstr ""
+
+msgid "PSPs:"
+msgstr ""
+
+msgid ""
+"Parallel import on a sandbox tenant; staff validate before cutover weekend."
+msgstr ""
+
+msgid "Parent inbox"
+msgstr ""
+
+msgid "Parent inbox on official channel"
+msgstr ""
+
+msgid "Parent inbox, announcements, and newsletters on one thread."
+msgstr ""
+
+msgid "Parent, teacher, and student command centers."
+msgstr ""
+
+msgid "Parents see the same facts the teacher recorded."
+msgstr ""
+
+msgid ""
+"Password sign-in is disabled for your role. Please use your passkey to "
+"continue."
+msgstr ""
+
+msgid ""
+"Paste each connector's redirect URI into its upstream marketplace console "
+"(Zoom App Marketplace, Google Cloud Console, Microsoft Entra ID, Slack Apps,"
+" etc.). Then set the client credentials as environment variables and restart"
+" the app."
+msgstr ""
+
+msgid "Pay fees, view results, and message the school without hunting menus."
+msgstr ""
+
+msgid "Payments providers (PSP)"
+msgstr ""
+
+msgid "Pays or acknowledges fees without calling the office."
+msgstr ""
+
+msgid "Pending review"
+msgstr ""
+
+msgid "Per-scope consent"
+msgstr ""
+
+msgid "Per-tenant boundaries with audit-ready access logs."
+msgstr ""
+
+msgid "Permission needed"
+msgstr ""
+
+msgid "Permission required"
+msgstr ""
+
+msgid "Permission scope visual"
+msgstr ""
+
+msgid "Permission scopes"
+msgstr ""
+
+msgid "Permission slips and notices without another app."
+msgstr ""
+
+msgid "Permission slips clear in five minutes."
+msgstr ""
+
+msgid "Permission slips cleared in minutes, not days."
+msgstr ""
+
+msgid "Permission slips without paper chase."
+msgstr ""
+
+msgid "Phased cutover playbooks."
+msgstr ""
+
+msgid "Phased cutover, dry-run sandbox, dedicated migration lead."
+msgstr ""
+
+msgid ""
+"Phased go-live bell by bell — the staffroom should not feel the day it "
+"changed."
+msgstr ""
+
+msgid ""
+"Pick a curated palette or override individual tones. Blank values fall back "
+"to the platform default. Your <strong>tenant brand color</strong> is set "
+"above; this section controls surface, text, and accent tones across the "
+"platform."
+msgstr ""
+
+msgid "Pick an assistant"
+msgstr ""
+
+msgid ""
+"Pick how the platform should reach you when something needs your attention."
+msgstr ""
+
+msgid ""
+"Pick the shape that matches what the source platform can export. We accept "
+"everything; choose 'Direct file upload' if you're unsure."
+msgstr ""
+
+msgid "Pilot tracker"
+msgstr ""
+
+msgid "Pin shortcut help to corner"
+msgstr ""
+
+msgid "Pipeline and readiness board."
+msgstr ""
+
+msgid "Pipeline from enquiry through enrollment."
+msgstr ""
+
+msgid "Pipeline progress"
+msgstr ""
+
+msgid "Pipeline step from enquiry through enrollment; filters the queue."
+msgstr ""
+
+msgid "Plan capability matrix"
+msgstr ""
+
+msgid "Plan tiers"
+msgstr ""
+
+msgid "Plan your cutover"
+msgstr ""
+
+msgid "Plan your migration"
+msgstr ""
+
+msgid "Plans scale with enrollment — confirm details during your demo."
+msgstr ""
+
+msgid "Platform hub →"
+msgstr ""
+
+msgid "Platform modules"
+msgstr ""
+
+msgid "Platform scale"
+msgstr ""
+
+msgid "Platforms schools migrate from"
+msgstr ""
+
+msgid "Plural"
+msgstr ""
+
+msgid "PowerSchool"
+msgstr ""
+
+msgid "PowerSchool · Blackbaud · Veracross · Infinite Campus · spreadsheets"
+msgstr ""
+
+msgid "Pre-stage"
+msgstr ""
+
+msgid "Pre-tenant bundle."
+msgstr ""
+
+msgid ""
+"Predicted end-of-term grade per subject, with a confidence band. Updated "
+"nightly."
+msgstr ""
+
+msgid "Preference"
+msgstr ""
+
+msgid "Premium support"
+msgstr ""
+
+msgid "Preserve"
+msgstr ""
+
+msgid "Preview readiness, migration, and role-based walkthroughs."
+msgstr ""
+
+msgid "Previous applicant page"
+msgstr ""
+
+msgid "Previous result in palette or list"
+msgstr ""
+
+msgid "Pricing →"
+msgstr ""
+
+msgid "Procurement checklist →"
+msgstr ""
+
+msgid ""
+"Procurement teams use this as a conversation starter — confirm specifics in "
+"your evaluation."
+msgstr ""
+
+msgid "Product delivery"
+msgstr ""
+
+msgid "Product proof"
+msgstr ""
+
+msgid "Product walkthrough"
+msgstr ""
+
+msgid "Profiles"
+msgstr ""
+
+msgid "Progress (DAG)"
+msgstr ""
+
+msgid "Promise"
+msgstr ""
+
+msgid "Provider"
+msgstr ""
+
+msgid "Provider configured — checking reachability"
+msgstr ""
+
+msgid "Public / state-funded"
+msgstr ""
+
+msgid "Public promise"
+msgstr ""
+
+msgid "Public route"
+msgstr ""
+
+msgid "Public-to-Product Promise Matrix"
+msgstr ""
+
+msgid "Push-friendly alerts — not another portal maze."
+msgstr ""
+
+msgid "Quick actions"
+msgstr ""
+
+msgid "Ranking"
+msgstr ""
+
+msgid "Reach a human. We answer in 1 business day."
+msgstr ""
+
+msgid "Read the full Tuesday for the {{ role }} →"
+msgstr ""
+
+msgid "Readiness board for every open seat."
+msgstr ""
+
+msgid "Real surfaces — not illustrations."
+msgstr ""
+
+msgid "Real-time leadership dashboards"
+msgstr ""
+
+msgid "Recent assets"
+msgstr ""
+
+msgid "Recent events"
+msgstr ""
+
+msgid "Recently resolved"
+msgstr ""
+
+msgid "Reconciliation against the ledger."
+msgstr ""
+
+msgid "Reconnect"
+msgstr ""
+
+msgid "Reconnect (campus)"
+msgstr ""
+
+msgid "Redirect URI"
+msgstr ""
+
+msgid "Region / type"
+msgstr ""
+
+msgid "Regional compliance defaults"
+msgstr ""
+
+msgid "Regional defaults for FERPA, GDPR, and residency."
+msgstr ""
+
+msgid "Register that survives spotty Wi‑Fi."
+msgstr ""
+
+msgid "Rejections"
+msgstr ""
+
+msgid "Related"
+msgstr ""
+
+msgid "Release notes"
+msgstr ""
+
+msgid "Reminders in the family's channel."
+msgstr ""
+
+msgid ""
+"Rename the platform-wide vocabulary to fit your school's traditions. Leave a"
+" field blank to keep the platform default."
+msgstr ""
+
+msgid "Report a bug, request a feature, share a suggestion."
+msgstr ""
+
+msgid "Report a problem (when feedback control is present)"
+msgstr ""
+
+msgid "Report packs footnoted and signed at 3 p.m."
+msgstr ""
+
+msgid "Report packs without Friday-night exports."
+msgstr ""
+
+msgid "Repository proof complete"
+msgstr ""
+
+msgid "Retention schedules"
+msgstr ""
+
+msgid "Review, advance, or message applicants from this list."
+msgstr ""
+
+msgid "Risk drivers"
+msgstr ""
+
+msgid ""
+"Role-gated — request broader access if invoices or payments are hidden."
+msgstr ""
+
+msgid "Role-specific surfaces, one sign-in story."
+msgstr ""
+
+msgid "Roll mark in nine seconds between lessons."
+msgstr ""
+
+msgid "Roll mark in nine seconds. Marks and messages between lessons."
+msgstr ""
+
+msgid "Roll-ups across campuses."
+msgstr ""
+
+msgid "Roll-ups that respect campus boundaries."
+msgstr ""
+
+msgid "Rows created"
+msgstr ""
+
+msgid ""
+"Rows that already exist on the tenant whose values disagree with the inbound"
+" bundle. Pick a resolution for each — silent overwrite is never the default."
+msgstr ""
+
+msgid "Rows updated"
+msgstr ""
+
+msgid "Rules fallback (connect Ollama for live answers)"
+msgstr ""
+
+msgid "Run an intent"
+msgstr ""
+
+msgid "Run profile → classify → map immediately after intake (recommended)"
+msgstr ""
+
+msgid "Run the school"
+msgstr ""
+
+msgid "Run your school the way your"
+msgstr ""
+
+msgid ""
+"Running across <span class=\"mkt-scale-signal__count\">{{ "
+"marketing_scale_school_count|default:\"40+\" }}</span> schools in <span "
+"class=\"mkt-scale-signal__count\">{{ "
+"marketing_scale_country_count|default:\"12\" }}</span> countries"
+msgstr ""
+
+msgid "Runtime configuration"
+msgstr ""
+
+msgid "SAML/OIDC and scoped API keys in one trust surface."
+msgstr ""
+
+msgid "SOC2 control register"
+msgstr ""
+
+msgid "SSO and MFA patterns IT already runs."
+msgstr ""
+
+msgid "SSO and tenant health before staff feel a blip."
+msgstr ""
+
+msgid "SSO, integrations, and tenant health before staff feel a blip."
+msgstr ""
+
+msgid ""
+"Same school day — different surfaces. Pick a role to see the dashboard they "
+"actually open."
+msgstr ""
+
+msgid "Save marks (when form is visible)"
+msgstr ""
+
+msgid "Save preferences"
+msgstr ""
+
+msgid "Save scopes"
+msgstr ""
+
+msgid "Save terminology"
+msgstr ""
+
+msgid ""
+"Saved overrides are merged with the platform's 5-layer cascade: registry "
+"default → country overlay → curriculum template → district / parent school →"
+" your school. Your school's override always wins."
+msgstr ""
+
+msgid "School configuration"
+msgstr ""
+
+msgid "School day bells"
+msgstr ""
+
+msgid "School roles"
+msgstr ""
+
+msgid "School-facing reconciliation narrative"
+msgstr ""
+
+msgid "School-wide and targeted sends."
+msgstr ""
+
+msgid "Schools on RunMyCampus"
+msgstr ""
+
+msgid ""
+"Scroll the day — each bell pairs with the dashboard your staff actually "
+"opens."
+msgstr ""
+
+msgid ""
+"Scroll the tour — each module pairs with the surface your team opens daily."
+msgstr ""
+
+msgid "Search a term (student, class, grade…)"
+msgstr ""
+
+msgid "Search and narrow invoices by status or student."
+msgstr ""
+
+msgid "Search query"
+msgstr ""
+
+msgid "Search schools, incidents"
+msgstr ""
+
+msgid "Search terms"
+msgstr ""
+
+msgid "Search, commands, and quick navigation across Studio modes."
+msgstr ""
+
+msgid "Section divider"
+msgstr ""
+
+msgid "Section flourish"
+msgstr ""
+
+msgid "Security & governance"
+msgstr ""
+
+msgid "Security hub"
+msgstr ""
+
+msgid "See all release notes"
+msgstr ""
+
+msgid "See pricing →"
+msgstr ""
+
+msgid "Select type"
+msgstr ""
+
+msgid "Send feedback"
+msgstr ""
+
+msgid "Send me a weekly summary on Friday afternoon."
+msgstr ""
+
+msgid "Sept 2026 cutover from custom SIS"
+msgstr ""
+
+msgid "Set in deployment env"
+msgstr ""
+
+msgid "Severity summary"
+msgstr ""
+
+msgid "Shipped"
+msgstr ""
+
+msgid "Show all keyboard shortcuts"
+msgstr ""
+
+msgid "Show all notifications"
+msgstr ""
+
+msgid "Show every category at once"
+msgstr ""
+
+msgid "Show unread notifications"
+msgstr ""
+
+msgid "Show unread or all notifications."
+msgstr ""
+
+msgid "Signals without tab hunting"
+msgstr ""
+
+msgid "Single-character shortcuts"
+msgstr ""
+
+msgid "Single-thread family view."
+msgstr ""
+
+msgid "Singular"
+msgstr ""
+
+msgid "Six bells. Six surfaces."
+msgstr ""
+
+msgid "Size / SLA tier"
+msgstr ""
+
+msgid ""
+"Some schools require leadership approval before marks publish to reports."
+msgstr ""
+
+msgid "Source handle"
+msgstr ""
+
+msgid "Source not attached yet."
+msgstr ""
+
+msgid "Source platform"
+msgstr ""
+
+msgid "Source-system hint"
+msgstr ""
+
+msgid "Stabilizing"
+msgstr ""
+
+msgid "Staff should not feel the day the system changed."
+msgstr ""
+
+msgid "Staffing gaps surfaced before the first bell."
+msgstr ""
+
+msgid "Stage conversion without spreadsheet drift."
+msgstr ""
+
+msgid "Stage gates for admissions, finance, and HR on one spine."
+msgstr ""
+
+msgid "Start interactive tour"
+msgstr ""
+
+msgid "Start with a demo school"
+msgstr ""
+
+msgid "Status page →"
+msgstr ""
+
+msgid "Step %(current)s of %(total)s"
+msgstr ""
+
+msgid "Step-by-step guides for every role."
+msgstr ""
+
+msgid "Stone"
+msgstr ""
+
+msgid "Stone — warm gray, neutral editorial"
+msgstr ""
+
+msgid "Stored at"
+msgstr ""
+
+msgid ""
+"Structural Q&A grounded in the bundle's profile and classifier output — "
+"counts, column shapes, classifier guesses. Does not scan raw rows."
+msgstr ""
+
+msgid "Student information system"
+msgstr ""
+
+msgid ""
+"Student photos, immunization scans, report-card PDFs — fetched alongside the"
+" tabular rows."
+msgstr ""
+
+msgid "Student's value"
+msgstr ""
+
+msgid "Studio canvas"
+msgstr ""
+
+msgid "Studio mode"
+msgstr ""
+
+msgid "Submit feedback and we'll close the loop here when it ships."
+msgstr ""
+
+msgid "Suggested"
+msgstr ""
+
+msgid "Surface policy"
+msgstr ""
+
+msgid "Surfaces"
+msgstr ""
+
+msgid "Surfaces where this assistant is most useful:"
+msgstr ""
+
+msgid "Switch"
+msgstr ""
+
+msgid "Switch between Experience, Automation, Outputs, Launch, and Control."
+msgstr ""
+
+msgid "Switch between learners linked to your account."
+msgstr ""
+
+msgid "Switch to dark mode"
+msgstr ""
+
+msgid "Switch to light mode"
+msgstr ""
+
+msgid ""
+"Sync pending — {{ counter }} item in queue.{% plural %}Sync pending — {{ "
+"counter }} items in queue."
+msgstr ""
+
+msgid "Tab through cells; save when you are done editing."
+msgstr ""
+
+msgid "Take attendance for this class"
+msgstr ""
+
+msgid "Take photo"
+msgstr ""
+
+msgid "Talk to us"
+msgstr ""
+
+msgid "Target school ID"
+msgstr ""
+
+msgid "Target school ID (optional)"
+msgstr ""
+
+msgid "Teach"
+msgstr ""
+
+msgid ""
+"Tell us about your school and we'll schedule a walkthrough within one "
+"business day."
+msgstr ""
+
+msgid "Tell us what should ship next. Your input drives the roadmap."
+msgstr ""
+
+msgid "Tenant isolation by subdomain"
+msgstr ""
+
+msgid "Tenant isolation posture procurement can verify."
+msgstr ""
+
+msgid "Tenant required"
+msgstr ""
+
+msgid "Term status and collections."
+msgstr ""
+
+msgid "Terminology"
+msgstr ""
+
+msgid ""
+"Terminology settings are tenant-scoped. Open this page from inside a "
+"school's portal subdomain."
+msgstr ""
+
+msgid "Test"
+msgstr ""
+
+msgid "The active workspace for the mode you selected."
+msgstr ""
+
+msgid ""
+"The features that contributed most to today's score, ranked by the model's "
+"importance for this prediction."
+msgstr ""
+
+msgid ""
+"The harness is wired and listening. The moment users start interacting with "
+"the platform, friction events, feedback submissions, and AI conversations "
+"will appear here. This is intentional — empty state today is honest signal."
+msgstr ""
+
+msgid "The ledger reconciles before lunch."
+msgstr ""
+
+msgid ""
+"The most recent inbound webhook deliveries for this tenant. Sourced from the"
+" audit log; only verified deliveries appear here (rejected requests are "
+"logged separately)."
+msgstr ""
+
+msgid "Their Tuesday, on their phone"
+msgstr ""
+
+msgid "This app declares no scopes — confirm install to proceed."
+msgstr ""
+
+msgid ""
+"This bundle isn't bound to a school yet — common when a school uploads "
+"during signup. Bind it to a School row to enable apply."
+msgstr ""
+
+msgid ""
+"This bundle was staged before its tenant existed. Bind it to a School row to"
+" enable apply / reconcile."
+msgstr ""
+
+msgid ""
+"This bundle was staged for a live-source intake method. Wire it up before "
+"the pipeline can pull data."
+msgstr ""
+
+msgid "This page must be accessed via a school subdomain."
+msgstr ""
+
+msgid ""
+"This school has no campuses defined, so the rollup shows only the school-"
+"level baseline. Add campuses from Settings to see per-campus overrides here."
+msgstr ""
+
+msgid ""
+"This score was served by the heuristic baseline (no ML model in production)."
+msgstr ""
+
+msgid "This step target is not visible on this page."
+msgstr ""
+
+msgid "This will WRITE to the tenant. Continue?"
+msgstr ""
+
+msgid ""
+"Tick every scope to acknowledge the access this app will receive on your "
+"school's data. Install will be refused if any scope is unchecked."
+msgstr ""
+
+msgid "Time saved and operational clarity schools report after switching."
+msgstr ""
+
+msgid "Timetable, assignments, and grades in one calm surface."
+msgstr ""
+
+msgid "Today's classes"
+msgstr ""
+
+msgid "Today's plan is already staged."
+msgstr ""
+
+msgid "Today's priorities and announcements from your school."
+msgstr ""
+
+msgid "Today's slip, attendance, and fee in one card."
+msgstr ""
+
+msgid "Today's slip, attendance, and fee — one card, no app install."
+msgstr ""
+
+msgid "Toggle light / dark theme"
+msgstr ""
+
+msgid "Toggle light and dark mode"
+msgstr ""
+
+msgid "Toggle marketing light / dark"
+msgstr ""
+
+msgid "Tomorrow is already staged."
+msgstr ""
+
+msgid "Top risk drivers"
+msgstr ""
+
+msgid "Top {{ counter }} result.{% plural %}Top {{ counter }} results."
+msgstr ""
+
+msgid "Trust and compliance"
+msgstr ""
+
+msgid "Trust center overview"
+msgstr ""
+
+msgid "Trust center →"
+msgstr ""
+
+msgid "Trust pillars"
+msgstr ""
+
+msgid "Tuesday · Cedar Ridge Academy"
+msgstr ""
+
+msgid ""
+"Type a name, classroom, or describe what you're looking for. Results are "
+"ranked by similarity to your query."
+msgstr ""
+
+msgid ""
+"Type a natural-language command — e.g. 'set Student_Number as "
+"student.external_id' or 'map Homeroom to custom_fields.homeroom'. Parsed by "
+"regex first; AI falls in only when needed. Decisions feed AIEmbeddingStore "
+"so the next bundle from the same source recalls them automatically."
+msgstr ""
+
+msgid ""
+"Type at least {{ counter }} character to search.{% plural %}Type at least {{"
+" counter }} characters to search."
+msgstr ""
+
+msgid "Type: %(type)s"
+msgstr ""
+
+msgid "URI / endpoint / mailbox"
+msgstr ""
+
+msgid "Unavailable here"
+msgstr ""
+
+msgid "Unified student + finance data"
+msgstr ""
+
+msgid "Unique identifier used in search, exports, and payment matching."
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+msgid "Upload two CSVs to compare keys and spot migration risk."
+msgstr ""
+
+msgid "Upsert conflicts"
+msgstr ""
+
+msgid "Veracross"
+msgstr ""
+
+msgid "Verified events"
+msgstr ""
+
+msgid "Verified institution"
+msgstr ""
+
+msgid "Verified institution: {{ tenant_name }}"
+msgstr ""
+
+msgid "Verified · {{ tenant_name }}"
+msgstr ""
+
+msgid "Verify:"
+msgstr ""
+
+msgid "Warm Bright"
+msgstr ""
+
+msgid "Warm Bright — buttermilk + honey, welcoming school feel"
+msgstr ""
+
+msgid "We couldn't start the migration:"
+msgstr ""
+
+msgid ""
+"We didn't need more software. We needed the system between the bells to go "
+"quiet."
+msgstr ""
+
+msgid ""
+"We document posture honestly — certifications and live PSP rails only when "
+"externally verified."
+msgstr ""
+
+msgid ""
+"We inventory SIS fields, fee ledgers, and comms history — nothing re-keyed "
+"blind."
+msgstr ""
+
+msgid "Webhook delivery health with replay and remediation."
+msgstr ""
+
+msgid "Webhook rejections"
+msgstr ""
+
+msgid "Welcoming aesthetic"
+msgstr ""
+
+msgid "What changes for everyone in the building"
+msgstr ""
+
+msgid ""
+"What we say we ship vs what's demonstrably wired up. Every shipped row must "
+"resolve a proof (route, model, mgmt command, or CI gate)."
+msgstr ""
+
+msgid "What's new"
+msgstr ""
+
+msgid "Whitelisted intents only — every run is audited."
+msgstr ""
+
+msgid "Whole school (all campuses)"
+msgstr ""
+
+msgid "Why switch →"
+msgstr ""
+
+msgid "Workflow automation depth"
+msgstr ""
+
+msgid "Workspace"
+msgstr ""
+
+msgid "Year 5B's roll marks in nine seconds."
+msgstr ""
+
+msgid "You said. We did."
+msgstr ""
+
+msgid "Your children's status, fees, and school messages in one place."
+msgstr ""
+
+msgid "Your command center"
+msgstr ""
+
+msgid "Your learning home"
+msgstr ""
+
+msgid "Your schedule and class list for the current day."
+msgstr ""
+
+msgid "actually runs."
+msgstr ""
+
+msgid "attention queue"
+msgstr ""
+
+msgid "blank = pre-tenant staging"
+msgstr ""
+
+msgid "broken proofs"
+msgstr ""
+
+msgid "checks"
+msgstr ""
+
+msgid "compliance"
+msgstr ""
+
+msgid "critical open"
+msgstr ""
+
+msgid "deadline compliance"
+msgstr ""
+
+msgid "domains compared"
+msgstr ""
+
+msgid "e.g. high attendance recent improvement"
+msgstr ""
+
+msgid "features"
+msgstr ""
+
+msgid "finished"
+msgstr ""
+
+msgid "geography"
+msgstr ""
+
+msgid "head's office"
+msgstr ""
+
+msgid "implemented"
+msgstr ""
+
+msgid "improved"
+msgstr ""
+
+msgid "improvement list"
+msgstr ""
+
+msgid "in 30d"
+msgstr ""
+
+msgid "in last 7d"
+msgstr ""
+
+msgid "in progress"
+msgstr ""
+
+msgid "inactive"
+msgstr ""
+
+msgid "information"
+msgstr ""
+
+msgid "internal"
+msgstr ""
+
+msgid "live"
+msgstr ""
+
+msgid "not set"
+msgstr ""
+
+msgid "outcomes"
+msgstr ""
+
+msgid "partial"
+msgstr ""
+
+msgid "planned"
+msgstr ""
+
+msgid "portal"
+msgstr ""
+
+msgid "powerschool / blackbaud / custom / leave blank"
+msgstr ""
+
+msgid "press Ctrl+K"
+msgstr ""
+
+msgid "readiness"
+msgstr ""
+
+msgid "remark"
+msgstr ""
+
+msgid "school"
+msgstr ""
+
+msgid "search"
+msgstr ""
+
+msgid "set"
+msgstr ""
+
+msgid "shipped"
+msgstr ""
+
+msgid "signals (7d)"
+msgstr ""
+
+msgid "stages bundle for follow-up"
+msgstr ""
+
+msgid "started"
+msgstr ""
+
+msgid "static (no product route)"
+msgstr ""
+
+msgid "terms"
+msgstr ""
+
+msgid "total"
+msgstr ""
+
+msgid "was: Platform"
+msgstr ""
+
+msgid "workspace"
+msgstr ""
+
+msgid ""
+"{{ c }} is not connected at this scope yet. Connect it first, then come back"
+" here to narrow scopes."
+msgstr ""
+
+msgid "{{ c }} — OAuth scopes"
+msgstr ""
+
+msgid "{{ count }} open incident{% plural %}{{ count }} open incidents"
+msgstr ""
+
+msgid "{{ count }} override{% plural %}{{ count }} overrides"
+msgstr ""
+
+msgid ""
+"{{ counter }} active connection{% plural %}{{ counter }} active connections"
+msgstr ""
+
+msgid "{{ counter }} broken{% plural %}{{ counter }} broken"
+msgstr ""
+
+msgid ""
+"{{ counter }} conflict needs your choice.{% plural %}{{ counter }} conflicts"
+" need your choice."
+msgstr ""
+
+msgid "{{ counter }} event{% plural %}{{ counter }} events"
+msgstr ""
+
+msgid "{{ counter }} in flight{% plural %}{{ counter }} in flight"
+msgstr ""
+
+msgid "{{ counter }} info{% plural %}{{ counter }} info"
+msgstr ""
+
+msgid ""
+"{{ counter }} issue found across {{ school }}{% plural %}{{ counter }} "
+"issues found across {{ school }}"
+msgstr ""
+
+msgid ""
+"{{ counter }} item failed — retry to sync.{% plural %}{{ counter }} items "
+"failed — retry to sync."
+msgstr ""
+
+msgid "{{ counter }} planned{% plural %}{{ counter }} planned"
+msgstr ""
+
+msgid "{{ counter }} record{% plural %}{{ counter }} records"
+msgstr ""
+
+msgid "{{ counter }} rejection{% plural %}{{ counter }} rejections"
+msgstr ""
+
+msgid ""
+"{{ counter }} related request{% plural %}{{ counter }} related requests"
+msgstr ""
+
+msgid "{{ counter }} school{% plural %}{{ counter }} schools"
+msgstr ""
+
+msgid "{{ counter }} shipped{% plural %}{{ counter }} shipped"
+msgstr ""
+
+msgid "{{ counter }} warning{% plural %}{{ counter }} warnings"
+msgstr ""
+
+msgid "· custom on /pricing/"
+msgstr ""
+
+msgid "— choose connector —"
+msgstr ""
+
+msgid "● Strong · ◐ Partial · ○ Limited (illustrative)"
+msgstr ""
+
+msgid "Animation suspends under prefers-reduced-motion automatically."
+msgstr ""
+
+msgid ""
+"Color via currentColor on the wrapper figure. Use mkt-advisor-figure--brand "
+"to pick up tenant primary."
+msgstr ""
+
+msgid "Editorial advisor — storybook"
+msgstr ""
+
+msgid "Every pose × every variant. Staff-only design-review surface."
+msgstr ""
+
+msgid ""
+"Include via the canonical partial — never re-declare the SVG inline "
+"(enforced by scan_advisor_consistency)."
+msgstr ""
+
+msgid "Mascot storybook"
+msgstr ""
+
+msgid ""
+"On RTL surfaces (body.bidi-rtl), the advisor's side-anchor flips to the "
+"trailing edge."
+msgstr ""
+
+msgid "Poses"
+msgstr ""
+
+msgid "Sizes"
+msgstr ""
+
+msgid "Source partial:"
+msgstr ""
+
+msgid "Usage rules"
+msgstr ""
+
+msgid "Variants"
+msgstr ""

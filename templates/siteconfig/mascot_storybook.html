@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Mascot storybook" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="h3 mb-1">{% trans "Editorial advisor — storybook" %}</h1>
+  <p class="text-muted mb-4">
+    {% trans "Every pose × every variant. Staff-only design-review surface." %}
+    {% trans "Source partial:" %} <code>templates/marketing/components/_advisor_character.html</code>
+  </p>
+
+  {# Section 1 — every pose at default size + ink. #}
+  <section class="mb-5">
+    <h2 class="h5 mb-3">{% trans "Poses" %}</h2>
+    <div class="row g-3">
+      {% for slug, desc in poses %}
+      <div class="col-md-3 col-sm-4 col-6">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <div class="mkt-advisor-figure mkt-advisor-figure--muted" aria-hidden="true">
+              {% include "marketing/components/_advisor_character.html" with pose=slug size=180 accessible_label="" %}
+            </div>
+          </div>
+          <div class="card-footer bg-transparent">
+            <div class="fw-semibold">{{ slug }}</div>
+            <div class="small text-muted">{{ desc }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# Section 2 — every variant on the intro pose. #}
+  <section class="mb-5">
+    <h2 class="h5 mb-3">{% trans "Variants" %}</h2>
+    <div class="row g-3">
+      {% for klass, label in variants %}
+      <div class="col-md-4 col-sm-6 col-12">
+        <div class="card h-100">
+          <div class="card-body text-center{% if 'on-dark' in klass %} bg-dark{% endif %}">
+            <div class="mkt-advisor-figure {{ klass }}" aria-hidden="true">
+              {% include "marketing/components/_advisor_character.html" with pose="intro" size=160 accessible_label="" %}
+            </div>
+          </div>
+          <div class="card-footer bg-transparent">
+            <div class="fw-semibold">{{ klass|default:"(no variant class)" }}</div>
+            <div class="small text-muted">{{ label }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# Section 3 — sizes ladder. #}
+  <section class="mb-5">
+    <h2 class="h5 mb-3">{% trans "Sizes" %}</h2>
+    <div class="d-flex flex-wrap gap-3 align-items-end">
+      {% for s in sizes %}
+      <div class="text-center">
+        <div class="mkt-advisor-figure mkt-advisor-figure--muted" aria-hidden="true">
+          {% include "marketing/components/_advisor_character.html" with pose="intro" size=s accessible_label="" %}
+        </div>
+        <div class="small text-muted mt-2">{{ s }}px</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="mb-5">
+    <h2 class="h5 mb-3">{% trans "Usage rules" %}</h2>
+    <ul class="text-muted small">
+      <li>{% trans "Include via the canonical partial — never re-declare the SVG inline (enforced by scan_advisor_consistency)." %}</li>
+      <li>{% trans "Color via currentColor on the wrapper figure. Use mkt-advisor-figure--brand to pick up tenant primary." %}</li>
+      <li>{% trans "Animation suspends under prefers-reduced-motion automatically." %}</li>
+      <li>{% trans "On RTL surfaces (body.bidi-rtl), the advisor's side-anchor flips to the trailing edge." %}</li>
+    </ul>
+  </section>
+</div>
+{% endblock %}

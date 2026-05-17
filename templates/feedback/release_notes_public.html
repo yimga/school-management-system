@@ -6,7 +6,14 @@
 
 {% block content %}
 <div class="container-fluid py-4" data-page-archetype="reading-list">
-  {% include "studio_os/components/page_header.html" with title=_("Release notes") subtitle=_("What's new on RunMyCampus. We ship every couple of weeks.") %}
+  <div class="d-flex align-items-center gap-3 mb-3">
+    <div class="mkt-advisor-figure mkt-advisor-figure--muted mkt-advisor-figure--reveal d-none d-md-inline-flex" aria-hidden="true">
+      {% include "marketing/components/_advisor_character.html" with pose="reviewing" size=140 accessible_label="" %}
+    </div>
+    <div class="flex-grow-1">
+      {% include "studio_os/components/page_header.html" with title=_("Release notes") subtitle=_("What's new on RunMyCampus. We ship every couple of weeks.") %}
+    </div>
+  </div>
 
   <div class="row g-3">
     <section class="col-lg-9">

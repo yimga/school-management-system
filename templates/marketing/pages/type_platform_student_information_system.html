@@ -1,0 +1,26 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}">{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-sis{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-v3-archetype" data-mkt-archetype="student-information-system">
+  <header class="mkt-v3-archetype__hero mkt-edt-container">
+    <p class="mkt-v3-eyebrow">{% trans "Student information system" %}</p>
+    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
+    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
+    <div class="mkt-v3-archetype__ctas">
+      <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
+      <a href="{% url 'marketing_teach_hub' %}" class="mkt-edt-link">{% trans "Back to Teach →" %}</a>
+    </div>
+  </header>
+  {% include "marketing/components/_dashboard_frame.html" with frame_title="Learner spine" dashboard_partial="schools/_v2/_artifact_leader_overview.svg.html" %}
+  <section class="mkt-edt-container mkt-v3-archetype__wins">
+    <h2>{% trans "One record, every bell" %}</h2>
+    <ul>
+      <li>{% trans "Enrollment, guardians, and class context stay linked." %}</li>
+      <li>{% trans "Medical, conduct, and documents without duplicate files." %}</li>
+      <li>{% trans "Feeds attendance, fees, and reports without re-keying." %}</li>
+    </ul>
+  </section>
+</article>
+{% endblock %}

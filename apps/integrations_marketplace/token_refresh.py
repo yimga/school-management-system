@@ -47,9 +47,26 @@ from apps.integrations_marketplace.connector_registry import (
     get_connector,
     resolve_oauth_client_credentials,
 )
+from apps.observability.tracing import (
+    finish_transaction,
+    set_tags,
+    set_transaction_status,
+    start_named_transaction,
+)
 from apps.siteconfig.models_platform_catalog import ServiceIntegration
 
 logger = logging.getLogger(__name__)
+
+# Statuses that always warrant a WARNING-level log so on-call sees them in
+# the worker logs even without Sentry. `deactivated_invalid_grant` is the one
+# the operator typically needs to react to (refresh token revoked → user
+# must reconnect); `transport_error` and `refresh_failed_no_token` are
+# upstream / our-bug signals respectively.
+_ALERT_STATUSES = frozenset({
+    "deactivated_invalid_grant",
+    "transport_error",
+    "refresh_failed_no_token",
+})
 
 REFRESH_WINDOW_SECONDS = 600         # refresh tokens that expire in <10 min
 DEFAULT_LIFETIME_SECONDS = 3600      # assume 1h when upstream returns no expires_in
@@ -207,42 +224,98 @@ def refresh_single(row: ServiceIntegration) -> dict[str, Any]:
     }
 
 
+def _summarize_outcomes(out: list[dict[str, Any]]) -> dict[str, int]:
+    """Aggregate per-status counts for logging / Sentry tags."""
+    counts: dict[str, int] = {}
+    for item in out:
+        s = str(item.get("status") or "unknown")
+        counts[s] = counts.get(s, 0) + 1
+    return counts
+
+
 def refresh_due_oauth_tokens(*, dry_run: bool = False) -> list[dict[str, Any]]:
     """
     Walk every active OAuth-backed ServiceIntegration row and refresh those
     whose access token is about to expire. Returns one status dict per row
     examined (for management-command output and Celery logs).
 
+    Observability (v2.79 follow-up):
+      - one named Sentry transaction per run (op="task.hot_path")
+      - per-status counts tagged on the transaction at finish time
+      - WARNING-level log for alert-worthy statuses
+        (deactivated_invalid_grant / transport_error / refresh_failed_no_token)
+      - txn status set to "internal_error" when at least one alert-worthy
+        status occurred so it surfaces on the Sentry perf board
+
     Note: this is the function Celery beat / cron should call. The bare
     `@shared_task` decorator is applied at import time below if Celery is on
     the path; if not, the function is still importable and callable.
     """
+    txn = start_named_transaction(
+        "integrations_marketplace.refresh_due_oauth_tokens",
+        op="task.hot_path",
+        dry_run="1" if dry_run else "0",
+    )
     out: list[dict[str, Any]] = []
-    # tenant-isolation-allow: sweeper walks every tenant's OAuth rows by design;
-    # the per-call refresh writes back only to that row's school.
-    qs = ServiceIntegration.objects.filter(is_active=True).exclude(connector_slug="")
-    for row in qs.iterator():
-        if not _is_due(row.config or {}):
-            out.append({"row_id": row.pk, "slug": row.connector_slug, "status": "not_due"})
-            continue
-        if dry_run:
-            out.append(
-                {"row_id": row.pk, "slug": row.connector_slug, "status": "would_refresh"}
-            )
-            continue
-        try:
-            out.append(refresh_single(row))
-        except Exception as exc:  # noqa: BLE001 — last-resort log + continue sweeper
-            logger.exception(
-                "Unexpected refresh error for row %s: %s", row.pk, exc
-            )
-            out.append(
-                {
+    try:
+        # tenant-isolation-allow: sweeper walks every tenant's OAuth rows by design;
+        # the per-call refresh writes back only to that row's school.
+        qs = ServiceIntegration.objects.filter(is_active=True).exclude(connector_slug="")
+        for row in qs.iterator():
+            if not _is_due(row.config or {}):
+                out.append({"row_id": row.pk, "slug": row.connector_slug, "status": "not_due"})
+                continue
+            if dry_run:
+                out.append(
+                    {"row_id": row.pk, "slug": row.connector_slug, "status": "would_refresh"}
+                )
+                continue
+            try:
+                result = refresh_single(row)
+            except Exception as exc:  # noqa: BLE001 — last-resort log + continue sweeper
+                logger.exception(
+                    "Unexpected refresh error for row %s: %s", row.pk, exc
+                )
+                result = {
                     "row_id": row.pk,
                     "slug": row.connector_slug,
                     "status": "unhandled_exception",
                 }
-            )
+            out.append(result)
+            status = str(result.get("status") or "")
+            if status in _ALERT_STATUSES:
+                logger.warning(
+                    "OAuth token refresh alert: connector=%s row_id=%s status=%s "
+                    "http_status=%s error=%s",
+                    result.get("slug"), result.get("row_id"), status,
+                    result.get("http_status"), result.get("error"),
+                )
+    finally:
+        counts = _summarize_outcomes(out)
+        # Tag the txn (and the current scope so Sentry events captured during
+        # this run inherit the same labels).
+        try:
+            tag_payload = {f"refresh.{k}": str(v) for k, v in counts.items()}
+            tag_payload["refresh.examined"] = str(len(out))
+            set_tags(**tag_payload)
+            if txn is not None:
+                for k, v in tag_payload.items():
+                    try:
+                        txn.set_tag(k, v)
+                    except Exception:  # noqa: BLE001
+                        pass
+        except Exception:  # noqa: BLE001 — telemetry never blocks
+            pass
+        # Mark the txn as errored if any alert-worthy status fired so on-call
+        # sees it in the Sentry perf board.
+        if any(counts.get(s, 0) for s in _ALERT_STATUSES):
+            set_transaction_status(txn, "internal_error")
+        else:
+            set_transaction_status(txn, "ok")
+        finish_transaction(txn)
+        logger.info(
+            "Refreshed OAuth tokens — examined=%d counts=%s", len(out), counts
+        )
     return out
 
 

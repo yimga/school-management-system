@@ -60,6 +60,10 @@ def ai_center(request: HttpRequest) -> HttpResponse:
                 default_row = row
                 break
 
+    user = request.user
+    show_operator_setup = bool(
+        getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)
+    )
     return render(
         request,
         "siteconfig/ai_center.html",
@@ -68,5 +72,6 @@ def ai_center(request: HttpRequest) -> HttpResponse:
             "default_assistant": default_row,
             "provider_status": get_public_ai_provider_status(),
             "ai_governance_url": _resolve_optional("siteconfig:ai_governance"),
+            "show_operator_ollama_setup": show_operator_setup,
         },
     )

@@ -1,7 +1,11 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Integrations" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/_pages/integrations_marketplace__hub.js' %}" defer></script>
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-3" data-page-archetype="integrations-hub">
@@ -13,7 +17,20 @@
         {% blocktrans %}Connect the external tools your school already uses — meetings, calendars, chat, and email. Connections are scoped per school and (optionally) per campus.{% endblocktrans %}
       </p>
     </div>
-    <a href="#disconnect-help" class="small text-decoration-none text-muted">{% trans "How to disconnect" %}</a>
+    <div class="d-flex align-items-center gap-3">
+      {% if available_campuses %}
+        <a href="{% url 'integrations_marketplace:rollup' %}" class="btn btn-sm btn-outline-secondary">
+          {% trans "All-campuses rollup" %}
+        </a>
+      {% endif %}
+      <a href="{% url 'integrations_marketplace:events' %}" class="btn btn-sm btn-outline-secondary">
+        {% trans "Webhook events" %}
+      </a>
+      <a href="{% url 'integrations_marketplace:rejections' %}" class="btn btn-sm btn-outline-secondary">
+        {% trans "Rejections" %}
+      </a>
+      <a href="#disconnect-help" class="small text-decoration-none text-muted">{% trans "How to disconnect" %}</a>
+    </div>
   </div>
 
   {% if available_campuses %}
@@ -52,7 +69,7 @@
         {% for entry in section.entries %}
           {% with c=entry.connector %}
           <div class="list-group-item d-flex flex-wrap align-items-center gap-3 py-3">
-            <div class="{{ c.brand_mark_class }}" aria-hidden="true"></div>
+            {% include "integrations_marketplace/_brand_mark.html" with connector=c %}
             <div class="flex-grow-1 min-w-0">
               <div class="d-flex align-items-center gap-2">
                 <strong class="rmc-type-body">{{ c.label }}</strong>
@@ -90,6 +107,18 @@
                 <span class="small text-muted">{% trans "Configure in API Center" %}</span>
               {% endif %}
               {% if entry.is_configured %}
+                {% if c.is_oauth %}
+                  <a class="btn btn-sm btn-link text-muted"
+                     href="{% url 'integrations_marketplace:scope_override' connector_slug=c.slug %}{% if selected_campus %}?campus={{ selected_campus.pk }}{% endif %}">
+                    {% trans "Scopes" %}
+                  </a>
+                {% endif %}
+                {% if entry.integration_id %}
+                  <button type="button" class="btn btn-sm btn-outline-secondary"
+                          data-rmc-test-webhook="{% url 'integrations_marketplace:test_webhook' connector_slug=c.slug integration_id=entry.integration_id %}">
+                    {% trans "Test" %}
+                  </button>
+                {% endif %}
                 <form method="post"
                       action="{% if selected_campus and entry.source == 'campus' %}{% url 'integrations_marketplace:disconnect_campus' connector_slug=c.slug campus_id=selected_campus.pk %}{% else %}{% url 'integrations_marketplace:disconnect' connector_slug=c.slug %}{% endif %}"
                       class="d-inline">

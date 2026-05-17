@@ -223,6 +223,7 @@ class ModuleAccessMiddleware:
         "/status/",
         "/metrics/",
         "/siteconfig/preferences",  # Any authenticated user can manage own preferences (theme, dashboard, etc.)
+        "/siteconfig/api/tour-",  # Guided tour + info-tag helpers (all portal roles)
     )
     BYPASS_PATHS = {
         "/authentication/login/",
@@ -612,6 +613,7 @@ class RequireMFAMiddleware:
         "/status/",
         "/metrics/",
         "/api/",
+        "/siteconfig/api/tour-",  # Guided tour + info-tag helpers (all portal roles)
     )
     BYPASS_PATHS = (
         "/authentication/login/",

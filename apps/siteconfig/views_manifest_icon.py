@@ -119,6 +119,29 @@ def _site_initial(settings_obj) -> str:
     return name[0].upper()
 
 
+def _draw_bell_clock_companion(draw, size: int, *, stroke_rgb, fill_rgb) -> None:
+    """Small bell-clock mark in the corner (canonical geometry from _bell_clock_mark.html)."""
+    import math
+
+    pad = max(2, int(size * 0.12))
+    cx = size - pad - int(size * 0.18)
+    cy = size - pad - int(size * 0.18)
+    r_ring = max(3, int(size * 0.14))
+    stroke = stroke_rgb + (200,)  # magic-number-allow: companion-ring-alpha
+    fill = fill_rgb + (255,)  # magic-number-allow: rgba-opaque-alpha
+    draw.ellipse(
+        (cx - r_ring, cy - r_ring, cx + r_ring, cy + r_ring),
+        outline=stroke,
+        width=max(1, size // 64),
+    )
+    dot_r = max(1, size // 40)
+    for idx in (0, 1, 2):
+        angle = math.pi / 2 - idx * (math.pi / 3)
+        x = cx + (r_ring - dot_r) * math.cos(angle)
+        y = cy - (r_ring - dot_r) * math.sin(angle)
+        draw.ellipse((x - dot_r, y - dot_r, x + dot_r, y + dot_r), fill=fill)
+
+
 def _render_monogram_png(size: int, *, primary_rgb, background_rgb, initial: str, maskable: bool) -> bytes:
     """Pillow fallback when the tenant has no logo on file."""
     from PIL import Image, ImageDraw, ImageFont
@@ -166,6 +189,19 @@ def _render_monogram_png(size: int, *, primary_rgb, background_rgb, initial: str
         tw = th = text_size
         tx = ty = (size - text_size) // 2
     draw.text((tx, ty), initial, fill=text_color, font=font)
+
+    if not maskable:
+        accent_rgb = (
+            min(255, primary_rgb[0] + 40),  # magic-number-allow: bell-accent-shift
+            max(0, primary_rgb[1] - 20),
+            max(0, primary_rgb[2] - 40),
+        )
+        _draw_bell_clock_companion(
+            draw,
+            size,
+            stroke_rgb=background_rgb if background_rgb[0] > 200 else (15, 27, 45),  # magic-number-allow: ink-stroke-rgb
+            fill_rgb=accent_rgb,
+        )
 
     buf = io.BytesIO()
     img.save(buf, format="PNG", optimize=True)

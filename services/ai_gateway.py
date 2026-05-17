@@ -440,6 +440,41 @@ def _rules_fallback(user_query: str) -> str:
     return _rules(user_query)
 
 
+def _live_provider_configured() -> bool:
+    try:
+        from apps.portal.ai_provider import get_ai_provider_status
+
+        return bool(get_ai_provider_status().get("has_live_provider"))
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return False
+
+
+def _rules_invoke_result(
+    task_key: str,
+    user_query: str,
+    prompt: str,
+    response_schema: str | None,
+    metadata: dict[str, Any] | None,
+) -> Any:
+    """Rules-tier payload: structured dict for guided_assistant, else legacy string or schema default."""
+    if response_schema == "guided_assistant":
+        from services.ai_guided_fallback import build_guided_fallback
+
+        rag = (metadata or {}).get("rag_snippets")
+        snippets = rag if isinstance(rag, list) else None
+        return build_guided_fallback(
+            task_type=task_key,
+            user_query=user_query or "",
+            rag_snippets=snippets,
+            live_provider_available=_live_provider_configured(),
+        )
+    if response_schema:
+        default = _safe_schema_default(response_schema)
+        if default is not None:
+            return default
+    return _rules_fallback(user_query or prompt[:200])
+
+
 def _safe_schema_default(response_schema: str | None) -> Any:
     if response_schema == "workflow_draft":
         return {"name": "", "trigger_type": "manual", "steps": [], "description": ""}
@@ -701,11 +736,14 @@ def _invoke_inner(
         request_id = str(uuid4())
         request_date = date.today().isoformat()
         if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)):
-            result = _rules_fallback(user_query or prompt[:200])
+            result = _rules_invoke_result(
+                task_key, user_query or "", prompt, response_schema, md
+            )
             out_meta = {
                 "provider": "rules",
                 "tier": "rules",
                 "fallback": True,
+                "degraded": response_schema == "guided_assistant",
                 "gateway_enabled": False,
                 "errors": {"gateway": "disabled"},
                 "request_id": request_id,
@@ -812,9 +850,13 @@ def _invoke_inner(
             text, meta = _call_litellm(prompt, metadata=md, timeout_sec=timeout_sec)
         elif tier == "rules":
             elapsed_ms = (time.perf_counter() - start) * 1000
-            result = _rules_fallback(user_query or prompt[:200])
+            result = _rules_invoke_result(
+                task_key, user_query or "", prompt, response_schema, md
+            )
             is_rules_fallback = bool(errors)
             meta = {"fallback": True} if is_rules_fallback else {}
+            if response_schema == "guided_assistant":
+                meta["degraded"] = True
             if errors:
                 meta["errors"] = errors
             meta.update({
@@ -859,7 +901,12 @@ def _invoke_inner(
                 except (ValueError, TypeError) as e:
                     logger.warning("Schema validation failed for %s: %s", response_schema, e)
                     schema_validation_failed = True
-                    result = _safe_schema_default(response_schema)
+                    if response_schema == "guided_assistant":
+                        result = _rules_invoke_result(
+                            task_key, user_query or "", prompt, response_schema, md
+                        )
+                    else:
+                        result = _safe_schema_default(response_schema)
             else:
                 result = text
             out_meta = {
@@ -878,7 +925,9 @@ def _invoke_inner(
 
     elapsed_ms = (time.perf_counter() - start) * 1000
     if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)) and rules_allowed_for_call:
-        result = _rules_fallback(user_query or prompt[:200])
+        result = _rules_invoke_result(
+            task_key, user_query or "", prompt, response_schema, md
+        )
         out_meta = {
             "errors": errors,
             "request_id": request_id,
@@ -886,9 +935,16 @@ def _invoke_inner(
             "task_type": task_key,
             "cost_class": _cost_class_for_tier("rules"),
             "user_id": user_id,
+            "degraded": response_schema == "guided_assistant",
         }
         _audit_log(task_key, "rules", "rules", elapsed_ms, tenant_id, school_id, "fallback", out_meta)
-        return result, {"provider": "rules", "tier": "rules", "latency_ms": round(elapsed_ms, 2), "fallback": True, **out_meta}
+        return result, {
+            "provider": "rules",
+            "tier": "rules",
+            "latency_ms": round(elapsed_ms, 2),
+            "fallback": True,
+            **out_meta,
+        }
     failure_meta = {
         "errors": errors,
         "request_id": request_id,

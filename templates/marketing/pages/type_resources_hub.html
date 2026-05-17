@@ -1,5 +1,34 @@
 {% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-resources{% endblock %}
 {% block marketing_page_inner %}
-{% include "marketing/partials/marketing_inner_default.html" %}
+<article class="mkt-v3-page mkt-v3-page--resources">
+  <header class="mkt-v3-page__hero mkt-edt-container rmc-reveal">
+    <p class="mkt-v3-eyebrow">{% trans "Resources" %}</p>
+    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
+    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
+  </header>
+  {% if page.segments %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal">
+    <div class="mkt-v3-segment-grid">
+      {% for seg in page.segments %}
+      <article class="mkt-v3-segment-card">
+        <h2 class="h5">{{ seg.title }}</h2>
+        <p>{{ seg.body }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal">
+    <h2 class="mkt-v3-section-headline">{% trans "Explore" %}</h2>
+    <ul class="mkt-v3-link-list">
+      <li><a href="{% url 'marketing_blog' %}">{% trans "Blog" %}</a></li>
+      <li><a href="{% url 'marketing_resources_guides' %}">{% trans "Guides" %}</a></li>
+      <li><a href="{% url 'marketing_resources_case_studies' %}">{% trans "Case studies" %}</a></li>
+      <li><a href="{% url 'marketing_resources_help_center' %}">{% trans "Help center" %}</a></li>
+    </ul>
+  </section>
+</article>
 {% endblock %}

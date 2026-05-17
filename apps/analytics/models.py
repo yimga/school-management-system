@@ -145,6 +145,12 @@ class RiskFactor(models.Model):
         blank=True,
         help_text="ML model name@version used for this score (Phase 9 registry).",
     )
+    feature_contributions = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Wave 3: top-K feature attributions, list of "
+        "{name, value, importance, direction}. Empty when heuristic path served.",
+    )
     computed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -563,3 +569,24 @@ class AtRiskOutcomeLabel(models.Model):
 
     def __str__(self) -> str:
         return f"{self.student_id}@{self.academic_year_id}={self.label}"
+
+
+# Re-export the ML registry models so Django's app loader picks them up
+# under the `analytics` app_label without callers having to know about the
+# split.
+from apps.analytics.models_ml_registry import (  # noqa: E402,F401
+    AtRiskInferenceRun,
+    AtRiskModelArtifact,
+    AtRiskShadowComparison,
+    AtRiskShadowRun,
+)
+from apps.analytics.models_grade_prediction import (  # noqa: E402,F401
+    GradePrediction,
+    GradePredictionLabel,
+    GradePredictionModelArtifact,
+    GradePredictionShadowComparison,
+    GradePredictionShadowRun,
+)
+from apps.analytics.models_digest import (  # noqa: E402,F401
+    RiskDigestRecipient,
+)

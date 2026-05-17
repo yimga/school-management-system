@@ -1,0 +1,20 @@
+{
+  "artifact": "var\\at_risk_v2_2026q2.joblib",
+  "model_version": "at_risk_v1_synthetic",
+  "holdout_size": 2000,
+  "positive_rate": 0.6045,
+  "threshold": 0.5,
+  "metrics": {
+    "roc_auc": 0.851744553857029,
+    "average_precision": 0.8888071909881233,
+    "precision_at_threshold": 0.8247338247338247,
+    "recall_at_threshold": 0.8329197684036393,
+    "f1_at_threshold": 0.8288065843621399
+  },
+  "confusion_matrix": {
+    "tn": 577,
+    "fp": 214,
+    "fn": 202,
+    "tp": 1007
+  }
+}

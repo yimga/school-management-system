@@ -1,0 +1,74 @@
+# Proves AI is functional against a real Ollama daemon — not mocked unit tests.
+name: AI live Ollama
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - "services/ai_gateway.py"
+      - "services/inference.py"
+      - "apps/portal/ai_provider.py"
+      - "apps/portal/views_ai_gateway.py"
+      - "apps/portal/views_ai_copilot.py"
+      - "apps/portal/tests/test_ai_live_http_integration.py"
+      - "services/tests/test_ai_live_ollama_integration.py"
+      - "scripts/verify_ollama_live.py"
+      - ".github/workflows/ai-live-ollama.yml"
+  schedule:
+    - cron: "0 7 * * 1"
+
+jobs:
+  live-ollama:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      ollama:
+        image: ollama/ollama:latest
+        ports:
+          - 11434:11434
+    env:
+      DEBUG: "0"
+      SECRET_KEY: "ci-ai-live-ollama-not-for-production-use-64chars________________"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,testserver,ailive.runmycampus.com"
+      AI_GATEWAY_ENABLED: "1"
+      AI_ALLOW_RULES_FALLBACK: "1"
+      OLLAMA_ENDPOINT: http://localhost:11434/api/generate
+      OLLAMA_MODEL: llama3.2:1b
+      RMC_AI_REQUIRE_LIVE: "1"
+      DJANGO_TEST_DB_FILE: .django_test_dbs/ci_ai_live_ollama.sqlite3
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Wait for Ollama and pull model
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:11434/api/tags >/dev/null; then
+              echo "Ollama ready"
+              break
+            fi
+            sleep 2
+          done
+          curl -sf http://localhost:11434/api/tags
+          curl -fsS http://localhost:11434/api/pull -d '{"name":"llama3.2:1b"}'
+
+      - name: Operator verify script (strict + invoke)
+        run: python scripts/verify_ollama_live.py --strict --invoke
+
+      - name: Live integration tests (no mocks)
+        run: |
+          mkdir -p .django_test_dbs
+          python manage.py test \
+            --tag=ai_live_ollama \
+            --settings=config.settings \
+            --noinput \
+            -v 2

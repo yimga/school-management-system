@@ -12,7 +12,7 @@ class TourStepsControlPlaneTests(SimpleTestCase):
         u = SimpleNamespace(is_authenticated=True, is_superuser=True, role="")
         steps = control_plane_default_tour_steps("super_trust", u)
         self.assertEqual(len(steps), 3)
-        self.assertEqual(steps[0]["code"], "cp_trust_header")
+        self.assertEqual(steps[0]["code"], "cp-trust-header")
 
     def test_super_migration_steps(self):
         u = SimpleNamespace(is_authenticated=True, is_superuser=True, role="")

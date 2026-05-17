@@ -1998,9 +1998,10 @@ register_both(FeatureToggleState, FeatureToggleStateAdmin)
 
 class TourStepAdmin(ModelAdmin):
     change_form_template = "admin/siteconfig/tourstep/change_form.html"
-    list_display = ("code", "title", "school")
-    list_filter = ("school",)
-    search_fields = ("code", "title")
+    list_display = ("context", "sort_order", "code", "title", "school", "is_active")
+    list_filter = ("school", "context", "is_active")
+    search_fields = ("code", "title", "context", "selector")
+    ordering = ("context", "sort_order", "code")
 
 
 class FeatureUsageEventAdmin(ModelAdmin):

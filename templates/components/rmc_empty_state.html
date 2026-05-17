@@ -21,7 +21,9 @@
     {% elif illustration == "permission" %}{% include "components/illustrations/_empty_permission.html" %}
     {% elif illustration == "first_run" %}{% include "components/illustrations/_empty_first_run.html" %}
     {% elif illustration == "inbox" %}{% include "components/illustrations/_empty_inbox.html" %}
-    {% else %}<i class="bi {{ icon|default:'bi-inbox' }}"></i>{% endif %}
+    {% elif illustration == "bell_clock" %}{% include "components/_bell_clock_mark.html" with size=56 extra_class="rmc-empty__bell-clock" accessible_label="Quiet between the bells" %}
+    {% elif icon %}<i class="bi {{ icon }}"></i>
+    {% else %}{% include "components/_bell_clock_mark.html" with size=56 extra_class="rmc-empty__bell-clock rmc-empty__bell-clock--quiet" accessible_label="Quiet — nothing yet" %}{% endif %}
   </div>
   {% if title %}<h3 class="rmc-empty__title rmc-type-headline-m">{{ title }}</h3>{% endif %}
   {% if message %}<p class="rmc-empty__message rmc-type-body">{{ message }}</p>{% endif %}

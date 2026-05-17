@@ -67,6 +67,9 @@ class StaffLander(Lander):
                     result.updated_ids_with_old_values.append(
                         {"pk": obj.pk, "old": {k: getattr(obj, k, None) for k in defaults}}
                     )
+                from ._helpers import detect_and_register_assets, record_id_mapping
+                record_id_mapping(ctx=ctx, legacy_id=external_id, canonical_obj=obj, domain="staff")
+                detect_and_register_assets(ctx=ctx, legacy_id=external_id, entity_kind="staff", row=row)
             except Exception as exc:  # noqa: BLE001
                 result.quarantined += 1
                 result.errors.append(f"staff upsert failed for {external_id}: {type(exc).__name__}: {exc}")

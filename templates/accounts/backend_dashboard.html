@@ -69,7 +69,7 @@ backend-shell dashboard-page-backend
       <ul class="rmc-section-nav__list">
         <li><a href="#section-today"><i class="bi bi-sunrise" aria-hidden="true"></i>{% trans "Today" %}</a></li>
         <li><a href="#section-attention"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>{% trans "Needs attention" %}</a></li>
-        <li><a href="#section-readiness"><i class="bi bi-clipboard-data" aria-hidden="true"></i>{% trans "School readiness" %}</a></li>
+        <li><a href="#section-readiness"><i class="bi bi-clipboard-data" aria-hidden="true"></i>{% term "school" capitalize=True %} {% trans "readiness" %}</a></li>
       </ul>
     </nav>
   </div>
@@ -261,7 +261,7 @@ backend-shell dashboard-page-backend
           {% endif %}
           <link rel="stylesheet" href="{% static 'css/backend-bento-asymmetric.css' %}">
           {% if overview_cards %}
-          <div class="backend-bento-asymmetric">
+          <div class="backend-bento-asymmetric" data-tour="backend-kpi-strip">
             {% with m=overview_cards.0 %}
             <article class="backend-bento-hero rmc-glass-surface backend-v2-metric backend-v2-metric--tone-1 {% if m.status == 'danger' %}is-danger{% endif %}" class="rmc-reveal">
               <div class="backend-v2-metric-title"><span>{{ m.title }}</span><i class="bi {{ m.icon }}"></i></div>
@@ -975,14 +975,11 @@ backend-shell dashboard-page-backend
   <script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
   <script src="{% static 'js/dashboard-layout.js' %}"></script>
   <script src="{% static 'js/backend-dashboard-v2-page.js' %}"></script>
-  {% if first_login_tour_show and tour_steps_api_url and tour_complete_url %}
-  <script type="application/json" id="page-data-accounts__backend_dashboard-1">{
-  "trans_skip": "{% trans 'Skip' %}",
-  "trans_next": "{% trans 'Next' %}",
-  "trans_done": "{% trans 'Done' %}",
-  "trans_next_2": "{% trans 'Next' %}",
-  "var_tour_steps_api_url_escapejs": "{{ tour_steps_api_url|escapejs|escapejs }}",
-  "var_tour_complete_url_escapejs": "{{ tour_complete_url|escapejs|escapejs }}"
-}</script><script src="{% static 'js/_pages/accounts__backend_dashboard-1.js' %}"></script>
+  {% if first_login_tour_show and tour_complete_url %}
+  <script type="application/json" id="rmc-tour-page-config">{
+  "autostart": "{{ tour_autostart_context|default:'backend_dashboard_admin'|escapejs }}",
+  "completeUrl": "{{ tour_complete_url|escapejs }}",
+  "delayMs": 600
+}</script>
   {% endif %}
 {% endblock %}

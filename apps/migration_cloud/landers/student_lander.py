@@ -9,6 +9,12 @@ from __future__ import annotations
 
 from typing import Any, Iterator
 
+from ._helpers import (
+    conflict_resolution_for,
+    detect_and_register_assets,
+    detect_conflict,
+    record_id_mapping,
+)
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 
 
@@ -70,6 +76,23 @@ class StudentLander(Lander):
 
             try:
                 lookup_field = _lookup_field("external_id", model_fields)
+                existing_obj = StudentProfile.objects.filter(
+                    **{lookup_field: external_id}
+                ).first()
+                if existing_obj is not None:
+                    detect_conflict(
+                        ctx=ctx, domain="students",
+                        canonical_obj=existing_obj, incoming=defaults,
+                        legacy_id=external_id,
+                    )
+                    resolution = conflict_resolution_for(ctx=ctx, canonical_obj=existing_obj)
+                    if resolution == "PRESERVE":
+                        result.skipped += 1
+                        record_id_mapping(
+                            ctx=ctx, legacy_id=external_id,
+                            canonical_obj=existing_obj, domain="students",
+                        )
+                        continue
                 obj, created = StudentProfile.objects.update_or_create(
                     **{lookup_field: external_id},
                     defaults=defaults,
@@ -83,6 +106,13 @@ class StudentLander(Lander):
                     result.updated_ids_with_old_values.append(
                         {"pk": obj.pk, "old": {k: getattr(obj, k, None) for k in defaults}}
                     )
+                record_id_mapping(
+                    ctx=ctx, legacy_id=external_id,
+                    canonical_obj=obj, domain="students",
+                )
+                detect_and_register_assets(
+                    ctx=ctx, legacy_id=external_id, entity_kind="student", row=row,
+                )
             except Exception as exc:  # noqa: BLE001 — per-row quarantine
                 result.quarantined += 1
                 result.errors.append(f"upsert failed for {external_id}: {type(exc).__name__}: {exc}")

@@ -11,10 +11,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2 px-0 px-md-2 rmc-shell-content-grid" data-page-archetype="operational-workbench" data-shell-layout="{{ rmc_shell.layout_token|default:'studio-os' }}" data-shell-host="{{ rmc_shell.shell_data_studio_host|default:'tenant' }}" data-rmc-nav-family="{{ rmc_shell.nav_family }}" data-studio-os-surface="tenant-shell" data-rmc-shell-content-grid="1">
+<div class="container-fluid py-2 px-0 px-md-2 rmc-shell-content-grid" data-rmc-page="studio-os" data-page-archetype="operational-workbench" data-shell-layout="{{ rmc_shell.layout_token|default:'studio-os' }}" data-shell-host="{{ rmc_shell.shell_data_studio_host|default:'tenant' }}" data-rmc-nav-family="{{ rmc_shell.nav_family }}" data-studio-os-surface="tenant-shell" data-rmc-shell-content-grid="1">
   <a href="#studio-canvas" class="visually-hidden-focusable btn btn-sm btn-outline-primary position-absolute top-0 start-0 m-2 px-3 py-2 rounded z-1" style="z-index: 1060;">{% trans "Skip to Studio content" %}</a>
   {# On manager host Studio uses shell_control_plane → control_plane_base (8-pill nav there). Tenant: no PRIMARY nav. #}
-  <div class="ds-action-bar d-flex align-items-center gap-2 mb-3 flex-wrap" role="toolbar" aria-label="{% trans 'Studio toolbar' %}" data-rmc-studio-toolbar="1">
+  <div class="ds-action-bar d-flex align-items-center gap-2 mb-3 flex-wrap" role="toolbar" aria-label="{% trans 'Studio toolbar' %}" data-rmc-studio-toolbar="1" data-tour="studio-toolbar">
     {% if rmc_conversion_single_action_enforced|default:False %}
     <a href="{% url 'studio_os:experience' %}" class="btn btn-sm btn-primary" data-task="studio_os" data-task-step="studio:open-experience">{% trans "Open Experience" %}</a>
     <details class="rmc-conversion-more-actions border rounded px-2 py-1">
@@ -45,7 +45,7 @@
   {% include "components/ai_guided_assistant_card.html" with assistant_key="studio_os_assistant" card_title=_("Studio guided assistant") card_hint=_("Suggests next steps across Studio modes. Apply packages and automations only through existing preview and rollback flows.") %}
 
   <div class="studio-os">
-    <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}" role="navigation" data-shell-sidebar="{{ rmc_shell.studio_os_sidebar_token|default:'studio-rail' }}" data-shell-sidebar-mount="rail">
+    <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}" role="navigation" data-shell-sidebar="{{ rmc_shell.studio_os_sidebar_token|default:'studio-rail' }}" data-shell-sidebar-mount="rail" data-tour="studio-rail">
       <div class="studio-os__home" id="studio-rail-label">{% trans "Work modes" %}</div>
       <a href="{% url 'studio_os:shell' %}" class="{% if not current_mode %}active{% endif %}" {% if not current_mode %}aria-current="page"{% endif %}>{% trans "Overview" %}</a>
       <a href="{% url 'studio_os:experience' %}" class="{% if current_mode == 'experience' %}active{% endif %}" {% if current_mode == 'experience' %}aria-current="page"{% endif %}>{% trans "Experience" %}</a>
@@ -55,7 +55,7 @@
       <a href="{% url 'studio_os:control' %}" class="{% if current_mode == 'control' %}active{% endif %}" {% if current_mode == 'control' %}aria-current="page"{% endif %}>{% trans "Control" %}</a>
     </nav>
 
-    <main class="studio-os__canvas rmc-shell-main" id="studio-canvas" role="main" tabindex="-1" data-rmc-shell-main="studio-os">
+    <main class="studio-os__canvas rmc-shell-main" id="studio-canvas" role="main" tabindex="-1" data-rmc-shell-main="studio-os" data-tour="studio-canvas">
       {% block studio_canvas %}
         {% if not current_mode %}
           <div class="alert alert-light border mb-3" role="status">

@@ -20,13 +20,17 @@
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
     <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
+    {% include "partials/rmc_shortcuts_i18n.html" %}
+    <script src="{% static 'js/rmc-shortcuts-registry.js' %}" defer></script>
     <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
+    <script src="{% static 'js/rmc-shortcuts-runtime.js' %}" defer></script>
     <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
     {# Critical-read KB route signatures: /kb/article/ /kb/search /kb/category/ path === "/kb" kb-article kb-search kb-category kb-home kb-hub #}
     <script src="{% static 'js/kb-route-signature.js' %}"></script>
     <title>{% block title %}{{ rmc_shell.portal_default_document_title|default:_("Portal") }}{% endblock %}</title>
     <link rel="icon" href="{% if SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
+    {% if not SITE_FAVICON_URL %}<link rel="icon" href="{% static 'images/runmycampus-icon-bell.svg' %}" type="image/svg+xml" sizes="32x32">{% endif %}
     {# Wave 6 web: installable surface + home-screen hint (native store apps = external). #}
     {% comment %} v2.58 (2026-05-15) — per-tenant manifest. Pulls name/theme/
        icons from the active tenant's SiteSettings via apps/siteconfig/
@@ -142,6 +146,7 @@
       {{ SITE.custom_css|safe }}
     </style>
     {% endif %}
+    <link rel="stylesheet" href="{% static 'css/rmc-bell-clock-product.css' %}">
     {% block extrastyle %}{% endblock %}
 
     <!-- PWA Support — per-tenant manifest. v2.58 (2026-05-15) -->
@@ -156,8 +161,9 @@
   {% comment %} Pass 8 UX consistency: activate `.form-system` globally so the design system's
      focus rings / hover borders / button polish actually render on every portal form. {% endcomment %}
   <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
+    {% include "partials/rmc_launch_splash.html" %}
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
-    <div class="htmx-progress-bar" aria-hidden="true"></div>
+    <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
     {% include "partials/shell_chrome_site_preview_banner_top.html" %}
     <nav id="portalHeader" class="navbar navbar-expand-lg navbar-dark topbar topbar-sticky statement-header" role="navigation" aria-label="{% trans 'Main navigation' %}" data-rmc-shell-header="portal">
       <div class="container-fluid px-3" id="preview-header-bar" data-preview-label="{% trans 'Header bar (background & colors)' %}">
@@ -442,6 +448,7 @@
     Portal shell bootstrap: theme toggle + Ctrl+K search + sidebar resize/collapse.
     Externalised from portal_base.html so the shell is CSP-friendly.
     {% endcomment %}
+    <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
     <script src="{% static 'js/portal-shell-bootstrap.js' %}" defer></script>
     {% comment %} Legacy inline theme+search+sidebar block fully retired 2026-05-12. Live
        behavior: theme = theme-preference-bootstrap.js + RMCTheme; Ctrl+K =
@@ -575,5 +582,7 @@
     <script src="{% static 'js/rmc-preview-labels-loader.js' %}"></script>
     <script src="{% static 'js/preview-highlights.js' %}"></script>
     {% endif %}
+    {% include "partials/rmc_shortcuts_nav_data.html" %}
+    {% include "partials/rmc_tour_bootstrap.html" %}
   </body>
 </html>

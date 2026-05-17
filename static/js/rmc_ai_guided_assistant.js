@@ -22,6 +22,86 @@
     return getCookie("csrftoken") || getCookie("rmc_manager_csrftoken") || "";
   }
 
+  function friendlyError(data, status) {
+    if (status === 401 || status === 403) {
+      return "Session expired or permission denied. Refresh the page and sign in again.";
+    }
+    if (!data || typeof data !== "object") {
+      return "Unexpected response from the AI gateway.";
+    }
+    var err = data.error || data.detail || "";
+    if (err === "unavailable" || status === 503) {
+      return "AI service is temporarily unavailable. Try again shortly or check provider health.";
+    }
+    if (err === "Rate limit exceeded. Try again later." || status === 429) {
+      return err;
+    }
+    if (String(err).toLowerCase().indexOf("safety policy") >= 0) {
+      return "That prompt was blocked by the safety policy. Rephrase without override instructions.";
+    }
+    if (data.budget_exceeded || String(err).toLowerCase().indexOf("budget") >= 0) {
+      return "Daily AI budget exceeded for this tenant.";
+    }
+    if (err) {
+      return String(err);
+    }
+    return "Request failed (" + status + ").";
+  }
+
+  function parseResponse(r) {
+    var ct = (r.headers.get("content-type") || "").toLowerCase();
+    if (ct.indexOf("application/json") < 0) {
+      if (r.status === 401 || r.status === 403) {
+        return Promise.resolve({
+          ok: false,
+          status: r.status,
+          data: { error: "auth" },
+        });
+      }
+      return Promise.resolve({
+        ok: false,
+        status: r.status,
+        data: { error: "non_json" },
+      });
+    }
+    return r.json().then(function (data) {
+      return { ok: r.ok, status: r.status, data: data };
+    });
+  }
+
+  function renderGuided(out, g, meta, cites) {
+    var lines = [];
+    if (meta && meta.degraded) {
+      lines.push("Degraded mode: using retrieved docs and platform hints (live model not used).");
+    }
+    if (meta && meta.schema_validation_failed) {
+      lines.push(
+        "Model output did not match the expected format; showing a safe structured fallback."
+      );
+    }
+    if (cites && cites.length) {
+      lines.push(
+        "(Grounded with " + cites.length + " retrieved memory snippet(s).)"
+      );
+    }
+    lines.push(g.summary || "");
+    (g.actions || []).forEach(function (a) {
+      lines.push("- " + (a.title || "") + ": " + (a.detail || ""));
+    });
+    (g.cautions || []).forEach(function (c) {
+      lines.push("! " + c);
+    });
+    (g.references || []).forEach(function (ref) {
+      lines.push("ref: " + ref);
+    });
+  if (!lines.join("").trim()) {
+      lines.push("No answer text returned. Try a more specific question or connect Ollama.");
+    }
+    out.textContent = lines.join("\n");
+    out.hidden = false;
+    out.classList.remove("d-none");
+  }
+
   function bindCard(card) {
     if (card.getAttribute("data-rmc-ai-bound") === "1") return;
     card.setAttribute("data-rmc-ai-bound", "1");
@@ -37,15 +117,23 @@
       out.classList.remove("d-none");
     }
     btn.addEventListener("click", function () {
-      var q = (ta && ta.value) ? ta.value.trim() : "";
+      var q = ta && ta.value ? ta.value.trim() : "";
       if (!q) {
         _showOut("Enter a question.");
+        return;
+      }
+      if (typeof navigator !== "undefined" && navigator.onLine === false) {
+        _showOut(
+          "You appear to be offline. AI assistants need a connection to the school server. " +
+            "When offline mode is enabled, attendance and grades can still be captured locally and sync later."
+        );
         return;
       }
       var payload = { query: q };
       var mode = card.getAttribute("data-studio-mode");
       if (mode) payload.studio_mode = mode;
       btn.disabled = true;
+      btn.setAttribute("aria-busy", "true");
       _showOut("…");
       fetch(url, {
         method: "POST",
@@ -57,57 +145,40 @@
         },
         body: JSON.stringify(payload),
       })
-        .then(function (r) {
-          return r.json().then(function (data) {
-            return { ok: r.ok, data: data };
-          });
-        })
+        .then(parseResponse)
         .then(function (res) {
           btn.disabled = false;
+          btn.removeAttribute("aria-busy");
           if (!out) return;
-          if (!res.ok || !res.data.success) {
-            _showOut(JSON.stringify(res.data, null, 2));
+          if (!res.ok || !res.data || !res.data.success) {
+            _showOut(friendlyError(res.data, res.status));
             return;
           }
           var g = res.data.guided || {};
           var meta = res.data.meta || {};
           var cites = res.data.citations;
-          var lines = [];
-          if (meta.schema_validation_failed) {
-            lines.push(
-              "! Model output did not match the expected format; showing a safe empty structure. Try rephrasing or check AI service logs."
-            );
-          }
-          if (cites && cites.length) {
-            lines.push(
-              "(Grounded with " + cites.length + " retrieved memory snippet(s), same catalog as the floating AI chat.)"
-            );
-          }
-          lines.push(g.summary || "");
-          (g.actions || []).forEach(function (a) {
-            lines.push("- " + (a.title || "") + ": " + (a.detail || ""));
-          });
-          (g.cautions || []).forEach(function (c) {
-            lines.push("! " + c);
-          });
-          (g.references || []).forEach(function (r) {
-            lines.push("ref: " + r);
-          });
-          _showOut(lines.join("\n"));
+          renderGuided(out, g, meta, cites);
         })
-        .catch(function (err) {
+        .catch(function () {
           btn.disabled = false;
-          _showOut(String(err));
+          btn.removeAttribute("aria-busy");
+          _showOut("Network error. Check your connection and try again.");
         });
     });
+    if (ta) {
+      ta.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter" && !ev.shiftKey) {
+          ev.preventDefault();
+          btn.click();
+        }
+      });
+    }
   }
 
   function scan() {
     document.querySelectorAll("[data-rmc-ai-guided]").forEach(bindCard);
   }
 
-  /* After all deferred partials/cards are in the DOM */
   window.addEventListener("load", scan);
-  /* AI Center picker swaps data-ai-url + clears data-rmc-ai-bound, then fires this. */
   document.addEventListener("rmc:ai-guided-rebind", scan);
 })();

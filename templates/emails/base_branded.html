@@ -96,6 +96,7 @@ Variables (all optional, sensible defaults):
               <div style="margin-bottom:4px;">{% block email_footer_intro %}{% trans "This is an automated message. Please do not reply to this email." %}{% endblock %}</div>
               <div style="margin-bottom:4px;">{% block email_footer_contact %}{% trans "Contact the school administration for any questions." %}{% endblock %}</div>
               {% if branded_domain %}<div style="margin-bottom:4px;">{% block email_footer_branded %}{% blocktrans %}You're receiving this from {{ branded_domain }}{% endblocktrans %}{% endblock %}</div>{% endif %}
+              <div style="margin-top:8px;font-size:11px;color:{{ brand_email.ink_ghost }};">{% block email_footer_rmc_mark %}<span style="display:inline-block;vertical-align:middle;color:{{ brand_email.ink_ghost }};">{% include "components/_bell_clock_mark.html" with size=12 filled_segments=3 accessible_label="RunMyCampus" %}</span>&nbsp;{% blocktrans %}Between the bells · Sent by RunMyCampus{% endblocktrans %}{% endblock %}</div>
               <div style="margin-top:10px;color:{{ brand_email.ink_ghost }};">&copy; {{ current_year|default:'' }} {{ school_name|default:"School" }}. {% block email_footer_rights %}{% trans "All rights reserved." %}{% endblock %}</div>
             </td>
           </tr>

@@ -1,0 +1,74 @@
+/* RunMyCampus guided tour — spotlight overlay + tooltip */
+
+.rmc-tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10038;
+  pointer-events: auto;
+  background: color-mix(in srgb, var(--surface-canvas, #0b0e14) 55%, transparent);
+}
+
+.rmc-tour-spotlight {
+  position: fixed;
+  z-index: 10039;
+  pointer-events: none;
+  border-radius: var(--radius-md, 8px);
+  box-shadow:
+    0 0 0 9999px color-mix(in srgb, var(--surface-canvas, #0b0e14) 62%, transparent),
+    0 0 0 3px var(--school-primary, var(--color-primary-500, #4f46e5)),
+    0 8px 32px color-mix(in srgb, #000 28%, transparent);
+  transition:
+    top 0.2s var(--ease-standard, ease),
+    left 0.2s var(--ease-standard, ease),
+    width 0.2s var(--ease-standard, ease),
+    height 0.2s var(--ease-standard, ease);
+}
+
+.rmc-tour-highlight-target {
+  position: relative;
+  z-index: 10040 !important;
+}
+
+.rmc-tour-tooltip {
+  position: fixed;
+  z-index: 10041;
+  max-width: min(92vw, 22rem);
+  padding: 1rem 1.1rem;
+  background: var(--surface-elevated, var(--color-base-0, #fff));
+  color: var(--text-primary, var(--color-base-900, #111));
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  border-radius: var(--radius-lg, 10px);
+  box-shadow: var(--elev-3, 0 12px 40px rgba(0, 0, 0, 0.22));
+}
+
+.rmc-tour-tooltip__title {
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.rmc-tour-tooltip__body {
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--text-secondary, var(--color-base-600, #555));
+  margin-bottom: 0.75rem;
+}
+
+.rmc-tour-tooltip__missing {
+  font-size: var(--type-size-xs, 0.8125rem);
+  color: var(--text-muted, var(--color-base-500, #777));
+  margin-bottom: 0.5rem;
+}
+
+.rmc-tour-fab {
+  z-index: 1035;
+}
+
+.rmc-info-tag__btn {
+  color: var(--text-muted, var(--color-base-500));
+  text-decoration: none;
+  line-height: 1;
+}
+
+.rmc-info-tag__btn:hover,
+.rmc-info-tag__btn:focus-visible {
+  color: var(--school-primary, var(--color-primary-600, #4338ca));
+}

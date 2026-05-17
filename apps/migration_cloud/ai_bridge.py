@@ -163,6 +163,548 @@ def propose_transformer(
     )
 
 
+def generate_migration_plan(*, bundle: Any) -> dict[str, Any]:
+    """Build a human-readable migration plan for a bundle.
+
+    Two-tier: deterministic summary always runs (works offline / when AI
+    is disabled); narrative paragraph is AI-generated when available.
+    Returns a structured dict so the UI can render sections individually
+    rather than dumping prose.
+
+    Output shape::
+
+        {
+            "source": "powerschool" | "unknown_custom" | ...,
+            "stages": [{ "name": "...", "status": "done" | "pending", "detail": "..." }],
+            "artifact_count": int,
+            "domain_breakdown": {"students": 3, "grades": 1, ...},
+            "mapping_stats": {"high_confidence": 42, "review_needed": 7, "custom_fields": 12},
+            "risk_flags": ["...", "..."],
+            "narrative": "AI-written paragraph or None",
+            "ai_available": bool,
+        }
+    """
+    discovery = bundle.discovery_summary or {}
+    mapping_summary = bundle.mapping_summary or {}
+    per_artifact_domain = discovery.get("per_artifact_domain") or {}
+    per_artifact_mappings = mapping_summary.get("per_artifact") or {}
+
+    source = (discovery.get("source") or {}).get("chosen") or "unknown"
+    artifact_count = bundle.artifact_count
+
+    domain_breakdown: dict[str, int] = {}
+    for entry in per_artifact_domain.values():
+        d = entry.get("domain") or "custom_fields"
+        domain_breakdown[d] = domain_breakdown.get(d, 0) + 1
+
+    high_conf = review = custom = 0
+    for mappings in per_artifact_mappings.values():
+        for m in (mappings or []):
+            cf = str(m.get("canonical_field") or "")
+            conf = float(m.get("confidence") or 0.0)
+            if cf.startswith("custom_fields."):
+                custom += 1
+            elif conf >= 0.85:
+                high_conf += 1
+            else:
+                review += 1
+
+    risk_flags: list[str] = []
+    if source == "unknown_custom":
+        risk_flags.append(
+            "Source not recognised as a known vendor — expect more human review on column mapping."
+        )
+    if review and review > high_conf // 2:
+        risk_flags.append(
+            f"{review} low-confidence mappings flagged for review before applying."
+        )
+    if custom:
+        risk_flags.append(
+            f"{custom} columns will land in `custom_fields.*` — queryable but outside the canonical schema."
+        )
+    if artifact_count == 0:
+        risk_flags.append(
+            "Bundle has zero artifacts. Nothing will be applied until intake completes."
+        )
+
+    stages = _stage_status(bundle.status)
+
+    narrative = None
+    if is_ai_available(getattr(bundle, "school", None)):
+        narrative_proposal = _invoke_narrative(
+            bundle=bundle,
+            source=source,
+            artifact_count=artifact_count,
+            domain_breakdown=domain_breakdown,
+            high_conf=high_conf,
+            review=review,
+            custom=custom,
+        )
+        if narrative_proposal is not None:
+            narrative = narrative_proposal.answer
+
+    return {
+        "source": source,
+        "stages": stages,
+        "artifact_count": artifact_count,
+        "domain_breakdown": domain_breakdown,
+        "mapping_stats": {
+            "high_confidence": high_conf,
+            "review_needed": review,
+            "custom_fields": custom,
+        },
+        "risk_flags": risk_flags,
+        "narrative": narrative,
+        "ai_available": narrative is not None,
+    }
+
+
+def explain_quarantine_row(
+    *, school: Any | None, row: Any, reason: str
+) -> AIProposal | None:
+    """Ask the LLM to explain a quarantine in plain language for the operator.
+
+    Returns ``None`` when AI is disabled — the UI should fall back to the
+    raw ``reason`` string in that case.
+    """
+    if not is_ai_available(school):
+        return None
+    prompt = _build_quarantine_explain_prompt(row=row, reason=reason)
+    return _invoke(
+        school=school,
+        prompt=prompt,
+        prompt_type="migration_cloud.quarantine_explainer",
+        content_sensitivity="high_pii",  # rows can contain student names / DoBs
+        parser=_parse_quarantine_explain_response(),
+    )
+
+
+def _stage_status(status: str) -> list[dict[str, str]]:
+    order = ["PENDING", "INGESTING", "PROFILED", "CLASSIFIED", "MAPPED", "APPLIED", "RECONCILED"]
+    try:
+        cur = order.index(status)
+    except ValueError:
+        cur = -1
+    stages = []
+    for i, name in enumerate(order):
+        if i < cur:
+            mark = "done"
+        elif i == cur:
+            mark = "current"
+        else:
+            mark = "pending"
+        stages.append({"name": name, "status": mark})
+    return stages
+
+
+def _invoke_narrative(
+    *,
+    bundle: Any,
+    source: str,
+    artifact_count: int,
+    domain_breakdown: dict[str, int],
+    high_conf: int,
+    review: int,
+    custom: int,
+) -> AIProposal | None:
+    prompt = (
+        "You are the Migration Cloud assistant. Write a single-paragraph plain-English "
+        "summary (3-4 sentences) of this school-data migration so the operator can preview "
+        "what will happen. Mention the source platform, scale, and any review burden.\n\n"
+        f"Source platform: {source}\n"
+        f"Bundle status: {getattr(bundle, 'status', '?')}\n"
+        f"Artifacts: {artifact_count}\n"
+        f"Domain breakdown: {dict(sorted(domain_breakdown.items()))}\n"
+        f"Mapping stats: high_confidence={high_conf}, review_needed={review}, "
+        f"custom_fields={custom}\n\n"
+        'Return strictly JSON: {"summary": "<paragraph>", "confidence": 0.0-1.0}.'
+    )
+    return _invoke(
+        school=getattr(bundle, "school", None),
+        prompt=prompt,
+        prompt_type="migration_cloud.plan_narrator",
+        content_sensitivity="standard",
+        parser=_parse_narrative_response(),
+    )
+
+
+def _build_quarantine_explain_prompt(*, row: Any, reason: str) -> str:
+    redacted = json.dumps(row, default=str)[:2000]
+    return (
+        "You are explaining why one row from a school-data migration was quarantined. "
+        "Write one sentence (max 30 words) in plain language an operator can act on. "
+        "Do not include the raw row in your reply; reference fields by name only.\n\n"
+        f"Reason from the engine: {reason}\n"
+        f"Row JSON (truncated): {redacted}\n\n"
+        'Return strictly JSON: {"explanation": "<sentence>", "confidence": 0.0-1.0}.'
+    )
+
+
+def _parse_narrative_response():
+    def parse(text: str):
+        data = _extract_json(text)
+        if not data:
+            return None
+        summary = str(data.get("summary") or "").strip()
+        if not summary:
+            return None
+        confidence = _clip_confidence(data.get("confidence", 0.7))
+        return summary, confidence, "AI-generated migration plan narrative"
+    return parse
+
+
+def _parse_quarantine_explain_response():
+    def parse(text: str):
+        data = _extract_json(text)
+        if not data:
+            return None
+        explanation = str(data.get("explanation") or "").strip()
+        if not explanation:
+            return None
+        confidence = _clip_confidence(data.get("confidence", 0.7))
+        return explanation, confidence, "AI-explained quarantine reason"
+    return parse
+
+
+# --- Wave 4: conversational override / Q&A / reconciliation narrative / vendor-from-image ---
+
+def parse_mapping_command(
+    *,
+    school: Any | None,
+    command: str,
+    available_source_columns: list[str],
+    available_canonical_fields: list[str],
+) -> AIProposal | None:
+    """Parse a natural-language mapping override into a structured edit.
+
+    Operator types ``"set Student_Number as student.external_id"`` or
+    ``"map Homeroom to custom_fields.homeroom"``. We deterministically
+    try a regex pattern first (cheap, no AI required), and only fall
+    back to the LLM when the heuristic doesn't match.
+
+    Returns ``AIProposal`` whose ``answer`` is a dict::
+
+        {"source_column": "Student_Number", "canonical_field": "student.external_id"}
+
+    or ``None`` when nothing was parsable.
+    """
+    if not command or not command.strip():
+        return None
+
+    deterministic = _parse_mapping_command_heuristic(
+        command, available_source_columns, available_canonical_fields
+    )
+    if deterministic is not None:
+        return AIProposal(
+            answer=deterministic,
+            confidence=0.95,
+            reasoning="Parsed by deterministic regex (no AI required).",
+            raw=command,
+            provider_meta={"method": "regex"},
+        )
+
+    if not is_ai_available(school):
+        return None
+
+    prompt = (
+        "An operator wrote a natural-language migration command. Parse it into a "
+        "structured mapping edit. Pick the source column and canonical field that "
+        "best match. If you cannot determine both confidently, return an empty answer.\n\n"
+        f"Command: {command!r}\n"
+        f"Available source columns (sample): {available_source_columns[:40]}\n"
+        f"Available canonical fields (sample): {available_canonical_fields[:80]}\n\n"
+        'Return strictly JSON: {"source_column": "...", "canonical_field": "...", '
+        '"confidence": 0.0-1.0, "reasoning": "<one sentence>"}.'
+    )
+    return _invoke(
+        school=school,
+        prompt=prompt,
+        prompt_type="migration_cloud.command_parser",
+        content_sensitivity="standard",
+        parser=_parse_mapping_command_response(
+            available_source_columns, available_canonical_fields
+        ),
+    )
+
+
+def answer_bundle_question(
+    *,
+    school: Any | None,
+    bundle: Any,
+    question: str,
+) -> AIProposal | None:
+    """Answer an operator question grounded in the bundle's profile + classification.
+
+    Scope: structural Q&A over what we ALREADY KNOW about the bundle —
+    artifact counts, per-domain breakdown, per-column samples, classifier
+    guesses, mapping stats. We deliberately do NOT scan raw rows here:
+    the artifacts can be GB-scale and the orchestrator's apply path is
+    the right place for row-level computation. This Q&A surface is
+    "what's in this bundle?", not "run a query on the bundle."
+    """
+    if not is_ai_available(school):
+        return None
+
+    context = _summarise_bundle_for_qa(bundle)
+    prompt = (
+        "You are the Migration Cloud assistant. Answer the operator's question "
+        "using ONLY the bundle context below. If the answer is not derivable, "
+        'say "I don\'t have that information in the bundle profile" — never '
+        "make up numbers. Keep replies to two sentences.\n\n"
+        f"Question: {question}\n\n"
+        f"Bundle context:\n{context}\n\n"
+        'Return strictly JSON: {"answer": "<text>", "confidence": 0.0-1.0}.'
+    )
+    return _invoke(
+        school=school,
+        prompt=prompt,
+        prompt_type="migration_cloud.bundle_qa",
+        content_sensitivity="standard",
+        parser=_parse_bundle_qa_response(),
+    )
+
+
+def narrate_reconciliation(
+    *, school: Any | None, reconciliation_summary: dict[str, Any]
+) -> AIProposal | None:
+    """Produce a school-facing paragraph summarising a reconciliation report."""
+    if not is_ai_available(school):
+        return None
+    per_domain = reconciliation_summary.get("per_domain") or []
+    overall = reconciliation_summary.get("overall_parity_pct")
+    notes = reconciliation_summary.get("notes") or []
+    prompt = (
+        "Write a single-paragraph (4-5 sentences) school-facing summary of this "
+        "migration reconciliation report. Be honest about gaps but reassuring "
+        "where the numbers are strong. Avoid jargon — the reader is a school "
+        "principal, not an engineer.\n\n"
+        f"Overall parity: {overall}%\n"
+        f"Per-domain results: {json.dumps(per_domain, default=str)[:2000]}\n"
+        f"Engine notes: {notes[:10]}\n\n"
+        'Return strictly JSON: {"narrative": "<paragraph>", "confidence": 0.0-1.0}.'
+    )
+    return _invoke(
+        school=school,
+        prompt=prompt,
+        prompt_type="migration_cloud.reconciliation_narrator",
+        content_sensitivity="standard",
+        parser=_parse_reconciliation_narrative_response(),
+    )
+
+
+def identify_vendor_from_image(
+    *,
+    school: Any | None,
+    image_bytes: bytes,
+    image_filename: str,
+    known_sources: list[str],
+) -> AIProposal | None:
+    """Identify the source vendor from a screenshot / PDF page of the old SIS.
+
+    Two-tier approach: OCR the image to text (via PIL + pytesseract when
+    available), then re-use the source-classifier pattern with the OCR
+    text instead of CSV headers. When OCR is not installed we degrade
+    cleanly to None so the operator falls back to typing the source hint.
+    """
+    text = _ocr_image_to_text(image_bytes, image_filename)
+    if not text:
+        logger.debug("migration_cloud.ai_bridge: OCR returned empty for %s", image_filename)
+        return None
+    if not is_ai_available(school):
+        return None
+
+    prompt = (
+        "An operator uploaded a screenshot of an old school information system. "
+        "OCR text is below. Identify the most likely vendor from the allow-list "
+        'or "unknown_custom" if none match.\n\n'
+        f"OCR text (truncated): {text[:3000]}\n\n"
+        f"Allow-list: {known_sources + ['unknown_custom']}\n\n"
+        'Return strictly JSON: {"vendor": "...", "confidence": 0.0-1.0, '
+        '"reasoning": "<one sentence — which visual cues led you to this pick>"}.'
+    )
+    proposal = _invoke(
+        school=school,
+        prompt=prompt,
+        prompt_type="migration_cloud.vendor_from_image",
+        content_sensitivity="standard",
+        parser=_parse_vendor_from_image_response(known_sources),
+    )
+    if proposal is not None:
+        proposal.provider_meta["ocr_chars"] = len(text)
+    return proposal
+
+
+# --- Helpers for wave 4 -----------------------------------------------------
+
+def _parse_mapping_command_heuristic(
+    command: str,
+    available_source_columns: list[str],
+    available_canonical_fields: list[str],
+) -> dict[str, str] | None:
+    """Cheap regex parse for the common phrasings before calling AI."""
+    patterns = [
+        # "set X as Y" / "set X to Y" / "map X to Y" / "X -> Y" / "X => Y"
+        re.compile(r"(?:set|map)\s+(.+?)\s+(?:as|to|=|→|->)\s+(.+)", re.IGNORECASE),
+        re.compile(r"(.+?)\s*(?:->|→|=>)\s*(.+)"),
+    ]
+    src_lookup = {c.lower(): c for c in available_source_columns}
+    canon_lookup = {c.lower(): c for c in available_canonical_fields}
+    cmd = command.strip().rstrip(".")
+    for pat in patterns:
+        m = pat.match(cmd)
+        if not m:
+            continue
+        src_raw = m.group(1).strip().strip('"\'`')
+        canon_raw = m.group(2).strip().strip('"\'`')
+        src = src_lookup.get(src_raw.lower())
+        canon = canon_lookup.get(canon_raw.lower())
+        # Tolerate canonical_field not in the existing shortlist — they may
+        # be naming a target the mapper hasn't tried yet. Also tolerate
+        # source_column not in lookup so the view can return a clean 404
+        # ("source column not found") instead of an opaque 422.
+        if src or src_raw:
+            return {
+                "source_column": src or src_raw,
+                "canonical_field": canon or canon_raw,
+            }
+    return None
+
+
+def _parse_mapping_command_response(
+    available_source_columns: list[str],
+    available_canonical_fields: list[str],
+):
+    src_lookup = {c.lower(): c for c in available_source_columns}
+
+    def parse(text: str):
+        data = _extract_json(text)
+        if not data:
+            return None
+        src = str(data.get("source_column") or "").strip()
+        canon = str(data.get("canonical_field") or "").strip()
+        if not src or not canon:
+            return None
+        # Normalise source column to the exact stored casing if we can.
+        src = src_lookup.get(src.lower(), src)
+        confidence = _clip_confidence(data.get("confidence", 0.75))
+        reasoning = str(data.get("reasoning") or "AI-parsed mapping command")
+        return {"source_column": src, "canonical_field": canon}, confidence, reasoning
+
+    return parse
+
+
+def _summarise_bundle_for_qa(bundle: Any) -> str:
+    """Compact, prompt-friendly view of what the bundle KNOWS about itself."""
+    discovery = bundle.discovery_summary or {}
+    mapping = bundle.mapping_summary or {}
+    artifacts = []
+    for a in bundle.artifacts.all()[:25]:
+        profile = a.profile or {}
+        columns = profile.get("columns") or []
+        col_pairs = [
+            f"{c.get('name')}({c.get('inferred_type', '?')})"
+            for c in columns[:25]
+        ]
+        artifacts.append(
+            f"- {a.path_within_bundle}: "
+            f"rows={a.row_count}, cols={a.column_count}, "
+            f"columns=[{', '.join(col_pairs)}]"
+        )
+    return (
+        f"Source: {(discovery.get('source') or {}).get('chosen', '?')}\n"
+        f"Per-artifact domain guesses: "
+        f"{json.dumps(discovery.get('per_artifact_domain') or {}, default=str)[:1500]}\n"
+        f"Artifacts:\n" + "\n".join(artifacts) +
+        f"\nMapping summary keys: {list((mapping.get('per_artifact') or {}).keys())[:25]}"
+    )
+
+
+def _parse_bundle_qa_response():
+    def parse(text: str):
+        data = _extract_json(text)
+        if not data:
+            return None
+        answer = str(data.get("answer") or "").strip()
+        if not answer:
+            return None
+        return answer, _clip_confidence(data.get("confidence", 0.6)), "AI-answered bundle question"
+
+    return parse
+
+
+def _parse_reconciliation_narrative_response():
+    def parse(text: str):
+        data = _extract_json(text)
+        if not data:
+            return None
+        narrative = str(data.get("narrative") or "").strip()
+        if not narrative:
+            return None
+        return narrative, _clip_confidence(data.get("confidence", 0.7)), "AI reconciliation narrative"
+
+    return parse
+
+
+def _parse_vendor_from_image_response(known_sources: list[str]):
+    allowed = {s.lower() for s in known_sources} | {"unknown_custom"}
+
+    def parse(text: str):
+        data = _extract_json(text)
+        if not data:
+            return None
+        vendor = str(data.get("vendor") or "").strip().lower()
+        if vendor not in allowed:
+            return None
+        confidence = _clip_confidence(data.get("confidence", 0.6))
+        reasoning = str(data.get("reasoning") or "Vendor identified from screenshot")
+        return vendor, confidence, reasoning
+
+    return parse
+
+
+def _ocr_image_to_text(image_bytes: bytes, filename: str) -> str:
+    """Run OCR on uploaded image bytes. Empty string if dependencies missing.
+
+    PDFs handled by extracting first page only (vendor branding is
+    typically on page 1 of any dashboard export / report).
+    """
+    if not image_bytes:
+        return ""
+    try:
+        from PIL import Image  # type: ignore[import-not-found]
+        import pytesseract  # type: ignore[import-not-found]
+    except ImportError:
+        logger.debug(
+            "migration_cloud.ai_bridge: PIL+pytesseract not installed; "
+            "vendor-from-image returns empty",
+        )
+        return ""
+
+    import io as _io
+
+    lower = filename.lower()
+    if lower.endswith(".pdf"):
+        try:
+            from pdf2image import convert_from_bytes  # type: ignore[import-not-found]
+
+            pages = convert_from_bytes(image_bytes, first_page=1, last_page=1)
+            if not pages:
+                return ""
+            text = pytesseract.image_to_string(pages[0]) or ""
+        except Exception:  # noqa: BLE001
+            logger.debug("migration_cloud.ai_bridge: pdf2image OCR failed", exc_info=True)
+            return ""
+    else:
+        try:
+            img = Image.open(_io.BytesIO(image_bytes))
+            text = pytesseract.image_to_string(img) or ""
+        except Exception:  # noqa: BLE001
+            logger.debug("migration_cloud.ai_bridge: image OCR failed", exc_info=True)
+            return ""
+
+    return text.strip()
+
+
 # --- Internals --------------------------------------------------------------
 
 def _invoke(
@@ -180,7 +722,24 @@ def _invoke(
     migration assistant separately from the generic narrative assistant.
     Falls back to ``run_ai_prompt`` (NARRATIVE) when the gateway isn't
     importable — keeps the bridge resilient in tests + degraded installs.
+
+    PII guardrail (Tier 1 #4): when ``content_sensitivity == 'high_pii'``,
+    we (a) verify the tenant's AI policy permits PII processing — if not,
+    refuse to send and return None so the caller falls back to deterministic
+    heuristics; (b) redact obvious PII patterns from the prompt before
+    handing it to the gateway. The gateway itself routes high_pii to
+    local-only models per the platform's AI tier policy.
     """
+    if content_sensitivity == "high_pii":
+        if not _tenant_allows_pii(school):
+            logger.info(
+                "migration_cloud.ai_bridge: refusing high_pii prompt for %s — "
+                "tenant policy disallows external PII (falling back to heuristics)",
+                prompt_type,
+            )
+            return None
+        prompt = redact_pii_for_prompt(prompt)
+
     task_key = _task_key_for(prompt_type)
     text, meta = "", {}
 
@@ -675,3 +1234,60 @@ def _looks_like_pii(column_name: str, samples: Iterable[Any]) -> bool:
         if re.search(r"[\w.+-]+@[\w-]+\.[\w.-]+", s):  # email
             return True
     return False
+
+
+# --- PII enforcement (Tier 1 #4) -------------------------------------------
+
+_PII_REDACTION_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
+    (re.compile(r"\b\d{3}-\d{2}-\d{4}\b"), "<REDACTED_SSN>"),
+    (re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b"), "<REDACTED_EMAIL>"),
+    (re.compile(r"(?<!\d)(?:\+?\d{1,3}[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b"), "<REDACTED_PHONE>"),
+    (re.compile(r"\b\d{4}[\s.-]?\d{4}[\s.-]?\d{4}[\s.-]?\d{4}\b"), "<REDACTED_CC>"),
+    # ISO date that looks like a birthdate (1900-2025 range)
+    (re.compile(r"\b(?:19|20)\d{2}-\d{2}-\d{2}\b"), "<REDACTED_DATE>"),
+)
+
+
+def redact_pii_for_prompt(prompt: str) -> str:
+    """Apply best-effort PII redaction before sending to AI gateway.
+
+    Not a substitute for routing high_pii prompts to local-only models —
+    this is a belt-and-suspenders defense against accidental leaks when
+    the gateway policy is misconfigured or the prompt embeds raw row data.
+    """
+    if not prompt:
+        return prompt
+    redacted = prompt
+    for pattern, replacement in _PII_REDACTION_PATTERNS:
+        redacted = pattern.sub(replacement, redacted)
+    return redacted
+
+
+def _tenant_allows_pii(school: Any | None) -> bool:
+    """Whether the tenant's AI policy permits PII processing.
+
+    Inspects ``external_student_pii_allowed`` on the resolved AI runtime
+    config. Returns False (= refuse) when the config cannot be loaded —
+    we default to the safer side rather than risk leaking PII.
+    """
+    if school is None:
+        # Pre-tenant / operator-shell calls: allow but rely on redaction.
+        return True
+    try:
+        from apps.platform_runtime.ai_providers import get_ai_runtime_config
+
+        cfg = get_ai_runtime_config(school=school)
+        if not cfg.get("enabled"):
+            return False
+        # Explicit deny if the field exists and is False; default-allow when
+        # the field is absent so legacy deployments aren't broken silently.
+        if "external_student_pii_allowed" in cfg:
+            return bool(cfg.get("external_student_pii_allowed"))
+        # Honor a local-only routing hint as an implicit "PII allowed only
+        # because it stays local".
+        if cfg.get("local_only_for_pii") or cfg.get("pii_routes_local"):
+            return True
+        return True
+    except Exception:  # noqa: BLE001
+        logger.debug("migration_cloud.ai_bridge: PII policy lookup failed", exc_info=True)
+        return False

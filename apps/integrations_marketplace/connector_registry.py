@@ -118,6 +118,11 @@ class Connector:
     # webhook-only
     webhook_signature_header: str = ""
     webhook_signature_algorithm: str = ""
+    # v3.4 — deprecation lifecycle. When True, the hub shows a "Deprecated"
+    # badge and `build_authorize_redirect` refuses NEW connections (existing
+    # rows keep working so tenants aren't stranded mid-integration).
+    deprecated: bool = False
+    deprecation_note: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -133,6 +138,8 @@ class Connector:
             "default_scopes": list(self.default_scopes),
             "required_config_keys": list(self.required_config_keys),
             "anymail_backend": self.anymail_backend,
+            "deprecated": bool(self.deprecated),
+            "deprecation_note": self.deprecation_note,
         }
 
 

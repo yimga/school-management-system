@@ -1,0 +1,7 @@
+{% load i18n %}
+{% if request.user.is_authenticated %}
+{% url 'accounts:redirect' as rmc_shortcut_home_url %}
+{% url 'accounts:user_notifications' as rmc_shortcut_notifications_url %}
+{% url 'accounts:user_profile' as rmc_shortcut_configure_url %}
+<script type="application/json" id="rmc-shortcuts-nav">{"home":"{% if portal_home_url %}{{ portal_home_url|escapejs }}{% else %}{{ rmc_shortcut_home_url|escapejs }}{% endif %}","notifications":"{{ rmc_shortcut_notifications_url|escapejs }}","configure":"{{ rmc_shortcut_configure_url|escapejs }}"}</script>
+{% endif %}

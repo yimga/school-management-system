@@ -1,0 +1,63 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--migration-cloud-assets" id="main">
+  <header class="rmc-page__header">
+    <a class="rmc-back"
+       href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}{% endif %}">
+      {% trans "← Back to bundle" %}
+    </a>
+    <h1 class="rmc-h1">{% trans "Binary assets" %}</h1>
+    <p class="rmc-lede">{% trans "Student photos, immunization scans, report-card PDFs — fetched alongside the tabular rows." %}</p>
+  </header>
+
+  <section class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Summary" %}</h2>
+    <ul class="rmc-stat-list">
+      {% for status, count in counts.items %}
+        <li><strong>{{ count }}</strong> {{ status }}</li>
+      {% endfor %}
+    </ul>
+    <form method="post"
+          action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_assets' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_assets' bundle_id=bundle.pk %}{% endif %}">
+      {% csrf_token %}
+      <button type="submit" class="rmc-btn rmc-btn--primary rmc-btn--sm">{% trans "Fetch pending assets" %}</button>
+    </form>
+  </section>
+
+  <section class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Recent assets" %}</h2>
+    {% if not assets %}
+      <p class="rmc-empty">{% trans "No assets registered yet. Landers register asset URLs as they land rows; rerun apply or open the bundle detail to see live status." %}</p>
+    {% else %}
+      <table class="rmc-data-table">
+        <thead>
+          <tr>
+            <th>{% trans "Entity" %}</th>
+            <th>{% trans "Legacy ID" %}</th>
+            <th>{% trans "Kind" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th>{% trans "Stored at" %}</th>
+            <th>{% trans "Bytes" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in assets %}
+            <tr>
+              <td>{{ a.entity_kind }}</td>
+              <td><code>{{ a.legacy_id }}</code></td>
+              <td>{{ a.asset_kind }}</td>
+              <td>{{ a.status }}</td>
+              <td><code>{{ a.stored_path|default:"—" }}</code></td>
+              <td>{{ a.byte_size|default:"—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

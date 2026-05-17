@@ -32,12 +32,14 @@ from apps.schools.marketing_views import (
     institution_marketing_page,
     marketing_funnel_dashboard,
     marketing_landing,
+    marketing_verb_hub,
     marketplace_marketing_page,
     migrate_marketing_page,
     migration_simulator_page,
     setup_simulator_page,
     regional_marketing_landing,
     marketing_page,
+    marketing_solutions_persona,
     role_marketing_page,
     submit_contact_request,
     submit_demo_request,
@@ -69,6 +71,7 @@ from apps.schools.signup_views import (
     onboarding_wizard,
     brand_import_api,
 )
+from apps.siteconfig.views_tour import tour_steps_public_api
 from apps.siteconfig.views_verify import verify_student_id
 from apps.schools.marketing_views_v2 import marketing_landing_v2
 
@@ -111,6 +114,22 @@ urlpatterns = [
     path("support/", public_support_hub, name="public_support_hub"),
     path("school-not-found/", school_not_found_public, name="school_not_found_public"),
     path("marketing/", marketing_landing, name="marketing_landing"),
+    path("run/", marketing_verb_hub, {"verb": "run"}, name="marketing_run_hub"),
+    path("teach/", marketing_verb_hub, {"verb": "teach"}, name="marketing_teach_hub"),
+    path(
+        "teach/academics/",
+        marketing_page,
+        {"page_slug": "platform-student-information-system"},
+        name="marketing_teach_academics",
+    ),
+    path("pay/", marketing_verb_hub, {"verb": "pay"}, name="marketing_pay_hub"),
+    path(
+        "communicate/",
+        marketing_verb_hub,
+        {"verb": "communicate"},
+        name="marketing_communicate_hub",
+    ),
+    path("grow/", marketing_verb_hub, {"verb": "grow"}, name="marketing_grow_hub"),
     path(
         "education-operating-system/",
         marketing_page,
@@ -137,14 +156,12 @@ urlpatterns = [
     ),
     path(
         "platform/marketplace/",
-        marketing_page,
-        {"page_slug": "platform-marketplace"},
+        RedirectView.as_view(url="/grow/marketplace/", permanent=True),
         name="marketing_platform_marketplace",
     ),
     path(
         "platform/migration-cloud/",
-        marketing_page,
-        {"page_slug": "platform-migration-cloud"},
+        RedirectView.as_view(url="/grow/migration/", permanent=True),
         name="marketing_platform_migration_cloud",
     ),
     path(
@@ -167,50 +184,42 @@ urlpatterns = [
     ),
     path(
         "platform/analytics/",
-        marketing_page,
-        {"page_slug": "platform-analytics"},
+        RedirectView.as_view(url="/run/analytics/", permanent=True),
         name="marketing_platform_analytics",
     ),
     path(
         "platform/student-information-system/",
-        marketing_page,
-        {"page_slug": "platform-student-information-system"},
+        RedirectView.as_view(url="/teach/academics/", permanent=True),
         name="marketing_platform_sis",
     ),
     path(
         "platform/admissions/",
-        marketing_page,
-        {"page_slug": "platform-admissions"},
+        RedirectView.as_view(url="/run/admissions/", permanent=True),
         name="marketing_platform_admissions",
     ),
     path(
         "platform/attendance/",
-        marketing_page,
-        {"page_slug": "platform-attendance"},
+        RedirectView.as_view(url="/run/attendance/", permanent=True),
         name="marketing_platform_attendance",
     ),
     path(
         "platform/fees-payments/",
-        marketing_page,
-        {"page_slug": "platform-fees-payments"},
+        RedirectView.as_view(url="/pay/fees/", permanent=True),
         name="marketing_platform_fees_payments",
     ),
     path(
         "platform/grading-report-cards/",
-        marketing_page,
-        {"page_slug": "platform-grading-report-cards"},
+        RedirectView.as_view(url="/teach/gradebook/", permanent=True),
         name="marketing_platform_grading_report_cards",
     ),
     path(
         "platform/parent-portal/",
-        marketing_page,
-        {"page_slug": "platform-parent-portal"},
+        RedirectView.as_view(url="/communicate/inbox/", permanent=True),
         name="marketing_platform_parent_portal",
     ),
     path(
         "platform/teacher-portal/",
-        marketing_page,
-        {"page_slug": "platform-teacher-portal"},
+        RedirectView.as_view(url="/teach/workspace/", permanent=True),
         name="marketing_platform_teacher_portal",
     ),
     path(
@@ -221,20 +230,17 @@ urlpatterns = [
     ),
     path(
         "platform/communications/",
-        marketing_page,
-        {"page_slug": "platform-communications"},
+        RedirectView.as_view(url="/communicate/announcements/", permanent=True),
         name="marketing_platform_communications",
     ),
     path(
         "platform/workflows/",
-        marketing_page,
-        {"page_slug": "platform-workflows"},
+        RedirectView.as_view(url="/run/workflows/", permanent=True),
         name="marketing_platform_workflows",
     ),
     path(
         "platform/offline-first/",
-        marketing_page,
-        {"page_slug": "platform-offline-first"},
+        RedirectView.as_view(url="/run/offline/", permanent=True),
         name="marketing_platform_offline_first",
     ),
     path(
@@ -281,6 +287,36 @@ urlpatterns = [
         marketing_page,
         {"page_slug": "solutions"},
         name="marketing_solutions",
+    ),
+    path(
+        "solutions/head/",
+        marketing_solutions_persona,
+        {"persona_slug": "head"},
+        name="marketing_solutions_persona_head",
+    ),
+    path(
+        "solutions/bursar/",
+        marketing_solutions_persona,
+        {"persona_slug": "bursar"},
+        name="marketing_solutions_persona_bursar",
+    ),
+    path(
+        "solutions/teacher/",
+        marketing_solutions_persona,
+        {"persona_slug": "teacher"},
+        name="marketing_solutions_persona_teacher",
+    ),
+    path(
+        "solutions/parent/",
+        marketing_solutions_persona,
+        {"persona_slug": "parent"},
+        name="marketing_solutions_persona_parent",
+    ),
+    path(
+        "solutions/it/",
+        marketing_solutions_persona,
+        {"persona_slug": "it"},
+        name="marketing_solutions_persona_it",
     ),
     path(
         "solutions/k12/",
@@ -835,6 +871,24 @@ urlpatterns = [
         name="marketing_trust_gdpr",
     ),
     path(
+        "trust-center/ferpa/",
+        marketing_page,
+        {"page_slug": "trust-center-ferpa"},
+        name="marketing_trust_ferpa",
+    ),
+    path(
+        "trust-center/retention/",
+        marketing_page,
+        {"page_slug": "trust-center-retention"},
+        name="marketing_trust_retention",
+    ),
+    path(
+        "trust-center/incidents/",
+        marketing_page,
+        {"page_slug": "trust-center-breach"},
+        name="marketing_trust_incidents",
+    ),
+    path(
         "app-marketplace/",
         marketing_page,
         {"page_slug": "app-marketplace"},
@@ -882,6 +936,7 @@ urlpatterns = [
     path("signup/", signup_school, name="signup_school"),
     path("verify-signup/", verify_signup, name="verify_signup"),
     path("verify/<str:token>/", verify_student_id, name="verify_student_id"),
+    path("api/tour-steps/public/", tour_steps_public_api, name="tour_steps_public_api"),
     path("api/trial/", api_trial_school, name="api_trial_school"),
     path("api/brand-import/", brand_import_api, name="api_brand_import"),
     path("robots.txt", marketing_robots_txt, name="marketing_robots_txt"),
@@ -923,6 +978,92 @@ urlpatterns = [
         name="lti_deep_linking",
     ),
     path("lti/jwks.json", jwks_json, name="lti_jwks"),
+    # Phase 3: verb-canonical module aliases (same pages, new URL spine)
+    path(
+        "run/admissions/",
+        marketing_page,
+        {"page_slug": "platform-admissions"},
+        name="marketing_run_admissions",
+    ),
+    path(
+        "run/attendance/",
+        marketing_page,
+        {"page_slug": "platform-attendance"},
+        name="marketing_run_attendance",
+    ),
+    path(
+        "run/analytics/",
+        marketing_page,
+        {"page_slug": "platform-analytics"},
+        name="marketing_run_analytics",
+    ),
+    path(
+        "teach/gradebook/",
+        marketing_page,
+        {"page_slug": "platform-grading-report-cards"},
+        name="marketing_teach_gradebook",
+    ),
+    path(
+        "pay/fees/",
+        marketing_page,
+        {"page_slug": "platform-fees-payments"},
+        name="marketing_pay_fees",
+    ),
+    path(
+        "communicate/inbox/",
+        marketing_page,
+        {"page_slug": "platform-parent-portal"},
+        name="marketing_communicate_inbox",
+    ),
+    path(
+        "grow/marketplace/",
+        marketing_page,
+        {"page_slug": "platform-marketplace"},
+        name="marketing_grow_marketplace",
+    ),
+    path(
+        "grow/migration/",
+        marketing_page,
+        {"page_slug": "platform-migration-cloud"},
+        name="marketing_grow_migration",
+    ),
+    path(
+        "run/workflows/",
+        marketing_page,
+        {"page_slug": "platform-workflows"},
+        name="marketing_run_workflows",
+    ),
+    path(
+        "run/offline/",
+        marketing_page,
+        {"page_slug": "platform-offline-first"},
+        name="marketing_run_offline",
+    ),
+    path(
+        "teach/workspace/",
+        marketing_page,
+        {"page_slug": "platform-teacher-portal"},
+        name="marketing_teach_workspace",
+    ),
+    path(
+        "communicate/announcements/",
+        marketing_page,
+        {"page_slug": "platform-communications"},
+        name="marketing_communicate_announcements",
+    ),
+    path(
+        "pay/reconciliation/",
+        marketing_page,
+        {"page_slug": "platform-fees-payments"},
+        name="marketing_pay_reconciliation",
+    ),
+    path(
+        "communicate/newsletters/",
+        marketing_page,
+        {"page_slug": "platform-communications"},
+        name="marketing_communicate_newsletters",
+    ),
+    # Regional landing must stay after verb-canonical paths so /run/workflows/ etc. are not captured.
     path(
         "<str:language_code>/<str:country_code>/",
         regional_marketing_landing,

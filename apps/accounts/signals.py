@@ -1,9 +1,31 @@
 import logging
 
+from django.conf import settings
+from django.contrib.auth.signals import user_logged_in
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
-
 from .models import AccessRole, User
+
+# Django 4.0 removed LANGUAGE_SESSION_KEY; the session key is now `_language`.
+LANGUAGE_SESSION_KEY = "_language"
+
+
+@receiver(user_logged_in)
+def apply_preferred_language_on_login(sender, user, request, **kwargs):
+    """When a user logs in, push their saved language preference into the
+    session so LocaleMiddleware picks it up on the next request. Empty string
+    or unknown code means "inherit" — we leave the session alone and let
+    Accept-Language / tenant default win.
+    """
+    if request is None or not hasattr(request, "session"):
+        return
+    code = (getattr(user, "preferred_language", "") or "").strip().lower()
+    if not code:
+        return
+    valid_codes = {c.lower() for c, _name in settings.LANGUAGES}
+    if code not in valid_codes:
+        return
+    request.session[LANGUAGE_SESSION_KEY] = code
 
 logger = logging.getLogger(__name__)
 

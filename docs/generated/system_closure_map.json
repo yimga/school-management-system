@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "program_gap_registry_version": 7,
-  "generated_at": "2026-05-05",
+  "generated_at": "2026-05-17",
   "source": [
     "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
     "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md"
@@ -368,7 +368,9 @@
     "1170",
     "1176",
     "1184",
-    "1185"
+    "1185",
+    "1197",
+    "1199"
   ],
   "generator": "scripts/generate_system_closure_map.py"
 }

@@ -2400,8 +2400,12 @@ def backend_dashboard(request):
             "tour_backend_dashboard_completed"
         )
         try:
+            from apps.siteconfig.tour_context import resolve_backend_tour_context
+
+            tour_ctx = resolve_backend_tour_context(request.user) or "backend_dashboard_admin"
+            context["tour_autostart_context"] = tour_ctx
             context["tour_steps_api_url"] = (
-                reverse("siteconfig:tour_steps_api") + "?context=backend_dashboard"
+                reverse("siteconfig:tour_steps_api") + f"?context={tour_ctx}"
             )
             context["tour_complete_url"] = reverse("accounts:mark_tour_complete")
         except NoReverseMatch:

@@ -38,10 +38,19 @@ from typing import Any, Iterator
 
 from django.utils import timezone
 
+from django.db import transaction
+
 from apps.migration_cloud import defaults as mc_defaults
 
+from .guardrails import enforce_financial_guardrail
 from .landers import LanderError, LanderResult, get_lander
-from .models import BundleStatus, MigrationArtifact, MigrationBundle
+from .models import (
+    BundleStatus,
+    FinancialMismatchError,
+    MigrationArtifact,
+    MigrationBundle,
+)
+from .progress import emit as _emit_progress, refresh_snapshot
 from .transformers import TransformerContext, TransformerError, get_transformer
 
 logger = logging.getLogger(__name__)
@@ -113,6 +122,8 @@ def _apply_bundle_inner(
 
     bundle.mark_status(BundleStatus.APPLYING)
     bundle.refresh_from_db()
+    _emit_progress(bundle_id=bundle_id, kind="stage_started", stage="APPLYING",
+                   message=f"Apply started (dry_run={dry_run}, atomic={bundle.apply_atomic})")
 
     worker_count = workers or int(
         mc_defaults.get("migration_cloud.orchestrator.worker_count")
@@ -128,20 +139,48 @@ def _apply_bundle_inner(
     # since it references the entity that owns the dynamic value.
     waves = _partition_jobs_by_dependency(per_artifact_jobs)
 
-    for wave_index, wave_jobs in enumerate(waves):
-        if not wave_jobs:
-            continue
-        if worker_count <= 1 or len(wave_jobs) <= 1:
-            for job in wave_jobs:
-                outcomes.append(_apply_artifact(bundle, job, dry_run=dry_run))
+    def _run_waves() -> None:
+        for wave_index, wave_jobs in enumerate(waves):
+            if not wave_jobs:
+                continue
+            _emit_progress(
+                bundle_id=bundle_id, kind="artifact_progress", stage="APPLYING",
+                message=f"Wave {wave_index} starting ({len(wave_jobs)} artifact(s))",
+                detail={"wave": wave_index, "artifacts": len(wave_jobs)},
+            )
+            if worker_count <= 1 or len(wave_jobs) <= 1:
+                for job in wave_jobs:
+                    outcomes.append(_apply_artifact(bundle, job, dry_run=dry_run))
+            else:
+                with ThreadPoolExecutor(max_workers=worker_count) as pool:
+                    futures = {
+                        pool.submit(_apply_artifact, bundle, job, dry_run=dry_run): job
+                        for job in wave_jobs
+                    }
+                    for future in as_completed(futures):
+                        outcomes.append(future.result())
+
+    atomic_mode = bool(getattr(bundle, "apply_atomic", False)) and not dry_run
+    try:
+        if atomic_mode:
+            with transaction.atomic():
+                _run_waves()
+                _maybe_check_financial_guardrail(bundle, outcomes)
         else:
-            with ThreadPoolExecutor(max_workers=worker_count) as pool:
-                futures = {
-                    pool.submit(_apply_artifact, bundle, job, dry_run=dry_run): job
-                    for job in wave_jobs
-                }
-                for future in as_completed(futures):
-                    outcomes.append(future.result())
+            _run_waves()
+            if not dry_run:
+                _maybe_check_financial_guardrail(bundle, outcomes)
+    except FinancialMismatchError as exc:
+        logger.warning("orchestrator: financial guardrail aborted apply: %s", exc)
+        _emit_progress(bundle_id=bundle_id, kind="warning", stage="APPLYING",
+                       message=f"Financial guardrail failure — apply aborted: {exc}")
+        bundle.mark_status(
+            BundleStatus.FAILED,
+            summary_patch={"financial_guardrail_failed": True, "error": str(exc)},
+        )
+        if not atomic_mode:
+            _rollback_all_runs(outcomes)
+        raise
 
     totals = _summarize_outcomes(outcomes)
     bundle.mapping_summary = {
@@ -165,6 +204,14 @@ def _apply_bundle_inner(
     else:
         bundle.mark_status(new_status, summary_patch={"apply_totals": totals})
 
+    _emit_progress(
+        bundle_id=bundle.pk, kind="stage_finished", stage="APPLYING",
+        message=f"Apply finished: {totals.get('created')} created, "
+                f"{totals.get('updated')} updated, {totals.get('quarantined')} quarantined",
+        detail={"totals": totals},
+    )
+    refresh_snapshot(bundle=bundle)
+
     return ApplyResult(
         bundle_id=bundle.pk,
         dry_run=dry_run,
@@ -174,6 +221,46 @@ def _apply_bundle_inner(
         total_quarantined=totals["quarantined"],
         status=new_status if not dry_run else BundleStatus.MAPPED,
     )
+
+
+def _maybe_check_financial_guardrail(
+    bundle: MigrationBundle, outcomes: list["ArtifactApplyOutcome"],
+) -> None:
+    """Run the financial guardrail if any finance domain landed and expected_totals is set."""
+    if not bundle.expected_totals:
+        return
+    finance_landed = any(
+        o.domain == "finance" and o.status in ("SUCCESS", "PARTIAL") for o in outcomes
+    )
+    students_landed = any(
+        o.domain == "students" and o.status in ("SUCCESS", "PARTIAL") for o in outcomes
+    )
+    # Only enforce when something happened in a domain the guardrail observes.
+    if not (finance_landed or students_landed):
+        return
+    bundle.refresh_from_db()
+    report = enforce_financial_guardrail(bundle=bundle)
+    bundle.mapping_summary = {
+        **(bundle.mapping_summary or {}),
+        "financial_guardrail": report.to_dict(),
+    }
+    bundle.save(update_fields=["mapping_summary", "updated_at"])
+
+
+def _rollback_all_runs(outcomes: list["ArtifactApplyOutcome"]) -> None:
+    """Roll back every MigrationRun produced by this apply (best-effort)."""
+    try:
+        from apps.automation.models import MigrationRun
+    except ImportError:
+        return
+    for o in outcomes:
+        if not o.migration_run_id:
+            continue
+        try:
+            run = MigrationRun.objects.get(pk=o.migration_run_id)
+            run.trigger_rollback(user=None)
+        except Exception:  # noqa: BLE001
+            logger.debug("orchestrator: rollback failed for run %s", o.migration_run_id, exc_info=True)
 
 
 # --- Dependency-DAG wave partitioning ------------------------------------
@@ -299,10 +386,17 @@ def _apply_artifact(
 # --- Row iteration + transformer application ----------------------------
 
 def _iter_canonical_rows(job: _ArtifactJob) -> Iterator[dict[str, Any]]:
-    """Stream the artifact's bytes, apply mappings + transformers, yield canonical rows."""
+    """Stream the artifact's bytes, apply mappings + transformers, yield canonical rows.
+
+    When the parent bundle has ``diff_mode='since'`` set with ``diff_since``,
+    rows older than the threshold are filtered out before reaching the lander.
+    """
     artifact = job.artifact
     mapping_index = {m["source_column"]: m for m in job.mappings}
     locale_hints = dict(artifact.locale_hints or {})
+    diff_threshold = None
+    if getattr(artifact.bundle, "diff_mode", "full") == "since":
+        diff_threshold = getattr(artifact.bundle, "diff_since", None)
 
     # Surface the tenant's country to every transformer so country-aware
     # transformers (grading_scale_to_canonical, name_split_locale,
@@ -324,12 +418,17 @@ def _iter_canonical_rows(job: _ArtifactJob) -> Iterator[dict[str, Any]]:
     encoding = artifact.encoding or "utf-8"
 
     if artifact.detected_format in ("csv", "tsv", "unknown"):
-        return _iter_csv_rows(path, encoding, mapping_index, locale_hints)
-    if artifact.detected_format == "json":
-        return _iter_json_rows(path, encoding, mapping_index, locale_hints)
-    if artifact.detected_format == "jsonl":
-        return _iter_jsonl_rows(path, encoding, mapping_index, locale_hints)
-    return iter(())
+        raw_iter = _iter_csv_rows(path, encoding, mapping_index, locale_hints)
+    elif artifact.detected_format == "json":
+        raw_iter = _iter_json_rows(path, encoding, mapping_index, locale_hints)
+    elif artifact.detected_format == "jsonl":
+        raw_iter = _iter_jsonl_rows(path, encoding, mapping_index, locale_hints)
+    else:
+        return iter(())
+    if diff_threshold is not None:
+        from .diff_mode import row_passes_diff_filter
+        raw_iter = (row for row in raw_iter if row_passes_diff_filter(row=row, threshold=diff_threshold))
+    return raw_iter
 
 
 def _iter_csv_rows(

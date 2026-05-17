@@ -14,6 +14,11 @@
   "use strict";
 
   function readEndpoint() {
+    var root = document.querySelector("[data-rmc-ai-health-root]");
+    if (root) {
+      var direct = root.getAttribute("data-health-url");
+      if (direct) { return direct; }
+    }
     var island = document.getElementById("page-data-components__ai_copilot-1");
     if (!island || !island.textContent) { return null; }
     try {
@@ -24,16 +29,37 @@
     }
   }
 
+  function healthPills() {
+    var pills = document.querySelectorAll("[data-rmc-ai-health-pill]");
+    if (pills.length) { return Array.prototype.slice.call(pills); }
+    var legacy = document.getElementById("aiCopilotStatus");
+    return legacy ? [legacy] : [];
+  }
+
   function applyState(state, text) {
-    var pill = document.getElementById("aiCopilotStatus");
-    if (pill) {
+    healthPills().forEach(function (pill) {
       pill.setAttribute("data-state", state);
-      var textNode = pill.querySelector(".ai-status-text");
+      var textNode = pill.querySelector("[data-rmc-ai-health-text], .ai-status-text");
       if (textNode) { textNode.textContent = text; }
-    }
-    /* Improvement A (2026-05-12): mirror the state onto the avatar micro-dot
-       so degraded mode is visible at-a-glance in every shell, not only when
-       the copilot panel is open. */
+      var badge = pill.querySelector("[data-rmc-ai-health-badge]");
+      if (badge) {
+        badge.classList.remove(
+          "text-bg-success",
+          "text-bg-warning",
+          "text-bg-secondary",
+          "text-bg-danger"
+        );
+        if (state === "ok") {
+          badge.classList.add("text-bg-success");
+        } else if (state === "degraded") {
+          badge.classList.add("text-bg-warning");
+        } else if (state === "error") {
+          badge.classList.add("text-bg-danger");
+        } else {
+          badge.classList.add("text-bg-secondary");
+        }
+      }
+    });
     var pulses = document.querySelectorAll("[data-rmc-user-ai-pulse]");
     pulses.forEach(function (n) { n.setAttribute("data-state", state); });
   }
@@ -66,10 +92,17 @@
   }
 
   function init() {
-    /* Probe once on load; re-probe when the copilot is opened. */
     probe();
     var trigger = document.getElementById("aiCopilotTrigger");
     if (trigger) { trigger.addEventListener("click", function () { setTimeout(probe, 200); }); }
+    var center = document.querySelector("[data-rmc-ai-center]");
+    if (center) {
+      center.addEventListener("click", function (e) {
+        if (e.target.closest("[data-rmc-ai-center-pick]")) {
+          setTimeout(probe, 200);
+        }
+      });
+    }
     /* Light periodic refresh — every 90s, only while the page is visible. */
     var interval = null;
     function startInterval() {

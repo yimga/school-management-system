@@ -1,15 +1,32 @@
 """
-Phase 9: OR-tools timetabling solver.
-Uses Google OR-Tools CP-SAT when available for constraint-based timetable generation;
-otherwise falls back to TimetableGenerator.
+Phase 9 (+ v2.90): OR-tools timetabling solver.
+
+Constraint set the CP-SAT model enforces (hard, fail-if-violated):
+  1. Each demand assigned exactly once
+  2. Each (slot, room) holds at most one demand
+  3. Same teacher cannot be in two slots simultaneously
+  4. Same classroom (cohort) cannot be in two subjects simultaneously
+  5. Teacher cannot be assigned to a `TeacherAvailability(is_available=False)` slot
+  6. Room capacity must meet classroom student count (drops infeasible rooms)
+
+Soft objective (maximised):
+  Sum of `TeacherAvailability.preference_level` (1-10, default 5) across all
+  picked (demand, slot) pairs. The solver picks among feasible solutions the
+  one that respects teachers' stated slot preferences most heavily.
+
+Falls back to `TimetableGenerator` (heuristic CSP) when ortools is not
+installed.
 """
 
 from __future__ import annotations
 
 import importlib.util
+import logging
 from typing import Optional
 
 from .scheduling import TimetableGenerator, Schedule
+
+logger = logging.getLogger("apps.academics.scheduling_solver")
 
 
 def _ortools_available() -> bool:
@@ -52,7 +69,13 @@ def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
     """Use OR-Tools CP-SAT to assign classes to (room, time_slot). Returns Schedule or None."""
     from apps.academics.models import SubjectAssignment
     from apps.evals.models import TeacherAssignment
-    from .scheduling import Schedule, ScheduleEntry, Room, TimeSlot
+    from .scheduling import (
+        Schedule,
+        ScheduleEntry,
+        Room,
+        TeacherAvailability,
+        TimeSlot,
+    )
 
     time_slots = list(
         TimeSlot.objects.filter(is_active=True).order_by("day_of_week", "start_time")
@@ -86,9 +109,40 @@ def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
     if not demands:
         return None
 
-    model = __import__(
+    cp_model = __import__(
         "ortools.sat.python.cp_model", fromlist=["cp_model"]
-    ).cp_model.CpModel()
+    ).cp_model
+
+    # Load teacher availability for all teachers in the demand set.
+    # Map: teacher_id -> {time_slot_id -> (is_available, preference_level)}
+    teacher_ids = {d[2].id for d in demands}
+    teacher_avail: dict[int, dict[int, tuple[bool, int]]] = {}
+    avail_rows = TeacherAvailability.objects.filter(
+        teacher_id__in=teacher_ids
+    ).values("teacher_id", "time_slot_id", "is_available", "preference_level")
+    for row in avail_rows:
+        teacher_avail.setdefault(row["teacher_id"], {})[row["time_slot_id"]] = (
+            bool(row["is_available"]),
+            int(row["preference_level"]),
+        )
+
+    # Classroom sizes (default to 30 when relation unavailable / cohort empty).
+    default_cohort_size = 30
+    classroom_sizes: dict[int, int] = {}
+    for classroom, _subj, _teacher in demands:
+        if classroom.id in classroom_sizes:
+            continue
+        if hasattr(classroom, "students"):
+            try:
+                classroom_sizes[classroom.id] = (
+                    classroom.students.count() or default_cohort_size
+                )
+            except (AttributeError, TypeError):
+                classroom_sizes[classroom.id] = default_cohort_size
+        else:
+            classroom_sizes[classroom.id] = default_cohort_size
+
+    model = cp_model.CpModel()
     num_demands = len(demands)
     num_slots = len(time_slots)
     num_rooms = len(rooms)
@@ -100,18 +154,18 @@ def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
             for r in range(num_rooms):
                 x[(d, s, r)] = model.NewBoolVar(f"x_{d}_{s}_{r}")
 
-    # Each demand assigned exactly once
+    # Hard 1: Each demand assigned exactly once
     for d in range(num_demands):
         model.Add(
             sum(x[(d, s, r)] for s in range(num_slots) for r in range(num_rooms)) == 1
         )
 
-    # Each (slot, room) at most one demand
+    # Hard 2: Each (slot, room) at most one demand
     for s in range(num_slots):
         for r in range(num_rooms):
             model.Add(sum(x[(d, s, r)] for d in range(num_demands)) <= 1)
 
-    # Teacher conflict: same teacher not in two places in same slot
+    # Hard 3: Teacher conflict — same teacher not in two places in same slot
     for s in range(num_slots):
         for d1 in range(num_demands):
             for d2 in range(d1 + 1, num_demands):
@@ -122,13 +176,73 @@ def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
                         <= 1
                     )
 
-    solver = __import__(
-        "ortools.sat.python.cp_model", fromlist=["cp_model"]
-    ).cp_model.CpSolver()
+    # Hard 4: Classroom conflict — a single cohort cannot be in two subjects
+    # in the same slot (regardless of room/teacher).
+    for s in range(num_slots):
+        for d1 in range(num_demands):
+            for d2 in range(d1 + 1, num_demands):
+                if demands[d1][0].id == demands[d2][0].id:
+                    model.Add(
+                        sum(x[(d1, s, r)] for r in range(num_rooms))
+                        + sum(x[(d2, s, r)] for r in range(num_rooms))
+                        <= 1
+                    )
+
+    # Hard 5: Teacher unavailability — forbid any (demand, slot, *) where the
+    # teacher of `demand` is marked unavailable for `slot`.
+    forbidden_teacher_slots = 0
+    for d_idx, (_, _, teacher) in enumerate(demands):
+        avail_for_teacher = teacher_avail.get(teacher.id, {})
+        for s_idx, slot in enumerate(time_slots):
+            is_avail, _pref = avail_for_teacher.get(slot.id, (True, 5))
+            if not is_avail:
+                forbidden_teacher_slots += 1
+                for r in range(num_rooms):
+                    model.Add(x[(d_idx, s_idx, r)] == 0)
+
+    # Hard 6: Room capacity — forbid (demand, *, room) where room.capacity
+    # is below the classroom's cohort size.
+    capacity_forbidden = 0
+    for d_idx, (classroom, _, _) in enumerate(demands):
+        needed = classroom_sizes.get(classroom.id, default_cohort_size)
+        for r_idx, room in enumerate(rooms):
+            if (room.capacity or 0) < needed:
+                capacity_forbidden += 1
+                for s in range(num_slots):
+                    model.Add(x[(d_idx, s, r_idx)] == 0)
+
+    # Soft objective: maximise sum of teacher preference_levels across picked
+    # (demand, slot) pairs. Slots a teacher hasn't expressed an opinion on
+    # default to 5 (the model's neutral mid-point).
+    preference_terms = []
+    for d_idx, (_, _, teacher) in enumerate(demands):
+        avail_for_teacher = teacher_avail.get(teacher.id, {})
+        for s_idx, slot in enumerate(time_slots):
+            _is_avail, pref = avail_for_teacher.get(slot.id, (True, 5))
+            for r in range(num_rooms):
+                preference_terms.append(pref * x[(d_idx, s_idx, r)])
+    if preference_terms:
+        model.Maximize(sum(preference_terms))
+
+    solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = 30.0
     status = solver.Solve(model)
 
-    if status not in (1, 4):  # OPTIMAL or FEASIBLE
+    logger.info(
+        "cp_sat_solver_run status=%s demands=%d slots=%d rooms=%d "
+        "teacher_unavailable_cells=%d room_capacity_forbidden_cells=%d "
+        "objective=%s wall_seconds=%.3f",
+        status,
+        num_demands,
+        num_slots,
+        num_rooms,
+        forbidden_teacher_slots,
+        capacity_forbidden,
+        solver.ObjectiveValue() if status in (cp_model.OPTIMAL, cp_model.FEASIBLE) else None,
+        solver.WallTime(),
+    )
+
+    if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
         return None
 
     schedule = Schedule.objects.create(

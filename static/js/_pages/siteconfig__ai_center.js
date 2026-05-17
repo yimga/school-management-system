@@ -54,4 +54,29 @@
     if (!btn || btn.disabled) return;
     pick(btn);
   });
+
+  function syncBrowserOffline() {
+    var hint = document.querySelector("[data-rmc-ai-browser-offline]");
+    var form = document.querySelector("[data-rmc-ai-center] [data-rmc-ai-guided]");
+    var runBtn = form && form.querySelector("[data-rmc-ai-run]");
+    var offline = typeof navigator !== "undefined" && navigator.onLine === false;
+    if (hint) {
+      if (offline) {
+        hint.classList.remove("d-none");
+      } else {
+        hint.classList.add("d-none");
+      }
+    }
+    if (runBtn) {
+      runBtn.disabled = offline;
+    }
+  }
+
+  window.addEventListener("online", syncBrowserOffline);
+  window.addEventListener("offline", syncBrowserOffline);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", syncBrowserOffline);
+  } else {
+    syncBrowserOffline();
+  }
 })();

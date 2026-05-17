@@ -1,0 +1,26 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}">{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-communications{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-v3-archetype" data-mkt-archetype="message-orchestration">
+  <header class="mkt-v3-archetype__hero mkt-edt-container">
+    <p class="mkt-v3-eyebrow">{% trans "Message orchestration center" %}</p>
+    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
+    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
+    <div class="mkt-v3-archetype__ctas">
+      <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
+      <a href="{% url 'marketing_communicate_hub' %}" class="mkt-edt-link">{% trans "Back to Communicate →" %}</a>
+    </div>
+  </header>
+  {% include "marketing/components/_dashboard_frame.html" with frame_title="Parent inbox" dashboard_partial="schools/_v2/_artifact_parent_phone_compact.svg.html" %}
+  <section class="mkt-edt-container mkt-v3-archetype__wins">
+    <h2>{% trans "Channel grid, one thread" %}</h2>
+    <ul>
+      <li>{% trans "Email, SMS, and inbox without duplicate sends." %}</li>
+      <li>{% trans "Permission slips cleared in minutes, not days." %}</li>
+      <li>{% trans "Delivery telemetry operators can trust." %}</li>
+    </ul>
+  </section>
+</article>
+{% endblock %}

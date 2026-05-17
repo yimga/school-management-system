@@ -1,0 +1,117 @@
+/**
+ * Marketing v3 shell — nav, footer, theme toggle, page chrome.
+ */
+
+.mkt-v3-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--mkt-rule, rgba(15, 27, 45, 0.10));
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background var(--mkt-v3-motion-fast, 200ms ease), border-color var(--mkt-v3-motion-fast, 200ms ease);
+}
+
+.mkt-v3-theme-toggle:hover,
+.mkt-v3-theme-toggle:focus-visible {
+  background: rgba(15, 27, 45, 0.06);
+  outline: 2px solid var(--mkt-accent, #C2410C);
+  outline-offset: 2px;
+}
+
+.mkt-navbar .mkt-v3-theme-toggle {
+  color: rgba(248, 250, 252, 0.88);
+  border-color: rgba(248, 250, 252, 0.22);
+}
+
+.mkt-v3-root {
+  background: var(--mkt-edt-bg, var(--mkt-surface, #FAF7F2));
+  color: var(--mkt-edt-ink, var(--mkt-ink, #0F1B2D));
+}
+
+.mkt-v3-section {
+  padding-block: var(--mkt-v3-section-gap, 6rem);
+}
+
+.mkt-v3-container {
+  width: min(100% - 2rem, var(--mkt-v3-max-width, 75rem));
+  margin-inline: auto;
+}
+
+.mkt-v3-eyebrow {
+  font-family: var(--mkt-edt-font-body, Inter, system-ui, sans-serif);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mkt-edt-ink-muted, var(--mkt-ink-2, #475569));
+}
+
+.mkt-v3-section-headline {
+  font-family: var(--mkt-edt-font-display, "Source Serif 4", serif);
+  font-size: var(--mkt-edt-type-section);
+  line-height: var(--mkt-edt-leading-section, 1.15);
+  letter-spacing: var(--mkt-edt-tracking-display, -0.02em);
+  color: var(--mkt-edt-ink);
+  margin: 0 0 0.75rem;
+}
+
+.mkt-v3-lead {
+  font-family: var(--mkt-edt-font-body, Inter, system-ui, sans-serif);
+  font-size: var(--mkt-edt-type-lead, 1.25rem);
+  line-height: 1.55;
+  color: var(--mkt-edt-ink-muted);
+  max-width: 42rem;
+}
+
+.mkt-v3-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.65rem 1.35rem;
+  border-radius: 0.75rem;
+  background: var(--mkt-edt-accent, var(--mkt-accent, #C2410C));
+  color: var(--mkt-edt-on-accent, #FAF7F2);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background var(--mkt-v3-motion-fast, 200ms ease), transform var(--mkt-v3-motion-fast, 200ms ease);
+}
+
+.mkt-v3-cta:hover {
+  background: var(--mkt-edt-accent-hover, #9A3412);
+  color: var(--mkt-edt-on-accent, #FAF7F2);
+}
+
+.mkt-v3-cta--ghost {
+  background: transparent;
+  color: var(--mkt-edt-ink);
+  border: 1px solid var(--mkt-edt-rule);
+}
+
+.mkt-v3-cta--ghost:hover {
+  background: rgba(15, 27, 45, 0.04);
+  color: var(--mkt-edt-ink);
+}
+
+.mkt-footer-trust-badges li {
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--mkt-edt-rule, rgba(15, 27, 45, 0.10));
+  border-radius: 999px;
+  font-size: 0.8125rem;
+}
+
+/* Utility nav links (Login, etc.) on the v3 light marketing nav. Replaces
+   Bootstrap's `text-white-50` which is invisible on cream. */
+.mkt-nav-utility {
+  color: var(--mkt-ink-2, #475569);
+}
+.mkt-nav-utility:hover,
+.mkt-nav-utility:focus {
+  color: var(--mkt-ink, #0F1B2D);
+}

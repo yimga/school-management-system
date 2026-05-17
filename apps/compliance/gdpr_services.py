@@ -525,3 +525,73 @@ def export_student_data_portability(
         }
 
     return payload
+
+
+def fulfill_pending_erasure(
+    erase_request_id: int,
+    *,
+    fulfilled_by_user_id: int | None = None,
+    dry_run: bool = False,
+) -> dict[str, Any]:
+    """
+    Approve→fulfill an EraseRequest: run the GDPR scrub for the subject and
+    advance the row to COMPLETED. Closes the gap where the admin action
+    flipped status without actually erasing data.
+
+    The function is the *only* sanctioned transition from APPROVED→COMPLETED
+    for student subjects. Non-student subjects (teacher / parent / staff users)
+    are not yet handled and return a structured "unsupported_subject_kind"
+    response so callers can surface a clear message instead of silently
+    no-oping.
+    """
+    EraseRequest = _get_model("compliance", "EraseRequest")
+    StudentProfile = _get_model("people", "StudentProfile")
+    if not EraseRequest or not StudentProfile:
+        return {"ok": False, "error": "compliance models unavailable"}
+
+    er = EraseRequest.objects.filter(pk=erase_request_id).select_related(
+        "subject_user", "school"
+    ).first()
+    if not er:
+        return {"ok": False, "error": "EraseRequest not found"}
+
+    if er.status not in {
+        EraseRequest.Status.PENDING,
+        EraseRequest.Status.APPROVED,
+    }:
+        return {
+            "ok": False,
+            "error": f"EraseRequest is in terminal state '{er.status}' — cannot fulfill.",
+            "status": er.status,
+        }
+
+    student = StudentProfile.objects.filter(
+        school_id=er.school_id, user_id=er.subject_user_id
+    ).first()
+    if not student:
+        return {
+            "ok": False,
+            "error": "unsupported_subject_kind: only student subjects are currently supported.",
+            "subject_user_id": er.subject_user_id,
+        }
+
+    result = gdpr_scrub_student(
+        er.school_id,
+        student.pk,
+        dry_run=dry_run,
+        requested_by_user_id=fulfilled_by_user_id,
+    )
+    if dry_run:
+        return {"ok": True, "dry_run": True, "scrub_summary": result}
+    if not result.get("ok"):
+        return {"ok": False, "error": result.get("error"), "scrub_summary": result}
+
+    er.status = EraseRequest.Status.COMPLETED
+    er.completed_at = timezone.now()
+    er.save(update_fields=["status", "completed_at"])
+    return {
+        "ok": True,
+        "erase_request_id": er.pk,
+        "status": er.status,
+        "scrub_summary": result,
+    }

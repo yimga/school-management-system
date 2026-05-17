@@ -21,13 +21,20 @@
 
 {% block content %}
 <main class="rmc-page rmc-page--migration-cloud" id="main">
+  {% if messages %}
+  <div class="rmc-banner-stack" role="status">
+    {% for m in messages %}
+      <div class="rmc-banner rmc-banner--{{ m.tags|default:'info' }}">{{ m }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
   <header class="rmc-page__header">
     <h1 class="rmc-h1">{% trans "Migration Cloud" %}</h1>
     <p class="rmc-lede">
       {% trans "Any platform, any size, hours not weeks. Bundles, classifiers, and the operator's audit trail in one place." %}
     </p>
     <div class="rmc-page__actions">
-      <a href="#new-bundle" class="rmc-btn rmc-btn--primary">{% trans "Start a new migration" %}</a>
+      <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_new' %}{% else %}{% url 'migration_cloud_super:bundle_new' %}{% endif %}" class="rmc-btn rmc-btn--primary">{% trans "Start a new migration" %}</a>
       <a href="{% url 'admin:migration_cloud_migrationbundle_changelist' %}" class="rmc-btn rmc-btn--ghost" aria-label="{% trans 'Advanced admin fallback: open migration bundles in Django admin' %}">
         {% trans "Open admin" %}
       </a>
@@ -73,6 +80,12 @@
     <h3 class="rmc-empty__title">{% trans "No migrations yet" %}</h3>
     <p class="rmc-empty__body">
       {% trans "Drop a ZIP, a folder, a SQL dump, or paste a OneRoster export URL to start." %}
+    </p>
+    <p class="rmc-empty__body">
+      <a class="rmc-btn rmc-btn--primary"
+         href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_new' %}{% else %}{% url 'migration_cloud_super:bundle_new' %}{% endif %}">
+        {% trans "Start a new migration" %}
+      </a>
     </p>
   </div>
   {% endif %}

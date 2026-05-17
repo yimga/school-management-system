@@ -6,11 +6,14 @@
 {% block content %}
 <div class="container py-4" data-rmc-page="notifications-inbox">
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
-    <div>
-      <h1 class="h3 mb-1">{% trans "Inbox" %}</h1>
-      <p class="text-tertiary mb-0">
-        {% blocktrans count counter=unread_count %}{{ counter }} unread notification{% plural %}{{ counter }} unread notifications{% endblocktrans %}
-      </p>
+    <div class="d-flex align-items-center gap-2">
+      {% include "components/_bell_clock_mark.html" with size=28 extra_class="text-primary flex-shrink-0" %}
+      <div>
+        <h1 class="h3 mb-1">{% trans "Inbox" %}</h1>
+        <p class="text-tertiary mb-0">
+          {% blocktrans count counter=unread_count %}{{ counter }} unread notification{% plural %}{{ counter }} unread notifications{% endblocktrans %}
+        </p>
+      </div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
       <a href="{% url 'accounts:user_profile' %}" class="btn btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>{% trans "Back" %}</a>
@@ -32,7 +35,7 @@
   </div>
 
   {# Apple Mail-style filter pill row — no chunky KPI cards. #}
-  <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-4" data-tour="inbox-filters">
     <div class="rmc-table-density-toggle" role="group" aria-label="{% trans 'Filter notifications' %}">
       <a class="btn{% if not status_filter %} active{% endif %}" href="{% url 'accounts:user_notifications' %}" {% if not status_filter %}aria-pressed="true"{% endif %}>
         {% trans "All" %} <span class="text-tertiary">· {{ total_count }}</span>
@@ -47,7 +50,7 @@
   </div>
 
   {# Time-bucketed grouping by severity bucket. JS-free fallback: list ordered by date. #}
-  <div class="rmc-inbox" data-rmc-inbox="1">
+  <div class="rmc-inbox" data-rmc-inbox="1" data-tour="inbox-list">
     {% if notifications %}
       {% regroup notifications by severity as severity_groups %}
       {% for group in severity_groups %}
@@ -83,6 +86,7 @@
                        Renders only when notif.school_id matches request.school. {% endcomment %}
                     {% institutional_stamp notif %}
                     <time class="rmc-inbox__time" datetime="{{ notif.created_at|date:'c' }}" title="{{ notif.created_at }}">
+                      {% include "components/_bell_clock_mark.html" with size=12 filled_segments=3 extra_class="rmc-inbox__bell-clock" accessible_label="" %}
                       {{ notif.created_at|timesince }}
                     </time>
                   </div>

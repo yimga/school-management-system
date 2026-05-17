@@ -11,6 +11,31 @@
   </p>
   <p class="text-muted small">{% trans "Base URL" %}: <code>{{ base_url }}</code></p>
 
+  {% if base_url_state %}
+    {% if base_url_state.level == "warning" %}
+      <div class="alert alert-warning rmc-alert" role="alert">
+        <strong>{% trans "OAUTH_CALLBACK_BASE_URL advisory" %}:</strong>
+        {{ base_url_state.summary }}
+        {% if base_url_state.env_var_hint %}
+          <div class="small mt-2">
+            {% trans "Set in deployment env" %}:
+            <code>{{ base_url_state.env_var_hint }}</code>
+          </div>
+        {% endif %}
+      </div>
+    {% elif base_url_state.level == "info" and not base_url_state.configured %}
+      <div class="alert alert-info rmc-alert" role="alert">
+        <small>{{ base_url_state.summary }}</small>
+        {% if base_url_state.env_var_hint %}
+          <div class="small mt-1">
+            {% trans "Suggested" %}:
+            <code>{{ base_url_state.env_var_hint }}</code>
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endif %}
+
   <div class="table-responsive">
     <table class="table rmc-data-table align-middle">
       <thead>
@@ -27,7 +52,7 @@
           <tr>
             <td>
               <div class="d-flex align-items-center gap-2">
-                <div class="{{ row.connector.brand_mark_class }}" aria-hidden="true"></div>
+                {% include "integrations_marketplace/_brand_mark.html" with connector=row.connector %}
                 <strong>{{ row.connector.label }}</strong>
               </div>
             </td>

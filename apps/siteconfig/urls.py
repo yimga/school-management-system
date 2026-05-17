@@ -103,7 +103,9 @@ from .views_ai_governance import ai_governance
 from .views_ai_center import ai_center
 from .views_billing_plan import billing_plan_readonly
 from .views_billing_stripe import billing_checkout_start, billing_customer_portal
-from .views_tour import tour_steps_api
+from .views_tour import tour_steps_api, tour_steps_public_api
+from .views_tour_analytics import tour_analytics_api
+from .views_tour_info import tour_info_tag_api
 from .views_report_output_history_evidence import report_output_history_evidence
 from .views_report_templates_catalog_evidence import report_templates_catalog_evidence
 from .views_tenant_report_schedules_evidence import tenant_report_schedules_evidence
@@ -120,6 +122,11 @@ app_name = "siteconfig"
 
 urlpatterns = [
     path("maintenance/", maintenance_view, name="maintenance"),
+    path(
+        "dev/mascot/",
+        __import__("apps.siteconfig.views_mascot_storybook", fromlist=["mascot_storybook"]).mascot_storybook,
+        name="mascot_storybook",
+    ),
     path(
         "onboarding/step/complete/",
         onboarding_step_mark_complete,
@@ -427,6 +434,9 @@ urlpatterns = [
         "guided-onboarding/execute-launch/", execute_launch_view, name="execute_launch"
     ),
     path("api/tour-steps/", tour_steps_api, name="tour_steps_api"),
+    path("api/tour-steps/public/", tour_steps_public_api, name="tour_steps_public_api"),
+    path("api/tour-analytics/", tour_analytics_api, name="tour_analytics_api"),
+    path("api/tour-info/", tour_info_tag_api, name="tour_info_tag_api"),
     path(
         "impersonation-consent/grant/",
         grant_impersonation_consent,

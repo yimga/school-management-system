@@ -1,0 +1,45 @@
+{% extends "control_plane_skeleton.html" %}{# Bind a pre-tenant bundle to a provisioned school. Operator-only. #}
+{% load i18n %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--migration-cloud-bind" id="main">
+  <header class="rmc-page__header">
+    <a href="{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}"
+       class="rmc-back">{% trans "← Back to bundle" %}</a>
+    <h1 class="rmc-h1">{% trans "Bind to school" %}</h1>
+    <p class="rmc-lede">
+      {% trans "This bundle was staged before its tenant existed. Bind it to a School row to enable apply / reconcile." %}
+    </p>
+  </header>
+
+  {% if errors %}
+  <div class="rmc-banner rmc-banner--error" role="alert">
+    <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  <form method="post" action="{% url 'migration_cloud_super:bundle_bind_school' bundle_id=bundle.pk %}"
+        class="rmc-form rmc-form--intake">
+    {% csrf_token %}
+    <fieldset class="rmc-form__section">
+      <label class="rmc-form__field">
+        <span class="rmc-form__label">{% trans "Target school ID" %}</span>
+        <input type="text" name="school_id" required
+               inputmode="numeric" pattern="[0-9]*"
+               class="rmc-input rmc-input--text"
+               value="{{ bundle.school_id|default:'' }}">
+        <small class="rmc-form__help">
+          {% trans "Look up the numeric School ID from the Schools admin. The bundle's schema_name auto-populates from the school." %}
+        </small>
+      </label>
+    </fieldset>
+    <div class="rmc-form__actions">
+      <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Bind" %}</button>
+      <a href="{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}"
+         class="rmc-btn rmc-btn--ghost">{% trans "Cancel" %}</a>
+    </div>
+  </form>
+</main>
+{% endblock %}

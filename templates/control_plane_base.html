@@ -99,6 +99,7 @@ Targets the existing #cp-main-content landmark (line ~76 below).
    aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
 
 {% include "partials/control_plane_primary_nav.html" %}
+{% include "components/rmc_operator_surface_strip.html" %}
 
 <div class="container-fluid px-3 py-2 cp-layout flex-grow-1 min-h-0 d-flex flex-column" data-rmc-authenticated-shell="{{ rmc_shell.cp_layout_authenticated_shell|default:'manager-control-plane' }}">
   <div class="row g-2 flex-grow-1 min-h-0">
@@ -176,5 +177,4 @@ Targets the existing #cp-main-content landmark (line ~76 below).
   <button type="button" class="btn btn-warning btn-sm shadow" id="cpTourStartBtn" aria-label="{% trans 'Start page tour' %}">{% trans "Page tour" %}</button>
 </div>
 {% include 'components/contextual_feedback_widget.html' %}
-<script src="{% static 'js/control-plane-tour.js' %}" defer data-tour-api="{% url 'siteconfig:tour_steps_api' %}"></script>
 {% endblock %}

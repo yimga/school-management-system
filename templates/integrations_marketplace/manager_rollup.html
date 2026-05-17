@@ -1,0 +1,78 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Integrations rollup" %} · Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3" data-page-archetype="manager-integrations-rollup">
+
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Cross-school integrations rollup" %}</h1>
+      <p class="text-muted mb-0">
+        {% blocktrans %}Every active school × every configured integration. Operations-only view — read-only.{% endblocktrans %}
+      </p>
+    </div>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <span class="badge text-bg-secondary">
+      {% blocktrans count counter=total_schools %}{{ counter }} school{% plural %}{{ counter }} schools{% endblocktrans %}
+    </span>
+    <span class="badge text-bg-secondary">
+      {% blocktrans count counter=total_rows %}{{ counter }} active connection{% plural %}{{ counter }} active connections{% endblocktrans %}
+    </span>
+  </div>
+
+  <form method="get" class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <label for="connector-filter" class="form-label small text-muted mb-0">{% trans "Filter by connector" %}:</label>
+    <select id="connector-filter" name="connector" class="form-select form-select-sm" onchange="this.form.submit()">
+      <option value="">{% trans "All connectors" %}</option>
+      {% for slug in available_filters %}
+        <option value="{{ slug }}" {% if connector_filter == slug %}selected{% endif %}>{{ slug }}</option>
+      {% endfor %}
+    </select>
+    {% if connector_filter %}
+      <a href="?" class="small text-muted">{% trans "Clear" %}</a>
+    {% endif %}
+  </form>
+
+  <div class="table-responsive">
+    <table class="table rmc-data-table align-middle">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "School" %}</th>
+          {% for c in connectors %}
+            <th scope="col" title="{{ c.label }}">
+              <div class="small">{{ c.slug }}</div>
+              <div class="small text-muted">{{ c.schools_connected }} / {{ total_schools }}</div>
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in schools %}
+          <tr>
+            <th scope="row">
+              <strong>{{ entry.school.name }}</strong>
+              {% if not entry.school.is_active %}
+                <span class="badge text-bg-warning-subtle text-warning-emphasis ms-1">{% trans "inactive" %}</span>
+              {% endif %}
+            </th>
+            {% for c in connectors %}
+              <td>
+                {% if c.slug in entry.by_connector %}
+                  <span class="badge text-bg-success-subtle text-success-emphasis" title="{% trans 'Connected' %}">✓</span>
+                {% else %}
+                  <span class="text-muted small">—</span>
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "control_plane_skeleton.html" %}{# Attach a live source to a PENDING bundle (DB/OAuth/mailbox/API). #}
+{% load i18n %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--migration-cloud-attach" id="main">
+  <header class="rmc-page__header">
+    <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}{% endif %}"
+       class="rmc-back">{% trans "← Back to bundle" %}</a>
+    <h1 class="rmc-h1">{% trans "Attach source" %}</h1>
+    <p class="rmc-lede">
+      {% blocktrans with method=bundle.intake_method %}Bundle is staged for the
+      <strong>{{ method }}</strong> intake method. Provide the endpoint or
+      handle below so the pipeline can pull from it.{% endblocktrans %}
+    </p>
+  </header>
+
+  {% if errors %}
+  <div class="rmc-banner rmc-banner--error" role="alert">
+    <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  <form method="post"
+        action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_attach_source' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_attach_source' bundle_id=bundle.pk %}{% endif %}"
+        class="rmc-form rmc-form--intake">
+    {% csrf_token %}
+
+    <fieldset class="rmc-form__section">
+      <legend class="rmc-form__legend">{% trans "Source handle" %}</legend>
+      <label class="rmc-form__field">
+        <span class="rmc-form__label">{% trans "URI / endpoint / mailbox" %}</span>
+        <input type="text" name="intake_source_uri"
+               value="{{ form.intake_source_uri|default:bundle.intake_source_uri }}"
+               required maxlength="2000"
+               class="rmc-input rmc-input--text"
+               autocomplete="off">
+        <small class="rmc-form__help">
+          {% trans "Database: postgres://… / mysql://… / mssql://… Mailbox: mailbox@host.tld. OAuth folder: gdrive://… / onedrive://… / dropbox://… / https://…. API: https://api.example.com/…" %}
+        </small>
+      </label>
+
+      <label class="rmc-form__field">
+        <span class="rmc-form__label">{% trans "Operator notes (visible on audit log)" %}</span>
+        <textarea name="notes" rows="3" maxlength="500"
+                  class="rmc-input rmc-input--text">{{ form.notes|default:'' }}</textarea>
+        <small class="rmc-form__help">
+          {% trans "Credentials are NOT stored here — wire them through the platform secrets vault and reference the secret ID in the notes if needed." %}
+        </small>
+      </label>
+    </fieldset>
+
+    <div class="rmc-form__actions">
+      <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Attach source" %}</button>
+      <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}{% endif %}"
+         class="rmc-btn rmc-btn--ghost">{% trans "Cancel" %}</a>
+    </div>
+  </form>
+</main>
+{% endblock %}

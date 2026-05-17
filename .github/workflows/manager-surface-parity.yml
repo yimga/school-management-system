@@ -1,0 +1,80 @@
+name: Manager surface parity
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/schools/super_admin_paired_surfaces.py"
+      - "apps/schools/super_admin_bridge_registry.py"
+      - "apps/schools/context_processors.py"
+      - "apps/schools/tests/test_super_admin_surface_parity.py"
+      - "templates/components/rmc_operator_surface_strip.html"
+      - "templates/control_plane_base.html"
+      - "templates/admin/base_site.html"
+      - "static/css/admin-cp-parity.css"
+      - "scripts/verify_super_admin_surface_parity.py"
+      - "scripts/verify_manager_render_parity.py"
+      - "scripts/run_manager_surface_parity.sh"
+      - "tests/e2e/manager-surface-parity.spec.js"
+      - ".github/workflows/manager-surface-parity.yml"
+      - "config/manager_urls.py"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  manager-surface-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SECRET_KEY: "ci-manager-surface-parity-not-production-64chars_______"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com,manager.runmycampus.com"
+      VISUAL_QA_PORT: "8012"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          npm ci
+
+      - name: Install Playwright Chromium
+        run: node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Migrate and verify matrix
+        run: |
+          python manage.py migrate --noinput
+          python scripts/verify_manager_render_parity.py --write-matrix
+
+      - name: Django surface parity tests
+        run: python scripts/run_sqlite_memory_tests.py apps.schools.tests.test_super_admin_surface_parity --verbosity=1
+
+      - name: Manager surface parity Playwright
+        run: bash scripts/run_manager_surface_parity.sh
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manager-surface-parity-artifacts
+          path: |
+            artifacts/manager-surface-parity
+            docs/generated/super_admin_surface_matrix.json
+            docs/generated/manager_surface_browser_probes.json
+            test-results
+          if-no-files-found: ignore

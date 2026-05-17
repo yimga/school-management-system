@@ -18,14 +18,14 @@
 
 {% block content %}
 {% with widgets=display_widgets %}
-<div class="tdm-bg" data-decision-engine="surface">
+<div class="tdm-bg" data-decision-engine="surface" data-rmc-page="teacher-portal">
   {% phase8_dashboard_declaration "teacher/dashboard.html" %}
   <div class="tdm-shell" data-rmc-ux-role-dashboard="teacher-workspace">
     {% comment %} Pass 8 UX consistency: removed v2 rmc-page-header — the tdm-hero below
        (line 88) is the single H1 for this page. It also owns the chip rail and
        the "today's classes" decision zone. {% endcomment %}
     {% if teacher_fast_workflows %}
-    <section class="card border-0 shadow-sm mb-3 p-3" data-teacher-fast-workflows="1" aria-label="{% trans 'Fast workflows' %}">
+    <section class="card border-0 shadow-sm mb-3 p-3" data-teacher-fast-workflows="1" data-tour="teacher-fast-workflows" aria-label="{% trans 'Fast workflows' %}">
       {% if rmc_conversion_single_action_enforced|default:False %}
       <details class="rmc-conversion-more-actions border rounded px-2 py-2">
         <summary class="d-flex flex-wrap align-items-center gap-2 mb-0 text-muted small user-select-none cursor-pointer" >
@@ -57,7 +57,7 @@
     {% url 'portal:teacher_attendance' as teacher_attendance_url %}
 
     {# Phase G follow-through (2026-05-12): section nav for 593L teacher dashboard. #}
-    <nav class="rmc-section-nav rmc-section-nav--horizontal mb-3" aria-label="{% trans 'Teaching dashboard sections' %}">
+    <nav class="rmc-section-nav rmc-section-nav--horizontal mb-3" data-tour="teacher-section-nav" aria-label="{% trans 'Teaching dashboard sections' %}">
       <ul class="rmc-section-nav__list">
         <li><a href="#teacher-attention"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>{% trans "Attention" %}</a></li>
         <li><a href="#teacher-today"><i class="bi bi-calendar3" aria-hidden="true"></i>{% trans "Today" %}</a></li>
@@ -66,7 +66,7 @@
       </ul>
     </nav>
 
-    <section id="teacher-attention" data-rmc-section-anchor class="mb-3 rmc-reveal" data-rmc-intelligent-insights="teacher" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
+    <section id="teacher-attention" data-rmc-section-anchor class="mb-3 rmc-reveal" data-rmc-intelligent-insights="teacher" data-rmc-ux-section="what-needs-attention" data-tour="teacher-attention" aria-label="{% trans 'What needs attention' %}">
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
         <h2 class="h6 mb-0">{% trans "What needs attention" %}</h2>
         <span class="small text-muted">{% trans "Focused guidance from attendance, marks, and workflow signals" %}</span>
@@ -94,9 +94,9 @@
         {% endif %}
       </div>
     </section>
-    <section id="teacher-today" data-rmc-section-anchor class="tdm-hero card-glass rmc-reveal" data-decision-zone="headline" data-rmc-ux-section="today-plan" aria-label="{% trans 'Teaching plan for today' %}">
+    <section id="teacher-today" data-rmc-section-anchor class="tdm-hero card-glass rmc-reveal" data-decision-zone="headline" data-rmc-ux-section="today-plan" data-tour="teacher-today" aria-label="{% trans 'Teaching plan for today' %}">
       <div class="tdm-hero__text">
-        <p class="tdm-eyebrow">{% trans "Teacher workspace" %}</p>
+        <p class="tdm-eyebrow">{% term "teacher" capitalize=True %} {% trans "workspace" %}</p>
         {% comment %} Pass 8: previously hardcoded "Good afternoon" regardless of the user's local time.
            Use the same neutral "Welcome back" greeting as parent/admin dashboards until a
            time-of-day greeting helper is wired through the context processor. {% endcomment %}
@@ -297,7 +297,7 @@
           <div class="tdm-compact-stack">
             <article class="tdm-compact-card rmc-reveal">
               <div class="tdm-compact-head">
-                <h4>{% trans "Student attention queue" %}</h4>
+                <h4>{% term "student" capitalize=True %} {% trans "attention queue" %}</h4>
                 <span class="badge rounded-pill text-bg-light">{{ ews_list|length|default:0 }}</span>
               </div>
               {% if ews_list %}

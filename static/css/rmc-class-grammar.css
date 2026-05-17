@@ -331,6 +331,14 @@
   background-repeat: no-repeat;
   background-position: center;
   background-size: 60% 60%;
+  color: #fff; /* glyph fill via currentColor; safe contrast on every brand tile */
+}
+/* v2.79: inner SVG glyph (sourced from static/sprites/integrations.svg) */
+.rmc-integration-mark__glyph {
+  inline-size: 60%;
+  block-size: 60%;
+  fill: currentColor;
+  pointer-events: none;
 }
 /* Per-connector brand color tokens — CSP-clean (no inline styles). */
 .rmc-integration-mark--zoom                  { --rmc-brand-bg: #2D8CFF; }
@@ -1723,4 +1731,295 @@
 }
 .rmc-institutional-stamp__label {
   letter-spacing: 0.02em;
+}
+
+/* AI Center + guided assistant output panel */
+.rmc-ai-guided-out,
+[data-rmc-ai-out].rmc-ai-guided-out {
+  max-height: 24rem;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+/* Migration Cloud intake form — BEM block used by templates/migration_cloud/intake_new.html.
+ * Token-driven, theme-aware. Page extends control_plane_skeleton.html so tokens resolve
+ * to the dark CP palette by default; portal shell tokens reflow automatically. */
+.rmc-page--migration-cloud-intake {
+  padding: 1.5rem clamp(1rem, 4vw, 2.5rem);
+  max-width: 60rem;
+  margin-inline: auto;
+}
+
+.rmc-form--intake {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.rmc-form__section {
+  border: var(--border-width-hairline, 1px) solid var(--hairline, rgba(255,255,255,0.08));
+  border-radius: var(--radius-md, 0.5rem);
+  padding: 1rem 1.25rem;
+  background: var(--surface-elevated, transparent);
+}
+
+.rmc-form__legend {
+  font-size: var(--type-size-body, 0.95rem);
+  font-weight: 600;
+  color: var(--text-primary, inherit);
+  padding: 0 0.25rem;
+}
+
+.rmc-form__help {
+  font-size: var(--type-size-small, 0.85rem);
+  color: var(--text-secondary, #555);
+  margin: 0.35rem 0 0.75rem;
+}
+
+.rmc-form__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.85rem;
+}
+
+.rmc-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.rmc-form__label {
+  font-size: var(--type-size-small, 0.85rem);
+  color: var(--text-secondary, #555);
+}
+
+.rmc-form__checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rmc-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.rmc-input {
+  font: inherit;
+  padding: 0.5rem 0.7rem;
+  border: var(--border-width-hairline, 1px) solid var(--hairline, rgba(255,255,255,0.18));
+  border-radius: var(--radius-sm, 0.375rem);
+  background: var(--surface-canvas, transparent);
+  color: var(--text-primary, inherit);
+  width: 100%;
+}
+
+.rmc-input--text,
+.rmc-input--select,
+.rmc-input--file {
+  /* Variant hooks; share base .rmc-input box. */
+}
+
+.rmc-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md, 0.5rem);
+  border-left: 4px solid var(--accent, currentColor);
+  background: var(--surface-overlay, rgba(255,255,255,0.04));
+  margin-bottom: 1rem;
+}
+
+.rmc-banner--error {
+  border-left-color: var(--color-error, #c0392b);
+  background: var(--surface-error-bg, rgba(192,57,43,0.08));
+}
+
+.rmc-banner--success {
+  border-left-color: var(--color-success, #2e7d32);
+  background: var(--surface-success-bg, rgba(46,125,50,0.08));
+}
+
+.rmc-banner--warning {
+  border-left-color: var(--color-warning, #b26a00);
+  background: var(--surface-warning-bg, rgba(178,106,0,0.08));
+}
+
+.rmc-banner--info,
+.rmc-banner--debug {
+  border-left-color: var(--accent, currentColor);
+  background: var(--surface-info-bg, rgba(0,0,0,0.04));
+}
+
+.rmc-banner-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.rmc-page--migration-cloud-attach,
+.rmc-page--migration-cloud-bind {
+  /* Wizard subpages share the rmc-page base; this hook lets us tighten
+     spacing per-screen without forking the base layout. */
+}
+
+.rmc-card__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.rmc-ai-plan__grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 0.75rem;
+  row-gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.rmc-ai-narrative {
+  border-left: 3px solid var(--accent, currentColor);
+  padding: 0.5rem 0.75rem;
+  margin: 0.5rem 0;
+  background: var(--surface-overlay, rgba(0,0,0,0.03));
+  font-style: italic;
+}
+
+.rmc-stage-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem 0;
+}
+
+.rmc-stage {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--hairline, rgba(0,0,0,0.12));
+  font-size: var(--type-size-sm, 0.85rem);
+}
+
+.rmc-stage--done {
+  background: var(--surface-success-bg, rgba(46,125,50,0.12));
+  border-color: var(--color-success, #2e7d32);
+}
+
+.rmc-stage--current {
+  background: var(--surface-info-bg, rgba(0,0,0,0.04));
+  border-color: var(--accent, currentColor);
+  font-weight: 600;
+}
+
+.rmc-stage--pending {
+  opacity: 0.6;
+}
+
+.rmc-stat-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.35rem 0.75rem;
+}
+
+.rmc-stat-list--warn li {
+  color: var(--color-warning, #b26a00);
+}
+
+.rmc-ai-disclosure {
+  margin-top: 1rem;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--hairline, rgba(0,0,0,0.08));
+}
+
+.rmc-ai-disclosure > summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.rmc-form--inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.rmc-form--inline > input[type="text"],
+.rmc-form--inline > input[type="file"] {
+  flex: 1 1 240px;
+  min-width: 240px;
+}
+
+.rmc-ai-ask__entry {
+  padding: 0.4rem 0.6rem;
+  border-left: 2px solid var(--accent, currentColor);
+  margin: 0.4rem 0;
+  background: var(--surface-overlay, rgba(0,0,0,0.03));
+  border-radius: 0 0.25rem 0.25rem 0;
+}
+
+.rmc-ai-ask__q,
+.rmc-ai-ask__a {
+  margin: 0.15rem 0;
+  font-size: var(--type-size-sm, 0.9rem);
+}
+
+.rmc-page--migration-cloud-intake .rmc-card.rmc-ai-disclosure {
+  margin: 1rem 0;
+}
+
+/* sms-v3.7 — Migration Cloud Tier 1 / Tier 2 / Tier 3 page modifiers + stage states. */
+.rmc-page--migration-cloud-conflicts,
+.rmc-page--migration-cloud-progress,
+.rmc-page--migration-cloud-assets,
+.rmc-page--migration-cloud-handoff,
+.rmc-page--migration-cloud-review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 1rem);
+}
+
+.rmc-card--muted {
+  background: var(--surface-muted, rgba(0,0,0,0.02));
+  border: 1px dashed var(--hairline, rgba(0,0,0,0.08));
+}
+
+.rmc-stage--pending {
+  opacity: 0.6;
+}
+.rmc-stage--current {
+  font-weight: 600;
+  color: var(--accent, currentColor);
+}
+.rmc-stage--done {
+  opacity: 0.9;
+}
+.rmc-stage--done::before {
+  content: "✓ ";
+  color: var(--success, #2c8a3c);
+}
+
+.rmc-section-nav--secondary {
+  border-top: 1px solid var(--hairline, rgba(0,0,0,0.08));
+  padding-top: var(--space-2, 0.5rem);
+  margin-top: var(--space-2, 0.5rem);
+}
+
+.rmc-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }

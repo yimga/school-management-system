@@ -50,11 +50,11 @@
       ]
     }
   },
-  "generated_at": "2026-05-15T12:09:38.330297+00:00",
-  "high_impact_templates_total": 158,
+  "generated_at": "2026-05-16T17:25:16.150578+00:00",
+  "high_impact_templates_total": 160,
   "inline_styles": {
-    "count": 52,
-    "needs_review_count": 52,
+    "count": 54,
+    "needs_review_count": 54,
     "needs_review_paths": [
       "templates/accounts/backend_dashboard.html",
       "templates/marketplace/tenant_app_catalog.html",
@@ -72,6 +72,7 @@
       "templates/sales/pipeline_board.html",
       "templates/schools/billing_dashboard.html",
       "templates/siteconfig/academic_years_setup_evidence.html",
+      "templates/siteconfig/ai_center.html",
       "templates/siteconfig/ai_governance.html",
       "templates/siteconfig/billing_plan_readonly.html",
       "templates/siteconfig/bulk_letters.html",
@@ -81,6 +82,7 @@
       "templates/siteconfig/feature_control_panel_content.html",
       "templates/siteconfig/guided_configuration_workflows.html",
       "templates/siteconfig/installed_packages_rollback.html",
+      "templates/siteconfig/maintenance.html",
       "templates/siteconfig/onboarding.html",
       "templates/siteconfig/onboarding_step.html",
       "templates/siteconfig/partials/ccc_guided_activation_strip.html",
@@ -115,8 +117,8 @@
   "luxury_gate_min_score": 13,
   "luxury_gate_passed": true,
   "missing_ds_btn": {
-    "count": 83,
-    "needs_review_count": 83,
+    "count": 85,
+    "needs_review_count": 85,
     "needs_review_paths": [
       "templates/base.html",
       "templates/control_plane_base.html",
@@ -130,6 +132,7 @@
       "templates/schools/billing_dashboard.html",
       "templates/schools/super_dashboard.html",
       "templates/siteconfig/academic_years_setup_evidence.html",
+      "templates/siteconfig/ai_center.html",
       "templates/siteconfig/ai_governance.html",
       "templates/siteconfig/bulk_letters.html",
       "templates/siteconfig/compliance_exports.html",
@@ -187,6 +190,7 @@
       "templates/studio_os/components/action_bar.html",
       "templates/studio_os/components/loading_empty_states.html",
       "templates/studio_os/modes/experience.html",
+      "templates/studio_os/partials/_mode_hero.html",
       "templates/studio_os/partials/automation_mode_canvas.html",
       "templates/studio_os/partials/automation_overview_body.html",
       "templates/studio_os/partials/control_mode_canvas.html",
@@ -789,8 +793,8 @@
       ]
     },
     "inline_style_cleanup": {
-      "count": 52,
-      "needs_review_count": 52,
+      "count": 54,
+      "needs_review_count": 54,
       "needs_review_paths": [
         "templates/accounts/backend_dashboard.html",
         "templates/marketplace/tenant_app_catalog.html",
@@ -808,6 +812,7 @@
         "templates/sales/pipeline_board.html",
         "templates/schools/billing_dashboard.html",
         "templates/siteconfig/academic_years_setup_evidence.html",
+        "templates/siteconfig/ai_center.html",
         "templates/siteconfig/ai_governance.html",
         "templates/siteconfig/billing_plan_readonly.html",
         "templates/siteconfig/bulk_letters.html",
@@ -817,6 +822,7 @@
         "templates/siteconfig/feature_control_panel_content.html",
         "templates/siteconfig/guided_configuration_workflows.html",
         "templates/siteconfig/installed_packages_rollback.html",
+        "templates/siteconfig/maintenance.html",
         "templates/siteconfig/onboarding.html",
         "templates/siteconfig/onboarding_step.html",
         "templates/siteconfig/partials/ccc_guided_activation_strip.html",

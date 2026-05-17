@@ -151,6 +151,16 @@ class User(AbstractUser):
         blank=True,
         help_text="Last time user triggered Emergency Lockdown (for 24h cooldown).",
     )
+    preferred_language = models.CharField(
+        max_length=16,
+        blank=True,
+        default="",
+        help_text=(
+            "Per-user language preference. When set, overrides Accept-Language "
+            "and the tenant default at login. Values mirror settings.LANGUAGES codes "
+            "(e.g. 'en', 'es', 'pt-br', 'zh-hans'). Empty string = inherit."
+        ),
+    )
 
     def has_feature_permission(self, code: str) -> bool:
         if self.is_superuser:

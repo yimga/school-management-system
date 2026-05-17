@@ -1,0 +1,82 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Webhook events" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3" data-page-archetype="integrations-events">
+
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Webhook events" %}</h1>
+      <p class="text-muted mb-0">
+        {% blocktrans %}The most recent inbound webhook deliveries for this tenant. Sourced from the audit log; only verified deliveries appear here (rejected requests are logged separately).{% endblocktrans %}
+      </p>
+    </div>
+    <a href="{% url 'integrations_marketplace:hub' %}" class="btn btn-sm btn-outline-secondary">
+      {% trans "Back to hub" %}
+    </a>
+  </div>
+
+  <form method="get" class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <label for="connector-filter" class="form-label small text-muted mb-0">{% trans "Filter by connector" %}:</label>
+    <select id="connector-filter" name="connector" class="form-select form-select-sm" onchange="this.form.submit()">
+      <option value="">{% trans "All connectors" %}</option>
+      {% for c in connectors %}
+        <option value="{{ c }}" {% if connector_filter == c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+    {% if connector_filter %}
+      <a href="{% url 'integrations_marketplace:events' %}" class="small text-muted">{% trans "Clear" %}</a>
+    {% endif %}
+    <span class="small text-muted ms-auto">
+      {% blocktrans count counter=events|length %}{{ counter }} event{% plural %}{{ counter }} events{% endblocktrans %}
+    </span>
+  </form>
+
+  {% if events %}
+    <div class="table-responsive">
+      <table class="table rmc-data-table align-middle">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "When" %}</th>
+            <th scope="col">{% trans "Connector" %}</th>
+            <th scope="col">{% trans "Event" %}</th>
+            <th scope="col">{% trans "Campus" %}</th>
+            <th scope="col">{% trans "Payload keys" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ev in events %}
+            <tr>
+              <td><span class="small text-muted">{{ ev.timestamp|date:"Y-m-d H:i:s" }}</span></td>
+              <td><strong>{{ ev.connector }}</strong></td>
+              <td><code class="small">{{ ev.event_type }}</code></td>
+              <td>{% if ev.campus_id %}#{{ ev.campus_id }}{% else %}<span class="text-muted small">{% trans "school" %}</span>{% endif %}</td>
+              <td>
+                {% for k in ev.payload_keys %}
+                  <span class="badge text-bg-secondary">{{ k }}</span>
+                {% empty %}
+                  <span class="text-muted small">{% trans "(empty)" %}</span>
+                {% endfor %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="rmc-empty" role="status">
+      <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-lightning-charge"></i></div>
+      <p class="rmc-empty__message">
+        {% if connector_filter %}
+          {% blocktrans with c=connector_filter %}No webhook deliveries recorded for {{ c }} yet.{% endblocktrans %}
+        {% else %}
+          {% trans "No webhook deliveries recorded yet. Once an upstream provider posts to a configured connector, verified deliveries will appear here." %}
+        {% endif %}
+      </p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

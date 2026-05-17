@@ -180,3 +180,6 @@ fi
 export PLAYWRIGHT_HOST_RULES="$RULES"
 
 node node_modules/playwright/cli.js test tests/e2e/ux-visual-qa.spec.js --reporter=line
+
+export MARKETING_BASE_URL="http://${PUBLIC_HOST}:${PORT}"
+node node_modules/playwright/cli.js test tests/e2e/marketing-visual-truth.spec.js --reporter=line

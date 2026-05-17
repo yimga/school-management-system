@@ -55,6 +55,13 @@ SIGNATURE_WINDOW_SECONDS = 300  # 5-minute replay window
 DEFAULT_SIGNATURE_HEADER = "X-RMC-Signature"
 DEFAULT_TIMESTAMP_HEADER = "X-RMC-Timestamp"
 
+# v2.94 — per-integration rate limit on the inbound receiver. Upstream gone
+# wild = we eat the storm without this. Bucket key is (integration_id, ip)
+# so a misbehaving relay can't drown other tenants' inbound traffic. Cache
+# backend is shared with the rest of the platform (Redis in prod).
+WEBHOOK_RATE_LIMIT_PER_MINUTE = 120
+WEBHOOK_RATE_LIMIT_WINDOW_SECONDS = 60
+
 
 # ---------------------------------------------------------------------------
 # Handler registry
@@ -159,14 +166,129 @@ _SPECIAL_VERIFIERS: dict[str, Callable[..., tuple[bool, str]]] = {
 }
 
 
+def _client_ip(request: HttpRequest) -> str:
+    """Best-effort client IP extraction respecting X-Forwarded-For."""
+    xff = (request.META.get("HTTP_X_FORWARDED_FOR") or "").strip()
+    if xff:
+        return xff.split(",")[0].strip()
+    return (request.META.get("REMOTE_ADDR") or "0.0.0.0").strip()
+
+
+def rate_limit_check(
+    *, scope: str, identifier: str, limit_per_minute: int,
+    window_seconds: int = 60,
+) -> bool:
+    """v3.4 — unified per-(scope, identifier) rate-limit primitive.
+
+    Shared by the webhook receiver and (in future) by `TenantApiQuotaMiddleware`
+    so the rate-limit accounting story isn't fragmented across two systems.
+    `scope` is a stable string like "webhook" or "api"; `identifier` is the
+    per-actor key (e.g. `f"{integration_id}:{client_ip}"`). Returns True when
+    the request is within budget; False when it should be denied. Falls open
+    on cache outage — denying a customer because Redis blipped is worse than
+    serving over-quota for a minute.
+    """
+    try:
+        from django.core.cache import cache
+
+        key = f"rl:{scope}:{identifier}"
+        try:
+            count = cache.incr(key)
+        except ValueError:
+            cache.set(key, 1, timeout=window_seconds)
+            count = 1
+        return count <= int(limit_per_minute)
+    except Exception:  # noqa: BLE001 — cache outage must not block legitimate traffic
+        logger.warning("Rate-limit cache failed (scope=%s); falling open", scope)
+        return True
+
+
+def _rate_limit_ok(
+    *, integration_id: int, request: HttpRequest,
+    row: ServiceIntegration | None = None,
+) -> bool:
+    """Per-(integration_id, client_ip) webhook rate limit.
+
+    v3.4 — honors a per-tenant override at `row.school.settings["webhook_rate_limit_per_minute"]`
+    so a high-traffic school can be raised above the platform default without
+    touching the constant.
+    """
+    limit = WEBHOOK_RATE_LIMIT_PER_MINUTE
+    try:
+        if row is not None and getattr(row, "school", None) is not None:
+            school_settings = getattr(row.school, "settings", None) or {}
+            override = school_settings.get("webhook_rate_limit_per_minute")
+            if isinstance(override, int) and override > 0:
+                limit = override
+            elif isinstance(override, str) and override.isdigit():
+                limit = int(override)
+    except Exception:  # noqa: BLE001 — never let a settings lookup block traffic
+        pass
+    return rate_limit_check(
+        scope="webhook",
+        identifier=f"{integration_id}:{_client_ip(request)}",
+        limit_per_minute=limit,
+        window_seconds=WEBHOOK_RATE_LIMIT_WINDOW_SECONDS,
+    )
+
+
+def _persist_rejection(
+    *, connector: str, row: ServiceIntegration, reason: str, client_ip: str
+) -> None:
+    """v2.100 — persist a rejected delivery to compliance.AuditLog so the
+    operator-facing /integrations/rejections/ view has tenant-scoped history.
+
+    Best-effort: any failure here is swallowed (logger.warning already fired
+    upstream). Lazy import so apps without compliance still boot.
+    """
+    try:
+        from apps.compliance.models_audit import AuditLog
+    except ImportError:
+        return
+    try:
+        school = getattr(row, "school", None) if row is not None else None
+        AuditLog.objects.create(
+            user=None,
+            action=AuditLog.Action.ACCESS_DENIED,
+            model_name="ServiceIntegration",
+            object_id=str(getattr(row, "pk", "")),
+            object_repr=f"{connector}#{getattr(row, 'pk', '?')}",
+            sensitivity=AuditLog.Sensitivity.MEDIUM,
+            app_label="integrations_marketplace",
+            reason=f"webhook_rejected:{reason}",
+            new_values={
+                "connector": connector,
+                "school_id": getattr(school, "pk", None) if school else None,
+                "reason": reason,
+                "client_ip": client_ip,
+            },
+        )
+    except Exception:  # noqa: BLE001 — rejection logging is best-effort
+        logger.exception(
+            "Failed to persist webhook rejection: connector=%s reason=%s",
+            connector, reason,
+        )
+
+
 def _verify(*, request: HttpRequest, row: ServiceIntegration) -> tuple[bool, str]:
     secret = str((row.config or {}).get("webhook_secret") or "").strip()
     if not secret:
         return False, "no_webhook_secret_configured"
     verifier = _SPECIAL_VERIFIERS.get(row.connector_slug.lower())
-    if verifier is not None:
-        return verifier(request=request, secret=secret)
-    return _verify_default_signature(request=request, secret=secret)
+    fn = verifier if verifier is not None else _verify_default_signature
+    ok, reason = fn(request=request, secret=secret)
+    if ok:
+        return True, reason
+    # v3.4 — during the rotation grace window we also accept the prior secret
+    # so a slow upstream-update doesn't immediately start failing. The grace
+    # window is implicit: prev is only set right after rotation, and the
+    # operator clears it (or it ages out next rotation).
+    prev = str((row.config or {}).get("webhook_secret_prev") or "").strip()
+    if prev and prev != secret:
+        ok2, _ = fn(request=request, secret=prev)
+        if ok2:
+            return True, "ok_via_prev_secret"
+    return False, reason
 
 
 # ---------------------------------------------------------------------------
@@ -191,12 +313,27 @@ def webhook_receiver(
         # Don't leak which IDs exist for which connectors.
         return JsonResponse({"error": "not_found"}, status=404)
 
+    # v2.94 — per-integration + per-IP rate limit. Check BEFORE HMAC verify
+    # so a flood doesn't consume HMAC CPU budget.
+    if not _rate_limit_ok(integration_id=integration_id, request=request, row=row):
+        logger.warning(
+            "Webhook rate-limited: connector=%s integration_id=%s ip=%s",
+            connector_slug, integration_id, _client_ip(request),
+        )
+        _persist_rejection(connector=connector_slug, row=row, reason="rate_limited",
+                           client_ip=_client_ip(request))
+        resp = JsonResponse({"error": "rate_limited"}, status=429)
+        resp["Retry-After"] = str(WEBHOOK_RATE_LIMIT_WINDOW_SECONDS)
+        return resp
+
     ok, reason = _verify(request=request, row=row)
     if not ok:
         logger.warning(
             "Webhook rejected: connector=%s integration_id=%s reason=%s",
             connector_slug, integration_id, reason,
         )
+        _persist_rejection(connector=connector_slug, row=row, reason=reason,
+                           client_ip=_client_ip(request))
         return JsonResponse({"error": reason}, status=401)
 
     try:
@@ -228,6 +365,11 @@ __all__ = [
     "DEFAULT_TIMESTAMP_HEADER",
     "SIGNATURE_WINDOW_SECONDS",
     "WEBHOOK_HANDLERS",
+    "WEBHOOK_RATE_LIMIT_PER_MINUTE",
+    "WEBHOOK_RATE_LIMIT_WINDOW_SECONDS",
+    "_client_ip",
+    "_rate_limit_ok",
+    "rate_limit_check",
     "register_webhook_handler",
     "webhook_receiver",
 ]

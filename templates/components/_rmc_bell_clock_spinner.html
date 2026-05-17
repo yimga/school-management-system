@@ -1,0 +1,4 @@
+{% load i18n %}
+<div class="rmc-bell-clock-spinner" role="status" aria-live="polite" aria-label="{% trans 'Loading' %}">
+  {% include "components/_bell_clock_mark.html" with size=40 filled_segments=2 extra_class="rmc-bell-clock-spinner__mark" animated=1 %}
+</div>

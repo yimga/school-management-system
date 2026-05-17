@@ -1,0 +1,91 @@
+/**
+ * Schoolhouse-modern marketing tokens (Phase 1).
+ * Load after tokens-marketing.css; pairs with [data-mkt-edition="editorial"].
+ * tokens-editorial.css remains for back-compat; this file is the v3 canonical palette.
+ */
+
+[data-mkt-edition="editorial"],
+[data-mkt-schoolhouse="true"] {
+  --mkt-surface: #FAF7F2;
+  --mkt-surface-deep: #0C1422;
+  --mkt-ink: #0F1B2D;
+  --mkt-ink-2: #475569;
+  --mkt-ink-inv: #F5F1EA;
+  --mkt-accent: #C2410C;
+  --mkt-confirm: #1F6F4A;
+  --mkt-signal: #B45309;
+  --mkt-rule: rgba(15, 27, 45, 0.10);
+  --mkt-tile: #FFFFFF;
+
+  --mkt-edt-bg: var(--mkt-surface);
+  --mkt-edt-bg-soft: #F2EDE4;
+  --mkt-edt-ink: var(--mkt-ink);
+  --mkt-edt-ink-muted: var(--mkt-ink-2);
+  --mkt-edt-ink-subtle: #51606F;
+  --mkt-edt-rule: var(--mkt-rule);
+  --mkt-edt-accent: var(--mkt-accent);
+  --mkt-edt-accent-hover: #9A3412;
+  --mkt-edt-on-accent: var(--mkt-ink-inv);
+
+  --mkt-primary: var(--mkt-ink);
+  --mkt-primary-light: var(--mkt-ink-2);
+  --mkt-accent-hover: var(--mkt-edt-accent-hover);
+  --mkt-hero-bg: var(--mkt-surface);
+  --mkt-hero-bg-mid: var(--mkt-surface);
+  --mkt-hero-bg-end: var(--mkt-edt-bg-soft);
+  --mkt-text: var(--mkt-ink);
+  --mkt-text-muted: var(--mkt-ink-2);
+  --mkt-text-inverse: var(--mkt-ink-inv);
+  /* Note: --mkt-surface is already defined above as #FAF7F2; do not reassign
+     it to var(--mkt-surface) — that's a self-referential loop which makes the
+     property guaranteed-invalid and breaks every downstream var() consumer
+     (`--mkt-edt-bg`, `--mkt-on-primary`, hero gradients, etc.). */
+  --mkt-border: var(--mkt-rule);
+  --mkt-on-primary: var(--mkt-surface);
+  --mkt-on-accent: var(--mkt-ink-inv);
+
+  --mkt-v3-section-gap: clamp(4rem, 6vw, 6rem);
+  --mkt-v3-max-width: 75rem;
+  --mkt-v3-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --mkt-v3-motion-fast: 200ms var(--mkt-v3-ease);
+  --mkt-v3-motion-mid: 320ms var(--mkt-v3-ease);
+
+  --mkt-edt-type-hero: clamp(2.5rem, 4vw, 3.75rem);
+  --mkt-edt-type-section: clamp(1.625rem, 1.8vw + 0.5rem, 2.25rem);
+  --mkt-edt-type-body: 1.0625rem;
+  --mkt-edt-type-micro: 0.8125rem;
+}
+
+/* Higher-specificity override: the editorial.css default --mkt-edt-* values
+   load first AND inter-file var() reference cycles between editorial.css's
+   `--mkt-surface: var(--mkt-edt-bg)` and schoolhouse's
+   `--mkt-edt-bg: var(--mkt-surface)` were observed to produce
+   guaranteed-invalid (empty) computed values in Chromium. Break the cycle
+   here by declaring both vars to LITERAL hex values at higher specificity. */
+body.marketing-surface[data-mkt-edition="editorial"],
+[data-mkt-edition="editorial"][data-mkt-schoolhouse="true"],
+.mkt-edt-root[data-mkt-edition="editorial"],
+.mkt-v3-root[data-mkt-edition="editorial"] {
+  --mkt-surface: #FAF7F2;
+  --mkt-edt-bg: #FAF7F2;
+  --mkt-edt-bg-soft: #F2EDE4;
+  --mkt-edt-ink: #0F1B2D;
+  --mkt-edt-ink-muted: #475569;
+  --mkt-edt-ink-subtle: #51606F;
+  --mkt-edt-rule: rgba(15, 27, 45, 0.10);
+  --mkt-edt-accent: #C2410C;
+  --mkt-edt-accent-hover: #9A3412;
+  --mkt-edt-on-accent: #F5F1EA;
+}
+
+html[data-theme="dark"][data-mkt-edition="editorial"],
+html[data-theme="dark"][data-mkt-schoolhouse="true"] {
+  --mkt-surface: #0C1422;
+  --mkt-ink: #F5F1EA;
+  --mkt-ink-2: #94A3B8;
+  --mkt-edt-bg: var(--mkt-surface);
+  --mkt-edt-ink: var(--mkt-ink);
+  --mkt-edt-ink-muted: var(--mkt-ink-2);
+  --mkt-tile: #151F2E;
+  --mkt-rule: rgba(245, 241, 234, 0.12);
+}

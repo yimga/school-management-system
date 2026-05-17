@@ -1,0 +1,17 @@
+# Optional dependencies — opt-in features. Not required to run the platform.
+#
+# Install all of them:
+#     pip install -r requirements_optional.txt
+#
+# Or pick individual lines below.
+
+# Wave 10: true per-row Shapley values for at-risk model explanations.
+# Without this, `explain_score(method="shap")` soft-falls-through to the
+# fast (feature_importances_) path. ~50 MB install footprint.
+shap>=0.44.0
+
+# Wave 9: pgvector Python adapter — only needed if you also enable the
+# Postgres extension (operator-installed) and flip PGVECTOR_ENABLED=True.
+# The platform uses raw SQL for cosine ranking, so the Python package is
+# strictly optional for the ORM-side migration helper.
+# pgvector>=0.2.5

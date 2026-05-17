@@ -94,7 +94,19 @@ def _icons_from_tenant(request) -> list[dict]:
             size = kwargs.get("size", 192)  # magic-number-allow: pwa-min-icon-size
             return f"/manifest/icon-{size}.png{qs}"
 
+    # Phase 4 #9 — bell-clock companion icon. The platform brand mark renders
+    # alongside the tenant logo so the bell-clock signal is recognizable at
+    # install-prompt and home-screen sizes. Vector SVG — any size, no resize.
+    from django.templatetags.static import static as static_url
+    bell_clock_src = static_url("images/runmycampus-icon-bell.svg")
+
     return [
+        {
+            "src": bell_clock_src + (qs if qs else ""),
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any",
+        },
         {
             "src": _url("pwa_manifest_icon_any", size=192),  # magic-number-allow: pwa-min-icon-size
             "sizes": "192x192",

@@ -1,5 +1,7 @@
 from django.urls import path
 
+from . import views_ai_surfaces as _ai_surfaces
+
 from .views import (
     badge_verify,
     parent_dashboard,
@@ -373,6 +375,22 @@ urlpatterns = [
         "student/<int:student_id>/360/transcript-freeze/",
         transcript_freeze,
         name="transcript_freeze",
+    ),
+    # Wave 6 (v2.98): AI surfaces — semantic search + risk drivers + grade outlook
+    path(
+        "students/search/",
+        _ai_surfaces.semantic_student_search,
+        name="ai_semantic_student_search",
+    ),
+    path(
+        "student/<int:student_id>/risk-drivers/",
+        _ai_surfaces.student_risk_drivers,
+        name="ai_student_risk_drivers",
+    ),
+    path(
+        "student/<int:student_id>/grade-outlook/",
+        _ai_surfaces.student_grade_outlook,
+        name="ai_student_grade_outlook",
     ),
     # Employer portal (apprentice hours verification + dual transcript)
     path("employer/", employer_dashboard, name="employer_dashboard"),

@@ -166,10 +166,50 @@ def reconcile_bundle(
     bundle.reconciliation_summary = _report_to_dict(report)
     bundle.save(update_fields=["reconciliation_summary", "updated_at"])
 
+    # Auto-rollback gate (Tier 2 #13). Operators opt in by setting
+    # `parity_drift_rollback_pct > 0` on the bundle.
+    drift_threshold = float(getattr(bundle, "parity_drift_rollback_pct", 0.0) or 0.0)
+    if drift_threshold > 0 and overall < drift_threshold and bundle.status == BundleStatus.APPLIED:
+        _auto_rollback_bundle(bundle=bundle, observed_pct=overall, threshold=drift_threshold)
+        notes.append(
+            f"Auto-rollback triggered: overall parity {overall:.2f}% < threshold {drift_threshold:.2f}%."
+        )
+        report.notes = notes
+        bundle.reconciliation_summary = _report_to_dict(report)
+        bundle.save(update_fields=["reconciliation_summary", "updated_at"])
+        return report
+
     if not notes and bundle.status == BundleStatus.APPLIED:
         bundle.mark_status(BundleStatus.RECONCILED)
 
     return report
+
+
+def _auto_rollback_bundle(*, bundle: MigrationBundle, observed_pct: float, threshold: float) -> None:
+    """Roll back every MigrationRun belonging to this bundle and flag the bundle FAILED."""
+    try:
+        from apps.automation.models import MigrationRun
+    except ImportError:
+        return
+    runs = MigrationRun.objects.filter(execution_summary__bundle_id=bundle.pk)
+    rollback_count = 0
+    for run in runs:
+        try:
+            run.trigger_rollback(user=None)
+            rollback_count += 1
+        except Exception:  # noqa: BLE001
+            logger.warning("reconcile auto-rollback: run %s failed", run.pk, exc_info=True)
+    bundle.mark_status(
+        BundleStatus.FAILED,
+        summary_patch={
+            "auto_rollback": {
+                "observed_parity_pct": observed_pct,
+                "threshold_pct": threshold,
+                "runs_rolled_back": rollback_count,
+                "at": timezone.now().isoformat(),
+            },
+        },
+    )
 
 
 # --- Helpers -----------------------------------------------------------

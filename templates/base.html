@@ -28,7 +28,10 @@
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
     <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
+    {% include "partials/rmc_shortcuts_i18n.html" %}
+    <script src="{% static 'js/rmc-shortcuts-registry.js' %}" defer></script>
     <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
+    <script src="{% static 'js/rmc-shortcuts-runtime.js' %}" defer></script>
     <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
     <script src="{% static 'js/_pages/base.js' %}"></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
@@ -39,6 +42,7 @@
       {% endblock %}
     </title>
     <link rel="icon" href="{% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% elif SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
+    {% if not PUBLIC_BRAND_MODE and not SITE_FAVICON_URL %}<link rel="icon" href="{% static 'images/runmycampus-icon-bell.svg' %}" type="image/svg+xml" sizes="32x32">{% endif %}
     {% block extrahead %}{% endblock %}
 
     <!-- Bootstrap (self-hosted) -->
@@ -133,6 +137,7 @@
       {{ SITE.custom_css|safe }}
     </style>
     {% endif %}
+    <link rel="stylesheet" href="{% static 'css/rmc-bell-clock-product.css' %}">
     {% block extrastyle %}{% endblock %}
   </head>
 
@@ -141,9 +146,10 @@
      (lines 55-122) actually render. Previously the CSS was loaded but no element
      opted in, so every form ran on raw Bootstrap defaults. {% endcomment %}
   <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}" data-rmc-premium-shell="{% if PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}" data-rmc-page-purpose="{% if PUBLIC_BRAND_MODE %}public-story{% else %}tenant-workspace{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
+    {% include "partials/rmc_launch_splash.html" %}
     <a href="#main-content" class="skip-link" aria-label="Skip to main content">Skip to main content</a>
     {# Page-level HTMX progress bar — appears during htmx requests via body.htmx-request CSS rule. #}
-    <div class="htmx-progress-bar" aria-hidden="true"></div>
+    <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
     <!--
       .app-container wraps all content for background logo/video/svg effect.
       If you need to support users with reduced motion or contrast, consider a toggle in user preferences.
@@ -267,6 +273,7 @@
     {% include 'components/ai_copilot.html' %}
 
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
     <script src="{% static 'js/statement-header-scroll.js' %}" defer></script>
     {% if SITE and SITE.is_preview %}
     {# preview-highlights.css retired 2026-05-12 (pass 2 css cleanup); folded into design-system-unified.css #}
@@ -276,6 +283,7 @@
 }</script><script src="{% static 'js/_pages/base-1.js' %}"></script>
     <script src="{% static 'js/preview-highlights.js' %}"></script>
     {% endif %}
+    {% include "partials/rmc_shortcuts_nav_data.html" %}
+    {% include "partials/rmc_tour_bootstrap.html" %}
     </div>
-  </body>
 </html>

@@ -1,0 +1,4 @@
+{% load static i18n %}
+<link rel="stylesheet" href="{% static 'css/rmc-tour.css' %}">
+{% include "partials/rmc_tour_i18n.html" %}
+<script src="{% static 'js/rmc-tour.js' %}" defer data-tour-steps-api="{% url 'tour_steps_public_api' %}" data-tour-public="1"></script>

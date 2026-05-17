@@ -19,11 +19,15 @@
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
     <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
+    {% include "partials/rmc_shortcuts_i18n.html" %}
+    <script src="{% static 'js/rmc-shortcuts-registry.js' %}" defer></script>
     <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
+    <script src="{% static 'js/rmc-shortcuts-runtime.js' %}" defer></script>
     <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
     <title>{% block title %}RunMyCampus Manager{% endblock %}</title>
     <link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
+    {% if not PUBLIC_BRAND_FAVICON_URL %}<link rel="icon" href="{% static 'images/runmycampus-icon-bell.svg' %}" type="image/svg+xml" sizes="32x32">{% endif %}
     {% block extrahead %}{% endblock %}
 
     <link rel="stylesheet" href="{% static 'css/vendor/inter.css' %}">
@@ -66,11 +70,14 @@
     <link rel="stylesheet" href="{% static 'css/ultra-luxury-ui-system.css' %}">
     {# Phase G (2026-05-12): platform-wide long-page grammar. #}
     <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-bell-clock-product.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
     {% block extrastyle %}{% endblock %}
   </head>
   <body class="control-plane-shell cp-surface" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %}>
+    {% include "partials/rmc_launch_splash.html" %}
     {% include "partials/shell_skip_link.html" with skip_href="#cp-main-content" skip_link_class="skip-link visually-hidden-focusable" %}
+    <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
     {% block content %}{% endblock %}
     {% comment %} Phase E (2026-05-12): AI copilot is mounted on every authenticated shell so
        the ⌘/Ctrl+Shift+? assistant is reachable from /super, /portal, /admin alike. {% endcomment %}
@@ -89,6 +96,8 @@
     {% endif %}
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>
+    <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
+    {% include "partials/rmc_tour_bootstrap.html" %}
     {% block extrajs %}{% endblock %}
   </body>
 </html>

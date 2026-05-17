@@ -1,0 +1,68 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "OAuth scopes" %} · {{ connector.label }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-page-archetype="integrations-scope-override">
+
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% blocktrans with c=connector.label %}{{ c }} — OAuth scopes{% endblocktrans %}</h1>
+      <p class="text-muted mb-0">
+        {% blocktrans %}Choose the narrowest set of scopes that lets your school use the integration. You can only narrow — not widen — the default set the platform requested at registration.{% endblocktrans %}
+      </p>
+    </div>
+    <a href="{% url 'integrations_marketplace:hub' %}" class="btn btn-sm btn-outline-secondary">
+      {% trans "Back to hub" %}
+    </a>
+  </div>
+
+  {% if messages %}
+    <div class="mb-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} rmc-alert" role="alert">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if not row %}
+    <div class="alert alert-info rmc-alert" role="alert">
+      {% blocktrans with c=connector.label %}{{ c }} is not connected at this scope yet. Connect it first, then come back here to narrow scopes.{% endblocktrans %}
+    </div>
+  {% else %}
+    {% if is_overriding %}
+      <div class="alert alert-info rmc-alert" role="alert">
+        <small>{% trans "A custom scope set is active for this connection." %}</small>
+      </div>
+    {% endif %}
+    <form method="post" class="card rmc-card-soft p-3">
+      {% csrf_token %}
+      <fieldset>
+        <legend class="h6">{% trans "Default scopes" %}</legend>
+        <div class="form-check-stack">
+          {% for s in default_scopes %}
+            <div class="form-check">
+              <input class="form-check-input"
+                     type="checkbox" name="scopes" value="{{ s }}"
+                     id="scope-{{ forloop.counter }}"
+                     {% if s in selected %}checked{% endif %}>
+              <label class="form-check-label" for="scope-{{ forloop.counter }}">
+                <code class="small">{{ s }}</code>
+              </label>
+            </div>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <div class="mt-3 d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "Save scopes" %}</button>
+        <a href="{% url 'integrations_marketplace:hub' %}" class="btn btn-link btn-sm text-muted">{% trans "Cancel" %}</a>
+      </div>
+      <p class="small text-muted mt-3 mb-0">
+        {% blocktrans %}After saving, you'll need to reconnect the integration for the new scope set to take effect — OAuth scopes are negotiated at consent time, not on the fly.{% endblocktrans %}
+      </p>
+    </form>
+  {% endif %}
+
+</div>
+{% endblock %}

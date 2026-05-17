@@ -1,0 +1,94 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Integrations rollup" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3" data-page-archetype="integrations-rollup">
+
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Integrations rollup" %}</h1>
+      <p class="text-muted mb-0">
+        {% blocktrans %}Every connector × every campus, in one table. Click any cell to jump to the campus-scoped hub for that connection.{% endblocktrans %}
+      </p>
+    </div>
+    <a href="{% url 'integrations_marketplace:hub' %}" class="btn btn-sm btn-outline-secondary">
+      {% trans "Back to hub" %}
+    </a>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <span class="badge text-bg-success-subtle text-success-emphasis">
+      {% trans "Connected" %}: {{ totals.connected }}
+    </span>
+    <span class="badge text-bg-secondary">
+      {% trans "Not connected" %}: {{ totals.missing }}
+    </span>
+    {% if totals.inactive %}
+      <span class="badge text-bg-warning-subtle text-warning-emphasis">
+        {% trans "Disconnected (configured but inactive)" %}: {{ totals.inactive }}
+      </span>
+    {% endif %}
+  </div>
+
+  {% if not has_campuses %}
+    <div class="alert alert-info rmc-alert" role="alert">
+      <small>{% blocktrans %}This school has no campuses defined, so the rollup shows only the school-level baseline. Add campuses from Settings to see per-campus overrides here.{% endblocktrans %}</small>
+    </div>
+  {% endif %}
+
+  <div class="table-responsive">
+    <table class="table rmc-data-table align-middle">
+      <thead>
+        <tr>
+          <th scope="col" style="min-width: 240px;">{% trans "Connector" %}</th>
+          {% for scope in scopes %}
+            <th scope="col">{{ scope.label }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <th scope="row">
+              <div class="d-flex align-items-center gap-2">
+                {% include "integrations_marketplace/_brand_mark.html" with connector=row.connector %}
+                <div class="min-w-0">
+                  <div class="rmc-type-body">{{ row.connector.label }}</div>
+                  <div class="small text-muted">{{ row.connector.category_label }}</div>
+                </div>
+              </div>
+            </th>
+            {% for cell in row.cells %}
+              <td>
+                {% if cell.state == "connected" %}
+                  <span class="badge text-bg-success-subtle text-success-emphasis">
+                    {% trans "Connected" %}
+                  </span>
+                  {% if cell.source and cell.source != "school" and cell.source != "campus" %}
+                    <div class="small text-muted">{{ cell.source }}</div>
+                  {% endif %}
+                {% elif cell.state == "inactive" %}
+                  <span class="badge text-bg-warning-subtle text-warning-emphasis">
+                    {% trans "Disconnected" %}
+                  </span>
+                {% else %}
+                  {% if cell.scope.campus %}
+                    <a href="{% url 'integrations_marketplace:hub' %}?campus={{ cell.scope.campus.pk }}"
+                       class="small text-decoration-none text-muted">{% trans "Not connected" %}</a>
+                  {% else %}
+                    <a href="{% url 'integrations_marketplace:hub' %}"
+                       class="small text-decoration-none text-muted">{% trans "Not connected" %}</a>
+                  {% endif %}
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

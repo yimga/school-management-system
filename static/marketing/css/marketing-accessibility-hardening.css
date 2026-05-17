@@ -89,10 +89,17 @@ body.marketing-surface .timeline-phase .phase-owner {
   color: #2c241d !important;
 }
 
+/* Dark-hero variant: cream-green eyebrow on the gradient detail-hero. */
 body.marketing-surface .detail-hero .detail-eyebrow,
-body.marketing-surface .detail-eyebrow,
-body.marketing-surface .mkt-page-type-platform-detail header .detail-eyebrow {
+body.marketing-surface .mkt-page-type-platform-detail .detail-hero .detail-eyebrow {
   color: #86efac !important;
+  opacity: 1;
+}
+/* Light-surface variant: when .detail-eyebrow renders OUTSIDE the dark hero
+   (e.g. teacher-portal v3 page header on cream), the green-on-cream pair
+   produced a 1.34:1 contrast. Use the muted slate ink instead. */
+body.marketing-surface .detail-eyebrow:not(.detail-hero *) {
+  color: var(--mkt-ink-2, #475569) !important;
   opacity: 1;
 }
 
@@ -142,6 +149,10 @@ body.marketing-surface .mkt-adm-cta .btn.btn-outline-light {
   color: #1a1612;
 }
 
+/* v3 schoolhouse redesign (Phase 0/1): marketing footer renders on the cream
+   ivory surface (#FAF7F2), not on a dark bar. The previous near-white text
+   color (#fffaf0) produced a contrast of 1.0 against the surface — invisible.
+   Use the muted slate ink so footer copy meets WCAG AA (>= 4.5:1) on cream. */
 body.marketing-surface footer.mkt-footer .text-muted,
 body.marketing-surface footer.mkt-footer .small,
 body.marketing-surface footer.mkt-footer .small.text-muted,
@@ -154,7 +165,7 @@ body.marketing-surface .mkt-footer .small.mb-0,
 body.marketing-surface .mt-1 > .mb-0.small,
 body.marketing-surface .mt-1 > .small.mb-0,
 body.marketing-surface .mt-1 > .mb-0 {
-  color: #fffaf0 !important;
+  color: var(--mkt-ink-2, #475569) !important;
 }
 
 body.marketing-surface .mkt-product-viz-scroll:focus-visible,

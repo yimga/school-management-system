@@ -1,10 +1,11 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
 {% load region_format %}
+{% load rmc_explain_tags %}
 {% block backend_title %}{% trans "Applicants" %} - Backend{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-page="admissions-queue">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_applicant_create' as add_url %}
@@ -12,14 +13,14 @@
       {% include "studio_os/components/page_header.html" with title=_("Applicants") subtitle=_("Admissions funnel: leads and applications.") action_url=add_url action_text=_("Add applicant") %}
       <p class="mb-3"><a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to students" %}</a></p>
 
-      <form method="get" class="card card-body bg-light mb-3 page-family-filter-row" role="search">
+      <form method="get" class="card card-body bg-light mb-3 page-family-filter-row" role="search" data-tour="admissions-search">
         <div class="row g-2 align-items-end">
           <div class="col-md-4">
             <label for="applicant-q" class="form-label small">{% trans "Search" %}</label>
             <input type="search" id="applicant-q" name="q" class="form-control form-control-sm" placeholder="{% trans 'Name, email, lead source…' %}" value="{{ search }}">
           </div>
           <div class="col-md-2">
-            <label for="applicant-stage" class="form-label small">{% trans "Stage" %}</label>
+            <label for="applicant-stage" class="form-label small">{% trans "Stage" %} {% rmc_info_tag entity="applicant" field="stage" %}</label>
             <select id="applicant-stage" name="stage" class="form-select form-select-sm">
               <option value="">{% trans "All stages" %}</option>
               {% for value, label in stages %}
@@ -36,7 +37,7 @@
         </div>
       </form>
 
-      <div class="card shadow-sm">
+      <div class="card shadow-sm" data-tour="admissions-table">
         <div class="card-body">
           {% if applicants %}
           <div class="table-responsive">

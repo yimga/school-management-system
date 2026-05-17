@@ -3793,10 +3793,123 @@ html[data-resolved-theme="dark"] .rmc-logo-adaptive {
 /* ===== v2.6 (2026-05-12): Keyboard cheat sheet — Linear-style `?` overlay.
    Renders inside .rmc-sheet (bottom-sheet on mobile, modal on >=md). The list
    is built by rmc-kbd-cheatsheet.js from the window.RMCShortcuts registry. */
+.rmc-kbd-cheatsheet--platform {
+  max-width: min(96vw, 72rem);
+  width: 100%;
+}
+
+.rmc-kbd-cheatsheet__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+  gap: 1.25rem 1.5rem;
+  align-items: start;
+}
+
+.rmc-kbd-cheatsheet__column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
 .rmc-kbd-cheatsheet__body {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+}
+
+.rmc-kbd-cheatsheet__header {
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.rmc-kbd-cheatsheet__header-main {
+  flex: 1 1 12rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rmc-kbd-cheatsheet__header .rmc-sheet__title {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.rmc-kbd-cheatsheet__filter {
+  width: 100%;
+  max-width: 20rem;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  border: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(0, 0, 0, 0.12));
+  background: var(--surface-elevated, #fff);
+  color: var(--text-primary);
+}
+
+.rmc-kbd-cheatsheet__row {
+  flex-wrap: wrap;
+}
+
+.rmc-kbd-cheatsheet__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  padding: 0.75rem 1.25rem 1rem;
+  border-top: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(0, 0, 0, 0.08));
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.rmc-kbd-cheatsheet__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.rmc-kbd-cheatsheet__row--disabled {
+  opacity: 0.55;
+}
+
+.rmc-kbd-cheatsheet__row--disabled .rmc-kbd {
+  opacity: 0.7;
+}
+
+.rmc-kbd-cheatsheet__unavailable {
+  flex: 1 1 100%;
+  font-size: 0.72rem;
+  color: var(--text-tertiary, var(--text-secondary));
+  margin-top: 0.15rem;
+}
+
+.rmc-kbd-cheatsheet__pin {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  z-index: 1040;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  border: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(0, 0, 0, 0.12));
+  background: var(--surface-elevated, #fff);
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: var(--elev-2, 0 8px 24px rgba(0, 0, 0, 0.12));
+  cursor: pointer;
+}
+
+.rmc-kbd-cheatsheet__pin:hover {
+  background: var(--surface-canvas, #f5f5f7);
+}
+
+@media (max-width: 640px) {
+  .rmc-kbd-cheatsheet__grid {
+    grid-template-columns: 1fr;
+  }
 }
 .rmc-kbd-cheatsheet__group {
   display: flex;

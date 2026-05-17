@@ -83,6 +83,36 @@ _SEED: dict[str, Any] = {
     "migration_cloud.mapper.field_min_confidence": 0.80,
     # Retention for raw bundle storage after RECONCILED, in days.
     "migration_cloud.retention.raw_bundle_days": 90,
+    # sms-v3.7 — Tier 1 / Tier 2 / Tier 3 tunables.
+    # Financial guardrail (Tier 1 #1): absolute + relative tolerance for control totals.
+    "migration_cloud.guardrail.tolerance_abs": "0.01",
+    "migration_cloud.guardrail.tolerance_rel": "0.001",
+    # Asset pipeline (Tier 1 #2): per-batch ceiling for fetch_pending_assets.
+    "migration_cloud.assets.max_batch": 100,
+    "migration_cloud.assets.http_timeout_seconds": 30,
+    # Cost predictor (Tier 3 #18): heuristic AI-call token cost.
+    "migration_cloud.cost.avg_tokens_per_call": 800,
+    "migration_cloud.cost.usd_per_1k_tokens": 0.002,
+    # Pre-flight capacity ceilings per SLA tier (Tier 2 #11).
+    "migration_cloud.preflight.capacity": {
+        "small": {"max_students": 1500, "max_bytes": 524288000, "max_rows": 250000},
+        "mid": {"max_students": 15000, "max_bytes": 5368709120, "max_rows": 5000000},
+        "large": {"max_students": 75000, "max_bytes": 26843545600, "max_rows": 50000000},
+        "state": {"max_students": 1000000, "max_bytes": 268435456000, "max_rows": 1000000000},
+    },
+    # SLA tier targets in minutes (Tier 3 #23).
+    "migration_cloud.sla.targets": {
+        "small": {"target_minutes": 60, "escalate_minutes": 120},
+        "mid": {"target_minutes": 240, "escalate_minutes": 480},
+        "large": {"target_minutes": 720, "escalate_minutes": 1440},
+        "state": {"target_minutes": 4320, "escalate_minutes": 7200},
+    },
+    # OCR confidence warning thresholds (Tier 3 #22).
+    "migration_cloud.ocr.min_chars_for_decision": 40,
+    "migration_cloud.ocr.low_confidence_threshold": 0.5,
+    # Network resilience (Tier 2 #14).
+    "migration_cloud.network.max_retries": 5,
+    "migration_cloud.network.fetch_timeout_seconds": 30,
 }
 
 

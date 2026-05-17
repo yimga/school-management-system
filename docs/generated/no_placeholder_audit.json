@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-16T11:58:20.418334+00:00",
+  "generated_at": "2026-05-16T21:56:54.001214+00:00",
   "generated_by": "scripts/audit_no_placeholder.py",
-  "templates_scanned": 899,
+  "templates_scanned": 959,
   "finding_count": 0,
   "by_kind": {},
   "findings": []

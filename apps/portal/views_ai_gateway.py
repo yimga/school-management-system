@@ -203,6 +203,7 @@ def _gateway_response(
     prompt: str,
     user_query: str = "",
     response_schema: str | None = None,
+    rag_snippets: list[dict[str, Any]] | None = None,
 ):
     from services.ai_helpers import normalize_gateway_metadata
     from services.ai_permissions import get_ai_permission_for_user
@@ -236,6 +237,7 @@ def _gateway_response(
             "user_id": str(user_id) if user_id is not None else None,
             "role": role,
             "country_code": country_code,
+            "rag_snippets": rag_snippets or [],
         }
     )
     result, meta = invoke(
@@ -1585,6 +1587,7 @@ def _api_guided_domain_assistant(
             prompt,
             user_query=query,
             response_schema="guided_assistant",
+            rag_snippets=rag_citations,
         )
         error_response = _gateway_meta_error_response(
             meta,
@@ -1595,6 +1598,19 @@ def _api_guided_domain_assistant(
             return error_response
         _log_gateway_audit(request, audit_feature, str(task_type), "success", meta)
         out = result if isinstance(result, dict) else {}
+        if not str(out.get("summary") or "").strip():
+            from services.ai_guided_fallback import build_guided_fallback
+
+            task_key = (
+                task_type.value if hasattr(task_type, "value") else str(task_type or "")
+            )
+            out = build_guided_fallback(
+                task_type=task_key,
+                user_query=query,
+                rag_snippets=rag_citations,
+                live_provider_available=bool(meta.get("provider") not in ("rules", "none")),
+            )
+            meta = {**(meta or {}), "degraded": True, "empty_summary_repaired": True}
         payload = {
             "success": True,
             "guided": {

@@ -24,6 +24,36 @@
       data-mc-feedback-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_feedback' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_feedback' bundle_id=bundle.pk %}{% endif %}"
       data-mc-save-profile-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_save_profile' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_save_profile' bundle_id=bundle.pk %}{% endif %}"
       data-mc-csrf="{{ csrf_token }}">
+  {% if messages %}
+  <div class="rmc-banner-stack" role="status">
+    {% for m in messages %}
+      <div class="rmc-banner rmc-banner--{{ m.tags|default:'info' }}">{{ m }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if needs_source %}
+  <div class="rmc-banner rmc-banner--warning" role="status">
+    <strong>{% trans "Source not attached yet." %}</strong>
+    {% trans "This bundle was staged for a live-source intake method. Wire it up before the pipeline can pull data." %}
+    <a class="rmc-btn rmc-btn--ghost rmc-btn--sm"
+       href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_attach_source' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_attach_source' bundle_id=bundle.pk %}{% endif %}">
+      {% trans "Attach source" %}
+    </a>
+  </div>
+  {% endif %}
+
+  {% if needs_school_binding %}
+  <div class="rmc-banner rmc-banner--info" role="status">
+    <strong>{% trans "Pre-tenant bundle." %}</strong>
+    {% trans "This bundle isn't bound to a school yet — common when a school uploads during signup. Bind it to a School row to enable apply." %}
+    <a class="rmc-btn rmc-btn--ghost rmc-btn--sm"
+       href="{% url 'migration_cloud_super:bundle_bind_school' bundle_id=bundle.pk %}">
+      {% trans "Bind to school" %}
+    </a>
+  </div>
+  {% endif %}
+
   <header class="rmc-page__header">
     <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:console' %}{% else %}{% url 'migration_cloud_super:console' %}{% endif %}"
        class="rmc-back">{% trans "← All migrations" %}</a>
@@ -38,12 +68,81 @@
   </header>
 
   <nav class="rmc-section-nav" aria-label="{% trans 'Bundle sections' %}">
+    <a href="#ai-plan">{% trans "AI plan" %}</a>
     <a href="#artifacts">{% trans "Artifacts" %}</a>
     <a href="#discovery">{% trans "Discovery" %}</a>
     <a href="#mapping">{% trans "Mapping" %}</a>
     <a href="#reconciliation">{% trans "Reconciliation" %}</a>
     <a href="#actions">{% trans "Actions" %}</a>
   </nav>
+
+  <nav class="rmc-section-nav rmc-section-nav--secondary" aria-label="{% trans 'Bundle surfaces' %}">
+    <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_progress' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_progress' bundle_id=bundle.pk %}{% endif %}">{% trans "Progress (DAG)" %}</a>
+    <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_conflicts' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_conflicts' bundle_id=bundle.pk %}{% endif %}">{% trans "Conflicts" %}</a>
+    <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_assets' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_assets' bundle_id=bundle.pk %}{% endif %}">{% trans "Binary assets" %}</a>
+    <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_handoff_doc' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_handoff_doc' bundle_id=bundle.pk %}{% endif %}">{% trans "Handoff doc" %}</a>
+    <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_review' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_review' bundle_id=bundle.pk %}{% endif %}">{% trans "Review queue" %}</a>
+  </nav>
+
+  <section id="ai-plan" class="rmc-card rmc-reveal"
+           data-mc-ai-plan-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_ai_plan' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_ai_plan' bundle_id=bundle.pk %}{% endif %}"
+           data-mc-ai-ask-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_ai_ask' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_ai_ask' bundle_id=bundle.pk %}{% endif %}"
+           data-mc-ai-rebind-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_ai_rebind' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_ai_rebind' bundle_id=bundle.pk %}{% endif %}"
+           data-mc-ai-reconcile-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_ai_narrate_reconciliation' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_ai_narrate_reconciliation' bundle_id=bundle.pk %}{% endif %}">
+    <div class="rmc-card__header-row">
+      <h2 class="rmc-h2">{% trans "AI migration plan" %}</h2>
+      <button type="button" class="rmc-btn rmc-btn--ghost rmc-btn--sm" data-mc-ai-plan-refresh>
+        {% trans "Generate / refresh" %}
+      </button>
+    </div>
+    <div data-mc-ai-plan-content>
+      <p class="rmc-empty__body">
+        {% trans "Click 'Generate / refresh' to ask the platform AI for a plain-English plan and risk-flag summary based on this bundle's discovery + mapping output." %}
+      </p>
+    </div>
+
+    <details class="rmc-ai-disclosure">
+      <summary>{% trans "Conversational column rebind" %}</summary>
+      <p class="rmc-form__help">
+        {% trans "Type a natural-language command — e.g. 'set Student_Number as student.external_id' or 'map Homeroom to custom_fields.homeroom'. Parsed by regex first; AI falls in only when needed. Decisions feed AIEmbeddingStore so the next bundle from the same source recalls them automatically." %}
+      </p>
+      <form class="rmc-form rmc-form--inline" data-mc-ai-rebind-form>
+        {% csrf_token %}
+        <input type="text" name="command" class="rmc-input rmc-input--text"
+               placeholder="set Student_Number as student.external_id" maxlength="500" required>
+        <button type="submit" class="rmc-btn rmc-btn--primary rmc-btn--sm">{% trans "Apply rebind" %}</button>
+      </form>
+      <p class="rmc-mapping__status" data-mc-ai-rebind-status role="status" aria-live="polite"></p>
+    </details>
+
+    <details class="rmc-ai-disclosure">
+      <summary>{% trans "Ask the AI about this bundle" %}</summary>
+      <p class="rmc-form__help">
+        {% trans "Structural Q&A grounded in the bundle's profile and classifier output — counts, column shapes, classifier guesses. Does not scan raw rows." %}
+      </p>
+      <form class="rmc-form rmc-form--inline" data-mc-ai-ask-form>
+        {% csrf_token %}
+        <input type="text" name="question" class="rmc-input rmc-input--text"
+               placeholder="{% trans 'How many artifacts are there, and what domains do they cover?' %}"
+               maxlength="500" required>
+        <button type="submit" class="rmc-btn rmc-btn--primary rmc-btn--sm">{% trans "Ask" %}</button>
+      </form>
+      <div class="rmc-mapping__status" data-mc-ai-ask-history aria-live="polite"></div>
+    </details>
+
+    {% if reconciliation %}
+    <details class="rmc-ai-disclosure">
+      <summary>{% trans "School-facing reconciliation narrative" %}</summary>
+      <p class="rmc-form__help">
+        {% trans "Generate a 4-5 sentence summary of the reconciliation report, jargon-free, for forwarding to the school principal." %}
+      </p>
+      <button type="button" class="rmc-btn rmc-btn--primary rmc-btn--sm" data-mc-ai-reconcile-refresh>
+        {% trans "Generate narrative" %}
+      </button>
+      <div data-mc-ai-reconcile-content></div>
+    </details>
+    {% endif %}
+  </section>
 
   <section id="artifacts" class="rmc-card rmc-reveal">
     <h2 class="rmc-h2">{% trans "Artifacts" %}</h2>
@@ -232,9 +331,11 @@
         {% csrf_token %}
         <button type="submit" class="rmc-btn rmc-btn--ghost">{% trans "Dry-run apply" %}</button>
       </form>
-      <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_apply' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_apply' bundle_id=bundle.pk %}{% endif %}">
+      <form method="post"
+            action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_apply' bundle_id=bundle.pk %}?confirm=1{% else %}{% url 'migration_cloud_super:bundle_apply' bundle_id=bundle.pk %}?confirm=1{% endif %}"
+            data-mc-confirm="{% trans 'This will WRITE to the tenant. Continue?' %}">
         {% csrf_token %}
-        <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Apply" %}</button>
+        <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Apply (live)" %}</button>
       </form>
       {% endif %}
       {% if can_reconcile %}

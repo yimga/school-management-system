@@ -8,13 +8,8 @@ Usage:
 {% endcomment %}
 {% load i18n %}
 {% if state == "loading" %}
-<div class="studio-os-loading-state py-4 px-3" role="status" aria-live="polite" aria-label="{% trans 'Loading' %}">
-  <div class="studio-os-skeleton d-flex flex-column gap-2">
-    <div class="studio-os-skeleton-line" style="width: 85%; height: 1rem;"></div>
-    <div class="studio-os-skeleton-line" style="width: 70%; height: 1rem;"></div>
-    <div class="studio-os-skeleton-line" style="width: 90%; height: 1rem;"></div>
-    <div class="studio-os-skeleton-line mt-2" style="width: 60%; height: 1rem;"></div>
-  </div>
+<div class="studio-os-loading-state py-4 px-3 d-flex justify-content-center" role="status" aria-live="polite" aria-label="{% trans 'Loading' %}">
+  {% include "components/_rmc_bell_clock_spinner.html" %}
 </div>
 {% elif state == "empty" %}
 <div class="studio-os-empty-state text-center py-5 px-3" role="status">

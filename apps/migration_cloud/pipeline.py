@@ -31,6 +31,7 @@ from .classifiers import classify_domain, classify_source
 from .mapper import ColumnMapping, map_artifact
 from .models import BundleStatus, MigrationArtifact, MigrationBundle
 from .profiler import profile_bundle
+from .progress import emit as _emit_progress, refresh_snapshot
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +52,15 @@ def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str,
 
     # --- Phase U2: profile -------------------------------------------------
     if bundle.status in (BundleStatus.INGESTING, BundleStatus.PENDING):
+        _emit_progress(bundle_id=bundle_id, kind="stage_started", stage="PROFILED",
+                       message="Profiling artifacts")
         profiled = profile_bundle(bundle)
         summary["stages_run"].append("profile")
         summary["artifacts_profiled"] = profiled
         bundle.refresh_from_db()
+        _emit_progress(bundle_id=bundle_id, kind="stage_finished", stage="PROFILED",
+                       message=f"Profiled {profiled} artifact(s)",
+                       detail={"rows": profiled})
 
     # --- Phase U3: source classification ----------------------------------
     if bundle.status == BundleStatus.PROFILED:
@@ -153,6 +159,7 @@ def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str,
         summary["stages_run"].append("map")
 
     summary["status"] = bundle.status
+    refresh_snapshot(bundle=bundle)
     return summary
 
 

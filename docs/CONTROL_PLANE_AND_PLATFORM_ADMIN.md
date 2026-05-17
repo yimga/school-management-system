@@ -6,14 +6,16 @@
 
 **In-product policy page:** `/super/operator-policy/` — `super:operator_policy` (super-first vs break-glass admin, change classes, metrics/API pointers).
 
-**Automation:** `GET /api/internal/control-plane/bridge-manifest/` — JSON list of every `super:admin_bridge` entry (control-plane auth only; not tenant staff).
+**Automation:** `GET /api/internal/control-plane/bridge-manifest/` — JSON list of every `super:admin_bridge` entry (control-plane auth only; not tenant staff). Manifest also ships `surface_spine`, `paired_super_first`, and `surface_parity_ok` (batch **1252**).
+
+**Operator surface strip (batch 1252–1253):** On manager host, `/super/`, `/configuration/`, and `/admin/` render a shared **Surfaces** pill row (`components/rmc_operator_surface_strip.html`) wired by `apps/schools/super_admin_paired_surfaces.py` + `operator_surface_ia_context`. High-traffic super-first lists and nested `/super/marketplace/*`, `/super/security/*`, `/super/trust/*` routes show **Open platform admin**; admin changelists with a super-first twin show **Open operator view**. Mechanical gates: `python scripts/verify_super_admin_surface_parity.py --write` → `docs/generated/super_admin_surface_matrix.json`; `python scripts/verify_manager_render_parity.py --write-matrix` (matrix + `/-/version/` JSON on manager/public urlconfs); Playwright `bash scripts/run_manager_surface_parity.sh` / `tests/e2e/manager-surface-parity.spec.js`. Hosted parity (batch 1199): set `RENDER_PARITY_BASE_URL` / `MANAGER_PARITY_BASE_URL` when running `verify_manager_render_parity.py`.
 
 ## Two surfaces by design
 
 | Surface | URL (manager host) | Purpose | Access |
 |---------|-------------------|---------|--------|
 | **Control plane** | `/super/*` | Dashboards, catalogs, marketplace governance, billing overview, migration, trust, support, orchestration, **operator policy**, etc. | `user_has_control_plane_access`: `is_superuser` **or** `role == SUPERADMIN`. Enforced by `TenantSuperAdminRequiredMiddleware` + per-view `require_super_access_with_host`. |
-| **Platform backoffice** | `/admin/*` | **Raw Django admin CRUD** for models registered with `register_platform_admin` (siteconfig AI/registry, billing waivers, packages, marketplace proxy models, registries, automation, etc.). | `PlatformAdminSite.has_permission`: manager host + `is_staff` + `is_superuser`. |
+| **Platform backoffice** | `/admin/*` | **Raw Django admin CRUD** for models registered with `register_platform_admin` (siteconfig AI/registry, billing waivers, packages, marketplace proxy models, registries, automation, etc.). Visual parity with control plane: SOT **§11.4 batch 1246** (`admin-cp-parity.css`, `cool-apple` aesthetic). | `PlatformAdminSite.has_permission`: manager host + `is_staff` + `is_superuser`. |
 
 `config/admin.py` states explicitly: *"Platform Backoffice: raw CRUD only. Single config surface is Configuration Control Center (siteconfig:console_domains_hub)."*
 

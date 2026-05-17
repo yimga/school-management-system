@@ -17,7 +17,7 @@
 
 {% block content %}
 {% with widgets=display_widgets %}
-<div class="parent-dashboard dashboard-clear parent-dashboard-shell ui-premium-surface" data-page-archetype="role-home" data-decision-engine="surface" data-rmc-component-audit="1" data-rmc-ux-role-dashboard="family-home">
+<div class="parent-dashboard dashboard-clear parent-dashboard-shell ui-premium-surface" data-page-archetype="role-home" data-decision-engine="surface" data-rmc-component-audit="1" data-rmc-ux-role-dashboard="family-home" data-rmc-page="parent-portal">
   <div class="container-lg py-4">
     {% phase8_dashboard_declaration "parent/dashboard.html" %}
     {% comment %} Pass 8 UX consistency: removed the v2 rmc-page-header that duplicated the richer
@@ -32,7 +32,7 @@
       </div>
       <a class="btn btn-sm btn-outline-primary" href="{{ parent_full_dashboard_url }}">{% trans "Full dashboard" %}</a>
     </div>
-    <div class="row g-3 mb-4" data-parent-simple-actions="1">
+    <div class="row g-3 mb-4" data-parent-simple-actions="1" data-tour="parent-quick-actions">
       {% if rmc_conversion_single_action_enforced|default:False %}
         {% for action in portal_quick_actions|slice:":1" %}
         <div class="col-12 col-md-6 col-lg-4">
@@ -154,14 +154,14 @@
     {% endif %}
 
     <!-- Header -->
-    <header class="parent-dashboard-header" aria-labelledby="parent-dashboard-title" data-decision-zone="headline">
+    <header class="parent-dashboard-header" aria-labelledby="parent-dashboard-title" data-decision-zone="headline" data-tour="parent-header">
       <div class="dashboard-header">
         <div class="dashboard-title">
           <span class="dashboard-eyebrow">{% trans "Family Home" %}</span>
           <h1 id="parent-dashboard-title">{% trans "Welcome back" %}{% if request.user %}, {{ request.user.get_full_name|default:request.user.username }}{% endif %}</h1>
           <p>{% trans "Your children, school status, and the next step to take — in one calm view." %}</p>
         </div>
-        <div class="dashboard-actions ds-action-bar d-flex flex-wrap align-items-center gap-2" data-rmc-parent-header-actions="1">
+        <div class="dashboard-actions ds-action-bar d-flex flex-wrap align-items-center gap-2" data-rmc-parent-header-actions="1" data-tour="parent-quick-actions">
           {% if parent_verified %}
           <span class="px-3 py-1 rounded-pill small text-nowrap bg-primary bg-opacity-25 text-primary" role="status" aria-label="{% trans 'Verified Parent' %}"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>{% trans "Verified Parent" %}</span>
           {% endif %}
@@ -355,7 +355,7 @@
       <div class="col-lg-8" data-dashboard-column="main">
         
         <!-- My Children -->
-        <section data-rmc-section-anchor class="metrics-section dashboard-clear parent-children-section rmc-reveal" id="parent-children" aria-labelledby="children-heading" {% if is_rtl %}dir="rtl"{% endif %}>
+        <section data-rmc-section-anchor class="metrics-section dashboard-clear parent-children-section rmc-reveal" id="parent-children" data-tour="parent-children" aria-labelledby="children-heading" {% if is_rtl %}dir="rtl"{% endif %}>
           {% with parent_metrics|default:None as metrics %}
             {% if metrics %}
               {% include "components/rmc_metric_ticker.html" with metric_items=metrics %}

@@ -23,6 +23,25 @@ def marketing_base_url(request):
     return {"MARKETING_BASE_URL": f"{scheme}://{base_domain}"}
 
 
+def operator_surface_ia_context(request):
+    """Cross-surface IA strip for manager /super/, /configuration/, /admin/."""
+    try:
+        from django.urls import NoReverseMatch
+
+        from apps.schools.super_admin_paired_surfaces import (
+            build_operator_surface_ia_context,
+        )
+
+        return build_operator_surface_ia_context(request)
+    except (ImportError, NoReverseMatch, TypeError, ValueError):
+        return {
+            "RMC_OPERATOR_SURFACE_IA": False,
+            "RMC_OPERATOR_SURFACE_SPINE": [],
+            "RMC_OPERATOR_PAIRED_LINKS": [],
+            "RMC_OPERATOR_SURFACE_CURRENT": None,
+        }
+
+
 def conversion_enforcement_context(request):
     """
     Template toggles for strict conversion / single-primary UI (see CONVERSION_* settings).

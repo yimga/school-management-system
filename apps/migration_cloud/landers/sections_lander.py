@@ -72,6 +72,8 @@ class SectionsLander(Lander):
                     result.created_ids.append(obj.pk)
                 else:
                     result.updated += 1
+                from ._helpers import record_id_mapping
+                record_id_mapping(ctx=ctx, legacy_id=code, canonical_obj=obj, domain="sections")
             except Exception as exc:  # noqa: BLE001
                 result.quarantined += 1
                 result.errors.append(

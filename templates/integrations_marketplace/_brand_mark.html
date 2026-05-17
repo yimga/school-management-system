@@ -1,0 +1,19 @@
+{% load static %}
+{% comment %}
+v2.79 follow-up — connector brand mark. Renders the tinted square plus an
+inner SVG glyph from the integration sprite. The glyph defaults to the
+category icon (#integration-cat-<category>); operators who later drop
+slug-specific <symbol id="integration-<slug>"> entries into
+static/sprites/integrations.svg will get those automatically.
+
+Usage:
+  {% include "integrations_marketplace/_brand_mark.html" with connector=row.connector %}
+
+`connector` MUST be the dict from Connector.to_dict() plus the server-side
+`brand_mark_class` (built in views.py to keep scan_undefined_css_classes at 0).
+{% endcomment %}
+<span class="{{ connector.brand_mark_class }}" aria-hidden="true">
+  <svg class="rmc-integration-mark__glyph" focusable="false" aria-hidden="true">
+    <use href="{% static 'sprites/integrations.svg' %}#integration-cat-{{ connector.category }}"></use>
+  </svg>
+</span>

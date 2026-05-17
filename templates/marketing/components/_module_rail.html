@@ -1,0 +1,39 @@
+{% load i18n %}
+<section class="mkt-v3-section mkt-v3-module-rail-wrap" data-mkt-module-rail>
+  <div class="mkt-edt-container">
+    <header class="mkt-v3-module-rail__intro">
+      <p class="mkt-v3-eyebrow">{% trans "Platform modules" %}</p>
+      <h2 class="mkt-v3-section-headline">{% trans "Eight modules. One operating rhythm." %}</h2>
+      <p class="mkt-v3-lead">{% trans "Scroll the tour — each module pairs with the surface your team opens daily." %}</p>
+    </header>
+
+    <div class="mkt-v3-module-rail">
+      <nav class="mkt-v3-module-rail__list" aria-label="{% trans 'Platform modules' %}">
+        {% for mod in module_rail_modules %}
+        <a href="#module-{{ mod.slug }}" class="mkt-v3-module-rail__link{% if forloop.first %} is-active{% endif %}" data-module-link="{{ mod.slug }}">
+          <span class="mkt-v3-module-rail__index">{{ mod.index }}</span>
+          <span class="mkt-v3-module-rail__name">{{ mod.name }}</span>
+        </a>
+        {% endfor %}
+      </nav>
+
+      <div class="mkt-v3-module-rail__panels">
+        {% for mod in module_rail_modules %}
+        <article id="module-{{ mod.slug }}" class="mkt-v3-module-rail__panel" data-module-panel="{{ mod.slug }}"{% if not forloop.first %} hidden{% endif %}>
+          <h3 class="mkt-v3-module-rail__panel-title">{{ mod.name }}</h3>
+          <p class="mkt-edt-lead">{{ mod.lead }}</p>
+          {% if mod.dashboard_partial %}
+          {% include "marketing/components/_dashboard_frame.html" with frame_title=mod.name dashboard_partial=mod.dashboard_partial %}
+          {% endif %}
+          <ul class="mkt-v3-module-rail__bullets">
+            {% for bullet in mod.bullets %}
+            <li>{{ bullet }}</li>
+            {% endfor %}
+          </ul>
+          <a href="{{ mod.url }}" class="mkt-edt-link">{% blocktrans with name=mod.name %}Explore {{ name }} →{% endblocktrans %}</a>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>

@@ -86,6 +86,10 @@ class EnrollmentLander(Lander):
                 student.save(update_fields=list(updates.keys()))
                 result.updated += 1
                 result.updated_ids_with_old_values.append({"pk": student.pk, "old": {}})
+                from ._helpers import record_id_mapping
+                record_id_mapping(
+                    ctx=ctx, legacy_id=external_id, canonical_obj=student, domain="enrollment",
+                )
             except Exception as exc:  # noqa: BLE001
                 result.quarantined += 1
                 result.errors.append(

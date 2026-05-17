@@ -1,0 +1,47 @@
+{% load i18n %}
+<section class="mkt-edt-section mkt-v3-section rmc-reveal" aria-labelledby="persona-tabs-headline" data-mkt-reveal data-mkt-persona-tabs>
+  <div class="mkt-edt-container">
+    <header>
+      <p class="mkt-edt-eyebrow mkt-v3-eyebrow">{% trans "Five roles" %}</p>
+      <h2 id="persona-tabs-headline" class="mkt-edt-section-headline mkt-v3-section-headline">
+        {% trans "What changes for everyone in the building" %}
+      </h2>
+    </header>
+
+    <div class="mkt-v3-persona-tabs" role="tablist" aria-label="{% trans 'School roles' %}">
+      <button type="button" class="mkt-v3-persona-tabs__btn" role="tab" data-persona-tab="head" aria-selected="true">{% trans "Head" %}</button>
+      <button type="button" class="mkt-v3-persona-tabs__btn" role="tab" data-persona-tab="bursar" aria-selected="false" tabindex="-1">{% trans "Bursar" %}</button>
+      <button type="button" class="mkt-v3-persona-tabs__btn" role="tab" data-persona-tab="teacher" aria-selected="false" tabindex="-1">{% trans "Teacher" %}</button>
+      <button type="button" class="mkt-v3-persona-tabs__btn" role="tab" data-persona-tab="parent" aria-selected="false" tabindex="-1">{% trans "Parent" %}</button>
+      <button type="button" class="mkt-v3-persona-tabs__btn" role="tab" data-persona-tab="it" aria-selected="false" tabindex="-1">{% trans "IT" %}</button>
+    </div>
+
+    <div class="mkt-v3-persona-tabs__panels">
+      <article class="mkt-v3-persona-tabs__panel" data-persona-panel="head" role="tabpanel">
+        <p class="mkt-edt-lead">{% trans "One honest summary — attendance, fees, behaviour, staffing." %}</p>
+        {% include "marketing/components/_dashboard_frame.html" with frame_title="Head of school" dashboard_partial="schools/_v2/_artifact_leader_overview.svg.html" %}
+        <p><a href="{% url 'marketing_solutions_private_schools' %}" class="mkt-edt-link">{% trans "A day for the head →" %}</a></p>
+      </article>
+      <article class="mkt-v3-persona-tabs__panel" data-persona-panel="bursar" role="tabpanel" hidden>
+        <p class="mkt-edt-lead">{% trans "Collected, outstanding, reconciled — hourly, not end-of-day." %}</p>
+        {% include "marketing/components/_dashboard_frame.html" with frame_title="Bursar" dashboard_partial="schools/_v2/_artifact_finance_dashboard.svg.html" %}
+        <p><a href="{% url 'marketing_pricing' %}" class="mkt-edt-link">{% trans "A day for the bursar →" %}</a></p>
+      </article>
+      <article class="mkt-v3-persona-tabs__panel" data-persona-panel="teacher" role="tabpanel" hidden>
+        <p class="mkt-edt-lead">{% trans "Roll mark in nine seconds. Marks and messages between lessons." %}</p>
+        {% include "marketing/components/_dashboard_frame.html" with frame_title="Teacher" dashboard_partial="schools/_v2/_artifact_teacher_attendance.svg.html" %}
+        <p><a href="{% url 'marketing_platform_teacher_portal' %}" class="mkt-edt-link">{% trans "A day for the teacher →" %}</a></p>
+      </article>
+      <article class="mkt-v3-persona-tabs__panel" data-persona-panel="parent" role="tabpanel" hidden>
+        <p class="mkt-edt-lead">{% trans "Today's slip, attendance, and fee — one card, no app install." %}</p>
+        {% include "marketing/components/_dashboard_frame.html" with frame_title="Parent" dashboard_partial="schools/_v2/_artifact_parent_phone_compact.svg.html" %}
+        <p><a href="{% url 'marketing_platform_parent_portal' %}" class="mkt-edt-link">{% trans "A day for the parent →" %}</a></p>
+      </article>
+      <article class="mkt-v3-persona-tabs__panel" data-persona-panel="it" role="tabpanel" hidden>
+        <p class="mkt-edt-lead">{% trans "SSO, integrations, and tenant health before staff feel a blip." %}</p>
+        {% include "marketing/components/_dashboard_frame.html" with frame_title="IT lead" dashboard_partial="schools/_v2/_artifact_it_health.svg.html" %}
+        <p><a href="{% url 'marketing_trust_dedicated' %}" class="mkt-edt-link">{% trans "A day for IT →" %}</a></p>
+      </article>
+    </div>
+  </div>
+</section>

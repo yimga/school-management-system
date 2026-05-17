@@ -48,19 +48,39 @@ MARKETING_NAVBAR_VISIBLE_COUNT = 4
 
 _MARKETING_PAGE_TYPE_TEMPLATES: dict[str, str] = {
     "pricing": "marketing/pages/type_pricing.html",
+    "why-switch": "marketing/pages/type_why_switch.html",
     "contact": "marketing/pages/type_contact.html",
     "company": "marketing/pages/type_company.html",
+    "about": "marketing/pages/type_company.html",
     "resources": "marketing/pages/type_resources_hub.html",
+    "developers": "marketing/pages/type_developers.html",
     "platform": "marketing/pages/type_platform_hub.html",
+    "solutions": "marketing/pages/type_solutions_hub.html",
     "demo": "marketing/pages/type_demo.html",
     "book-demo": "marketing/pages/type_demo.html",
+    "trust-center": "marketing/pages/type_trust_center.html",
 }
 # Differentiated platform capability pages (buyer-specific layouts + self-hosted mockups).
 _MARKETING_PLATFORM_DIFFERENTIATED_TEMPLATES: dict[str, str] = {
     "platform-admissions": "marketing/pages/type_platform_admissions.html",
+    "platform-attendance": "marketing/pages/type_platform_attendance.html",
+    "platform-analytics": "marketing/pages/type_platform_analytics.html",
+    "platform-communications": "marketing/pages/type_platform_communications.html",
     "platform-fees-payments": "marketing/pages/type_platform_fees_payments.html",
     "platform-parent-portal": "marketing/pages/type_platform_parent_portal.html",
     "platform-teacher-portal": "marketing/pages/type_platform_teacher_portal.html",
+    "platform-workflows": "marketing/pages/type_platform_workflows.html",
+    "platform-offline-first": "marketing/pages/type_platform_offline_first.html",
+    "platform-security": "marketing/pages/type_platform_security.html",
+    "platform-student-information-system": "marketing/pages/type_platform_student_information_system.html",
+    "platform-student-portal": "marketing/pages/type_platform_student_portal.html",
+    "platform-grading-report-cards": "marketing/pages/type_platform_grading_report_cards.html",
+    "platform-integrations": "marketing/pages/type_platform_integrations.html",
+    "platform-runtime": "marketing/pages/type_platform_runtime.html",
+    "platform-control-plane": "marketing/pages/type_platform_control_plane.html",
+    "platform-education-os": "marketing/pages/type_platform_education_os.html",
+    "platform-marketplace": "marketing/pages/type_platform_marketplace.html",
+    "platform-migration-cloud": "marketing/pages/type_platform_migration_cloud.html",
 }
 
 
@@ -72,7 +92,7 @@ def _marketing_page_type_template(slug: str) -> str | None:
     if s in _MARKETING_PLATFORM_DIFFERENTIATED_TEMPLATES:
         return _MARKETING_PLATFORM_DIFFERENTIATED_TEMPLATES[s]
     if s.startswith("platform-") and s != "platform":
-        return "marketing/pages/type_platform_detail.html"
+        return "marketing/pages/type_platform_generic.html"
     return None
 
 
@@ -237,7 +257,15 @@ def _marketing_nav() -> list[dict]:
 
 
 def _marketing_navbar_primary() -> list[dict]:
-    """Public IA: six top links; Platform/Solutions/Resources use premium mega menu panels."""
+    """Public IA: verb nav (Phase 3) or legacy Platform/Solutions mega menus."""
+
+    from apps.schools.marketing_v3_surfaces import (
+        marketing_navbar_verb_primary,
+        marketing_verb_nav_enabled,
+    )
+
+    if marketing_verb_nav_enabled():
+        return marketing_navbar_verb_primary()
 
     def p(name: str, fallback: str, **kwargs) -> str:
         u = _safe_reverse(name, kwargs=kwargs if kwargs else None)
@@ -2363,6 +2391,14 @@ def marketing_page(request, page_slug: str):
             "platform-security", "platform-analytics",
         },
     }
+    if normalized_slug == "platform":
+        from apps.schools.marketing_v3_surfaces import marketing_module_rail_modules
+
+        ctx["module_rail_modules"] = marketing_module_rail_modules()
+    if normalized_slug == "solutions":
+        from apps.schools.marketing_v3_surfaces import marketing_solutions_personas
+
+        ctx["solutions_personas"] = marketing_solutions_personas()
     # Product page: product-led storytelling (micro-demos, scroll-driven dark-mode, outcome-focused, developer-centric)
     if normalized_slug == "product":
         return render(request, "schools/marketing_product_page.html", ctx)
@@ -2372,6 +2408,49 @@ def marketing_page(request, page_slug: str):
         type_tpl if type_tpl else "schools/marketing_page.html",
         ctx,
     )
+
+
+@require_GET
+def marketing_solutions_persona(request, persona_slug: str):
+    """Buyer persona deep pages (Phase 2) — head, bursar, teacher, parent, IT."""
+    from apps.schools.marketing_v3_surfaces import marketing_solutions_persona_by_slug
+
+    persona = marketing_solutions_persona_by_slug(persona_slug)
+    if not persona:
+        raise Http404("Persona not found")
+    base_ctx = _marketing_base_context(request)
+    canonical_path = f"/solutions/{persona['slug']}/"
+    canonical_url = _absolute_url(request, canonical_path)
+    page_copy = {
+        "slug": persona["slug"],
+        "label": str(persona["name"]),
+        "headline": str(persona["name"]),
+        "subheadline": str(persona["lead"]),
+        "seo_title": f"{persona['name']} | RunMyCampus",
+        "seo_description": str(persona["lead"])[:160],
+        "schema_type": "WebPage",
+        "path": canonical_path,
+    }
+    structured_data = _structured_data_for_page(
+        page_type="WebPage",
+        canonical_url=canonical_url,
+        name=page_copy["label"],
+        description=page_copy["seo_description"],
+        path=canonical_path,
+    )
+    ctx = {
+        **base_ctx,
+        "seo_title": page_copy["seo_title"],
+        "seo_description": page_copy["seo_description"],
+        "canonical_url": canonical_url,
+        "structured_data_json": json.dumps(structured_data),
+        "page": page_copy,
+        "persona": persona,
+        "active_nav_slug": "solutions",
+        "marketing_page_type": "WebPage",
+        "marketing_page_slug": f"solutions-{persona['slug']}",
+    }
+    return render(request, "marketing/pages/type_solutions_persona.html", ctx)
 
 
 def _marketing_form_is_bot(request) -> bool:
@@ -3478,6 +3557,32 @@ def _sitemap_entries(request) -> list[tuple[str, str, str]]:
         (base + (p if p != "/" else "/"), prio, freq)
         for p, (prio, freq) in path_specs.items()
     ]
+
+
+@require_GET
+def marketing_verb_hub(request, verb: str):
+    """Verb-first hub pages: /run/, /teach/, /pay/, /communicate/, /grow/ (Phase 3)."""
+    verb = (verb or "").strip().lower()
+    allowed = {"run", "teach", "pay", "communicate", "grow"}
+    if verb not in allowed:
+        raise Http404("Unknown marketing verb hub")
+    ctx = _marketing_base_context(request)
+    ctx.update(
+        {
+            "marketing_verb": verb,
+            "seo_title": f"RunMyCampus — {verb.title()}",
+            "active_nav_slug": verb,
+        }
+    )
+    from apps.schools.marketing_v3_surfaces import (
+        marketing_module_rail_modules,
+        marketing_verb_hub_links,
+    )
+
+    ctx["verb_hub_links"] = marketing_verb_hub_links(verb)
+    if verb == "run":
+        ctx["module_rail_modules"] = marketing_module_rail_modules()
+    return render(request, "marketing/pages/verb_hub.html", ctx)
 
 
 @require_GET

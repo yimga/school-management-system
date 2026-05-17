@@ -1,6 +1,6 @@
 /**
  * Platform capability pages: subtle per-page visual identity (no route changes).
- * Class: .mkt-platform-theme--<slug> on .page-stack (see type_platform_detail.html).
+ * Class: .mkt-platform-theme--<slug> on .page-stack (see type_platform_generic.html).
  */
 .mkt-page-type-platform-detail {
   position: relative;

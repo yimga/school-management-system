@@ -1,0 +1,35 @@
+{% load i18n %}
+{# Marketing-surface language switcher. Posts to Django's `set_language` view
+   with `?next=` set to the current path so the user stays where they were.
+   Lists are derived from settings.LANGUAGES via `get_available_languages`. #}
+{% get_current_language as CURRENT_LANGUAGE %}
+{% get_available_languages as LANGUAGES_AVAILABLE %}
+{% get_language_info_list for LANGUAGES_AVAILABLE as LANG_LIST %}
+<div class="dropdown mkt-lang-switcher">
+  <button type="button"
+          class="btn btn-link nav-link mkt-nav-utility py-1 px-2 small dropdown-toggle"
+          id="mktLangSwitcher"
+          data-bs-toggle="dropdown"
+          data-bs-auto-close="outside"
+          aria-expanded="false"
+          aria-haspopup="true"
+          aria-label="{% trans 'Choose language' %}">
+    <i class="bi bi-translate" aria-hidden="true"></i>
+    <span class="mkt-lang-switcher__current">{% for lang in LANG_LIST %}{% if lang.code == CURRENT_LANGUAGE %}{{ lang.name_local }}{% endif %}{% endfor %}</span>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark mkt-lang-switcher__menu" aria-labelledby="mktLangSwitcher">
+    {% for lang in LANG_LIST %}
+    <li>
+      <form action="{% url 'set_language_persist' %}" method="post" class="mkt-lang-switcher__form">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <input type="hidden" name="language" value="{{ lang.code }}">
+        <button type="submit" class="dropdown-item mkt-lang-switcher__option{% if lang.code == CURRENT_LANGUAGE %} active{% endif %}"{% if lang.code == CURRENT_LANGUAGE %} aria-current="true"{% endif %} lang="{{ lang.code }}">
+          <span class="mkt-lang-switcher__name">{{ lang.name_local }}</span>
+          <span class="mkt-lang-switcher__english text-muted small">{{ lang.name }}</span>
+        </button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+</div>

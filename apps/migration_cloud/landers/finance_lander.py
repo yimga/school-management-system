@@ -20,8 +20,10 @@ from typing import Any, Iterator
 from ._helpers import (
     coerce_date,
     coerce_decimal,
+    detect_and_register_assets,
     filter_to_model_fields,
     model_field_names,
+    record_id_mapping,
     student_lookup_field,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
@@ -107,6 +109,13 @@ class FinanceLander(Lander):
                     result.created_ids.append(obj.pk)
                 else:
                     result.updated += 1
+                record_id_mapping(
+                    ctx=ctx, legacy_id=reference,
+                    canonical_obj=obj, domain="finance",
+                )
+                detect_and_register_assets(
+                    ctx=ctx, legacy_id=reference, entity_kind="invoice", row=row,
+                )
             except Exception as exc:  # noqa: BLE001
                 result.quarantined += 1
                 result.errors.append(

@@ -13,7 +13,7 @@
   runs synchronously in <head>, before paint, so no FOUC. The Unfold skeleton
   template owns the <html> tag (third-party), so we toggle the attribute here.
   {% endcomment %}
-  <script>document.documentElement.setAttribute('data-rmc-aesthetic','v2');
+  <script>document.documentElement.setAttribute('data-rmc-aesthetic','cool-apple');
     // v2.6 viewport-fit=cover parity — Unfold's skeleton.html owns the viewport
     // meta; patch it here so safe-area-inset utilities behave on notched devices.
     (function(){var m=document.querySelector('meta[name="viewport"]');if(m&&!/viewport-fit/.test(m.getAttribute('content')||'')){m.setAttribute('content',(m.getAttribute('content')||'width=device-width, initial-scale=1')+', viewport-fit=cover');}})();
@@ -30,7 +30,10 @@
   <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
   <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
   <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
+  {% include "partials/rmc_shortcuts_i18n.html" %}
+  <script src="{% static 'js/rmc-shortcuts-registry.js' %}" defer></script>
   <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
+  <script src="{% static 'js/rmc-shortcuts-runtime.js' %}" defer></script>
   <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
@@ -46,6 +49,7 @@
   <link rel="stylesheet" href="{% static 'css/admin-components.css' %}">
   <link rel="stylesheet" href="{% static 'css/unfold-integration.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-console-themes.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-bell-clock-product.css' %}">
 
   <!-- Admin sidebar -->
   <link rel="stylesheet" href="{% static 'css/admin-sidebar-scroll.css' %}">
@@ -68,6 +72,7 @@
   <link rel="stylesheet" href="{% static 'css/phase2-admin-bundle.css' %}">
   {# Phase G (2026-05-12): platform-wide long-page grammar. #}
   <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-cp-parity.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
   {% if is_manager_host %}
   <link rel="stylesheet" href="{% static 'css/control-plane-primary-nav.css' %}">
@@ -90,7 +95,8 @@
 {% block extrahead %}
   {{ block.super }}
   <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
-  {% if is_manager_host %}<link rel="icon" href="{% static 'images/runmycampus-icon.png' %}" type="image/png">{% elif SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
+  {% if is_manager_host %}<link rel="icon" href="{% static 'images/runmycampus-icon.png' %}" type="image/png">
+  <link rel="icon" href="{% static 'images/runmycampus-icon-bell.svg' %}" type="image/svg+xml" sizes="32x32">{% elif SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
   {# Configuration Engine: premium shell on all hosts – manager gets navy/gold, tenant gets same UX with school theme #}
   <script>
     (function () {
@@ -144,6 +150,7 @@
 
 {% block branding %}
   {% include 'components/admin_nav_bridge.html' %}
+  {% if is_manager_host %}{% include "components/rmc_operator_surface_strip.html" %}{% endif %}
   {% if PREVIEW_MODE_ENABLED %}
     <div class="preview-cue preview-cue--active">
       <span>
@@ -219,46 +226,14 @@
       h: { url: '/super/tenant-health/', label: 'School Health' },
       p: { url: '/super/pulse/', label: 'Pulse' }
     };
-    var helpEl = null;
     function showHelp() {
-      if (helpEl) {
-        helpEl.style.display = 'flex';
-        return;
+      if (window.RMCShortcuts && typeof window.RMCShortcuts.open === "function") {
+        window.RMCShortcuts.open();
       }
-      helpEl = document.createElement('div');
-      helpEl.id = 'cp-keyboard-help-admin';
-      helpEl.setAttribute('role', 'dialog');
-      helpEl.setAttribute('aria-label', 'Keyboard shortcuts');
-      helpEl.className = 'cp-keyboard-help-overlay';
-      var t = '<div class="rounded shadow-lg p-4 bg-dark text-white cp-keyboard-help-panel">';
-      t += '<h3 class="h6 mb-3">Keyboard shortcuts</h3>';
-      t += '<p class="small text-muted mb-2">Press <kbd>g</kbd> then one of:</p><ul class="list-unstyled small mb-0">';
-      for (var k in shortcuts) {
-        t += '<li><kbd>g</kbd> <kbd>' + k + '</kbd> &rarr; ' + (shortcuts[k].label || shortcuts[k].url) + '</li>';
-      }
-      t += '</ul><p class="small text-muted mt-2 mb-0"><kbd>Ctrl</kbd>+<kbd>K</kbd> focuses search. <kbd>?</kbd> toggles help. <kbd>Esc</kbd> to close.</p></div>';
-      helpEl.innerHTML = t;
-      helpEl.addEventListener('click', function (e) {
-        if (e.target === helpEl) hideHelp();
-      });
-      document.body.appendChild(helpEl);
-      document.addEventListener('keydown', function onEsc(e) {
-        if (e.key === 'Escape') {
-          hideHelp();
-          document.removeEventListener('keydown', onEsc);
-        }
-      });
-    }
-    function hideHelp() {
-      if (helpEl) helpEl.style.display = 'none';
     }
     window.cpShowShortcutsHelp = showHelp;
     document.addEventListener('keydown', function (e) {
       if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        var tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
-        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
-        e.preventDefault();
-        showHelp();
         return;
       }
       if (e.key === 'g' && !e.ctrlKey && !e.metaKey && !e.altKey) {
@@ -393,4 +368,5 @@
   {% if is_manager_host %}
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   {% endif %}
+  <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
 {% endblock %}

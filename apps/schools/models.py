@@ -294,6 +294,16 @@ class School(models.Model):
         help_text="Canonical subdivision selection for this school.",
     )
     timezone = models.CharField(max_length=50, default=_default_timezone)
+    default_language = models.CharField(
+        max_length=16,
+        blank=True,
+        default="",
+        help_text=(
+            "Tenant default language code (mirrors settings.LANGUAGES). When set, "
+            "anonymous visitors to this tenant's marketing surface get this language "
+            "before Accept-Language is consulted. Empty = platform default 'en'."
+        ),
+    )
     settings = models.JSONField(
         default=dict,
         blank=True,

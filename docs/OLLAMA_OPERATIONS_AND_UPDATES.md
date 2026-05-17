@@ -2,6 +2,54 @@
 
 RunMyCampus **in-product chat** (`general_chat` / copilot / WebSocket) uses **Ollama** (self-hosted) and **rules** fallback only. This document is the operator workflow for keeping that stack current and safe.
 
+## Practical posture (offline-first + live Ollama)
+
+| Layer | What to enable | What it does |
+| --- | --- | --- |
+| **School operations** | Tenant `enable_offline_mode` (feature control) | Teachers queue attendance, grades, payments, notes on device; sync when online. **Not AI.** |
+| **Live AI** | Ollama on the **same host as Django** (or a LAN URL the server can reach) | AI Center, copilot, guided assistants, semantic search use natural-language answers. |
+| **Safety net** | `AI_ALLOW_RULES_FALLBACK=1` (default) | When Ollama is down, structured **rules** answers — no 500s. |
+
+**Do not expect** full AI on a teacher phone with zero connectivity. That would require a future slice (on-device model or queued AI questions).
+
+### Five-minute operator setup
+
+On the app server (Lane 2 — not committed to git):
+
+```bash
+ollama serve
+ollama pull llama3   # or your pinned OLLAMA_MODEL
+```
+
+Copy into `.env` / host environment (see `.env.example`):
+
+```bash
+AI_GATEWAY_ENABLED=1
+AI_ALLOW_RULES_FALLBACK=1
+OLLAMA_ENDPOINT=http://localhost:11434/api/generate
+OLLAMA_MODEL=llama3
+```
+
+Verify from the repo:
+
+```bash
+python scripts/verify_ollama_live.py --invoke
+```
+
+**Acceptance:** AI Center shows live answers when Ollama is up; with Ollama stopped, AI Center still returns grounded rules responses. Offline capture continues independently.
+
+### Functional proof (not mocked)
+
+Unit tests under `apps/portal/tests/test_ai_gateway.py` mock `_call_ollama` for speed. **Live** proof uses real HTTP to Ollama:
+
+| Check | Command |
+| --- | --- |
+| Operator smoke | `python scripts/verify_ollama_live.py --strict --invoke` |
+| Gateway + inference (no mocks) | `RMC_AI_REQUIRE_LIVE=1 python manage.py test --tag=ai_live_ollama -v 2` |
+| CI | GitHub Actions workflow `ai-live-ollama.yml` (Ollama service + `llama3.2:1b`) |
+
+Live tests **fail** (not skip) when `RMC_AI_REQUIRE_LIVE=1` and Ollama is down. They assert `meta.tier == "ollama"` and non-empty model text — not rules fallback.
+
 ## What you configure
 
 | Variable | Role |

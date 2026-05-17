@@ -12,6 +12,8 @@
 - Gateway: `services.ai_gateway.invoke`; audit: `AuditLog` via `_log_gateway_audit` where implemented.
 - Permissions: `services.ai_permissions.get_ai_permission_for_user` — see **RBAC** column. Deny → HTTP 403 JSON `{"success": false, "error": "..."}`.
 
+**Rules vs live (batch 1247):** When Ollama is not configured, `invoke(..., response_schema="guided_assistant")` returns a **structured** `guided` object from `services.ai_guided_fallback.build_guided_fallback` (domain hints + optional RAG snippets + connect-Ollama caution). `meta.degraded` / `meta.fallback` are set. AI Center and gateway console cards must show a **non-empty** `guided.summary`. Live mode returns model JSON validated by `validate_guided_assistant`.
+
 ---
 
 ## 1. URL name → path → view (exhaustive)
