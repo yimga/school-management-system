@@ -1,23 +1,24 @@
 {% load i18n %}
-{# Editorial advisor character — quiet line-art figure that recurs across marketing
-   pages as a subtle illustration partner to the bell-clock mark. Eight poses:
-     - "intro"        (default) — facing forward, tablet held, calm posture
-     - "listening"   — figure with tablet at side, slight head turn
-     - "explaining"  — figure gesturing toward a small diagram
-     - "welcoming"   — open-handed wave, used on first-time / arrival surfaces
-     - "reviewing"   — head bent toward a magnifier over a chart, for
-                       release-notes / analytics-leaning surfaces
-     - "thinking"    — hand on chin with floating thought dots, for FAQ /
-                       loading / "we're working on it" surfaces
-     - "celebrating" — both hands gently raised with quiet confetti, for
-                       payment-success / milestone / completion surfaces
-     - "pointing-up" — index finger raised with a tip dot, for help prompts /
-                       "did you know?" callouts / tooltips
+{% comment %}
+Editorial advisor character — quiet line-art figure that recurs across marketing
+pages as a subtle illustration partner to the bell-clock mark. Eight poses:
+  - "intro"        (default) — facing forward, tablet held, calm posture
+  - "listening"   — figure with tablet at side, slight head turn
+  - "explaining"  — figure gesturing toward a small diagram
+  - "welcoming"   — open-handed wave, used on first-time / arrival surfaces
+  - "reviewing"   — head bent toward a magnifier over a chart, for
+                    release-notes / analytics-leaning surfaces
+  - "thinking"    — hand on chin with floating thought dots, for FAQ /
+                    loading / "we're working on it" surfaces
+  - "celebrating" — both hands gently raised with quiet confetti, for
+                    payment-success / milestone / completion surfaces
+  - "pointing-up" — index finger raised with a tip dot, for help prompts /
+                    "did you know?" callouts / tooltips
 
-   Pass `pose="..."`, optional `size=` (default 240), optional `extra_class=`,
-   optional `accessible_label=`. The figure inherits ink color from
-   currentColor so it sits naturally on cream OR dark surfaces.
-#}
+Pass `pose="..."`, optional `size=` (default 240), optional `extra_class=`,
+optional `accessible_label=`. The figure inherits ink color from
+currentColor so it sits naturally on cream OR dark surfaces.
+{% endcomment %}
 {% with pose=pose|default:"intro" size=size|default:240 %}
 <svg class="mkt-advisor{% if extra_class %} {{ extra_class }}{% endif %}" data-pose="{{ pose }}"
      xmlns="http://www.w3.org/2000/svg"
@@ -99,8 +100,8 @@
     <path d="M 78 170 L 76 222"/>
     <path d="M 132 170 L 134 222"/>
 
-    {% else %}
-    {# pose == "explaining" — gesturing toward a small diagram on the right. #}
+    {% elif pose == "explaining" %}
+    {# Pose: gesturing toward a small diagram on the right. #}
     <path d="M 60 60 Q 60 40 90 38 Q 120 40 120 62 Q 120 66 118 70"/>
     {# Face — facing right (3/4) #}
     <path d="M 70 64 Q 70 96 92 96 Q 114 96 114 64 Q 114 42 92 42 Q 70 44 70 64 Z"/>
@@ -175,8 +176,8 @@
     <path d="M 70 168 L 68 222"/>
     <path d="M 130 168 L 132 222"/>
 
-    {% else %}
-    {# pose == "reviewing" — head bent over a chart held in both hands. #}
+    {% elif pose == "reviewing" %}
+    {# Pose: head bent over a chart held in both hands. #}
     <path d="M 70 60 Q 70 42 100 40 Q 130 42 130 62 Q 130 68 128 72"/>
     {# Face — tilted slightly down #}
     <ellipse cx="100" cy="72" rx="22" ry="26"/>
