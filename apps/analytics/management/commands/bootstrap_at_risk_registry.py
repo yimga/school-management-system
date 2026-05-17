@@ -17,6 +17,10 @@ Usage:
 Without --artifact, falls back to `settings.AT_RISK_MODEL_PATH` /
 `AT_RISK_MODEL_PATH` env var. Without --model-version, defaults to
 `legacy_<basename>_<sha8>`.
+
+With ``USE_DJANGO_TENANTS=1``, registry rows live in tenant schemas; this
+command iterates every non-public tenant schema (same pattern as
+``seed_render_users``).
 """
 
 from __future__ import annotations
@@ -28,7 +32,8 @@ from datetime import datetime, timezone as dt_timezone
 from pathlib import Path
 
 from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+from django.db.utils import ProgrammingError
 
 from apps.accounts.models import User
 
@@ -67,6 +72,42 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **opts):
+        if getattr(settings, "USE_DJANGO_TENANTS", False):
+            self._handle_tenant_mode(opts)
+            return
+        self._bootstrap_schema(opts, schema_label=None)
+
+    def _handle_tenant_mode(self, opts):
+        try:
+            from apps.customers.models import Client
+            from django_tenants.utils import tenant_context
+        except ImportError:
+            self.stdout.write(self.style.WARNING(
+                "USE_DJANGO_TENANTS is enabled but django_tenants/customers "
+                "is unavailable; skipping registry bootstrap."
+            ))
+            return
+
+        clients = list(
+            Client.objects.exclude(schema_name="public")
+            .filter(schema_name__isnull=False)
+            .order_by("id")
+        )
+        if not clients:
+            self.stdout.write(self.style.WARNING(
+                "No tenant schemas found; skipping registry bootstrap."
+            ))
+            return
+
+        for client in clients:
+            schema_name = (getattr(client, "schema_name", None) or "").strip()
+            if not schema_name:
+                continue
+            self.stdout.write(f"[tenant:{schema_name}]")
+            with tenant_context(client):
+                self._bootstrap_schema(opts, schema_label=schema_name)
+
+    def _bootstrap_schema(self, opts, *, schema_label: str | None):
         from apps.analytics.models import AtRiskModelArtifact
 
         artifact = opts.get("artifact") or (
@@ -75,28 +116,26 @@ class Command(BaseCommand):
             or ""
         ).strip()
         if not artifact:
-            # Graceful skip: predeploy should not fail when the legacy
-            # artifact path isn't configured on this environment. The
-            # registry is empty; runtime falls back to the heuristic baseline.
+            prefix = f"{schema_label}: " if schema_label else ""
             self.stdout.write(self.style.WARNING(
-                "No AT_RISK_MODEL_PATH and no --artifact given. "
+                f"{prefix}No AT_RISK_MODEL_PATH and no --artifact given. "
                 "Nothing to register; skipping."
             ))
             return
         artifact_path = Path(artifact)
         if not artifact_path.exists():
+            prefix = f"{schema_label}: " if schema_label else ""
             self.stdout.write(self.style.WARNING(
-                f"Artifact path '{artifact_path}' does not exist on disk. "
+                f"{prefix}Artifact path '{artifact_path}' does not exist on disk. "
                 "Skipping registry bootstrap."
             ))
             return
 
-        # Resolve operator: explicit --operator-username → first superuser →
-        # the conventional 'admin' user (created by seed_render_users).
         operator = self._resolve_operator(opts.get("operator_username"))
         if operator is None:
+            prefix = f"{schema_label}: " if schema_label else ""
             self.stdout.write(self.style.WARNING(
-                "No operator user available (tried explicit username, first "
+                f"{prefix}No operator user available (tried explicit username, first "
                 "superuser, and username='admin'). Skipping registry bootstrap; "
                 "re-run after seed_render_users has provisioned the admin user."
             ))
@@ -107,9 +146,18 @@ class Command(BaseCommand):
             f"legacy_{artifact_path.stem}_{digest[:8]}"
         )
 
-        existing = AtRiskModelArtifact.objects.filter(
-            model_version=version,
-        ).first()
+        try:
+            existing = AtRiskModelArtifact.objects.filter(
+                model_version=version,
+            ).first()
+        except ProgrammingError as exc:
+            prefix = f"{schema_label}: " if schema_label else ""
+            self.stdout.write(self.style.WARNING(
+                f"{prefix}At-risk registry table is not available in this schema "
+                f"({exc}). Run tenant migrations, then re-run bootstrap."
+            ))
+            return
+
         if existing is not None:
             self.stdout.write(
                 f"Registry row '{version}' already exists "

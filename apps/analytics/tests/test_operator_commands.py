@@ -9,7 +9,7 @@ import tempfile
 import unittest.mock as mock
 from io import StringIO
 
-from django.core.management import CommandError, call_command
+from django.core.management import call_command
 from django.test import TestCase, override_settings
 
 from apps.accounts.models import User
@@ -79,23 +79,27 @@ class BootstrapRegistryTests(TestCase):
         row = AtRiskModelArtifact.objects.get(model_version="boot_no_promote")
         self.assertEqual(row.status, AtRiskModelArtifact.Status.CANDIDATE)
 
-    def test_refuses_missing_artifact(self):
-        with self.assertRaises(CommandError):
-            call_command(
-                "bootstrap_at_risk_registry",
-                "--artifact", "/no/such/path.joblib",
-                "--operator-username", self.op.username,
-                stdout=StringIO(),
-            )
+    def test_skips_missing_artifact(self):
+        out = StringIO()
+        call_command(
+            "bootstrap_at_risk_registry",
+            "--artifact", "/no/such/path.joblib",
+            "--operator-username", self.op.username,
+            stdout=out,
+        )
+        self.assertIn("does not exist", out.getvalue())
+        self.assertEqual(AtRiskModelArtifact.objects.count(), 0)
 
-    def test_refuses_unknown_operator(self):
-        with self.assertRaises(CommandError):
-            call_command(
-                "bootstrap_at_risk_registry",
-                "--artifact", self.path,
-                "--operator-username", "nope_does_not_exist",
-                stdout=StringIO(),
-            )
+    def test_skips_unknown_operator(self):
+        out = StringIO()
+        call_command(
+            "bootstrap_at_risk_registry",
+            "--artifact", self.path,
+            "--operator-username", "nope_does_not_exist",
+            stdout=out,
+        )
+        self.assertIn("No operator user available", out.getvalue())
+        self.assertEqual(AtRiskModelArtifact.objects.count(), 0)
 
 
 class VerifyAiMlReadinessTests(TestCase):
