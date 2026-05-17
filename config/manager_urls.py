@@ -634,6 +634,10 @@ urlpatterns = [
         obs_views.api_weather_context,
         name="api_weather_context",
     ),
+    # Guided assistants for AI Center (siteconfig:ai_center). Listed after manager-only
+    # api/search/, api/health/, and observability routes so those keep precedence.
+    path("api/", include(("apps.api.urls", "api"), namespace="api")),
+    path("api/v1/", include(("apps.api.urls_v1", "api_v1"), namespace="api_v1")),
     path(
         "portal/",
         manager_legacy_surface_redirect,

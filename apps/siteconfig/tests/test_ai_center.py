@@ -195,3 +195,32 @@ class AICenterManagerControlPlaneTests(TestCase):
         self.assertIn('id="cp-main-content"', body)
         self.assertIn("data-rmc-ai-center", body)
         self.assertNotIn("Hreflang: emits per-locale", body)
+
+    def test_manager_registry_api_urls_resolve(self):
+        """AI Center on manager must bind assistants to /api/ai/* (not empty api_url)."""
+        for key in assistant_keys():
+            row = get_assistant(key)
+            self.assertIsNotNone(row, key)
+            name = row.get("api_url_name") or ""
+            self.assertTrue(name, f"{key} missing api_url_name")
+            url = reverse(name, urlconf="config.manager_urls")
+            self.assertTrue(
+                url.startswith("/api/"),
+                f"{key} resolved to {url!r}, expected /api/ prefix",
+            )
+
+    def test_manager_ai_center_assistants_have_api_urls_in_html(self):
+        u = User.objects.create_user(
+            username=f"mgr_ai_urls_{uuid.uuid4().hex[:8]}",
+            password="x" * 8,
+            is_staff=True,
+            is_superuser=True,
+        )
+        c = Client(HTTP_HOST=_MGR_HOST)
+        c.login(username=u.username, password="x" * 8)
+        path = reverse("siteconfig:ai_center", urlconf="config.manager_urls")
+        resp = c.get(path)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn('data-api-url="/api/ai/', body)
+        self.assertNotIn('data-api-url=""', body)
